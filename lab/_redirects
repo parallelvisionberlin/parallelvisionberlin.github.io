@@ -1,0 +1,6 @@
+# Links copied from the older parallelvisionlabel.com/lab/ deployment.
+# On pvlab.studio the static site root is the lab directory.
+# No fixed query string in the target: keep the requested tool and attribution.
+/lab/studio /studio 301
+/lab/studio/ /studio 301
+/lab/studio.html /studio 301

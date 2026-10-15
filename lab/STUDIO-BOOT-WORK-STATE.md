@@ -63,3 +63,9 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - The early Studio boot CSS reserves a stable root scrollbar gutter for the web Image workspace on desktop/tablet widths >=761px. Mobile remains unreserved so the floating composer stays centered; all other Studio tools keep the existing layout.
 - A mock-only browser regression tests the actual Studio HTML/CSS at 1440x900 and 390x844 before boot release, afterward and after a simulated increase in History height. Root/gallery/composer geometry remains constant and scrollY stays zero.
 - Account menu alignment tests use the usable page geometry when a reserved scrollbar is active. No generation, provider, payment, authentication, or gallery data code changed.
+
+## October 16 incorrect shared Studio URL
+- Incoming `https://pvlab.studio/lab/studio?tool=image&utm_source=chatgpt.com` uses the legacy `/lab/` prefix on the new domain; canonical production path verified by the existing domain smoke workflow is `https://pvlab.studio/studio?tool=image`.
+- Added Cloudflare Pages output `lab/_redirects` for `/lab/studio`, `/lab/studio/`, and `/lab/studio.html` to `/studio` (301), without injecting new query parameters. The source link's query should be preserved, but this requires an HTTP redirect check after Pages deployment.
+- This is a static routing compatibility rule only. No changes to sign-in, payment, inference, JS startup or account migration.
+- Baseline main: `e34854e6d55e0fba36e71faac130b238be2addfa`. Confirm actual custom-domain redirect and corrected UI on the active Pages deployment before declaring the broken route fixed in production.
