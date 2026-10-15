@@ -1455,3 +1455,71 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
   #app.upscale-studio-active .upscale-model-chevron,
   #app.upscale-studio-active #upscale-model-trigger{transition:none}
 }
+
+/* 2026-10-16: quiet Image settings popover, not a full-width composer expansion.
+   Desktop opens directly above the Options trigger. Native app keeps its
+   existing in-deck drawer, which mobile-ui.js deliberately re-parents. */
+#image-composer .composer-more-anchor{position:relative;display:inline-flex;align-items:center;flex:0 0 auto;z-index:130}
+#image-composer .composer-more-anchor > #composer-options{
+  position:absolute;inset:auto 0 calc(100% + 12px) auto;
+  box-sizing:border-box;width:min(330px,calc(100vw - 36px));
+  max-height:min(62dvh,460px);margin:0;padding:16px;
+  border:1px solid #484c48;border-radius:15px;
+  background:#1d1f1e;box-shadow:0 20px 62px #000b;
+  z-index:140;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+}
+#image-composer #composer-options .composer-panel-head{margin:0 0 15px}
+#image-composer #composer-options .composer-panel-head strong{font-size:13px;font-weight:650;letter-spacing:-.01em}
+#image-composer #composer-options .composer-panel-head button{width:26px;height:26px;min-height:26px;flex-basis:26px;font-size:17px}
+#image-composer #composer-options-fields{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+#image-composer #composer-options-fields > label{flex:0 0 auto;width:100%;max-width:100%;margin:0}
+#image-composer #composer-options-fields #reference-list{max-height:160px}
+#image-composer #composer-options-fields #reference-guidance{max-height:180px;overflow:auto}
+#image-composer #composer-options .composer-exact-prompt{
+  margin:10px 0 0;padding:13px 0 10px;gap:11px;align-items:center;
+  border:0;border-top:1px solid #373a37;border-radius:0;background:none;
+}
+#image-composer #composer-options .composer-exact-prompt span{gap:5px}
+#image-composer #composer-options .composer-exact-prompt strong{font-size:12px;font-weight:640;color:#eee}
+#image-composer #composer-options .composer-exact-prompt small{font-size:11px;line-height:1.4;color:#9fa69f}
+#image-composer #composer-options .composer-exact-prompt input{
+  appearance:none;-webkit-appearance:none;position:relative;flex:0 0 33px;
+  width:33px;height:19px;margin:0;border:1px solid #656b66;
+  border-radius:99px;background:#3a3f3b;transition:background .15s ease,border-color .15s ease;
+}
+#image-composer #composer-options .composer-exact-prompt input:before{
+  content:'';position:absolute;left:2px;top:2px;width:13px;height:13px;
+  border-radius:50%;background:#e5e9e3;transition:transform .15s ease;
+}
+#image-composer #composer-options .composer-exact-prompt input:checked{background:#68795b;border-color:#9aae88}
+#image-composer #composer-options .composer-exact-prompt input:checked:before{transform:translateX(14px)}
+#image-composer #composer-options .composer-exact-prompt input:focus-visible{outline:2px solid #f4f5ef;outline-offset:3px}
+#image-composer #composer-options .composer-exact-prompt input:disabled{opacity:.45}
+#image-composer #composer-session-tools{margin-top:5px;padding-top:10px;border-top:1px solid #373a37}
+#image-composer #composer-session-tools summary{
+  display:flex;justify-content:space-between;align-items:center;cursor:pointer;
+  list-style:none;padding:4px 0;color:#abb0aa;font-size:11px;font-weight:550;
+}
+#image-composer #composer-session-tools summary::-webkit-details-marker{display:none}
+#image-composer #composer-session-tools summary span{font-size:17px;transition:transform .15s ease}
+#image-composer #composer-session-tools[open] summary span{transform:rotate(180deg)}
+#image-composer #composer-session-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:9px}
+#image-composer #composer-session-actions > #save,
+#image-composer #composer-session-actions > #clear{
+  flex:1 1 auto;min-height:34px;padding:8px 11px;margin:0;
+  border:1px solid #484b47;border-radius:8px;background:#272a27;
+  color:#d7dbd5;font-size:11px;font-weight:550;
+}
+#image-composer #composer-session-actions > button:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:740px){
+  #image-composer .composer-more-anchor{position:static}
+  #image-composer .composer-more-anchor > #composer-options{
+    left:10px;right:10px;bottom:calc(100% + 10px);width:auto;
+    max-height:min(58dvh,410px);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #image-composer #composer-options .composer-exact-prompt input,
+  #image-composer #composer-options .composer-exact-prompt input:before,
+  #image-composer #composer-session-tools summary span{transition:none}
+}

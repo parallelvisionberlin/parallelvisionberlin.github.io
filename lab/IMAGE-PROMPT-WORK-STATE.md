@@ -27,3 +27,13 @@
 - UI regression verifies that switching from a photo-loaded Seedream deck to Controlled Pose keeps comparable dimensions and that guidance is accessible and does not leak after switching back.
 - Updated files: `lab/lab.js`, `lab/studio.html`, `tests/lab-studio-layout-ui.mjs`, `lab/IMAGE-PROMPT-WORK-STATE.md`.
 - CI/deployment status: pending verification after commit.
+
+## Compact Image settings (2026-10-16)
+- Source baseline on main: `e07740e3af1131ac103f6bf2721802ccae72a0b2`.
+- User screenshot showed a huge options panel, a redundant PNG/JPEG choice for PNG-only Seedream, and exposed disabled draft/reset buttons.
+- Desktop Image settings now anchors a 330px popover above the Options button instead of expanding the entire composer; Generate and gallery geometry are unchanged.
+- Native app re-parents this drawer inside its Create deck as before. Mobile web uses an above-composer flyout.
+- Only genuinely selectable model settings appear. Seedream, Flash, Kling, Qwen and Z-Image output PNG and never present an ignored format choice. Formats for other tools are unaffected.
+- Exact prompt stays optional. Save draft and Reset editor remain fully wired under a collapsed “Save or reset” disclosure; PV Soul strength-only settings hide this disclosure.
+- Changed scope: `lab/studio.html`, `lab/assets.css`, `lab/lab.js`, `tests/lab-studio-layout-ui.mjs`, this state file. No backend, pricing, image generation or user-data changes.
+- Mock browser regression added for Seedream menu layout, PNG visibility, Exact Prompt and unchanged Generate geometry; CI/deployed status to verify after commit.

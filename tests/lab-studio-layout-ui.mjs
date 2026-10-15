@@ -289,6 +289,29 @@ try{
     'Composition mode stays available before photos are uploaded');
   assert.equal(await x.page.locator('#image-composer-more').isVisible(),true,
     'Compact advanced settings are always accessible, without appearing only after uploads');
+  const beforeImageOptions=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
+  await x.page.click('#image-composer-more');
+  assert.equal(await x.page.locator('#composer-options').isVisible(),true,
+    'Image settings opens directly from the Options button');
+  assert.equal(await x.page.locator('#format-control').isVisible(),false,
+    'Seedream enforces PNG and must not offer an ignored JPEG option');
+  assert.equal(await x.page.locator('#composer-exact-prompt-option').isVisible(),true,
+    'Exact prompt remains available to reference-capable models');
+  assert.equal(await x.page.locator('#composer-session-tools').evaluate(el=>el.open),false,
+    'Draft and reset controls stay collapsed by default');
+  const compactOptions=await x.page.evaluate(()=>{
+    const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+    return {panel:rect('composer-options'),dock:rect('image-composer'),viewportHeight:innerHeight};
+  });
+  assert.ok(compactOptions.panel.width<=350&&compactOptions.panel.top>=0&&compactOptions.panel.bottom<=compactOptions.viewportHeight,
+    'Image settings must fit the viewport in a small anchored popover: '+JSON.stringify(compactOptions));
+  assert.ok(Math.abs(compactOptions.dock.height-beforeImageOptions)<=2,
+    'Opening settings must not expand or move the fixed Generate deck');
+  await x.page.locator('#composer-session-tools summary').click();
+  assert.equal(await x.page.locator('#save').isVisible(),true,'Save draft remains accessible on demand');
+  await x.page.click('#image-composer-more');
+  assert.equal(await x.page.locator('#composer-options').isVisible(),false,'The Options button closes the same popover');
+
   assert.equal(await x.page.locator('#composer-character').isVisible(),false,'No duplicate right-side references tile');
   await x.page.click('#composer-add-saved-toggle');
   assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs.');
