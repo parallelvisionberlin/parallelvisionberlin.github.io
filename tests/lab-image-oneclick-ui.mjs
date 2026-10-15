@@ -394,6 +394,11 @@ try{
   await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
   assert.equal(await x.page.locator('#composer-reference-intent').isVisible(),false,'Upload must not open a compulsory chooser');
   assert.match(await x.page.locator('#composer-reference-intent-toggle').innerText(),/Base image/);
+  await x.page.click('#composer-reference-intent-toggle');
+  assert.match(await x.page.locator('#composer-reference-intent').innerText(),/How would you like to create/);
+  assert.equal(await x.page.locator('#composer-reference-intent .reference-intent-choice').count(),2);
+  assert.equal(await x.page.locator('#composer-reference-intent').getByText('Same person').count(),0);
+  await x.page.click('#composer-reference-intent-close');
   assert.equal(await x.page.locator('.composer-reference-index').first().innerText(),'BASE');
   assert.equal(await x.page.locator('#image-composer-references .role-general').count(),2);
   assert.deepEqual(await x.page.locator('#image-composer-references .composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['none','none']);
@@ -428,11 +433,11 @@ try{
   assert.equal(await x.page.locator('.composer-reference-role').count(),3);
   await x.page.locator('.composer-reference-role').nth(0).selectOption('pose');
   await x.page.locator('.composer-reference-role').nth(1).selectOption('lighting');
-  await x.page.click('#composer-reference-intent-toggle');
-  await x.page.click('#composer-role-preview summary');
-  assert.match(await x.page.locator('#composer-role-preview-text').innerText(),/Reference 1 \[Pose only\]/);
-  assert.match(await x.page.locator('#composer-role-preview-text').innerText(),/REQUESTED IMAGE/);
-  await x.page.click('[data-reference-intent="base"]');
+  await clickAdvanced(x.page);
+  await x.page.click('#reference-guidance summary');
+  assert.match(await x.page.locator('#reference-guidance-text').innerText(),/Reference 1 \[Pose only\]/);
+  assert.match(await x.page.locator('#reference-guidance-text').innerText(),/REQUESTED IMAGE/);
+  await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="base"]');
   assert.equal(await x.page.locator('.composer-reference-index').first().innerText(),'BASE');
   assert.equal(await x.page.locator('.composer-reference-role').first().inputValue(),'lighting');
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
@@ -443,8 +448,9 @@ try{
 
   x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));await waitRefs(x.page,2);await ready(x.page);
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
-  await x.page.click('#composer-reference-intent-toggle');await x.page.click('#composer-reference-same-person');
+  await clickAdvanced(x.page);await x.page.click('#composer-reference-same-person');
   assert.deepEqual(await x.page.locator('.composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['identity','identity']);
+  assert.equal(await x.page.evaluate(()=>localStorage.getItem('pvlab:image-reference-mode:v1')),'references');
   await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['identity','identity']);
   assert.equal(x.accepted(),1);ok('Same person preset works in References only');assert.deepEqual(x.errors,[]);await x.context.close();
