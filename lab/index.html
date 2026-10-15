@@ -3,8 +3,21 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="PV Lab. Fashion. Reimagined. Create images, reinterpret photographs and bring them into motion.">
+<link rel="canonical" href="https://pvlab.studio/">
+<script>
+/* One public PV LAB address. Keep the legacy account-transfer route available
+   for the separately authenticated owner and any prior customer. */
+(()=>{
+  const host=location.hostname.toLowerCase();
+  if((host==='parallelvisionlabel.com'||host==='www.parallelvisionlabel.com')&&
+    /^\/lab\/(?:index\.html)?$/.test(location.pathname)){
+    location.replace('https://pvlab.studio/'+location.search+location.hash);
+  }
+})();
+</script>
+
 <meta name="theme-color" content="#141310"><title>PV Lab · Fashion. Reimagined.</title>
-<meta property="og:title" content="PV Lab · Fashion. Reimagined."><meta property="og:description" content="Create images, reinterpret photographs and bring them into motion."><meta property="og:image" content="https://parallelvisionlabel.com/lab/visuals/leather-editorial/hero-desktop.webp">
+<meta property="og:title" content="PV Lab · Fashion. Reimagined."><meta property="og:description" content="Create images, reinterpret photographs and bring them into motion."><meta property="og:image" content="https://pvlab.studio/visuals/leather-editorial/hero-desktop.webp">
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./visuals/leather-editorial/hero-desktop.webp" as="image" media="(min-width:701px)" fetchpriority="high">
