@@ -1,4 +1,4 @@
-import {MOODS,moodPreviewURL} from './moods.js?filmOptics=2&app=5&raveNight=3&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
+import {MOODS,moodPreviewURL} from './moods.js?filmOptics=2&app=5&raveNight=3&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1';
 import {preparePhotoInput} from './photo-input.js?v=1';
 const $=id=>document.getElementById(id),detail=$('mood-detail'),button=$('continue-create');
 let selected=null,file=null,photoURL='',opener=null,quote=null,revision=0,timer=null,expiry=null,service=null,serviceLoading=null,needsSignIn=false,sending=false,completed=false,photoRevision=0;
@@ -42,7 +42,7 @@ $('deck-form').onsubmit=async event=>{
   finally{sending=false;$('close-detail').disabled=false;$('back-detail').disabled=false;}
 };
 try{
- const order=['dreamcore','midnight-reverie','90s-cinema','synthetic-romance'];
+ const order=['dreamcore','dream-blur','midnight-reverie','90s-cinema','synthetic-romance'];
  const moods=[...MOODS].sort((a,b)=>(order.includes(a.id)?order.indexOf(a.id):100)-(order.includes(b.id)?order.indexOf(b.id):100));
  $('count').textContent=moods.length+' LOOKS';
  for(const mood of moods){const card=document.createElement('button');card.className='mood-card';card.dataset.mood=mood.id;card.setAttribute('aria-label','Explore '+mood.name);const frame=document.createElement('span');frame.className='card-image';const img=document.createElement('img');img.src=moodPreviewURL(mood);img.onerror=()=>{img.onerror=null;img.src=mood.preview;};img.alt='';img.loading=$('mood-grid').children.length<4?'eager':'lazy';img.decoding='async';img.width=420;img.height=560;frame.append(img);const copy=document.createElement('span');copy.className='card-copy';const name=document.createElement('span');name.className='card-name';name.textContent=mood.name;const action=document.createElement('span');action.className='card-action';action.innerHTML='Try this look <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18m-6-6 6 6-6 6"/></svg>';copy.append(name,action);card.append(frame,copy);card.onclick=()=>openMood(mood,card);$('mood-grid').append(card);}

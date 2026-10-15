@@ -10,16 +10,27 @@ const HONG_KONG_REFERENCES=Object.freeze([
 ].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/hong-kong-nights/'+ref.file,
   label:Object.freeze({name:'Hong Kong Nights style - '+ref.file,role:'style',note:ref.note})})));
 
+
+const DREAM_BLUR_REFERENCES=Object.freeze([
+  {file:'01-blue-eye-light-memory.jpg',type:'image/jpeg',note:'OPTICS ONLY: eye landmark under broad cyan camera-motion sweeps; thin warm light line and uneven analogue grain. Never borrow face, eyes or hair.'},
+  {file:'02-silhouette-blue-room.jpg',type:'image/jpeg',note:'OPTICS ONLY: moving highlights across black silhouette and real cool interior exposure. Preserve Base people, framing and place; do not copy the silhouette.'},
+  {file:'03-city-light-trails.jpg',type:'image/jpeg',note:'OPTICS ONLY: imperfect handheld shutter streaks, scattered hot cores and dark negative space; never add a city or cars to another scene.'},
+  {file:'04-abstract-cyan-exposure.jpg',type:'image/jpeg',note:'OPTICS ONLY: broad cobalt/cyan exposure sweep, layered halation, fine red-orange flecks and pushed grain. Adapt color to actual scene, not a fixed blue filter.'}
+].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/dream-blur/'+ref.file,
+  label:Object.freeze({name:'Dream Blur style - '+ref.file,role:'style',note:ref.note})})));
+
 export function isMoodStyleReference(label){
-  return label?.role==='style'&&(HONG_KONG_REFERENCES.some(ref=>ref.label.name===label.name)||['01-traffic-grain.png','04-warm-lamp.png'].some(file=>label.name==='Hong Kong Nights style - '+file));
+  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCES.some(ref=>ref.label.name===label.name)||['01-traffic-grain.png','04-warm-lamp.png'].some(file=>label.name==='Hong Kong Nights style - '+file));
 }
 
 export function moodReferencePlan(settings){
-  if(settings?.type!=='image'||settings.mode!=='image'||settings.moodId!=='hong-kong-nights'||!['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine))
+  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur'].includes(settings.moodId)||!['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine))
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
-  const references=HONG_KONG_REFERENCES.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
-  if(labels.length+references.length>10)throw Error('Hong Kong Nights includes four Style references. Keep at most six of your own images, or choose another Mood.');
+  const source=settings.moodId==='dream-blur'?DREAM_BLUR_REFERENCES:HONG_KONG_REFERENCES;
+  const moodLabel=settings.moodId==='dream-blur'?'Dream Blur':'Hong Kong Nights';
+  const references=source.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
+  if(labels.length+references.length>10)throw Error(moodLabel+' includes four Style references. Keep at most six of your own images, or choose another Mood.');
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
   // Add the four canonical Style photos without rewriting the selected Mood.
   // Check the full provider prompt, including the full/compact role map.
@@ -50,14 +61,14 @@ export function createMoodReferenceLoader({upload,fetchFile=fetch}){
         if(!pending){
           pending=(async()=>{
             const response=await fetchFile(ref.url,{credentials:'omit',signal:AbortSignal.timeout(30000)});
-            if(!response.ok)throw Error('A Hong Kong Nights Style reference could not load. Please try again.');
+            if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':'Hong Kong Nights')+' Style reference could not load. Please try again.');
             const blob=await response.blob();
-            if(!blob.size)throw Error('A Hong Kong Nights Style reference is empty. Please try again.');
+            if(!blob.size)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':'Hong Kong Nights')+' Style reference is empty. Please try again.');
             check();
             const file=new File([blob],ref.label.name,{type:ref.type});
             const result=await upload(file);
             const id=typeof result==='string'?result:result?.id;
-            if(!id)throw Error('A Hong Kong Nights Style reference could not upload. Please try again.');
+            if(!id)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':'Hong Kong Nights')+' Style reference could not upload. Please try again.');
             return {id,file};
           })();
           cache.set(ref.url,pending);
