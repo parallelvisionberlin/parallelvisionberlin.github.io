@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="pv-studio-boot-lock">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <script>
@@ -20,12 +20,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"><style id="lab-boot-style">
+/* This is an isolated viewport while the Studio authenticates and restores its route.
+   Hide the underlying document scrollbar until the 240ms splash exit has ended. */
+html.pv-studio-boot-lock,html.pv-studio-boot-lock body{overflow:hidden!important;overscroll-behavior:none!important}
+html.pv-studio-boot-lock{scroll-behavior:auto!important}
 /* Visible before the external scripts and stylesheets load. No remote imagery or icon fonts. */
 body.lab-booting{margin:0;background:#101114}
-#lab-boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#121316 0%,#08090a 73%);color:#ededee;font-family:"DM Sans","Helvetica Neue",Arial,sans-serif}
+#lab-boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#121316 0%,#08090a 73%);color:#ededee;font-family:"Helvetica Neue",Arial,sans-serif}
 .lab-boot-content{width:min(360px,calc(100vw - 56px));text-align:center;transform:translateY(-1.5vh)}
 .lab-boot-brand{display:flex;flex-direction:column;align-items:center;justify-content:center}
-.lab-boot-wordmark{position:relative;display:block;white-space:nowrap;padding-left:.24em;font-family:"Space Grotesk","DM Sans","Helvetica Neue",Arial,sans-serif;font-size:clamp(25px,3.2vw,33px);font-weight:400;letter-spacing:.24em;line-height:1.24;color:#ececef;will-change:filter,transform,opacity}
+.lab-boot-wordmark{position:relative;display:block;white-space:nowrap;padding-left:.24em;font-family:"Helvetica Neue",Arial,sans-serif;font-size:clamp(25px,3.2vw,33px);font-weight:400;letter-spacing:.24em;line-height:1.24;color:#ececef;will-change:filter,transform,opacity}
 .lab-boot-wordmark::before{content:attr(data-text);position:absolute;inset:0;pointer-events:none;white-space:nowrap;color:#ededee;opacity:0}
 .lab-boot-sub{display:block;margin-top:9px;padding-left:.34em;font-size:7px;font-weight:500;letter-spacing:.34em;color:#9b9ba1}
 .lab-boot-track{width:min(152px,45vw);height:1px;background:#343538;margin:29px auto 0;overflow:hidden}
@@ -49,8 +53,32 @@ html.pv-native-route-pending #app{visibility:hidden!important}
 </style>
 <script>
 if(window.__PV_LAB_NATIVE__===1)document.documentElement.classList.add('pv-native-route-pending');
-(()=>{if(new URLSearchParams(location.search).get('tool')==='retouch'){history.scrollRestoration='manual';window.scrollTo(0,0);}let timer=window.setTimeout(()=>{if(document.body?.classList.contains('lab-ready')||!document.getElementById('app')?.hidden)return;const status=document.getElementById('lab-boot-status'),retry=document.getElementById('lab-boot-retry');if(status){status.textContent='This is taking longer than expected.';status.classList.add('is-slow');}if(retry)retry.hidden=false;},16000);
-window.__pvLabFinishBoot=()=>{window.clearTimeout(timer);document.body.classList.add('lab-ready');};
+(()=>{
+// Never restore an old Image/Fashion page offset behind the loading overlay.
+history.scrollRestoration='manual';
+window.scrollTo(0,0);
+const root=document.documentElement;
+let bootUnlockTimer=0;
+const scheduleBootUnlock=()=>{
+  window.clearTimeout(bootUnlockTimer);
+  if(!root.classList.contains('pv-studio-boot-lock')||
+     !document.body?.classList.contains('lab-ready')||
+     root.classList.contains('pv-native-route-pending')||
+     root.classList.contains('pv-studio-route-pending'))return;
+  const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  bootUnlockTimer=window.setTimeout(()=>{
+    if(!document.body?.classList.contains('lab-ready')||
+       root.classList.contains('pv-native-route-pending')||
+       root.classList.contains('pv-studio-route-pending'))return;
+    // The overlay is already invisible. Reveal normal document scrolling only now.
+    window.scrollTo(0,0);
+    root.classList.remove('pv-studio-boot-lock');
+  },reduceMotion?0:280);
+};
+// Native route selection can complete later than auth; unlock once the last guard clears.
+new MutationObserver(scheduleBootUnlock).observe(root,{attributes:true,attributeFilter:['class']});
+let timer=window.setTimeout(()=>{if(document.body?.classList.contains('lab-ready')||!document.getElementById('app')?.hidden)return;const status=document.getElementById('lab-boot-status'),retry=document.getElementById('lab-boot-retry');if(status){status.textContent='This is taking longer than expected.';status.classList.add('is-slow');}if(retry)retry.hidden=false;},16000);
+window.__pvLabFinishBoot=()=>{window.clearTimeout(timer);document.body.classList.add('lab-ready');scheduleBootUnlock();};
 document.addEventListener('DOMContentLoaded',()=>{
   const retry=document.getElementById('lab-boot-retry');
   if(retry)retry.onclick=()=>location.reload();
@@ -769,7 +797,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div id="archive-rest-anchor"></div>
 <section class="archive"><div class="archivehead"><div><p class="eyebrow">Private archive</p><h2>History</h2></div><div><p>Results, drafts and active jobs in one place.<br>In Select mode, click anywhere on a card to add or remove it.</p><div class="history-head-actions"><select id="assets-kind" aria-label="Asset type"><option value="all">All media</option><option value="image">Images</option><option value="video">Videos</option></select><button id="history-select" class="text-button" type="button">Select</button><button id="refresh" class="text-button" type="button">Refresh</button></div></div></div><div id="history-selection" class="history-selection" hidden><span id="history-selection-count">0 selected</span><button id="history-select-all" class="text-button" type="button">Select all visible</button><button id="history-archive-selected" class="text-button" type="button" disabled>Archive</button><button id="history-add-folder" class="text-button" type="button" disabled>Add to folder</button><button id="history-remove-folder" class="text-button" type="button" hidden>Remove from folder</button><button id="history-delete-selected" class="history-delete-selected" type="button" disabled>Delete selected</button><button id="history-cancel-select" class="text-button" type="button">Cancel</button></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" type="button" aria-live="polite" hidden>Load earlier work</button></section>
 </div>
-<noscript><style>#lab-boot{display:none!important}body>header,body>main,body>footer{visibility:visible!important}</style><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
+<noscript><style>html.pv-studio-boot-lock,html.pv-studio-boot-lock body{overflow:auto!important}#lab-boot{display:none!important}body>header,body>main,body>footer{visibility:visible!important}</style><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
 </main>
 <footer class="pv-lab-footer" aria-label="PV LAB footer">
   <div class="pv-lab-footer__grid">
