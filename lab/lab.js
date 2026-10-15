@@ -219,7 +219,12 @@ const UPSCALE_MODELS=Object.freeze({
 });
 let sourcePixels=0, sourceWidth=0, sourceHeight=0;
 let ratioSourceKey='';
-let imageReferenceMode='base';
+const IMAGE_REFERENCE_MODE_PREFERENCE='pvlab:image-reference-mode:v1';
+function preferredImageReferenceMode(){
+  try{return localStorage.getItem(IMAGE_REFERENCE_MODE_PREFERENCE)==='references'?'references':'base';}
+  catch{return 'base';}
+}
+let imageReferenceMode=preferredImageReferenceMode();
 let referenceIntentOpen=false;
 let myMoods=null;
 const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-composer-moods'),getEngine:()=>imageEngine,
@@ -243,27 +248,21 @@ function closeReferenceIntent(){
 function syncReferenceIntentUi(){
   const eligible=tool==='image'&&usesReferenceGuidance()&&references.length>0;
   const toggle=$('composer-reference-intent-toggle'),panel=$('composer-reference-intent');
+  const identityRefs=referencesOnly()?references:references.slice(1);
+  const identityButton=$('composer-reference-same-person');
+  identityButton.hidden=!eligible||(referencesOnly()?identityRefs.length<2:identityRefs.length<1);
+  identityButton.disabled=busy;
+  identityButton.setAttribute('aria-pressed',String(identityRefs.length>0&&identityRefs.every(ref=>ref.role==='identity')));
   toggle.hidden=!eligible;toggle.disabled=busy;
   if(!eligible){closeReferenceIntent();return;}
   toggle.textContent=(referencesOnly()?'References only':'Base image')+' ⌄';
   toggle.title=referencesOnly()?'Create a new composition using all images as references.':'Build on the first image. Your prompt can change anything.';
   toggle.setAttribute('aria-expanded',String(referenceIntentOpen));
   panel.hidden=!referenceIntentOpen;
-  $('reference-intent-count').textContent=references.length+' image'+(references.length===1?'':'s')+' attached. Switch modes without losing roles or notes.';
-  $('reference-intent-help').textContent=referencesOnly()?'Each image is a reference. Choose specific roles on thumbnails only when you need more control.':'The first image is the base. Other photographs can guide specific changes through their role menus.';
   for(const button of panel.querySelectorAll('[data-reference-intent]')){
     button.setAttribute('aria-pressed',String(button.dataset.referenceIntent===imageReferenceMode));
     button.disabled=busy||(imageEngine==='kling'&&button.dataset.referenceIntent==='references');
   }
-  const identityRefs=referencesOnly()?references:references.slice(1);
-  const identityButton=$('composer-reference-same-person');
-  identityButton.disabled=busy||!identityRefs.length;
-  identityButton.setAttribute('aria-pressed',String(identityRefs.length>0&&identityRefs.every(ref=>ref.role==='identity')));
-  const guidance=imageGuidance();
-  $('composer-role-preview-count').textContent=guidance.prompt.length.toLocaleString()+' / 5,000 characters';
-  $('composer-role-preview-text').textContent=guidance.prompt||'Write a direction to preview the exact reference guidance.';
-  $('composer-role-preview-warning').textContent=guidance.error;
-  $('composer-role-preview-warning').hidden=!guidance.error;
 }
 function openReferenceIntent(){
   if(busy||tool!=='image'||!usesReferenceGuidance()||!references.length)return;
@@ -273,7 +272,9 @@ function openReferenceIntent(){
 function setImageReferenceMode(value){
   if(busy||!usesReferenceGuidance()||!['base','references'].includes(value)||(imageEngine==='kling'&&value==='references'))return;
   if(imageReferenceMode===value){closeReferenceIntent();update();return;}
-  imageReferenceMode=value;autoPreview=null;
+  imageReferenceMode=value;
+  try{localStorage.setItem(IMAGE_REFERENCE_MODE_PREFERENCE,value);}catch{}
+  autoPreview=null;
   closeReferenceIntent();renderReferences();syncDefaultRatio(!imageRatioExplicit);update();
 }
 function applySamePerson(){
@@ -288,7 +289,6 @@ $('composer-reference-intent-close').onclick=closeReferenceIntent;
 for(const button of $('composer-reference-intent').querySelectorAll('[data-reference-intent]'))
   button.onclick=()=>setImageReferenceMode(button.dataset.referenceIntent);
 $('composer-reference-same-person').onclick=applySamePerson;
-$('composer-reference-advanced').onclick=()=>{if(busy)return;closeReferenceIntent();toggleImageSettings(true);};
 document.addEventListener('pointerdown',event=>{
   if(referenceIntentOpen&&!event.target.closest('#composer-reference-intent,#composer-reference-intent-toggle'))closeReferenceIntent();
 });
@@ -978,7 +978,7 @@ function composerMove(id,target){
 }
 function syncComposerOptions(){
   const image=tool==='image',target=$('composer-options-fields');
-  for(const id of ['format-control','image-processing-control','soul-controls','soul-pro-settings','controlled-pose-settings','reference-list','reference-guidance','save','clear'])composerMove(id,image?target:null);
+  for(const id of ['format-control','image-processing-control','soul-controls','soul-pro-settings','controlled-pose-settings','reference-list','composer-reference-same-person','reference-guidance','save','clear'])composerMove(id,image?target:null);
   if(!image){$('reference-list').hidden=false;return;}
   target.dataset.engine=imageEngine;
   target.dataset.compact=String(imageEngine==='soul'&&!isReinterpret());
@@ -1232,7 +1232,7 @@ function syncImageReferences(){
         if(target.isBase){file=null;sourceId=null;release(sourceUrl);sourceUrl=null;sourceWidth=0;sourceHeight=0;sourcePixels=0;update();return;}
         const idx=references.indexOf(target);if(idx<0)return;
         closeInputPreview();releaseReference(target);references.splice(idx,1);
-        if(!references.length){imageReferenceMode='base';closeReferenceIntent();}
+        if(!references.length){imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();}
         if(imageEngine==='fal')poseMapSourceId=null;
         renderReferences();refreshInputPreview();update();
       };
@@ -1325,7 +1325,7 @@ function syncImageComposer(){
   $('image-composer-more').title=strengthOnly?'Adjust trained character identity strength':'Image options';
   $('composer-options').querySelector('.composer-panel-head strong').textContent=strengthOnly?'Identity strength':'Image options';
   $('image-composer-more').disabled=busy;
-  $('image-composer-more').hidden=['seedream','seedreamlite','flash','kling','qwen3','zspicy'].includes(imageEngine)||isSoul2()&&!hf.current();
+  $('image-composer-more').hidden=(['seedream','seedreamlite','flash','kling','qwen3','zspicy'].includes(imageEngine)&&!(usesReferenceGuidance()&&references.length>0))||isSoul2()&&!hf.current();
   const clearMood=$('image-composer-moods-clear');
   if(clearMood){
     clearMood.hidden=!moodUI.active();
@@ -2012,7 +2012,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){videoStartFrameHandoff=false;imageReferenceMode='base';closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){videoStartFrameHandoff=false;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
   if(window.__PV_LAB_NATIVE__===1)candidate=await preparePhotoInput(candidate,{maxBytes:20*1024*1024});
   if(!candidate)throw new Error('No image was provided. Drop a JPG, PNG or WebP photograph.');
@@ -2075,7 +2075,7 @@ function renderReferences(){
     }
     fields.append(note);
     const controls=document.createElement('div');controls.className='reference-actions';
-    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.onclick=()=>{if(busy)return;closeInputPreview();releaseReference(r);references.splice(i,1);if(!references.length){imageReferenceMode='base';closeReferenceIntent();}if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
+    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.onclick=()=>{if(busy)return;closeInputPreview();releaseReference(r);references.splice(i,1);if(!references.length){imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();}if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
     const up=document.createElement('button');up.type='button';up.textContent='Up';up.disabled=i===0||(usesReferenceGuidance()&&i===1&&references[0].role==='base');up.onclick=()=>{if(busy||i===0)return;closeInputPreview();[references[i-1],references[i]]=[references[i],references[i-1]];if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
     controls.append(up,remove);item.append(img,fields,controls);fragment.append(item);
   });
