@@ -4,7 +4,7 @@ import {createSessionRequest} from './session-request.js?v=20261015-first-login1
 const $=id=>document.getElementById(id);
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const STUDIO_HOSTS=new Set(['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev']);
-let clerk=null,busy=false,revision=0;
+let clerk=null,busy=false,revision=0,creditsMissing=false;
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 
 function destination(){
@@ -54,6 +54,7 @@ $('sign-in').addEventListener('click',async()=>{
 });
 $('enter').addEventListener('click',async()=>{
   if(busy||!clerk?.isSignedIn)return;
+  if(creditsMissing){enterStudio();return;}
   busy=true;const sessionId=clerk.session?.id;
   const button=$('enter');button.disabled=true;status('');
   $('enter-label').textContent='Preparing your account…';
@@ -74,7 +75,7 @@ $('enter').addEventListener('click',async()=>{
     if(session.balanceCredits<200){
       status('Your account is ready, but we could not verify the welcome credits. You can enter Studio or contact support.',true);
       $('enter-label').textContent='Open the Studio';
-      button.onclick=enterStudio;
+      creditsMissing=true;
       return;
     }
     status('200 credits added to your account. Opening your Studio.');
