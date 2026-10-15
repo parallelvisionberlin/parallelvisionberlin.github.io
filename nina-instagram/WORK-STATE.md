@@ -42,3 +42,12 @@ Updated: 2026-10-15
 - Vault retrieval now focuses on relevant conversation history, while leaving original records unchanged.
 - Mode remains tester with a single authorized sender; vault public URL remains disabled.
 - Preflight model tests succeeded. Next: run one real Instagram conversation and verify the outcome.
+
+## Human-paced delayed DM delivery (2026-10-15)
+- Active production IG Worker version: `30a4596b-f93c-4e65-9a45-dc51ea5aad98` (100% of traffic) as verified via Cloudflare API.
+- Cloudflare Cron Trigger now runs `* * * * *` (every minute, UTC). New IG-only D1 table `ig_reply_jobs` stores one pending job per sender.
+- Linked owner `@molinarimusic`: approx. 38 to 118 seconds of randomized delay before cron jitter. Other users, once PUBLIC mode is explicitly enabled with the required controls, use a variable 5-minute to 22.5-hour delay distribution.
+- Inbound texts are stored immediately, but the latest due job generates its response only at delivery time. Pending messages from one sender coalesce into a single latest turn. Existing signature checks, owner memory service binding, and normal outgoing at-most-once protections remain.
+- Checked mode: `tester`, one approved sender; public auto-replies remain OFF. This delay implementation does NOT itself enable replies to the general public.
+- Verified schedules and database schema, but an end-to-end live delayed reply needs one fresh Instagram tester DM.
+- Preserve Nina's affectionate, curious, self-possessed personality without obligatory questions or assistant-style boilerplate.
