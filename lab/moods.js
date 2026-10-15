@@ -2,6 +2,30 @@ import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from 
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
+    "id": "dream-blur",
+    "name": "Dream Blur",
+    "category": "Analog",
+    "preview": "/lab/mood-previews/dream-blur-20261015.jpg",
+    "description": "Long-exposure motion poetry, streaking real light, halation and tactile pushed-film grain",
+    "defaultIntensity": 78,
+    "direction": "DREAM BLUR / ANALOG SHUTTER MEMORY. Make one physically believable handheld long-exposure photograph from the supplied person or scene. Study the four attached Dream Blur Style photos for their shared optical language, NEVER for faces, objects, silhouettes or locations. The shutter moves while the lights expose: broad imperfect cyan, cobalt or ivory luminous smears with rare thin warm orange-red trails; streaks follow scene lights and camera movement, cutting diagonally or horizontally across the frame. Human presence slips in and out of definition, with some face or pose anchors still recognisable. The source can be an intimate eye close-up, motion-smeared fashion portrait, full-body silhouette or nearly abstract existing place. Analog imperfections matter: dense uneven pushed-film grain, black negative space, slight color fringing, creamy blown highlight cores, halation at actual bright lights and soft neighboring exposures. These four references show electric blue night, but ADAPT colors to the Base scene: retain credible amber, green, daylight or warm film spectra instead of painting every image cyan. Fashion-editorial and emotionally ambiguous, never computer graphics. Keep one frame, one body, real perspective, no invented lasers, tunnels, cars or copied backgrounds.",
+    "routing": "PHOTO READING: PORTRAIT OR EYE -> allow motion drag at hair, eyelashes, cheek contours and reflections, but retain a recognisable face/eye landmark. FULL BODY -> retain subject count, silhouette and pose, streak practical lights behind or across them. EMPTY SPACE -> abstract existing highlights with shutter movement and deep black gaps. BRIGHT DAY -> natural exposure drag, not arbitrary blue night. Style photos guide grain and optics only.",
+    "subtle": "1–34%: fine pushed-grain, minor handheld exposure drift, some practical light tails; most original details readable.",
+    "moderate": "35–69%: visible long-exposure sweep in the actual lights, soft partial subject smears, vivid contrast and imperfect color halation.",
+    "immersive": "70–89%: strong organic directional light trails, generous but plausible overexposure and cropped focus islands within wet-looking photographic grain; recognisable subject persists.",
+    "intense": "90–99%: intensely dragged shutter with elongated luminous stripes, subject dissolving into genuine optical motion but a face, gesture or original architecture still partly legible.",
+    "climax": "100%: near-abstraction through physically coherent camera movement and blown existing source lights, extreme luminous motion yet no doubled bodies or digitally drawn laser beams.",
+    "compact": "DREAM BLUR: a single real analog long-exposure exposure with moving handheld camera, light leaks and dragged practical highlights. The four Style reference photos guide photographic motion, never subject, faces or locations. Broad irregular cyan/blue or source-adaptive colored smears, occasional narrow ember-orange streaks, natural black negative space, luminous hot cores, optical halation, tactile pushed-35mm grain, partial silhouette and eye details. Not a flat blue overlay. Preserve Base identity, person count, pose and real scene; allow a partial optical smear across eyes and body without cloning anatomy.",
+    "compactRouting": "PORTRAIT -> recognisable landmark despite eye/hair drag; BODY -> one intact silhouette; PLACE -> moving existing lights. DAY -> natural dragged light, not artificial blue night.",
+    "compactSubtle": "gentle grain and slight practical-light drag",
+    "compactModerate": "obvious handheld shutter movement and scattered colored lights",
+    "compactImmersive": "expressive luminous streaks, rich shadows and recognisable motion-blurred figure",
+    "compactIntense": "aggressive analog light trails with partial facial and spatial recognition",
+    "compactClimax": "maximum real shutter movement, dreamy partial abstraction, no invented neon",
+    "avoid": "perfect crisp digital portrait, generic cyberpunk city, added laser graphics, uniform blue or magenta wash, AI plastic complexion, beauty retouch, cloned people, duplicate eyes, impossible anatomy, light streaks with no plausible source, hard digital edge glow, excessive soft white fog, fake film borders, visible text or logos",
+    "compactAvoid": "digital lasers, copied Style people or spaces, cloned faces, plastic skin, generic blue filter, fake light graphics, anatomy errors, invented objects"
+  },
+  {
     "id": "midnight-reverie",
     "name": "Midnight Reverie",
     "category": "Cinema",
@@ -300,7 +324,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   const finish=mood.id==='hong-kong-nights'&&filmFinish?filmFinishSettings(filmFinish):null;
-  const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance',midnightReverie=mood.id==='midnight-reverie';
+  const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance',midnightReverie=mood.id==='midnight-reverie',dreamBlur=mood.id==='dream-blur';
   // FIXED MOOD RECIPE: never switch between full/compact/ultra based on
   // direction length, reference count or whether a budget is almost exhausted.
   // Only the selected model and the Mood itself determine its established recipe.
@@ -309,6 +333,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   // because its four Style photos and their reference guidance must also fit.
   // Other compact presets below are existing authored recipes, not truncations.
   const lite=engine==='seedreamlite';
+  const compactDreamBlur=dreamBlur&&lite;
   const compactMidnight=midnightReverie&&lite;
   const ultraMidnight=midnightReverie&&lite;
   const compactHongKong=mood.id==='hong-kong-nights';
@@ -350,6 +375,14 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
         'Creative intensity '+intensity+'/100; cinematic generation instructions, NOT a pixel filter.',
         compact80s?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
       ].join(' ')
+      :dreamBlur
+        ?[
+          compactDreamBlur?mood.compact:mood.direction,
+          compactDreamBlur?mood.compactRouting:mood.routing,
+          'Shutter-drag intensity '+intensity+'/100: a single real photographed exposure, not graphics or a uniform filter.',
+          compactDreamBlur?mood['compact'+dreamcoreTier]:mood[dreamcoreKey],
+          'IDENTITY FIRST: preserve the Base person, face proportions, subject count, pose, wardrobe and original setting. Natural directional smear may partially obscure eyes and face, but do not clone or reconstruct a different individual.'
+        ].join(' ')
       :midnightReverie
         ?[
           ultraMidnight?mood.ultra:compactMidnight?mood.compact:mood.direction,
@@ -396,7 +429,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           ?'The first reference is the base photograph. Preserve identity, body, pose, clothes, camera and setting unless the user requests changes. Respect assigned roles.'
           :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
     :'Honor the requested subject and composition.';
-  const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactMidnight||ultraMidnight?mood.compactAvoid:compactHongKong?'flat green tint, direct flash unchanged, plastic skin, body halos, invented lamps, facial reshaping, flat fog, copied Style scenes':compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
+  const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamBlur||compactMidnight||ultraMidnight?mood.compactAvoid:compactHongKong?'flat green tint, direct flash unchanged, plastic skin, body halos, invented lamps, facial reshaping, flat fog, copied Style scenes':compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
   const budget=lite?3000:5000,over=prompt.length-budget;
   return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,...(finish?{filmFinish:finish}:{})},
     error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
@@ -461,6 +494,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const desktopGridColumns=5,initiallyVisibleRows=2;
   // Keep the full creative directions available while making the grid scannable.
   const captions={
+    'dream-blur':'Light leaks, motion, feelings',
     'midnight-reverie':'Flash-frozen, cobalt afterglow',
     'hong-kong-nights':'Emerald haze, night romance',
     'night-flash':'After-dark flash',
