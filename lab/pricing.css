@@ -417,3 +417,46 @@
   #pricing .lab-pricing-usage-note{font-size:10px;margin-top:10px}
   #pricing .lab-pricing-footnote{margin-top:10px}
 }
+
+
+/* Small on-demand estimate explanation, hover/focus/tap accessible. */
+#pricing .lab-pricing-usage-note{display:none}
+#pricing .lab-estimate-details{
+  position:relative;z-index:3;display:inline-flex;align-items:center;
+  justify-content:center;align-self:center;margin:-2px 0;
+  isolation:isolate;
+}
+#pricing .lab-estimate-toggle{
+  appearance:none;display:inline-flex;align-items:center;justify-content:center;
+  width:24px;height:24px;min-width:24px;min-height:24px;padding:0;
+  border:1px solid rgba(245,243,237,.35);border-radius:50%;
+  color:#aaa7a2;background:transparent;
+  font:500 11px/1 "DM Sans",Arial,sans-serif;
+  cursor:help;user-select:none;-webkit-user-select:none;
+  transition:color .18s,border-color .18s,background .18s;
+}
+#pricing .lab-estimate-details:is(:hover,:focus-within,.is-open)>.lab-estimate-toggle{
+  color:#f6f3ed;border-color:rgba(246,243,237,.82);
+  background:rgba(255,255,255,.06);
+}
+#pricing .lab-estimate-toggle:focus-visible{outline:2px solid #f6f3ed;outline-offset:3px}
+#pricing .lab-estimate-popover{
+  display:none;position:absolute;left:0;bottom:calc(100% + 9px);
+  z-index:4;width:min(325px,calc(100vw - 66px));
+  padding:15px 17px;border:1px solid #4a4947;
+  border-radius:5px;box-shadow:0 12px 34px rgba(0,0,0,.78);
+  background:#1a1a1a;color:#e0deda;
+  font:400 12px/1.55 "DM Sans",Arial,sans-serif;
+  letter-spacing:0;white-space:normal;text-align:left;
+  cursor:auto;user-select:text;-webkit-user-select:text;
+}
+#pricing .lab-estimate-details:is(:hover,:focus-within,.is-open)>.lab-estimate-popover{display:block}
+@media(min-width:761px) and (max-width:1100px){
+  #pricing .lab-estimate-popover{
+    left:auto;right:0;width:min(310px,calc(100vw - 66px));
+  }
+}
+@media(max-width:760px){
+  #pricing .lab-estimate-toggle{width:23px;height:23px;min-width:23px;min-height:23px}
+  #pricing .lab-estimate-popover{left:-36px;width:min(300px,calc(100vw - 66px));font-size:12px}
+}
