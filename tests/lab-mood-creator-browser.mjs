@@ -121,7 +121,11 @@ try{
     const image=new Image();image.src=src;await image.decode();
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   },flashOriginal);
-  assert.equal(await page.locator('#mc-look-preview').getAttribute('src'),ravePreview,'A late original cannot replace a different Mood');
+  const currentRavePreview=await page.locator('#mc-look-preview').getAttribute('src');
+  assert.match(currentRavePreview||'',/berlin-rave/i,
+    'A late Night Flash original cannot replace the current Berlin Rave Mood');
+  assert.doesNotMatch(currentRavePreview||'',/night-flash/i);
+  // The Berlin Rave grid thumbnail may legitimately upgrade to its HD detail during this wait.
   await page.locator('#mc-look-close').click();
   await page.waitForFunction(()=>!document.getElementById('mc-look-preview').hasAttribute('src'));
   pass('Closing and switching Moods ignores late image loads');
