@@ -507,6 +507,11 @@
   #pricing .lab-plan-usage{padding-top:5px}
 }
 @media (max-width:760px){
+  /* The info symbol now sits after the estimates. Anchor its popover to the
+     right so it cannot run past the mobile viewport. */
+  #pricing .lab-estimate-popover{
+    left:auto;right:0;width:min(270px,calc(100vw - 60px));
+  }
   #pricing .lab-plan-usage-stats{font-size:12px;column-gap:9px;row-gap:4px}
   #pricing .lab-plan-usage{padding-top:7px}
   #pricing .lab-estimate-toggle{width:21px;height:21px;min-width:21px;min-height:21px}
