@@ -23,5 +23,16 @@ Initial implementation commits: 85db913, ea6d648, 90c7d985.
 - Not yet browser-tested with a signed-in account: hide/show, reload persistence, pending result reveal, modal interaction and mobile widths.
 - Source through commit c2f3b2f16bcab82f0ad2c4cc0f65b1bca422057e is published by the PV LAB custom domain, per production smoke checks.
 
+
+## October 15, evening: Option B position and shadow polish
+- User reported the eye shifting between gallery and hidden modes. Confirmed CSS cause: hidden mode applied display:none to Select and Refresh, causing the right-justified flex group to shrink and pull the eye right.
+- Updated lab/image-discreet.css: fixed grid tracks (eye / spacer / Select / Refresh), with independently reserved positions even when Select/Refresh are not visible. The eye retains its 34×32 outer size in both states.
+- Changed hidden Select/Refresh from display:none to visibility:hidden with pointer events disabled. Actions stay visually absent, but do not affect eye geometry or receive keyboard focus.
+- Eye symbols overlap inside their fixed container and transition only opacity and ~.98 scale. The outer control does not move.
+- Slightly separated eye from the two History actions, softer button shadow, restrained dusk-image vignette and centered label/icon shadow. Mobile grid uses tighter columns; reduced-motion preference disables transitions.
+- Bumped the stylesheet query version in lab/studio.html to image-discreet.css?v=20261015-depth2.
+- Updated pvlab-domain-smoke workflow to confirm the new CSS version and fixed grid, hidden-state visibility, vignette on the actual custom domain.
+- This is CSS-only behavior, no account/media/credit/API alterations. Browser interaction was not authenticated in-chat; live domain smoke and static build verify deployment, not UX in a real customer session.
+
 ## Handoff
-Next action: perform an authenticated desktop and mobile interaction test of the actual eye toggle and persisted preference. If a visual regression is found, edit only the Image Studio scoped assets and rerun production smoke.
+Next action: confirm production smoke after this CSS update, then do authenticated desktop/mobile eye toggles and refresh persistence. Do not change unrelated tools.
