@@ -27,7 +27,7 @@ html.pv-studio-boot-lock{scroll-behavior:auto!important}
 /* Visible before the external scripts and stylesheets load. No remote imagery or icon fonts. */
 body.lab-booting{margin:0;background:#101114}
 #lab-boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#121316 0%,#08090a 73%);color:#ededee;font-family:"Helvetica Neue",Arial,sans-serif}
-.lab-boot-content{width:min(360px,calc(100vw - 56px));text-align:center;transform:translateY(-1.5vh)}
+.lab-boot-content{position:relative;width:min(360px,calc(100vw - 56px));text-align:center;transform:translateY(-1.5vh)}
 .lab-boot-brand{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .lab-boot-wordmark{position:relative;display:block;white-space:nowrap;padding-left:.24em;font-family:"Helvetica Neue",Arial,sans-serif;font-size:clamp(25px,3.2vw,33px);font-weight:400;letter-spacing:.24em;line-height:1.24;color:#ececef;will-change:filter,transform,opacity}
 .lab-boot-wordmark::before{content:attr(data-text);position:absolute;inset:0;pointer-events:none;white-space:nowrap;color:#ededee;opacity:0}
@@ -35,8 +35,8 @@ body.lab-booting{margin:0;background:#101114}
 .lab-boot-track{width:min(152px,45vw);height:1px;background:#343538;margin:29px auto 0;overflow:hidden}
 .lab-boot-track:after{content:"";display:block;width:32%;height:100%;background:#d9dbdd;animation:pv-load 1.5s ease-in-out infinite alternate}
 .lab-boot-status{margin:0;max-height:0;opacity:0;overflow:hidden;font-size:11px;letter-spacing:.04em;color:#8d8f94}
-.lab-boot-status.is-slow{margin-top:20px;max-height:36px;opacity:1}
-#lab-boot-retry{margin-top:18px;padding:9px 15px;color:#ded9d2;background:transparent;border:1px solid #5a5657;border-radius:7px;cursor:pointer}
+.lab-boot-status.is-slow{position:absolute;top:calc(100% + 18px);left:0;width:100%;margin:0;max-height:36px;opacity:1}
+#lab-boot-retry{position:absolute;left:50%;top:calc(100% + 52px);transform:translateX(-50%);margin:0;padding:9px 15px;white-space:nowrap;color:#ded9d2;background:transparent;border:1px solid #5a5657;border-radius:7px;cursor:pointer}
 #lab-boot-retry[hidden]{display:none}
 /* Hold the logo perfectly sharp during loading, then smear it away once the Studio is ready. */
 @keyframes pv-boot-dismiss{0%,35%{opacity:1;visibility:visible}99%{opacity:.01;visibility:visible}100%{opacity:0;visibility:hidden}}
