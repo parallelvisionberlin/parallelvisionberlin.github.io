@@ -85,5 +85,6 @@ test('customer preview is read-only and public generation switches are deliberat
   assert.match(studio,/lab\.js\?v=[^"']+&wallet=1/);
   assert.match(lab,/customerImagePricing\?\.consume/);
   assert.match(lab,/\.kind==='bound'&&customerPriced\.provider==='spicy'/);
-  assert.match(lab,/button\.textContent='Generate · '/);
+  // The compact deck has an independent label. Assert the real label handoff, not a retired textContent assignment.
+  assert.match(lab,/generate\.querySelector\('\.composer-generate-label'\)\.textContent=generateActionLabel/);
 });
