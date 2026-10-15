@@ -168,3 +168,12 @@
 .pv-video-model-badge[data-tone="green"]{color:#b9e8be;background:#25452e;border-color:#447b4d}
 /* Sidebar card stays editorial and uncluttered; detailed copy belongs in picker. */
 #app.video-studio-active #video-model-control .video-price-hint{display:none!important}
+
+/* Restore the original video model fashion poster on both PV LAB domains.
+   The relative ../assets URL can resolve differently across deployments. */
+#app.video-studio-active #video-model-control{
+  background-image:linear-gradient(0deg,rgba(8,10,11,.91),rgba(8,10,11,.12)),url("https://parallelvisionlabel.com/assets/optimized/video/fashion-after-fabric/artists/elorian/multionetwo-poster.webp")!important;
+  background-position:center 35%!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
