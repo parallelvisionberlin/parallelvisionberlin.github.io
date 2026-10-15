@@ -179,7 +179,8 @@
 .mc-explore-page .mc-look-card.is-drag-over .mc-look-drop{opacity:1}
 .mc-explore-page .mc-look-card[data-mood-id="night-flash"] img{object-position:50% 45%}
 .mc-explore-page .mc-look-card[data-mood-id="fashion-editorial"] img{object-position:50% 35%}
-.mc-explore-page .mc-look-card[data-mood-id="berlin-rave"] img{object-position:50% top}
+.mc-explore-page .mc-look-card[data-mood-id="berlin-rave"] img{object-position:50% 50%}
+#mc-look-preview[data-mood-id="berlin-rave"]{object-position:50% 8%}
 /* Inset the screenshot edge while retaining the card's subtle hover motion. */
 .mc-explore-page .mc-look-card[data-mood-id="midnight-reverie"] img{transform:scale(1.05)}
 .mc-explore-page .mc-look-card[data-mood-id="midnight-reverie"]:hover img{transform:scale(1.075)}
