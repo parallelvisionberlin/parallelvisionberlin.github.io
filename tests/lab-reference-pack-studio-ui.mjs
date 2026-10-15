@@ -126,7 +126,17 @@ try{
   await refs(page,3);
   await page.locator('#composer-add-saved-toggle').click();
   await page.locator('#pack-studio-new').click();
+  assert.equal(await page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'false','A source must be chosen explicitly');
+  assert.equal(await page.locator('#pack-studio-previews .pack-studio-preview').count(),0);
+  assert.equal(await page.locator('#pack-studio-save').isDisabled(),true);
+  await page.locator('#pack-studio-from-deck').click();
   assert.equal(await page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('#pack-studio-previews .pack-studio-preview').count(),3);
+  assert.match(await page.locator('#pack-studio-create-status').textContent(),/3 photos selected/);
+  const cancelledChooser=page.waitForEvent('filechooser');
+  await page.locator('#pack-studio-from-device').click();
+  await (await cancelledChooser).setFiles([]);
+  assert.equal(await page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'true','Cancelling upload preserves current deck');
   assert.equal(await page.locator('#pack-studio-previews .pack-studio-preview').count(),3);
   await page.locator('#pack-studio-name').fill('My base and references');
   await page.locator('#pack-studio-save').click();

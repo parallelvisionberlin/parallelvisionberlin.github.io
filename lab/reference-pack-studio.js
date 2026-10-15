@@ -7,11 +7,11 @@ export function createReferencePackStudio({
 }){
   const $=id=>document.getElementById(id);
   const modal=$('pack-studio-dialog');
-  let stage='library',source='deck',files=[],saving=false;
+  let stage='library',source='none',files=[],saving=false;
   let sourceUploads=new WeakMap(),previewUrls=new Set(),currentSession=0;
   const maxPhotos=10,maxBytes=20*1024*1024;
   const fileKey=file=>[file.name,file.size,file.lastModified].join(':');
-  const photos=()=>source==='deck'?getReferences():files;
+  const photos=()=>source==='deck'?getReferences():source==='device'?files:[];
   const isOpen=()=>modal.open;
   function checkSession(start){
     if(!isOwner()||start!==session())throw new Error('Your account changed. Nothing saved.');
@@ -31,7 +31,7 @@ export function createReferencePackStudio({
     $('pack-studio-files').value='';
     $('pack-studio-name').value='';
     $('pack-studio-create-status').textContent='';
-    source=getReferences().length?'deck':'device';
+    source='none';
     renderCreate();
   }
   function makeCard(pack){
@@ -139,11 +139,15 @@ export function createReferencePackStudio({
     $('pack-studio-photo-count').textContent=count+' / 10 photos';
     $('pack-studio-photo-hint').textContent=source==='deck'
       ?'Your existing photo order, roles and notes will be saved without changing this Image deck.'
-      :'Original photographs stay private. All uploaded photos start as general references; you can assign roles after loading the pack.';
+      :source==='device'
+      ?'Original photographs stay private. All uploaded photos start as general references; you can assign roles after loading the pack.'
+      :'Choose Current Image deck or Upload from computer to add photographs.';
     const grid=$('pack-studio-previews');grid.replaceChildren();
     if(!count){
       const empty=document.createElement('p');empty.className='pack-studio-empty';
-      empty.textContent='Choose photographs from your computer to start this pack.';
+      empty.textContent=source==='none'
+        ?'Select a photo source above to begin.'
+        :'Choose photographs from your computer to start this pack.';
       grid.append(empty);
     }else{
       chosen.forEach((item,i)=>grid.append(makePreview(item,i)));
@@ -242,11 +246,20 @@ export function createReferencePackStudio({
     $('pack-studio-save').disabled=saving||isBusy()||!isOwner()||!$('pack-studio-name').value.trim()||n<1||n>maxPhotos;
   };
   $('pack-studio-from-deck').onclick=()=>{
-    if(saving||!getReferences().length)return;
-    source='deck';$('pack-studio-create-status').textContent='';renderCreate();
+    const count=getReferences().length;
+    if(saving||!count||count>maxPhotos)return;
+    source='deck';renderCreate();
+    $('pack-studio-create-status').textContent=count+' photo'+(count===1?'':'s')+' selected from the current Image deck.';
   };
   $('pack-studio-from-device').onclick=()=>{
-    if(!saving){source='device';renderCreate();$('pack-studio-files').click();}
+    if(saving)return;
+    if(source!=='device'&&files.length){
+      source='device';renderCreate();
+      $('pack-studio-create-status').textContent=files.length+' uploaded photo'+(files.length===1?'':'s')+' selected.';
+      return;
+    }
+    // Keep the current source if the user cancels the native file picker.
+    $('pack-studio-files').click();
   };
   $('pack-studio-files').onchange=()=>{
     addFiles($('pack-studio-files').files||[]);

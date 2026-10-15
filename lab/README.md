@@ -4,6 +4,7 @@ The Image Studio History eye control visually hides saved generations, pending r
 # Parallel Vision Lab
 
 Studio loading identity and motion work: [Studio boot work state](STUDIO-BOOT-WORK-STATE.md).
+Photo pack source-selection flow: [Photo Pack Studio work state](PHOTO-PACK-WORK-STATE.md).
 
 ## First-party public traffic meter (2026-10-15)
 

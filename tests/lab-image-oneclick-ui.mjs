@@ -564,6 +564,9 @@ try{
 
  x=await workspace();await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);
  await x.page.click('#composer-add-saved-toggle');await x.page.click('#pack-studio-new');
+ assert.equal(await x.page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'false');
+ assert.equal(await x.page.locator('#pack-studio-previews .pack-studio-preview').count(),0);
+ await x.page.click('#pack-studio-from-deck');
  assert.equal(await x.page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'true');
  assert.equal(await x.page.locator('#pack-studio-previews .pack-studio-preview').count(),3);
  await x.page.fill('#pack-studio-name','My preserved base and identities');
