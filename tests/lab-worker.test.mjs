@@ -625,7 +625,8 @@ test('Seedream uses SpicyAPI with ordered images, compiled properties and reusab
     assert.equal(response.status,200,await response.clone().text());const q=await response.json();
     assert.equal(q.provider,'SpicyAPI');assert.equal(q.settings.provider,'spicy');assert.equal(q.settings.engine,'seedream');
     assert.deepEqual(quotedRequest.input.image_urls.map(uri=>staged.get(uri.split('/').at(-1)).bytes.at(-1)),[1,2,3,4]);
-    assert.equal(quotedRequest.input.prompt,compileImagePrompt(settings.prompt,labels));
+    assert.equal(quotedRequest.input.prompt,compileImagePrompt(settings.prompt,labels,settings));
+    assert.match(quotedRequest.input.prompt,/IDENTITY FIRST/);
     assert.match(quotedRequest.input.prompt,/Reference 2 \[Detail \/ Hands\]/);assert.match(quotedRequest.input.prompt,/Reference 3 \[Clothing \/ Coat \/ jacket\]/);
     assert.deepEqual(q.settings.referenceSourceIds,ids);assert.deepEqual(q.settings.referenceRoles,labels);assert.equal(createCount,before);
     const general={...imageSettings,engine:'seedream',prompt:'Recreate this editorial scene in a different palette.',referenceMode:'base',referenceRoles:[{role:'base'},...ids.slice(1).map(()=>({role:'none'}))]};
