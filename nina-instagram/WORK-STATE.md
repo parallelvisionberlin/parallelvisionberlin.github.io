@@ -3,47 +3,48 @@
 Updated: 2026-10-15
 
 ## Objective
-Connect @ninafok2000 Instagram messaging to a dedicated Cloudflare Worker with Nina's public personality, isolated memory, and safe reply delivery.
+Connect @ninafok2000 Instagram messaging to isolated Cloudflare memory and Nina's public artistic persona, with controlled tester delivery before public rollout.
 
 ## Production infrastructure
-- Meta app: Nina FOK, Instagram Login with Instagram messaging permissions and webhook subscriptions.
-- Worker: `nina-instagram` on `nina-instagram.parallelvision.workers.dev`.
-- Webhook: `/webhook`. HMAC-SHA256 signature verification uses `META_APP_SECRET`.
-- Active Cloudflare Worker version: `e657bdb8-6be8-45fb-b8ec-683feda3557e`, verified 100% deployment.
-- D1 binding: `IG_MEMORY_DB` -> `nina-instagram-memory`.
-- Workers AI binding: `AI`. Model is Llama 3.3 70B Instruct FP8 Fast.
-- Secrets: `META_VERIFY_TOKEN`, `META_APP_SECRET`, `INSTAGRAM_ACCESS_TOKEN`. Do not store values in GitHub.
-- The existing Nina Worker and `nina-fok-memory` database are NOT used for Instagram messaging.
+- Meta app: Nina FOK. Published Instagram Login app; webhook `/webhook` verified with Meta.
+- Cloudflare Worker: `nina-instagram` at `https://nina-instagram.parallelvision.workers.dev/webhook`.
+- Production version: `6e750848-8c06-4566-be39-30c9321700bc` deployed at 100% on 2026-10-15.
+- Bindings: `AI` (Workers AI), `IG_MEMORY_DB` (D1 `nina-instagram-memory`), `INSTAGRAM_ACCESS_TOKEN`, `META_APP_SECRET`, `META_VERIFY_TOKEN` (encrypted).
+- Inference: `@cf/meta/llama-3.3-70b-instruct-fp8-fast`.
+- Original Nina/Anam Worker and the private `nina-fok-memory` D1 database are untouched and isolated.
 
-## Verified milestones
-- Meta webhook verification and Meta sample events succeeded on 2026-10-14.
-- Three real Instagram tester DMs arrived, were stored, and produced three AI drafts on 2026-10-15.
-- Conversational recall on the third draft correctly identified the tester's first question.
-- Auto-send code uploaded, staged, deployed, and verified on 2026-10-15; outbound real-world delivery NOT YET tested.
+## Verified functionality
+- Meta webhook verification and simulated message tests passed.
+- Real incoming Instagram DMs store by IG-scoped user, draft with Workers AI, and send via Meta.
+- 13 outbound DM attempts were accepted by Meta with HTTP 200 before the latest personality patch. A tester confirmed actual replies in the Instagram chat.
+- Three early test DMs demonstrated same-sender context recall; quality was imperfect.
+- Recent tester transcript on 2026-10-15 showed repetitive capability disclaimers, promotional language and defensive responses.
 
-## Current sending safeguards
-- `ig_autoreply_config.mode = 'tester'`. This is NOT public auto-reply mode.
-- `ig_autoreply_testers` contains exactly one authorized Instagram tester from the original test.
-- Only that tester may receive automatic replies; no auto intro has been added.
-- Per-message outgoing attempts reserved in `ig_send_attempts` before calling Meta's official `POST https://graph.instagram.com/v26.0/{ig_user_id}/messages` endpoint.
-- Responses are recorded as outgoing in `ig_messages` only when Meta acknowledges a sent message.
-- No automatic retries on uncertain send outcomes; old drafts are never sent retroactively.
-- STOP/START opt-out logic, a 25-per-day draft cap, and outgoing rate limits exist.
-- Credentials remain encrypted in Cloudflare secrets; neither IDs nor private DM content are logged by send code.
+## Quality fix deployed 2026-10-15
+- Replaced generic AI-assistant persona with a conversational Nina: concise, curious, dry humor, art/romance conversation without moralizing.
+- Explicitly avoids repeated technical explanations, overpromotion of Alejandro, baseless public-reputation claims, and hostile/condescending retorts.
+- If Meta provides the sender's Instagram username or public display name, the Worker now retrieves it and includes it as unverified profile metadata, without treating it as authenticated real-world identity.
+- D1 `ig_contacts` has `ig_username`, `ig_display_name`, `profile_last_checked_at`; profile lookup only when interacting and at most about once per day per user.
+- History window expanded from 12 to 28 messages. `memory_summary` exists but automatic long-term summarization is NOT yet implemented.
+- A second AI pass or small conversational fallback replaces common robotic replies when detected.
+- Raised tester daily/burst limits to permit legitimate rapid conversation testing. Sending remains controlled by D1 allowlist and at-most-once `ig_send_attempts`.
+- No generic automatic introduction was added. When explicitly asked if AI/digital, Nina answers transparently in character.
 
-## Remaining tasks
-1. Ask the authorized Instagram tester to send a NEW DM to Nina.
-2. Query D1 `ig_send_attempts`, `ig_processing`, `ig_messages` for success/failure; check Cloudflare telemetry without exposing private identifiers.
-3. Confirm the reply actually appears in Instagram, and test response continuity across another DM.
-4. Before expanding to the general public, implement an EU AI Act Article 50-compatible, unobtrusive first-interaction disclosure and update Nina Instagram privacy notice accordingly; do not assume the privacy page alone provides notice.
-5. Resolve applicable Meta public messaging permission/access review if needed. Switch to public sending only after checks and user approval.
+## Current safeguards
+- `ig_autoreply_config.mode = tester`; one authorized tester only. Public auto replies disabled.
+- No sending of older drafts or automatic retries after uncertain outcomes.
+- STOP/START optout and D1 per-message send reservations remain.
+- EU legal transparency for automated public DMs remains a separate pre-public-launch requirement.
+- Nina privacy page updated to mention optional public sender username/display-name processing.
 
-## Site legal resources
-- `nina-instagram/privacy/index.html` on parallelvisionlabel.com
-- `nina-instagram/data-deletion/index.html` on parallelvisionlabel.com
-- Instagram-specific privacy text updated for approved tester auto-reply mode.
+## Next step
+1. Authorized tester sends a new DM asking for the visible profile name or a normal conversation question.
+2. Check D1 for the draft, outgoing send status, the username/display-name retrieval result, and answer quality.
+3. If Meta does not provide profile name, retain honest natural fallbacks; do not invent it.
+4. Continue persona testing on several turns, especially music, personal curiosity, frustration, and repeated questions.
+5. Only after user approval and transparency review, consider public sending; do not assume being Published in Meta enables broad app permissions.
 
-## Important boundaries
-- Keep Nina's casual artistic persona. No generic customer-service intro.
-- Never alter PV LAB or the original Nina Anam Worker to adjust Instagram.
-- Do not promise public replies until an actual public-account messaging test succeeds.
+## Site and privacy
+- `nina-instagram/privacy/index.html`
+- `nina-instagram/data-deletion/index.html`
+- Cloudflare is the deployed code source; there is no GitHub-managed automatic deploy for this Worker yet.
