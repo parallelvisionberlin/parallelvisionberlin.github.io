@@ -1784,7 +1784,7 @@ test('Seedream 5 Lite quotes and submits both text and reference edit with exact
   const txt=await req(env,'/api/quotes',{method:'POST',data:{settings:lite,referenceSourceIds:[]}});
   assert.equal(txt.status,200,await txt.clone().text());
   const p=await txt.json();
-  assert.equal(p.creditCost,17,'Image pricing remains 460 credits per USD');
+  assert.equal(p.creditCost,20,'SpicyAPI image retail prices round up to five-credit steps');
   assert.equal(quotedRequest.model,'bytedance/seedream-5.0-lite/text-to-image');
   assert.equal(quotedRequest.input.size,'2848*1600');
   assert.equal(quotedRequest.input.resolution,undefined);
@@ -1804,8 +1804,8 @@ test('Seedream 5 Lite quotes and submits both text and reference edit with exact
   assert.equal(createCount,1);
   const submittedJob=(await submit.json()).job;
   assert.equal(submittedJob.settings.engine,'seedreamlite');
-  assert.equal(submittedJob.settings.customerChargeCredits,17,'Job history keeps its exact quoted credits');
-  assert.equal(submittedJob.creditCost,17);
+  assert.equal(submittedJob.settings.customerChargeCredits,20,'Job history keeps its exact rounded quoted credits');
+  assert.equal(submittedJob.creditCost,20);
   assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:editQuote.id,confirm:true}})).status,200);
   assert.equal(createCount,1,'One bound quote cannot create duplicate paid jobs');
 });
