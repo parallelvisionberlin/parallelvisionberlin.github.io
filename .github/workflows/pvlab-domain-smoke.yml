@@ -43,6 +43,7 @@ jobs:
             if curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/welcome?verify=20261015" -o /tmp/live-legacy-welcome.html \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio.html?verify=20261015" -o /tmp/live-studio.html \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio?tool=image&verify=20261015-canonical" -o /tmp/live-canonical-studio.html \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio?tool=fashion&verify=20261015-splash-lock" -o /tmp/live-fashion-studio.html \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio-credit-toast.css?verify=20261015" -o /tmp/live-toast.css \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/session-request.js?verify=20261015" -o /tmp/live-session-request.js \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/lab.js?verify=20261015-direct-tool" -o /tmp/live-studio-js \
@@ -53,7 +54,11 @@ jobs:
               && grep -Fq 'id="gate"' /tmp/live-canonical-studio.html \
               && grep -Fq 'canonicalStudio=20261015-1' /tmp/live-canonical-studio.html \
               && grep -Fq 'pv-studio-route-pending' /tmp/live-canonical-studio.html \
+              && grep -Fq '<html lang="en" class="pv-studio-boot-lock">' /tmp/live-fashion-studio.html \
+              && grep -Fq 'html.pv-studio-boot-lock{scroll-behavior:auto!important}' /tmp/live-fashion-studio.html \
+              && grep -Fq "history.scrollRestoration='manual';" /tmp/live-fashion-studio.html \
               && grep -Fq "document.documentElement.classList.add('pv-studio-route-pending')" /tmp/live-studio-js \
+              && grep -Fq "document.documentElement.classList.add('pv-studio-boot-lock')" /tmp/live-studio-js \
               && grep -Fq "browser.pathname!=='/studio'" /tmp/live-session-request.js \
               && grep -Fq 'pv-credit-toast.is-visible' /tmp/live-toast.css \
               && grep -Fq '/api/migration/new' /tmp/live-session-request.js \
