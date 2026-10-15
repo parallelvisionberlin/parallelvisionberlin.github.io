@@ -12,7 +12,8 @@ function destination(){
   const allowed=new Set(['/','/studio.html','/account.html','/fashion.html','/retouch.html','/mood-creator.html','/moods','/lab/','/lab/studio.html','/lab/account.html']);
   if(next&&next.startsWith('/')&&!next.startsWith('//')){
     const url=new URL(next,location.origin);
-    if(url.origin===location.origin&&allowed.has(url.pathname))return url.pathname+url.search+url.hash;
+    if(url.origin===location.origin&&allowed.has(url.pathname))
+      return url.pathname==='/'||url.pathname==='/lab/'?'./studio.html?tool=image':url.pathname+url.search+url.hash;
   }
   return './studio.html?tool=image';
 }
@@ -28,9 +29,15 @@ async function call(path,options={}){
   return data;
 }
 function enterStudio(){location.replace(destination());}
+function loadingError(error){
+  $('loading').hidden=false;
+  $('loading').textContent='We could not verify your account. Please reload and try again.';
+  $('auth').hidden=true;$('welcome').hidden=true;
+  status(error?.message||'Unable to load your account.',true);
+}
 async function refresh(){
   const current=++revision;
-  $('loading').hidden=false;$('auth').hidden=true;$('welcome').hidden=true;
+  $('loading').hidden=false;$('loading').textContent='Preparing your space…';$('auth').hidden=true;$('welcome').hidden=true;
   if(!STUDIO_HOSTS.has(location.hostname.toLowerCase())){location.replace('./studio.html?tool=image');return;}
   if(!clerk?.isSignedIn){
     $('loading').hidden=true;$('auth').hidden=false;return;
@@ -91,6 +98,6 @@ $('enter').addEventListener('click',async()=>{
 });
 try{
   clerk=await loadLabAccount();
-  clerk.addListener(()=>{void refresh().catch(error=>{if(clerk?.isSignedIn){$('loading').hidden=true;$('welcome').hidden=false;}status(error?.message||'Unable to load your account.',true);});});
+  clerk.addListener(()=>{void refresh().catch(loadingError);});
   await refresh();
-}catch{ $('loading').hidden=true;$('auth').hidden=false;status('Sign-in could not load. Please reload and try again.',true); }
+}catch(error){loadingError(error);}
