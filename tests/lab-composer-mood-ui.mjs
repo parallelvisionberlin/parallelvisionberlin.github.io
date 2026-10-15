@@ -318,7 +318,7 @@ try{
   await x.page.waitForFunction(()=>document.querySelector('#image-composer-model-label')?.textContent.includes('Nano'));
   const state=await x.page.evaluate(()=>{
     const controls=document.querySelector('.composer-controls'),box=controls.getBoundingClientRect();
-    const ids=['image-composer-add','image-composer-model','image-composer-edit-area','image-composer-moods','composer-reference-intent-toggle','image-composer-ratio','image-composer-resolution','image-composer-count','image-composer-more'];
+    const ids=['image-composer-add','composer-add-saved-toggle','image-composer-model','image-composer-edit-area','image-composer-moods','composer-reference-intent-toggle','image-composer-ratio','image-composer-resolution','image-composer-count','image-composer-more'];
     const visible=ids.map(id=>document.getElementById(id)).filter(el=>el&&!el.hidden&&el.getClientRects().length);
     const rects=visible.map(el=>({id:el.id,left:el.getBoundingClientRect().left,top:el.getBoundingClientRect().top,right:el.getBoundingClientRect().right}));
     const generate=document.getElementById('image-composer-generate');
