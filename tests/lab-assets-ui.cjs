@@ -317,7 +317,21 @@ assert.ok(videoPickerDesktop.width>=390&&videoPickerDesktop.width<=410,'Video pi
 assert.ok(videoPickerDesktop.top>=videoPickerDesktop.headerBottom+14,'Video picker stays below navigation: '+JSON.stringify(videoPickerDesktop));
 assert.equal(videoPickerDesktop.scrollable,true,'Only model rows scroll in the compact Video picker');
 assert.equal(videoPickerDesktop.searchInside,true,'Search stays inside the fixed menu header');
-assert.equal(await page.locator('.pv-video-model-group h3').count(),4,'Video models are grouped in curated sections');
+assert.deepEqual(await page.locator('.pv-video-model-group h3').allTextContents(),
+ ['Best value','Creative & motion','Advanced & high res'],'Video models are grouped by value and creative use');
+const videoModelsBeforeFilter=await page.locator('.pv-video-model-item').count();
+assert.equal(await page.locator('.pv-video-model-moderation-dot').count(),7,
+ 'Seven documented SpicyAPI routes have small purple uncensored markers');
+assert.equal(await page.locator('.pv-video-model-item[data-model="omni"] .pv-video-model-moderation-dot').count(),0,
+ 'FAL models must not display an uncensored marker');
+await page.locator('.pv-video-model-filter-toggle').click();
+assert.equal(await page.locator('.pv-video-model-filter-toggle').getAttribute('aria-pressed'),'true');
+assert.equal(await page.locator('.pv-video-model-item').count(),7,
+ 'Uncensored filter shows only the seven marked routes');
+await page.locator('.pv-video-model-filter-toggle').click();
+assert.equal(await page.locator('.pv-video-model-filter-toggle').getAttribute('aria-pressed'),'false');
+assert.equal(await page.locator('.pv-video-model-item').count(),videoModelsBeforeFilter,
+ 'Turning the filter off restores all available models');
 await page.fill('.pv-video-model-search-wrap input','wan 3.0');
 assert.equal(await page.locator('.pv-video-model-item').count(),2,'Video model search narrows results');
 await page.locator('.pv-video-model-item[data-model="wan"]').click();
