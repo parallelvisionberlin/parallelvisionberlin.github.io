@@ -3,6 +3,18 @@ on:
   pull_request:
     paths:
       - 'lab/fashion.*'
+      - 'lab/fashion-studio.js'
+      - 'lab/studio.html'
+      - 'lab/lab.js'
+      - 'tests/lab-fashion-ui.mjs'
+      - '.github/workflows/pv-lab-fashion-browser.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'lab/fashion.*'
+      - 'lab/fashion-studio.js'
+      - 'lab/studio.html'
+      - 'lab/lab.js'
       - 'tests/lab-fashion-ui.mjs'
       - '.github/workflows/pv-lab-fashion-browser.yml'
   workflow_dispatch:

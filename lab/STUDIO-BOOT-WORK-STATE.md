@@ -27,6 +27,10 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - New regression checks startup ordering and simulates authenticated Fashion while Image is provisionally present behind the loader.
 - No payments, credits, backend settings, providers, user data, gallery records or paid generation changed.
 - CI, live Pages publish and cross-device browser verification still require independent confirmation.
+- Deployment smoke now checks the actual published Studio HTML **and** `lab.js` for the route guard, rather than passing on an older cached deployment.
+- Backend health check accepts any compatible version from `2026-10-15.1` onward, instead of failing on new releases such as source version `2026-10-15.4`. Existing production CORS origin check remains mandatory.
+- Standalone mock-only Fashion browser coverage now runs automatically for Studio/Fashion changes on main, not only manual dispatch or pull requests.
+- CI and domain probes will determine the final publish status. No live provider calls or real payments are made by these workflow checks.
 
 ## Verification
 - Regression source asserts the still, crisp initial wordmark and exit animation after readiness, first paint, desktop/mobile bounds, and a hidden overlay after completion. Native Gallery test waits for the 240 ms exit.

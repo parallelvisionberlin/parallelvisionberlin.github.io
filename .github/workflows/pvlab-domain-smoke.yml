@@ -45,12 +45,15 @@ jobs:
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio?tool=image&verify=20261015-canonical" -o /tmp/live-canonical-studio.html \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio-credit-toast.css?verify=20261015" -o /tmp/live-toast.css \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/session-request.js?verify=20261015" -o /tmp/live-session-request.js \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/lab.js?verify=20261015-direct-tool" -o /tmp/live-studio-js \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://parallelvisionlabel.com/lab/?verify=20261015" -o /tmp/live-old-entry.html \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/?verify=20261015" -o /tmp/live-root.html \
               && grep -Fq "location.replace('./studio.html?tool=image')" /tmp/live-legacy-welcome.html \
               && grep -Fq 'id="pv-credit-toast"' /tmp/live-studio.html \
               && grep -Fq 'id="gate"' /tmp/live-canonical-studio.html \
               && grep -Fq 'canonicalStudio=20261015-1' /tmp/live-canonical-studio.html \
+              && grep -Fq 'pv-studio-route-pending' /tmp/live-canonical-studio.html \
+              && grep -Fq "document.documentElement.classList.add('pv-studio-route-pending')" /tmp/live-studio-js \
               && grep -Fq "browser.pathname!=='/studio'" /tmp/live-session-request.js \
               && grep -Fq 'pv-credit-toast.is-visible' /tmp/live-toast.css \
               && grep -Fq '/api/migration/new' /tmp/live-session-request.js \
@@ -74,14 +77,14 @@ jobs:
           set -euo pipefail
           curl -fsSL --retry 2 --retry-delay 2 --max-time 20 \
             "https://parallel-vision-lab.parallelvision.workers.dev/health" -o /tmp/health.json
-          node -e "const x=require('/tmp/health.json');if(!x.ok||x.version!=='pv-lab-2026-10-15.1-studio-account-linking')process.exit(1);console.log('PASS backend version',x.version)"
+          node -e "const x=require('/tmp/health.json');const v=String(x.version||'');const m=v.match(/^pv-lab-(\d{4}-\d{2}-\d{2})\.(\d+)-/);if(!x.ok||!m||m[1]<'2026-10-15'||(m[1]==='2026-10-15'&&Number(m[2])<1)){console.error('FAIL: incompatible backend health version',v);process.exit(1)}console.log('PASS backend version',v)"
           curl -fsSL --retry 2 --max-time 20 -X OPTIONS \
             -H 'Origin: https://pvlab.studio' \
             -H 'Access-Control-Request-Method: GET' \
             -H 'Access-Control-Request-Headers: authorization' \
             -D /tmp/cors-head -o /dev/null \
             "https://parallel-vision-lab.parallelvision.workers.dev/api/session"
-          grep -Eiq '^access-control-allow-origin: https://pvlab.studio' /tmp/cors-head
+          grep -Eiq '^access-control-allow-origin: https://pvlab.studio' /tmp/cors-head || { echo 'FAIL: PV LAB production CORS origin missing'; exit 1; }
           echo 'PASS: new-domain CORS allows only the configured PV LAB frontend.'
       - name: Report custom domain status without declaring it active
         shell: bash
