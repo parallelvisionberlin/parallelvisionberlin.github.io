@@ -287,8 +287,29 @@ try{
   assert.equal(await page.locator('#fashion-history [aria-pressed="true"]').count(),1);
   assert.ok(calls.some(c=>c.path.startsWith('/api/assets/')&&c.method==='GET'),'Private asset fetch is used for gallery previews');
   assert.equal(calls.some(c=>c.path==='/api/fashion/submit'),false,'Gallery viewing must never submit a paid job');
+  // Fashion is also embedded inside the Studio. The standalone page keeps
+  // its own footer; the embedded Shadow DOM must not bring in a second copy.
+  assert.equal(await page.locator('footer.pv-lab-footer').count(),1,
+    'Standalone Fashion retains its full footer');
+  await page.route(url=>url.pathname==='/lab/fashion.js'&&url.searchParams.get('v')==='20261010-gallery1',
+    route=>route.fulfill({status:200,contentType:'text/javascript',
+      body:'export function createFashionStudio(root){return {ready:Promise.resolve(),root};}'}));
+  const embedded=await page.evaluate(async()=>{
+    const host=document.createElement('section');host.id='fashion-embedded-footer-test';
+    document.body.append(host);
+    const {mountFashionStudio}=await import('./fashion-studio.js?footerRegression=1');
+    await mountFashionStudio(host,{});
+    return {
+      nestedFooters:host.shadowRoot.querySelectorAll('footer.pv-lab-footer').length,
+      globalFooters:document.querySelectorAll('footer.pv-lab-footer').length,
+      hasEditor:!!host.shadowRoot.querySelector('#fashion-form'),
+      hasGallery:!!host.shadowRoot.querySelector('#fashion-history')
+    };
+  });
+  assert.deepEqual(embedded,{nestedFooters:0,globalFooters:1,hasEditor:true,hasGallery:true},
+    'Embedded Fashion has its full editor and gallery, but Studio owns the only footer');
   assert.deepEqual(errors,[]);
-  console.log('PASS full-width Fashion thumbnail gallery below controls, responsive grid, pagination, real private previews, and no paid calls.');
+  console.log('PASS Fashion standalone footer remains, embedded footer is removed, and gallery and provider flows are unchanged.');
 }finally{
   await browser.close();await new Promise(ok=>server.close(ok));
 }
