@@ -67,6 +67,7 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  assert.ok(grid.wide>=grid.width*.95,'Landscape cards use the entire Gallery width');
  assert.ok(grid.third.x>grid.second.x&&Math.abs(grid.third.y-grid.second.y)<3,'Portrait cards form two actual columns');
  await page.locator('.native-test-card').evaluateAll(cards=>cards.forEach(c=>c.remove()));
+ await page.locator('#lab-boot').waitFor({state:'hidden',timeout:2000});
  assert.equal(await page.locator('#lab-boot').isVisible(),false,'Loading screen leaves when destination is ready');
  await page.evaluate(()=>window.__PV_LAB_COMMAND__({action:'create'}));
  await page.locator('#mobile-add-photo').waitFor({state:'visible'});

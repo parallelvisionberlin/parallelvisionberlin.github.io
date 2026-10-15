@@ -53,6 +53,7 @@ async function open(width,height){
   });
   await page.goto('http://127.0.0.1:4182/lab/studio.html?tool=video');
   await page.waitForFunction(()=>window.__layoutTest===true,{timeout:30000}).catch(e=>{console.error('STUDIO_BOOT_DIAGNOSTICS',JSON.stringify({errors,body:page.url()}));throw e;});
+  await page.locator('#lab-boot').waitFor({state:'hidden',timeout:2000});
   return {page,context,errors};
 }
 try{
@@ -432,7 +433,8 @@ try{
   assert.equal(await loaderLogo.innerText(),'PV LAB','Loader uses the PV LAB wordmark');
   assert.equal(await bootPage.locator('.lab-boot-sub').innerText(),'BY PARALLEL VISION','Brand attribution is understated');
   assert.equal(await loaderLogo.isVisible(),true,'Brand is present without downloading an image');
-  assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'pv-boot-focus','PV LAB focuses from motion blur into crisp type');
+  assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'none','PV LAB appears crisp at first paint');
+  assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).filter),'none','Brand is not blurred during loading');
   await bootPage.waitForTimeout(500);
   const bootGeometry=await loaderLogo.boundingBox();
   assert.ok(bootGeometry&&bootGeometry.x>=0&&bootGeometry.x+bootGeometry.width<=1440,'Brand stays inside the desktop viewport');
@@ -446,7 +448,9 @@ try{
   await loadingCdp.detach();
   releaseLabScript();
   await bootPage.waitForFunction(()=>window.__layoutTest===true);
-  assert.equal(await bootPage.locator('#lab-boot').isVisible(),false,'Boot overlay removed on mock auth resolution');
+  assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'pv-boot-out','Blur happens after Studio becomes ready');
+  await bootPage.locator('#lab-boot').waitFor({state:'hidden',timeout:2000});
+  assert.equal(await bootPage.locator('#lab-boot').isVisible(),false,'Boot overlay finishes its exit on mock auth resolution');
   await bootContext.close();
   console.log('PASS first paint, no broken image loading icon and delayed module');
 

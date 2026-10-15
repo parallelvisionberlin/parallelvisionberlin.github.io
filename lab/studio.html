@@ -25,24 +25,27 @@ body.lab-booting{margin:0;background:#101114}
 #lab-boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#121316 0%,#08090a 73%);color:#ededee;font-family:"DM Sans","Helvetica Neue",Arial,sans-serif}
 .lab-boot-content{width:min(360px,calc(100vw - 56px));text-align:center;transform:translateY(-1.5vh)}
 .lab-boot-brand{display:flex;flex-direction:column;align-items:center;justify-content:center}
-.lab-boot-wordmark{position:relative;display:block;white-space:nowrap;padding-left:.24em;font-family:"Space Grotesk","DM Sans","Helvetica Neue",Arial,sans-serif;font-size:clamp(25px,3.2vw,33px);font-weight:400;letter-spacing:.24em;line-height:1.24;color:#ececef;animation:pv-boot-focus .44s cubic-bezier(.18,.7,.25,1) both;will-change:filter,transform,opacity}
-.lab-boot-wordmark::before{content:attr(data-text);position:absolute;inset:0;pointer-events:none;white-space:nowrap;color:#ededee;animation:pv-boot-trail .44s ease-out both}
-.lab-boot-sub{display:block;margin-top:9px;padding-left:.34em;font-size:7px;font-weight:500;letter-spacing:.34em;color:#9b9ba1;animation:pv-boot-sub .46s ease-out both}
+.lab-boot-wordmark{position:relative;display:block;white-space:nowrap;padding-left:.24em;font-family:"Space Grotesk","DM Sans","Helvetica Neue",Arial,sans-serif;font-size:clamp(25px,3.2vw,33px);font-weight:400;letter-spacing:.24em;line-height:1.24;color:#ececef;will-change:filter,transform,opacity}
+.lab-boot-wordmark::before{content:attr(data-text);position:absolute;inset:0;pointer-events:none;white-space:nowrap;color:#ededee;opacity:0}
+.lab-boot-sub{display:block;margin-top:9px;padding-left:.34em;font-size:7px;font-weight:500;letter-spacing:.34em;color:#9b9ba1}
 .lab-boot-track{width:min(152px,45vw);height:1px;background:#343538;margin:29px auto 0;overflow:hidden}
 .lab-boot-track:after{content:"";display:block;width:32%;height:100%;background:#d9dbdd;animation:pv-load 1.5s ease-in-out infinite alternate}
 .lab-boot-status{margin:0;max-height:0;opacity:0;overflow:hidden;font-size:11px;letter-spacing:.04em;color:#8d8f94}
 .lab-boot-status.is-slow{margin-top:20px;max-height:36px;opacity:1}
 #lab-boot-retry{margin-top:18px;padding:9px 15px;color:#ded9d2;background:transparent;border:1px solid #5a5657;border-radius:7px;cursor:pointer}
 #lab-boot-retry[hidden]{display:none}
-@keyframes pv-boot-focus{0%{opacity:.28;filter:blur(8px);transform:translateX(-7px) scaleX(1.12)}54%{opacity:.85;filter:blur(2.5px);transform:translateX(-1px) scaleX(1.025)}100%{opacity:1;filter:blur(0);transform:none}}
-@keyframes pv-boot-trail{0%{opacity:.45;filter:blur(9px);transform:translateX(13px) scaleX(1.2)}54%{opacity:.19;filter:blur(5px);transform:translateX(4px) scaleX(1.07)}100%{opacity:0;filter:blur(0);transform:none}}
-@keyframes pv-boot-sub{0%,28%{opacity:0;transform:translateY(2px)}100%{opacity:1;transform:none}}
+/* Hold the logo perfectly sharp during loading, then smear it away once the Studio is ready. */
+@keyframes pv-boot-dismiss{0%,35%{opacity:1;visibility:visible}99%{opacity:.01;visibility:visible}100%{opacity:0;visibility:hidden}}
+@keyframes pv-boot-out{0%,12%{opacity:1;filter:blur(0);transform:none}55%{opacity:.82;filter:blur(3px);transform:translateX(-3px) scaleX(1.055)}100%{opacity:0;filter:blur(9px);transform:translateX(-12px) scaleX(1.17)}}
+@keyframes pv-boot-trail-out{0%,17%{opacity:0;filter:blur(0);transform:none}56%{opacity:.46;filter:blur(5px);transform:translateX(10px) scaleX(1.1)}100%{opacity:0;filter:blur(12px);transform:translateX(22px) scaleX(1.2)}}
 @keyframes pv-load{from{transform:translateX(-110%)}to{transform:translateX(335%)}}
 body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>header,body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>main,body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>footer{visibility:hidden}
-html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending) body:has(#app:not([hidden])) #lab-boot{display:none!important}
-html.pv-native-route-pending #lab-boot{display:flex!important}
+html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:pv-boot-dismiss .24s ease-out both;pointer-events:none}
+html:not(.pv-native-route-pending) body.lab-ready #lab-boot .lab-boot-wordmark,html:not(.pv-native-route-pending) body:has(#app:not([hidden])) #lab-boot .lab-boot-wordmark{animation:pv-boot-out .24s cubic-bezier(.3,.1,.55,1) both}
+html:not(.pv-native-route-pending) body.lab-ready #lab-boot .lab-boot-wordmark::before,html:not(.pv-native-route-pending) body:has(#app:not([hidden])) #lab-boot .lab-boot-wordmark::before{animation:pv-boot-trail-out .24s ease-out both}
+html.pv-native-route-pending #lab-boot{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;animation:none!important}
 html.pv-native-route-pending #app{visibility:hidden!important}
-@media(prefers-reduced-motion:reduce){.lab-boot-wordmark,.lab-boot-wordmark::before,.lab-boot-sub{animation:none!important;filter:none!important;transform:none!important}.lab-boot-wordmark::before{display:none}.lab-boot-track:after{animation:none;width:100%;background:#5a5657}}
+@media(prefers-reduced-motion:reduce){.lab-boot-wordmark,.lab-boot-wordmark::before,.lab-boot-sub{animation:none!important;filter:none!important;transform:none!important}.lab-boot-wordmark::before{display:none}.lab-boot-track:after{animation:none;width:100%;background:#5a5657}html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:none!important;opacity:0!important;visibility:hidden!important}}
 </style>
 <script>
 if(window.__PV_LAB_NATIVE__===1)document.documentElement.classList.add('pv-native-route-pending');
