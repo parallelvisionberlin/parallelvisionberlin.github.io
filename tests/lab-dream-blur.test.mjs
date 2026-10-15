@@ -11,7 +11,9 @@ test('Dream Blur is a curated Mood with actual user reference photography and a 
   assert.equal(mood.defaultIntensity,78);
   assert.equal(mood.category,'Analog');
   assert.match(mood.direction,/shutter|exposure/i);
-  assert.match(mood.direction,/ADAPT colors/);
+  assert.match(mood.direction,/Source-adaptive color/);
+  assert.match(mood.direction,/1980s\/1990s pushed 35mm/);
+  assert.match(mood.direction,/full-body image remains full-body/i);
   assert.equal(MOODS.length,16);
   const photo=statSync(new URL('..'+mood.preview,import.meta.url));
   assert.ok(photo.size>100000);
@@ -74,4 +76,22 @@ test('backend allows Dream Blur jobs and saves it as a My Moods foundation',()=>
  const boards=readFileSync(new URL('../lab-worker/moodboards.mjs',import.meta.url),'utf8');
  assert.match(worker,/IMAGE_MOOD_IDS=new Set\([^\n]+dream-blur/);
  assert.match(boards,/MOODBOARD_BUILTINS=new Set\([^\n]+dream-blur/);
+});
+
+test('even 100% Dream Blur keeps the original framing, body and room while increasing genuine analog texture',()=>{
+  for(const strength of [1,35,78,95,100]){
+    const x=prepareMoodPrompt('Keep this same standing person against the same wall.','dream-blur',strength,{engine:'seedream',referenceCount:1});
+    assert.equal(x.error,'');
+    assert.match(x.prompt,/framing|crop/i);
+    assert.match(x.prompt,/pose/);
+    assert.match(x.prompt,/35mm/);
+    assert.match(x.prompt,/IDENTITY FIRST/);
+    assert.match(x.prompt,/Style photographs|Style references|Style photos|Style reference/);
+    assert.doesNotMatch(x.prompt,/near-abstraction|subject dissolving into/);
+  }
+  const max=prepareMoodPrompt('Same full-body subject, same position.','dream-blur',100,{engine:'seedream',referenceCount:1});
+  assert.match(max.prompt,/100%: maximum real shutter streaks/);
+  assert.match(max.prompt,/DO NOT zoom into a headshot/);
+  const textOnly=prepareMoodPrompt('Night street scene','dream-blur',80,{engine:'seedream',referenceCount:0});
+  assert.equal(textOnly.error,'');
 });

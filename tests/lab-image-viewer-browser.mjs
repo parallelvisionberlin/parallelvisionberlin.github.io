@@ -51,6 +51,17 @@ try{
     const writes=[];
     const jobs=images.map((_,i)=>({id:'job-'+i,outputId:'out-'+i,status:'completed',favorite:false,createdAt:Date.now()-i,sourceId:i===1?'ref-0':undefined,
       settings:{type:'image',mode:'image',engine:'seedream',prompt:'Editorial portrait by the window. Warm lamplight, natural texture, quiet atmosphere. Preserve the existing composition and lighting, with understated styling and a photographic finish. Image '+i,resolution:'1k',aspectRatio:'auto',referenceSourceIds:i===1?Array.from({length:6},(_,n)=>'ref-'+n):[]}}));
+    // Regression: original Mood Style assets never appear in completed results.
+    jobs[2].sourceId='ref-0';
+    jobs[2].settings.moodId='dream-blur';
+    jobs[2].settings.referenceSourceIds=Array.from({length:5},(_,n)=>'ref-'+n);
+    jobs[2].settings.referenceRoles=[{name:'source-photo.jpg',role:'base'},
+      ...['01-blue-eye-light-memory.jpg','02-silhouette-blue-room.jpg','03-city-light-trails.jpg','04-abstract-cyan-exposure.jpg']
+        .map(name=>({name:'Dream Blur style - '+name,role:'style',note:'OPTICS ONLY'}))];
+    jobs[3].sourceId='ref-1';
+    jobs[3].settings.moodId='dream-blur';
+    jobs[3].settings.referenceSourceIds=['ref-1','ref-2','ref-3','ref-4'];
+    jobs[3].settings.referenceRoles=jobs[2].settings.referenceRoles.slice(1);
     await context.route('https://**/*',async route=>{
       const req=route.request(),url=new URL(req.url()),path=url.pathname;
       if(url.origin!=='https://parallel-vision-lab.parallelvision.workers.dev')return route.abort();
@@ -187,6 +198,19 @@ try{
     }
 
     await page.click('#image-lightbox-close');
+    if(shape==='landscape'){
+      await page.locator('#history .card').nth(2).evaluate(el=>el.click());
+      await page.waitForFunction(()=>document.querySelector('#image-lightbox').open&&
+        document.querySelectorAll('.image-detail-reference-item').length===1);
+      assert.equal(await page.locator('#image-detail-reference-caption').innerText(),'Source image');
+      await page.click('#image-lightbox-close');
+      await page.locator('#history .card').nth(3).evaluate(el=>el.click());
+      await page.waitForFunction(()=>document.querySelector('#image-lightbox').open&&
+        document.querySelector('#image-detail-reference-wrap').hidden);
+      assert.equal(await page.locator('.image-detail-reference-item').count(),0,
+        'Text-only Mood Style photos never appear as a fake source image');
+      await page.click('#image-lightbox-close');
+    }
     await page.evaluate(()=>{window.__viewerTest.customer();document.getElementById('lab-wallet-toggle').click();}); // Mobile hides the header balance; account-browser separately tests its visible entry.
     // Storage and account closure now live on the account page; lab-account-browser covers both.
     assert.equal(await page.locator('#lab-credits-dialog a').getAttribute('href'),'./account.html#billing','The compact purchase deck keeps account management reachable');
