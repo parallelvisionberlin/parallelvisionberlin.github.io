@@ -1,0 +1,53 @@
+name: PV LAB Clerk portal public configuration diagnostic
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pvlab-clerk-portal-config.yml'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Compare public Clerk environment and portal response (no credentials)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -sSL --max-time 20 -D /tmp/portal-headers -o /tmp/portal-body -w 'Account Portal HTTP: %{http_code}\n' \
+            -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/155 Safari/537.36' \
+            'https://accounts.pvlab.studio/sign-up'
+          echo 'Portal server headers (filtered):'
+          grep -iE '^(server:|cf-mitigated:|content-type:|x-clerk-|cf-ray:)' /tmp/portal-headers | sed -E 's/(cf-ray:).*$/\1 [redacted]/I' || true
+          echo 'Portal response type hints:'
+          node - <<'JS'
+          const fs=require('node:fs');
+          const body=fs.readFileSync('/tmp/portal-body','utf8').slice(0,3000);
+          console.log({
+            cloudflareChallenge:/just a moment|cf-chl|challenge-platform|attention required/i.test(body),
+            clerkPortal:/my application|clerk|sign.?up/i.test(body),
+            accessDenied:/access denied|403 forbidden|request blocked/i.test(body),
+            html:body.includes('<html')
+          });
+          JS
+          curl -fsSL --max-time 20 'https://clerk.pvlab.studio/v1/environment' -o /tmp/clerk-environment.json
+          node - <<'JS'
+          const x=require('/tmp/clerk-environment.json');
+          const a=x.auth_config||{}, d=x.display_config||{}, f=x.fraud_settings||{};
+          const primitive=(o,k)=>{const v=o?.[k];return typeof v==='boolean'||typeof v==='number'||typeof v==='string'&&v.length<50?v:undefined};
+          console.log('Public auth setting names:',Object.keys(a).sort());
+          console.log('Public fraud setting names:',Object.keys(f).sort());
+          console.log('Public sign-up gates:',{
+            sign_up_mode:primitive(a,'sign_up_mode'),
+            sign_up:primitive(a,'sign_up'),
+            user_sign_up_allowed:primitive(a,'user_sign_up_allowed'),
+            registration_mode:primitive(a,'registration_mode'),
+            allowlist:primitive(a,'allowlist'),
+            blocklist:primitive(a,'blocklist'),
+            captcha_enabled:primitive(a,'captcha_enabled'),
+            captcha_widget_type:primitive(f,'captcha_widget_type')
+          });
+          console.log('Clerk public app name:',primitive(d,'application_name'));
+          JS
