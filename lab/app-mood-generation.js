@@ -9,7 +9,7 @@ import {pricedBoundQuotes} from './image-credit-preview.js?v=20261010-customer-c
 // Reuse the authenticated Worker, original uploads, Mood recipes and bound quotes.
 // Browsing is public. Neither preparing a price nor selecting a photo submits a job.
 export function createAppMoodGeneration(){
-  let account=null,loading=null,revision=0;
+  let account=null,loading=null,revision=0,sourceSession=null,sourceUploads=new WeakMap();
   const request=createSessionRequest({baseUrl:'https://parallel-vision-lab.parallelvision.workers.dev',getSession:()=>account?.session});
   async function identity(){
     if(account)return account;
@@ -25,6 +25,18 @@ export function createAppMoodGeneration(){
   }
   const upload=file=>api('/api/uploads',{method:'POST',headers:{'Content-Type':file.type,'X-Filename':encodeURIComponent(file.name||'source.png')},body:file});
   const moodReferences=createMoodReferenceLoader({upload});
+  // An unchanged photograph is uploaded once per authenticated session, even
+  // if its direction is edited several times before final confirmation.
+  function uploadSourceOnce(file,sessionId){
+    if(sourceSession!==sessionId){sourceSession=sessionId;sourceUploads=new WeakMap();}
+    let pending=sourceUploads.get(file);
+    if(!pending){
+      pending=upload(file);
+      sourceUploads.set(file,pending);
+      pending.catch(()=>{if(sourceUploads.get(file)===pending)sourceUploads.delete(file);});
+    }
+    return pending;
+  }
   return {
     cancel(){revision++;},
     async onAccountChange(listener){return (await identity()).addListener(listener);},
@@ -34,27 +46,36 @@ export function createAppMoodGeneration(){
       if(!user.isSignedIn){const error=Error('Sign in to generate. Your photograph stays here.');error.code='SIGN_IN';throw error;}
       const sessionId=user.session.id;
       const check=()=>{if(stamp!==revision||!account?.isSignedIn||account.session?.id!==sessionId)throw Error('The photograph or session changed. Please try again.');};
-      const session=await api('/api/session');check();
+      // Image metadata and authenticated session validation can happen together.
+      const [session,dimensions]=await Promise.all([api('/api/session'),file?imageDimensions(file):Promise.resolve(null)]);check();
       if(session.customer&&!session.generationReady)throw Error('Image generation is not available for this account yet.');
       if(!session.config?.enabled)throw Error('Image generation is currently unavailable.');
       if(!file&&!direction.trim())throw Error('Add a photograph or describe what you want to create.');
-      const dimensions=file?await imageDimensions(file):null;check();
+      check();
       if(dimensions&&(Math.min(dimensions.width,dimensions.height)<240||Math.max(dimensions.width,dimensions.height)>8000||Math.max(dimensions.width/dimensions.height,dimensions.height/dimensions.width)>8))throw Error('Choose a photograph between 240 and 8,000 pixels per side.');
       const recipe=prepareMoodPrompt(direction,mood.id,mood.defaultIntensity||70,{engine:'seedream',referenceCount:file?1:0,referenceMode:'base'});
       if(recipe.error)throw Error(recipe.error);
       const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'1k',aspectRatio:file?'auto':'16:9',outputFormat:'png',referenceRoles:file?[normalizeReferenceLabel({name:file.name,role:'base'})]:[]};
       moodReferencePlan(settings); // Validate the complete prompt before any source or Style upload.
-      const original=file?await upload(file):null;check();
-      let transfer=original?.id;
-      let copy=file;
-      if(dimensions&&dimensions.width*dimensions.height>36000000){copy=await seedreamWorkingCopy(copy);check();}
-      if(copy&&copy.size>PROVIDER_IMAGE_LIMIT){copy=await providerWorkingCopy(copy);check();}
-      if(copy&&copy!==file){transfer=(await upload(copy)).id;check();}
-      const curated=await moodReferences.prepare(settings,{sessionKey:sessionId,check});check();
+      // Prepare the person's Base photo and four Mood Style photos in parallel.
+      // Quote is still requested only once all exact input IDs are validated.
+      const prepareBase=async()=>{
+        const original=file?await uploadSourceOnce(file,sessionId):null;check();
+        let transfer=original?.id,copy=file;
+        if(dimensions&&dimensions.width*dimensions.height>36000000){copy=await seedreamWorkingCopy(copy);check();}
+        if(copy&&copy.size>PROVIDER_IMAGE_LIMIT){copy=await providerWorkingCopy(copy);check();}
+        if(copy&&copy!==file){transfer=(await upload(copy)).id;check();}
+        return {original,transfer};
+      };
+      const [{original,transfer},curated]=await Promise.all([
+        prepareBase(),moodReferences.prepare(settings,{sessionKey:sessionId,check})
+      ]);check();
       const styleIds=curated.references.map(ref=>ref.id);
       const quote=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:[...(original?[original.id]:[]),...styleIds],transferSourceIds:[...(transfer?[transfer]:[]),...styleIds],settings:curated.settings}});check();
       if(!quote?.id||quote.settings?.engine!=='seedream'||quote.settings?.moodId!==mood.id||!Number.isFinite(quote.expiresAt)||quote.expiresAt<=Date.now()||!Number.isFinite(quote.maxUsd))throw Error('Could not verify the generation price. Try again.');
-      const label=session.customer?pricedBoundQuotes(quote,1,'SpicyAPI').credits+' credits':'$'+quote.maxUsd.toFixed(2)+' max';
+      // Owner and customer see the exact same server-bound retail credit cost.
+      // Owner testing is not a wallet charge; the label previews customer pricing.
+      const label=pricedBoundQuotes(quote,1,'SpicyAPI').credits+' credits';
       let submitted=false;
       return {label,expiresAt:quote.expiresAt,handoff(){check();if(submitted)throw Error('This request was already sent. Check Image.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');return {userId:user.user.id,quote,sourceId:original?.id||null};},async submit(){check();if(submitted)throw Error('This request was already sent. Check Gallery.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');submitted=true;return api('/api/jobs',{method:'POST',body:{quoteId:quote.id,confirm:true}});}};
     }

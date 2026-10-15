@@ -36,5 +36,10 @@ export function creditsForJobUsd(usd,settings={}){
   // Fixed introductory price for exact Google Nano Banana 2.1 routes only.
   if(isNano21Job(settings))return NANO21_CREDITS[settings.resolution];
   // All customer job quote amounts round upward. Minimum applies to all models.
-  return Math.max(7,Math.ceil(Math.round(usd*1000000)*creditsPerUsdForJob(settings)/1000000));
+  const calculated=Math.max(7,Math.ceil(Math.round(usd*1000000)*creditsPerUsdForJob(settings)/1000000));
+  // A real, non-fixed SpicyAPI image generation has one clear five-credit retail increment.
+  // This must match the LAB_DB lab_charge_job trigger in migration 0021.
+  // Existing quote ledgers remain immutable; do not round videos, upscales or fixed-price Nano.
+  return settings.type==='image'&&settings.provider==='spicy'&&settings.mode==='image'
+    ?Math.ceil(calculated/5)*5:calculated;
 }
