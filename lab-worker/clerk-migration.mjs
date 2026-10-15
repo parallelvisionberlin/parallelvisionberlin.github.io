@@ -36,12 +36,40 @@ export async function linkedStudioIdentity(env,subject){
   if(!SUBJECT.test(subject))fail(401,'Invalid PV LAB account.');
   return one(env,'SELECT canonical_id,kind FROM lab_clerk_identity_links WHERE new_subject=?',subject);
 }
+// A freshly auto-created V2 trial may later be linked to its original account
+// with the *same* verified two-session, one-time code. The trial must be unused:
+// never strand paid work, an existing gallery, a subscription or customer credits.
+function ownNewCustomer(identity){
+  return identity.issuer===STUDIO_ISSUER&&identity.kind==='customer'&&
+    identity.id==='user_PvLabV2'+identity.subject.slice(5);
+}
+async function disposableTrial(env,identity){
+  if(!ownNewCustomer(identity))return false;
+  const id=identity.id;
+  const wallet=await one(env,'SELECT balance_credits,stripe_customer_id FROM lab_customers WHERE id=?',id);
+  if(!wallet||wallet.balance_credits!==200||wallet.stripe_customer_id)return false;
+  const counts=await one(env,`
+    SELECT
+      (SELECT COUNT(*) FROM lab_credit_entries WHERE customer_id=?) AS entries,
+      (SELECT COUNT(*) FROM lab_credit_entries WHERE customer_id=? AND reference=? AND delta_credits=200 AND kind='adjustment') AS welcome,
+      (SELECT COUNT(*) FROM jobs WHERE owner_id=?) AS jobs,
+      (SELECT COUNT(*) FROM assets WHERE owner_id=?) AS assets,
+      (SELECT COUNT(*) FROM quotes WHERE owner_id=?) AS quotes,
+      (SELECT COUNT(*) FROM packs WHERE owner_id=?) AS packs,
+      (SELECT COUNT(*) FROM moodboards WHERE owner_id=?) AS moods,
+      (SELECT COUNT(*) FROM lab_subscriptions WHERE customer_id=?) AS subscriptions
+  `,id,id,'welcome:'+id,id,id,id,id,id,id);
+  return counts?.entries===1&&counts.welcome===1&&
+    !counts.jobs&&!counts.assets&&!counts.quotes&&!counts.packs&&!counts.moods&&!counts.subscriptions;
+}
+
 export async function migrationRoute(request,env,identity){
   const path=new URL(request.url).pathname,method=request.method;
   const old=identity.issuer===LEGACY_ISSUER,studio=identity.issuer===STUDIO_ISSUER;
   if(path==='/api/migration/status'&&method==='GET')
     return response({oldDomain:old,linked:!!identity.id,
-      kind:identity.kind||null,transferAvailable:old&&!!identity.id});
+      kind:identity.kind||null,transferAvailable:old&&!!identity.id,
+      relinkEligible:studio&&await disposableTrial(env,identity)});
   if(path==='/api/migration/issue'&&method==='POST'){
     if(!old||!identity.id||!['owner','customer'].includes(identity.kind))
       fail(403,'Sign in on the original PV LAB site to request a transfer code.');
@@ -66,7 +94,8 @@ export async function migrationRoute(request,env,identity){
     return response({linked:true,kind:'customer'},201);
   }
   if(path==='/api/migration/redeem'&&method==='POST'){
-    if(!studio||identity.id)fail(409,'This account is already linked.');
+    const trial=identity.id&&await disposableTrial(env,identity);
+    if(!studio||(identity.id&&!trial))fail(409,'This account already has work or is linked. Contact support before transferring an older account.');
     const code=await readCode(request),hash=await codeHash(code),t=Date.now();
     const ticket=await one(env,
       'SELECT canonical_id,kind FROM lab_clerk_migration_codes WHERE code_hash=? AND expires_at>?',hash,t);
@@ -79,11 +108,27 @@ export async function migrationRoute(request,env,identity){
       ).bind(ticket.canonical_id).first();
       if(!owner)fail(403,'The original owner account is no longer authorized.');
     }else fail(400,'Invalid account type.');
-    const results=await env.LAB_DB.batch([
-      env.LAB_DB.prepare(
+    const safeRelink=trial
+      ? env.LAB_DB.prepare(
+        "UPDATE lab_clerk_identity_links SET canonical_id=?,kind=? WHERE new_subject=? AND canonical_id=? AND kind='customer' "+
+        "AND EXISTS (SELECT 1 FROM lab_customers WHERE id=? AND balance_credits=200 AND stripe_customer_id IS NULL) "+
+        "AND (SELECT COUNT(*) FROM lab_credit_entries WHERE customer_id=?)=1 "+
+        "AND EXISTS (SELECT 1 FROM lab_credit_entries WHERE customer_id=? AND reference=? AND kind='adjustment' AND delta_credits=200) "+
+        "AND NOT EXISTS (SELECT 1 FROM jobs WHERE owner_id=?) "+
+        "AND NOT EXISTS (SELECT 1 FROM assets WHERE owner_id=?) "+
+        "AND NOT EXISTS (SELECT 1 FROM quotes WHERE owner_id=?) "+
+        "AND NOT EXISTS (SELECT 1 FROM packs WHERE owner_id=?) "+
+        "AND NOT EXISTS (SELECT 1 FROM moodboards WHERE owner_id=?) "+
+        "AND NOT EXISTS (SELECT 1 FROM lab_subscriptions WHERE customer_id=?)"
+      ).bind(ticket.canonical_id,ticket.kind,identity.subject,identity.id,
+        identity.id,identity.id,identity.id,'welcome:'+identity.id,
+        identity.id,identity.id,identity.id,identity.id,identity.id,identity.id)
+      : env.LAB_DB.prepare(
         'INSERT OR IGNORE INTO lab_clerk_identity_links(new_subject,canonical_id,kind,created_at) '+
         'SELECT ?,canonical_id,kind,? FROM lab_clerk_migration_codes WHERE code_hash=? AND expires_at>?'
-      ).bind(identity.subject,t,hash,t),
+      ).bind(identity.subject,t,hash,t);
+    const results=await env.LAB_DB.batch([
+      safeRelink,
       env.LAB_DB.prepare('DELETE FROM lab_clerk_migration_codes WHERE code_hash=?').bind(hash)
     ]);
     if(results[0]?.meta?.changes!==1)
