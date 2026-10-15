@@ -291,8 +291,14 @@ try{
     'Compact advanced settings are always accessible, without appearing only after uploads');
   assert.equal(await x.page.locator('#composer-character').isVisible(),false,'No duplicate right-side references tile');
   await x.page.click('#composer-add-saved-toggle');
-  assert.equal(await x.page.locator('#composer-library-title').textContent(),'Saved photo packs');
-  await x.page.click('#composer-library-close');
+  assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs.');
+  assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'Saved packs open an independent Soul-inspired library');
+  const packDialog=await x.page.locator('#pack-studio-dialog').evaluate(el=>{
+    const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width};
+  });
+  assert.ok(packDialog.width<=980&&packDialog.top>=12&&packDialog.bottom<=890,
+    'Library is centered and contained inside the viewport: '+JSON.stringify(packDialog));
+  await x.page.click('#pack-studio-close');
   const floatingChooser=x.page.waitForEvent('filechooser');
   await x.page.click('#image-composer-add');
   const imageChooser=await floatingChooser;
