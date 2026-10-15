@@ -115,3 +115,19 @@
   #lab-welcome-start .lab-welcome-preset small{margin:0;min-width:20px}
   #lab-welcome-start .lab-welcome-hint{margin-top:10px}
 }
+
+/* 2026-10-15: compact first-image chooser remains the settled desktop layout. */
+@media (min-width:701px){
+  #lab-welcome-start{width:min(100%,580px)!important;max-width:580px!important}
+  #lab-welcome-start h2{font-size:clamp(23px,2.2vw,29px)!important;margin-top:8px!important}
+  #lab-welcome-start .lab-welcome-subtitle{font-size:12px!important;margin-top:7px!important}
+  #lab-welcome-start .lab-welcome-balance{margin-top:11px!important;font-size:11px!important}
+  #lab-welcome-start .lab-welcome-presets{gap:9px!important;margin-top:16px!important}
+  #lab-welcome-start .lab-welcome-preset{
+    min-height:82px!important;padding:10px 12px!important;gap:0!important
+  }
+  #lab-welcome-start .lab-welcome-icon{width:17px!important;height:17px!important;margin-bottom:5px!important}
+  #lab-welcome-start .lab-welcome-preset small{font-size:9px!important;margin-bottom:5px!important}
+  #lab-welcome-start .lab-welcome-preset strong{font-size:12px!important}
+  #lab-welcome-start .lab-welcome-hint{margin-top:10px!important;font-size:10px!important}
+}
