@@ -110,10 +110,13 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
       if(!onboardingRequired(response))return response;
       const browser=studioBrowser();
       if(!browser)return response;
-      if(browser.pathname.endsWith('/connect-account.html'))return response;
-      if(browser.pathname!=='/studio.html') {
-        // A customer arriving from the homepage goes straight into Studio.
-        window.location.replace(new URL('/studio.html?tool=image',browser.origin).href);
+      if(browser.pathname.endsWith('/connect-account.html')||browser.pathname==='/connect-account')return response;
+      // Cloudflare Pages serves studio.html at the canonical extensionless
+      // /studio URL. Both forms represent the same authenticated workspace.
+      // Never redirect /studio back to /studio.html on a 409.
+      if(browser.pathname!=='/studio'&&browser.pathname!=='/studio.html') {
+        // A customer arriving from another page goes straight into Studio.
+        window.location.replace(new URL('/studio?tool=image',browser.origin).href);
         return response;
       }
       // Only the initial read-only session handshake may initialize a fresh

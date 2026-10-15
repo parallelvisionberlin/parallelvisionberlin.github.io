@@ -21,7 +21,7 @@ test('Only pvlab.studio enters Studio on a verified unlinked login; no second si
    const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>needsSetup()});
    assert.equal((await request('/api/session')).status,409);
    assert.equal(current.replaced.length,1);
-   assert.equal(new URL(current.replaced[0]).pathname,'/studio.html');
+   assert.equal(new URL(current.replaced[0]).pathname,'/studio');
   });
  }
  for(const host of ['parallelvisionlabel.com','www.parallelvisionlabel.com','evil.pvlab.studio']){
@@ -32,8 +32,9 @@ test('Only pvlab.studio enters Studio on a verified unlinked login; no second si
   });
  }
 });
-test('Studio initializes only from verified 409 on read-only authenticated session and verifies 200 before showing toast',async()=>{
- await inBrowser('pvlab.studio','/studio.html',async current=>{
+test('Both /studio and /studio.html initialize a verified new account in place, without navigation',async()=>{
+ for(const pathname of ['/studio','/studio.html']){
+ await inBrowser('pvlab.studio',pathname,async current=>{
   let initialized=false;const calls=[],grants=[];
   const fetchImpl=async(url,options)=>{
    const path=new URL(url).pathname;calls.push(path);
@@ -51,11 +52,44 @@ test('Studio initializes only from verified 409 on read-only authenticated sessi
   assert.equal(grants.length,1);
   assert.deepEqual(grants[0],{credits:200,ownerId:'user_PvLabV2Fresh',sessionId:'sess_fixture'});
   await request('/api/session');assert.equal(grants.length,1,'second login never repeats welcome');
-  assert.deepEqual(current.replaced,[],'existing Studio never redirects to welcome screen');
+  assert.deepEqual(current.replaced,[],pathname+': canonical Studio never redirects during setup');
+ });
+ }
+});
+test('Extensionless Studio handles already-created accounts and concurrent 409 without redirect loops',async()=>{
+ await inBrowser('pvlab.studio','/studio',async current=>{
+  const calls=[],grants=[];
+  let initialized=false;
+  const fetchImpl=async(url,options)=>{
+   const path=new URL(url).pathname;calls.push(path);
+   if(path==='/api/session')return initialized
+     ? Response.json({customer:true,owner:false,balanceCredits:200,ownerId:'user_PvLabV2New'})
+     : needsSetup();
+   if(path==='/api/migration/new'){initialized=true;return Response.json({error:'Already linked.'},{status:409});}
+   throw Error('Unexpected API path');
+  };
+  const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl,onNewCustomer:grant=>grants.push(grant)});
+  const response=await request('/api/session');
+  assert.equal(response.status,200,'another tab finishing setup is not a sign-out');
+  assert.equal((await response.json()).balanceCredits,200);
+  assert.deepEqual(calls,['/api/session','/api/migration/new','/api/session']);
+  assert.equal(grants.length,0,'a pre-existing wallet does not receive a second welcome');
+  assert.deepEqual(current.replaced,[],'canonical Studio must never redirect on onboarding conflicts');
  });
 });
+test('Legacy account transfer does not auto-provision a second customer wallet',async()=>{
+ for(const pathname of ['/connect-account','/connect-account.html']){
+  await inBrowser('pvlab.studio',pathname,async current=>{
+   const calls=[];
+   const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async(url)=>{calls.push(new URL(url).pathname);return needsSetup();}});
+   assert.equal((await request('/api/session')).status,409);
+   assert.deepEqual(calls,['/api/session']);
+   assert.deepEqual(current.replaced,[]);
+  });
+ }
+});
 test('Do not create a wallet for paid endpoints or from unmarked 409s',async()=>{
- await inBrowser('pvlab.studio','/studio.html',async()=>{
+ await inBrowser('pvlab.studio','/studio',async()=>{
   let count=0;
   const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>{
    count++;return needsSetup();

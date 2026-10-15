@@ -16,6 +16,15 @@ test('authenticated Image studio can paint before account-dependent history comp
     'finish the loading overlay after authenticating and before awaiting all metadata');
   assert.match(boot,/Loading your images…/);
   assert.match(boot,/loadHistory\(\)\.finally\(\(\)=>\$\('history'\)\.removeAttribute\('aria-busy'\)\)/);
+  assert.match(boot,/loadHistory\(\)\.finally\(\(\)=>\$\('history'\)\.removeAttribute\('aria-busy'\)\)\.catch/);
+  assert.match(boot,/loadPacks\(\)\.catch/);
+  assert.match(boot,/soul\.load\(\)\.catch/);
+  assert.match(boot,/loadSoulProIdentity\(\)\.catch/);
+  assert.match(boot,/try\{await restoreStudioEntry\(\);\}catch/);
+  assert.match(boot,/Studio setup could not finish/);
+  assert.match(boot,/\$\('signin'\)\.hidden=stillSignedIn/);
+  assert.match(boot,/\$\('auth-retry'\)\.hidden=!stillSignedIn/);
+  assert.match(html,/canonicalStudio=20261015-1/);
   assert.match(html,/galleryPerf=1/);
 });
 
