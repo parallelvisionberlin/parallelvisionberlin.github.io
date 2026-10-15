@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   euroEquivalentFromCredits, videoCustomerQuoteLabels,
   STANDARD_PACK_CREDITS, STANDARD_PACK_EUR
-} from '../lab/video-euro-pricing.mjs';
+} from '../lab/video-euro-pricing.js';
 
 test('video customer quotes lead with euro-equivalent value without hiding the credit debit',()=>{
   assert.equal(STANDARD_PACK_CREDITS,1000);
