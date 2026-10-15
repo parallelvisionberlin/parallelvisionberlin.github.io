@@ -15,7 +15,7 @@ body{margin:0;min-height:100svh;background:#101112}
 .site-header{height:73px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,4vw,66px);border-bottom:1px solid #252729}
 .site-header a{font-weight:500;font-size:15px;letter-spacing:.055em;color:#f2f2f0;text-decoration:none}
 .site-header small{font-size:10px;letter-spacing:.14em;color:#949698}
-main{min-height:calc(100svh - 125px);display:flex;align-items:center;justify-content:center;padding:42px 22px 56px}
+main{min-height:calc(100svh - 125px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:42px 22px 56px}
 .entry{width:min(100%,490px);text-align:center}
 .kicker{display:block;margin:0 0 29px;font-size:10px;letter-spacing:.18em;color:#929598;font-weight:500}
 .confirmation{width:62px;height:62px;display:flex;align-items:center;justify-content:center;margin:0 auto 25px;border:1px solid #6a6d6d;border-radius:50%;color:#e4e5e2;animation:ring-enter .65s ease both}
@@ -38,7 +38,7 @@ button:focus-visible,a:focus-visible{outline:2px solid #edece8;outline-offset:4p
 .existing{border-top:1px solid #2b2d2f;margin:30px 0 0;padding-top:22px;color:#888b8d;font-size:11px;line-height:1.8}
 .existing a{color:#c8c9c9;text-decoration:underline;text-underline-offset:3px}
 .existing a:hover{color:#fff}
-#status{color:#d1d4d4;font-size:12px;line-height:1.5;margin-top:13px;min-height:18px}
+#status{color:#d1d4d4;font-size:12px;line-height:1.5;margin:13px auto 0;max-width:490px;text-align:center;min-height:18px}
 #status.error{color:#efa9a1}
 .site-footer{min-height:52px;border-top:1px solid #252729;display:flex;justify-content:center;align-items:center;gap:19px;padding:15px 22px}
 .site-footer a{font-size:11px;color:#8d9192;text-decoration:none}
