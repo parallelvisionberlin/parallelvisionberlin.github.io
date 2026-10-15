@@ -523,3 +523,69 @@
   #pricing .lab-plan .lab-plan-name,
   #pricing .lab-plan{transition:none}
 }
+
+
+/* 2026-10-15: Restore the glamorous, wider approved editorial composition.
+   Preserve the 800px laptop fold and leave all purchasing mechanics intact. */
+@media (min-width:1350px){
+  #pricing .lab-plans-inner{max-width:1600px}
+  #pricing .lab-pricing-layout{
+    grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
+    gap:clamp(58px,5.2vw,92px);
+  }
+  #pricing .lab-pricing-deck{transform:translateX(-45px)}
+  #pricing .lab-pricing-welcome{margin-left:clamp(12px,1.1vw,20px)}
+  #pricing .lab-pricing-welcome h3{
+    font-weight:400;letter-spacing:-.05em;color:#fbf9f6;
+  }
+  #pricing .lab-pricing-welcome>p{color:#c8c4be}
+  #pricing .lab-pricing-free-cta{
+    min-width:290px;
+    border-color:#b7b4b0;
+    font-weight:500;
+  }
+  #pricing .lab-pricing-free-cta:hover{
+    border-color:#fff;
+  }
+  #pricing .lab-plan-name{
+    font-weight:400;
+  }
+  #pricing .lab-plan-price{font-weight:400}
+  #pricing .lab-plan-credits{color:#c1bcb5}
+  #pricing .lab-pricing-options [role="tab"]{font-weight:500}
+}
+@media (min-width:1350px) and (max-height:940px){
+  #pricing .lab-pricing-mood{width:31.5%}
+  #pricing .lab-pricing-mood--polaroid{left:4%;top:8%}
+  #pricing .lab-pricing-mood--film{right:4%;top:8%}
+  #pricing .lab-pricing-mood--cinema{width:34%;left:31%;top:0}
+  #pricing .lab-pricing-welcome{margin-top:55px}
+  #pricing .lab-pricing-welcome h3{
+    font-size:clamp(33px,2.5vw,37px);
+    margin:10px 0 10px;
+  }
+  #pricing .lab-pricing-welcome>p{
+    font-size:14.5px;line-height:1.5;margin-bottom:17px;
+  }
+  #pricing .lab-pricing-free-cta{min-height:53px;font-size:14.5px}
+  #pricing .lab-plan{
+    min-height:132px!important;
+    padding:16px 0 14px!important;
+  }
+  #pricing .lab-plan-name{font-size:27px}
+  #pricing .lab-plan-price{font-size:31px!important}
+  #pricing .lab-plan-credits{font-size:14px}
+  #pricing .lab-pricing-options [role="tab"]{font-size:17px}
+}
+@media (min-width:1350px) and (min-height:941px){
+  #pricing .lab-pricing-deck{margin-top:28px}
+  #pricing .lab-pricing-mood{width:36%}
+  #pricing .lab-pricing-mood--polaroid{left:4%;top:17%}
+  #pricing .lab-pricing-mood--film{right:4%;top:17%}
+  #pricing .lab-pricing-mood--cinema{width:39%;left:30.5%;top:7%}
+  #pricing .lab-pricing-welcome{margin-top:52px}
+  #pricing .lab-pricing-welcome h3{font-size:clamp(34px,2.5vw,39px)}
+  #pricing .lab-pricing-free-cta{min-height:58px}
+  #pricing .lab-plan-name{font-size:29px}
+  #pricing .lab-plan-price{font-size:32px!important}
+}

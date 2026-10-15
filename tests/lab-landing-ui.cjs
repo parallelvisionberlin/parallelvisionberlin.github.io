@@ -108,6 +108,26 @@ const server=http.createServer((req,res)=>{
     assert.ok(fold.billingBottom<=fold.sectionTop+height-12,'Billing information stays visible on '+width+'x'+height+': '+JSON.stringify(fold));
     console.log('PRICING_FOLD_METRICS_'+width+'_'+height+'='+JSON.stringify(fold));
   }
+
+  if(width>=1400){
+    const glamour=await page.locator('#pricing').evaluate(section=>{
+      const collection=section.querySelector('.lab-pricing-collection').getBoundingClientRect();
+      const comparison=section.querySelector('.lab-pricing-comparison').getBoundingClientRect();
+      const cards=[...section.querySelectorAll('.lab-pricing-mood')].map(c=>c.getBoundingClientRect());
+      const offer=section.querySelector('.lab-pricing-welcome h3');
+      const action=section.querySelector('.lab-pricing-free-cta').getBoundingClientRect();
+      return {
+        collectionX:collection.x,comparisonX:comparison.x,
+        centerCardWidth:cards[2].width,
+        offerFont:parseFloat(getComputedStyle(offer).fontSize),
+        actionWidth:action.width,viewport:innerWidth
+      };
+    });
+    assert.ok(glamour.collectionX<=width*.11,'Editorial photographs expand toward the left edge: '+JSON.stringify(glamour));
+    assert.ok(glamour.comparisonX>=width*.52&&glamour.comparisonX<=width*.63,'Pricing sits in its own spacious right column: '+JSON.stringify(glamour));
+    assert.ok(glamour.offerFont>=32,'200-credit welcome offer is prominent at '+width+'px');
+    assert.ok(glamour.actionWidth>=285,'Free-credit primary action has editorial presence');
+  }
   assert.equal(await page.locator('#pricing .lab-pricing-collection .lab-pricing-welcome').count(),1,'Welcome offer sits below photography');
   const offerPhotoGap=await page.locator('#pricing').evaluate(section=>section.querySelector('.lab-pricing-welcome').getBoundingClientRect().top-Math.max(...[...section.querySelectorAll('.lab-pricing-mood')].map(card=>card.getBoundingClientRect().bottom)));
   assert.ok(offerPhotoGap>=10,'Free-credit offer clears the photograph fan by at least 10px. Actual: '+offerPhotoGap);
