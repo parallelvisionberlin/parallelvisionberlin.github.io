@@ -13,7 +13,7 @@ const server=http.createServer((req,res)=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.emulateMedia({reducedMotion:'reduce'});
- for(const [width,height] of [[1440,1000],[390,844],[320,740],[768,1024]]){
+ for(const [width,height] of [[1440,1000],[1753,832],[1440,800],[390,844],[320,740],[768,1024]]){
   await page.setViewportSize({width,height});await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);
   await page.locator('.hero-poster').evaluate(img=>img.decode());
   assert.equal(await page.locator('h1').textContent(),'PV LAB');
@@ -87,7 +87,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(paragraphRGB.length,3,'Referral description uses a valid color');
   assert.ok(paragraphRGB.every(n=>n>=180),'Referral description retains contrast on dark photography');
   if(width>760){
-    assert.ok(details.rowHeights.every(n=>n>=(width>=1200?165:145)&&n<=210),'Editorial rows include readable model examples');
+    assert.ok(details.rowHeights.every(n=>n>=(height<=940?108:(width>=1200?165:145))&&n<=210),'Editorial rows are appropriately sized for the viewport');
     assert.ok(layout.collection.right<=layout.comparison.x,'Desktop prices sit beside the film collection');
     assert.ok(layout.cardGap>=0,'Film deck does not hide the checkout column');
     assert.ok(details.headlineSize>=37,'Editorial pricing heading stays prominent');
@@ -95,9 +95,22 @@ const server=http.createServer((req,res)=>{
     assert.ok(layout.collection.bottom>layout.comparison.y,'Mobile places checkout before the decorative film collection');
     assert.ok(details.rowHeights.every(n=>n>=145),'Mobile purchase options include usable detail');
   }
+  if(width>=1001&&height<=940){
+    const fold=await page.locator('#pricing').evaluate(section=>{
+      const sectionBox=section.getBoundingClientRect();
+      const welcome=section.querySelector('.lab-pricing-free-cta').getBoundingClientRect();
+      const billing=section.querySelector('.lab-pricing-footnote').getBoundingClientRect();
+      const lastPlan=section.querySelector('#lab-monthly-plans .lab-plan:last-child').getBoundingClientRect();
+      return {sectionTop:sectionBox.top,sectionHeight:sectionBox.height,welcomeBottom:welcome.bottom,billingBottom:billing.bottom,lastPlanBottom:lastPlan.bottom,viewport:innerHeight};
+    });
+    assert.ok(fold.sectionHeight<=height+2,'Entire pricing section fits without scrolling on '+width+'x'+height+': '+JSON.stringify(fold));
+    assert.ok(fold.welcomeBottom<=fold.sectionTop+height-12,'Free-credit button stays visible on '+width+'x'+height+': '+JSON.stringify(fold));
+    assert.ok(fold.billingBottom<=fold.sectionTop+height-12,'Billing information stays visible on '+width+'x'+height+': '+JSON.stringify(fold));
+    console.log('PRICING_FOLD_METRICS_'+width+'_'+height+'='+JSON.stringify(fold));
+  }
   assert.equal(await page.locator('#pricing .lab-pricing-collection .lab-pricing-welcome').count(),1,'Welcome offer sits below photography');
-  const offerBelowPhoto=await page.locator('#pricing').evaluate(section=>section.querySelector('.lab-pricing-welcome').getBoundingClientRect().top>=Math.max(...[...section.querySelectorAll('.lab-pricing-mood')].map(card=>card.getBoundingClientRect().bottom))+10);
-  assert.ok(offerBelowPhoto,'Free-credit offer clears the photograph fan');
+  const offerPhotoGap=await page.locator('#pricing').evaluate(section=>section.querySelector('.lab-pricing-welcome').getBoundingClientRect().top-Math.max(...[...section.querySelectorAll('.lab-pricing-mood')].map(card=>card.getBoundingClientRect().bottom)));
+  assert.ok(offerPhotoGap>=10,'Free-credit offer clears the photograph fan by at least 10px. Actual: '+offerPhotoGap);
   assert.equal(await page.locator('#pricing .lab-pricing-welcome [data-lab-welcome-start]').count(),1,'Welcome CTA keeps original sign-in flow');
   assert.equal(await page.locator('#lab-monthly-plans .lab-plan-usage').count(),3,'Monthly pricing shows example model usage');
   assert.equal(await page.locator('#lab-one-time-credits .lab-plan-usage').count(),3,'One-time pricing shows example model usage');
@@ -112,9 +125,9 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('#lab-monthly-plans').isVisible(),true,'Monthly plans are restored');
   assert.equal(await page.locator('#lab-pricing-billing-copy').innerText(),'Renews monthly until cancelled.','Monthly terms return with the selected plans');
   await page.evaluate(()=>document.activeElement?.blur());await page.mouse.move(0,0);
-  if(width===1440||width===390)console.log('PRICING_CARDS_'+width+'='+Buffer.from(await page.locator('#pricing').screenshot({type:'jpeg',quality:85})).toString('base64'));
+  if(width===1440||width===390||width===1753)console.log('PRICING_CARDS_'+width+'_'+height+'='+Buffer.from(await page.locator('#pricing').screenshot({type:'jpeg',quality:82})).toString('base64'));
   await page.evaluate(()=>scrollTo(0,0));
-  if(width===1440||width===390)console.log('SILVER_LANDING_'+width+'='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
+  if(width===1440&&height===1000||width===390)console.log('SILVER_LANDING_'+width+'='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
  }
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});
