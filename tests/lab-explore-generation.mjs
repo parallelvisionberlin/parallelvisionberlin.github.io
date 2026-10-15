@@ -44,7 +44,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
   if(url.hostname!=='127.0.0.1')return route.abort();return route.continue();
  });
  await page.goto(base+'/lab/explore-moods.html');await page.locator('[data-mood-id="hong-kong-nights"]').click();
- const button=page.locator('#mc-look-continue');assert.equal(await button.textContent(),'Generate image');assert.equal(await button.isDisabled(),true);assert.equal(paid,0);assert.equal(quotes,0);
+ const button=page.locator('#mc-look-continue');assert.equal(await button.textContent(),'Generate');assert.equal(await button.isDisabled(),true);assert.equal(paid,0);assert.equal(quotes,0);
  if(scenario==='text')await page.locator('#mc-look-direction').fill('A red car in rain');
  else{const photo=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;return c.toDataURL().split(',')[1];}),'base64');await page.locator('#mc-look-file').setInputFiles({name:'source.png',mimeType:'image/png',buffer:photo});}
  if(scenario==='guest'){await page.waitForFunction(()=>document.querySelector('#mc-look-continue').textContent==='Sign in to generate');assert.equal(quotes,0);await button.click();await page.locator('#mock-signin').click();}

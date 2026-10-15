@@ -16,14 +16,14 @@ function initialize(){
   const generate=$('mc-look-continue');
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{
         const next=account.user?.id||'';
         if(accountId!==undefined&&next!==accountId&&dialog.open&&!busy){
           if(next&&!dialog.matches(':modal')){dialog.close();dialog.showModal();}
-          schedulePrice();
+          schedulePrice(0);
         }
         accountId=next;
       }).catch(()=>{});
@@ -33,27 +33,28 @@ function initialize(){
   function resetPrice(){
     priceRevision++;clearTimeout(priceTimer);clearTimeout(expiryTimer);service?.cancel();
     price=null;needsSignIn=false;
-    generate.textContent='Generate image';generate.disabled=true;
+    generate.textContent='Generate';generate.disabled=true;generate.removeAttribute('aria-busy');
   }
-  function schedulePrice(){
+  function schedulePrice(delay=180){
     resetPrice();status.textContent='';
     if(!mood||(!file&&!direction.value.trim()))return;
-    generate.textContent='Checking price…';
     const stamp=priceRevision;
-    priceTimer=setTimeout(()=>void preparePrice(stamp),650);
+    generate.setAttribute('aria-busy','true');
+    if(delay>0)priceTimer=setTimeout(()=>void preparePrice(stamp),delay);
+    else void preparePrice(stamp);
   }
   async function preparePrice(stamp=priceRevision){
     clearTimeout(priceTimer);
-    generate.disabled=true;generate.textContent='Checking price…';
+    generate.disabled=true;generate.textContent='Generate';generate.setAttribute('aria-busy','true');
     try{
       const client=await generationService();if(stamp!==priceRevision)return;
       const ready=await client.prepare(file,mood,direction.value.trim());
       if(stamp!==priceRevision||!dialog.open)return;
-      price=ready;generate.textContent='Generate image · '+ready.label;generate.disabled=false;
-      expiryTimer=setTimeout(()=>{if(stamp===priceRevision&&!busy)schedulePrice();},Math.max(0,ready.expiresAt-Date.now()-20000));
+      price=ready;generate.textContent='Generate · '+ready.label;generate.disabled=false;generate.removeAttribute('aria-busy');
+      expiryTimer=setTimeout(()=>{if(stamp===priceRevision&&!busy)schedulePrice(0);},Math.max(0,ready.expiresAt-Date.now()-20000));
     }catch(error){
       if(stamp!==priceRevision||!dialog.open)return;
-      needsSignIn=error.code==='SIGN_IN';status.textContent=error.message;
+      needsSignIn=error.code==='SIGN_IN';status.textContent=error.message;generate.removeAttribute('aria-busy');
       generate.textContent=needsSignIn?'Sign in to generate':'Retry price';generate.disabled=false;
     }
   }
@@ -103,7 +104,7 @@ function initialize(){
     zone.prepend(photo);
     $('mc-look-file-label-text').textContent=file.name;
     $('mc-look-file-clear').hidden=false;zone.classList.add('has-image');
-    schedulePrice();
+    schedulePrice(0);
     return true;
   }
   function showMood(selected,photo=null){
@@ -135,7 +136,7 @@ function initialize(){
   dialog.addEventListener('click',event=>{if(event.target===dialog)close();});
   fileInput.addEventListener('change',()=>{if(fileInput.files?.[0])attachPhoto(fileInput.files[0]);});
   $('mc-look-file-clear').onclick=()=>{if(!busy){clearPhoto();schedulePrice();}};
-  direction.addEventListener('input',schedulePrice);
+  direction.addEventListener('input',()=>schedulePrice(180));
   zone.addEventListener('dragenter',event=>{
     if(!event.dataTransfer?.types?.includes('Files'))return;
     event.preventDefault();

@@ -54,19 +54,28 @@ export function createMoodReferenceLoader({upload,fetchFile=fetch}){
       check();
       if(sessionKey===undefined||sessionKey===null||sessionKey==='')throw Error('Sign in before preparing Mood references.');
       if(session!==sessionKey){session=sessionKey;uploads=new Map();}
-      const cache=uploads,references=[];
-      for(const ref of plan.references){
+      const cache=uploads;
+      // First download all missing public Style photographs in parallel.
+      // Do not upload any if one is absent or the account/prompt changed.
+      const staged=await Promise.all(plan.references.map(async ref=>{
+        check();
+        if(cache.has(ref.url))return null;
+        const response=await fetchFile(ref.url,{credentials:'omit',signal:AbortSignal.timeout(30000)});
+        if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':'Hong Kong Nights')+' Style reference could not load. Please try again.');
+        const blob=await response.blob();
+        if(!blob.size)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':'Hong Kong Nights')+' Style reference is empty. Please try again.');
+        check();
+        return new File([blob],ref.label.name,{type:ref.type});
+      }));
+      check();
+      // Upload in parallel, retaining the original Style order for the provider.
+      // Cache pending promises by account session to avoid repeats when editing text.
+      const references=await Promise.all(plan.references.map((ref,i)=>{
         check();
         let pending=cache.get(ref.url);
         if(!pending){
           pending=(async()=>{
-            const response=await fetchFile(ref.url,{credentials:'omit',signal:AbortSignal.timeout(30000)});
-            if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':'Hong Kong Nights')+' Style reference could not load. Please try again.');
-            const blob=await response.blob();
-            if(!blob.size)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':'Hong Kong Nights')+' Style reference is empty. Please try again.');
-            check();
-            const file=new File([blob],ref.label.name,{type:ref.type});
-            const result=await upload(file);
+            const file=staged[i],result=await upload(file);
             const id=typeof result==='string'?result:result?.id;
             if(!id)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':'Hong Kong Nights')+' Style reference could not upload. Please try again.');
             return {id,file};
@@ -74,8 +83,9 @@ export function createMoodReferenceLoader({upload,fetchFile=fetch}){
           cache.set(ref.url,pending);
           pending.catch(()=>{if(cache.get(ref.url)===pending)cache.delete(ref.url);});
         }
-        references.push(await pending);check();
-      }
+        return pending;
+      }));
+      check();
       return {settings:plan.settings,references};
     }
   };

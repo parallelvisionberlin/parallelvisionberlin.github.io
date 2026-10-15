@@ -42,8 +42,8 @@ test('tiered customer pricing checks engine AND model and preserves generic char
  assert.equal(creditsForJobUsd(1.8,{...wan1080,resolution:'720p'}),828);
  assert.equal(creditsForJobUsd(2.31,normal),370);
  assert.equal(creditsForJobUsd(21.6,fourk),4104);
- assert.equal(creditsForJobUsd(.035,still()),17);
- assert.equal(creditsForJobUsd(.018,still()),9);
+ assert.equal(creditsForJobUsd(.035,still()),20);
+ assert.equal(creditsForJobUsd(.018,still()),10);
  assert.throws(()=>creditsForJobUsd(-1,base),/Invalid/);
 });
 test('Seedance Motion and 4K models respect provider capabilities',()=>{

@@ -2,8 +2,8 @@ import {MOODS,moodPreviewURL} from './moods.js?filmOptics=2&app=5&raveNight=3&ho
 import {preparePhotoInput} from './photo-input.js?v=1';
 const $=id=>document.getElementById(id),detail=$('mood-detail'),button=$('continue-create');
 let selected=null,file=null,photoURL='',opener=null,quote=null,revision=0,timer=null,expiry=null,service=null,serviceLoading=null,needsSignIn=false,sending=false,completed=false,photoRevision=0;
-const generation=()=>service?Promise.resolve(service):serviceLoading||(serviceLoading=import('./app-mood-generation.js?filmOptics=2&v=20261012-photo-layout1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1').then(({createAppMoodGeneration})=>service=createAppMoodGeneration()));
-function resetPrice(){revision++;clearTimeout(timer);clearTimeout(expiry);service?.cancel();quote=null;needsSignIn=false;button.disabled=!file;button.textContent=file?'Check price':'Generate';}
+const generation=()=>service?Promise.resolve(service):serviceLoading||(serviceLoading=import('./app-mood-generation.js?filmOptics=2&v=20261012-photo-layout1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1').then(({createAppMoodGeneration})=>service=createAppMoodGeneration()));
+function resetPrice(){revision++;clearTimeout(timer);clearTimeout(expiry);service?.cancel();quote=null;needsSignIn=false;button.disabled=true;button.textContent='Generate';button.removeAttribute('aria-busy');}
 function clearPhoto(){photoRevision++;if(photoURL)URL.revokeObjectURL(photoURL);photoURL='';file=null;$('photo-preview').removeAttribute('src');$('photo-preview').hidden=true;$('photo-change').hidden=true;$('remove-photo').hidden=true;$('photo-input').value='';resetPrice();}
 function lockControls(value){$('photo-input').disabled=value;$('remove-photo').disabled=value;$('detail-direction').disabled=value;$('close-detail').disabled=value;$('back-detail').disabled=value;}
 function openMood(mood,target){selected=mood;opener=target;completed=false;detail.dataset.mood=mood.id;$('disclosure').hidden=false;clearPhoto();lockControls(false);$('detail-direction').value='';$('photo-error').textContent='';$('detail-title').textContent=mood.name;$('detail-image').src=moodPreviewURL(mood,{detail:true});$('detail-image').onerror=()=>{$('detail-image').onerror=null;$('detail-image').src=mood.preview;};detail.showModal();detail.focus({preventScroll:true});detail.scrollTop=0;}
@@ -13,9 +13,9 @@ detail.addEventListener('cancel',event=>{if(sending)event.preventDefault();});
 detail.addEventListener('close',()=>{clearPhoto();opener?.focus({preventScroll:true});});
 async function prepare(){
   if(!file||sending||completed)return;
-  resetPrice();const stamp=revision;button.disabled=true;button.textContent='Checking price…';$('photo-error').textContent='';
-  try{const client=await generation();if(stamp!==revision)return;const ready=await client.prepare(file,selected,$('detail-direction').value.trim());if(stamp!==revision)return;quote=ready;button.textContent='Generate · '+quote.label;button.disabled=false;expiry=setTimeout(()=>{if(stamp===revision&&!sending&&!completed){resetPrice();$('photo-error').textContent='Price expired. Tap to refresh it.';}},Math.max(0,quote.expiresAt-Date.now()));}
-  catch(error){if(stamp!==revision)return;needsSignIn=error.code==='SIGN_IN';$('photo-error').textContent=error.message;button.textContent=needsSignIn?'Sign in to generate':'Retry price';button.disabled=false;}
+  resetPrice();const stamp=revision;button.disabled=true;button.textContent='Generate';button.setAttribute('aria-busy','true');$('photo-error').textContent='';
+  try{const client=await generation();if(stamp!==revision)return;const ready=await client.prepare(file,selected,$('detail-direction').value.trim());if(stamp!==revision)return;quote=ready;button.textContent='Generate · '+quote.label;button.disabled=false;button.removeAttribute('aria-busy');expiry=setTimeout(()=>{if(stamp===revision&&!sending&&!completed)void prepare();},Math.max(0,quote.expiresAt-Date.now()-20000));}
+  catch(error){if(stamp!==revision)return;needsSignIn=error.code==='SIGN_IN';$('photo-error').textContent=error.message;button.textContent=needsSignIn?'Sign in to generate':'Retry price';button.disabled=false;button.removeAttribute('aria-busy');}
 }
 async function choose(next){
  if(!next||sending)return;
@@ -30,7 +30,7 @@ async function choose(next){
 }
 $('photo-input').onchange=event=>void choose(event.target.files[0]);
 $('remove-photo').onclick=()=>{clearPhoto();$('photo-error').textContent='';};
-$('detail-direction').oninput=()=>{if(sending||completed)return;resetPrice();if(file){button.disabled=true;button.textContent='Checking price…';timer=setTimeout(()=>void prepare(),500);}};
+$('detail-direction').oninput=()=>{if(sending||completed)return;resetPrice();if(file){button.disabled=true;button.setAttribute('aria-busy','true');timer=setTimeout(()=>void prepare(),180);}};
 for(const name of ['dragover','drop'])$('photo-picker').addEventListener(name,event=>{event.preventDefault();if(name==='drop')void choose(event.dataTransfer.files[0]);});
 $('deck-form').onsubmit=async event=>{
   event.preventDefault();if(sending||completed||!file)return;
