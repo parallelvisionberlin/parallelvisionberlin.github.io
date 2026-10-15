@@ -69,3 +69,11 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - Added Cloudflare Pages output `lab/_redirects` for `/lab/studio`, `/lab/studio/`, and `/lab/studio.html` to `/studio` (301), without injecting new query parameters. The source link's query should be preserved, but this requires an HTTP redirect check after Pages deployment.
 - This is a static routing compatibility rule only. No changes to sign-in, payment, inference, JS startup or account migration.
 - Baseline main: `e34854e6d55e0fba36e71faac130b238be2addfa`. Confirm actual custom-domain redirect and corrected UI on the active Pages deployment before declaring the broken route fixed in production.
+
+## Legacy-path static alias after live redirect check (2026-10-16)
+- Actual production smoke for `https://pvlab.studio/lab/studio?tool=image&utm_source=chatgpt.com`: the page returned HTTP 200 without a Location header for 12 attempts, so `lab/_redirects` alone was not effective in the live project.
+- Cloudflare Pages documents that unknown routes serve the SPA root with HTTP 200 when no root `404.html` exists. This can load a homepage HTML at a nested URL and break relative scripts and styles.
+- Added concrete `lab/lab/studio.html`, matching Cloudflare Pages extensionless `/lab/studio`, which only redirects via first-paint inline script to `https://pvlab.studio/studio` while preserving the entire search query and hash; its no-JS fallback opens Image Studio.
+- No login, generation, API, wallet, provider, user data or existing Studio HTML are touched. Existing `_redirects` remains as an optional edge-level fast path.
+- Production smoke now accepts either an actual canonical HTTP redirect or the exact dedicated redirect shim, rejects the erroneous generic SPA fallback. Deploy/Live alias requires a fresh check.
+- Baseline: `6e1b698efeb40a9af97f924d05db815ea3a5bd95`. Files: `lab/lab/studio.html`, `.github/workflows/pvlab-domain-smoke.yml`, this state file.

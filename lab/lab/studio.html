@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="refresh" content="0;url=https://pvlab.studio/studio?tool=image">
+<title>Opening PV LAB Studio</title>
+<script>
+/* PV LAB legacy Studio alias: preserve the selected tool and inbound query. */
+(() => {
+  const next = new URL('https://pvlab.studio/studio');
+  next.search = window.location.search;
+  next.hash = window.location.hash;
+  window.location.replace(next.href);
+})();
+</script>
+</head>
+<body><p>Opening <a href="https://pvlab.studio/studio?tool=image">PV LAB Studio</a>…</p></body>
+</html>
