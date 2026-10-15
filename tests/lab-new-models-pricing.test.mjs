@@ -20,13 +20,13 @@ test('tiered customer pricing checks engine AND model and preserves generic char
  const base=video('seedance15'),normal={type:'video',engine:'seedance',model:'bytedance/seedance-2.5/image-to-video'},
        fourk=video('seedance4k');
  assert.equal(creditsPerUsdForJob(base),320);
- assert.equal(creditsPerUsdForJob(normal),230);
+ assert.equal(creditsPerUsdForJob(normal),160);
  assert.equal(creditsPerUsdForJob(fourk),190);
  assert.equal(creditsPerUsdForJob({...base,model:'made-up'}),460);
  assert.equal(creditsPerUsdForJob({...fourk,provider:'higgsfield'}),460);
  assert.equal(creditsPerUsdForJob({...fourk,type:'image'}),460);
  assert.equal(creditsForJobUsd(.23,base),74);
- assert.equal(creditsForJobUsd(2.31,normal),532);
+ assert.equal(creditsForJobUsd(2.31,normal),370);
  assert.equal(creditsForJobUsd(21.6,fourk),4104);
  assert.equal(creditsForJobUsd(.035,still()),17);
  assert.equal(creditsForJobUsd(.018,still()),9);
@@ -101,6 +101,37 @@ test('future customer jobs use new SQLite pricing trigger; failures refund and o
  assert.equal(db.prepare("SELECT balance_credits AS n FROM lab_customers WHERE id=?").get(user).n,5805);
  db.prepare("UPDATE jobs SET state='failed' WHERE id='normal'").run();
  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE reference='refund:job:normal'").get().n,1);
+});
+
+test('current D1 migration cuts only future standard Seedance 2.5 jobs to 160 credits per USD',t=>{
+ const db=new DatabaseSync(':memory:');t.after(()=>db.close());
+ for(const file of ['../lab-worker/schema.sql','../lab-worker/migrations/0006-customers-billing.sql',
+  '../lab-worker/migrations/0008-soul-id-launch-credits.sql','../lab-worker/migrations/0012-video-tiered-pricing.sql',
+  '../lab-worker/migrations/0013-nano-banana-21-pricing.sql','../lab-worker/migrations/0014-premium-upscale-credits.sql',
+  '../lab-worker/migrations/0019-video-value-pricing.sql']) {
+  db.exec(readFileSync(new URL(file,import.meta.url),'utf8'));
+ }
+ const now=Date.now(),user='user_SeedanceValueTest';
+ db.prepare('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)').run(user,user,now,now);
+ db.prepare("INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES('funded',?,10000,'purchase','checkout:funded',?)").run(user,now);
+ const put=(id,owner,p,micro)=>db.prepare("INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,'queued',?,?,?)").run(id,owner,JSON.stringify(p),micro,now,now);
+ const debit=id=>db.prepare("SELECT delta_credits AS n FROM lab_credit_entries WHERE reference='job:'||?").get(id)?.n;
+ const normal={type:'video',engine:'seedance',provider:'spicy',model:'bytedance/seedance-2.5/image-to-video'};
+ const motion=video('seedance15'),fourk=video('seedance4k');
+ put('discount',user,normal,2310000);
+ put('motion',user,motion,230000);
+ put('fourk',user,fourk,21600000);
+ put('still',user,still(),35000);
+ assert.equal(debit('discount'),-370);
+ assert.equal(debit('motion'),-74);
+ assert.equal(debit('fourk'),-4104);
+ assert.equal(debit('still'),-17);
+ put('owner','private-owner',normal,2310000);
+ assert.equal(debit('owner'),undefined);
+ assert.equal(db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(user).n,5435);
+ db.prepare("UPDATE jobs SET state='failed' WHERE id='discount'").run();
+ assert.equal(db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(user).n,5805);
+ assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE reference='refund:job:discount'").get().n,1);
 });
 
 test('Premium Upscale charges 10 or 18 credits with exact route validation and refunds',t=>{
