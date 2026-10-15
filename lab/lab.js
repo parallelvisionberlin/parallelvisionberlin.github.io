@@ -120,15 +120,21 @@ async function restoreStudioFromMoods(){
   return true;
 }
 function bindExploreMoodsReturn(){
-  const link=$('tool-explore-moods');
-  if(!link)return;
-  link.addEventListener('click',event=>{
-    if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+  // Studio has several ways to reach Moods: the Explore link, the account
+  // dropdown's My Moods link and the footer. Intercept all same-tab links,
+  // without altering the visual design or a modified/open-in-new-tab click.
+  document.addEventListener('click',event=>{
+    const link=event.target.closest('a[href]');
+    if(!link||event.defaultPrevented||event.button!==0||
+      event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+    const destination=new URL(link.href,location.href);
+    if(destination.origin!==location.origin||
+      !/\/(?:moods|moods\.html|mood-creator\.html)$/.test(destination.pathname))return;
     if(!owner||tool!=='image'||fashionActive)return;
     event.preventDefault();
     if(link.dataset.savingDraft==='1')return;
     link.dataset.savingDraft='1';link.setAttribute('aria-busy','true');
-    void saveImageForMoods().then(()=>location.assign(link.href)).catch(error=>{
+    void saveImageForMoods().then(()=>location.assign(destination.href)).catch(error=>{
       notify('Could not preserve your Image workspace: '+error.message,true);
       link.removeAttribute('aria-busy');delete link.dataset.savingDraft;
     });

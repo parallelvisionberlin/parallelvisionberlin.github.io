@@ -18,6 +18,8 @@ the expanded Mood dialog, with optional Image Studio continuation.
 - Closing the dialog leaves any accepted job safely in Image History.
 - Returning through header tool links restores Image prompt, model, references,
   roles, exact prompt, Mood and image settings from browser-only temporary storage.
+- Studio's account My Moods link and footer Moods link save the same draft.
+- My Moods' Image and footer Studio links restore the draft on return.
 - The return snapshot is scoped to the current browser tab and Clerk user.
 - No new provider route, price, credit, account, or payment behavior.
 
