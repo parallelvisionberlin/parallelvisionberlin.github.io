@@ -5,7 +5,7 @@ import {NANO21_CREDITS,isNano21Job} from './nano-banana-21.mjs';
 export const DEFAULT_CREDITS_PER_USD=460;
 export const MODEL_CREDITS_PER_USD=Object.freeze({
   seedance15:320,
-  seedance:230,
+  seedance:160,
   seedance4k:190
 });
 const VIDEO_ROUTES=Object.freeze({
