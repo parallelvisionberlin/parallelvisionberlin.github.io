@@ -16,7 +16,7 @@ export async function labMetaPurchasePayload({subject,transactionId,amountCents,
       event_time:Math.floor(timestamp/1000),
       event_id:'pv-lab-purchase-'+transactionId,
       action_source:'website',
-      event_source_url:'https://parallelvisionlabel.com/lab/',
+      event_source_url:'https://pvlab.studio/',
       user_data:{external_id:[externalId]},
       custom_data:{currency:'EUR',value:amountCents/100}
     }]
