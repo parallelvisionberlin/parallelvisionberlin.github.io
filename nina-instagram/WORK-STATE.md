@@ -33,3 +33,12 @@ Updated: 2026-10-15
 3. Confirm unlinked accounts cannot retrieve private context, check production logs for errors, and inspect scope of the prompt.
 4. If the challenge expires, generate a new one only after revalidating the Cloudflare connected owner account and the exact Instagram sender.
 5. Preserve tester-only auto-send until appropriate public-availability/transparency requirements are fulfilled.
+
+## 2026-10-15 quality deployment
+- Instagram worker deployed at 100%: 2e8f6409-0019-4a48-b208-0c6d27b84c3e.
+- Private vault worker deployed at 100%: 6e508778-a3c0-4137-a349-2c0cfa18a4da.
+- Instagram style restored: warmer conversation, independent observations, natural curiosity, brief caring repairs, and easy Spanish.
+- Existing linked owner may receive familiarity grounded in approved historical continuity; unknown visitors do not receive privileged context.
+- Vault retrieval now focuses on relevant conversation history, while leaving original records unchanged.
+- Mode remains tester with a single authorized sender; vault public URL remains disabled.
+- Preflight model tests succeeded. Next: run one real Instagram conversation and verify the outcome.
