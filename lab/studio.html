@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./account-menu.css?v=20261016-account-menu-lock1">
 <link rel="stylesheet" href="./studio-credits.css?v=20261013-unified-upgrade2">
 <link rel="stylesheet" href="./home-navigation.css?v=20261013-remove-studio-home3">
-<link rel="stylesheet" href="./studio-finish-v2.css?v=20261015-generate-type2&importNotice=20261015-2&buttonAnchor=20261014-1&soulButton=20261014-1&generateStable=20261014-1">
+<link rel="stylesheet" href="./studio-finish-v2.css?v=20261016-disabled-graphite1&importNotice=20261015-2&buttonAnchor=20261014-1&soulButton=20261014-1&generateStable=20261014-1">
 <link rel="stylesheet" href="./mobile-polish.css?v=20261013-mobile-ux1&unifiedAdd=20261014-1">
 <script defer src="./mobile-composer-polish.js?v=20261013-mobile-ux1"></script>
 <link rel="stylesheet" href="/lab/legal-links.css">
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./upscale-result-ui.css?v=20261015-flow2">
 <link rel="stylesheet" href="./image-composer-stable.css?v=20261015-upload-layout1">
 <link rel="stylesheet" href="./reference-pack-studio.css?v=20261015-pack-studio1">
-<link rel="stylesheet" href="./image-discreet.css?v=20261015-right-edge3">
+<link rel="stylesheet" href="./image-discreet.css?v=20261016-icon-polish1">
 <script defer src="./image-discreet.js?v=20261015-1"></script>
 </head>
 <body class="lab-booting">
@@ -357,7 +357,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <p class="lab-welcome-hint">Review your prompt below. The credit price is shown before you press Generate.</p>
       </section>
     </div>
-    <div id="image-discreet-message" class="image-discreet-message" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A11.6 11.6 0 0 1 12 5c5.8 0 10 7 10 7a16.4 16.4 0 0 1-3.4 4.1M6.1 6.2C3.6 8 2 12 2 12s4.2 7 10 7c1.8 0 3.5-.7 4.9-1.7"/><path d="M10 10a3 3 0 0 0 4 4"/></svg><span>Previews hidden</span></div>
+    <div id="image-discreet-message" class="image-discreet-message" aria-hidden="true"><span>Previews hidden</span></div>
   </div>
 <section id="image-composer" class="image-composer" aria-label="Floating image generation composer">
     <div id="composer-moods-backdrop" class="composer-moods-backdrop" aria-hidden="true" hidden></div>
@@ -870,7 +870,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <p id="notice" role="status" aria-live="polite"></p>
 
 <div id="archive-rest-anchor"></div>
-<section class="archive"><div class="archivehead"><div><p class="eyebrow">Private archive</p><h2>History</h2></div><div><p>Results, drafts and active jobs in one place.<br>In Select mode, click anywhere on a card to add or remove it.</p><div class="history-head-actions"><select id="assets-kind" aria-label="Asset type"><option value="all">All media</option><option value="image">Images</option><option value="video">Videos</option></select><button id="history-preview-toggle" class="text-button history-preview-toggle" type="button" aria-label="Hide image previews" aria-pressed="false" title="Hide previews (Discreet Mode)"><svg class="eye-visible" aria-hidden="true" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-hidden" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A11.6 11.6 0 0 1 12 5c5.8 0 10 7 10 7a16.4 16.4 0 0 1-3.4 4.1M6.1 6.2C3.6 8 2 12 2 12s4.2 7 10 7c1.8 0 3.5-.7 4.9-1.7"/><path d="M10 10a3 3 0 0 0 4 4"/></svg></button><button id="history-select" class="text-button" type="button">Select</button><button id="refresh" class="text-button" type="button">Refresh</button></div></div></div><div id="history-selection" class="history-selection" hidden><span id="history-selection-count">0 selected</span><button id="history-select-all" class="text-button" type="button">Select all visible</button><button id="history-archive-selected" class="text-button" type="button" disabled>Archive</button><button id="history-add-folder" class="text-button" type="button" disabled>Add to folder</button><button id="history-remove-folder" class="text-button" type="button" hidden>Remove from folder</button><button id="history-delete-selected" class="history-delete-selected" type="button" disabled>Delete selected</button><button id="history-cancel-select" class="text-button" type="button">Cancel</button></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" type="button" aria-live="polite" hidden>Load earlier work</button></section>
+<section class="archive"><div class="archivehead"><div><p class="eyebrow">Private archive</p><h2>History</h2></div><div><p>Results, drafts and active jobs in one place.<br>In Select mode, click anywhere on a card to add or remove it.</p><div class="history-head-actions"><select id="assets-kind" aria-label="Asset type"><option value="all">All media</option><option value="image">Images</option><option value="video">Videos</option></select><button id="history-preview-toggle" class="text-button history-preview-toggle" type="button" aria-label="Hide image previews" aria-pressed="false" title="Hide previews (Discreet Mode)"><svg class="eye-visible" aria-hidden="true" viewBox="0 0 24 24"><path d="M2.2 12c2.2-4.2 5.5-6.3 9.8-6.3s7.6 2.1 9.8 6.3c-2.2 4.2-5.5 6.3-9.8 6.3S4.4 16.2 2.2 12Z"/><circle cx="12" cy="12" r="2.6"/></svg><svg class="eye-hidden" aria-hidden="true" viewBox="0 0 24 24"><path d="M4.6 7.6A12.5 12.5 0 0 0 2.2 12c2.2 4.2 5.5 6.3 9.8 6.3 2.1 0 3.93-.5 5.5-1.48"/><path d="M9 6a10.8 10.8 0 0 1 3-.3c4.3 0 7.6 2.1 9.8 6.3a12.9 12.9 0 0 1-1.68 2.47"/><path d="M3.2 3.2l17.6 17.6"/></svg></button><button id="history-select" class="text-button" type="button">Select</button><button id="refresh" class="text-button" type="button">Refresh</button></div></div></div><div id="history-selection" class="history-selection" hidden><span id="history-selection-count">0 selected</span><button id="history-select-all" class="text-button" type="button">Select all visible</button><button id="history-archive-selected" class="text-button" type="button" disabled>Archive</button><button id="history-add-folder" class="text-button" type="button" disabled>Add to folder</button><button id="history-remove-folder" class="text-button" type="button" hidden>Remove from folder</button><button id="history-delete-selected" class="history-delete-selected" type="button" disabled>Delete selected</button><button id="history-cancel-select" class="text-button" type="button">Cancel</button></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" type="button" aria-live="polite" hidden>Load earlier work</button></section>
 </div>
 <noscript><style>html.pv-studio-boot-lock,html.pv-studio-boot-lock body{overflow:auto!important}#lab-boot{display:none!important}body>header,body>main,body>footer{visibility:visible!important}</style><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
 </main>

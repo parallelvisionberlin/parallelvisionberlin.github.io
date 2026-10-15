@@ -47,3 +47,14 @@
 - Only HTML/CSS/UI wiring and mock/static tests changed. No credit, model, provider, billing, job submission or customer-data changes.
 - Scope: `lab/studio.html`, `lab/assets.css`, `lab/lab.js`, `tests/lab-studio-layout-ui.mjs`, `tests/lab-smart-prompt-ui.test.mjs`, this state file.
 - Regression: verify tiny toggle, visible only for supported image engines; standard toolbar has no gear, Save or Reset; hidden options are preserved for model-specific cases, and no Generate geometry shifts. CI and deployment must be confirmed separately.
+
+## Disabled Generate ghost-tile correction (2026-10-16)
+- Source baseline on main: `5f21cc4ff5e051d14f8763c6a4b3d74e1197caf5`.
+- Screenshot showed a conspicuous pale 144 × 84 Generate button with disabled gray lettering and an empty prompt.
+- A late `lab/studio-finish-v2.css` override forced light `#e9e7e0` even when the button was disabled.
+- The disabled Image Generate appearance is now graphite `#292c2a`, a quiet outline and readable muted text; the existing pearl-white enabled state stays untouched.
+- No change to control height, image deck geometry, model behavior, eligibility, credits or paid generation.
+- `lab/studio.html` updates its CSS cache token. The compact prompt browser regression checks computed disabled background and text for Seedream and Soul, and now runs on main pushes.
+- GitHub Actions and GitHub Pages release status must be verified after committing.
+
+- Regression harness follow-up: the current extracted `fitImageComposerPrompt()` also calls `effectiveImagePrompt()`. The mock-only browser harness now stubs this contextual direction function to an empty string, so its CSS assertions can run. No application logic changes.
