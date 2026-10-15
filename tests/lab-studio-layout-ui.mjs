@@ -18,10 +18,19 @@ const historyAt=authSync.indexOf('await Promise.all([loadHistory()');
 assert.ok(requestedAt>=0&&revealedAt>requestedAt&&historyAt>revealedAt,'Restore the actual Studio route before first paint, then load optional history');
 assert.ok(authSync.includes("document.documentElement.classList.add('pv-studio-route-pending')"),'Protect the loader during authenticated initialization');
 assert.ok(source.includes("document.documentElement.classList.remove('pv-studio-route-pending')"),'Boot release clears its route guard');
+assert.ok(source.includes("document.documentElement.classList.add('pv-studio-boot-lock')"),'In-place sign-in reactivates the loading scrollbar lock');
+const studioHtml=readFileSync('lab/studio.html','utf8');
+assert.match(studioHtml,/<html lang="en" class="pv-studio-boot-lock">/,'Initial HTML locks scroll before any route renders');
+assert.match(studioHtml,/html\.pv-studio-boot-lock\{scroll-behavior:auto!important\}/,'Boot overrides smooth scrolling while locked');
+assert.match(studioHtml,/history\.scrollRestoration='manual';/,'All direct routes opt out of stale Chrome scroll restoration');
+assert.match(studioHtml,/new MutationObserver\(scheduleBootUnlock\)/,'Native route completion can release the boot scroll lock');
+const splashWordmark=studioHtml.match(/\.lab-boot-wordmark\{([^}]*)\}/)?.[1]||'';
+assert.match(splashWordmark,/font-family:"Helvetica Neue",Arial,sans-serif/,'Splash wordmark uses immediately available system typography');
+assert.doesNotMatch(splashWordmark,/Space Grotesk|DM Sans/,'Splash typography cannot shift when web fonts load');
 
 // Replace only remote Clerk bootstrap. Preserve all remaining local Studio helpers.
 const testSource=source.slice(0,boot)+source.slice(bootEnd)+
-"clerk={isSignedIn:true,user:{id:'layout-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='layout-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__queueTestSetActiveJobs=setActiveJobs;window.__layoutTest=true;";
+"clerk={isSignedIn:true,user:{id:'layout-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='layout-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__pvLabFinishBoot?.();window.__queueTestSetActiveJobs=setActiveJobs;window.__layoutTest=true;";
 
 const server=http.createServer((req,res)=>{
   const u=new URL(req.url,'http://localhost');
@@ -448,8 +457,22 @@ try{
   assert.equal(await loaderLogo.isVisible(),true,'Brand is present without downloading an image');
   assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'none','PV LAB appears crisp at first paint');
   assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).filter),'none','Brand is not blurred during loading');
+  const splashAtStart=await bootPage.evaluate(()=>{
+    const root=document.documentElement;
+    return {overflow:getComputedStyle(root).overflowY,scrollY:window.scrollY,
+      locked:root.classList.contains('pv-studio-boot-lock'),font:getComputedStyle(document.getElementById('lab-boot-name')).fontFamily};
+  });
+  assert.equal(splashAtStart.overflow,'hidden','Full-screen splash has no document scrollbar');
+  assert.equal(splashAtStart.locked,true,'Splash maintains the initial scroll lock');
+  assert.equal(splashAtStart.scrollY,0,'Startup begins at the top instead of a restored scroll position');
+  assert.match(splashAtStart.font,/Helvetica Neue|Arial/,'Loader never uses an asynchronously swapped font');
+  const logoBefore=await loaderLogo.boundingBox();
+  await bootPage.mouse.wheel(0,820);
   await bootPage.waitForTimeout(500);
+  assert.equal(await bootPage.evaluate(()=>window.scrollY),0,'Wheel input cannot scroll the hidden workspace during boot');
   const bootGeometry=await loaderLogo.boundingBox();
+  assert.ok(Math.abs(bootGeometry.x-logoBefore.x)<1&&Math.abs(bootGeometry.y-logoBefore.y)<1,
+    'Brand stays at identical coordinates during the entire loading state');
   assert.ok(bootGeometry&&bootGeometry.x>=0&&bootGeometry.x+bootGeometry.width<=1440,'Brand stays inside the desktop viewport');
   await bootPage.setViewportSize({width:390,height:844});
   const mobileBootGeometry=await loaderLogo.boundingBox();
@@ -463,7 +486,10 @@ try{
   await bootPage.waitForFunction(()=>window.__layoutTest===true);
   assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'pv-boot-out','Blur happens after Studio becomes ready');
   await bootPage.locator('#lab-boot').waitFor({state:'hidden',timeout:2000});
+  await bootPage.waitForFunction(()=>!document.documentElement.classList.contains('pv-studio-boot-lock'),{timeout:2000});
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),false,'Boot overlay finishes its exit on mock auth resolution');
+  assert.notEqual(await bootPage.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
+    'Document scrolling becomes available after splash exit');
   // A slow Fashion entry cannot expose the default Image workspace even if
   // authentication has already unhidden #app before Fashion's assets arrive.
   const routePage=await bootContext.newPage();
@@ -482,13 +508,16 @@ try{
       overlay.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));
   });
   assert.equal(covered,true,'Fashion direct URL stays covered until its editor is prepared');
+  assert.equal(await routePage.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
+    'Fashion direct loads cannot show a scrollbar behind the splash');
   await routePage.evaluate(()=>{
     document.getElementById('image-studio').hidden=true;
     document.getElementById('fashion-studio').hidden=false;
-    document.body.classList.add('lab-ready');
     document.documentElement.classList.remove('pv-studio-route-pending');
+    window.__pvLabFinishBoot?.();
   });
   await routePage.locator('#lab-boot').waitFor({state:'hidden',timeout:2000});
+  await routePage.waitForFunction(()=>!document.documentElement.classList.contains('pv-studio-boot-lock'),{timeout:2000});
   assert.equal(await routePage.locator('#fashion-studio').isVisible(),true,'Fashion is the first exposed route');
   assert.equal(await routePage.locator('#image-studio').isVisible(),false,'Image remains hidden on Fashion entry');
   await routePage.close();
