@@ -1,10 +1,10 @@
 name: PV Lab landing load stability
 on:
   pull_request:
-    paths: ['lab/index.html', 'lab/landing*.css', 'lab/credits.css', 'lab/customer-entry.js', 'lab/fonts/**', 'tests/lab-landing-stability.mjs', '.github/workflows/lab-landing-stability.yml']
+    paths: ['lab/index.html', 'lab/landing*.css', 'lab/homepage-unified.css', 'lab/credits.css', 'lab/customer-entry.js', 'lab/fonts/**', 'tests/lab-landing-stability.mjs', '.github/workflows/lab-landing-stability.yml']
   push:
     branches: [main]
-    paths: ['lab/index.html', 'lab/landing*.css', 'lab/credits.css', 'lab/customer-entry.js', 'lab/fonts/**', 'tests/lab-landing-stability.mjs', '.github/workflows/lab-landing-stability.yml']
+    paths: ['lab/index.html', 'lab/landing*.css', 'lab/homepage-unified.css', 'lab/credits.css', 'lab/customer-entry.js', 'lab/fonts/**', 'tests/lab-landing-stability.mjs', '.github/workflows/lab-landing-stability.yml']
 permissions:
   contents: read
 jobs:

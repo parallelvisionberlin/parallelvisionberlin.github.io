@@ -38,11 +38,15 @@ async function geometry(page){
     return [selector,metrics];
   })),selectors);
 }
+function sameFootprint(before,after,label){
+  assert.ok(before&&after,label+': missing action geometry');
+  for(const key of ['x','y','width','height'])
+    assert.ok(Math.abs(before[key]-after[key])<1,
+      label+': '+key+' moved from '+before[key]+' to '+after[key]);
+}
 function stable(before,after,label){
   for(const selector of selectors)for(const key of Object.keys(before[selector])){
-    // Returning customers see Start creating; visitors see Start creating free.
-    // The button footprint stays fixed while the wording changes.
-    if(selector==='.start-link'&&key.startsWith('text'))continue;
+    // Hero wording and geometry must stay identical through authorization.
     assert.ok(Math.abs(before[selector][key]-after[selector][key])<.5,`${label}: ${selector} ${key} moved from ${before[selector][key]} to ${after[selector][key]}`);
   }
 }
@@ -73,8 +77,12 @@ try{
       });
       await page.goto(origin+'/lab/',{waitUntil:'domcontentloaded'});
       assert.equal(await page.locator('#lab-header-signin').isVisible(),false,'Sign-in does not flash before identity is known');
-      assert.equal(await page.locator('.lab-home-credit-placeholder').count(),0,'No outdated placeholder credit element');
-      assert.equal(await page.locator('.lab-home-avatar-placeholder').count(),0,'No outdated placeholder avatar element');
+      assert.equal(await page.locator('.lab-home-credit-placeholder').count(),1,'Neutral credit slot starts in the static HTML');
+      assert.equal(await page.locator('.lab-home-avatar-placeholder').count(),1,'Neutral avatar slot starts in the static HTML');
+      assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),true,'Credit placeholder is visible during Clerk loading');
+      assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),true,'Avatar placeholder is visible during Clerk loading');
+      assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'Get credits must not flash before we know the user');
+      assert.equal(await page.locator('#lab-account-strip').isVisible(),false,'Real account cannot appear before authentication');
       assert.equal(await page.locator('[data-lab-signin]').isVisible(),false,'Google sign-in stays hidden on initial render');
       await page.waitForFunction(()=>typeof window.releaseTestAccount==='function');
       await page.waitForFunction(()=>performance.getEntriesByName('first-contentful-paint').length>0);
@@ -82,6 +90,8 @@ try{
       if(slowFont)await page.waitForTimeout(250);
       else await page.evaluate(()=>document.fonts.ready);
       const initial=await geometry(page);
+      const pendingCredit=await page.locator('.lab-home-credit-placeholder').boundingBox();
+      const pendingAvatar=await page.locator('.lab-home-avatar-placeholder').boundingBox();
       if(slowFont){
         releaseFonts();
         await page.evaluate(()=>document.fonts.ready);
@@ -91,23 +101,27 @@ try{
       assert.ok(await page.evaluate(()=>[...document.fonts].some(font=>font.family==='DM Sans'&&font.status==='loaded')),'Bundled font decoded successfully');
       assert.equal(await page.locator('[data-lab-signin]').isVisible(),false,'Google sign-in stays hidden while the account is loading');
       await page.evaluate(()=>window.releaseTestAccount());
-      await page.locator('#lab-account-strip').waitFor({state:'visible'});
       if(holdCustomerSession){
-        assert.equal(await page.locator('#lab-account-strip').isVisible(),true,'Verified avatar appears before balance loads');
-        assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Credits','Header does not guess a balance while session loads');
-        assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Header keeps a stable credits slot while session loads');
+        // A signed-in identity is not a verified wallet. Keep the neutral
+        // outline and never flash Credits or Get credits before the API responds.
+        assert.equal(await page.locator('#lab-account-strip').isVisible(),false,'Account menu waits for verified session');
+        assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'Credit CTA waits for verified session');
+        assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),true,'Credit placeholder stays stable during wallet load');
+        assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),true,'Avatar slot stays stable during wallet load');
         releaseSession();
       }
+      await page.locator('#lab-account-strip').waitFor({state:'visible'});
       await page.locator('#lab-home-credits').waitFor({state:'visible'});
-      assert.equal(await page.locator('.lab-home-credit-placeholder').count(),0);
-      assert.equal(await page.locator('.lab-home-avatar-placeholder').count(),0);
+      assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),false,'Placeholder disappears only when real credit UI is ready');
+      assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),false,'Placeholder disappears only when real avatar is ready');
+      sameFootprint(pendingCredit,await page.locator('#lab-home-credits').boundingBox(),width+': balance slot remains fixed');
+      sameFootprint(pendingAvatar,await page.locator('#lab-account-strip').boundingBox(),width+': avatar slot remains fixed');
       const actionWeights=await page.evaluate(()=>({
         studio:Number.parseInt(getComputedStyle(document.querySelector('.landing-header--home .studio-link')).fontWeight,10),
         credits:Number.parseInt(getComputedStyle(document.querySelector('.landing-header--home .lab-home-credits')).fontWeight,10)
       }));
       assert.ok(actionWeights.studio>=600&&actionWeights.credits>=600,'Home actions use true semi-bold weights');
-      // The avatar is shown before the wallet responds. Wait for the real
-      // authenticated balance, not merely a visible placeholder slot.
+      // The avatar and actual balance become ready together.
       await page.waitForFunction(()=>document.querySelector('#lab-home-credit-copy')?.textContent==='1,200',null,{timeout:10000});
       assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'1,200');
       assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),width>560);
@@ -120,15 +134,17 @@ try{
       await page.locator('#lab-account-strip>summary').click();
       await page.getByRole('button',{name:'Sign out',exact:true}).click();
       await page.locator('#lab-header-signin').waitFor({state:'visible'});
-      assert.equal(await page.locator('.lab-home-credit-placeholder').count(),0,'No loading credit shell after sign out');
-      assert.equal(await page.locator('.lab-home-avatar-placeholder').count(),0,'No loading avatar shell after sign out');
+      assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),false,'Guest credit CTA replaces placeholder without moving its slot');
+      assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),false,'Guest sign-in replaces placeholder without moving its slot');
+      sameFootprint(pendingCredit,await page.locator('#lab-home-credits').boundingBox(),width+': guest credit slot remains fixed');
+      sameFootprint(pendingAvatar,await page.locator('#lab-header-signin').boundingBox(),width+': guest sign-in slot remains fixed');
       assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Guests have a Get credits CTA in the same header slot');
       assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits');
       assert.equal(await page.locator('.lab-hero [data-lab-signin]').count(),0,'No separate Google button in the hero');
       assert.match(await page.locator('.hero-welcome').innerText(),/200 free credits/i);
       assert.match(await page.locator('.lab-pricing-welcome').innerText(),/No purchase required/);
       assert.equal(await page.locator('[data-lab-welcome-start]').getAttribute('href'),'./studio.html?tool=image&welcome=1');
-      assert.equal(await page.locator('.start-link').textContent(),'Start creating free');
+      assert.equal(await page.locator('.start-link').textContent(),'Start creating','Hero CTA never changes with login state');
       stable(initial,await geometry(page),`${width}: sign out`);
       await page.locator('#lab-header-signin').click();
       assert.equal(await page.evaluate(()=>window.testSignInOpened),true);

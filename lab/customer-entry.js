@@ -63,29 +63,28 @@ async function refresh(){
   }catch(e){if(current===revision){profile=null;profileLoading=false;status(e.message);show();}}
 }
 function show(){
-  const signed=!!clerk?.isSignedIn,customer=!!profile?.customer;
-  const startLink=document.querySelector('.start-link');
-  if(startLink)startLink.textContent=signed?'Start creating':'Start creating free';
+  const signed=!!clerk?.isSignedIn;
+  const currentProfile=!!profile&&profileSessionId===clerk?.session?.id;
+  // Do not paint a guest CTA or an unverified wallet while Clerk and the
+  // authenticated /api/session request are still resolving.
+  const ready=!!clerk&&(!signed||currentProfile||!profileLoading);
+  const customer=ready&&!!profile?.customer;
   const header=document.querySelector('.landing-header--home');
-  header?.classList.toggle('is-credit-loading',signed&&profileLoading&&!profile);
-  header?.classList.add('is-account-ready');
-  $('lab-header-signin').hidden=signed;
   const homeCredits=$('lab-home-credits');
+  $('lab-header-signin').hidden=!ready||signed;
   if(homeCredits){
-    // Keep the same header layout for guests and customers. Guests see a CTA, not an invented balance.
-    homeCredits.hidden=false;
-    if(!signed){
+    homeCredits.hidden=!ready;
+    if(ready&&!signed){
       $('lab-home-credit-copy').textContent='Get credits';
       $('lab-home-credit-unit').hidden=true;
       homeCredits.setAttribute('aria-label','Get credits and view pricing');
       homeCredits.title='Get credits';
-    }else if(!customer){
+    }else if(ready&&!customer){
       $('lab-home-credit-copy').textContent='Credits';
       $('lab-home-credit-unit').hidden=true;
       homeCredits.setAttribute('aria-label','View credits and pricing');
       homeCredits.title='View credits and pricing';
-    }
-    if(signed&&customer){
+    }else if(ready&&customer){
       const valid=Number.isSafeInteger(profile.balanceCredits)&&profile.balanceCredits>=0;
       const balance=valid?profile.balanceCredits:null;
       const empty=balance===0;
@@ -95,20 +94,22 @@ function show(){
       homeCredits.title=empty?'Get credits':valid?balance.toLocaleString('en-GB')+' credits. Add credits':'View credits and pricing';
     }
   }
-  headerAccount.update({signed,user:clerk?.user,profile});
+  headerAccount.update({signed:ready&&signed,user:clerk?.user,profile:ready?profile:null});
   const invitation=document.querySelector('.lab-invite-promo__cta');
   if(invitation){
-    const owner=profile?.owner===true;
+    const owner=ready&&profile?.owner===true;
     invitation.href=owner?'./owner.html':'./account.html#referrals';
     const label=invitation.querySelector('[data-lab-invite-text]');
     if(label)label.textContent=owner?'Owner dashboard':'Get your invite link';
   }
-  document.querySelectorAll('[data-lab-signin]').forEach(button=>{button.hidden=signed;});
-  if(signed&&pilotSetup){
+  document.querySelectorAll('[data-lab-signin]').forEach(button=>{button.hidden=!ready||signed;});
+  // Publish the resolved presentation as the last operation, so neither the
+  // placeholder nor its actual replacement causes a visible layout shift.
+  if(header)header.dataset.accountPhase=ready?'ready':'pending';
+  if(ready&&signed&&pilotSetup){
     if(customer&&profile?.ownerId)status('Private pilot setup: your test account ID is '+profile.ownerId+'. Copy this ID into the Cloudflare LAB_LIVE_PILOT_CUSTOMER_ID secret. This ID is not a password.');
     else if(profile&&!customer)status('This is the PV Lab owner account. For a safe live test, sign in using another Google account.');
   }
-
 }
 async function signIn(destination,report=status){
   try{
@@ -195,7 +196,7 @@ try{
   }
 }catch(e){
   status('Sign-in is not currently available. Please try again.');
-  document.querySelector('.landing-header--home')?.classList.add('is-account-ready');
-  $('lab-header-signin').hidden=false;
-  $('lab-header-signin').disabled=true;
+  // Failed Clerk bootstrap is not an anonymous session; retain neutral slots.
+  document.querySelector('.landing-header--home')?.setAttribute('data-account-phase','pending');
+  $('lab-header-signin').hidden=true;
 }

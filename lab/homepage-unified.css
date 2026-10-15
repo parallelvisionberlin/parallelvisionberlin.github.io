@@ -1,4 +1,5 @@
-/* PV LAB homepage: unified guest and customer presentation, 2026-10-14. */
+/* PV LAB homepage: fixed geometry through Clerk and wallet resolution.
+   The chosen leather-editorial hero and its typography remain untouched. */
 @media(min-width:901px){
   .landing-header--home + main .lab-hero .hero-copy{
     width:min(660px,52vw);
@@ -11,15 +12,61 @@
   }
   .landing-header--home + main .lab-hero .hero-description .desktop-break{display:none}
 }
-/* Fixed actions grid and meaningful CTA even without auth JavaScript. */
+/* Three slots remain identical for signed-out, loading and customer headers. */
+.landing-header--home .landing-header-actions{
+  grid-template-columns:122px 136px 44px;
+  column-gap:12px;
+  justify-self:end;
+  min-height:44px;
+}
+.landing-header--home .landing-header-actions>.studio-link{
+  width:122px;min-width:0;box-sizing:border-box;
+}
+/* These quiet, non-interactive outlines occupy the real credit and avatar slots.
+   Neither a guessed balance nor a false logged-in identity is displayed. */
+.landing-header--home .lab-home-credit-placeholder,
+.landing-header--home .lab-home-avatar-placeholder{
+  visibility:visible;
+  pointer-events:none;
+}
+.landing-header--home[data-account-phase="ready"] .lab-home-credit-placeholder,
+.landing-header--home[data-account-phase="ready"] .lab-home-avatar-placeholder{
+  visibility:hidden;
+}
 .landing-header--home .landing-header-actions>.lab-home-credits:not([hidden]){
   visibility:visible;
 }
-.landing-header--home .lab-home-credit-placeholder,
-.landing-header--home .lab-home-avatar-placeholder{display:none!important}
-@media(min-width:901px){
+/* A guest sign-in control uses the same fixed 44 px space as the real avatar. */
+.landing-header--home #lab-header-signin:not([hidden]){
+  display:grid;place-items:center;box-sizing:border-box;
+  width:44px;height:44px;padding:7px;
+  margin:0;border:0;background:transparent;color:#e7e6e2;
+}
+.landing-header--home #lab-header-signin svg{
+  width:23px;height:23px;flex:none;stroke:currentColor;
+  stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round;
+}
+.landing-header--home #lab-header-signin:hover{color:#fff}
+@media(max-width:900px){
   .landing-header--home .landing-header-actions{
-    grid-template-columns:auto 136px 76px;
-    column-gap:12px;
+    grid-template-columns:118px 110px 44px;
+    column-gap:9px;
   }
+  .landing-header--home .landing-header-actions>.studio-link{width:118px}
+  .landing-header--home #lab-header-signin:not([hidden]){width:44px;height:44px}
+}
+@media(max-width:560px){
+  .landing-header--home .landing-header-actions{
+    grid-template-columns:82px 94px 44px;
+    column-gap:6px;
+  }
+  .landing-header--home .landing-header-actions>.studio-link{width:82px}
+  .landing-header--home .lab-home-avatar-placeholder{width:44px;min-height:44px}
+  .landing-header--home #lab-header-signin:not([hidden]){width:44px;height:44px}
+}
+@media(max-width:375px){
+  .landing-header--home .landing-header-actions{
+    grid-template-columns:76px 34px 44px;
+  }
+  .landing-header--home .landing-header-actions>.studio-link{width:76px}
 }
