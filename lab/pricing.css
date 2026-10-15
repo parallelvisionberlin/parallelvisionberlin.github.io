@@ -331,3 +331,89 @@
   #pricing .lab-plan-usage-stats{gap:6px 10px}
   #pricing .lab-plan>button[data-lab-buy]{width:37px;height:37px;min-height:37px}
 }
+
+
+/* Desktop fold repair. Keep the full editorial design on tall screens and use
+   a deliberately compact composition on standard 768–940px laptop/desktop
+   viewports. Both purchase panels, the free-credit CTA and billing disclosure
+   must remain within one anchored viewport. */
+#pricing .lab-pricing-usage-note{
+  color:#a29e99;font:300 11px/1.45 "DM Sans",Arial,sans-serif;
+  max-width:650px;margin:13px 0 0;
+}
+@media (min-width:1001px) and (max-height:940px){
+  #pricing.lab-plans{
+    padding-block:clamp(24px,3.4vh,36px);
+  }
+  #pricing .lab-pricing-layout{
+    gap:clamp(44px,5vw,84px);
+  }
+  #pricing .lab-pricing-collection>.lab-plans-kicker{margin-bottom:2px}
+  #pricing .lab-pricing-deck{
+    height:clamp(345px,49vh,430px);
+    margin-top:9px;
+  }
+  #pricing .lab-pricing-mood{width:36%}
+  #pricing .lab-pricing-mood--polaroid{left:4%;top:8%}
+  #pricing .lab-pricing-mood--film{right:4%;top:8%}
+  #pricing .lab-pricing-mood--cinema{width:38%;left:31%;top:0}
+  #pricing .lab-pricing-mood figcaption{font-size:clamp(14px,1.2vw,18px);bottom:16px}
+  #pricing .lab-pricing-welcome{margin:17px 0 0 2px}
+  #pricing .lab-pricing-welcome h3{font-size:clamp(27px,2.3vw,32px);margin:9px 0 9px}
+  #pricing .lab-pricing-welcome>p{
+    font-size:14px;line-height:1.5;margin:0 0 17px;
+  }
+  #pricing .lab-pricing-free-cta{
+    min-height:50px;min-width:260px;padding:11px 23px;font-size:14px;
+  }
+  #pricing .lab-pricing-comparison{padding-top:0}
+  #pricing h2{
+    font-size:clamp(41px,3.1vw,49px);
+    margin:11px 0 17px;line-height:1.05;
+  }
+  #pricing .lab-plans-intro{
+    font-size:14px;line-height:1.5;margin:0 0 21px;
+  }
+  #pricing .lab-pricing-options [role="tab"]{
+    min-height:46px;padding:5px 0 10px;font-size:16px;
+  }
+  #pricing .lab-plan{
+    min-height:129px!important;
+    padding:16px 0 14px!important;
+    row-gap:4px;
+  }
+  #pricing .lab-plan-name{font-size:25px;gap:10px}
+  #pricing .lab-plan-price{font-size:29px!important;gap:5px}
+  #pricing .lab-plan-credits{font-size:13px}
+  #pricing .lab-plan-usage{padding-top:5px}
+  #pricing .lab-plan-usage-stats{font-size:12px;gap:clamp(14px,1.5vw,22px);line-height:1.35}
+  #pricing .lab-pricing-usage-note{font-size:10.5px;margin:10px 0 0;line-height:1.45}
+  #pricing .lab-pricing-footnote{margin-top:12px;font-size:11.5px}
+}
+@media (min-width:1001px) and (max-height:760px){
+  #pricing.lab-plans{padding-block:22px}
+  #pricing .lab-pricing-deck{height:clamp(305px,46vh,355px)}
+  #pricing .lab-pricing-welcome{margin-top:12px}
+  #pricing .lab-pricing-welcome h3{font-size:27px}
+  #pricing h2{font-size:41px;margin:9px 0 13px}
+  #pricing .lab-plans-intro{margin-bottom:15px}
+  #pricing .lab-plan{min-height:109px!important;padding:12px 0!important}
+  #pricing .lab-pricing-options [role="tab"]{min-height:42px}
+  #pricing .lab-pricing-usage-note{margin-top:8px}
+  #pricing .lab-pricing-footnote{margin-top:8px}
+}
+@media (min-width:761px) and (max-width:1000px) and (max-height:940px){
+  #pricing.lab-plans{padding-block:30px}
+  #pricing .lab-pricing-deck{height:clamp(290px,46vh,370px)}
+  #pricing .lab-pricing-welcome{margin-top:18px}
+  #pricing .lab-pricing-welcome h3{margin-block:10px;font-size:26px}
+  #pricing .lab-pricing-welcome>p{font-size:13px;margin-bottom:15px}
+  #pricing .lab-pricing-free-cta{min-height:48px}
+  #pricing h2{margin:10px 0 14px;font-size:clamp(36px,4.1vw,42px)}
+  #pricing .lab-plans-intro{margin-bottom:18px}
+  #pricing .lab-pricing-options [role="tab"]{min-height:44px}
+  #pricing .lab-plan{min-height:116px!important;padding:13px 0!important}
+  #pricing .lab-plan-usage{padding-top:4px}
+  #pricing .lab-pricing-usage-note{font-size:10px;margin-top:10px}
+  #pricing .lab-pricing-footnote{margin-top:10px}
+}
