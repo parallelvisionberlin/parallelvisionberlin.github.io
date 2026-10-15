@@ -57,3 +57,9 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - Check the Studio loading state on `https://pvlab.studio/studio` and sign-in readiness after the Pages deployment.
 - Observe the loading sequence on mobile, keyboard reduced-motion settings, and slower network conditions.
 - The logo is crisp even for fast-loading pages; its outgoing blur only plays on readiness, with pointer-events removed immediately.
+
+## October 15 Image Studio loading-width correction
+- The Image page's scrollbar is hidden during the loading animation and restored afterward, while image History loads asynchronously. In classic-scrollbar browsers that can change available gallery width, creating an apparent size/scroll movement.
+- The early Studio boot CSS reserves a stable root scrollbar gutter for the web Image workspace on desktop/tablet widths >=761px. Mobile remains unreserved so the floating composer stays centered; all other Studio tools keep the existing layout.
+- A mock-only browser regression tests the actual Studio HTML/CSS at 1440x900 and 390x844 before boot release, afterward and after a simulated increase in History height. Root/gallery/composer geometry remains constant and scrollY stays zero.
+- Account menu alignment tests use the usable page geometry when a reserved scrollbar is active. No generation, provider, payment, authentication, or gallery data code changed.

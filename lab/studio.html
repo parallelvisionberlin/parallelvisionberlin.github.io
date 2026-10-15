@@ -24,6 +24,9 @@
    Hide the underlying document scrollbar until the 240ms splash exit has ended. */
 html.pv-studio-boot-lock,html.pv-studio-boot-lock body{overflow:hidden!important;overscroll-behavior:none!important}
 html.pv-studio-boot-lock{scroll-behavior:auto!important}
+/* Reserve Image gallery scrollbar space through the splash and delayed history.
+   Keep the mobile floating composer centered and other routes unchanged. */
+@media(min-width:761px){html:has(#app.image-studio-active){scrollbar-gutter:stable}}
 /* Visible before the external scripts and stylesheets load. No remote imagery or icon fonts. */
 body.lab-booting{margin:0;background:#101114}
 #lab-boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#121316 0%,#08090a 73%);color:#ededee;font-family:"Helvetica Neue",Arial,sans-serif}
