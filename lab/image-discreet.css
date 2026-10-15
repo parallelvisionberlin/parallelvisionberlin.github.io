@@ -60,9 +60,14 @@ html.pv-image-previews-hidden #history-preview-toggle .eye-hidden{
 #history-preview-toggle:focus-visible{outline:2px solid #e9e7e3;outline-offset:2px}
 .image-discreet-message{
   display:none;pointer-events:none;position:absolute;inset:53px 0 190px;z-index:2;
-  align-items:center;justify-content:center;
+  align-items:center;justify-content:center;flex-direction:column;gap:11px;
   color:#e0dcd7;text-align:center;
   background:radial-gradient(ellipse 180px 86px at center,rgba(0,0,0,.20),transparent 85%);
+}
+.image-discreet-message svg{
+  display:block;width:23px;height:23px;fill:none;stroke:currentColor;
+  stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;
+  opacity:.82;filter:drop-shadow(0 2px 7px rgba(0,0,0,.4));
 }
 .image-discreet-message span{
   font:500 11px/1.5 'DM Sans',sans-serif;letter-spacing:.15em;text-transform:uppercase;
