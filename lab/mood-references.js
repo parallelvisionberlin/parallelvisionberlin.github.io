@@ -41,7 +41,7 @@ export function moodReferencePlan(settings){
     throw Error('Direction, Mood and reference instructions exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or optional reference notes.');
   return {settings:{...settings,referenceRoles,
     // With text alone, a style photograph must not choose the output framing.
-    aspectRatio:!labels.length&&settings.aspectRatio==='auto'?'1:1':settings.aspectRatio},references};
+    aspectRatio:!labels.length&&settings.aspectRatio==='auto'?'16:9':settings.aspectRatio},references};
 }
 
 export function createMoodReferenceLoader({upload,fetchFile=fetch}){

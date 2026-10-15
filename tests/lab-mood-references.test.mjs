@@ -39,7 +39,7 @@ test('limits and prompt overflow fail before any upload; other moods and models 
   }
   assert.equal(moodReferencePlan(base(70,6)).settings.referenceRoles.length,10);
   const text=moodReferencePlan(base(70,0));
-  assert.equal(text.settings.aspectRatio,'1:1');
+  assert.equal(text.settings.aspectRatio,'16:9');
   assert.ok(text.settings.referenceRoles.every(r=>r.role==='style'));
   assert.match(compileImagePrompt(text.settings.prompt,text.settings.referenceRoles,text.settings),/There is no base image/);
 });

@@ -6,24 +6,24 @@ const ALL_MOODS=Object.freeze([
     "name": "Dream Blur",
     "category": "Analog",
     "preview": "/lab/mood-previews/dream-blur-20261015.jpg",
-    "description": "Long-exposure motion poetry, streaking real light, halation and tactile pushed-film grain",
+    "description": "Original-frame long exposure, intimate analog film grain and imperfect light leaks",
     "defaultIntensity": 78,
-    "direction": "DREAM BLUR / ANALOG SHUTTER MEMORY. Make one physically believable handheld long-exposure photograph from the supplied person or scene. Study the four attached Dream Blur Style photos for their shared optical language, NEVER for faces, objects, silhouettes or locations. The shutter moves while the lights expose: broad imperfect cyan, cobalt or ivory luminous smears with rare thin warm orange-red trails; streaks follow scene lights and camera movement, cutting diagonally or horizontally across the frame. Human presence slips in and out of definition, with some face or pose anchors still recognisable. The source can be an intimate eye close-up, motion-smeared fashion portrait, full-body silhouette or nearly abstract existing place. Analog imperfections matter: dense uneven pushed-film grain, black negative space, slight color fringing, creamy blown highlight cores, halation at actual bright lights and soft neighboring exposures. These four references show electric blue night, but ADAPT colors to the Base scene: retain credible amber, green, daylight or warm film spectra instead of painting every image cyan. Fashion-editorial and emotionally ambiguous, never computer graphics. Keep one frame, one body, real perspective, no invented lasers, tunnels, cars or copied backgrounds.",
-    "routing": "PHOTO READING: PORTRAIT OR EYE -> allow motion drag at hair, eyelashes, cheek contours and reflections, but retain a recognisable face/eye landmark. FULL BODY -> retain subject count, silhouette and pose, streak practical lights behind or across them. EMPTY SPACE -> abstract existing highlights with shutter movement and deep black gaps. BRIGHT DAY -> natural exposure drag, not arbitrary blue night. Style photos guide grain and optics only.",
-    "subtle": "1–34%: fine pushed-grain, minor handheld exposure drift, some practical light tails; most original details readable.",
-    "moderate": "35–69%: visible long-exposure sweep in the actual lights, soft partial subject smears, vivid contrast and imperfect color halation.",
-    "immersive": "70–89%: strong organic directional light trails, generous but plausible overexposure and cropped focus islands within wet-looking photographic grain; recognisable subject persists.",
-    "intense": "90–99%: intensely dragged shutter with elongated luminous stripes, subject dissolving into genuine optical motion but a face, gesture or original architecture still partly legible.",
-    "climax": "100%: near-abstraction through physically coherent camera movement and blown existing source lights, extreme luminous motion yet no doubled bodies or digitally drawn laser beams.",
-    "compact": "DREAM BLUR: a single real analog long-exposure exposure with moving handheld camera, light leaks and dragged practical highlights. The four Style reference photos guide photographic motion, never subject, faces or locations. Broad irregular cyan/blue or source-adaptive colored smears, occasional narrow ember-orange streaks, natural black negative space, luminous hot cores, optical halation, tactile pushed-35mm grain, partial silhouette and eye details. Not a flat blue overlay. Preserve Base identity, person count, pose and real scene; allow a partial optical smear across eyes and body without cloning anatomy.",
-    "compactRouting": "PORTRAIT -> recognisable landmark despite eye/hair drag; BODY -> one intact silhouette; PLACE -> moving existing lights. DAY -> natural dragged light, not artificial blue night.",
-    "compactSubtle": "gentle grain and slight practical-light drag",
-    "compactModerate": "obvious handheld shutter movement and scattered colored lights",
-    "compactImmersive": "expressive luminous streaks, rich shadows and recognisable motion-blurred figure",
-    "compactIntense": "aggressive analog light trails with partial facial and spatial recognition",
-    "compactClimax": "maximum real shutter movement, dreamy partial abstraction, no invented neon",
-    "avoid": "perfect crisp digital portrait, generic cyberpunk city, added laser graphics, uniform blue or magenta wash, AI plastic complexion, beauty retouch, cloned people, duplicate eyes, impossible anatomy, light streaks with no plausible source, hard digital edge glow, excessive soft white fog, fake film borders, visible text or logos",
-    "compactAvoid": "digital lasers, copied Style people or spaces, cloned faces, plastic skin, generic blue filter, fake light graphics, anatomy errors, invented objects"
+    "direction": "DREAM BLUR V2 / ANALOG OPTICAL TRANSFORMATION OF THE ORIGINAL. When a Base photograph is supplied, that photograph is the sole authority for subject, identity, facial structure, hair, body proportions, person count, pose, direction of gaze, wardrobe and skin coverage, camera viewpoint, distance, framing, crop, architecture, objects and background. KEEP THE SAME PHOTOGRAPHIC MOMENT. A full-body image remains full-body and a rear view remains a rear view. Do not replace the image with a close-up, an overlaid new face, a new person, a different outfit or an invented editorial location. The four built-in Style photographs are OPTICS ONLY: study their real handheld streaks, not their people, compositions or environments. Apply imperfect slow-shutter light drag and colored light leaks THROUGH THE EXISTING SCENE, motivated by plausible lights and slight camera movement. Luminous smears may cross the subject but must not change its geometry. FILM: distinctly tactile late-1980s/1990s pushed 35mm color negative scanned from analog film, dense uneven emulsion grain on skin AND shadows, subtle dye-layer drift, restrained chromatic fringing, halation around genuine highlights, irregular creamy bloom, imperfect shoulder roll-off and deep grainy black areas. Source-adaptive color: preserve existing ambient warmth, green or daylight; do not paint every input cyan. The result must look like the original photograph caught with a slower shutter and imperfect film stock, not AI concept art.",
+    "routing": "READ THE BASE FIRST. PORTRAIT -> original face location, camera distance and expression remain; streak light through existing highlights, never overlay a larger eye or head. FULL BODY -> retain whole body, pose, background and crop exactly, with light passing in front or behind. REAR VIEW -> keep rear view, no facial reconstruction. ARCHITECTURE -> retain room and objects, only change exposure behavior. NO BASE -> follow the text prompt; 16:9 framing. Style photos never supply subjects or settings.",
+    "subtle": "1–34%: gentle physical light drag, analog soft focus and integrated high-ISO 35mm grain; source framing unchanged.",
+    "moderate": "35–69%: visible imperfect streaks anchored to real light, warm/cool halation, analog color drift and persistent fine-to-moderate grain; same scene.",
+    "immersive": "70–89%: generous but believable in-camera light smearing, strongly palpable emulsion grain, creamy diffusion and shadow noise; original framing, subject and setting stay fixed.",
+    "intense": "90–99%: long imperfect light trails and intense film damage-like highlight bloom; KEEP same person, entire pose, camera distance, crop and location.",
+    "climax": "100%: maximum real shutter streaks, light leaks, halation and pushed-film texture OVER THE SAME FRAMING. The original face, body orientation, wardrobe, scene and number of people remain. Never recrop, insert another face or stage a different photograph.",
+    "compact": "DREAM BLUR V2: faithfully EDIT the Base photograph rather than recreating it. Preserve same person, face, hair, body, pose, wardrobe, skin coverage, whole composition, crop, camera distance and location. No close-up overlay or invented background. Four Style references are OPTICS ONLY. Real handheld long-exposure streaks across existing lights, imperfect halos and slow-shutter smears on the SAME scene. Retro 1980s/1990s pushed-35mm scan: embedded uneven film grain, shadow texture, chemical color drift, source-bound halation and gently clipped highlights. Colors follow the source, not a uniform blue filter.",
+    "compactRouting": "BODY -> keep full body and original view; FACE -> same scale and position; ROOM -> same furniture and perspective; TEXT ONLY -> follow subject, 16:9.",
+    "compactSubtle": "minor directional light streaks, old-film grain and softly exposed highlights",
+    "compactModerate": "realistic light dragging, aged film texture and analog soft focus",
+    "compactImmersive": "strong source-bound light leaks with source frame unchanged and dense 35mm grain",
+    "compactIntense": "large practical streaks and deep film shadows; no new crop or subject",
+    "compactClimax": "maximum analog motion and grain over original composition, never replace image",
+    "avoid": "different person or face, superimposed giant eyes, inserted portrait overlays, changed viewpoint or image crop, newly invented places, scene replacement, additional people, altered body proportions, different clothing, face beautification, airbrush skin, modern sterile digital rendering, uniformly blue tones, neon laser graphics, digital vector streaks, pasted noise overlay, fake film borders, duplicate anatomy, lettering",
+    "compactAvoid": "new face, face overlay, altered crop, body change, new location, different outfit, digital lasers, modern glossy plastic skin, flat tint, pasted noise"
   },
   {
     "id": "midnight-reverie",
@@ -381,7 +381,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           compactDreamBlur?mood.compactRouting:mood.routing,
           'Shutter-drag intensity '+intensity+'/100: a single real photographed exposure, not graphics or a uniform filter.',
           compactDreamBlur?mood['compact'+dreamcoreTier]:mood[dreamcoreKey],
-          'IDENTITY FIRST: preserve the Base person, face proportions, subject count, pose, wardrobe and original setting. Natural directional smear may partially obscure eyes and face, but do not clone or reconstruct a different individual.'
+          'IDENTITY FIRST / BASE FRAME LOCK: if the customer supplied a photograph, preserve identical crop, subject size, orientation, pose, body and camera viewpoint. Light and film texture may change strongly, the scene cannot be replaced. Style photos never control identity or composition.'
         ].join(' ')
       :midnightReverie
         ?[
@@ -423,6 +423,8 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
         ?compactDreamcore
           ?'Base: preserve identity, main gesture, camera and garment coverage. Allow mood-driven recoloring, materials and compatible support reconstruction; respect assigned roles.'
           :'Base: preserve identity, proportions, main gesture, camera and garment coverage. Allow clothing recoloring, material changes and local support reconstruction with minimal contact corrections. Keep the scene recognizable and respect assigned roles.'
+        :dreamBlur
+        ?'BASE IMAGE FIRST: exact original subject count, pose, body orientation, clothing and skin coverage, scene objects, background, lens perspective and framing. If the original was full length, DO NOT zoom into a headshot. Style photographs are only for analog optics. Respect explicit customer-directed edits.'
         :compactHongKong
           ?'Honor assigned reference roles.'
         :compact80s

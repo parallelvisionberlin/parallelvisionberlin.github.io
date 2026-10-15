@@ -2,14 +2,15 @@ import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-lock1
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3';
 import {preparePhotoInput} from './photo-input.js?v=1';
-import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1';
+import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2';
+import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-hidden-preset1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261013-upgrade1&model-rates=1&metaCheckout=20261015-1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261010-customer-credits1';
-import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1';
+import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1&imageRatio=20261016-inherit1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261013-character-studio1';
@@ -18,7 +19,7 @@ import {createVideoModelPicker} from './video-model-picker.js?v=20261015-model-g
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
 import {imageModelLabel} from './model-labels.js?v=20261014-krea2-identity1&nano21=1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261015-v1';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
@@ -149,7 +150,11 @@ async function restoreStudioEntry(){
             $('resolution').value='1k';$('image-count').value='1';
           }
           if(packet.file){await addReferences([packet.file],generation?.sourceId?[generation.sourceId]:[]);hadPhoto=true;}
-          if(generation)$('ratio').value=hadPhoto?'auto':'16:9';
+          if(generation){
+            // First uploaded Base controls ratio, not the internal Mood optics.
+            if(hadPhoto)syncDefaultRatio(true);
+            else $('ratio').value='16:9';
+          }
           if(packet.prompt)$('prompt').value=packet.prompt;
         }finally{
           // The handoff token is one-shot; a refresh may still re-select the
@@ -712,7 +717,7 @@ function syncDefaultRatio(force=false){
   const key=[tool,imageEngine,imageReferenceMode,mode,source?.width||0,source?.height||0,ref?.url||sourceUrl||'',values.join(',')].join(':');
   if(!force&&key===ratioSourceKey)return;
   ratioSourceKey=key;
-  select.value=imageAutoRatio({values,reference:source,explicit:tool==='image'&&imageRatioExplicit&&!force,current:select.value,defaultRatio:'16:9'});
+  select.value=imageAutoRatio({values,reference:source,explicit:tool==='image'&&imageRatioExplicit&&!force,current:select.value,defaultRatio:'16:9',resolveSourceRatio:tool==='image'});
 }
 
 function setFashionActive(active){
@@ -2465,7 +2470,7 @@ async function restore(job){
       // Curated Style inputs belong to the selected Mood. Restore only user
       // images; the loader reattaches styles if that Mood is still selected.
       const saved=(p.referenceSourceIds||[]).map((id,i)=>({id,label:p.referenceRoles?.[i]||{name:'reference-'+(i+1)}}))
-        .filter(ref=>p.moodId!=='hong-kong-nights'||!isMoodStyleReference(ref.label));
+        .filter(ref=>!isMoodStyleReference(ref.label));
       if(saved.length){const files=await Promise.all(saved.map(ref=>assetFile(ref.id,(ref.label.name||'reference').replace(/\.[^.]+$/,''))));await addReferences(files,saved.map(ref=>ref.id),saved.map(ref=>ref.label));}
     }
     else if(job.sourceId&&p.mode!=='extend'){await setImage(await assetFile(job.sourceId,'start-frame'),job.sourceId);if(p.lastSourceId)await setLastImage(await assetFile(p.lastSourceId,'last-frame'),p.lastSourceId);}
@@ -2620,10 +2625,7 @@ function releaseImageDetailSource(){
   $('image-detail-reference-wrap').hidden=true;
 }
 function imageDetailReferenceIds(job){
-  const settings=job.settings||{},references=Array.isArray(settings.referenceSourceIds)?settings.referenceSourceIds:[];
-  const internal=new Set(settings.moodId==='hong-kong-nights'?references.filter((id,index)=>isMoodStyleReference(settings.referenceRoles?.[index])):[]);
-  return [job.sourceId,...references]
-    .filter((value,index,items)=>typeof value==='string'&&value&&!internal.has(value)&&items.indexOf(value)===index);
+  return visibleImageReferenceIds(job);
 }
 function showImageDetailSource(job){
   releaseImageDetailSource();

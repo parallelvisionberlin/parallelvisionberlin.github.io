@@ -35,13 +35,19 @@ test('bound quotes sum individual server-confirmed credit charges, including bat
   assert.throws(()=>pricedBoundQuotes(quote('a',.01),1,'Higgsfield'),/Price quote/);
   assert.throws(()=>pricedBoundQuotes({...quote('a',.01),expiresAt:Date.now()+1000},1,'SpicyAPI'),/expired/);
 });
-test('16:9 is default without a base and base-photo ratio follows Auto unless manually overridden',()=>{
+test('Image ratio inherits first uploaded photo, stays 16:9 without an image, and honors manual choices',()=>{
   const values=['auto','16:9','9:16','1:1','4:3','3:4'];
   assert.equal(imageAutoRatio({values,reference:null,current:'auto'}),'16:9');
-  assert.equal(imageAutoRatio({values,reference:{width:900,height:1200}}),'auto');
+  assert.equal(imageAutoRatio({values,reference:{width:900,height:1200}}),'3:4');
+  assert.equal(imageAutoRatio({values,reference:{width:1080,height:1920}}),'9:16');
+  assert.equal(imageAutoRatio({values,reference:{width:1920,height:1080}}),'16:9');
+  assert.equal(imageAutoRatio({values,reference:{width:1024,height:1024}}),'1:1');
   assert.equal(imageAutoRatio({values,reference:{width:900,height:1200},explicit:true,current:'1:1'}),'1:1');
+  assert.equal(imageAutoRatio({values,reference:{width:900,height:1200},explicit:true,current:'auto'}),'auto');
   assert.equal(imageAutoRatio({values:['16:9','1:1','3:4'],reference:{width:900,height:1200}}),'3:4');
   assert.equal(imageAutoRatio({values,reference:null,explicit:true,current:'9:16'}),'9:16');
+  assert.equal(imageAutoRatio({values,reference:{width:900,height:1200},resolveSourceRatio:false}),'auto',
+    'Video mode can retain a genuine provider-managed Auto ratio');
 });
 test('snapshot fingerprint invalidates on prompt, resolution, count, order, role and source photo',()=>{
   const base={sessionEpoch:4,settings:{engine:'seedream',prompt:'Photographic studio',resolution:'1k',aspectRatio:'16:9'},count:1,images:[],source:null};

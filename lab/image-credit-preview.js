@@ -35,14 +35,19 @@ export function pricedBoundQuotes(payload,count,expectedProvider){
   }
   return {kind:'bound',credits,count,quotes,expiresAt:expiry};
 }
-export function imageAutoRatio({values,reference,explicit=false,current='16:9',defaultRatio='16:9'}){
+export function imageAutoRatio({values,reference,explicit=false,current='16:9',defaultRatio='16:9',resolveSourceRatio=true}){
+  // Explicit customer choice always wins, including deliberately choosing Auto.
   if(explicit&&values.includes(current))return current;
-  const candidate=reference&&Number(reference.width)>0&&Number(reference.height)>0?reference:null;
-  if(!candidate)return values.includes(defaultRatio)?defaultRatio:values[0];
-  if(values.includes('auto'))return 'auto';
-  const target=candidate.width/candidate.height;
+  const width=Number(reference?.width),height=Number(reference?.height);
+  if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)
+    return values.includes(defaultRatio)?defaultRatio:values[0];
+  // Images use a concrete supported ratio based on the FIRST customer input.
+  // Leaving "auto" to a provider alongside built-in Style inputs can instead
+  // inherit the landscape ratio of one of the preset photos.
+  if(!resolveSourceRatio&&values.includes('auto'))return 'auto';
   const numeric=values.filter(value=>/^\d+:\d+$/.test(value));
-  if(!numeric.length)return values[0];
+  if(!numeric.length)return values.includes('auto')?'auto':values[0];
+  const target=width/height;
   return numeric.reduce((best,v)=>{
     const diff=str=>{const [w,h]=str.split(':').map(Number);return Math.abs(Math.log(w/h/target));};
     return diff(v)<diff(best)?v:best;
