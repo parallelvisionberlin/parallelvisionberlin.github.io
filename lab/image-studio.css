@@ -602,3 +602,11 @@ html:has(#image-lightbox[open]),body:has(#image-lightbox[open]){overflow:hidden}
 #image-composer .composer-prompt-budget[hidden]{display:none!important}
 #image-composer .composer-prompt-budget.is-over{color:#f4c2c2}
 
+
+/* Exact Prompt is an advanced-only setting, not another Generate control. */
+#composer-exact-prompt-option[hidden]{display:none!important}
+.composer-exact-prompt{display:flex;align-items:flex-start;gap:10px;margin:11px 12px 7px;padding:11px 12px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.035);color:#e8e9e5;cursor:pointer}
+.composer-exact-prompt input{accent-color:#dce2d2;width:16px;height:16px;margin-top:2px;flex-shrink:0}
+.composer-exact-prompt span{display:grid;gap:3px;min-width:0}
+.composer-exact-prompt strong{font-size:12px;font-weight:600}
+.composer-exact-prompt small{font-size:11px;line-height:1.45;color:#aaaead}

@@ -1,6 +1,6 @@
 /* Precision Edit: large base canvas, SAM 3 point segmentation, mask brushes,
    non-destructive FLUX inpainting and original-pixel client-side compositing. */
-export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,onJob,onExit}){
+export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,magicReady=falReady,onJob,onExit}){
   const $=id=>document.getElementById(id);
   const view=$('precision-workspace'),sourceCanvas=$('precision-source-canvas'),
     overlay=$('precision-selection-canvas'),resultCanvas=$('precision-result-canvas');
@@ -22,6 +22,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     outfit:'Replace the selected garment with a structured black leather jacket. Preserve the pose, lighting and everything outside the selection.',
     material:'Transform only the selected material into realistic reflective liquid chrome. Keep the original light direction, background and pose.',
     remove:'Remove the selected object and naturally reconstruct what belongs behind it. Leave everything else untouched.',
+    eyes:'Repair only the selected eye region: restore naturally varied iris texture, pupil shape and size, realistic eyelid anatomy and subtle catchlights coherent with the existing light. Keep the same person, eye color, exact gaze, expression and all surrounding facial features. Do not enlarge eyes, smooth skin or change anything outside the mask.',
     skin:'Give only the selected skin area a subtle glossy editorial finish. Preserve realistic skin texture, identity, lighting and surrounding details.'
   });
   const mimeTypes=new Set(['image/png','image/jpeg','image/webp']);
@@ -118,7 +119,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   function selectMode(next){
     if(!['magic','brush','erase','pan'].includes(next))return;
-    if(next==='magic'&&!falReady())next='brush';
+    if(next==='magic'&&!magicReady())next='brush';
     mode=next;
     for(const m of ['magic','brush','erase','pan']){
       const b=$('precision-tool-'+m);if(!b)continue;
@@ -160,7 +161,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }
     for(const id of ['precision-tool-magic','precision-tool-brush','precision-tool-erase','precision-expand','precision-change-photo','precision-prompt','precision-brush-size','precision-strength'])
       $(id).disabled=!have||taskBusy;
-    $('precision-tool-magic').disabled=!have||taskBusy||!falReady();
+    $('precision-tool-magic').disabled=!have||taskBusy||!magicReady();
     $('precision-expand').disabled=!selected||taskBusy;
     $('precision-clear-mask').disabled=!selected||taskBusy;
     $('precision-undo').disabled=!undoStack.length||taskBusy;
@@ -322,7 +323,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-drop').hidden=true;$('precision-source-holder').hidden=false;
     $('precision-selection-message').textContent='Click an object to select it. Brush tools refine your mask.';
     $('precision-price-review').hidden=true;setStatus('');
-    selectMode(falReady()?'magic':'brush');refreshButtons();
+    selectMode(magicReady()?'magic':'brush');refreshButtons();
     syncPreviewFit();paintZoom();
     // File-picker/drop imports may resize a previously empty panel. Keep the
     // heading visible after decoding instead of following an old scroll anchor.
@@ -361,7 +362,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   async function magicSelect(point){
     if(!base||taskBusy)return;
-    if(!falReady()){setStatus('Magic Select requires the FAL API connection.',true);return;}
+    if(!magicReady()){setStatus('Magic Select is owner-only. Use the Brush instead.',true);return;}
     taskBusy=true;refreshButtons();$('precision-source-holder').classList.add('is-busy');
     const revision=++session;
     try{
@@ -407,7 +408,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       if(!quoted?.quoteId||!quoted.ticket)throw new Error('Precision Edit did not return a reusable price approval.');
       pending={...body,quoteId:quoted.quoteId,ticket:quoted.ticket,expiresAt:quoted.expiresAt,maskSourceId};
       const usd=Number(quoted.estimatedUsd||0);
-      $('precision-review-body').textContent='FLUX Inpainting · estimated $'+usd.toFixed(3)+' USD (published estimate). Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
+      $('precision-review-body').textContent=(Number.isSafeInteger(quoted.creditCost)&&quoted.creditCost>0?'FLUX Inpainting · '+quoted.creditCost+' PV credits (published +(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
       $('precision-price-review').hidden=false;
       setStatus('Price checked. No generation has started.');
     }catch(e){pending=null;setStatus(e.message,true);}
@@ -744,7 +745,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     handle(setBase(e.dataTransfer.files[0]));
   });
   function attemptMagic(point){
-    if(!base||taskBusy||!falReady())return;
+    if(!base||taskBusy||!magicReady())return;
     if(selectionAllowance<=0){
       consentPoint=point;
       if(!$('precision-select-consent').open)$('precision-select-consent').showModal();
@@ -782,5 +783,774 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     });
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
-  return {open,close,isOpen,hasBase:()=>!!base,reset,finalize,setBase};
+  return {open,close,isOpen,hasBase:()=>!!base,reset,finalize,setBase,
+    suggest:name=>{const prompt=ideaPrompts[name];if(!prompt)return;
+      $('precision-prompt').value=prompt;
+      $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+      setStatus('Brush only the detail to repair, then review the price.');
+    }};
+}
++usd.toFixed(3)+' estimate).':'FLUX Inpainting · estimated +(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
+      $('precision-price-review').hidden=false;
+      setStatus('Price checked. No generation has started.');
+    }catch(e){pending=null;setStatus(e.message,true);}
+    finally{taskBusy=false;refreshButtons();}
+  }
+  async function monitorSubmittedJob(initial,revision,sourceEpoch){
+    let job=initial;
+    try{
+      for(let i=0;i<110&&revision===queueRevision;i++){
+        if(['completed','failed','resolved','uncertain'].includes(job.status))break;
+        await sleep(3000);
+        if(revision!==queueRevision)return;
+        const answer=await api('/api/jobs/'+encodeURIComponent(job.id));
+        job=answer?.job;if(!job)throw new Error('The queued edit could not be refreshed. Check Queue.');
+        if(i%4===0)onJob(job);
+      }
+      if(revision!==queueRevision)return;
+      if(job.status==='completed'){
+        if(sourceEpoch===editEpoch&&isOpen())setStatus('Finishing the original-preserving composite…');
+        const final=await finalize(job);onJob(final);
+        const sameEdit=initial.id===latestJobId&&sourceEpoch===editEpoch&&isOpen()&&base&&base.id===final.settings.precisionOriginalId;
+        if(sameEdit){
+          const output=await assetBlob(final.outputId);
+          if(sourceEpoch!==editEpoch||revision!==queueRevision)return;
+          resultBlob=output;resultFormat=final.settings?.precisionOutputFormat==='jpeg'?'jpeg':'png';
+          lastResultSourceId=final.outputId;
+          if(resultBitmap)resultBitmap.close();
+          resultBitmap=await createImageBitmap(output);showResult(resultBitmap);
+          setStatus(resultFormat==='jpeg'?
+            'Retouch ready as JPEG. High-quality export re-encodes pixels beyond the edited area.':
+            'Retouch ready. Pixels outside the selected area are preserved from the original.');
+        }
+      }else if(sourceEpoch===editEpoch&&initial.id===latestJobId&&isOpen()){
+        if(job.status==='failed'||job.status==='resolved'){
+          $('precision-result-label').textContent='EDIT FAILED';
+          if(!resultBlob){
+            $('precision-output-empty').querySelector('strong').textContent='This edit did not complete.';
+            $('precision-output-empty').querySelector('p').textContent='No automatic retry. Check Queue for the provider error.';
+          }
+          setStatus(job.error||'This edit failed. No automatic resubmission.',true);
+        }else if(job.status==='uncertain'){
+          $('precision-result-label').textContent='CHECK QUEUE';
+          setStatus('Provider status uncertain. Check Queue before trying again.',true);
+        }else{
+          setStatus('Edit still processing in Queue. You can continue working.');
+        }
+      }
+    }catch(error){
+      if(revision===queueRevision&&sourceEpoch===editEpoch&&isOpen())
+        setStatus('The job remains in Queue, but its automatic follow-up needs attention: '+error.message,true);
+    }finally{
+      pendingPolls.delete(initial.id);
+    }
+  }
+  async function submit(){
+    if(!pending||taskBusy)return;
+    if(Date.now()>=pending.expiresAt){
+      pending=null;$('precision-price-review').hidden=true;
+      setStatus('Price approval expired. Review it again.',true);return;
+    }
+    const snapshot={...pending};pending=null;$('precision-price-review').hidden=true;
+    taskBusy=true;refreshButtons();setStatus('Submitting one paid FLUX inpainting job…');
+    try{
+      const response=await api('/api/precision/submit',{method:'POST',body:snapshot});
+      const job=response?.job;
+      if(!job?.id)throw new Error('No job ID was returned. Check Queue before retrying.');
+      onJob(job);
+      // Later submissions take ownership of the preview; older jobs are always
+      // retained in History and cannot overwrite an active editing session.
+      editEpoch++;latestJobId=job.id;
+      $('precision-result-label').textContent='IN QUEUE';
+      if(!resultBlob){
+        $('precision-output-empty').querySelector('strong').textContent='Edit in Queue';
+        $('precision-output-empty').querySelector('p').textContent='Your edit is processing. You can keep working here.';
+      }
+      setStatus('Queued. You can start another edit without waiting for this result.');
+      if(!pendingPolls.has(job.id)){
+        pendingPolls.set(job.id,true);
+        // Follow-up and lossless compositing continue without holding the deck.
+        void monitorSubmittedJob(job,queueRevision,editEpoch);
+      }
+    }catch(error){
+      setStatus('Generation was not confirmed. Check Queue before trying again: '+error.message,true);
+    }finally{
+      taskBusy=false;refreshButtons();
+    }
+  }
+  async function composeWithOriginal(original,provider,maskImage,{allowJpegFallback=false}={}){
+    const w=original.width,h=original.height;
+    const work=document.createElement('canvas');work.width=maskImage.width;work.height=maskImage.height;
+    const wc=work.getContext('2d',{willReadFrequently:true});
+    wc.drawImage(maskImage,0,0,work.width,work.height);
+    const pixels=wc.getImageData(0,0,work.width,work.height);
+    // Work only on the selected bounding region. A full-resolution original
+    // may be 8K x 8K; three additional full-size canvases waste gigabytes.
+    let minX=work.width,minY=work.height,maxX=-1,maxY=-1;
+    for(let y=0;y<work.height;y++)for(let x=0;x<work.width;x++){
+      const i=(y*work.width+x)*4;
+      const a=pixels.data[i+3],v=(pixels.data[i]+pixels.data[i+1]+pixels.data[i+2])/3;
+      const strength=a===0?0:Math.max(0,Math.min(255,Math.round(v)));
+      pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=255;
+      pixels.data[i+3]=strength;
+      if(strength>0){
+        minX=Math.min(minX,x);minY=Math.min(minY,y);
+        maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+      }
+    }
+    if(maxX<minX||maxY<minY)throw new Error('Select an area before generating a composite.');
+    wc.putImageData(pixels,0,0);
+    const feather=Math.max(1,Math.round(Math.max(w,h)/1900)),padding=Math.max(6,feather*4);
+    const x0=Math.max(0,Math.floor(minX*w/work.width)-padding);
+    const y0=Math.max(0,Math.floor(minY*h/work.height)-padding);
+    const x1=Math.min(w,Math.ceil((maxX+1)*w/work.width)+padding);
+    const y1=Math.min(h,Math.ceil((maxY+1)*h/work.height)+padding);
+    const patch=document.createElement('canvas');patch.width=x1-x0;patch.height=y1-y0;
+    const px=patch.getContext('2d');
+    px.drawImage(provider,-x0,-y0,w,h);
+    px.globalCompositeOperation='destination-in';
+    px.filter='blur('+feather+'px)';
+    px.drawImage(work,-x0,-y0,w,h);
+    px.filter='none';px.globalCompositeOperation='source-over';
+    const result=document.createElement('canvas');result.width=w;result.height=h;
+    const cx=result.getContext('2d');cx.drawImage(original,0,0);cx.drawImage(patch,x0,y0);
+    const png=await readBlob(result,'image/png');
+    if(png.size<=MAX_COMPOSITE)return {blob:png,mime:'image/png',format:'png'};
+    if(!allowJpegFallback)throw new Error('Lossless PNG exceeds 20 MB. Raw paid output is retained in History. Use a smaller photograph before retrying.');
+    for(const quality of [.97,.93,.88,.83]){
+      const jpeg=await readBlob(result,'image/jpeg',quality);
+      if(jpeg.type==='image/jpeg'&&jpeg.size<=MAX_COMPOSITE)return {blob:jpeg,mime:'image/jpeg',format:'jpeg'};
+    }
+    throw new Error('This composite exceeds 20 MB even as JPEG. The raw paid output is retained in History. No automatic repeat charge.');
+  }
+  async function finalize(job){
+    if(job?.settings?.precisionFinalized||!job?.settings?.precisionEdit)return job;
+    if(finalizing.has(job.id))return finalizing.get(job.id);
+    const promise=(async()=>{
+      const settings=job.settings;
+      if(job.status!=='completed'||!job.outputId)throw new Error('Precision Edit has no completed result to finalize.');
+      const ids=[settings.precisionOriginalId,settings.maskSourceId,job.outputId];
+      if(ids.some(id=>!id))throw new Error('Precision Edit provenance is incomplete; your raw result is retained in History.');
+      const [originalBlob,maskBlob,generatedBlob]=await Promise.all(ids.map(assetBlob));
+      const [original,selection,generated]=await Promise.all([createImageBitmap(originalBlob),createImageBitmap(maskBlob),createImageBitmap(generatedBlob)]);
+      let composite;
+      try{composite=await composeWithOriginal(original,generated,selection,{
+        allowJpegFallback:settings.precisionAllowJpegFallback===true});}
+      finally{original.close();selection.close();generated.close();}
+      const ext=composite.format==='jpeg'?'jpg':'png';
+      const compositeSourceId=await uploadAsset(new File([composite.blob],'precision-composite.'+ext,{type:composite.mime}));
+      const response=await api('/api/precision/commit',{method:'POST',body:{jobId:job.id,compositeSourceId,expectedOutputId:job.outputId}});
+      if(!response?.job?.settings?.precisionFinalized)throw new Error('Edited result was not confirmed by the private archive.');
+      return response.job;
+    })();
+    finalizing.set(job.id,promise);
+    try{return await promise;}finally{finalizing.delete(job.id);}
+  }
+  function showResult(bitmap){
+    if(!base)return;
+    resultCanvas.width=mask.width;resultCanvas.height=mask.height;
+    $('precision-output-empty').hidden=true;resultCanvas.hidden=false;
+    $('precision-result-label').textContent=resultFormat==='jpeg'?'EDIT COMPLETE / JPEG':'EDIT COMPLETE / PNG';
+    $('precision-compare-control').hidden=false;$('precision-compare-idle').hidden=true;
+    $('precision-compare').disabled=false;$('precision-download').disabled=!resultBlob;
+    $('precision-download').hidden=false;
+    $('precision-continue').hidden=!lastResultSourceId;
+    $('precision-continue').disabled=!lastResultSourceId;
+    $('precision-download').textContent='Download '+(resultFormat==='jpeg'?'JPG':'PNG');
+    renderComparison();
+  }
+  function renderComparison(){
+    if(!resultBitmap||!base)return;
+    const w=resultCanvas.width,h=resultCanvas.height,r=Math.max(0,Math.min(1,Number($('precision-compare').value)/100));
+    rc.clearRect(0,0,w,h);rc.drawImage(resultBitmap,0,0,w,h);
+    if(r<1){rc.save();rc.beginPath();rc.rect(0,0,w*(1-r),h);rc.clip();rc.drawImage(base.bitmap,0,0,w,h);rc.restore();}
+    if(r>0&&r<1){rc.fillStyle='rgba(255,255,255,.7)';rc.fillRect(w*(1-r)-1,0,2,h);}
+  }
+  async function download(){
+    if(!resultBlob)return;
+    const url=URL.createObjectURL(resultBlob),a=document.createElement('a');
+    a.href=url;a.download='parallel-vision-retouch.'+(resultFormat==='jpeg'?'jpg':'png');document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+  }
+  function reset(){
+    session++;close();
+    if(base?.bitmap)base.bitmap.close();base=null;
+    if(resultBitmap)resultBitmap.close();resultBitmap=null;resultBlob=null;workingId=null;
+    sourceCanvas.width=overlay.width=mask.width=0;sourceCanvas.height=overlay.height=mask.height=0;
+    undoStack.length=0;selected=false;pending=null;taskBusy=false;resetZoom();
+    queueRevision++;pendingPolls.clear();latestJobId=null;selectionAllowance=0;consentPoint=null;
+    if($('precision-select-consent').open)$('precision-select-consent').close();
+    $('precision-allow-jpeg').checked=false;$('precision-export-option').hidden=true;
+    $('precision-source-holder').hidden=true;$('precision-drop').hidden=false;
+    $('precision-result-canvas').hidden=true;$('precision-output-empty').hidden=false;
+    $('precision-compare-control').hidden=true;$('precision-compare-idle').hidden=false;
+    $('precision-download').hidden=true;
+    $('precision-continue').hidden=true;$('precision-continue').disabled=true;
+    resultFormat='png';lastResultSourceId=null;
+    $('precision-source-meta').textContent='DROP IMAGE';
+    $('precision-result-label').textContent='AWAITING EDIT';
+    $('precision-empty-title').textContent='See what you can change.';
+    $('precision-empty-description').textContent='Select one area. Describe the change. Keep the rest.';
+    $('precision-prompt').value='';setStatus('');refreshButtons();
+  }
+  async function openSample(){
+    if(taskBusy)return;
+    const button=$('precision-try-sample');
+    button.disabled=true;
+    const originalLabel=button.innerHTML;
+    button.textContent='Opening sample…';
+    try{
+      const response=await fetch(SAMPLE_URL,{cache:'force-cache'});
+      if(!response.ok)throw new Error('The Parallel Vision sample is unavailable. Please try your own photograph.');
+      const blob=await response.blob();
+      if(blob.type!=='image/png')throw new Error('The sample did not load as a PNG photograph.');
+      const file=new File([blob],'PV Lab Fashion Sample.png',{type:'image/png'});
+      await setBase(file);
+      // Locally painted free starter region, NOT a SAM 3 segmentation or AI edit.
+      // This makes the example genuinely editable before any billable action.
+      saveUndo();
+      const w=mask.width,h=mask.height;
+      maskCtx.save();maskCtx.fillStyle='#fff';
+      // Approximate the chrome upper garment in the bundled fashion photograph
+      // rather than drawing an unrelated oval across the model and floor.
+      // This is intentionally a hand-painted LOCAL teaching selection,
+      // not a claimed automatic or provider-generated segmentation.
+      maskCtx.beginPath();
+      maskCtx.moveTo(w*.445,h*.205);
+      maskCtx.bezierCurveTo(w*.417,h*.212,w*.396,h*.221,w*.403,h*.282);
+      maskCtx.bezierCurveTo(w*.407,h*.333,w*.429,h*.349,w*.435,h*.405);
+      maskCtx.lineTo(w*.443,h*.551);
+      maskCtx.quadraticCurveTo(w*.5,h*.575,w*.557,h*.551);
+      maskCtx.lineTo(w*.565,h*.405);
+      maskCtx.bezierCurveTo(w*.570,h*.349,w*.595,h*.333,w*.599,h*.282);
+      maskCtx.bezierCurveTo(w*.603,h*.222,w*.577,h*.213,w*.555,h*.205);
+      maskCtx.quadraticCurveTo(w*.531,h*.200,w*.516,h*.231);
+      maskCtx.lineTo(w*.484,h*.231);
+      maskCtx.quadraticCurveTo(w*.470,h*.200,w*.445,h*.205);
+      maskCtx.closePath();
+      maskCtx.fill();maskCtx.restore();
+      maskChanged();
+      selectMode('brush');
+      $('precision-prompt').value='Change the selected chrome jacket and bodice into matte black sculptural tailoring with realistic fabric grain. Preserve the face, pose, ambient light and everything outside the selection.';
+      $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+      $('precision-empty-title').textContent='Starter selection ready.';
+      $('precision-empty-description').textContent='Refine the selected chrome garment with the free brush tools, or choose a different edit below. No AI result has been generated.';
+      setStatus('PV Lab sample opened. The starter mask was painted locally, with no paid selection or generation request.');
+    }finally{
+      button.disabled=false;button.innerHTML=originalLabel;
+    }
+  }
+  const handle=async promise=>{try{await promise;}catch(e){setStatus(e.message,true);notify(e.message,true);}};
+  $('precision-return').onclick=()=>{if(typeof onExit==='function')onExit();else close();};
+  $('precision-tool-magic').onclick=()=>selectMode('magic');
+  $('precision-tool-pan').onclick=()=>selectMode(mode==='pan'?'brush':'pan');
+  $('precision-zoom-fit').onclick=()=>setZoom(1);
+  $('precision-zoom-out').onclick=()=>setZoom(zoom/1.45);
+  $('precision-zoom-in').onclick=()=>setZoom(zoom*1.45);
+  $('precision-zoom-actual').onclick=()=>setZoom(actualPreviewZoom());
+  $('precision-source-holder').addEventListener('wheel',event=>{
+    if(!base||taskBusy)return;
+    event.preventDefault();
+    const multiplier=Math.exp(-Math.max(-180,Math.min(180,event.deltaY))*.0025);
+    setZoom(zoom*multiplier,event);
+  },{passive:false});
+  document.addEventListener('keydown',event=>{
+    if(!isOpen()||event.code!=='Space'||event.repeat||event.target.closest('input,textarea,select,button,[contenteditable="true"]'))return;
+    spaceHeld=true;event.preventDefault();if(base)paintZoom();
+  });
+  document.addEventListener('keyup',event=>{
+    if(event.code==='Space'&&spaceHeld){spaceHeld=false;if(base)paintZoom();}
+  });
+  window.addEventListener('blur',()=>{spaceHeld=false;if(base&&isOpen())paintZoom();});
+  $('precision-select-cancel').onclick=()=>{consentPoint=null;$('precision-select-consent').close();selectMode('brush');};
+  $('precision-select-consent').addEventListener('close',()=>{
+    if(consentPoint){consentPoint=null;if(base&&selectionAllowance<=0)selectMode('brush');}
+  });
+  $('precision-select-approve').onclick=()=>{
+    const point=consentPoint;consentPoint=null;
+    $('precision-select-consent').close();selectionAllowance=5;
+    if(point&&base)attemptMagic(point);
+  };
+  $('precision-allow-jpeg').onchange=()=>{editEpoch++;pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-tool-brush').onclick=()=>selectMode('brush');
+  $('precision-tool-erase').onclick=()=>selectMode('erase');
+  $('precision-undo').onclick=()=>handle(undo());
+  $('precision-expand').onclick=()=>handle(growMask());
+  $('precision-clear-mask').onclick=()=>resetSelection();
+  $('precision-brush-size').oninput=()=>$('precision-size-label').textContent=$('precision-brush-size').value;
+  $('precision-strength').oninput=()=>{editEpoch++;$('precision-strength-value').textContent=Number($('precision-strength').value).toFixed(2);pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-prompt').oninput=()=>{editEpoch++;pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-generate').onclick=()=>handle(reviewPrice());
+  $('precision-review-confirm').onclick=()=>handle(submit());
+  $('precision-review-cancel').onclick=()=>{$('precision-price-review').hidden=true;pending=null;};
+  $('precision-compare').oninput=renderComparison;
+  $('precision-download').onclick=download;
+  $('precision-continue').onclick=()=>handle((async()=>{
+    if(!resultBlob||!lastResultSourceId||taskBusy)return;
+    const format=resultFormat,source=lastResultSourceId,blob=resultBlob;
+    const file=new File([blob],'retouch-next.'+(format==='jpeg'?'jpg':'png'),{type:blob.type||('image/'+format)});
+    await setBase(file,source);
+    setStatus('Ready to refine the result. Your previous version remains in History.');
+  })());
+  $('precision-change-photo').onclick=()=>$('precision-photo-input').click();
+  $('precision-photo-input').onchange=e=>{if(e.target.files?.[0])handle(setBase(e.target.files[0]));e.target.value='';};
+  $('precision-drop').onclick=e=>{
+    if(e.target.closest('button'))return;
+    $('precision-photo-input').click();
+  };
+  $('precision-browse-photo').onclick=e=>{e.stopPropagation();$('precision-photo-input').click();};
+  $('precision-try-sample').onclick=e=>{e.stopPropagation();handle(openSample());};
+  for(const chip of view.querySelectorAll('[data-retouch-idea]')){
+    chip.onclick=()=>{
+      if(!base||taskBusy)return;
+      const suggestion=ideaPrompts[chip.dataset.retouchIdea];
+      if(!suggestion)return;
+      $('precision-prompt').value=suggestion;
+      $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+      setStatus('Creative direction added. Adjust the prompt as needed; no paid operation has started.');
+    };
+  }
+  for(const name of ['dragenter','dragover'])$('precision-drop').addEventListener(name,e=>{e.preventDefault();$('precision-drop').classList.add('is-dragging');});
+  $('precision-drop').addEventListener('dragleave',()=>{$('precision-drop').classList.remove('is-dragging');});
+  $('precision-drop').addEventListener('drop',e=>{e.preventDefault();$('precision-drop').classList.remove('is-dragging');if(e.dataTransfer.files[0])handle(setBase(e.dataTransfer.files[0]));});
+  const sourceHolder=$('precision-source-holder');
+  for(const type of ['dragenter','dragover'])sourceHolder.addEventListener(type,e=>{
+    if(!e.dataTransfer?.types?.includes('Files'))return;
+    e.preventDefault();sourceHolder.classList.add('is-dragging');
+  });
+  sourceHolder.addEventListener('dragleave',e=>{
+    if(!sourceHolder.contains(e.relatedTarget))sourceHolder.classList.remove('is-dragging');
+  });
+  sourceHolder.addEventListener('drop',e=>{
+    if(!e.dataTransfer?.files?.length)return;
+    e.preventDefault();sourceHolder.classList.remove('is-dragging');
+    handle(setBase(e.dataTransfer.files[0]));
+  });
+  function attemptMagic(point){
+    if(!base||taskBusy||!magicReady())return;
+    if(selectionAllowance<=0){
+      consentPoint=point;
+      if(!$('precision-select-consent').open)$('precision-select-consent').showModal();
+      return;
+    }
+    selectionAllowance--;
+    handle(magicSelect(point));
+  }
+  overlay.onpointerdown=e=>{
+    if(!base||taskBusy)return;
+    const navigating=mode==='pan'||spaceHeld||e.button===1;
+    if(e.button!==0&&!navigating)return;
+    e.preventDefault();
+    if(navigating){
+      panDrag={x:e.clientX,y:e.clientY,panX,panY};
+      overlay.setPointerCapture(e.pointerId);paintZoom();return;
+    }
+    const point=pointAt(e);
+    if(mode==='magic'){attemptMagic(point);return;}
+    drawing=true;lastPoint=point;overlay.setPointerCapture(e.pointerId);
+    saveUndo();stroke(point);
+  };
+  overlay.onpointermove=e=>{
+    if(panDrag){
+      panX=panDrag.panX+(e.clientX-panDrag.x);
+      panY=panDrag.panY+(e.clientY-panDrag.y);
+      paintZoom();return;
+    }
+    if(drawing)stroke(pointAt(e));
+  };
+  for(const name of ['pointerup','pointercancel','lostpointercapture'])
+    overlay.addEventListener(name,()=>{
+      if(drawing){drawing=false;lastPoint=null;maskChanged();}
+      if(panDrag){panDrag=null;paintZoom();}
+    });
+  // No source is opened automatically in the normal gallery. This workspace is opt-in.
+  reset();
+  return {open,close,isOpen,hasBase:()=>!!base,reset,finalize,setBase,
+    suggest:name=>{const prompt=ideaPrompts[name];if(!prompt)return;
+      $('precision-prompt').value=prompt;
+      $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+      setStatus('Brush only the detail to repair, then review the price.');
+    }};
+}
++usd.toFixed(3)+' USD (published estimate).')+' Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
+      $('precision-price-review').hidden=false;
+      setStatus('Price checked. No generation has started.');
+    }catch(e){pending=null;setStatus(e.message,true);}
+    finally{taskBusy=false;refreshButtons();}
+  }
+  async function monitorSubmittedJob(initial,revision,sourceEpoch){
+    let job=initial;
+    try{
+      for(let i=0;i<110&&revision===queueRevision;i++){
+        if(['completed','failed','resolved','uncertain'].includes(job.status))break;
+        await sleep(3000);
+        if(revision!==queueRevision)return;
+        const answer=await api('/api/jobs/'+encodeURIComponent(job.id));
+        job=answer?.job;if(!job)throw new Error('The queued edit could not be refreshed. Check Queue.');
+        if(i%4===0)onJob(job);
+      }
+      if(revision!==queueRevision)return;
+      if(job.status==='completed'){
+        if(sourceEpoch===editEpoch&&isOpen())setStatus('Finishing the original-preserving composite…');
+        const final=await finalize(job);onJob(final);
+        const sameEdit=initial.id===latestJobId&&sourceEpoch===editEpoch&&isOpen()&&base&&base.id===final.settings.precisionOriginalId;
+        if(sameEdit){
+          const output=await assetBlob(final.outputId);
+          if(sourceEpoch!==editEpoch||revision!==queueRevision)return;
+          resultBlob=output;resultFormat=final.settings?.precisionOutputFormat==='jpeg'?'jpeg':'png';
+          lastResultSourceId=final.outputId;
+          if(resultBitmap)resultBitmap.close();
+          resultBitmap=await createImageBitmap(output);showResult(resultBitmap);
+          setStatus(resultFormat==='jpeg'?
+            'Retouch ready as JPEG. High-quality export re-encodes pixels beyond the edited area.':
+            'Retouch ready. Pixels outside the selected area are preserved from the original.');
+        }
+      }else if(sourceEpoch===editEpoch&&initial.id===latestJobId&&isOpen()){
+        if(job.status==='failed'||job.status==='resolved'){
+          $('precision-result-label').textContent='EDIT FAILED';
+          if(!resultBlob){
+            $('precision-output-empty').querySelector('strong').textContent='This edit did not complete.';
+            $('precision-output-empty').querySelector('p').textContent='No automatic retry. Check Queue for the provider error.';
+          }
+          setStatus(job.error||'This edit failed. No automatic resubmission.',true);
+        }else if(job.status==='uncertain'){
+          $('precision-result-label').textContent='CHECK QUEUE';
+          setStatus('Provider status uncertain. Check Queue before trying again.',true);
+        }else{
+          setStatus('Edit still processing in Queue. You can continue working.');
+        }
+      }
+    }catch(error){
+      if(revision===queueRevision&&sourceEpoch===editEpoch&&isOpen())
+        setStatus('The job remains in Queue, but its automatic follow-up needs attention: '+error.message,true);
+    }finally{
+      pendingPolls.delete(initial.id);
+    }
+  }
+  async function submit(){
+    if(!pending||taskBusy)return;
+    if(Date.now()>=pending.expiresAt){
+      pending=null;$('precision-price-review').hidden=true;
+      setStatus('Price approval expired. Review it again.',true);return;
+    }
+    const snapshot={...pending};pending=null;$('precision-price-review').hidden=true;
+    taskBusy=true;refreshButtons();setStatus('Submitting one paid FLUX inpainting job…');
+    try{
+      const response=await api('/api/precision/submit',{method:'POST',body:snapshot});
+      const job=response?.job;
+      if(!job?.id)throw new Error('No job ID was returned. Check Queue before retrying.');
+      onJob(job);
+      // Later submissions take ownership of the preview; older jobs are always
+      // retained in History and cannot overwrite an active editing session.
+      editEpoch++;latestJobId=job.id;
+      $('precision-result-label').textContent='IN QUEUE';
+      if(!resultBlob){
+        $('precision-output-empty').querySelector('strong').textContent='Edit in Queue';
+        $('precision-output-empty').querySelector('p').textContent='Your edit is processing. You can keep working here.';
+      }
+      setStatus('Queued. You can start another edit without waiting for this result.');
+      if(!pendingPolls.has(job.id)){
+        pendingPolls.set(job.id,true);
+        // Follow-up and lossless compositing continue without holding the deck.
+        void monitorSubmittedJob(job,queueRevision,editEpoch);
+      }
+    }catch(error){
+      setStatus('Generation was not confirmed. Check Queue before trying again: '+error.message,true);
+    }finally{
+      taskBusy=false;refreshButtons();
+    }
+  }
+  async function composeWithOriginal(original,provider,maskImage,{allowJpegFallback=false}={}){
+    const w=original.width,h=original.height;
+    const work=document.createElement('canvas');work.width=maskImage.width;work.height=maskImage.height;
+    const wc=work.getContext('2d',{willReadFrequently:true});
+    wc.drawImage(maskImage,0,0,work.width,work.height);
+    const pixels=wc.getImageData(0,0,work.width,work.height);
+    // Work only on the selected bounding region. A full-resolution original
+    // may be 8K x 8K; three additional full-size canvases waste gigabytes.
+    let minX=work.width,minY=work.height,maxX=-1,maxY=-1;
+    for(let y=0;y<work.height;y++)for(let x=0;x<work.width;x++){
+      const i=(y*work.width+x)*4;
+      const a=pixels.data[i+3],v=(pixels.data[i]+pixels.data[i+1]+pixels.data[i+2])/3;
+      const strength=a===0?0:Math.max(0,Math.min(255,Math.round(v)));
+      pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=255;
+      pixels.data[i+3]=strength;
+      if(strength>0){
+        minX=Math.min(minX,x);minY=Math.min(minY,y);
+        maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+      }
+    }
+    if(maxX<minX||maxY<minY)throw new Error('Select an area before generating a composite.');
+    wc.putImageData(pixels,0,0);
+    const feather=Math.max(1,Math.round(Math.max(w,h)/1900)),padding=Math.max(6,feather*4);
+    const x0=Math.max(0,Math.floor(minX*w/work.width)-padding);
+    const y0=Math.max(0,Math.floor(minY*h/work.height)-padding);
+    const x1=Math.min(w,Math.ceil((maxX+1)*w/work.width)+padding);
+    const y1=Math.min(h,Math.ceil((maxY+1)*h/work.height)+padding);
+    const patch=document.createElement('canvas');patch.width=x1-x0;patch.height=y1-y0;
+    const px=patch.getContext('2d');
+    px.drawImage(provider,-x0,-y0,w,h);
+    px.globalCompositeOperation='destination-in';
+    px.filter='blur('+feather+'px)';
+    px.drawImage(work,-x0,-y0,w,h);
+    px.filter='none';px.globalCompositeOperation='source-over';
+    const result=document.createElement('canvas');result.width=w;result.height=h;
+    const cx=result.getContext('2d');cx.drawImage(original,0,0);cx.drawImage(patch,x0,y0);
+    const png=await readBlob(result,'image/png');
+    if(png.size<=MAX_COMPOSITE)return {blob:png,mime:'image/png',format:'png'};
+    if(!allowJpegFallback)throw new Error('Lossless PNG exceeds 20 MB. Raw paid output is retained in History. Use a smaller photograph before retrying.');
+    for(const quality of [.97,.93,.88,.83]){
+      const jpeg=await readBlob(result,'image/jpeg',quality);
+      if(jpeg.type==='image/jpeg'&&jpeg.size<=MAX_COMPOSITE)return {blob:jpeg,mime:'image/jpeg',format:'jpeg'};
+    }
+    throw new Error('This composite exceeds 20 MB even as JPEG. The raw paid output is retained in History. No automatic repeat charge.');
+  }
+  async function finalize(job){
+    if(job?.settings?.precisionFinalized||!job?.settings?.precisionEdit)return job;
+    if(finalizing.has(job.id))return finalizing.get(job.id);
+    const promise=(async()=>{
+      const settings=job.settings;
+      if(job.status!=='completed'||!job.outputId)throw new Error('Precision Edit has no completed result to finalize.');
+      const ids=[settings.precisionOriginalId,settings.maskSourceId,job.outputId];
+      if(ids.some(id=>!id))throw new Error('Precision Edit provenance is incomplete; your raw result is retained in History.');
+      const [originalBlob,maskBlob,generatedBlob]=await Promise.all(ids.map(assetBlob));
+      const [original,selection,generated]=await Promise.all([createImageBitmap(originalBlob),createImageBitmap(maskBlob),createImageBitmap(generatedBlob)]);
+      let composite;
+      try{composite=await composeWithOriginal(original,generated,selection,{
+        allowJpegFallback:settings.precisionAllowJpegFallback===true});}
+      finally{original.close();selection.close();generated.close();}
+      const ext=composite.format==='jpeg'?'jpg':'png';
+      const compositeSourceId=await uploadAsset(new File([composite.blob],'precision-composite.'+ext,{type:composite.mime}));
+      const response=await api('/api/precision/commit',{method:'POST',body:{jobId:job.id,compositeSourceId,expectedOutputId:job.outputId}});
+      if(!response?.job?.settings?.precisionFinalized)throw new Error('Edited result was not confirmed by the private archive.');
+      return response.job;
+    })();
+    finalizing.set(job.id,promise);
+    try{return await promise;}finally{finalizing.delete(job.id);}
+  }
+  function showResult(bitmap){
+    if(!base)return;
+    resultCanvas.width=mask.width;resultCanvas.height=mask.height;
+    $('precision-output-empty').hidden=true;resultCanvas.hidden=false;
+    $('precision-result-label').textContent=resultFormat==='jpeg'?'EDIT COMPLETE / JPEG':'EDIT COMPLETE / PNG';
+    $('precision-compare-control').hidden=false;$('precision-compare-idle').hidden=true;
+    $('precision-compare').disabled=false;$('precision-download').disabled=!resultBlob;
+    $('precision-download').hidden=false;
+    $('precision-continue').hidden=!lastResultSourceId;
+    $('precision-continue').disabled=!lastResultSourceId;
+    $('precision-download').textContent='Download '+(resultFormat==='jpeg'?'JPG':'PNG');
+    renderComparison();
+  }
+  function renderComparison(){
+    if(!resultBitmap||!base)return;
+    const w=resultCanvas.width,h=resultCanvas.height,r=Math.max(0,Math.min(1,Number($('precision-compare').value)/100));
+    rc.clearRect(0,0,w,h);rc.drawImage(resultBitmap,0,0,w,h);
+    if(r<1){rc.save();rc.beginPath();rc.rect(0,0,w*(1-r),h);rc.clip();rc.drawImage(base.bitmap,0,0,w,h);rc.restore();}
+    if(r>0&&r<1){rc.fillStyle='rgba(255,255,255,.7)';rc.fillRect(w*(1-r)-1,0,2,h);}
+  }
+  async function download(){
+    if(!resultBlob)return;
+    const url=URL.createObjectURL(resultBlob),a=document.createElement('a');
+    a.href=url;a.download='parallel-vision-retouch.'+(resultFormat==='jpeg'?'jpg':'png');document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+  }
+  function reset(){
+    session++;close();
+    if(base?.bitmap)base.bitmap.close();base=null;
+    if(resultBitmap)resultBitmap.close();resultBitmap=null;resultBlob=null;workingId=null;
+    sourceCanvas.width=overlay.width=mask.width=0;sourceCanvas.height=overlay.height=mask.height=0;
+    undoStack.length=0;selected=false;pending=null;taskBusy=false;resetZoom();
+    queueRevision++;pendingPolls.clear();latestJobId=null;selectionAllowance=0;consentPoint=null;
+    if($('precision-select-consent').open)$('precision-select-consent').close();
+    $('precision-allow-jpeg').checked=false;$('precision-export-option').hidden=true;
+    $('precision-source-holder').hidden=true;$('precision-drop').hidden=false;
+    $('precision-result-canvas').hidden=true;$('precision-output-empty').hidden=false;
+    $('precision-compare-control').hidden=true;$('precision-compare-idle').hidden=false;
+    $('precision-download').hidden=true;
+    $('precision-continue').hidden=true;$('precision-continue').disabled=true;
+    resultFormat='png';lastResultSourceId=null;
+    $('precision-source-meta').textContent='DROP IMAGE';
+    $('precision-result-label').textContent='AWAITING EDIT';
+    $('precision-empty-title').textContent='See what you can change.';
+    $('precision-empty-description').textContent='Select one area. Describe the change. Keep the rest.';
+    $('precision-prompt').value='';setStatus('');refreshButtons();
+  }
+  async function openSample(){
+    if(taskBusy)return;
+    const button=$('precision-try-sample');
+    button.disabled=true;
+    const originalLabel=button.innerHTML;
+    button.textContent='Opening sample…';
+    try{
+      const response=await fetch(SAMPLE_URL,{cache:'force-cache'});
+      if(!response.ok)throw new Error('The Parallel Vision sample is unavailable. Please try your own photograph.');
+      const blob=await response.blob();
+      if(blob.type!=='image/png')throw new Error('The sample did not load as a PNG photograph.');
+      const file=new File([blob],'PV Lab Fashion Sample.png',{type:'image/png'});
+      await setBase(file);
+      // Locally painted free starter region, NOT a SAM 3 segmentation or AI edit.
+      // This makes the example genuinely editable before any billable action.
+      saveUndo();
+      const w=mask.width,h=mask.height;
+      maskCtx.save();maskCtx.fillStyle='#fff';
+      // Approximate the chrome upper garment in the bundled fashion photograph
+      // rather than drawing an unrelated oval across the model and floor.
+      // This is intentionally a hand-painted LOCAL teaching selection,
+      // not a claimed automatic or provider-generated segmentation.
+      maskCtx.beginPath();
+      maskCtx.moveTo(w*.445,h*.205);
+      maskCtx.bezierCurveTo(w*.417,h*.212,w*.396,h*.221,w*.403,h*.282);
+      maskCtx.bezierCurveTo(w*.407,h*.333,w*.429,h*.349,w*.435,h*.405);
+      maskCtx.lineTo(w*.443,h*.551);
+      maskCtx.quadraticCurveTo(w*.5,h*.575,w*.557,h*.551);
+      maskCtx.lineTo(w*.565,h*.405);
+      maskCtx.bezierCurveTo(w*.570,h*.349,w*.595,h*.333,w*.599,h*.282);
+      maskCtx.bezierCurveTo(w*.603,h*.222,w*.577,h*.213,w*.555,h*.205);
+      maskCtx.quadraticCurveTo(w*.531,h*.200,w*.516,h*.231);
+      maskCtx.lineTo(w*.484,h*.231);
+      maskCtx.quadraticCurveTo(w*.470,h*.200,w*.445,h*.205);
+      maskCtx.closePath();
+      maskCtx.fill();maskCtx.restore();
+      maskChanged();
+      selectMode('brush');
+      $('precision-prompt').value='Change the selected chrome jacket and bodice into matte black sculptural tailoring with realistic fabric grain. Preserve the face, pose, ambient light and everything outside the selection.';
+      $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+      $('precision-empty-title').textContent='Starter selection ready.';
+      $('precision-empty-description').textContent='Refine the selected chrome garment with the free brush tools, or choose a different edit below. No AI result has been generated.';
+      setStatus('PV Lab sample opened. The starter mask was painted locally, with no paid selection or generation request.');
+    }finally{
+      button.disabled=false;button.innerHTML=originalLabel;
+    }
+  }
+  const handle=async promise=>{try{await promise;}catch(e){setStatus(e.message,true);notify(e.message,true);}};
+  $('precision-return').onclick=()=>{if(typeof onExit==='function')onExit();else close();};
+  $('precision-tool-magic').onclick=()=>selectMode('magic');
+  $('precision-tool-pan').onclick=()=>selectMode(mode==='pan'?'brush':'pan');
+  $('precision-zoom-fit').onclick=()=>setZoom(1);
+  $('precision-zoom-out').onclick=()=>setZoom(zoom/1.45);
+  $('precision-zoom-in').onclick=()=>setZoom(zoom*1.45);
+  $('precision-zoom-actual').onclick=()=>setZoom(actualPreviewZoom());
+  $('precision-source-holder').addEventListener('wheel',event=>{
+    if(!base||taskBusy)return;
+    event.preventDefault();
+    const multiplier=Math.exp(-Math.max(-180,Math.min(180,event.deltaY))*.0025);
+    setZoom(zoom*multiplier,event);
+  },{passive:false});
+  document.addEventListener('keydown',event=>{
+    if(!isOpen()||event.code!=='Space'||event.repeat||event.target.closest('input,textarea,select,button,[contenteditable="true"]'))return;
+    spaceHeld=true;event.preventDefault();if(base)paintZoom();
+  });
+  document.addEventListener('keyup',event=>{
+    if(event.code==='Space'&&spaceHeld){spaceHeld=false;if(base)paintZoom();}
+  });
+  window.addEventListener('blur',()=>{spaceHeld=false;if(base&&isOpen())paintZoom();});
+  $('precision-select-cancel').onclick=()=>{consentPoint=null;$('precision-select-consent').close();selectMode('brush');};
+  $('precision-select-consent').addEventListener('close',()=>{
+    if(consentPoint){consentPoint=null;if(base&&selectionAllowance<=0)selectMode('brush');}
+  });
+  $('precision-select-approve').onclick=()=>{
+    const point=consentPoint;consentPoint=null;
+    $('precision-select-consent').close();selectionAllowance=5;
+    if(point&&base)attemptMagic(point);
+  };
+  $('precision-allow-jpeg').onchange=()=>{editEpoch++;pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-tool-brush').onclick=()=>selectMode('brush');
+  $('precision-tool-erase').onclick=()=>selectMode('erase');
+  $('precision-undo').onclick=()=>handle(undo());
+  $('precision-expand').onclick=()=>handle(growMask());
+  $('precision-clear-mask').onclick=()=>resetSelection();
+  $('precision-brush-size').oninput=()=>$('precision-size-label').textContent=$('precision-brush-size').value;
+  $('precision-strength').oninput=()=>{editEpoch++;$('precision-strength-value').textContent=Number($('precision-strength').value).toFixed(2);pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-prompt').oninput=()=>{editEpoch++;pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-generate').onclick=()=>handle(reviewPrice());
+  $('precision-review-confirm').onclick=()=>handle(submit());
+  $('precision-review-cancel').onclick=()=>{$('precision-price-review').hidden=true;pending=null;};
+  $('precision-compare').oninput=renderComparison;
+  $('precision-download').onclick=download;
+  $('precision-continue').onclick=()=>handle((async()=>{
+    if(!resultBlob||!lastResultSourceId||taskBusy)return;
+    const format=resultFormat,source=lastResultSourceId,blob=resultBlob;
+    const file=new File([blob],'retouch-next.'+(format==='jpeg'?'jpg':'png'),{type:blob.type||('image/'+format)});
+    await setBase(file,source);
+    setStatus('Ready to refine the result. Your previous version remains in History.');
+  })());
+  $('precision-change-photo').onclick=()=>$('precision-photo-input').click();
+  $('precision-photo-input').onchange=e=>{if(e.target.files?.[0])handle(setBase(e.target.files[0]));e.target.value='';};
+  $('precision-drop').onclick=e=>{
+    if(e.target.closest('button'))return;
+    $('precision-photo-input').click();
+  };
+  $('precision-browse-photo').onclick=e=>{e.stopPropagation();$('precision-photo-input').click();};
+  $('precision-try-sample').onclick=e=>{e.stopPropagation();handle(openSample());};
+  for(const chip of view.querySelectorAll('[data-retouch-idea]')){
+    chip.onclick=()=>{
+      if(!base||taskBusy)return;
+      const suggestion=ideaPrompts[chip.dataset.retouchIdea];
+      if(!suggestion)return;
+      $('precision-prompt').value=suggestion;
+      $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+      setStatus('Creative direction added. Adjust the prompt as needed; no paid operation has started.');
+    };
+  }
+  for(const name of ['dragenter','dragover'])$('precision-drop').addEventListener(name,e=>{e.preventDefault();$('precision-drop').classList.add('is-dragging');});
+  $('precision-drop').addEventListener('dragleave',()=>{$('precision-drop').classList.remove('is-dragging');});
+  $('precision-drop').addEventListener('drop',e=>{e.preventDefault();$('precision-drop').classList.remove('is-dragging');if(e.dataTransfer.files[0])handle(setBase(e.dataTransfer.files[0]));});
+  const sourceHolder=$('precision-source-holder');
+  for(const type of ['dragenter','dragover'])sourceHolder.addEventListener(type,e=>{
+    if(!e.dataTransfer?.types?.includes('Files'))return;
+    e.preventDefault();sourceHolder.classList.add('is-dragging');
+  });
+  sourceHolder.addEventListener('dragleave',e=>{
+    if(!sourceHolder.contains(e.relatedTarget))sourceHolder.classList.remove('is-dragging');
+  });
+  sourceHolder.addEventListener('drop',e=>{
+    if(!e.dataTransfer?.files?.length)return;
+    e.preventDefault();sourceHolder.classList.remove('is-dragging');
+    handle(setBase(e.dataTransfer.files[0]));
+  });
+  function attemptMagic(point){
+    if(!base||taskBusy||!magicReady())return;
+    if(selectionAllowance<=0){
+      consentPoint=point;
+      if(!$('precision-select-consent').open)$('precision-select-consent').showModal();
+      return;
+    }
+    selectionAllowance--;
+    handle(magicSelect(point));
+  }
+  overlay.onpointerdown=e=>{
+    if(!base||taskBusy)return;
+    const navigating=mode==='pan'||spaceHeld||e.button===1;
+    if(e.button!==0&&!navigating)return;
+    e.preventDefault();
+    if(navigating){
+      panDrag={x:e.clientX,y:e.clientY,panX,panY};
+      overlay.setPointerCapture(e.pointerId);paintZoom();return;
+    }
+    const point=pointAt(e);
+    if(mode==='magic'){attemptMagic(point);return;}
+    drawing=true;lastPoint=point;overlay.setPointerCapture(e.pointerId);
+    saveUndo();stroke(point);
+  };
+  overlay.onpointermove=e=>{
+    if(panDrag){
+      panX=panDrag.panX+(e.clientX-panDrag.x);
+      panY=panDrag.panY+(e.clientY-panDrag.y);
+      paintZoom();return;
+    }
+    if(drawing)stroke(pointAt(e));
+  };
+  for(const name of ['pointerup','pointercancel','lostpointercapture'])
+    overlay.addEventListener(name,()=>{
+      if(drawing){drawing=false;lastPoint=null;maskChanged();}
+      if(panDrag){panDrag=null;paintZoom();}
+    });
+  // No source is opened automatically in the normal gallery. This workspace is opt-in.
+  reset();
+  return {open,close,isOpen,hasBase:()=>!!base,reset,finalize,setBase,
+    suggest:name=>{const prompt=ideaPrompts[name];if(!prompt)return;
+      $('precision-prompt').value=prompt;
+      $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+      setStatus('Brush only the detail to repair, then review the price.');
+    }};
 }
