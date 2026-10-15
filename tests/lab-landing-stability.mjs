@@ -38,6 +38,12 @@ async function geometry(page){
     return [selector,metrics];
   })),selectors);
 }
+function sameFootprint(before,after,label){
+  assert.ok(before&&after,label+': missing action geometry');
+  for(const key of ['x','y','width','height'])
+    assert.ok(Math.abs(before[key]-after[key])<1,
+      label+': '+key+' moved from '+before[key]+' to '+after[key]);
+}
 function stable(before,after,label){
   for(const selector of selectors)for(const key of Object.keys(before[selector])){
     // Hero wording and geometry must stay identical through authorization.
@@ -84,6 +90,8 @@ try{
       if(slowFont)await page.waitForTimeout(250);
       else await page.evaluate(()=>document.fonts.ready);
       const initial=await geometry(page);
+      const pendingCredit=await page.locator('.lab-home-credit-placeholder').boundingBox();
+      const pendingAvatar=await page.locator('.lab-home-avatar-placeholder').boundingBox();
       if(slowFont){
         releaseFonts();
         await page.evaluate(()=>document.fonts.ready);
@@ -106,6 +114,8 @@ try{
       await page.locator('#lab-home-credits').waitFor({state:'visible'});
       assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),false,'Placeholder disappears only when real credit UI is ready');
       assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),false,'Placeholder disappears only when real avatar is ready');
+      sameFootprint(pendingCredit,await page.locator('#lab-home-credits').boundingBox(),width+': balance slot remains fixed');
+      sameFootprint(pendingAvatar,await page.locator('#lab-account-strip').boundingBox(),width+': avatar slot remains fixed');
       const actionWeights=await page.evaluate(()=>({
         studio:Number.parseInt(getComputedStyle(document.querySelector('.landing-header--home .studio-link')).fontWeight,10),
         credits:Number.parseInt(getComputedStyle(document.querySelector('.landing-header--home .lab-home-credits')).fontWeight,10)
@@ -126,6 +136,8 @@ try{
       await page.locator('#lab-header-signin').waitFor({state:'visible'});
       assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),false,'Guest credit CTA replaces placeholder without moving its slot');
       assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),false,'Guest sign-in replaces placeholder without moving its slot');
+      sameFootprint(pendingCredit,await page.locator('#lab-home-credits').boundingBox(),width+': guest credit slot remains fixed');
+      sameFootprint(pendingAvatar,await page.locator('#lab-header-signin').boundingBox(),width+': guest sign-in slot remains fixed');
       assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Guests have a Get credits CTA in the same header slot');
       assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits');
       assert.equal(await page.locator('.lab-hero [data-lab-signin]').count(),0,'No separate Google button in the hero');
