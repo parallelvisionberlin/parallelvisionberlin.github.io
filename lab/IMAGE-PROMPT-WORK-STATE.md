@@ -62,3 +62,12 @@
 - CI isolation follow-up: the inherited long-prompt mock browser test fails on unrelated historical layout assumptions after being made runnable. Restored it and its PR-only workflow to their previous versions; it is not a reliable gate for the disabled-button color.
 - Added `tests/lab-image-generate-disabled-ui.mjs` and `.github/workflows/pv-lab-generate-disabled.yml` to verify rendered dark disabled / pearl enabled styles on desktop, mobile and Soul without booting or charging the Lab.
 - Source baseline for the isolated test: `05ded0336275982e42b81429b982d15fbc8e20c3`. New CI and page deployment status to verify after commit.
+
+## Empty Generate tile behavior (2026-10-16)
+- User verified the darkened disabled Generate CTA had reached PV LAB, but the full-size inert tile was still visible on an empty Image deck.
+- Hide the disabled Generate tile only when the standard Image prompt is empty and no photo-reference tiles are attached. Keep its layout slot to prevent composer motion.
+- With text/photos, show a disabled button if blocked so important feedback remains available. Submitted states and PV Soul's identity workflow remain intact.
+- No backend, credits, pricing, model, reference or photo-display modifications.
+- Updated `lab/studio-finish-v2.css`, CSS cache token in `lab/studio.html`, test `tests/lab-image-generate-disabled-ui.mjs`, and this handoff.
+- Browser verification covers empty, text-present, photo-present and ready states at 1440 desktop, 390 mobile and Soul.
+- GitHub Actions CI and GitHub Pages deployment to verify after commit.

@@ -9,7 +9,7 @@ assert.ok(process.env.PV_PLAYWRIGHT_MODULE,'PV_PLAYWRIGHT_MODULE is required');
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
 const html=readFileSync('lab/studio.html','utf8');
-assert.match(html,/studio-finish-v2\.css\?v=20261016-disabled-graphite1/,'Studio must reload the updated stylesheet');
+assert.match(html,/studio-finish-v2\.css\?v=20261016-hide-empty-generate1/,'Studio must reload the updated stylesheet');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png'};
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
@@ -45,6 +45,18 @@ try{
         composer.classList.toggle('is-pv-soul',model==='soul');
         const button=document.getElementById('image-composer-generate');
         button.disabled=true;
+        const initiallyEmpty=getComputedStyle(button);
+        const empty={visibility:initiallyEmpty.visibility,
+          width:button.getBoundingClientRect().width,height:button.getBoundingClientRect().height};
+        const prompt=document.getElementById('image-composer-prompt');
+        prompt.value='A photographic image.';
+        const blockedWithPrompt=getComputedStyle(button).visibility;
+        prompt.value='';
+        const photo=document.createElement('div');photo.className='composer-reference-tile';
+        document.getElementById('image-composer-references').append(photo);
+        const blockedWithPhoto=getComputedStyle(button).visibility;
+        photo.remove();
+        prompt.value='A photographic image.';
         const disabled=getComputedStyle(button);
         const off={background:disabled.backgroundColor,image:disabled.backgroundImage,color:disabled.color,
           width:button.getBoundingClientRect().width,height:button.getBoundingClientRect().height};
@@ -52,8 +64,14 @@ try{
         const active=getComputedStyle(button);
         const on={background:active.backgroundColor,image:active.backgroundImage,
           width:button.getBoundingClientRect().width,height:button.getBoundingClientRect().height};
-        return {off,on};
+        return {empty,blockedWithPrompt,blockedWithPhoto,off,on};
       },model);
+      assert.equal(css.empty.visibility,model==='soul'?'visible':'hidden',
+        model+' '+width+': empty Image Generate has no ghost tile');
+      assert.equal(css.blockedWithPrompt,'visible',model+' '+width+': blocked Generate remains visible with text');
+      assert.equal(css.blockedWithPhoto,'visible',model+' '+width+': blocked Generate remains visible with photo');
+      assert.equal(css.empty.width,css.off.width,model+' '+width+': Generate space remains stable');
+      assert.equal(css.empty.height,css.off.height,model+' '+width+': Generate height remains stable');
       assert.ok(rgb(css.off.background).length===3&&rgb(css.off.background).every(c=>c<85),
         model+' '+width+': disabled Generate must be dark graphite: '+css.off.background);
       assert.ok(rgb(css.off.color).length===3&&rgb(css.off.color).every(c=>c>125),
@@ -62,7 +80,7 @@ try{
       assert.match(css.on.image,/linear-gradient/,model+' '+width+': enabled Generate regains pearl finish');
       assert.equal(css.off.width,css.on.width,model+' '+width+': no width jump between states');
       assert.equal(css.off.height,css.on.height,model+' '+width+': no height jump between states');
-      console.log('PASS '+model+' '+width+' dark disabled / pearl enabled');
+      console.log('PASS '+model+' '+width+' empty hidden / blocked visible / pearl enabled');
     }finally{await context.close()}
   }
 }finally{
