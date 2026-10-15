@@ -2,79 +2,99 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createSessionRequest} from '../lab/session-request.js';
+
 const token='synthetic.'+Buffer.from(JSON.stringify({exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')+'.only';
 const session={id:'sess_fixture',getToken:async()=>token};
-const response=()=>Response.json({error:'Setup required.'},{status:409,headers:{'X-PV-Lab-Onboarding':'required'}});
-const browser=(hostname,pathname='/studio.html')=>{
- const calls=[];
- const window={location:{hostname,pathname,search:'?tool=image',hash:'',origin:'https://'+hostname,
-   replace(url){calls.push(url);}}};
- return {window,calls};
-};
-async function check(hostname,pathname){
- const original=globalThis.window;
- const current=browser(hostname,pathname);
- try{
-  globalThis.window=current.window;
-  const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>response()});
-  const result=await request('/api/session');
-  assert.equal(result.status,409);
-  return current.calls;
- }finally{if(original===undefined)delete globalThis.window;else globalThis.window=original;}
+const needsSetup=()=>Response.json({error:'Setup required.'},{status:409,headers:{'X-PV-Lab-Onboarding':'required'}});
+function browser(hostname,pathname='/studio.html'){
+ const replaced=[];
+ return {location:{hostname,pathname,search:'?tool=image',hash:'',origin:'https://'+hostname,replace(url){replaced.push(url);}},replaced};
 }
-test('Only PV LAB new hosts redirect unlinked users to the first-login welcome',async()=>{
+async function inBrowser(hostname,pathname,run){
+ const previous=globalThis.window,current=browser(hostname,pathname);
+ try{globalThis.window=current;return await run(current);}
+ finally{if(previous===undefined)delete globalThis.window;else globalThis.window=previous;}
+}
+test('Only pvlab.studio enters Studio on a verified unlinked login; no second signup page',async()=>{
  for(const host of ['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev']){
-   const urls=await check(host);
-   assert.equal(urls.length,1);
-   const target=new URL(urls[0]);assert.equal(target.hostname,host);
-   assert.equal(target.pathname,'/welcome.html');
-   assert.equal(target.searchParams.get('next'),'/studio.html?tool=image');
+  await inBrowser(host,'/',async current=>{
+   const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>needsSetup()});
+   assert.equal((await request('/api/session')).status,409);
+   assert.equal(current.replaced.length,1);
+   assert.equal(new URL(current.replaced[0]).pathname,'/studio.html');
+  });
  }
- for(const host of ['parallelvisionlabel.com','www.parallelvisionlabel.com','evil.pvlab.studio'])
-   assert.equal((await check(host)).length,0);
- assert.equal((await check('pvlab.studio','/connect-account.html')).length,0);
- assert.equal((await check('pvlab.studio','/welcome.html')).length,0);
+ for(const host of ['parallelvisionlabel.com','www.parallelvisionlabel.com','evil.pvlab.studio']){
+  await inBrowser(host,'/',async current=>{
+   const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>needsSetup()});
+   assert.equal((await request('/api/session')).status,409);
+   assert.deepEqual(current.replaced,[]);
+  });
+ }
 });
-test('The account-transfer page copies a one-use code but never stores it in URL parameters',()=>{
- const page=readFileSync(new URL('../lab/connect-account.html',import.meta.url),'utf8');
- const code=readFileSync(new URL('../lab/connect-account.js',import.meta.url),'utf8');
- assert.match(page,/Keep your work/);
- assert.match(page,/Generate transfer code/);
- assert.match(page,/Link existing account/);
- assert.match(page,/Create a new PV LAB account/);
- assert.match(code,/api\/migration\/issue/);
- assert.match(code,/api\/migration\/redeem/);
- assert.match(code,/api\/migration\/new/);
- assert.match(code,/navigator\.clipboard\.writeText/);
- assert.doesNotMatch(code,/localStorage\.(setItem|getItem)/);
- assert.doesNotMatch(code,/searchParams\.set\(['"]code/);
+test('Studio initializes only from verified 409 on read-only authenticated session and verifies 200 before showing toast',async()=>{
+ await inBrowser('pvlab.studio','/studio.html',async current=>{
+  let initialized=false;const calls=[],grants=[];
+  const fetchImpl=async(url,options)=>{
+   const path=new URL(url).pathname;calls.push(path);
+   if(path==='/api/session')return initialized
+     ? Response.json({customer:true,owner:false,balanceCredits:200,ownerId:'user_PvLabV2Fresh'})
+     : needsSetup();
+   if(path==='/api/migration/new'){assert.equal(options.method,'POST');initialized=true;return Response.json({linked:true,kind:'customer'},{status:201});}
+   throw Error('Unexpected fetch '+path);
+  };
+  const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl,onNewCustomer:grant=>grants.push(grant)});
+  const first=await request('/api/session');
+  assert.equal(first.status,200);
+  assert.equal((await first.json()).balanceCredits,200);
+  assert.deepEqual(calls,['/api/session','/api/migration/new','/api/session']);
+  assert.equal(grants.length,1);
+  assert.deepEqual(grants[0],{credits:200,ownerId:'user_PvLabV2Fresh',sessionId:'sess_fixture'});
+  await request('/api/session');assert.equal(grants.length,1,'second login never repeats welcome');
+  assert.deepEqual(current.replaced,[],'existing Studio never redirects to welcome screen');
+ });
 });
-
-test('Welcome screen grants credits only after explicit entry, with a safe legacy recovery link',()=>{
+test('Do not create a wallet for paid endpoints or from unmarked 409s',async()=>{
+ await inBrowser('pvlab.studio','/studio.html',async()=>{
+  let count=0;
+  const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>{
+   count++;return needsSetup();
+  }});
+  assert.equal((await request('/api/billing/checkout',{method:'POST'})).status,409);
+  assert.equal(count,1);
+  const unmarked=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>Response.json({error:'Other conflict'},{status:409})});
+  assert.equal((await unmarked('/api/session')).status,409);
+ });
+});
+test('Browser leaves the retired /welcome page directly for Studio and preserves the old-account recovery page',()=>{
  const page=readFileSync(new URL('../lab/welcome.html',import.meta.url),'utf8');
- const logic=readFileSync(new URL('../lab/welcome.js',import.meta.url),'utf8');
- assert.match(page,/Welcome to PV LAB\./);
- assert.match(page,/class="credit-toast" role="status" aria-live="polite"/);
+ assert.match(page,/location\.replace\('\.\/studio\.html\?tool=image'\)/);
+ assert.doesNotMatch(page,/YOUR ACCOUNT IS READY|Enter the Studio|id="credit-toast"/);
+ const recovery=readFileSync(new URL('../lab/connect-account.html',import.meta.url),'utf8');
+ const code=readFileSync(new URL('../lab/connect-account.js',import.meta.url),'utf8');
+ assert.match(recovery,/Generate transfer code/);
+ assert.match(code,/api\/migration\/redeem/);
+ assert.doesNotMatch(code,/localStorage\.(setItem|getItem)/);
+});
+test('Old public PV LAB landing redirects to the same fashion hero at the new domain',()=>{
+ const html=readFileSync(new URL('../lab/index.html',import.meta.url),'utf8');
+ assert.match(html,/location\.replace\('https:\/\/pvlab\.studio\/'\+location\.search\+location\.hash\)/);
+ assert.match(html,/<link rel="canonical" href="https:\/\/pvlab\.studio\/">/);
+ assert.match(html,/visuals\/leather-editorial\/hero-desktop\.webp/);
+ assert.match(html,/Fashion\. <br>Reimagined\./);
+});
+test('Credit success is a short toast inside the authenticated Studio, never a page or guessed balance',()=>{
+ const page=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+ const script=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+ const style=readFileSync(new URL('../lab/studio-credit-toast.css',import.meta.url),'utf8');
+ assert.match(page,/id="pv-credit-toast" class="pv-credit-toast" role="status"/);
  assert.match(page,/200 credits added/);
- assert.match(page,/Ready to create\./);
- assert.match(page,/backdrop-filter:blur\(24px\)/);
- assert.doesNotMatch(page,/YOUR WELCOME GIFT|class="gift"|class="amount"/);
- assert.match(page,/Enter the Studio/);
- assert.match(page,/connect-account\.html/);
- assert.doesNotMatch(page,/Your welcome credits are added when you enter the Studio/i);
- assert.match(page,/prefers-reduced-motion/);
- assert.match(logic,/api\/migration\/status/);
- assert.match(logic,/api\/migration\/new/);
- assert.match(logic,/api\/session/);
- assert.match(logic,/new Set\(\['pvlab\.studio'/);
- assert.match(logic,/!created\.linked\|\|created\.kind!=='customer'/);
- const sessionVerification=logic.indexOf("const session=await call('/api/session')");
- const creditVerification=logic.indexOf('if(session.balanceCredits<200)');
- const confirmation=logic.indexOf('showCreditToast();');
- assert.ok(sessionVerification>0&&creditVerification>sessionVerification&&confirmation>creditVerification,
-   'Credit confirmation must wait until the authenticated wallet is checked');
- assert.match(logic,/await new Promise\(resolve=>setTimeout\(resolve,1700\)\)/);
- assert.match(logic,/hideCreditToast\(\)/);
- assert.doesNotMatch(logic,/localStorage\.(setItem|getItem)/);
- assert.doesNotMatch(logic,/searchParams\.set\(['"]code/);
+ assert.match(page,/Ready to create/);
+ assert.match(script,/onNewCustomer:grant/);
+ assert.match(script,/showFirstCreditToast\(data\)/);
+ assert.match(script,/grant\.ownerId!==profile\.ownerId/);
+ assert.match(script,/profile\.balanceCredits<200/);
+ assert.match(style,/backdrop-filter:blur\(25px\)/);
+ assert.match(style,/prefers-reduced-motion/);
+ assert.doesNotMatch(page,/YOUR WELCOME GIFT/);
 });
