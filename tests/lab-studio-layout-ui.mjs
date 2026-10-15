@@ -284,7 +284,8 @@ try{
   await x.page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===1);
   assert.equal(await x.page.locator('.composer-reference-tile img').count(),1,'Reference thumbnail lives inside floating bar');
   assert.equal(await x.page.locator('.composer-reference-index').innerText(),'BASE','First reference defaults to Base in Seedream base-image mode');
-  assert.equal(await x.page.locator('#image-composer-prompt').getAttribute('placeholder'),'What would you like to change?');
+  assert.match(await x.page.locator('#image-composer-prompt').getAttribute('placeholder')||'',/variation of this image/i,
+    'A selected base image offers an editable variation without an extra prompt row');
   const photoImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
   assert.ok(photoImageHeight>compactImageHeight+35&&photoImageHeight<300,
     'Only the attached photo row may expand the compact Image deck: '+JSON.stringify({compactImageHeight,photoImageHeight}));
