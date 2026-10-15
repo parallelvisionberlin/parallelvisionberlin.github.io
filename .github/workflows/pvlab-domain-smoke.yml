@@ -8,6 +8,7 @@ on:
       - 'lab/welcome.js'
       - 'lab/session-request.js'
       - 'lab/studio.html'
+      - 'lab/_redirects'
       - 'lab/customer-entry.js'
       - 'lab/index.html'
       - 'lab/lab.js'
@@ -88,6 +89,25 @@ jobs:
             exit 1
           fi
           echo 'PASS: old PV LAB landing forwards to the new domain; Studio handles welcome toast.'
+      - name: Verify old /lab/studio links redirect to canonical Studio
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 12); do
+            curl -sS --connect-timeout 6 --max-time 16 -D /tmp/pvlegacyheaders -o /dev/null \
+              "https://pvlab.studio/lab/studio?tool=image&utm_source=chatgpt.com" || true
+            code="$(awk 'toupper($1) ~ /^HTTP/ {value=$2} END {print value}' /tmp/pvlegacyheaders)"
+            dest="$(awk 'tolower($1)=="location:" {sub(/\r$/,"",$2); print $2}' /tmp/pvlegacyheaders | tail -1)"
+            if [ "$code" = 301 ] && [[ "$dest" == *"/studio"* ]]; then
+              echo "Legacy Studio path redirects with HTTP $code to $dest"
+              ready=1
+              break
+            fi
+            echo "Legacy Studio redirect not published yet (attempt $attempt, HTTP ${code:-none}, Location ${dest:-none})."
+            sleep 10
+          done
+          if [ "$ready" != 1 ]; then echo 'Legacy /lab/studio redirect is not yet confirmed in production.'; exit 1; fi
       - name: Verify deployed backend migration and domain-origin preflight
         shell: bash
         run: |
