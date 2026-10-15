@@ -1,6 +1,5 @@
-/* 14 Oct 2026: faithful editorial rendering of the approved PV LAB invite design.
-   The photographic background is sourced from the user's selected reference,
-   with the type and button retained as real, selectable interface elements. */
+/* 15 Oct 2026: return to the tactile, wet-look editorial reference.
+   Dark photographic shadows protect live text without generated-looking scenery. */
 #pricing + .lab-invite-promo {
   position:relative;
   isolation:isolate;
@@ -11,7 +10,7 @@
   min-height:clamp(355px,22.55vw,442px);
   padding:clamp(56px,4.5vw,90px) clamp(24px,5.65vw,112px);
   color:#f4f1ec;
-  background:#08090a url('./visuals/invite-after-fabric-user-approved-20261014.webp') center 18% / cover no-repeat;
+  background:#050607 url('./visuals/invite-wet-editorial.webp') center center / cover no-repeat;
   border-top:1px solid rgba(255,255,255,.14);
   border-bottom:1px solid rgba(255,255,255,.14);
   font-family:'DM Sans',Arial,sans-serif;
@@ -22,7 +21,9 @@
   position:absolute;inset:0;
   z-index:0;
   pointer-events:none;
-  background:linear-gradient(90deg,rgba(3,5,6,.16) 0%,transparent 53%,rgba(2,3,4,.12) 100%);
+  background:
+    linear-gradient(90deg,rgba(0,0,0,.64) 0%,rgba(0,0,0,.34) 36%,rgba(0,0,0,.04) 66%,rgba(0,0,0,.2) 100%),
+    linear-gradient(0deg,rgba(0,0,0,.32) 0%,transparent 27%,transparent 76%,rgba(0,0,0,.26) 100%);
 }
 #pricing + .lab-invite-promo > .lab-invite-promo__inner {
   position:relative;z-index:1;
@@ -114,8 +115,8 @@
   #pricing + .lab-invite-promo {
     min-height:0;
     padding:56px 24px 61px;
-    background-image:linear-gradient(90deg,rgba(6,7,8,.84),rgba(6,7,8,.35)),url('./visuals/invite-after-fabric-user-approved-20261014.webp');
-    background-position:62% center;background-size:auto 100%;
+    background-image:linear-gradient(90deg,rgba(5,6,7,.88),rgba(5,6,7,.38)),url('./visuals/invite-wet-editorial.webp');
+    background-position:60% center;background-size:auto 100%;
   }
   #pricing + .lab-invite-promo > .lab-invite-promo__inner {
     grid-template-columns:minmax(0,1fr);
