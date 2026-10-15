@@ -37,6 +37,16 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - Independent Fashion CI now also runs the Studio first-paint regression even when unrelated backend unit checks fail.
 - Image + Base + Mood had an inconsistent metadata edge case: the automatic functional Base variation instruction was stored as `moodOriginalPrompt`, even though the user left the visible direction empty. Keep the provider's complete prompt unchanged while recording only the actual text typed by the user. The mock quote regression asserts both requirements. This also prevents generic internal Base text from appearing as the user's Mood caption.
 
+## October 15 Fashion reload: scrollbar and logo stability
+- Reported Chromium/Windows refresh of `/studio?tool=fashion`: the loading overlay was centered, but the underlying long document displayed a scrollbar; the loading logo appeared to shift briefly.
+- Root cause in source: loader previously hid the main page visually but did not lock document scrolling; only Retouch set `history.scrollRestoration='manual'`; loader typography used asynchronously swapped Google fonts.
+- `studio.html` now places `pv-studio-boot-lock` on the root in the very first HTML tag and locks html/body overflow in the early inline CSS. All direct Studio routes suppress restored scroll offsets and reset to top.
+- The splash now uses a stable system font stack for its mark and attribution, avoiding remote-font-induced layout shifts; the selected outgoing 240ms horizontal blur is otherwise unchanged.
+- Scrollbar and wheel scrolling remain suppressed through the splash exit. A 280ms guarded release waits for `lab-ready`, `pv-studio-route-pending` and `pv-native-route-pending`, with reduced-motion release immediately; the route class observer also handles delayed native resolution.
+- `lab.js` re-arms scroll lock when signing into Studio without a page navigation. All other Studio CSS, customer balances, generation and pricing remain unchanged.
+- Mock browser regression now checks locked overflow, unchanged wordmark coordinates, stable font, wheel-scroll suppression and scroll recovery on Image/Fashion entries.
+- Live domain/CI/browser execution needs independent verification after Pages deployment.
+
 ## Verification
 - Regression source asserts the still, crisp initial wordmark and exit animation after readiness, first paint, desktop/mobile bounds, and a hidden overlay after completion. Native Gallery test waits for the 240 ms exit.
 - No paid generation, secrets, authentication, credit, or Worker logic changed.
