@@ -40,8 +40,11 @@ jobs:
             if curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/welcome.html?verify=20261015" -o /tmp/live-welcome.html \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/welcome.js?verify=20261015" -o /tmp/live-welcome.js \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/session-request.js?verify=20261015" -o /tmp/live-session-request.js \
-              && grep -Fq 'YOUR WELCOME GIFT' /tmp/live-welcome.html \
+              && grep -Fq 'id="credit-toast"' /tmp/live-welcome.html \
               && grep -Fq 'Enter the Studio' /tmp/live-welcome.html \
+              && grep -Fq '200 credits added' /tmp/live-welcome.html \
+              && ! grep -Fq 'YOUR WELCOME GIFT' /tmp/live-welcome.html \
+              && grep -Fq 'showCreditToast()' /tmp/live-welcome.js \
               && grep -Fq '/api/migration/new' /tmp/live-welcome.js \
               && grep -Fq "new URL('/welcome.html',origin)" /tmp/live-session-request.js; then
               ready=1
