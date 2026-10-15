@@ -99,3 +99,30 @@
 #image-composer .image-composer-top{padding-top:9px!important;padding-bottom:3px!important}
 #image-composer .image-composer-toolbar{padding-top:4px!important;padding-bottom:9px!important}
 }
+
+/* One clear image-adding action; the reference tray itself has no duplicate +. */
+#image-composer .composer-add-wrap{flex:0 0 103px;min-width:103px;width:103px}
+#image-composer .composer-add-wrap>.composer-add{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:0 10px;white-space:nowrap;font-size:12px;font-weight:650;letter-spacing:-.01em;
+}
+#image-composer .composer-add-inline-icon{display:block;flex:0 0 16px;width:16px;height:16px}
+#image-composer .composer-add-label{display:inline-block}
+@media(max-width:650px){
+  #image-composer .composer-add-wrap{flex:0 0 38px;min-width:38px;width:38px;height:38px}
+  #image-composer .composer-add-wrap>.composer-add{gap:0;padding:0}
+  #image-composer .composer-add-label{display:none}
+}
+
+/* Generate must read as the primary action, not as another tiny settings chip. */
+#image-composer .composer-generate:not(.is-long-label):not(.is-submitting) .composer-generate-label{
+  font-size:18px;font-weight:700;letter-spacing:-.025em;line-height:1.12;
+}
+#image-composer .composer-generate.is-long-label .composer-generate-label{font-size:13px;line-height:1.2}
+#image-composer .composer-generate-sparkle{display:none!important}
+#image-composer .composer-generate.has-credit-cost:not(.is-submitting)::after{
+  font-size:12px;line-height:1.15;font-weight:550;opacity:.77;
+}
+@media(max-width:650px){
+  #image-composer .composer-generate:not(.is-long-label):not(.is-submitting) .composer-generate-label{font-size:16px}
+}
