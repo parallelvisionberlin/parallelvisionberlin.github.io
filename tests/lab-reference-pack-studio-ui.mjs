@@ -39,7 +39,7 @@ async function workspace(width=1440,height=900){
   page.on('pageerror',error=>errors.push(error.message));
   page.on('dialog',d=>d.accept());
   await context.route('https://**/*',async route=>{
-    const req=route.request(),u=new URL(req.url);
+    const req=route.request(),u=new URL(req.url());
     if(!u.href.startsWith(apiHost)){await route.abort();return;}
     const path=u.pathname,method=req.method();
     const ct=req.headers()['content-type']||'';
