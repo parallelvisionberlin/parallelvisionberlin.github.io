@@ -280,22 +280,43 @@ try{
   assert.ok(compactImageHeight>=105&&compactImageHeight<170,
     'The empty Image deck must keep its original compact proportions: '+compactImageHeight);
 
-  assert.equal(await x.page.locator('#image-composer-add').getAttribute('aria-label'),'Upload images',
-    'The + button opens the real photo input directly');
+  assert.equal(await x.page.locator('#image-composer-add').getAttribute('aria-label'),'Add images',
+    'The + button reveals image sources without immediately opening the system photo picker');
   assert.equal(await x.page.locator('#image-composer-add .composer-add-plus').textContent(),'+');
-  assert.equal(await x.page.locator('#composer-add-saved-toggle').isVisible(),true,
-    'Saved packs have their own small arrow beside +');
+  assert.equal(await x.page.locator('#composer-add-saved-toggle').isVisible(),false,
+    'The old duplicate arrow is hidden because the + offers saved packs');
   assert.equal(await x.page.locator('#composer-reference-intent-toggle').isVisible(),true,
-    'Composition mode stays available before photos are uploaded');
+    'Composition mode stays available independently from image sources');
   assert.equal(await x.page.locator('#image-composer-more').isVisible(),true,
     'Compact advanced settings are always accessible, without appearing only after uploads');
   assert.equal(await x.page.locator('#composer-character').isVisible(),false,'No duplicate right-side references tile');
-  await x.page.click('#composer-add-saved-toggle');
-  assert.equal(await x.page.locator('#composer-library-title').textContent(),'Saved photo packs');
-  await x.page.click('#composer-library-close');
-  const floatingChooser=x.page.waitForEvent('filechooser');
   await x.page.click('#image-composer-add');
+  assert.equal(await x.page.locator('#image-composer-add').getAttribute('aria-expanded'),'true');
+  for(const id of ['composer-add-computer','composer-add-recent','composer-add-packs'])
+    assert.equal(await x.page.locator('#'+id).isVisible(),true,'All three image sources appear in one + menu');
+  const menuPosition=await x.page.locator('#composer-add-menu').evaluate(el=>{
+    const panel=el.getBoundingClientRect(),dock=document.querySelector('#image-composer').getBoundingClientRect();
+    return {top:panel.top,bottom:panel.bottom,width:panel.width,dockTop:dock.top};
+  });
+  assert.ok(menuPosition.bottom<menuPosition.dockTop+4 && menuPosition.width<=320,
+    'Source menu is compact and floats above the unchanged deck: '+JSON.stringify(menuPosition));
+  assert.ok(Math.abs(await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height)-compactImageHeight)<=4,
+    'Opening image sources must never expand the Image deck');
+  await x.page.click('#composer-add-packs');
+  assert.equal(await x.page.locator('#composer-add-list-title').textContent(),'Saved reference packs');
+  assert.match(await x.page.locator('#composer-add-items').innerText(),/No packs saved yet/);
+  await x.page.click('#composer-add-back');
+  await x.page.click('#composer-add-recent');
+  assert.equal(await x.page.locator('#composer-add-list-title').textContent(),'Recent images');
+  await x.page.waitForFunction(()=>document.querySelector('#composer-add-items')?.textContent.includes('No recent images yet'));
+  await x.page.click('#composer-add-back');
+  await x.page.keyboard.press('Escape');
+  assert.equal(await x.page.locator('#composer-add-menu').isVisible(),false,'Escape dismisses the source popover');
+  await x.page.click('#image-composer-add');
+  const floatingChooser=x.page.waitForEvent('filechooser');
+  await x.page.click('#composer-add-computer');
   const imageChooser=await floatingChooser;
+  assert.equal(await x.page.locator('#composer-add-menu').isVisible(),false,'Upload leaves the source menu closed');
   assert.ok(imageChooser,'Upload photos opens the original reference input');
   const referencePng=await x.page.evaluate(()=>{
     const canvas=document.createElement('canvas');canvas.width=320;canvas.height=320;
