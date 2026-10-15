@@ -78,7 +78,7 @@ const server=http.createServer((req,res)=>{
     };
   });
   assert.ok(details.sectionHeight>=details.visibleHeight-1,'Pricing occupies at least one viewport');
-  assert.match(details.inviteBg,/(?:invite-wet-editorial\.webp|invite-after-fabric-exact\.avif)/,'Referral promotion uses an approved photographic editorial');
+  assert.match(details.inviteBg,/(?:invite-wet-editorial\.webp|invite-after-fabric-exact\.avif|invite-after-fabric-user-approved-20261014\.webp)/,'Referral promotion uses an approved photographic editorial');
   if(width<=760)assert.match(details.inviteBg,/gradient/,'Mobile adds a readable gradient over the editorial photo');
   const textRGB=(details.inviteText.match(/\d+/g)||[]).slice(0,3).map(Number);
   const paragraphRGB=(details.inviteParagraph.match(/\d+/g)||[]).slice(0,3).map(Number);
