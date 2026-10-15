@@ -1,0 +1,23 @@
+/* PV LAB: a brief, soft welcome notification over the real Studio.
+   Hidden until a successful backend wallet activation is verified. */
+.pv-credit-toast[hidden]{display:none!important}
+.pv-credit-toast{
+  position:fixed;left:50%;top:clamp(78px,12vh,136px);
+  z-index:250;display:flex;flex-direction:column;gap:4px;
+  align-items:center;justify-content:center;
+  width:max-content;max-width:calc(100vw - 36px);
+  padding:16px 38px;color:#f2f2ef;text-align:center;
+  background:radial-gradient(ellipse at 50% 0%,rgba(92,96,96,.35),rgba(32,34,35,.88) 75%);
+  border:0;border-radius:999px;
+  -webkit-backdrop-filter:blur(25px) saturate(80%);
+  backdrop-filter:blur(25px) saturate(80%);
+  box-shadow:0 14px 55px rgba(0,0,0,.35),0 0 40px rgba(195,204,205,.08);
+  pointer-events:none;opacity:0;
+  transform:translate(-50%,-14px) scale(.97);
+  transition:opacity .48s ease,transform .62s cubic-bezier(.2,.8,.2,1);
+}
+.pv-credit-toast.is-visible{opacity:1;transform:translate(-50%,0) scale(1)}
+.pv-credit-toast strong{font-family:inherit;font-size:14px;line-height:1.35;font-weight:570;letter-spacing:-.018em}
+.pv-credit-toast span{font-family:inherit;font-size:11px;line-height:1.4;color:#c3c7c6}
+@media(max-width:560px){.pv-credit-toast{top:84px;padding:14px 25px}}
+@media(prefers-reduced-motion:reduce){.pv-credit-toast{transition:none;transform:translate(-50%,0)}}
