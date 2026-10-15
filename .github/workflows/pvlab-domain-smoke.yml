@@ -9,6 +9,9 @@ on:
       - 'lab/session-request.js'
       - 'lab/studio.html'
       - 'lab/customer-entry.js'
+      - 'lab/index.html'
+      - 'lab/lab.js'
+      - 'lab/studio-credit-toast.css'
 permissions:
   contents: read
 jobs:
@@ -31,33 +34,36 @@ jobs:
             "https://pvlab-studio.pages.dev/" -o /tmp/home.html
           grep -Fq 'Fashion.' /tmp/home.html
           echo "PASS: old website, Cloudflare Pages, and secure transfer entry published."
-      - name: Verify first-sign-in welcome is published on the custom domain
+      - name: Verify direct Studio welcome and canonical hero
         shell: bash
         run: |
           set -euo pipefail
           ready=0
           for attempt in $(seq 1 12); do
-            if curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/welcome.html?verify=20261015" -o /tmp/live-welcome.html \
-              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/welcome.js?verify=20261015" -o /tmp/live-welcome.js \
+            if curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/welcome?verify=20261015" -o /tmp/live-legacy-welcome.html \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio.html?verify=20261015" -o /tmp/live-studio.html \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio-credit-toast.css?verify=20261015" -o /tmp/live-toast.css \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/session-request.js?verify=20261015" -o /tmp/live-session-request.js \
-              && grep -Fq 'id="credit-toast"' /tmp/live-welcome.html \
-              && grep -Fq 'Enter the Studio' /tmp/live-welcome.html \
-              && grep -Fq '200 credits added' /tmp/live-welcome.html \
-              && ! grep -Fq 'YOUR WELCOME GIFT' /tmp/live-welcome.html \
-              && grep -Fq 'showCreditToast()' /tmp/live-welcome.js \
-              && grep -Fq '/api/migration/new' /tmp/live-welcome.js \
-              && grep -Fq "new URL('/welcome.html',origin)" /tmp/live-session-request.js; then
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://parallelvisionlabel.com/lab/?verify=20261015" -o /tmp/live-old-entry.html \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/?verify=20261015" -o /tmp/live-root.html \
+              && grep -Fq "location.replace('./studio.html?tool=image')" /tmp/live-legacy-welcome.html \
+              && grep -Fq 'id="pv-credit-toast"' /tmp/live-studio.html \
+              && grep -Fq 'pv-credit-toast.is-visible' /tmp/live-toast.css \
+              && grep -Fq '/api/migration/new' /tmp/live-session-request.js \
+              && grep -Fq "location.replace('https://pvlab.studio/'" /tmp/live-old-entry.html \
+              && grep -Fq 'visuals/leather-editorial/hero-desktop.webp' /tmp/live-root.html \
+              && ! grep -Fq 'YOUR WELCOME GIFT' /tmp/live-legacy-welcome.html; then
               ready=1
               break
             fi
-            echo "Cloudflare Pages welcome has not reached the custom domain (attempt $attempt)."
+            echo "PV LAB Pages direct entry still publishing (attempt $attempt)."
             sleep 15
           done
           if [ "$ready" != "1" ]; then
-            echo 'FAIL: new-account welcome files were not confirmed on pvlab.studio.'
+            echo 'FAIL: the old-domain redirect and direct Studio toast were not both verified live.'
             exit 1
           fi
-          echo 'PASS: pvlab.studio serves the new welcome and first-sign-in routing assets.'
+          echo 'PASS: old PV LAB landing forwards to the new domain; Studio handles welcome toast.'
       - name: Verify deployed backend migration and domain-origin preflight
         shell: bash
         run: |
