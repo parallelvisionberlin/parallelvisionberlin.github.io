@@ -1,5 +1,5 @@
 import {createAccountMenu} from './account-menu.js?v=20261014-editorial-menu1';
-import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
+import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261015-standalone1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
