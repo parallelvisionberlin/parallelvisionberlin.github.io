@@ -549,7 +549,8 @@ test('80s Film keeps the high-fidelity recipe even when many references exceed t
 test('Berlin Rave V5 carries minimal clothing, flash and source composition through every tier',()=>{
   const mood=moodById('berlin-rave');
   assert.equal(mood.category,'Fashion');assert.equal(mood.defaultIntensity,80);
-  assert.equal(mood.preview,'/lab/mood-previews/berlin-rave-20261011.webp?v=hd-20261011');
+  assert.equal(mood.preview,'/lab/mood-previews/berlin-rave-grid-20261015.webp');
+  assert.equal(mood.previewFull,'/lab/mood-previews/berlin-rave-detail-20261015.webp');
   for(const referenceCount of [0,1,10])for(const intensity of [10,55,80,95,100]){
     const result=prepareMoodPrompt('A person in a white shirt','berlin-rave',intensity,{referenceCount});
     const labels=Array.from({length:referenceCount},(_,i)=>({role:i?'none':'base'}));
