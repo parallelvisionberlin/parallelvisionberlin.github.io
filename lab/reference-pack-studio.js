@@ -235,7 +235,12 @@ export function createReferencePackStudio({
   $('pack-studio-close').onclick=close;
   $('pack-studio-new').onclick=beginCreate;
   $('pack-studio-back').onclick=()=>{if(!saving){resetCreate();view('library');renderLibrary();}};
-  $('pack-studio-name').oninput=()=>{$('pack-studio-create-status').textContent='';renderCreateIfNeeded();};
+  $('pack-studio-name').oninput=()=>{
+    $('pack-studio-create-status').textContent='';
+    // Typing a name must not tear down and re-decode the image previews.
+    const n=photos().length;
+    $('pack-studio-save').disabled=saving||isBusy()||!isOwner()||!$('pack-studio-name').value.trim()||n<1||n>maxPhotos;
+  };
   $('pack-studio-from-deck').onclick=()=>{
     if(saving||!getReferences().length)return;
     source='deck';$('pack-studio-create-status').textContent='';renderCreate();
