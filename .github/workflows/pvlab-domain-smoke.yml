@@ -52,14 +52,15 @@ jobs:
               && grep -Fq "location.replace('./studio.html?tool=image')" /tmp/live-legacy-welcome.html \
               && grep -Fq 'id="pv-credit-toast"' /tmp/live-studio.html \
               && grep -Fq 'id="history-preview-toggle"' /tmp/live-studio.html \
-              && grep -Fq 'image-discreet.css?v=20261016-icon-polish1' /tmp/live-studio.html \
+              && grep -Fq 'image-discreet.css?v=20261016-restored-eye2' /tmp/live-studio.html \
               && grep -Fq 'image-discreet.js?v=20261015-1' /tmp/live-studio.html \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.js?verify=20261015" | grep -Fq 'pv-lab-image-previews-hidden-v1' \
-              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.css?verify=20261016-icon-polish1" -o /tmp/live-image-discreet.css \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.css?verify=20261016-restored-eye2" -o /tmp/live-image-discreet.css \
               && grep -Fq 'pv-image-previews-hidden' /tmp/live-image-discreet.css \
               && grep -Fq 'grid-template-columns:54px 62px 12px 34px' /tmp/live-image-discreet.css \
               && grep -Fq '#history-preview-toggle{' /tmp/live-image-discreet.css \
               && grep -Fq 'grid-column:4;grid-row:1;justify-self:end' /tmp/live-image-discreet.css \
+              && grep -Fq '.image-discreet-message svg{' /tmp/live-image-discreet.css \
               && grep -Fq 'visibility:hidden!important' /tmp/live-image-discreet.css \
               && grep -Fq 'radial-gradient(ellipse 115% 85%' /tmp/live-image-discreet.css \
               && grep -Fq 'id="gate"' /tmp/live-canonical-studio.html \
