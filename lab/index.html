@@ -34,20 +34,20 @@
 <link rel="stylesheet" href="/lab/legal-links.css">
 <link rel="stylesheet" href="./invite-hero.css?v=20261014-approved-hd2">
 <link rel="stylesheet" href="/lab/site-footer.css?v=20261014-angularfooter1">
-<link rel="stylesheet" href="./homepage-unified.css?v=20261014-unified2">
+<link rel="stylesheet" href="./homepage-unified.css?v=20261015-stable-account-slots1">
 <link rel="stylesheet" href="./welcome-onboarding.css?v=20261015-1">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<header class="landing-header landing-header--home">
+<header class="landing-header landing-header--home" data-account-phase="pending">
   <a class="lab-brand" href="./" aria-label="PV Lab home">PV LAB</a>
   <nav aria-label="Creative tools"><a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=video">Video</a><a href="./studio.html?tool=upscale">Upscaler</a><a href="./moods" class="lab-moods-nav">Explore Moods</a><a href="#pricing">Pricing</a></nav>
   <div class="landing-header-actions">
-    <button class="lab-auth-link" id="lab-header-signin" type="button" hidden>Sign in</button>
+    <button class="lab-auth-link" id="lab-header-signin" type="button" aria-label="Sign in" title="Sign in" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none"><circle cx="12" cy="8" r="3.7"/><path d="M4.5 20v-1.8a7.5 7.5 0 0 1 15 0V20"/></svg><span class="sr-only">Sign in</span></button>
     <a class="studio-link" href="./studio.html"><span class="studio-link-label-full">Open studio</span><span class="studio-link-label-compact">Studio</span></a>
-    <a class="lab-home-credits" id="lab-home-credits" href="#pricing" aria-label="Get credits and view pricing"><span class="lab-home-credit-copy" id="lab-home-credit-copy">Get credits</span><span class="lab-home-credit-unit" id="lab-home-credit-unit" hidden>credits</span><span class="lab-home-credit-plus" aria-hidden="true">+</span></a>
+    <span class="lab-home-credit-placeholder" aria-hidden="true"></span><a class="lab-home-credits" id="lab-home-credits" href="#pricing" aria-label="Get credits and view pricing" hidden><span class="lab-home-credit-copy" id="lab-home-credit-copy">Get credits</span><span class="lab-home-credit-unit" id="lab-home-credit-unit" hidden>credits</span><span class="lab-home-credit-plus" aria-hidden="true">+</span></a>
 
-    <details id="lab-account-strip" class="pv-account-menu" hidden>
+    <span class="lab-home-avatar-placeholder" aria-hidden="true"></span><details id="lab-account-strip" class="pv-account-menu" hidden>
       <summary aria-label="Open account menu" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
       <div class="pv-account-panel">
         <div class="pv-account-details"><strong data-account-name>Your account</strong><small data-account-balance></small></div>
@@ -69,7 +69,7 @@
 <section class="lab-hero" aria-labelledby="hero-title">
 <picture><source media="(max-width:700px)" srcset="./visuals/leather-editorial/hero-mobile.webp"><img class="hero-poster" src="./visuals/leather-editorial/hero-desktop.webp" alt="Fashion portrait with wet hair and a black leather jacket against a dark backdrop" width="2048" height="1536" fetchpriority="high"></picture>
 <div class="hero-shade" aria-hidden="true"></div>
-<div class="hero-copy"><h1 id="hero-title">PV LAB</h1><h2>Fashion. <br>Reimagined.</h2><p class="hero-description">Create images, reinterpret photographs<br class="desktop-break"> and bring them into motion.</p><p class="hero-welcome"><span class="hero-welcome-symbol" aria-hidden="true">✳</span><strong>200 free credits when you join.</strong><small>No purchase required.</small></p><div class="hero-actions"><a class="start-link" href="./studio.html?tool=image&amp;welcome=1">Start creating free</a><a class="hero-moods-link" href="./moods">Explore Moods</a></div><p id="lab-entry-status" role="status" aria-live="polite"></p></div>
+<div class="hero-copy"><h1 id="hero-title">PV LAB</h1><h2>Fashion. <br>Reimagined.</h2><p class="hero-description">Create images, reinterpret photographs<br class="desktop-break"> and bring them into motion.</p><p class="hero-welcome"><span class="hero-welcome-symbol" aria-hidden="true">✳</span><strong>200 free credits when you join.</strong><small>No purchase required.</small></p><div class="hero-actions"><a class="start-link" href="./studio.html?tool=image&amp;welcome=1">Start creating</a><a class="hero-moods-link" href="./moods">Explore Moods</a></div><p id="lab-entry-status" role="status" aria-live="polite"></p></div>
 <div class="hero-bottom"><span class="hero-signature">Create beyond convention.</span></div>
 </section>
 
@@ -225,7 +225,7 @@
 <script defer src="./landing-motion.js?v=20261012-editorial-restored1"></script>
 <script defer src="./studio-tools.js?v=20261012-macro-clean1"></script>
 <script defer src="./pricing-tabs.js?v=20261013-billing-caption3"></script>
-<script type="module" src="./customer-entry.js?v=20261015-welcome1&menu=20261014-editorial1&studioAuth=20261015-1&providerPolicy=20261015-google-only1&firstWelcome=1"></script>
+<script type="module" src="./customer-entry.js?v=20261015-welcome1&menu=20261014-editorial1&studioAuth=20261015-1&providerPolicy=20261015-google-only1&firstWelcome=1&steadyHeader=1"></script>
 <script type="module" src="./traffic.js?v=20261015-traffic1"></script>
 </body>
 </html>
