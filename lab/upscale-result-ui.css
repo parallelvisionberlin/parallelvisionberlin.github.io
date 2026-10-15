@@ -1,0 +1,108 @@
+/* Upscaler completion viewer: only the Upscaler, not other PV LAB tools. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagefoot{display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{margin-bottom:2px;gap:0}
+#app.upscale-studio-active #upscale-canvas{isolation:isolate}
+#app #upscale-processing-layer[hidden],#app #upscale-comparison[hidden],
+#app #upscale-result-toolbar[hidden],#app #upscale-complete-toast[hidden]{display:none!important}
+#app.upscale-studio-active #upscale-processing-layer{
+  position:absolute;inset:0;z-index:5;display:flex;align-items:flex-end;justify-content:center;
+  padding:22px;pointer-events:none;background:rgba(10,11,15,.34);
+}
+#app.upscale-studio-active .upscale-processing-message{
+  display:flex;align-items:center;gap:12px;padding:12px 17px;border-radius:10px;
+  background:rgba(21,22,27,.94);border:1px solid #464950;color:#fff;
+  box-shadow:0 12px 38px #0006;font:500 12px/1.4 'DM Sans',sans-serif;
+}
+#app.upscale-studio-active .upscale-processing-message span:last-child{display:flex;flex-direction:column;gap:3px}
+#app.upscale-studio-active .upscale-processing-message strong{font-size:12px;font-weight:650}
+#app.upscale-studio-active .upscale-processing-message small{font-size:10px;color:#a9abb1}
+#app.upscale-studio-active .upscale-spinner{
+  display:block;width:19px;height:19px;border:2px solid #585b63;border-top-color:#e8bd69;border-radius:50%;
+  animation:upscale-spin .9s linear infinite;
+}
+@keyframes upscale-spin{to{transform:rotate(360deg)}}
+#app.upscale-studio-active #upscale-comparison{
+  position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;pointer-events:none;
+}
+#app.upscale-studio-active .upscale-compare-frame{
+  position:relative;overflow:hidden;flex:none;border-radius:4px;--split:50%;
+  pointer-events:auto;box-shadow:0 3px 30px #0003;
+}
+#app.upscale-studio-active .upscale-compare-frame img{
+  display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:fill;border-radius:0;
+}
+#app.upscale-studio-active .upscale-before{z-index:1;clip-path:inset(0 calc(100% - var(--split)) 0 0)}
+#app.upscale-studio-active .upscale-compare-line{
+  position:absolute;z-index:2;left:var(--split);top:0;bottom:0;width:1px;
+  background:#fafafa;box-shadow:0 0 6px #000b;pointer-events:none;
+}
+#app.upscale-studio-active .upscale-compare-line span{
+  display:grid;place-items:center;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:35px;height:35px;border:1px solid #fff;border-radius:50%;
+  background:#18191dd8;color:#fff;font-size:16px;letter-spacing:-3px;padding-right:3px;
+  backdrop-filter:blur(8px);
+}
+#app.upscale-studio-active .upscale-compare-tag{
+  position:absolute;z-index:3;bottom:12px;padding:5px 8px;background:#101115d9;border:1px solid #ffffff3b;
+  border-radius:5px;color:#f5f5f5;font:600 9px/1 'DM Sans',sans-serif;letter-spacing:.055em;pointer-events:none;
+}
+#app.upscale-studio-active .upscale-compare-tag.tag-before{left:9px}
+#app.upscale-studio-active .upscale-compare-tag.tag-after{right:9px}
+#app.upscale-studio-active .upscale-compare-range{
+  position:absolute;z-index:4;inset:0;display:block;width:100%;height:100%;margin:0;opacity:0;
+  cursor:ew-resize;touch-action:pan-y;
+}
+#app.upscale-studio-active .upscale-compare-frame:focus-within{outline:2px solid #f4f4f4;outline-offset:3px}
+#app.upscale-studio-active .canvas>#preview.upscale-preview-under-comparison{visibility:hidden}
+#app.upscale-studio-active #upscale-result-toolbar{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
+  margin-top:10px;padding:13px 15px;background:#191a1e;border:1px solid #32343a;
+  border-radius:10px;color:#f4f4f3;font-family:'DM Sans',sans-serif;
+}
+#app.upscale-studio-active .upscale-result-info{min-width:0;display:flex;flex-direction:column;gap:6px}
+#app.upscale-studio-active .upscale-result-title{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:650}
+#app.upscale-studio-active .upscale-result-check{
+  display:grid;place-items:center;width:19px;height:19px;border:1px solid #8b8e93;border-radius:50%;
+  color:#e6e6e5;font-size:12px;
+}
+#app.upscale-studio-active .upscale-result-scale{font-size:10px;color:#a6a8ad}
+#app.upscale-studio-active .upscale-result-dimensions{
+  margin:0;color:#aeb0b7;font:400 10px/1.5 'DM Sans',sans-serif;letter-spacing:.01em;
+}
+#app.upscale-studio-active .upscale-result-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+#app.upscale-studio-active .upscale-result-actions button{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:39px;
+  padding:10px 13px;border:1px solid #41434b;border-radius:7px;
+  color:#f0f0ef;background:#27282d;cursor:pointer;font:600 11px/1.2 'DM Sans',sans-serif;
+  transition:background .15s,border-color .15s;
+}
+#app.upscale-studio-active .upscale-result-actions button:hover:not(:disabled){background:#34353c;border-color:#62656d}
+#app.upscale-studio-active .upscale-result-actions button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#app.upscale-studio-active .upscale-result-actions button:disabled{opacity:.46;cursor:not-allowed}
+#app.upscale-studio-active .upscale-result-actions .upscale-download-button{
+  border-color:#edbb61;background:#edbb61;color:#1c1a16;font-weight:700;
+}
+#app.upscale-studio-active .upscale-result-actions .upscale-download-button:hover:not(:disabled){
+  border-color:#ffce7b;background:#ffce7b;color:#1c1a16;
+}
+#app.upscale-studio-active #upscale-complete-toast{
+  display:block;position:absolute;z-index:6;right:18px;top:16px;
+  padding:11px 15px;background:#232529ed;color:#f1f1ef;border:1px solid #555961;
+  border-radius:8px;box-shadow:0 12px 24px #0005;
+  font:600 12px/1.2 'DM Sans',sans-serif;pointer-events:none;
+  animation:upscale-appear .24s ease-out both;
+}
+@keyframes upscale-appear{from{transform:translateY(-7px);opacity:0}to{transform:none;opacity:1}}
+@media(max-width:650px){
+  #app.upscale-studio-active #upscale-result-toolbar{align-items:stretch;gap:12px;padding:12px}
+  #app.upscale-studio-active .upscale-result-info{width:100%}
+  #app.upscale-studio-active .upscale-result-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%}
+  #app.upscale-studio-active .upscale-result-actions button{min-width:0;padding-inline:8px}
+  #app.upscale-studio-active .upscale-result-actions .upscale-download-button{grid-column:1/-1}
+  #app.upscale-studio-active .upscale-processing-message{padding:11px 12px}
+  #app.upscale-studio-active .upscale-compare-tag{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  #app.upscale-studio-active .upscale-spinner,#app.upscale-studio-active #upscale-complete-toast{animation:none}
+  #app.upscale-studio-active .upscale-result-actions button{transition:none}
+}

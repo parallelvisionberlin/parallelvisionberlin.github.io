@@ -27,6 +27,7 @@ import { createSoulController } from './soul.js?v=20261014-krea2-training1';
 import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20261011-reference-prewarm1';
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1&qwen3-zimage=1&nano21=1';
 import {createImageSubmitHandoff} from './image-submit-handoff.js?v=20261011-fast-queue1';
+import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow1';
 import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
@@ -1980,7 +1981,16 @@ async function api(path,options={}) {
 async function action(fn){if(busy)return;busy=true;update();try{await fn();}catch(e){notify(e.name==='AbortError'?'Request interrupted. Refresh history before trying another generation.':e.message,true);}finally{busy=false;update();}}
 async function viewMedia(fn){const generation=epoch;try{await fn();}catch(e){if(owner&&generation===epoch)notify(e.message,true);}}
 const soul=createSoulController({api,action,notify,changed:update,owner:()=>owner,modeChanged:()=>setTool('image')});
-function clearResult(){previewRevision++;if(resultUrl){$('preview').removeAttribute('src');$('preview').hidden=true;}release(resultUrl);resultUrl=null;resultId=null;resultSettings=null;$('video').pause();$('video').removeAttribute('src');$('video').load();$('video').hidden=true;$('download').hidden=true;}
+const upscaleResultUI=createUpscaleResultUI({
+  download:()=>downloadResult(),
+  again:()=>{
+    const button=$('generate');
+    button.scrollIntoView({behavior:'smooth',block:'center'});
+    button.focus({preventScroll:true});
+  },
+  loadSource:id=>assetBlob(id)
+});
+function clearResult(){upscaleResultUI.clear();previewRevision++;if(resultUrl){$('preview').removeAttribute('src');$('preview').hidden=true;}release(resultUrl);resultUrl=null;resultId=null;resultSettings=null;$('video').pause();$('video').removeAttribute('src');$('video').load();$('video').hidden=true;$('download').hidden=true;}
 function resetPreview(){
   clearResult();
   if(tool==='video'&&mode==='extend'&&mediaRefs.firstVideo()){const clip=mediaRefs.firstVideo();$('video').src=clip.url;$('video').hidden=false;$('preview').hidden=true;$('empty').hidden=true;$('preview-label').textContent='Video to extend';return;}
@@ -1989,7 +1999,7 @@ function resetPreview(){
     (sourceUrl?{url:sourceUrl,label:tool==='upscale'?'Upscale input':'Start frame'}:null):
     (references[0]?{url:references[0].url,label:'Reference 1 / input'}:null);
   $('preview').alt='Uploaded source image, not a generated result';
-  if(item){$('preview').src=item.url;$('preview').hidden=false;$('empty').hidden=true;$('preview-label').textContent=tool==='video'?item.label:item.label+' / not a result';}
+  if(item){$('preview').src=item.url;$('preview').hidden=false;$('empty').hidden=true;$('preview-label').textContent=tool==='upscale'?'Original · '+sourceWidth+' × '+sourceHeight+' px':tool==='video'?item.label:item.label+' / not a result';if(tool==='upscale')upscaleResultUI.source({width:sourceWidth,height:sourceHeight});}
   else{
     $('preview').removeAttribute('src');$('preview').hidden=true;$('empty').hidden=false;
     $('preview-label').textContent=tool==='image'?'Result / Image':'Source / preview';
@@ -2246,6 +2256,10 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
   const data=await api(q.provider==='Higgsfield'&&q.settings?.type==='image'?'/api/higgsfield/generate':'/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
   if($('quote-dialog').open)$('quote-dialog').close();
   resetPreview();autoPreview={id:data.job.id,revision:previewRevision};setActive(data.job);surfaceHistoryJob(data.job);refreshHistorySoon();
+  if(q.settings?.mode==='upscale'){
+    if(hasResult(data.job))await openVideo(data.job,{scroll:false,justFinished:true});
+    else if(activeStates.has(data.job.status)&&data.job.status!=='uncertain')upscaleResultUI.processing();
+  }
   const failed=['failed','uncertain','resolved'].includes(data.job.status);
   const destination=q.settings.mode==='upscale'?'Upscaled images below and Assets':'History';
   notify(failed?(isContentRestriction(data.job.error)?'The selected model declined this request under its content guidelines. Edit your prompt or explore another model in History.':data.job.error||(q.settings.mode==='upscale'?'The upscale was not confirmed. Check Queue and Upscaled images before trying again.':'The generation was not confirmed. Check History before another attempt.')):
@@ -2382,11 +2396,12 @@ async function poll(){
     });
     if(finished.length){
       const chosen=finished.find(j=>autoPreview?.id===j.id);
-      const show=chosen&&autoPreview.revision===previewRevision&&!busy;
+      const show=chosen&&autoPreview.revision===previewRevision&&(!busy||chosen.settings?.mode==='upscale');
       if(chosen)autoPreview=null;
       await syncHistory();
       if(!owner||startedEpoch!==epoch)return;
-      if(show&&hasResult(chosen))await openVideo(chosen,{scroll:false});
+      if(chosen&&chosen.settings?.mode==='upscale'&&!hasResult(chosen))upscaleResultUI.finishedWithoutResult();
+       if(show&&hasResult(chosen))await openVideo(chosen,{scroll:false,justFinished:chosen.settings?.mode==='upscale'});
       const ready=finished.filter(hasResult).length,failed=finished.filter(j=>j.status==='failed');
       if(failed.length)notify(isContentRestriction(failed[0].error)?'This model declined the request under its content guidelines. Your prompt is saved in History. Edit it or explore another model.':'Generation failed: '+(failed.length>1?failed.length+' jobs failed. ':'')+(failed[0].error||'The provider did not return an image. Check History.'),true);
       else if(ready)notify(ready===1?'Result saved. View or download it from History.':ready+' results saved. View or download them from History.');
@@ -2978,7 +2993,7 @@ $('image-lightbox').addEventListener('close',()=>{
   refreshImageDetailNavigation();
 });
 
-async function openVideo(job,{scroll=true,detail=false}={}){
+async function openVideo(job,{scroll=true,detail=false,justFinished=false}={}){
   if(job?.settings?.precisionEdit&&!job.settings.precisionFinalized&&job.status==='completed'){
     try{job=await precisionEditor.finalize(job);}catch(error){notify('The raw edit is saved, but preserving original pixels needs attention: '+error.message,true);}
   }
@@ -3031,6 +3046,13 @@ async function openVideo(job,{scroll=true,detail=false}={}){
   else{$('video').src=resultUrl;$('video').hidden=false;$('preview').hidden=true;}
   $('empty').hidden=true;$('download').hidden=false;$('download').textContent='Download '+kind+' / '+ext.toUpperCase();
   $('preview-label').textContent='Generated result / '+(kind==='image'?'Image':job.settings.duration+'s');update();
+  if(tool==='upscale'&&kind==='image'&&job.settings?.mode==='upscale'){
+    upscaleResultUI.ready({url:resultUrl,ext,scale:job.settings.scale,
+      sourceWidth:job.settings.sourceWidth||(job.sourceId&&job.sourceId===sourceId?sourceWidth:0),
+      sourceHeight:job.settings.sourceHeight||(job.sourceId&&job.sourceId===sourceId?sourceHeight:0),
+      outputWidth:job.settings.targetWidth,outputHeight:job.settings.targetHeight,
+      sourceUrl:null,sourceAssetId:job.sourceId,announce:justFinished});
+  }
   if((tool==='image'||assetLibrary?.active()||detail)&&kind==='image'){
     $('image-lightbox-img').src=resultUrl;
     releaseImageDetailPreview();
