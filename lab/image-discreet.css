@@ -1,0 +1,45 @@
+/* Visual concealment in Image Studio only. Not an access-control mechanism. */
+#history-preview-toggle{display:none!important;align-items:center;justify-content:center;flex:0 0 32px;width:32px;min-width:32px;padding:5px!important}
+#app.image-studio-active #history-preview-toggle{display:inline-flex!important}
+#history-preview-toggle svg{display:block;width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#history-preview-toggle .eye-hidden{display:none}
+html.pv-image-previews-hidden #history-preview-toggle .eye-visible{display:none}
+html.pv-image-previews-hidden #history-preview-toggle .eye-hidden{display:block}
+#history-preview-toggle:focus-visible{outline:2px solid #e9e7e3;outline-offset:2px}
+.image-discreet-message{display:none;pointer-events:none;position:absolute;inset:53px 0 190px;z-index:2;align-items:center;justify-content:center;gap:12px;flex-direction:column;color:#dedbd7;text-align:center}
+.image-discreet-message svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round;opacity:.72}
+.image-discreet-message span{font:500 11px/1.5 'DM Sans',sans-serif;letter-spacing:.15em;text-transform:uppercase;text-shadow:0 1px 4px #101114}
+html.pv-image-previews-hidden #app.image-studio-active .image-gallery-shell{
+  isolation:isolate;background-color:#101114;
+}
+html.pv-image-previews-hidden #app.image-studio-active .image-gallery-shell::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(180deg,rgba(9,12,18,.18) 0%,rgba(9,12,18,.06) 34%,rgba(9,12,18,.13) 56%,rgba(9,12,18,.75) 100%),url('./visuals/open-atmosphere-hd.jpg');
+  background-size:cover,cover;background-position:center,center center;background-repeat:no-repeat;
+}
+html.pv-image-previews-hidden #app.image-studio-active .image-gallery-host{position:relative;z-index:1}
+html.pv-image-previews-hidden #app.image-studio-active .image-discreet-message{display:flex}
+html.pv-image-previews-hidden #app.image-studio-active #history,
+html.pv-image-previews-hidden #app.image-studio-active #history-selection,
+html.pv-image-previews-hidden #app.image-studio-active #emptyarchive,
+html.pv-image-previews-hidden #app.image-studio-active #more,
+html.pv-image-previews-hidden #app.image-studio-active #image-gallery-empty,
+html.pv-image-previews-hidden #app.image-studio-active #history-select,
+html.pv-image-previews-hidden #app.image-studio-active #refresh{display:none!important}
+/* Retain reference slots/removal controls while concealing their private photo pixels. */
+html.pv-image-previews-hidden #app.image-studio-active #image-composer-references img,
+html.pv-image-previews-hidden #app.image-studio-active #composer-character-photo img,
+html.pv-image-previews-hidden #app.image-studio-active #hf-bar-source-photo{visibility:hidden!important}
+html.pv-image-previews-hidden #app.image-studio-active .composer-reference-tile::after{
+  content:'REF';position:absolute;inset:0;display:grid;place-items:center;
+  pointer-events:none;color:#999ca2;font:600 10px/1 'DM Sans',sans-serif;letter-spacing:.04em;
+}
+/* Suppress viewer pixels before an async open can be dismissed by JS. */
+html.pv-image-previews-hidden #app.image-studio-active #image-lightbox[open],
+html.pv-image-previews-hidden #app.image-studio-active #image-source-lightbox[open],
+html.pv-image-previews-hidden #app.image-studio-active #input-preview-dialog[open]{visibility:hidden!important}
+@media(max-width:700px){
+  html.pv-image-previews-hidden #app.image-studio-active .image-gallery-shell::before{background-position:center,63% center}
+  #app.image-studio-active #history-preview-toggle{min-height:32px;flex-basis:32px}
+  .image-discreet-message{inset:48px 0 172px}
+}
