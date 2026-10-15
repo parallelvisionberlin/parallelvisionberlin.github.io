@@ -238,27 +238,25 @@ try{
           assert.ok(await page.locator('.pv-account-panel > a .pv-account-menu-icon').count()>0,'Links retain subtle visible icons');
           const avatar=await page.locator('[data-account-avatar]').boundingBox();assert.equal(Math.round(avatar.width),32);assert.equal(Math.round(avatar.height),32);
           const panel=await page.locator('.pv-account-panel').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=width+1,'menu fits viewport');
+          assert.equal(await page.locator('.pv-account-panel > a[href="./account.html"]').count(),1,'Each account menu contains one My account entry');
+          const desiredEdgeGap=width<=480?10:16;
+          assert.ok(Math.abs(width-panel.x-panel.width-desiredEdgeGap)<2,`All account menus align near the screen edge: ${path} at ${width}px, actual gap ${width-panel.x-panel.width}px, expected ${desiredEdgeGap}px`);
           if(path==='/lab/studio.html'){
-            assert.equal(await page.locator('link[href*="studio-account-menu.css"]').count(),1,'Studio loads its own menu treatment');
+            assert.equal(await page.locator('link[href*="studio-account-menu.css"]').count(),0,'Studio no longer overrides the canonical account menu');
             const metrics=await page.locator('#studio-account-menu .pv-account-panel').evaluate(el=>{
               const box=el.getBoundingClientRect(),style=getComputedStyle(el);
-              const row=el.querySelector('a:not([hidden])');
               const logo=getComputedStyle(el.querySelector('.pv-account-details'),'::before');
-              const root=el.closest('details'),seam=getComputedStyle(root,'::after');
-              const avatarBox=root.querySelector('.pv-account-avatar').getBoundingClientRect();
-              return {position:style.position,width:box.width,top:box.top,headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom,
-                fontSize:Number.parseFloat(getComputedStyle(row).fontSize),logoWidth:Number.parseFloat(logo.width),
-                background:style.backgroundColor,seamHeight:Number.parseFloat(seam.height),
-                seamAlignment:Math.abs((document.documentElement.getBoundingClientRect().width-Number.parseFloat(seam.right))-(avatarBox.x+avatarBox.width/2))};
+              const row=el.querySelector('a:not([hidden])');
+              return {position:style.position,width:box.width,top:box.top,
+                fontSize:Number.parseFloat(getComputedStyle(row).fontSize),
+                logoWidth:Number.parseFloat(logo.width),background:style.backgroundColor};
             });
-            assert.equal(metrics.position,'fixed','Studio menu follows the sticky header');
-            assert.ok(metrics.width<=284,'Studio menu is compact');
-            assert.ok(metrics.top>=metrics.headerBottom+4,'Studio menu clears the masthead');
-            assert.ok(metrics.fontSize<=14.5,'Studio menu type matches compact controls');
-            assert.ok(metrics.logoWidth>=110&&metrics.logoWidth<=130,'The approved PV LAB wordmark is retained at a Studio scale');
-            assert.equal(metrics.background,'rgb(24, 25, 29)','Studio dropdown shares the workspace graphite palette');
-            assert.equal(metrics.seamHeight,8,'Studio menu has a subtle connector under the avatar');
-            assert.ok(metrics.seamAlignment<=2,'Studio connector aligns with the account avatar');
+            assert.equal(metrics.position,'fixed','Studio menu stays aligned as header size changes');
+            assert.ok(Math.abs(metrics.width-288)<1,'Studio uses the landing-page menu width');
+            assert.ok(metrics.top>=avatar.y+avatar.height+12,'Studio menu clears its account avatar');
+            assert.ok(metrics.fontSize>=12.5&&metrics.fontSize<=13.5,'Studio uses landing-page typography');
+            assert.ok(Math.abs(metrics.logoWidth-157)<1,'Studio uses full-sized editorial wordmark');
+            assert.equal(metrics.background,'rgb(17, 17, 17)','Studio uses approved deep-black surface');
           }else if(path==='/lab/index.html'&&width===1440){
             assert.equal(Math.round(panel.width),288,'Homepage uses the approved compact editorial menu width');
             assert.equal(await page.locator('link[href*="studio-account-menu.css"]').count(),0,'Studio-specific styling stays out of the homepage');

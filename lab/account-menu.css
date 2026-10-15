@@ -27,11 +27,11 @@
 .pv-account-menu>summary:hover .pv-account-avatar,
 .pv-account-menu[open] .pv-account-avatar{border-color:#f3f3f3}
 
-/* A smaller, calmer floating panel; keep it separated from the header. */
+/* Canonical PV LAB menu: landing editorial styling on every surface; fixed to the viewport's right edge. */
 .pv-account-menu .pv-account-panel{
-  position:absolute;top:calc(100% + 24px);right:0;z-index:1000;
-  box-sizing:border-box;width:min(288px,calc(100vw - 20px));
-  max-height:min(78dvh,570px);overflow-y:auto;overscroll-behavior:contain;
+  position:fixed;top:var(--pv-account-menu-top,80px);right:16px;z-index:1000;
+  box-sizing:border-box;width:min(288px,calc(100vw - 32px));
+  max-height:min(78dvh,570px,calc(100dvh - var(--pv-account-menu-top,80px) - 12px));overflow-y:auto;overscroll-behavior:contain;
   padding:0;background:#111111;
   color:#ededed;border:1px solid #363636;border-radius:9px;
   box-shadow:0 18px 48px #0009;scrollbar-width:thin;
@@ -144,12 +144,12 @@
 
 @media(max-width:900px){
   .pv-account-menu .pv-account-panel{
-    top:calc(100% + 14px);max-height:calc(100dvh - 90px);
+    max-height:min(78dvh,570px,calc(100dvh - var(--pv-account-menu-top,80px) - 10px));
   }
 }
 @media(max-width:480px){
   .pv-account-menu .pv-account-panel{
-    width:min(288px,calc(100vw - 20px));max-height:calc(100dvh - 84px);
+    right:10px;width:min(288px,calc(100vw - 20px));
   }
   .pv-account-menu .pv-account-details{
     margin-inline:16px;padding-top:17px;

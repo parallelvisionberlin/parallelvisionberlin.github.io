@@ -16,6 +16,13 @@ export function createAccountMenu(root) {
   const summary=root.querySelector('summary'),avatar=root.querySelector('[data-account-avatar]');
   // All menu surfaces share these links. Only a verified owner session reveals the dashboard.
   const panel=root.querySelector('.pv-account-panel'),settings=panel?.querySelector('a[href$="#settings"]');
+  // Match the approved landing menu's first action on every signed-in page.
+  if(!panel.querySelector(':scope > a[href="./account.html"]')){
+    const accountLink=document.createElement('a');
+    accountLink.href='./account.html';accountLink.textContent='My account';
+    const firstAction=panel.querySelector(':scope > a, :scope > button');
+    if(firstAction)firstAction.before(accountLink);else panel.append(accountLink);
+  }
   const voucherLink=document.createElement('a'),adminLink=document.createElement('a');
   voucherLink.href='./account.html#voucher';voucherLink.textContent='Redeem voucher';voucherLink.dataset.accountVouchers='';voucherLink.hidden=true;
   adminLink.href='./owner.html';adminLink.textContent='Owner dashboard';adminLink.dataset.accountAdmin='';adminLink.hidden=true;
@@ -70,7 +77,29 @@ export function createAccountMenu(root) {
   document.addEventListener('pointerdown',event=>{if(root.open&&!root.contains(event.target))close();});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&root.open)close(true);});
   root.addEventListener('click',event=>{if(event.target.closest('a,button'))close();});
-  root.addEventListener('toggle',()=>summary.setAttribute('aria-expanded',String(root.open)));
+  // Position with the avatar, then align the panel to the viewport's right edge.
+  function positionPanel(){
+    const anchor=summary.getBoundingClientRect();
+    const gap=window.matchMedia('(max-width:900px)').matches?14:24;
+    const top=Math.max(8,Math.min(Math.round(anchor.bottom+gap),window.innerHeight-90));
+    panel.style.setProperty('--pv-account-menu-top',top+'px');
+    // Studio reserves a stable scrollbar gutter. Measure the actual visible
+    // edge so the dropdown has the same 16px/10px gap on every page.
+    const edge=window.matchMedia('(max-width:480px)').matches?10:16;
+    panel.style.right=edge+'px';
+    if(root.open){
+      const visibleGap=window.innerWidth-panel.getBoundingClientRect().right;
+      if(Math.abs(visibleGap-edge)>.5)
+        panel.style.right=Math.round(2*edge-visibleGap)+'px';
+    }
+  }
+  summary.addEventListener('pointerdown',positionPanel);
+  root.addEventListener('toggle',()=>{
+    summary.setAttribute('aria-expanded',String(root.open));
+    if(root.open)positionPanel();
+  });
+  window.addEventListener('resize',()=>{if(root.open)positionPanel();},{passive:true});
+  document.addEventListener('scroll',()=>{if(root.open)positionPanel();},{capture:true,passive:true});
   function updateBalance(value){
     if(!currentProfile?.customer)return;
     root.querySelector('[data-account-balance]').textContent=Number.isSafeInteger(value)?value.toLocaleString()+' credits':'Balance unavailable';
