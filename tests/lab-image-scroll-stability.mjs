@@ -9,7 +9,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE
   ? pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href : 'playwright');
 const source=readFileSync('lab/studio.html','utf8');
-assert.match(source,/html:has\(#app\.image-studio-active\)\{scrollbar-gutter:stable\}/,
+assert.match(source,/@media\(min-width:761px\)\{html:has\(#app\.image-studio-active\)\{scrollbar-gutter:stable\}\}/,
   'Image mode must reserve root scrollbar space while the splash is visible');
 const root=resolve('.');
 const server=createServer(async(req,res)=>{
@@ -64,7 +64,7 @@ try{
     });
     const locked=await snapshot(page);
     assert.equal(locked.rootOverflow,'hidden','Splash keeps document scrolling locked');
-    assert.equal(locked.gutter,'stable','Image mode reserves gutter behind the splash');
+    assert.equal(locked.gutter,width>=761?'stable':'auto','Image mode reserves scrollbar space on desktop, not mobile');
     assert.ok(locked.scrollHeight>height,'Simulated Image History requires page scrolling');
     assert.equal(locked.scrollY,0,'The page starts at the top');
 
@@ -76,13 +76,17 @@ try{
       ()=>!document.documentElement.classList.contains('pv-studio-boot-lock'),null,{timeout:3000});
     const ready=await snapshot(page);
     assert.notEqual(ready.rootOverflow,'hidden','Normal scrolling resumes on readiness');
-    assert.equal(ready.gutter,'stable','Gutter remains reserved after the splash');
+    assert.equal(ready.gutter,width>=761?'stable':'auto','Scrollbar treatment stays unchanged after the splash');
     for(const key of ['clientWidth','composerLeft','composerWidth','galleryLeft','galleryWidth']){
       assert.ok(Number.isFinite(locked[key])&&Number.isFinite(ready[key])&&
         Math.abs(locked[key]-ready[key])<=1,
         width+'px: '+key+' changed while boot unlocked: '+locked[key]+' -> '+ready[key]);
     }
     assert.equal(ready.scrollY,0,'Unlock does not scroll Image Studio');
+    if(width<761){
+      assert.ok(Math.abs(ready.composerLeft+ready.composerWidth/2-width/2)<=2,
+        'On mobile the floating composer stays centered without a reserved scrollbar');
+    }
 
     await page.evaluate(()=>{
       document.getElementById('layout-probe-history').style.height='2800px';
