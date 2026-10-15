@@ -4,12 +4,17 @@ on:
   push:
     paths:
       - '.github/workflows/pvlab-domain-smoke.yml'
+      - 'lab/welcome.html'
+      - 'lab/welcome.js'
+      - 'lab/session-request.js'
+      - 'lab/studio.html'
+      - 'lab/customer-entry.js'
 permissions:
   contents: read
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 8
     steps:
       - name: Check public new and legacy site
         shell: bash
@@ -26,6 +31,30 @@ jobs:
             "https://pvlab-studio.pages.dev/" -o /tmp/home.html
           grep -Fq 'Fashion.' /tmp/home.html
           echo "PASS: old website, Cloudflare Pages, and secure transfer entry published."
+      - name: Verify first-sign-in welcome is published on the custom domain
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 12); do
+            if curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/welcome.html?verify=20261015" -o /tmp/live-welcome.html \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/welcome.js?verify=20261015" -o /tmp/live-welcome.js \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/session-request.js?verify=20261015" -o /tmp/live-session-request.js \
+              && grep -Fq 'YOUR WELCOME GIFT' /tmp/live-welcome.html \
+              && grep -Fq 'Enter the Studio' /tmp/live-welcome.html \
+              && grep -Fq '/api/migration/new' /tmp/live-welcome.js \
+              && grep -Fq "new URL('/welcome.html',origin)" /tmp/live-session-request.js; then
+              ready=1
+              break
+            fi
+            echo "Cloudflare Pages welcome has not reached the custom domain (attempt $attempt)."
+            sleep 15
+          done
+          if [ "$ready" != "1" ]; then
+            echo 'FAIL: new-account welcome files were not confirmed on pvlab.studio.'
+            exit 1
+          fi
+          echo 'PASS: pvlab.studio serves the new welcome and first-sign-in routing assets.'
       - name: Verify deployed backend migration and domain-origin preflight
         shell: bash
         run: |
