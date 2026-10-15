@@ -88,7 +88,7 @@
 }
 #image-composer #image-composer-status[hidden]{display:none!important}
 /* Import-validation notices are interactive; only plain progress labels stay pointer-inert. */
-#image-composer #image-composer-status.is-import-error{pointer-events:auto!important}
+#image-composer #image-composer-status.is-import-error{pointer-events:auto!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 
 
 /* Compact composer and persistent, clear action; blocked requests remain disabled. */
