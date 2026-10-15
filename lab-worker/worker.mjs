@@ -1181,43 +1181,6 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1'});
-  // TEMPORARY META CAPI CONNECTIVITY PROBE, 2026-10-15. Remove after one test.
-  // Independent from Stripe: never sends Purchase, never writes to billing or customer tables.
-  if(url.pathname==='/api/__meta_probe_20261015'&&request.method==='GET'){
-    const expected=env.LAB_META_PROBE_KEY;
-    if(typeof expected!=='string'||expected.length<60||
-       request.headers.get('x-pv-lab-meta-probe')!==expected)fail(404,'Not found.');
-    if(typeof env.LAB_META_CAPI_ACCESS_TOKEN!=='string'||!env.LAB_META_CAPI_ACCESS_TOKEN)
-      fail(503,'Meta CAPI credential unavailable.');
-    const bytes=await crypto.subtle.digest('SHA-256',enc.encode('PV LAB synthetic diagnostic identity, not an actual visitor'));
-    const externalId=[...new Uint8Array(bytes)].map(v=>v.toString(16).padStart(2,'0')).join('');
-    const payload={test_event_code:'TEST74300',data:[{
-      event_name:'PageView',event_time:Math.floor(now()/1000),
-      event_id:'pv-lab-20261015-server-connectivity-test',
-      action_source:'website',event_source_url:'https://pvlab.studio/',
-      user_data:{external_id:[externalId],client_user_agent:'PV-LAB-CAPI-Diagnostic'}
-    }]};
-    let graph;
-    try{
-      graph=await fetch('https://graph.facebook.com/v25.0/1087722353874433/events',{
-        method:'POST',
-        headers:{Authorization:'Bearer '+env.LAB_META_CAPI_ACCESS_TOKEN,'Content-Type':'application/json'},
-        body:JSON.stringify(payload),signal:AbortSignal.timeout(6500)
-      });
-    }catch{return json({ok:false,reason:'CAPI network request failed'},502);}
-    const result=await graph.json().catch(()=>({}));
-    const eventsReceived=Number(result?.events_received)||0;
-    return json({
-      ok:graph.ok&&eventsReceived===1,
-      graphStatus:graph.status,eventsReceived,
-      eventName:'PageView',testCode:'TEST74300',
-      traceId:typeof result?.fbtrace_id==='string'?result.fbtrace_id:null,
-      providerError:result?.error?{
-        code:result.error.code,subcode:result.error.error_subcode,
-        message:String(result.error.message||'Provider rejected the event').slice(0,160)
-      }:undefined
-    },graph.ok&&eventsReceived===1?200:502);
-  }
   // This is the only unauthenticated analytics route. Origin and bounded payload are required.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
 
