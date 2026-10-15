@@ -1,23 +1,24 @@
 // PV LAB Video model menu. Presentation only: the existing #video-engine owns
 // provider availability, selection, price checks, and generation behavior.
 const GROUPS=[
-  {title:'Best value',ids:['seedance15']},
-  {title:'Featured models',ids:['seedance','wan','h3spicy']},
-  {title:'Motion & characters',ids:['h3','h3max','klinghf']},
-  {title:'Premium & advanced',ids:['seedance4k','wanprime','h3maxfal','omni']}
+  {title:'Best value',ids:['seedance15','wan','h3']},
+  {title:'Creative & motion',ids:['seedance','h3spicy','h3max','klinghf']},
+  {title:'Advanced & high res',ids:['wanprime','seedance4k','h3maxfal','omni']}
 ];
 const META={
-  seedance:{description:'Start, text, refs & extend · 4–30s · up to 1080p',brand:'bytedance',badge:'Uncensored*'},
-  wan:{description:'Start frame or image references · up to 1080p',glyph:'W'},
-  klinghf:{description:'Text or start frame · 1080p · Higgsfield',glyph:'K',badge:'Pro'},
-  seedance15:{description:'Low-cost motion · 4–12s · optional camera lock',brand:'bytedance',badge:'Low cost'},
-  h3:{description:'Start, text & references · up to 2K',glyph:'M'},
+  // "uncensored" is a SpicyAPI provider listing: no extra platform scan.
+  // It is not a guarantee that the model accepts every request.
+  seedance:{description:'Text, frames, references & extend · 4–30s',brand:'bytedance',badge:'Versatile',uncensored:true},
+  wan:{description:'Start frame or references · up to 1080p',glyph:'W',badge:'Value',tone:'green',uncensored:true},
+  klinghf:{description:'Text or start frame · Higgsfield',glyph:'K',badge:'Pro'},
+  seedance15:{description:'Affordable motion · 4–12s · camera lock',brand:'bytedance',badge:'Low cost',tone:'green',uncensored:true},
+  h3:{description:'Text, frame & references · up to 2K',glyph:'M',badge:'2K',uncensored:true},
   h3max:{description:'Start frame or text · 768p',glyph:'M'},
-  h3spicy:{description:'Start frame · up to 1080p',glyph:'M'},
-  seedance4k:{description:'Start frame · upscaled 4K delivery',brand:'bytedance',badge:'4K'},
-  wanprime:{description:'Start or references · faster Wan render',glyph:'W',badge:'Prime'},
-  h3maxfal:{description:'Up to 12 image references · 1080p',glyph:'M',badge:'Refs'},
-  omni:{description:'Start, text & references · up to 4K',brand:'google',badge:'4K'}
+  h3spicy:{description:'Image-driven motion · up to 1080p',glyph:'M',badge:'Spicy',uncensored:true},
+  seedance4k:{description:'Start frame · upscaled 4K delivery',brand:'bytedance',badge:'4K',uncensored:true},
+  wanprime:{description:'Start or references · faster Wan rendering',glyph:'W',badge:'Fast',uncensored:true},
+  h3maxfal:{description:'Up to 12 image references · 1080p',glyph:'M',badge:'12 refs'},
+  omni:{description:'Text, frames & references · up to 4K',brand:'google',badge:'4K'}
 };
 
 export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>true}){
@@ -46,13 +47,27 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
   search.placeholder='Search video models';search.setAttribute('aria-label','Search video models');
   searchWrap.append(searchIcon,search);
 
+  const filterRow=document.createElement('div');filterRow.className='pv-video-model-filter-row';
+  const uncensoredToggle=document.createElement('button');uncensoredToggle.type='button';
+  uncensoredToggle.className='pv-video-model-filter-toggle';
+  uncensoredToggle.setAttribute('aria-pressed','false');
+  uncensoredToggle.setAttribute('aria-label','Show only models listed as uncensored by SpicyAPI');
+  uncensoredToggle.title='SpicyAPI listing: no additional provider content scan. Model refusals still apply.';
+  const filterDot=document.createElement('span');filterDot.className='pv-video-model-filter-dot';
+  filterDot.setAttribute('aria-hidden','true');
+  const filterLabel=document.createElement('span');filterLabel.textContent='Uncensored';
+  uncensoredToggle.append(filterDot,filterLabel);
+  const filterHint=document.createElement('span');filterHint.className='pv-video-model-filter-hint';
+  filterHint.textContent='Filter models';
+  filterRow.append(uncensoredToggle,filterHint);
+
   const list=document.createElement('div');list.className='pv-video-model-list';
   list.setAttribute('role','group');list.setAttribute('aria-label','Available video models');
   const foot=document.createElement('div');foot.className='pv-video-model-foot';
-  foot.textContent='*SpicyAPI lists standard Seedance as uncensored: no added provider scan. Extend uses Higgsfield. Models may still refuse requests.';
-  popover.append(head,searchWrap,list,foot);
+  foot.textContent='Uncensored = no added SpicyAPI content scan, not guaranteed output. Extend uses Higgsfield. Model and provider policies still apply.';
+  popover.append(head,searchWrap,filterRow,list,foot);
   document.body.append(popover);
-  let open=false,lastFingerprint='',lastSelection='',searchText='';
+  let open=false,lastFingerprint='',lastSelection='',searchText='',uncensoredOnly=false;
 
   function entries(){
     return [...select.options].filter(o=>!o.hidden).map(o=>{
@@ -76,11 +91,14 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
 
   function render(){
     const all=entries(),query=searchText.trim().toLocaleLowerCase(),mapped=new Set();
+    const matches=(entry,section='')=>(!uncensoredOnly||entry.meta.uncensored)
+      &&(entry.name+' '+entry.meta.description+' '+section+(entry.meta.uncensored?' uncensored':'')).toLocaleLowerCase().includes(query);
     const fragments=document.createDocumentFragment();
     let shown=0;
+    uncensoredToggle.setAttribute('aria-pressed',String(uncensoredOnly));
     for(const group of GROUPS){
       const models=group.ids.map(id=>all.find(e=>e.id===id)).filter(Boolean)
-        .filter(e=>(e.name+' '+e.meta.description+' '+group.title).toLocaleLowerCase().includes(query));
+        .filter(e=>matches(e,group.title));
       if(!models.length)continue;
       const section=document.createElement('section');section.className='pv-video-model-group';
       const title=document.createElement('h3');title.textContent=group.title;section.append(title);
@@ -92,7 +110,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
     }
     // A future server-enabled model should remain discoverable even before
     // editorial metadata is updated.
-    const extra=all.filter(e=>!mapped.has(e.id)&&(e.name+' '+e.meta.description).toLocaleLowerCase().includes(query));
+    const extra=all.filter(e=>!mapped.has(e.id)&&matches(e));
     if(extra.length){
       const section=document.createElement('section');section.className='pv-video-model-group';
       const title=document.createElement('h3');title.textContent='More models';section.append(title);
@@ -103,7 +121,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
       const empty=document.createElement('p');empty.className='pv-video-model-empty';empty.textContent='No matching video models';fragments.append(empty);
     }
     list.replaceChildren(fragments);
-    total.textContent=shown+' model'+(shown===1?'':'s');
+    total.textContent=shown===all.length?shown+' models':shown+' / '+all.length+' models';
     position();
   }
 
@@ -115,14 +133,19 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
     button.title=item.disabled?'Not available for this account':item.name;
     const copy=document.createElement('span');copy.className='pv-video-model-copy';
     const title=document.createElement('strong');title.textContent=item.name;
+    if(item.meta.uncensored){
+      const marker=document.createElement('span');marker.className='pv-video-model-moderation-dot';
+      marker.setAttribute('role','img');marker.setAttribute('aria-label','Listed as uncensored by SpicyAPI');
+      marker.title='SpicyAPI uncensored listing: no added content scan. The model can still refuse.';
+      title.append(marker);
+    }
     const desc=document.createElement('small');desc.textContent=item.disabled?'Not available with this account':item.meta.description;
     copy.append(title,desc);
     const trail=document.createElement('span');trail.className='pv-video-model-trail';
     if(item.meta.badge){
       const badge=document.createElement('span');badge.className='pv-video-model-badge';
       badge.textContent=item.meta.badge;
-      if(item.id==='seedance')badge.dataset.tone='purple';
-      if(item.id==='seedance15')badge.dataset.tone='green';
+      if(item.meta.tone)badge.dataset.tone=item.meta.tone;
       trail.append(badge);
     }
     if(select.value===item.id){
@@ -212,6 +235,10 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
 
   trigger.addEventListener('click',()=>open?close(true):show());
   search.addEventListener('input',()=>{searchText=search.value;list.scrollTop=0;render();});
+  uncensoredToggle.addEventListener('click',()=>{
+    uncensoredOnly=!uncensoredOnly;
+    list.scrollTop=0;render();
+  });
   popover.addEventListener('keydown',moveFocus);
   document.addEventListener('pointerdown',e=>{
     if(open&&!popover.contains(e.target)&&!trigger.contains(e.target))close();
