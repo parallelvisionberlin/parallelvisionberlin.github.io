@@ -1,0 +1,31 @@
+/* PV LAB Open Atmosphere: only the genuinely empty Image history.
+   Artwork is background-only, never a screenshot of UI controls. */
+#app.image-studio-active .image-gallery-shell:has(> #image-gallery-empty:not([hidden])) {
+  isolation: isolate;
+  background-color: #101114;
+}
+#app.image-studio-active .image-gallery-shell:has(> #image-gallery-empty:not([hidden]))::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(180deg, rgba(9,12,18,.18) 0%, rgba(9,12,18,.06) 34%, rgba(9,12,18,.13) 56%, rgba(9,12,18,.75) 100%),
+    url("./visuals/open-atmosphere.svg");
+  background-size: cover, cover;
+  background-position: center, center center;
+  background-repeat: no-repeat;
+}
+#app.image-studio-active .image-gallery-shell:has(> #image-gallery-empty:not([hidden])) > .image-gallery-host {
+  position: relative;
+  z-index: 1;
+}
+#app.image-studio-active .image-gallery-shell:has(> #image-gallery-empty:not([hidden])) > #image-gallery-empty {
+  z-index: 2;
+}
+@media (max-width: 700px) {
+  #app.image-studio-active .image-gallery-shell:has(> #image-gallery-empty:not([hidden]))::before {
+    background-position: center, 63% center;
+  }
+}
