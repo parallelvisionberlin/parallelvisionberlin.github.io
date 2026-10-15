@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#101112"><title>Welcome to PV LAB</title>
+<link rel="icon" href="./branding/pv-mark.png" type="image/png">
+<link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"DM Sans";src:url("./fonts/dm-sans-latin-v17.woff2") format("woff2");font-display:swap}
+:root{color-scheme:dark;font-family:"DM Sans",Arial,sans-serif;background:#101112;color:#f0f0ee}
+*{box-sizing:border-box}
+body{margin:0;min-height:100svh;background:#101112}
+[hidden]{display:none!important}
+.site-header{height:73px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,4vw,66px);border-bottom:1px solid #252729}
+.site-header a{font-weight:500;font-size:15px;letter-spacing:.055em;color:#f2f2f0;text-decoration:none}
+.site-header small{font-size:10px;letter-spacing:.14em;color:#949698}
+main{min-height:calc(100svh - 125px);display:flex;align-items:center;justify-content:center;padding:42px 22px 56px}
+.entry{width:min(100%,490px);text-align:center}
+.kicker{display:block;margin:0 0 29px;font-size:10px;letter-spacing:.18em;color:#929598;font-weight:500}
+.confirmation{width:62px;height:62px;display:flex;align-items:center;justify-content:center;margin:0 auto 25px;border:1px solid #6a6d6d;border-radius:50%;color:#e4e5e2;animation:ring-enter .65s ease both}
+.confirmation svg{height:26px;width:26px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+h1{font-size:clamp(33px,5.1vw,52px);letter-spacing:-.055em;line-height:1.08;font-weight:450;margin:0}
+.subtitle{margin:16px 0 31px;font-size:14px;line-height:1.6;color:#a5a7a8}
+.gift{padding:27px 22px 25px;background:#1b1d1e;border:1px solid #36383a;border-radius:12px;text-align:center}
+.gift .gift-label{font-size:10px;letter-spacing:.17em;color:#a2a5a6}
+.gift .amount{margin-top:10px;display:flex;justify-content:center;align-items:baseline;gap:8px;font-size:43px;letter-spacing:-.06em;font-weight:500;font-variant-numeric:tabular-nums}
+.gift .amount span{font-size:25px;letter-spacing:-.035em;font-weight:400}
+.gift p{margin:6px 0 0;color:#b8bab9;font-size:13px}
+button{font-family:inherit;cursor:pointer}
+.primary{display:flex;align-items:center;justify-content:center;gap:11px;min-height:51px;border:1px solid #f1f0ed;border-radius:8px;background:#f1f0ed;color:#151617;font-size:13px;font-weight:650;letter-spacing:.005em}
+.primary svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.primary:hover:not(:disabled){background:#fff;border-color:#fff}
+.primary:disabled{opacity:.62;cursor:wait}
+.entry .primary{width:100%;margin-top:18px}
+button:focus-visible,a:focus-visible{outline:2px solid #edece8;outline-offset:4px}
+.fine{font-size:11px;color:#828689;line-height:1.6;margin:13px 0 0}
+.existing{border-top:1px solid #2b2d2f;margin:30px 0 0;padding-top:22px;color:#888b8d;font-size:11px;line-height:1.8}
+.existing a{color:#c8c9c9;text-decoration:underline;text-underline-offset:3px}
+.existing a:hover{color:#fff}
+#status{color:#d1d4d4;font-size:12px;line-height:1.5;margin-top:13px;min-height:18px}
+#status.error{color:#efa9a1}
+.site-footer{min-height:52px;border-top:1px solid #252729;display:flex;justify-content:center;align-items:center;gap:19px;padding:15px 22px}
+.site-footer a{font-size:11px;color:#8d9192;text-decoration:none}
+.site-footer a:hover{color:#ededeb}
+.loader{font-size:12px;color:#a7aaaa;letter-spacing:.02em}
+@keyframes ring-enter{from{opacity:.2;transform:scale(.87)}to{opacity:1;transform:scale(1)}}
+@media(max-width:580px){.site-header{height:64px;padding:0 21px}.site-header small{font-size:9px}main{min-height:calc(100svh - 116px);padding:34px 20px}.kicker{margin-bottom:24px}.confirmation{width:56px;height:56px;margin-bottom:23px}.subtitle{margin:13px 0 26px}.gift{padding:25px 16px}.gift .amount{font-size:40px}.gift .amount span{font-size:23px}.existing{margin-top:27px}}
+@media(prefers-reduced-motion:reduce){.confirmation{animation:none}}
+</style>
+</head>
+<body>
+<header class="site-header"><a href="./" aria-label="PV LAB home">PV LAB</a><small>YOUR CREATIVE SPACE</small></header>
+<main>
+  <div id="loading" class="loader" role="status">Preparing your space…</div>
+  <section id="auth" class="entry" hidden aria-labelledby="auth-title">
+    <span class="kicker">PV LAB / SIGN IN</span>
+    <h1 id="auth-title">Welcome to PV LAB.</h1>
+    <p class="subtitle">Sign in to start creating.</p>
+    <button class="primary" type="button" id="sign-in">Continue with Google or email</button>
+  </section>
+  <section id="welcome" class="entry" hidden aria-labelledby="welcome-title">
+    <span class="kicker">PV LAB / YOUR ACCOUNT IS READY</span>
+    <div class="confirmation" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg></div>
+    <h1 id="welcome-title">Welcome to PV LAB.</h1>
+    <p class="subtitle">Your creative space is ready.</p>
+    <div class="gift" aria-label="200 welcome credits">
+      <span class="gift-label">YOUR WELCOME GIFT</span>
+      <div class="amount">200 <span>credits</span></div>
+      <p>On us. Make something interesting.</p>
+    </div>
+    <button class="primary" type="button" id="enter"><span id="enter-label">Enter the Studio</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M8 5h11v11"/></svg></button>
+    <p class="fine">Your welcome credits are added when you enter the Studio.</p>
+    <p class="existing">Used PV LAB on the original Parallel Vision website? <a id="transfer" href="./connect-account.html">Transfer your existing account</a></p>
+  </section>
+  <p id="status" class="error" role="alert" aria-live="polite" hidden></p>
+</main>
+<footer class="site-footer"><a href="./privacy/">Privacy</a><a href="./terms/">Terms</a><a href="./customersupport/">Support</a></footer>
+<script type="module" src="./welcome.js?v=20261015-first-login1"></script>
+</body>
+</html>
