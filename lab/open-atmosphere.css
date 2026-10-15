@@ -12,7 +12,7 @@
   pointer-events: none;
   background-image:
     linear-gradient(180deg, rgba(9,12,18,.18) 0%, rgba(9,12,18,.06) 34%, rgba(9,12,18,.13) 56%, rgba(9,12,18,.75) 100%),
-    url("./visuals/open-atmosphere.svg");
+    url("./visuals/open-atmosphere-hd.jpg");
   background-size: cover, cover;
   background-position: center, center center;
   background-repeat: no-repeat;
