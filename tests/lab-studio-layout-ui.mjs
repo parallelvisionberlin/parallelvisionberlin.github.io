@@ -271,8 +271,10 @@ try{
   assert.ok(compactImageHeight>=105&&compactImageHeight<170,
     'The empty Image deck must keep its original compact proportions: '+compactImageHeight);
 
+  assert.equal(await x.page.locator('#image-composer-add .composer-add-label').textContent(),'Add images',
+    'The upload control has a meaningful visible label rather than a standalone plus');
   await x.page.click('#image-composer-add');
-  assert.equal(await x.page.locator('#composer-add-menu').isVisible(),true,'The single plus opens the upload and packs menu');
+  assert.equal(await x.page.locator('#composer-add-menu').isVisible(),true,'The Add images action opens upload and saved packs');
   assert.equal(await x.page.locator('#composer-add-upload').isVisible(),true);
   assert.equal(await x.page.locator('#composer-add-saved').isVisible(),true);
   assert.equal(await x.page.locator('#composer-character').isVisible(),false,'No duplicate right-side references tile');
@@ -293,6 +295,8 @@ try{
   await x.page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===1);
   assert.equal(await x.page.locator('.composer-reference-tile img').count(),1,'Reference thumbnail lives inside floating bar');
   assert.equal(await x.page.locator('.composer-reference-index').innerText(),'BASE','First reference defaults to Base in Seedream base-image mode');
+  assert.equal(await x.page.locator('#image-composer-references .composer-add-tile').count(),0,
+    'The thumbnail tray has no redundant plus tile');
   assert.match(await x.page.locator('#image-composer-prompt').getAttribute('placeholder')||'',/variation of this image/i,
     'A selected base image offers an editable variation without an extra prompt row');
   const photoImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
@@ -343,11 +347,12 @@ try{
   assert.equal(await x.page.locator('#prompt').inputValue(),'A sculptural, atmospheric photographic still.','Prompt is synchronized with real Image form');
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false,'Image generation button enables from floating prompt');
   const generateUi=await x.page.locator('#image-composer-generate').evaluate(el=>{
-    const css=getComputedStyle(el);return {color:css.color,background:css.backgroundImage,font:css.fontFamily,weight:css.fontWeight};
+    const css=getComputedStyle(el);return {color:css.color,background:css.backgroundImage,font:css.fontFamily,weight:css.fontWeight,labelPx:parseFloat(getComputedStyle(el.querySelector('.composer-generate-label')).fontSize)};
   });
   const darkText=generateUi.color.match(/[0-9]+/g)?.map(Number);
   assert.ok(darkText?.length===3&&darkText.every(channel=>channel<60),
     'Available Image Generate retains dark, legible text when its exact RGB token changes');
+  assert.ok(generateUi.labelPx>=17,'Generate has clear primary-action type size: '+generateUi.labelPx);
   const ratioOptions=await x.page.locator('#image-composer-ratio option').evaluateAll(options=>options.map(o=>({value:o.value,label:o.textContent})));
   assert.match(ratioOptions.find(o=>o.value==='auto').label,/^Auto · /,
     'Automatic framing has a distinct visible label and cannot be confused with fixed 16:9');
