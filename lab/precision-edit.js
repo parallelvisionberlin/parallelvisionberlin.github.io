@@ -1,6 +1,6 @@
 /* Precision Edit: large base canvas, SAM 3 point segmentation, mask brushes,
    non-destructive FLUX inpainting and original-pixel client-side compositing. */
-export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,onJob,onExit}){
+export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,magicReady=falReady,onJob,onExit}){
   const $=id=>document.getElementById(id);
   const view=$('precision-workspace'),sourceCanvas=$('precision-source-canvas'),
     overlay=$('precision-selection-canvas'),resultCanvas=$('precision-result-canvas');
@@ -22,6 +22,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     outfit:'Replace the selected garment with a structured black leather jacket. Preserve the pose, lighting and everything outside the selection.',
     material:'Transform only the selected material into realistic reflective liquid chrome. Keep the original light direction, background and pose.',
     remove:'Remove the selected object and naturally reconstruct what belongs behind it. Leave everything else untouched.',
+    eyes:'Repair only the selected eye region: restore naturally varied iris texture, pupil shape and size, realistic eyelid anatomy and subtle catchlights coherent with the existing light. Keep the same person, eye color, exact gaze, expression and all surrounding facial features. Do not enlarge eyes, smooth skin or change anything outside the mask.',
     skin:'Give only the selected skin area a subtle glossy editorial finish. Preserve realistic skin texture, identity, lighting and surrounding details.'
   });
   const mimeTypes=new Set(['image/png','image/jpeg','image/webp']);
@@ -118,7 +119,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   function selectMode(next){
     if(!['magic','brush','erase','pan'].includes(next))return;
-    if(next==='magic'&&!falReady())next='brush';
+    if(next==='magic'&&!magicReady())next='brush';
     mode=next;
     for(const m of ['magic','brush','erase','pan']){
       const b=$('precision-tool-'+m);if(!b)continue;
@@ -160,7 +161,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }
     for(const id of ['precision-tool-magic','precision-tool-brush','precision-tool-erase','precision-expand','precision-change-photo','precision-prompt','precision-brush-size','precision-strength'])
       $(id).disabled=!have||taskBusy;
-    $('precision-tool-magic').disabled=!have||taskBusy||!falReady();
+    $('precision-tool-magic').disabled=!have||taskBusy||!magicReady();
     $('precision-expand').disabled=!selected||taskBusy;
     $('precision-clear-mask').disabled=!selected||taskBusy;
     $('precision-undo').disabled=!undoStack.length||taskBusy;
@@ -322,7 +323,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-drop').hidden=true;$('precision-source-holder').hidden=false;
     $('precision-selection-message').textContent='Click an object to select it. Brush tools refine your mask.';
     $('precision-price-review').hidden=true;setStatus('');
-    selectMode(falReady()?'magic':'brush');refreshButtons();
+    selectMode(magicReady()?'magic':'brush');refreshButtons();
     syncPreviewFit();paintZoom();
     // File-picker/drop imports may resize a previously empty panel. Keep the
     // heading visible after decoding instead of following an old scroll anchor.
@@ -361,7 +362,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   async function magicSelect(point){
     if(!base||taskBusy)return;
-    if(!falReady()){setStatus('Magic Select requires the FAL API connection.',true);return;}
+    if(!magicReady()){setStatus('Magic Select is owner-only. Use the Brush instead.',true);return;}
     taskBusy=true;refreshButtons();$('precision-source-holder').classList.add('is-busy');
     const revision=++session;
     try{
@@ -407,7 +408,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       if(!quoted?.quoteId||!quoted.ticket)throw new Error('Precision Edit did not return a reusable price approval.');
       pending={...body,quoteId:quoted.quoteId,ticket:quoted.ticket,expiresAt:quoted.expiresAt,maskSourceId};
       const usd=Number(quoted.estimatedUsd||0);
-      $('precision-review-body').textContent='FLUX Inpainting · estimated $'+usd.toFixed(3)+' USD (published estimate). Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
+      $('precision-review-body').textContent=(Number.isSafeInteger(quoted.creditCost)&&quoted.creditCost>0?'FLUX Inpainting · '+quoted.creditCost+' PV credits (published $'+usd.toFixed(3)+' estimate).':'FLUX Inpainting · estimated $'+usd.toFixed(3)+' USD (published estimate).')+' Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
       $('precision-price-review').hidden=false;
       setStatus('Price checked. No generation has started.');
     }catch(e){pending=null;setStatus(e.message,true);}
@@ -744,7 +745,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     handle(setBase(e.dataTransfer.files[0]));
   });
   function attemptMagic(point){
-    if(!base||taskBusy||!falReady())return;
+    if(!base||taskBusy||!magicReady())return;
     if(selectionAllowance<=0){
       consentPoint=point;
       if(!$('precision-select-consent').open)$('precision-select-consent').showModal();
@@ -782,5 +783,10 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     });
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
-  return {open,close,isOpen,hasBase:()=>!!base,reset,finalize,setBase};
+  return {open,close,isOpen,hasBase:()=>!!base,reset,finalize,setBase,
+    suggest:name=>{const prompt=ideaPrompts[name];if(!prompt)return;
+      $('precision-prompt').value=prompt;
+      $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+      setStatus('Brush only the detail to repair, then review the price.');
+    }};
 }

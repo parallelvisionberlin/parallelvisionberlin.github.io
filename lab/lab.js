@@ -6,7 +6,7 @@ import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from '
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261011-no-emoji1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261013-upgrade1&model-rates=1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261010-customer-credits1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1';
@@ -17,7 +17,7 @@ import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-ex
 import {createVideoModelPicker} from './video-model-picker.js?v=20261015-model-groups-purple3';
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
 import {imageModelLabel} from './model-labels.js?v=20261014-krea2-identity1&nano21=1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261015-v1';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
@@ -469,7 +469,7 @@ function imageInputReferences(){return tool==='image'&&imageEngine==='zspicy'?[]
 function usesReferenceGuidance(){return tool==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3'].includes(imageEngine);}
 function imageGuidance(){
   const labels=referenceRoles(),mood=moodUI.enrich($('prompt').value,{engine:imageEngine,referenceCount:references.length,referenceMode:imageReferenceMode});
-  const current={type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,...mood.metadata};
+  const current={type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,exactPrompt:$('composer-exact-prompt').checked,...mood.metadata};
   try{
     const planned=moodReferencePlan({type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,...mood.metadata,prompt:mood.prompt,referenceRoles:labels});
     const prompt=compileImagePrompt(planned.settings.prompt,planned.settings.referenceRoles,current);
@@ -506,7 +506,8 @@ function updateReferenceGuidance(){
   const {prompt,error}=imageGuidance();
   $('reference-guidance-text').textContent=prompt;
   $('reference-guidance-count').textContent=prompt.length.toLocaleString()+' / '+(imageEngine==='seedreamlite'?'3,000':'5,000')+' characters';
-  const warning=$('reference-guidance-warning');warning.textContent=error;warning.hidden=!error;warning.classList.toggle('error',!!error);
+  const warning=$('reference-guidance-warning'),advisories=referenceRoleAdvisories(referenceRoles());
+  warning.textContent=[error,...advisories].filter(Boolean).join(' ');warning.hidden=!error&&!advisories.length;warning.classList.toggle('error',!!error);
   const referenceVendor=imageEngine==='kling'?'FAL':['gemini','gemini21'].includes(imageEngine)?'Google':'SpicyAPI';
   $('reference-provider').textContent=imageModelLabel({engine:imageEngine})+' · '+referenceVendor;
   $('reference-help').textContent=referencesOnly()?'Create a new composition from references. General references are prompt-guided; optional roles specify exactly what each image contributes.':'The first photo is the base, but the prompt can change it. Optional roles define what to borrow from other references.';
@@ -587,7 +588,7 @@ function validateUpscaleQuote(q,selected){
   if(wrong||fal&&(q.priceIsEstimate!==true||q.requiresPriceReview!==true||p.scale!==selected.scale||(which!=='seedvr2'&&p.topazModel!==selected.topazModel)||![p.sourceWidth,p.sourceHeight,p.targetWidth,p.targetHeight].every(n=>Number.isSafeInteger(n)&&n>0)||p.targetWidth!==p.sourceWidth*selected.scale||p.targetHeight!==p.sourceHeight*selected.scale)||!fal&&p.resolution!==selected.resolution)throw new Error('No usable upscale quote was returned for these settings. Nothing was submitted.');
 }
 function effectiveImagePrompt(){const typed=$('prompt').value.trim();return typed||((tool==='image'&&imageReferenceMode==='base'&&imageInputReferences().length>0&&['seedream','seedreamlite','flash','kling','qwen3','gemini'].includes(imageEngine))?'Create a natural photographic variation of the base image, preserving its subject and overall composition.':'');}
-function settings(){if(tool==='upscale')return isFalUpscale()?{type:'image',mode:'upscale',upscaleEngine,scale:Number($('upscale-scale').value),...(upscaleEngine==='topaz-precision'?{topazModel:$('upscale-topaz-model').value}:upscaleEngine==='topaz-wonder'?{topazModel:'Wonder 3.5'}:{}),prompt:'',resolution:$('upscale-scale').value+'x',aspectRatio:'source',outputFormat:$('output-format').value,referenceRoles:[]}:{type:'image',mode:'upscale',upscaleEngine:'spicy',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(isSoul2())return {type:'image',provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',mode:'identity-edit',prompt:$('prompt').value.trim(),...hf.parameters(),seed:$('soul-pro-seed').value,aspectRatio:$('hf-bar-ratio').value,outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='soulpro')return {type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel,soulProQuality,prompt:$('prompt').value.trim(),sourceWidth,sourceHeight,seed:$('soul-pro-seed').value,resolution:'source',aspectRatio:'source',outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='fal')return {type:'image',provider:'fal',engine:'fal',mode:'controlled-pose',prompt:$('prompt').value.trim(),resolution:'1k',aspectRatio:$('ratio').value,outputFormat:'png',poseStrength:Number($('pose-strength').value),identityStrength:Number($('identity-strength').value),seed:$('controlled-pose-seed').value,referenceRoles:referenceRoles()};if(tool==='image'){const mood=moodUI.enrich(effectiveImagePrompt(),{engine:imageEngine,referenceCount:imageInputReferences().length,referenceMode:imageEngine==='zspicy'?'base':imageReferenceMode});const base={type:'image',engine:imageEngine,processing:imageProcessing,referenceMode:imageEngine==='zspicy'?'base':imageReferenceMode,mode:'image',prompt:mood.prompt,...mood.metadata,...(mood.metadata?.moodId?{moodOriginalPrompt:$('prompt').value.trim()}:{}),resolution:imageEngine==='soul'?'native':$('resolution').value,aspectRatio:$('ratio').value,outputFormat:['seedream','seedreamlite','flash','kling','qwen3','zspicy'].includes(imageEngine)?'png':$('output-format').value,referenceRoles:['soul','zspicy'].includes(imageEngine)?[]:referenceRoles()};return imageEngine==='soul'?{...base,provider:soul.isKrea()?'fal':'spicy',trainer:soul.isKrea()?'krea2':'qwen2512',characterId:soul.selectedId(),identityStrength:soul.strength(),...(isReinterpret()?{...soul.reinterpretSettings(),resolution:$('resolution').value,aspectRatio:'source'}:{})}:base;}return {type:'video',engine,mode,...(mode==='extend'||engine==='klinghf'?{provider:'higgsfield'}:{}),referenceVideos:['reference','extend'].includes(mode)?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:mode==='extend'?'auto':$('ratio').value,seed:mode==='extend'||engine==='klinghf'?null:$('seed').value,audio:$('audio').checked,cameraFixed:engine==='seedance15'&&$('video-camera-lock').checked,referenceRoles:referenceRoles(),referencePixels:engine==='h3maxfal'?references.map(r=>r.width*r.height):[]};}
+function settings(){if(tool==='upscale')return isFalUpscale()?{type:'image',mode:'upscale',upscaleEngine,scale:Number($('upscale-scale').value),...(upscaleEngine==='topaz-precision'?{topazModel:$('upscale-topaz-model').value}:upscaleEngine==='topaz-wonder'?{topazModel:'Wonder 3.5'}:{}),prompt:'',resolution:$('upscale-scale').value+'x',aspectRatio:'source',outputFormat:$('output-format').value,referenceRoles:[]}:{type:'image',mode:'upscale',upscaleEngine:'spicy',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(isSoul2())return {type:'image',provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',mode:'identity-edit',prompt:$('prompt').value.trim(),...hf.parameters(),seed:$('soul-pro-seed').value,aspectRatio:$('hf-bar-ratio').value,outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='soulpro')return {type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel,soulProQuality,prompt:$('prompt').value.trim(),sourceWidth,sourceHeight,seed:$('soul-pro-seed').value,resolution:'source',aspectRatio:'source',outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='fal')return {type:'image',provider:'fal',engine:'fal',mode:'controlled-pose',prompt:$('prompt').value.trim(),resolution:'1k',aspectRatio:$('ratio').value,outputFormat:'png',poseStrength:Number($('pose-strength').value),identityStrength:Number($('identity-strength').value),seed:$('controlled-pose-seed').value,referenceRoles:referenceRoles()};if(tool==='image'){const mood=moodUI.enrich(effectiveImagePrompt(),{engine:imageEngine,referenceCount:imageInputReferences().length,referenceMode:imageEngine==='zspicy'?'base':imageReferenceMode});const base={type:'image',engine:imageEngine,processing:imageProcessing,referenceMode:imageEngine==='zspicy'?'base':imageReferenceMode,mode:'image',prompt:mood.prompt,...mood.metadata,...(mood.metadata?.moodId?{moodOriginalPrompt:$('prompt').value.trim()}:{}),resolution:imageEngine==='soul'?'native':$('resolution').value,aspectRatio:$('ratio').value,outputFormat:['seedream','seedreamlite','flash','kling','qwen3','zspicy'].includes(imageEngine)?'png':$('output-format').value,referenceRoles:['soul','zspicy'].includes(imageEngine)?[]:referenceRoles(),exactPrompt:$('composer-exact-prompt').checked===true};return imageEngine==='soul'?{...base,provider:soul.isKrea()?'fal':'spicy',trainer:soul.isKrea()?'krea2':'qwen2512',characterId:soul.selectedId(),identityStrength:soul.strength(),...(isReinterpret()?{...soul.reinterpretSettings(),resolution:$('resolution').value,aspectRatio:'source'}:{})}:base;}return {type:'video',engine,mode,...(mode==='extend'||engine==='klinghf'?{provider:'higgsfield'}:{}),referenceVideos:['reference','extend'].includes(mode)?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:mode==='extend'?'auto':$('ratio').value,seed:mode==='extend'||engine==='klinghf'?null:$('seed').value,audio:$('audio').checked,cameraFixed:engine==='seedance15'&&$('video-camera-lock').checked,referenceRoles:referenceRoles(),referencePixels:engine==='h3maxfal'?references.map(r=>r.width*r.height):[]};}
 function hasInput(){if(tool==='video'&&mode==='extend')return mediaRefs.labels('video').length===1&&!!$('prompt').value.trim();if(tool==='upscale')return !!file;if(tool==='image'&&imageEngine==='soulpro')return isSoul2()?hf.ready()&&(!!file||!!$('prompt').value.trim()):!!file&&soulProIdentity.configured;if(tool==='image'&&imageEngine==='fal'){const roles=referenceRoles(),poses=roles.filter(r=>r.role==='pose').length,identities=roles.filter(r=>r.role==='identity').length;return !!$('prompt').value.trim()&&references.length>=2&&references.length<=5&&poses===1&&identities>=1&&identities<=4&&poses+identities===references.length;}if(tool==='image'&&imageEngine==='soul')return isReinterpret()?soul.reinterpretReady()&&!!file:soul.ready()&&!!$('prompt').value.trim();if(tool==='image'&&imageEngine==='zspicy')return !!$('prompt').value.trim();if(usesReferenceGuidance())return !imageGuidance().error&&(!!effectiveImagePrompt()||references.length>0);return tool==='image'||mode==='text'?(tool==='image'?!!effectiveImagePrompt():!!$('prompt').value.trim()):mode==='start'?!!file:references.length>0||(engine==='seedance'&&mediaRefs.count()>0);}
 function syncVideoFrameCards(){
   for(const [id,url] of [['video-start-thumb',sourceUrl],['video-end-thumb',lastUrl]]){const img=$(id);if(!img)continue;img.hidden=!url;img.parentElement.classList.toggle('has-frame',!!url);if(url&&img.getAttribute('src')!==url)img.src=url;else if(!url)img.removeAttribute('src');}
@@ -816,7 +817,7 @@ function setTool(value){
 const imageStudio = $('image-studio');
 const imageComposer = $('image-composer');
 const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadAsset,notify,
-  owner:()=>owner,falReady:()=>!!config.falEnabled&&!customerMode,
+  owner:()=>owner,falReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),magicReady:()=>!!config.falEnabled&&!customerMode,
   onExit:()=>returnToImageFromRetouch(),
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
 // Retouch is an independent route. Image state stays in its existing deck.
@@ -989,6 +990,8 @@ function syncComposerOptions(){
   const image=tool==='image',target=$('composer-options-fields');
   for(const id of ['format-control','image-processing-control','soul-controls','soul-pro-settings','controlled-pose-settings','reference-list','composer-reference-same-person','reference-guidance','save','clear'])composerMove(id,image?target:null);
   if(!image){$('reference-list').hidden=false;return;}
+  $('composer-exact-prompt-option').hidden=!usesReferenceGuidance();
+  $('composer-exact-prompt').disabled=busy;
   target.dataset.engine=imageEngine;
   target.dataset.compact=String(imageEngine==='soul'&&!isReinterpret());
   $('reference-list').hidden=['soul','soulpro','zspicy'].includes(imageEngine);
@@ -1066,6 +1069,7 @@ $('composer-library-close').onclick=closeComposerLibrary;
 $('composer-character-create').onclick=()=>{if(busy)return;closeComposerLibrary();void hf.open({create:true});};
 $('composer-library-delete').onclick=()=>{if(!busy)$('pack-delete').click();};
 $('composer-options-close').onclick=()=>toggleImageSettings(false);
+$('composer-exact-prompt').addEventListener('change',()=>{if(!busy){updateReferenceGuidance();update();}});
 $('composer-library-create').onclick=()=>{if(busy)return;if(isSoul2()){closeComposerLibrary();void hf.open({create:true});return;}if(imageEngine==='soul')$('soul-manage').click();else if(imageEngine==='soulpro')$('soul-pro-identity-manage').click();else $('pack-save').click();};
 $('composer-library-manage').onclick=()=>{if(busy)return;if(isSoul2()){closeComposerLibrary();void hf.open();return;}(imageEngine==='soulpro'?$('soul-pro-identity-manage'):$('soul-manage')).click();};
 function setModelIcon(element,engine){
@@ -2424,7 +2428,7 @@ document.addEventListener('keydown',event=>{
 function button(text,fn,run=action){const b=document.createElement('button');b.className='quiet';b.textContent=text;b.onclick=()=>run(fn);return b;}
 async function assetFile(id,name='source'){const blob=await api('/api/assets/'+id,{blob:true}),ext=({'image/jpeg':'jpg','video/quicktime':'mov','audio/mpeg':'mp3','audio/x-wav':'wav'})[blob.type]||blob.type.split('/')[1];return new File([blob],name+'.'+ext,{type:blob.type});}
 async function restore(job){
-  clearMedia();const p=job.settings||{};engine=engineFor(p);imageReferenceMode=p.referenceMode==='references'?'references':'base';
+  clearMedia();const p=job.settings||{};engine=engineFor(p);imageReferenceMode=p.referenceMode==='references'?'references':'base';$('composer-exact-prompt').checked=p.exactPrompt===true;
   if(p.mode==='upscale'){
     upscaleEngine=UPSCALE_PUBLIC_ENGINES.includes(p.upscaleEngine)?p.upscaleEngine:'seedvr2';$('upscale-engine').value=upscaleEngine;
     $('upscale-scale').value=String(p.scale===4?4:2);
@@ -2967,7 +2971,12 @@ $('image-detail-upscale').onclick=()=>executeImageDetail(upscaleImage);
 $('image-detail-repair').onclick=()=>executeImageDetail(openRepair);
 $('image-detail-edit-area').onclick=()=>executeImageDetail(async job=>{
   const photo=await assetFile(job.outputId,'retouch-original');
-  await openRetouch({file:photo,id:job.outputId,allowBusy:true});
+  await openRetouch({file:photo,allowBusy:true});
+});
+$('image-detail-fix-eyes').onclick=()=>executeImageDetail(async job=>{
+  const photo=await assetFile(job.outputId,'eye-repair-original');
+  await openRetouch({file:photo,allowBusy:true});
+  precisionEditor.suggest('eyes');
 });
 $('image-detail-delete').onclick=()=>{
   const job=imageDetailJob;
@@ -3774,6 +3783,10 @@ window.visualViewport?.addEventListener('resize',()=>{if(!imageComposer.hidden)f
 // The editor stays interactive: a paid submission only reads this captured request.
 async function submitImageSnapshot(){
   if(busy||imageSubmissionPending||!owner||!hasInput()||submissionBlocked()||fastImageHandoff.has(currentImageSubmissionKey()))return;
+  if(usesReferenceGuidance()){
+    const advisories=referenceRoleAdvisories(referenceRoles());
+    if(advisories.length&&!confirm('Check these reference roles before spending credits:\n\n'+advisories.join('\n\n')+'\n\nGenerate anyway?'))return;
+  }
   const previousNanoUnconfirmed=customerMode&&currentProvider()==='gemini'&&activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)==='gemini');
   // A fresh paid request is NEVER a retry of an unknown provider transaction.
   // Confirm this *before* consuming the customer's current price snapshot.

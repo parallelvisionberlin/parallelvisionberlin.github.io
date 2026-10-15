@@ -42,3 +42,19 @@ Updated: 2026-10-15
 - Vault retrieval now focuses on relevant conversation history, while leaving original records unchanged.
 - Mode remains tester with a single authorized sender; vault public URL remains disabled.
 - Preflight model tests succeeded. Next: run one real Instagram conversation and verify the outcome.
+
+## Human-paced delayed DM delivery (2026-10-15)
+- Active production IG Worker version: `20185f8a-6075-4ad2-93a4-eb7b19078da0` (100% of traffic) as verified via Cloudflare API.
+- Cloudflare Cron Trigger now runs `* * * * *` (every minute, UTC). New IG-only D1 table `ig_reply_jobs` stores one pending job per sender.
+- Linked owner `@molinarimusic`: approx. 38 to 118 seconds of randomized delay before cron jitter. Other users, once PUBLIC mode is explicitly enabled with the required controls, use a variable 5-minute to 22.5-hour delay distribution.
+- Inbound texts are stored immediately, but the latest due job generates its response only at delivery time. Pending messages from one sender coalesce into a single latest turn. Existing signature checks, owner memory service binding, and normal outgoing at-most-once protections remain.
+- Checked mode: `tester`, one approved sender; public auto-replies remain OFF. This delay implementation does NOT itself enable replies to the general public.
+- Verified schedules and database schema, but an end-to-end live delayed reply needs one fresh Instagram tester DM.
+- Preserve Nina's affectionate, curious, self-possessed personality without obligatory questions or assistant-style boilerplate.
+
+## Timing safety refinement
+- Production version `20185f8a-6075-4ad2-93a4-eb7b19078da0` verified 100% active. Previous version `bb6ac09d-673f-442a-b4dc-d0c55529f098` added sender-job/latest-message guard and owner-audience transition handling.
+- Replies now target concise DMs: approximately 340 characters max for strangers, 450 for linked owner, with a longer allowance only when explicitly asked for details. Spanish closing question-mark style retained.
+- Cron saved as `* * * * *`; it may take up to 15 minutes to propagate. Initial live delayed tester DM has not been confirmed end-to-end yet. An actual new tester DM is the next verification step.
+- At last check the delay-job table had no queued jobs. No old messages are backfilled.
+- PUBLIC auto-replies remain disabled: the randomly delayed stranger behavior is coded but not activated while Meta public access/transparency is unresolved. Do not flip PUBLIC mode without explicit review and approval.

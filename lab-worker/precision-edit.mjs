@@ -83,9 +83,11 @@ async function quotedEdit(request,env,owner,d){
 }
 export async function precisionEditRoute(request,env,owner,url,d){
   const path=url.pathname,method=request.method;
-  if(d.customer)d.fail(403,'Precision Edit is currently owner-only until selection and FLUX credit billing are verified.');
+  // Manual-mask customer edits use the existing atomic generation/debit trigger.
+  // SAM segmentation has separate metered costs and stays owner-only.
   if(!env.FAL_KEY)d.fail(503,'Magic Select and Precision Edit require the existing FAL_KEY Worker secret.');
   if(!env.LAB_SECRET)d.fail(503,'Precision Edit private signing is not configured.');
+  if(path==='/api/precision/segment'&&d.customer)d.fail(403,'Magic Select is owner-only. Paint a selection with the free Brush instead.');
   if(path==='/api/precision/segment'&&method==='POST'){
     const data=await d.body(request);
     const source=await d.source(env,owner,verifyUuid(data.sourceId,d.fail));
@@ -148,7 +150,9 @@ export async function precisionEditRoute(request,env,owner,url,d){
     await d.run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
       quoteId,owner,q.working.id,JSON.stringify(q.p),q.price,q.expires,'fal-precision-edit',String(q.price/1000000),JSON.stringify(payload));
     return d.json({quoteId,ticket:q.ticket,expiresAt:q.expires,estimatedUsd:q.price/1000000,
-      priceIsEstimate:true,model:FAL_CONTROLLED_INPAINT,notice:'Published fal.ai estimate, not a live bound quote. No generation submitted.'});
+      priceIsEstimate:true,model:FAL_CONTROLLED_INPAINT,
+      ...(d.customer?{creditCost:d.creditsForJobUsd(q.price/1000000,q.p)}:{}),
+      notice:'Published fal.ai estimate, not a live bound quote. No generation submitted.'});
   }
   if(path==='/api/precision/submit'&&method==='POST'){
     const data=await d.body(request);
@@ -170,6 +174,11 @@ export async function precisionEditRoute(request,env,owner,url,d){
     const payload=[owner,q.original.id,q.working.id,q.mask.id,q.p.prompt,q.p.strength,q.p.sourceWidth,q.p.sourceHeight,approved.expires_at,q.allowJpegFallback?'jpeg-ok':'png-only'].join(':');
     if(q.price!==approved.estimate_microusd||await signTicket(env,payload)!==data.ticket)
       d.fail(409,'Precision Edit quote no longer matches the images. Check price again.');
+    if(d.customer){
+      const cost=d.creditsForJobUsd(q.price/1000000,q.p);
+      const wallet=await d.first(env,'SELECT balance_credits FROM lab_customers WHERE id=?',owner);
+      if(!wallet||wallet.balance_credits<cost)d.fail(402,'Insufficient PV Lab credits for this Retouch job. Add credits and review the price again.');
+    }
     const p={...q.p,precisionEdit:true,precisionFinalized:false,precisionOriginalId:q.original.id,
       precisionWorkingId:q.working.id,maskSourceId:q.mask.id,repairSourceId:q.working.id,
       precisionPriceEstimateUsd:q.price/1000000,precisionAllowJpegFallback:q.allowJpegFallback};
