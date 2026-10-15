@@ -656,6 +656,80 @@ test('Seedream uses SpicyAPI with ordered images, compiled properties and reusab
   }finally{globalThis.fetch=originalFetch;}
 });
 
+test('A four-image Seedream batch accepts matching repeated provider quote IDs and submits four independent paid tasks',async()=>{
+  const {env}=fixture();await setup(env);
+  const previous=globalThis.fetch,keys=[];let priceChecks=0,submissions=0;
+  globalThis.fetch=async(url,options={})=>{
+    const u=new URL(url);
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/jobs/quote')){
+      priceChecks++;
+      return Response.json({code:200,data:{quoteId:'shared-exact-price-id',estimatedCost:'0.010000',maxCharge:'0.010000',currency:'USD',expiresAt:new Date(Date.now()+300000).toISOString()}});
+    }
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/jobs/createTask')){
+      submissions++;
+      const body=JSON.parse(options.body),key=new Headers(options.headers).get('Idempotency-Key');
+      assert.equal(body.quoteId,'shared-exact-price-id');
+      assert.equal(body.expectedCost,'0.010000');
+      assert.match(key,/^[a-f0-9-]{36}$/);
+      keys.push(key);
+      return Response.json({code:200,data:{taskId:'independent-spicy-job-'+submissions,state:'queued'}},{status:202});
+    }
+    return previous(url,options);
+  };
+  try{
+    const priced=await req(env,'/api/quotes',{method:'POST',data:{settings:{...imageSettings,engine:'seedream'},count:4}});
+    assert.equal(priced.status,200,await priced.clone().text());
+    const {quotes}=await priced.json();
+    assert.equal(quotes.length,4);
+    assert.equal(priceChecks,4,'Four individually bounded price checks are still requested');
+    assert.equal(new Set(quotes.map(q=>q.id)).size,4,'Each PV LAB quote must be independently confirmable');
+    assert.ok(quotes.every(q=>q.maxUsd===0.01&&q.expiresAt> Date.now()));
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,0,'Pricing must not submit paid jobs');
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend').get().n,0,'Pricing must not spend funds');
+    assert.deepEqual(env.LAB_DB.db.prepare('SELECT vendor_quote_id FROM quotes').all().map(q=>q.vendor_quote_id),Array(4).fill('shared-exact-price-id'));
+    const jobs=[];
+    for(const q of quotes){
+      const created=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});
+      assert.equal(created.status,202,await created.clone().text());
+      jobs.push((await created.json()).job.id);
+    }
+    assert.equal(submissions,4);
+    assert.equal(new Set(keys).size,4,'Each billable task uses a distinct idempotency key');
+    assert.equal(new Set(jobs).size,4);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,4);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend').get().n,4);
+    const replay=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quotes[0].id,confirm:true}});
+    assert.equal(replay.status,200);
+    assert.equal((await replay.json()).job.id,jobs[0]);
+    assert.equal(submissions,4,'Reconfirming a PV LAB quote must never submit a fifth paid task');
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend').get().n,4);
+  }finally{globalThis.fetch=previous;}
+});
+
+test('A reused provider quote ID with conflicting prices is rejected before any job or spend',async()=>{
+  const {env}=fixture();await setup(env);
+  const previous=globalThis.fetch;let checks=0,submissions=0;
+  globalThis.fetch=async(url,options={})=>{
+    const u=new URL(url);
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/jobs/quote')){
+      const cost=++checks===1?'0.010000':'0.020000';
+      return Response.json({code:200,data:{quoteId:'conflicting-price-id',estimatedCost:cost,maxCharge:cost,currency:'USD',expiresAt:new Date(Date.now()+300000).toISOString()}});
+    }
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/jobs/createTask'))submissions++;
+    return previous(url,options);
+  };
+  try{
+    const priced=await req(env,'/api/quotes',{method:'POST',data:{settings:{...imageSettings,engine:'seedream'},count:2}});
+    assert.equal(priced.status,502,await priced.clone().text());
+    assert.match((await priced.json()).error,/inconsistent amounts/);
+    assert.equal(checks,2);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM quotes').get().n,0);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,0);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend').get().n,0);
+    assert.equal(submissions,0);
+  }finally{globalThis.fetch=previous;}
+});
+
 test('A multi-image Seedream price request stages each reference only once and preserves independent quotes',async()=>{
   const {env}=fixture();await setup(env);
   const ids=await Promise.all(['body','front','profile','hair'].map((name,i)=>uploadGuidanceReference(env,name+'.png',i+1)));
