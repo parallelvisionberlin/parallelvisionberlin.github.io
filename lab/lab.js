@@ -372,6 +372,7 @@ function clearImageComposerNotice(){
   const status=$('image-composer-status');
   if(!status)return;
   status.hidden=true;status.replaceChildren();status.classList.remove('is-import-error');
+  status.setAttribute('role','status');
 }
 function isContentRestriction(message){
   // All generation providers use different refusal wording. Match content-policy
