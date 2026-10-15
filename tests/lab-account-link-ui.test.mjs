@@ -116,6 +116,8 @@ test('Old public PV LAB landing redirects to the same fashion hero at the new do
  assert.match(html,/<link rel="canonical" href="https:\/\/pvlab\.studio\/">/);
  assert.match(html,/visuals\/leather-editorial\/hero-desktop\.webp/);
  assert.match(html,/Fashion\. <br>Reimagined\./);
+ assert.doesNotMatch(html,/<a href="\.\/connect-account\.html">Move account to pvlab\.studio<\/a>/);
+ assert.match(html,/href="\/lab\/connect-account\.html">Keep your existing PV LAB account<\/a>/);
 });
 test('Credit success is a short toast inside the authenticated Studio, never a page or guessed balance',()=>{
  const page=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
