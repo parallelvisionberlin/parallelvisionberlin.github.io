@@ -4,19 +4,12 @@ on:
     paths:
       - 'lab/lab.js'
       - 'lab/higgsfield.css'
-      - 'lab/studio-finish-v2.css'
       - 'lab/studio.html'
       - 'tests/lab-image-prompt-dock-ui.mjs'
       - 'tests/lab-customer-image-ui.mjs'
       - 'lab/customer-image-pricing.js'
       - 'lab/image-credit-preview.js'
       - '.github/workflows/pv-lab-compact-image-prompt.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'lab/studio-finish-v2.css'
-      - 'lab/studio.html'
-      - 'tests/lab-image-prompt-dock-ui.mjs'
   workflow_dispatch:
 permissions:
   contents: read

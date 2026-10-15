@@ -1,0 +1,40 @@
+name: PV Lab Generate disabled appearance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lab/studio-finish-v2.css'
+      - 'lab/studio.html'
+      - 'tests/lab-image-generate-disabled-ui.mjs'
+      - '.github/workflows/pv-lab-generate-disabled.yml'
+  pull_request:
+    paths:
+      - 'lab/studio-finish-v2.css'
+      - 'lab/studio.html'
+      - 'tests/lab-image-generate-disabled-ui.mjs'
+      - '.github/workflows/pv-lab-generate-disabled.yml'
+permissions:
+  contents: read
+jobs:
+  appearance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            tests/lab-image-generate-disabled-ui.mjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Validate isolated appearance regression
+        run: node --check tests/lab-image-generate-disabled-ui.mjs
+      - name: Install headless browser
+        run: |
+          npm install --prefix /tmp/pv-generate-ui --no-save playwright@1.62.1
+          /tmp/pv-generate-ui/node_modules/.bin/playwright install --with-deps chromium
+      - name: Check real computed styles without paid jobs
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-generate-ui/node_modules/playwright/index.mjs
+        run: node tests/lab-image-generate-disabled-ui.mjs

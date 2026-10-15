@@ -58,3 +58,7 @@
 - GitHub Actions and GitHub Pages release status must be verified after committing.
 
 - Regression harness follow-up: the current extracted `fitImageComposerPrompt()` also calls `effectiveImagePrompt()`. The mock-only browser harness now stubs this contextual direction function to an empty string, so its CSS assertions can run. No application logic changes.
+
+- CI isolation follow-up: the inherited long-prompt mock browser test fails on unrelated historical layout assumptions after being made runnable. Restored it and its PR-only workflow to their previous versions; it is not a reliable gate for the disabled-button color.
+- Added `tests/lab-image-generate-disabled-ui.mjs` and `.github/workflows/pv-lab-generate-disabled.yml` to verify rendered dark disabled / pearl enabled styles on desktop, mobile and Soul without booting or charging the Lab.
+- Source baseline for the isolated test: `05ded0336275982e42b81429b982d15fbc8e20c3`. New CI and page deployment status to verify after commit.

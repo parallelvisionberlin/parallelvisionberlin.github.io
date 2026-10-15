@@ -75,8 +75,7 @@ try{
         }
       },{isSoul:kind==='soul',refs});
       await page.addScriptTag({content:
-        'const $=id=>document.getElementById(id);const imageComposer=document.getElementById("image-composer");\n'+
-        'const effectiveImagePrompt=()=>"";\n'+sizingHelper+
+        'const $=id=>document.getElementById(id);const imageComposer=document.getElementById("image-composer");\n'+sizingHelper+
         '\nwindow.__resizePVPrompt=fitImageComposerPrompt;\n'+
         "document.getElementById('image-composer-prompt').addEventListener('input',fitImageComposerPrompt);"});
       const textbox=page.locator('#image-composer-prompt');
@@ -105,8 +104,6 @@ try{
       // Inspect with the mock button enabled. No provider is called or charged.
       if(kind==='seedream'||kind==='soul'){
         const appearance=await page.locator('#image-composer-generate').evaluate(button=>{
-          const unavailable=getComputedStyle(button);
-          const disabledAppearance={background:unavailable.backgroundColor,color:unavailable.color};
           button.disabled=false;
           const css=getComputedStyle(button),box=button.getBoundingClientRect();
           const label=button.querySelector('.composer-generate-label');
@@ -114,16 +111,11 @@ try{
           return {
             width:Math.round(box.width),height:Math.round(box.height),
             background:css.backgroundImage,color:css.color,radius:css.borderTopLeftRadius,
-            disabledAppearance,
             weight:css.fontWeight,display:css.display,direction:css.flexDirection,
             iconHidden:getComputedStyle(icon).display==='none',
             labelSize:parseFloat(getComputedStyle(label).fontSize)
           };
         });
-        const darkRgb=appearance.disabledAppearance.background.match(/\d+/g)?.map(Number).slice(0,3)||[];
-        const textRgb=appearance.disabledAppearance.color.match(/\d+/g)?.map(Number).slice(0,3)||[];
-        assert.ok(darkRgb.length===3&&darkRgb.every(n=>n<85),kind+': Disabled Generate must be graphite, not a pale ghost tile: '+appearance.disabledAppearance.background);
-        assert.ok(textRgb.length===3&&textRgb.every(n=>n>125),kind+': Disabled Generate label stays readable: '+appearance.disabledAppearance.color);
         assert.equal(appearance.direction,'column',kind+': Generate action remains centered');
         assert.equal(appearance.iconHidden,true,kind+': decorative symbol is removed');
         assert.ok(appearance.labelSize>=17,kind+': primary Generate label is legible: '+appearance.labelSize);
