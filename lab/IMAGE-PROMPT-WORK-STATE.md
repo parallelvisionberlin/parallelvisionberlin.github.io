@@ -56,3 +56,5 @@
 - No change to control height, image deck geometry, model behavior, eligibility, credits or paid generation.
 - `lab/studio.html` updates its CSS cache token. The compact prompt browser regression checks computed disabled background and text for Seedream and Soul, and now runs on main pushes.
 - GitHub Actions and GitHub Pages release status must be verified after committing.
+
+- Regression harness follow-up: the current extracted `fitImageComposerPrompt()` also calls `effectiveImagePrompt()`. The mock-only browser harness now stubs this contextual direction function to an empty string, so its CSS assertions can run. No application logic changes.

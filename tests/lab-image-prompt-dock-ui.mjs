@@ -75,7 +75,8 @@ try{
         }
       },{isSoul:kind==='soul',refs});
       await page.addScriptTag({content:
-        'const $=id=>document.getElementById(id);const imageComposer=document.getElementById("image-composer");\n'+sizingHelper+
+        'const $=id=>document.getElementById(id);const imageComposer=document.getElementById("image-composer");\n'+
+        'const effectiveImagePrompt=()=>"";\n'+sizingHelper+
         '\nwindow.__resizePVPrompt=fitImageComposerPrompt;\n'+
         "document.getElementById('image-composer-prompt').addEventListener('input',fitImageComposerPrompt);"});
       const textbox=page.locator('#image-composer-prompt');
