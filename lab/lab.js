@@ -1706,6 +1706,44 @@ const videoJobCache=new Map();
 let selectedVideoJob=null;
 let videoStartFrameHandoff=false;
 let videoSelectionRevision=0;
+function showVideoJobStage(job){
+  if(tool!=='video'||!job||job.settings?.type!=='video')return;
+  const status=String(job.status||'submitting');
+  const states={
+    submitting:['Submitting','Starting your video','Your confirmed request is being submitted.'],
+    queued:['Queued','Video queued','Waiting for the video model to begin processing.'],
+    running:['Processing','Generating video','Your video is being created. You can leave this page and return to History.'],
+    saving:['Finalizing','Finishing your video','Saving your result to private History.'],
+    uncertain:['Review needed','Status unconfirmed','Check History before submitting another paid generation.'],
+    failed:['Failed','Video generation failed','No video was returned. Review this record in History before trying again.'],
+    resolved:['Unavailable','Video unavailable','This request did not produce a downloadable video.'],
+    completed:['Ready','Your video is ready','Select its record in History to view or download it.']
+  };
+  const words=states[status]||['Processing','Generating video','Your request is in progress.'];
+  const stage=$('video-job-stage');
+  if(job.outputId&&resultId===job.outputId&&resultUrl){stage.hidden=true;return;}
+  stage.dataset.phase=status;
+  $('video-job-stage-state').textContent=words[0];
+  $('video-job-stage-title').textContent=words[1];
+  $('video-job-stage-message').textContent=words[2];
+  const details=job.settings||{};
+  $('video-job-stage-meta').textContent=[
+    videoLabel(details),
+    details.duration?details.duration+' sec':null,
+    details.resolution?String(details.resolution).toUpperCase():null,
+    details.aspectRatio&&details.aspectRatio!=='auto'?details.aspectRatio:null
+  ].filter(Boolean).join(' · ');
+  $('preview').hidden=true;$('video').pause();$('video').hidden=true;
+  $('empty').hidden=true;$('download').hidden=true;
+  $('preview-label').textContent=words[0]+' / Video';
+  stage.hidden=false;
+  if(!job.id){
+    $('video-inspector-selected').hidden=true;
+    $('video-inspector-empty').hidden=false;
+    $('video-detail-status').textContent=words[0];
+    $('video-inspector-empty').textContent=words[2];
+  }
+}
 function updateVideoInspector(job){
   if(!videoInspector)return;
   $('video-inspector-empty').hidden=!!job;
@@ -1737,11 +1775,11 @@ function showVideoHistoryRecord(job,{play=true}={}){
   selectedVideoJob=job;
   ++videoSelectionRevision;
   updateVideoInspector(job);
-  if(play&&hasResult(job)&&tool==='video'){
-    void viewMedia(()=>openVideo(job,{scroll:false}));
-  } else if(tool==='video'&&!hasResult(job)&&!file){
-    if(resultUrl)clearResult();
-    resetPreview();
+  if(tool==='video'){
+    if(autoPreview?.id&&autoPreview.id!==job.id)autoPreview=null;
+    if(resultUrl&&resultId!==job.outputId)clearResult();
+    showVideoJobStage(job);
+    if(play&&hasResult(job))void viewMedia(()=>openVideo(job,{scroll:false}));
   }
 }
 function restoreLatestVideoSelection(){
@@ -1750,14 +1788,16 @@ function restoreLatestVideoSelection(){
   if(!available.length){
     selectedVideoJob=null;
     updateVideoInspector(null);
+    $('video-job-stage').hidden=true;
     $('video-feed-empty').hidden=false;
     return;
   }
   $('video-feed-empty').hidden=true;
-  if(videoStartFrameHandoff&&!resultId){selectedVideoJob=null;updateVideoInspector(null);return;}
+  if(videoStartFrameHandoff&&!resultId){selectedVideoJob=null;updateVideoInspector(null);$('video-job-stage').hidden=true;return;}
   if(selectedVideoJob&&videoJobCache.has(selectedVideoJob.id)){
     selectedVideoJob=videoJobCache.get(selectedVideoJob.id);
     updateVideoInspector(selectedVideoJob);
+    showVideoJobStage(selectedVideoJob);
     return;
   }
   showVideoHistoryRecord(available[0],{play:false});
@@ -2012,7 +2052,7 @@ const upscaleResultUI=createUpscaleResultUI({
   },
   loadSource:id=>assetBlob(id)
 });
-function clearResult(){upscaleResultUI.clear();previewRevision++;if(resultUrl){$('preview').removeAttribute('src');$('preview').hidden=true;}release(resultUrl);resultUrl=null;resultId=null;resultSettings=null;$('video').pause();$('video').removeAttribute('src');$('video').load();$('video').hidden=true;$('download').hidden=true;}
+function clearResult(){$('video-job-stage').hidden=true;upscaleResultUI.clear();previewRevision++;if(resultUrl){$('preview').removeAttribute('src');$('preview').hidden=true;}release(resultUrl);resultUrl=null;resultId=null;resultSettings=null;$('video').pause();$('video').removeAttribute('src');$('video').load();$('video').hidden=true;$('download').hidden=true;}
 function resetPreview(){
   clearResult();
   if(tool==='video'&&mode==='extend'&&mediaRefs.firstVideo()){const clip=mediaRefs.firstVideo();$('video').src=clip.url;$('video').hidden=false;$('preview').hidden=true;$('empty').hidden=true;$('preview-label').textContent='Video to extend';return;}
@@ -2277,7 +2317,12 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
   // Retain the same quote ID through the session-safe request helper. Never reprice/retry a paid task here.
   const data=await api(q.provider==='Higgsfield'&&q.settings?.type==='image'?'/api/higgsfield/generate':'/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
   if($('quote-dialog').open)$('quote-dialog').close();
-  resetPreview();autoPreview={id:data.job.id,revision:previewRevision};setActive(data.job);surfaceHistoryJob(data.job);refreshHistorySoon();
+  resetPreview();setActive(data.job);surfaceHistoryJob(data.job);
+  if(q.settings?.type==='video'&&tool==='video'){
+    showVideoHistoryRecord(data.job,{play:hasResult(data.job)});
+    videoFeedCenter.scrollTo({top:0,behavior:'instant'});
+  }
+  autoPreview={id:data.job.id,revision:previewRevision};refreshHistorySoon();
   if(q.settings?.mode==='upscale'){
     if(hasResult(data.job))await openVideo(data.job,{scroll:false,justFinished:true});
     else if(activeStates.has(data.job.status)&&data.job.status!=='uncertain')upscaleResultUI.processing();
@@ -2352,7 +2397,16 @@ $('confirm-generation').onclick=async()=>{
   const q=currentQuote;if(!q||busy)return;
   if(Date.now()>=q.expiresAt){$('quote-notice').textContent='Quote expired. Close and review a new price.';return;}
   $('confirm-generation').disabled=true;
-  await action(()=>submitQuotedGeneration(q));
+  const isVideo=q.settings?.type==='video'&&tool==='video';
+  if(isVideo){
+    autoPreview=null;selectedVideoJob=null;videoStartFrameHandoff=false;
+    if(resultUrl)clearResult();
+    showVideoJobStage({settings:q.settings,status:'submitting'});
+  }
+  let accepted=false;
+  await action(async()=>{await submitQuotedGeneration(q);accepted=true;});
+  if(isVideo&&!accepted&&owner&&tool==='video')
+    showVideoJobStage({settings:q.settings,status:'uncertain'});
 };
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
 function currentProvider(){if(tool==='video'&&engine==='klinghf')return 'higgsfield';if(tool==='image'&&imageEngine==='soul'&&soul.isKrea())return 'fal';if(tool==='video'&&engine==='seedance'&&mode==='extend')return 'higgsfield';if(tool==='image'&&imageEngine==='kling')return 'fal';if(isSoul2())return 'higgsfield';return isFalUpscale()?'fal':tool==='image'&&['gemini','gemini21'].includes(imageEngine)?'gemini':tool==='image'&&['fal','soulpro'].includes(imageEngine)?'fal':tool==='video'&&['h3maxfal','omni'].includes(engine)?'fal':'spicy';}
@@ -2398,6 +2452,13 @@ function setActiveJobs(list){
   $('active-detail').style.whiteSpace='pre-line';
   $('resolve').hidden=customerMode||!activeJobs.some(j=>j.status==='uncertain');
   if($('queue-support'))$('queue-support').hidden=!customerMode||!uncertainCount;
+  if(tool==='video'&&selectedVideoJob){
+    const updated=activeJobs.find(j=>j.id===selectedVideoJob.id);
+    if(updated){
+      selectedVideoJob=updated;videoJobCache.set(updated.id,updated);
+      updateVideoInspector(updated);showVideoJobStage(updated);
+    }
+  }
   schedulePoll();update();
 }
 function setActive(job){if(!job)return;setActiveJobs([...activeJobs.filter(j=>j.id!==job.id),job]);}

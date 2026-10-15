@@ -56,3 +56,13 @@
 - Public verification: all three UI files HTTP 200, exact CSS bytes and new HTML/JS handoff markers.
 - Concurrent site updates are retained in public HTML/JS; the original persistent banner is absent.
 - Confirmed live on 2026-10-12; no paid generation. Complete.
+
+## Video processing stage, 2026-10-16
+- Request: on confirmed video generation, replace the large Start frame with a true live-status panel; preserve the original thumbnail and prompt in the left composer.
+- Source baseline: e34854e6d55e0fba36e71faac130b238be2addfa. PR #240 from `fix/video-processing-stage-20261016`.
+- Implementation: `lab/studio.html` mounts the hidden accessible stage; `lab/video-refresh.css` styles the neutral animated panel; `lab/lab.js` follows Submitting, Queued, Running, Saving, Ready, Failed and Uncertain states from actual jobs.
+- The panel appears at paid confirmation, then selects the accepted History job; polling and History selection update it. Completed media opens with the existing viewer flow. No fictional percentage, paid auto-retry or unsupported Cancel button.
+- Only Video presentation was changed; quote, provider, credits, image, retouch, upscaling and stored source logic are preserved.
+- `tests/lab-image-viewer-browser.mjs` now verifies queued, running and failed states with the source thumbnail retained at 1440 and 390 px (three source shapes).
+- PR browser logs show six successful image-viewer test iterations. Static validation, Lab tests and several other suites pass. The same five broader workflow failures also occurred in the immediately preceding merged PR #239, before these changes.
+- Release verification: merge to main and independently confirm published HTML/JS/CSS before claiming live. No paid generation was made for testing.

@@ -13,7 +13,12 @@ clerk={session:{id:'test-session',getToken:async()=> 'synthetic-token'}};
 owner=true;userId='test';await deviceMediaCache.select(userId);config={enabled:true,concurrency:{image:4,video:1}};
 $('app').hidden=false;$('gate').hidden=true;
 await loadHistory();await restoreStudioEntry();update();finishLabBoot();
-window.__viewerTest={lock,seedVideo:()=>{const job={id:'older-video',status:'completed',outputId:'older-output',settings:{type:'video',engine:'seedance',prompt:'OLDER VIDEO PROMPT'}};videoJobCache.set(job.id,job);selectedVideoJob=job;},refreshVideo:restoreLatestVideoSelection,flush:async()=>{await Promise.allSettled([...assetReads.values(),...thumbnailReads.values()]);await deviceMediaCache.select(userId);},customer:()=>wallet.connect({customer:true,balanceCredits:1000,billingReady:false,products:[]}),state:()=>({job:imageDetailJob?.id,result:resultId,cache:assetBlobs.size,prefetch:imageDetailPrefetchReads,tool,mode,sourceId,hasFile:!!file,prompt:$('prompt').value})};`;
+window.__viewerTest={lock,seedVideo:()=>{const job={id:'older-video',status:'completed',outputId:'older-output',settings:{type:'video',engine:'seedance',prompt:'OLDER VIDEO PROMPT'}};videoJobCache.set(job.id,job);selectedVideoJob=job;},refreshVideo:restoreLatestVideoSelection,showVideoState:status=>{
+  const job={id:'synthetic-video',status,createdAt:Date.now(),settings:{
+    type:'video',engine:'seedance15',mode:'start',prompt:'A slow handheld move',
+    duration:8,resolution:'720p',aspectRatio:'16:9'}};
+  videoJobCache.set(job.id,job);showVideoHistoryRecord(job,{play:false});
+},flush:async()=>{await Promise.allSettled([...assetReads.values(),...thumbnailReads.values()]);await deviceMediaCache.select(userId);},customer:()=>wallet.connect({customer:true,balanceCredits:1000,billingReady:false,products:[]}),state:()=>({job:imageDetailJob?.id,result:resultId,cache:assetBlobs.size,prefetch:imageDetailPrefetchReads,tool,mode,sourceId,hasFile:!!file,prompt:$('prompt').value})};`;
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+pathname);
   if(!path.startsWith(root+'/')||!existsSync(path)||!statSync(path).isFile()){res.writeHead(404).end();return;}
@@ -229,6 +234,18 @@ try{
     assert.match(await page.locator('#video-inspector-empty').textContent(),/Start frame ready/);
     assert.equal(new URL(page.url()).searchParams.get('tool'),'video');
     assert.equal(await page.locator('#image-lightbox').evaluate(el=>el.open),false);
+    assert.equal(await page.locator('#preview').isVisible(),true,'Before generation the original start frame is shown');
+    await page.evaluate(()=>window.__viewerTest.showVideoState('queued'));
+    assert.equal(await page.locator('#video-job-stage').isVisible(),true,'Queued video owns the main preview');
+    assert.equal(await page.locator('#preview').isVisible(),false,'The source photo no longer fills the video stage');
+    assert.equal(await page.locator('#video-start-thumb').isVisible(),true,'Original frame stays in the left editor');
+    assert.match(await page.locator('#video-job-stage-title').textContent(),/Video queued/);
+    assert.match(await page.locator('#video-detail-status').textContent(),/Queued/);
+    await page.evaluate(()=>window.__viewerTest.showVideoState('running'));
+    assert.match(await page.locator('#video-job-stage-title').textContent(),/Generating video/);
+    await page.evaluate(()=>window.__viewerTest.showVideoState('failed'));
+    assert.match(await page.locator('#video-job-stage-title').textContent(),/failed/);
+    assert.equal(await page.locator('#video-start-thumb').isVisible(),true,'Failure must not discard the original frame');
     await page.evaluate(()=>window.__viewerTest.lock());
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).cache,0,'Sign out clears private original cache');
     assert.equal(await page.locator('.image-detail-reference-item').count(),0,'Sign out clears all private reference thumbnails');
