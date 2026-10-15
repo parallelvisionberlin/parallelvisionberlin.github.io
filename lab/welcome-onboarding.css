@@ -9,17 +9,17 @@
 .lab-hero .hero-welcome strong{font-weight:600}
 .lab-hero .hero-welcome small{font-size:11px;color:#dbd6cd}
 .lab-hero .start-link{min-width:210px;width:210px}
-#pricing .lab-pricing-welcome{
+#pricing p.lab-pricing-welcome{
   color:#d5d1ca;font-size:12px;line-height:1.55;letter-spacing:0;
   margin:-7px 0 20px;max-width:460px;
 }
-#pricing .lab-pricing-welcome strong{font-weight:600;color:#f5f2eb}
-#pricing .lab-pricing-welcome a{
+#pricing p.lab-pricing-welcome strong{font-weight:600;color:#f5f2eb}
+#pricing p.lab-pricing-welcome a{
   display:inline-block;color:#f5f2eb;border-bottom:1px solid #aba69f;
   text-decoration:none;white-space:nowrap;margin-left:2px;padding-bottom:1px;
 }
-#pricing .lab-pricing-welcome a:hover,
-#pricing .lab-pricing-welcome a:focus-visible{border-bottom-color:#fff;color:#fff}
+#pricing p.lab-pricing-welcome a:hover,
+#pricing p.lab-pricing-welcome a:focus-visible{border-bottom-color:#fff;color:#fff}
 #lab-image-empty-intro[hidden],#lab-welcome-start[hidden]{display:none!important}
 
 /* Shared empty-image gallery: three quiet line-icon actions, independent of wallet state.
