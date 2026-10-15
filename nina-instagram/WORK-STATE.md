@@ -8,7 +8,7 @@ Connect @ninafok2000 Instagram messaging to isolated Cloudflare memory and Nina'
 ## Production infrastructure
 - Meta app: Nina FOK. Published Instagram Login app; webhook `/webhook` verified with Meta.
 - Cloudflare Worker: `nina-instagram` at `https://nina-instagram.parallelvision.workers.dev/webhook`.
-- Production version: `6e750848-8c06-4566-be39-30c9321700bc` deployed at 100% on 2026-10-15.
+- Production version: `fa643ef1-35ef-48d6-953f-9d3e84a08aa9` deployed at 100% on 2026-10-15.
 - Bindings: `AI` (Workers AI), `IG_MEMORY_DB` (D1 `nina-instagram-memory`), `INSTAGRAM_ACCESS_TOKEN`, `META_APP_SECRET`, `META_VERIFY_TOKEN` (encrypted).
 - Inference: `@cf/meta/llama-3.3-70b-instruct-fp8-fast`.
 - Original Nina/Anam Worker and the private `nina-fok-memory` D1 database are untouched and isolated.
@@ -48,3 +48,6 @@ Connect @ninafok2000 Instagram messaging to isolated Cloudflare memory and Nina'
 - `nina-instagram/privacy/index.html`
 - `nina-instagram/data-deletion/index.html`
 - Cloudflare is the deployed code source; there is no GitHub-managed automatic deploy for this Worker yet.
+
+## Spanish punctuation change (15 October 2026)
+Verified production deployment with Spanish question-mark house style: Nina outputs closing `?` without inverted opening question marks. Both persona instruction and final draft normalization `draft.replaceAll("¿", "")` are active. Applies to future generated replies, not historical messages. Original Meta webhook, memory bindings, and tester-only send mode preserved.
