@@ -49,24 +49,24 @@
 .landing-header--home #lab-header-signin:hover{color:#fff}
 @media(max-width:900px){
   .landing-header--home .landing-header-actions{
-    grid-template-columns:118px 110px 40px;
+    grid-template-columns:118px 110px 44px;
     column-gap:9px;
   }
   .landing-header--home .landing-header-actions>.studio-link{width:118px}
-  .landing-header--home #lab-header-signin:not([hidden]){width:40px;height:40px}
+  .landing-header--home #lab-header-signin:not([hidden]){width:44px;height:44px}
 }
 @media(max-width:560px){
   .landing-header--home .landing-header-actions{
-    grid-template-columns:82px 94px 34px;
+    grid-template-columns:82px 94px 44px;
     column-gap:6px;
   }
   .landing-header--home .landing-header-actions>.studio-link{width:82px}
-  .landing-header--home .lab-home-avatar-placeholder{width:34px;min-height:38px}
-  .landing-header--home #lab-header-signin:not([hidden]){width:34px;height:38px}
+  .landing-header--home .lab-home-avatar-placeholder{width:44px;min-height:44px}
+  .landing-header--home #lab-header-signin:not([hidden]){width:44px;height:44px}
 }
 @media(max-width:375px){
   .landing-header--home .landing-header-actions{
-    grid-template-columns:76px 34px 34px;
+    grid-template-columns:76px 34px 44px;
   }
   .landing-header--home .landing-header-actions>.studio-link{width:76px}
 }
