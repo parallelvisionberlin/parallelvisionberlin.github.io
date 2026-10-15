@@ -249,7 +249,7 @@ try{
               return {position:style.position,width:box.width,top:box.top,headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom,
                 fontSize:Number.parseFloat(getComputedStyle(row).fontSize),logoWidth:Number.parseFloat(logo.width),
                 background:style.backgroundColor,seamHeight:Number.parseFloat(seam.height),
-                seamAlignment:Math.abs((innerWidth-Number.parseFloat(seam.right))-(avatarBox.x+avatarBox.width/2))};
+                seamAlignment:Math.abs((document.documentElement.getBoundingClientRect().width-Number.parseFloat(seam.right))-(avatarBox.x+avatarBox.width/2))};
             });
             assert.equal(metrics.position,'fixed','Studio menu follows the sticky header');
             assert.ok(metrics.width<=284,'Studio menu is compact');
