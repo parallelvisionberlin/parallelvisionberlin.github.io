@@ -185,7 +185,10 @@ try{
     const quote=romance.requests.find(r=>r.path==='/api/quotes'&&r.method==='POST');
     assert.equal(quote.data.settings.moodId,'synthetic-romance');
     assert.equal(quote.data.settings.moodIntensity,82);
-    assert.equal(quote.data.settings.moodOriginalPrompt,'');
+    assert.equal(quote.data.settings.moodOriginalPrompt,'',
+      'Automatic Base instructions must not be recorded as the customer’s typed Mood direction');
+    assert.match(quote.data.settings.prompt,/Create a natural photographic variation of the base image/,
+      'The provider still receives a useful Base variation instruction when the visible prompt is empty');
     assert.ok(compileImagePrompt(quote.data.settings.prompt,quote.data.settings.referenceRoles,quote.data.settings).length<=5000);
     assert.match(quote.data.settings.prompt,/INVASIVE PHYSICAL BODY TRANSFORMATION/);
     assert.deepEqual(romance.errors,[]);
