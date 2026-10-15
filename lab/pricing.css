@@ -358,7 +358,7 @@
   #pricing .lab-pricing-mood--film{right:4%;top:8%}
   #pricing .lab-pricing-mood--cinema{width:38%;left:31%;top:0}
   #pricing .lab-pricing-mood figcaption{font-size:clamp(14px,1.2vw,18px);bottom:16px}
-  #pricing .lab-pricing-welcome{margin:17px 0 0 2px}
+  #pricing .lab-pricing-welcome{margin:42px 0 0 2px}
   #pricing .lab-pricing-welcome h3{font-size:clamp(27px,2.3vw,32px);margin:9px 0 9px}
   #pricing .lab-pricing-welcome>p{
     font-size:14px;line-height:1.5;margin:0 0 17px;
