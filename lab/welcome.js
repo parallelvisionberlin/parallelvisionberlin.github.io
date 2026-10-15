@@ -29,7 +29,18 @@ async function call(path,options={}){
   return data;
 }
 function enterStudio(){location.replace(destination());}
+function showCreditToast(){
+  const toast=$('credit-toast');
+  toast.hidden=false;
+  requestAnimationFrame(()=>toast.classList.add('is-visible'));
+}
+function hideCreditToast(){
+  const toast=$('credit-toast');
+  toast.classList.remove('is-visible');
+  toast.hidden=true;
+}
 function loadingError(error){
+  hideCreditToast();
   $('loading').hidden=false;
   $('loading').textContent='We could not verify your account. Please reload and try again.';
   $('auth').hidden=true;$('welcome').hidden=true;
@@ -37,6 +48,7 @@ function loadingError(error){
 }
 async function refresh(){
   const current=++revision;
+  hideCreditToast();
   $('loading').hidden=false;$('loading').textContent='Preparing your space…';$('auth').hidden=true;$('welcome').hidden=true;
   if(!STUDIO_HOSTS.has(location.hostname.toLowerCase())){location.replace('./studio.html?tool=image');return;}
   if(!clerk?.isSignedIn){
@@ -85,9 +97,13 @@ $('enter').addEventListener('click',async()=>{
       creditsMissing=true;
       return;
     }
-    status('200 credits added to your account. Opening your Studio.');
+    // Show the confirmation only after a verified, funded customer session.
+    showCreditToast();
+    await new Promise(resolve=>setTimeout(resolve,1700));
+    if(!sameSession(sessionId))throw Error('Your signed-in account changed. Please try again.');
     enterStudio();
   }catch(error){
+    hideCreditToast();
     // A second tab may have completed this account already.
     try{if(sameSession(sessionId)&&(await call('/api/migration/status')).linked){enterStudio();return;}}catch{}
     status(error?.message||'We could not prepare your account. Please retry.',true);
