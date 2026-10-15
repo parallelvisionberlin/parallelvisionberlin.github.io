@@ -11,6 +11,14 @@ const source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");
 const bootEnd=source.indexOf("\n// Soul composer:",boot);
 assert.ok(boot>0&&bootEnd>boot,'Expected distinct auth bootstrap and Soul composer tail');
+const authSync=source.slice(source.indexOf('async function sync(){'),source.indexOf("$('studio-invite-friends').onclick"));
+const requestedAt=authSync.indexOf('await restoreStudioEntry()');
+const revealedAt=authSync.indexOf('finishLabBoot();');
+const historyAt=authSync.indexOf('await Promise.all([loadHistory()');
+assert.ok(requestedAt>=0&&revealedAt>requestedAt&&historyAt>revealedAt,'Restore the actual Studio route before first paint, then load optional history');
+assert.ok(authSync.includes("document.documentElement.classList.add('pv-studio-route-pending')"),'Protect the loader during authenticated initialization');
+assert.ok(source.includes("document.documentElement.classList.remove('pv-studio-route-pending')"),'Boot release clears its route guard');
+
 // Replace only remote Clerk bootstrap. Preserve all remaining local Studio helpers.
 const testSource=source.slice(0,boot)+source.slice(bootEnd)+
 "clerk={isSignedIn:true,user:{id:'layout-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='layout-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__queueTestSetActiveJobs=setActiveJobs;window.__layoutTest=true;";
@@ -451,6 +459,36 @@ try{
   assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'pv-boot-out','Blur happens after Studio becomes ready');
   await bootPage.locator('#lab-boot').waitFor({state:'hidden',timeout:2000});
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),false,'Boot overlay finishes its exit on mock auth resolution');
+  // A slow Fashion entry cannot expose the default Image workspace even if
+  // authentication has already unhidden #app before Fashion's assets arrive.
+  const routePage=await bootContext.newPage();
+  await routePage.route('**/lab/lab.js*',async()=>await new Promise(()=>{}));
+  await routePage.goto('http://127.0.0.1:4182/lab/studio.html?tool=fashion',{waitUntil:'commit'});
+  await routePage.waitForSelector('#lab-boot');
+  await routePage.evaluate(()=>{
+    document.documentElement.classList.add('pv-studio-route-pending');
+    document.body.classList.remove('lab-ready');
+    document.getElementById('app').hidden=false;
+    document.getElementById('image-studio').hidden=false;
+  });
+  const covered=await routePage.evaluate(()=>{
+    const overlay=document.getElementById('lab-boot'),r=overlay.getBoundingClientRect();
+    return getComputedStyle(overlay).visibility!=='hidden'&&
+      overlay.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));
+  });
+  assert.equal(covered,true,'Fashion direct URL stays covered until its editor is prepared');
+  await routePage.evaluate(()=>{
+    document.getElementById('image-studio').hidden=true;
+    document.getElementById('fashion-studio').hidden=false;
+    document.body.classList.add('lab-ready');
+    document.documentElement.classList.remove('pv-studio-route-pending');
+  });
+  await routePage.locator('#lab-boot').waitFor({state:'hidden',timeout:2000});
+  assert.equal(await routePage.locator('#fashion-studio').isVisible(),true,'Fashion is the first exposed route');
+  assert.equal(await routePage.locator('#image-studio').isVisible(),false,'Image remains hidden on Fashion entry');
+  await routePage.close();
+  console.log('PASS Fashion direct URL avoids the Image first-paint flash');
+
   await bootContext.close();
   console.log('PASS first paint, no broken image loading icon and delayed module');
 

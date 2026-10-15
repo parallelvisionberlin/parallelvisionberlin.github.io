@@ -40,12 +40,12 @@ body.lab-booting{margin:0;background:#101114}
 @keyframes pv-boot-trail-out{0%,17%{opacity:0;filter:blur(0);transform:none}56%{opacity:.46;filter:blur(5px);transform:translateX(10px) scaleX(1.1)}100%{opacity:0;filter:blur(12px);transform:translateX(22px) scaleX(1.2)}}
 @keyframes pv-load{from{transform:translateX(-110%)}to{transform:translateX(335%)}}
 body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>header,body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>main,body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>footer{visibility:hidden}
-html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:pv-boot-dismiss .24s ease-out both;pointer-events:none}
-html:not(.pv-native-route-pending) body.lab-ready #lab-boot .lab-boot-wordmark,html:not(.pv-native-route-pending) body:has(#app:not([hidden])) #lab-boot .lab-boot-wordmark{animation:pv-boot-out .24s cubic-bezier(.3,.1,.55,1) both}
-html:not(.pv-native-route-pending) body.lab-ready #lab-boot .lab-boot-wordmark::before,html:not(.pv-native-route-pending) body:has(#app:not([hidden])) #lab-boot .lab-boot-wordmark::before{animation:pv-boot-trail-out .24s ease-out both}
+html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:pv-boot-dismiss .24s ease-out both;pointer-events:none}
+html:not(.pv-native-route-pending) body.lab-ready #lab-boot .lab-boot-wordmark,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot .lab-boot-wordmark{animation:pv-boot-out .24s cubic-bezier(.3,.1,.55,1) both}
+html:not(.pv-native-route-pending) body.lab-ready #lab-boot .lab-boot-wordmark::before,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot .lab-boot-wordmark::before{animation:pv-boot-trail-out .24s ease-out both}
 html.pv-native-route-pending #lab-boot{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;animation:none!important}
 html.pv-native-route-pending #app{visibility:hidden!important}
-@media(prefers-reduced-motion:reduce){.lab-boot-wordmark,.lab-boot-wordmark::before,.lab-boot-sub{animation:none!important;filter:none!important;transform:none!important}.lab-boot-wordmark::before{display:none}.lab-boot-track:after{animation:none;width:100%;background:#5a5657}html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:none!important;opacity:0!important;visibility:hidden!important}}
+@media(prefers-reduced-motion:reduce){.lab-boot-wordmark,.lab-boot-wordmark::before,.lab-boot-sub{animation:none!important;filter:none!important;transform:none!important}.lab-boot-wordmark::before{display:none}.lab-boot-track:after{animation:none;width:100%;background:#5a5657}html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:none!important;opacity:0!important;visibility:hidden!important}}
 </style>
 <script>
 if(window.__PV_LAB_NATIVE__===1)document.documentElement.classList.add('pv-native-route-pending');

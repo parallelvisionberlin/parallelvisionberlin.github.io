@@ -18,6 +18,16 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - Normal loading status remains available to assistive technology; visible status and Reload button appear if startup exceeds 16 seconds.
 - Existing `lab-ready`, `pv-native-route-pending`, and app-ready conditions are preserved; only their dismissal styling now animates, and native route pending continues holding the overlay visible.
 
+## October 15 direct Studio route public audit
+- Report: opening `/studio?tool=fashion` briefly showed the Image editor, and other direct routes may do the same.
+- Verified cause in `lab/lab.js`: `sync()` unhides #app and calls `finishLabBoot()` before waiting for History, then restores the requested route. Inline loader CSS also exits immediately on `#app:not([hidden])`.
+- Authenticated entry now marks `pv-studio-route-pending` before revealing #app; boot waits until `restoreStudioEntry()` has selected Fashion/Retouch/Assets/Moods or the already initialized Image/Video/Upscaler.
+- `restoreStudioEntry()` happens before dismissing boot; optional History, packs and characters load afterward. Fashion's HTML/CSS and controller settle before first exposure.
+- Native route destination pending, signed-out gate, retry on error, and 240ms blur-out exit preserved.
+- New regression checks startup ordering and simulates authenticated Fashion while Image is provisionally present behind the loader.
+- No payments, credits, backend settings, providers, user data, gallery records or paid generation changed.
+- CI, live Pages publish and cross-device browser verification still require independent confirmation.
+
 ## Verification
 - Regression source asserts the still, crisp initial wordmark and exit animation after readiness, first paint, desktop/mobile bounds, and a hidden overlay after completion. Native Gallery test waits for the 240 ms exit.
 - No paid generation, secrets, authentication, credit, or Worker logic changed.
