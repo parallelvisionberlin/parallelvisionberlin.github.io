@@ -1,16 +1,16 @@
 // PV LAB Video model menu. Presentation only: the existing #video-engine owns
 // provider availability, selection, price checks, and generation behavior.
 const GROUPS=[
-  {title:'Featured models',ids:['seedance','wan','klinghf']},
-  {title:'Motion & characters',ids:['seedance15','h3','h3max','h3spicy']},
-  {title:'Premium output',ids:['seedance4k','wanprime']},
-  {title:'Reference & advanced',ids:['h3maxfal','omni']}
+  {title:'Best value',ids:['seedance15']},
+  {title:'Featured models',ids:['seedance','wan','h3spicy']},
+  {title:'Motion & characters',ids:['h3','h3max','klinghf']},
+  {title:'Premium & advanced',ids:['seedance4k','wanprime','h3maxfal','omni']}
 ];
 const META={
-  seedance:{description:'Start, text, references & extend · up to 1080p',brand:'bytedance',badge:'Versatile'},
+  seedance:{description:'Start, text, refs & extend · 4–30s · up to 1080p',brand:'bytedance',badge:'Uncensored*'},
   wan:{description:'Start frame or image references · up to 1080p',glyph:'W'},
   klinghf:{description:'Text or start frame · 1080p · Higgsfield',glyph:'K',badge:'Pro'},
-  seedance15:{description:'Start or text · camera lock · 4–12s',brand:'bytedance',badge:'Motion'},
+  seedance15:{description:'Low-cost motion · 4–12s · optional camera lock',brand:'bytedance',badge:'Low cost'},
   h3:{description:'Start, text & references · up to 2K',glyph:'M'},
   h3max:{description:'Start frame or text · 768p',glyph:'M'},
   h3spicy:{description:'Start frame · up to 1080p',glyph:'M'},
@@ -49,7 +49,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
   const list=document.createElement('div');list.className='pv-video-model-list';
   list.setAttribute('role','group');list.setAttribute('aria-label','Available video models');
   const foot=document.createElement('div');foot.className='pv-video-model-foot';
-  foot.textContent='Your selected model is never changed automatically.';
+  foot.textContent='*SpicyAPI lists standard Seedance as uncensored: no added provider scan. Extend uses Higgsfield. Models may still refuse requests.';
   popover.append(head,searchWrap,list,foot);
   document.body.append(popover);
   let open=false,lastFingerprint='',lastSelection='',searchText='';
