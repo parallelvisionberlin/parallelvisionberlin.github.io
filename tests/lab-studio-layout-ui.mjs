@@ -280,19 +280,21 @@ try{
   assert.ok(compactImageHeight>=105&&compactImageHeight<170,
     'The empty Image deck must keep its original compact proportions: '+compactImageHeight);
 
-  assert.equal(await x.page.locator('#image-composer-add .composer-add-label').textContent(),'Add images',
-    'The upload control has a meaningful visible label rather than a standalone plus');
-  await x.page.click('#image-composer-add');
-  assert.equal(await x.page.locator('#composer-add-menu').isVisible(),true,'The Add images action opens upload and saved packs');
-  assert.equal(await x.page.locator('#composer-add-upload').isVisible(),true);
-  assert.equal(await x.page.locator('#composer-add-saved').isVisible(),true);
+  assert.equal(await x.page.locator('#image-composer-add').getAttribute('aria-label'),'Upload images',
+    'The + button opens the real photo input directly');
+  assert.equal(await x.page.locator('#image-composer-add .composer-add-plus').textContent(),'+');
+  assert.equal(await x.page.locator('#composer-add-saved-toggle').isVisible(),true,
+    'Saved packs have their own small arrow beside +');
+  assert.equal(await x.page.locator('#composer-reference-intent-toggle').isVisible(),true,
+    'Composition mode stays available before photos are uploaded');
+  assert.equal(await x.page.locator('#image-composer-more').isVisible(),true,
+    'Compact advanced settings are always accessible, without appearing only after uploads');
   assert.equal(await x.page.locator('#composer-character').isVisible(),false,'No duplicate right-side references tile');
-  await x.page.click('#composer-add-saved');
+  await x.page.click('#composer-add-saved-toggle');
   assert.equal(await x.page.locator('#composer-library-title').textContent(),'Saved photo packs');
   await x.page.click('#composer-library-close');
-  await x.page.click('#image-composer-add');
   const floatingChooser=x.page.waitForEvent('filechooser');
-  await x.page.click('#composer-add-upload');
+  await x.page.click('#image-composer-add');
   const imageChooser=await floatingChooser;
   assert.ok(imageChooser,'Upload photos opens the original reference input');
   const referencePng=await x.page.evaluate(()=>{
@@ -309,8 +311,8 @@ try{
   assert.match(await x.page.locator('#image-composer-prompt').getAttribute('placeholder')||'',/variation of this image/i,
     'A selected base image offers an editable variation without an extra prompt row');
   const photoImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
-  assert.ok(photoImageHeight>compactImageHeight+35&&photoImageHeight<300,
-    'Only the attached photo row may expand the compact Image deck: '+JSON.stringify({compactImageHeight,photoImageHeight}));
+  assert.ok(Math.abs(photoImageHeight-compactImageHeight)<=4,
+    'Adding a photo must not resize the fixed Image deck: '+JSON.stringify({compactImageHeight,photoImageHeight}));
   // Controlled Pose may need more references, but its instructional hint
   // must never expand the dock or shift the Generate button below its row.
   await x.page.click('#image-composer-model');
@@ -340,10 +342,10 @@ try{
     return {refLeft:ref.left,refRight:ref.right,refTop:ref.top,refBottom:ref.bottom,
       promptLeft:prompt.left,promptRight:prompt.right,promptTop:prompt.top};
   });
-  assert.ok(inlineGeometry.refBottom<=inlineGeometry.promptTop+12 &&
-    inlineGeometry.refLeft>=inlineGeometry.promptLeft-12 &&
-    inlineGeometry.refRight<=inlineGeometry.promptRight+12,
-    'Reference thumbnails live in the dedicated row above the prompt, within the same composer');
+  assert.ok(inlineGeometry.refRight<=inlineGeometry.promptLeft+12 &&
+    inlineGeometry.refBottom>inlineGeometry.promptTop+10 &&
+    inlineGeometry.refTop<inlineGeometry.promptTop+48,
+    'Thumbnails remain beside the prompt, not in a separate row: '+JSON.stringify(inlineGeometry));
   await x.page.screenshot({path:'test-results/lab-image-inline-reference.png',fullPage:false});
   await x.page.click('.composer-reference-remove');
   await x.page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===0);
@@ -373,8 +375,8 @@ try{
   assert.equal(await x.page.locator('#ratio').inputValue(),'auto','Auto framing stays available as an intentional separate choice');
   await x.page.selectOption('#image-composer-ratio',{value:'16:9'});
   assert.equal(await x.page.locator('#ratio').inputValue(),'16:9','Selecting fixed ratio after Auto is preserved');
-  assert.equal(await x.page.locator('#image-composer-more').isVisible(),false,
-    'Seedream intentionally uses inline options without a redundant Options button');
+  assert.equal(await x.page.locator('#image-composer-more').isVisible(),true,
+    'A compact settings icon stays in the same place before and after uploading');
   assert.equal(await x.page.locator('#image-composer-ratio').isVisible(),true,
     'Seedream aspect ratio is always accessible in the composer');
   assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),true,
