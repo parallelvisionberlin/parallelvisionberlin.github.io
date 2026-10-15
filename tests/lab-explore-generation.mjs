@@ -71,12 +71,13 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    await button.evaluate(el=>{el.click();el.click();});
    await page.waitForFunction(()=>document.querySelector('#mc-look-result')?.hidden===false);
    assert.equal(new URL(page.url()).pathname,'/lab/moods','Generating keeps the modal on Explore Moods');
-   assert.equal(paid,1,'One explicit click submits exactly one paid job');
    if(scenario==='failure'){
      await page.waitForFunction(()=>document.querySelector('#mc-look-result-progress').textContent.includes('Not enough credits.'));
+     assert.equal(paid,1,'One confirmed attempt, no automatic retry');
      assert.equal(await page.locator('#mc-look-result-actions').isVisible(),false);
    }else{
      await page.locator('#mc-look-result-image').waitFor({state:'visible'});
+     assert.equal(paid,1,'One explicit click submits exactly one paid job');
      assert.equal(await page.locator('#mc-look-result-actions').isVisible(),true);
      const downloadEvent=page.waitForEvent('download');
      await page.locator('#mc-look-result-download').click();
