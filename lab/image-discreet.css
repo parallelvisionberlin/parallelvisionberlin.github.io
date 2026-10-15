@@ -1,9 +1,9 @@
 /* Visual concealment in Image Studio only. Not an access-control mechanism. */
-/* Option B: the eye occupies its own permanent grid track.
-   Hidden Select/Refresh keep reserved tracks instead of pulling the eye right. */
+/* Option B: anchor the eye at the right edge, outside the History actions.
+   Invisible Select/Refresh reserve space on its left, so neither state moves the eye. */
 #app.image-studio-active .image-studio .history-head-actions{
   display:grid!important;
-  grid-template-columns:34px 12px 54px 62px;
+  grid-template-columns:54px 62px 12px 34px;
   column-gap:6px;
   align-items:center;
   justify-content:end;
@@ -16,8 +16,8 @@
   padding:5px 6px!important;
   justify-self:stretch;
 }
-#app.image-studio-active .image-studio #history-select{grid-column:3;grid-row:1}
-#app.image-studio-active .image-studio #refresh{grid-column:4;grid-row:1}
+#app.image-studio-active .image-studio #history-select{grid-column:1;grid-row:1}
+#app.image-studio-active .image-studio #refresh{grid-column:2;grid-row:1}
 #history-preview-toggle{
   display:none!important;position:relative;
   align-items:center;justify-content:center;
@@ -31,7 +31,7 @@
   transition:border-color .16s ease,color .16s ease,background-color .16s ease,box-shadow .16s ease;
 }
 #app.image-studio-active #history-preview-toggle{
-  display:inline-flex!important;grid-column:1;grid-row:1;justify-self:start;
+  display:inline-flex!important;grid-column:4;grid-row:1;justify-self:end;
 }
 #app.image-studio-active #history-preview-toggle:hover{
   border-color:#757982;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06);
@@ -114,7 +114,7 @@ html.pv-image-previews-hidden #app.image-studio-active #input-preview-dialog[ope
 @media(max-width:700px){
   html.pv-image-previews-hidden #app.image-studio-active .image-gallery-shell::before{background-position:center,63% center}
   #app.image-studio-active .image-studio .history-head-actions{
-    grid-template-columns:34px 8px 50px 58px;
+    grid-template-columns:50px 58px 8px 34px;
     column-gap:4px;
   }
   .image-discreet-message{inset:48px 0 172px}
