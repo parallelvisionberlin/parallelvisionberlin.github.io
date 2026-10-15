@@ -33,6 +33,7 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - CI and domain probes will determine the final publish status. No live provider calls or real payments are made by these workflow checks.
 - Fashion's embedded controller previously awaited private gallery pagination and a provider balance query before reporting readiness. Both now run as background read-only operations once account and models are verified.
 - A mock Fashion regression holds gallery and balance responses to verify the editor appears before they return, then verifies normal private gallery behavior.
+- Cache fingerprints were updated along the complete route: Studio HTML -> `lab.js` -> lazy `fashion-studio.js` -> `fashion.js`, plus standalone Fashion HTML. This avoids returning older JavaScript from previously cached URLs after deployment. No static gallery files or original user assets were renamed.
 - Independent Fashion CI now also runs the Studio first-paint regression even when unrelated backend unit checks fail.
 - Image + Base + Mood had an inconsistent metadata edge case: the automatic functional Base variation instruction was stored as `moodOriginalPrompt`, even though the user left the visible direction empty. Keep the provider's complete prompt unchanged while recording only the actual text typed by the user. The mock quote regression asserts both requirements. This also prevents generic internal Base text from appearing as the user's Mood caption.
 
