@@ -130,3 +130,17 @@
 #app.video-extend-active.extension-loaded #video-media-drop{min-height:38px!important;padding:8px}
 #app.video-extend-active.extension-loaded #video-media-drop small{display:none}
 #app.video-extend-active #reference-mode{padding:10px}
+
+/* Keep Windows/Chrome native dropdown menus readable in Video Studio.
+   The compact control uses light text, so its system popup must be dark too. */
+#app.video-studio-active .controls-body select {
+  color-scheme: dark;
+}
+#app.video-studio-active .controls-body select option,
+#app.video-studio-active .controls-body select optgroup {
+  background-color: #202228;
+  color: #f4f5f7;
+}
+#app.video-studio-active .controls-body select option:disabled {
+  color: #a4a8b0;
+}
