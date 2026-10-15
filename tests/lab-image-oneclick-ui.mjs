@@ -31,7 +31,20 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
   if(path==='/api/jobs'&&method==='GET'){historyGets++;if(historyDelay&&historyGets>1)await new Promise(r=>setTimeout(r,historyDelay));return send({jobs,activeJobs:jobs.filter(j=>['queued','running','saving','uncertain','submitting'].includes(j.status)),concurrency:{image:4,video:1},next:null});}
   if(path==='/api/jobs/bulk-delete'&&method==='POST'){const ids=data.ids||[];let deleted=0;for(let i=jobs.length-1;i>=0;i--)if(ids.includes(jobs[i].id)&&!['queued','running','saving','uncertain','submitting'].includes(jobs[i].status)){jobs.splice(i,1);deleted++;}return send({ok:true,deleted});}
   if(path.startsWith('/api/jobs/')&&path.endsWith('/recover')&&method==='POST'){const job=jobs.find(j=>path.includes('/'+j.id+'/recover'));if(!job)return send({error:'Not found.'},404);job.status='completed';job.outputId=job.id;job.error='';return send({job});}
-  if(path==='/api/packs')return send({packs:savedPacks});
+  if(path==='/api/packs'&&method==='GET')return send({packs:savedPacks});
+  if(path==='/api/packs'&&method==='POST'){
+    const refs=(data.referenceSourceIds||[]).map((assetId,index)=>({
+      id:assetId,name:data.referenceRoles?.[index]?.name||('source-'+index+'.png'),
+      role:data.referenceRoles?.[index]?.role||'none',note:data.referenceRoles?.[index]?.note||''
+    }));
+    const pack={id:id(sequence++),name:data.name,refs};
+    savedPacks.push(pack);return send(pack,201);
+  }
+  if(path.startsWith('/api/packs/')&&method==='DELETE'){
+    const target=path.split('/').at(-1),index=savedPacks.findIndex(pack=>pack.id===target);
+    if(index<0)return send({error:'Pack not found'},404);
+    savedPacks.splice(index,1);return send({ok:true});
+  }
   if(path==='/api/soul-pro/identity'&&method==='GET')return send({configured:true,count:2,refs:[{id:id(950),name:'nina-front.png'},{id:id(951),name:'nina-three-quarter.png'}]});
   if(path==='/api/soul-pro/identity'&&method==='POST')return send({configured:true,count:(data.referenceSourceIds||[]).length||1,refs:[]},201);
   if(path==='/api/soul-pro/identity'&&method==='DELETE')return send({configured:false,count:0,refs:[]});
@@ -497,15 +510,21 @@ try{
   {id:id(982),name:'Missing Photo',refs:[{id:badId,name:'missing.png',role:'identity',note:''}]}
  ];
  x=await workspace({savedPacks:slowPacks,packPreviewGate,brokenPreviewAssets:[badId]});
+ const originalDeckHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
  await x.page.click('#composer-add-saved-toggle');
- const photos=x.page.locator('#composer-library-cards .composer-library-photo');
+ assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'The arrow opens the full reference library modal');
+ assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs.');
+ assert.equal(await x.page.locator('#composer-library').isVisible(),false,'No legacy oversized popover competes with the modal');
+ assert.equal(await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height),originalDeckHeight,
+   'Opening photo packs must not resize the compact Image composer');
+ const photos=x.page.locator('#pack-studio-grid .pack-studio-card-media');
  assert.equal(await photos.count(),2);
  assert.equal(await photos.locator('img').count(),0,'Do not insert a blank img while the preview request is pending');
  assert.equal(await photos.first().getAttribute('aria-busy'),'true');
  assert.equal(await photos.last().getAttribute('aria-busy'),'true');
- assert.doesNotMatch(await x.page.locator('#composer-library-cards').innerText(),/Saved identity preview/);
+ assert.doesNotMatch(await x.page.locator('#pack-studio-grid').innerText(),/Saved identity preview/);
  releasePhotoReads();
- await x.page.waitForFunction(()=>document.querySelectorAll('#composer-library-cards .composer-library-photo.is-photo-loading').length===0);
+ await x.page.waitForFunction(()=>document.querySelectorAll('#pack-studio-grid .pack-studio-card-media.is-photo-loading').length===0);
  assert.equal(await photos.first().locator('img').count(),1,'Available preview replaces shimmer with photo');
  assert.equal(await photos.first().locator('img').evaluate(i=>i.naturalWidth>0),true);
  assert.equal(await photos.last().locator('img').count(),0,'Missing image never shows browser broken icon');
@@ -514,6 +533,50 @@ try{
  assert.deepEqual(x.errors,[]);
  ok('Saved photo packs: delayed thumbnails and missing previews remain clean');
  await x.context.close();
+
+ // Non-billable Photo Pack creation mirrors Soul's library → create workflow.
+ // It must not touch the generation quote/submit routes or reset the Image deck.
+ x=await workspace();
+ await x.page.click('#composer-add-saved-toggle');
+ await x.page.click('#pack-studio-new');
+ assert.equal(await x.page.locator('#pack-studio-create-view').isVisible(),true);
+ assert.equal(await x.page.locator('#pack-studio-from-deck').isDisabled(),true);
+ await x.page.fill('#pack-studio-name','Nina / Quiet portraits');
+ await x.page.locator('#pack-studio-files').setInputFiles([{name:'nina-front.png',mimeType:'image/png',buffer:png},
+    {name:'nina-profile.png',mimeType:'image/png',buffer:png}]);
+ await x.page.waitForFunction(()=>document.querySelectorAll('#pack-studio-previews .pack-studio-preview').length===2);
+ assert.equal(await x.page.locator('#pack-studio-photo-count').innerText(),'2 / 10 photos');
+ await x.page.click('#pack-studio-save');
+ await x.page.waitForFunction(()=>document.querySelector('#pack-studio-library-status')?.textContent.includes('saved privately'));
+ const savedRequest=x.requests.find(r=>r.path==='/api/packs'&&r.method==='POST');
+ assert.equal(savedRequest.data.name,'Nina / Quiet portraits');
+ assert.equal(savedRequest.data.referenceSourceIds.length,2);
+ assert.deepEqual(savedRequest.data.referenceRoles.map(r=>r.role),['none','none']);
+ assert.equal(count(x,'/api/uploads'),2);
+ assert.equal(count(x,'/api/quotes'),0);
+ assert.equal(count(x,'/api/jobs'),0);
+ assert.equal(await x.page.locator('#pack-studio-grid .pack-studio-card').count(),1);
+ await x.page.locator('#pack-studio-grid .pack-studio-card-select').click();
+ await waitRefs(x.page,2);
+ assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),false);
+ assert.equal(count(x,'/api/jobs'),0);
+ ok('PV Soul-style creation saves device photos then loads packs with no generation');assert.deepEqual(x.errors,[]);await x.context.close();
+
+ x=await workspace();await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);
+ await x.page.click('#composer-add-saved-toggle');await x.page.click('#pack-studio-new');
+ assert.equal(await x.page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'true');
+ assert.equal(await x.page.locator('#pack-studio-previews .pack-studio-preview').count(),3);
+ await x.page.fill('#pack-studio-name','My preserved base and identities');
+ await x.page.click('#pack-studio-save');
+ await x.page.waitForFunction(()=>document.querySelector('#pack-studio-library-status')?.textContent.includes('saved privately'));
+ const preserved=x.requests.findLast(r=>r.path==='/api/packs'&&r.method==='POST');
+ assert.deepEqual(preserved.data.referenceRoles.map(r=>r.role),['base','none','none'],
+   'Current deck roles are saved in their exact order');
+ assert.equal(count(x,'/api/jobs'),0,'Saving current references must never generate or charge');
+ assert.equal(await x.page.locator('#reference-list .reference-item').count(),3,'The editor remains untouched');
+ await x.page.keyboard.press('Escape');
+ assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),false);
+ ok('Current deck photo packs retain original order and roles without billing');assert.deepEqual(x.errors,[]);await x.context.close();
 
  const manyPack={id:id(940),name:'Nina Master 8',refs:Array.from({length:8},(_,i)=>({id:id(960+i),name:'nina-'+(i+1)+'.png',role:'identity',note:''}))};
  x=await workspace({savedPacks:[manyPack]});await imageAdvanced(x.page);await chooseImageModel(x.page,'soulpro');await ready(x.page);await x.page.click('#composer-character');await x.page.click('#composer-library-create');
