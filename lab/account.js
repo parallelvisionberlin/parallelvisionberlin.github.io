@@ -26,7 +26,7 @@ export function stripeDestination(value){
 function route(){
   const value=location.hash.slice(1);return ['balance','usage','billing','referrals','voucher','settings'].includes(value)?value:'balance';
 }
-function clearPrivateView(){
+function clearPrivateView(){$('settings-legacy-transfer').hidden=true;
   profile=null;referralLoaded=false;referralRevision++;
   menu.update();$('account-workspace').hidden=true;$('account-identity').textContent='Your creative space.';
   $('account-profile-mark').textContent='PV';$('account-profile-kind').textContent='Image. Motion. Your direction.';
@@ -121,6 +121,16 @@ async function refresh(){
   if(!signed){status(clerk?'':'Sign-in is loading…');$('account-gate').hidden=!clerk;return;}
   try{
     const data=await api('/api/session');if(current!==revision)return;
+    $('settings-legacy-transfer').hidden=true;
+    if(data.customer===true&&/^user_PvLabV2[A-Za-z0-9]+$/.test(data.ownerId||'')&&
+      ['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev'].includes(location.hostname)){
+      // One-time owner/customer recovery is discreetly available in Settings
+      // only when the verified Worker confirms this trial has no saved work.
+      void api('/api/migration/status').then(link=>{
+        if(current===revision&&link.relinkEligible)
+          $('settings-legacy-transfer').hidden=false;
+      }).catch(()=>{});
+    }
     profile=data;if(profile.customer)trackLabRegistration(profile.ownerId,profile.createdAt);drawProfile();$('account-workspace').hidden=false;status('');paintRoute();
     if(!profile.customer)return;
     const [wallet,storage]=await Promise.allSettled([api('/api/customer/wallet'),api('/api/customer/account')]);
