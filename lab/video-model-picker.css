@@ -162,3 +162,9 @@
   #app.video-studio-active .pv-video-model-trigger,
   .pv-video-model-item{transition:none!important}
 }
+
+/* Model-value labels: restrained purple for provider listing, green for economy. */
+.pv-video-model-badge[data-tone="purple"]{color:#ddc4ff;background:#47305b;border-color:#78529b}
+.pv-video-model-badge[data-tone="green"]{color:#b9e8be;background:#25452e;border-color:#447b4d}
+/* Sidebar card stays editorial and uncluttered; detailed copy belongs in picker. */
+#app.video-studio-active #video-model-control .video-price-hint{display:none!important}
