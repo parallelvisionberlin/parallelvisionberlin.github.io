@@ -27,10 +27,10 @@
 .pv-account-menu>summary:hover .pv-account-avatar,
 .pv-account-menu[open] .pv-account-avatar{border-color:#f3f3f3}
 
-/* Canonical PV LAB menu: landing editorial styling on every surface; fixed to the viewport's right edge. */
+/* Canonical PV LAB menu: landing editorial styling on every surface; set in from the viewport edge. */
 .pv-account-menu .pv-account-panel{
-  position:fixed;top:var(--pv-account-menu-top,80px);right:16px;z-index:1000;
-  box-sizing:border-box;width:min(288px,calc(100vw - 32px));
+  position:fixed;top:var(--pv-account-menu-top,80px);right:24px;z-index:1000;
+  box-sizing:border-box;width:min(288px,calc(100vw - 48px));
   max-height:min(78dvh,570px,calc(100dvh - var(--pv-account-menu-top,80px) - 12px));overflow-y:auto;overscroll-behavior:contain;
   padding:0;background:#111111;
   color:#ededed;border:1px solid #363636;border-radius:9px;
@@ -149,7 +149,7 @@
 }
 @media(max-width:480px){
   .pv-account-menu .pv-account-panel{
-    right:10px;width:min(288px,calc(100vw - 20px));
+    right:14px;width:min(288px,calc(100vw - 28px));
   }
   .pv-account-menu .pv-account-details{
     margin-inline:16px;padding-top:17px;
