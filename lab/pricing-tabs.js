@@ -26,6 +26,33 @@
     const next=event.key==='Home'?0:event.key==='End'?1:(index+(event.key==='ArrowRight'?1:-1)+2)%2;
     select(next?'onetime':'monthly',true);
   }));
+  // Pricing estimate explanations remain accessible by hover, keyboard and tap.
+  // The checkout arrows keep their original handlers; information clicks never buy.
+  const estimateControls=[...section.querySelectorAll('.lab-estimate-toggle')];
+  function closeEstimates(except=null){
+    for(const button of estimateControls){
+      if(button!==except){
+        button.setAttribute('aria-expanded','false');
+        button.closest('.lab-estimate-details')?.classList.remove('is-open');
+      }
+    }
+  }
+  estimateControls.forEach(button=>button.addEventListener('click',event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    const willOpen=button.getAttribute('aria-expanded')!=='true';
+    closeEstimates(button);
+    button.setAttribute('aria-expanded',String(willOpen));
+    button.closest('.lab-estimate-details')?.classList.toggle('is-open',willOpen);
+  }));
+  document.addEventListener('pointerdown',event=>{
+    if(!event.target.closest('#pricing .lab-estimate-details'))closeEstimates();
+  });
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='Escape')return;
+    closeEstimates();
+    if(document.activeElement?.matches('.lab-estimate-toggle'))document.activeElement.blur();
+  });
   if(location.hash==='#lab-one-time-credits')select('onetime');
   window.addEventListener('hashchange',()=>{if(location.hash==='#lab-one-time-credits')select('onetime')});
 })();
