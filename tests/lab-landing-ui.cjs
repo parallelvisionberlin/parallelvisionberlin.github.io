@@ -130,7 +130,7 @@ const server=http.createServer((req,res)=>{
   if(width>760){
     const row=page.locator('#lab-monthly-plans .lab-plan').first();
     const before=await row.boundingBox();
-    await row.locator('.lab-plan-name').hover();
+    await row.locator('button[data-lab-buy]').hover();
     const after=await row.boundingBox();
     const rowBackground=await row.evaluate(el=>getComputedStyle(el).backgroundColor);
     assert.ok(rowBackground!=='rgba(0, 0, 0, 0)'&&rowBackground!=='transparent','Pricing row gives a subtle purchase hover response: '+rowBackground);
