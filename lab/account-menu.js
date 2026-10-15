@@ -83,6 +83,15 @@ export function createAccountMenu(root) {
     const gap=window.matchMedia('(max-width:900px)').matches?14:24;
     const top=Math.max(8,Math.min(Math.round(anchor.bottom+gap),window.innerHeight-90));
     panel.style.setProperty('--pv-account-menu-top',top+'px');
+    // Studio reserves a stable scrollbar gutter. Measure the actual visible
+    // edge so the dropdown has the same 16px/10px gap on every page.
+    const edge=window.matchMedia('(max-width:480px)').matches?10:16;
+    panel.style.right=edge+'px';
+    if(root.open){
+      const visibleGap=window.innerWidth-panel.getBoundingClientRect().right;
+      if(Math.abs(visibleGap-edge)>.5)
+        panel.style.right=Math.round(2*edge-visibleGap)+'px';
+    }
   }
   summary.addEventListener('pointerdown',positionPanel);
   root.addEventListener('toggle',()=>{
