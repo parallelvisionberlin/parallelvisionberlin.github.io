@@ -1,0 +1,33 @@
+name: PV LAB canonical hostname redirect smoke test
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pvlab-www-redirect-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Verify www redirect preserves the path and query
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://www.pvlab.studio/studio.html?tool=image&from=www-check"
+          expected="https://pvlab.studio/studio.html?tool=image&from=www-check"
+          result=""
+          for attempt in 1 2 3 4 5; do
+            result="$(curl -sS --connect-timeout 7 --max-time 15 -o /dev/null -D /tmp/pvlab-redirect-headers -w '%{http_code}' "$url")" || result="network"
+            location="$(grep -i '^location:' /tmp/pvlab-redirect-headers | tail -n 1 | sed -e 's/^[Ll]ocation: *//' -e 's/\r$//' || true)"
+            echo "Attempt $attempt: HTTP $result"
+            if [ "$result" = "301" ] && [ "$location" = "$expected" ]; then
+              echo "PASS: PV LAB www redirected to apex with exact path and query"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "FAILED: Expected HTTP 301 with preserved path/query on www.pvlab.studio"
+          exit 1
