@@ -120,7 +120,10 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
     const trail=document.createElement('span');trail.className='pv-video-model-trail';
     if(item.meta.badge){
       const badge=document.createElement('span');badge.className='pv-video-model-badge';
-      badge.textContent=item.meta.badge;trail.append(badge);
+      badge.textContent=item.meta.badge;
+      if(item.id==='seedance')badge.dataset.tone='purple';
+      if(item.id==='seedance15')badge.dataset.tone='green';
+      trail.append(badge);
     }
     if(select.value===item.id){
       const check=document.createElement('span');check.className='pv-video-model-check';
