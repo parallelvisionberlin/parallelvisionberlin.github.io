@@ -57,3 +57,9 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - Check the Studio loading state on `https://pvlab.studio/studio` and sign-in readiness after the Pages deployment.
 - Observe the loading sequence on mobile, keyboard reduced-motion settings, and slower network conditions.
 - The logo is crisp even for fast-loading pages; its outgoing blur only plays on readiness, with pointer-events removed immediately.
+
+## October 15 Image Studio loading-width correction
+- User reported a small apparent expansion of /studio.html?tool=image as the page finishes loading, without deliberate automatic scrolling.
+- The boot sequence hides the scrollbar until splash exit. Authenticated Image History loads asynchronously after the editor becomes available and can introduce a classic desktop scrollbar, shifting content width.
+- Image-only early CSS now reserves a stable root scrollbar gutter whenever #app.image-studio-active exists; Video, Fashion and other tools retain their current gutter behavior. No paid generation, login, data, gallery fetch, or pricing logic changed.
+- Standalone mock-only Chromium regression tests the live Studio HTML/CSS at 1440x900 and 390x844. It checks image gallery and fixed composer geometry while locked, after splash exit, and as the simulated image history grows. It also verifies no automatic scrolling and no gutter change to other tools. Run via the account UI browser workflow.
