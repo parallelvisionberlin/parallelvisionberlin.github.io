@@ -43,7 +43,7 @@ test('Effects stay attached to existing Video Studio and do not create a paid sh
     'video-effect-upload','video-effect-from-gallery','effect-gallery-picker','effect-gallery-picker-grid']){
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,'One UI element: '+id);
   }
-  assert.match(html,/video-effects\.css\?v=20261016-1/);
+  assert.match(html,/video-effects\.css\?v=20261016-owner-only1/);
   assert.match(js,/video-effects\.js\?v=20261016-1/);
   assert.match(js,/mountVideoEffectsGallery/);
   assert.match(js,/resolveVideoEffect\(id,config\.videoEngines\)/);
