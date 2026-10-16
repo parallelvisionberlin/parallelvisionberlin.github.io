@@ -83,3 +83,22 @@ test('Oversized Mood uploads show an in-card error and keep the editor fixed',()
   assert.match(css,/\.mc-look-upload-error\{[\s\S]*?position:absolute/);
   assert.match(css,/#mc-look-file-clear\{[\s\S]*?position:absolute/);
 });
+
+test('Mood loading uses an accessible full-frame exposure and honest job states',()=>{
+  const page=read('lab/moods.html');
+  const css=read('lab/explore-moods-nav.css');
+  const js=read('lab/explore-moods.js');
+  assert.match(page,/id="mc-look-result-loading" role="status" aria-live="polite"/);
+  assert.match(page,/class="mc-look-exposure-plate"/);
+  assert.match(page,/id="mc-look-result-progress"/);
+  assert.doesNotMatch(page,/class="mc-look-result-loader"/);
+  assert.match(css,/\.mc-look-result-loading\{[\s\S]*?position:absolute;inset:0/);
+  assert.match(css,/\.mc-look-result-loading\[hidden\]\{display:none\}/);
+  assert.match(css,/prefers-reduced-motion:reduce/);
+  assert.match(css,/\.mc-look-result-frame>img:not\(\[hidden\]\)/);
+  assert.match(js,/queued:'In the generation queue…'/);
+  assert.match(js,/running:'Generating your photograph…'/);
+  assert.match(js,/resultLoading\.classList\.add\('is-stopped'\)/);
+  assert.match(js,/resultLoading\.classList\.remove\('is-stopped'\)/);
+  assert.equal((js.match(/currentPrice\.submit\(\)/g)||[]).length,1);
+});
