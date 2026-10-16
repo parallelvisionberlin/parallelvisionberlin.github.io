@@ -2581,7 +2581,7 @@ bindDrop('last-drop','last-image',async files=>{if(files[0])await setLastImage(f
 bindDrop('reference-drop','reference-images',async files=>{if(files.length)await addReferences(files);});
 attachVideoReferenceBrowserDrop({
   doc:document,target:$('reference-drop'),input:$('reference-images'),
-  enabled:()=>owner&&!busy&&tool==='video'&&mode==='reference'&&VIDEO_MODELS[engine].maxImages>0,
+  enabled:()=>owner&&!busy&&!$('start-frame-dialog').open&&tool==='video'&&mode==='reference'&&VIDEO_MODELS[engine].maxImages>0,
   onFiles:files=>{void action(async()=>{await addReferences(files);});}
 });
 frameMaker=createVideoStartFrameMaker({
