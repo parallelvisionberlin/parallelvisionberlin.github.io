@@ -26,27 +26,40 @@
 <script defer="" src="./js/featured-film.js"></script>
 <link href="./css/berlin-hyperfuture.css?v=20260914-mobile-3" rel="stylesheet"/>
 <script defer="" src="./js/berlin-carousel.js?v=20260914-exhibition-1"></script>
-<link href="./css/berlin-projects.css?v=20260916-film-width" rel="stylesheet"/><style>.pv-berlin .berlin-beyond-title{display:block;margin-top:16px;font:400 clamp(20px,3vw,36px)/1.25 Inter,Arial,sans-serif;letter-spacing:.01em;text-transform:none}.pv-berlin .berlin-world-line{max-width:530px;color:#d8d8d2;margin:32px 0 0;font-size:clamp(16px,1.5vw,20px);line-height:1.6}.pv-berlin .berlin-hero-media{z-index:0}.pv-berlin .berlin-hero-content{position:relative;z-index:1}.pv-berlin .berlin-hero>.archive-nav{z-index:3}</style></head>
+<link href="./css/berlin-projects.css?v=20260916-film-width" rel="stylesheet"/><style>.pv-berlin .berlin-beyond-title{display:block;margin-top:16px;font:400 clamp(20px,3vw,36px)/1.25 Inter,Arial,sans-serif;letter-spacing:.01em;text-transform:none}.pv-berlin .berlin-world-line{max-width:530px;color:#d8d8d2;margin:32px 0 0;font-size:clamp(16px,1.5vw,20px);line-height:1.6}.pv-berlin .berlin-hero-media{z-index:0}.pv-berlin .berlin-hero-content{position:relative;z-index:1}.pv-berlin .berlin-hero>.archive-nav{z-index:3}</style>
+<link rel="stylesheet" href="./css/project-navigation.css?v=20261016-1">
+<script defer src="./js/project-navigation.js?v=20261016-1"></script>
+</head>
 <body class="berlin-page pv-berlin">
 <a class="skip-link" href="#archive">Skip to main content</a>
-<header class="berlin-hero" id="top">
-<nav aria-label="Berlin 2063 navigation" class="archive-nav">
-<a href="./index.html">Parallel Vision</a>
-<div class="archive-nav-links">
-<a href="#archive">Archive</a>
-<a class="nav-sound" href="./index.html#releases"><span data-archive-de="Klang" data-archive-en="Sound">Sound</span> <span aria-hidden="true"><svg aria-hidden="true" class="archive-icon" fill="none" focusable="false" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" viewBox="0 0 24 24" width="22"><path d="M5 19 19 5M7 5h12v12"></path></svg></span></a>
-<a href="./future-fashion.html">Fashion After Fabric</a>
-<a href="./nina-project.html">Nina FOK</a>
-<details class="berlin-account-menu">
-<summary aria-label="Navigation and account"><span data-archive-de="Konto" data-archive-en="Account">Account</span></summary>
-<div class="berlin-account-panel">
-<a class="archive-text-link" href="./account.html"><span data-archive-de="Dein Konto" data-archive-en="Your account">Your account</span> <span aria-hidden="true"></span></a>
-<a class="archive-text-link" href="./account.html#credits"><span data-archive-de="Signal Credits" data-archive-en="Signal Credits">Signal Credits</span> <span aria-hidden="true"></span></a>
-<a class="archive-text-link" href="./account.html#redeemForm"><span data-archive-de="Code einlösen" data-archive-en="Redeem code">Redeem code</span> <span aria-hidden="true"></span></a>
-</div>
-</details>
-</div>
+<nav aria-label="Project navigation" class="archive-nav pv-project-nav" data-project-nav>
+  <div class="pv-project-nav-inner">
+    <a class="pv-project-nav-brand" href="./index.html">Parallel Vision</a>
+    <div class="archive-nav-links pv-project-nav-actions">
+      <div class="pv-project-nav-sections" id="pv-project-nav-sections">
+        <a href="./index.html#releases">Releases</a>
+        <a href="./berlin-2063.html" aria-current="page">Berlin 2063</a>
+        <a href="./future-fashion.html">Fashion After Fabric</a>
+        <a href="./nina-project.html">Nina FOK</a>
+      </div>
+      <details class="pv-project-account">
+        <summary aria-label="Account menu">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5.5 20c.65-3.9 3-6 6.5-6s5.85 2.1 6.5 6"></path></svg>
+          <span class="pv-project-sr-only" data-nav-en="Account menu" data-nav-de="Kontomenü">Account menu</span>
+        </summary>
+        <div class="pv-project-account-panel">
+          <a href="./account.html"><span data-nav-en="Your account" data-nav-de="Dein Konto">Your account</span></a>
+          <a href="./account.html#credits"><span data-nav-en="Signal Credits" data-nav-de="Signal Credits">Signal Credits</span></a>
+          <a href="./account.html#redeemForm"><span data-nav-en="Redeem code" data-nav-de="Code einlösen">Redeem code</span></a>
+        </div>
+      </details>
+      <button class="pv-project-nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="pv-project-nav-sections">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
+    </div>
+  </div>
 </nav>
+<header class="berlin-hero" id="top">
 <figure aria-hidden="true" class="berlin-hero-media">
 <img alt="" decoding="async" fetchpriority="high" height="1013" loading="eager" src="./assets/optimized/2063/urban-form/urbangalleryfirst.webp" width="1800"/>
 </figure>
