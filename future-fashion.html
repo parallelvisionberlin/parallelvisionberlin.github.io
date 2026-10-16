@@ -275,19 +275,39 @@
   .pv-fashion .inhabitant-foot { min-height: 44px; margin-top: 12px; padding-top: 10px; }
 }
 </style>
+<link rel="stylesheet" href="./css/project-navigation.css?v=20261016-1">
+<script defer src="./js/project-navigation.js?v=20261016-1"></script>
 </head>
 <body class="fashion-overview-page pv-fashion">
 <a class="skip-link" href="#main-content">Skip to main content</a>
-<header class="fashion-page-hero overview-hero">
-  <nav aria-label="Primary navigation" class="archive-nav">
-    <a href="./index.html">Parallel Vision</a>
-    <div class="archive-nav-links">
-      <a href="./index.html#releases">Releases</a>
-      <a href="./berlin-2063.html">Berlin 2063</a>
-      <a href="./nina-project.html">Nina FOK</a>
-      <a href="./index.html#contact">Contact</a>
+<nav aria-label="Project navigation" class="archive-nav pv-project-nav" data-project-nav>
+  <div class="pv-project-nav-inner">
+    <a class="pv-project-nav-brand" href="./index.html">Parallel Vision</a>
+    <div class="archive-nav-links pv-project-nav-actions">
+      <div class="pv-project-nav-sections" id="pv-project-nav-sections">
+        <a href="./index.html#releases">Releases</a>
+        <a href="./berlin-2063.html">Berlin 2063</a>
+        <a href="./future-fashion.html" aria-current="page">Fashion After Fabric</a>
+        <a href="./nina-project.html">Nina FOK</a>
+      </div>
+      <details class="pv-project-account">
+        <summary aria-label="Account menu">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5.5 20c.65-3.9 3-6 6.5-6s5.85 2.1 6.5 6"></path></svg>
+          <span class="pv-project-sr-only" data-nav-en="Account menu" data-nav-de="Kontomenü">Account menu</span>
+        </summary>
+        <div class="pv-project-account-panel">
+          <a href="./account.html"><span data-nav-en="Your account" data-nav-de="Dein Konto">Your account</span></a>
+          <a href="./account.html#credits"><span data-nav-en="Signal Credits" data-nav-de="Signal Credits">Signal Credits</span></a>
+          <a href="./account.html#redeemForm"><span data-nav-en="Redeem code" data-nav-de="Code einlösen">Redeem code</span></a>
+        </div>
+      </details>
+      <button class="pv-project-nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="pv-project-nav-sections">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
     </div>
-  </nav>
+  </div>
+</nav>
+<header class="fashion-page-hero overview-hero">
   <div class="fashion-hero-media">
     <img class="fashion-hero-poster" src="./assets/optimized/fashion-hero.webp" alt="Fashion After Fabric editorial campaign" decoding="async" loading="eager" width="1672" height="941" fetchpriority="high">
     <video class="fashion-hero-video" autoplay muted loop playsinline preload="none" poster="./assets/optimized/fashion-hero.webp" aria-hidden="true">
