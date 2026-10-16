@@ -158,3 +158,13 @@ body:has(#gate.pv-guest-image:not([hidden])) #tool-assets{display:none!important
 @media(prefers-reduced-motion:reduce){
   #gate .pv-guest-card,#gate .pv-guest-card img{transition:none!important}
 }
+
+
+/* Match the live signed-in welcome and the approved six-card reference. */
+@media(min-width:1151px){
+  #gate.pv-guest-image .pv-guest-content{padding-top:clamp(45px,5.5vh,65px)}
+  #gate.pv-guest-image h1{font-size:clamp(40px,3.75vw,63px)}
+  #gate .pv-guest-cards{margin-top:29px}
+  #gate .pv-guest-card{height:auto;aspect-ratio:250 / 440;max-height:455px}
+  #gate .pv-guest-composer{margin-top:28px}
+}
