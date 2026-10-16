@@ -1,19 +1,19 @@
 // A quote is only a preview, never permission to bill. The existing Worker
 // verifies wallet balances and vendor quote IDs again during paid submission.
 export function createCustomerImagePricing({snapshot,quote,changed,clock=Date.now,delay=850}){
-  let timer=null,expiryTimer=null,sequence=0;
+  let timer=null,expiryTimer=null,inflight=null,sequence=0;
   let state={status:'idle',key:null};
   const clear=()=>{clearTimeout(timer);clearTimeout(expiryTimer);timer=null;expiryTimer=null;};
   const valid=s=>!!(s&&s.key&&state.key===s.key);
   function reset(){
     if(state.status==='idle')return;
-    sequence++;clear();state={status:'idle',key:null};
+    sequence++;clear();inflight=null;state={status:'idle',key:null};
   }
   function start(s,immediate=false){
-    sequence++;clear();
+    sequence++;clear();inflight=null;
     state={status:'checking',key:s.key};
     const token=sequence;
-    timer=setTimeout(()=>{timer=null;void run(s,token);},immediate?0:delay);
+    timer=setTimeout(()=>{timer=null;inflight=run(s,token);},immediate?0:delay);
   }
   async function run(s,token){
     const check=()=>{
@@ -38,7 +38,33 @@ export function createCustomerImagePricing({snapshot,quote,changed,clock=Date.no
       if(token!==sequence||!valid(s))return;
       state={status:'error',key:s.key,message:error?.message||'Price lookup failed. Nothing was charged.'};
     }
-    if(token===sequence)changed();
+    if(token===sequence){inflight=null;changed();}
+  }
+  // User-initiated Generate must never wait for the preview debounce. Reuse
+  // its in-flight quote, or start it immediately, without a second vendor call.
+  async function readyForClick(key){
+    const selected=snapshot();
+    if(!selected?.key||selected.key!==key)
+      throw new Error('The image settings changed before the price could be confirmed. Nothing was charged.');
+    sync(true);
+    if(state.status==='ready')return state;
+    if(state.status==='error')start(selected,true);
+    if(timer){clearTimeout(timer);timer=null;inflight=run(selected,sequence);}
+    if(!inflight)throw new Error('Could not start the image price check. Nothing was charged.');
+    await inflight;
+    const current=snapshot();
+    if(current?.key!==key||state.key!==key)
+      throw new Error('The image settings changed during price checking. Nothing was charged.');
+    if(state.status!=='ready')throw new Error(state.message||'The live price could not be confirmed. Nothing was charged.');
+    return state;
+  }
+  function prime(){
+    const selected=snapshot();
+    if(!selected?.key)return;
+    sync(true);
+    if(state.key===selected.key&&state.status==='checking'&&timer){
+      clearTimeout(timer);timer=null;inflight=run(selected,sequence);
+    }
   }
   function sync(enabled){
     if(!enabled){reset();return {status:'unavailable'};}
@@ -58,5 +84,5 @@ export function createCustomerImagePricing({snapshot,quote,changed,clock=Date.no
     reset();
     return result;
   }
-  return {sync,retry,consume,reset,current:()=>state};
+  return {sync,prime,readyForClick,retry,consume,reset,current:()=>state};
 }
