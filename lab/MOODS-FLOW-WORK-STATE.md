@@ -176,3 +176,24 @@ Updated: 2026-10-16
 - Next: install the exact Spicy Webhook signing secret in Cloudflare Worker,
   then use future ordinary paid Mood generations to measure time to preview.
   Never claim sub-minute rendering without measured data.
+
+## 2026-10-16 Completion callbacks with no additional key
+- Verified Cloudflare Worker account (via authorized Cloudflare API): existing
+  `LAB_SECRET` and `LAB_CUSTOMER_SPICY_API_KEY` are present;
+  `SPICY_WEBHOOK_SECRET` is absent. No secret value read or exposed.
+- Replaced the missing native signature dependency with a private per-quote
+  HMAC wake-up URL derived from the EXISTING `LAB_SECRET`.
+- SpicyAPI requires `callBackUrl` be *identical* for quote and paid createTask.
+  The callback quote UUID and token are generated before pricing, persisted
+  unchanged in the quote payload, and used for exactly one paid submission.
+- Incoming callback content is ignored, even if forged; token validation
+  only triggers the existing server-authenticated `recordInfo` check.
+  Fallback 8-second polling remains enabled; no duplicate billed job.
+- Tests cover invalid URL tokens, tampered body, exact quote/submit payload,
+  callback replay, real provider completion and no second paid submission.
+- PR #268 merged as `cba2702f24b84576560921c0c5d2b43dd22cf69b`.
+  Existing unrelated Studio fastload assertion still fails; new tests pass.
+- Worker deployment run `38940647626` pending at handoff save.
+  Verify production `/health` version
+  `pv-lab-2026-10-16.3-spicy-mood-wakeup` before claiming live.
+- No changes required in SpicyAPI or Cloudflare dashboards.
