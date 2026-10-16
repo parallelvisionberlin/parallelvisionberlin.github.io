@@ -74,4 +74,5 @@
 - A failed media fetch shows a retryable loading error, not a failed paid generation. No extra paid attempt, retry request or generated asset mutation.
 - Video History becomes uniform 16:9 auto-fill cards with compact metadata and a Play Video label. Source stills use contain fit, avoiding unwanted portrait crop.
 - Scoped implementation: `lab/lab.js`, `lab/video-refresh.css`, `lab/studio.html`; regression: `tests/lab-image-viewer-browser.mjs` with delayed MP4, 1440/390 pixel viewports and no paid APIs.
-- Tests: GitHub Actions PR checks initiated; static and relevant tests to be verified before merging. Release requires confirming deployed source and browsing playback with an authenticated session.
+- Verified PR #242 browser checks: `Lab tests` gallery-browser and private-lab both passed on final source head `9518f398`; the fastqueue suite also passed its held-download video/gallery step. Other unrelated PR browser workflows retain earlier known failures.
+- Published to the repository main branch by squash merge `c1a12a6750053072b9be873ead2fc8969a365101` on 2026-10-16; current main `lab.js`, `studio.html`, `video-refresh.css` and test each contain the change. Independent public HTTP check was blocked by tool/network access. Live Cloudflare propagation and authenticated actual-video playback have not been independently checked.
