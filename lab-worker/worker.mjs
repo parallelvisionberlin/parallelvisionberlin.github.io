@@ -1,5 +1,5 @@
 import {filmFinishSettings} from '../lab/film-finish.js';
-import {verifySpicyCallback} from './spicy-webhook.mjs';
+import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook.mjs';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
 import {allowedLabParty} from './native-auth.mjs';
@@ -46,7 +46,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-16.2-mood-2k-fast';
+export const VERSION = 'pv-lab-2026-10-16.3-spicy-mood-wakeup';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1045,7 +1045,7 @@ async function refreshFalJob(env,j,p){
   }
 }
 
-async function refreshJob(env,j,ctx=null) {
+async function refreshJob(env,j,ctx=null,forcedByBoundCallback=false) {
   if(!['queued','running','saving'].includes(j.state)||!j.provider_id)return;
   const params=JSON.parse(j.params||'{}');if(params.provider==='openrouter'){if(j.state==='saving'){const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(lock.meta.changes)try{await saveFlashResult(env,j);}catch(e){await run(env,'UPDATE jobs SET error=? WHERE id=?','Archive retry: '+String(e.message).slice(0,300),j.id);}}return;}if(params.provider==='gemini')return refreshGeminiJob(env,j,params);
   if(j.state==='saving'&&j.remote_url){
@@ -1057,7 +1057,7 @@ async function refreshJob(env,j,ctx=null) {
   if(params.provider==='higgsfield')return refreshHiggsfield(env,j,params,hfDeps());
   if(params.provider==='fal')return refreshFalJob(env,j,params);
   if(params.provider==='fashn')return refreshFashionJob(env,j,{run,stmt,copyResult});
-  const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);
+  const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-(forcedByBoundCallback?1000:8000));
   if(!lock.meta.changes)return;
   try {
     const c=await config(env,j.owner_id);if(!c)return;
@@ -1237,6 +1237,39 @@ async function privateMoodEarlyPreview(env,job){
   }});
 }
 
+
+async function receiveSpicyMoodWakeup(request,env,ctx){
+  // The provider's body is untrusted. Authentication is an unguessable
+  // per-quote HMAC URL derived from the existing protected LAB_SECRET.
+  // This endpoint ONLY requests fresh job status from SpicyAPI, which remains
+  // the sole authority on outcome, billing and downloadable output.
+  if(request.method!=='POST')return new Response(null,{status:405});
+  const url=new URL(request.url);
+  const token=url.searchParams.get('v')||'';
+  if(!/^[A-Za-z0-9_-]{43}$/.test(token))return new Response(null,{status:401});
+  const length=Number(request.headers.get('content-length')||0);
+  if(!Number.isSafeInteger(length)||length<0||length>256*1024)
+    return new Response(null,{status:413});
+  const quoteId=uid(url.pathname.split('/').at(-1));
+  const job=await first(env,'SELECT * FROM jobs WHERE quote_id=?',quoteId);
+  if(!job?.id)return new Response(null,{status:503}); // Delivery may precede task storage.
+  const params=JSON.parse(job.params||'{}');
+  if(params.provider!=='spicy'||params.engine!=='seedream'||!params.moodId||
+     params.type!=='image')return new Response(null,{status:404});
+  const valid=equalWakeToken(await spicyWakeToken(env.LAB_SECRET,quoteId),token);
+  if(!valid)return new Response(null,{status:401});
+  if(['completed','failed','resolved'].includes(job.state))
+    return new Response(null,{status:204});
+  if(!job.provider_id||!['queued','running','saving'].includes(job.state))
+    return new Response(null,{status:503}); // Delivery may precede provider ID persistence.
+  // Bypass the usual eight-second polling delay for this one validated wake.
+  // Rechecking the provider never starts a paid job.
+  const work=refreshJob(env,job,ctx,true);
+  if(ctx?.waitUntil)ctx.waitUntil(work.catch(()=>{}));
+  else await work.catch(()=>{});
+  return new Response(null,{status:204,headers:{'Cache-Control':'no-store'}});
+}
+
 async function receiveSpicyMoodCallback(request,env,ctx){
   if(typeof env.SPICY_WEBHOOK_SECRET!=='string'||env.SPICY_WEBHOOK_SECRET.length<16)
     return new Response(null,{status:503});
@@ -1289,6 +1322,7 @@ async function route(request,env,ctx) {
   if(url.pathname.startsWith('/soul-dataset/')&&request.method==='GET')return publicSoulDataset(request,env,url,soulDeps());
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
   if(url.pathname==='/api/stripe/webhook'&&request.method==='POST')return stripeWebhook(request,env,ctx);
+  if(url.pathname.startsWith('/api/webhooks/spicy/wakeup/'))return receiveSpicyMoodWakeup(request,env,ctx);
   if(url.pathname==='/api/webhooks/spicy'&&request.method==='POST')return receiveSpicyMoodCallback(request,env,ctx);
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const identity=await authenticate(request,env);
@@ -1755,11 +1789,18 @@ async function route(request,env,ctx) {
     // Stage the exact reference bytes once, then price each image independently.
     // Identical provider inputs may share a vendor quote ID, while each PV LAB
     // quote and paid task still has its own internal ID; no paid inference begins here.
-    // A callback binds to the same payload on both quote and createTask.
-    // Do not request a callback until the signing secret is configured.
+    // The callback must match the priced request exactly. For Spicy accounts
+    // without a webhook signing key, bind the wake-up URL to a private quote ID
+    // generated before pricing, not to the later paid job ID.
     const callbackEnabled=typeof env.SPICY_WEBHOOK_SECRET==='string'&&env.SPICY_WEBHOOK_SECRET.length>=16&&
       p.type==='image'&&p.engine==='seedream'&&!!p.moodId;
-    const payload={model:p.model,input,...(callbackEnabled?{callBackUrl:'https://parallel-vision-lab.parallelvision.workers.dev/api/webhooks/spicy'}:{})};
+    const wakeQuoteId=!callbackEnabled&&quoteCount===1&&p.type==='image'&&p.engine==='seedream'&&!!p.moodId
+      ?crypto.randomUUID():null;
+    const wakeToken=wakeQuoteId?await spicyWakeToken(env.LAB_SECRET,wakeQuoteId):null;
+    const callBackUrl=callbackEnabled
+      ?'https://parallel-vision-lab.parallelvision.workers.dev/api/webhooks/spicy'
+      :wakeQuoteId?'https://parallel-vision-lab.parallelvision.workers.dev/api/webhooks/spicy/wakeup/'+wakeQuoteId+'?v='+wakeToken:null;
+    const payload={model:p.model,input,...(callBackUrl?{callBackUrl}:{})};
     let replies;
     try{
       replies=await Promise.all(Array.from({length:quoteCount},()=>vendorRequest('/jobs/quote',key,payload)));
@@ -1780,7 +1821,7 @@ async function route(request,env,ctx) {
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
       if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||!Number.isFinite(expiry)||expiry<=time)
         fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
-      const id=crypto.randomUUID(),expires=Math.min(expiry,time+290000);
+      const id=wakeQuoteId||crypto.randomUUID(),expires=Math.min(expiry,time+290000);
       return {id,estimatedUsd:estimate/1000000,maxUsd:maximum/1000000,expiresAt:expires,
         settings:p,provider:'SpicyAPI',vendorQuoteId:q.quoteId,expectedCost:String(q.estimatedCost),
         notice:'This quote is bound to your exact input. Generation starts only when you confirm. Provider terms apply; a result you dislike is still a paid generation.'};
@@ -1877,6 +1918,8 @@ async function route(request,env,ctx) {
     }catch(e){old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});throw e;}
     // Reuse the exact input URL and settings covered by the quote, never silently reprice.
     const payload={...JSON.parse(q.payload),quoteId:q.vendor_quote_id,expectedCost:q.expected_cost};
+    // Never alter the exact provider payload after pricing. Callback and image
+    // instructions were already bound to the quote before this paid request.
     let providerAccepted=false;
     try {
       const result=await vendorRequest('/jobs/createTask',key,payload,id);

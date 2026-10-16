@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {verifySpicyCallback} from '../lab-worker/spicy-webhook.mjs';
+import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from '../lab-worker/spicy-webhook.mjs';
 
 const secret='synthetic-spicy-webhook-secret-not-used-in-production';
 const time=1792160000000;
@@ -52,7 +52,9 @@ test('Mood pipeline uses 2K bound quotes, verified previews and private quality 
   const pricing=readFileSync(new URL('../lab-worker/customer-image-pricing.mjs',import.meta.url),'utf8');
   assert.match(client,/resolution:'2k',aspectRatio:imageAutoRatio/);
   assert.match(worker,/p\.engine==='seedream'&&p\.model===STILL_EDIT\?\{enable_thinking:true\}/);
-  assert.match(worker,/callBackUrl:'https:\/\/parallel-vision-lab\.parallelvision\.workers\.dev\/api\/webhooks\/spicy'/);
+  assert.match(worker,/const callBackUrl=callbackEnabled/);
+  assert.match(worker,/spicyWakeToken\(env\.LAB_SECRET,wakeQuoteId\)/);
+  assert.match(worker,/wakeQuoteId\|\|crypto\.randomUUID\(\)/);
   assert.match(worker,/receiveSpicyMoodCallback\(request,env,ctx\)/);
   assert.match(worker,/function privateMoodEarlyPreview/);
   assert.match(worker,/state==='saving'/);
@@ -62,4 +64,28 @@ test('Mood pipeline uses 2K bound quotes, verified previews and private quality 
   assert.match(mood,/client\.previewBlob\(id\)/);
   assert.doesNotMatch(mood,/setTimeout\(resolve,600\)/);
   assert.equal((client.match(/confirm:true/g)||[]).length,1,'one confirmed paid submission');
+});
+
+test('server-derived wake token is deterministic, quote-bound and unforgeable',async()=>{
+  const stored='existing-private-LAB_SECRET-from-fixture-not-production';
+  const idA='11111111-1111-4111-8111-111111111111';
+  const idB='22222222-2222-4222-8222-222222222222';
+  const first=await spicyWakeToken(stored,idA);
+  assert.match(first,/^[A-Za-z0-9_-]{43}$/);
+  assert.equal(await spicyWakeToken(stored,idA),first);
+  assert.equal(equalWakeToken(first,first),true);
+  assert.equal(equalWakeToken(first,await spicyWakeToken(stored,idB)),false);
+  assert.equal(equalWakeToken(first,await spicyWakeToken(stored+'x',idA)),false);
+  assert.equal(equalWakeToken(first,'A'.repeat(42)),false);
+  await assert.rejects(spicyWakeToken('short',idA),/unavailable/);
+  await assert.rejects(spicyWakeToken(stored,'not-a-uuid'),/binding/);
+});
+test('wake-up callback never uses the request body as job authority',()=>{
+  const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
+  const section=worker.slice(worker.indexOf('async function receiveSpicyMoodWakeup('),worker.indexOf('async function receiveSpicyMoodCallback('));
+  assert.match(section,/spicyWakeToken\(env\.LAB_SECRET,quoteId\)/);
+  assert.match(section,/refreshJob\(env,job,ctx,true\)/);
+  assert.doesNotMatch(section,/request\.json\(/);
+  assert.doesNotMatch(section,/remote_url=\?/);
+  assert.doesNotMatch(section,/vendorRequest\(|\/jobs\/createTask|\/api\/jobs\//);
 });
