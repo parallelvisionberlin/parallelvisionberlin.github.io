@@ -15,6 +15,7 @@ import {captureReferralCode,claimReferral} from './referral-capture.js?v=2026101
 captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261013-character-studio1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1&seedance15-4k=1';
+import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.mjs?v=20261016-1';
 import {createVideoModelPicker} from './video-model-picker.js?v=20261015-model-groups-purple3';
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
@@ -895,6 +896,8 @@ function setTool(value){
   assetLibrary?.close();
   if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
   const toolChanged=tool!==nextTool;
+  if(effectViewOpen){effectViewOpen=false;updateEffectUrl(false);}
+  if(nextTool!=='video')activeVideoEffect=null;
   tool=nextTool;syncStudioRoute(tool);const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
   $('app').classList.toggle('upscale-studio-active',upscale);
   if(toolChanged){$('notice').textContent='';$('notice').classList.remove('error');}
@@ -928,6 +931,7 @@ function setTool(value){
   }
   configureVideoControls();syncDefaultRatio(true);renderReferences();prewarmSeedreamDeck();resetPreview();refreshCanvasImport();update();syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
   if(owner&&assetLibrary&&galleryChanged){setHistorySelectMode(false);void loadHistory().catch(e=>notify(e.message,true));}
+  refreshEffectsView();
 }
 
 /* Floating Image Studio: one gallery, one real backend, no duplicate submissions.
@@ -1822,6 +1826,137 @@ let selectedVideoJob=null;
 let videoStartFrameHandoff=false;
 let videoSelectionRevision=0;
 let videoLoadJobId=null,videoLoadErrorJobId=null;
+
+/* Effects reuses the existing Video quote, submit, history and credit pipeline. */
+let effectViewOpen=false,activeVideoEffect=null,effectGalleryTicket=0;
+const effectPicker=$('effect-gallery-picker'),effectPickerUrls=new Set();
+function refreshEffectsView(){
+  const explorer=effectViewOpen&&owner&&tool==='video'&&!fashionActive&&!retouchActive&&!assetLibrary?.active();
+  $('app').classList.toggle('effects-explore-active',explorer);
+  $('video-effects-explore').hidden=!explorer;
+  mainWorkspace.hidden=explorer;
+  const chip=!!activeVideoEffect&&owner&&tool==='video'&&!explorer&&mode==='start'&&engine===activeVideoEffect.engine;
+  $('video-effect-active').hidden=!chip;
+  if(chip)$('video-effect-name').textContent=activeVideoEffect.name+($('prompt').value.trim()===activeVideoEffect.prompt?'':' · Edited');
+  $('tool-effects').classList.toggle('active',explorer);
+  $('tool-effects').setAttribute('aria-pressed',String(explorer));
+  if(tool==='video'){
+    $('tool-video').classList.toggle('active',!explorer);
+    $('tool-video').setAttribute('aria-pressed',String(!explorer));
+  }
+}
+function updateEffectUrl(open){
+  const url=new URL(location.href);
+  if(open)url.searchParams.set('effects','1');else url.searchParams.delete('effects');
+  if(url.href!==location.href)history.replaceState(history.state,'',url);
+}
+function closeEffectsView(){effectViewOpen=false;updateEffectUrl(false);refreshEffectsView();}
+function openEffectsView({scroll=true}={}){
+  if(!owner||busy)return;
+  if(tool!=='video')setTool('video');
+  effectViewOpen=true;updateEffectUrl(true);refreshEffectsView();
+  if(scroll)$('video-effects-explore').scrollIntoView({behavior:'instant',block:'start'});
+}
+function clearEffectPickerUrls(){
+  ++effectGalleryTicket;
+  for(const url of effectPickerUrls)URL.revokeObjectURL(url);
+  effectPickerUrls.clear();$('effect-gallery-picker-grid').replaceChildren();
+}
+function closeEffectPicker(){if(effectPicker.open)effectPicker.close();else clearEffectPickerUrls();}
+effectPicker.addEventListener('close',clearEffectPickerUrls);
+$('effect-gallery-picker-close').onclick=closeEffectPicker;
+async function openEffectImagePicker(){
+  if(!owner||tool!=='video'||busy)return;
+  clearEffectPickerUrls();
+  const ticket=effectGalleryTicket,requestEpoch=epoch,grid=$('effect-gallery-picker-grid'),status=$('effect-gallery-picker-status');
+  status.textContent='Loading your saved images…';effectPicker.showModal();
+  try{
+    const jobs=[],seen=new Set();let cursor=null;
+    for(let page=0;page<5&&jobs.length<24;page++){
+      const q=new URLSearchParams();
+      if(cursor?.before&&cursor?.afterId){q.set('before',cursor.before);q.set('afterId',cursor.afterId);}
+      const data=await api('/api/jobs?'+q.toString());
+      if(!owner||requestEpoch!==epoch||ticket!==effectGalleryTicket)return;
+      for(const job of data.jobs||[]){
+        if(job.settings?.type!=='image'||job.status!=='completed'||!job.outputId||seen.has(job.outputId))continue;
+        seen.add(job.outputId);jobs.push(job);if(jobs.length===24)break;
+      }
+      cursor=data.next;if(!cursor)break;
+    }
+    if(!jobs.length){status.textContent='No completed images in recent History. You can upload a photograph instead.';return;}
+    status.textContent='Choose one of your '+jobs.length+' recent images. The full-resolution original will be used.';
+    let selecting=false,nextThumb=0;
+    const thumbnails=[];
+    for(const job of jobs){
+      const button=document.createElement('button');button.type='button';button.className='effect-gallery-choice';
+      button.setAttribute('aria-label','Use saved image as effect start frame');
+      const img=document.createElement('img');img.alt='Saved image preview';img.loading='lazy';
+      const title=document.createElement('span');title.textContent=(job.settings?.engine||'Image')+' · Open';
+      button.append(img,title);grid.append(button);thumbnails.push({id:job.outputId,img});
+      button.onclick=()=>{
+        if(selecting||!owner||requestEpoch!==epoch)return;
+        selecting=true;status.textContent='Loading the full-resolution photograph…';
+        void action(async()=>{
+          try{
+            const original=await assetFile(job.outputId,'effect-start-frame');
+            if(!owner||requestEpoch!==epoch||ticket!==effectGalleryTicket)return;
+            if(await setImage(original,job.outputId)){
+              closeEffectPicker();
+              notify('Saved photograph loaded as your start frame. Review the motion prompt and live price to generate.');
+            }
+          }finally{selecting=false;if(effectPicker.open)status.textContent='Choose a saved image.';}
+        });
+      };
+    }
+    const workers=Array.from({length:4},async()=>{
+      while(nextThumb<thumbnails.length){
+        const item=thumbnails[nextThumb++];
+        try{
+          const blob=await assetThumbnailBlob(item.id);
+          if(!owner||requestEpoch!==epoch||ticket!==effectGalleryTicket)return;
+          const url=URL.createObjectURL(blob);effectPickerUrls.add(url);item.img.src=url;
+        }catch{/* Original remains selectable if its thumbnail is unavailable. */}
+      }
+    });
+    void Promise.all(workers);
+  }catch(error){
+    if(owner&&requestEpoch===epoch&&ticket===effectGalleryTicket)status.textContent='Could not open Gallery: '+error.message;
+  }
+}
+async function chooseVideoEffect(id){
+  if(!owner||busy)return;
+  const resolved=resolveVideoEffect(id,config.videoEngines);
+  if(!resolved.ok)throw new Error(resolved.message);
+  const {effect,settings:plan}=resolved;
+  if(tool!=='video')setTool('video');
+  const extras=!!lastFile||references.length>0||mediaRefs.count()>0;
+  if(extras&&!confirm('This effect uses one start frame. Clear existing extra references and the optional end frame? Saved History will not be changed.'))return;
+  const existingFile=extras?file:null,existingId=extras?sourceId:null;
+  if(extras)clearMedia();
+  if(engine!==plan.engine){
+    $('video-engine').value=plan.engine;
+    $('video-engine').onchange();
+    if(engine!==plan.engine)throw new Error('The required video model could not be selected. Nothing generated.');
+  }
+  setMode('start');
+  $('duration').value=String(plan.duration);
+  $('resolution').value=plan.resolution;
+  $('audio').checked=plan.audio;
+  $('prompt').value=plan.prompt;
+  $('seed').value='';
+  if(existingFile)await setImage(existingFile,existingId);
+  activeVideoEffect=effect;
+  closeEffectsView();update();refreshEffectsView();
+  notify(effect.name+' loaded. Choose a start photograph, then review the exact credit quote. No video has been generated.');
+}
+mountVideoEffectsGallery($('video-effects-grid'),id=>void action(()=>chooseVideoEffect(id)));
+$('tool-effects').onclick=()=>openEffectsView();
+$('video-effects-custom').onclick=closeEffectsView;
+$('video-effect-change').onclick=()=>openEffectsView();
+$('video-effect-upload').onclick=()=>{if(owner&&!busy&&!$('image').disabled)$('image').click();};
+$('video-effect-from-gallery').onclick=()=>void openEffectImagePicker();
+$('prompt').addEventListener('input',refreshEffectsView);
+
 function bringVideoPlayerIntoView(){
   if(tool!=='video')return;
   // The history feed scrolls independently on desktop, so opening a video
@@ -2375,7 +2510,7 @@ function configureVideoControls(){
   $('ref-count').textContent=references.length+' / '+referenceLimit();
   videoModelPicker.sync();
 }
-function setMode(nextMode){const modes=VIDEO_MODELS[engine].modes;mode=modes.includes(nextMode)?nextMode:modes[0];configureVideoControls();resetPreview();update();}
+function setMode(nextMode){const modes=VIDEO_MODELS[engine].modes;mode=modes.includes(nextMode)?nextMode:modes[0];if(mode!=='start')activeVideoEffect=null;configureVideoControls();resetPreview();update();refreshEffectsView();}
 $('mode-extend').onclick=()=>{if(!busy)setMode('extend');};
 $('video-create-task').onclick=()=>{if(!busy)setMode('reference');};
 $('mode-text').onclick=()=>{if(!busy)setMode('text');};
@@ -2385,7 +2520,7 @@ $('video-engine').onchange=()=>{
   if(!Object.hasOwn(VIDEO_MODELS,requested)||!config.videoEngines?.includes(requested)){$('video-engine').value=engine;notify('The backend has not enabled this model yet.',true);videoModelPicker.sync();return;}
   if(references.length>VIDEO_MODELS[requested].maxImages){$('video-engine').value=engine;notify('Remove excess references or save an image pack before choosing this model.',true);videoModelPicker.sync();return;}
   if(requested!=='seedance'&&mediaRefs.count()){$('video-engine').value=engine;notify('Remove video/audio references before changing model. Your inputs have been kept.',true);videoModelPicker.sync();return;}
-  engine=requested;currentQuote=null;if($('quote-dialog').open)$('quote-dialog').close();
+  engine=requested;activeVideoEffect=null;currentQuote=null;if($('quote-dialog').open)$('quote-dialog').close();
   if(engine==='seedance'){$('duration').value='5';$('resolution').value='720p';$('audio').checked=true;}
   else if(engine==='seedance15'){$('duration').value='5';$('resolution').value='720p';$('audio').checked=false;$('video-camera-lock').checked=false;}
   else if(engine==='seedance4k'){$('duration').value='5';$('resolution').value='4k';}
@@ -2395,7 +2530,7 @@ $('video-engine').onchange=()=>{
   else if(engine==='h3spicy'){$('duration').value='5';$('resolution').value='768p';}
   else if(engine==='h3maxfal'){$('duration').value='5';$('resolution').value='768p';mode='reference';}
   else if(engine==='omni'){$('duration').value='8';$('resolution').value='720p';}
-  configureVideoControls();resetPreview();update();
+  configureVideoControls();resetPreview();update();refreshEffectsView();
 };
 const mediaRefs=createMediaReferences({element:$,owner:()=>owner,busy:()=>busy,epoch:()=>epoch,action,changed:()=>{autoPreview=null;if(tool==='video'&&mode==='extend')resetPreview();update();},
   upload:async snapshot=>(await api('/api/reference-uploads',{method:'POST',headers:{'Content-Type':snapshot.type,'X-Filename':encodeURIComponent(snapshot.name||'reference')},body:snapshot})).id,assetFile});
@@ -3907,7 +4042,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();document.documentElement.classList.remove('pv-studio-route-pending');}
-function lock(){packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
+function lock(){packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();finishLabBoot();}
 const wallet=createCustomerWallet({api,notify,onBalance:value=>studioAccount.updateBalance(value),onClosed:async()=>{lock();await clerk.signOut();}});
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').hidden=false;$('signin').disabled=false;$('auth-retry').hidden=true;return;}if(owner&&userId===clerk.user.id)return;if(owner&&userId!==clerk.user.id)lock();
@@ -3930,7 +4065,8 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     $('history').setAttribute('aria-busy','true');
     // Resolve direct Fashion, Retouch, Assets, or Mood entries before revealing
     // the application. Never flash the Image editor in place of another tool.
-    try{await restoreStudioEntry();}catch(error){
+    const restoreEffects=new URLSearchParams(location.search).get('effects')==='1';
+    try{await restoreStudioEntry();if(restoreEffects&&tool==='video')openEffectsView({scroll:false});}catch(error){
       notify('Requested Studio view could not open. Your workspace is still available. '+error.message,true);
       if(owner)setTool('image');
     }
