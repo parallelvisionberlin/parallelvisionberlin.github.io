@@ -187,6 +187,11 @@
   display:block;max-width:100%;font-size:12px;line-height:1.45;color:#e3e3e8;
   text-wrap:balance;overflow-wrap:anywhere;
 }
+.mc-explore-page #mc-look-result-wait-note{
+  display:block;max-width:330px;margin-top:1px;color:#a7a9b1;
+  font:400 10px/1.35 'DM Sans',Arial,sans-serif;text-wrap:balance;
+}
+.mc-explore-page #mc-look-result-wait-note[hidden]{display:none}
 .mc-explore-page .mc-look-result-loading.is-finishing .mc-look-exposure-story span,
 .mc-explore-page .mc-look-result-loading.is-stopped .mc-look-exposure-story span{animation:none;opacity:0}
 .mc-explore-page .mc-look-result-loading.is-finishing .mc-look-exposure-story .mc-look-story-finish{
