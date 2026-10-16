@@ -167,10 +167,8 @@ async function purchase(button){
 }
 $('lab-header-signin')?.addEventListener('click',()=>void signIn());
 document.querySelectorAll('[data-lab-signin]').forEach(button=>button.addEventListener('click',()=>void signIn()));
-document.querySelectorAll('.start-link,[data-lab-welcome-start]').forEach(link=>link.addEventListener('click',event=>{
-  if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||clerk?.isSignedIn)return;
-  event.preventDefault();void signIn(event.currentTarget.href);
-}));
+// Start creating links navigate to the public Image Studio before requiring login.
+// Signing in happens at Generate, not on the first click from the homepage.
 $('lab-account-refer')?.addEventListener('click',()=>location.assign('./account.html#referrals'));
 $('lab-account-logout')?.addEventListener('click',async()=>{clearPurchaseIntent();await clerk?.signOut();profile=null;show();});
 buyButtons.forEach(button=>button.addEventListener('click',()=>void purchase(button)));

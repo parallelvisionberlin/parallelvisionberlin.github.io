@@ -1258,6 +1258,26 @@ const welcomePrompts=Object.freeze({
   'hong-kong-nights':'A rainy Asian side street at dusk seen through deep green haze, warm shopfront neon, wet reflections, a solitary passerby and a dark taxi, realistic atmospheric photography, mist, rich shadows and natural halation.',
   '80s-film':'A quiet golden sunset over a wide ocean beach, ripples breaking on wet sand, a distant dark rocky island, deep orange dusk, tactile analog color, soft warm film grain, peaceful natural landscape photography.'
 });
+// Consume only a short-lived text draft deliberately created in the public Studio.
+// Never touch identity, wallet, pricing or job state before authenticated /api/session.
+function restoreGuestImageDraft(){
+  if(!owner||tool!=='image')return;
+  const key='pv-lab-guest-image-draft-v1';let draft;
+  try{draft=JSON.parse(sessionStorage.getItem(key)||'null');}catch{return;}
+  if(!draft||!Number.isFinite(draft.at)||Date.now()-draft.at>30*60*1000||draft.at>Date.now()+60000){
+    try{sessionStorage.removeItem(key);}catch{}return;
+  }
+  const prompt=typeof draft.prompt==='string'?draft.prompt.slice(0,5000):'';
+  if(!prompt.trim()||$('prompt').value.trim())return;
+  if(typeof draft.mood==='string'&&moodById(draft.mood)){
+    if(imageEngine!=='seedream'){$('image-engine').value='seedream';$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));}
+    moodUI.restore({moodId:draft.mood,moodIntensity:60},true);
+  }
+  $('prompt').value=prompt;
+  $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
+  update();
+  try{sessionStorage.removeItem(key);}catch{}
+}
 function resetWelcomeStart(){
   const panel=$('lab-welcome-start'),intro=$('lab-image-empty-intro');
   if(panel)panel.hidden=true;
@@ -4124,7 +4144,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
   document.documentElement.classList.add('pv-studio-boot-lock');
   document.documentElement.classList.add('pv-studio-route-pending');
   document.body.classList.remove('lab-ready');
-  const data=await api('/api/session');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
+  const data=await api('/api/session');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('signin').hidden=true;$('signin').disabled=true;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
     if(data.accountClosed){
       await deviceMediaCache.signOut();$('studio-invite-friends').hidden=true;
       $('app').hidden=true;$('gate').hidden=false;$('signin').disabled=true;
@@ -4153,7 +4173,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     loadSoulProIdentity().catch(error=>console.warn('Saved identity could not load:',error))]);
     void myMoods.refresh().catch(()=>{/* Personal boards must not block image Studio sign-in. */});
     syncVideoStudioMode();
-    showWelcomeStart(data);if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){const stillSignedIn=!!clerk?.isSignedIn;lock();$('auth-status').textContent=stillSignedIn?'Studio setup could not finish. '+e.message+' Reload to retry.':e.message;$('signin').hidden=stillSignedIn;$('signin').disabled=stillSignedIn;$('auth-retry').hidden=!stillSignedIn;$('logout').hidden=!stillSignedIn;studioAccount.update({signed:stillSignedIn,user:clerk?.user});}finally{syncing=false;finishLabBoot();if(owner&&window.__PV_LAB_NATIVE__===1){
+    showWelcomeStart(data);restoreGuestImageDraft();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){const stillSignedIn=!!clerk?.isSignedIn;lock();$('auth-status').textContent=stillSignedIn?'Studio setup could not finish. '+e.message+' Reload to retry.':e.message;$('signin').hidden=stillSignedIn;$('signin').disabled=stillSignedIn;$('auth-retry').hidden=!stillSignedIn;$('logout').hidden=!stillSignedIn;studioAccount.update({signed:stillSignedIn,user:clerk?.user});}finally{syncing=false;finishLabBoot();if(owner&&window.__PV_LAB_NATIVE__===1){
       window.ReactNativeWebView?.postMessage(JSON.stringify({type:'PV_LAB_READY'}));
       // Older shells may reload without sending a destination command.
       // Release the restored workspace rather than leave an endless loader.

@@ -10,7 +10,7 @@
 (()=>{
   const host=location.hostname.toLowerCase();
   if((host==='parallelvisionlabel.com'||host==='www.parallelvisionlabel.com')&&
-    /^\/lab\/(?:index\.html)?$/.test(location.pathname)){
+    /^\/lab(?:\/(?:index\.html)?)?$/.test(location.pathname)){
     location.replace('https://pvlab.studio/'+location.search+location.hash);
   }
 })();

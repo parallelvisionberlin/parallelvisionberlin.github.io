@@ -1,6 +1,11 @@
 # Links copied from the older parallelvisionlabel.com/lab/ deployment.
 # On pvlab.studio the static site root is the lab directory.
+# Keep legacy /lab addresses canonical on the standalone domain.
 # No fixed query string in the target: keep the requested tool and attribution.
 /lab/studio /studio 301
 /lab/studio/ /studio 301
 /lab/studio.html /studio 301
+
+/lab / 301
+/lab/ / 301
+/lab/index.html / 301
