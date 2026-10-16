@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="./public-header.css?v=20261012-context-nav1">
 <link rel="stylesheet" href="./account-menu.css?v=20261016-account-menu-edge24">
 <link rel="stylesheet" href="./home-navigation.css?v=20261012-home1">
-<link rel="stylesheet" href="./explore-moods-nav.css?v=20261016-unified-nav1&resultFit=20261016v1">
+<link rel="stylesheet" href="./explore-moods-nav.css?v=20261016-unified-nav1&resultFit=20261016v1&exposure=20261016v1">
 <link rel="stylesheet" href="/lab/site-footer.css?v=20261013-footer1">
 </head>
 <body class="mc-explore-page">
@@ -212,7 +212,21 @@
     <section id="mc-look-result" class="mc-look-result" aria-label="Mood generation result" hidden>
       <div class="mc-look-result-heading"><span id="mc-look-result-heading">GENERATING YOUR IMAGE</span><a href="./studio.html?tool=image" id="mc-look-result-history" hidden>View in Image</a></div>
       <div class="mc-look-result-frame" id="mc-look-result-frame">
-        <div class="mc-look-result-loading" id="mc-look-result-loading" role="status"><span class="mc-look-result-loader" aria-hidden="true"></span><span id="mc-look-result-progress">Preparing your photograph…</span></div>
+        <div class="mc-look-result-loading" id="mc-look-result-loading" role="status" aria-live="polite" aria-atomic="true">
+          <div class="mc-look-exposure" aria-hidden="true">
+            <span class="mc-look-exposure-aura"></span>
+            <span class="mc-look-exposure-plate">
+              <span class="mc-look-exposure-form"></span>
+              <span class="mc-look-exposure-light"></span>
+              <span class="mc-look-exposure-scan"></span>
+            </span>
+            <span class="mc-look-exposure-mark">PV / LAB</span>
+          </div>
+          <div class="mc-look-exposure-copy">
+            <span class="mc-look-exposure-overline"><span class="mc-look-exposure-pulse" aria-hidden="true"></span><span id="mc-look-exposure-overline-text">IMAGE IN PROCESS</span></span>
+            <span id="mc-look-result-progress">Preparing your photograph…</span>
+          </div>
+        </div>
         <img id="mc-look-result-image" alt="Your newly generated Mood photograph" hidden>
       </div>
       <div id="mc-look-result-actions" class="mc-look-result-actions" hidden>
