@@ -369,3 +369,8 @@
 @media(prefers-reduced-motion:reduce){
   #pricing .lab-plan{transition:none}
 }
+/* Tall displays have the extra room for the full editorial card rhythm. */
+@media(min-width:1251px) and (min-height:941px){
+  #pricing .lab-plan{min-height:165px!important}
+  #pricing #lab-monthly-plans .lab-plan--recommended{min-height:181px!important}
+}
