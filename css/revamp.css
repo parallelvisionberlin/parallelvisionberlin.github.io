@@ -1640,3 +1640,17 @@ body .n-project-entrance .n-encounter-invitation>p{margin-bottom:12px}
     gap: 26px 20px;
   }
 }
+
+/* Releases introduction sits with its heading, not in a detached column. */
+body.pv-home #releases .section-head .small {
+  max-width: 440px;
+  margin: 11px 0 0;
+  color: rgba(255,255,255,.58);
+  font: 400 12px/1.55 var(--pv-body);
+  letter-spacing: .015em;
+}
+@media (min-width: 761px) {
+  body.pv-home #releases .section-head {
+    margin-bottom: 24px;
+  }
+}
