@@ -286,9 +286,11 @@ html.pv-native-lab #image-composer .mobile-image-deck .composer-controls .compos
 }
 /* Exact Prompt belongs with secondary model controls, not inside the writing area. */
 html.pv-native-lab #image-composer.mobile-show-advanced .mobile-image-deck .composer-controls>#composer-exact-prompt-option:not([hidden]){
-  display:flex!important;grid-column:1/-1;width:100%!important;min-width:0!important;
-  min-height:42px!important;justify-content:space-between;align-items:center;
-  padding:0 13px!important;margin:0!important;
+  display:flex!important;grid-column:2;justify-self:end;
+  width:38px!important;min-width:38px!important;max-width:38px!important;
+  height:42px!important;min-height:42px!important;
+  justify-content:center;align-items:center;
+  padding:0!important;margin:0!important;border:0!important;background:transparent!important;
 }
 /* Advanced drawers are part of the same deck, never overlays that get
    stranded behind the fixed native Generate area. */

@@ -6,7 +6,8 @@ const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
 const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
 const repair=readFileSync(new URL('../lab-worker/precision-edit.mjs',import.meta.url),'utf8');
 test('Exact Prompt stays an inline switch and reaches the server',()=>{
- assert.match(html,/<label id="composer-exact-prompt-option"[^>]*><span>Exact<\/span><input id="composer-exact-prompt"/);
+ assert.match(html,/<label id="composer-exact-prompt-option"[^>]*><input id="composer-exact-prompt"/);
+ assert.match(html,/id="composer-exact-prompt-help" class="composer-exact-tooltip" role="tooltip"/);
  assert.doesNotMatch(html,/id="composer-session-tools"/);
  assert.match(app,/exactPrompt:\$\('composer-exact-prompt'\)\.checked===true/);
  assert.match(worker,/value\?\.exactPrompt===true/);

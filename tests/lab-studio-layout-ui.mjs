@@ -306,8 +306,21 @@ try{
   });
   assert.ok(exactMetrics.inControls&&exactMetrics.afterCount&&!exactMetrics.inPromptRow,
     'Exact must sit in the control row after image count, never floating in the prompt: '+JSON.stringify(exactMetrics));
-  assert.ok(exactMetrics.exact.width<95&&Math.abs(exactMetrics.exact.top-exactMetrics.count.top)<15,
-    'Exact is a small, aligned toolbar switch: '+JSON.stringify(exactMetrics));
+  assert.ok(exactMetrics.exact.width<=40&&Math.abs(exactMetrics.exact.top-exactMetrics.count.top)<15,
+    'Exact is switch-only and remains aligned in the toolbar: '+JSON.stringify(exactMetrics));
+  const exactSurface=await x.page.locator('#composer-exact-prompt-option').evaluate(el=>{
+    const style=getComputedStyle(el),help=el.querySelector('.composer-exact-tooltip');
+    return {border:style.borderTopWidth,background:style.backgroundColor,
+      tooltipText:help?.textContent,tooltipVisibility:getComputedStyle(help).visibility};
+  });
+  assert.equal(exactSurface.border,'0px','No chip border around Exact');
+  assert.equal(exactSurface.background,'rgba(0, 0, 0, 0)','Exact background is transparent');
+  assert.equal(exactSurface.tooltipVisibility,'hidden','Hover explanation is hidden by default');
+  assert.match(exactSurface.tooltipText,/Exact Prompt.*No automatic prompt improvements/);
+  await x.page.locator('#composer-exact-prompt-option').hover();
+  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('.composer-exact-tooltip')).visibility==='visible');
+  await x.page.locator('#image-composer-model').hover();
+  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('.composer-exact-tooltip')).visibility==='hidden');
   assert.equal(exactMetrics.generateVisibility,'visible','Empty Generate must remain visible');
   assert.equal(exactMetrics.generateDisabled,true,'Empty Generate must remain disabled');
   assert.ok(exactMetrics.generate.left>exactMetrics.exact.right&&Math.abs(exactMetrics.generate.right-exactMetrics.deck.right)<36,

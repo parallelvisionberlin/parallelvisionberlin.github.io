@@ -1524,19 +1524,20 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
   #image-composer #composer-session-tools summary span{transition:none}
 }
 
-/* 2026-10-16: Exact Prompt is one quiet inline choice, not an Image settings menu.
-   Align the small Exact switch with the other toolbar controls; Generate stays in its fixed column. */
+/* Exact Prompt is a naked switch in the toolbar. The explanation appears
+   on hover or keyboard focus without moving the composer or Generate. */
 #image-composer #composer-more-anchor[hidden]{display:none!important}
 #image-composer .composer-controls #composer-exact-prompt-option{
-  display:inline-flex;align-items:center;justify-content:center;
-  box-sizing:border-box;min-height:40px;gap:7px;flex:0 0 auto;align-self:center;white-space:nowrap;
-  max-width:none;margin:0;padding:0 9px;
-  border:1px solid #383a37;border-radius:9px;background:#232523;
-  color:#b8beb5;font-size:11px;font-weight:560;line-height:1;
-  cursor:pointer;user-select:none;
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  box-sizing:border-box;flex:0 0 36px;width:36px;min-width:36px;
+  height:40px;min-height:40px;margin:0;padding:0 3px;
+  border:0!important;border-radius:0;background:transparent!important;
+  box-shadow:none!important;color:inherit;cursor:pointer;overflow:visible;
 }
-#image-composer .composer-controls #composer-exact-prompt-option:hover{color:#d5d9d4}
-#image-composer .composer-controls #composer-exact-prompt-option span{display:block}
+#image-composer .composer-controls #composer-exact-prompt-option:hover,
+#image-composer .composer-controls #composer-exact-prompt-option:has(input:checked){
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
 #image-composer .composer-controls #composer-exact-prompt-option input{
   appearance:none;-webkit-appearance:none;box-sizing:border-box;display:block;flex:none;
   width:28px;height:16px;min-height:16px;margin:0;
@@ -1544,9 +1545,8 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
   position:relative;cursor:pointer;transition:background .14s ease,border-color .14s ease;
 }
 #image-composer .composer-controls #composer-exact-prompt-option input:before{
-  content:'';position:absolute;left:2px;top:2px;
-  width:10px;height:10px;border-radius:50%;background:#d9dfd6;
-  transition:transform .14s ease;
+  content:'';position:absolute;left:2px;top:2px;width:10px;height:10px;
+  border-radius:50%;background:#d9dfd6;transition:transform .14s ease;
 }
 #image-composer .composer-controls #composer-exact-prompt-option input:checked{
   background:#617453;border-color:#8ea183;
@@ -1556,13 +1556,39 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
   outline:2px solid #f1f2ef;outline-offset:3px;
 }
 #image-composer .composer-controls #composer-exact-prompt-option input:disabled{opacity:.5;cursor:not-allowed}
-#image-composer .image-composer-top #image-composer-prompt{min-width:0}
+#image-composer .composer-controls #composer-exact-prompt-option .composer-exact-tooltip{
+  position:absolute;right:-7px;bottom:calc(100% + 10px);z-index:155;
+  box-sizing:border-box;display:grid;gap:5px;width:min(235px,calc(100vw - 38px));
+  max-width:none;min-width:0;margin:0;padding:11px 12px;
+  border:1px solid #474a46;border-radius:10px;background:#202220;
+  color:#f0f1ed;box-shadow:0 14px 38px rgba(0,0,0,.62);
+  text-align:left;white-space:normal;line-height:1.35;
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(4px);
+  transition:opacity .14s ease,transform .14s ease,visibility .14s ease;
+}
+#image-composer .composer-controls #composer-exact-prompt-option .composer-exact-tooltip strong{
+  display:block;font-size:12px;font-weight:650;letter-spacing:-.01em;
+}
+#image-composer .composer-controls #composer-exact-prompt-option .composer-exact-tooltip small{
+  display:block;color:#b4b9b2;font-size:11px;font-weight:450;line-height:1.45;
+}
+@media(hover:hover){
+  #image-composer .composer-controls #composer-exact-prompt-option:hover .composer-exact-tooltip{
+    opacity:1;visibility:visible;transform:translateY(0);
+  }
+}
+#image-composer .composer-controls #composer-exact-prompt-option:has(input:focus-visible) .composer-exact-tooltip{
+  opacity:1;visibility:visible;transform:translateY(0);
+}
 @media(max-width:650px){
-  #image-composer .composer-controls #composer-exact-prompt-option{min-height:36px;gap:5px;padding-inline:7px;font-size:10px}
+  #image-composer .composer-controls #composer-exact-prompt-option{
+    flex-basis:34px;width:34px;min-width:34px;height:36px;min-height:36px;
+  }
   #image-composer .composer-controls #composer-exact-prompt-option input{width:26px}
   #image-composer .composer-controls #composer-exact-prompt-option input:checked:before{transform:translateX(10px)}
 }
 @media(prefers-reduced-motion:reduce){
   #image-composer .composer-controls #composer-exact-prompt-option input,
-  #image-composer .composer-controls #composer-exact-prompt-option input:before{transition:none}
+  #image-composer .composer-controls #composer-exact-prompt-option input:before,
+  #image-composer .composer-controls #composer-exact-prompt-option .composer-exact-tooltip{transition:none}
 }

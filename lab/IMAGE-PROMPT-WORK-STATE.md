@@ -78,3 +78,11 @@
 - Moved the existing functional `composer-exact-prompt` control out of the text-writing row to immediately after Image count inside the toolbar, with a small normal-height chip. It retains its original checked state and backend behavior. Native Create keeps the switch inside More controls rather than overlaying the prompt.
 - Touched only `lab/studio.html`, `lab/assets.css`, `lab/studio-finish-v2.css`, `lab/native-create-gallery.css`, `tests/lab-image-generate-disabled-ui.mjs`, `tests/lab-studio-layout-ui.mjs`, this handoff. No account, billing, job, pricing, provider, backend or saved user data changes.
 - Mock browser regression now checks Generate remains visible and non-clickable when empty, enabled surface when ready, and exact switch alignment. GitHub Pages publication and CI separately verified after commit.
+
+## Exact switch without label or container (2026-10-16)
+- User approved the original fixed Generate button and requested a final reduction of Exact: remove the visible word and bordered chip, leave only a tiny switch after the Image count control. Hover/focus reveals an explanatory "Exact Prompt" tooltip.
+- Source baseline: `89f0717c970e670ec37833195c238f8a09e557d6`. The same `composer-exact-prompt` ID, checked state, enabled models and backend logic remain untouched. The tooltip states that automatic prompt improvements are disabled but Moods and references still apply.
+- `lab/assets.css` uses a 36px transparent switch wrapper, with absolute, noninteractive tooltip. Native Create retains a compact switch in expanded controls and an accessible label.
+- Regression tests verify transparent chipless appearance, 40px-or-less width, hover visibility, and existing Generate position. Production smoke checks new CSS asset fingerprint and tooltip CSS.
+- Files: `lab/studio.html`, `lab/assets.css`, `lab/native-create-gallery.css`, `tests/lab-studio-layout-ui.mjs`, `tests/lab-smart-prompt-ui.test.mjs`, `.github/workflows/pvlab-domain-smoke.yml`, this handoff.
+- No Generate, credit, price, model, upload, account, gallery, Worker or paid job changes. CI and live-domain deployment must be checked independently.
