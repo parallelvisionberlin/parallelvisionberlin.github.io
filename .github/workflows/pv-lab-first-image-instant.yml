@@ -1,0 +1,52 @@
+name: PV LAB instant first-image flow
+
+on:
+  pull_request:
+    paths:
+      - 'lab/lab.js'
+      - 'lab/customer-image-pricing.js'
+      - 'lab/studio.html'
+      - 'lab/studio-finish-v2.css'
+      - 'lab/image-welcome-editorial.css'
+      - 'lab/studio-guest-image.css'
+      - 'lab/studio-guest-image.js'
+      - 'tests/lab-customer-image-quotes.test.mjs'
+      - 'tests/lab-first-image-instant-browser.mjs'
+      - '.github/workflows/pv-lab-first-image-instant.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'lab/lab.js'
+      - 'lab/customer-image-pricing.js'
+      - 'lab/studio.html'
+      - 'lab/studio-finish-v2.css'
+      - 'tests/lab-customer-image-quotes.test.mjs'
+      - 'tests/lab-first-image-instant-browser.mjs'
+      - '.github/workflows/pv-lab-first-image-instant.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  first-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate module syntax and first-image price guards
+        run: |
+          node --check lab/lab.js
+          node --check lab/customer-image-pricing.js
+          node --check tests/lab-first-image-instant-browser.mjs
+          node --test tests/lab-customer-image-quotes.test.mjs
+      - name: Install isolated Chromium runtime
+        run: |
+          npm install --prefix /tmp/pv-first-image --no-audit --no-fund playwright@1.62.1
+          /tmp/pv-first-image/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify immediate Generate, exact credit quote and no double job
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-first-image/node_modules/playwright/index.mjs
+        run: node tests/lab-first-image-instant-browser.mjs

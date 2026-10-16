@@ -9,7 +9,7 @@ import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261013-upgrade1&model-rates=1&metaCheckout=20261015-1';
-import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261010-customer-credits1';
+import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1&imageRatio=20261016-inherit1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
@@ -38,7 +38,7 @@ import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop} from './vide
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']), slotStates=new Set(['submitting','queued','running','uncertain']);
 let clerk, owner=false, ownerAccount=false, customerMode=false, customerGenerationReady=false, customerImagePricing=null, imageRatioExplicit=false, soulRatioExplicit=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
-let imageSubmissionPending=false,imageSubmissionStage='Sending…';
+let imageSubmissionPending=false,imageSubmissionStage='Sending…',customerPriceIntentPending=false;
 let frameMaker=null;
 const fastImageHandoff=createImageSubmitHandoff();
 const moodReferences=createMoodReferenceLoader({upload:uploadAsset});
@@ -793,6 +793,9 @@ function applyCustomerImagePriceToGenerate(){
   if(!customerMode||tool!=='image'||fashionActive){
     customerImagePricing?.sync(false);return;
   }
+  // The customer's first Generate click may be waiting on its live bound quote.
+  // Do not cancel that exact quote while the one-click intent is pending.
+  if(customerPriceIntentPending)return;
   const button=$('generate');
   if(!customerGenerationReady){
     customerImagePricing?.sync(false);
@@ -809,7 +812,7 @@ function applyCustomerImagePriceToGenerate(){
   if(quote?.status==='ready'){
     const estimated=quote.kind==='server-estimate';
     button.textContent='Generate';
-    button.dataset.credits=(estimated?'~':'')+quote.credits.toLocaleString();
+    button.dataset.credits=(estimated?'~':'')+quote.credits.toLocaleString()+' credits';
     button.title=estimated?'Backend-calculated estimate. The server validates the cost again before submission.':
       'Live, bound provider quote. The amount updates with your selections.';
   }else if(quote?.status==='error'){
@@ -817,12 +820,13 @@ function applyCustomerImagePriceToGenerate(){
     button.title=(quote.message||'Could not check price. No generation was submitted.')+' Click Generate to retry the quote.';
   }else if(quote?.status==='checking'){
     button.textContent='Generate';
-    button.disabled=true;
-    button.title='Checking the selected model, resolution, references and image count. No generation has started.';
+    // A live quote still has to arrive before any paid submission, but it
+    // must not block the button. A click will reuse/await that exact quote.
+    button.title='Ready to generate. The verified credit price is being confirmed before submission.';
   }
 }
 
-function update(){syncVideoFrameCards();$('app').classList.toggle('extension-loaded',tool==='video'&&mode==='extend'&&mediaRefs.labels('video').length>0);if(tool==='video'&&mode==='extend')$('video-ref-count').textContent=mediaRefs.labels('video').length+' / 1';$('save').textContent=tool==='video'?'Save draft':tool==='upscale'?'Save upscale draft':'Save draft';$('clear').textContent=tool==='image'?'Reset editor':'Clear';if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':imageModelLabel(p),resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${videoLabel(p)} / ${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='openrouter'?config.openrouterEnabled:provider==='higgsfield'?config.higgsfieldEnabled:provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&references.length>0))||busy||imageSubmissionPending||(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))||submissionBlocked()||soulBlocked||(tool==='image'&&moodUI.invalid(imageEngine,$('prompt').value,imageInputReferences().length,imageEngine==='zspicy'?'base':imageReferenceMode))||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?'Generate':tool==='upscale'?'Upscale':'Generate'):(provider==='openrouter'?'Connect OpenRouter':provider==='higgsfield'?'Higgsfield API not connected':provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=tool==='image'&&imageEngine==='qwen3'?'Qwen Image 3.0 · text or up to 3 image references · 2K by default. SpicyAPI returns a bound quote including references.':tool==='image'&&imageEngine==='zspicy'?'Z-Image Spicy · text-to-image only · up to 1536 pixels per side. A bound SpicyAPI quote appears before generation.':tool==='image'&&imageEngine==='seedreamlite'?'Seedream 5 Lite · 2K · up to 10 photo references · live SpicyAPI quote.':tool==='image'&&imageEngine==='flash'?'Seedream Flash · $0.018 estimated per image · OpenRouter. '+(config.openrouterEnabled?'':'Add OPENROUTER_API_KEY in the Worker secrets to connect. '):tool==='image'&&imageEngine==='kling'?'Kling V3 · $0.028 estimated per image · FAL. Text or one base image; 1K / 2K.':isSoul2()?'PV Soul uses one base image and an optional trained Soul ID, NOT multiple reference photos. '+(hf.current()?'Selected identity: '+hf.current().name+'. ':'NO SOUL ID: results will not preserve Nina. ')+(customerMode?'Soul 2 uses PV Lab credits at its confirmed live quote.':'Review the live Higgsfield price and confirm before any generation; provider billing is authoritative.'):tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab prepares it automatically and keeps the original. Saving a draft does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();applyCustomerImagePriceToGenerate();syncImageComposer();videoModelPicker.sync();frameMaker?.sync();}
+function update(){syncVideoFrameCards();$('app').classList.toggle('extension-loaded',tool==='video'&&mode==='extend'&&mediaRefs.labels('video').length>0);if(tool==='video'&&mode==='extend')$('video-ref-count').textContent=mediaRefs.labels('video').length+' / 1';$('save').textContent=tool==='video'?'Save draft':tool==='upscale'?'Save upscale draft':'Save draft';$('clear').textContent=tool==='image'?'Reset editor':'Clear';if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':imageModelLabel(p),resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${videoLabel(p)} / ${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='openrouter'?config.openrouterEnabled:provider==='higgsfield'?config.higgsfieldEnabled:provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&references.length>0))||busy||imageSubmissionPending||customerPriceIntentPending||(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))||submissionBlocked()||soulBlocked||(tool==='image'&&moodUI.invalid(imageEngine,$('prompt').value,imageInputReferences().length,imageEngine==='zspicy'?'base':imageReferenceMode))||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?'Generate':tool==='upscale'?'Upscale':'Generate'):(provider==='openrouter'?'Connect OpenRouter':provider==='higgsfield'?'Higgsfield API not connected':provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=tool==='image'&&imageEngine==='qwen3'?'Qwen Image 3.0 · text or up to 3 image references · 2K by default. SpicyAPI returns a bound quote including references.':tool==='image'&&imageEngine==='zspicy'?'Z-Image Spicy · text-to-image only · up to 1536 pixels per side. A bound SpicyAPI quote appears before generation.':tool==='image'&&imageEngine==='seedreamlite'?'Seedream 5 Lite · 2K · up to 10 photo references · live SpicyAPI quote.':tool==='image'&&imageEngine==='flash'?'Seedream Flash · $0.018 estimated per image · OpenRouter. '+(config.openrouterEnabled?'':'Add OPENROUTER_API_KEY in the Worker secrets to connect. '):tool==='image'&&imageEngine==='kling'?'Kling V3 · $0.028 estimated per image · FAL. Text or one base image; 1K / 2K.':isSoul2()?'PV Soul uses one base image and an optional trained Soul ID, NOT multiple reference photos. '+(hf.current()?'Selected identity: '+hf.current().name+'. ':'NO SOUL ID: results will not preserve Nina. ')+(customerMode?'Soul 2 uses PV Lab credits at its confirmed live quote.':'Review the live Higgsfield price and confirm before any generation; provider billing is authoritative.'):tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab prepares it automatically and keeps the original. Saving a draft does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();applyCustomerImagePriceToGenerate();syncImageComposer();videoModelPicker.sync();frameMaker?.sync();}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v==='source'?'Source':v.toUpperCase(),v)));$(id).value=value;}
 function syncDefaultRatio(force=false){
   const select=$('ratio'),values=[...select.options].map(o=>o.value);
@@ -1255,7 +1259,7 @@ const welcomePrompts=Object.freeze({
   '90s-cinema':'An atmospheric 1990s film still of two friends browsing vinyl records in a dim independent record shop, warm window light, relaxed gestures, layered clothing, believable interior, realistic photography.',
   'fashion-editorial':'A contemporary high-fashion editorial portrait of a woman in a black leather jacket, direct soft flash, natural wet hair, compelling gaze, authentic skin texture, rich deep blacks, striking camera presence, photographic realism.',
   'dreamcore':'An uncanny tranquil indoor swimming pool with pastel pink and peach clouds beyond enormous windows, water reflecting the sunset, quiet tiled architecture, soft ambient light, believable photographed materials, dreamlike serenity.',
-  'hong-kong-nights':'A rainy Asian side street at dusk seen through deep green haze, warm shopfront neon, wet reflections, a solitary passerby and a dark taxi, realistic atmospheric photography, mist, rich shadows and natural halation.',
+  'hong-kong-nights':'Rainy East Asian street at night. A jade-green-lit corner shop with a red sign, one distant pedestrian and an older dark sedan; wet asphalt, deep shadows, humid emerald haze and realistic 35mm film grain.',
   '80s-film':'A quiet golden sunset over a wide ocean beach, ripples breaking on wet sand, a distant dark rocky island, deep orange dusk, tactile analog color, soft warm film grain, peaceful natural landscape photography.'
 });
 // Consume only a short-lived text draft deliberately created in the public Studio.
@@ -1317,6 +1321,9 @@ function useWelcomeMood(id){
   moodUI.restore({moodId:id,moodIntensity:60},true);
   $('prompt').value=welcomePrompts[id];
   $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
+  // Curated first-image looks are deliberate selections, not keystrokes.
+  // Start the read-only price request now instead of waiting 850 ms.
+  customerImagePricing?.prime();
   document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
     button.setAttribute('aria-pressed',String(button.dataset.welcomeMood===id));
   });
@@ -1522,8 +1529,15 @@ function syncImageComposer(){
   const generate=$('image-composer-generate');
   const generateActionLabel=$('generate').textContent;
   const creditCost=$('generate').dataset.credits||'';
-  generate.dataset.credits=creditCost;
+  const priceState=customerMode?customerImagePricing?.current():null;
+  const awaitingCreditPrice=customerMode&&customerGenerationReady&&
+    (customerPriceIntentPending||priceState?.status==='checking')&&!creditCost;
+  const priceUnavailable=customerMode&&customerGenerationReady&&priceState?.status==='error'&&!creditCost;
+  // Reserve a second line even during pricing so Generate never changes size.
+  generate.dataset.credits=creditCost|| (awaitingCreditPrice?'Confirming credits…':priceUnavailable?'Retry credit check':'');
   generate.classList.toggle('has-credit-cost',!!creditCost);
+  generate.classList.toggle('has-price-pending',!creditCost&&(awaitingCreditPrice||priceUnavailable));
+  generate.setAttribute('aria-label',creditCost?'Generate · '+creditCost:'Generate');
   generate.classList.remove('is-submitting');
   generate.classList.toggle('is-long-label',generateActionLabel.length>16);
   generate.disabled=$('generate').disabled;
@@ -1531,11 +1545,10 @@ function syncImageComposer(){
   generate.querySelector('.composer-generate-label').textContent=generateActionLabel;
   const generateSparkle=generate.querySelector('.composer-generate-sparkle');
   if(generateSparkle)generateSparkle.hidden=generateActionLabel.startsWith('Connect ')||generateActionLabel.includes('not connected');
-  // Pricing and submission feedback must never replace the Generate action.
-  const priceState=customerMode?customerImagePricing?.current():null;
+  // Pricing is contained inside Generate; the external status is for an
+  // actual click/submission, not an inactive preflight that moves the deck.
   const progress=imageSubmissionPending?imageSubmissionStage:
-    customerMode&&customerGenerationReady&&priceState?.status==='checking'?'Checking price…':
-    customerMode&&customerGenerationReady&&priceState?.status==='error'?'Price unavailable · click Generate to retry':'';
+    customerPriceIntentPending?'Preparing your image…':'';
   const progressLine=$('image-composer-status');
   // Do not overwrite a file-validation or generation error while controls
   // refresh. Its dismiss button (or the next valid upload) clears it explicitly.
@@ -4135,7 +4148,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();document.documentElement.classList.remove('pv-studio-route-pending');}
-function lock(){packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();finishLabBoot();}
+function lock(){customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();finishLabBoot();}
 const wallet=createCustomerWallet({api,notify,onBalance:value=>studioAccount.updateBalance(value),onClosed:async()=>{lock();await clerk.signOut();}});
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').hidden=false;$('signin').disabled=false;$('auth-retry').hidden=true;return;}if(owner&&userId===clerk.user.id)return;if(owner&&userId!==clerk.user.id)lock();
@@ -4152,8 +4165,9 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
       wallet.open();return;
     }
     if(!customerMode&&new URLSearchParams(location.search).get('settings')==='connection')connection();
-    // The authenticated studio is already usable. History and optional account
-    // resources can finish loading without holding the entire screen behind boot.
+    // Do not reveal the former empty-gallery layout while private History is
+    // still resolving. The final first-image cards must already be selected
+    // before the loading overlay disappears.
     $('emptyarchive').textContent='Loading your images…';
     $('history').setAttribute('aria-busy','true');
     // Resolve direct Fashion, Retouch, Assets, or Mood entries before revealing
@@ -4164,16 +4178,20 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
       if(owner)setTool('image');
     }
     if(restoreEffects&&ownerAccount&&tool==='video')openEffectsView({scroll:false});
-    finishLabBoot();
     if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();
-    await Promise.all([loadHistory().finally(()=>$('history').removeAttribute('aria-busy')).catch(error=>{
+    const historyReady=loadHistory().finally(()=>$('history').removeAttribute('aria-busy')).catch(error=>{
       notify('History could not refresh. Your saved work is unchanged. Try Refresh or Assets. '+error.message,true);
-    }),loadPacks().catch(error=>console.warn('Photo packs could not load:',error)),
-    soul.load().catch(error=>console.warn('Saved characters could not load:',error)),
-    loadSoulProIdentity().catch(error=>console.warn('Saved identity could not load:',error))]);
+    });
+    // Non-essential account resources no longer delay the first visible frame.
+    void Promise.all([loadPacks().catch(error=>console.warn('Photo packs could not load:',error)),
+      soul.load().catch(error=>console.warn('Saved characters could not load:',error)),
+      loadSoulProIdentity().catch(error=>console.warn('Saved identity could not load:',error))]);
+    await historyReady;
     void myMoods.refresh().catch(()=>{/* Personal boards must not block image Studio sign-in. */});
     syncVideoStudioMode();
-    showWelcomeStart(data);restoreGuestImageDraft();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){
+    showWelcomeStart(data);restoreGuestImageDraft();
+    finishLabBoot();
+    if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){
   const stillSignedIn=!!clerk?.isSignedIn;
   // A new V2 Clerk identity is not yet a funded PV LAB wallet. Only redirect
   // after the authenticated migration endpoint confirms the identity is unlinked.
@@ -4262,7 +4280,7 @@ window.visualViewport?.addEventListener('resize',()=>{if(!imageComposer.hidden)f
 
 // The editor stays interactive: a paid submission only reads this captured request.
 async function submitImageSnapshot(){
-  if(busy||imageSubmissionPending||!owner||!hasInput()||submissionBlocked()||fastImageHandoff.has(currentImageSubmissionKey()))return;
+  if(busy||imageSubmissionPending||customerPriceIntentPending||!owner||!hasInput()||submissionBlocked()||fastImageHandoff.has(currentImageSubmissionKey()))return;
   if(usesReferenceGuidance()){
     const advisories=referenceRoleAdvisories(referenceRoles());
     if(advisories.length&&!confirm('Check these reference roles before spending credits:\n\n'+advisories.join('\n\n')+'\n\nGenerate anyway?'))return;
@@ -4271,13 +4289,25 @@ async function submitImageSnapshot(){
   // A fresh paid request is NEVER a retry of an unknown provider transaction.
   // Confirm this *before* consuming the customer's current price snapshot.
   if(previousNanoUnconfirmed&&!confirm('A previous Nano Banana Pro result could not be confirmed. Its credits remain reserved for review. This starts a NEW image and uses additional credits. No earlier request will be retried or cancelled. Continue?'))return;
-  // Customer Generate must be backed by the currently displayed server quote.
-  // An error-click retries pricing and never silently submits a paid job.
+  // The preview quote remains authoritative. If it is still being prepared,
+  // one explicit Generate click immediately waits for/reuses that exact quote
+  // and submits once. No additional click or speculative customer price.
   const snapshot=customerMode?imageCreditQuoteSnapshot():null;
-  const customerPriced=customerMode?customerImagePricing?.consume(snapshot?.key):null;
+  let customerPriced=customerMode?customerImagePricing?.consume(snapshot?.key):null;
   if(customerMode&&!customerPriced){
-    if(customerGenerationReady)customerImagePricing?.retry();
-    return;
+    if(!customerGenerationReady||!snapshot?.key||!customerImageProviderReady())return;
+    customerPriceIntentPending=true;update();
+    try{
+      await customerImagePricing.readyForClick(snapshot.key);
+      customerPriced=customerImagePricing.consume(snapshot.key);
+      if(!customerPriced)throw new Error('The live image price expired. Nothing was charged.');
+      $('generate').dataset.credits=(customerPriced.kind==='server-estimate'?'~':'')+
+        customerPriced.credits.toLocaleString()+' credits';
+    }catch(error){
+      customerPriceIntentPending=false;
+      if(owner)notify('Image price could not be confirmed. '+error.message,true);
+      update();return;
+    }
   }
   const sessionEpoch=epoch,provider=currentProvider();
   let selected=structuredClone(settings());
@@ -4301,6 +4331,7 @@ async function submitImageSnapshot(){
     if(detached)update();
   };
   const send=async(path,body,detail='Waiting for the provider to confirm.')=>{check();feedback?.phase('Submitting',detail);dispatched=true;return api(path,{method:'POST',body});};
+  customerPriceIntentPending=false;
   imageSubmissionPending=true;imageSubmissionStage='Preparing…';update();
   let submitted=0;
   try{

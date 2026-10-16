@@ -94,3 +94,74 @@ test('customer preview is read-only and public generation switches are deliberat
   // The compact deck has an independent label. Assert the real label handoff, not a retired textContent assignment.
   assert.match(lab,/generate\.querySelector\('\.composer-generate-label'\)\.textContent=generateActionLabel/);
 });
+
+test('first-image Generate clicks through the pricing debounce and reuses one bound quote',async()=>{
+  let requested=0,released;const gate=new Promise(resolve=>{released=resolve;});
+  const draft={key:'welcome-dream-blur'};
+  const preview=createCustomerImagePricing({
+    snapshot:()=>draft,
+    quote:async(s,check)=>{requested++;await gate;check();return {kind:'bound',credits:25,expiresAt:Date.now()+120000};},
+    changed:()=>{},delay:850
+  });
+  assert.equal(preview.sync(true).status,'checking');
+  const click=preview.readyForClick(draft.key);
+  assert.equal(requested,1,'Click must start quote immediately, without an 850ms timer');
+  assert.equal(preview.current().status,'checking');
+  released();const price=await click;
+  assert.equal(price.credits,25);
+  assert.equal(preview.consume(draft.key)?.credits,25);
+  assert.equal(requested,1,'Preview and paid click share the same one quote');
+  assert.equal(preview.consume(draft.key),null,'A quote cannot be consumed twice');
+});
+
+test('curated cards immediately prime live pricing, but stale quotes can never be consumed',async()=>{
+  let calls=0,released;const gate=new Promise(resolve=>{released=resolve;});
+  let draft={key:'green-haze'};
+  const preview=createCustomerImagePricing({
+    snapshot:()=>draft,
+    quote:async(s,check)=>{
+      calls++;
+      if(s.key==='green-haze'){await gate;check();}
+      return {kind:'bound',credits:25,expiresAt:Date.now()+120000};
+    },changed:()=>{},delay:850
+  });
+  preview.prime();
+  assert.equal(calls,1,'Card click starts pricing without the typing debounce');
+  const firstClick=preview.readyForClick('green-haze');
+  draft={key:'sun-fade'};preview.sync(true);
+  released();
+  await assert.rejects(firstClick,/changed|confirmed/i);
+  assert.equal(preview.consume('green-haze'),null,'No stale provider price can be paid');
+  preview.prime();
+  const latest=await preview.readyForClick('sun-fade');
+  assert.equal(latest.credits,25);
+  assert.equal(calls,2);
+  preview.reset(); // Do not keep the Node test runner alive with the quote expiry timer.
+});
+
+test('signed-in first-image page has one boot reveal and a selected-only Mood highlight',()=>{
+  const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const welcome=readFileSync(new URL('../lab/image-welcome-editorial.css',import.meta.url),'utf8');
+  const guest=readFileSync(new URL('../lab/studio-guest-image.css',import.meta.url),'utf8');
+  const guestPrompt=readFileSync(new URL('../lab/studio-guest-image.js',import.meta.url),'utf8');
+  const priceStyle=readFileSync(new URL('../lab/studio-finish-v2.css',import.meta.url),'utf8');
+  const marker=lab.indexOf('const historyReady=loadHistory()');
+  assert.ok(marker>0);
+  const awaiting=lab.indexOf('await historyReady;',marker);
+  const firstImage=lab.indexOf('showWelcomeStart(data);',marker);
+  const reveal=lab.indexOf('finishLabBoot();',marker);
+  assert.ok(marker<awaiting&&awaiting<firstImage&&firstImage<reveal,
+    'Never reveal the old short gallery before the first-image layout is resolved');
+  assert.match(welcome,/\.lab-welcome-preset\[aria-pressed="true"\]/);
+  assert.doesNotMatch(welcome,/\.lab-welcome-preset:first-child/);
+  assert.doesNotMatch(guest,/\.pv-guest-card:first-child/);
+  assert.match(priceStyle,/\.composer-generate:not\(\.is-submitting\)::after/);
+  assert.match(lab,/customerImagePricing\?\.prime\(\)/);
+  assert.match(lab,/customerImagePricing\.readyForClick\(snapshot\.key\)/);
+  const welcomePrompt=lab.match(/'hong-kong-nights':'([^']+)'/)?.[1];
+  const publicPrompt=guestPrompt.match(/'hong-kong-nights':'([^']+)'/)?.[1];
+  assert.equal(publicPrompt,welcomePrompt,'Public and signed-in Green Haze scenes must match');
+  assert.match(welcomePrompt,/green-lit corner shop|jade-green-lit corner shop/i);
+  assert.match(welcomePrompt,/red sign/);
+  assert.match(welcomePrompt,/older dark sedan/);
+});

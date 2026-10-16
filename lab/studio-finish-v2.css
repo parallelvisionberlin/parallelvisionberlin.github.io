@@ -135,3 +135,15 @@
 @media(max-width:650px){
   #image-composer .composer-generate:not(.is-long-label):not(.is-submitting) .composer-generate-label{font-size:16px}
 }
+
+/* A first-image Mood must have one stable, actionable Generate control.
+   The credit line uses the exact server quote once available. Preflight
+   never changes the button's dimensions or turns it into a disabled tile. */
+#image-composer .composer-generate:not(.is-submitting)::after{
+  content:attr(data-credits);display:block;min-height:15px;
+  font-size:11px;line-height:1.15;font-weight:550;
+  color:inherit;opacity:.72;white-space:nowrap;
+}
+#image-composer .composer-generate.has-price-pending:not(.is-submitting)::after{
+  font-size:11px;font-weight:450;opacity:.6;
+}

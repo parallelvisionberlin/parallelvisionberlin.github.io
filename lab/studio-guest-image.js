@@ -9,7 +9,7 @@ const prompts=Object.freeze({
   '90s-cinema':'An atmospheric 1990s film still of two friends browsing vinyl records in a dim independent record shop, warm window light, relaxed gestures, layered clothing, believable interior, realistic photography.',
   'fashion-editorial':'A contemporary high-fashion editorial portrait of a woman in a black leather jacket, direct soft flash, natural wet hair, compelling gaze, authentic skin texture, rich deep blacks, striking camera presence, photographic realism.',
   'dreamcore':'An uncanny tranquil indoor swimming pool with pastel pink and peach clouds beyond enormous windows, water reflecting the sunset, quiet tiled architecture, soft ambient light, believable photographed materials, dreamlike serenity.',
-  'hong-kong-nights':'A rainy Asian side street at dusk seen through deep green haze, warm shopfront neon, wet reflections, a solitary passerby and a dark taxi, realistic atmospheric photography, mist, rich shadows and natural halation.',
+  'hong-kong-nights':'Rainy East Asian street at night. A jade-green-lit corner shop with a red sign, one distant pedestrian and an older dark sedan; wet asphalt, deep shadows, humid emerald haze and realistic 35mm film grain.',
   '80s-film':'A quiet golden sunset over a wide ocean beach, ripples breaking on wet sand, a distant dark rocky island, deep orange dusk, tactile analog color, soft warm film grain, peaceful natural landscape photography.'
 });
 let selected='';
