@@ -18,6 +18,7 @@ import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-ex
 import {createVideoModelPicker} from './video-model-picker.js?v=20261015-model-groups-purple3';
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
+import {createPvDirector} from './pv-director.js?v=20261016-beta1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
@@ -586,6 +587,23 @@ function referenceRoles(){return references.map(r=>normalizeReferenceLabel({name
 // Switching to a text-only model parks photos in the editor, it never deletes them.
 function imageInputReferences(){return tool==='image'&&imageEngine==='zspicy'?[]:references;}
 function usesReferenceGuidance(){return tool==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(imageEngine);}
+const pvDirector=createPvDirector({
+  button:$('composer-director-trigger'),panel:$('composer-director-panel'),api,
+  getState:()=>{
+    const base=imageInputReferences().find(r=>r.role==='base')||imageInputReferences()[0];
+    return {
+      owner:!!owner,enabled:tool==='image'&&!customerMode&&usesReferenceGuidance(),
+      file:base?.file||null,imageMode:imageReferenceMode,engine:imageEngine,
+      mood:moodUI.active(),busy,epoch,prompt:$('prompt').value.trim()
+    };
+  },
+  apply:direction=>{
+    // This is a normal authored, editable direction, never an automatic paid submission.
+    $('image-composer-prompt').value=direction;
+    $('image-composer-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+  },
+  notify:(message,error)=>{if(error)notify(message,true);}
+});
 function imageGuidance(){
   const labels=referenceRoles(),mood=moodUI.enrich(effectiveImagePrompt(),{engine:imageEngine,referenceCount:references.length,referenceMode:imageReferenceMode});
   const current={type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,exactPrompt:$('composer-exact-prompt').checked,...mood.metadata};
@@ -1418,6 +1436,7 @@ function syncImageComposer(){
   moodUI.sync({visible:image,locked:busy});
   imageStudio.hidden=!image;
   syncComposerOptions();
+  pvDirector.sync();
   if(!image){closeComposerAddMenu();return;}
   // Keep the two-mode selection synchronized without adding another toolbar button.
   $('image-reference-mode-wrap').hidden=true;
@@ -3001,6 +3020,11 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-detail-copy').disabled=!hasWrittenDirection;
   $('image-detail-prompt-heading').textContent=moodName?'Your direction':'Prompt';
   $('image-detail-prompt').textContent=promptText;
+  // Only the owner sees the compiled backend direction. Customer-facing
+  // user prompts, Moods and native format remain exactly as before.
+  const applied=typeof params.appliedDirection==='string'?params.appliedDirection:'';
+  $('image-detail-applied-wrap').hidden=customerMode||!applied;
+  $('image-detail-applied-prompt').textContent=customerMode?'':applied;
   $('image-detail-prompt').classList.toggle('is-collapsible',promptText.length>160);
   $('image-detail-prompt').classList.remove('is-expanded');
   $('image-detail-expand').setAttribute('aria-expanded','false');
