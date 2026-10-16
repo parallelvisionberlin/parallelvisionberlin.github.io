@@ -102,6 +102,8 @@ Updated: 2026-10-16
   screenshots reviewed from CI. Mocked jobs, no real provider charge.
 - Existing Image references/Video Studio browser failures were already present
   on main before this task and are unrelated to Mood loader code.
-- Cloudflare Pages deployment confirmation for merge commit is pending.
-  Next: check actual Pages result, then refresh `https://pvlab.studio/moods`
-  and evaluate the motion with the real Mood photograph.
+- Cloudflare Pages reported deployment SUCCESS for merge commit
+  `2cb7c38a60980f042efbbf14847ec9c1354a81ec` on 2026-10-16 at
+  14:54 UTC. This verifies publication, not a direct visual browser check.
+- Next: refresh `https://pvlab.studio/moods` and evaluate motion with the
+  real Mood photograph on both desktop and mobile.
