@@ -95,14 +95,9 @@
 #app.image-studio-active #lab-welcome-start .lab-welcome-preset:focus-visible{
   outline:2px solid #f4eee6;outline-offset:4px
 }
-#app.image-studio-active #lab-welcome-start .lab-welcome-preset[aria-pressed="true"],
-#app.image-studio-active #lab-welcome-start .lab-welcome-preset:first-child:not([aria-pressed="true"]){
+#app.image-studio-active #lab-welcome-start .lab-welcome-preset[aria-pressed="true"]{
   border-color:#f0ddd0;
   box-shadow:0 0 0 1px rgba(255,240,223,.64),0 0 18px rgba(234,204,172,.26),0 18px 40px rgba(0,0,0,.47)
-}
-#app.image-studio-active #lab-welcome-start:has(.lab-welcome-preset[aria-pressed="true"])
-.lab-welcome-preset:first-child:not([aria-pressed="true"]){
-  border-color:rgba(235,232,229,.25);box-shadow:0 12px 36px rgba(0,0,0,.28)
 }
 #app.image-studio-active #lab-welcome-start .lab-welcome-hint{
   position:absolute!important;width:1px;height:1px;overflow:hidden;
