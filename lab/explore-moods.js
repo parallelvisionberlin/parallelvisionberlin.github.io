@@ -29,7 +29,8 @@ function initialize(){
     resultImg.hidden=true;resultImg.removeAttribute('src');resultActions.hidden=true;
     $('mc-look-result-again').hidden=true;
     $('mc-look-result-history').hidden=true;
-    resultLoading.hidden=false;
+    resultLoading.hidden=false;resultLoading.classList.remove('is-stopped');
+    $('mc-look-exposure-overline-text').textContent='IMAGE IN PROCESS';
     $('mc-look-result-heading').textContent='PREPARING YOUR IMAGE';
     $('mc-look-result-progress').textContent='Preparing your photograph…';
   }
@@ -352,6 +353,10 @@ function initialize(){
         try{await openGenerationSignIn();}
         catch(signInError){status.textContent=signInError.message;}
         return;
+      }
+      if(attemptedSubmission){
+        resultLoading.classList.add('is-stopped');
+        $('mc-look-exposure-overline-text').textContent='CHECK GENERATION STATUS';
       }
       $('mc-look-result-heading').textContent=attemptedSubmission?'GENERATION STATUS':'PREPARATION FAILED';
       $('mc-look-result-progress').textContent=error.message;
