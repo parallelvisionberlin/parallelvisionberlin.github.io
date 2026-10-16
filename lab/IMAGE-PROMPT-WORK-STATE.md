@@ -96,3 +96,11 @@
 - Files: `lab/image-composer-stable.css`, `lab/lab.js`, `lab/studio.html`, `tests/lab-image-prompt-paste-ui.mjs`, `.github/workflows/pv-lab-image-paste.yml`, this handoff.
 - Browser regression tests empty -> long paste -> scroll -> clear, desktop, laptop, mobile and short mobile; creates no paid image generation.
 - Status: branch `fix/image-prompt-expand-paste-scroll-20261016`; PR checks and production publication to be verified, not assumed.
+
+## Taller desktop writing area (2026-10-16)
+- User confirmed the previous expansion is live, but the long prompt still felt too shallow compared with the Higgsfield reference. This is an incremental capacity change, not a deck redesign.
+- Starting production main baseline: `48f0c985130122773e32d0f1f2afe7fbe409eff4`.
+- Standard desktop web Image editors now grow as the text grows, up to **232px** (or 31% of visible viewport height, whichever is lower). Very short desktop viewports limit expansion to 27% to preserve the gallery and controls.
+- Mobile web keeps its 122px limit; PV Soul and native Create retain their previous 176px-class desktop logic. Empty one-line composer, Generate button, toolbar, photo references, pricing, and scroll-at-end behavior stay the same.
+- Updated `lab/lab.js`, Studio script cache fingerprint in `lab/studio.html`, both mock Chromium prompt tests and this handoff. No paid calls or image-provider changes.
+- Branch: `improve/desktop-image-prompt-taller-20261016`. CI, merge, and Cloudflare production deployment to be checked independently.
