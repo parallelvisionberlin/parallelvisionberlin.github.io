@@ -7,6 +7,11 @@ Main baseline before this task: 1fb1efa7cd24cfdd3c63f8923df4ad9eaa762dd4 (PR #20
 Current implementation branch: fix/clerk-prod-sync-diagnostics-20261014 (PR #209).
 Status: pending merge and deployment; verify separately.
 
+## 2026-10-16 owner summary icon alignment
+- CSS-only fix in `lab/owner.css`, commit `c41fe1111ec616754824b2b919d8d11ae7222a6e`.
+- `.owner-metrics .owner-metric-icon` overrides legacy generic metric `span` display/margin so all four SVGs are centered inside circular backgrounds.
+- No HTML, card layout, account data or billing logic changed. Commit verified in GitHub; Cloudflare Pages live deployment not verified.
+
 ## Existing design and safety
 - Proposal 2 narrow monochrome sidebar, DM Sans, Customers/Payments/Referrals/Vouchers/Providers.
 - Owner-only authorization for customer activity and provider finance.
