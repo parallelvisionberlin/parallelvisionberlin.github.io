@@ -63,7 +63,7 @@ export function createPvDirector({button,panel,api,getState,apply,notify}){
     const visible=isEligible(state);
     button.hidden=!visible;
     button.disabled=!visible||busy||!!state?.busy;
-    if(!visible||(!busy&&result&&!current()))dismiss();
+    if(!visible||(snapshot&&!current()))dismiss();
   }
   async function analyze(){
     const state=getState();
@@ -77,7 +77,7 @@ export function createPvDirector({button,panel,api,getState,apply,notify}){
       const imageDataUrl=await directorImageDataUrl(state.file);
       if(request!==revision||!current())return;
       const data=await api('/api/pv-director/analyze',{
-        method:'POST',body:{imageDataUrl,writtenDirection:state.prompt.slice(0,1200),referenceMode:state.imageMode}
+        method:'POST',body:{imageDataUrl,writtenDirection:state.prompt,referenceMode:state.imageMode}
       });
       if(request!==revision||!current())return;
       if(!data||typeof data.faithful!=='string'||typeof data.editorial!=='string')
