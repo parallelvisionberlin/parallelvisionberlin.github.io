@@ -1,13 +1,13 @@
 /* 2026-10-16: Image Studio first-image editorial layout.
    The existing composer and credit-quote workflow remain authoritative. */
-#app.image-studio-active .image-gallery-shell:has(#lab-welcome-start:not([hidden])){
+#app.image-studio-active .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
   isolation:isolate;min-height:max(calc(100dvh - 115px),760px);
   background:#090b11;
 }
 /* The desktop backdrop is reconstructed from the user-approved Image Studio
    visual reference, not an enlarged Mood card. The photograph retains its
    original blue streaks and warm right-hand details. No CSS blur or saturation filter. */
-#app.image-studio-active .image-gallery-shell:has(#lab-welcome-start:not([hidden])):before{
+#app.image-studio-active .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])):before{
   content:"";position:absolute;inset:0 0 auto;height:min(800px,100dvh);
   z-index:0;pointer-events:none;
   background-image:url("./welcome-cards/image-studio-editorial-final.webp");
@@ -18,12 +18,12 @@
 }
 /* Retain only a restrained dark fade under the cards. The backdrop itself
    already includes the cool blue and warm photographic tones. */
-#app.image-studio-active .image-gallery-shell:has(#lab-welcome-start:not([hidden])):after{
+#app.image-studio-active .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])):after{
   content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
   background:linear-gradient(180deg,rgba(7,8,13,.02),transparent 27%,rgba(8,9,12,.06) 49%,#101011 100%);
 }
 @media(max-width:700px){
-  #app.image-studio-active .image-gallery-shell:has(#lab-welcome-start:not([hidden])):before{
+  #app.image-studio-active .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])):before{
     background-size:auto 560px;background-position:36% top;
   }
 }
@@ -104,17 +104,17 @@
   padding:0!important;margin:-1px!important;border:0;
   clip:rect(0,0,0,0);white-space:nowrap
 }
-#app.image-studio-active:has(#lab-welcome-start:not([hidden])) #image-composer{
+#app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) #image-composer{
   width:min(1055px,calc(100vw - 44px));
   background:linear-gradient(135deg,rgba(34,34,34,.97),rgba(24,24,24,.98));
   border-color:rgba(223,221,217,.25);border-radius:22px;
   box-shadow:0 18px 65px rgba(0,0,0,.65)
 }
-#app.image-studio-active:has(#lab-welcome-start:not([hidden])) #image-composer .composer-generate{
+#app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) #image-composer .composer-generate{
   min-height:65px;min-width:138px;border-radius:13px
 }
 @media(max-width:1150px){
-  #app.image-studio-active .image-gallery-shell:has(#lab-welcome-start:not([hidden])){
+  #app.image-studio-active .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
     min-height:calc(100dvh + 200px)
   }
   #app.image-studio-active .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
@@ -147,7 +147,7 @@
   #app.image-studio-active #lab-welcome-start .lab-welcome-preset>strong{
     bottom:14px;left:13px;font-size:17px!important
   }
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) #image-composer{
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) #image-composer{
     width:calc(100vw - 18px)
   }
 }
@@ -162,7 +162,7 @@
 
 /* 2026-10-16 | Approved Image entry visual parity.
    Only the ungenerated welcome surface. Existing editing/results remain unchanged. */
-#app.image-studio-active:has(#lab-welcome-start:not([hidden])) .image-studio .archivehead>div:first-child{display:none!important}
+#app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) .image-studio .archivehead>div:first-child{display:none!important}
 #app.image-studio-active #lab-welcome-start .lab-welcome-descriptor{
   position:absolute;z-index:2;left:clamp(13px,1.2vw,20px);right:10px;bottom:15px;
   display:block;color:rgba(237,233,230,.81);
@@ -173,21 +173,21 @@
   bottom:36px;font-size:clamp(17px,1.36vw,23px)!important;
 }
 @media(min-width:1151px){
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) .image-gallery-shell{
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) .image-gallery-shell{
     min-height:0!important;overflow:visible;
   }
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) .image-gallery-host>.archive{
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) .image-gallery-host>.archive{
     position:absolute;z-index:5;top:0;right:0;left:0;
     min-height:0!important;height:auto!important;
     margin:0;padding:0!important;background:transparent;
     pointer-events:none;
   }
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) .image-gallery-host .archivehead{
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) .image-gallery-host .archivehead{
     display:flex;justify-content:flex-end;min-height:41px;
     padding:7px 0 0;margin:0;border:0;pointer-events:auto;
   }
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) .image-gallery-host #history,
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) .image-gallery-host #more{
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) .image-gallery-host #history,
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) .image-gallery-host #more{
     display:none!important;
   }
   #app.image-studio-active .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
@@ -217,20 +217,20 @@
     height:auto!important;aspect-ratio:250 / 440;
     min-height:0!important;max-height:455px;
   }
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) #image-composer{
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) #image-composer{
     position:relative!important;left:auto!important;right:auto!important;
     top:auto!important;bottom:auto!important;transform:none!important;
     width:min(1120px,calc(100% - 36px))!important;
     margin:28px auto 65px!important;z-index:15;
     padding:17px 20px 16px!important;
   }
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) #image-composer
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) #image-composer
     .image-composer-toolbar{gap:8px;flex-wrap:wrap;}
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) #image-composer
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) #image-composer
     .composer-generate{min-width:145px;min-height:66px;align-self:center;}
   /* Only remove the meaningless Base image selection when no reference is attached.
      The full reference controls return as soon as a photo is added. */
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) #image-composer:has(#image-composer-references[hidden]) #composer-reference-intent-toggle{
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) #image-composer:has(#image-composer-references[hidden]) #composer-reference-intent-toggle{
     display:none!important;
   }
 }
