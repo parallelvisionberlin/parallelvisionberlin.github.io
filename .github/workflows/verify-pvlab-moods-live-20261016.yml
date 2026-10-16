@@ -1,4 +1,4 @@
-name: Verify PV LAB live Moods 2026-10-16
+name: Verify PV LAB live Mood Generate 2026-10-16
 on:
   push:
     branches: [verify/pvlab-moods-production-20261016]
@@ -7,35 +7,33 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
-      - name: Fetch real production pages and assert latest Moods markers
+      - name: Confirm latest Moods UI and one-click source are live on pvlab.studio
         shell: bash
         run: |
           set -euo pipefail
           base="https://pvlab.studio"
-          stamp="${GITHUB_SHA}"
-          fetch() {
-            local path="$1" output="$2"
-            curl -fsSL --retry 2 --retry-delay 2 --connect-timeout 10 --max-time 35 \
-              -H 'Cache-Control: no-cache' "$base/$path?verify=$stamp" -o "$output"
-            printf '%s: %s bytes\n' "$path" "$(wc -c < "$output")"
-          }
-          fetch moods /tmp/live-moods.html
-          fetch explore-moods-nav.css /tmp/live-moods-nav.css
-          fetch explore-moods.js /tmp/live-moods.js
-          fetch app-mood-generation.js /tmp/live-mood-service.js
-          fetch studio-return-draft.js /tmp/live-draft.js
-          fetch studio.html /tmp/live-studio.html
-          fetch lab.js /tmp/live-lab.js
-          grep -Fq 'class="pv-unified-tools"' /tmp/live-moods.html || { echo 'MISSING: new global Moods header'; exit 1; }
-          grep -Fq 'id="mc-look-result"' /tmp/live-moods.html || { echo 'MISSING: in-modal generated result'; exit 1; }
-          grep -Fq 'returnToDraft=1' /tmp/live-moods.html || { echo 'MISSING: return-to-Studio draft links'; exit 1; }
-          grep -Fq 'mc-look-result' /tmp/live-moods-nav.css || { echo 'MISSING: expanded dialog styling'; exit 1; }
-          grep -Fq 'currentPrice.submit()' /tmp/live-moods.js || { echo 'MISSING: generate without Studio redirect'; exit 1; }
-          grep -Fq 'client.outputBlob(job.outputId)' /tmp/live-moods.js || { echo 'MISSING: authenticated generated result'; exit 1; }
-          grep -Fq 'jobStatus(id)' /tmp/live-mood-service.js || { echo 'MISSING: safe polling'; exit 1; }
-          grep -Fq 'saveStudioReturnDraft' /tmp/live-draft.js || { echo 'MISSING: browser draft return'; exit 1; }
-          grep -Fq 'returnToDraft' /tmp/live-lab.js || { echo 'MISSING: Studio draft return handler'; exit 1; }
-          grep -Fq 'moodsReturn=20261016v1' /tmp/live-studio.html || { echo 'MISSING: Studio draft return cache version'; exit 1; }
-          echo 'PASS: pvlab.studio production is serving ALL requested October 16 Moods features.'
+          for attempt in $(seq 1 24); do
+            stamp="${GITHUB_SHA}-$attempt"
+            if curl -fsSL --connect-timeout 7 --max-time 24 -H 'Cache-Control: no-cache' "$base/moods?verify=$stamp" -o /tmp/moods.html \
+              && curl -fsSL --connect-timeout 7 --max-time 24 -H 'Cache-Control: no-cache' "$base/explore-moods.js?verify=$stamp" -o /tmp/explore.js \
+              && curl -fsSL --connect-timeout 7 --max-time 24 -H 'Cache-Control: no-cache' "$base/explore-moods-editorial.css?verify=$stamp" -o /tmp/cards.css \
+              && grep -Fq 'oneClick=20261016v2' /tmp/moods.html \
+              && grep -Fq 'uniformCardTitle=20261016v2' /tmp/moods.html \
+              && grep -Fq 'id="mc-look-credit-note"' /tmp/moods.html \
+              && grep -Fq 'generate.disabled=!hasGenerationInput()' /tmp/explore.js \
+              && grep -Fq 'const currentPrice=await preparePrice(stamp)' /tmp/explore.js \
+              && grep -Fq 'creditNote.textContent=ready.label' /tmp/explore.js \
+              && grep -Fq 'currentPrice.submit()' /tmp/explore.js \
+              && grep -Fq 'font:500 clamp(16px,1.2vw,20px)' /tmp/cards.css \
+              && ! grep -Fq 'font-size:clamp(20px,2.05vw,29px);font-weight:450' /tmp/cards.css; then
+                echo "PASS: production pvlab.studio serves one-click Generate, nonblocking quote, credit disclosure, single submit, uniform Dream Blur title."
+                echo "HTML: $(wc -c < /tmp/moods.html) bytes; JS: $(wc -c < /tmp/explore.js); CSS: $(wc -c < /tmp/cards.css)"
+                exit 0
+            fi
+            echo "Live files not updated yet (attempt $attempt/24). Retrying."
+            sleep 8
+          done
+          echo "FAIL: newest Mood files not yet confirmed on pvlab.studio"
+          exit 1
