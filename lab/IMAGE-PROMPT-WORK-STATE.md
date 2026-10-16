@@ -104,3 +104,11 @@
 - Mobile web keeps its 122px limit; PV Soul and native Create retain their previous 176px-class desktop logic. Empty one-line composer, Generate button, toolbar, photo references, pricing, and scroll-at-end behavior stay the same.
 - Updated `lab/lab.js`, Studio script cache fingerprint in `lab/studio.html`, both mock Chromium prompt tests and this handoff. No paid calls or image-provider changes.
 - Branch: `improve/desktop-image-prompt-taller-20261016`. CI, merge, and Cloudflare production deployment to be checked independently.
+
+## Correction: text size only, not textarea size (2026-10-16)
+- The user clarified that the requested Higgsfield comparison concerns **letter size** inside the prompt input, not the editor's height.
+- Reversed PR #249's 232px desktop editor cap; retain the previously verified 176px desktop / 122px mobile long-text auto-expansion logic unchanged.
+- In non-native standard Image Studio at widths over 740px, change **only the prompt text font size** to 17px with the last loaded `image-composer-stable.css`. Mobile, PV Soul, Generate, toolbar, prompt-scroll behavior, model prices and reference layout remain untouched.
+- New CSS version query `20261016-font-size17` ensures the change loads on pvlab.studio. JS cache token restored to the original `20261016-scroll-paste1` because that code is unchanged.
+- Tests restore the old geometry assertions and add a Chromium computed-font-size check for desktop, preserving mobile baseline.
+- Branch: `fix/image-prompt-font-only-20261016`. Do not claim published until Cloudflare production deployment succeeds.
