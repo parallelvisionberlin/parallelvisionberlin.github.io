@@ -1,4 +1,6 @@
-/* Image composer: compact at rest, but long prompts grow within the bounded JS editor.\n   Never fix the top grid track or override the editor's inline height.\n   Image composer: compact, stable before/after attaching photographs.
+/* Image composer: compact at rest, but long prompts grow within the bounded JS editor.
+   Never fix the top grid track or override the editor's inline height.
+   Image composer: compact, stable before/after attaching photographs.
    Intentionally does not alter native Create or the dedicated PV Soul layout. */
 html:not(.pv-native-lab) #image-composer .composer-add-wrap{
  display:inline-flex!important;align-items:center;gap:4px;flex:0 0 68px!important;
