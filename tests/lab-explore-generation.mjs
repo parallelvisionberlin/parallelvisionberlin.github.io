@@ -172,6 +172,11 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      await page.screenshot({path:out+'/generating-'+scenario+'.png'});
    }
    if(scenario==='slowquote'){
+     const stage=await page.locator('#mc-look-result-frame').boundingBox();
+     const exposure=await page.locator('#mc-look-result-loading').boundingBox();
+     assert.ok(stage&&exposure&&Math.abs(stage.width-exposure.width)<3&&Math.abs(stage.height-exposure.height)<3,
+       'The exposure fills the complete result frame, not a narrow center strip');
+     assert.equal(await page.locator('.mc-look-exposure-plate').isVisible(),true);
      assert.equal(await button.textContent(),'Preparing…','First click starts preparation immediately');
      assert.equal(await button.isDisabled(),true,'Repeated clicks are blocked after the first click');
      assert.equal(paid,0,'No paid request starts before the server quote');
@@ -181,6 +186,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      await page.waitForFunction(()=>document.querySelector('#mc-look-result-progress').textContent.includes('Not enough credits.'));
      assert.equal(paid,1,'One confirmed attempt, no automatic retry');
      assert.equal(await page.locator('#mc-look-result-actions').isVisible(),false);
+     assert.equal(await page.locator('#mc-look-result-loading').getAttribute('class'),'mc-look-result-loading is-stopped',
+       'A failed submission must not keep animating as if it were running');
    }else{
      await page.locator('#mc-look-result-image').waitFor({state:'visible'});
      assert.equal(paid,1,'One explicit click submits exactly one paid job');
