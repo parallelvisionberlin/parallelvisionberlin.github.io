@@ -13,6 +13,7 @@
     [".hero nav a[href='#contact']", "Contact", "Kontakt"],
     [".hero-status span:first-child", "PV_ARCHIVE / BERLIN NODE", "PV_ARCHIV / BERLIN KNOTEN"],
     [".hero-text", "Independent label and cultural platform. Music, moving image and possible futures from Berlin.", "Unabhängiges Label und Kulturplattform. Musik, Bewegtbild und mögliche Zukünfte aus Berlin."],
+    [".hero-world-cta > span", "Enter Berlin 2063", "Berlin 2063 betreten"],
     [".home-desktop-signal-tab span", "Talk to Nina", "Mit Nina sprechen"],
     [".home-desktop-signal-tab small", "3 minutes free", "3 Minuten kostenlos"],
     [".home-mobile-signal-entry span", "Talk to Nina", "Mit Nina sprechen"],
