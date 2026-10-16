@@ -2045,3 +2045,74 @@ test('signed Mood completion callback is task-scoped, idempotent and never buys 
   assert.equal((await after.json()).job.status,'failed');
   assert.equal(createCount,before);
 });
+
+test('existing LAB_SECRET activates a private Mood callback without a new Spicy signing key',async()=>{
+  const {env}=fixture();
+  assert.equal(env.SPICY_WEBHOOK_SECRET,undefined);
+  const originalProviderState=providerState;
+  try{
+    providerState='queued';
+    await setup(env);
+    const photo=await seedreamTestReference(env,'base.png',22);
+    const recipe=prepareMoodPrompt('Keep the original person and change only the atmosphere.',
+      'night-flash',75,{engine:'seedream',referenceCount:1});
+    assert.equal(recipe.error,'');
+    const settings={...imageSettings,engine:'seedream',mode:'image',prompt:recipe.prompt,
+      ...recipe.metadata,referenceRoles:[{role:'base'}]};
+    const quoteResp=await req(env,'/api/quotes',{method:'POST',data:{
+      settings,referenceSourceIds:[photo]
+    }});
+    assert.equal(quoteResp.status,200,await quoteResp.clone().text());
+    const quote=await quoteResp.json();
+    assert.equal(quote.settings.resolution,'2k');
+    assert.equal(quotedRequest.callBackUrl,undefined);
+    const earlier=createCount;
+    const sent=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quote.id,confirm:true}});
+    assert.equal(sent.status,202,await sent.clone().text());
+    const job=(await sent.json()).job;
+    assert.equal(createCount,earlier+1);
+    const createCall=calls.filter(c=>new URL(c.url).pathname.endsWith('/jobs/createTask')).at(-1);
+    const createPayload=JSON.parse(createCall.options.body);
+    const callback=createPayload.callBackUrl;
+    assert.ok(callback,'One bound callback was included with the accepted paid task');
+    const location=new URL(callback);
+    assert.equal(location.pathname,'/api/webhooks/spicy/wakeup/'+job.id);
+    assert.match(location.searchParams.get('v')||'',/^[A-Za-z0-9_-]{43}$/);
+    assert.equal(createPayload.input.enable_thinking,true);
+    const pending=[];
+    const fakeBody=JSON.stringify({code:200,data:{taskId:'any',state:'succeeded',
+      output:{assets:[{mime:'image/png',url:'https://attacker.invalid/payload.png'}]}}});
+    const deliver=async (url=callback,method='POST')=>{
+      const response=await worker.fetch(new Request(url,{
+        method,...(method==='POST'?{headers:{'Content-Type':'application/json'},body:fakeBody}:{})
+      }),env,{waitUntil(task){pending.push(task);}});
+      for(let round=0;round<5;round++){
+        const current=pending.splice(0);
+        if(!current.length)break;
+        await Promise.allSettled(current);
+      }
+      return response;
+    };
+    const bad=new URL(callback);bad.searchParams.set('v','A'.repeat(43));
+    const beforeCheck=calls.filter(c=>new URL(c.url).pathname.endsWith('/jobs/recordInfo')).length;
+    assert.equal((await deliver(bad.href)).status,401,'Forged URL cannot awaken a paid task');
+    assert.equal((await deliver(callback,'GET')).status,405);
+    assert.equal(calls.filter(c=>new URL(c.url).pathname.endsWith('/jobs/recordInfo')).length,
+      beforeCheck,'Neither invalid request can contact the provider');
+
+    assert.equal((await deliver()).status,204);
+    assert.equal((await req(env,'/api/jobs/'+job.id).then(r=>r.json())).job.status,'queued',
+      'A fake webhook body never completes the job without provider confirmation');
+
+    // The real provider completes. A callback body claiming a different
+    // outcome still cannot control the final state or output URL.
+    providerState='succeeded';
+    env.LAB_DB.db.prepare('UPDATE jobs SET last_poll=0 WHERE id=?').run(job.id);
+    assert.equal((await deliver()).status,204);
+    const done=(await req(env,'/api/jobs/'+job.id).then(r=>r.json())).job;
+    assert.equal(done.status,'completed');
+    assert.equal(done.outputId,job.id);
+    assert.equal(createCount,earlier+1,'Callbacks never create additional billed tasks');
+    assert.equal((await deliver()).status,204,'Repeated provider callbacks are harmless');
+  }finally{providerState=originalProviderState;}
+});
