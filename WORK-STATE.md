@@ -3,28 +3,25 @@ Updated: 2026-10-16
 Site: https://parallelvisionlabel.com/
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 
-## Current approved concept
-- Parallel Vision hero remains a music-label and cultural-world introduction.
-- The action reads "ENTER BERLIN 2063" and opens `./berlin-2063.html`.
-- German label from `language.js`: "BERLIN 2063 BETRETEN".
-- Lab remains in navigation, not the primary hero destination.
-- Preserve the existing background, typography, hero layout, navigation and Nina controls.
+## Approved direction
+- The homepage presents the record label and the wider Parallel Vision universe.
+- Primary hero action links directly to `./berlin-2063.html`.
+- Lab remains in the top navigation.
+- Preserve the main hero image, Parallel Vision title, paragraph, layout and Nina controls.
 
-## Latest revision (2026-10-16)
-- User rejected the boxed, ivory-end-cap treatment as reminiscent of a signup button.
-- `index.html`: changed only the `.hero-world-cta` CSS back to an unboxed editorial navigation link.
-- The text and a small diagonal arrow share a single transparent baseline with a fine 1px underline.
-- Subtle animated underline and arrow path on hover/focus, no colored block or pill.
-- Mobile centered responsive width and 52px-tall tap area.
-- Preserved focus-visible and prefers-reduced-motion support.
-- HTML link and `language.js` unchanged.
-- Revision based on main commit `3be0086318e844927d78dc145b38a2e3e00f282a`.
+## Hero entry revision
+- User rejected the small underlined text link because it blends into surrounding copy.
+- New visual: an unboxed, high-contrast two-level entry. Small `ENTER` on top, prominent `BERLIN 2063` in Michroma below, an enlarged diagonal arrow to the right.
+- Subtle dusty-rose rail derived from the illuminated figure in the existing image; arrow moves on hover. No pill, no filled panel, no white tile or bottom underline.
+- `index.html`: modified CTA markup and CSS only.
+- `language.js`: updated targeted selector translations, `Enter / Berlin 2063` and `Betrete / Berlin 2063`.
+- Mobile responsiveness, keyboard focus and reduced-motion styling included.
+- Baseline main SHA: `7d1f1a1ea57ed3b822d62c006dfef9bd6de68ada`.
 
 ## Verification
-- Assertions: one Berlin 2063 hero CTA, correct link, no ivory panel CSS, hover/mobile/reduced-motion present.
-- GitHub Pages/CI deployment: verify after commit.
-- Desktop/mobile visual review: pending. No other page components deliberately changed.
+- Assertions for correct link destination, distinct typography, English and German text, and no old boxed or underline rules.
+- CI static checks and GitHub Pages deployment: check after commit.
+- Visual browser inspection on desktop and mobile: pending.
 
 ## Next
-- Confirm GitHub Pages build and deployment; review desktop and mobile hero.
-- For later changes preserve the editorial unboxed direction unless user explicitly changes it.
+- Confirm the latest deployment after concurrent site updates, then review the CTA at phone and desktop sizes.
