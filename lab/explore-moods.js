@@ -23,12 +23,18 @@ function initialize(){
     if(resultURL)URL.revokeObjectURL(resultURL);
     resultURL=null;resultBlob=null;resultOutputId=null;
     result.hidden=true;result.classList.remove('is-visible');
+    dialog.classList.remove('is-result-view');
     resultImg.hidden=true;resultImg.removeAttribute('src');resultActions.hidden=true;
+    $('mc-look-result-again').hidden=true;
+    $('mc-look-result-history').hidden=true;
     resultLoading.hidden=false;
-    $('mc-look-result-heading').textContent='GENERATING YOUR IMAGE';
+    $('mc-look-result-heading').textContent='PREPARING YOUR IMAGE';
     $('mc-look-result-progress').textContent='Preparing your photograph…';
   }
   function revealResult(){
+    // The result replaces the form during preparation instead of being
+    // stacked below it and clipped by the dialog's viewport height.
+    dialog.classList.add('is-result-view');
     result.hidden=false;
     requestAnimationFrame(()=>result.classList.add('is-visible'));
   }
@@ -53,7 +59,11 @@ function initialize(){
         resultImg.src=resultURL;resultImg.hidden=false;resultLoading.hidden=true;
         $('mc-look-result-heading').textContent='GENERATED RESULT';
         resultActions.hidden=false;
-        setBusy(false);schedulePrice(0);
+        $('mc-look-result-again').hidden=false;
+        setBusy(false);
+        // A finished image does not automatically request another quote.
+        // The next paid attempt requires Make another -> Generate.
+        generate.disabled=true;
         return;
       }
       if(['failed','uncertain','resolved','cancelled'].includes(job.status))
@@ -293,6 +303,8 @@ function initialize(){
       if(!job?.id)throw Error('Submission could not be confirmed. Check Image History before trying again.');
       if(serial!==runSerial)return;
       activeJobId=job.id;
+      $('mc-look-result-heading').textContent='GENERATING YOUR IMAGE';
+      $('mc-look-result-history').hidden=false;
       $('mc-look-close').disabled=false; // Accepted jobs keep running in History if closed.
       $('mc-look-result-progress').textContent=jobProgress(job);
       await watchJob(await generationService(),job.id,serial);
@@ -310,14 +322,25 @@ function initialize(){
       $('mc-look-result-progress').textContent=error.message;
       status.textContent=error.message;
       if(attemptedSubmission){
+        $('mc-look-result-history').hidden=false;
         // A timed-out paid POST may have succeeded. Never auto-retry or allow
         // an ambiguous second debit without checking the saved job first.
         generate.disabled=true;generate.textContent='Check Image History';
       }else{
+        // A failed preparation never spent credits: return to the original
+        // photo/prompt editor with the error clearly visible and try again.
+        clearResult();
+        status.textContent=error.message;
         generate.textContent='Generate';generate.disabled=!hasGenerationInput();
       }
     }
   })();
+  $('mc-look-result-again').onclick=()=>{
+    if(busy)return;
+    clearResult();
+    status.textContent='';
+    schedulePrice(0);
+  };
   $('mc-look-result-download').onclick=()=>{
     if(!resultBlob||!resultURL||!resultOutputId)return;
     const ext=({'image/png':'png','image/jpeg':'jpg','image/webp':'webp'})[resultBlob.type.split(';')[0]]||'png';

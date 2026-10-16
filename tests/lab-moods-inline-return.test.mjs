@@ -47,3 +47,20 @@ test('Generate remains available while quote preparation is pending and uses the
   assert.match(page,/id="mc-look-credit-note"/);
   assert.match(page,/oneClick=20261016v2/);
 });
+
+test('Generating replaces form with a bounded result stage, keeping artwork and output visible',()=>{
+  const js=read('lab/explore-moods.js');
+  const css=read('lab/explore-moods-nav.css');
+  const markup=read('lab/moods.html');
+  assert.match(js,/dialog\.classList\.add\('is-result-view'\)/);
+  assert.match(js,/dialog\.classList\.remove\('is-result-view'\)/);
+  assert.match(css,/\.mc-look-dialog\.is-result-view \.mc-look-dialog-media/);
+  assert.match(css,/position:relative;top:auto;align-self:stretch/);
+  assert.doesNotMatch(css,/position:sticky;top:0;align-self:start/);
+  assert.match(css,/\.mc-look-dropzone,\.mc-look-prompt,\.mc-look-dialog-actions/);
+  assert.match(css,/height:clamp\(220px,38dvh,390px\)/);
+  assert.match(markup,/id="mc-look-result-again"/);
+  assert.match(js,/\$\('mc-look-result-again'\)\.onclick/);
+  assert.match(js,/status\.textContent=error\.message;\s*generate\.textContent='Generate'/);
+  assert.equal((js.match(/currentPrice\.submit\(\)/g)||[]).length,1);
+});
