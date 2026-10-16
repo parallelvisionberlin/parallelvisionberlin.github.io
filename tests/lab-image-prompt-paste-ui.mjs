@@ -20,7 +20,7 @@ assert.ok(handlerStart>0&&handlerEnd>handlerStart);
 const sizing=source.slice(sizingStart,sizingEnd);
 const handler=source.slice(handlerStart,handlerEnd);
 assert.match(handler,/inputType==='insertFromPaste'/);
-assert.match(html,/image-composer-stable\.css\?v=20261016-prompt-expansion1/);
+assert.match(html,/image-composer-stable\.css\?v=20261016-font-size17/);
 const stable=readFileSync('lab/image-composer-stable.css','utf8');
 assert.doesNotMatch(stable,/height:54px!important;min-height:54px!important/);
 assert.match(stable,/grid-template-rows:minmax\(64px,max-content\) 41px!important/);
