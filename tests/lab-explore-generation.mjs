@@ -180,6 +180,9 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      assert.equal(await page.locator('.mc-look-exposure-cloud').isVisible(),true);
      assert.equal(await page.locator('.mc-look-exposure-story').isVisible(),true);
      assert.equal(await page.locator('.mc-look-exposure-plate').count(),0);
+     await page.waitForFunction(()=>document.querySelector('#mc-look-result').classList.contains('is-visible'));
+     await page.waitForTimeout(250);
+     await page.screenshot({path:out+'/living-light-desktop.png'});
      assert.equal(await button.textContent(),'Preparing…','First click starts preparation immediately');
      assert.equal(await button.isDisabled(),true,'Repeated clicks are blocked after the first click');
      assert.equal(paid,0,'No paid request starts before the server quote');
@@ -189,6 +192,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      await page.waitForFunction(()=>document.querySelector('#mc-look-result-loading').classList.contains('is-finishing'));
      assert.equal(await page.locator('#mc-look-result-progress').textContent(),'Saving your photograph…');
      assert.equal(await page.locator('.mc-look-story-finish').textContent(),'ALMOST READY');
+     await page.waitForTimeout(780);
+     await page.screenshot({path:out+'/living-light-almost-ready.png'});
      assert.equal(paid,1,'Finalizing state never submits another generation');
    }
    if(scenario==='failure'){
