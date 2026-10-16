@@ -1,0 +1,35 @@
+name: PV LAB pricing responsive browser
+on:
+  pull_request:
+    paths:
+      - 'lab/index.html'
+      - 'lab/pricing.css'
+      - 'lab/pricing-refresh.css'
+      - 'lab/pricing-mobile.css'
+      - 'tests/lab-landing-ui.cjs'
+      - '.github/workflows/pv-lab-pricing.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'lab/index.html'
+      - 'lab/pricing.css'
+      - 'lab/pricing-refresh.css'
+      - 'lab/pricing-mobile.css'
+      - 'tests/lab-landing-ui.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pricing-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/lab-landing-ui.cjs
+        env:
+          CODEX_PRIMARY_RUNTIME_NODE_MODULES: '${{ github.workspace }}/node_modules'
