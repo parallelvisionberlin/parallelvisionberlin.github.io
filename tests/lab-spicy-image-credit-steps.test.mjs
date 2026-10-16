@@ -55,6 +55,11 @@ test('UI uses the same verified retail quote for owner and public, never hides p
  assert.doesNotMatch(client,/session\.customer\?pricedBoundQuotes/);
  assert.doesNotMatch(explore,/Checking price/);
  assert.doesNotMatch(mobile,/Checking price/);
- assert.match(explore,/Generate · /);
+ // The Explore button is immediately clickable and reads only Generate.
+ // Its actual credit cost is still the same server-bound retail quote,
+ // displayed separately in the small footer note.
+ assert.match(explore,/creditNote\.textContent=ready\.label\+' per image'/);
+ assert.match(explore,/generate\.textContent='Generate'/);
+ assert.doesNotMatch(explore,/Generate · /);
  assert.match(mobile,/Generate · /);
 });
