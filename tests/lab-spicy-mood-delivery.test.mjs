@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {verifySpicyCallback} from '../lab-worker/spicy-webhook.mjs';
+import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from '../lab-worker/spicy-webhook.mjs';
 
 const secret='synthetic-spicy-webhook-secret-not-used-in-production';
 const time=1792160000000;
@@ -62,4 +62,26 @@ test('Mood pipeline uses 2K bound quotes, verified previews and private quality 
   assert.match(mood,/client\.previewBlob\(id\)/);
   assert.doesNotMatch(mood,/setTimeout\(resolve,600\)/);
   assert.equal((client.match(/confirm:true/g)||[]).length,1,'one confirmed paid submission');
+});
+
+test('server-derived wake token is deterministic, job-bound, quote-bound and unforgeable',async()=>{
+  const stored='existing-private-LAB_SECRET-from-fixture-not-production';
+  const first=await spicyWakeToken(stored,'job-A','quote-A');
+  assert.match(first,/^[A-Za-z0-9_-]{43}$/);
+  assert.equal(await spicyWakeToken(stored,'job-A','quote-A'),first);
+  assert.equal(equalWakeToken(first,first),true);
+  assert.equal(equalWakeToken(first,await spicyWakeToken(stored,'job-B','quote-A')),false);
+  assert.equal(equalWakeToken(first,await spicyWakeToken(stored,'job-A','quote-B')),false);
+  assert.equal(equalWakeToken(first,await spicyWakeToken(stored+'x','job-A','quote-A')),false);
+  assert.equal(equalWakeToken(first,'A'.repeat(42)),false);
+  await assert.rejects(spicyWakeToken('short','job-A','quote-A'),/unavailable/);
+});
+test('wake-up callback never uses the request body as job authority',()=>{
+  const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
+  const section=worker.slice(worker.indexOf('async function receiveSpicyMoodWakeup('),worker.indexOf('async function receiveSpicyMoodCallback('));
+  assert.match(section,/spicyWakeToken\(env\.LAB_SECRET,job\.id,job\.quote_id\)/);
+  assert.match(section,/refreshJob\(env,job,ctx,true\)/);
+  assert.doesNotMatch(section,/request\.json\(/);
+  assert.doesNotMatch(section,/remote_url=\?/);
+  assert.doesNotMatch(section,/createTask|quoteId:|api\/jobs/);
 });
