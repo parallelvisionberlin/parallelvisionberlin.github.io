@@ -134,9 +134,9 @@ try{
         await textbox.fill(lorem);
         await page.evaluate(()=>window.__resizePVPrompt());
       }
-      assert.ok(metrics.prompt.height<=178,kind+': editor must never fill the screen');
+      assert.ok(metrics.prompt.height<= (kind==='seedream'?234:178),kind+': editor must never fill the screen');
       if(kind==='seedream'){
-        assert.ok(metrics.prompt.height>=160,'Long prompts must expand beyond one line before scrolling: '+metrics.prompt.height);
+        assert.ok(metrics.prompt.height>=220,'Long desktop prompts need a generous writing area: '+metrics.prompt.height);
         assert.ok(Math.abs(metrics.generate.bottom-metrics.controls.bottom)<=6,
           'Generate remains bottom-aligned with controls after loading references and pasting a long prompt: '+JSON.stringify(metrics));
       }
