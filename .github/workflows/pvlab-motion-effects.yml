@@ -1,0 +1,42 @@
+name: PV LAB Motion Effects browser
+on:
+  pull_request:
+    paths:
+      - 'lab/**'
+      - 'tests/lab-motion-effects-browser.mjs'
+      - 'tests/lab-video-effects.test.mjs'
+      - '.github/workflows/pvlab-motion-effects.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'lab/**'
+      - 'tests/lab-motion-effects-browser.mjs'
+      - 'tests/lab-video-effects.test.mjs'
+      - '.github/workflows/pvlab-motion-effects.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  motion-effects:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            tests
+            js/pv-auth.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Validate effects, model entitlements and price binding
+        run: node --test tests/lab-video-effects.test.mjs
+      - name: Install Chromium
+        run: |
+          npm install --prefix /tmp/pv-motion-effects --no-save --no-audit playwright@1.62.1
+          /tmp/pv-motion-effects/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify Effects on desktop and mobile, no paid requests
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-motion-effects/node_modules/playwright/index.mjs
+        run: node tests/lab-motion-effects-browser.mjs
