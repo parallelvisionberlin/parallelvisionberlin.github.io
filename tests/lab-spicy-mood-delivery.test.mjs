@@ -31,7 +31,10 @@ test('Spicy v2 signed terminal callback verifies raw bytes and task ID',async()=
   assert.equal(verified.event.state,'succeeded');
 });
 test('webhook rejects forged body, wrong key, expired event and unsupported version',async()=>{
-  await assert.rejects(verifySpicyCallback(await signedRequest(event,{body:JSON.stringify({...event,data:{...event.data,state:'failed'}})}),secret,{now:()=>time}),/mismatch/);
+  const legitimate=await signedRequest(event);
+  const altered=new Request(legitimate.url,{method:'POST',headers:legitimate.headers,
+    body:JSON.stringify({...event,data:{...event.data,state:'failed'}})});
+  await assert.rejects(verifySpicyCallback(altered,secret,{now:()=>time}),/mismatch/);
   await assert.rejects(verifySpicyCallback(await signedRequest(event,{key:'different-secret-forged-delivery'}),secret,{now:()=>time}),/mismatch/);
   await assert.rejects(verifySpicyCallback(await signedRequest(event,{timestamp:Math.floor(time/1000)-301}),secret,{now:()=>time}),/metadata/);
   await assert.rejects(verifySpicyCallback(await signedRequest(event,{version:'1'}),secret,{now:()=>time}),/version/);
