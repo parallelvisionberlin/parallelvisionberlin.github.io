@@ -1671,10 +1671,19 @@ function syncImageStudioMode(){
   }
   syncImageComposer();
 }
-$('image-composer-prompt').addEventListener('input',()=>{
+$('image-composer-prompt').addEventListener('input',event=>{
   if(busy)return;
-  $('prompt').value=$('image-composer-prompt').value;
+  const textbox=$('image-composer-prompt');
+  const pastedAtEnd=event.inputType==='insertFromPaste'&&textbox.selectionEnd===textbox.value.length;
+  $('prompt').value=textbox.value;
   $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
+  // A long paste at the end should land on the newest lines, not on the first.
+  // Wait for the normal composer sync to fit the field, then scroll the field only.
+  if(pastedAtEnd)requestAnimationFrame(()=>{
+    if(document.activeElement!==textbox)return;
+    fitImageComposerPrompt();
+    textbox.scrollTop=textbox.scrollHeight;
+  });
 });
 for(const [copy,real] of [
   ['image-composer-ratio','ratio'],['image-composer-resolution','resolution'],
