@@ -44,6 +44,7 @@ import {DREAMCORE_REFERENCES,DREAMCORE_REFERENCE_VERSION} from './dreamcore-refe
 import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from './synthetic-romance-references.mjs';
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
+import {directorRoute} from './pv-director.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
 export const VERSION = 'pv-lab-2026-10-16.1-krea3-fashion';
 // Production redeploy sync: PV Soul frontend/backend.
@@ -347,6 +348,9 @@ function assembledPrompt(p) {
     const error=referenceGuidanceError(p.referenceRoles,p);if(error)fail(400,error);
     const prompt=compileImagePrompt(p.prompt,p.referenceRoles,p);
     if(prompt.length>5000)fail(400,'Prompt plus automatic reference instructions is too long. Shorten the direction or reference notes.');
+    // Record the actual assembled guidance at quote/submission time for owner QA.
+    // Earlier jobs have no saved compiled direction and remain unchanged.
+    p.appliedDirection=prompt;
     return prompt;
   }
   const labels=(p.referenceRoles||[]).slice(0,p.referenceSourceIds?.length||0).map((r,i)=>r.role!=='none'||r.note?'Reference '+(i+1)+(r.name?' ('+r.name+')':'')+': '+(r.role!=='none'?r.role+'. ':'')+r.note:'').filter(Boolean);
@@ -1249,6 +1253,11 @@ async function route(request,env,ctx) {
   if(path==='/api/library'||path.startsWith('/api/library/'))return json(await libraryRoute(request,env,owner,url,{body,uid,fail,rows,first,run}));
   // Explicit creative-direction analysis and private low-res board uploads.
   // Must precede /api/moodboards/:id so "analyze"/"image" are not parsed as IDs.
+  if(path==='/api/pv-director/analyze'&&method==='POST'){
+    // Private trial only. Customer images are never silently sent to vision analysis.
+    if(customer)fail(403,'PV Director preview is in owner-only testing.');
+    return directorRoute(request,env,owner,{limitedBody,fail,json,now,run,sniff});
+  }
   if((path==='/api/moodboards/analyze'||path==='/api/moodboards/image')&&method==='POST')
     return moodCreatorRoute(request,env,owner,url,{limitedBody,fail,json,first,run,rows,now,sniff,maxStorage:MAX_STORAGE});
   if(path==='/api/moodboards'||path.startsWith('/api/moodboards/'))
