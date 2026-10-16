@@ -1391,14 +1391,9 @@ function fitImageComposerPrompt(){
   const short=window.innerHeight<=640;
   const minimum=narrow?47:42;
   const viewport=window.visualViewport?.height||window.innerHeight;
-  // Give desktop Image prompts room to breathe, like a real writing panel.
-  // Keep PV Soul, native Create and mobile at their previous compact limits.
-  // The editor still scrolls independently after this cap is reached.
-  const roomyDesktop=!narrow&&!imageComposer.classList.contains('is-pv-soul')&&
-    !document.documentElement.classList.contains('pv-native-lab');
-  const maxPixels=narrow?122:roomyDesktop?232:176;
-  const viewportShare=narrow?(short?0.21:0.22):roomyDesktop?(short?0.27:0.31):(short?0.21:0.25);
-  const maximum=Math.max(minimum,Math.min(maxPixels,Math.floor(viewport*viewportShare)));
+  // Expand pasted direction until the bounded scroll height. Seedream must not
+  // collapse to a single 56px line on desktop.
+  const maximum=Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
   const previousScroll=textbox.scrollTop;
   const top=imageComposer.querySelector('.image-composer-top');
   top.style.removeProperty('min-height');

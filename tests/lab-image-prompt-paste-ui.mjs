@@ -20,7 +20,7 @@ assert.ok(handlerStart>0&&handlerEnd>handlerStart);
 const sizing=source.slice(sizingStart,sizingEnd);
 const handler=source.slice(handlerStart,handlerEnd);
 assert.match(handler,/inputType==='insertFromPaste'/);
-assert.match(html,/image-composer-stable\.css\?v=20261016-prompt-expansion1/);
+assert.match(html,/image-composer-stable\.css\?v=20261016-font-size17/);
 const stable=readFileSync('lab/image-composer-stable.css','utf8');
 assert.doesNotMatch(stable,/height:54px!important;min-height:54px!important/);
 assert.match(stable,/grid-template-rows:minmax\(64px,max-content\) 41px!important/);
@@ -84,18 +84,17 @@ try{
           viewport:{w:innerWidth,h:innerHeight},
           scrollTop:editor.scrollTop,scrollMax:editor.scrollHeight-editor.clientHeight,
           overflow:getComputedStyle(editor).overflowY,
-          value:editor.value,docWidth:document.documentElement.scrollWidth
+          value:editor.value,fontSize:parseFloat(getComputedStyle(editor).fontSize),docWidth:document.documentElement.scrollWidth
         };
       });
       assert.equal(result.value,longPrompt,'Pasted text is preserved');
+      if(viewport.width>=741)assert.equal(result.fontSize,17,'Only the desktop Image prompt letters grow to 17px');
+      else assert.ok(result.fontSize<17,'Mobile font remains unchanged');
       assert.equal(result.overflow,'auto','Long prompt scrolls in its own field');
       assert.ok(result.scrollMax>140,'The input must contain hidden text beyond the visible area');
       assert.ok(result.scrollTop>=result.scrollMax-3,'Pasting at end shows the final lines');
-      const roomyDesktop=viewport.width>899;
-      const expandedCap=Math.min(232,Math.floor(viewport.height*0.31));
-      assert.ok(result.field.height>= (roomyDesktop?expandedCap-3:95),
-        'Desktop long prompts need a proper writing area: '+JSON.stringify(result));
-      assert.ok(result.field.height<= (roomyDesktop?234:124),'Prompt remains bounded');
+      assert.ok(result.field.height>= (viewport.width>899?150:95),'Prompt expands beyond one strip: '+JSON.stringify(result));
+      assert.ok(result.field.height<= (viewport.width>899?178:124),'Prompt remains bounded');
       assert.ok(result.composer.height>empty+(viewport.width>899?70:40),'Composer grows only when needed');
       assert.ok(result.composer.height<Math.min(viewport.height-40,410),'Composer cannot cover the gallery');
       assert.ok(result.composer.top>=0&&result.composer.bottom<=viewport.height+2,'Composer stays in view');
