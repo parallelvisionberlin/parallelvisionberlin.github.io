@@ -108,7 +108,7 @@ body {
   position: absolute;
   inset: -8px -16px;
   z-index: -1;
-  background: #050505;
+  background: transparent;
 }
 
 .pv-home .home-desktop-signal-tab.is-on-hero::before {
