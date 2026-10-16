@@ -1837,7 +1837,7 @@ let videoSelectionRevision=0;
 let videoLoadJobId=null,videoLoadErrorJobId=null;
 
 /* Effects reuses the existing Video quote, submit, history and credit pipeline. */
-let effectViewOpen=false,activeVideoEffect=null,effectGalleryTicket=0;
+let effectViewOpen=false,activeVideoEffect=null,effectGalleryTicket=0,applyingVideoEffect=false;
 const effectPicker=$('effect-gallery-picker'),effectPickerUrls=new Set();
 function refreshEffectsView(){
   const explorer=effectViewOpen&&owner&&tool==='video'&&!fashionActive&&!retouchActive&&!assetLibrary?.active();
@@ -1958,7 +1958,13 @@ async function chooseVideoEffect(id){
   closeEffectsView();update();refreshEffectsView();
   notify(effect.name+' loaded. Choose a start photograph, then review the exact credit quote. No video has been generated.');
 }
-mountVideoEffectsGallery($('video-effects-grid'),id=>void action(()=>chooseVideoEffect(id)));
+mountVideoEffectsGallery($('video-effects-grid'),id=>{
+  if(applyingVideoEffect||busy||!owner)return;
+  applyingVideoEffect=true;
+  void chooseVideoEffect(id).catch(error=>{if(owner)notify(error.message,true);}).finally(()=>{
+    applyingVideoEffect=false;
+  });
+});
 $('tool-effects').onclick=()=>openEffectsView();
 $('video-effects-custom').onclick=closeEffectsView;
 $('video-effect-change').onclick=()=>openEffectsView();
