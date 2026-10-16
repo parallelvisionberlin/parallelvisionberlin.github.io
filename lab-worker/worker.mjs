@@ -1240,7 +1240,7 @@ async function privateMoodEarlyPreview(env,job){
 
 async function receiveSpicyMoodWakeup(request,env,ctx){
   // The provider's body is untrusted. Authentication is an unguessable
-  // per-job HMAC URL derived from the existing protected LAB_SECRET.
+  // per-quote HMAC URL derived from the existing protected LAB_SECRET.
   // This endpoint ONLY requests fresh job status from SpicyAPI, which remains
   // the sole authority on outcome, billing and downloadable output.
   if(request.method!=='POST')return new Response(null,{status:405});
@@ -1250,18 +1250,18 @@ async function receiveSpicyMoodWakeup(request,env,ctx){
   const length=Number(request.headers.get('content-length')||0);
   if(!Number.isSafeInteger(length)||length<0||length>256*1024)
     return new Response(null,{status:413});
-  const jobId=uid(url.pathname.split('/').at(-1));
-  const job=await first(env,'SELECT * FROM jobs WHERE id=?',jobId);
-  if(!job?.quote_id)return new Response(null,{status:404});
+  const quoteId=uid(url.pathname.split('/').at(-1));
+  const job=await first(env,'SELECT * FROM jobs WHERE quote_id=?',quoteId);
+  if(!job?.id)return new Response(null,{status:503}); // Delivery may precede task storage.
   const params=JSON.parse(job.params||'{}');
   if(params.provider!=='spicy'||params.engine!=='seedream'||!params.moodId||
      params.type!=='image')return new Response(null,{status:404});
-  const valid=equalWakeToken(await spicyWakeToken(env.LAB_SECRET,job.id,job.quote_id),token);
+  const valid=equalWakeToken(await spicyWakeToken(env.LAB_SECRET,quoteId),token);
   if(!valid)return new Response(null,{status:401});
   if(['completed','failed','resolved'].includes(job.state))
     return new Response(null,{status:204});
   if(!job.provider_id||!['queued','running','saving'].includes(job.state))
-    return new Response(null,{status:503}); // Provider may deliver before createTask is saved.
+    return new Response(null,{status:503}); // Delivery may precede provider ID persistence.
   // Bypass the usual eight-second polling delay for this one validated wake.
   // Rechecking the provider never starts a paid job.
   const work=refreshJob(env,job,ctx,true);
@@ -1789,11 +1789,18 @@ async function route(request,env,ctx) {
     // Stage the exact reference bytes once, then price each image independently.
     // Identical provider inputs may share a vendor quote ID, while each PV LAB
     // quote and paid task still has its own internal ID; no paid inference begins here.
-    // A callback binds to the same payload on both quote and createTask.
-    // Do not request a callback until the signing secret is configured.
+    // The callback must match the priced request exactly. For Spicy accounts
+    // without a webhook signing key, bind the wake-up URL to a private quote ID
+    // generated before pricing, not to the later paid job ID.
     const callbackEnabled=typeof env.SPICY_WEBHOOK_SECRET==='string'&&env.SPICY_WEBHOOK_SECRET.length>=16&&
       p.type==='image'&&p.engine==='seedream'&&!!p.moodId;
-    const payload={model:p.model,input,...(callbackEnabled?{callBackUrl:'https://parallel-vision-lab.parallelvision.workers.dev/api/webhooks/spicy'}:{})};
+    const wakeQuoteId=!callbackEnabled&&quoteCount===1&&p.type==='image'&&p.engine==='seedream'&&!!p.moodId
+      ?crypto.randomUUID():null;
+    const wakeToken=wakeQuoteId?await spicyWakeToken(env.LAB_SECRET,wakeQuoteId):null;
+    const callBackUrl=callbackEnabled
+      ?'https://parallel-vision-lab.parallelvision.workers.dev/api/webhooks/spicy'
+      :wakeQuoteId?'https://parallel-vision-lab.parallelvision.workers.dev/api/webhooks/spicy/wakeup/'+wakeQuoteId+'?v='+wakeToken:null;
+    const payload={model:p.model,input,...(callBackUrl?{callBackUrl}:{})};
     let replies;
     try{
       replies=await Promise.all(Array.from({length:quoteCount},()=>vendorRequest('/jobs/quote',key,payload)));
@@ -1814,7 +1821,7 @@ async function route(request,env,ctx) {
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
       if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||!Number.isFinite(expiry)||expiry<=time)
         fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
-      const id=crypto.randomUUID(),expires=Math.min(expiry,time+290000);
+      const id=wakeQuoteId||crypto.randomUUID(),expires=Math.min(expiry,time+290000);
       return {id,estimatedUsd:estimate/1000000,maxUsd:maximum/1000000,expiresAt:expires,
         settings:p,provider:'SpicyAPI',vendorQuoteId:q.quoteId,expectedCost:String(q.estimatedCost),
         notice:'This quote is bound to your exact input. Generation starts only when you confirm. Provider terms apply; a result you dislike is still a paid generation.'};
@@ -1911,14 +1918,8 @@ async function route(request,env,ctx) {
     }catch(e){old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});throw e;}
     // Reuse the exact input URL and settings covered by the quote, never silently reprice.
     const payload={...JSON.parse(q.payload),quoteId:q.vendor_quote_id,expectedCost:q.expected_cost};
-    // The Spicy Console signs its own callbacks with a separate, one-time
-    // account secret. When it is unavailable, do not block customers or demand
-    // manual setup: give this task a private wake-up token derived from LAB_SECRET.
-    // Callback data is never trusted; its only effect is to query SpicyAPI again.
-    if(params.provider==='spicy'&&params.type==='image'&&params.engine==='seedream'&&params.moodId&&!payload.callBackUrl){
-      const token=await spicyWakeToken(env.LAB_SECRET,id,quoteId);
-      payload.callBackUrl='https://parallel-vision-lab.parallelvision.workers.dev/api/webhooks/spicy/wakeup/'+id+'?v='+token;
-    }
+    // Never alter the exact provider payload after pricing. Callback and image
+    // instructions were already bound to the quote before this paid request.
     let providerAccepted=false;
     try {
       const result=await vendorRequest('/jobs/createTask',key,payload,id);
