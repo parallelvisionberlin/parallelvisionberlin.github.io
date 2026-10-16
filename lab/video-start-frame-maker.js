@@ -117,7 +117,7 @@ export function createVideoStartFrameMaker({
     const c=context();
     if(!c.allowed||c.busy||!c.references.length)return;
     if(!initialized){
-      direction.value=c.motionPrompt||'';
+      direction.value='';
       const ratio=c.aspectRatio;
       const first=c.references[0];
       aspect.value=OPENING_FRAME_RATIOS.includes(ratio)?ratio:
@@ -163,8 +163,9 @@ export function createVideoStartFrameMaker({
       if(checked.settings?.type!=='image'||checked.settings.engine!=='seedream'||
         checked.settings.mode!=='image'||checked.settings.referenceSourceIds?.length!==ids.length)
         throw Error('The price check did not match your Seedream references. Nothing submitted.');
+      const displayPrice=describePrice(checked);
       quote=checked;quoteKey=fingerprint;stage='review';
-      quotePrice.textContent=describePrice(checked);
+      quotePrice.textContent=displayPrice;
       quoteNote.textContent='Bound maximum · expires '+new Date(checked.expiresAt).toLocaleTimeString()+'. Separate image cost. Video is not included.';
       say('Review the price, then confirm. The original references stay unchanged.');
     }catch(error){
@@ -180,7 +181,7 @@ export function createVideoStartFrameMaker({
       if(!active(session())||quoteKey!==stateKey()||Date.now()>=approved.expiresAt)
         throw Error('The quote expired or your opening frame changed. Review a new price. No image submitted.');
       if(!imageQueueAvailable())throw Error('An image job is already running. No generation submitted.');
-      forgetQuote();stage='submitting';
+      forgetQuote();clearPreview();currentJob=null;pendingJobId=null;stage='submitting';
       say('Submitting one paid Seedream opening image. Do not submit another request while this is being confirmed.');
       sync();
       // The paid request is deliberately sent once. Network uncertainty requires History review.
