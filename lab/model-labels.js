@@ -10,6 +10,7 @@ const exactModelNames=Object.freeze([
   [/^alibaba\/qwen-image-3\.0\//,'Qwen Image 3.0'],
   [/^alibaba\/z-image-spicy\//,'Z-Image Spicy'],
   [/^fal-ai\/kling-image\/v3\//,'Kling V3'],
+  [/^krea\/v3\/(?:edit|text-to-image)$/,'Krea 3'],
   [/^gemini-3-pro-image(?:-|$)/,'Nano Banana Pro'],
   [/^gemini-nano-banana-2\.1(?:-|$)/,'Nano Banana 2.1']
 ]);
@@ -19,6 +20,7 @@ const engineNames=Object.freeze({
   seedreamlite:'Seedream 5 Lite',
   flash:'Seedream Flash',
   qwen3:'Qwen Image 3.0',
+  krea3:'Krea 3',
   zspicy:'Z-Image Spicy',
   kling:'Kling V3',
   gemini:'Nano Banana Pro',
