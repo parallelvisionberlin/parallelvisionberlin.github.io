@@ -8,6 +8,7 @@ on:
       - 'lab-worker/**'
       - 'lab/reference-guidance.js'
       - 'lab/prompt-quality.js'
+      - 'lab/pv-director.js'
       - '.github/workflows/deploy-lab-worker.yml'
 
 permissions:
@@ -41,7 +42,7 @@ jobs:
 
       - name: Test private My Moods and Worker syntax
         run: |
-          node --test tests/lab-smart-prompts.test.mjs tests/lab-smart-prompt-ui.test.mjs tests/lab-krea3-fashion.test.mjs
+          node --test tests/lab-smart-prompts.test.mjs tests/lab-smart-prompt-ui.test.mjs tests/lab-krea3-fashion.test.mjs tests/lab-pv-director.test.mjs
           node --test tests/lab-auth.test.mjs tests/lab-worker.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-sandbox-billing.test.mjs tests/lab-live-pilot.test.mjs tests/lab-new-models-pricing.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-welcome-credits.test.mjs
           node --test tests/lab-owner-providers.test.mjs tests/lab-promotions.test.mjs tests/lab-traffic.test.mjs tests/lab-traffic-ui.test.mjs
           node --check lab-worker/owner-providers.mjs
