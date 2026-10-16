@@ -815,6 +815,8 @@ test('Reference uploads retry a transient storage error once with identical byte
       {statuses:[500,500],expected:502,attempts:2},
       {statuses:[403],expected:502,attempts:1}
     ]){
+      // Each scenario tests a new upload, independently of valid cached references.
+      env.LAB_DB.db.exec('DELETE FROM lab_spicy_reference_cache');
       attempts=[];statuses=[...testCase.statuses];const before=createCount,callsBefore=calls.length;
       const response=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:[id],settings:{...imageSettings,engine:'seedream',referenceRoles:[{role:'base'}]}}});
       assert.equal(response.status,testCase.expected,await response.clone().text());assert.equal(attempts.length,testCase.attempts);
@@ -875,6 +877,7 @@ test(moodId+' stages its approved photographs after user images and binds them t
       if(userIds.length)assert.deepEqual(bytes.slice(0,userIds.length).map(x=>x.at(-1)),[1,2]);
       assert.doesNotMatch(JSON.stringify(q),/base64|image\/jpeg/,'Reference bytes stay on the service');
     }
+    env.LAB_DB.db.exec('DELETE FROM lab_spicy_reference_cache');
     failBuiltIn=true;const before=priceCount;
     const recipe=prepareMoodPrompt('One dancer',moodId,80);
     const response=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:[],settings:{...imageSettings,engine:'seedream',prompt:recipe.prompt,...recipe.metadata}}});
