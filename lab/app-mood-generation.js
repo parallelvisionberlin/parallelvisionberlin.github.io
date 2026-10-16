@@ -42,10 +42,12 @@ export function createAppMoodGeneration(){
     // paid action; polling and fetching assets never create another job.
     jobStatus(id){return api('/api/jobs/'+encodeURIComponent(id));},
     outputBlob(id){return api('/api/assets/'+encodeURIComponent(id),{blob:true});},
+    previewBlob(id){return api('/api/jobs/'+encodeURIComponent(id)+'/preview',{blob:true});},
     cancel(){revision++;},
     async onAccountChange(listener){return (await identity()).addListener(listener);},
     async signIn(){const user=await identity();if(!user.isSignedIn)user.openSignIn();return user.isSignedIn;},
     async prepare(file,mood,direction){
+      const preparationStarted=performance.now();
       const stamp=++revision,user=await identity();
       if(!user.isSignedIn){const error=Error('Sign in to generate. Your photograph stays here.');error.code='SIGN_IN';throw error;}
       const sessionId=user.session.id;
@@ -59,7 +61,7 @@ export function createAppMoodGeneration(){
       if(dimensions&&(Math.min(dimensions.width,dimensions.height)<240||Math.max(dimensions.width,dimensions.height)>8000||Math.max(dimensions.width/dimensions.height,dimensions.height/dimensions.width)>8))throw Error('Choose a photograph between 240 and 8,000 pixels per side.');
       const recipe=prepareMoodPrompt(direction,mood.id,mood.defaultIntensity||70,{engine:'seedream',referenceCount:file?1:0,referenceMode:'base'});
       if(recipe.error)throw Error(recipe.error);
-      const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'1k',aspectRatio:imageAutoRatio({values:['16:9','9:16','1:1','4:3','3:4','3:2','2:3','4:5','5:4','21:9'],reference:dimensions}),outputFormat:'png',referenceRoles:file?[normalizeReferenceLabel({name:file.name,role:'base'})]:[]};
+      const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'2k',aspectRatio:imageAutoRatio({values:['16:9','9:16','1:1','4:3','3:4','3:2','2:3','4:5','5:4','21:9'],reference:dimensions}),outputFormat:'png',referenceRoles:file?[normalizeReferenceLabel({name:file.name,role:'base'})]:[]};
       moodReferencePlan(settings); // Validate the complete prompt before any source or Style upload.
       // Prepare the person's Base photo and four Mood Style photos in parallel.
       // Quote is still requested only once all exact input IDs are validated.
@@ -81,7 +83,20 @@ export function createAppMoodGeneration(){
       // Owner testing is not a wallet charge; the label previews customer pricing.
       const label=pricedBoundQuotes(quote,1,'SpicyAPI').credits+' credits';
       let submitted=false;
-      return {label,expiresAt:quote.expiresAt,handoff(){check();if(submitted)throw Error('This request was already sent. Check Image.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');return {userId:user.user.id,quote,sourceId:original?.id||null};},async submit(){check();if(submitted)throw Error('This request was already sent. Check Gallery.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');submitted=true;return api('/api/jobs',{method:'POST',body:{quoteId:quote.id,confirm:true}});}};
+      const preparationMs=Math.round(performance.now()-preparationStarted);
+      return {label,expiresAt:quote.expiresAt,handoff(){check();if(submitted)throw Error('This request was already sent. Check Image.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');return {userId:user.user.id,quote,sourceId:original?.id||null};},async submit(){
+        check();if(submitted)throw Error('This request was already sent. Check Gallery.');
+        if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');
+        submitted=true;
+        const submittedAt=performance.now();
+        const response=await api('/api/jobs',{method:'POST',body:{quoteId:quote.id,confirm:true}});
+        const jobId=response?.job?.id;
+        // Metrics are non-billable and best effort; timing never delays the result.
+        if(jobId)void api('/api/jobs/'+encodeURIComponent(jobId)+'/performance',{method:'POST',
+          body:{clientPreparationMs:preparationMs,clientSubmitMs:Math.round(performance.now()-submittedAt)}
+        }).catch(()=>{});
+        return response;
+      }};
     }
   };
 }
