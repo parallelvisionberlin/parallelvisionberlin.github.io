@@ -4,23 +4,28 @@
   isolation:isolate;min-height:max(calc(100dvh - 115px),760px);
   background:#090b11;
 }
-/* The photographed Dream Blur backdrop is the same visual source as the reference.
-   Give it real presence rather than the former 7%-opacity, 64px-blurred ghost. */
+/* The desktop backdrop is reconstructed from the user-approved Image Studio
+   visual reference, not an enlarged Mood card. The photograph retains its
+   original blue streaks and warm right-hand details. No CSS blur or saturation filter. */
 #app.image-studio-active .image-gallery-shell:has(#lab-welcome-start:not([hidden])):before{
-  content:"";position:absolute;left:0;right:0;top:0;height:min(800px,100dvh);
+  content:"";position:absolute;inset:0 0 auto;height:min(800px,100dvh);
   z-index:0;pointer-events:none;
-  background:url("./mood-previews/dream-blur-20261015.jpg") center 39%/cover no-repeat;
-  opacity:.80;filter:blur(8px) saturate(1.38) contrast(1.12);
-  transform:none;
+  background-image:url("./welcome-cards/image-studio-blue-amber-reference.webp");
+  background-repeat:no-repeat;
+  background-position:center top;
+  background-size:100% auto;
+  opacity:1;filter:none;transform:none;
 }
-/* Cool cobalt light on the left, warm photographic bloom on the right,
-   and a gentle bottom fade that keeps the dock and portraits legible. */
+/* Retain only a restrained dark fade under the cards. The backdrop itself
+   already includes the cool blue and warm photographic tones. */
 #app.image-studio-active .image-gallery-shell:has(#lab-welcome-start:not([hidden])):after{
   content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
-  background:
-    radial-gradient(ellipse 45% 33% at 24% 18%,rgba(22,105,233,.20),transparent 80%),
-    radial-gradient(ellipse 43% 38% at 77% 18%,rgba(148,85,68,.25),transparent 82%),
-    linear-gradient(180deg,rgba(5,7,13,.28) 0%,rgba(7,8,12,.38) 28%,rgba(8,9,12,.63) 61%,#101011 100%);
+  background:linear-gradient(180deg,rgba(7,8,13,.02),transparent 27%,rgba(8,9,12,.06) 49%,#101011 100%);
+}
+@media(max-width:700px){
+  #app.image-studio-active .image-gallery-shell:has(#lab-welcome-start:not([hidden])):before{
+    background-size:auto 560px;background-position:36% top;
+  }
 }
 #app.image-studio-active .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
   inset:54px 0 190px;position:absolute;display:flex;justify-content:center;
