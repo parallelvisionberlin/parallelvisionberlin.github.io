@@ -12,7 +12,8 @@ function initialize(){
   const dialog=$('mc-look-dialog'),zone=$('mc-look-dropzone'),fileInput=$('mc-look-file');
   const direction=$('mc-look-direction'),status=$('mc-look-status');
   let mood=null,file=null,fileURL=null,busy=false,dragDepth=0;
-  let price=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
+  let price=null,priceTask=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
+  const creditNote=$('mc-look-credit-note');
   const generate=$('mc-look-continue'),result=$('mc-look-result');
   const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
   const resultActions=$('mc-look-result-actions');
@@ -79,33 +80,55 @@ function initialize(){
       return service;
     }).catch(error=>{serviceLoading=null;throw error;}));
   }
+  function hasGenerationInput(){return !!mood&&!!(file||direction.value.trim());}
   function resetPrice(){
+    // Invalidate only a prepared quote, not the user's photo or creative draft.
     priceRevision++;clearTimeout(priceTimer);clearTimeout(expiryTimer);service?.cancel();
-    price=null;needsSignIn=false;
-    generate.textContent='Generate';generate.disabled=true;generate.removeAttribute('aria-busy');
+    price=null;priceTask=null;needsSignIn=false;
+    creditNote.hidden=true;creditNote.textContent='';
+    generate.textContent='Generate';
+    // The UX must never wait for uploads or a quote to activate Generate.
+    generate.disabled=!hasGenerationInput();
+    generate.removeAttribute('aria-busy');
   }
   function schedulePrice(delay=180){
     resetPrice();status.textContent='';
-    if(!mood||(!file&&!direction.value.trim()))return;
+    if(!hasGenerationInput())return;
     const stamp=priceRevision;
-    generate.setAttribute('aria-busy','true');
-    if(delay>0)priceTimer=setTimeout(()=>void preparePrice(stamp),delay);
-    else void preparePrice(stamp);
+    // Optional background preparation warms the upload and quote, but never
+    // disables Generate or silently creates a paid job.
+    if(delay>0)priceTimer=setTimeout(()=>void preparePrice(stamp).catch(()=>{}),delay);
+    else void preparePrice(stamp).catch(()=>{});
   }
-  async function preparePrice(stamp=priceRevision){
+  function preparePrice(stamp=priceRevision){
     clearTimeout(priceTimer);
-    generate.disabled=true;generate.textContent='Generate';generate.setAttribute('aria-busy','true');
-    try{
-      const client=await generationService();if(stamp!==priceRevision)return;
-      const ready=await client.prepare(file,mood,direction.value.trim());
-      if(stamp!==priceRevision||!dialog.open)return;
-      price=ready;generate.textContent='Generate · '+ready.label;generate.disabled=false;generate.removeAttribute('aria-busy');
-      expiryTimer=setTimeout(()=>{if(stamp===priceRevision&&!busy)schedulePrice(0);},Math.max(0,ready.expiresAt-Date.now()-20000));
-    }catch(error){
-      if(stamp!==priceRevision||!dialog.open)return;
-      needsSignIn=error.code==='SIGN_IN';status.textContent=error.message;generate.removeAttribute('aria-busy');
-      generate.textContent=needsSignIn?'Sign in to generate':'Retry price';generate.disabled=false;
-    }
+    if(stamp!==priceRevision||!hasGenerationInput())return Promise.resolve(null);
+    if(price?.expiresAt>Date.now()+5000)return Promise.resolve(price);
+    if(priceTask?.stamp===stamp)return priceTask.promise;
+    const source=file,selected=mood,description=direction.value.trim();
+    const promise=(async()=>{
+      const client=await generationService();
+      if(stamp!==priceRevision||!dialog.open)return null;
+      const ready=await client.prepare(source,selected,description);
+      if(stamp!==priceRevision||!dialog.open)return null;
+      price=ready;needsSignIn=false;
+      // Keep the exact verified charge separate from the main button.
+      creditNote.textContent=ready.label+' per image';creditNote.hidden=false;
+      expiryTimer=setTimeout(()=>{
+        if(stamp===priceRevision&&!busy)schedulePrice(0);
+      },Math.max(0,ready.expiresAt-Date.now()-20000));
+      return ready;
+    })().catch(error=>{
+      if(stamp===priceRevision&&dialog.open){
+        needsSignIn=error.code==='SIGN_IN';
+        if(!busy)status.textContent=error.message;
+      }
+      throw error;
+    }).finally(()=>{
+      if(priceTask?.promise===promise)priceTask=null;
+    });
+    priceTask={stamp,promise};
+    return promise;
   }
   function setBusy(value){
     busy=value;
@@ -236,41 +259,63 @@ function initialize(){
       setBusy(false);schedulePrice();status.textContent=error.message;
     }
   }
+  async function openGenerationSignIn(){
+    const client=await generationService();
+    // Clerk's sign-in portal must not be obstructed by a native modal.
+    if(dialog.matches(':modal')){dialog.close();dialog.show();}
+    if(await client.signIn())schedulePrice(0);
+    else status.textContent='Sign in to generate. Your photograph stays here.';
+  }
   generate.onclick=()=>void (async()=>{
-    if(!mood||busy)return;
+    if(!hasGenerationInput()||busy)return;
     if(needsSignIn){
-      try{
-        const client=await generationService();
-        // Clerk renders outside a modal top layer; preserve the photo draft.
-        if(dialog.matches(':modal')){dialog.close();dialog.show();}
-        if(await client.signIn())schedulePrice();
-      }catch(error){status.textContent=error.message;}
+      try{await openGenerationSignIn();}
+      catch(error){status.textContent=error.message;}
       return;
     }
-    if(!price||price.expiresAt<=Date.now()+5000){await preparePrice();return;}
-    const currentPrice=price,serial=++runSerial;
+    const stamp=priceRevision,serial=++runSerial;
+    let attemptedSubmission=false;
+    // An immediate, honest visual response. Upload and pricing finish inside
+    // this one action, without requiring the customer to click twice.
     setBusy(true);clearTimeout(expiryTimer);status.textContent='';
-    revealResult();$('mc-look-result-progress').textContent='Submitting one confirmed generation…';
-    generate.textContent='Generating…';
+    revealResult();$('mc-look-result-progress').textContent='Preparing your photograph…';
+    generate.textContent='Preparing…';
     try{
+      const currentPrice=await preparePrice(stamp);
+      if(serial!==runSerial||!dialog.open)return;
+      if(!currentPrice||currentPrice.expiresAt<=Date.now()+5000)
+        throw Error('The generation price changed. Press Generate again to retry.');
+      $('mc-look-result-progress').textContent='Sending your image…';
+      generate.textContent='Generating…';
+      attemptedSubmission=true;
       const response=await currentPrice.submit();
       const job=response?.job;
       if(!job?.id)throw Error('Submission could not be confirmed. Check Image History before trying again.');
       if(serial!==runSerial)return;
       activeJobId=job.id;
-      $('mc-look-close').disabled=false; // The accepted job continues in History if closed.
+      $('mc-look-close').disabled=false; // Accepted jobs keep running in History if closed.
       $('mc-look-result-progress').textContent=jobProgress(job);
       await watchJob(await generationService(),job.id,serial);
     }catch(error){
       if(serial!==runSerial)return;
       setBusy(false);
-      // An interrupted POST might already have created a paid job. Never
-      // prepare or submit a replacement automatically after an unknown response.
-      generate.disabled=true;generate.textContent='Check Image History';
-      $('mc-look-result-heading').textContent='GENERATION STATUS';
+      $('mc-look-close').disabled=false;
+      if(error.code==='SIGN_IN'&&!attemptedSubmission){
+        clearResult();
+        try{await openGenerationSignIn();}
+        catch(signInError){status.textContent=signInError.message;}
+        return;
+      }
+      $('mc-look-result-heading').textContent=attemptedSubmission?'GENERATION STATUS':'PREPARATION FAILED';
       $('mc-look-result-progress').textContent=error.message;
       status.textContent=error.message;
-      $('mc-look-close').disabled=false;
+      if(attemptedSubmission){
+        // A timed-out paid POST may have succeeded. Never auto-retry or allow
+        // an ambiguous second debit without checking the saved job first.
+        generate.disabled=true;generate.textContent='Check Image History';
+      }else{
+        generate.textContent='Generate';generate.disabled=!hasGenerationInput();
+      }
     }
   })();
   $('mc-look-result-download').onclick=()=>{

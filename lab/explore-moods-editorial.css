@@ -526,7 +526,6 @@
 }
 .mc-explore-page .mc-look-card[data-mood-id="dream-blur"] .mc-look-index{top:15px;bottom:auto;left:16px;color:#f4f7faad;font-size:10px;letter-spacing:.22em}
 .mc-explore-page .mc-look-card[data-mood-id="dream-blur"] .mc-look-copy{left:16px;bottom:62px}
-.mc-explore-page .mc-look-card[data-mood-id="dream-blur"] .mc-look-copy strong{font-size:clamp(20px,2.05vw,29px);font-weight:450;letter-spacing:-.045em;text-shadow:0 2px 14px #000d}
 .mc-explore-page .mc-look-card[data-mood-id="dream-blur"]>small{left:16px;right:12px;bottom:42px;color:#e5f0f5;font-size:clamp(8px,.76vw,10px);font-weight:500;letter-spacing:.13em}
 .mc-explore-page .mc-look-card[data-mood-id="dream-blur"] .mc-look-try{
   right:10px;bottom:8px;display:grid;place-items:center;padding:0;width:35px;height:35px;
@@ -536,3 +535,7 @@
 .mc-explore-page .mc-look-card[data-mood-id="dream-blur"] .mc-look-try .pv-arrow{width:16px;height:16px}
 .mc-explore-page .mc-look-card[data-mood-id="dream-blur"]:hover .mc-look-try{background:#e7f0f5;color:#0b1319;transform:translateX(2px)}
 #mc-look-preview[data-mood-id="dream-blur"]{object-position:50% 41%}
+
+/* The Dream Blur caption now inherits precisely the other Mood captions. */
+.mc-explore-page #mc-look-credit-note{display:block;margin-bottom:4px;color:#adb9ac;letter-spacing:.005em}
+.mc-explore-page #mc-look-credit-note[hidden]{display:none}

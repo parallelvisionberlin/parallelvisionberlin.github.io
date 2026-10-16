@@ -23,6 +23,27 @@ the expanded Mood dialog, with optional Image Studio continuation.
 - The return snapshot is scoped to the current browser tab and Clerk user.
 - No new provider route, price, credit, account, or payment behavior.
 
+## 2026-10-16: Immediate Generate and caption alignment
+- Dream Blur's gallery card no longer has its own oversized font override.
+  It inherits the exact weight, size and spacing of all other Mood captions.
+- The quick Mood dialog enables Generate immediately after a photo or
+  non-empty direction is entered, without waiting for upload or quote.
+- The button says only "Generate". A successful verified quote can appear as
+  understated "N credits per image" text below, never inside the button.
+- Background preparation still warms uploads and quote but never blocks the button.
+  If clicked early, the first click immediately reveals an expanding result
+  placeholder and completes the *same* authenticated preflight before submission.
+- Quote work is deduplicated per current photo/prompt revision; stale quotes are
+  ignored after edits. Only one explicit confirmed /api/jobs POST is possible.
+- During the click, progress changes Preparing photograph -> Sending image ->
+  live queued/running/saving status -> private image + Download.
+- A sign-in request preserves the photo and prompt; a failed preflight can be
+  retried without cost. If a job POST is uncertain, no second paid submission is
+  offered until History is checked.
+- Scoped to lab/explore-moods.js, lab/moods.html,
+  lab/explore-moods-editorial.css, and relevant regression tests.
+- No provider, Worker, wallet or credit-pricing changes.
+
 ## Source files
 - lab/moods.html, lab/explore-moods-nav.css, lab/explore-moods.js
 - lab/app-mood-generation.js, lab/studio.html, lab/lab.js
@@ -35,4 +56,5 @@ the expanded Mood dialog, with optional Image Studio continuation.
 - Confirm the GitHub commit and Pages/Cloudflare deployment independently.
 - Browser QA: desktop/mobile headers, My Moods anchor, Studio state after return,
   a successful real Mood job, downloaded file, and no duplicate charge.
-- Production status: pending commit and deployment verification.
+- Original unified navigation and inline results verified on production on 2026-10-16.
+- New immediate-Generate change: PR, CI and production verification pending.

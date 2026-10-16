@@ -26,7 +26,7 @@ const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
-try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio']){
+try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote']){
  const page=await browser.newPage({viewport:{width:scenario==='small'?320:scenario==='mobile'?390:1440,height:scenario==='small'?640:900}});
  let paid=0,quotes=0,uploads=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{const req=route.request(),url=new URL(req.url());
@@ -35,7 +35,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
    if(url.pathname==='/api/session')return send({customer:scenario!=='desktop',generationReady:true,config:{enabled:true}});
    if(url.pathname==='/api/uploads')return send({id:'20000000-0000-4000-8000-'+String(++uploads).padStart(12,'0')});
-   if(url.pathname==='/api/quotes'){quotes++;const data=req.postDataJSON();assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'1k');assert.equal(data.settings.aspectRatio,scenario==='text'?'16:9':'3:4','The first customer photo, not four internal mood photos, determines the output ratio');assert.equal(data.referenceSourceIds.length,scenario==='text'?4:5);assert.equal(new Set(data.referenceSourceIds).size,data.referenceSourceIds.length);assert.deepEqual(data.transferSourceIds,data.referenceSourceIds);assert.deepEqual(data.settings.referenceRoles.map(r=>r.role),[...(scenario==='text'?[]:['base']),'style','style','style','style']);return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
+   if(url.pathname==='/api/quotes'){quotes++;if(scenario==='slowquote')await new Promise(resolve=>setTimeout(resolve,1100));const data=req.postDataJSON();assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'1k');assert.equal(data.settings.aspectRatio,scenario==='text'?'16:9':'3:4','The first customer photo, not four internal mood photos, determines the output ratio');assert.equal(data.referenceSourceIds.length,scenario==='text'?4:5);assert.equal(new Set(data.referenceSourceIds).size,data.referenceSourceIds.length);assert.deepEqual(data.transferSourceIds,data.referenceSourceIds);assert.deepEqual(data.settings.referenceRoles.map(r=>r.role),[...(scenario==='text'?[]:['base']),'style','style','style','style']);return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
    if(url.pathname==='/api/jobs'&&req.method()==='POST'){
      paid++;assert.deepEqual(req.postDataJSON(),{quoteId:'quote-'+quotes,confirm:true});
      if(scenario==='failure')return send({error:'Not enough credits.'},402);
@@ -57,9 +57,27 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
  const button=page.locator('#mc-look-continue');assert.equal(await button.textContent(),'Generate');assert.equal(await button.isDisabled(),true);assert.equal(paid,0);assert.equal(quotes,0);
  if(scenario==='text')await page.locator('#mc-look-direction').fill('A red car in rain');
  else{const photo=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;return c.toDataURL().split(',')[1];}),'base64');await page.locator('#mc-look-file').setInputFiles({name:'source.png',mimeType:'image/png',buffer:photo});}
- if(scenario==='guest'){await page.waitForFunction(()=>document.querySelector('#mc-look-continue').textContent==='Sign in to generate');assert.equal(quotes,0);await button.click();await page.locator('#mock-signin').click();}
- await page.waitForFunction(()=>document.querySelector('#mc-look-continue').textContent.includes(' · '));assert.equal(paid,0);assert.equal(quotes,1);
- if(scenario==='changed'){await page.locator('#mc-look-direction').fill('Sharper flash');assert.equal(await button.isDisabled(),true);await page.waitForFunction(()=>document.querySelector('#mc-look-continue').textContent.includes(' · '));assert.equal(quotes,2);}
+ // Uploading and pricing must never keep Generate disabled.
+ assert.equal(await button.textContent(),'Generate');
+ assert.equal(await button.isDisabled(),false,'Generate is available as soon as photo or direction is present');
+ assert.equal(paid,0);
+ if(scenario==='guest'){
+   await page.waitForFunction(()=>document.querySelector('#mc-look-status').textContent.includes('Sign in'));
+   assert.equal(quotes,0);await button.click();await page.locator('#mock-signin').click();
+ }
+ if(scenario!=='slowquote'){
+   await page.waitForFunction(()=>document.querySelector('#mc-look-credit-note').hidden===false);
+   assert.equal(await button.textContent(),'Generate','The button never displays a credit cost');
+   assert.match(await page.locator('#mc-look-credit-note').textContent(),/credits per image/);
+   assert.equal(paid,0);assert.equal(quotes,1);
+ }
+ if(scenario==='changed'){
+   await page.locator('#mc-look-direction').fill('Sharper flash');
+   assert.equal(await button.isDisabled(),false,'Editing the direction also keeps Generate clickable');
+   assert.equal(await button.textContent(),'Generate');
+   await page.waitForFunction(()=>document.querySelector('#mc-look-credit-note').hidden===false);
+   assert.equal(quotes,2);
+ }
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await page.locator('#mc-look-dialog').evaluate(el=>el.scrollWidth>el.clientWidth),false);
  if(['desktop','mobile','small'].includes(scenario))await page.screenshot({path:out+'/'+scenario+'.png'});
  if(scenario==='draft'){
@@ -70,6 +88,11 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
  }else{
    await button.evaluate(el=>{el.click();el.click();});
    await page.waitForFunction(()=>document.querySelector('#mc-look-result')?.hidden===false);
+   if(scenario==='slowquote'){
+     assert.equal(await button.textContent(),'Preparing…','First click starts preparation immediately');
+     assert.equal(await button.isDisabled(),true,'Repeated clicks are blocked after the first click');
+     assert.equal(paid,0,'No paid request starts before the server quote');
+   }
    assert.equal(new URL(page.url()).pathname,'/lab/moods','Generating keeps the modal on Explore Moods');
    if(scenario==='failure'){
      await page.waitForFunction(()=>document.querySelector('#mc-look-result-progress').textContent.includes('Not enough credits.'));
