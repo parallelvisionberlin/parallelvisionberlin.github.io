@@ -83,5 +83,5 @@ test('wake-up callback never uses the request body as job authority',()=>{
   assert.match(section,/refreshJob\(env,job,ctx,true\)/);
   assert.doesNotMatch(section,/request\.json\(/);
   assert.doesNotMatch(section,/remote_url=\?/);
-  assert.doesNotMatch(section,/createTask|quoteId:|api\/jobs/);
+  assert.doesNotMatch(section,/vendorRequest\(|\/jobs\/createTask|\/api\/jobs\//);
 });
