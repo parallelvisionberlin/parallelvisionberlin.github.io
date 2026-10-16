@@ -1,4 +1,5 @@
 /* PV LAB Effects: editorial discovery view, never a second generation pipeline. */
+#tool-effects[hidden]{display:none!important}
 #video-effects-explore[hidden],#video-effect-active[hidden],#effect-gallery-picker[hidden]{display:none!important}
 #app.effects-explore-active>.workspace,#app.effects-explore-active>.archive,
 #app.effects-explore-active>#soul-launch{display:none!important}
