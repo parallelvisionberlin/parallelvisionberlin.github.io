@@ -33,7 +33,7 @@ try{
     const page=await context.newPage(),errors=[],requests=[];
     page.on('pageerror',error=>errors.push(error.message));
     await context.route('https://**/*',async route=>{
-      const req=route.request(),url=new URL(req.url);
+      const req=route.request(),url=new URL(req.url());
       if(!url.href.startsWith(api)){await route.abort();return;}
       const path=url.pathname,method=req.method();
       requests.push({path,method});
