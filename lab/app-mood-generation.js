@@ -42,10 +42,12 @@ export function createAppMoodGeneration(){
     // paid action; polling and fetching assets never create another job.
     jobStatus(id){return api('/api/jobs/'+encodeURIComponent(id));},
     outputBlob(id){return api('/api/assets/'+encodeURIComponent(id),{blob:true});},
+    previewBlob(id){return api('/api/jobs/'+encodeURIComponent(id)+'/preview',{blob:true});},
     cancel(){revision++;},
     async onAccountChange(listener){return (await identity()).addListener(listener);},
     async signIn(){const user=await identity();if(!user.isSignedIn)user.openSignIn();return user.isSignedIn;},
     async prepare(file,mood,direction){
+      const preparationStarted=performance.now();
       const stamp=++revision,user=await identity();
       if(!user.isSignedIn){const error=Error('Sign in to generate. Your photograph stays here.');error.code='SIGN_IN';throw error;}
       const sessionId=user.session.id;
@@ -81,7 +83,20 @@ export function createAppMoodGeneration(){
       // Owner testing is not a wallet charge; the label previews customer pricing.
       const label=pricedBoundQuotes(quote,1,'SpicyAPI').credits+' credits';
       let submitted=false;
-      return {label,expiresAt:quote.expiresAt,handoff(){check();if(submitted)throw Error('This request was already sent. Check Image.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');return {userId:user.user.id,quote,sourceId:original?.id||null};},async submit(){check();if(submitted)throw Error('This request was already sent. Check Gallery.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');submitted=true;return api('/api/jobs',{method:'POST',body:{quoteId:quote.id,confirm:true}});}};
+      const preparationMs=Math.round(performance.now()-preparationStarted);
+      return {label,expiresAt:quote.expiresAt,handoff(){check();if(submitted)throw Error('This request was already sent. Check Image.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');return {userId:user.user.id,quote,sourceId:original?.id||null};},async submit(){
+        check();if(submitted)throw Error('This request was already sent. Check Gallery.');
+        if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');
+        submitted=true;
+        const submittedAt=performance.now();
+        const response=await api('/api/jobs',{method:'POST',body:{quoteId:quote.id,confirm:true}});
+        const jobId=response?.job?.id;
+        // Metrics are non-billable and best effort; timing never delays the result.
+        if(jobId)void api('/api/jobs/'+encodeURIComponent(jobId)+'/performance',{method:'POST',
+          body:{clientPreparationMs:preparationMs,clientSubmitMs:Math.round(performance.now()-submittedAt)}
+        }).catch(()=>{});
+        return response;
+      }};
     }
   };
 }
