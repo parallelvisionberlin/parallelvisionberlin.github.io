@@ -3663,7 +3663,7 @@ function updateHistorySelectionUi(){
     const selectable=historySelectMode&&card.dataset.deletable==='true',selected=historySelected.has(card.dataset.job);
     card.classList.toggle('is-selectable',selectable);card.classList.toggle('is-selected',selected);
     if(selectable){card.tabIndex=0;card.removeAttribute('role');card.setAttribute('aria-selected',String(selected));}
-    else{card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',card.dataset.kind==='image'?'Open image details':'Open video in large player');card.removeAttribute('aria-selected');}
+    else{card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',card.dataset.kind==='image'?'Open image details':card.dataset.state==='completed'?'Open saved video in large player':'View video generation status');card.removeAttribute('aria-selected');}
     const box=card.querySelector('.history-select-box');if(box){box.hidden=!historySelectMode;const input=box.querySelector('input');if(input)input.checked=selected;}
   }
   $('history-selection-count').textContent=historySelected.size+' selected';
