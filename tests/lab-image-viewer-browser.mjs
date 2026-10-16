@@ -18,6 +18,15 @@ window.__viewerTest={lock,seedVideo:()=>{const job={id:'older-video',status:'com
     type:'video',engine:'seedance15',mode:'start',prompt:'A slow handheld move',
     duration:8,resolution:'720p',aspectRatio:'16:9'}};
   videoJobCache.set(job.id,job);showVideoHistoryRecord(job,{play:false});
+},createVideoGallery:()=>{
+  const jobs=Array.from({length:4},(_,i)=>({
+    id:'archive-video-'+i,status:'completed',createdAt:Date.now()-i,
+    outputId:'video-out-'+i,sourceId:'ref-0',settings:{type:'video',
+      engine:'seedance15',mode:'start',prompt:'Synthetic video '+i,
+      duration:8,resolution:'720p',aspectRatio:'16:9'}
+  }));
+  renderCards(jobs,{upsert:false});
+  restoreLatestVideoSelection();
 },flush:async()=>{await Promise.allSettled([...assetReads.values(),...thumbnailReads.values()]);await deviceMediaCache.select(userId);},customer:()=>wallet.connect({customer:true,balanceCredits:1000,billingReady:false,products:[]}),state:()=>({job:imageDetailJob?.id,result:resultId,cache:assetBlobs.size,prefetch:imageDetailPrefetchReads,tool,mode,sourceId,hasFile:!!file,prompt:$('prompt').value})};`;
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+pathname);
@@ -53,6 +62,8 @@ try{
       return {full,thumb:canvas.toDataURL().split(',')[1]};
     }),shape);
     for(let i=0;i<5;i++)gates.set('out-'+i,new Promise(resolve=>held.set('out-'+i,resolve)));
+    let releaseVideoFile;
+    const videoFileGate=new Promise(resolve=>{releaseVideoFile=resolve;});
     const writes=[];
     const jobs=images.map((_,i)=>({id:'job-'+i,outputId:'out-'+i,status:'completed',favorite:false,createdAt:Date.now()-i,sourceId:i===1?'ref-0':undefined,
       settings:{type:'image',mode:'image',engine:'seedream',prompt:'Editorial portrait by the window. Warm lamplight, natural texture, quiet atmosphere. Preserve the existing composition and lighting, with understated styling and a photographic finish. Image '+i,resolution:'1k',aspectRatio:'auto',referenceSourceIds:i===1?Array.from({length:6},(_,n)=>'ref-'+n):[]}}));
@@ -80,6 +91,11 @@ try{
       if(path==='/api/jobs')return send({jobs,activeJobs:[],next:null});
       if(path==='/api/customer/account')return send({storage:{bytes:1024**3,files:5,limitBytes:20*1024**3}});
       if(path.startsWith('/api/assets/')){
+        if(path==='/api/assets/video-out-0'){
+          reads.set('video-out-0',(reads.get('video-out-0')||0)+1);
+          await videoFileGate;
+          return route.fulfill({contentType:'video/mp4',body:Buffer.from('synthetic video content')});
+        }
         const id=path.split('/')[3],i=Number(id.split('-')[1]),thumbnail=path.endsWith('/thumbnail');
         if(!thumbnail){reads.set(id,(reads.get(id)||0)+1);await gates.get(id);}
         try{return await route.fulfill({contentType:'image/png',body:Buffer.from(images[i%images.length][thumbnail?'thumb':'full'],'base64')});}catch{}
@@ -246,6 +262,36 @@ try{
     await page.evaluate(()=>window.__viewerTest.showVideoState('failed'));
     assert.match(await page.locator('#video-job-stage-title').textContent(),/failed/);
     assert.equal(await page.locator('#video-start-thumb').isVisible(),true,'Failure must not discard the original frame');
+    await page.evaluate(()=>window.__viewerTest.createVideoGallery());
+    const tiles=page.locator('#history .card[data-kind="video"]');
+    assert.equal(await tiles.count(),4,'Four completed video thumbnails render in History');
+    const tileRects=await tiles.evaluateAll(nodes=>nodes.map(el=>({
+      y:el.getBoundingClientRect().y,
+      width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height
+    })));
+    assert.ok(tileRects.every(rect=>Math.abs(rect.width-tileRects[0].width)<2&&Math.abs(rect.height-tileRects[0].height)<2),
+      'Video archive cards stay equal width and height');
+    assert.equal(new Set(tileRects.map(rect=>Math.round(rect.y))).size,width===390?4:2,
+      'Small screens use one video per row, desktop shows a compact multi-column grid');
+    assert.equal(await page.locator('.history-video-play').count(),4,
+      'Completed video source thumbnails display a clear Play Video affordance');
+    // This saved file is held: selecting a thumbnail must reveal Loading and
+    // return to the top of the player before any result bytes arrive.
+    await tiles.first().scrollIntoViewIfNeeded();
+    await page.evaluate(()=>{const center=document.querySelector('#video-feed-center');center.scrollTop=center.scrollHeight;});
+    await tiles.first().evaluate(el=>el.click());
+    assert.equal(await page.locator('#video-job-stage').isVisible(),true,'Video click opens the central loading surface');
+    assert.match(await page.locator('#video-job-stage-title').innerText(),/Opening video/);
+    assert.equal(await page.locator('#video-detail-status').innerText(),'Completed',
+      'Job inspector truthfully retains the backend state');
+    assert.equal(await page.locator('#video-job-stage-state').innerText(),'Loading',
+      'The player does not report Ready before video data arrives');
+    if(width===1440)assert.equal(await page.locator('#video-feed-center').evaluate(el=>el.scrollTop),0,
+      'Selecting a History card reveals the large desktop player');
+    releaseVideoFile();
+    await page.waitForFunction(()=>!!document.querySelector('#video').getAttribute('src')&&!document.querySelector('#video').hidden);
+    assert.equal(reads.get('video-out-0'),1,'One video download for one click, no paid generation');
+    assert.equal(await page.locator('#video-job-stage').isVisible(),false,'Loaded video replaces the processing card');
     await page.evaluate(()=>window.__viewerTest.lock());
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).cache,0,'Sign out clears private original cache');
     assert.equal(await page.locator('.image-detail-reference-item').count(),0,'Sign out clears all private reference thumbnails');

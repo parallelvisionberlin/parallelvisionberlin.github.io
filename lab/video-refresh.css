@@ -220,3 +220,61 @@
   #app.video-studio-active .video-job-stage-indicator,
   #app.video-studio-active .video-job-stage-motion i{animation:none}
 }
+
+/* Compact video archive. Every saved film has one consistent thumbnail size;
+   selecting it opens the existing large player rather than expanding a card. */
+#app.video-studio-active .video-feed-center #history{
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,245px),1fr));
+  gap:11px;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"]{
+  display:flex;flex-direction:column;min-width:0;
+  transition:border-color .18s ease,background .18s ease;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"]:hover,
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"]:focus-visible{
+  border-color:#777d86;background:#23252a;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"]>.history-media,
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"]>.history-no-result{
+  position:relative;flex:0 0 auto;width:100%;height:auto;min-height:0;aspect-ratio:16/9;
+  overflow:hidden;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"]>.history-media img{
+  display:block;position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;
+}
+#app.video-studio-active .video-feed-center #history .history-video-thumb figcaption{display:none}
+#app.video-studio-active .video-feed-center #history .history-video-play{
+  position:absolute;bottom:10px;left:10px;
+  display:inline-flex;align-items:center;gap:7px;
+  max-width:calc(100% - 20px);padding:7px 11px;border:1px solid #ffffff52;
+  border-radius:7px;background:#111317c9;color:#f7f7f5;
+  font-size:10px;font-weight:600;letter-spacing:.035em;line-height:1;
+  pointer-events:none;backdrop-filter:blur(9px);
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardbody{
+  flex:1 1 auto;min-height:77px;padding:10px 11px 11px;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardmeta{
+  font-size:9px;line-height:1.35;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardbody>p{
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  overflow:hidden;max-height:none;min-height:2.6em;font-size:11px;line-height:1.3;
+}
+#app.video-studio-active .video-feed-center .stage{scroll-margin-top:90px}
+#app.video-studio-active .video-job-stage[data-phase="load-error"] .video-job-stage-indicator,
+#app.video-studio-active .video-job-stage[data-phase="missing"] .video-job-stage-indicator{
+  animation:none;border-color:#9a9ea8;background:#9a9ea8;
+}
+#app.video-studio-active .video-job-stage[data-phase="load-error"] .video-job-stage-motion i,
+#app.video-studio-active .video-job-stage[data-phase="missing"] .video-job-stage-motion i{
+  animation:none;height:5px;opacity:.5;
+}
+@media(max-width:640px){
+  #app.video-studio-active .video-feed-center #history{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  #app.video-studio-active .video-feed-center #history .card[data-kind="video"]{transition:none}
+}
