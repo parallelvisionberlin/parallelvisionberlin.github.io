@@ -19,8 +19,10 @@ function initialize(){
   const generate=$('mc-look-continue'),result=$('mc-look-result');
   const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
   const resultActions=$('mc-look-result-actions');
-  let runSerial=0,activeJobId=null,resultURL=null,resultBlob=null,resultOutputId=null;
+  let runSerial=0,activeJobId=null,resultURL=null,resultBlob=null,resultOutputId=null,waitNoteTimer=null;
   function clearResult(){
+    clearTimeout(waitNoteTimer);waitNoteTimer=null;
+    $('mc-look-result-wait-note').hidden=true;
     runSerial++;activeJobId=null;
     if(resultURL)URL.revokeObjectURL(resultURL);
     resultURL=null;resultBlob=null;resultOutputId=null;
@@ -60,6 +62,7 @@ function initialize(){
         $('mc-look-result-progress').textContent='Opening your photograph…';
         // Let the real completed-state reveal breathe briefly while the image opens.
         // This never starts another job and adds at most 600ms after completion.
+        clearTimeout(waitNoteTimer);waitNoteTimer=null;
         const [blob]=await Promise.all([
           client.outputBlob(job.outputId),
           new Promise(resolve=>setTimeout(resolve,600))
@@ -352,6 +355,13 @@ function initialize(){
       if(!job?.id)throw Error('Submission could not be confirmed. Check Image History before trying again.');
       if(serial!==runSerial)return;
       activeJobId=job.id;
+      // A confirmed server job keeps running if the user closes Explore Moods.
+      // Offer the safe exit only after the wait becomes substantial.
+      clearTimeout(waitNoteTimer);
+      waitNoteTimer=setTimeout(()=>{
+        if(serial===runSerial&&dialog.open&&activeJobId===job.id&&!resultLoading.hidden)
+          $('mc-look-result-wait-note').hidden=false;
+      },45000);
       $('mc-look-result-heading').textContent='GENERATING YOUR IMAGE';
       $('mc-look-result-history').hidden=false;
       $('mc-look-close').disabled=false; // Accepted jobs keep running in History if closed.
@@ -359,6 +369,8 @@ function initialize(){
       await watchJob(await generationService(),job.id,serial);
     }catch(error){
       if(serial!==runSerial)return;
+      clearTimeout(waitNoteTimer);waitNoteTimer=null;
+      $('mc-look-result-wait-note').hidden=true;
       setBusy(false);
       $('mc-look-close').disabled=false;
       if(error.code==='SIGN_IN'&&!attemptedSubmission){
