@@ -89,7 +89,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(paragraphRGB.length,3,'Referral description uses a valid color');
   assert.ok(paragraphRGB.every(n=>n>=180),'Referral description retains contrast on dark photography');
   if(width>760){
-    assert.ok(details.rowHeights.every(n=>n>=(height<=940?108:(width>=1200?165:145))&&n<=210),'Editorial rows are appropriately sized for the viewport');
+    assert.ok(details.rowHeights.every(n=>n>=(width<=1250?195:(height<=940?115:160))&&n<=260),'Editorial purchase cards are appropriately sized for the viewport');
     assert.ok(layout.collection.right<=layout.comparison.x,'Desktop prices sit beside the film collection');
     assert.ok(layout.cardGap>=0,'Film deck does not hide the checkout column');
     assert.ok(details.headlineSize>=37,'Editorial pricing heading stays prominent');
@@ -139,7 +139,11 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('#pricing .lab-pricing-usage-note').count(),0,'No small model-rate paragraph under plans');
   assert.equal(await page.locator('#pricing .lab-estimate-details').count(),6,'All purchase rows explain estimate rates on demand');
 
-  assert.equal(await page.locator('#pricing .lab-plan-tag').count(),0,'No promotional plan badge disturbs editorial hierarchy');
+  assert.equal(await page.locator('#lab-monthly-plans .lab-plan-tag').count(),1,'One editorial recommendation distinguishes the Creator plan');
+  assert.equal(await page.locator('#lab-one-time-credits .lab-plan-tag').count(),0,'One-time packs are neutrally presented');
+  assert.equal(await page.locator('#pricing .lab-buy-label').count(),6,'Every plan offers a visible purchase action');
+  assert.equal(await page.locator('#pricing .lab-pricing-benefits').count(),1,'Common capabilities are shown once below the plans');
+  assert.equal(await page.locator('#pricing .lab-plan-usage-stats').first().getByText('Upscaling available').count(),0,'Upscaling is not repeated inside each plan');
   const infoAtEnd=await page.locator('#pricing .lab-plan-usage-stats').evaluateAll(rows=>rows.every(row=>row.lastElementChild?.classList.contains('lab-estimate-details')));
   assert.equal(infoAtEnd,true,'Estimate info icon follows images, videos and upscaling on all six options');
   const statsStyle=await page.locator('#lab-monthly-plans .lab-plan-usage-stats').first().evaluate(el=>({
