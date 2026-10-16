@@ -38,6 +38,7 @@ function node(){
     },
     addEventListener:(type,listener)=>handlers.set(type,listener),
     dispatch:(type,event={})=>handlers.get(type)?.(event),
+    contains(el){return el===this;},
     setAttribute(name,value){this[name]=value;},
     removeAttribute(name){delete this[name];},
     showModal(){this.open=true;},
