@@ -190,25 +190,83 @@
 #mc-look-preview[data-mood-id="90s-cinema"]{object-position:64% 50%;transform:scale(1.06)}
 /* A selected file fits inside the original drop area without growing the dialog. */
 .mc-explore-page .mc-look-dropzone{height:130px;min-height:130px;flex:0 0 130px;box-sizing:border-box}
+.mc-explore-page .mc-look-dialog:not(.is-result-view)[open]{
+  /* The natural height is captured when the Mood opens, before a photo is added. */
+  height:var(--mc-editor-height,auto);
+}
+.mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-body{
+  min-height:0;overflow-y:auto;overscroll-behavior:contain;
+}
+.mc-explore-page .mc-look-dropzone{
+  position:relative;isolation:isolate;overflow:hidden;
+}
 .mc-explore-page .mc-look-dropzone.has-image{
-  display:grid;grid-template-columns:62px minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;
-  column-gap:14px;row-gap:3px;
+  display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
+  gap:14px;
 }
 .mc-explore-page .mc-look-file-preview{
-  grid-column:1;grid-row:1 / -1;align-self:center;width:62px;height:76px;
+  align-self:center;flex:0 0 62px;width:62px;height:76px;
   margin:0;object-fit:contain;
 }
 .mc-explore-page .mc-look-dropzone.has-image>label{
-  grid-column:2;grid-row:1;min-width:0;align-items:flex-start;text-align:left;
+  flex:1 1 auto;min-width:0;align-items:flex-start;text-align:left;
 }
 .mc-explore-page .mc-look-dropzone.has-image #mc-look-upload-symbol{display:none}
 .mc-explore-page .mc-look-dropzone.has-image>label strong{
-  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;
 }
-.mc-explore-page .mc-look-dropzone.has-image>button{grid-column:2;grid-row:2;justify-self:start}
+/* A proper photo control, directly on the thumbnail. No unreadable text row. */
+.mc-explore-page #mc-look-file-clear{
+  position:absolute;z-index:3;top:calc(50% - 50px);left:60px;
+  display:grid;place-items:center;width:32px;height:32px;min-height:32px;
+  padding:0;border:1px solid #ffffff85;border-radius:50%;
+  background:#101715f2;color:#f2f5ef;box-shadow:0 3px 10px #0008;
+  cursor:pointer;transition:background .15s ease,border-color .15s ease;
+}
+.mc-explore-page #mc-look-file-clear:hover,
+.mc-explore-page #mc-look-file-clear:focus-visible{
+  background:#2a3430;border-color:#fff;color:#fff;
+}
+.mc-explore-page #mc-look-file-clear[hidden],
+.mc-explore-page .mc-look-upload-error[hidden]{display:none!important}
+/* Errors replace the drop area contents, rather than shifting the modal. */
+.mc-explore-page .mc-look-upload-error{
+  position:absolute;z-index:5;inset:0;box-sizing:border-box;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;padding:10px 12px;border:1px solid #a9b8a877;
+  border-radius:9px;background:#242b28;color:#eff3ed;text-align:center;
+}
+.mc-explore-page .mc-look-upload-error strong{
+  font:600 13px/1.3 'DM Sans',Arial,sans-serif;
+}
+.mc-explore-page .mc-look-upload-error>span{
+  color:#d1d9d1;font:400 11px/1.4 'DM Sans',Arial,sans-serif;
+}
+.mc-explore-page .mc-look-upload-error-options{
+  display:flex;align-items:center;justify-content:center;gap:18px;margin-top:2px;
+}
+.mc-explore-page .mc-look-upload-error-options label,
+.mc-explore-page .mc-look-upload-error-options button{
+  padding:2px 0;border:0;background:transparent;cursor:pointer;
+  font:500 11px/1.4 'DM Sans',Arial,sans-serif;
+}
+.mc-explore-page .mc-look-upload-error-options label{
+  color:var(--pv-acid);text-decoration:underline;text-underline-offset:3px;
+}
+.mc-explore-page .mc-look-upload-error-options button{
+  color:#c3ccc3;text-decoration:underline;text-underline-offset:3px;
+}
+.mc-explore-page .mc-look-footer{min-height:35px;box-sizing:border-box}
 @media(max-width:600px){
   .mc-explore-page .mc-look-dropzone{height:110px;min-height:110px;flex-basis:110px}
   .mc-explore-page .mc-look-file-preview{height:66px}
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-body{
+    overflow:visible;
+  }
+  .mc-explore-page .mc-look-footer{min-height:42px}
+  .mc-explore-page .mc-look-upload-error{gap:3px;padding:6px 9px}
+  .mc-explore-page .mc-look-upload-error-options{margin-top:0}
 }
 .mc-explore-page .mc-look-card[data-mood-id="polaroid-600"] img{
   object-fit:contain;object-position:50% 50%;background:#dddcd3;

@@ -64,3 +64,22 @@ test('Generating replaces form with a bounded result stage, keeping artwork and 
   assert.match(js,/status\.textContent=error\.message;\s*generate\.textContent='Generate'/);
   assert.equal((js.match(/currentPrice\.submit\(\)/g)||[]).length,1);
 });
+
+test('Oversized Mood uploads show an in-card error and keep the editor fixed',()=>{
+  const js=read('lab/explore-moods.js');
+  const page=read('lab/moods.html');
+  const css=read('lab/explore-moods-editorial.css');
+  assert.match(js,/showUploadError\(input,error\)/);
+  assert.match(js,/input\.size>20\*1024\*1024/);
+  assert.match(js,/Maximum 20 MB/);
+  assert.match(js,/fileInput\.value=''/);
+  assert.match(js,/Math\.ceil\(height\)\+'px'/);
+  assert.match(js,/dialog\.style\.removeProperty\('--mc-editor-height'\)/);
+  assert.match(page,/id="mc-look-upload-error"[^>]+role="alert"/);
+  assert.match(page,/id="mc-look-upload-error-dismiss"/);
+  assert.match(page,/id="mc-look-file-clear"[^>]*aria-label="Remove selected photo"[^>]*title="Remove photo"/);
+  assert.match(css,/\.mc-look-dialog:not\(\.is-result-view\)\[open\]/);
+  assert.match(css,/height:var\(--mc-editor-height,auto\)/);
+  assert.match(css,/\.mc-look-upload-error\{[\s\S]*?position:absolute/);
+  assert.match(css,/#mc-look-file-clear\{[\s\S]*?position:absolute/);
+});
