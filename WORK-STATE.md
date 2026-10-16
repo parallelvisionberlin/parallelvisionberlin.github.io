@@ -3,27 +3,24 @@ Updated: 2026-10-16
 Site: https://parallelvisionlabel.com/
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 
-## Approved direction
-- The homepage presents the independent record label and the Berlin 2063 world.
-- Main hero action stays `ENTER BERLIN 2063` and links to `./berlin-2063.html`.
-- PV LAB stays in the top navigation.
-- Keep hero video, title, descriptive copy, header, and Nina controls unchanged.
+## Latest user direction
+- Preserve the homepage composition and the existing TALK TO NINA bottom-right treatment exactly.
+- Revert the Enter Berlin 2063 action to the ORIGINAL compact outlined-pillow/pill design, but polish the button.
+- User rejected the oversized/bare typographic CTA, detached arrow, vertical pink accent, white arrow end-cap and signup-style rectangle.
+- Main action remains ENTER BERLIN 2063 leading to `./berlin-2063.html`, while LAB stays in the navigation.
 
-## Current fix: intentional distance from the description
-- The previous 16px CTA sitting 23px below the paragraph resembled a continuation of the small body copy.
-- `index.html`: only CTA styles changed, with a 65–84px desktop margin above the action and typography of 20–24px, Inter 600.
-- One clean line in white, a closely adjacent 28px diagonal arrow, no pink rail, underline, pill, rectangle, or background panel.
-- On mobile, a centered 17–20px entrance with 44–60px margin above and a 24px arrow.
-- No change to the action markup or translation selectors; the existing German label still applies.
-- Preserved keyboard focus and reduced-motion handling.
-- Based on main commit `ad7f378b3bf54c75814d1acb8d4ecf5aad4e2bc3`.
+## Implemented
+- `index.html`: only the `.hero-world-cta` CSS block was replaced, using the initial compact button proportions with refined 47px height, 12px Inter, muted outline, transparent dark background, arrow inside, understated hover.
+- 27px below hero description, in its original position. No added badges, rules, endcaps or accent lines.
+- Phone style centered, 46px tap area, compact typography and in-button arrow.
+- Existing HTML, EN/DE language.js translations, destination, video, Nina control, other modules unchanged.
+- Baseline main revision: `bf4f8d6bfedfdabe5ab849204b15fdf3c16a346a`.
 
 ## Verification
-- Reviewed existing hero styles and the desktop/mobile context.
-- Code asserts exactly one hero Berlin 2063 link, original markup/translation intact, and no decoration.
-- GitHub static-site validation and Pages publishing: check after commit.
-- Visual desktop/mobile browser QA is not yet complete.
+- Source checks: one destination link, original text spans, translation matches, no large separated typography, no end-cap.
+- CI / deployment: verify after commit.
+- Live desktop and phone appearance needs visual review; no browser screenshot performed.
 
 ## Next
-- Verify that the main branch retains this design and Pages deploy succeeds.
-- Keep changes isolated from other active feature work.
+- Confirm GitHub Pages success for a commit containing the fix.
+- Avoid further redesign until direct user feedback; retain TALK TO NINA untouched.

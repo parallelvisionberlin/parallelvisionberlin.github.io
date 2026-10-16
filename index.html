@@ -362,48 +362,51 @@ body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline
 /* A discreet NEW cue next to Lab in the Parallel Vision homepage navigation. */
 .pv-home .home-primary-links>a.home-lab-link{display:inline-flex;align-items:center;white-space:nowrap;gap:7px}
 .pv-home .home-lab-new{font:500 8px/1.2 Inter,Arial,sans-serif;letter-spacing:.08em;color:#e7e5dc;border:1px solid rgba(225,225,218,.45);border-radius:2px;padding:3px 4px;text-transform:uppercase}
-/* Berlin 2063 hero: a distinct typographic destination, separated from the descriptive copy. */
+/* Berlin 2063: original compact hero pill, refined without competing with Nina. */
 .pv-home .hero-world-cta{
-  display:inline-flex;align-items:center;justify-content:flex-start;gap:16px;
-  width:max-content;max-width:100%;min-height:56px;box-sizing:border-box;
-  margin-top:clamp(65px,8vh,84px);padding:10px 0;
-  border:0;border-radius:0;background:transparent;box-shadow:none;
-  color:#f6f7f4;text-decoration:none;text-align:left;
-  transition:color .25s ease;
+  display:inline-flex;align-items:center;justify-content:space-between;
+  gap:22px;min-height:47px;width:max-content;max-width:100%;box-sizing:border-box;
+  margin-top:27px;padding:0 18px 0 19px;
+  border:1px solid rgba(243,244,240,.66);border-radius:999px;
+  background:rgba(8,11,17,.30);box-shadow:none;
+  color:#f2f3ef;text-decoration:none;text-align:left;
+  transition:border-color .25s ease,background .25s ease,color .25s ease;
 }
 .pv-home .hero-world-cta-copy{
-  display:inline-flex;align-items:center;gap:.4em;min-width:0;
-  white-space:nowrap;font:600 clamp(20px,1.65vw,24px)/1.22 Inter,Arial,sans-serif;
-  letter-spacing:.048em;text-transform:uppercase;color:inherit;
+  display:inline-flex;flex-direction:row;align-items:center;gap:.35em;
+  min-width:0;white-space:nowrap;
+  font:500 12px/1.3 Inter,Arial,sans-serif;
+  letter-spacing:.10em;text-transform:uppercase;color:inherit;
 }
 .pv-home .hero-world-cta-kicker,.pv-home .hero-world-cta-name{
-  display:inline;font:inherit;letter-spacing:inherit;text-transform:inherit;
-  color:inherit;text-shadow:none;white-space:nowrap;
+  display:inline;flex:none;font:inherit;letter-spacing:inherit;
+  text-transform:inherit;color:inherit;text-shadow:none;white-space:nowrap;
 }
 .pv-home .hero-world-cta svg{
-  display:block;flex:0 0 28px;width:28px;height:28px;padding:0;
-  background:transparent;border:0;color:inherit;overflow:visible;
-  transition:transform .3s cubic-bezier(.18,.7,.2,1);
+  display:block;flex:0 0 18px;width:18px;height:18px;padding:0;
+  background:none;border:0;color:inherit;overflow:visible;
+  transition:transform .25s cubic-bezier(.2,.7,.2,1);
 }
 .pv-home .hero-world-cta:hover,.pv-home .hero-world-cta:focus-visible{
-  background:transparent;box-shadow:none;color:#fff;
+  border-color:rgba(255,255,255,.96);background:rgba(255,255,255,.105);color:#fff;
+  box-shadow:none;
 }
 .pv-home .hero-world-cta:hover svg,.pv-home .hero-world-cta:focus-visible svg{
-  transform:translate(4px,-4px);
+  transform:translate(2px,-2px);
 }
-.pv-home .hero-world-cta:focus-visible{outline:1px solid #fff;outline-offset:5px}
+.pv-home .hero-world-cta:focus-visible{
+  outline:2px solid rgba(255,255,255,.9);outline-offset:4px;
+}
 @media(prefers-reduced-motion:reduce){
   .pv-home .hero-world-cta,.pv-home .hero-world-cta svg{transition:none}
 }
 @media(max-width:700px){
   .pv-home .hero-world-cta{
-    display:flex;width:max-content;max-width:100%;min-height:50px;
-    margin:clamp(44px,6vh,60px) auto 0;padding:8px 0;gap:12px;
+    display:flex;width:max-content;min-height:46px;max-width:100%;
+    margin:25px auto 0;padding:0 17px;gap:19px;
   }
-  .pv-home .hero-world-cta-copy{
-    font-size:clamp(17px,4.5vw,20px);letter-spacing:.04em;gap:.38em;
-  }
-  .pv-home .hero-world-cta svg{width:24px;height:24px;flex-basis:24px}
+  .pv-home .hero-world-cta-copy{font-size:11px;letter-spacing:.09em}
+  .pv-home .hero-world-cta svg{width:18px;height:18px;flex-basis:18px}
 }
 @media(min-width:621px) and (max-width:1100px){
   .pv-home .home-primary-links{gap:clamp(9px,1.4vw,16px);font-size:10px;letter-spacing:.08em}
