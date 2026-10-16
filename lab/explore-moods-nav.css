@@ -337,7 +337,6 @@
   .mc-explore-page .mc-look-exposure-story span{font-size:9px;letter-spacing:.085em}
   .mc-explore-page .mc-look-exposure-overline{font-size:8px}
   .mc-explore-page #mc-look-result-progress{font-size:11px}
-  .mc-explore-page .mc-look-exposure-arc{top:-30%}
 }
 @media(prefers-reduced-motion:reduce){
   .mc-explore-page .mc-look-result{transition:none}
