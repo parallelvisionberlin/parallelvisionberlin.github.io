@@ -11,6 +11,8 @@ function initialize(){
   const $=id=>document.getElementById(id);
   const dialog=$('mc-look-dialog'),zone=$('mc-look-dropzone'),fileInput=$('mc-look-file');
   const direction=$('mc-look-direction'),status=$('mc-look-status');
+  const uploadError=$('mc-look-upload-error'),uploadErrorTitle=$('mc-look-upload-error-title'),
+    uploadErrorDetail=$('mc-look-upload-error-detail');
   let mood=null,file=null,fileURL=null,busy=false,dragDepth=0;
   let price=null,priceTask=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
   const creditNote=$('mc-look-credit-note');
@@ -167,8 +169,29 @@ function initialize(){
     dragDepth=0;
     zone.classList.remove('is-over');
   }
+  function hideUploadError(){
+    zone.classList.remove('has-error');
+    uploadError.hidden=true;
+    uploadErrorTitle.textContent='';
+    uploadErrorDetail.textContent='';
+  }
+  function showUploadError(input,error){
+    const tooLarge=Number.isFinite(input?.size)&&input.size>20*1024*1024;
+    uploadErrorTitle.textContent=tooLarge?'Image too large':'Cannot use this image';
+    uploadErrorDetail.textContent=tooLarge
+      ?(input.size/(1024*1024)).toFixed(1)+' MB selected. Maximum 20 MB.'
+      :error.message;
+    uploadError.hidden=false;
+    zone.classList.add('has-error');
+    status.textContent='';
+    // A rejected replacement cannot accidentally generate with an older photo.
+    if(!busy)generate.disabled=true;
+    // Browsers must fire change even when this same rejected file is chosen again.
+    fileInput.value='';
+  }
   function clearPhoto(){
     clearDropHighlight();
+    hideUploadError();
     if(fileURL)URL.revokeObjectURL(fileURL);
     fileURL=null;file=null;fileInput.value='';
     $('mc-look-file-preview')?.remove();
@@ -178,7 +201,8 @@ function initialize(){
   }
   function attachPhoto(input){
     if(busy)return false;
-    try{validateMoodHandoff({file:input});}catch(error){status.textContent=error.message;return false;}
+    try{validateMoodHandoff({file:input});}
+    catch(error){showUploadError(input,error);return false;}
     clearPhoto();file=input;
     fileURL=URL.createObjectURL(file);
     const photo=document.createElement('img');photo.id='mc-look-file-preview';photo.className='mc-look-file-preview';
@@ -199,8 +223,14 @@ function initialize(){
     preview.alt=selected.name+' aesthetic';
     $('mc-look-title').textContent=selected.name;
     $('mc-look-description').textContent=selected.id==='berlin-rave'?selected.description+'. Transforms wardrobe and lighting into a night-flash editorial while keeping your identity, pose and framing.':selected.id==='synthetic-romance'?selected.description+'. This mood reconstructs visible body parts into engineered chrome, cables and synthetic anatomy.':selected.description+'. Keep your own subject and scene.';
-    if(photo)attachPhoto(photo);
     if(!dialog.open)dialog.showModal();
+    // Freeze the natural empty editor height before any dropped/selected photo
+    // changes DOM nodes. Subsequent photo changes never resize the Mood card.
+    if(!dialog.style.getPropertyValue('--mc-editor-height')){
+      const height=dialog.getBoundingClientRect().height;
+      dialog.style.setProperty('--mc-editor-height',Math.ceil(height)+'px');
+    }
+    if(photo)attachPhoto(photo);
     dialog.focus({preventScroll:true});
     dialog.scrollTop=0;
     void loadFullPreview(selected,'high').then(src=>{
@@ -211,6 +241,7 @@ function initialize(){
   dialog.addEventListener('cancel',event=>{if(busy&&!activeJobId)event.preventDefault();});
   dialog.addEventListener('close',()=>{
     if(dialog.open)return;
+    dialog.style.removeProperty('--mc-editor-height');
     clearResult();resetPrice();clearPhoto();mood=null;setBusy(false);generate.disabled=true;
     $('mc-look-preview').removeAttribute('src');
   });
@@ -218,6 +249,10 @@ function initialize(){
   dialog.addEventListener('click',event=>{if(event.target===dialog)close();});
   fileInput.addEventListener('change',()=>{if(fileInput.files?.[0])attachPhoto(fileInput.files[0]);});
   $('mc-look-file-clear').onclick=()=>{if(!busy){clearPhoto();schedulePrice();}};
+  $('mc-look-upload-error-dismiss').onclick=()=>{
+    hideUploadError();
+    generate.disabled=!hasGenerationInput()||busy;
+  };
   direction.addEventListener('input',()=>schedulePrice(180));
   zone.addEventListener('dragenter',event=>{
     if(!event.dataTransfer?.types?.includes('Files'))return;

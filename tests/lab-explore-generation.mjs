@@ -26,7 +26,7 @@ const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
-try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','compact','phone']){
+try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','compact','phone','card-oversize']){
  const page=await browser.newPage({viewport:{
   width:scenario==='small'?320:['mobile','phone'].includes(scenario)?390:scenario==='compact'?1280:1440,
   height:scenario==='small'?640:scenario==='compact'?720:scenario==='phone'?700:900
@@ -56,11 +56,44 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
   }
   if(url.hostname!=='127.0.0.1')return route.abort();return route.continue();
  });
- await page.goto(base+'/lab/explore-moods.html');await page.locator('[data-mood-id="hong-kong-nights"]').click();
+ await page.goto(base+'/lab/explore-moods.html');
+ if(scenario==='card-oversize'){
+   const card=page.locator('[data-mood-id="hong-kong-nights"]');
+   await card.click();
+   const baseHeight=await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height);
+   await page.locator('#mc-look-close').click();
+   await page.evaluate(()=>{
+     const dt=new DataTransfer();
+     const file=new File([new Uint8Array(21*1024*1024)],'oversize-card.png',{type:'image/png'});
+     dt.items.add(file);
+     document.querySelector('[data-mood-id="hong-kong-nights"]').dispatchEvent(
+       new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt})
+     );
+   });
+   await page.locator('#mc-look-upload-error').waitFor({state:'visible'});
+   assert.match(await page.locator('#mc-look-upload-error-title').textContent(),/Image too large/);
+   assert.match(await page.locator('#mc-look-upload-error-detail').textContent(),/21\.0 MB selected\. Maximum 20 MB/);
+   const after=await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height);
+   assert.ok(Math.abs(after-baseHeight)<2,'Dropping an oversized photo never resizes a Mood dialog');
+   assert.equal(await page.locator('#mc-look-continue').isDisabled(),true);
+   assert.equal(paid,0);assert.equal(quotes,0);
+   await page.screenshot({path:out+'/oversize-card.png'});
+   await page.locator('#mc-look-upload-error-dismiss').click();
+   assert.equal(await page.locator('#mc-look-upload-error').isVisible(),false);
+   await page.locator('#mc-look-close').click();
+   assert.deepEqual(errors,[]);
+   await page.close();console.log('PASS',scenario);
+   continue;
+ }
+ await page.locator('[data-mood-id="hong-kong-nights"]').click();
+ const editorHeight=await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height);
  const button=page.locator('#mc-look-continue');assert.equal(await button.textContent(),'Generate');assert.equal(await button.isDisabled(),true);assert.equal(paid,0);assert.equal(quotes,0);
  if(scenario==='text')await page.locator('#mc-look-direction').fill('A red car in rain');
  else{const photo=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;return c.toDataURL().split(',')[1];}),'base64');await page.locator('#mc-look-file').setInputFiles({name:'source.png',mimeType:'image/png',buffer:photo});}
  // Uploading and pricing must never keep Generate disabled.
+ const uploadedHeight=await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height);
+ assert.ok(Math.abs(uploadedHeight-editorHeight)<2,
+   scenario+': selecting a photo cannot resize the expanded Mood card');
  assert.equal(await button.textContent(),'Generate');
  assert.equal(await button.isDisabled(),false,'Generate is available as soon as photo or direction is present');
  assert.equal(paid,0);
@@ -73,6 +106,25 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    assert.equal(await button.textContent(),'Generate','The button never displays a credit cost');
    assert.match(await page.locator('#mc-look-credit-note').textContent(),/credits per image/);
    assert.equal(paid,0);assert.equal(quotes,1);
+ }
+ if(scenario==='desktop'){
+   const oversized=Buffer.alloc(21*1024*1024);
+   await page.locator('#mc-look-file').setInputFiles({
+     name:'too-big.png',mimeType:'image/png',buffer:oversized
+   });
+   await page.locator('#mc-look-upload-error').waitFor({state:'visible'});
+   assert.equal(await page.locator('#mc-look-upload-error-title').textContent(),'Image too large');
+   assert.match(await page.locator('#mc-look-upload-error-detail').textContent(),/21\.0 MB selected\. Maximum 20 MB/);
+   assert.equal(await button.isDisabled(),true,'Rejected photo temporarily blocks Generate');
+   assert.equal(await page.locator('#mc-look-file-preview').count(),1,
+     'A previously selected valid photo is not silently deleted');
+   assert.ok(Math.abs((await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height))-editorHeight)<2,
+     'The oversize message stays inside the upload area');
+   assert.equal(paid,0,'An oversize error never triggers an AI request');
+   await page.screenshot({path:out+'/oversize-file-picker.png'});
+   await page.locator('#mc-look-upload-error-dismiss').click();
+   assert.equal(await page.locator('#mc-look-upload-error').isVisible(),false);
+   assert.equal(await button.isDisabled(),false,'Dismissing restores the previous valid photo');
  }
  if(scenario==='changed'){
    await page.locator('#mc-look-direction').fill('Sharper flash');
@@ -153,6 +205,18 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
          assert.equal(await page.locator('#mc-look-dropzone').isVisible(),true);
          assert.equal(await page.locator('#mc-look-dialog').getAttribute('class'),'mc-look-dialog');
          assert.equal(paid,1,'Make another must not submit a new job automatically');
+         const remove=page.locator('#mc-look-file-clear');
+         assert.equal(await remove.isVisible(),true);
+         assert.equal(await remove.getAttribute('aria-label'),'Remove selected photo');
+         assert.equal(await remove.getAttribute('title'),'Remove photo');
+         assert.equal(await remove.locator('svg').count(),1,
+           'The photo has a clear icon control, not a tiny text link');
+         await remove.click();
+         assert.equal(await page.locator('#mc-look-file-preview').count(),0);
+         assert.equal(await button.isDisabled(),true);
+         assert.ok(Math.abs((await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height))-editorHeight)<2,
+           'Removing the photo leaves the card dimensions untouched');
+         assert.equal(paid,1,'Remove photo does not start another paid generation');
        }
        await page.locator('#mc-look-close').click();
        assert.equal(await page.locator('#mc-look-dialog').isVisible(),false);
