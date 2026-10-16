@@ -13,10 +13,59 @@ function initialize(){
   const direction=$('mc-look-direction'),status=$('mc-look-status');
   let mood=null,file=null,fileURL=null,busy=false,dragDepth=0;
   let price=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
-  const generate=$('mc-look-continue');
+  const generate=$('mc-look-continue'),result=$('mc-look-result');
+  const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
+  const resultActions=$('mc-look-result-actions');
+  let runSerial=0,activeJobId=null,resultURL=null,resultBlob=null,resultOutputId=null;
+  function clearResult(){
+    runSerial++;activeJobId=null;
+    if(resultURL)URL.revokeObjectURL(resultURL);
+    resultURL=null;resultBlob=null;resultOutputId=null;
+    result.hidden=true;result.classList.remove('is-visible');
+    resultImg.hidden=true;resultImg.removeAttribute('src');resultActions.hidden=true;
+    resultLoading.hidden=false;
+    $('mc-look-result-heading').textContent='GENERATING YOUR IMAGE';
+    $('mc-look-result-progress').textContent='Preparing your photograph…';
+  }
+  function revealResult(){
+    result.hidden=false;
+    requestAnimationFrame(()=>result.classList.add('is-visible'));
+  }
+  function jobProgress(job){
+    return ({submitting:'Preparing your image…',queued:'In the generation queue…',
+      running:'Generating your photograph…',saving:'Saving your photograph…'})
+      [job?.status]||'Waiting for your result…';
+  }
+  async function watchJob(client,id,serial){
+    let job=null;
+    for(let attempts=0;attempts<150;attempts++){
+      if(serial!==runSerial)return;
+      const response=await client.jobStatus(id);job=response?.job;
+      if(!job||job.id!==id)throw Error('Could not verify the saved generation. Open Image History to check it.');
+      if(job.status==='completed'){
+        if(!job.outputId)throw Error('The job finished without an image. Check Image History.');
+        const blob=await client.outputBlob(job.outputId);
+        if(serial!==runSerial)return;
+        if(!blob.size||!['image/png','image/jpeg','image/webp'].includes(blob.type.split(';')[0]))
+          throw Error('The completed image could not be previewed here. Open Image History.');
+        resultBlob=blob;resultOutputId=job.outputId;resultURL=URL.createObjectURL(blob);
+        resultImg.src=resultURL;resultImg.hidden=false;resultLoading.hidden=true;
+        $('mc-look-result-heading').textContent='GENERATED RESULT';
+        resultActions.hidden=false;
+        setBusy(false);schedulePrice(0);
+        return;
+      }
+      if(['failed','uncertain','resolved','cancelled'].includes(job.status))
+        throw Error(job.status==='uncertain'?'Generation status is uncertain. Check Image History before trying again.':
+          job.error||'No completed image is available. Check Image History.');
+      $('mc-look-result-progress').textContent=jobProgress(job);
+      await new Promise(resolve=>setTimeout(resolve,4000));
+    }
+    throw Error('This image is taking longer than expected. Check Image History for its result.');
+  }
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{
@@ -109,7 +158,7 @@ function initialize(){
   }
   function showMood(selected,photo=null){
     if(!selected||busy)return;
-    resetPrice();mood=selected;clearPhoto();direction.value='';status.textContent='';
+    clearResult();resetPrice();mood=selected;clearPhoto();direction.value='';status.textContent='';
     const preview=$('mc-look-preview');
     preview.dataset.moodId=selected.id;
     // Reuse the gallery's HD image while the untouched original decodes offscreen.
@@ -125,11 +174,11 @@ function initialize(){
       if(src&&dialog.open&&mood===selected)preview.src=src;
     });
   }
-  function close(){if(dialog.open&&!busy)dialog.close();}
-  dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
+  function close(){if(dialog.open&&(!busy||activeJobId))dialog.close();}
+  dialog.addEventListener('cancel',event=>{if(busy&&!activeJobId)event.preventDefault();});
   dialog.addEventListener('close',()=>{
     if(dialog.open)return;
-    resetPrice();clearPhoto();mood=null;setBusy(false);generate.disabled=true;
+    clearResult();resetPrice();clearPhoto();mood=null;setBusy(false);generate.disabled=true;
     $('mc-look-preview').removeAttribute('src');
   });
   $('mc-look-close').onclick=close;
@@ -192,21 +241,54 @@ function initialize(){
     if(needsSignIn){
       try{
         const client=await generationService();
-        // Clerk renders outside the native dialog's top layer. Keep the draft
-        // visible, but let its sign-in modal receive focus and pointer input.
+        // Clerk renders outside a modal top layer; preserve the photo draft.
         if(dialog.matches(':modal')){dialog.close();dialog.show();}
         if(await client.signIn())schedulePrice();
-      }
-      catch(error){status.textContent=error.message;}
+      }catch(error){status.textContent=error.message;}
       return;
     }
     if(!price||price.expiresAt<=Date.now()+5000){await preparePrice();return;}
-    setBusy(true);clearTimeout(expiryTimer);generate.textContent='Opening Image…';status.textContent='';
+    const currentPrice=price,serial=++runSerial;
+    setBusy(true);clearTimeout(expiryTimer);status.textContent='';
+    revealResult();$('mc-look-result-progress').textContent='Submitting one confirmed generation…';
+    generate.textContent='Generating…';
     try{
-      const generation=price.handoff();
-      const token=await saveMoodHandoff({file,prompt:direction.value.trim(),generation});
+      const response=await currentPrice.submit();
+      const job=response?.job;
+      if(!job?.id)throw Error('Submission could not be confirmed. Check Image History before trying again.');
+      if(serial!==runSerial)return;
+      activeJobId=job.id;
+      $('mc-look-close').disabled=false; // The accepted job continues in History if closed.
+      $('mc-look-result-progress').textContent=jobProgress(job);
+      await watchJob(await generationService(),job.id,serial);
+    }catch(error){
+      if(serial!==runSerial)return;
+      setBusy(false);
+      // An interrupted POST might already have created a paid job. Never
+      // prepare or submit a replacement automatically after an unknown response.
+      generate.disabled=true;generate.textContent='Check Image History';
+      $('mc-look-result-heading').textContent='GENERATION STATUS';
+      $('mc-look-result-progress').textContent=error.message;
+      status.textContent=error.message;
+      $('mc-look-close').disabled=false;
+    }
+  })();
+  $('mc-look-result-download').onclick=()=>{
+    if(!resultBlob||!resultURL||!resultOutputId)return;
+    const ext=({'image/png':'png','image/jpeg':'jpg','image/webp':'webp'})[resultBlob.type.split(';')[0]]||'png';
+    const link=document.createElement('a');
+    link.href=resultURL;link.download='pvlab-'+(mood?.id||'mood')+'-'+resultOutputId+'.'+ext;
+    document.body.append(link);link.click();link.remove();
+  };
+  $('mc-look-result-studio').onclick=()=>void (async()=>{
+    if(!resultBlob||!mood||busy)return;
+    const type=resultBlob.type.split(';')[0],ext=type==='image/jpeg'?'jpg':type==='image/webp'?'webp':'png';
+    setBusy(true);
+    try{
+      const created=new File([resultBlob],'pvlab-'+mood.id+'.'+ext,{type});
+      const token=await saveMoodHandoff({file:created,prompt:direction.value.trim()});
       location.assign(moodExploreDestination(mood.id,{handoff:token}));
-    }catch(error){setBusy(false);schedulePrice();status.textContent=error.message;}
+    }catch(error){setBusy(false);status.textContent=error.message;}
   })();
   $('mc-look-make').onclick=()=>void continueWithMood(true);
 

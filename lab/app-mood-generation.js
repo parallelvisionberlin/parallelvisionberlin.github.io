@@ -38,6 +38,10 @@ export function createAppMoodGeneration(){
     return pending;
   }
   return {
+    // Read-only status and result routes. The quote's submit() remains the sole
+    // paid action; polling and fetching assets never create another job.
+    jobStatus(id){return api('/api/jobs/'+encodeURIComponent(id));},
+    outputBlob(id){return api('/api/assets/'+encodeURIComponent(id),{blob:true});},
     cancel(){revision++;},
     async onAccountChange(listener){return (await identity()).addListener(listener);},
     async signIn(){const user=await identity();if(!user.isSignedIn)user.openSignIn();return user.isSignedIn;},

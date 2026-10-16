@@ -132,10 +132,10 @@ try{
   for(const route of ['landing','moods']){
     await page.goto('http://127.0.0.1:4193/'+route+'-header');
     assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),route==='landing'
-      ?['Image','Video','Upscaler','Explore Moods','Pricing']:['My Moods','Create a Mood']);
+      ?['Image','Video','Upscaler','Explore Moods','Pricing']:['Image','Retouch','Video','Upscaler','Fashion','Explore Moods']);
     if(route==='moods'){
       assert.equal(await page.getByRole('link',{name:'My Moods',exact:true}).getAttribute('href'),'./mood-creator.html#my-moods');
-      assert.equal(await page.getByRole('link',{name:'Create a Mood',exact:true}).getAttribute('href'),'./mood-creator.html');
+      assert.equal(await page.locator('.pv-moods-create').getAttribute('href'),'./mood-creator.html');
     }
     for(const width of sizes){
       await page.setViewportSize({width,height:900});
