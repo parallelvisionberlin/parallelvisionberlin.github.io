@@ -52,7 +52,13 @@ Updated: 2026-10-16
 - All other Studio, provider, authentication and pricing files unchanged.
 
 ## Validation and deployment
-- New upload correction: source and browser checks pending on PR.
-- No real paid generation triggered by tests.
-- After merge verify GitHub Pages publication and exact live
-  `pvlab.studio/moods` JavaScript, stylesheet and markup before saying live.
+- Upload feedback patch merged via PR #246; verified source commit
+  `bd5a87db266aa5cb3e9f832b75316c9b12cd22a9`.
+- GitHub Lab tests passed, and Playwright Explore Generate run
+  `38837475487` passed all desktop/mobile and invalid-upload cases
+  (including card-drop oversize), with zero real paid provider jobs.
+- Production verifier `38837902255` passed at 2026-10-16 01:58 UTC,
+  fetching the exact new HTML, JS and CSS from `https://pvlab.studio/moods`.
+- Paid provider quality was not tested for this UI-only patch.
+- Next action: ask user to refresh and verify upload, removal and dismissal
+  in their own browser. No additional API, billing or provider deployment.
