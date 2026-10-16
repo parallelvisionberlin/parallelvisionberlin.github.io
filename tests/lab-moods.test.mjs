@@ -660,7 +660,7 @@ test('Text-only Z-Image parks references without expanding the compact Image dec
   assert.match(js,/imageInputReferences\(\)\.map\(ref=>\(\{file:ref\.file/);
   assert.match(js,/if\(tool==='image'&&!imageInputReferences\(\)\.length\)return \{sourceId:null,lastSourceId:null,referenceSourceIds:\[\]\}/);
   assert.match(js,/if\(tool!=='image'\|\|imageEngine==='zspicy'\|\|imageEngine==='soul'/);
-  assert.match(js,/classList\.toggle\('is-seedream',tool==='image'&&\['seedream','seedreamlite','flash','kling','qwen3','zspicy','gemini','gemini21'\]/);
+  assert.match(js,/classList\.toggle\('is-seedream',tool==='image'&&\['seedream','seedreamlite','flash','kling','qwen3','krea3','zspicy','gemini','gemini21'\]/);
   // The dock is now sized by the checked CSS grid, not a JavaScript width flag.
   assert.match(css,/#image-composer\.is-seedream\{grid-template-columns:minmax\(0,1fr\) 144px\}/);
   assert.doesNotMatch(css,/#image-composer\.is-seedream\{[^}]*min-height:(?:224|272)px/);
