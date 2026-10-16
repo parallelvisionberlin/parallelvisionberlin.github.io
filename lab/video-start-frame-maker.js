@@ -9,6 +9,7 @@ export function openingFrameSettings(prompt,aspectRatio,referenceRoles){
   if(!OPENING_FRAME_RATIOS.includes(aspectRatio))
     throw Error('Choose an opening-frame aspect ratio.');
   const direction=String(prompt||'').trim();
+  if(!direction)throw Error('Describe the opening image before checking the Seedream price. No image submitted.');
   if(direction.length>5000)throw Error('Opening-frame direction exceeds 5,000 characters. No image submitted.');
   const roles=referenceRoles.map(item=>({
     name:String(item.name||''),
@@ -125,7 +126,7 @@ export function createVideoStartFrameMaker({
       initialized=true;
     }
     if(!dialog.open)dialog.showModal();
-    if(stage==='idle')say('Describe the first image. Nothing is charged until you confirm a Seedream quote.');
+    if(stage==='idle')say('Describe your opening composition. No image generation or credits until you confirm the Seedream price.');
     sync();
   };
   $('start-frame-close').onclick=()=>dialog.close();
