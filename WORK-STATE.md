@@ -1,29 +1,28 @@
 # Parallel Vision Homepage Work State
 Updated: 2026-10-16
-Scope: public Parallel Vision landing page at https://parallelvisionlabel.com/
+Site: https://parallelvisionlabel.com/
+Repository: parallelvisionberlin/parallelvisionberlin.github.io
 
 ## Approved direction
-- The homepage represents Parallel Vision as a record label and connected cultural universe.
-- Main hero CTA: ENTER BERLIN 2063.
-- The CTA navigates directly to the existing `./berlin-2063.html` page.
-- PV LAB stays discoverable in the top navigation, not as the main hero action.
-- Preserve the hero image, typography, title, introductory text, and layout.
+- The homepage represents the record label and the wider Parallel Vision world.
+- Hero action: ENTER BERLIN 2063, linking to the existing `./berlin-2063.html`.
+- Lab remains in the main navigation, not as the hero action.
+- Preserve background image, main wordmark, explanatory copy, section layout, and navigation.
 
-## Implementation
-- `index.html`: hero link and label changed; previous pill design retained.
-- `index.html`: new semantic `hero-world-cta` selector; restrained arrow movement on hover and keyboard focus.
-- `index.html`: focused-outline accessibility and reduced-motion safeguard.
-- `language.js`: English “Enter Berlin 2063”, German “Berlin 2063 betreten”.
-- `berlin-2063.html`: existing destination, unchanged.
-- Baseline Git main SHA: `cf25c408f014d7deccc70297ed0b18e865c5e7c3`.
+## Button revision (2026-10-16)
+- `index.html` CSS-only change scoped to `.hero-world-cta`.
+- New shape is a wider 278 x 54px near-rectangular editorial control, with a distinct ivory 53px arrow end-cap.
+- On hover and keyboard focus, the surface inverts to light and the end-cap darkens; only the arrow path shifts diagonally.
+- On mobile, the control is centered and 51px tall with a responsive width.
+- Focus-visible outline and reduced-motion rules retained.
+- Existing markup, link, `language.js` DE/EN translation, and every other element remain unchanged.
+- Baseline source commit for this revision: `35a145ad498935c3592899d9f64d56cde444574e`.
 
 ## Checks
-- Asserted exactly one hero link to `./berlin-2063.html`.
-- Asserted old PV LAB hero call to action is absent.
-- Verified the translation selector targets only the label span, leaving the arrow icon intact.
-- Desktop and mobile live visual verification: pending.
-- Live publishing / GitHub Pages: pending confirmation.
+- Code-level assertions: exactly one Berlin 2063 hero link, unchanged label and link destination.
+- CSS implementation checked for complete state, hover, mobile and reduced-motion rules.
+- GitHub Pages deployment and live desktop/mobile checks pending at commit time.
 
 ## Next
-- Verify main commit and Pages deployment, then inspect the live hero on desktop/mobile.
-- For future homepage changes, leave unrelated modules, Nina behavior, and PV LAB code untouched.
+- Confirm the new commit passes site validation and GitHub Pages deploys successfully.
+- Review desktop and mobile presentation before changing any other homepage elements.
