@@ -47,8 +47,8 @@ try{
   assert.equal(await page.locator('#studio-header .brand').innerText(),'PV LAB');
   await page.evaluate(()=>document.fonts.ready);
   assert.deepEqual(await page.locator('#studio-header .tool-group>button').allTextContents(),
-    ['Image','Retouch','Video','Upscaler','Fashion'],
-    'Five text tools remain; Assets is a separate icon');
+    ['Image','Retouch','Video','Effects','Upscaler','Fashion'],
+    'Six text tools include Effects; Assets stays a separate icon');
   const moodLinks=page.locator('#studio-header .tool-group>a.tool-link');
   assert.deepEqual(await moodLinks.allTextContents(),['Explore Moods']);
   assert.equal(await page.locator('#tool-explore-moods').getAttribute('href'),'./moods');
