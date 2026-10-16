@@ -11,7 +11,7 @@ const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");
 assert.ok(boot>0,'Studio module boot was located');
 const testSource=source.slice(0,boot)+source.slice(source.indexOf("\n// Soul composer:",boot))+
-  `clerk={isSignedIn:true,user:{id:'effects-test'},session:{id:'mock-effects',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='effects-test';config={enabled:true,higgsfieldEnabled:false,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock};`;
+  `clerk={isSignedIn:true,user:{id:'effects-test'},session:{id:'mock-effects',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;ownerAccount=false;userId='effects-test';config={enabled:true,higgsfieldEnabled:false,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();refreshEffectsView();window.__labTest={lock,setOwnerAccess:value=>{ownerAccount=value===true;refreshEffectsView();},tryOpenEffects:()=>openEffectsView({scroll:false})};`;
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.jpg':'image/jpeg','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml'};
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
@@ -55,8 +55,16 @@ try{
       if(path==='/api/jobs'&&method==='POST')return send({error:'Mock forbids paid generation'},409);
       return send({error:'Unmocked request '+path},404);
     });
-    await page.goto('http://127.0.0.1:4198/lab/studio.html');
+    await page.goto('http://127.0.0.1:4198/lab/studio.html?tool=video&effects=1');
     await page.waitForFunction(()=>!!window.__labTest);
+    // A signed-in customer has "owner=true" in this legacy client, but not the API owner role.
+    assert.equal(await page.locator('#tool-effects').isVisible(),false,'Customer sees no Effects navigation');
+    assert.equal(await page.locator('#video-effects-explore').isVisible(),false,'Customer sees no Effects gallery');
+    assert.equal(await page.evaluate(()=>new URLSearchParams(location.search).has('effects')),false,'Direct customer URL is cleaned');
+    await page.evaluate(()=>{document.querySelector('#tool-effects').click();window.__labTest.tryOpenEffects();});
+    assert.equal(await page.locator('#video-effects-explore').isVisible(),false,'Hidden tab and direct JS action cannot open Effects');
+    await page.evaluate(()=>window.__labTest.setOwnerAccess(true));
+    assert.equal(await page.locator('#tool-effects').isVisible(),true,'Verified owner sees Effects navigation');
     await page.click('#tool-effects');
     assert.equal(await page.locator('.video-effect-card').count(),3);
     assert.equal(await page.locator('#video-effects-explore').isVisible(),true);
@@ -80,6 +88,9 @@ try{
     assert.equal(requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No horizontal overflow at '+width);
     assert.deepEqual(errors,[],'No client runtime errors at '+width);
+    await page.evaluate(()=>window.__labTest.setOwnerAccess(false));
+    assert.equal(await page.locator('#tool-effects').isVisible(),false,'Removing owner access hides Effects immediately');
+    assert.equal(await page.locator('#video-effect-active').isVisible(),false,'Selected effect is not exposed to customer');
     console.log('PASS Motion Effects + private original + price review at '+width+'px, zero paid submissions');
     await context.close();
   }
