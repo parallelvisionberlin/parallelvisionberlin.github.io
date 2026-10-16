@@ -54,14 +54,14 @@ export async function verifySpicyCallback(request,secret,{now=Date.now}={}){
 // Authenticated wake-up URL for accounts with no retrievable provider
 // signing secret. This URL only permits a fresh lookup on SpicyAPI using the
 // existing server-side credential. Its callback body is never trusted.
-export async function spicyWakeToken(existingLabSecret,jobId,quoteId){
+export async function spicyWakeToken(existingLabSecret,quoteId){
   if(typeof existingLabSecret!=='string'||existingLabSecret.length<24)
     throw Error('Server authentication key is unavailable.');
-  if(typeof jobId!=='string'||typeof quoteId!=='string')
+  if(typeof quoteId!=='string'||!/^[a-f0-9-]{36}$/i.test(quoteId))
     throw Error('Invalid callback binding.');
   const key=await crypto.subtle.importKey('raw',encoder.encode(existingLabSecret),
     {name:'HMAC',hash:'SHA-256'},false,['sign']);
-  const signed=encoder.encode('pvlab-spicy-wakeup-v1\0'+jobId+'\0'+quoteId);
+  const signed=encoder.encode('pvlab-spicy-wakeup-v2\0'+quoteId);
   const digest=new Uint8Array(await crypto.subtle.sign('HMAC',key,signed));
   return btoa(String.fromCharCode(...digest)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
