@@ -21,7 +21,9 @@ const server=http.createServer((req,res)=>{
   assert.match(await page.locator('.lab-pricing-welcome').textContent(),/No purchase required/);
   assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image&welcome=1');
   assert.deepEqual(await page.locator('.studio-tool-link').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
-  assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),['Image','Video','Upscaler','Explore Moods','Pricing']);
+  assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),['Image','Retouch','Video','Upscaler','Fashion','Explore Moods','Pricing']);
+  assert.equal(await page.locator('.landing-header nav a').nth(1).getAttribute('href'),'./studio.html?tool=retouch');
+  assert.equal(await page.locator('.landing-header nav a').nth(4).getAttribute('href'),'./studio.html?tool=fashion');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No overflow at '+width);
   assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationName),'none');
   assert.equal(await page.locator('#motion-toggle').count(),0);
