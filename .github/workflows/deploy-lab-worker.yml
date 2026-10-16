@@ -79,6 +79,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0019-video-value-pricing.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0020-wan-seedance-budget-pricing.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0021-spicy-image-credit-steps.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0022-mood-delivery.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health
