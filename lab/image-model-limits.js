@@ -11,6 +11,8 @@ export function modelImageInputIssue(engine, items = [], {count = 1, processing 
   const total = refs.reduce((sum, item) => sum + Number(item.file.size), 0);
   if (engine === 'zspicy' && refs.length)
     return 'Z-Image Spicy is text-to-image only. Remove reference photographs or choose Qwen Image 3.0. Nothing submitted.';
+  if (engine === 'krea3' && refs.length > 4)
+    return 'Krea 3 accepts up to four input photographs. Remove extra references. Nothing submitted.';
   if (engine === 'qwen3' && refs.length > 3)
     return 'Qwen Image 3.0 accepts up to three reference photos. Remove extras before generating. Nothing submitted.';
   if (engine === 'qwen3' && refs.some(item=>Number(item.file.size)>10000000))

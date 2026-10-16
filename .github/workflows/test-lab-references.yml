@@ -35,10 +35,11 @@ jobs:
           node --check lab/lab.js
           node --check lab/reference-guidance.js
           node --check lab-worker/worker.mjs
+          node --check lab-worker/krea3.mjs
           node --check tests/lab-image-oneclick-ui.mjs
           node --check tests/lab-worker.test.mjs
       - name: Test image role compilation and Worker submission
-        run: node --test tests/lab-worker.test.mjs
+        run: node --test tests/lab-worker.test.mjs tests/lab-krea3-fashion.test.mjs tests/lab-smart-prompts.test.mjs
       - name: Install browser test runner
         run: |
           npm install --no-save --no-package-lock playwright

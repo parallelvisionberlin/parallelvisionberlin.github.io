@@ -1,6 +1,6 @@
 // PV LAB image quality: deterministic, free, shared by UI preview and Worker.
 // User requests and explicitly assigned reference roles always win.
-const ENGINES=new Set(['seedream','seedreamlite','flash','gemini','gemini21','kling','qwen3']);
+const ENGINES=new Set(['seedream','seedreamlite','flash','gemini','gemini21','kling','qwen3','krea3']);
 const product=/\b(product|packshot|e-commerce|handbag|watch|perfume|sneaker|bottle|jewell?ery|still.life product)\b/i;
 const art=/\b(illustration|painting|watercolou?r|sketch|drawing|anime|cartoon|pixel.art|vector.art|oil.paint|concept.art|3d.render|sculpture)\b/i;
 const fashion=/\b(fashion|editorial|lookbook|runway|couture|model|lingerie|underwear|outfit|wardrobe|garment|dress|lace|streetwear|bodysuit)\b/i;
@@ -33,7 +33,13 @@ export function imageQualityGuidance(direction='',labels=[],settings={},currentL
  else if(isFashion&&short)parts.push('FASHION DIRECTION: Use a believable, intentional pose instead of generic catalogue posing. Preserve clothing and styling, with natural fabric tension, folds and responsive lighting.');
  else if(portrait&&short)parts.push('PORTRAIT DIRECTION: Purposeful framing, believable posture and an expression consistent with the requested moment. Preserve the specified pose, setting and lighting.');
  else if(!person&&!isArt&&!isProduct&&photograph.test(text)&&short)parts.push('PHOTOGRAPHIC DIRECTION: Keep perspective, physical scale, light and materials consistent with the requested scene.');
- if(photo&&person)parts.push('NATURAL HUMAN REALISM: Keep the reference face and anatomy intact. Where eyes are visible, render subtly irregular iris texture, plausible pupil size, realistic eyelids and catchlights consistent with scene lighting; avoid enlarged or glassy eyes. Preserve skin pores, natural tone variation, believable body weight and contact with support surfaces, coherent joints, fabric tension and natural asymmetry. No plastic skin, airbrushing or imposed beauty symmetry. Do not change expression, pose, age, outfit or person.');
+ if(photo&&person){
+   // Krea, Qwen and Nano interpret extensive instructions differently from Seedream.
+   // Use brief fidelity guidance for them; do not override an authored artistic direction.
+   if(['qwen3','gemini','gemini21','krea3'].includes(settings.engine)){
+     if(short)parts.push('NATURAL HUMAN REALISM: Preserve recognizable facial structure, believable body weight, garment fit, anatomy and skin texture. Honor the supplied pose, clothing and lighting without automatic beautification.');
+   }else parts.push('NATURAL HUMAN REALISM: Keep the reference face and anatomy intact. Where eyes are visible, render subtly irregular iris texture, plausible pupil size, realistic eyelids and catchlights consistent with scene lighting; avoid enlarged or glassy eyes. Preserve skin pores, natural tone variation, believable body weight and contact with support surfaces, coherent joints, fabric tension and natural asymmetry. No plastic skin, airbrushing or imposed beauty symmetry. Do not change expression, pose, age, outfit or person.');
+ }
  if(!parts.length)return '';
  // Optional enhancements must never push a valid user prompt over the cap.
  const limit=settings.engine==='seedreamlite'?3000:5000,available=limit-currentLength-(settings.moodId?750:50);
