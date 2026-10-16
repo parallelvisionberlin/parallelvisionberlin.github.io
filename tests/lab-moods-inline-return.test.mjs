@@ -94,7 +94,7 @@ test('Mood loading uses an accessible full-frame exposure and honest job states'
   assert.match(page,/class="mc-look-story-finish">ALMOST READY/);
   assert.doesNotMatch(page,/mc-look-exposure-plate/);
   assert.match(css,/\.mc-look-exposure-story \.mc-look-story-two/);
-  assert.match(css,/\.mc-look-result-loading\.is-finishing \.mc-look-story-finish/);
+  assert.match(css,/\.mc-look-result-loading\.is-finishing \.mc-look-exposure-story \.mc-look-story-finish/);
   assert.match(js,/finishing=job\.status==='saving'/);
   assert.match(js,/resultLoading\.classList\.add\('is-finishing'\)/);
   assert.match(page,/id="mc-look-result-progress"/);
