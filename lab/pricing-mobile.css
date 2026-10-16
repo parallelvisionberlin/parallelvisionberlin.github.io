@@ -256,7 +256,9 @@
     font:400 11.5px/1.3 "DM Sans",Arial,sans-serif;
   }
   #pricing .lab-estimate-details{
-    position:relative;
+    /* The info bubble is positioned from its plan card on narrow screens
+       so it never spills beyond the left/right viewport boundaries. */
+    position:static;
     z-index:4;
     align-self:center;
   }
@@ -268,9 +270,13 @@
     font-size:10px;
   }
   #pricing .lab-estimate-popover{
-    left:auto;
-    right:0;
-    width:min(268px,calc(100vw - 55px));
+    position:absolute;
+    top:calc(100% + 7px);
+    bottom:auto;
+    left:12px;
+    right:12px;
+    width:auto;
+    max-width:none;
   }
   #pricing .lab-plan>button[data-lab-buy]{
     grid-area:action;
