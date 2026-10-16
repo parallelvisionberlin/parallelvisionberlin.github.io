@@ -66,3 +66,12 @@
 - `tests/lab-image-viewer-browser.mjs` now verifies queued, running and failed states with the source thumbnail retained at 1440 and 390 px (three source shapes).
 - PR browser logs show six successful image-viewer test iterations. Static validation, Lab tests and several other suites pass. The same five broader workflow failures also occurred in the immediately preceding merged PR #239, before these changes.
 - Release verification: merge to main and independently confirm published HTML/JS/CSS before claiming live. No paid generation was made for testing.
+
+## Video gallery playback and status, 2026-10-16
+- Follow-up to PR #240. Screenshot showed two completed jobs rendered as original input stills while the large player was offscreen inside the center feed.
+- Root cause: `renderCards` called `showVideoHistoryRecord(...,{play:true})`, whose `openVideo(...,{scroll:false})` never returned the independently scrolled video feed to the top.
+- PR #242: selecting a video now reveals the large player immediately, shows Loading while retrieving stored MP4, and retains Completed in Details when backend confirms it. The passive stage says Saved, not Ready; queued/running/saving retain their actual states.
+- A failed media fetch shows a retryable loading error, not a failed paid generation. No extra paid attempt, retry request or generated asset mutation.
+- Video History becomes uniform 16:9 auto-fill cards with compact metadata and a Play Video label. Source stills use contain fit, avoiding unwanted portrait crop.
+- Scoped implementation: `lab/lab.js`, `lab/video-refresh.css`, `lab/studio.html`; regression: `tests/lab-image-viewer-browser.mjs` with delayed MP4, 1440/390 pixel viewports and no paid APIs.
+- Tests: GitHub Actions PR checks initiated; static and relevant tests to be verified before merging. Release requires confirming deployed source and browsing playback with an authenticated session.
