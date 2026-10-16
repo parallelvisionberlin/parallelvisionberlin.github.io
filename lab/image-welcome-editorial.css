@@ -7,11 +7,11 @@
 /* The photographed Dream Blur backdrop is the same visual source as the reference.
    Give it real presence rather than the former 7%-opacity, 64px-blurred ghost. */
 #app.image-studio-active .image-gallery-shell:has(#lab-welcome-start:not([hidden])):before{
-  content:"";position:absolute;left:0;right:0;top:0;height:min(800px,100%);
+  content:"";position:absolute;left:0;right:0;top:0;height:min(800px,100dvh);
   z-index:0;pointer-events:none;
   background:url("./mood-previews/dream-blur-20261015.jpg") center 39%/cover no-repeat;
   opacity:.80;filter:blur(8px) saturate(1.38) contrast(1.12);
-  transform:scale(1.025);transform-origin:center top;
+  transform:none;
 }
 /* Cool cobalt light on the left, warm photographic bloom on the right,
    and a gentle bottom fade that keeps the dock and portraits legible. */
