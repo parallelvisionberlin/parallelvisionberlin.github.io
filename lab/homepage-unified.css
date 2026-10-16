@@ -8,6 +8,27 @@
   /* Studio's editorial tools use 500, while the old homepage links used 400. */
   .landing-header--home nav a{font-weight:500;color:#efede7}
 }
+/* Pricing is a quiet utility after the creative tools, not another mode.
+   The divider sits in the existing gap so the tabs, header and hero never move. */
+.landing-header--home nav a.lab-nav-pricing{
+  color:#c9c9c7;font-weight:400;
+}
+.landing-header--home nav a.lab-nav-pricing::before{
+  content:"";position:absolute;left:-15px;top:50%;
+  width:1px;height:13px;transform:translateY(-50%);
+  background:rgba(235,233,227,.28);pointer-events:none;
+}
+.landing-header--home nav a.lab-nav-pricing:hover,
+.landing-header--home nav a.lab-nav-pricing:focus-visible{color:#fff}
+@media(min-width:901px) and (max-width:1270px){
+  .landing-header--home nav a.lab-nav-pricing::before{left:-8px}
+}
+@media(max-width:900px){
+  .landing-header--home nav a.lab-nav-pricing::before{left:-13px}
+}
+@media(max-width:560px){
+  .landing-header--home nav a.lab-nav-pricing::before{left:-11px}
+}
 /* PV LAB homepage: fixed geometry through Clerk and wallet resolution.
    The chosen leather-editorial hero and its typography remain untouched. */
 @media(min-width:901px){
