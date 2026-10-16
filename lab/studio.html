@@ -459,6 +459,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" aria-label="Aspect ratio"></select></label>
       <label id="image-composer-resolution-wrap" class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
       <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" aria-label="Number of images"></select></label>
+      <button id="composer-director-trigger" type="button" class="composer-director-trigger" hidden title="Private PV Director beta. Click to analyze one low-resolution preview with Gemini. No image generation starts.">✧ Direct</button>
       <label id="composer-exact-prompt-option" class="composer-exact-prompt"><input id="composer-exact-prompt" type="checkbox" role="switch" aria-label="Exact Prompt" aria-describedby="composer-exact-prompt-help"><span id="composer-exact-prompt-help" class="composer-exact-tooltip" role="tooltip"><strong>Exact Prompt</strong><small>No automatic prompt improvements. Moods and references still apply.</small></span></label>
       <div id="composer-more-anchor" class="composer-more-anchor">
       <button id="image-composer-more" type="button" class="composer-settings-pill composer-more-compact" aria-label="Advanced image settings" aria-expanded="false" aria-controls="composer-options" title="Image options"><svg class="composer-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="#242625"/><circle cx="15" cy="17" r="2.5" fill="#242625"/></svg><span class="composer-more-label">Options</span></button>
@@ -478,6 +479,16 @@ document.addEventListener('DOMContentLoaded',()=>{
     </div>
     <div id="composer-generation-block" class="fine" role="status" hidden><span id="composer-generation-reason"></span> <button id="composer-review-queue" type="button" hidden>Review queue</button></div>
     <p id="image-composer-status" class="composer-status" role="status" hidden></p>
+    <section id="composer-director-panel" class="composer-director-panel" role="region" aria-label="Private PV Director suggestions" hidden>
+      <header class="composer-director-header"><div><span>PV LAB / PRIVATE PREVIEW</span><strong>PV Director</strong></div><button id="composer-director-close" type="button" aria-label="Close Director suggestions">×</button></header>
+      <p class="composer-director-note">One small photo preview is analyzed by Gemini on your click. It is not archived by Director, and no image is generated. This owner trial shares Mood Creator's six daily analyses.</p>
+      <p id="composer-director-message" class="composer-director-message" role="status"></p>
+      <p id="composer-director-observations" class="composer-director-observations"></p>
+      <div class="composer-director-options">
+        <article><div class="composer-director-choice-heading"><strong>Faithful refinement</strong><button type="button" data-director-apply="faithful">Use direction</button></div><p id="composer-director-faithful"></p></article>
+        <article><div class="composer-director-choice-heading"><strong>Editorial reinterpretation</strong><button type="button" data-director-apply="editorial">Use direction</button></div><p id="composer-director-editorial"></p></article>
+      </div>
+    </section>
   </section>
 </section>
 <dialog id="pack-studio-dialog" class="pack-studio-dialog" aria-labelledby="pack-studio-heading">
@@ -597,6 +608,11 @@ document.addEventListener('DOMContentLoaded',()=>{
             <div id="image-detail-reference-strip" class="image-detail-reference-strip" role="group" aria-labelledby="image-detail-reference-caption"></div>
           </div>
         </section>
+        <details id="image-detail-applied-wrap" class="image-detail-card image-detail-applied" hidden>
+          <summary>PV LAB applied guidance <span aria-hidden="true">⌄</span></summary>
+          <p>Compiled reference and photographic guidance saved when the image request was prepared.</p>
+          <pre id="image-detail-applied-prompt"></pre>
+        </details>
         <section id="image-film-finish" class="image-detail-card" hidden></section>
         <details id="image-detail-metadata" class="image-detail-card image-detail-data" open>
           <summary>Details <span aria-hidden="true">⌄</span></summary>
