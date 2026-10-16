@@ -38,11 +38,19 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
    if(url.pathname==='/api/session')return send({customer:scenario!=='desktop',generationReady:true,config:{enabled:true}});
    if(url.pathname==='/api/uploads')return send({id:'20000000-0000-4000-8000-'+String(++uploads).padStart(12,'0')});
-   if(url.pathname==='/api/quotes'){quotes++;if(scenario==='slowquote')await new Promise(resolve=>setTimeout(resolve,1100));const data=req.postDataJSON();assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'1k');assert.equal(data.settings.aspectRatio,scenario==='text'?'16:9':'3:4','The first customer photo, not four internal mood photos, determines the output ratio');assert.equal(data.referenceSourceIds.length,scenario==='text'?4:5);assert.equal(new Set(data.referenceSourceIds).size,data.referenceSourceIds.length);assert.deepEqual(data.transferSourceIds,data.referenceSourceIds);assert.deepEqual(data.settings.referenceRoles.map(r=>r.role),[...(scenario==='text'?[]:['base']),'style','style','style','style']);return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
+   if(url.pathname==='/api/quotes'){quotes++;if(scenario==='slowquote')await new Promise(resolve=>setTimeout(resolve,1100));const data=req.postDataJSON();assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'2k');assert.equal(data.settings.aspectRatio,scenario==='text'?'16:9':'3:4','The first customer photo, not four internal mood photos, determines the output ratio');assert.equal(data.referenceSourceIds.length,scenario==='text'?4:5);assert.equal(new Set(data.referenceSourceIds).size,data.referenceSourceIds.length);assert.deepEqual(data.transferSourceIds,data.referenceSourceIds);assert.deepEqual(data.settings.referenceRoles.map(r=>r.role),[...(scenario==='text'?[]:['base']),'style','style','style','style']);return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
    if(url.pathname==='/api/jobs'&&req.method()==='POST'){
      paid++;assert.deepEqual(req.postDataJSON(),{quoteId:'quote-'+quotes,confirm:true});
      if(scenario==='failure')return send({error:'Not enough credits.'},402);
      return send({job:{id:'job-test',status:'queued'}});
+   }
+   if(url.pathname==='/api/jobs/job-test/performance'&&req.method()==='POST'){
+     assert.ok(req.postDataJSON().clientPreparationMs>=0);
+     return send({ok:true});
+   }
+   if(url.pathname==='/api/jobs/job-test/preview'&&req.method()==='GET'){
+     const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRmsAAAAASUVORK5CYII=','base64');
+     return route.fulfill({status:200,contentType:'image/png',body:png});
    }
    if(url.pathname==='/api/jobs/job-test'&&req.method()==='GET'){
      if(scenario==='saving'&&++jobStatusChecks===1)return send({job:{id:'job-test',status:'saving'}});
@@ -208,6 +216,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
        'A failed submission must not keep animating as if it were running');
    }else{
      await page.locator('#mc-look-result-image').waitFor({state:'visible'});
+     await page.locator('#mc-look-result-actions').waitFor({state:'visible'});
      assert.equal(paid,1,'One explicit click submits exactly one paid job');
      assert.equal(await page.locator('#mc-look-result-actions').isVisible(),true);
      assert.equal(await page.locator('#mc-look-result-wait-note').isVisible(),false,
