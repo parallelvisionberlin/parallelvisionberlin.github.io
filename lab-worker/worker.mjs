@@ -1071,10 +1071,10 @@ async function refreshJob(env,j,ctx=null) {
       const output=asset?.url;if(typeof output!=='string')throw new Error('No compatible output file yet.');
       const safe=safeVideoUrl(output);
       await run(env,"UPDATE jobs SET state='saving',remote_url=?,updated_at=? WHERE id=?",safe,now(),j.id);
-      if(p.type==='image'&&p.moodId&&p.engine==='seedream')
+      if(params.type==='image'&&params.moodId&&params.engine==='seedream')
         try{await run(env,'UPDATE lab_mood_performance SET provider_finished_at=COALESCE(provider_finished_at,?) WHERE job_id=?',
           Number.isFinite(Date.parse(result.completedAt||''))?Date.parse(result.completedAt):now(),j.id);}catch{}
-      if(env.LAB_EARLY_PREVIEW_ENABLED==='true'&&ctx&&p.type==='image'&&p.moodId&&p.engine==='seedream'){
+      if(env.LAB_EARLY_PREVIEW_ENABLED==='true'&&ctx&&params.type==='image'&&params.moodId&&params.engine==='seedream'){
         ctx.waitUntil(copyResult(env,j,safe).catch(async e=>{
           await run(env,'UPDATE jobs SET error=? WHERE id=? AND state=?',
             'Archive retry: '+String(e?.message||'private save failed').slice(0,180),j.id,'saving').catch(()=>{});
