@@ -193,7 +193,8 @@ Updated: 2026-10-16
   callback replay, real provider completion and no second paid submission.
 - PR #268 merged as `cba2702f24b84576560921c0c5d2b43dd22cf69b`.
   Existing unrelated Studio fastload assertion still fails; new tests pass.
-- Worker deployment run `38940647626` pending at handoff save.
-  Verify production `/health` version
-  `pv-lab-2026-10-16.3-spicy-mood-wakeup` before claiming live.
+- Worker deployment run `38940647626` completed SUCCESS. Its syntax,
+  deploy and production health steps all passed, verifying Worker version
+  `pv-lab-2026-10-16.3-spicy-mood-wakeup`. No real paid generation was run.
+  Future natural completions will validate callback delivery end-to-end.
 - No changes required in SpicyAPI or Cloudflare dashboards.
