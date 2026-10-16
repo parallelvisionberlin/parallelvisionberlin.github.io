@@ -1,4 +1,5 @@
 import {filmFinishSettings} from '../lab/film-finish.js';
+import {verifySpicyCallback} from './spicy-webhook.mjs';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
 import {allowedLabParty} from './native-auth.mjs';
@@ -727,10 +728,6 @@ async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0,builtIn
         if(bytes.length!==a.bytes||!sniff(bytes,a.mime))throw new Error('Stored reference image failed verification.');
         const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
         const referenceKey=(a.data?'builtin:':'asset:')+(a.name||a.id||'')+':'+digest;
-        const existing=await first(env,
-          'SELECT uri FROM lab_spicy_reference_cache WHERE owner_id=? AND provider_key_fingerprint=? AND ref_key=? AND expires_at>?',
-          owner,providerKeyFingerprint,referenceKey,now()+15*60000);
-        if(existing&&FILE_URI.test(existing.uri)){result[i]=existing.uri;continue;}
         if(maxPixels){
           let dimensions;
           try{dimensions=storedImageDimensions(bytes,a.mime);}
@@ -738,6 +735,10 @@ async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0,builtIn
           if(dimensions.width*dimensions.height>maxPixels)
             fail(400,'Seedream accepts at most 36 megapixels per input image. PV Lab must prepare a resized working copy first. Reload the editor and try again. No paid generation was submitted.');
         }
+        const existing=await first(env,
+          'SELECT uri FROM lab_spicy_reference_cache WHERE owner_id=? AND provider_key_fingerprint=? AND ref_key=? AND expires_at>?',
+          owner,providerKeyFingerprint,referenceKey,now()+15*60000);
+        if(existing&&FILE_URI.test(existing.uri)){result[i]=existing.uri;continue;}
         const ticket=await vendorRequest('/common/upload-url',key,{contentType:a.mime,bytes:bytes.length});
         if(!ticket||!/^fil_[A-Za-z0-9_-]{8,128}$/.test(ticket.fileId||'')||ticket.method!=='PUT'||
           !Number.isSafeInteger(ticket.maxBytes)||ticket.maxBytes<bytes.length||
@@ -1043,7 +1044,7 @@ async function refreshFalJob(env,j,p){
   }
 }
 
-async function refreshJob(env,j) {
+async function refreshJob(env,j,ctx=null) {
   if(!['queued','running','saving'].includes(j.state)||!j.provider_id)return;
   const params=JSON.parse(j.params||'{}');if(params.provider==='openrouter'){if(j.state==='saving'){const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(lock.meta.changes)try{await saveFlashResult(env,j);}catch(e){await run(env,'UPDATE jobs SET error=? WHERE id=?','Archive retry: '+String(e.message).slice(0,300),j.id);}}return;}if(params.provider==='gemini')return refreshGeminiJob(env,j,params);
   if(j.state==='saving'&&j.remote_url){
@@ -1069,6 +1070,15 @@ async function refreshJob(env,j) {
       const output=asset?.url;if(typeof output!=='string')throw new Error('No compatible output file yet.');
       const safe=safeVideoUrl(output);
       await run(env,"UPDATE jobs SET state='saving',remote_url=?,updated_at=? WHERE id=?",safe,now(),j.id);
+      if(p.type==='image'&&p.moodId&&p.engine==='seedream')
+        try{await run(env,'UPDATE lab_mood_performance SET provider_finished_at=COALESCE(provider_finished_at,?) WHERE job_id=?',now(),j.id);}catch{}
+      if(env.LAB_EARLY_PREVIEW_ENABLED==='true'&&ctx&&p.type==='image'&&p.moodId&&p.engine==='seedream'){
+        ctx.waitUntil(copyResult(env,j,safe).catch(async e=>{
+          await run(env,'UPDATE jobs SET error=? WHERE id=? AND state=?',
+            'Archive retry: '+String(e?.message||'private save failed').slice(0,180),j.id,'saving').catch(()=>{});
+        }));
+        return;
+      }
       await copyResult(env,j,safe);
     }else if(['failed','cancelled','canceled','expired'].includes(result.state)){
       await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",providerFailure(result),now(),j.id);
@@ -1194,6 +1204,45 @@ async function saveFlashResult(env,j){
   await env.LAB_MEDIA.delete(key);
 }
 
+async function receiveSpicyMoodCallback(request,env,ctx){
+  if(typeof env.SPICY_WEBHOOK_SECRET!=='string'||env.SPICY_WEBHOOK_SECRET.length<16)
+    return new Response(null,{status:503});
+  let verified;
+  try{verified=await verifySpicyCallback(request,env.SPICY_WEBHOOK_SECRET);}
+  catch{return new Response(null,{status:401});}
+  const {taskId,event}=verified;
+  // Signatures never bypass owner-specific task matching or provider URL validation.
+  const job=await first(env,'SELECT * FROM jobs WHERE provider_id=? LIMIT 1',taskId);
+  if(!job)return new Response(null,{status:503});
+  const p=JSON.parse(job.params||'{}');
+  if(p.provider!=='spicy'||p.engine!=='seedream'||!p.moodId)
+    return new Response(null,{status:204});
+  if(['completed','failed','resolved'].includes(job.state))return new Response(null,{status:204});
+  if(event.settled===true&&event.cost!==undefined){
+    try{await run(env,'UPDATE jobs SET settled_cost=? WHERE id=?',micros(event.cost)/1000000,job.id);}catch{}
+  }
+  if(event.state==='succeeded'){
+    const asset=event.output?.assets?.find(a=>a.mime?.startsWith('image/')&&typeof a.url==='string'&&a.url);
+    if(!asset)return new Response(null,{status:503});
+    let url;try{url=safeVideoUrl(asset.url);}catch{return new Response(null,{status:400});}
+    const updated=await run(env,
+      "UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=?,last_poll=? WHERE id=? AND provider_id=? AND state IN ('queued','running')",
+      url,now(),now(),job.id,taskId);
+    if(updated.meta.changes){
+      try{await run(env,'UPDATE lab_mood_performance SET provider_finished_at=COALESCE(provider_finished_at,?) WHERE job_id=?',now(),job.id);}catch{}
+      ctx.waitUntil(copyResult(env,{...job,state:'saving',remote_url:url},url).catch(async error=>{
+        await run(env,'UPDATE jobs SET error=? WHERE id=? AND state=?',
+          'Archive retry: '+String(error?.message||'temporary private archive error').slice(0,180),job.id,'saving').catch(()=>{});
+      }));
+    }
+    return new Response(null,{status:204});
+  }
+  if(['failed','cancelled','canceled','expired'].includes(event.state))
+    await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=? AND provider_id=? AND state IN ('queued','running')",
+      providerFailure(event),now(),job.id,taskId);
+  return new Response(null,{status:204});
+}
+
 async function route(request,env,ctx) {
   const url=new URL(request.url),origin=request.headers.get('origin')||'';
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
@@ -1206,6 +1255,7 @@ async function route(request,env,ctx) {
   if(url.pathname.startsWith('/soul-dataset/')&&request.method==='GET')return publicSoulDataset(request,env,url,soulDeps());
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
   if(url.pathname==='/api/stripe/webhook'&&request.method==='POST')return stripeWebhook(request,env,ctx);
+  if(url.pathname==='/api/webhooks/spicy'&&request.method==='POST')return receiveSpicyMoodCallback(request,env,ctx);
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const identity=await authenticate(request,env);
   const {id:owner,issuer:authIssuer}=identity,path=url.pathname,method=request.method;
@@ -1670,7 +1720,11 @@ async function route(request,env,ctx) {
     // Stage the exact reference bytes once, then price each image independently.
     // Identical provider inputs may share a vendor quote ID, while each PV LAB
     // quote and paid task still has its own internal ID; no paid inference begins here.
-    const payload={model:p.model,input};
+    // A callback binds to the same payload on both quote and createTask.
+    // Do not request a callback until the signing secret is configured.
+    const callbackEnabled=typeof env.SPICY_WEBHOOK_SECRET==='string'&&env.SPICY_WEBHOOK_SECRET.length>=16&&
+      p.type==='image'&&p.engine==='seedream'&&!!p.moodId;
+    const payload={model:p.model,input,...(callbackEnabled?{callBackUrl:'https://parallel-vision-lab.parallelvision.workers.dev/api/webhooks/spicy'}:{})};
     const replies=await Promise.all(Array.from({length:quoteCount},()=>vendorRequest('/jobs/quote',key,payload)));
     const time=now(),payloadJson=JSON.stringify(payload);
     const priced=replies.map(q=>{
@@ -1871,7 +1925,7 @@ async function route(request,env,ctx) {
       catch(e){if(e instanceof HttpError)throw e;const detail=String(e?.message||'fal.ai output could not be recovered.').replace(/[\r\n]+/g,' ').slice(0,700);fail(409,detail);}
       return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))});
     }
-    if(method==='GET') {await refreshJob(env,j);return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))});}
+    if(method==='GET') {await refreshJob(env,j,ctx);return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))});}
     if(method==='DELETE') {await deleteJobRecord(env,owner,j);return json({ok:true});}
   }
   fail(404,'Not found.');
