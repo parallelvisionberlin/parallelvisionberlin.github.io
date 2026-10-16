@@ -143,3 +143,36 @@ Updated: 2026-10-16
 - Next: user refreshes `https://pvlab.studio/moods` and evaluates Silver
   Darkroom on Synthetic Romance and another Mood. Quality/latency A/B is
   separate and requires authorization for real paid comparisons.
+
+## 2026-10-16 Seedream 2K and private delivery optimization
+- Public Explore Moods remains a single Seedream Pro experience. All Moods now
+  quote and request 2K, with server-bound 2K credit pricing before submission.
+- Seedream Pro EDIT always sends `enable_thinking:true`. The text-only model
+  keeps its documented schema. No Mood instruction or reference was shortened.
+- Exact SHA-256 reference bytes are reused from owner/API-key-scoped Spicy file
+  tickets while verified and valid; revoked references can be re-staged once
+  before the paid submission. New D1 migration: 0022-mood-delivery.sql.
+- During a real provider `saving` state, the existing authenticated customer
+  may preview the completed provider image via a private bounded Worker proxy,
+  without exposing provider URLs. Archiving remains in private R2, with Gallery
+  actions unlocked only upon completion. Hong Kong film-finish results never
+  expose unprocessed previews.
+- Signed per-task Spicy v2 webhook callback validates a raw HMAC and bound task,
+  and archives asynchronously. **Webhook activation is pending the real account
+  SPICY_WEBHOOK_SECRET in Cloudflare**; polling works as a fallback until then.
+- Added private owner-scoped per-job timing: preflight, quote, submission,
+  provider completion, preview and R2 archival. No extra paid tests were run.
+- Files: `lab/app-mood-generation.js`, `lab/explore-moods.js`,
+  `lab/moods.html`, `lab-worker/worker.mjs`,
+  `lab-worker/spicy-webhook.mjs`, `lab-worker/wrangler.toml`,
+  `lab-worker/migrations/0022-mood-delivery.sql`, `lab-worker/schema.sql`,
+  deploy workflow, and focused tests.
+- PR #265 merged as `2aa9625d66122af06a779379624e832ad569619d`.
+  Cloudflare Worker run `38937028417` passed with health verification and
+  migration; Pages also reports success on the same UI commit.
+- Isolated Mood browser tests and new callback/cache tests passed. Broader repo
+  suites have existing Studio version-selector assertions unrelated to Moods;
+  do not report every CI job as passing.
+- Next: install the exact Spicy Webhook signing secret in Cloudflare Worker,
+  then use future ordinary paid Mood generations to measure time to preview.
+  Never claim sub-minute rendering without measured data.
