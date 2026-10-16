@@ -1608,7 +1608,7 @@ body .n-project-entrance .n-encounter-invitation>p{margin-bottom:12px}
 /* Homepage releases viewport composition, desktop + tablet. */
 @media (min-width: 1101px) {
   body.pv-home #releases { padding-top: 42px; }
-  body.pv-home #releases .section-head { margin-bottom: 34px; }
+  body.pv-home #releases .section-head { width: 100%; max-width: 1106px; margin: 0 auto 28px; }
   body.pv-home #releases .release-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     max-width: 1106px;
@@ -1620,37 +1620,33 @@ body .n-project-entrance .n-encounter-invitation>p{margin-bottom:12px}
   body.pv-home #releases .release-card .release-title {
     margin-top: 11px;
     font-family: var(--pv-body);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
-    letter-spacing: .05em;
+    letter-spacing: .04em;
   }
   body.pv-home #releases .release-card .release-meta {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.5;
     letter-spacing: .04em;
   }
 }
 @media (min-width: 761px) and (max-width: 1100px) {
   body.pv-home #releases { padding-top: 46px; }
-  body.pv-home #releases .section-head { margin-bottom: 34px; }
+  body.pv-home #releases .section-head { width: 100%; max-width: 880px; margin: 0 auto 28px; }
   body.pv-home #releases .release-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     max-width: 880px;
     margin-inline: auto;
     gap: 26px 20px;
   }
-}
-
-/* Releases introduction sits with its heading, not in a detached column. */
-body.pv-home #releases .section-head .small {
-  max-width: 440px;
-  margin: 11px 0 0;
-  color: rgba(255,255,255,.58);
-  font: 400 12px/1.55 var(--pv-body);
-  letter-spacing: .015em;
-}
-@media (min-width: 761px) {
-  body.pv-home #releases .section-head {
-    margin-bottom: 24px;
+  body.pv-home #releases .release-card .release-title {
+    font-size: 15px;
+    letter-spacing: .04em;
+  }
+  body.pv-home #releases .release-card .release-meta {
+    font-size: 12px;
+    line-height: 1.5;
+    letter-spacing: .04em;
   }
 }
+
