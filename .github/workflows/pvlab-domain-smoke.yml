@@ -90,6 +90,36 @@ jobs:
             exit 1
           fi
           echo 'PASS: old PV LAB landing forwards to the new domain; Studio handles welcome toast.'
+      - name: Verify new Generate and Exact layout assets reached pvlab.studio
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 12); do
+            curl -fsSL --connect-timeout 6 --max-time 20 \
+              "https://pvlab.studio/studio?tool=image&verify=20261016-f02906" \
+              -o /tmp/live-pv-studio-exact.html || true
+            if grep -Fq 'assets.css?v=20261016-exact-toolbar3' /tmp/live-pv-studio-exact.html \
+              && grep -Fq 'studio-finish-v2.css?v=20261016-generate-always3' /tmp/live-pv-studio-exact.html \
+              && grep -Fq 'id="composer-exact-prompt-option"' /tmp/live-pv-studio-exact.html; then
+              curl -fsSL --connect-timeout 6 --max-time 20 \
+                "https://pvlab.studio/studio-finish-v2.css?v=20261016-generate-always3" \
+                -o /tmp/live-pv-generate-style.css || true
+              curl -fsSL --connect-timeout 6 --max-time 20 \
+                "https://pvlab.studio/assets.css?v=20261016-exact-toolbar3" \
+                -o /tmp/live-pv-toolbar-style.css || true
+              if grep -Fq 'visibility:visible;' /tmp/live-pv-generate-style.css \
+                && ! grep -Fq 'visibility:hidden}' /tmp/live-pv-generate-style.css \
+                && grep -Fq '.composer-controls #composer-exact-prompt-option' /tmp/live-pv-toolbar-style.css; then
+                echo "PASS: canonical PV LAB Studio serves permanent Generate and aligned Exact assets."
+                ready=1
+                break
+              fi
+            fi
+            echo "Waiting for PV LAB custom domain to serve updated Generate/Exact design (attempt $attempt)."
+            sleep 10
+          done
+          if [ "$ready" != 1 ]; then echo "FAIL: custom domain is serving stale Generate or Exact assets."; exit 1; fi
       - name: Verify shared legacy Studio URL opens the correct page
         shell: bash
         run: |
