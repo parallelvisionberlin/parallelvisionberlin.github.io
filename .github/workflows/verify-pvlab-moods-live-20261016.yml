@@ -1,4 +1,4 @@
-name: Verify PV LAB live Mood Generate 2026-10-16
+name: Verify PV LAB compact Mood result production
 on:
   push:
     branches: [verify/pvlab-moods-production-20261016]
@@ -7,33 +7,33 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
-      - name: Confirm latest Moods UI and one-click source are live on pvlab.studio
+      - name: Verify pvlab.studio serves the compact generating dialog
         shell: bash
         run: |
           set -euo pipefail
           base="https://pvlab.studio"
-          for attempt in $(seq 1 24); do
+          for attempt in $(seq 1 30); do
             stamp="${GITHUB_SHA}-$attempt"
-            if curl -fsSL --connect-timeout 7 --max-time 24 -H 'Cache-Control: no-cache' "$base/moods?verify=$stamp" -o /tmp/moods.html \
-              && curl -fsSL --connect-timeout 7 --max-time 24 -H 'Cache-Control: no-cache' "$base/explore-moods.js?verify=$stamp" -o /tmp/explore.js \
-              && curl -fsSL --connect-timeout 7 --max-time 24 -H 'Cache-Control: no-cache' "$base/explore-moods-editorial.css?verify=$stamp" -o /tmp/cards.css \
-              && grep -Fq 'oneClick=20261016v2' /tmp/moods.html \
-              && grep -Fq 'uniformCardTitle=20261016v2' /tmp/moods.html \
-              && grep -Fq 'id="mc-look-credit-note"' /tmp/moods.html \
-              && grep -Fq 'generate.disabled=!hasGenerationInput()' /tmp/explore.js \
-              && grep -Fq 'const currentPrice=await preparePrice(stamp)' /tmp/explore.js \
-              && grep -Fq 'creditNote.textContent=ready.label' /tmp/explore.js \
-              && grep -Fq 'currentPrice.submit()' /tmp/explore.js \
-              && grep -Fq 'font:500 clamp(16px,1.2vw,20px)' /tmp/cards.css \
-              && ! grep -Fq 'font-size:clamp(20px,2.05vw,29px);font-weight:450' /tmp/cards.css; then
-                echo "PASS: production pvlab.studio serves one-click Generate, nonblocking quote, credit disclosure, single submit, uniform Dream Blur title."
-                echo "HTML: $(wc -c < /tmp/moods.html) bytes; JS: $(wc -c < /tmp/explore.js); CSS: $(wc -c < /tmp/cards.css)"
-                exit 0
+            if curl -fsSL --retry 1 --connect-timeout 6 --max-time 25 -H 'Cache-Control: no-cache' "$base/moods?verify=$stamp" -o /tmp/moods.html \
+              && curl -fsSL --retry 1 --connect-timeout 6 --max-time 25 -H 'Cache-Control: no-cache' "$base/explore-moods.js?verify=$stamp" -o /tmp/moods.js \
+              && curl -fsSL --retry 1 --connect-timeout 6 --max-time 25 -H 'Cache-Control: no-cache' "$base/explore-moods-nav.css?verify=$stamp" -o /tmp/moods-nav.css \
+              && grep -Fq 'resultFit=20261016v1' /tmp/moods.html \
+              && grep -Fq 'id="mc-look-result-again"' /tmp/moods.html \
+              && grep -Fq 'dialog.classList.add(' /tmp/moods.js \
+              && grep -Fq 'is-result-view' /tmp/moods.js \
+              && grep -Fq 'mc-look-result-again' /tmp/moods.js \
+              && grep -Fq 'currentPrice.submit()' /tmp/moods.js \
+              && grep -Fq 'mc-look-dialog.is-result-view' /tmp/moods-nav.css \
+              && grep -Fq 'position:relative;top:auto;align-self:stretch' /tmp/moods-nav.css \
+              && ! grep -Fq 'position:sticky;top:0;align-self:start' /tmp/moods-nav.css; then
+              echo 'PASS LIVE: Compact generating popup, result preview, Make another, and full-height Mood artwork present on pvlab.studio.'
+              echo "HTML $(wc -c < /tmp/moods.html) bytes; JS $(wc -c < /tmp/moods.js); CSS $(wc -c < /tmp/moods-nav.css)"
+              exit 0
             fi
-            echo "Live files not updated yet (attempt $attempt/24). Retrying."
+            echo "Production awaiting new Mood build (attempt $attempt/30)"
             sleep 8
           done
-          echo "FAIL: newest Mood files not yet confirmed on pvlab.studio"
+          echo 'FAIL: New generating dialog not verified in live production'
           exit 1
