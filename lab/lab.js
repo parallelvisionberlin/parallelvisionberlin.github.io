@@ -1820,9 +1820,21 @@ const videoJobCache=new Map();
 let selectedVideoJob=null;
 let videoStartFrameHandoff=false;
 let videoSelectionRevision=0;
+let videoLoadJobId=null,videoLoadErrorJobId=null;
+function bringVideoPlayerIntoView(){
+  if(tool!=='video')return;
+  // The history feed scrolls independently on desktop, so opening a video
+  // without returning to the player above makes its cards appear unresponsive.
+  videoFeedCenter.scrollTo({top:0,behavior:'instant'});
+  if(window.matchMedia('(max-width:820px)').matches)
+    mediaStage.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function showVideoJobStage(job){
   if(tool!=='video'||!job||job.settings?.type!=='video')return;
   const status=String(job.status||'submitting');
+  const phase=status==='completed'
+    ?!hasResult(job)?'missing':videoLoadErrorJobId===job.id?'load-error':videoLoadJobId===job.id?'loading':'completed'
+    :status;
   const states={
     submitting:['Submitting','Starting your video','Your confirmed request is being submitted.'],
     queued:['Queued','Video queued','Waiting for the video model to begin processing.'],
@@ -1831,12 +1843,15 @@ function showVideoJobStage(job){
     uncertain:['Review needed','Status unconfirmed','Check History before submitting another paid generation.'],
     failed:['Failed','Video generation failed','No video was returned. Review this record in History before trying again.'],
     resolved:['Unavailable','Video unavailable','This request did not produce a downloadable video.'],
-    completed:['Ready','Your video is ready','Select its record in History to view or download it.']
+    completed:['Saved','Video saved in History','Select the video thumbnail to open the player.'],
+    loading:['Loading','Opening video','Loading the saved video for playback.'],
+    'load-error':['Unavailable','Could not open video','The saved video could not be loaded. Select its thumbnail to retry.'],
+    missing:['Unavailable','Video file unavailable','This job is marked completed, but no saved video file is available.']
   };
-  const words=states[status]||['Processing','Generating video','Your request is in progress.'];
+  const words=states[phase]||['Processing','Generating video','Your request is in progress.'];
   const stage=$('video-job-stage');
   if(job.outputId&&resultId===job.outputId&&resultUrl){stage.hidden=true;return;}
-  stage.dataset.phase=status;
+  stage.dataset.phase=phase;
   $('video-job-stage-state').textContent=words[0];
   $('video-job-stage-title').textContent=words[1];
   $('video-job-stage-message').textContent=words[2];
@@ -1883,17 +1898,36 @@ function updateVideoInspector(job){
   for(const card of $('history').querySelectorAll('.card[data-kind="video"]'))
     card.classList.toggle('is-current-video',card.dataset.job===job.id);
 }
-function showVideoHistoryRecord(job,{play=true}={}){
+function showVideoHistoryRecord(job,{play=true,reveal=false}={}){
   if(!job||!owner)return;
   videoStartFrameHandoff=false;
   selectedVideoJob=job;
-  ++videoSelectionRevision;
+  const selection=++videoSelectionRevision;
+  const alreadyLoaded=!!(resultUrl&&resultId===job.outputId);
+  const load=play&&hasResult(job)&&!alreadyLoaded;
+  videoLoadJobId=load?job.id:null;
+  videoLoadErrorJobId=null;
   updateVideoInspector(job);
   if(tool==='video'){
     if(autoPreview?.id&&autoPreview.id!==job.id)autoPreview=null;
     if(resultUrl&&resultId!==job.outputId)clearResult();
     showVideoJobStage(job);
-    if(play&&hasResult(job))void viewMedia(()=>openVideo(job,{scroll:false}));
+    if(reveal)bringVideoPlayerIntoView();
+    if(load)void viewMedia(async()=>{
+      try{await openVideo(job,{scroll:false});}
+      catch(error){
+        if(tool==='video'&&selection===videoSelectionRevision&&selectedVideoJob?.id===job.id){
+          videoLoadErrorJobId=job.id;
+          showVideoJobStage(job);
+        }
+        throw error;
+      }finally{
+        if(selection===videoSelectionRevision&&selectedVideoJob?.id===job.id){
+          videoLoadJobId=null;
+          if(tool==='video'&&(!resultUrl||resultId!==job.outputId))showVideoJobStage(job);
+        }
+      }
+    });
   }
 }
 function restoreLatestVideoSelection(){
@@ -2194,7 +2228,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){videoStartFrameHandoff=false;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){videoLoadJobId=null;videoLoadErrorJobId=null;++videoSelectionRevision;videoStartFrameHandoff=false;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
   if(window.__PV_LAB_NATIVE__===1)candidate=await preparePhotoInput(candidate,{maxBytes:20*1024*1024});
   if(!candidate)throw new Error('No image was provided. Drop a JPG, PNG or WebP photograph.');
@@ -3629,7 +3663,7 @@ function updateHistorySelectionUi(){
     const selectable=historySelectMode&&card.dataset.deletable==='true',selected=historySelected.has(card.dataset.job);
     card.classList.toggle('is-selectable',selectable);card.classList.toggle('is-selected',selected);
     if(selectable){card.tabIndex=0;card.removeAttribute('role');card.setAttribute('aria-selected',String(selected));}
-    else{card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',(card.dataset.kind==='image'?'Open image':'Select video')+' details');card.removeAttribute('aria-selected');}
+    else{card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',card.dataset.kind==='image'?'Open image details':'Open video in large player');card.removeAttribute('aria-selected');}
     const box=card.querySelector('.history-select-box');if(box){box.hidden=!historySelectMode;const input=box.querySelector('input');if(input)input.checked=selected;}
   }
   $('history-selection-count').textContent=historySelected.size+' selected';
@@ -3654,7 +3688,7 @@ function renderCards(jobs,{upsert=false}={}){
     const openCard=()=>{
       if(!owner||historySelectMode)return;
       if(j.settings.type==='image')void viewMedia(()=>openImageRecord(j));
-      else if(assetLibrary?.active())void viewMedia(()=>openVideo(j));else if(tool==='video')showVideoHistoryRecord(j,{play:true});
+      else if(assetLibrary?.active())void viewMedia(()=>openVideo(j));else if(tool==='video')showVideoHistoryRecord(j,{play:true,reveal:true});
     };
     card.addEventListener('click',event=>{
       if(historySelectMode||event.target.closest('button,input,select,textarea,a,label'))return;
@@ -3696,7 +3730,10 @@ function renderCards(jobs,{upsert=false}={}){
       quickDownload.onclick=event=>{event.preventDefault();event.stopPropagation();if(!historySelectMode)void viewMedia(()=>downloadJob(j));};
       card.append(quickDownload);
     }else if(ready&&j.sourceId){
-      const {figure,img}=historyImage(j.sourceId,'Source thumbnail / generated video ready');previews.push(img);card.append(figure);
+      const {figure,img}=historyImage(j.sourceId,'Original start frame thumbnail, not the video');previews.push(img);
+      figure.classList.add('history-video-thumb');
+      const playLabel=document.createElement('span');playLabel.className='history-video-play';playLabel.setAttribute('aria-hidden','true');
+      playLabel.textContent='▶  PLAY VIDEO';figure.append(playLabel);card.append(figure);
     }else{
       const empty=document.createElement('div');empty.className='history-no-result';
       if(contentRestricted){
@@ -3713,8 +3750,8 @@ function renderCards(jobs,{upsert=false}={}){
         empty.append(kicker,title,detail,edit,foot);
       }else{
         const title=document.createElement('strong'),detail=document.createElement('span');
-        title.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?imageFailureHeading(j.error):j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video ready':j.status==='completed'?'Output unavailable':'No result';
-        detail.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Choose this identity from the Soul ID photo tile to generate.':j.status==='draft'?'No generation submitted.':j.status==='failed'?(j.error||'The provider ended this request without a generated file.'):j.status==='uncertain'?'PV Lab could not confirm the provider state. Check the provider before retrying; nothing will be resubmitted automatically.':activeStates.has(j.status)?'The finished output will appear here.':ready?'View or download your generated video below.':'No generated file is available to view or download.';
+        title.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?imageFailureHeading(j.error):j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video saved':j.status==='completed'?'Output unavailable':'No result';
+        detail.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Choose this identity from the Soul ID photo tile to generate.':j.status==='draft'?'No generation submitted.':j.status==='failed'?(j.error||'The provider ended this request without a generated file.'):j.status==='uncertain'?'PV Lab could not confirm the provider state. Check the provider before retrying; nothing will be resubmitted automatically.':activeStates.has(j.status)?'The finished output will appear here.':ready?'Select this record to load and play the saved video.':'No generated file is available to view or download.';
         empty.append(title,detail);
       }
       card.append(empty);
