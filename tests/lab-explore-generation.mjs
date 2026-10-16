@@ -26,8 +26,11 @@ const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
-try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote']){
- const page=await browser.newPage({viewport:{width:scenario==='small'?320:scenario==='mobile'?390:1440,height:scenario==='small'?640:900}});
+try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','compact','phone']){
+ const page=await browser.newPage({viewport:{
+  width:scenario==='small'?320:['mobile','phone'].includes(scenario)?390:scenario==='compact'?1280:1440,
+  height:scenario==='small'?640:scenario==='compact'?720:scenario==='phone'?700:900
+ }});
  let paid=0,quotes=0,uploads=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{const req=route.request(),url=new URL(req.url());
   if(url.pathname==='/lab/native-account.js')return route.fulfill({contentType:'text/javascript',body:accountSource(scenario==='guest')});
@@ -88,6 +91,34 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
  }else{
    await button.evaluate(el=>{el.click();el.click();});
    await page.waitForFunction(()=>document.querySelector('#mc-look-result')?.hidden===false);
+   assert.equal(await page.locator('#mc-look-dialog').getAttribute('class'), 'mc-look-dialog is-result-view',
+     'Generation should switch to a compact result view, not append underneath the full form');
+   assert.equal(await page.locator('#mc-look-dropzone').isVisible(),false);
+   assert.equal(await page.locator('.mc-look-prompt').isVisible(),false);
+   assert.equal(await page.locator('.mc-look-dialog-actions').isVisible(),false);
+   if(['desktop','mobile','small','compact','phone'].includes(scenario)){
+     const layout=await page.evaluate(()=>{
+       const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();
+         return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,width:r.width};};
+       return {
+         viewport:{width:innerWidth,height:innerHeight},
+         dialog:rect('#mc-look-dialog'),
+         media:rect('.mc-look-dialog-media'),
+         artwork:rect('#mc-look-preview'),
+         frame:rect('#mc-look-result-frame'),
+         output:rect('.mc-look-dialog-body')
+       };
+     });
+     assert.ok(layout.dialog.bottom<=layout.viewport.height+2&&layout.dialog.top>=-2,
+       'Entire modal stays within visible screen '+JSON.stringify(layout));
+     if(layout.viewport.width>600){
+       assert.ok(Math.abs(layout.media.bottom-layout.dialog.bottom)<3,
+         'Mood artwork fills modal height with no dead strip '+JSON.stringify(layout));
+       assert.ok(layout.frame.bottom<=layout.dialog.bottom+2,
+         'Result loading/preview is not clipped beneath modal '+JSON.stringify(layout));
+     }
+     await page.screenshot({path:out+'/generating-'+scenario+'.png'});
+   }
    if(scenario==='slowquote'){
      assert.equal(await button.textContent(),'Preparing…','First click starts preparation immediately');
      assert.equal(await button.isDisabled(),true,'Repeated clicks are blocked after the first click');
@@ -102,6 +133,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      await page.locator('#mc-look-result-image').waitFor({state:'visible'});
      assert.equal(paid,1,'One explicit click submits exactly one paid job');
      assert.equal(await page.locator('#mc-look-result-actions').isVisible(),true);
+     assert.equal(await page.locator('#mc-look-result-again').isVisible(),true);
      const downloadEvent=page.waitForEvent('download');
      await page.locator('#mc-look-result-download').click();
      const saved=await downloadEvent;
@@ -114,6 +146,14 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
        assert.equal(await page.evaluate(()=>window.restoredFile),'pvlab-hong-kong-nights.png');
        assert.equal(paid,1,'Opening Studio never repeats a job');
      }else{
+       if(scenario==='desktop'){
+         await page.locator('#mc-look-result-again').click();
+         assert.equal(await page.locator('#mc-look-result').isVisible(),false,
+           'Make another returns to the editor with no extra paid job');
+         assert.equal(await page.locator('#mc-look-dropzone').isVisible(),true);
+         assert.equal(await page.locator('#mc-look-dialog').getAttribute('class'),'mc-look-dialog');
+         assert.equal(paid,1,'Make another must not submit a new job automatically');
+       }
        await page.locator('#mc-look-close').click();
        assert.equal(await page.locator('#mc-look-dialog').isVisible(),false);
      }

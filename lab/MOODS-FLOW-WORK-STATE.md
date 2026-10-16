@@ -44,6 +44,25 @@ the expanded Mood dialog, with optional Image Studio continuation.
   lab/explore-moods-editorial.css, and relevant regression tests.
 - No provider, Worker, wallet or credit-pricing changes.
 
+## 2026-10-16: Compact in-dialog generation (screenshot feedback)
+- Reported: clicking Generate caused the full upload form and preview frame
+  to stack, putting the image below the modal viewport behind a scrollbar.
+  Sticky left artwork also ended above the dark modal bottom.
+- Fix: after Generate, the existing right-side form is temporarily hidden
+  and replaced by a focused status/result pane. The Mood title and description
+  remain, while the left artwork fills the full modal height.
+- Responsive preview box reserves a bounded space for loading and output.
+  No jump when the image arrives. The whole modal remains within desktop
+  viewport; compact mobile layout scrolls only if the screen is very short.
+- Finished result offers Download, Open in Studio and Make another.
+  Make another returns to the same reference photo and direction, without
+  generating or charging automatically.
+- Preflight failure restores the original form and shows its error; uncertain
+  submission still requires checking History before a new paid attempt.
+- No changes to API, quote, billing, account, media generation or Mood presets.
+- Relevant files: explore-moods-nav.css, explore-moods.js, moods.html,
+  tests/lab-explore-generation.mjs, this checkpoint.
+
 ## Source files
 - lab/moods.html, lab/explore-moods-nav.css, lab/explore-moods.js
 - lab/app-mood-generation.js, lab/studio.html, lab/lab.js

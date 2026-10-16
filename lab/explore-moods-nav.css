@@ -78,6 +78,7 @@
 .mc-explore-page .mc-look-result-heading a{
   color:#c8d3ca;font-size:10px;letter-spacing:0;text-decoration:underline;text-underline-offset:3px;
 }
+.mc-explore-page .mc-look-result-heading a[hidden]{display:none}
 .mc-explore-page .mc-look-result-frame{
   aspect-ratio:3/2;position:relative;display:grid;place-items:center;
   overflow:hidden;border-radius:10px;background:#111816;border:1px solid #ffffff24;
@@ -102,14 +103,76 @@
 }
 .mc-explore-page #mc-look-result-download{background:var(--pv-acid);color:#101410;border:1px solid var(--pv-acid);font-weight:650}
 .mc-explore-page #mc-look-result-studio{color:#e8efe7;background:transparent;border:1px solid #a5b6a54a}
-.mc-explore-page .mc-look-dialog:has(.mc-look-result.is-visible) .mc-look-dialog-media{
-  position:sticky;top:0;align-self:start;height:min(84dvh,780px);min-height:0;
+/* While generating, use a single editorial result view. The current editor
+   remains in the DOM so Make another can restore it without losing the photo. */
+.mc-explore-page .mc-look-dialog.is-result-view[open]{
+  align-items:stretch;
+  max-height:calc(100dvh - 48px);
+  overflow:hidden;
 }
+.mc-explore-page .mc-look-dialog.is-result-view .mc-look-dialog-media{
+  position:relative;top:auto;align-self:stretch;
+  height:auto;min-height:0;
+}
+.mc-explore-page .mc-look-dialog.is-result-view .mc-look-dialog-body{
+  box-sizing:border-box;min-height:0;max-height:calc(100dvh - 48px);
+  gap:12px;padding:clamp(26px,3.4vh,38px) 30px 24px;
+  overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;scrollbar-color:#626c65 transparent;
+}
+.mc-explore-page .mc-look-dialog.is-result-view :is(
+  .mc-look-dropzone,.mc-look-prompt,.mc-look-dialog-actions,.mc-look-footer,
+  #mc-look-status
+){display:none!important}
+.mc-explore-page .mc-look-dialog.is-result-view .mc-look-dialog-body h2{
+  font-size:clamp(35px,3.6vw,53px);
+}
+.mc-explore-page .mc-look-dialog.is-result-view .mc-look-result{
+  flex:none;max-height:none;
+}
+.mc-explore-page .mc-look-dialog.is-result-view .mc-look-result-heading{
+  margin-top:10px;
+}
+.mc-explore-page .mc-look-dialog.is-result-view .mc-look-result-frame{
+  aspect-ratio:auto;height:clamp(220px,38dvh,390px);
+}
+.mc-explore-page #mc-look-result-again{
+  display:block;margin:13px auto 0;padding:5px 10px;
+  background:transparent;color:#c1ccc1;border:0;
+  font:400 12px/1.5 'DM Sans',Arial,sans-serif;
+  text-decoration:underline;text-underline-offset:4px;cursor:pointer;
+}
+.mc-explore-page #mc-look-result-again[hidden]{display:none}
 @media(max-width:600px){
-  .mc-explore-page .mc-look-dialog:has(.mc-look-result.is-visible) .mc-look-dialog-media{
-    position:relative;top:auto;height:clamp(200px,57vw,280px);
+  .mc-explore-page .mc-look-dialog.is-result-view[open]{
+    display:block;overflow-y:auto;max-height:calc(100dvh - 22px);
+    scrollbar-width:none;
+  }
+  .mc-explore-page .mc-look-dialog.is-result-view::-webkit-scrollbar{display:none}
+  .mc-explore-page .mc-look-dialog.is-result-view .mc-look-dialog-media{
+    position:relative;height:clamp(115px,19dvh,165px);min-height:0;
+  }
+  .mc-explore-page .mc-look-dialog.is-result-view .mc-look-dialog-body{
+    max-height:none;overflow:visible;padding:20px 18px 18px;gap:10px;
+  }
+  .mc-explore-page .mc-look-dialog.is-result-view .mc-look-dialog-body h2{
+    font-size:clamp(29px,8vw,37px);
+  }
+  .mc-explore-page .mc-look-dialog.is-result-view .mc-look-result-frame{
+    height:clamp(170px,30dvh,250px);
+  }
+  .mc-explore-page .mc-look-dialog.is-result-view .mc-look-result-heading{
+    margin-top:3px;
   }
   .mc-explore-page .mc-look-result-actions{grid-template-columns:1fr 1fr}
+}
+@media(max-height:720px) and (min-width:601px){
+  .mc-explore-page .mc-look-dialog.is-result-view .mc-look-result-frame{
+    height:clamp(180px,34dvh,255px);
+  }
+  .mc-explore-page .mc-look-dialog.is-result-view .mc-look-dialog-body{
+    padding-top:22px;padding-bottom:18px;gap:8px;
+  }
 }
 @keyframes pv-mood-result-shimmer{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
 @keyframes pv-mood-result-spin{to{transform:rotate(360deg)}}
