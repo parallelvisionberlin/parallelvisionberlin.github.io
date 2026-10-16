@@ -2,8 +2,8 @@
 
 Updated: 2026-10-16
 Scope: Discover and use three creative Motion Effects via the existing Video Studio.
-Working branch: `feature/pvlab-motion-effects-20261016`.
-Deployment: **not confirmed** until PR checks, merge and production checks.
+Release: PR #248 merged to main at `81ffd4b6547b40334f7c8225ad2f36a73f1bd0af`.
+Deployment: GitHub's Cloudflare Pages check reports **Deployed successfully** for `81ffd4b`, with preview `https://1d4a93a9.pvlab-studio.pages.dev`. The custom `pvlab.studio` hostname could not be independently fetched from this environment, so domain-level smoke remains unverified.
 
 ## Product decisions
 - Header gets a dedicated **Effects** entry alongside Image and Video.
@@ -26,8 +26,10 @@ Deployment: **not confirmed** until PR checks, merge and production checks.
 - No Worker modification, migration, provider keys, credit rates or billing changes.
 
 ## Verification and remaining work
-- Run `node --test tests/lab-video-effects.test.mjs` and existing lab regression suites in CI.
-- Run desktop/mobile mocked browser flow, including Gallery and real price review without paid submission.
-- After validation, merge and check actual GitHub Pages / Cloudflare Pages deployment separately.
-- **No paid generation or reproducibility validation has been performed.** Before marketing these as effects with output demos, run paid tests on several distinct source photos per preset, adjust prompts/model settings and replace direction stills only with actual owned generated preview loops.
-- If a model/account is disabled, explain it to the customer; do not silently fall back or bypass filters.
+- `tests/lab-video-effects.test.mjs` verifies all model/recipe and credit-review contracts and fails closed for disabled models. The `private-lab` job passed.
+- `tests/lab-motion-effects-browser.mjs` plus `.github/workflows/pvlab-motion-effects.yml` verify three cards, selecting Liquid Metal, preserved video settings, private Gallery original-image handoff, explicit pricing review, no paid submission, and desktop/mobile overflow. The isolated `motion-effects` check passed on the feature commit and on merged main.
+- `tests/lab-mood-nav-browser.mjs` now expects six text tools; the `masthead` test passed. Static build validation passed on the merged commit.
+- Existing unrelated end-to-end workflows may report pre-existing Image, Upscale or Soul layout failures, so do not claim the whole repository CI suite is green.
+- No Worker changes, database migrations, provider calls, or paid generations were performed. No actual effect-output quality or reproducibility has been verified.
+- Before marketing effects with video previews, deliberately test several user-owned photographs per preset with explicitly authorized paid jobs, curate only repeatable results, and replace the illustrative static posters with verified owned generated video previews.
+- If a model/account is disabled, explain it; never silently fall back to another provider or bypass safety policies.
