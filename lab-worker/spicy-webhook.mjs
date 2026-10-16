@@ -30,7 +30,7 @@ export async function verifySpicyCallback(request,secret,{now=Date.now}={}){
     throw Error('Unsupported callback version.');
   const stamp=request.headers.get('x-webhook-timestamp');
   const signature=request.headers.get('x-webhook-signature');
-  if(!/^\\d{10}$/.test(stamp||'')||!Number.isFinite(Number(stamp))||
+  if(!/^\d{10}$/.test(stamp||'')||!Number.isFinite(Number(stamp))||
     Math.abs(now()/1000-Number(stamp))>300||
     !/^[A-Za-z0-9+/]{40,48}={0,2}$/.test(signature||''))throw Error('Invalid callback signature metadata.');
   const raw=await readBoundedCallback(request);
