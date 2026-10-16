@@ -76,3 +76,10 @@
 - Scoped implementation: `lab/lab.js`, `lab/video-refresh.css`, `lab/studio.html`; regression: `tests/lab-image-viewer-browser.mjs` with delayed MP4, 1440/390 pixel viewports and no paid APIs.
 - Verified PR #242 browser checks: `Lab tests` gallery-browser and private-lab both passed on final source head `9518f398`; the fastqueue suite also passed its held-download video/gallery step. Other unrelated PR browser workflows retain earlier known failures.
 - Published to the repository main branch by squash merge `c1a12a6750053072b9be873ead2fc8969a365101` on 2026-10-16; current main `lab.js`, `studio.html`, `video-refresh.css` and test each contain the change. Independent public HTTP check was blocked by tool/network access. Live Cloudflare propagation and authenticated actual-video playback have not been independently checked.
+
+## Video confirmation banner cleanup, 2026-10-16
+- Approved: remove the duplicated Video “Generation request recorded” success banner; keep the real Queued / Generating / Saving stage and History access.
+- `lab/lab.js` clears the shared notice after a confirmed active or completed Video submission. Failed, resolved and uncertain requests retain their error notices; Image and Upscale notices remain unchanged.
+- `lab/detail-video-studio.css` hides the now-empty Video notice element; `lab/studio.html` refreshes only these assets' cache versions.
+- No model, billing, video submission, provider, backend, or stored job behavior changed. No paid job was started for validation.
+- Source-level checks completed; repository publication and independent live verification are separate.

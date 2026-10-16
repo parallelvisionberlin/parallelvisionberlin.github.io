@@ -604,3 +604,6 @@ dialog#image-source-lightbox::backdrop{
   #image-source-download{font-size:10px;padding:3px 6px}
   #image-source-fit{padding:3px 7px}
 }
+
+/* Accepted Video jobs show progress in the stage, not an empty notice slot. */
+#app.video-studio-active>#notice:empty{display:none}

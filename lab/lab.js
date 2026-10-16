@@ -2477,9 +2477,14 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
     else if(activeStates.has(data.job.status)&&data.job.status!=='uncertain')upscaleResultUI.processing();
   }
   const failed=['failed','uncertain','resolved'].includes(data.job.status);
-  const destination=q.settings.mode==='upscale'?'Upscaled images below and Assets':'History';
-  notify(failed?(isContentRestriction(data.job.error)?'The selected model declined this request under its content guidelines. Edit your prompt or explore another model in History.':data.job.error||(q.settings.mode==='upscale'?'The upscale was not confirmed. Check Queue and Upscaled images before trying again.':'The generation was not confirmed. Check History before another attempt.')):
-    (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+(q.priceIsEstimate?' Estimated provider charge: '+money(q.estimatedUsd)+' USD. Not a guaranteed maximum. Results appear in '+destination+'.':' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in '+destination+'.'):'Generation request recorded. You can leave the page and return to History.'),failed);
+  if(q.settings?.type==='video'&&!failed){
+    // The Video stage already shows the accepted request and its live status.
+    notify('');
+  }else{
+    const destination=q.settings.mode==='upscale'?'Upscaled images below and Assets':'History';
+    notify(failed?(isContentRestriction(data.job.error)?'The selected model declined this request under its content guidelines. Edit your prompt or explore another model in History.':data.job.error||(q.settings.mode==='upscale'?'The upscale was not confirmed. Check Queue and Upscaled images before trying again.':'The generation was not confirmed. Check History before another attempt.')):
+      (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+(q.priceIsEstimate?' Estimated provider charge: '+money(q.estimatedUsd)+' USD. Not a guaranteed maximum. Results appear in '+destination+'.':' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in '+destination+'.'):''),failed);
+  }
 }
 $('generate').onclick=()=>{if(tool==='image')return submitImageSnapshot();return action(async()=>{
   if(tool==='upscale'&&!isFalUpscale())notify('Preparing your image and checking the live price. Nothing submitted yet…');
