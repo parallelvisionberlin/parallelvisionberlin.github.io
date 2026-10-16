@@ -83,6 +83,7 @@ try{
       const style=getComputedStyle(icon);
       return {viewport:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth,
         header:rect('#studio-header'),brand:rect('#studio-header .brand'),
+         firstNav:rect('#tool-image'),firstNavWeight:getComputedStyle(document.getElementById('tool-image')).fontWeight,
         nav:rect('#studio-header .tool-switch'),fashion:rect('#tool-fashion'),
         actions:rect('#studio-header .actions'),
         icon:rect('.studio-assets-icon'),exploreMoods:rect('#tool-explore-moods'),queue:rect('#active>summary'),
@@ -147,12 +148,20 @@ try{
       const geometry=await page.evaluate(()=>{
         const header=document.querySelector('.landing-header').getBoundingClientRect();
         const brand=document.querySelector('.lab-brand').getBoundingClientRect();
-        return {height:header.height,brandX:brand.x,overflow:document.documentElement.scrollWidth-innerWidth};
+        const firstLink=document.querySelector('.landing-header nav a');
+        return {height:header.height,brandX:brand.x,overflow:document.documentElement.scrollWidth-innerWidth,
+          firstNavX:firstLink.getBoundingClientRect().x,firstNavWeight:getComputedStyle(firstLink).fontWeight};
       });
       const studio=studioGeometry.get(width);
       assert.ok(geometry.overflow<=1,route+' stays inside viewport at '+width);
       assert.ok(Math.abs(geometry.height-studio.header.height)<=1&&Math.abs(geometry.brandX-studio.brand.x)<=1,
         route+' shares Studio header height and logo alignment at '+width+' '+JSON.stringify(geometry));
+      if(route==='landing'&&width>900){
+        assert.ok(Math.abs(geometry.firstNavX-studio.firstNav.x)<=6,
+          'Home Image tab keeps the same horizontal starting position as Studio at '+width);
+        assert.equal(geometry.firstNavWeight,studio.firstNavWeight,
+          'Home creative menu typography matches Studio on desktop');
+      }
       if(width===1440||width===390)await page.screenshot({path:'test-results/pv-mood-icon-'+route+'-'+width+'.png'});
     }
   }
