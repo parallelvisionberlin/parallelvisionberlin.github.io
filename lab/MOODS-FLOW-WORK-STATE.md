@@ -62,3 +62,24 @@ Updated: 2026-10-16
 - Paid provider quality was not tested for this UI-only patch.
 - Next action: ask user to refresh and verify upload, removal and dismissal
   in their own browser. No additional API, billing or provider deployment.
+
+## 2026-10-16 photochemical Mood loading
+- Replaced the narrow spinner strip with a full-width darkroom / latent-exposure
+  animation inside the existing result frame. The Mood poster and dialog
+  geometry remain unchanged. No synthetic image previews or fake percentages.
+- Components: `lab/moods.html`, `lab/explore-moods-nav.css`,
+  `lab/explore-moods.js`; no provider, billing or API changes.
+- Existing verified queued/running/saving messages remain in the aria-live
+  status. A failed or uncertain submission freezes motion and directs the user
+  to Image History. Reduced-motion preferences disable animations.
+- A completed image softly resolves into view; no new network assets.
+- PR #255 merged into main as `a0d95d30c75e2c4d887c2d9494f1105232bc6604`.
+  Cloudflare Pages reports a successful deployment for that commit.
+- PR checks: Explore Generate browser run `38914382444` and Lab tests
+  `38914382440` passed. Covers desktop/mobile sizing, errors and one paid
+  request per click with mocked backend.
+- Two unrelated Image Studio/Soul browser suites also failed on the baseline
+  main commit `69af2df591ea1d927214ce0d2ecbfb086361333c`; not changed here.
+- Direct visual verification on pvlab.studio could not be completed from this
+  environment. Next: refresh `https://pvlab.studio/moods` and confirm the
+  animation's look on desktop/mobile before further polish.
