@@ -138,6 +138,15 @@ try{
       const paths=await page.locator('.landing-header nav a').evaluateAll(els=>els.map(el=>new URL(el.href).pathname+new URL(el.href).search));
       assert.ok(paths[1].endsWith('/studio.html?tool=retouch'),'Retouch goes to the existing Studio tool');
       assert.ok(paths[4].endsWith('/studio.html?tool=fashion'),'Fashion goes to the existing Studio tool');
+      const pricing=page.locator('.landing-header nav a.lab-nav-pricing');
+      assert.equal(await pricing.count(),1,'Pricing has its own quiet utility treatment');
+      assert.equal(await pricing.getAttribute('href'),'#pricing','Pricing still scrolls to plans');
+      const divider=await pricing.evaluate(el=>({
+        content:getComputedStyle(el,'::before').content,
+        width:getComputedStyle(el,'::before').width
+      }));
+      assert.notEqual(divider.content,'none','Pricing divider is present');
+      assert.equal(divider.width,'1px','Pricing divider is a fine hairline');
     }
     if(route==='moods'){
       assert.equal(await page.getByRole('link',{name:'My Moods',exact:true}).getAttribute('href'),'./mood-creator.html#my-moods');
@@ -156,6 +165,17 @@ try{
       assert.ok(geometry.overflow<=1,route+' stays inside viewport at '+width);
       assert.ok(Math.abs(geometry.height-studio.header.height)<=1&&Math.abs(geometry.brandX-studio.brand.x)<=1,
         route+' shares Studio header height and logo alignment at '+width+' '+JSON.stringify(geometry));
+      if(route==='landing'){
+        const spacing=await page.evaluate(()=>{
+          const nav=document.querySelector('.landing-header nav');
+          const links=nav.querySelectorAll('a');
+          const before=links[links.length-2].getBoundingClientRect();
+          const pricing=links[links.length-1].getBoundingClientRect();
+          return {gap:parseFloat(getComputedStyle(nav).gap),actual:pricing.left-before.right};
+        });
+        assert.ok(Math.abs(spacing.gap-spacing.actual)<2,
+          'Pricing marker does not shift the shared navigation at '+width+' '+JSON.stringify(spacing));
+      }
       if(route==='landing'&&width>900){
         assert.ok(Math.abs(geometry.firstNavX-studio.firstNav.x)<=6,
           'Home Image tab keeps the same horizontal starting position as Studio at '+width);
