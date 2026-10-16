@@ -106,6 +106,6 @@ test('Mood loading uses an accessible full-frame exposure and honest job states'
   assert.match(js,/queued:'In the generation queue…'/);
   assert.match(js,/running:'Generating your photograph…'/);
   assert.match(js,/resultLoading\.classList\.add\('is-stopped'\)/);
-  assert.match(js,/resultLoading\.classList\.remove\('is-stopped'\)/);
+  assert.match(js,/resultLoading\.classList\.remove\('is-stopped','is-finishing'\)/);
   assert.equal((js.match(/currentPrice\.submit\(\)/g)||[]).length,1);
 });
