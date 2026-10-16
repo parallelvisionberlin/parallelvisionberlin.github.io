@@ -15,6 +15,7 @@ import {recordLabTraffic,pruneLabTraffic} from './traffic.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {precisionEditRoute} from './precision-edit.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput} from './image-models.mjs';
+import {KREA3_EDIT,KREA3_TEXT,krea3Parameters,krea3EstimateMicros,krea3Input} from './krea3.mjs';
 import {FLASH_TEXT,FLASH_EDIT,seedreamFlashParameters,seedreamFlashInput} from './seedream-flash.mjs';
 import {QWEN3_TEXT,QWEN3_EDIT,Z_IMAGE_SPICY,experimentalImageParameters,buildExperimentalImageInput} from './experimental-image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
@@ -44,7 +45,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-15.6-quality-retouch-ci';
+export const VERSION = 'pv-lab-2026-10-16.1-krea3-fashion';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -269,12 +270,13 @@ function parseParameters(value) {
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceMode=value.referenceMode==='references'?'references':'base';
   const referenceRoles=referenceLabels(value.referenceRoles,10);
-  if(value.type==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3'].includes(value.engine)&&referenceMode==='references'){
+  if(value.type==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(value.engine)&&referenceMode==='references'){
     for(const r of referenceRoles)if(r.role==='base')r.role='none';
     if(!value.aspectRatio||value.aspectRatio==='auto')value={...value,aspectRatio:'16:9'};
   }
   if(value.type==='image'&&value.engine==='flash')return seedreamFlashParameters({...value,referenceMode},{fail,referenceRoles,moodMetadata:imageMoodMetadata});
   if(value.type==='image'&&value.engine==='kling')return imageModelParameters({...value,referenceMode},{fail,referenceRoles});
+  if(value.type==='image'&&value.engine==='krea3')return krea3Parameters({...value,referenceMode},{fail,referenceRoles});
   if(value.type==='image'&&['qwen3','zspicy'].includes(value.engine))return experimentalImageParameters(value,{fail,referenceRoles,moodMetadata:imageMoodMetadata});
   if(value.type==='image'&&value.engine==='seedreamlite')return seedreamLiteParameters(value,{fail,referenceRoles,moodMetadata:imageMoodMetadata});
   if(value.type==='image'&&value.engine==='soulpro'&&value.soulProModel==='soul2')return soul2Parameters(value,fail);
@@ -1496,6 +1498,31 @@ async function route(request,env,ctx) {
     const data=await body(request),pose=await source(env,owner,data.poseSourceId);
     const map=await createFalPoseMap(env,owner,url,pose,null);
     return json({assetId:map.id,billingNote:'DWPose preview uses fal.ai metered compute and is billed by fal.ai separately from the Lab image estimate.'},201);
+  }
+  if(path==='/api/fal/krea-3'&&method==='POST'){
+    if(!env.FAL_KEY)fail(503,'Krea 3 requires a configured fal.ai API key.');
+    const data=await body(request),p=parameters(data.settings);
+    if(p.engine!=='krea3'||p.provider!=='fal'||p.mode!=='image')fail(400,'Choose Krea 3.');
+    if(data.sourceId||data.lastSourceId||data.transferSourceIds?.length)
+      fail(400,'Krea 3 uses only the listed image references; the Base is Reference 1.');
+    const ids=data.referenceSourceIds||[];
+    if(!Array.isArray(ids)||ids.length>4||new Set(ids).size!==ids.length)
+      fail(400,'Krea 3 accepts up to four distinct image references.');
+    const refs=ids.length?await sources(env,owner,ids,4):[];
+    if(refs.length!==p.referenceRoles.length)fail(400,'Krea 3 reference roles must match the images.');
+    p.referenceSourceIds=refs.map(a=>a.id);
+    if(refs.reduce((n,a)=>n+a.bytes,0)>32*1024*1024)
+      fail(413,'Krea 3 accepts at most 32 MiB of input photographs combined.');
+    const prompt=assembledPrompt(p);
+    if(!prompt.trim())fail(400,'Krea 3 needs a direction or a photograph.');
+    p.model=refs.length?KREA3_EDIT:KREA3_TEXT;
+    const estimate=krea3EstimateMicros(p,refs.length);
+    const reserved=await reserveFalImageJob(env,owner,refs[0]?.id||null,p,estimate);
+    const job=await submitReservedFalJob(env,reserved,p,async()=>{
+      const uploaded=await Promise.all(refs.map(async a=>falUploadImage(env.FAL_KEY,await falImageBytes(env,a),a.mime)));
+      return krea3Input(p,uploaded,prompt);
+    });
+    return json({job:jobView(job)},202);
   }
   if(path==='/api/fal/krea'&&method==='POST'){
     // Trial-only owner generation: do not expose an unpriced customer model.
