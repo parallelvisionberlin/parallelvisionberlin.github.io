@@ -58,7 +58,12 @@ function initialize(){
         resultLoading.classList.add('is-finishing');
         $('mc-look-exposure-overline-text').textContent='FINALIZING IMAGE';
         $('mc-look-result-progress').textContent='Opening your photograph…';
-        const blob=await client.outputBlob(job.outputId);
+        // Let the real completed-state reveal breathe briefly while the image opens.
+        // This never starts another job and adds at most 600ms after completion.
+        const [blob]=await Promise.all([
+          client.outputBlob(job.outputId),
+          new Promise(resolve=>setTimeout(resolve,600))
+        ]);
         if(serial!==runSerial)return;
         if(!blob.size||!['image/png','image/jpeg','image/webp'].includes(blob.type.split(';')[0]))
           throw Error('The completed image could not be previewed here. Open Image History.');
