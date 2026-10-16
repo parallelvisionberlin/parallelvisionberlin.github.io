@@ -1,23 +1,25 @@
 // PV LAB Video model menu. Presentation only: the existing #video-engine owns
 // provider availability, selection, price checks, and generation behavior.
 const GROUPS=[
-  {title:'Best value',ids:['seedance15','wan','h3']},
-  {title:'Creative & motion',ids:['seedance','h3spicy','h3max','klinghf']},
-  {title:'Advanced & high res',ids:['wanprime','seedance4k','h3maxfal','omni']}
+  {title:'Best value',ids:['wan','seedance15']},
+  {title:'Creative & motion',ids:['seedance','klinghf']},
+  {title:'Advanced & high res',ids:['wanprime','seedance4k','omni']}
 ];
+// Keep experimental alternatives accessible, but out of the primary recommendations.
+const MORE_MODELS=['h3','h3spicy','h3max','h3maxfal'];
 const META={
   // "uncensored" is a SpicyAPI provider listing: no extra platform scan.
   // It is not a guarantee that the model accepts every request.
-  seedance:{description:'Text, frames, references & extend · 4–30s',brand:'bytedance',badge:'Versatile',uncensored:true},
-  wan:{description:'Start frame or references · up to 1080p',glyph:'W',badge:'Value',tone:'green',uncensored:true},
+  seedance:{description:'Complex scenes · references & extend · 4–30s',brand:'bytedance',badge:'Premium',uncensored:true},
+  wan:{description:'Realistic human motion · start frame or references',glyph:'W',badge:'Recommended',tone:'green',uncensored:true},
   klinghf:{description:'Text or start frame · Higgsfield',glyph:'K',badge:'Pro'},
-  seedance15:{description:'Affordable motion · 4–12s · camera lock',brand:'bytedance',badge:'Low cost',tone:'green',uncensored:true},
-  h3:{description:'Text, frame & references · up to 2K',glyph:'M',badge:'2K',uncensored:true},
+  seedance15:{description:'High-quality general motion · 4–12s · camera lock',brand:'bytedance',badge:'Low cost',tone:'green',uncensored:true},
+  h3:{description:'Text, frame & references · up to 2K',glyph:'M',uncensored:true},
   h3max:{description:'Start frame or text · 768p',glyph:'M'},
-  h3spicy:{description:'Image-driven motion · up to 1080p',glyph:'M',badge:'Spicy',uncensored:true},
+  h3spicy:{description:'Image-driven motion · up to 1080p',glyph:'M',uncensored:true},
   seedance4k:{description:'Start frame · upscaled 4K delivery',brand:'bytedance',badge:'4K',uncensored:true},
   wanprime:{description:'Start or references · faster Wan rendering',glyph:'W',badge:'Fast',uncensored:true},
-  h3maxfal:{description:'Up to 12 image references · 1080p',glyph:'M',badge:'12 refs'},
+  h3maxfal:{description:'Up to 12 image references · 1080p',glyph:'M'},
   omni:{description:'Text, frames & references · up to 4K',brand:'google',badge:'4K'}
 };
 
@@ -67,7 +69,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
   foot.textContent='Uncensored = no added SpicyAPI content scan, not guaranteed output. Extend uses Higgsfield. Model and provider policies still apply.';
   popover.append(head,searchWrap,filterRow,list,foot);
   document.body.append(popover);
-  let open=false,lastFingerprint='',lastSelection='',searchText='',uncensoredOnly=false;
+  let open=false,lastFingerprint='',lastSelection='',searchText='',uncensoredOnly=false,moreExpanded=false;
 
   function entries(){
     return [...select.options].filter(o=>!o.hidden).map(o=>{
@@ -110,11 +112,27 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
     }
     // A future server-enabled model should remain discoverable even before
     // editorial metadata is updated.
-    const extra=all.filter(e=>!mapped.has(e.id)&&matches(e));
+    const extra=all.filter(e=>!mapped.has(e.id)&&!MORE_MODELS.includes(e.id)&&matches(e));
     if(extra.length){
       const section=document.createElement('section');section.className='pv-video-model-group';
-      const title=document.createElement('h3');title.textContent='More models';section.append(title);
+      const title=document.createElement('h3');title.textContent='Other models';section.append(title);
       for(const item of extra){section.append(makeRow(item));shown++;}
+      fragments.append(section);
+    }
+    // Lower-priority MiniMax variants remain available and searchable.
+    // Search or an existing MiniMax selection expands the section automatically.
+    const alternatives=MORE_MODELS.map(id=>all.find(e=>e.id===id)).filter(Boolean)
+      .filter(e=>matches(e,'More models'));
+    if(alternatives.length){
+      const selectedInMore=alternatives.some(e=>e.id===select.value);
+      const section=document.createElement('details');section.className='pv-video-model-group pv-video-model-more';
+      section.open=moreExpanded||!!query||selectedInMore;
+      const summary=document.createElement('summary');summary.className='pv-video-model-more-summary';
+      const title=document.createElement('span');title.textContent='More models';
+      const count=document.createElement('span');count.textContent=alternatives.length+' available';
+      summary.append(title,count);section.append(summary);
+      section.addEventListener('toggle',()=>{if(!query&&!selectedInMore)moreExpanded=section.open;});
+      for(const item of alternatives){section.append(makeRow(item));shown++;}
       fragments.append(section);
     }
     if(!shown){
