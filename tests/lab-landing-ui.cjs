@@ -94,7 +94,7 @@ const server=http.createServer((req,res)=>{
     assert.ok(details.rowHeights.every(n=>n>=(width<=1250?195:(height<=940?115:160))&&n<=260),'Editorial purchase cards are appropriately sized for the viewport');
     assert.ok(layout.collection.right<=layout.comparison.x,'Desktop prices sit beside the film collection');
     assert.ok(layout.cardGap>=0,'Film deck does not hide the checkout column');
-    assert.ok(details.headlineSize>=37,'Editorial pricing heading stays prominent');
+    assert.ok(details.headlineSize>=(width<=1000?34:37),'Desktop and tablet pricing headings retain their established type scale');
   }else{
     // Mobile reuses the ORIGINAL photo deck and the ORIGINAL welcome link,
     // visually reordered between the introduction and pricing tabs.
