@@ -1,0 +1,37 @@
+name: PV LAB image prompt paste expansion
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lab/image-composer-stable.css'
+      - 'lab/lab.js'
+      - 'lab/studio.html'
+      - 'tests/lab-image-prompt-paste-ui.mjs'
+      - '.github/workflows/pv-lab-image-paste.yml'
+  pull_request:
+    paths:
+      - 'lab/image-composer-stable.css'
+      - 'lab/lab.js'
+      - 'lab/studio.html'
+      - 'tests/lab-image-prompt-paste-ui.mjs'
+      - '.github/workflows/pv-lab-image-paste.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  image-prompt-paste:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install headless Chromium
+        run: |
+          npm install --prefix /tmp/pvlab-paste-check --no-save playwright@1.57.0
+          node /tmp/pvlab-paste-check/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify compact empty and bounded pasted prompt
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pvlab-paste-check/node_modules/playwright/index.mjs
+        run: node tests/lab-image-prompt-paste-ui.mjs
