@@ -84,10 +84,12 @@ try{
           viewport:{w:innerWidth,h:innerHeight},
           scrollTop:editor.scrollTop,scrollMax:editor.scrollHeight-editor.clientHeight,
           overflow:getComputedStyle(editor).overflowY,
-          value:editor.value,docWidth:document.documentElement.scrollWidth
+          value:editor.value,fontSize:parseFloat(getComputedStyle(editor).fontSize),docWidth:document.documentElement.scrollWidth
         };
       });
       assert.equal(result.value,longPrompt,'Pasted text is preserved');
+      if(viewport.width>=741)assert.equal(result.fontSize,17,'Only the desktop Image prompt letters grow to 17px');
+      else assert.ok(result.fontSize<17,'Mobile font remains unchanged');
       assert.equal(result.overflow,'auto','Long prompt scrolls in its own field');
       assert.ok(result.scrollMax>140,'The input must contain hidden text beyond the visible area');
       assert.ok(result.scrollTop>=result.scrollMax-3,'Pasting at end shows the final lines');
