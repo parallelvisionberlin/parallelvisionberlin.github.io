@@ -1072,7 +1072,8 @@ async function refreshJob(env,j,ctx=null) {
       const safe=safeVideoUrl(output);
       await run(env,"UPDATE jobs SET state='saving',remote_url=?,updated_at=? WHERE id=?",safe,now(),j.id);
       if(p.type==='image'&&p.moodId&&p.engine==='seedream')
-        try{await run(env,'UPDATE lab_mood_performance SET provider_finished_at=COALESCE(provider_finished_at,?) WHERE job_id=?',now(),j.id);}catch{}
+        try{await run(env,'UPDATE lab_mood_performance SET provider_finished_at=COALESCE(provider_finished_at,?) WHERE job_id=?',
+          Number.isFinite(Date.parse(result.completedAt||''))?Date.parse(result.completedAt):now(),j.id);}catch{}
       if(env.LAB_EARLY_PREVIEW_ENABLED==='true'&&ctx&&p.type==='image'&&p.moodId&&p.engine==='seedream'){
         ctx.waitUntil(copyResult(env,j,safe).catch(async e=>{
           await run(env,'UPDATE jobs SET error=? WHERE id=? AND state=?',
@@ -1259,7 +1260,8 @@ async function receiveSpicyMoodCallback(request,env,ctx){
       "UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=?,last_poll=? WHERE id=? AND provider_id=? AND state IN ('queued','running')",
       url,now(),now(),job.id,taskId);
     if(updated.meta.changes){
-      try{await run(env,'UPDATE lab_mood_performance SET provider_finished_at=COALESCE(provider_finished_at,?) WHERE job_id=?',now(),job.id);}catch{}
+      try{await run(env,'UPDATE lab_mood_performance SET provider_finished_at=COALESCE(provider_finished_at,?) WHERE job_id=?',
+        Number.isFinite(Date.parse(event.completedAt||''))?Date.parse(event.completedAt):now(),job.id);}catch{}
       ctx.waitUntil(copyResult(env,{...job,state:'saving',remote_url:url},url).catch(async error=>{
         await run(env,'UPDATE jobs SET error=? WHERE id=? AND state=?',
           'Archive retry: '+String(error?.message||'temporary private archive error').slice(0,180),job.id,'saving').catch(()=>{});
@@ -1699,6 +1701,7 @@ async function route(request,env,ctx) {
   }
 
   if(path==='/api/quotes'&&method==='POST') {
+    const quoteStartedAt=now();
     const data=await body(request),p=parameters(data.settings);
     const quoteCount=data.count===undefined?1:Number(data.count);
     if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
@@ -1783,6 +1786,12 @@ async function route(request,env,ctx) {
     const insertArgs=q=>[q.id,owner,primary?.id||null,JSON.stringify({...p,customerChargeCredits:creditsForJobUsd(q.maxUsd,p)}),Math.round(q.maxUsd*1000000),q.expiresAt,q.vendorQuoteId,q.expectedCost,payloadJson];
     if(quoteCount===1)await run(env,statement,...insertArgs(priced[0]));
     else await env.LAB_DB.batch(priced.map(q=>stmt(env,statement,...insertArgs(q))));
+    if(p.engine==='seedream'&&p.moodId){
+      const quotedAt=now();
+      for(const item of priced)
+        try{await run(env,'INSERT OR IGNORE INTO lab_mood_performance(quote_id,owner_id,quote_started_at,quote_ready_at) VALUES(?,?,?,?)',
+          item.id,owner,quoteStartedAt,quotedAt);}catch{}
+    }
     const response=priced.map(({vendorQuoteId,expectedCost,...publicQuote})=>({...publicQuote,creditCost:creditsForJobUsd(publicQuote.maxUsd,publicQuote.settings)}));
     return json(quoteCount===1?response[0]:{quotes:response});
   }
@@ -1866,6 +1875,9 @@ async function route(request,env,ctx) {
       ]);
       else await run(env,"UPDATE jobs SET state='uncertain',error=?,updated_at=? WHERE id=?",'Submission status is uncertain. Do not resubmit: first check the provider console to avoid a duplicate charge.',now(),id);
     }
+    if(params.engine==='seedream'&&params.moodId)
+      try{await run(env,'UPDATE lab_mood_performance SET job_id=?,submitted_at=COALESCE(submitted_at,?) WHERE quote_id=? AND owner_id=?',
+        id,now(),quoteId,owner);}catch{}
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
   }
   if(path==='/api/jobs'&&method==='GET'&&url.searchParams.get('library')==='1'){
