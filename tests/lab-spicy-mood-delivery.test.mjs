@@ -52,7 +52,9 @@ test('Mood pipeline uses 2K bound quotes, verified previews and private quality 
   const pricing=readFileSync(new URL('../lab-worker/customer-image-pricing.mjs',import.meta.url),'utf8');
   assert.match(client,/resolution:'2k',aspectRatio:imageAutoRatio/);
   assert.match(worker,/p\.engine==='seedream'&&p\.model===STILL_EDIT\?\{enable_thinking:true\}/);
-  assert.match(worker,/callBackUrl:'https:\/\/parallel-vision-lab\.parallelvision\.workers\.dev\/api\/webhooks\/spicy'/);
+  assert.match(worker,/const callBackUrl=callbackEnabled/);
+  assert.match(worker,/spicyWakeToken\(env\.LAB_SECRET,wakeQuoteId\)/);
+  assert.match(worker,/wakeQuoteId\|\|crypto\.randomUUID\(\)/);
   assert.match(worker,/receiveSpicyMoodCallback\(request,env,ctx\)/);
   assert.match(worker,/function privateMoodEarlyPreview/);
   assert.match(worker,/state==='saving'/);
