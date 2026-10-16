@@ -114,5 +114,36 @@ try{
   assert.deepEqual(x.errors,[]);
   ok('Latest video shows its inspector first, loads on request and submits no paid job');
   await x.context.close();
+
+ // Motion Effects: mock-only integration. Do not confirm or buy a generation.
+ const completedStill={id:id(90),outputId:id(91),sourceId:null,status:'completed',createdAt:Date.now(),
+   settings:{type:'image',engine:'seedream',mode:'image',prompt:'Fashion editorial photograph.',
+     resolution:'2k',aspectRatio:'1:1',referenceSourceIds:[]}};
+ x=await workspace({initial:[completedStill]});
+ await x.page.click('#tool-effects');
+ await x.page.locator('#video-effects-grid .video-effect-card').first().waitFor();
+ assert.equal(await x.page.locator('#video-effects-grid .video-effect-card').count(),3);
+ assert.equal(await x.page.locator('#video-effects-explore').isVisible(),true);
+ assert.equal(count(x,'/api/quotes'),0);
+ assert.equal(count(x,'/api/jobs'),0);
+ await x.page.locator('[data-effect="liquid-metal"]').click();
+ assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');
+ assert.equal(await x.page.locator('#duration').inputValue(),'5');
+ assert.equal(await x.page.locator('#resolution').inputValue(),'720p');
+ assert.equal(await x.page.locator('#audio').isChecked(),false);
+ assert.match(await x.page.locator('#prompt').inputValue(),/liquid chrome/i);
+ assert.equal(await x.page.locator('#video-effect-active').isVisible(),true);
+ assert.equal(count(x,'/api/quotes'),0);
+ await x.page.click('#video-effect-from-gallery');
+ await x.page.locator('.effect-gallery-choice').first().click();
+ await x.page.waitForFunction(()=>document.querySelector('#filemeta').textContent.includes('effect-start-frame'));
+ assert.equal(count(x,'/api/jobs'),0);
+ await x.page.click('#generate');
+ await x.page.locator('#quote-dialog').waitFor({state:'visible'});
+ assert.equal(count(x,'/api/quotes'),1);
+ assert.equal(count(x,'/api/jobs'),0,'Selecting an effect and reviewing the price never charges the customer');
+ assert.deepEqual(x.errors,[]);
+ ok('Motion Effects gallery, original Gallery handoff and explicit video price review without paid request');
+ await x.context.close();
  console.log('SEEDANCE_STANDARD_BROWSER_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}
