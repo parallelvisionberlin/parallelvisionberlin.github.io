@@ -15,7 +15,7 @@ import {captureReferralCode,claimReferral} from './referral-capture.js?v=2026101
 captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261013-character-studio1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1&seedance15-4k=1';
-import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.mjs?v=20261016-1';
+import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=20261016-1';
 import {createVideoModelPicker} from './video-model-picker.js?v=20261015-model-groups-purple3';
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
