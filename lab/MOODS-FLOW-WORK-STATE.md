@@ -83,3 +83,25 @@ Updated: 2026-10-16
 - Direct visual verification on pvlab.studio could not be completed from this
   environment. Next: refresh `https://pvlab.studio/moods` and confirm the
   animation's look on desktop/mobile before further polish.
+
+## 2026-10-16 Living Light refinement
+- User verified the first photochemical loader across Hong Kong Nights, but
+  found its central rectangle too static. Shared visual refined for all Moods.
+- New Living Light is a full-frame animated silver/emerald lightfield with
+  moving ribbons, abstract photographic refractions and restrained grain.
+- Editorial copy cycles: “MAKING THE IMPOSSIBLE VISIBLE”, “LIGHT BECOMES FORM”,
+  “THE UNEXPECTED TAKES SHAPE”. It is not a simulated progress estimate.
+- “ALMOST READY” appears only on backend `saving` or confirmed `completed`,
+  followed by a short 600ms final reveal. Real queued/running/saving text remains
+  accessible. Error state freezes visual and directs to Image History.
+- Reduced motion supported. No new network assets, AI jobs, pricing changes or
+  changes to the left Mood photograph/modal geometry.
+- PR #256 merged as `2cb7c38a60980f042efbbf14847ec9c1354a81ec`.
+- Focused Explore Generate browser, Mood unit and static checks passed on
+  premerge head `7bd0c2008c10a161f7b4791da40da4d8f7d93c94`. Visual
+  screenshots reviewed from CI. Mocked jobs, no real provider charge.
+- Existing Image references/Video Studio browser failures were already present
+  on main before this task and are unrelated to Mood loader code.
+- Cloudflare Pages deployment confirmation for merge commit is pending.
+  Next: check actual Pages result, then refresh `https://pvlab.studio/moods`
+  and evaluate the motion with the real Mood photograph.
