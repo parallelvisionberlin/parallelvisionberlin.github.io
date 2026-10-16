@@ -64,22 +64,24 @@ test('Mood pipeline uses 2K bound quotes, verified previews and private quality 
   assert.equal((client.match(/confirm:true/g)||[]).length,1,'one confirmed paid submission');
 });
 
-test('server-derived wake token is deterministic, job-bound, quote-bound and unforgeable',async()=>{
+test('server-derived wake token is deterministic, quote-bound and unforgeable',async()=>{
   const stored='existing-private-LAB_SECRET-from-fixture-not-production';
-  const first=await spicyWakeToken(stored,'job-A','quote-A');
+  const idA='11111111-1111-4111-8111-111111111111';
+  const idB='22222222-2222-4222-8222-222222222222';
+  const first=await spicyWakeToken(stored,idA);
   assert.match(first,/^[A-Za-z0-9_-]{43}$/);
-  assert.equal(await spicyWakeToken(stored,'job-A','quote-A'),first);
+  assert.equal(await spicyWakeToken(stored,idA),first);
   assert.equal(equalWakeToken(first,first),true);
-  assert.equal(equalWakeToken(first,await spicyWakeToken(stored,'job-B','quote-A')),false);
-  assert.equal(equalWakeToken(first,await spicyWakeToken(stored,'job-A','quote-B')),false);
-  assert.equal(equalWakeToken(first,await spicyWakeToken(stored+'x','job-A','quote-A')),false);
+  assert.equal(equalWakeToken(first,await spicyWakeToken(stored,idB)),false);
+  assert.equal(equalWakeToken(first,await spicyWakeToken(stored+'x',idA)),false);
   assert.equal(equalWakeToken(first,'A'.repeat(42)),false);
-  await assert.rejects(spicyWakeToken('short','job-A','quote-A'),/unavailable/);
+  await assert.rejects(spicyWakeToken('short',idA),/unavailable/);
+  await assert.rejects(spicyWakeToken(stored,'not-a-uuid'),/binding/);
 });
 test('wake-up callback never uses the request body as job authority',()=>{
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   const section=worker.slice(worker.indexOf('async function receiveSpicyMoodWakeup('),worker.indexOf('async function receiveSpicyMoodCallback('));
-  assert.match(section,/spicyWakeToken\(env\.LAB_SECRET,job\.id,job\.quote_id\)/);
+  assert.match(section,/spicyWakeToken\(env\.LAB_SECRET,quoteId\)/);
   assert.match(section,/refreshJob\(env,job,ctx,true\)/);
   assert.doesNotMatch(section,/request\.json\(/);
   assert.doesNotMatch(section,/remote_url=\?/);
