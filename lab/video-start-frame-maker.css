@@ -1,0 +1,73 @@
+/* Wan Reference upload and optional Seedream opening-frame composer. */
+#app.video-studio-active #reference-drop {
+  min-height:75px;
+  cursor:pointer;
+  border:1px dashed #4a4d52;
+  background:#27292d;
+  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+#app.video-studio-active #reference-drop:hover,
+#app.video-studio-active #reference-drop.drag,
+body.pv-video-reference-browser-drag #app.video-studio-active #reference-drop {
+  border-color:#c0c2c5;
+  background:#303237;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+}
+#app.video-studio-active #reference-drop:focus-visible {
+  outline:2px solid #eceef2;
+  outline-offset:3px;
+}
+#app.video-studio-active #reference-drop span {font-size:12px;font-weight:560;}
+#app.video-studio-active #reference-drop small {font-size:10px;color:#b6b9c1;}
+body.pv-video-reference-browser-drag::after {
+  content:'Drop images to add references';
+  position:fixed;
+  inset:auto 50% 28px auto;
+  transform:translateX(50%);
+  max-width:calc(100vw - 28px);
+  width:max-content;
+  z-index:9999;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;
+  padding:12px 18px;
+  background:#202124;
+  color:#f6f6f6;
+  font:500 12px/1.3 'DM Sans',sans-serif;
+  letter-spacing:.01em;
+  box-shadow:0 12px 32px rgba(0,0,0,.5);
+  pointer-events:none;
+}
+.start-frame-dialog {
+  width:min(440px,calc(100vw - 24px));
+  max-height:min(85vh,780px);
+  overflow-y:auto;
+  padding:20px;
+  border:1px solid #3c3d42;
+  border-radius:16px;
+  background:#17181b;
+  color:#f4f4f4;
+}
+.start-frame-dialog::backdrop {background:rgba(0,0,0,.76);backdrop-filter:blur(5px);}
+.start-frame-dialog > .label {display:block;margin:13px 0 6px;}
+.start-frame-dialog textarea {width:100%;min-height:116px;resize:vertical;max-height:240px;}
+.start-frame-dialog select {width:100%;}
+.start-frame-dialog .full {margin-top:12px;}
+.start-frame-dialog .fine {font-size:11px;line-height:1.55;color:#babdc4;}
+.start-frame-dialog #start-frame-quote-info {margin-top:12px;padding-top:9px;border-top:1px solid #3d3e42;}
+.start-frame-dialog #start-frame-price {font-size:20px;line-height:1.25;color:#fafafa;font-weight:600;}
+.start-frame-dialog #start-frame-status {min-height:18px;margin:10px 0;}
+.start-frame-dialog #start-frame-status.error {color:#ffb9b9;}
+.start-frame-dialog #start-frame-result {margin-top:12px;}
+.start-frame-dialog #start-frame-result-image {
+  width:100%;
+  max-height:340px;
+  object-fit:contain;
+  border:1px solid #3c3d42;
+  border-radius:9px;
+  background:#111214;
+}
+.start-frame-dialog [hidden] {display:none!important;}
+@media(max-width:560px) {
+  .start-frame-dialog {padding:15px;max-height:88dvh;}
+  body.pv-video-reference-browser-drag::after {bottom:16px;}
+}
