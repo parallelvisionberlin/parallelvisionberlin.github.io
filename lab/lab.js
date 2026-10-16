@@ -4173,7 +4173,25 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     loadSoulProIdentity().catch(error=>console.warn('Saved identity could not load:',error))]);
     void myMoods.refresh().catch(()=>{/* Personal boards must not block image Studio sign-in. */});
     syncVideoStudioMode();
-    showWelcomeStart(data);restoreGuestImageDraft();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){const stillSignedIn=!!clerk?.isSignedIn;lock();$('auth-status').textContent=stillSignedIn?'Studio setup could not finish. '+e.message+' Reload to retry.':e.message;$('signin').hidden=stillSignedIn;$('signin').disabled=stillSignedIn;$('auth-retry').hidden=!stillSignedIn;$('logout').hidden=!stillSignedIn;studioAccount.update({signed:stillSignedIn,user:clerk?.user});}finally{syncing=false;finishLabBoot();if(owner&&window.__PV_LAB_NATIVE__===1){
+    showWelcomeStart(data);restoreGuestImageDraft();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){
+  const stillSignedIn=!!clerk?.isSignedIn;
+  // A new V2 Clerk identity is not yet a funded PV LAB wallet. Only redirect
+  // after the authenticated migration endpoint confirms the identity is unlinked.
+  // Do not guess from email or treat a temporary /api/session failure as a new user.
+  if(stillSignedIn&&!owner&&['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev'].includes(location.hostname.toLowerCase())){
+    try{
+      const response=await sessionRequest('/api/migration/status',{cache:'no-store',credentials:'omit'});
+      if(response.ok){
+        const migration=await response.json();
+        if(migration?.linked===false){
+          const next=location.pathname+location.search+location.hash;
+          location.replace('./connect-account.html?next='+encodeURIComponent(next));
+          return;
+        }
+      }
+    }catch{}
+  }
+  lock();$('auth-status').textContent=stillSignedIn?'Studio setup could not finish. '+e.message+' Reload to retry.':e.message;$('signin').hidden=stillSignedIn;$('signin').disabled=stillSignedIn;$('auth-retry').hidden=!stillSignedIn;$('logout').hidden=!stillSignedIn;studioAccount.update({signed:stillSignedIn,user:clerk?.user});}finally{syncing=false;finishLabBoot();if(owner&&window.__PV_LAB_NATIVE__===1){
       window.ReactNativeWebView?.postMessage(JSON.stringify({type:'PV_LAB_READY'}));
       // Older shells may reload without sending a destination command.
       // Release the restored workspace rather than leave an endless loader.
