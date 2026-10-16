@@ -43,7 +43,7 @@ test('Effects stay attached to existing Video Studio and do not create a paid sh
     'video-effect-upload','video-effect-from-gallery','effect-gallery-picker','effect-gallery-picker-grid']){
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,'One UI element: '+id);
   }
-  assert.match(html,/video-effects\.css\?v=20261016-1/);
+  assert.match(html,/video-effects\.css\?v=20261016-owner-only1/);
   assert.match(js,/video-effects\.js\?v=20261016-1/);
   assert.match(js,/mountVideoEffectsGallery/);
   assert.match(js,/resolveVideoEffect\(id,config\.videoEngines\)/);
@@ -56,4 +56,19 @@ test('Effects stay attached to existing Video Studio and do not create a paid sh
   assert.match(js,/\$\('confirm-generation'\)\.onclick/);
   assert.match(css,/prefers-reduced-motion/);
   assert.match(html,/not generated video results/i);
+});
+
+
+test('Motion Effects are owner-preview-only and never visible before server role verification',()=>{
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  const js=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../lab/video-effects.css',import.meta.url),'utf8');
+  assert.match(html,/<button id="tool-effects"[^>]*\shidden(?:\s|>)/);
+  assert.match(css,/#tool-effects\[hidden\]\{display:none!important\}/);
+  assert.match(js,/ownerAccount=data\.owner===true&&data\.customer!==true/);
+  assert.match(js, /\$\('tool-effects'\)\.hidden=!effectsAllowed/);
+  assert.match(js,/if\(restoreEffects&&ownerAccount&&tool==='video'\)/);
+  assert.match(js,/function openEffectsView\(\{scroll=true\}=\{\}\)\{\s*if\(!owner\|\|!ownerAccount\|\|busy\)return/);
+  assert.match(js,/function chooseVideoEffect\(id\)\{\s*if\(!owner\|\|!ownerAccount\|\|busy\)return/);
+  assert.match(js,/myMoods\.reset\(\);owner=false;ownerAccount=false/);
 });
