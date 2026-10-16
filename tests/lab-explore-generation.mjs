@@ -26,12 +26,12 @@ const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
-try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','compact','phone','card-oversize']){
+try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize']){
  const page=await browser.newPage({viewport:{
   width:scenario==='small'?320:['mobile','phone'].includes(scenario)?390:scenario==='compact'?1280:1440,
   height:scenario==='small'?640:scenario==='compact'?720:scenario==='phone'?700:900
  }});
- let paid=0,quotes=0,uploads=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ let paid=0,quotes=0,uploads=0,jobStatusChecks=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{const req=route.request(),url=new URL(req.url());
   if(url.pathname==='/lab/native-account.js')return route.fulfill({contentType:'text/javascript',body:accountSource(scenario==='guest')});
   if(url.hostname==='parallel-vision-lab.parallelvision.workers.dev'){
@@ -45,6 +45,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      return send({job:{id:'job-test',status:'queued'}});
    }
    if(url.pathname==='/api/jobs/job-test'&&req.method()==='GET'){
+     if(scenario==='saving'&&++jobStatusChecks===1)return send({job:{id:'job-test',status:'saving'}});
      return send({job:{id:'job-test',status:'completed',outputId:'result-1'}});
    }
    if(url.pathname==='/api/assets/result-1'&&req.method()==='GET'){
@@ -176,12 +177,25 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      const exposure=await page.locator('#mc-look-result-loading').boundingBox();
      assert.ok(stage&&exposure&&Math.abs(stage.width-exposure.width)<3&&Math.abs(stage.height-exposure.height)<3,
        'The exposure fills the complete result frame, not a narrow center strip');
-     assert.equal(await page.locator('.mc-look-exposure-plate').isVisible(),true);
+     assert.equal(await page.locator('.mc-look-exposure-cloud').isVisible(),true);
+     assert.equal(await page.locator('.mc-look-exposure-story').isVisible(),true);
+     assert.equal(await page.locator('.mc-look-exposure-plate').count(),0);
+     await page.waitForFunction(()=>document.querySelector('#mc-look-result').classList.contains('is-visible'));
+     await page.waitForTimeout(250);
+     await page.screenshot({path:out+'/living-light-desktop.png'});
      assert.equal(await button.textContent(),'Preparing…','First click starts preparation immediately');
      assert.equal(await button.isDisabled(),true,'Repeated clicks are blocked after the first click');
      assert.equal(paid,0,'No paid request starts before the server quote');
    }
    assert.equal(new URL(page.url()).pathname,'/lab/moods','Generating keeps the modal on Explore Moods');
+   if(scenario==='saving'){
+     await page.waitForFunction(()=>document.querySelector('#mc-look-result-loading').classList.contains('is-finishing'));
+     assert.equal(await page.locator('#mc-look-result-progress').textContent(),'Saving your photograph…');
+     assert.equal(await page.locator('.mc-look-story-finish').textContent(),'ALMOST READY');
+     await page.waitForTimeout(780);
+     await page.screenshot({path:out+'/living-light-almost-ready.png'});
+     assert.equal(paid,1,'Finalizing state never submits another generation');
+   }
    if(scenario==='failure'){
      await page.waitForFunction(()=>document.querySelector('#mc-look-result-progress').textContent.includes('Not enough credits.'));
      assert.equal(paid,1,'One confirmed attempt, no automatic retry');

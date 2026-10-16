@@ -29,7 +29,7 @@ function initialize(){
     resultImg.hidden=true;resultImg.removeAttribute('src');resultActions.hidden=true;
     $('mc-look-result-again').hidden=true;
     $('mc-look-result-history').hidden=true;
-    resultLoading.hidden=false;resultLoading.classList.remove('is-stopped');
+    resultLoading.hidden=false;resultLoading.classList.remove('is-stopped','is-finishing');
     $('mc-look-exposure-overline-text').textContent='IMAGE IN PROCESS';
     $('mc-look-result-heading').textContent='PREPARING YOUR IMAGE';
     $('mc-look-result-progress').textContent='Preparing your photograph…';
@@ -54,7 +54,16 @@ function initialize(){
       if(!job||job.id!==id)throw Error('Could not verify the saved generation. Open Image History to check it.');
       if(job.status==='completed'){
         if(!job.outputId)throw Error('The job finished without an image. Check Image History.');
-        const blob=await client.outputBlob(job.outputId);
+        // Only a verified completed job can enter the final reveal state.
+        resultLoading.classList.add('is-finishing');
+        $('mc-look-exposure-overline-text').textContent='FINALIZING IMAGE';
+        $('mc-look-result-progress').textContent='Opening your photograph…';
+        // Let the real completed-state reveal breathe briefly while the image opens.
+        // This never starts another job and adds at most 600ms after completion.
+        const [blob]=await Promise.all([
+          client.outputBlob(job.outputId),
+          new Promise(resolve=>setTimeout(resolve,600))
+        ]);
         if(serial!==runSerial)return;
         if(!blob.size||!['image/png','image/jpeg','image/webp'].includes(blob.type.split(';')[0]))
           throw Error('The completed image could not be previewed here. Open Image History.');
@@ -72,6 +81,10 @@ function initialize(){
       if(['failed','uncertain','resolved','cancelled'].includes(job.status))
         throw Error(job.status==='uncertain'?'Generation status is uncertain. Check Image History before trying again.':
           job.error||'No completed image is available. Check Image History.');
+      // Editorial copy can loop, but "Almost ready" requires real saving state.
+      const finishing=job.status==='saving';
+      resultLoading.classList.toggle('is-finishing',finishing);
+      $('mc-look-exposure-overline-text').textContent=finishing?'FINALIZING IMAGE':'IMAGE IN PROCESS';
       $('mc-look-result-progress').textContent=jobProgress(job);
       await new Promise(resolve=>setTimeout(resolve,4000));
     }
@@ -355,6 +368,7 @@ function initialize(){
         return;
       }
       if(attemptedSubmission){
+        resultLoading.classList.remove('is-finishing');
         resultLoading.classList.add('is-stopped');
         $('mc-look-exposure-overline-text').textContent='CHECK GENERATION STATUS';
       }

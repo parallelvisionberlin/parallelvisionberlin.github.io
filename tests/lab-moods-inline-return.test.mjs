@@ -89,7 +89,14 @@ test('Mood loading uses an accessible full-frame exposure and honest job states'
   const css=read('lab/explore-moods-nav.css');
   const js=read('lab/explore-moods.js');
   assert.match(page,/id="mc-look-result-loading" role="status" aria-live="polite"/);
-  assert.match(page,/class="mc-look-exposure-plate"/);
+  assert.match(page,/class="mc-look-exposure-cloud"/);
+  assert.match(page,/class="mc-look-story-one">MAKING THE IMPOSSIBLE VISIBLE/);
+  assert.match(page,/class="mc-look-story-finish">ALMOST READY/);
+  assert.doesNotMatch(page,/mc-look-exposure-plate/);
+  assert.match(css,/\.mc-look-exposure-story \.mc-look-story-two/);
+  assert.match(css,/\.mc-look-result-loading\.is-finishing \.mc-look-exposure-story \.mc-look-story-finish/);
+  assert.match(js,/finishing=job\.status==='saving'/);
+  assert.match(js,/resultLoading\.classList\.add\('is-finishing'\)/);
   assert.match(page,/id="mc-look-result-progress"/);
   assert.doesNotMatch(page,/class="mc-look-result-loader"/);
   assert.match(css,/\.mc-look-result-loading\{[\s\S]*?position:absolute;inset:0/);
@@ -99,6 +106,6 @@ test('Mood loading uses an accessible full-frame exposure and honest job states'
   assert.match(js,/queued:'In the generation queue…'/);
   assert.match(js,/running:'Generating your photograph…'/);
   assert.match(js,/resultLoading\.classList\.add\('is-stopped'\)/);
-  assert.match(js,/resultLoading\.classList\.remove\('is-stopped'\)/);
+  assert.match(js,/resultLoading\.classList\.remove\('is-stopped','is-finishing'\)/);
   assert.equal((js.match(/currentPrice\.submit\(\)/g)||[]).length,1);
 });
