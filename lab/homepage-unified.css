@@ -1,3 +1,13 @@
+/* Keep the extended homepage creative menu in the same horizontal navigation
+   as Studio without moving the hero or the right-hand account controls. */
+.landing-header--home nav{
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;
+}
+.landing-header--home nav::-webkit-scrollbar{display:none}
+@media(min-width:901px){
+  /* Studio's editorial tools use 500, while the old homepage links used 400. */
+  .landing-header--home nav a{font-weight:500;color:#efede7}
+}
 /* PV LAB homepage: fixed geometry through Clerk and wallet resolution.
    The chosen leather-editorial hero and its typography remain untouched. */
 @media(min-width:901px){
