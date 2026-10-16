@@ -443,8 +443,8 @@ body {
 }
 
 .pv-home .release-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 48px 28px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 40px 22px;
   align-items: start;
   background: transparent;
 }
@@ -472,8 +472,8 @@ body {
 }
 
 .pv-home .release-card .release-title {
-  margin-top: 18px;
-  font-size: 17px;
+  margin-top: 14px;
+  font-size: 16px;
   line-height: 1.4;
   letter-spacing: .07em;
 }
@@ -486,14 +486,14 @@ body {
 }
 
 .pv-home .release-card .release-status {
-  margin-top: 12px;
+  margin-top: 10px;
   font-size: 11px;
   color: rgba(255, 255, 255, .62);
 }
 
 .pv-home .release-card .release-listen-link {
   width: fit-content;
-  margin-top: 14px;
+  margin-top: 12px;
   padding-bottom: 5px;
   border-bottom: 1px solid rgba(255, 255, 255, .38);
   color: rgba(255, 255, 255, .76);
@@ -1590,5 +1590,13 @@ body .n-project-entrance .n-encounter-invitation>p{margin-bottom:12px}
   .pv-nina-project .n-nav > a {
     font-size: 10px;
     letter-spacing: .055em;
+  }
+}
+
+/* Homepage release catalogue: 4 desktop / 3 tablet / 2 mobile. */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .pv-home .release-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px 20px;
   }
 }
