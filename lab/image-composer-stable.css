@@ -112,3 +112,11 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-prompt
   height:36px!important;min-height:36px!important;max-height:36px!important
  }
 }
+
+/* Desktop prompt typography only. The editor/dock heights and controls are unchanged.
+   Higgsfield-style readable direction text without enlarging toolbar labels. */
+@media(min-width:741px){
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-prompt{
+  font-size:17px!important;
+ }
+}
