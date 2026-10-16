@@ -37,7 +37,7 @@ const compactDescriptions = Object.freeze({
   none:'General visual reference: optional cues only; never override the Base, specified roles or requested edit.'
 });
 export function supportsReferenceGuidance(p){
-  return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3'].includes(p.engine));
+  return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(p.engine));
 }
 export function normalizeReferenceLabel(x){
   const role=REFERENCE_ROLES.some(([id])=>id===x?.role)?x.role:'none';
@@ -103,7 +103,7 @@ function compileUserImagePrompt(direction,labels=[]){
   if(!hasBase)return ['REFERENCE MAP (same order as the attached images). Create a new image, not an edit of any one reference. There is no base image. Image order does not assign priority or composition. Honor each explicitly assigned property; treat General references as optional visual guidance only where relevant to the request. Identity defines facial features; Body defines physique and proportions, not pose. Compose the new scene, pose, clothing, framing and lighting according to the prompt unless a reference is explicitly assigned that property. Keep one consistent subject when the references show the same person.',...labels.map(referenceInstruction),'REQUESTED IMAGE: '+(prompt||'Create one cohesive new image inspired by the supplied photographs. Use their relevant details and aesthetics as visual guidance, preserving any consistently depicted person when applicable. Compose the new scene independently.')].join('\n');
   const rules='REFERENCE MAP (same order as the attached images). Respect explicitly assigned properties. General references supply only cues relevant to the request; the Base supplies everything else; other roles change only their assigned property. A separate Pose role changes posture only. Identity references define the person; detail, clothing and object references do not replace that identity. Match the final lighting consistently. Follow explicit requested changes.';
   const hasExplicitRoles=labels.slice(1).some(ref=>ref.role&&ref.role!=='none'&&ref.role!=='base');
-  const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image, preserving everything else.':'Create a thoughtful variation of the Base photograph with the main subject recognizable and the overall composition coherent. Integrate the relevant cues from other reference images without arbitrarily replacing the subject or scene.';
+  const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image, preserving everything else.':'Make a subtle, controlled variation of the Base image. Preserve the recognizable subject, body proportions, facial identity, pose, wardrobe, garment coverage, scene, light direction and camera perspective. Never undress the person or arbitrarily reshape their body or outfit. Match the original visual medium, with natural fabric tension and believable anatomy when photographic. Do not impose a different art style.';
   return [rules,...labels.map(referenceInstruction),'REQUESTED IMAGE: '+(prompt||defaultDirection)].join('\n');
 }
 
@@ -117,6 +117,6 @@ function compileCompactUserImagePrompt(direction,labels=[]){
   }
   const rules='REFERENCE MAP (attached image order). Base supplies everything else. Each supporting role changes only its named property: Identity sets the face, Body sets proportions, Pose sets posture. General references are optional cues. Respect explicit user edits and match the final perspective and light.';
   const hasExplicitRoles=labels.slice(1).some(ref=>ref.role&&ref.role!=='none'&&ref.role!=='base');
-  const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image; preserve everything else.':'Create a thoughtful variation of the Base photograph; keep its subject and scene recognizable and borrow only relevant reference cues.';
+  const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image; preserve everything else.':'Make a subtle, controlled variation of the Base image. Retain the subject identity, body, pose, wardrobe, garment coverage, camera and scene. Maintain its original medium and borrow only explicitly relevant reference cues.';
   return [rules,...labels.map(compactReferenceInstruction),'REQUESTED IMAGE: '+(prompt||defaultDirection)].join('\n');
 }
