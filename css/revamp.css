@@ -1650,3 +1650,48 @@ body .n-project-entrance .n-encounter-invitation>p{margin-bottom:12px}
   }
 }
 
+
+/* Homepage Releases: editorial music metadata hierarchy. */
+body.pv-home #releases .release-card .release-title {
+  margin-top: 11px;
+  font-family: var(--pv-body);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: .01em;
+  text-transform: none;
+  color: rgba(255,255,255,.95);
+}
+body.pv-home #releases .release-card .release-version {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--pv-body);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: .005em;
+  text-transform: none;
+  color: rgba(255,255,255,.7);
+}
+body.pv-home #releases .release-card .release-meta {
+  margin-top: 5px;
+  font-family: var(--pv-body);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: .005em;
+  text-transform: none;
+  color: rgba(255,255,255,.65);
+}
+body.pv-home #releases .release-card .release-meta + .release-meta {
+  margin-top: 7px;
+  font: 400 10px/1.4 var(--pv-mono);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.52);
+}
+@media (max-width:760px) {
+  body.pv-home #releases .release-card .release-title { font-size: 14px; }
+  body.pv-home #releases .release-card .release-version { font-size: 11px; }
+  body.pv-home #releases .release-card .release-meta { font-size: 11px; }
+}
