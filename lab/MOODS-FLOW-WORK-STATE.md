@@ -136,5 +136,10 @@ Updated: 2026-10-16
 - For a future optional Fast mode, compare Seedream Flash against Pro on the
   same Moods, with separate timing and image-quality evaluation and explicit
   product/pricing approval before switching models.
-- Cloudflare Pages deployment status for merge commit: pending confirmation.
-  Next: verify the deployment and inspect real desktop/mobile output.
+- Cloudflare Pages confirmed SUCCESS for UI merge commit
+  `3e5cc75ba709b473c84b8f5f50f321ff6db1b85e`
+  on 2026-10-16 at 15:15:29 UTC. The later documentation-only deployment is
+  independent. Browser tests were mocked; no new paid generation was run.
+- Next: user refreshes `https://pvlab.studio/moods` and evaluates Silver
+  Darkroom on Synthetic Romance and another Mood. Quality/latency A/B is
+  separate and requires authorization for real paid comparisons.
