@@ -205,9 +205,11 @@
 }
 .mc-explore-page .mc-look-result-loading.is-finishing .mc-look-exposure-story span,
 .mc-explore-page .mc-look-result-loading.is-stopped .mc-look-exposure-story span{animation:none;opacity:0}
-.mc-explore-page .mc-look-result-loading.is-finishing .mc-look-story-finish,
-.mc-explore-page .mc-look-result-loading.is-stopped .mc-look-story-halt{
+.mc-explore-page .mc-look-result-loading.is-finishing .mc-look-story-finish{
   opacity:1;animation:pv-light-finale .7s ease-out both;
+}
+.mc-explore-page .mc-look-result-loading.is-stopped .mc-look-story-halt{
+  opacity:1;animation:none!important;transform:none;
 }
 .mc-explore-page .mc-look-result-loading.is-stopped .mc-look-exposure-pulse{background:#8ca49a;box-shadow:none}
 .mc-explore-page .mc-look-result-loading.is-stopped *,
