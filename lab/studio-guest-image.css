@@ -12,7 +12,7 @@
    Source: PV LAB's approved editorial mockup. No added blur/filter. */
 #gate.pv-guest-image:before{
   content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
-  background:#090b11 url("./welcome-cards/image-studio-blue-amber-reference.webp") center top/100% auto no-repeat;
+  background:#090b11 url("./welcome-cards/image-studio-editorial-final.webp") center top/100% auto no-repeat;
   opacity:1;filter:none;
 }
 #gate.pv-guest-image:after{

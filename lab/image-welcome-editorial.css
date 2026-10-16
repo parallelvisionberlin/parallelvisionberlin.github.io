@@ -10,7 +10,7 @@
 #app.image-studio-active .image-gallery-shell:has(#lab-welcome-start:not([hidden])):before{
   content:"";position:absolute;inset:0 0 auto;height:min(800px,100dvh);
   z-index:0;pointer-events:none;
-  background-image:url("./welcome-cards/image-studio-blue-amber-reference.webp");
+  background-image:url("./welcome-cards/image-studio-editorial-final.webp");
   background-repeat:no-repeat;
   background-position:center top;
   background-size:100% auto;
@@ -230,8 +230,7 @@
     .composer-generate{min-width:145px;min-height:66px;align-self:center;}
   /* Only remove the meaningless Base image selection when no reference is attached.
      The full reference controls return as soon as a photo is added. */
-  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) #image-composer:
-    has(#image-composer-references[hidden]) #composer-reference-intent-toggle{
+  #app.image-studio-active:has(#lab-welcome-start:not([hidden])) #image-composer:has(#image-composer-references[hidden]) #composer-reference-intent-toggle{
     display:none!important;
   }
 }
