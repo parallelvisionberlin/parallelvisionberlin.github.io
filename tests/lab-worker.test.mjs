@@ -108,7 +108,8 @@ if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if
  if(u.pathname.endsWith('/common/upload-url')){const input=JSON.parse(options.body);return Response.json({code:200,data:{fileId:'fil_synthetic_reference',uploadUrl:'https://test.r2.cloudflarestorage.com/reference',method:'PUT',headers:{'Content-Type':input.contentType,'Content-Length':String(input.bytes)},maxBytes:10485760,expiresAt:new Date(Date.now()+1200000).toISOString()}});}
  if(u.pathname.endsWith('/files/fil_synthetic_reference/commit')){assert.equal(options.method,'POST');return Response.json({code:200,data:{fileId:'fil_synthetic_reference',status:'ready',bytes:uploadedReference.length,contentType:'image/png',sha256:Buffer.from(await crypto.subtle.digest('SHA-256',uploadedReference)).toString('hex'),uri:'spicy://f/fil_synthetic_reference',expiresAt:new Date(Date.now()+86400000).toISOString()}});}
  if(u.pathname.endsWith('/jobs/quote')){quotedRequest=JSON.parse(options.body);return Response.json({code:200,data:{quoteId:'synthetic-quote',estimatedCost:maxPrice,maxCharge:maxPrice,currency:'USD',expiresAt:new Date(Date.now()+300000).toISOString()}});}
- if(u.pathname.endsWith('/jobs/createTask')){createCount++;const payload=JSON.parse(options.body);assert.deepEqual({model:payload.model,input:payload.input},quotedRequest);assert.equal(payload.quoteId,'synthetic-quote');assert.equal(payload.expectedCost,maxPrice);assert.match(options.headers['Idempotency-Key'],/^[a-f0-9-]{36}$/);if(createMode==='timeout')throw new Error('simulated interrupted network');if(createMode==='pricechange')return Response.json({code:40901,msg:'quote changed',data:null},{status:409});return Response.json({code:200,data:{taskId:'job_synthetic',state:'queued'}},{status:202});}
+ if(u.pathname.endsWith('/jobs/createTask')){createCount++;const payload=JSON.parse(options.body);assert.deepEqual({model:payload.model,input:payload.input,
+  ...(quotedRequest?.callBackUrl?{callBackUrl:payload.callBackUrl}:{})},quotedRequest);assert.equal(payload.quoteId,'synthetic-quote');assert.equal(payload.expectedCost,maxPrice);assert.match(options.headers['Idempotency-Key'],/^[a-f0-9-]{36}$/);if(createMode==='timeout')throw new Error('simulated interrupted network');if(createMode==='pricechange')return Response.json({code:40901,msg:'quote changed',data:null},{status:409});return Response.json({code:200,data:{taskId:'job_synthetic',state:'queued'}},{status:202});}
  if(u.pathname.endsWith('/jobs/recordInfo'))return Response.json({code:200,data:{taskId:'job_synthetic',state:providerState,settled:providerState==='succeeded',cost:'2.7',output:{assets:[(quotedRequest?.model?.includes('seedream')||quotedRequest?.model?.includes('image-upscaler')||quotedRequest?.model?.includes('lora'))?{mime:'image/png',url:'https://cdn.spicyapi.ai/test.png'}:{mime:'video/mp4',url:'https://cdn.spicyapi.ai/test.mp4'}]}}});
  throw new Error('Unmocked network request: '+url);
 };
@@ -2002,4 +2003,44 @@ test('Nano Banana 2.1 submits to direct Google Interactions and archives the out
     assert.deepEqual([...objects.get(asset.object_key)],[137,80,78,71,13,10,26,10,0]);
     assert.equal(number,1);
   }finally{globalThis.fetch=old;}
+});
+
+test('signed Mood completion callback is task-scoped, idempotent and never buys a second image',async()=>{
+  const {env}=fixture();
+  env.SPICY_WEBHOOK_SECRET='synthetic-unit-test-webhook-key-not-for-production';
+  const photo=await setup(env);
+  const recipe=prepareMoodPrompt('Keep the same portrait.','night-flash',70,{engine:'seedream',referenceCount:1});
+  assert.equal(recipe.error,'');
+  const settings={...imageSettings,engine:'seedream',mode:'image',prompt:recipe.prompt,...recipe.metadata,referenceRoles:[{role:'base'}]};
+  const quoted=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[photo]}});
+  assert.equal(quoted.status,200,await quoted.clone().text());
+  const quote=await quoted.json();
+  assert.equal(quote.settings.resolution,'2k');
+  assert.equal(quotedRequest.input.enable_thinking,true);
+  assert.equal(quotedRequest.callBackUrl,BASE+'/api/webhooks/spicy');
+  const sent=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quote.id,confirm:true}});
+  assert.equal(sent.status,202,await sent.clone().text());
+  const job=(await sent.json()).job;
+  assert.equal(job.status,'queued');
+  const before=createCount,task='job_synthetic',body=JSON.stringify({
+    code:200,msg:'success',request_id:'whd_test_1',
+    data:{taskId:task,state:'failed',settled:true,cost:'0',errorCode:'test_failure',errorMessage:'Synthetic upstream failure'}
+  });
+  const stamp=String(Math.floor(Date.now()/1000)),bytes=new TextEncoder().encode(body);
+  const sha=Buffer.from(await crypto.subtle.digest('SHA-256',bytes)).toString('hex');
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(env.SPICY_WEBHOOK_SECRET),
+    {name:'HMAC',hash:'SHA-256'},false,['sign']);
+  const signature=Buffer.from(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(task+'.'+stamp+'.'+sha))).toString('base64');
+  const deliver=(signatureValue=signature)=>worker.fetch(new Request(BASE+'/api/webhooks/spicy',{
+    method:'POST',headers:{'Content-Type':'application/json','X-Webhook-Timestamp':stamp,
+      'X-Webhook-Payload-Version':'2','X-Webhook-Signature':signatureValue},body
+  }),env,{waitUntil(){}});
+  const forged=await deliver('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB');
+  assert.equal(forged.status,401);
+  assert.equal((await req(env,'/api/jobs/'+job.id).then(r=>r.json())).job.status,'queued');
+  const valid=await deliver();assert.equal(valid.status,204);
+  const replay=await deliver();assert.equal(replay.status,204);
+  const after=await req(env,'/api/jobs/'+job.id);
+  assert.equal((await after.json()).job.status,'failed');
+  assert.equal(createCount,before);
 });
