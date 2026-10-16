@@ -2065,7 +2065,8 @@ test('existing LAB_SECRET activates a private Mood callback without a new Spicy 
     assert.equal(quoteResp.status,200,await quoteResp.clone().text());
     const quote=await quoteResp.json();
     assert.equal(quote.settings.resolution,'2k');
-    assert.equal(quotedRequest.callBackUrl,undefined);
+    assert.equal(new URL(quotedRequest.callBackUrl).pathname,
+      '/api/webhooks/spicy/wakeup/'+quote.id);
     const earlier=createCount;
     const sent=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quote.id,confirm:true}});
     assert.equal(sent.status,202,await sent.clone().text());
@@ -2076,9 +2077,12 @@ test('existing LAB_SECRET activates a private Mood callback without a new Spicy 
     const callback=createPayload.callBackUrl;
     assert.ok(callback,'One bound callback was included with the accepted paid task');
     const location=new URL(callback);
-    assert.equal(location.pathname,'/api/webhooks/spicy/wakeup/'+job.id);
+    assert.equal(location.pathname,'/api/webhooks/spicy/wakeup/'+quote.id);
     assert.match(location.searchParams.get('v')||'',/^[A-Za-z0-9_-]{43}$/);
     assert.equal(createPayload.input.enable_thinking,true);
+    assert.deepEqual({model:createPayload.model,input:createPayload.input,
+      callBackUrl:createPayload.callBackUrl},quotedRequest,
+      'The quote and paid request must carry the exact same callback');
     const pending=[];
     const fakeBody=JSON.stringify({code:200,data:{taskId:'any',state:'succeeded',
       output:{assets:[{mime:'image/png',url:'https://attacker.invalid/payload.png'}]}}});
