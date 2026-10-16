@@ -8,8 +8,8 @@ Current implementation branch: fix/clerk-prod-sync-diagnostics-20261014 (PR #209
 Status: pending merge and deployment; verify separately.
 
 ## 2026-10-16 owner summary icon alignment
-- CSS-only fix in `lab/owner.css`, commit `c41fe1111ec616754824b2b919d8d11ae7222a6e`.
-- `.owner-metrics .owner-metric-icon` overrides legacy generic metric `span` display/margin so all four SVGs are centered inside circular backgrounds.
+- CSS-only fix in `lab/owner.css`, commits `c41fe1111ec616754824b2b919d8d11ae7222a6e` and `c393620021ae2e025a63761e74a923deeb7eac52`.
+- Scoped `.owner-metrics .owner-metric-icon` display and margin override centers all four SVGs while retaining the existing 35px small-screen circle sizing.
 - No HTML, card layout, account data or billing logic changed. Commit verified in GitHub; Cloudflare Pages live deployment not verified.
 
 ## Existing design and safety
