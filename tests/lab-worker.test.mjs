@@ -2008,7 +2008,8 @@ test('Nano Banana 2.1 submits to direct Google Interactions and archives the out
 test('signed Mood completion callback is task-scoped, idempotent and never buys a second image',async()=>{
   const {env}=fixture();
   env.SPICY_WEBHOOK_SECRET='synthetic-unit-test-webhook-key-not-for-production';
-  const photo=await setup(env);
+  await setup(env);
+  const photo=await seedreamTestReference(env,'base.png',9);
   const recipe=prepareMoodPrompt('Keep the same portrait.','night-flash',70,{engine:'seedream',referenceCount:1});
   assert.equal(recipe.error,'');
   const settings={...imageSettings,engine:'seedream',mode:'image',prompt:recipe.prompt,...recipe.metadata,referenceRoles:[{role:'base'}]};
