@@ -19,7 +19,10 @@ const origin='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
 const clerkMock=`export class Clerk {
   constructor(){this.isSignedIn=false;this.session={getToken:async()=> 'mock-token'};}
-  async load(){await new Promise(resolve=>window.releaseTestAccount=()=>{this.isSignedIn=true;resolve();});}
+  async load(){await new Promise(resolve=>{
+    window.releaseTestAccount=()=>{this.isSignedIn=true;resolve();};
+    window.releaseTestGuest=()=>{this.isSignedIn=false;resolve();};
+  });}
   addListener(fn){this.listener=fn;}
   async signOut(){this.isSignedIn=false;this.listener?.();}
   openSignIn(options){window.testSignInOpened=true;window.testSignInOptions=options;}
@@ -152,11 +155,6 @@ try{
       const heading=await page.locator('#hero-title').boundingBox(),header=await page.locator('.landing-header').boundingBox();
       assert.ok(heading.y>=header.y+header.height,`${width}: heading clears the navigation`);
       assert.equal(await page.evaluate(()=>window.testSignInOptions.forceRedirectUrl),undefined,'Header sign-in stays on the current page');
-      await page.locator('.start-link').click();
-      const destination=origin+'/lab/studio.html?tool=image&welcome=1';
-      assert.equal(await page.evaluate(()=>window.testSignInOptions.forceRedirectUrl),destination);
-      assert.equal(await page.evaluate(()=>window.testSignInOptions.signUpForceRedirectUrl),destination);
-      assert.equal(new URL(page.url()).pathname,'/lab/','Signed-out Start creating opens access before navigation');
       assert.deepEqual(errors,[]);
       if(!slowFont&&(width===1440||width===390))await page.screenshot({path:resolve(artifacts,`landing-${width}.png`)});
       // The Studio entries stay legible and actionable at every tested viewport.
@@ -214,6 +212,28 @@ try{
           assert.equal(await motionVideo.evaluate(v=>v.paused),true);
         }
       }
+      // A guest can reach the real Image presentation before signing in.
+      // The private app, generation API and wallet remain behind verified auth.
+      await page.locator('.start-link').click();
+      await page.waitForURL(/\/lab\/studio\.html\?tool=image&welcome=1/);
+      await page.waitForFunction(()=>typeof window.releaseTestGuest==='function');
+      await page.evaluate(()=>window.releaseTestGuest());
+      await page.locator('#gate.pv-guest-image').waitFor({state:'visible'});
+      await page.locator('#signin').waitFor({state:'visible'});
+      assert.equal(await page.locator('#pv-guest-cards .pv-guest-card').count(),6,
+        'Guest Image Studio offers six photographic looks');
+      assert.equal(await page.locator('#app').isVisible(),false,'Private workspace remains closed');
+      assert.match(await page.locator('#pv-guest-title').innerText(),/first image starts here/i);
+      await page.locator('[data-guest-mood="dream-blur"]').click();
+      assert.match(await page.locator('#pv-guest-prompt').inputValue(),/photographic blue motion blur/i);
+      assert.equal(await page.locator('[data-guest-mood="dream-blur"]').getAttribute('aria-pressed'),'true');
+      await page.locator('#pv-guest-generate').click();
+      assert.equal(await page.evaluate(()=>window.testSignInOpened),true,
+        'Only Generate or explicit Sign in opens Clerk');
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),
+        `${width}: guest Image page stays within viewport`);
+      if(!slowFont&&(width===1440||width===390))
+        await page.screenshot({path:resolve(artifacts,`image-public-${width}.png`),fullPage:true});
       console.log(`PASS ${width}x${height}: ${slowFont?'delayed':'ready'} font, account recovery, sign out, navigation and hero geometry`);
       await context.close();
     }
