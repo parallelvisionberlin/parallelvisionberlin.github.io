@@ -11,6 +11,8 @@ LAB_STUDIO_AUTH_ENABLED = "true"
 # One-time 200-credit gift, using the ordinary per-customer wallet ledger.
 LAB_WELCOME_CREDITS_ENABLED = "true"
 LAB_PUBLIC_GENERATION_ENABLED = "true"
+# Private proxy previews become visible only after provider completion, before archival.
+LAB_EARLY_PREVIEW_ENABLED = "true"
 LAB_CHECKOUT_ENABLED = "true"
 LAB_PUBLIC_APP_URL = "https://parallelvisionlabel.com/lab/studio.html"
 # Customer Higgsfield endpoints still use provider authentication and safeguards.
@@ -43,6 +45,8 @@ bucket_name = "parallel-vision-lab-private"
 [images]
 binding = "IMAGES"
 
+# SPICY_WEBHOOK_SECRET is a separate Cloudflare secret copied from SpicyAPI Console > Webhooks.
+# Completion webhooks remain disabled until it is explicitly provisioned.
 # LAB_SECRET is a Cloudflare secret, never a committed variable.
 # Preserve it across deployments or existing API credentials cannot be decrypted.
 # FAL_KEY is also a Cloudflare secret. It is used only for PV Soul character training.
