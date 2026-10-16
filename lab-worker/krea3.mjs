@@ -51,7 +51,7 @@ export function krea3Input(p,urls=[],compiledPrompt=p.prompt){
     .replace(/\bReference (\d+)\b/g,(_,n)=>'<image-'+n+'>');
   if(!prompt||prompt.length>5000)throw Error('Krea 3 needs a valid prompt within 5,000 characters.');
   return {
-    prompt,model:'berry',reasoning_level:'low',
+    prompt,model:'berry',reasoning_level:urls.length?'medium':'low',
     image_size:krea3Size(p.resolution,p.aspectRatio),
     output_format:'png',enable_safety_checker:true,
     ...(urls.length?{image_urls:urls}:{})
