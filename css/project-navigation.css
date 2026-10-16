@@ -148,3 +148,5 @@
   .pv-berlin .archive-nav.pv-project-nav,.pv-fashion .archive-nav.pv-project-nav,
   .pv-project-nav .pv-project-nav-sections{transition:none!important}
 }
+/* Keep keyboard skip links above the fixed project header. */
+.pv-berlin .skip-link:focus,.pv-fashion .skip-link:focus{z-index:300}
