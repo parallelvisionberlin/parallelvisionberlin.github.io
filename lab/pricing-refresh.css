@@ -374,3 +374,23 @@
   #pricing .lab-plan{min-height:165px!important}
   #pricing #lab-monthly-plans .lab-plan--recommended{min-height:181px!important}
 }
+
+/* One active purchase highlight at a time. The recommended Creator CTA
+   is white by default, but yields its emphasis to Starter or Studio on
+   pointer hover. Keyboard focus gets the same exclusive treatment. */
+@media (hover:hover){
+  #pricing #lab-monthly-plans:has(.lab-plan:not(.lab-plan--recommended):hover)
+    .lab-plan--recommended>button[data-lab-buy]:not(:focus-visible):not([aria-busy="true"]){
+    background:rgba(16,16,16,.58);
+    border-color:#9f9f9f;
+    color:#f7f6f4;
+    box-shadow:none;
+  }
+}
+#pricing #lab-monthly-plans:has(.lab-plan:not(.lab-plan--recommended)>button[data-lab-buy]:focus-visible)
+  .lab-plan--recommended>button[data-lab-buy]:not(:focus-visible):not([aria-busy="true"]){
+  background:rgba(16,16,16,.58);
+  border-color:#9f9f9f;
+  color:#f7f6f4;
+  box-shadow:none;
+}
