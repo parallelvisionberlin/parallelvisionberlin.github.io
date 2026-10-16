@@ -1,4 +1,4 @@
-name: Verify PV LAB compact Mood result production
+name: Verify PV LAB Mood upload UX production
 on:
   push:
     branches: [verify/pvlab-moods-production-20261016]
@@ -9,31 +9,34 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
-      - name: Verify pvlab.studio serves the compact generating dialog
+      - name: Check live oversized-photo validation and fixed-size modal
         shell: bash
         run: |
           set -euo pipefail
           base="https://pvlab.studio"
           for attempt in $(seq 1 30); do
             stamp="${GITHUB_SHA}-$attempt"
-            if curl -fsSL --retry 1 --connect-timeout 6 --max-time 25 -H 'Cache-Control: no-cache' "$base/moods?verify=$stamp" -o /tmp/moods.html \
-              && curl -fsSL --retry 1 --connect-timeout 6 --max-time 25 -H 'Cache-Control: no-cache' "$base/explore-moods.js?verify=$stamp" -o /tmp/moods.js \
-              && curl -fsSL --retry 1 --connect-timeout 6 --max-time 25 -H 'Cache-Control: no-cache' "$base/explore-moods-nav.css?verify=$stamp" -o /tmp/moods-nav.css \
-              && grep -Fq 'resultFit=20261016v1' /tmp/moods.html \
-              && grep -Fq 'id="mc-look-result-again"' /tmp/moods.html \
-              && grep -Fq 'dialog.classList.add(' /tmp/moods.js \
-              && grep -Fq 'is-result-view' /tmp/moods.js \
-              && grep -Fq 'mc-look-result-again' /tmp/moods.js \
-              && grep -Fq 'currentPrice.submit()' /tmp/moods.js \
-              && grep -Fq 'mc-look-dialog.is-result-view' /tmp/moods-nav.css \
-              && grep -Fq 'position:relative;top:auto;align-self:stretch' /tmp/moods-nav.css \
-              && ! grep -Fq 'position:sticky;top:0;align-self:start' /tmp/moods-nav.css; then
-              echo 'PASS LIVE: Compact generating popup, result preview, Make another, and full-height Mood artwork present on pvlab.studio.'
-              echo "HTML $(wc -c < /tmp/moods.html) bytes; JS $(wc -c < /tmp/moods.js); CSS $(wc -c < /tmp/moods-nav.css)"
-              exit 0
+            if curl -fsSL --retry 1 --connect-timeout 8 --max-time 25 -H 'Cache-Control: no-cache' "$base/moods?verify=$stamp" -o /tmp/moods.html \
+              && curl -fsSL --retry 1 --connect-timeout 8 --max-time 25 -H 'Cache-Control: no-cache' "$base/explore-moods.js?verify=$stamp" -o /tmp/explore.js \
+              && curl -fsSL --retry 1 --connect-timeout 8 --max-time 25 -H 'Cache-Control: no-cache' "$base/explore-moods-editorial.css?verify=$stamp" -o /tmp/editorial.css \
+              && grep -Fq 'uploadFeedback=20261016v1' /tmp/moods.html \
+              && grep -Fq 'id="mc-look-upload-error"' /tmp/moods.html \
+              && grep -Fq 'id="mc-look-file-clear"' /tmp/moods.html \
+              && grep -Fq 'title="Remove photo"' /tmp/moods.html \
+              && ! grep -Fq '>Remove selected photo</button>' /tmp/moods.html \
+              && grep -Fq 'function showUploadError(input,error)' /tmp/explore.js \
+              && grep -Fq "Maximum 20 MB." /tmp/explore.js \
+              && grep -Fq "generate.disabled=true" /tmp/explore.js \
+              && grep -Fq -- '--mc-editor-height' /tmp/explore.js \
+              && grep -Fq 'mc-look-upload-error[hidden]' /tmp/editorial.css \
+              && grep -Fq 'height:var(--mc-editor-height,auto)' /tmp/editorial.css \
+              && grep -Fq 'background:#101715f2' /tmp/editorial.css; then
+                echo "PASS LIVE: oversized image alert, exact size and maximum, thumbnail X remove action, and fixed Mood card dimensions served on pvlab.studio."
+                echo "html=$(wc -c < /tmp/moods.html) js=$(wc -c < /tmp/explore.js) css=$(wc -c < /tmp/editorial.css)"
+                exit 0
             fi
-            echo "Production awaiting new Mood build (attempt $attempt/30)"
+            echo "Waiting for latest Mood upload UI (attempt $attempt/30)"
             sleep 8
           done
-          echo 'FAIL: New generating dialog not verified in live production'
+          echo 'FAIL: live Mood upload revision not confirmed'
           exit 1
