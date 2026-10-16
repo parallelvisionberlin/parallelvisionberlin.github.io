@@ -3,25 +3,27 @@ Updated: 2026-10-16
 Site: https://parallelvisionlabel.com/
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 
-## Approved current design
-- Primary CTA reads `ENTER BERLIN 2063` on **one line**, immediately followed by a small diagonal arrow.
-- White/off-white Inter, 16px desktop / 15px mobile, letterspaced uppercase, consistent weight for all words.
-- **No pink rail, no underline, no bordered or filled button, no separate display font**.
-- Only the arrow moves slightly up/right on hover; visible keyboard focus, reduced-motion alternative.
-- The button links to `./berlin-2063.html`; the existing English/German translation selectors remain unchanged.
-- PV LAB remains in the nav; do not change the main city visual, wordmark, description, Nina controls, or other sections.
+## Approved direction
+- The homepage presents the independent record label and the Berlin 2063 world.
+- Main hero action stays `ENTER BERLIN 2063` and links to `./berlin-2063.html`.
+- PV LAB stays in the top navigation.
+- Keep hero video, title, descriptive copy, header, and Nina controls unchanged.
 
-## Implementation
-- `index.html`: replaced only the `.hero-world-cta` style block with a restrained single-line treatment.
-- Markup unchanged; existing `.hero-world-cta-kicker` and `.hero-world-cta-name` spans sit side by side with identical typography.
-- `language.js` unchanged, keeps `Betrete Berlin 2063` in German.
-- Git baseline: `f049dcc48c1be727affcd500183b74f5cfb5da9c`.
+## Current fix: intentional distance from the description
+- The previous 16px CTA sitting 23px below the paragraph resembled a continuation of the small body copy.
+- `index.html`: only CTA styles changed, with a 65–84px desktop margin above the action and typography of 20–24px, Inter 600.
+- One clean line in white, a closely adjacent 28px diagonal arrow, no pink rail, underline, pill, rectangle, or background panel.
+- On mobile, a centered 17–20px entrance with 44–60px margin above and a 24px arrow.
+- No change to the action markup or translation selectors; the existing German label still applies.
+- Preserved keyboard focus and reduced-motion handling.
+- Based on main commit `ad7f378b3bf54c75814d1acb8d4ecf5aad4e2bc3`.
 
 ## Verification
-- Code assertions confirm target, labels, translations and no old decoration.
-- GitHub CI and Pages deployment: verify after commit.
-- Interactive desktop/mobile browser appearance: still to be visually checked.
+- Reviewed existing hero styles and the desktop/mobile context.
+- Code asserts exactly one hero Berlin 2063 link, original markup/translation intact, and no decoration.
+- GitHub static-site validation and Pages publishing: check after commit.
+- Visual desktop/mobile browser QA is not yet complete.
 
-## Follow-up
-- Confirm successful Pages publication for this or a descendant main commit without unrelated concurrent changes overwriting the CTA.
-- Keep this as the baseline; do not add extra decorative CTA layers without explicit request.
+## Next
+- Verify that the main branch retains this design and Pages deploy succeeds.
+- Keep changes isolated from other active feature work.
