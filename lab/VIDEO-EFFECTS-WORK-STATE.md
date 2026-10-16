@@ -5,6 +5,12 @@ Scope: Discover and use three creative Motion Effects via the existing Video Stu
 Release: PR #248 merged to main at `81ffd4b6547b40334f7c8225ad2f36a73f1bd0af`.
 Deployment: GitHub's Cloudflare Pages check reports **Deployed successfully** for `81ffd4b`, with preview `https://1d4a93a9.pvlab-studio.pages.dev`. The custom `pvlab.studio` hostname could not be independently fetched from this environment, so domain-level smoke remains unverified.
 
+## Owner-only preview gate (2026-10-16)
+- While Effects are being tested, the Effects tab is hidden from the public Studio until a signed-in session returns server-verified `owner: true` (and `customer` is not true). The existing client `owner` flag alone is not sufficient; it just means authenticated.
+- HTML defaults to `hidden` and CSS enforces it before authentication, preventing a navigation flash. Non-owner direct `?effects=1` links are cleaned without opening the experimental gallery.
+- Effect selection, gallery selection and upload handoff also check the verified owner role. Customer Video Studio and its pricing/generation workflows remain unchanged.
+- Owner/customer browser regression tests cover the visibility, direct-link rejection, owner entry and sign-out/downgrade behavior. The Effects recipes remain experimental, with no provider results guaranteed.
+
 ## Product decisions
 - Header gets a dedicated **Effects** entry alongside Image and Video.
 - Effects opens an editorial gallery, initially three presets: Liquid Metal, Fabric Storm, Ghost Motion.
