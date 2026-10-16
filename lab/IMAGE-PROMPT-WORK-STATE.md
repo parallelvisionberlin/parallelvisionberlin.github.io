@@ -86,3 +86,13 @@
 - Regression tests verify transparent chipless appearance, 40px-or-less width, hover visibility, and existing Generate position. Production smoke checks new CSS asset fingerprint and tooltip CSS.
 - Files: `lab/studio.html`, `lab/assets.css`, `lab/native-create-gallery.css`, `tests/lab-studio-layout-ui.mjs`, `tests/lab-smart-prompt-ui.test.mjs`, `.github/workflows/pvlab-domain-smoke.yml`, this handoff.
 - No Generate, credit, price, model, upload, account, gallery, Worker or paid job changes. CI and live-domain deployment must be checked independently.
+
+## Long pasted Image prompt expansion (2026-10-16)
+- Source main baseline: `7036f988b940ee961cd807dbc6496ff7b7bd67ba`.
+- Screenshot showed Seedream prompt trapped in a ~54px editor even after a prior bounded-autosize helper was deployed. Diagnosis: `image-composer-stable.css` forced the textarea height, top-row height and desktop grid track with `!important`, defeating inline JS fitting.
+- Restored content-driven top track and JS-controlled textarea height. Empty composer remains compact; pasted prompts expand to approximately 176px on large desktop, up to 122px on mobile, then scroll internally without hiding Generate or controls.
+- Paste at the end now scrolls to the final written lines after normal composer synchronization; pasting/editing earlier text does not jump to the bottom. Only the Image web composer layout changes; the native Create and PV Soul special layout remain excluded from these CSS overrides.
+- CSS and JS fingerprints changed in `lab/studio.html`, without modifying the image providers, jobs, auth, pricing, credits, user prompts or gallery data.
+- Files: `lab/image-composer-stable.css`, `lab/lab.js`, `lab/studio.html`, `tests/lab-image-prompt-paste-ui.mjs`, `.github/workflows/pv-lab-image-paste.yml`, this handoff.
+- Browser regression tests empty -> long paste -> scroll -> clear, desktop, laptop, mobile and short mobile; creates no paid image generation.
+- Status: branch `fix/image-prompt-expand-paste-scroll-20261016`; PR checks and production publication to be verified, not assumed.
