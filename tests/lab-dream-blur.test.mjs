@@ -95,3 +95,34 @@ test('even 100% Dream Blur keeps the original framing, body and room while incre
   const textOnly=prepareMoodPrompt('Night street scene','dream-blur',80,{engine:'seedream',referenceCount:0});
   assert.equal(textOnly.error,'');
 });
+
+test('Dream Blur welcome text generates with four built-in Style photos without rewriting the 5K recipe',()=>{
+  // This is the public first-image CTA direction, previously 39 characters
+  // over the provider limit after automatic Style references were attached.
+  const welcome='A photographic blue motion blur, passing headlights and rain-streaked reflections, intimate fragmented detail, realistic long exposure, deep cobalt shadows and light trails, natural film grain and beautiful imperfection.';
+  for(const engine of ['seedream','gemini','gemini21']){
+    for(const referenceMode of ['base','references']){
+      for(const intensity of [1,78,100]){
+        const mood=prepareMoodPrompt(welcome,'dream-blur',intensity,{engine,referenceCount:0,referenceMode});
+        assert.equal(mood.error,'');
+        const settings={type:'image',mode:'image',engine,referenceMode,aspectRatio:'auto',
+          prompt:mood.prompt,...mood.metadata,referenceRoles:[]};
+        const plan=moodReferencePlan(settings);
+        const compiled=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings);
+        assert.equal(plan.references.length,4);
+        assert.equal(plan.settings.referenceRoles.length,4);
+        assert.equal(plan.settings.aspectRatio,'16:9');
+        assert.equal(plan.settings.prompt,mood.prompt,'Never shorten or rewrite the Mood');
+        assert.equal(plan.settings.moodOriginalPrompt,welcome);
+        assert.ok(compiled.length<=5000,engine+' '+referenceMode+' '+intensity+' over by '+(compiled.length-5000));
+        assert.ok(compiled.includes(welcome),'The full welcome direction must survive');
+        assert.match(compiled,/DREAM BLUR V2/);
+        assert.match(compiled,/There is no base image/);
+        for(const role of plan.settings.referenceRoles){
+          assert.equal(role.role,'style');
+          assert.ok(compiled.includes(role.note),'Every Style photo keeps its optical instruction');
+        }
+      }
+    }
+  }
+});
