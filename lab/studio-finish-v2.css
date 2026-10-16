@@ -91,19 +91,17 @@
 #image-composer #image-composer-status.is-import-error{pointer-events:auto!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 
 
-/* A disabled Generate action must recede into the dark deck. Pearl is reserved for ready-to-generate. */
+/* Generate always remains visibly in the right-hand slot.
+   Disabled state is muted pearl and non-clickable; enabled is brighter pearl. */
 #image-composer .composer-generate:disabled:not(.is-submitting){
-  background:#292c2a!important;
-  border-color:#4a504b!important;
-  color:#b1bab2!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.035)!important;
+  visibility:visible;
+  background:#e3e1da!important;
+  border-color:#d5d4ce!important;
+  color:#747772!important;
+  box-shadow:none!important;
+  opacity:1;
   cursor:not-allowed;
 }
-/* When an ordinary Image editor has neither text nor photos, the inactive
-   Generate button has no visual tile. Its reserved grid slot prevents reflow.
-   Other disabled reasons, submitting jobs and PV Soul retain their feedback. */
-#image-composer:not(.is-pv-soul):has(#image-composer-prompt:placeholder-shown):not(:has(.composer-reference-tile))
-  .composer-generate:disabled:not(.is-submitting){visibility:hidden}
 #image-composer .composer-generate.has-credit-cost:not(.is-submitting)::after{content:attr(data-credits);display:block;font-size:11px;font-weight:500;line-height:1;color:inherit;opacity:.72}
 #image-composer .composer-generate.has-credit-cost .composer-generate-sparkle{display:none!important}
 @media(min-width:901px){

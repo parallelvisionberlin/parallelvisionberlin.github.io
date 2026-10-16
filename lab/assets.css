@@ -1525,44 +1525,44 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
 }
 
 /* 2026-10-16: Exact Prompt is one quiet inline choice, not an Image settings menu.
-   Keep the prompt on the same row and do not move the Generate action. */
+   Align the small Exact switch with the other toolbar controls; Generate stays in its fixed column. */
 #image-composer #composer-more-anchor[hidden]{display:none!important}
-#image-composer .image-composer-top #composer-exact-prompt-option{
-  display:inline-flex;align-items:center;justify-content:flex-end;
-  gap:7px;flex:0 0 auto;align-self:center;white-space:nowrap;
-  max-width:none;margin:0 4px 0 0;padding:4px 2px;
-  border:0;border-radius:0;background:transparent;
-  color:#9a9e9a;font-size:10px;font-weight:560;line-height:1;
+#image-composer .composer-controls #composer-exact-prompt-option{
+  display:inline-flex;align-items:center;justify-content:center;
+  box-sizing:border-box;min-height:40px;gap:7px;flex:0 0 auto;align-self:center;white-space:nowrap;
+  max-width:none;margin:0;padding:0 9px;
+  border:1px solid #383a37;border-radius:9px;background:#232523;
+  color:#b8beb5;font-size:11px;font-weight:560;line-height:1;
   cursor:pointer;user-select:none;
 }
-#image-composer .image-composer-top #composer-exact-prompt-option:hover{color:#d5d9d4}
-#image-composer .image-composer-top #composer-exact-prompt-option span{display:block}
-#image-composer .image-composer-top #composer-exact-prompt-option input{
+#image-composer .composer-controls #composer-exact-prompt-option:hover{color:#d5d9d4}
+#image-composer .composer-controls #composer-exact-prompt-option span{display:block}
+#image-composer .composer-controls #composer-exact-prompt-option input{
   appearance:none;-webkit-appearance:none;box-sizing:border-box;display:block;flex:none;
   width:28px;height:16px;min-height:16px;margin:0;
   border:1px solid #666b65;border-radius:99px;background:#343835;
   position:relative;cursor:pointer;transition:background .14s ease,border-color .14s ease;
 }
-#image-composer .image-composer-top #composer-exact-prompt-option input:before{
+#image-composer .composer-controls #composer-exact-prompt-option input:before{
   content:'';position:absolute;left:2px;top:2px;
   width:10px;height:10px;border-radius:50%;background:#d9dfd6;
   transition:transform .14s ease;
 }
-#image-composer .image-composer-top #composer-exact-prompt-option input:checked{
+#image-composer .composer-controls #composer-exact-prompt-option input:checked{
   background:#617453;border-color:#8ea183;
 }
-#image-composer .image-composer-top #composer-exact-prompt-option input:checked:before{transform:translateX(12px)}
-#image-composer .image-composer-top #composer-exact-prompt-option input:focus-visible{
+#image-composer .composer-controls #composer-exact-prompt-option input:checked:before{transform:translateX(12px)}
+#image-composer .composer-controls #composer-exact-prompt-option input:focus-visible{
   outline:2px solid #f1f2ef;outline-offset:3px;
 }
-#image-composer .image-composer-top #composer-exact-prompt-option input:disabled{opacity:.5;cursor:not-allowed}
+#image-composer .composer-controls #composer-exact-prompt-option input:disabled{opacity:.5;cursor:not-allowed}
 #image-composer .image-composer-top #image-composer-prompt{min-width:0}
 @media(max-width:650px){
-  #image-composer .image-composer-top #composer-exact-prompt-option{gap:5px;margin-right:0;font-size:9px}
-  #image-composer .image-composer-top #composer-exact-prompt-option input{width:26px}
-  #image-composer .image-composer-top #composer-exact-prompt-option input:checked:before{transform:translateX(10px)}
+  #image-composer .composer-controls #composer-exact-prompt-option{min-height:36px;gap:5px;padding-inline:7px;font-size:10px}
+  #image-composer .composer-controls #composer-exact-prompt-option input{width:26px}
+  #image-composer .composer-controls #composer-exact-prompt-option input:checked:before{transform:translateX(10px)}
 }
 @media(prefers-reduced-motion:reduce){
-  #image-composer .image-composer-top #composer-exact-prompt-option input,
-  #image-composer .image-composer-top #composer-exact-prompt-option input:before{transition:none}
+  #image-composer .composer-controls #composer-exact-prompt-option input,
+  #image-composer .composer-controls #composer-exact-prompt-option input:before{transition:none}
 }

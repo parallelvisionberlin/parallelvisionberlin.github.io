@@ -9,7 +9,7 @@ assert.ok(process.env.PV_PLAYWRIGHT_MODULE,'PV_PLAYWRIGHT_MODULE is required');
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
 const html=readFileSync('lab/studio.html','utf8');
-assert.match(html,/studio-finish-v2\.css\?v=20261016-hide-empty-generate1/,'Studio must reload the updated stylesheet');
+assert.match(html,/studio-finish-v2\.css\?v=20261016-generate-always3/,'Studio must reload the updated stylesheet');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png'};
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
@@ -66,21 +66,21 @@ try{
           width:button.getBoundingClientRect().width,height:button.getBoundingClientRect().height};
         return {empty,blockedWithPrompt,blockedWithPhoto,off,on};
       },model);
-      assert.equal(css.empty.visibility,model==='soul'?'visible':'hidden',
-        model+' '+width+': empty Image Generate has no ghost tile');
+      assert.equal(css.empty.visibility,'visible',
+        model+' '+width+': empty Image Generate must stay visible');
       assert.equal(css.blockedWithPrompt,'visible',model+' '+width+': blocked Generate remains visible with text');
       assert.equal(css.blockedWithPhoto,'visible',model+' '+width+': blocked Generate remains visible with photo');
       assert.equal(css.empty.width,css.off.width,model+' '+width+': Generate space remains stable');
       assert.equal(css.empty.height,css.off.height,model+' '+width+': Generate height remains stable');
-      assert.ok(rgb(css.off.background).length===3&&rgb(css.off.background).every(c=>c<85),
-        model+' '+width+': disabled Generate must be dark graphite: '+css.off.background);
-      assert.ok(rgb(css.off.color).length===3&&rgb(css.off.color).every(c=>c>125),
+      assert.ok(rgb(css.off.background).length===3&&rgb(css.off.background).every(c=>c>175&&c<245),
+        model+' '+width+': disabled Generate must be visible muted pearl: '+css.off.background);
+      assert.ok(rgb(css.off.color).length===3&&rgb(css.off.color).every(c=>c>75&&c<155),
         model+' '+width+': disabled Generate label must remain legible: '+css.off.color);
       assert.equal(css.off.image,'none',model+' '+width+': disabled background has no bright gradient');
       assert.match(css.on.image,/linear-gradient/,model+' '+width+': enabled Generate regains pearl finish');
       assert.equal(css.off.width,css.on.width,model+' '+width+': no width jump between states');
       assert.equal(css.off.height,css.on.height,model+' '+width+': no height jump between states');
-      console.log('PASS '+model+' '+width+' empty hidden / blocked visible / pearl enabled');
+      console.log('PASS '+model+' '+width+' Generate always visible / muted when disabled / brighter when ready');
     }finally{await context.close()}
   }
 }finally{

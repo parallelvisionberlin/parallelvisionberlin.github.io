@@ -294,11 +294,24 @@ try{
   assert.equal(await x.page.locator('#composer-exact-prompt').isChecked(),false,
     'Automatic prompt enhancement remains enabled by default');
   const exactMetrics=await x.page.evaluate(()=>{
-    const box=id=>{const r=document.getElementById(id).getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
-    return {prompt:box('image-composer-prompt'),exact:box('composer-exact-prompt-option'),deck:box('image-composer')};
+    const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {top:r.top,right:r.right,left:r.left,width:r.width};};
+    const exact=document.getElementById('composer-exact-prompt-option'),count=document.getElementById('image-composer-count-wrap');
+    const generate=document.getElementById('image-composer-generate');
+    return {exact:rect('composer-exact-prompt-option'),count:rect('image-composer-count-wrap'),
+      generate:rect('image-composer-generate'),deck:rect('image-composer'),
+      inControls:exact.parentElement.classList.contains('composer-controls'),
+      afterCount:!!(count.compareDocumentPosition(exact)&Node.DOCUMENT_POSITION_FOLLOWING),
+      inPromptRow:document.querySelector('.image-composer-top').contains(exact),
+      generateVisibility:getComputedStyle(generate).visibility,generateDisabled:generate.disabled};
   });
-  assert.ok(exactMetrics.exact.width<90&&exactMetrics.exact.height<32&&Math.abs(exactMetrics.prompt.top-exactMetrics.exact.top)<28,
-    'Exact control must be quiet and beside the text prompt: '+JSON.stringify(exactMetrics));
+  assert.ok(exactMetrics.inControls&&exactMetrics.afterCount&&!exactMetrics.inPromptRow,
+    'Exact must sit in the control row after image count, never floating in the prompt: '+JSON.stringify(exactMetrics));
+  assert.ok(exactMetrics.exact.width<95&&Math.abs(exactMetrics.exact.top-exactMetrics.count.top)<15,
+    'Exact is a small, aligned toolbar switch: '+JSON.stringify(exactMetrics));
+  assert.equal(exactMetrics.generateVisibility,'visible','Empty Generate must remain visible');
+  assert.equal(exactMetrics.generateDisabled,true,'Empty Generate must remain disabled');
+  assert.ok(exactMetrics.generate.left>exactMetrics.exact.right&&Math.abs(exactMetrics.generate.right-exactMetrics.deck.right)<36,
+    'Generate stays in the original right-hand position: '+JSON.stringify(exactMetrics));
   assert.equal(await x.page.locator('#save').isVisible(),false,
     'Save draft stays out of the Image creation flow');
   assert.equal(await x.page.locator('#clear').isVisible(),false,

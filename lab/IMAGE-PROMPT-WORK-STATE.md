@@ -71,3 +71,10 @@
 - Updated `lab/studio-finish-v2.css`, CSS cache token in `lab/studio.html`, test `tests/lab-image-generate-disabled-ui.mjs`, and this handoff.
 - Browser verification covers empty, text-present, photo-present and ready states at 1440 desktop, 390 mobile and Soul.
 - GitHub Actions CI and GitHub Pages deployment to verify after commit.
+
+## Permanent Generate and corrected Exact control location (2026-10-16)
+- The user clarified that "ghost button" referred to the out-of-place Exact switch, not Generate. Never remove Generate when there is no prompt. Starting verified main source head: `842201dd4027190f49f0b63484fa8178659789fd`.
+- Removed mistaken `visibility:hidden` for empty Generate. Its large right-hand position remains constant. Inactive Generate has a visibly muted pearl finish and stays disabled; active Generate keeps the existing brighter treatment and actual provider/credit checks unchanged.
+- Moved the existing functional `composer-exact-prompt` control out of the text-writing row to immediately after Image count inside the toolbar, with a small normal-height chip. It retains its original checked state and backend behavior. Native Create keeps the switch inside More controls rather than overlaying the prompt.
+- Touched only `lab/studio.html`, `lab/assets.css`, `lab/studio-finish-v2.css`, `lab/native-create-gallery.css`, `tests/lab-image-generate-disabled-ui.mjs`, `tests/lab-studio-layout-ui.mjs`, this handoff. No account, billing, job, pricing, provider, backend or saved user data changes.
+- Mock browser regression now checks Generate remains visible and non-clickable when empty, enabled surface when ready, and exact switch alignment. GitHub Pages publication and CI separately verified after commit.
