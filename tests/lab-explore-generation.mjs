@@ -44,6 +44,14 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      if(scenario==='failure')return send({error:'Not enough credits.'},402);
      return send({job:{id:'job-test',status:'queued'}});
    }
+   if(url.pathname==='/api/jobs/job-test/performance'&&req.method()==='POST'){
+     assert.ok(req.postDataJSON().clientPreparationMs>=0);
+     return send({ok:true});
+   }
+   if(url.pathname==='/api/jobs/job-test/preview'&&req.method()==='GET'){
+     const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRmsAAAAASUVORK5CYII=','base64');
+     return route.fulfill({status:200,contentType:'image/png',body:png});
+   }
    if(url.pathname==='/api/jobs/job-test'&&req.method()==='GET'){
      if(scenario==='saving'&&++jobStatusChecks===1)return send({job:{id:'job-test',status:'saving'}});
      return send({job:{id:'job-test',status:'completed',outputId:'result-1'}});
@@ -208,6 +216,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
        'A failed submission must not keep animating as if it were running');
    }else{
      await page.locator('#mc-look-result-image').waitFor({state:'visible'});
+     await page.locator('#mc-look-result-actions').waitFor({state:'visible'});
      assert.equal(paid,1,'One explicit click submits exactly one paid job');
      assert.equal(await page.locator('#mc-look-result-actions').isVisible(),true);
      assert.equal(await page.locator('#mc-look-result-wait-note').isVisible(),false,
