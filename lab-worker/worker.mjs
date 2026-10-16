@@ -655,6 +655,7 @@ async function copyResult(env,j,url) {
   }
   if(isImage){
     await completeImageResult(env,j,{id:j.id,owner_id:j.owner_id,object_key:objectKey,kind:'source',mime:finalMime,filename:'parallel-vision-'+j.id+'.'+ext,bytes,created_at:now()},stored.n);
+    if(params.moodId)try{await run(env,'UPDATE lab_mood_performance SET archived_at=COALESCE(archived_at,?) WHERE job_id=?',now(),j.id);}catch{}
     return;
   }
   await env.LAB_DB.batch([
@@ -1202,6 +1203,35 @@ async function saveFlashResult(env,j){
   await saveGeminiImage(env,j,{candidates:[{content:{parts:[{inlineData:{mimeType:mime,data:image.b64_json}}]}}]});
   if(Number.isFinite(result.usage?.cost)&&result.usage.cost>=0)await run(env,'UPDATE jobs SET settled_cost=? WHERE id=?',result.usage.cost,j.id);
   await env.LAB_MEDIA.delete(key);
+}
+
+async function privateMoodEarlyPreview(env,job){
+  const p=JSON.parse(job.params||'{}');
+  if(env.LAB_EARLY_PREVIEW_ENABLED!=='true'||p.type!=='image'||p.engine!=='seedream'||!p.moodId||
+    job.state!=='saving'||!job.remote_url)return new Response(null,{status:425});
+  // Serve through this owner's authenticated Worker route. Signed provider
+  // URLs are NEVER returned to the browser, saved in a public cache, or redirected.
+  let target=safeVideoUrl(job.remote_url),res;
+  for(let i=0;i<4;i++){
+    res=await fetch(target,{redirect:'manual',signal:AbortSignal.timeout(30000)});
+    if(res.status>=300&&res.status<400){
+      const location=res.headers.get('location');
+      if(!location)throw Error('Provider preview unavailable.');
+      target=safeVideoUrl(new URL(location,target).href);
+      continue;
+    }
+    break;
+  }
+  if(!res?.ok)throw Error('Provider preview is not ready.');
+  const mime=(res.headers.get('content-type')||'').split(';')[0];
+  if(!['image/png','image/jpeg','image/webp'].includes(mime))throw Error('Invalid image preview type.');
+  const data=await limitedBody(res,MAX_IMAGE);
+  if(!data.length||!sniff(data,mime))throw Error('Invalid image preview.');
+  try{await run(env,'UPDATE lab_mood_performance SET first_preview_at=COALESCE(first_preview_at,?) WHERE job_id=?',now(),job.id);}catch{}
+  return new Response(data,{status:200,headers:{
+    'Content-Type':mime,'Cache-Control':'private, no-store, max-age=0',
+    'X-Content-Type-Options':'nosniff','Content-Disposition':'inline'
+  }});
 }
 
 async function receiveSpicyMoodCallback(request,env,ctx){
@@ -1863,6 +1893,20 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/jobs/')) {
     const id=uid(path.split('/')[3]);let j=await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);if(!j)fail(404,'Job not found.');
+    if(path.endsWith('/preview')&&method==='GET')
+      return privateMoodEarlyPreview(env,j);
+    if(path.endsWith('/performance')&&method==='GET'){
+      const metrics=await first(env,'SELECT quote_started_at,quote_ready_at,submitted_at,provider_finished_at,archived_at,first_preview_at,client_preparation_ms,client_submit_ms FROM lab_mood_performance WHERE job_id=? AND owner_id=?',id,owner);
+      return json({performance:metrics||null});
+    }
+    if(path.endsWith('/performance')&&method==='POST'){
+      const data=await body(request);
+      const preparation=data.clientPreparationMs,submit=data.clientSubmitMs;
+      if(![preparation,submit].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=600000))fail(400,'Invalid timing data.');
+      await run(env,'UPDATE lab_mood_performance SET client_preparation_ms=?,client_submit_ms=? WHERE job_id=? AND owner_id=?',
+        preparation,submit,id,owner);
+      return json({ok:true});
+    }
     if(path.endsWith('/film-finish')&&method==='POST'){
       const data=await body(request),p=JSON.parse(j.params||'{}');
       if(j.state!=='completed'||!j.output_id||p.type!=='image'||p.moodId!=='hong-kong-nights')fail(409,'Choose a completed Hong Kong Nights image.');
