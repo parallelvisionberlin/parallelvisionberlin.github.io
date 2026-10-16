@@ -72,8 +72,7 @@
   box-shadow:0 0 0 1px #eaded777,0 13px 35px #0009;
 }
 #gate .pv-guest-card:hover img{filter:brightness(1);transform:scale(1.026)}
-#gate .pv-guest-card[aria-pressed=true],
-#gate .pv-guest-card:first-child:not(:has(~.pv-guest-card[aria-pressed=true])):not([aria-pressed=true]){
+#gate .pv-guest-card[aria-pressed=true]{
   border-color:#f0d9c9;box-shadow:0 0 0 1px #f5dccba0,0 0 26px #f3c8a144,0 18px 38px #0009;
 }
 #gate .pv-guest-card:focus-visible{outline:2px solid #fff;outline-offset:3px}
