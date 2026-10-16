@@ -1827,7 +1827,7 @@ function bringVideoPlayerIntoView(){
   // without returning to the player above makes its cards appear unresponsive.
   videoFeedCenter.scrollTo({top:0,behavior:'instant'});
   if(window.matchMedia('(max-width:820px)').matches)
-    mediaStage.scrollIntoView({behavior:'smooth',block:'start'});
+    mediaStage.scrollIntoView({behavior:'instant',block:'start'});
 }
 function showVideoJobStage(job){
   if(tool!=='video'||!job||job.settings?.type!=='video')return;
