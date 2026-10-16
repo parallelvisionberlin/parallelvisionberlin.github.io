@@ -1,0 +1,52 @@
+name: PV LAB ZenCreator comparison public smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pvlab-zencreator-public-smoke.yml'
+      - 'lab/zencreator-alternative/**'
+      - 'lab/sitemap.xml'
+      - 'lab/robots.txt'
+      - 'lab/_redirects'
+permissions:
+  contents: read
+jobs:
+  public-page:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - name: Verify the live PV LAB comparison page and image assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 18); do
+            curl -fLsS --connect-timeout 6 --max-time 20 --retry 1 \
+              "https://pvlab.studio/zencreator-alternative/?test=zencreator-20261016" \
+              -o /tmp/zencreator-landing.html || true
+            if grep -Fq 'More room' /tmp/zencreator-landing.html 2>/dev/null \
+              && grep -Fq '200 welcome credits' /tmp/zencreator-landing.html 2>/dev/null \
+              && grep -Fq 'href="https://pvlab.studio/zencreator-alternative/"' /tmp/zencreator-landing.html 2>/dev/null; then
+              ready=1
+              break
+            fi
+            echo "Waiting for Cloudflare Pages to publish comparison page, attempt $attempt"
+            sleep 15
+          done
+          if [[ "$ready" != '1' ]]; then echo 'Comparison page did not publish in time'; exit 1; fi
+          for file in \
+            visuals/leather-editorial/hero-mobile.webp \
+            visuals/leather-editorial/hero-desktop.webp \
+            visuals/studio-tools/image-ivory-suit.webp \
+            visuals/studio-tools/video-liquid-dress.webp \
+            mood-previews/midnight-reverie-original-20261011.png; do
+            curl -fLsS --connect-timeout 6 --max-time 20 --range 0-64 \
+              "https://pvlab.studio/$file" -o /dev/null
+            echo "PASS image: $file"
+          done
+          curl -fLsS --connect-timeout 6 --max-time 20 https://pvlab.studio/sitemap.xml -o /tmp/pvlab-sitemap.xml
+          grep -Fq 'https://pvlab.studio/zencreator-alternative/' /tmp/pvlab-sitemap.xml
+          curl -fLsS --connect-timeout 6 --max-time 20 https://pvlab.studio/robots.txt -o /tmp/pvlab-robots.txt
+          grep -Fq 'Sitemap: https://pvlab.studio/sitemap.xml' /tmp/pvlab-robots.txt
+          echo 'PASS: public comparison page, five image assets, sitemap and robots.txt are live.'
