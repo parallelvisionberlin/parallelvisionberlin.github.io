@@ -100,10 +100,10 @@ test('Mood loading uses an accessible full-frame exposure and honest job states'
   assert.match(page,/id="mc-look-result-wait-note" hidden/);
   assert.doesNotMatch(page,/mc-look-exposure-arc/);
   assert.doesNotMatch(css,/mc-look-exposure-arc/);
-  assert.match(css,/#mc-look-result-wait-note\\[hidden\\]\\{display:none\\}/);
-  assert.match(js,/waitNoteTimer=setTimeout\\(\\(\\)=>\\{/);
+  assert.match(css,/#mc-look-result-wait-note\[hidden\]\{display:none\}/);
+  assert.match(js,/waitNoteTimer=setTimeout\(\(\)=>\{/);
   assert.match(js,/45000/);
-  assert.match(js,/clearTimeout\\(waitNoteTimer\\)/);
+  assert.match(js,/clearTimeout\(waitNoteTimer\)/);
   assert.match(js,/activeJobId===job.id/);
   assert.match(page,/id="mc-look-result-progress"/);
   assert.doesNotMatch(page,/class="mc-look-result-loader"/);
