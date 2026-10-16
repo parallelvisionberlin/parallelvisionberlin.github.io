@@ -1,0 +1,41 @@
+name: Verify PV LAB live Moods 2026-10-16
+on:
+  push:
+    branches: [verify/pvlab-moods-production-20261016]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Fetch real production pages and assert latest Moods markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://pvlab.studio"
+          stamp="${GITHUB_SHA}"
+          fetch() {
+            local path="$1" output="$2"
+            curl -fsSL --retry 2 --retry-delay 2 --connect-timeout 10 --max-time 35 \
+              -H 'Cache-Control: no-cache' "$base/$path?verify=$stamp" -o "$output"
+            printf '%s: %s bytes\n' "$path" "$(wc -c < "$output")"
+          }
+          fetch moods /tmp/live-moods.html
+          fetch explore-moods-nav.css /tmp/live-moods-nav.css
+          fetch explore-moods.js /tmp/live-moods.js
+          fetch app-mood-generation.js /tmp/live-mood-service.js
+          fetch studio-return-draft.js /tmp/live-draft.js
+          fetch studio.html /tmp/live-studio.html
+          fetch lab.js /tmp/live-lab.js
+          grep -Fq 'class="pv-unified-tools"' /tmp/live-moods.html || { echo 'MISSING: new global Moods header'; exit 1; }
+          grep -Fq 'id="mc-look-result"' /tmp/live-moods.html || { echo 'MISSING: in-modal generated result'; exit 1; }
+          grep -Fq 'returnToDraft=1' /tmp/live-moods.html || { echo 'MISSING: return-to-Studio draft links'; exit 1; }
+          grep -Fq 'mc-look-result' /tmp/live-moods-nav.css || { echo 'MISSING: expanded dialog styling'; exit 1; }
+          grep -Fq 'currentPrice.submit()' /tmp/live-moods.js || { echo 'MISSING: generate without Studio redirect'; exit 1; }
+          grep -Fq 'client.outputBlob(job.outputId)' /tmp/live-moods.js || { echo 'MISSING: authenticated generated result'; exit 1; }
+          grep -Fq 'jobStatus(id)' /tmp/live-mood-service.js || { echo 'MISSING: safe polling'; exit 1; }
+          grep -Fq 'saveStudioReturnDraft' /tmp/live-draft.js || { echo 'MISSING: browser draft return'; exit 1; }
+          grep -Fq 'returnToDraft' /tmp/live-lab.js || { echo 'MISSING: Studio draft return handler'; exit 1; }
+          grep -Fq 'moodsReturn=20261016v1' /tmp/live-studio.html || { echo 'MISSING: Studio draft return cache version'; exit 1; }
+          echo 'PASS: pvlab.studio production is serving ALL requested October 16 Moods features.'
