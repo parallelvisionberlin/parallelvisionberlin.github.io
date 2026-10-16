@@ -132,7 +132,12 @@ try{
   for(const route of ['landing','moods']){
     await page.goto('http://127.0.0.1:4193/'+route+'-header');
     assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),route==='landing'
-      ?['Image','Video','Upscaler','Explore Moods','Pricing']:['Image','Retouch','Video','Upscaler','Fashion','Explore Moods']);
+      ?['Image','Retouch','Video','Upscaler','Fashion','Explore Moods','Pricing']:['Image','Retouch','Video','Upscaler','Fashion','Explore Moods']);
+    if(route==='landing'){
+      const paths=await page.locator('.landing-header nav a').evaluateAll(els=>els.map(el=>new URL(el.href).pathname+new URL(el.href).search));
+      assert.ok(paths[1].endsWith('/studio.html?tool=retouch'),'Retouch goes to the existing Studio tool');
+      assert.ok(paths[4].endsWith('/studio.html?tool=fashion'),'Fashion goes to the existing Studio tool');
+    }
     if(route==='moods'){
       assert.equal(await page.getByRole('link',{name:'My Moods',exact:true}).getAttribute('href'),'./mood-creator.html#my-moods');
       assert.equal(await page.locator('.pv-moods-create').getAttribute('href'),'./mood-creator.html');
