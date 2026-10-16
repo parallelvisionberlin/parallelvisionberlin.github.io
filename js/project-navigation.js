@@ -26,7 +26,7 @@
     framePending = false;
     const y = Math.max(0, window.scrollY);
     const delta = y - lastY;
-    const engaged = nav.classList.contains("is-menu-open") || account.open || nav.contains(document.activeElement);
+    const engaged = nav.classList.contains("is-menu-open") || account.open || (nav.contains(document.activeElement) && document.activeElement.matches(":focus-visible"));
     nav.classList.toggle("is-scrolled", y > 56);
     if (engaged || y < Math.max(430, window.innerHeight * .72)) {
       nav.classList.remove("is-hidden");
