@@ -708,6 +708,10 @@ async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0,builtIn
   // Validate the entire batch before any transfer. Keep the private originals unchanged.
   for(const a of assets)if(!['image/jpeg','image/png','image/webp'].includes(a.mime)||a.bytes<=0||a.bytes>MAX_PROVIDER_IMAGE)
     fail(400,'SpicyAPI image uploads are limited to 10 MiB per file. Prepare a working copy in the Lab before requesting a price. Your original remains unchanged. No generation was submitted.');
+  // Provider file URIs last about a day; reuse only the owner's exact bytes,
+  // under the same API key, well before the confirmed expiration.
+  const keyHashBytes=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(key)));
+  const providerKeyFingerprint=Array.from(keyHashBytes,x=>x.toString(16).padStart(2,'0')).join('');
   const result=new Array(assets.length);let cursor=0,stopped=false;
   const work=async()=>{
     while(!stopped){
@@ -721,6 +725,12 @@ async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0,builtIn
           bytes=await limitedBody(new Response(object.body),MAX_PROVIDER_IMAGE);
         }
         if(bytes.length!==a.bytes||!sniff(bytes,a.mime))throw new Error('Stored reference image failed verification.');
+        const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+        const referenceKey=(a.data?'builtin:':'asset:')+(a.name||a.id||'')+':'+digest;
+        const existing=await first(env,
+          'SELECT uri FROM lab_spicy_reference_cache WHERE owner_id=? AND provider_key_fingerprint=? AND ref_key=? AND expires_at>?',
+          owner,providerKeyFingerprint,referenceKey,now()+15*60000);
+        if(existing&&FILE_URI.test(existing.uri)){result[i]=existing.uri;continue;}
         if(maxPixels){
           let dimensions;
           try{dimensions=storedImageDimensions(bytes,a.mime);}
@@ -754,9 +764,15 @@ async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0,builtIn
           committed.bytes!==bytes.length||committed.contentType!==a.mime||!FILE_URI.test(committed.uri||'')||
           committed.uri!=='spicy://f/'+ticket.fileId||!Number.isFinite(Date.parse(committed.expiresAt))||
           Date.parse(committed.expiresAt)<=now()+600000)throw new Error('Provider has not verified a usable reference upload.');
-        const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
         if(typeof committed.sha256!=='string'||committed.sha256.toLowerCase()!==digest)
           throw new Error('Provider reference checksum does not match the original image.');
+        // Never cache quote prices, only owner-scoped verified reference URIs.
+        // A failed cache write must not block the already verified image transfer.
+        try{
+          await run(env,
+            'INSERT INTO lab_spicy_reference_cache(owner_id,provider_key_fingerprint,ref_key,uri,expires_at,touched_at) VALUES(?,?,?,?,?,?) ON CONFLICT(owner_id,provider_key_fingerprint,ref_key) DO UPDATE SET uri=excluded.uri,expires_at=excluded.expires_at,touched_at=excluded.touched_at',
+            owner,providerKeyFingerprint,referenceKey,committed.uri,Math.min(Date.parse(committed.expiresAt),now()+12*3600000),now());
+        }catch{}
         result[i]=committed.uri;
       }catch(e){stopped=true;throw e;}
     }
