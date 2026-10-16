@@ -80,9 +80,16 @@ function compactReferenceInstruction(raw,index){
   return 'Reference '+(index+1)+' ['+(REFERENCE_ROLES.find(([id])=>id===r.role)?.[1]||r.role)+(target?' / '+target:'')+']: '+instruction+(r.note?' Note: '+r.note:'');
 }
 export function compileImagePrompt(direction,labels=[],settings={}){
-  // Preserve full original guidance unless an active Mood is editing a Base photograph.
-  // References-only always gets the full detailed map, even when a Mood is selected.
-  const compact=Boolean(settings?.moodId&&settings.referenceMode!=='references'&&labels.some(ref=>normalizeReferenceLabel(ref).role==='base'));
+  // Keep authored Mood and user direction intact. Base edits use the established
+  // concise role map. Text-only Dream Blur also needs that map for its four
+  // automatic Style photographs, or the verbose no-Base wrapper alone can push
+  // the complete provider prompt beyond 5,000 characters.
+  // Custom references-only workflows keep their detailed role map.
+  const roles=labels.map(normalizeReferenceLabel);
+  const builtInDreamBlurOnly=settings?.moodId==='dream-blur'&&roles.length===4&&
+    roles.every(ref=>ref.role==='style'&&ref.name.startsWith('Dream Blur style - '));
+  const compact=Boolean(settings?.moodId&&
+    ((settings.referenceMode!=='references'&&roles.some(ref=>ref.role==='base'))||builtInDreamBlurOnly));
   const original=compact?compileCompactUserImagePrompt(direction,labels):compileUserImagePrompt(direction,labels);
   const quality=imageQualityGuidance(direction,labels,settings,original.length);
   const prompt=quality?[original,quality].filter(Boolean).join('\n\n'):original;
