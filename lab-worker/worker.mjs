@@ -46,7 +46,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-16.1-krea3-fashion';
+export const VERSION = 'pv-lab-2026-10-16.2-mood-2k-fast';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1208,8 +1208,10 @@ async function saveFlashResult(env,j){
 
 async function privateMoodEarlyPreview(env,job){
   const p=JSON.parse(job.params||'{}');
+  // Hong Kong Nights' optional photochemical finish must be applied privately
+  // before revealing an image; never show the unprocessed provider intermediate.
   if(env.LAB_EARLY_PREVIEW_ENABLED!=='true'||p.type!=='image'||p.engine!=='seedream'||!p.moodId||
-    job.state!=='saving'||!job.remote_url)return new Response(null,{status:425});
+    !!p.filmFinish||job.state!=='saving'||!job.remote_url)return new Response(null,{status:425});
   // Serve through this owner's authenticated Worker route. Signed provider
   // URLs are NEVER returned to the browser, saved in a public cache, or redirected.
   let target=safeVideoUrl(job.remote_url),res;
