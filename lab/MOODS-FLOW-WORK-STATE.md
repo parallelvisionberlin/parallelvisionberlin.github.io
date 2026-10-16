@@ -107,3 +107,34 @@ Updated: 2026-10-16
   14:54 UTC. This verifies publication, not a direct visual browser check.
 - Next: refresh `https://pvlab.studio/moods` and evaluate motion with the
   real Mood photograph on both desktop and mobile.
+
+## 2026-10-16 neutral Mood loader and long-wait feedback
+- User screenshot of Synthetic Romance showed an emerald-tinted loader and
+  about two minutes of real waiting. This observation is not an SLA.
+- Refined the shared lightfield to neutral graphite/silver/pearl, removed radar
+  arcs and scanline pattern, preserved actual Mood photograph and modal layout.
+- At 45 seconds AFTER a confirmed paid job, show an honest optional-exit note:
+  users can close the dialog and follow the existing job in Image History.
+  The note never appears during quote preparation or after completion/failure.
+- No change to credits, prices, provider, prompt, generation, output or retry.
+  No paid job was run as part of the patch.
+- Source: `lab/explore-moods-nav.css`, `lab/moods.html`,
+  `lab/explore-moods.js`. Validation:
+  `tests/lab-explore-generation.mjs`,
+  `tests/lab-moods-inline-return.test.mjs`.
+- PR #259 merged to main at `3e5cc75ba709b473c84b8f5f50f321ff6db1b85e`.
+  Focused PR Explore Generate run `38921938643`, Lab tests
+  `38921938887`, static validation all passed on branch head
+  `517a9639ba6c231d219e9a433e817f21ba439a36`.
+- Two unrelated pre-existing image references and video browser suites still
+  fail. Do not claim every repository test passes.
+- Latency source review: Mood defaults to Seedream 5.0 Pro, with 3 server-side
+  Synthetic Romance references. Frontend polls every 4 seconds; backend
+  limits Spicy status checks to at least 8 seconds. No real production trace
+  was available to isolate the provider-versus-archive latency precisely.
+  Do not promise a generation speedup from this UI change.
+- For a future optional Fast mode, compare Seedream Flash against Pro on the
+  same Moods, with separate timing and image-quality evaluation and explicit
+  product/pricing approval before switching models.
+- Cloudflare Pages deployment status for merge commit: pending confirmation.
+  Next: verify the deployment and inspect real desktop/mobile output.
