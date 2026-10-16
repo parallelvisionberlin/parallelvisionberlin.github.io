@@ -4075,10 +4075,11 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     // Resolve direct Fashion, Retouch, Assets, or Mood entries before revealing
     // the application. Never flash the Image editor in place of another tool.
     const restoreEffects=new URLSearchParams(location.search).get('effects')==='1';
-    try{await restoreStudioEntry();if(restoreEffects&&tool==='video')openEffectsView({scroll:false});}catch(error){
+    try{await restoreStudioEntry();}catch(error){
       notify('Requested Studio view could not open. Your workspace is still available. '+error.message,true);
       if(owner)setTool('image');
     }
+    if(restoreEffects&&tool==='video')openEffectsView({scroll:false});
     finishLabBoot();
     if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();
     await Promise.all([loadHistory().finally(()=>$('history').removeAttribute('aria-busy')).catch(error=>{
