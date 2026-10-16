@@ -1251,9 +1251,12 @@ function syncImageGalleryEmpty(){
 // quotations and final Generate all remain owned by their existing flows.
 const welcomeRequested=new URLSearchParams(location.search).get('welcome')==='1';
 const welcomePrompts=Object.freeze({
-  'night-flash':'An authentic late-night fashion portrait on a Berlin side street, direct on-camera flash, black tailored jacket, natural skin texture, spontaneous expression, rich dark background, documentary editorial photography.',
-  'polaroid-600':'A candid studio fashion portrait of a person in a dark tailored jacket, intimate direct light, natural expression, tactile fabrics and real skin texture, restrained composition, convincing analog photographic detail.',
-  '90s-cinema':'An atmospheric 1990s film still of two friends browsing vinyl records in a dim independent record shop, warm window light, relaxed gestures, layered clothing, believable interior, realistic photography.'
+  'dream-blur':'A photographic blue motion blur, passing headlights and rain-streaked reflections, intimate fragmented detail, realistic long exposure, deep cobalt shadows and light trails, natural film grain and beautiful imperfection.',
+  '90s-cinema':'An atmospheric 1990s film still of two friends browsing vinyl records in a dim independent record shop, warm window light, relaxed gestures, layered clothing, believable interior, realistic photography.',
+  'fashion-editorial':'A contemporary high-fashion editorial portrait of a woman in a black leather jacket, direct soft flash, natural wet hair, compelling gaze, authentic skin texture, rich deep blacks, striking camera presence, photographic realism.',
+  'dreamcore':'An uncanny tranquil indoor swimming pool with pastel pink and peach clouds beyond enormous windows, water reflecting the sunset, quiet tiled architecture, soft ambient light, believable photographed materials, dreamlike serenity.',
+  'hong-kong-nights':'A rainy Asian side street at dusk seen through deep green haze, warm shopfront neon, wet reflections, a solitary passerby and a dark taxi, realistic atmospheric photography, mist, rich shadows and natural halation.',
+  '80s-film':'A quiet golden sunset over a wide ocean beach, ripples breaking on wet sand, a distant dark rocky island, deep orange dusk, tactile analog color, soft warm film grain, peaceful natural landscape photography.'
 });
 function resetWelcomeStart(){
   const panel=$('lab-welcome-start'),intro=$('lab-image-empty-intro');
