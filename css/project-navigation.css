@@ -1,0 +1,150 @@
+/* Parallel Vision project navigation: Berlin 2063 + Fashion After Fabric only. */
+.pv-berlin .archive-nav.pv-project-nav,
+.pv-fashion .archive-nav.pv-project-nav {
+  position:fixed;inset:0 0 auto;z-index:220;width:100%;height:78px;min-height:0;
+  padding:0 32px;margin:0;display:flex;align-items:center;justify-content:center;gap:0;
+  overflow:visible;background:rgba(7,8,10,.16);border:0;border-bottom:1px solid rgba(255,255,255,.12);
+  color:#eeeee9;font:500 11px/1.25 Inter,Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;
+  transition:height .26s ease,background-color .26s ease,transform .3s ease,border-color .26s ease,backdrop-filter .26s ease;
+}
+.pv-berlin .archive-nav.pv-project-nav.is-scrolled,
+.pv-fashion .archive-nav.pv-project-nav.is-scrolled {
+  height:54px;background:rgba(8,9,11,.92);border-bottom-color:rgba(255,255,255,.16);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+}
+.pv-berlin .archive-nav.pv-project-nav.is-hidden,
+.pv-fashion .archive-nav.pv-project-nav.is-hidden {transform:translate3d(0,-105%,0)}
+.pv-project-nav .pv-project-nav-inner {
+  width:min(100%,1320px);height:100%;margin:0 auto;position:relative;
+  display:flex;align-items:center;justify-content:space-between;gap:28px;
+}
+.pv-berlin .pv-project-nav .pv-project-nav-brand,
+.pv-fashion .pv-project-nav .pv-project-nav-brand {
+  display:inline-flex;align-items:center;flex-shrink:0;min-height:44px;opacity:1;
+  color:#f2f2ef;font:600 11px/1.1 Inter,Arial,sans-serif;letter-spacing:.18em;
+  white-space:nowrap;text-decoration:none;
+}
+.pv-berlin .pv-project-nav .archive-nav-links.pv-project-nav-actions,
+.pv-fashion .pv-project-nav .archive-nav-links.pv-project-nav-actions {
+  display:flex;align-items:center;justify-content:flex-end;flex:1 1 auto;min-width:0;gap:clamp(10px,1.2vw,18px);
+}
+.pv-project-nav .pv-project-nav-sections {
+  display:flex;align-items:center;justify-content:flex-end;min-width:0;
+  gap:clamp(15px,1.7vw,30px);margin-right:8px;
+}
+.pv-berlin .pv-project-nav .pv-project-nav-sections>a,
+.pv-fashion .pv-project-nav .pv-project-nav-sections>a {
+  position:relative;display:inline-flex;align-items:center;flex-shrink:0;min-height:44px;
+  color:#e3e3df;opacity:.76;font:500 10px/1.25 Inter,Arial,sans-serif;
+  letter-spacing:.12em;text-decoration:none;white-space:nowrap;
+  transition:opacity .2s ease,color .2s ease;
+}
+.pv-project-nav .pv-project-nav-sections>a::after {
+  content:"";position:absolute;height:1px;left:0;right:0;bottom:7px;
+  background:#efefeb;opacity:0;transform:scaleX(.4);transform-origin:center;
+  transition:opacity .2s ease,transform .2s ease;
+}
+.pv-berlin .pv-project-nav .pv-project-nav-sections>a:hover,
+.pv-fashion .pv-project-nav .pv-project-nav-sections>a:hover,
+.pv-berlin .pv-project-nav .pv-project-nav-sections>a[aria-current="page"],
+.pv-fashion .pv-project-nav .pv-project-nav-sections>a[aria-current="page"] {color:#fff;opacity:1}
+.pv-project-nav .pv-project-nav-sections>a[aria-current="page"]::after {opacity:.78;transform:scaleX(1)}
+.pv-project-nav .pv-project-account {position:relative;order:2;flex:0 0 auto}
+.pv-berlin .pv-project-nav .pv-project-account>summary,
+.pv-fashion .pv-project-nav .pv-project-account>summary {
+  display:grid;place-items:center;cursor:pointer;width:36px;height:36px;min-height:36px;
+  padding:0;border:1px solid rgba(255,255,255,.45);border-radius:50%;list-style:none;
+  color:#f1f1ed;background:rgba(0,0,0,.12);font-size:inherit;
+  transition:background-color .2s ease,border-color .2s ease;
+}
+.pv-project-nav .pv-project-account>summary::-webkit-details-marker{display:none}
+.pv-project-nav .pv-project-account>summary::after {content:none}
+.pv-project-nav .pv-project-account>summary:hover,
+.pv-project-nav .pv-project-account[open]>summary {
+  background:rgba(255,255,255,.13);border-color:#fff;
+}
+.pv-project-nav .pv-project-account>summary svg,
+.pv-project-nav .pv-project-nav-toggle svg {
+  display:block;width:17px;height:17px;fill:none;stroke:currentColor;
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+}
+.pv-project-nav .pv-project-account-panel {
+  position:absolute;top:calc(100% + 14px);right:0;z-index:4;width:226px;padding:12px 18px;
+  background:rgba(11,12,14,.98);border:1px solid rgba(255,255,255,.24);
+  box-shadow:0 12px 32px rgba(0,0,0,.28);
+}
+.pv-berlin .pv-project-nav .pv-project-account-panel a,
+.pv-fashion .pv-project-nav .pv-project-account-panel a {
+  display:flex;align-items:center;min-height:43px;padding:0;opacity:.83;
+  font:400 12px/1.3 Inter,Arial,sans-serif;letter-spacing:0;text-transform:none;
+  color:#e5e5df;text-decoration:none;
+}
+.pv-berlin .pv-project-nav .pv-project-account-panel a:hover,
+.pv-fashion .pv-project-nav .pv-project-account-panel a:hover{opacity:1}
+.pv-berlin .pv-project-nav .pv-language-switch,
+.pv-fashion .pv-project-nav .pv-language-switch {
+  order:4;flex:0 0 auto;min-height:36px;margin:0 0 0 3px;padding:0 2px;
+  color:#f0f0e9;background:none;font:500 10px/1.25 Inter,Arial,sans-serif;
+  letter-spacing:.075em;text-transform:uppercase;
+}
+.pv-project-nav .pv-project-nav-toggle{display:none}
+.pv-project-nav .pv-project-sr-only{
+  position:absolute;width:1px;height:1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;clip-path:inset(50%);
+}
+.pv-berlin .pv-project-nav :where(a,button,summary):focus-visible,
+.pv-fashion .pv-project-nav :where(a,button,summary):focus-visible{
+  outline:1px solid #f0f0ec;outline-offset:4px;
+}
+.pv-berlin :where(section[id],main[id],.archive-anchor){scroll-margin-top:68px}
+.pv-fashion :where(section[id],main[id]){scroll-margin-top:68px}
+@media(max-width:980px){
+  .pv-berlin .archive-nav.pv-project-nav,.pv-fashion .archive-nav.pv-project-nav{
+    height:70px;padding:0 20px;
+  }
+  .pv-project-nav .pv-project-nav-inner{gap:12px}
+  .pv-berlin .pv-project-nav .archive-nav-links.pv-project-nav-actions,
+  .pv-fashion .pv-project-nav .archive-nav-links.pv-project-nav-actions{gap:8px}
+  .pv-project-nav .pv-project-nav-sections{
+    position:absolute;z-index:3;top:calc(100% + 1px);right:0;left:auto;
+    width:min(320px,calc(100vw - 40px));margin:0;padding:10px 20px;
+    flex-direction:column;align-items:stretch;gap:0;background:rgba(10,11,13,.98);
+    border:1px solid rgba(255,255,255,.22);box-shadow:0 18px 32px rgba(0,0,0,.28);
+    visibility:hidden;opacity:0;pointer-events:none;transform:translateY(-5px);
+    transition:opacity .18s ease,transform .18s ease,visibility .18s;
+  }
+  .pv-project-nav.is-menu-open .pv-project-nav-sections{
+    visibility:visible;opacity:1;pointer-events:auto;transform:translateY(0);
+  }
+  .pv-berlin .pv-project-nav .pv-project-nav-sections>a,
+  .pv-fashion .pv-project-nav .pv-project-nav-sections>a{
+    display:flex;width:100%;min-height:48px;font-size:11px;
+  }
+  .pv-project-nav .pv-project-nav-sections>a::after{
+    right:auto;bottom:7px;width:76px;transform-origin:left;
+  }
+  .pv-project-nav .pv-project-nav-toggle{
+    order:5;display:grid;place-items:center;flex:0 0 36px;
+    width:36px;height:36px;padding:0;border:1px solid rgba(255,255,255,.34);
+    border-radius:50%;color:#f1f1ed;background:transparent;cursor:pointer;
+  }
+  .pv-project-nav .pv-project-nav-toggle[aria-expanded="true"]{
+    background:rgba(255,255,255,.13);border-color:#fff;
+  }
+  .pv-project-nav .pv-project-account-panel{top:calc(100% + 12px)}
+}
+@media(max-width:520px){
+  .pv-berlin .archive-nav.pv-project-nav,.pv-fashion .archive-nav.pv-project-nav{padding:0 15px}
+  .pv-berlin .pv-project-nav .pv-project-nav-brand,
+  .pv-fashion .pv-project-nav .pv-project-nav-brand{font-size:10px;letter-spacing:.13em}
+  .pv-berlin .pv-project-nav .archive-nav-links.pv-project-nav-actions,
+  .pv-fashion .pv-project-nav .archive-nav-links.pv-project-nav-actions{gap:6px}
+  .pv-project-nav .pv-project-nav-toggle,
+  .pv-project-nav .pv-project-account>summary{width:34px;height:34px;min-height:34px}
+  .pv-berlin .pv-project-nav .pv-language-switch,
+  .pv-fashion .pv-project-nav .pv-language-switch{font-size:9px;margin-left:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .pv-berlin .archive-nav.pv-project-nav,.pv-fashion .archive-nav.pv-project-nav,
+  .pv-project-nav .pv-project-nav-sections{transition:none!important}
+}
