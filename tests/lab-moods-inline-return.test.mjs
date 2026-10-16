@@ -32,3 +32,18 @@ test('Studio Moods return is local, account scoped and restores model, images an
   assert.match(draft,/record\.userId!==userId/);
   assert.doesNotMatch(draft,/fetch\(/);
 });
+test('Dream Blur uses exactly the other Mood-card caption style',()=>{
+  const css=read('lab/explore-moods-editorial.css');
+  assert.match(css,/\.mc-look-card \.mc-look-copy strong\{/);
+  assert.doesNotMatch(css,/\[data-mood-id="dream-blur"\] \.mc-look-copy strong\{/);
+});
+test('Generate remains available while quote preparation is pending and uses the same paid submit',()=>{
+  const js=read('lab/explore-moods.js'),page=read('lab/moods.html');
+  assert.match(js,/generate\.disabled=!hasGenerationInput\(\)/);
+  assert.match(js,/if\(priceTask\?\.stamp===stamp\)return priceTask\.promise/);
+  assert.match(js,/const currentPrice=await preparePrice\(stamp\)/);
+  assert.equal((js.match(/currentPrice\.submit\(\)/g)||[]).length,1);
+  assert.doesNotMatch(js,/Generate ·/);
+  assert.match(page,/id="mc-look-credit-note"/);
+  assert.match(page,/oneClick=20261016v2/);
+});
