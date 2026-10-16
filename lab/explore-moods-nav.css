@@ -85,36 +85,34 @@
 }
 .mc-explore-page .mc-look-result-frame>img{display:block;width:100%;height:100%;object-fit:contain}
 .mc-explore-page .mc-look-result-frame>img[hidden]{display:none}
-/* PV LAB: Living Light. The stage is abstract light, never a fake output preview. */
+/* PV LAB: Silver Darkroom. Atmospheric light only, no fake output preview. */
 .mc-explore-page .mc-look-result-loading{
   position:absolute;inset:0;display:block;isolation:isolate;
   width:100%;height:100%;box-sizing:border-box;overflow:hidden;
-  background:#0b1211;color:#e8efe9;text-align:center;
+  background:#0e1013;color:#e9eaed;text-align:center;
   font:400 12px/1.5 'DM Sans',Arial,sans-serif;
 }
 .mc-explore-page .mc-look-result-loading[hidden]{display:none}
 .mc-explore-page .mc-look-result-loading::before{
   content:"";position:absolute;inset:-25%;z-index:-1;
   background:
-    radial-gradient(ellipse 44% 56% at 35% 48%,rgba(57,117,95,.33),transparent 88%),
-    radial-gradient(ellipse 30% 38% at 72% 35%,rgba(87,137,139,.25),transparent 83%),
-    radial-gradient(ellipse 42% 45% at 52% 75%,rgba(19,61,57,.38),transparent 83%);
+    radial-gradient(ellipse 44% 56% at 35% 48%,rgba(173,179,192,.22),transparent 88%),
+    radial-gradient(ellipse 30% 38% at 72% 35%,rgba(219,216,208,.14),transparent 83%),
+    radial-gradient(ellipse 42% 45% at 52% 75%,rgba(73,78,91,.23),transparent 83%);
   filter:blur(18px);animation:pv-light-ambient 13s ease-in-out infinite alternate;
 }
 .mc-explore-page .mc-look-result-loading::after{
   content:"";position:absolute;inset:0;z-index:4;pointer-events:none;opacity:.6;
-  background:
-    repeating-linear-gradient(0deg,transparent 0 3px,rgba(223,255,229,.026) 3px 4px),
-    linear-gradient(180deg,rgba(4,12,10,.12) 0%,transparent 40%,rgba(4,10,9,.34) 67%,rgba(4,10,9,.92) 100%);
+  background:linear-gradient(180deg,rgba(7,8,11,.1) 0%,transparent 38%,rgba(6,7,9,.25) 65%,rgba(6,7,9,.91) 100%);
 }
 .mc-explore-page .mc-look-exposure{
   position:absolute;inset:0;z-index:1;overflow:hidden;
-  background:radial-gradient(ellipse at 53% 45%,rgba(55,95,83,.19),transparent 60%);
+  background:radial-gradient(ellipse at 53% 45%,rgba(147,152,165,.13),transparent 60%);
 }
 .mc-explore-page .mc-look-exposure-halo{
   position:absolute;width:min(75%,320px);height:110%;top:-6%;left:12%;
   border-radius:50%;
-  background:conic-gradient(from 70deg at 50% 50%,transparent 0 55deg,rgba(166,222,198,.16) 72deg,transparent 104deg,rgba(206,239,231,.15) 151deg,transparent 192deg,rgba(99,172,158,.25) 280deg,transparent 320deg);
+  background:conic-gradient(from 70deg at 50% 50%,transparent 0 55deg,rgba(217,218,224,.15) 72deg,transparent 104deg,rgba(245,240,229,.13) 151deg,transparent 192deg,rgba(150,158,180,.16) 280deg,transparent 320deg);
   filter:blur(24px);mix-blend-mode:screen;
   animation:pv-light-turn 13s ease-in-out infinite alternate;
 }
@@ -122,54 +120,40 @@
   position:absolute;width:min(62%,270px);height:94%;top:-5%;left:19%;
   border-radius:44% 56% 62% 38% / 39% 63% 37% 61%;
   background:
-    radial-gradient(ellipse 60% 50% at 30% 23%,rgba(208,248,229,.61),transparent 76%),
-    radial-gradient(ellipse 48% 70% at 76% 72%,rgba(67,151,131,.53),transparent 80%),
-    conic-gradient(from 135deg at 53% 48%,rgba(7,22,20,.04),rgba(199,236,218,.18),rgba(25,75,69,.28),rgba(173,221,204,.12),rgba(7,22,20,.04));
+    radial-gradient(ellipse 60% 50% at 30% 23%,rgba(242,238,232,.5),transparent 76%),
+    radial-gradient(ellipse 48% 70% at 76% 72%,rgba(162,170,190,.35),transparent 80%),
+    conic-gradient(from 135deg at 53% 48%,rgba(16,19,25,.06),rgba(234,232,228,.18),rgba(74,82,102,.25),rgba(218,220,227,.13),rgba(7,22,20,.04));
   filter:blur(21px);mix-blend-mode:screen;
   animation:pv-light-bloom 7.8s ease-in-out infinite alternate;
 }
 .mc-explore-page .mc-look-exposure-shadow{
   position:absolute;width:min(45%,190px);height:88%;top:-3%;left:32%;
   border-radius:59% 41% 29% 71% / 42% 44% 56% 58%;
-  background:radial-gradient(ellipse at 38% 53%,rgba(5,22,20,.82),rgba(11,33,30,.46) 48%,transparent 72%);
+  background:radial-gradient(ellipse at 38% 53%,rgba(12,14,21,.78),rgba(27,31,42,.48) 48%,transparent 72%);
   filter:blur(17px);animation:pv-light-shadow 8.5s ease-in-out infinite alternate;
 }
 .mc-explore-page .mc-look-exposure-ribbon{
   position:absolute;top:-66%;left:14%;width:45%;height:238%;
-  background:linear-gradient(90deg,transparent 5%,rgba(177,219,214,.025) 27%,rgba(220,255,231,.26) 49%,rgba(114,204,188,.11) 58%,transparent 86%);
+  background:linear-gradient(90deg,transparent 5%,rgba(215,216,229,.04) 27%,rgba(247,246,240,.27) 49%,rgba(187,190,209,.15) 58%,transparent 86%);
   filter:blur(10px);mix-blend-mode:screen;transform:rotate(33deg) translateX(-65%);
   animation:pv-light-ribbon 8.2s cubic-bezier(.4,0,.6,1) infinite;
 }
 .mc-explore-page .mc-look-exposure-ribbon--back{
   top:-80%;left:34%;width:35%;height:260%;filter:blur(19px);
-  background:linear-gradient(90deg,transparent,rgba(90,190,178,.12) 39%,rgba(218,249,220,.17) 54%,transparent 77%);
+  background:linear-gradient(90deg,transparent,rgba(143,150,177,.13) 39%,rgba(237,237,245,.16) 54%,transparent 77%);
   animation-duration:11.8s;animation-delay:-5.8s;transform:rotate(-37deg);
-}
-.mc-explore-page .mc-look-exposure-arc{
-  position:absolute;width:min(49%,220px);aspect-ratio:1;top:4%;left:26%;
-  border-radius:59% 41% 55% 45% / 46% 52% 48% 54%;
-  border:1px solid rgba(204,248,229,.23);
-  box-shadow:inset 0 0 34px rgba(103,198,170,.055),0 0 28px rgba(157,219,207,.055);
-  transform:rotate(-21deg) scale(.88);
-  animation:pv-light-arc 10s ease-in-out infinite alternate;
-}
-.mc-explore-page .mc-look-exposure-arc--other{
-  top:-10%;left:39%;width:min(44%,195px);
-  border-color:rgba(180,238,228,.16);
-  transform:rotate(35deg) scale(1.16);
-  animation-delay:-4s;animation-duration:12s;
 }
 .mc-explore-page .mc-look-exposure-flash{
   position:absolute;left:-18%;top:16%;width:140%;height:1px;
-  background:linear-gradient(90deg,transparent 8%,rgba(220,255,234,.19) 29%,rgba(242,255,247,.68) 50%,rgba(137,219,197,.13) 67%,transparent 89%);
-  box-shadow:0 0 22px rgba(216,255,229,.24),0 0 48px rgba(96,187,168,.18);
+  background:linear-gradient(90deg,transparent 8%,rgba(221,224,232,.16) 29%,rgba(253,249,238,.58) 50%,rgba(174,184,210,.12) 67%,transparent 89%);
+  box-shadow:0 0 22px rgba(242,242,247,.18),0 0 48px rgba(174,179,207,.11);
   transform:translateY(-120px) rotate(-17deg);opacity:0;
   animation:pv-light-flash 7.6s ease-in-out infinite;
 }
 .mc-explore-page .mc-look-exposure-mark{
   position:absolute;top:15px;right:17px;z-index:3;
   font:500 9px/1 'Space Grotesk',Arial,sans-serif;letter-spacing:.18em;
-  color:rgba(214,239,224,.49);
+  color:rgba(211,215,227,.52);
 }
 .mc-explore-page .mc-look-exposure-copy{
   position:absolute;left:12px;right:12px;bottom:16px;z-index:5;
@@ -181,8 +165,8 @@
 .mc-explore-page .mc-look-exposure-story span{
   position:absolute;inset:0;display:flex;justify-content:center;align-items:center;
   font:500 clamp(10px,1.05vw,12px)/1.4 'Space Grotesk',Arial,sans-serif;
-  letter-spacing:.12em;color:#f0f6ee;opacity:0;
-  text-shadow:0 0 24px rgba(214,255,225,.19);
+  letter-spacing:.12em;color:#f1f1f3;opacity:0;
+  text-shadow:0 0 24px rgba(237,236,239,.15);
 }
 .mc-explore-page .mc-look-exposure-story .mc-look-story-one{animation:pv-light-story 18s ease-in-out infinite 0s}
 .mc-explore-page .mc-look-exposure-story .mc-look-story-two{animation:pv-light-story 18s ease-in-out infinite -12s}
@@ -192,17 +176,22 @@
 .mc-explore-page .mc-look-exposure-overline{
   display:flex;align-items:center;justify-content:center;gap:8px;
   font:500 9px/1.35 'Space Grotesk',Arial,sans-serif;
-  letter-spacing:.16em;color:#a1b4aa;
+  letter-spacing:.16em;color:#b2b4bc;
 }
 .mc-explore-page .mc-look-exposure-pulse{
-  flex:none;width:5px;height:5px;border-radius:50%;background:#bcefa1;
-  box-shadow:0 0 12px rgba(187,244,151,.43);
+  flex:none;width:5px;height:5px;border-radius:50%;background:#e2e2e5;
+  box-shadow:0 0 12px rgba(231,231,236,.32);
   animation:pv-light-pulse 2.5s ease-in-out infinite;
 }
 .mc-explore-page #mc-look-result-progress{
-  display:block;max-width:100%;font-size:12px;line-height:1.45;color:#dae8df;
+  display:block;max-width:100%;font-size:12px;line-height:1.45;color:#e3e3e8;
   text-wrap:balance;overflow-wrap:anywhere;
 }
+.mc-explore-page #mc-look-result-wait-note{
+  display:block;max-width:330px;margin-top:1px;color:#a7a9b1;
+  font:400 10px/1.35 'DM Sans',Arial,sans-serif;text-wrap:balance;
+}
+.mc-explore-page #mc-look-result-wait-note[hidden]{display:none}
 .mc-explore-page .mc-look-result-loading.is-finishing .mc-look-exposure-story span,
 .mc-explore-page .mc-look-result-loading.is-stopped .mc-look-exposure-story span{animation:none;opacity:0}
 .mc-explore-page .mc-look-result-loading.is-finishing .mc-look-exposure-story .mc-look-story-finish{
@@ -211,7 +200,7 @@
 .mc-explore-page .mc-look-result-loading.is-stopped .mc-look-exposure-story .mc-look-story-halt{
   opacity:1;animation:none!important;transform:none;
 }
-.mc-explore-page .mc-look-result-loading.is-stopped .mc-look-exposure-pulse{background:#8ca49a;box-shadow:none}
+.mc-explore-page .mc-look-result-loading.is-stopped .mc-look-exposure-pulse{background:#a2a4ad;box-shadow:none}
 .mc-explore-page .mc-look-result-loading.is-stopped *,
 .mc-explore-page .mc-look-result-loading.is-stopped::before{animation-play-state:paused!important}
 .mc-explore-page .mc-look-result-frame>img:not([hidden]){
@@ -318,10 +307,6 @@
   85%{opacity:.62}
   100%{transform:rotate(33deg) translateX(180%);opacity:0}
 }
-@keyframes pv-light-arc{
-  from{transform:rotate(-35deg) scale(.76);opacity:.29;border-radius:59% 41% 55% 45% / 46% 52% 48% 54%}
-  to{transform:rotate(62deg) scale(1.24);opacity:.7;border-radius:43% 57% 38% 62% / 60% 42% 58% 40%}
-}
 @keyframes pv-light-flash{
   0%,11%{opacity:0;transform:translateY(-120px) rotate(-17deg)}
   30%{opacity:.9}
@@ -352,7 +337,6 @@
   .mc-explore-page .mc-look-exposure-story span{font-size:9px;letter-spacing:.085em}
   .mc-explore-page .mc-look-exposure-overline{font-size:8px}
   .mc-explore-page #mc-look-result-progress{font-size:11px}
-  .mc-explore-page .mc-look-exposure-arc{top:-30%}
 }
 @media(prefers-reduced-motion:reduce){
   .mc-explore-page .mc-look-result{transition:none}

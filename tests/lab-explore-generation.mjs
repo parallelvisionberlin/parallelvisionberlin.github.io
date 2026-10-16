@@ -149,6 +149,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    assert.equal(await page.locator('#mc-look-dropzone').isVisible(),false);
    assert.equal(await page.locator('.mc-look-prompt').isVisible(),false);
    assert.equal(await page.locator('.mc-look-dialog-actions').isVisible(),false);
+   assert.equal(await page.locator('#mc-look-result-wait-note').isVisible(),false,
+     'Long-wait guidance must not appear immediately on Generate');
    if(['desktop','mobile','small','compact','phone'].includes(scenario)){
      const layout=await page.evaluate(()=>{
        const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();
@@ -200,12 +202,16 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      await page.waitForFunction(()=>document.querySelector('#mc-look-result-progress').textContent.includes('Not enough credits.'));
      assert.equal(paid,1,'One confirmed attempt, no automatic retry');
      assert.equal(await page.locator('#mc-look-result-actions').isVisible(),false);
+     assert.equal(await page.locator('#mc-look-result-wait-note').isVisible(),false,
+       'A failed submission never displays a misleading continue-waiting hint');
      assert.equal(await page.locator('#mc-look-result-loading').getAttribute('class'),'mc-look-result-loading is-stopped',
        'A failed submission must not keep animating as if it were running');
    }else{
      await page.locator('#mc-look-result-image').waitFor({state:'visible'});
      assert.equal(paid,1,'One explicit click submits exactly one paid job');
      assert.equal(await page.locator('#mc-look-result-actions').isVisible(),true);
+     assert.equal(await page.locator('#mc-look-result-wait-note').isVisible(),false,
+       'A completed job never keeps the long-wait hint visible');
      assert.equal(await page.locator('#mc-look-result-again').isVisible(),true);
      const downloadEvent=page.waitForEvent('download');
      await page.locator('#mc-look-result-download').click();
