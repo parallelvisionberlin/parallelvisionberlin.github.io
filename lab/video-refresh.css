@@ -242,7 +242,7 @@
 }
 #app.video-studio-active .video-feed-center #history .card[data-kind="video"]>.history-media img{
   display:block;position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;
+  object-fit:contain;
 }
 #app.video-studio-active .video-feed-center #history .history-video-play{
   position:absolute;bottom:10px;left:10px;
