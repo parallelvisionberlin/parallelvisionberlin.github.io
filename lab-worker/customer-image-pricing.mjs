@@ -3,6 +3,7 @@
 // wallet mutations, jobs, reservations or payouts occur here.
 import {creditsForJobUsd} from './job-pricing.mjs';
 import {IMAGE_PRICES} from './image-models.mjs';
+import {krea3EstimateMicros} from './krea3.mjs';
 import {soulProEstimateMicros} from './soul-pro.mjs';
 import {controlledPoseEstimateMicros} from './fal-controlled-pose.mjs';
 
@@ -10,7 +11,10 @@ export function quoteCustomerImageCredits(p,count,{geminiEstimateMicros}={}){
   if(!p||p.type!=='image')throw new Error('Choose an image model.');
   if(!Number.isInteger(count)||count<1||count>20)throw new Error('Choose a supported image count.');
   let estimatedMicros;
-  if(p.engine==='kling'){
+  if(p.engine==='krea3'){
+    if(count>4)throw new Error('Krea 3 supports up to four images.');
+    estimatedMicros=krea3EstimateMicros(p,(p.referenceRoles||[]).length);
+  }else if(p.engine==='kling'){
     if(count>4)throw new Error('This model supports up to four images.');
     estimatedMicros=IMAGE_PRICES[p.engine];
   }else if(['gemini','gemini21'].includes(p.engine)){
