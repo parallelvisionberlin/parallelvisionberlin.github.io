@@ -1,0 +1,376 @@
+/* PV LAB homepage / editorial purchase cards, approved 16 Oct 2026.
+   Visual layer only: product IDs, prices, estimate math and Stripe handlers
+   remain in the existing homepage and customer entry modules. */
+
+#pricing.lab-plans{
+  background:#0d0d0d;
+  color:#f5f3ef;
+}
+#pricing .lab-pricing-comparison{min-width:0}
+#pricing h2{
+  max-width:none;
+  margin:10px 0 15px;
+  font:300 clamp(38px,3.05vw,51px)/1.07 "DM Sans",Arial,sans-serif;
+  letter-spacing:-.056em;
+}
+#pricing .lab-plans-intro{
+  max-width:610px;
+  margin:0 0 19px;
+  font-size:14px;
+  line-height:1.6;
+  color:#b9b9b9;
+}
+#pricing .lab-pricing-options{
+  margin-bottom:13px;
+  border-bottom:1px solid #323232;
+}
+#pricing .lab-pricing-options [role="tab"]{
+  min-height:45px;
+  font-size:16px;
+  padding-bottom:10px;
+}
+#pricing .lab-plans-grid{
+  gap:13px!important;
+  background:transparent;
+}
+
+/* Every plan keeps its original direct-child checkout button. */
+#pricing .lab-plan{
+  position:relative;
+  isolation:isolate;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) clamp(148px,13vw,187px);
+  grid-template-areas:
+    "name price"
+    "description price"
+    "credits action"
+    "usage action";
+  align-content:center;
+  align-items:start;
+  row-gap:3px;
+  column-gap:clamp(15px,2vw,29px);
+  min-height:139px!important;
+  margin:0!important;
+  padding:18px clamp(17px,1.6vw,24px)!important;
+  border:1px solid #454545!important;
+  border-radius:10px!important;
+  background:#101010!important;
+  color:#f5f3ef;
+  box-shadow:0 6px 23px rgba(0,0,0,.16);
+  transition:border-color .2s ease,box-shadow .2s ease,background-color .2s ease;
+}
+#pricing .lab-plan:hover{
+  background:#151515!important;
+  border-color:#898989!important;
+  box-shadow:0 8px 26px rgba(0,0,0,.28);
+}
+#pricing .lab-plan:has(.lab-estimate-details:is(:hover,:focus-within,.is-open)){z-index:5}
+#pricing .lab-plan-name{
+  grid-area:name;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+  min-width:0;
+  margin:0;
+  color:#f8f7f4;
+  font:400 clamp(23px,1.55vw,28px)/1.12 "DM Sans",Arial,sans-serif;
+  letter-spacing:-.045em;
+  text-transform:none;
+}
+#pricing .lab-plan-description{
+  grid-area:description;
+  display:block;
+  position:static!important;
+  clip-path:none!important;
+  width:auto!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+  white-space:normal!important;
+  margin:0!important;
+  padding:0!important;
+  color:#a9a9ab;
+  font:400 12.5px/1.45 "DM Sans",Arial,sans-serif;
+}
+#pricing .lab-plan-credits{
+  grid-area:credits;
+  margin:9px 0 0!important;
+  color:#e4e2de;
+  font:400 13px/1.35 "DM Sans",Arial,sans-serif;
+}
+#pricing .lab-plan-usage{
+  grid-area:usage;
+  padding:2px 0 0;
+  min-width:0;
+  align-self:center;
+}
+#pricing .lab-plan-usage-stats{
+  display:flex;
+  align-items:center;
+  gap:4px 16px;
+  flex-wrap:wrap;
+  color:#c4c3c2;
+  font:400 11.7px/1.35 "DM Sans",Arial,sans-serif;
+}
+#pricing .lab-plan-price{
+  grid-area:price;
+  display:flex!important;
+  align-self:start;
+  justify-self:end;
+  align-items:flex-end!important;
+  flex-direction:column;
+  gap:6px;
+  margin:0!important;
+  color:#f5f3ef;
+  font:400 clamp(28px,1.88vw,34px)/1 "DM Sans",Arial,sans-serif!important;
+  letter-spacing:-.058em;
+  white-space:nowrap;
+}
+#pricing .lab-plan-price small{
+  display:block;
+  color:#a9a9ab;
+  font:400 11.5px/1.2 "DM Sans",Arial,sans-serif;
+  letter-spacing:0;
+  margin:0;
+}
+#pricing .lab-plan>button[data-lab-buy]{
+  grid-area:action;
+  justify-self:stretch;
+  align-self:end;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  min-width:0;
+  height:43px;
+  min-height:43px;
+  margin:8px 0 0!important;
+  padding:10px 15px!important;
+  border:1px solid #9f9f9f;
+  border-radius:3px;
+  background:rgba(16,16,16,.58);
+  color:#f7f6f4;
+  text-align:left;
+  font:500 12px/1.2 "DM Sans",Arial,sans-serif;
+  cursor:pointer;
+}
+#pricing .lab-plan>button[data-lab-buy] .lab-buy-label{min-width:0}
+#pricing .lab-plan>button[data-lab-buy] .pv-arrow-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+#pricing .lab-plan>button[data-lab-buy] .pv-arrow-svg{
+  width:16px;height:16px;
+  transform:none!important;
+  stroke-width:1.6;
+}
+#pricing .lab-plan:hover>button[data-lab-buy],
+#pricing .lab-plan>button[data-lab-buy]:hover,
+#pricing .lab-plan>button[data-lab-buy]:focus-visible,
+#pricing .lab-plan>button[data-lab-buy][aria-busy="true"]{
+  color:#111;
+  background:#f3f2f0;
+  border-color:#f3f2f0;
+}
+#pricing .lab-plan>button[data-lab-buy]:focus-visible{
+  outline:2px solid white;
+  outline-offset:3px;
+}
+#pricing .lab-plan>.lab-purchase-status{
+  grid-area:auto;
+  grid-column:1/-1;
+  grid-row:auto;
+  margin-top:8px;
+}
+
+/* Creator is recommended editorially, never described as "most popular". */
+#pricing #lab-monthly-plans .lab-plan--recommended{
+  min-height:157px!important;
+  border-color:#e8e7e4!important;
+  background:#101010!important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.1),0 8px 28px rgba(0,0,0,.3);
+}
+#pricing #lab-monthly-plans .lab-plan--recommended::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  border-radius:inherit;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,#101010 0%,rgba(16,16,16,.96) 32%,rgba(16,16,16,.73) 60%,rgba(16,16,16,.7) 100%),
+    url("./visuals/leather-editorial/hero-desktop.webp") 75% 40% / cover no-repeat;
+}
+#pricing #lab-monthly-plans .lab-plan--recommended:hover{
+  border-color:#fff!important;
+  background:#111!important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.28),0 12px 28px rgba(0,0,0,.35);
+}
+#pricing .lab-plan-tag{
+  display:inline-flex;
+  align-items:center;
+  padding:5px 9px 4px;
+  border:1px solid #898989;
+  border-radius:99px;
+  color:#dfdfdf;
+  background:rgba(13,13,13,.38);
+  font:500 9px/1.1 "DM Sans",Arial,sans-serif;
+  letter-spacing:.075em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+#pricing #lab-monthly-plans .lab-plan--recommended>button[data-lab-buy]{
+  background:#f5f4f2;
+  border-color:#f5f4f2;
+  color:#121212;
+}
+#pricing #lab-monthly-plans .lab-plan--recommended>button[data-lab-buy]:is(:hover,:focus-visible){
+  background:#fff;
+  border-color:#fff;
+  box-shadow:0 0 0 2px rgba(255,255,255,.16);
+}
+
+/* A compact shared capability row avoids repeating "upscaling available"
+   on every plan. Counts remain illustrative and model-dependent. */
+#pricing .lab-pricing-benefits{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px 13px;
+  margin-top:15px;
+  min-height:42px;
+  padding:11px 15px;
+  border:1px solid #373737;
+  border-radius:7px;
+  background:#111;
+}
+#pricing .lab-pricing-benefits>span{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  color:#aaa9a7;
+  font:400 11px/1.25 "DM Sans",Arial,sans-serif;
+  white-space:nowrap;
+}
+#pricing .lab-pricing-benefits svg{
+  width:14px;height:14px;
+  color:#bdbbb8;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.55;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  flex:0 0 14px;
+}
+#pricing .lab-pricing-footnote{margin-top:12px}
+#pricing .lab-estimate-details{z-index:4}
+
+/* Standard laptop proportions: keep everything visible when possible. */
+@media(min-width:1251px) and (max-height:940px){
+  #pricing.lab-plans{padding-block:clamp(20px,3vh,29px)}
+  #pricing .lab-pricing-deck{height:clamp(345px,48vh,421px)}
+  #pricing .lab-pricing-welcome{margin-top:36px}
+  #pricing .lab-pricing-welcome h3{margin-block:9px;font-size:clamp(32px,2.35vw,37px)}
+  #pricing .lab-pricing-welcome>p{margin-bottom:16px}
+  #pricing .lab-pricing-free-cta{min-height:50px}
+  #pricing .lab-plan{min-height:132px!important;padding-block:15px!important}
+  #pricing #lab-monthly-plans .lab-plan--recommended{min-height:150px!important}
+  #pricing .lab-plans-intro{margin-bottom:16px}
+  #pricing .lab-pricing-options [role="tab"]{min-height:42px}
+}
+@media(min-width:1251px) and (max-height:760px){
+  #pricing h2{font-size:clamp(35px,2.8vw,43px);margin:7px 0 10px}
+  #pricing .lab-plans-intro{margin-bottom:11px}
+  #pricing .lab-plans-grid{gap:9px!important}
+  #pricing .lab-plan{min-height:116px!important;padding:11px 16px!important}
+  #pricing #lab-monthly-plans .lab-plan--recommended{min-height:126px!important}
+  #pricing .lab-plan-name{font-size:23px}
+  #pricing .lab-plan-description{font-size:11px}
+  #pricing .lab-plan-credits{margin-top:4px!important}
+  #pricing .lab-plan>button[data-lab-buy]{min-height:38px;height:38px}
+  #pricing .lab-pricing-benefits{margin-top:10px;padding:8px 12px}
+}
+
+/* Tablet: split columns are retained, while the individual purchase card
+   reflows to keep every button readable and full-width. */
+@media(min-width:761px) and (max-width:1250px){
+  #pricing .lab-plan{
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:
+      "name price"
+      "description description"
+      "credits credits"
+      "usage usage"
+      "action action";
+    min-height:202px!important;
+    padding:17px!important;
+    column-gap:8px;
+    row-gap:4px;
+  }
+  #pricing #lab-monthly-plans .lab-plan--recommended{min-height:213px!important}
+  #pricing .lab-plan-name{font-size:23px;gap:6px}
+  #pricing .lab-plan-tag{font-size:8px}
+  #pricing .lab-plan-price{font-size:26px!important}
+  #pricing .lab-plan-description{font-size:12px}
+  #pricing .lab-plan-credits{margin-top:4px!important}
+  #pricing .lab-plan-usage{padding:3px 0}
+  #pricing .lab-plan-usage-stats{font-size:11px;gap:4px 9px}
+  #pricing .lab-plan>button[data-lab-buy]{
+    width:100%;min-height:40px;height:40px;margin-top:6px!important;
+  }
+  #pricing .lab-pricing-benefits{justify-content:flex-start}
+  #pricing h2{font-size:clamp(34px,3.5vw,45px)}
+}
+
+/* Mobile: text never competes with the CTA for horizontal space. */
+@media(max-width:760px){
+  #pricing .lab-pricing-options{margin-bottom:13px}
+  #pricing .lab-plan{
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:
+      "name price"
+      "description description"
+      "credits credits"
+      "usage usage"
+      "action action";
+    min-height:198px!important;
+    padding:18px!important;
+    gap:4px 10px;
+    border-radius:8px!important;
+  }
+  #pricing #lab-monthly-plans .lab-plan--recommended{min-height:209px!important}
+  #pricing .lab-plan-name{font-size:24px;gap:7px}
+  #pricing .lab-plan-tag{font-size:8px;padding:4px 6px}
+  #pricing .lab-plan-price{
+    font-size:28px!important;
+    align-self:start;
+    gap:4px;
+  }
+  #pricing .lab-plan-price small{font-size:10px}
+  #pricing .lab-plan-description{font-size:12px;line-height:1.4}
+  #pricing .lab-plan-credits{font-size:12.5px;margin-top:7px!important}
+  #pricing .lab-plan-usage{padding:3px 0}
+  #pricing .lab-plan-usage-stats{font-size:11px;gap:5px 12px}
+  #pricing .lab-plan>button[data-lab-buy]{
+    width:100%;
+    min-height:43px;height:43px;
+    margin:9px 0 0!important;
+    padding-inline:14px!important;
+  }
+  #pricing .lab-pricing-benefits{justify-content:flex-start;gap:11px 18px}
+  #pricing .lab-pricing-benefits>span{font-size:11px}
+}
+@media(max-width:360px){
+  #pricing .lab-plan{padding:15px!important;column-gap:7px}
+  #pricing .lab-plan-name{font-size:21px}
+  #pricing .lab-plan-price{font-size:25px!important}
+  #pricing .lab-plan-description{font-size:11.5px}
+  #pricing .lab-pricing-benefits{padding-inline:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  #pricing .lab-plan{transition:none}
+}
+/* Tall displays have the extra room for the full editorial card rhythm. */
+@media(min-width:1251px) and (min-height:941px){
+  #pricing .lab-plan{min-height:165px!important}
+  #pricing #lab-monthly-plans .lab-plan--recommended{min-height:181px!important}
+}

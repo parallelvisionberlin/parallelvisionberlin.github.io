@@ -55,7 +55,9 @@ try{
         await page.goto(origin+'/lab/#pricing');await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
         await page.mouse.move(0,0);
         const idle=await page.locator('#lab-monthly-plans .lab-plan>button').evaluateAll(els=>els.map(el=>getComputedStyle(el).backgroundColor));
-        assert.deepEqual(idle,['rgba(0, 0, 0, 0)','rgba(0, 0, 0, 0)','rgba(0, 0, 0, 0)'],'No plan arrow remains highlighted at rest');
+        assert.equal(idle.length,3,'All monthly plan purchase buttons render');
+        assert.equal(idle[0],idle[2],'Starter and Studio share a quiet outlined button at rest');
+        assert.notEqual(idle[1],idle[0],'Recommended Creator has a distinct light purchase button at rest');
         for(const [tab,panel] of [['Monthly plans','#lab-monthly-plans'],['One-time credits','#lab-one-time-credits']]){
           await page.getByRole('tab',{name:tab,exact:true}).click();
           for(const button of await page.locator(panel+' [data-lab-buy]').all()){
