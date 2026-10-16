@@ -443,8 +443,9 @@ body {
 }
 
 .pv-home .release-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 40px 22px;
+  grid-template-columns: repeat(4, minmax(0, 220px));
+  gap: 24px 20px;
+  justify-content: start;
   align-items: start;
   background: transparent;
 }
@@ -472,32 +473,35 @@ body {
 }
 
 .pv-home .release-card .release-title {
-  margin-top: 14px;
-  font-size: 16px;
-  line-height: 1.4;
+  margin-top: 10px;
+  font-family: var(--pv-body);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
   letter-spacing: .07em;
 }
 
 .pv-home .release-card .release-meta {
-  font-size: 12px;
-  line-height: 1.6;
-  letter-spacing: .06em;
+  font-family: var(--pv-body);
+  font-size: 11px;
+  line-height: 1.45;
+  letter-spacing: .055em;
   color: rgba(255, 255, 255, .65);
 }
 
 .pv-home .release-card .release-status {
-  margin-top: 10px;
-  font-size: 11px;
+  margin-top: 8px;
+  font-size: 10px;
   color: rgba(255, 255, 255, .62);
 }
 
 .pv-home .release-card .release-listen-link {
   width: fit-content;
-  margin-top: 12px;
+  margin-top: 8px;
   padding-bottom: 5px;
   border-bottom: 1px solid rgba(255, 255, 255, .38);
   color: rgba(255, 255, 255, .76);
-  font: 12px/1.4 var(--pv-mono);
+  font: 11px/1.4 var(--pv-mono);
   letter-spacing: .14em;
   text-transform: uppercase;
 }
