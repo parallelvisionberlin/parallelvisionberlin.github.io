@@ -704,7 +704,7 @@ function validUploadUrl(value) {
     throw new Error('Unexpected provider upload location.');
   return u.href;
 }
-async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0,builtIn=[]) {
+async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0,builtIn=[],forceFresh=false) {
   const assets=[...(ids.length?await sources(env,owner,ids,max):[]),...builtIn];
   if(assets.length>max)fail(400,'Too many image references for this model.');
   // Validate the entire batch before any transfer. Keep the private originals unchanged.
@@ -739,7 +739,7 @@ async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0,builtIn
         const existing=await first(env,
           'SELECT uri FROM lab_spicy_reference_cache WHERE owner_id=? AND provider_key_fingerprint=? AND ref_key=? AND expires_at>?',
           owner,providerKeyFingerprint,referenceKey,now()+15*60000);
-        if(existing&&FILE_URI.test(existing.uri)){result[i]=existing.uri;continue;}
+        if(!forceFresh&&existing&&FILE_URI.test(existing.uri)){result[i]=existing.uri;continue;}
         const ticket=await vendorRequest('/common/upload-url',key,{contentType:a.mime,bytes:bytes.length});
         if(!ticket||!/^fil_[A-Za-z0-9_-]{8,128}$/.test(ticket.fileId||'')||ticket.method!=='PUT'||
           !Number.isSafeInteger(ticket.maxBytes)||ticket.maxBytes<bytes.length||
@@ -1758,7 +1758,21 @@ async function route(request,env,ctx) {
     const callbackEnabled=typeof env.SPICY_WEBHOOK_SECRET==='string'&&env.SPICY_WEBHOOK_SECRET.length>=16&&
       p.type==='image'&&p.engine==='seedream'&&!!p.moodId;
     const payload={model:p.model,input,...(callbackEnabled?{callBackUrl:'https://parallel-vision-lab.parallelvision.workers.dev/api/webhooks/spicy'}:{})};
-    const replies=await Promise.all(Array.from({length:quoteCount},()=>vendorRequest('/jobs/quote',key,payload)));
+    let replies;
+    try{
+      replies=await Promise.all(Array.from({length:quoteCount},()=>vendorRequest('/jobs/quote',key,payload)));
+    }catch(error){
+      // An account may destroy staged reference URIs after a previous task.
+      // Repair only a clearly rejected media preflight, once and before payment.
+      const badReference=p.engine==='seedream'&&p.type==='image'&&Array.isArray(input.image_urls)&&
+        input.image_urls.length>0&&[400,422].includes(error.status)&&
+        /file|reference|image_url|staged|expired|asset|uri/i.test(String(error.message||''));
+      if(!badReference)throw error;
+      const references=await stageImageReferences(env,owner,p.transferSourceIds||[],key,10,36000000,
+        builtInMoodReferences(p),true);
+      payload.input.image_urls=references;
+      replies=await Promise.all(Array.from({length:quoteCount},()=>vendorRequest('/jobs/quote',key,payload)));
+    }
     const time=now(),payloadJson=JSON.stringify(payload);
     const priced=replies.map(q=>{
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
