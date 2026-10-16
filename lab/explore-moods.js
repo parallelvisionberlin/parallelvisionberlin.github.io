@@ -49,7 +49,7 @@ function initialize(){
       [job?.status]||'Waiting for your result…';
   }
   async function watchJob(client,id,serial){
-    let job=null;
+    let job=null,previewLoading=false,previewAvailable=false;
     for(let attempts=0;attempts<150;attempts++){
       if(serial!==runSerial)return;
       const response=await client.jobStatus(id);job=response?.job;
@@ -60,16 +60,13 @@ function initialize(){
         resultLoading.classList.add('is-finishing');
         $('mc-look-exposure-overline-text').textContent='FINALIZING IMAGE';
         $('mc-look-result-progress').textContent='Opening your photograph…';
-        // Let the real completed-state reveal breathe briefly while the image opens.
-        // This never starts another job and adds at most 600ms after completion.
+        // Never delay a ready private asset for an artificial animation timer.
         clearTimeout(waitNoteTimer);waitNoteTimer=null;
-        const [blob]=await Promise.all([
-          client.outputBlob(job.outputId),
-          new Promise(resolve=>setTimeout(resolve,600))
-        ]);
+        const blob=await client.outputBlob(job.outputId);
         if(serial!==runSerial)return;
         if(!blob.size||!['image/png','image/jpeg','image/webp'].includes(blob.type.split(';')[0]))
           throw Error('The completed image could not be previewed here. Open Image History.');
+        if(resultURL)URL.revokeObjectURL(resultURL);
         resultBlob=blob;resultOutputId=job.outputId;resultURL=URL.createObjectURL(blob);
         resultImg.src=resultURL;resultImg.hidden=false;resultLoading.hidden=true;
         $('mc-look-result-heading').textContent='GENERATED RESULT';
@@ -84,6 +81,23 @@ function initialize(){
       if(['failed','uncertain','resolved','cancelled'].includes(job.status))
         throw Error(job.status==='uncertain'?'Generation status is uncertain. Check Image History before trying again.':
           job.error||'No completed image is available. Check Image History.');
+      // Fetch an authenticated preview only once the provider result is
+      // actually in the private saving state. Never expose its signed URL.
+      if(job.status==='saving'&&!previewAvailable&&!previewLoading&&!resultOutputId&&typeof client.previewBlob==='function'){
+        previewLoading=true;
+        void client.previewBlob(id).then(blob=>{
+          if(serial!==runSerial||resultOutputId||!dialog.open||resultLoading.hidden)return;
+          if(!blob.size||!['image/png','image/jpeg','image/webp'].includes(blob.type.split(';')[0]))return;
+          if(resultURL)URL.revokeObjectURL(resultURL);
+          resultURL=URL.createObjectURL(blob);
+          resultImg.src=resultURL;resultImg.hidden=false;resultLoading.hidden=true;
+          $('mc-look-result-heading').textContent='PREVIEW · SAVING PRIVATELY';
+          previewAvailable=true;
+          clearTimeout(waitNoteTimer);waitNoteTimer=null;
+          $('mc-look-result-wait-note').hidden=true;
+        }).catch(()=>{/* Continue polling. Preview is optional, storage is required. */})
+          .finally(()=>{previewLoading=false;});
+      }
       // Editorial copy can loop, but "Almost ready" requires real saving state.
       const finishing=job.status==='saving';
       resultLoading.classList.toggle('is-finishing',finishing);
@@ -95,7 +109,7 @@ function initialize(){
   }
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&mood2k=20261016v1').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{
@@ -380,6 +394,7 @@ function initialize(){
         return;
       }
       if(attemptedSubmission){
+        resultLoading.hidden=false;resultImg.hidden=true;
         resultLoading.classList.remove('is-finishing');
         resultLoading.classList.add('is-stopped');
         $('mc-look-exposure-overline-text').textContent='CHECK GENERATION STATUS';
