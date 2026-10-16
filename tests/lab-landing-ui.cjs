@@ -161,7 +161,23 @@ const server=http.createServer((req,res)=>{
     const rowBackground=await row.evaluate(el=>getComputedStyle(el).backgroundColor);
     assert.ok(rowBackground!=='rgba(0, 0, 0, 0)'&&rowBackground!=='transparent','Pricing row gives a subtle purchase hover response: '+rowBackground);
     assert.ok(before&&after&&Math.abs(before.height-after.height)<1,'Hover does not shift plan layout');
+    // Only one checkout CTA is light at a time: Creator by default, otherwise
+    // whichever monthly card receives the pointer. Preserve the Creator label.
+    const waitForLightButtons=expected=>page.waitForFunction(expected=>{
+      const buttons=[...document.querySelectorAll('#lab-monthly-plans .lab-plan>button[data-lab-buy]')];
+      return buttons.length===3&&buttons.every((button,i)=>{
+        const channels=getComputedStyle(button).backgroundColor.match(/[\d.]+/g);
+        return channels&&((Number(channels[0])>=200)===expected[i]);
+      });
+    },expected,{timeout:4000});
     await page.mouse.move(0,0);
+    await waitForLightButtons([false,true,false]);
+    await page.locator('#lab-monthly-plans [data-lab-buy="starter"]').hover();
+    await waitForLightButtons([true,false,false]);
+    await page.locator('#lab-monthly-plans [data-lab-buy="studio"]').hover();
+    await waitForLightButtons([false,false,true]);
+    await page.mouse.move(0,0);
+    await waitForLightButtons([false,true,false]);
   }
 
   const estimate=page.locator('#lab-monthly-plans .lab-estimate-details').first();
