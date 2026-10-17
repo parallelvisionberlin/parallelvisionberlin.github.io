@@ -12,6 +12,24 @@ function installVideoEditorialDeck(){
   const referenceList=doc.getElementById('reference-list');
   const empty=doc.getElementById('empty');
   if(!app||!controls||!referenceMode||!media||!motion||!output||!summary||!modes||!referenceList||!empty)return;
+  const modelControl=doc.getElementById('video-model-control');
+  const modelSelect=doc.getElementById('video-engine');
+  const modelPill=doc.getElementById('pv-video-model-pill');
+  const modelPillText=doc.getElementById('pv-video-model-pill-label');
+  const audioPill=doc.getElementById('pv-video-audio-pill');
+  const audioPillText=doc.getElementById('pv-video-audio-pill-label');
+  const audioControl=doc.getElementById('audio');
+  const prompt=doc.getElementById('prompt');
+  const promptCount=doc.getElementById('pv-video-prompt-count');
+  const refCount=doc.getElementById('pv-video-added-count');
+  const refTitle=doc.getElementById('pv-video-ref-title');
+  const clearRefs=doc.getElementById('pv-video-clear-refs');
+  const hero=doc.createElement('div');
+  hero.id='pv-video-model-hero';
+  const heroName=doc.createElement('strong');
+  const heroDescription=doc.createElement('small');
+  hero.append(heroName,heroDescription);
+  modelControl?.append(hero);
   let framePending=false,lastVisualKey='';
   const collage=doc.createElement('div');
   collage.id='pv-video-reference-preview';
@@ -31,12 +49,21 @@ function installVideoEditorialDeck(){
   function refreshCollage(enabled){
     const thumbnails=enabled?Array.from(referenceList.querySelectorAll('.reference-item>img'))
       .slice(0,3).map(img=>img.currentSrc||img.src).filter(Boolean):[];
-    const nextKey=thumbnails.join('|');
-    collage.hidden=!thumbnails.length;
+    // Empty-state pictures are clearly marked as illustrative PV LAB moods.
+    // Once photos are attached the montage shows only those actual references.
+    const examples=[
+      './mood-previews/dreamcore-train-20261010.webp',
+      './mood-previews/soft-pastel-film-portrait-f77111b4.webp',
+      './mood-previews/berlin-rave-detail-20261015.webp'
+    ];
+    const showingExample=enabled&&!thumbnails.length;
+    const visuals=showingExample?examples:thumbnails;
+    const nextKey=(showingExample?'examples:':'photos:')+visuals.join('|');
+    collage.hidden=!visuals.length;
     if(nextKey===lastVisualKey)return;
     lastVisualKey=nextKey;
     const fragment=doc.createDocumentFragment();
-    thumbnails.forEach((src,i)=>{
+    visuals.forEach((src,i)=>{
       const image=doc.createElement('img');
       image.src=src;
       image.loading='lazy';
@@ -44,10 +71,17 @@ function installVideoEditorialDeck(){
       image.alt='';
       image.setAttribute('aria-hidden','true');
       image.className='pv-reference-preview-image pv-reference-preview-'+i;
+      image.onerror=()=>{image.style.opacity='0';};
       fragment.appendChild(image);
     });
+    if(showingExample){
+      const caption=doc.createElement('span');
+      caption.className='pv-reference-caption';
+      caption.textContent='Illustrative PV LAB moods · Add your own references';
+      fragment.appendChild(caption);
+    }
     collage.replaceChildren(fragment);
-    collage.dataset.count=String(thumbnails.length);
+    collage.dataset.count=String(visuals.length);
   }
 
   function summarize(){
@@ -62,9 +96,70 @@ function installVideoEditorialDeck(){
     summary.title=summary.textContent;
   }
 
+  function refreshApproved(){
+    const engine=modelSelect?.value||'';
+    const name=modelSelect?.selectedOptions?.[0]?.textContent?.trim()||
+      doc.getElementById('video-model-current')?.textContent?.trim()||'Video model';
+    const hints={
+      seedance:'Multimodal motion and cinematic direction',
+      seedance15:'Motion from your opening image',
+      seedance4k:'High-resolution video creation',
+      klinghf:'Directed scenes and cinematic motion',
+      wan:'Create motion with reference images',
+      wanprime:'Fast motion guided by your references',
+      h3:'Cinematic image-to-video',
+      h3max:'High-quality visual reference motion',
+      h3spicy:'Motion guided by your visual direction',
+      h3maxfal:'Multi-image reference video',
+      omni:'Visual and multimodal video creation'
+    };
+    heroName.textContent=name;
+    heroDescription.textContent=hints[engine]||'Video creation with your selected model';
+    const autoRatio=Array.from(doc.getElementById('ratio')?.options||[]).find(opt=>opt.value==='auto');
+    if(autoRatio){
+      if(!autoRatio.dataset.pvPreviousLabel)autoRatio.dataset.pvPreviousLabel=autoRatio.textContent;
+      autoRatio.textContent='Auto';
+    }
+    if(modelPill&&modelPillText){
+      modelPill.hidden=false;modelPillText.textContent=name.replace(/ ·.*/,'');
+      modelPill.disabled=!!modelSelect?.disabled;
+    }
+    if(audioPill&&audioPillText){
+      const wrapper=audioControl?.closest('.switch-row');
+      const usable=!!audioControl&&!audioControl.disabled&&!wrapper?.hidden;
+      audioPill.hidden=!usable;
+      audioPill.disabled=!usable;
+      audioPill.setAttribute('aria-pressed',String(!!audioControl?.checked));
+      audioPillText.textContent='Audio '+(audioControl?.checked?'on':'off');
+    }
+    if(promptCount&&prompt){
+      promptCount.textContent=prompt.value.length+' / '+(prompt.maxLength||5000);
+    }
+    const count=referenceList.querySelectorAll('.reference-item').length;
+    if(refCount)refCount.textContent='('+count+')';
+    if(refTitle)refTitle.hidden=count===0;
+    // Never claim an illustrative montage is the user's generated result.
+    const mode=activeMode();
+    if(mode==='reference'&&doc.getElementById('empty-title')){
+      doc.getElementById('empty-title').textContent='Bring your ideas to life';
+      const subtitle=doc.getElementById('empty-description');
+      if(subtitle)subtitle.textContent='Add references, describe your scene, and generate video with PV LAB.';
+      doc.getElementById('empty')?.classList.add('pv-video-references-empty');
+    }else{
+      doc.getElementById('empty')?.classList.remove('pv-video-references-empty');
+    }
+  }
   function refresh(){
     const active=app.classList.contains('video-studio-active');
-    if(!active){collage.hidden=true;return;}
+    if(!active){
+      collage.hidden=true;
+      const autoRatio=Array.from(doc.getElementById('ratio')?.options||[]).find(opt=>opt.value==='auto');
+      if(autoRatio?.dataset.pvPreviousLabel){
+        autoRatio.textContent=autoRatio.dataset.pvPreviousLabel;
+        delete autoRatio.dataset.pvPreviousLabel;
+      }
+      return;
+    }
     const mode=activeMode();
     const canExpand=mode==='reference'&&!media.hidden;
     motion.hidden=!canExpand;
@@ -77,6 +172,7 @@ function installVideoEditorialDeck(){
     output.setAttribute('aria-expanded',String(!controls.classList.contains('pv-video-output-collapsed')));
     summarize();
     refreshCollage(mode==='reference');
+    refreshApproved();
   }
 
   function scheduleRefresh(){
@@ -85,6 +181,23 @@ function installVideoEditorialDeck(){
     requestAnimationFrame(()=>{framePending=false;refresh();});
   }
 
+  modelPill?.addEventListener('click',()=>{
+    doc.getElementById('video-model-trigger')?.click();
+  });
+  audioPill?.addEventListener('click',()=>{
+    if(audioControl&&!audioControl.disabled)audioControl.click();
+  });
+  clearRefs?.addEventListener('click',()=>{
+    if(!app.classList.contains('video-studio-active'))return;
+    const total=referenceList.querySelectorAll('.reference-item').length;
+    for(let i=0;i<total;i++){
+      const button=referenceList.querySelector('.reference-item .reference-actions button:last-child');
+      if(!button||button.disabled)break;
+      button.click();
+    }
+    scheduleRefresh();
+  });
+  prompt?.addEventListener('input',scheduleRefresh);
   motion.addEventListener('click',()=>{
     if(motion.hidden)return;
     referenceMode.dataset.pvMotionOpen=referenceMode.dataset.pvMotionOpen==='true'?'false':'true';
@@ -108,7 +221,7 @@ function installVideoEditorialDeck(){
   new MutationObserver(scheduleRefresh).observe(referenceList,{childList:true,subtree:true});
   const status=doc.getElementById('settings-summary');
   if(status)new MutationObserver(scheduleRefresh).observe(status,{childList:true,characterData:true,subtree:true});
-  app.classList.add('pv-video-deck-ready');
+  app.classList.add('pv-video-deck-ready','pv-video-approved-ready');
   refresh();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installVideoEditorialDeck,{once:true});
