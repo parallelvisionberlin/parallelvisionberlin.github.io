@@ -26,9 +26,11 @@ assert.match(studioHtml,/<html lang="en" class="pv-studio-boot-lock">/,'Initial 
 assert.match(studioHtml,/html\.pv-studio-boot-lock\{scroll-behavior:auto!important\}/,'Boot overrides smooth scrolling while locked');
 assert.match(studioHtml,/#lab-boot\{position:fixed;inset:0;width:100vw;/,
   'Splash keeps true viewport width even when the Image route adds a scrollbar gutter');
-assert.match(studioHtml,/<svg class="lab-boot-fluid"[^>]+aria-hidden="true"/,
-  'Chrome ribbons are decorative inline SVG, with no network dependency or accessible duplicate');
-assert.match(studioHtml,/@keyframes pv-fluid-right/, 'Fluid motion is CSS-only and independent of Studio readiness');
+assert.match(studioHtml,/<div class="lab-boot-architecture" aria-hidden="true">/,
+  'Geometric reveal is decorative HTML and does not need image or video downloads');
+assert.match(studioHtml,/@keyframes pv-architecture-reveal/, 'Panels fade in while the Studio is loading');
+assert.doesNotMatch(studioHtml, /lab-boot-fluid|pv-fluid-left|pv-fluid-right/,
+  'The previous large liquid-metal ribbons are fully removed');
 assert.match(studioHtml,/history\.scrollRestoration='manual';/,'All direct routes opt out of stale Chrome scroll restoration');
 assert.match(studioHtml,/new MutationObserver\(scheduleBootUnlock\)/,'Native route completion can release the boot scroll lock');
 const splashWordmark=studioHtml.match(/\.lab-boot-wordmark\{([^}]*)\}/)?.[1]||'';
@@ -535,11 +537,17 @@ try{
   assert.equal(splashAtStart.locked,true,'Splash maintains the initial scroll lock');
   assert.equal(splashAtStart.scrollY,0,'Startup begins at the top instead of a restored scroll position');
   assert.match(splashAtStart.font,/Helvetica Neue|Arial/,'Loader never uses an asynchronously swapped font');
-  const fluid=bootPage.locator('#lab-boot > svg.lab-boot-fluid');
-  assert.equal(await fluid.count(),1,'One decorative fluid layer frames the centered logo');
-  assert.equal(await fluid.getAttribute('aria-hidden'),'true','The effect is excluded from the accessibility tree');
-  assert.equal(await fluid.evaluate(el=>getComputedStyle(el).animationName),'pv-fluid-arrive',
-    'Fluid reflections animate while loading without animating the brand');
+  const architecture=bootPage.locator('#lab-boot > .lab-boot-architecture');
+  const panels=architecture.locator('.pv-architecture-panel');
+  assert.equal(await panels.count(),3,'Only three restrained architectural panels frame the logo');
+  assert.equal(await architecture.getAttribute('aria-hidden'),'true','Geometry is excluded from accessibility');
+  assert.deepEqual(await panels.evaluateAll(els=>els.map(el=>getComputedStyle(el).animationDelay)),
+    ['0.16s','0.33s','0.56s'],'Panels enter gradually instead of showing at the initial logo paint');
+  assert.equal(await panels.first().evaluate(el=>getComputedStyle(el).animationName),
+    'pv-architecture-reveal','Panel reveal is visual only and does not wait for a JS signal');
+  await panels.evaluateAll(els=>els.forEach(el=>el.getAnimations().forEach(a=>a.finish())));
+  assert.ok(await panels.last().evaluate(el=>Number(getComputedStyle(el).opacity)>.65),
+    'Architectural forms are visible by the end of a longer real loading period');
   const logoBefore=await loaderLogo.boundingBox();
   assert.ok(Math.abs(logoBefore.x+logoBefore.width/2-720)<1,
     'Brand is centered within the complete 1440px viewport, not the reduced scroll area');
@@ -548,11 +556,11 @@ try{
   assert.ok(Math.abs(logoAfterImageInit.x-logoBefore.x)<1&&Math.abs(logoAfterImageInit.y-logoBefore.y)<1,
     'Image route scrollbar gutter must not shift the centered PV LAB logo');
   assert.equal(Math.round((await bootPage.locator('#lab-boot').boundingBox()).width),1440,
-    'Fluid splash continues to cover the entire viewport after Image initializes');
+    'Boot splash continues to cover the entire viewport after Image initializes');
   await bootPage.evaluate(()=>document.getElementById('app').classList.remove('image-studio-active'));
   await bootPage.emulateMedia({reducedMotion:'reduce'});
-  assert.equal(await fluid.evaluate(el=>getComputedStyle(el).animationName),'none',
-    'System reduced-motion disables chrome ribbon animation');
+  assert.equal(await panels.first().evaluate(el=>getComputedStyle(el).animationName),'none',
+    'System reduced-motion disables the geometric reveal while leaving the panels static');
   await bootPage.emulateMedia({reducedMotion:'no-preference'});
   await bootPage.mouse.wheel(0,820);
   await bootPage.waitForTimeout(500);
