@@ -52,6 +52,8 @@ jobs:
           node --check lab-worker/worker.mjs
           node --check lab-worker/studio-identity-deletion.mjs
           node --test tests/lab-studio-identity-deletion.test.mjs
+          node --check lab-worker/signup-welcome-email.mjs
+          node --test tests/lab-signup-welcome-email.test.mjs
           node --check lab-worker/gallery-thumbnails.mjs
           node --test tests/lab-film-finish.test.mjs tests/lab-mood-references.test.mjs tests/lab-dream-blur.test.mjs
           node --test tests/lab-gallery-thumbnails.test.mjs tests/lab-moodboards.test.mjs tests/lab-mood-creator-service.test.mjs tests/lab-mood-creator-flow.test.mjs
@@ -91,6 +93,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0029-pause-welcome-promotion.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0029-pricing-debit-parity.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0030-studio-account-identity-deletion.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0031-signup-welcome-email.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health
