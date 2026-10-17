@@ -1,6 +1,6 @@
 # PV LAB Studio boot animation work state
 
-Updated: 2026-10-15
+Updated: 2026-10-17
 Scope: Only the initial Studio loading overlay, not the public landing, customer accounts, checkout, generation, or galleries.
 Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 
@@ -77,3 +77,13 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - No login, generation, API, wallet, provider, user data or existing Studio HTML are touched. Existing `_redirects` remains as an optional edge-level fast path.
 - Production smoke now accepts either an actual canonical HTTP redirect or the exact dedicated redirect shim, rejects the erroneous generic SPA fallback. Deploy/Live alias requires a fresh check.
 - Baseline: `6e1b698efeb40a9af97f924d05db815ea3a5bd95`. Files: `lab/lab/studio.html`, `.github/workflows/pvlab-domain-smoke.yml`, this state file.
+
+## October 17 fluid chrome loading and stable center
+- Approved selection: Fluid Transition, the black-chrome membrane option from the visual storyboard. The PV LAB logo/attribution and thin progress line stay centered and readable.
+- lab/studio.html now paints lightweight inline decorative SVG chrome ribbons around the edges with slow drifting reflections, using CSS only. No fetched asset, video, animation timer, new JS, readiness wait, or provider call.
+- The user explicitly asked not to change the existing 240 ms blur/trail and screen fade-out; its keyframes, selectors and timing are untouched. Native-route and route-ready guards, 16-second fallback, and boot retry remain intact.
+- The fixed overlay explicitly occupies 100vw, independent of the root's scrollbar gutter. Unlike early gutter reservation, this maintains the logo at the true viewport center throughout loading. Mock Chromium geometry shifted the logo -7.5px with inset:0 alone and 0px with width:100vw on both desktop and mobile. Existing Image-gallery scrollbar-gutter behavior is unchanged.
+- The fluid graphic is aria-hidden, behind the brand, pointer-inert and respects prefers-reduced-motion. Mobile uses lightweight vector art scaled to viewport, not a background download.
+- Tests in tests/lab-studio-layout-ui.mjs cover initial gutter reservation, inline SVG, no logo displacement when Image class appears, reduced motion and the previous exit.
+- Desktop/mobile art was rendered in local isolated Chromium previews. The repo full browser test and live Cloudflare deployment still require independent confirmation.
+- Scope: Studio loading overlay and layout test/state only. No galleries, generation, worker, accounts, pricing, or payments altered.
