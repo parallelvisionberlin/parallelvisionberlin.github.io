@@ -119,8 +119,10 @@ try{
       await page.waitForTimeout(275);
       const cleared=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
       if(viewport.width>899){
-        assert.ok(cleared>=empty-3&&cleared<empty+60,
-          'Desktop Image deck stays open after the user has interacted');
+        assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+          'Desktop editor stays in its engaged state after clearing text');
+        assert.ok(cleared>=120&&cleared<310,
+          'The open desktop editor remains bounded: '+JSON.stringify({cleared,empty}));
       }else assert.ok(Math.abs(cleared-empty)<12,'Mobile composer returns to compact dimensions');
       checks.push({viewport,promptHeight:Math.round(result.field.height),dockHeight:Math.round(result.composer.height),scrollMax:result.scrollMax});
     }finally{await context.close();}
