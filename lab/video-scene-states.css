@@ -1,0 +1,310 @@
+/* PV LAB · Video creation and playback states.
+   Finishes the approved editorial system without touching Image, pricing or
+   provider settings. Real source refs are always visually distinguished. */
+#app.video-studio-active.pv-video-state-ready{
+  --pv-scene-border:#3a414c;
+  --pv-scene-surface:#1d232c;
+  --pv-scene-raised:#252d37;
+  --pv-scene-muted:#a4acb8;
+}
+#app.video-studio-active.pv-video-state-ready .video-feed-center>.stage,
+#app.video-studio-active.pv-video-state-ready .workspace.video-layout>.video-inspector{
+  border-color:#303743!important;
+  background:#121820;
+}
+#app.video-studio-active.pv-video-state-ready #video-modes .mode-tab,
+#app.video-studio-active.pv-video-state-ready #video-task-switch button{
+  transition:background .17s,border-color .17s,color .17s;
+}
+#app.video-studio-active.pv-video-state-ready #video-modes .mode-tab:not([aria-selected="true"]):hover,
+#app.video-studio-active.pv-video-state-ready #video-task-switch button:not([aria-selected="true"]):hover{
+  background:#2b333e!important;border-color:#596574!important;
+  color:#eff1f3!important;
+}
+/* Restore the approved ORIGINAL pair, two balanced visible upload surfaces. */
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .frame-pair{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;align-items:stretch;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .upload-block:first-child,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-upload:not([hidden]){
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  min-width:0;min-height:170px!important;height:auto!important;gap:9px!important;
+  padding:11px!important;margin:0!important;
+  border:1px solid #3d4856!important;border-radius:12px!important;
+  background:linear-gradient(160deg,#222a34,#1a2028)!important;
+  box-shadow:inset 0 1px #ffffff0a!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .upload-block:first-child{
+  border-color:#677889!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .upload-heading{
+  display:flex!important;align-items:center!important;flex-flow:row wrap!important;
+  justify-content:space-between!important;gap:5px!important;
+  min-height:23px!important;margin:0!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .upload-heading .label{
+  font:650 13px/1.2 'DM Sans',Arial,sans-serif!important;
+  color:#e9edf2!important;margin:0!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .upload-heading .micro{
+  display:inline-flex!important;align-items:center;
+  color:#b0b9c5!important;background:#2a333e;
+  border:1px solid #414e5d;border-radius:99px;
+  padding:3px 6px;font:600 9px/1.1 'DM Sans',Arial,sans-serif!important;
+  letter-spacing:.03em!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop{
+  position:relative;flex:1;min-width:0;min-height:123px!important;
+  height:123px!important;display:flex!important;justify-content:center!important;
+  align-items:center!important;flex-direction:column!important;gap:8px!important;
+  padding:10px!important;
+  border:1px dashed #647181!important;border-radius:10px!important;
+  background:linear-gradient(160deg,#232b35,#1e252f)!important;
+  text-align:center!important;overflow:hidden;
+  transition:background .15s,border-color .15s;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop:hover,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop:hover{
+  background:#303c48!important;border-color:#c0cbd6!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop:before,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop:before{
+  content:"+"!important;display:grid!important;place-items:center;
+  width:38px;height:38px;margin:0!important;flex:0 0 38px;
+  border:1px solid #5a6b7d;border-radius:10px;
+  background:#303b47;color:#eef1f5;font:300 25px/1 'DM Sans',Arial,sans-serif!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop:after,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop:after{display:none!important}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop .video-frame-label,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop .video-frame-label{
+  display:block!important;color:#ebeff2;font:650 12px/1.2 'DM Sans',Arial,sans-serif!important;
+  text-shadow:0 1px 4px #0009;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop>span:not(.video-frame-label),
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop>span:not(.video-frame-label),
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop>small,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop>small{
+  display:none!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop .video-frame-thumb:not([hidden]),
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop .video-frame-thumb:not([hidden]){
+  position:absolute!important;inset:0!important;display:block!important;
+  width:100%!important;height:100%!important;object-fit:contain!important;
+  background:#12171f;border-radius:9px!important;padding:0!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop.has-frame:before,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop.has-frame:before{display:none!important}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop.has-frame .video-frame-label,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop.has-frame .video-frame-label{
+  position:absolute!important;left:7px!important;bottom:7px!important;z-index:1!important;
+  padding:5px 7px;background:#0a1118db;border:1px solid #ffffff2e;
+  border-radius:6px;font-size:10px!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .filemeta{display:none!important}
+/* Text mode is text-led; existing paid generation and inputs are untouched. */
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-text .workspace.video-layout .controls textarea#prompt{
+  height:230px!important;min-height:190px!important;max-height:390px!important;
+  background:linear-gradient(165deg,#202833,#171f29)!important;
+  border-color:#445160!important;padding:16px!important;
+  font:400 14px/1.65 'DM Sans',Arial,sans-serif!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-text #pv-video-prompt-head #prompt-label{
+  font-weight:680!important;font-size:14px!important;
+}
+/* Real current scene information, never a fabricated History item. */
+#app.video-studio-active.pv-video-state-ready .pv-video-create-inspector{
+  display:flex;flex-direction:column;align-items:stretch;
+  flex:1;min-height:0;overflow:auto;padding:17px 15px;
+  color:#d8dce3;font:400 12px/1.5 'DM Sans',Arial,sans-serif;
+  scrollbar-width:thin;scrollbar-color:#424c5a transparent;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-sidebar-kicker{
+  color:#a0acba;letter-spacing:.07em;font-weight:650;font-size:10px;
+  margin-bottom:8px;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-current-model{
+  display:inline-flex;align-self:flex-start;align-items:center;
+  border:1px solid #445060;border-radius:8px;background:#232b36;
+  padding:6px 10px;color:#ebeff4;font-size:12px;font-weight:650;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-sidebar-section{
+  border-top:1px solid #333d4a;margin-top:19px;padding-top:13px;min-width:0;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-sidebar-section h3{
+  margin:0 0 10px;font-size:12.5px;font-weight:650;color:#eaedf2;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-sidebar-section p{
+  margin:0;color:#b0bac7;font-size:12px;line-height:1.6;
+  overflow-wrap:anywhere;white-space:pre-wrap;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-current-references{
+  display:flex;gap:7px;align-items:center;overflow-x:auto;max-width:100%;
+  scrollbar-width:thin;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-current-references figure{
+  display:flex;flex:0 0 70px;flex-direction:column;gap:5px;margin:0;min-width:0;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-current-references img{
+  display:block;width:70px;height:65px;border:1px solid #465363;
+  background:#202835;border-radius:8px;object-fit:cover;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-current-references figcaption{
+  padding:3px 5px;color:#c9d4df;background:#253240;border-radius:99px;
+  border:1px solid #405063;font-size:9px;line-height:1.15;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-current-reference-note{
+  margin-top:7px!important;color:#8995a4!important;font-size:11px!important;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-current-settings{
+  display:grid;gap:10px;margin:0;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-current-settings>div{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:7px;
+  font-size:11.5px;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-current-settings dt{color:#abb5c2}
+#app.video-studio-active.pv-video-state-ready .pv-video-current-settings dd{
+  margin:0;color:#f2f4f5;font-weight:650;font-variant-numeric:tabular-nums;
+  text-align:right;overflow-wrap:anywhere;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-sidebar-footnote{
+  color:#8792a0;font-size:10.5px;line-height:1.55;
+  margin:auto 0 0;padding-top:19px;
+}
+#app.video-studio-active.pv-video-state-ready .video-inspector-heading{
+  display:flex;align-items:center;min-height:46px;
+  font-weight:650!important;
+}
+/* History is always explicit; the return action is available inside its header. */
+#app.video-studio-active .pv-video-history-back{display:none}
+#app.video-studio-active.pv-video-history-selected .pv-video-history-back:not([hidden]){
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  flex-shrink:0;margin-left:auto;margin-right:12px;padding:6px 9px;
+  min-height:31px;border:1px solid #495463;border-radius:8px;
+  background:#242c36;color:#e5e9ef;font:650 11px 'DM Sans',Arial,sans-serif;
+}
+#app.video-studio-active.pv-video-history-selected .pv-video-history-back:hover{
+  background:#34404d;border-color:#a4adb9;
+}
+#app.video-studio-active.pv-video-history-selected .pv-video-history-back svg{flex-shrink:0}
+/* Atmosphere applies only to empty creative invitation, never generated video playback. */
+#app.video-studio-active.pv-video-state-ready .video-feed-center .canvas:has(>#empty:not([hidden])){
+  /* Keep the video player's opaque near-black canvas. Editorial illumination
+     stays in the existing create-only empty-state pseudo layer. */
+  background-color:#0d0e10!important;
+  background-image:none!important;
+}
+#app.video-studio-active.pv-video-state-ready .video-feed-center .canvas #empty{
+  width:min(650px,96%);padding:14px 8px;gap:0;
+}
+#app.video-studio-active.pv-video-state-ready .video-feed-center .empty-title{
+  font-size:clamp(23px,2.1vw,29px)!important;line-height:1.16!important;
+  margin-top:4px;letter-spacing:-.035em;
+}
+#app.video-studio-active.pv-video-state-ready .video-feed-center .empty-description{
+  max-width:430px;font-size:13px!important;line-height:1.65!important;
+  color:#b0bac7;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-scene-visual[hidden]{display:none!important}
+#app.video-studio-active.pv-video-state-ready .pv-video-scene-visual:not([hidden]){
+  position:relative;display:flex;justify-content:center;align-items:center;
+  width:min(460px,96%);height:188px;margin:0 auto 22px;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-scene-visual .pv-scene-example-label{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  font-size:10px;color:#9eabb9;white-space:nowrap;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-start-visual .pv-scene-start-thumb,
+#app.video-studio-active.pv-video-state-ready .pv-video-start-visual .pv-scene-end-thumb{
+  position:relative;flex:0 1 176px;min-width:0;height:152px;overflow:hidden;
+  border-radius:12px;border:1px solid #6c7b8b9c;
+  background:#222a34;box-shadow:0 15px 33px #0007;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-start-visual img{
+  width:100%;height:100%;display:block;object-fit:cover;
+  filter:saturate(.72) brightness(.85);
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-start-visual small{
+  position:absolute;bottom:7px;left:8px;color:#f6f7fa;
+  background:#121820d8;border:1px solid #d7dfe137;padding:4px 7px;
+  border-radius:6px;font-weight:650;font-size:10px;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-start-visual .pv-scene-direction-arrow{
+  flex:0 0 40px;margin:0 5px;fill:none;stroke:#c7d1db;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-text-visual{
+  isolation:isolate;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-text-visual>img{
+  position:absolute;top:47px;width:166px;height:114px;object-fit:cover;
+  border-radius:11px;border:1px solid #586679;
+  filter:brightness(.67) saturate(.65);box-shadow:0 14px 30px #0008;
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-text-visual .pv-text-preview-a{
+  left:13px;transform:rotate(-5deg);
+}
+#app.video-studio-active.pv-video-state-ready .pv-video-text-visual .pv-text-preview-b{
+  right:13px;transform:rotate(5deg);
+}
+#app.video-studio-active.pv-video-state-ready .pv-text-direction-card{
+  position:relative;z-index:2;display:flex;align-items:center;gap:12px;
+  width:286px;min-height:77px;padding:14px 15px;
+  border:1px solid #7c8ba0b5;border-radius:12px;
+  background:linear-gradient(155deg,#303b4edb,#1b2533f2);
+  box-shadow:0 14px 35px #0008,0 0 0 1px #ffffff13;
+  color:#dbe3ed;text-align:left;font-size:12px;line-height:1.5;
+  backdrop-filter:blur(8px);
+}
+#app.video-studio-active.pv-video-state-ready .pv-text-direction-symbol{
+  font:500 28px/1 Georgia,serif;color:#edf1f6;flex:0 0 auto;
+}
+@media(max-width:820px){
+  #app.video-studio-active.pv-video-state-ready .pv-video-create-inspector{
+    padding:16px;gap:0;
+  }
+  #app.video-studio-active.pv-video-state-ready .pv-video-scene-visual:not([hidden]){
+    width:min(380px,96%);height:145px;margin-bottom:15px;
+  }
+  #app.video-studio-active.pv-video-state-ready .pv-video-start-visual .pv-scene-start-thumb,
+  #app.video-studio-active.pv-video-state-ready .pv-video-start-visual .pv-scene-end-thumb{
+    height:111px;flex-basis:139px;
+  }
+  #app.video-studio-active.pv-video-state-ready .pv-video-text-visual>img{
+    width:125px;height:95px;top:31px;
+  }
+  #app.video-studio-active.pv-video-state-ready .pv-text-direction-card{
+    min-height:66px;width:243px;font-size:11px;
+  }
+}
+@media(max-width:440px){
+  #app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .frame-pair{
+    gap:7px!important;
+  }
+  #app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .upload-block:first-child,
+  #app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-upload:not([hidden]){
+    padding:8px!important;min-height:155px!important;
+  }
+  #app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop,
+  #app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop{
+    height:110px!important;min-height:110px!important;
+  }
+  #app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .upload-heading .label{
+    font-size:11.5px!important;
+  }
+  #app.video-studio-active.pv-video-state-ready.pv-video-mode-text textarea#prompt{
+    height:195px!important;min-height:165px!important;
+  }
+  #app.video-studio-active.pv-video-state-ready .pv-video-history-back:not([hidden]){
+    font-size:10px;padding:5px 7px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #app.video-studio-active.pv-video-state-ready #video-modes .mode-tab,
+  #app.video-studio-active.pv-video-state-ready #drop,
+  #app.video-studio-active.pv-video-state-ready #last-drop{transition:none!important}
+}

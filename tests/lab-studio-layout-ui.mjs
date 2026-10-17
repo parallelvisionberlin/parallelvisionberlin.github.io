@@ -104,7 +104,16 @@ try{
   assert.ok(d.dock.height>=64&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
   assert.ok(Math.abs(d.stage.top-d.inspector.top)<2&&Math.abs(d.stage.bottom-d.inspector.bottom)<2,'Video preview and right inspector share their top and bottom edges');
+  await x.page.waitForFunction(()=>document.querySelector('#app').classList.contains('pv-video-state-ready'));
+  assert.equal(await x.page.locator('#video-job-stage').isVisible(),false,
+    'The video creation page never autoselects a completed history record');
+  assert.equal(await x.page.locator('#video-inspector-empty').isVisible(),true,
+    'The default inspector shows real current scene information');
+  assert.match(await x.page.locator('#video-inspector-empty').innerText(),/CURRENT SCENE/);
   await x.page.click('#mode-text');
+  await x.page.waitForFunction(()=>document.querySelector('#app').classList.contains('pv-video-mode-text'));
+  assert.ok((await x.page.locator('#prompt').evaluate(el=>el.getBoundingClientRect().height))>=190,
+    'Text mode uses an expanded writing surface');
   await x.page.locator('#prompt').fill('Gentle camera movement.');
   assert.equal(await x.page.locator('#generate').isEnabled(),true);
   await x.page.waitForFunction(()=>{
@@ -118,6 +127,18 @@ try{
   await x.page.screenshot({path:'test-results/lab-video-white-generate.png',fullPage:false});
   await x.page.locator('#prompt').fill('');
   await x.page.click('#mode-start');
+  await x.page.waitForFunction(()=>document.querySelector('#app').classList.contains('pv-video-mode-start'));
+  const pair=await x.page.evaluate(()=>{
+    const start=document.getElementById('drop').getBoundingClientRect();
+    const end=document.getElementById('last-drop').getBoundingClientRect();
+    return {startTop:start.top,endTop:end.top,startRight:start.right,endLeft:end.left,
+      startWidth:start.width,endWidth:end.width};
+  });
+  assert.ok(Math.abs(pair.startTop-pair.endTop)<12&&pair.startRight<pair.endLeft&&
+    pair.startWidth>110&&pair.endWidth>110,
+    'Start and optional End frames appear in two balanced upload boxes: '+JSON.stringify(pair));
+  assert.equal(await x.page.locator('#pv-video-start-visual').isVisible(),true,
+    'Empty Start frame mode has its own illustrated create state');
   const videoLayout=await x.page.evaluate(()=>{
     const workspace=document.querySelector('.workspace'),feed=document.querySelector('#video-feed-center');
     const editor=document.querySelector('.controls'),panel=document.querySelector('#video-inspector');
@@ -494,7 +515,8 @@ try{
   await x.page.screenshot({path:'test-results/lab-workspace-image.png',fullPage:false});
   await x.page.click('#tool-video');
   await x.page.click('#mode-reference');
-  assert.match(await x.page.locator('#empty-title').innerText(),/references/i);
+  assert.match(await x.page.locator('#empty-title').innerText(),/Bring your ideas to life|references/i,
+    'References retains the approved cinematic create invitation');
   assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Add references/);
   await x.page.locator('#canvas-secondary').click();
   assert.equal(await x.page.evaluate(()=>document.activeElement.id),'prompt','Reference secondary action focuses motion direction');

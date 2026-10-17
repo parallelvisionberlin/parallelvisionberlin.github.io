@@ -151,7 +151,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./scene-library.css?v=20261017-compact-elements2">
 <link rel="stylesheet" href="./video-editorial-deck.css?v=20261017-video-editorial1">
 <link rel="stylesheet" href="./video-approved-design.css?v=20261017-video-approved1">
+<link rel="stylesheet" href="./video-scene-states.css?v=20261017-video-scenes1">
 <script type="module" src="./video-editorial-deck.js?v=20261017-video-editorial1"></script>
+<script type="module" src="./video-scene-states.js?v=20261017-video-scenes1"></script>
 </head>
 <body class="lab-booting">
 <div id="pv-credit-toast" class="pv-credit-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
@@ -898,7 +900,19 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div id="upscale-notice-slot" class="upscale-notice-slot" hidden aria-label="Upscale progress and confirmation"></div>
 </div>
 </section>
-<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas" id="upscale-canvas"><div id="empty" class="empty">
+<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button id="pv-video-history-back" class="pv-video-history-back" type="button" hidden aria-label="Return from History to creating a video"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>Back to create</button><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas" id="upscale-canvas"><div id="empty" class="empty">
+  <div id="pv-video-start-visual" class="pv-video-scene-visual pv-video-start-visual" hidden aria-label="Illustrative start and end frame examples">
+    <div class="pv-scene-start-thumb"><img src="./mood-previews/midnight-reverie-original-20261011.png" alt="" loading="lazy"><small>START FRAME</small></div>
+    <svg viewBox="0 0 42 24" width="42" height="24" class="pv-scene-direction-arrow" aria-hidden="true"><path d="M2 12h36m-8-8 8 8-8 8"/></svg>
+    <div class="pv-scene-end-thumb"><img src="./mood-previews/berlin-rave-detail-20261015.webp" alt="" loading="lazy"><small>END FRAME</small></div>
+    <span class="pv-scene-example-label">Illustrative PV LAB frames</span>
+  </div>
+  <div id="pv-video-text-visual" class="pv-video-scene-visual pv-video-text-visual" hidden aria-label="Illustrative text to video concept">
+    <img class="pv-text-preview-a" src="./mood-previews/berlin-rave-grid-20261015.webp" alt="" loading="lazy">
+    <img class="pv-text-preview-b" src="./mood-previews/hong-kong-nights-emerald-20261010.webp" alt="" loading="lazy">
+    <div class="pv-text-direction-card"><span class="pv-text-direction-symbol">T</span><span>Describe a scene, its movement, light and sound…</span></div>
+    <span class="pv-scene-example-label">Illustrative PV LAB moods</span>
+  </div>
   <span class="upscale-empty-kicker">IMAGE ENHANCEMENT</span>
   <p class="empty-title" id="empty-title">Your next scene starts here.</p>
   <small class="empty-description" id="empty-description">Begin with a still, then shape its motion, light and atmosphere.</small>
@@ -923,7 +937,29 @@ document.addEventListener('DOMContentLoaded',()=>{
 </div>
 <aside id="video-inspector" class="video-inspector" hidden aria-label="Selected video information">
   <div class="video-inspector-heading"><span>Scene details</span><span id="video-detail-status" class="video-detail-status">Ready</span></div>
-  <div id="video-inspector-empty" class="video-inspector-empty">Select a video to see its settings and actions.</div>
+  <div id="video-inspector-empty" class="video-inspector-empty pv-video-create-inspector">
+  <span class="pv-video-sidebar-kicker">CURRENT SCENE</span>
+  <strong id="pv-video-current-model" class="pv-video-current-model">Video model</strong>
+  <section class="pv-video-sidebar-section">
+    <h3>Prompt</h3>
+    <p id="pv-video-current-prompt">Describe the movement, camera and sound to begin.</p>
+  </section>
+  <section class="pv-video-sidebar-section">
+    <h3>References</h3>
+    <div id="pv-video-current-references" class="pv-video-current-references"></div>
+    <p id="pv-video-current-reference-note">Nothing attached yet.</p>
+  </section>
+  <section class="pv-video-sidebar-section">
+    <h3>Settings</h3>
+    <dl class="pv-video-current-settings">
+      <div><dt>Duration</dt><dd id="pv-video-current-duration">5 sec</dd></div>
+      <div><dt>Resolution</dt><dd id="pv-video-current-resolution">720P</dd></div>
+      <div><dt>Aspect ratio</dt><dd id="pv-video-current-ratio">Auto</dd></div>
+      <div><dt>Audio</dt><dd id="pv-video-current-audio">On</dd></div>
+    </dl>
+  </section>
+  <p class="pv-video-sidebar-footnote">Settings for your next video. Nothing has been generated.</p>
+</div>
   <div id="video-inspector-selected" hidden>
     <div class="video-inspector-body">
       <span id="video-detail-model" class="video-detail-model"></span>

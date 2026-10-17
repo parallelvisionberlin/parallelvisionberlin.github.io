@@ -2218,12 +2218,16 @@ function updateVideoInspectorReferences(job){
 }
 function updateVideoInspector(job){
   if(!videoInspector)return;
+  const isSelected=tool==='video'&&!!job;
+  $('app').classList.toggle('pv-video-history-selected',isSelected);
+  const back=$('pv-video-history-back');if(back)back.hidden=!isSelected;
   $('video-inspector-empty').hidden=!!job;
   $('video-inspector-selected').hidden=!job;
   updateVideoInspectorReferences(job);
   if(!job){
     $('video-detail-status').textContent=videoStartFrameHandoff&&file?'Start frame':'';
-    $('video-inspector-empty').textContent=videoStartFrameHandoff&&file?'Start frame ready. Add motion direction in the controls to create your video.':'Select a video to see its settings and actions.';
+    const sceneFoot=$('pv-video-sidebar-footnote');
+    if(sceneFoot)sceneFoot.textContent=tool==='video'&&mode==='start'&&!!file?'Start frame ready. Describe its motion to generate a video.':'Settings for your next video. Nothing has been generated.';
     for(const card of $('history').querySelectorAll('.is-current-video'))card.classList.remove('is-current-video');
     return;
   }
@@ -2274,25 +2278,31 @@ function showVideoHistoryRecord(job,{play=true,reveal=false}={}){
     });
   }
 }
+// Keep a creation workspace until a user explicitly selects History or submits
+// a new generation. Merely loading/refreshing History must not hijack the stage.
+function clearVideoHistorySelection({reset=true}={}){
+  ++videoSelectionRevision;videoLoadJobId=null;videoLoadErrorJobId=null;
+  selectedVideoJob=null;updateVideoInspector(null);
+  $('video-job-stage').hidden=true;
+  if(reset&&tool==='video')resetPreview();
+}
 function restoreLatestVideoSelection(){
   if(tool!=='video'||!owner)return;
   const available=[...videoJobCache.values()];
-  if(!available.length){
-    selectedVideoJob=null;
-    updateVideoInspector(null);
-    $('video-job-stage').hidden=true;
-    $('video-feed-empty').hidden=false;
-    return;
+  $('video-feed-empty').hidden=available.length>0;
+  if(videoStartFrameHandoff&&!resultId){
+    selectedVideoJob=null;updateVideoInspector(null);$('video-job-stage').hidden=true;return;
   }
-  $('video-feed-empty').hidden=true;
-  if(videoStartFrameHandoff&&!resultId){selectedVideoJob=null;updateVideoInspector(null);$('video-job-stage').hidden=true;return;}
   if(selectedVideoJob&&videoJobCache.has(selectedVideoJob.id)){
     selectedVideoJob=videoJobCache.get(selectedVideoJob.id);
     updateVideoInspector(selectedVideoJob);
     showVideoJobStage(selectedVideoJob);
     return;
   }
-  showVideoHistoryRecord(available[0],{play:false});
+  if(selectedVideoJob&&historyLoading)return; // a refresh is still restoring its records
+  if(selectedVideoJob){clearVideoHistorySelection();return;}
+  updateVideoInspector(null);
+  $('video-job-stage').hidden=true;
 }
 function syncVideoStudioMode(){
   if(!mainWorkspace)return;
@@ -2315,6 +2325,11 @@ function syncVideoStudioMode(){
       $('archive-rest-anchor').after(archive);
   }
 }
+$('pv-video-history-back').onclick=()=>{
+  if(tool!=='video'||busy)return;
+  clearVideoHistorySelection();
+  videoFeedCenter.scrollTo({top:0,behavior:'instant'});
+};
 $('video-detail-watch').onclick=()=>{
   if(selectedVideoJob&&hasResult(selectedVideoJob))
     void viewMedia(()=>openVideo(selectedVideoJob,{scroll:false}));
@@ -2334,7 +2349,7 @@ $('video-detail-delete').onclick=()=>{
     await api('/api/jobs/'+job.id,{method:'DELETE'});
     const card=[...$('history').children].find(el=>el.dataset.job===job.id);
     if(card){cleanupHistoryCard(card);card.remove();}
-    selectedVideoJob=null;videoJobCache.delete(job.id);
+    videoJobCache.delete(job.id);clearVideoHistorySelection();
     await syncHistory();restoreLatestVideoSelection();
     notify('Video record deleted. Spending history is unchanged.');
   });
@@ -2550,8 +2565,11 @@ function clearResult(){$('video-job-stage').hidden=true;upscaleResultUI.clear();
 function resetPreview(){
   clearResult();
   if(tool==='video'&&mode==='extend'&&mediaRefs.firstVideo()){const clip=mediaRefs.firstVideo();$('video').src=clip.url;$('video').hidden=false;$('preview').hidden=true;$('empty').hidden=true;$('preview-label').textContent='Video to extend';return;}
+  // Video References has its own composition area. Even with real reference
+  // photos attached, show their montage rather than treating Reference 1 as
+  // an unrelated full-canvas generated result. The inputs are unchanged.
   // Image generation has a result-only canvas. Inputs remain in the reference list.
-  const item=tool==='image'&&imageEngine!=='soulpro'||tool==='video'&&mode==='text'?null:(tool==='upscale'||mode==='start')?
+  const item=tool==='image'&&imageEngine!=='soulpro'||tool==='video'&&['text','reference'].includes(mode)?null:(tool==='upscale'||mode==='start')?
     (sourceUrl?{url:sourceUrl,label:tool==='upscale'?'Upscale input':'Start frame'}:null):
     (references[0]?{url:references[0].url,label:'Reference 1 / input'}:null);
   $('preview').alt='Uploaded source image, not a generated result';
@@ -2722,7 +2740,12 @@ function configureVideoControls(){
   $('ref-count').textContent=references.length+' / '+referenceLimit();
   videoModelPicker.sync();
 }
-function setMode(nextMode){const modes=VIDEO_MODELS[engine].modes;mode=modes.includes(nextMode)?nextMode:modes[0];if(mode!=='start')activeVideoEffect=null;configureVideoControls();resetPreview();update();refreshEffectsView();}
+function setMode(nextMode){
+  if(tool==='video'&&selectedVideoJob)clearVideoHistorySelection({reset:false});
+  const modes=VIDEO_MODELS[engine].modes;mode=modes.includes(nextMode)?nextMode:modes[0];
+  if(mode!=='start')activeVideoEffect=null;
+  configureVideoControls();resetPreview();update();refreshEffectsView();
+}
 $('mode-extend').onclick=()=>{if(!busy)setMode('extend');};
 $('video-create-task').onclick=()=>{if(!busy)setMode('reference');};
 $('mode-text').onclick=()=>{if(!busy)setMode('text');};
