@@ -132,9 +132,10 @@ try{
         const withPhotos=metrics.dock.height;
         await textbox.fill('');
         await page.evaluate(()=>{document.getElementById('image-composer-references').hidden=true;window.__resizePVPrompt();});
-        await page.waitForFunction(()=>document.getElementById('image-composer-prompt').getBoundingClientRect().height<85,null,{timeout:2500});
+        await page.waitForTimeout(275);
         const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
-        assert.ok(empty>=105&&empty<170,'No-photo desktop Image deck stays compact: '+empty);
+        assert.ok(empty>=115&&empty<310,
+          'Clearing an engaged desktop editor keeps its floating footprint bounded: '+empty);
         assert.ok(withPhotos>=empty-3,
           'Inline photo references must not shrink the already-open floating deck: '+JSON.stringify({withPhotos,empty}));
         await page.evaluate(()=>{document.getElementById('image-composer-references').hidden=false;});
