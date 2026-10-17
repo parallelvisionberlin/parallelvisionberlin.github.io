@@ -21,6 +21,9 @@ await loadHistory();
 showWelcomeStart({customer:true,generationReady:true,balanceCredits:200,accountClosed:false,billingReview:false});
 finishLabBoot();
 update();
+// Test-only trigger for transitioning from an empty customer welcome to
+// one saved image without making any paid request or changing production APIs.
+window.__welcomeMockGalleryChanged=()=>syncImageGalleryEmpty();
 window.__welcomeMockReady=true;
 `;
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png',
@@ -175,54 +178,30 @@ try{
   await page.mouse.move(2,2);
   assert.equal(await page.locator('.lab-welcome-preset').count(),6,
     'All six original welcome cards remain mounted');
-  // Regression: Select must reveal the original History toolbar above the
-  // first-image Mood welcome, never cover the kicker or heading (Oct 17 bug).
-  // The underlying archive uses normal flow for populated image galleries.
-  const selectGeometry=()=>page.evaluate(()=>{
-    const rect=selector=>{
-      const r=document.querySelector(selector).getBoundingClientRect();
-      return {top:r.top,bottom:r.bottom,height:r.height};
-    };
-    return {
-      header:rect('#app .image-studio .archivehead'),
-      bar:rect('#history-selection'),
-      kicker:rect('#lab-welcome-start .lab-welcome-kicker'),
-      title:rect('#lab-welcome-title'),
-      cards:rect('.lab-welcome-presets'),
-      deck:rect('#image-composer'),
-      display:getComputedStyle(document.querySelector('.image-gallery-shell')).display,
-      documentHeight:document.documentElement.scrollHeight,
-      viewportHeight:innerHeight
-    };
-  });
-  const untouched=await selectGeometry();
+  // An empty CUSTOMER Image welcome has no selectable image jobs.
+  // Do not advertise History Select or expose a useless "0 selected" toolbar.
+  assert.equal(await page.locator('#history-select').isVisible(),false,
+    'An empty customer welcome hides Select until an image actually exists');
   assert.equal(await page.locator('#history-selection').isVisible(),false);
-  await page.locator('#history-select').click();
-  assert.equal(await page.locator('#history-selection').isVisible(),true);
-  const selecting=await selectGeometry();
-  assert.equal(selecting.display,'grid',
-    'History Select occupies a dedicated flow row above first-image welcome');
-  assert.ok(selecting.bar.top>=selecting.header.bottom-3 &&
-    selecting.bar.bottom+8<=selecting.kicker.top,
-    'Selection toolbar must not cover PV LAB / IMAGE or Start with a feeling: '+
-      JSON.stringify(selecting));
-  assert.ok(selecting.kicker.top>untouched.kicker.top+25,
-    'Opening Select must move the welcome below the expanded History toolbar');
-  assert.ok(selecting.cards.bottom+12<=selecting.deck.top,
-    'Selection mode must keep all Mood cards clear of the fixed prompt deck: '+
-      JSON.stringify(selecting));
-  assert.ok(selecting.documentHeight<=selecting.viewportHeight+3,
-    'Opening Select in the first-image welcome must not introduce page scrolling');
-  assert.ok(Math.abs(selecting.deck.top-untouched.deck.top)<2,
-    'The bottom-anchored Image deck must not move when History Select opens');
-  await page.locator('#history-cancel-select').click();
+  const welcomePosition=await page.locator('#lab-welcome-title').evaluate(el=>el.getBoundingClientRect().top);
+  // A stale programmatic click cannot force the selection overlay back open.
+  await page.locator('#history-select').dispatchEvent('click');
+  assert.equal(await page.locator('#history-selection').isVisible(),false,
+    'Empty customer selection is guarded in JavaScript, not just hidden by CSS');
+  assert.equal(await page.locator('#history-select').isVisible(),false);
+  assert.ok(Math.abs((await page.locator('#lab-welcome-title').evaluate(el=>el.getBoundingClientRect().top))-welcomePosition)<2,
+    'Trying Select on an empty customer gallery must not move welcome content');
+  // Discreet Mode remains a separate user-visible control, available even
+  // before the customer's first image and unaffected by selection changes.
+  const eye=page.locator('#history-preview-toggle');
+  await eye.click();
+  assert.equal(await eye.getAttribute('aria-pressed'),'true',
+    'Customer can independently activate Discreet Mode');
   assert.equal(await page.locator('#history-selection').isVisible(),false);
-  const cancelled=await selectGeometry();
-  assert.ok(Math.abs(cancelled.kicker.top-untouched.kicker.top)<3 &&
-    Math.abs(cancelled.cards.top-untouched.cards.top)<3,
-    'Cancel returns first-image welcome to its exact original position');
-  assert.notEqual(cancelled.display,'grid',
-    'Cancel removes the temporary History selection layout');
+  await eye.click();
+  assert.equal(await eye.getAttribute('aria-pressed'),'false',
+    'Customer can return to the same six-Mood welcome');
+  assert.equal(await page.locator('#history-select').isVisible(),false);
   const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   await field.click();
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
@@ -300,9 +279,11 @@ try{
   const historyRelease=await page.evaluate(()=>{
     document.getElementById('lab-welcome-start').hidden=true;
     document.getElementById('image-gallery-empty').hidden=true;
-    const host=document.getElementById('image-gallery-host');
+    const history=document.getElementById('history');
     const thumb=document.createElement('article');
-    thumb.className='card';thumb.dataset.kind='image';host.append(thumb);
+    thumb.className='card';thumb.dataset.kind='image';thumb.dataset.deletable='true';
+    history.append(thumb);
+    window.__welcomeMockGalleryChanged();
     return {footer:getComputedStyle(document.querySelector('body>footer.pv-lab-footer')).display,
       overflow:getComputedStyle(document.documentElement).overflowY};
   });
@@ -310,6 +291,8 @@ try{
     'After an image exists, normal History page/footer accessibility returns');
   assert.notEqual(historyRelease.overflow,'hidden',
     'After first-image transition, the cascading gallery scroll is restored');
+  assert.equal(await page.locator('#history-select').isVisible(),true,
+    'After the first saved image, the customer gains the normal History Select action');
   await page.locator('#history-select').click();
   assert.equal(await page.locator('#history-selection').isVisible(),true);
   assert.notEqual(await page.locator('.image-gallery-shell').evaluate(el=>getComputedStyle(el).display),'grid',
