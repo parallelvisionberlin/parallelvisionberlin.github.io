@@ -5,6 +5,7 @@ The Image Studio History eye control visually hides saved generations, pending r
 
 Studio loading identity and motion work: [Studio boot work state](STUDIO-BOOT-WORK-STATE.md).
 Photo pack source-selection flow: [Photo Pack Studio work state](PHOTO-PACK-WORK-STATE.md).
+Approved Elements tab hero photos: [Elements hero visual work state](ELEMENTS-HERO-WORK-STATE.md).
 Wan reference drag-and-drop and Seedream opening frame: [Video opening frame work state](VIDEO-OPENING-FRAME-WORK-STATE.md).
 Motion Effects discovery and video presets: [Video Effects work state](VIDEO-EFFECTS-WORK-STATE.md).
 
