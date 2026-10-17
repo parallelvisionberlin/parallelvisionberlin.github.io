@@ -381,16 +381,16 @@ try{
   await x.page.click('#scene-image-menu [data-scene-target="characters"]');
   assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true);
   assert.equal(await x.page.locator('#scene-library-title').innerText(),'Characters');
-  assert.equal(await x.page.locator('#scene-tabs .scene-category-tab').count(),4);
+  assert.equal(await x.page.locator('#scene-tabs .scene-category-tab').count(),5);
   await x.page.click('#scene-close');
   await x.page.click('#scene-image-open');
   await x.page.click('#scene-menu-packs');
-  assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs.');
-  assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'Saved packs open an independent Soul-inspired library');
+  assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs');
+  assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'Saved packs open the matching Elements-style Photo Packs library');
   const packDialog=await x.page.locator('#pack-studio-dialog').evaluate(el=>{
     const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width};
   });
-  assert.ok(packDialog.width<=980&&packDialog.top>=12&&packDialog.bottom<=890,
+  assert.ok(packDialog.width<=1150&&packDialog.top>=12&&packDialog.bottom<=890,
     'Library is centered and contained inside the viewport: '+JSON.stringify(packDialog));
   await x.page.click('#pack-studio-close');
   const floatingChooser=x.page.waitForEvent('filechooser');

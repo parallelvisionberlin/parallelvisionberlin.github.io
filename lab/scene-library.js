@@ -8,7 +8,7 @@ const CATEGORIES=[
   {id:'locations',label:'Locations',role:'room',help:'Places, interiors and sets'}
 ];
 export const isSceneLibraryPack=pack=>typeof pack?.name==='string'&&/^PVSCENE1\|(characters|outfits|props|locations)\|.{1,80}$/.test(pack.name);
-export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getReferences,getReferenceLimit,getContext,prepareUse,addReferences,loadPacks,getAllPacks,notify,action,closeOverlays}) {
+export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getReferences,getReferenceLimit,getContext,prepareUse,addReferences,loadPacks,getAllPacks,notify,action,closeOverlays,openPhotoPacks}) {
   const $=id=>document.getElementById(id);
   const dialog=$('scene-library-dialog');
   if(!dialog)return {open(){},sync(){},renderSelected(){},fromGallery(){}};
@@ -202,6 +202,12 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
       btn.onclick=()=>{current=cat.id;selectedId=null;featuredExpanded=false;$('scene-search').value='';render();};
       tabs.append(btn);
     }
+    const packsLink=document.createElement('button');packsLink.type='button';
+    packsLink.className='scene-category-tab scene-photo-packs-link';
+    packsLink.setAttribute('aria-label','Open Photo packs');
+    packsLink.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.2" y="5.3" width="17.6" height="13.4" rx="2"/><circle cx="8.1" cy="9.4" r="1.5"/><path d="m4 16 5-5 4 3 3-3 4 4"/></svg><span>Photo packs</span><span class="scene-tab-chevron" aria-hidden="true">›</span>';
+    packsLink.onclick=()=>{close();openPhotoPacks?.();};
+    tabs.append(packsLink);
     $('scene-library-title').textContent=categoryData.label;
     $('scene-description').textContent=categoryDescriptions[current];
     $('scene-search').placeholder='Search '+categoryData.label.toLowerCase()+'...';
