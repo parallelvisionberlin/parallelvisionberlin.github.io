@@ -1118,7 +1118,8 @@ const packStudio=createReferencePackStudio({
   getPacks:()=>packs,getReferences:()=>references,getRoleLabels:referenceRoles,
   ensureReferences,uploadAsset,api,loadPacks,assetPhoto:composerAssetPhoto,
   onUse:id=>{$('pack-select').value=id;$('pack-load').click();},
-  notify,isOwner:()=>owner,isBusy:()=>busy,session:()=>epoch
+  notify,isOwner:()=>owner,isBusy:()=>busy,session:()=>epoch,
+  openElementCategory:categoryId=>sceneLibrary?.open(categoryId)
 });
 sceneLibrary=createSceneLibrary({
   api,uploadAsset,assetFile,assetPhoto:composerAssetPhoto,
@@ -1132,6 +1133,7 @@ sceneLibrary=createSceneLibrary({
     }
   },
   addReferences,loadPacks,getAllPacks:()=>packs,notify,action,
+  openPhotoPacks:()=>packStudio.open(),
   closeOverlays:()=>{sceneImageMenuClose();closeComposerLibrary();closeImageModelMenu();closeReferenceIntent();moodUI.close();toggleImageSettings(false);}
 });
 $('scene-video-open').onclick=()=>sceneLibrary.open('characters');
