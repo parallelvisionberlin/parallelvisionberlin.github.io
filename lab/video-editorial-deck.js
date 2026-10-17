@@ -49,24 +49,24 @@ function installVideoEditorialDeck(){
   function refreshCollage(enabled){
     const thumbnails=enabled?Array.from(referenceList.querySelectorAll('.reference-item>img'))
       .slice(0,3).map(img=>img.currentSrc||img.src).filter(Boolean):[];
-    // Empty-state pictures are clearly marked as illustrative PV LAB moods.
-    // Once photos are attached the montage shows only those actual references.
-    const examples=[
-      './mood-previews/dreamcore-train-20261010.webp',
-      './mood-previews/soft-pastel-film-portrait-f77111b4.webp',
-      './mood-previews/berlin-rave-detail-20261015.webp'
-    ];
+    // One approved Fashion After Fabric still creates the atmosphere.
+    // Actual uploads replace it immediately; do not invent a fake reference set.
+    const examples=['./visuals/invite-after-fabric-user-approved-20261014.webp'];
     const showingExample=enabled&&!thumbnails.length;
     const visuals=showingExample?examples:thumbnails;
     const nextKey=(showingExample?'examples:':'photos:')+visuals.join('|');
     collage.hidden=!visuals.length;
+    collage.dataset.illustrative=String(showingExample);
+    collage.setAttribute('aria-label',showingExample
+      ? 'PV LAB Fashion After Fabric editorial image, not a video or uploaded reference'
+      : 'Your attached reference images, not a generated video');
     if(nextKey===lastVisualKey)return;
     lastVisualKey=nextKey;
     const fragment=doc.createDocumentFragment();
     visuals.forEach((src,i)=>{
       const image=doc.createElement('img');
       image.src=src;
-      image.loading='lazy';
+      image.loading=showingExample?'eager':'lazy';
       image.decoding='async';
       image.alt='';
       image.setAttribute('aria-hidden','true');
@@ -74,12 +74,6 @@ function installVideoEditorialDeck(){
       image.onerror=()=>{image.style.opacity='0';};
       fragment.appendChild(image);
     });
-    if(showingExample){
-      const caption=doc.createElement('span');
-      caption.className='pv-reference-caption';
-      caption.textContent='Illustrative PV LAB moods · Add your own references';
-      fragment.appendChild(caption);
-    }
     collage.replaceChildren(fragment);
     collage.dataset.count=String(visuals.length);
   }
