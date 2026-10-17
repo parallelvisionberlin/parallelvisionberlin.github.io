@@ -47,7 +47,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-17.3-durable-finance';
+export const VERSION = 'pv-lab-2026-10-17.4-pricing-integrity';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1828,7 +1828,8 @@ async function route(request,env,ctx) {
     const time=now(),payloadJson=JSON.stringify(payload);
     const priced=replies.map(q=>{
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
-      if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||!Number.isFinite(expiry)||expiry<=time)
+      if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||
+         (customer&&maximum===0)||!Number.isFinite(expiry)||expiry<=time)
         fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
       const id=wakeQuoteId||crypto.randomUUID(),expires=Math.min(expiry,time+290000);
       return {id,estimatedUsd:estimate/1000000,maxUsd:maximum/1000000,expiresAt:expires,
