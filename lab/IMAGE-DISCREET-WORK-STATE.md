@@ -46,7 +46,7 @@ Initial implementation commits: 85db913, ea6d648, 90c7d985.
 - Fixed the hidden-state selector in `lab/image-moods-return.css` so Inspiration disappears in any Image Studio view when the eye is hidden, not just in Mood discovery. Reserved grid slot still prevents the eye from shifting.
 - Updated `lab/image-discreet.js` and `.css`: clicking Hide briefly shows "Previews hidden" for 1.6 seconds, then fades it out. Restored hidden mode on reload stays clean without replaying the label. Show/Hide immediately updates accessible state; reduced-motion users get no fade.
 - Updated stylesheet and script version tags in `lab/studio.html` to bust stale browser caches. Kept media, prompt deck, preview concealment, localStorage preference and all other studio tools intact.
-- Validation: source selectors and state transitions checked; authenticated browser interaction and custom-domain deployment confirmation remain pending until verified.
+- Validation: selector and toggle logic reviewed. GitHub static validation succeeded on commit `ddc45a13` (run 39053080041). The updated PV LAB domain live-readiness smoke succeeded on that commit (run 39053080011), confirming that `pvlab.studio` serves the new stylesheet and JS versions. Signed-in visual interaction has not been tested in this chat.
 
 ## Handoff
-Next action: check GitHub workflows and deployed `pvlab.studio` file versions after commit. Then test signed-in desktop/mobile hide, show and reload persistence. Do not change unrelated tools.
+Next action: test signed-in desktop/mobile Hide, Show and reload persistence visually when browser access is available. Do not change unrelated tools.
