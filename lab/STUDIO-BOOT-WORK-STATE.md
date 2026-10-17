@@ -49,3 +49,11 @@ Scope: Studio initial loading overlay only.
 - Fixed ONLY that mismatch by adding `padding-left:inherit;box-sizing:border-box` to the pseudo-element. Exit blur/opacity/easing, 240 ms fade, progress line, route guards, scrollbar restoration and all studio tools stay unchanged.
 - Added a focused computed-style browser assertion that wordmark and duplicate have matching padding, tracking and aligned sizing. Domain smoke checks the new exact CSS on production.
 - Reference baseline main `84b40879b02a3c007f7f599d1a0338f059c074ab`; branch `fix/pvlab-loader-ghost-alignment-20261017`; release, CI and production checks must be verified separately.
+
+## Production verification of aligned blur duplicate
+- Headless Chromium reproduced the underlying bug at 1440px: the true logo had a 7.92px padding inset and stayed centered even when Image toggled its scrollbar gutter, but the absolute blurred copy had 0px padding. The duplicate inherited the real text's letter-spacing but lacked the left inset.
+- Merged the minimal fix as PR #297, commit `70277683fa0b613563d12b024ae7a360066e444c`, adding `padding-left:inherit;box-sizing:border-box` to the blur duplicate only. No animation timing, transforms, stage behavior, auth or generation touched.
+- Focused Studio/Fashion browser test passed on run `39058030147`, including matching ghost/wordmark computed inset and unchanged width/position.
+- GitHub Pages deploy run `39058149029` succeeded; the Cloudflare Pages check for original commit was still building and the first omnibus custom-domain run timed out. A newer main deployment `e1bdf1a884d7448b3e7a476fa6456945102d500d` with the same source code succeeded on Cloudflare Pages at 18:41 UTC.
+- **Verified public custom domain:** a separate focused source fingerprint, run `39059075554` attempt 2, passed at 18:43 UTC. It fetched `https://pvlab.studio/studio.html`, confirmed the inherited-padding ghost, stationary logo keyframes and fixed 100vw overlay; the full legacy route and other custom-domain checks in that same run also passed.
+- No need for the user to wait for CDN publication now. User-side refresh is the remaining visual check. A new logo design is still unapproved.
