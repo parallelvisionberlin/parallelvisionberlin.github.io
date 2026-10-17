@@ -418,7 +418,7 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
 #scene-library-dialog .scene-category-hero[hidden]{display:none!important}
 #scene-library-dialog .scene-category-hero{
   position:relative;display:flex;align-items:center;min-width:0;
-  height:116px;box-sizing:border-box;margin:6px 0 11px;
+  height:148px;box-sizing:border-box;margin:6px 0 11px;
   padding:14px 22px;border:1px solid #34393e;border-radius:10px;
   background-color:#171d20;
   background-image:linear-gradient(90deg,rgba(13,17,21,.98) 0%,rgba(13,17,21,.83) 40%,rgba(13,17,21,.13) 100%),var(--scene-hero-image);
@@ -428,20 +428,20 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   overflow:hidden
 }
 #scene-library-dialog .scene-category-hero[data-category="characters"]{
-  --scene-hero-image:url("https://parallelvisionlabel.com/assets/optimized/fashion-hero.webp");
-  --scene-hero-position:60% 36%;
+  --scene-hero-image:url("./scene-hero-art/characters.webp");
+  --scene-hero-position:center;
 }
 #scene-library-dialog .scene-category-hero[data-category="outfits"]{
-  --scene-hero-image:url("https://parallelvisionlabel.com/assets/optimized/fashion-after-fabric/artists/alejandro/lotus02heroale.webp");
-  --scene-hero-position:58% 35%;
+  --scene-hero-image:url("./scene-hero-art/outfits.webp");
+  --scene-hero-position:center;
 }
 #scene-library-dialog .scene-category-hero[data-category="props"]{
-  --scene-hero-image:url("https://parallelvisionlabel.com/assets/optimized/liquid-metal-hero.webp");
-  --scene-hero-position:58% 42%;
+  --scene-hero-image:url("./scene-hero-art/props.webp");
+  --scene-hero-position:center;
 }
 #scene-library-dialog .scene-category-hero[data-category="locations"]{
-  --scene-hero-image:url("https://parallelvisionlabel.com/assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp");
-  --scene-hero-position:62% 46%;
+  --scene-hero-image:url("./scene-hero-art/locations.webp");
+  --scene-hero-position:center;
 }
 #scene-library-dialog .scene-category-hero-copy{position:relative;z-index:1;max-width:80%}
 #scene-library-dialog .scene-category-hero-kicker{
@@ -504,7 +504,7 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   #scene-library-dialog:has(#scene-browser:not([hidden])) .scene-toolbar{
     position:static;width:100%;margin:8px 0 10px
   }
-  #scene-library-dialog .scene-category-hero{height:112px;margin:0 0 12px;padding:12px 16px}
+  #scene-library-dialog .scene-category-hero{height:120px;margin:0 0 12px;padding:12px 16px}
   #scene-library-dialog .scene-category-hero h3{font-size:21px}
   #scene-library-dialog .scene-category-hero p{font-size:10px;white-space:normal}
   #scene-library-dialog .scene-feature{margin:0 0 12px}
@@ -513,7 +513,7 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   #scene-library-dialog .scene-create-tile{min-height:154px}
 }
 @media(max-width:430px){
-  #scene-library-dialog .scene-category-hero{height:103px;padding:12px}
+  #scene-library-dialog .scene-category-hero{height:112px;padding:12px}
   #scene-library-dialog .scene-category-hero-copy{max-width:84%}
   #scene-library-dialog .scene-category-hero h3{font-size:20px}
   #scene-library-dialog .scene-feature-cover{height:117px}
