@@ -27,6 +27,9 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
       if(node){node.textContent=message||'';node.classList.toggle('is-error',!!error);}
     }
   };
+  // The editor action wrapper shows the usual account notification. Keep the
+  // same error in the library, so users can correct their selection in place.
+  const runTask=task=>action(async()=>{try{await task();}catch(error){setStatus(error.message,true);throw error;}});
   function setWorking(value){
     working=!!value;
     $('scene-save').disabled=working;
@@ -121,7 +124,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     clearPhotos();setStatus('');
   }
   function render(){
-    if(view!=='browse')return;
+    if(view!=='browse'||!dialog.open)return;
     const categoryData=category(current);
     const tabs=$('scene-tabs');tabs.replaceChildren();
     for(const cat of CATEGORIES){
@@ -190,7 +193,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     if(currentRefs.length+missing.length>getReferenceLimit()){setStatus('This model supports up to '+getReferenceLimit()+' image references. Remove some before adding this item.',true);return;}
     setWorking(true);setStatus('Loading original images…');
     try{
-      await action(async()=>{
+      await runTask(async()=>{
         // Use the existing validated asset download and reference pipeline.
         const files=await Promise.all(missing.map((ref,i)=>assetFile(ref.id,safeName(item.title)+'-'+(i+1))));
         if(context.tool==='image'&&!currentRefs.length)prepareUse();
