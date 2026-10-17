@@ -375,6 +375,21 @@
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .video-feed-center .canvas-secondary{
  min-height:41px!important;border-radius:9px!important;font-size:12px!important;
 }
+/* Keep all five Video output choices in one readable desktop row when
+   Model, Duration, Ratio, Resolution and Audio are supported together. */
+@media(min-width:1320px){
+ #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .controls-body>.parameter-grid:not(:has(#ratio-control[hidden])):not(:has(#pv-video-audio-pill[hidden])){
+   display:grid!important;
+   grid-template-columns:minmax(106px,1.34fr) minmax(52px,.65fr) minmax(50px,.62fr) minmax(58px,.75fr) minmax(74px,.91fr)!important;
+   gap:6px!important;
+   align-items:stretch!important;
+ }
+ #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .controls-body>.parameter-grid:not(:has(#ratio-control[hidden])):not(:has(#pv-video-audio-pill[hidden]))>label:not([hidden]),
+ #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .controls-body>.parameter-grid:not(:has(#ratio-control[hidden])):not(:has(#pv-video-audio-pill[hidden]))>.pv-output-pill:not([hidden]){
+   width:100%!important;min-width:0!important;
+   padding:6px 5px!important;flex:none!important;
+ }
+}
 @media(max-width:820px){
  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .workspace.video-layout .controls-body{
   padding:13px 14px!important;gap:9px!important;
