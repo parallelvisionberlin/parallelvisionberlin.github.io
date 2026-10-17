@@ -14,19 +14,30 @@
     if(!isHidden()||!app.classList.contains('image-studio-active'))return;
     for(const dialog of viewers)if(dialog.open&&typeof dialog.close==='function')dialog.close();
   };
-  const refresh=()=>{
+  let noticeTimer=null;
+  const dismissNotice=()=>{
+    message.classList.remove('is-visible');
+    message.setAttribute('aria-hidden','true');
+  };
+  const refresh=(announce=false)=>{
     const hidden=isHidden();
     button.setAttribute('aria-pressed',String(hidden));
     button.setAttribute('aria-label',hidden?'Show image previews':'Hide image previews');
     button.title=hidden?'Show previews (Discreet Mode)':'Hide previews (Discreet Mode)';
-    message.setAttribute('aria-hidden',String(!hidden));
+    if(noticeTimer!==null){clearTimeout(noticeTimer);noticeTimer=null;}
+    dismissNotice();
+    if(hidden&&announce){
+      message.classList.add('is-visible');
+      message.setAttribute('aria-hidden','false');
+      noticeTimer=setTimeout(()=>{noticeTimer=null;dismissNotice();},1600);
+    }
     conceal();
   };
   button.addEventListener('click',()=>{
     const hidden=!isHidden();
     root.classList.toggle(mode,hidden);
     try{localStorage.setItem(key,hidden?'1':'0');}catch{}
-    refresh();
+    refresh(hidden);
   });
   // Asynchronous results never bypass the concealed gallery.
   const observer=new MutationObserver(conceal);

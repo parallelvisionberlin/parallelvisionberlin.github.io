@@ -42,5 +42,11 @@ Initial implementation commits: 85db913, ea6d648, 90c7d985.
 - Updated lab/studio.html cache key to image-discreet.css?v=20261015-right-edge3 and the production smoke to verify the rightmost grid placement.
 - No change to gallery visibility, saved preference, model API, credit flow or accessibility labels. Signed-in visual behavior should still be checked.
 
+## October 17: Hide Inspiration and transient status
+- Fixed the hidden-state selector in `lab/image-moods-return.css` so Inspiration disappears in any Image Studio view when the eye is hidden, not just in Mood discovery. Reserved grid slot still prevents the eye from shifting.
+- Updated `lab/image-discreet.js` and `.css`: clicking Hide briefly shows "Previews hidden" for 1.6 seconds, then fades it out. Restored hidden mode on reload stays clean without replaying the label. Show/Hide immediately updates accessible state; reduced-motion users get no fade.
+- Updated stylesheet and script version tags in `lab/studio.html` to bust stale browser caches. Kept media, prompt deck, preview concealment, localStorage preference and all other studio tools intact.
+- Validation: source selectors and state transitions checked; authenticated browser interaction and custom-domain deployment confirmation remain pending until verified.
+
 ## Handoff
-Next action: confirm production smoke after this CSS update, then do authenticated desktop/mobile eye toggles and refresh persistence. Do not change unrelated tools.
+Next action: check GitHub workflows and deployed `pvlab.studio` file versions after commit. Then test signed-in desktop/mobile hide, show and reload persistence. Do not change unrelated tools.

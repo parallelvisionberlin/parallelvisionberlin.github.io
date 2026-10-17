@@ -88,7 +88,15 @@ html.pv-image-previews-hidden #app.image-studio-active .image-gallery-shell::bef
   background-repeat:no-repeat;
 }
 html.pv-image-previews-hidden #app.image-studio-active .image-gallery-host{position:relative;z-index:1}
-html.pv-image-previews-hidden #app.image-studio-active .image-discreet-message{display:flex}
+/* The confirmation is brief; hiding persists after the message fades. */
+html.pv-image-previews-hidden #app.image-studio-active .image-discreet-message{
+  display:flex;opacity:0;visibility:hidden;
+  transition:opacity .25s ease,visibility 0s linear .25s
+}
+html.pv-image-previews-hidden #app.image-studio-active .image-discreet-message.is-visible{
+  opacity:1;visibility:visible;
+  transition:opacity .16s ease,visibility 0s
+}
 html.pv-image-previews-hidden #app.image-studio-active #history,
 html.pv-image-previews-hidden #app.image-studio-active #history-selection,
 html.pv-image-previews-hidden #app.image-studio-active #emptyarchive,
@@ -121,5 +129,6 @@ html.pv-image-previews-hidden #app.image-studio-active #input-preview-dialog[ope
   .image-discreet-message{inset:48px 0 172px}
 }
 @media(prefers-reduced-motion:reduce){
-  #history-preview-toggle,#history-preview-toggle svg{transition:none!important}
+  #history-preview-toggle,#history-preview-toggle svg,
+  .image-discreet-message{transition:none!important}
 }

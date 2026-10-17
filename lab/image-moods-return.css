@@ -36,7 +36,9 @@
 html.pv-image-previews-hidden #app.image-studio-active.pv-moods-discovery-open #image-gallery-empty{
   display:none!important
 }
-html.pv-image-previews-hidden #app.image-studio-active.pv-moods-discovery-open #history-moods-toggle{
+/* Discreet Mode hides Inspiration in both History and the discovery view.
+   Visibility keeps its grid slot reserved so the eye stays anchored. */
+html.pv-image-previews-hidden #app.image-studio-active #history-moods-toggle{
   visibility:hidden!important;pointer-events:none!important
 }
 html.pv-image-previews-hidden #app.image-studio-active.pv-moods-discovery-open
