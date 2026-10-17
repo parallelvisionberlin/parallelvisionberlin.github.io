@@ -86,6 +86,10 @@ try{
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Clicking the prompt opens its multi-line editor');
   await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(35));
+  // The editorial deck intentionally animates its height over 230ms.
+  // Wait for that expansion before asserting the final readable geometry.
+  await page.waitForFunction(()=>document.getElementById('image-composer-prompt')
+    ?.getBoundingClientRect().height>=100,null,{timeout:3000});
   const expanded=await page.evaluate(()=>{
     const field=document.getElementById('image-composer-prompt');
     const deck=document.getElementById('image-composer');
