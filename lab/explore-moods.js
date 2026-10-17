@@ -103,7 +103,9 @@ function initialize(){
       resultLoading.classList.toggle('is-finishing',finishing);
       $('mc-look-exposure-overline-text').textContent=finishing?'FINALIZING IMAGE':'IMAGE IN PROCESS';
       $('mc-look-result-progress').textContent=jobProgress(job);
-      await new Promise(resolve=>setTimeout(resolve,4000));
+      // Provider queue checks stay at 4s. Once saving begins, check the
+      // private archived result more promptly without submitting another job.
+      await new Promise(resolve=>setTimeout(resolve,job.status==='saving'?1250:4000));
     }
     throw Error('This image is taking longer than expected. Check Image History for its result.');
   }
