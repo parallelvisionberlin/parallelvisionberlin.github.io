@@ -127,6 +127,7 @@ export async function migrationRoute(request,env,identity){
   if(path==='/api/migration/redeem'&&method==='POST'){
     const trial=identity.id&&await disposableTrial(env,identity);
     if(!studio||(identity.id&&!trial))fail(409,'This account already has work or is linked. Contact support before transferring an older account.');
+    await assertPermittedLabSignup(env,identity.subject,identity.issuer);
     const code=await readCode(request),hash=await codeHash(code),t=Date.now();
     const ticket=await one(env,
       'SELECT canonical_id,kind FROM lab_clerk_migration_codes WHERE code_hash=? AND expires_at>?',hash,t);
