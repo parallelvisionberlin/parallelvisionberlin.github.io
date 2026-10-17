@@ -122,13 +122,18 @@ async function finalizeTask(env,task){
 }
 
 export async function processStudioIdentityDeletions(env){
+  // Owner-only historical test/development databases need not contain any
+  // customer schema. A real customer deployment must provide the task tables.
+  if(!await one(env,"SELECT name FROM sqlite_master WHERE type='table' AND name='lab_customers'"))return;
+  if(!await one(env,"SELECT name FROM sqlite_master WHERE type='table' AND name='lab_studio_identity_deletions'"))
+    throw Error('PV LAB identity deletion migration is required.');
   await enqueueLinkedClosures(env); // Recovers from interrupted closure responses.
   await run(env,'DELETE FROM lab_studio_deleted_subject_keys WHERE expires_at<?',NOW());
   const found=await env.LAB_DB.prepare(`SELECT t.customer_id,t.new_subject,t.banned_at,t.state,
       c.state AS closure_state
     FROM lab_studio_identity_deletions t
     JOIN lab_account_closures c ON c.customer_id=t.customer_id
-    WHERE t.state='pending' ORDER BY t.requested_at LIMIT 8`).all();
+    WHERE t.state='pending' ORDER BY t.requested_at LIMIT 8`).bind().all();
   let failed=false;
   for(const task of found.results){
     try{
