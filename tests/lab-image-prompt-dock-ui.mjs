@@ -82,6 +82,11 @@ try{
       await textbox.fill(lorem);
       assert.equal(await textbox.inputValue(),lorem,kind+': pasted prompt must stay intact');
       await page.evaluate(()=>window.__resizePVPrompt());
+      // The editorial textarea has a 230ms height transition; measure settled geometry.
+      await page.waitForFunction(()=>{
+        const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
+        return h>=(innerWidth>900?154:innerWidth<=740?90:110);
+      },null,{timeout:2500});
       const metrics=await page.evaluate(()=>{
         const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height};};
         const el=document.querySelector('#image-composer-prompt'),tray=document.querySelector('#image-composer-references');
@@ -127,6 +132,7 @@ try{
         const withPhotos=metrics.dock.height;
         await textbox.fill('');
         await page.evaluate(()=>{document.getElementById('image-composer-references').hidden=true;window.__resizePVPrompt();});
+        await page.waitForFunction(()=>document.getElementById('image-composer-prompt').getBoundingClientRect().height<85,null,{timeout:2500});
         const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
         assert.ok(empty>=105&&empty<170,'No-photo desktop Image deck stays compact: '+empty);
         assert.ok(withPhotos>=empty-3,
