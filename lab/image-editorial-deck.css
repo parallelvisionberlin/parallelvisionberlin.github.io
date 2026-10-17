@@ -169,6 +169,42 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   }
 }
 
+/* Reference-loaded Image workspace: match the restrained compact editing
+   instrument, not a tall pasted-prompt panel over the History thumbnails.
+   Only the normal authenticated WEB Image composer with actual photo tiles;
+   Soul, native Create, text-only prompts and every other tool are unchanged.
+   The complete 5,000-character direction stays in the same scrollable textarea. */
+@media (min-width:900px){
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul) #image-composer-prompt{
+    font-size:15.5px!important;
+    line-height:1.48!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):has(#image-composer-references:not([hidden]) .composer-reference-tile)
+    .image-composer-top{
+    height:64px!important;
+    min-height:64px!important;
+    max-height:64px!important;
+    align-items:center!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):has(#image-composer-references:not([hidden]) .composer-reference-tile)
+    #image-composer-prompt{
+    height:56px!important;
+    min-height:56px!important;
+    max-height:56px!important;
+    align-self:center!important;
+    resize:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    white-space:pre-wrap!important;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(199,203,201,.38) transparent;
+    transition:none!important;
+  }
+}
+
 /* Smaller desktops keep the existing two-row controls, with polish only. */
 @media(min-width:681px) and (max-width:1259px){
   #app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul){
