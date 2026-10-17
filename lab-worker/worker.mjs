@@ -47,7 +47,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-17.5-free-trial-paused';
+export const VERSION = 'pv-lab-2026-10-17.6-auth-session-unblocked';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1340,9 +1340,11 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
-  if(customer&&path==='/api/session'&&(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY)){
-    // A first authenticated Studio session needs the verified welcome grant
-    // before it reads the wallet. Returning users keep the cheap cached sync.
+  if(customer&&path==='/api/session'&&env.LAB_WELCOME_CREDITS_ENABLED==='true'&&
+     (env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY)){
+    // Only an enabled welcome campaign needs Clerk email verification before
+    // returning /api/session. While free gifts are paused, the existing
+    // scheduled contact backfill maintains records without blocking login.
     const granted=await first(env,"SELECT 1 AS ok FROM lab_credit_entries WHERE customer_id=? AND reference=?",owner,'welcome:'+owner);
     if(!granted)await syncCustomerEmail(env,owner).catch(()=>false);
     else if(ctx?.waitUntil)ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
