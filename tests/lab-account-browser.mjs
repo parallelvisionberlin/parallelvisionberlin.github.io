@@ -141,6 +141,21 @@ try{
       await fits(page,'zero-credit studio '+width);
       await page.screenshot({path:artifacts+'/credit-banner-'+width+'.png'});
       assert.equal(await page.locator('#lab-credit-banner-add').count(),0,'no duplicate credit CTA in the notice');
+      const studioUrl=page.url();
+      await page.fill('#image-composer-prompt','Keep this exact draft.');
+      await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
+      await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
+      assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6,
+        'All six original homepage plans appear in Studio without navigation');
+      assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-onetime').getAttribute('aria-selected'),'true',
+        'Empty wallet starts on one-time credits');
+      assert.equal(page.url(),studioUrl,'Opening credits does not navigate through the homepage');
+      await page.click('#lab-pricing-overlay-close');
+      assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this exact draft.',
+        'Pricing overlay preserves Studio draft');
+      session.balanceCredits=1000;
+      await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+      await page.waitForFunction(()=>document.getElementById('lab-wallet-toggle').textContent.includes('1,000'));
       await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
       await page.locator('#lab-credits-dialog[open]').waitFor();
       assert.equal(await page.locator('#lab-credit-products button').count(),3);
@@ -153,10 +168,20 @@ try{
       await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());await page.keyboard.press('Escape');
       assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this exact draft.');
       assert.equal(writes.some(x=>x.path==='/api/billing/checkout'||x.path==='/api/jobs'||x.path==='/api/image-models/generate'),false,'opening/closing the credit deck never submits a payment or generation');
-      await page.click('#lab-credit-banner-dismiss');assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
-      await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());await page.click('#lab-credit-refresh');
-      assert.equal(await page.locator('#lab-credit-banner').isVisible(),false,'dismissal survives refresh at the same empty balance');
-      session.balanceCredits=1000;await page.click('#lab-credit-refresh');
+      session.balanceCredits=0;
+      await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+      await page.locator('#lab-credit-banner').waitFor({state:'visible'});
+      await page.click('#lab-credit-banner-dismiss');
+      assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
+      await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+      assert.equal(await page.locator('#lab-credit-banner').isVisible(),false,
+        'Dismissal survives refresh at the same empty balance');
+      session.balanceCredits=1000;
+      await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+      await page.waitForFunction(()=>document.getElementById('lab-wallet-toggle').textContent.includes('1,000'));
+      await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
+      await page.locator('#lab-credits-dialog[open]').waitFor();
+      await page.click('#lab-credit-refresh');
       await page.waitForFunction(()=>document.querySelector('#lab-credit-balance').textContent==='1,000 credits');
       assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
       session.balanceCredits=0;await page.click('#lab-credit-refresh');
