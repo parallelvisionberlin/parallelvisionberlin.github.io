@@ -5,11 +5,13 @@ const OWN_HOSTS=new Set(['parallelvisionlabel.com','www.parallelvisionlabel.com'
 function pageCategory(path){
   const part=path.replace(/\/+$/,'').split('/').pop()?.toLowerCase()||'';
   if(!part||part==='lab'||part==='index.html')return 'home';
-  if(part==='studio.html')return 'studio';
-  if(part==='moods.html')return 'moods';
-  if(part==='mood-creator.html')return 'mood-creator';
-  if(part==='fashion.html')return 'fashion';
-  if(part==='account.html')return 'account';
+  const clean=part.endsWith('.html')?part.slice(0,-5):part;
+  if(clean==='studio')return 'studio';
+  if(clean==='moods')return 'moods';
+  if(clean==='mood-creator')return 'mood-creator';
+  if(clean==='fashion')return 'fashion';
+  if(clean==='account')return 'account';
+  if(clean==='retouch')return 'other'; // Retouch does not have a distinct aggregate page category.
   return 'other';
 }
 function labelSource(name){
