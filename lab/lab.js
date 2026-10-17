@@ -4438,7 +4438,10 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
   // A new V2 Clerk identity is not yet a funded PV LAB wallet. Only redirect
   // after the authenticated migration endpoint confirms the identity is unlinked.
   // Do not guess from email or treat a temporary /api/session failure as a new user.
-  if(stillSignedIn&&!owner&&['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev'].includes(location.hostname.toLowerCase())){
+  const migrationCheckNeeded=/set up your new PV LAB account|unlinked|not linked|migration|connect existing account/i.test(String(e?.message||''));
+  // Network timeouts and backend errors are NOT evidence of an unlinked account.
+  // Avoid an extra migration probe that can hide the real failure behind the splash.
+  if(stillSignedIn&&!owner&&migrationCheckNeeded&&['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev'].includes(location.hostname.toLowerCase())){
     try{
       const migrationController=new AbortController();
       const migrationTimer=setTimeout(()=>migrationController.abort(),6000);
