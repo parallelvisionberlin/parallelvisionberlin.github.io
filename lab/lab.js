@@ -2547,7 +2547,20 @@ async function api(path,options={}) {
     if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
     const r=await sessionRequest(path,{method:options.method||'GET',headers,body:b,cache:'no-store',credentials:'omit',signal:controller.signal},assertCurrent);
     assertCurrent();
-    if(!r.ok){const d=await r.json().catch(()=>({}));if(customerMode&&r.status===402)void wallet.refresh();throw new Error(d.error||`Request failed (${r.status}).`);}
+    if(!r.ok){
+      const d=await r.json().catch(()=>({}));
+      const fundingError=customerMode&&(r.status===402||
+        (r.status===403&&/complimentary generation is paused/i.test(String(d.error||''))));
+      if(fundingError){
+        void wallet.refresh();
+        // The customer asked to generate but lacks usable credits. Keep the
+        // existing prompt and files in place; open the same full Pricing section
+        // as the Upgrade button, never navigate through the homepage hero.
+        if(options.method==='POST'&&!path.startsWith('/api/billing/')&&!path.startsWith('/api/customer/'))
+          void pricingOverlay.open({oneTime:true});
+      }
+      throw new Error(d.error||`Request failed (${r.status}).`);
+    }
     const value=options.blob?await r.blob():await r.json();assertCurrent();
     // Refresh the real wallet after a reserved job or a confirmed failed job. Never infer a debit locally.
     if(customerMode&&((options.method==='POST'&&(value?.job||Array.isArray(value?.jobs)))||(/^\/api\/jobs\/[^/]+$/.test(path)&&value?.job?.status==='failed')))void wallet.refresh();
