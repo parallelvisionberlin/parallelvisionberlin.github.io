@@ -213,12 +213,16 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
         COALESCE(j.totalJobs,0) AS totalJobs,COALESCE(j.completedJobs,0) AS completedJobs,
         COALESCE(j.failedJobs,0) AS failedJobs,COALESCE(j.providerExposureUsd,0) AS providerExposureUsd,
         j.lastCompletedAt,
+        h.reason AS promoHoldReason,h.released_at AS promoHoldReleasedAt,
+        (SELECT COUNT(*) FROM lab_credit_entries payment
+          WHERE payment.customer_id=c.id AND payment.kind IN ('purchase','subscription')) AS verifiedPayments,
         COALESCE(e.creditsSpent,0) AS creditsSpent,
         COALESCE(e.welcomeCredits,0) AS welcomeCredits,
         COALESCE(ch.starts,0) AS checkoutStarts,
         COALESCE(rv.cents,0) AS revenueCents
         FROM lab_customers c
         LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
+        LEFT JOIN lab_promo_generation_holds h ON h.customer_id=c.id
         LEFT JOIN (
           SELECT owner_id,COUNT(*) AS totalJobs,
             SUM(CASE WHEN state='completed' THEN 1 ELSE 0 END) AS completedJobs,
@@ -249,10 +253,14 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
         netCreditsSpent:Number(credits?.netSpent)||0,checkoutStarts:Number(checkouts?.starts)||0,
         checkoutPaid:Number(checkouts?.paid)||0,revenueCents:Number(revenue?.cents)||0
       },
-      customers:customers.map(customer=>({...customer,
-        reviewFlag:welcomeReviewFlag(customer.email,env),
-        activated:Number(customer.completedJobs)>0
-      })),
+      customers:customers.map(customer=>{
+        const emailFlag=welcomeReviewFlag(customer.email,env);
+        const persistentHold=!!customer.promoHoldReason&&customer.promoHoldReleasedAt===null;
+        return {...customer,reviewFlag:emailFlag==='disposable-email'||persistentHold?'disposable-email':emailFlag,
+          promoHeld:env.LAB_PROMO_HOLDS_ENABLED==='true'&&Number(customer.verifiedPayments)===0&&
+            (emailFlag==='disposable-email'||persistentHold),
+          activated:Number(customer.completedJobs)>0};
+      }),
       notes:{
         cost:'Provider exposure uses settled costs when recorded, otherwise quoted estimates. Failed or deleted jobs and unrecorded vendor charges are not included.',
         checkout:'Checkout starts and euro revenue are recorded only after this release. Earlier Stripe sessions are not backfilled.',
