@@ -1,6 +1,6 @@
-/* Revisit the six featured Moods without changing private History or image generation. */
+/* Revisit the six-card Inspiration view without changing private History or image generation. */
 #app.image-studio-active .image-studio .history-head-actions{
-  grid-template-columns:80px 54px 62px 12px 34px;
+  grid-template-columns:110px 54px 62px 12px 34px;
 }
 #history-moods-toggle{display:none}
 #app.image-studio-active #history-moods-toggle{
