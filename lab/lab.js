@@ -1278,6 +1278,9 @@ function syncImageGalleryEmpty(){
   renderPendingImageCards();
   const imageCards=$('history').querySelectorAll('.card[data-kind="image"]').length;
   $('image-gallery-empty').hidden=imageCards>0&&!moodDiscoveryOpen;
+  // The customer welcome has no saved image to select. Synchronize History
+  // actions when a first result appears (or the empty welcome returns), too.
+  if(tool==='image')updateHistorySelectionUi();
 }
 
 // A one-time, text-first welcome path. Authentication, wallet funding, model
@@ -4004,9 +4007,23 @@ function historyImage(assetId,label,isResult=false){
   const caption=document.createElement('figcaption');caption.textContent=label;figure.append(img,caption);return {figure,img};
 }
 function historyFingerprint(j){return JSON.stringify([j.status,j.outputId||'',j.providerTaskId||'',j.error||'',j.estimatedUsd??null,j.settledUsd??null,j.updatedAt||'',j.favorite,j.settings]);}
+function isEmptyCustomerImageWelcome(){
+  return customerMode&&tool==='image'&&!moodDiscoveryOpen&&
+    $('app').classList.contains('image-studio-active')&&
+    !$('lab-welcome-start').hidden&&!$('image-gallery-empty').hidden&&
+    !$('history').querySelector('.card[data-kind="image"]');
+}
 function updateHistorySelectionUi(){
+  const emptyCustomerWelcome=isEmptyCustomerImageWelcome();
+  // Do not expose a meaningless "0 selected" selection bar over a brand-new
+  // customer's six-Mood welcome. Owner accounts with saved images keep the
+  // existing History Select flow and Discreet Mode is independent.
+  if(emptyCustomerWelcome&&historySelectMode){
+    historySelectMode=false;
+    historySelected.clear();
+  }
   $('history-selection').hidden=!historySelectMode;
-  $('history-select').hidden=historySelectMode;
+  $('history-select').hidden=historySelectMode||emptyCustomerWelcome;
   $('history').classList.toggle('is-selecting',historySelectMode);
   for(const card of $('history').querySelectorAll('.card')){
     const selectable=historySelectMode&&card.dataset.deletable==='true',selected=historySelected.has(card.dataset.job);
