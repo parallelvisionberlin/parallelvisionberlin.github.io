@@ -551,3 +551,34 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   #scene-library-dialog .scene-sidebar-brand,
   #pack-studio-dialog .pack-studio-sidebar-brand{margin-left:8px}
 }
+
+
+/* 2026-10-18 / Unified Elements modal viewport.
+   Keep Characters, Outfits, Props and Locations in the same shell as Photo Packs.
+   Empty categories must not shrink the dialog while switching sections. */
+@media(min-width:941px){
+  #scene-library-dialog,
+  #scene-library-dialog.scene-from-image{
+    position:fixed;inset:0!important;margin:auto!important;
+    box-sizing:border-box;width:min(1190px,calc(100vw - 36px));
+    max-width:none;height:min(675px,calc(100dvh - 34px));
+    max-height:calc(100dvh - 34px);border-radius:18px;overflow:hidden;
+  }
+  #scene-library-dialog .scene-shell{height:100%;max-height:100%;min-height:0}
+  #scene-library-dialog .scene-category-hero{
+    height:154px;min-height:154px;max-height:154px;
+    margin:8px 0 12px;padding:18px 25px;
+  }
+  #scene-library-dialog .scene-category-hero h3{font-size:26px}
+}
+@media(min-width:701px) and (max-width:940px){
+  #scene-library-dialog,
+  #scene-library-dialog.scene-from-image{
+    inset:0!important;margin:auto!important;
+    width:calc(100vw - 22px);height:calc(100dvh - 24px);
+    max-height:calc(100dvh - 24px);
+  }
+  #scene-library-dialog .scene-category-hero{
+    height:139px;min-height:139px;max-height:139px;
+  }
+}
