@@ -129,6 +129,8 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   border-right:1px solid #414447;border-bottom:1px solid #414447;
   background:#171a1d;transform:rotate(45deg)
 }
+/* Make Photo packs and Elements exactly equal-height, even when a subtitle wraps. */
+#image-composer #scene-image-menu-home{display:grid;grid-auto-rows:1fr}
 #image-composer .scene-menu-option,
 #image-composer .scene-menu-category{
   display:flex;align-items:center;text-align:left;width:100%;min-height:48px;
