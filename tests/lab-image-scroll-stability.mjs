@@ -106,7 +106,15 @@ try{
       app.classList.add('video-studio-active');
     });
     assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollbarGutter),
-      'auto','Other Studio tools keep their existing scrollbar behavior');
+      width>=761?'stable':'auto',
+      'Video retains the loading scrollbar gutter to prevent the preview and inspector jumping right');
+    await page.evaluate(()=>{
+      const app=document.getElementById('app');
+      app.classList.remove('video-studio-active');
+      app.classList.add('upscale-studio-active');
+    });
+    assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollbarGutter),
+      'auto','Upscaler and other Studio routes keep their original scrollbar behavior');
     console.log('PASS Image Studio '+width+'x'+height+
       ': stable splash unlock, delayed History and composer geometry',JSON.stringify({locked,ready,filled}));
     await context.close();
