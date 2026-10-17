@@ -1425,9 +1425,20 @@ function showWelcomeStart(session){
   syncImageGalleryEmpty();
 }
 function useWelcomeMood(id){
-  if(!Object.prototype.hasOwnProperty.call(welcomePrompts,id)||!moodById(id)
-    ||!owner||busy||imageSubmissionPending
-    ||$('lab-welcome-start')?.hidden)return;
+  if(!Object.prototype.hasOwnProperty.call(welcomePrompts,id)||!owner
+    ||busy||imageSubmissionPending||$('lab-welcome-start')?.hidden)return;
+  // Commit the user-visible choice before running model/mood synchronization.
+  // The decorative deck expansion must never be the only result of a click.
+  const selectedPrompt=welcomePrompts[id];
+  const visiblePrompt=$('image-composer-prompt');
+  $('prompt').value=selectedPrompt;
+  if(visiblePrompt){
+    visiblePrompt.value=selectedPrompt;
+    visiblePrompt.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
+    button.setAttribute('aria-pressed',String(button.dataset.welcomeMood===id));
+  });
   if(imageEngine!=='seedream'){
     $('image-engine').value='seedream';
     $('image-engine').dispatchEvent(new Event('change',{bubbles:true}));
@@ -1436,20 +1447,19 @@ function useWelcomeMood(id){
   imageProcessing='normal';$('image-processing').value='normal';
   $('resolution').value='2k';$('image-count').value='1';
   if(!references.length&&!file){$('ratio').value='16:9';imageRatioExplicit=false;}
-  moodUI.restore({moodId:id,moodIntensity:60},true);
-  $('prompt').value=welcomePrompts[id];
+  if(moodById(id))moodUI.restore({moodId:id,moodIntensity:60},true);
+  $('prompt').value=selectedPrompt;
   $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
-  // Mirror the selected Mood into the visible composer immediately.
-  // Eligibility to generate is checked separately when Generate is pressed.
-  const visiblePrompt=$('image-composer-prompt');
-  if(visiblePrompt)visiblePrompt.value=welcomePrompts[id];
   syncImageComposer();
+  // Apply after all synchronous Mood sync work, including any composer update.
+  if(visiblePrompt){
+    visiblePrompt.value=selectedPrompt;
+    visiblePrompt.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  update();
   // Curated first-image looks are deliberate selections, not keystrokes.
   // Start the read-only price request now instead of waiting 850 ms.
   customerImagePricing?.prime();
-  document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
-    button.setAttribute('aria-pressed',String(button.dataset.welcomeMood===id));
-  });
   // A Mood tap is not a request to type. A focused textarea would open
   // the mobile keyboard and hide the selected style and Generate button.
   const composerField=$('image-composer-prompt');
