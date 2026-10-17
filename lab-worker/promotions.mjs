@@ -191,6 +191,9 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
     return json(await labTrafficReport(env,{days}));
   }
   if(path==='/api/admin/acquisition'&&method==='GET'){
+    // Derived from finance-only rows. Creative jobs and R2 outputs may be deleted.
+    const costUsd=`CASE WHEN f.last_state IN ('draft','failed','unknown') THEN 0
+      ELSE COALESCE(f.settled_cost_usd,f.estimated_microusd/1000000.0) END`;
     const days=Number(url.searchParams.get('days')||'7');
     if(days!==7&&days!==30)fail(400,'Choose 7 or 30 days.');
     const nowTime=Date.now(),today=new Date(nowTime).toISOString().slice(0,10);
@@ -200,12 +203,15 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       one(env,'SELECT COUNT(*) AS n FROM lab_customers WHERE created_at>=? AND created_at<?',start,end),
       one(env,`SELECT COUNT(*) AS n FROM lab_customers c
         WHERE c.created_at>=? AND c.created_at<?
-          AND EXISTS(SELECT 1 FROM jobs j WHERE j.owner_id=c.id AND j.state='completed')`,start,end),
-      one(env,`SELECT COALESCE(SUM(CASE WHEN j.state NOT IN ('draft','failed')
-          THEN COALESCE(j.settled_cost,j.estimate_microusd/1000000.0) ELSE 0 END),0) AS exposureUsd,
-        COALESCE(SUM(CASE WHEN j.state='completed' THEN 1 ELSE 0 END),0) AS completedJobs
-        FROM jobs j JOIN lab_customers c ON c.id=j.owner_id
-        WHERE j.created_at>=? AND j.created_at<?`,start,end),
+          AND EXISTS(SELECT 1 FROM lab_generation_finance f WHERE f.customer_id=c.id
+            AND f.last_state IN ('completed','reconstructed_completed'))`,start,end),
+      one(env,`SELECT COALESCE(SUM(${costUsd}),0) AS exposureUsd,
+        COALESCE(SUM(CASE WHEN f.last_state IN ('completed','reconstructed_completed') THEN 1 ELSE 0 END),0) AS completedJobs,
+        COALESCE(SUM(CASE WHEN f.deleted_at IS NOT NULL THEN 1 ELSE 0 END),0) AS archivedJobs,
+        COALESCE(SUM(CASE WHEN f.last_state='reconstructed_completed' THEN 1 ELSE 0 END),0) AS reconstructedCompleted,
+        COALESCE(SUM(CASE WHEN f.deleted_at IS NOT NULL THEN ${costUsd} ELSE 0 END),0) AS archivedExposureUsd
+        FROM lab_generation_finance f JOIN lab_customers c ON c.id=f.customer_id
+        WHERE f.created_at>=? AND f.created_at<?`,start,end),
       one(env,`SELECT COALESCE(SUM(CASE WHEN kind='generation' THEN -delta_credits
           WHEN kind='refund' THEN -delta_credits ELSE 0 END),0) AS netSpent
         FROM lab_credit_entries WHERE created_at>=? AND created_at<?`,start,end),
@@ -216,6 +222,9 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       all(env,`SELECT c.id,c.created_at AS joinedAt,c.balance_credits AS balanceCredits,p.email,
         COALESCE(j.totalJobs,0) AS totalJobs,COALESCE(j.completedJobs,0) AS completedJobs,
         COALESCE(j.failedJobs,0) AS failedJobs,COALESCE(j.providerExposureUsd,0) AS providerExposureUsd,
+        COALESCE(j.archivedJobs,0) AS archivedJobs,
+        COALESCE(j.reconstructedCompleted,0) AS reconstructedCompleted,
+        COALESCE(j.archivedExposureUsd,0) AS archivedExposureUsd,
         j.lastCompletedAt,
         h.reason AS promoHoldReason,h.released_at AS promoHoldReleasedAt,
         (SELECT COUNT(*) FROM lab_credit_entries payment
@@ -228,14 +237,16 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
         LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
         LEFT JOIN lab_promo_generation_holds h ON h.customer_id=c.id
         LEFT JOIN (
-          SELECT owner_id,COUNT(*) AS totalJobs,
-            SUM(CASE WHEN state='completed' THEN 1 ELSE 0 END) AS completedJobs,
-            SUM(CASE WHEN state='failed' THEN 1 ELSE 0 END) AS failedJobs,
-            MAX(CASE WHEN state='completed' THEN updated_at END) AS lastCompletedAt,
-            SUM(CASE WHEN state NOT IN ('draft','failed')
-              THEN COALESCE(settled_cost,estimate_microusd/1000000.0) ELSE 0 END) AS providerExposureUsd
-          FROM jobs GROUP BY owner_id
-        ) j ON j.owner_id=c.id
+          SELECT f.customer_id,COUNT(*) AS totalJobs,
+            SUM(CASE WHEN f.last_state IN ('completed','reconstructed_completed') THEN 1 ELSE 0 END) AS completedJobs,
+            SUM(CASE WHEN f.last_state='failed' THEN 1 ELSE 0 END) AS failedJobs,
+            SUM(CASE WHEN f.deleted_at IS NOT NULL THEN 1 ELSE 0 END) AS archivedJobs,
+            SUM(CASE WHEN f.last_state='reconstructed_completed' THEN 1 ELSE 0 END) AS reconstructedCompleted,
+            SUM(CASE WHEN f.deleted_at IS NOT NULL THEN ${costUsd} ELSE 0 END) AS archivedExposureUsd,
+            MAX(CASE WHEN f.last_state='completed' THEN f.updated_at END) AS lastCompletedAt,
+            SUM(${costUsd}) AS providerExposureUsd
+          FROM lab_generation_finance f GROUP BY f.customer_id
+        ) j ON j.customer_id=c.id
         LEFT JOIN (
           SELECT customer_id,
             SUM(CASE WHEN kind='generation' THEN -delta_credits
@@ -254,6 +265,9 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       summary:{
         newUsers:Number(accounts?.n)||0,activatedUsers:Number(active?.n)||0,
         completedJobs:Number(jobs?.completedJobs)||0,providerExposureUsd:Number(jobs?.exposureUsd)||0,
+        archivedJobs:Number(jobs?.archivedJobs)||0,
+        archivedExposureUsd:Number(jobs?.archivedExposureUsd)||0,
+        reconstructedCompleted:Number(jobs?.reconstructedCompleted)||0,
         netCreditsSpent:Number(credits?.netSpent)||0,checkoutStarts:Number(checkouts?.starts)||0,
         checkoutPaid:Number(checkouts?.paid)||0,revenueCents:Number(revenue?.cents)||0
       },
@@ -266,7 +280,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
           activated:Number(customer.completedJobs)>0};
       }),
       notes:{
-        cost:'Provider exposure uses settled costs when recorded, otherwise quoted estimates. Failed or deleted jobs and unrecorded vendor charges are not included.',
+        cost:'Provider exposure survives gallery and prompt deletion. Uses settled cost when recorded, otherwise a reservation estimate; reconstructed historical values have no verified provider invoice. Failed jobs and unrecorded vendor charges are excluded.',
         checkout:'Checkout starts and euro revenue are recorded only after this release. Earlier Stripe sessions are not backfilled.',
         source:'Anonymous page-source aggregates cannot be joined to individual customers or used as unique visitor counts.'
       }});
@@ -298,11 +312,15 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
       WHERE c.id=?`,customerId);
     if(!customer)fail(404,'Customer not found.');
-    const [jobCounts,creditTotals,jobs,entries]=await Promise.all([
+    const [jobCounts,creditTotals,jobs,entries,archivedFinance]=await Promise.all([
       one(env,`SELECT COUNT(*) AS totalJobs,
-        COALESCE(SUM(CASE WHEN state='completed' THEN 1 ELSE 0 END),0) AS completedJobs,
-        COALESCE(SUM(CASE WHEN state='failed' THEN 1 ELSE 0 END),0) AS failedJobs
-        FROM jobs WHERE owner_id=?`,customerId),
+        COALESCE(SUM(CASE WHEN last_state IN ('completed','reconstructed_completed') THEN 1 ELSE 0 END),0) AS completedJobs,
+        COALESCE(SUM(CASE WHEN last_state='failed' THEN 1 ELSE 0 END),0) AS failedJobs,
+        COALESCE(SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END),0) AS archivedJobs,
+        COALESCE(SUM(CASE WHEN last_state='reconstructed_completed' THEN 1 ELSE 0 END),0) AS reconstructedCompleted,
+        COALESCE(SUM(CASE WHEN last_state NOT IN ('draft','failed','unknown')
+          THEN COALESCE(settled_cost_usd,estimated_microusd/1000000.0) ELSE 0 END),0) AS providerExposureUsd
+        FROM lab_generation_finance WHERE customer_id=?`,customerId),
       one(env,`SELECT COALESCE(SUM(CASE WHEN kind='generation' THEN -delta_credits ELSE 0 END),0) AS creditsCharged,
         COALESCE(SUM(CASE WHEN kind='refund' THEN delta_credits ELSE 0 END),0) AS creditsRefunded
         FROM lab_credit_entries WHERE customer_id=?`,customerId),
@@ -313,7 +331,14 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
           WHERE e.customer_id=? AND e.kind='refund' AND e.reference='refund:job:'||j.id),0) AS refundedCredits
         FROM jobs j WHERE j.owner_id=? ORDER BY j.created_at DESC,j.id DESC LIMIT 50`,customerId,customerId,customerId),
       all(env,`SELECT kind,delta_credits AS credits,reference,created_at AS createdAt
-        FROM lab_credit_entries WHERE customer_id=? ORDER BY created_at DESC,id DESC LIMIT 80`,customerId)
+        FROM lab_credit_entries WHERE customer_id=? ORDER BY created_at DESC,id DESC LIMIT 80`,customerId),
+      all(env,`SELECT job_id AS jobId,created_at AS createdAt,last_state AS state,
+        provider,tool_kind AS type,origin,
+        CASE WHEN last_state IN ('draft','failed','unknown') THEN 0
+          ELSE COALESCE(settled_cost_usd,estimated_microusd/1000000.0) END AS exposureUsd,
+        CASE WHEN settled_cost_usd IS NOT NULL THEN 'settled' ELSE 'estimate' END AS costKind
+        FROM lab_generation_finance WHERE customer_id=? AND deleted_at IS NOT NULL
+        ORDER BY created_at DESC,job_id DESC LIMIT 50`,customerId)
     ]);
     // Return only curated metadata. Never expose prompts, reference URLs or private media.
     const safe=value=>typeof value==='string'?value.slice(0,120):'';
@@ -327,15 +352,19 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       generation:'Generation charge',refund:'Generation refund',adjustment:'Credit adjustment'};
     return json({customer,summary:{
       totalJobs:Number(jobCounts?.totalJobs)||0,completedJobs:Number(jobCounts?.completedJobs)||0,
-      failedJobs:Number(jobCounts?.failedJobs)||0,creditsCharged:Number(creditTotals?.creditsCharged)||0,
+      failedJobs:Number(jobCounts?.failedJobs)||0,
+      archivedJobs:Number(jobCounts?.archivedJobs)||0,
+      reconstructedCompleted:Number(jobCounts?.reconstructedCompleted)||0,
+      providerExposureUsd:Number(jobCounts?.providerExposureUsd)||0,
+      creditsCharged:Number(creditTotals?.creditsCharged)||0,
       creditsRefunded:Number(creditTotals?.creditsRefunded)||0,
       netCreditsSpent:(Number(creditTotals?.creditsCharged)||0)-(Number(creditTotals?.creditsRefunded)||0)
-    },jobs:history,entries:entries.map(e=>({createdAt:e.createdAt,credits:e.credits,kind:e.kind,
+    },jobs:history,archivedFinance,entries:entries.map(e=>({createdAt:e.createdAt,credits:e.credits,kind:e.kind,
       description:e.kind==='adjustment'&&e.reference?.startsWith('welcome:')?'Welcome credits':
         e.kind==='adjustment'&&e.reference?.startsWith('voucher:')?'Voucher credits':
         e.kind==='adjustment'&&e.reference?.startsWith('referral:')?'Referral credits':
         descriptions[e.kind]||'Credit movement'})),
-      limits:{jobs:50,entries:80}});
+      limits:{jobs:50,entries:80,archivedFinance:50}});
   }
   if(path==='/api/admin/overview'&&method==='GET'){
     const search=(url.searchParams.get('search')||'').trim().slice(0,80),match='%'+search.replace(/[\\%_]/g,'\\$&')+'%';

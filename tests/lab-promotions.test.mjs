@@ -10,7 +10,7 @@ async function setup(t) {
   t.after(()=>db.close());
   const file=name=>readFileSync(new URL(name,import.meta.url),'utf8');
   db.exec(file('../lab-worker/schema.sql'));
-  for(const migration of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0016-clerk-sync-diagnostics','0023-welcome-guard','0024-owner-acquisition'])db.exec(file('../lab-worker/migrations/'+migration+'.sql'));
+  for(const migration of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0016-clerk-sync-diagnostics','0023-welcome-guard','0024-owner-acquisition','0025-promo-generation-holds','0028-generation-finance-ledger'])db.exec(file('../lab-worker/migrations/'+migration+'.sql'));
   db.exec(file('../lab-worker/migrations/0015-lab-promotional-credits.sql')); // safely applied more than once
   const dbBinding={
     prepare(sql){return {bind(...values){const stmt=db.prepare(sql);return {

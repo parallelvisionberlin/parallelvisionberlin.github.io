@@ -242,6 +242,26 @@ CREATE TABLE IF NOT EXISTS lab_promo_generation_holds (
 CREATE INDEX IF NOT EXISTS lab_promo_generation_holds_open
   ON lab_promo_generation_holds(released_at,created_at);
 
+-- Prompt-free generation finance retained independently of deletable jobs.
+-- Only migration 0028 installs the snapshot and deletion triggers.
+CREATE TABLE IF NOT EXISTS lab_generation_finance (
+  job_id TEXT PRIMARY KEY,
+  customer_id TEXT NOT NULL REFERENCES lab_customers(id),
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  last_state TEXT NOT NULL,
+  estimated_microusd INTEGER NOT NULL DEFAULT 0 CHECK(estimated_microusd>=0),
+  settled_cost_usd REAL,
+  provider TEXT,
+  tool_kind TEXT,
+  origin TEXT NOT NULL CHECK(origin IN ('observed','reconstructed')),
+  deleted_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS lab_generation_finance_date
+  ON lab_generation_finance(created_at);
+CREATE INDEX IF NOT EXISTS lab_generation_finance_customer
+  ON lab_generation_finance(customer_id,created_at DESC);
+
 -- Owner review access audit, customer outputs remain under their own R2 keys.
 CREATE TABLE IF NOT EXISTS lab_owner_generation_review_audit (
   id TEXT PRIMARY KEY,

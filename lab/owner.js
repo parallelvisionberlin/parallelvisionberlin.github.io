@@ -1,7 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
-import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261017-review2';
+import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261017-finance1';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
 import {createOwnerAuthGuard} from './owner-auth-guard.js?v=20261017-stability1';
 const $=id=>document.getElementById(id);
@@ -98,10 +98,14 @@ function paintCustomerActivity(data){
     stats.append(stat);
   }
   root.append(stats);
+  const dollar=String.fromCharCode(36);
   root.append(activityElement('p','owner-customer-activity-caption',
     formatNumber(summary.failedJobs)+' failed jobs · '+
     formatNumber(summary.creditsCharged)+' credits charged · '+
-    formatNumber(summary.creditsRefunded)+' refunded. Charges are recorded when a job starts, not proof of a finished result.'));
+    formatNumber(summary.creditsRefunded)+' refunded · '+
+    formatNumber(summary.archivedJobs||0)+' finance records archived · '+
+    dollar+Number(summary.providerExposureUsd||0).toFixed(2)+
+    ' estimated/settled provider exposure. Credits are charged when jobs start.'));
   const jobs=Array.isArray(data.jobs)?data.jobs:[];
   activityTable(root,{
     heading:'Generation history',note:'Latest '+(data.limits?.jobs||50)+' jobs',
@@ -116,6 +120,27 @@ function paintCustomerActivity(data){
           sub:refunded?'+'+formatNumber(refunded)+' refunded':''}:'No charge'];
     }),emptyMessage:'No generations recorded for this account.'
   });
+  const archived=Array.isArray(data.archivedFinance)?data.archivedFinance:[];
+  if(archived.length){
+    activityTable(root,{
+      heading:'Archived financial activity',
+      note:'Latest '+(data.limits?.archivedFinance||50)+' finance-only records',
+      columns:['Date','State','Provider / tool','Cost USD'],
+      rows:archived.map(item=>[
+        activityDate(item.createdAt),
+        item.state==='reconstructed_completed'?'Completed (reconstructed)':
+          item.state==='unknown'?'Unverified old reservation':
+          item.state==='failed'?'Failed / refunded':String(item.state||'Unknown'),
+        {main:item.provider||'Historical provider unrecorded',
+          sub:item.type||'No creative details retained'},
+        {main:dollar+Number(item.exposureUsd||0).toFixed(4),
+          sub:item.costKind==='settled'?'Recorded settled cost':'Reservation estimate'}
+      ]),
+      emptyMessage:''
+    });
+    root.append(activityElement('p','owner-customer-activity-caption',
+      'Deleted images and prompts are not retained in these records. Older completions are reconstructed from surviving reservations and refund history, not provider invoices.'));
+  }
   activityTable(root,{
     heading:'Credit movements',note:'Latest '+(data.limits?.entries||80)+' transactions',
     columns:['Date','Event','Credits'],
