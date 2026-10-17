@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261015-traffic1">
+<link rel="stylesheet" href="./owner.css?v=20261017-acquisition1">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -136,6 +136,31 @@
         <p class="owner-traffic-disclaimer" id="owner-traffic-disclaimer">Traffic statistics are approximate and start only after deployment.</p>
       </div>
     </section>
+
+    <section class="owner-section owner-acquisition" id="owner-acquisition-section" aria-labelledby="owner-acquisition-title">
+      <div class="owner-section-head owner-traffic-heading">
+        <div><span class="owner-index">BUSINESS / CONVERSION</span><h2 id="owner-acquisition-title">Acquisition &amp; revenue<span>.</span></h2>
+        <p class="owner-traffic-lead">Customer activity, verified receipts and provider exposure.</p></div>
+        <button type="button" id="owner-acquisition-refresh" class="owner-provider-detail-refresh">Refresh metrics ↻</button>
+      </div>
+      <p id="owner-acquisition-status" class="owner-traffic-status" aria-live="polite">Waiting for secure owner metrics…</p>
+      <div id="owner-acquisition-content" hidden>
+        <div class="owner-acquisition-metrics">
+          <div><span>New users</span><strong id="owner-acquisition-new">—</strong><small>Registered in period</small></div>
+          <div><span>Activated users</span><strong id="owner-acquisition-active">—</strong><small>New users with completed jobs</small></div>
+          <div><span>Provider exposure</span><strong id="owner-acquisition-cost">—</strong><small>USD, settled or estimated</small></div>
+          <div><span>Checkout conversion</span><strong id="owner-acquisition-checkout">—</strong><small id="owner-acquisition-checkout-note">Tracked sessions only</small></div>
+          <div><span>Verified receipts</span><strong id="owner-acquisition-revenue">—</strong><small>EUR gross, since tracking</small></div>
+        </div>
+        <p id="owner-acquisition-summary" class="owner-acquisition-explain"></p>
+        <div class="owner-acquisition-table-head"><h3>Customer activity</h3><span>Lifetime usage, latest 100 accounts</span></div>
+        <div class="owner-table-wrap owner-acquisition-table">
+          <table><thead><tr><th>Account</th><th>Joined</th><th>Completed</th><th>Credits spent</th><th>Provider USD</th><th>Checkouts</th><th>Gross EUR</th><th>Review</th></tr></thead>
+          <tbody id="owner-acquisition-customers"><tr><td colspan="8" class="owner-table-empty">Loading activity…</td></tr></tbody></table>
+        </div>
+        <p class="owner-traffic-disclaimer" id="owner-acquisition-notes">Historical checkouts cannot be backfilled. Provider exposure is not a vendor invoice.</p>
+      </div>
+    </section>
     <section class="owner-section" id="owner-customers-section" aria-labelledby="owner-customers-title">
       <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Customers.</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
       <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p></div>
@@ -209,6 +234,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261015-traffic1"></script>
+<script type="module" src="./owner.js?v=20261017-acquisition1"></script>
 </body>
 </html>
