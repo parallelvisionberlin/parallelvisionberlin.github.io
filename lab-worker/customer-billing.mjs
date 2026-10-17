@@ -1,3 +1,4 @@
+import {DEFAULT_CREDITS_PER_USD,creditsForJobUsd} from './job-pricing.mjs';
 import {assertCustomerOpen,customerRestrictions,customerAccount,requestAccountClosure,customerPromotionalReview} from './customer-lifecycle.mjs';
 import {rewardQualifiedReferral} from './referrals.mjs';
 import {labMetaOptIn,sendLabMetaPurchase} from './meta-capi.mjs';
@@ -5,7 +6,7 @@ import {grantVerifiedWelcome} from './welcome-guard.mjs';
 import {canCustomerGenerate,canCustomerCheckout,isPrivateLivePilot,isPermittedPilotPurchase} from './customer-rollout.mjs';
 // Customer billing belongs only to PV Lab's D1 database.
 // All changes in balances are immutable ledger entries. Never trust browser-supplied prices.
-export const CREDIT_MULTIPLIER = 460;
+export const CREDIT_MULTIPLIER = DEFAULT_CREDITS_PER_USD;
 export const CREDIT_MINIMUM = 7;
 export const WELCOME_CREDITS = 200;
 // Commercial Soul ID launch price. Keep in sync with migration 0008.
@@ -19,8 +20,8 @@ export const PACKS = Object.freeze({
   studio:{type:'subscription',cents:9900,credits:12000,title:'PV Lab Studio · monthly'}
 });
 export function creditsForUsd(usd) {
-  if (!Number.isFinite(usd) || usd < 0) throw new Error('Invalid quote.');
-  return Math.max(CREDIT_MINIMUM,Math.ceil(Math.round(usd*1e6)*CREDIT_MULTIPLIER/1e6));
+  // Keep legacy Higgsfield/UI imports while using one canonical default policy.
+  return creditsForJobUsd(usd);
 }
 const now=()=>Date.now();
 const fail=(status,message)=>{const e=new Error(message);e.status=status;throw e;};
