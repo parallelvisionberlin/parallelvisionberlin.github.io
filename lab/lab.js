@@ -4379,7 +4379,8 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
   document.documentElement.classList.add('pv-studio-boot-lock');
   document.documentElement.classList.add('pv-studio-route-pending');
   document.body.classList.remove('lab-ready');
-  const data=await api('/api/session');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;customerTrialGenerationPaused=!!data.trialGenerationPaused;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('signin').hidden=true;$('signin').disabled=true;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
+  window.__pvLabBootStage?.('Verifying your account');
+  const data=await api('/api/session');window.__pvLabBootStage?.('Preparing your workspace');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;customerTrialGenerationPaused=!!data.trialGenerationPaused;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)void claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('signin').hidden=true;$('signin').disabled=true;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
     if(data.accountClosed){
       await deviceMediaCache.signOut();$('studio-invite-friends').hidden=true;
       $('app').hidden=true;$('gate').hidden=false;$('signin').disabled=true;
@@ -4405,6 +4406,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     // Results still arrive through loadHistory and are checked against the session epoch.
     const historyEpoch=epoch;
     let historyResolved=false;
+    window.__pvLabBootStage?.('Loading your saved work');
     const historyReady=loadHistory().catch(error=>{
       if(owner&&epoch===historyEpoch)notify('History could not refresh. Your saved work is unchanged. Try Refresh or Assets. '+error.message,true);
     }).finally(()=>{
@@ -4429,6 +4431,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     syncVideoStudioMode();
     if(historyResolved)showWelcomeStart(data);
     restoreGuestImageDraft();
+    window.__pvLabBootStage?.('Workspace ready');
     finishLabBoot();
     if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){
   const stillSignedIn=!!clerk?.isSignedIn;
@@ -4493,7 +4496,7 @@ if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
   };
 }
 
-try{clerk=await loadLabAccount();clerk.addListener(()=>void sync());await sync();}catch{document.documentElement.classList.remove('pv-native-route-pending');$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
+try{window.__pvLabBootStage?.('Connecting your account');clerk=await loadLabAccount();clerk.addListener(()=>void sync());await sync();}catch{window.__pvLabBootStage?.('Account connection failed');document.documentElement.classList.remove('pv-native-route-pending');$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
 
 
 

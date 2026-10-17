@@ -21,6 +21,12 @@ function requestIdentity(force=false){
     pending.set(id,{resolve,reject,timer});post('PV_LAB_AUTH',{id,force});
   });
 }
+// Keep third-party SDK imports and Clerk session hydration from blocking Studio forever.
+function boundedSetup(task,timeoutMs,message){
+  let timer;
+  const expired=new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(message)),timeoutMs);});
+  return Promise.race([task,expired]).finally(()=>clearTimeout(timer));
+}
 let accountLoading=null;
 export function loadLabAccount(){
   if(!accountLoading)accountLoading=createLabAccount().catch(error=>{accountLoading=null;throw error;});
@@ -28,8 +34,8 @@ export function loadLabAccount(){
 }
 async function createLabAccount(){
   if(!isNativeLab()){
-    const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');
     const {frontendApi,publishableKey}=clerkInstanceForHostname(location.hostname);
+    const sdk=import('https://esm.sh/@clerk/clerk-js@6?bundle');
     // Presentation policy for the independent PV LAB domain only.
     // Clerk's production SSO settings still control whether GitHub is enabled.
     const studioClerk=frontendApi==='https://clerk.pvlab.studio';
@@ -39,9 +45,10 @@ async function createLabAccount(){
       style.textContent='.cl-socialButtonsBlockButton__github,.cl-socialButtonsIconButton__github{display:none!important}.cl-socialButtons{grid-template-columns:minmax(0,1fr)!important}';
       document.head.append(style);
     }
-    await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=frontendApi+'/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});
+    const ui=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=frontendApi+'/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=()=>reject(Error('Clerk UI could not load.'));document.head.append(s);});
+    const [{Clerk}]=await boundedSetup(Promise.all([sdk,ui]),12000,'Account sign-in resources timed out.');
     const clerk=new Clerk(publishableKey);
-    await clerk.load({
+    await boundedSetup(clerk.load({
       ui:{ClerkUI:window.__internal_ClerkUICtor},
       signInFallbackRedirectUrl:location.href,
       signUpFallbackRedirectUrl:location.href,
@@ -50,7 +57,7 @@ async function createLabAccount(){
         socialButtonsIconButton__github:{display:'none'},
         socialButtons:{gridTemplateColumns:'minmax(0,1fr)'}
       }}}:{})
-    });
+    }),12000,'Your account session did not respond. Please reload.');
     return clerk;
   }
   const {initLabMobileUI}=await import('./mobile-ui.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1');

@@ -24,6 +24,12 @@ assert.ok(authSync.includes("document.documentElement.classList.add('pv-studio-r
 assert.ok(source.includes("document.documentElement.classList.remove('pv-studio-route-pending')"),'Boot release clears its route guard');
 assert.ok(source.includes("document.documentElement.classList.add('pv-studio-boot-lock')"),'In-place sign-in reactivates the loading scrollbar lock');
 const studioHtml=readFileSync('lab/studio.html','utf8');
+const accountSdk=readFileSync('lab/native-account.js','utf8');
+assert.match(accountSdk,/boundedSetup\(Promise\.all\(\[sdk,ui\]\),12000/,'Clerk resources cannot load indefinitely');
+assert.match(accountSdk,/boundedSetup\(clerk\.load\(/,'Signed-in Clerk initialization has a deadline');
+assert.match(studioHtml,/window\.__pvLabBootRecover=/,'Early loader provides an independent recovery action');
+assert.match(studioHtml,/window\.setTimeout\(window\.__pvLabBootRecover,22000\)/,'A stalled Studio cannot hide behind the splash indefinitely');
+assert.match(studioHtml,/document\.addEventListener\('click',event=>/,'Reload works before DOMContentLoaded');
 assert.match(studioHtml,/const root=document.documentElement,body=document.body;.*pv-studio-route-pending.*12000/,
   'A stalled authenticated loader displays its retry even when the app container is mounted');
 assert.match(studioHtml,/<html lang="en" class="pv-studio-boot-lock">/,'Initial HTML locks scroll before any route renders');
@@ -699,6 +705,30 @@ try{
   const loadingCapture=await loadingCdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
   writeFileSync('test-results/lab-branded-loading.png',Buffer.from(loadingCapture.data,'base64'));
   await loadingCdp.detach();
+  // Simulate the exact customer-facing failure: an unresolved module import.
+  // DOMContentLoaded cannot fire, yet the recovery must still expose a safe page.
+  const stalledPage=await bootContext.newPage();
+  await stalledPage.clock.install();
+  await stalledPage.route(/\/lab\/lab\.js(?:\?.*)?$/,async()=>await new Promise(()=>{}));
+  await stalledPage.goto('http://127.0.0.1:4182/lab/studio.html?tool=image',{waitUntil:'commit'});
+  await stalledPage.waitForSelector('#lab-boot');
+  await stalledPage.clock.fastForward(23000);
+  const stalled=await stalledPage.evaluate(()=>({
+    recovered:document.body.classList.contains('lab-ready'),
+    publicGate:!document.getElementById('gate').hidden,
+    appPrivate:document.getElementById('app').hidden,
+    retry:!document.getElementById('auth-retry').hidden,
+    status:document.getElementById('auth-status').textContent,
+    bootLock:document.documentElement.classList.contains('pv-studio-boot-lock')
+  }));
+  assert.equal(stalled.recovered,true,'A held JS module cannot leave the splash running indefinitely');
+  assert.equal(stalled.publicGate,true,'A stalled signed-in check must expose safe public recovery');
+  assert.equal(stalled.appPrivate,true,'Recovery must never expose unverified private Studio');
+  assert.equal(stalled.retry,true,'Reload remains available without DOMContentLoaded');
+  assert.equal(stalled.bootLock,false,'A stalled loader releases the page scroll lock');
+  assert.match(stalled.status,/Reload to retry/);
+  await stalledPage.close();
+
   releaseLabScript();
   await bootPage.waitForFunction(()=>window.__layoutTest===true);
   assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'pv-boot-out','Blur happens after Studio becomes ready');
