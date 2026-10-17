@@ -108,8 +108,12 @@ $('fashion-form').addEventListener('submit',async event=>{
     const response=await api('/api/fashion/quote',{method:'POST',body:settings});
     if(revision!==editVersion)throw new Error('Settings changed. Request a new quote.');
     quote=response;
+    // Price comes from the same server policy used by the atomic debit trigger.
+    // Never recalculate customer credits in the browser from USD estimates.
+    if(isCustomer&&(!Number.isSafeInteger(response.creditCost)||response.creditCost<1))
+      throw new Error('The server did not confirm a PV LAB credit price. Nothing was charged.');
     const credits=current()==='fashnmax'?Math.round(response.estimatedUsd/.075):null;
-    $('quote-price').textContent=isCustomer?Math.max(7,Math.ceil(Math.round(response.estimatedUsd*1e6)*460/1e6)).toLocaleString()+' PV credits':(credits===null?'Estimated provider cost: ':'Estimated: '+credits+' credits · ')+money(response.estimatedUsd);
+    $('quote-price').textContent=isCustomer?response.creditCost.toLocaleString()+' PV credits':(credits===null?'Estimated provider cost: ':'Estimated: '+credits+' credits · ')+money(response.estimatedUsd);
     $('quote-note').textContent=response.notice+' This price check does not generate an image. Quote expires at '+new Date(response.expiresAt).toLocaleTimeString()+'.';
     $('quote-box').hidden=false;$('quote').hidden=true;status('');
   }catch(e){status(e.message,true);}

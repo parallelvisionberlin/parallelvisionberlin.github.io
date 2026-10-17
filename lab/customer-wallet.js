@@ -10,8 +10,10 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
         list=$('lab-credit-products'),state=$('lab-wallet-state'),
         referralUrl=$('lab-referral-url'),referralCopy=$('lab-referral-copy'),
         referralState=$('lab-referral-status'),referralStats=$('lab-referral-stats');
-  const cost=usd=>Math.max(7,Math.ceil(Math.round(Number(usd)*1e6)*460/1e6));
-  function describe(usd){return (Number.isFinite(Number(usd))?cost(Number(usd)).toLocaleString():'?')+' credits';}
+  // A USD provider estimate is not an authoritative customer price. Only
+  // backend-quoted creditCost may be displayed as a payable PV LAB amount.
+  const cost=(_usd)=>null; // Legacy method only: never infer payable credits in a browser.
+  function describe(_usd){return 'Price unavailable';}
   function jobCharge(job){
     if(job?.settings?.provider==='higgsfield'&&job.settings.mode==='soul-id-training'&&soulIdTrainingCredits!==null)
       return soulIdTrainingCredits.toLocaleString()+' credits';

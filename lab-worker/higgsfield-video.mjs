@@ -1,3 +1,4 @@
+import {creditsForJobMicros} from './job-pricing.mjs';
 import {hfRequest,submitHiggsfieldJob} from './higgsfield.mjs';
 export const EXTEND_MODEL='bytedance/seedance-2.5/video-extend';
 export async function quoteVideoExtension(env,owner,data,p,url,d){
@@ -12,9 +13,9 @@ export async function quoteVideoExtension(env,owner,data,p,url,d){
   const input={video_url:await signedInput(env,url,video.id,3600),prompt:p.prompt,duration:p.duration,resolution:p.resolution,generate_audio:p.audio,output_format:'mp4'};
   const quote=await hfRequest(env,'/estimate/'+EXTEND_MODEL,{input});
   if(!/^\d{1,6}(\.\d{1,6})?$/.test(String(quote.usd))||Number(quote.usd)<=0)fail(502,'Higgsfield did not return a valid estimate. Nothing generated.');
-  const estimate=Math.ceil(Number(quote.usd)*1000000),id=crypto.randomUUID(),expires=now()+290000;
-  await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,video.id,JSON.stringify(p),estimate,expires,'higgsfield-video-extend',String(quote.usd),JSON.stringify({model:EXTEND_MODEL,input}));
-  return {id,settings:p,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,expiresAt:expires,provider:'Higgsfield',priceIsEstimate:true,notice:'Higgsfield account estimate. Input and generated video may both be billed. Final provider billing applies. Nothing generated yet.'};
+  const estimate=Math.ceil(Number(quote.usd)*1000000),creditCost=creditsForJobMicros(estimate,p),id=crypto.randomUUID(),expires=now()+290000;
+  await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,video.id,JSON.stringify({...p,customerChargeCredits:creditCost}),estimate,expires,'higgsfield-video-extend',String(quote.usd),JSON.stringify({model:EXTEND_MODEL,input}));
+  return {id,settings:p,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,creditCost,expiresAt:expires,provider:'Higgsfield',priceIsEstimate:true,notice:'Higgsfield account estimate. Input and generated video may both be billed. Final provider billing applies. Nothing generated yet.'};
 }
 export async function submitVideoExtension(env,owner,q,p,payload,d){
   const {fail,first,source,run,now,config}=d;

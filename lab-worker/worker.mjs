@@ -47,7 +47,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-17.3-durable-finance';
+export const VERSION = 'pv-lab-2026-10-17.4-pricing-integrity';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1103,6 +1103,9 @@ async function reserveFalImageJob(env,owner,sourceId,p,estimate,approvedQuoteId=
     if(!approved||approved.source_id!==sourceId||approved.estimate_microusd!==estimate)
       fail(409,'Precision Edit quote expired or does not match the selected image. Check price again.');
   }
+  // Bind every direct fal.ai image reservation to the same server price that
+  // the atomic customer wallet debit will calculate.
+  p.customerChargeCredits=creditsForJobUsd(estimate/1000000,p);
   const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,id=crypto.randomUUID(),quoteId=approvedQuoteId||crypto.randomUUID();
   if(!approvedQuoteId)await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
     quoteId,owner,sourceId||null,JSON.stringify(p),estimate,t+600000,p.provider+'-direct',String(estimate/1000000),'{}');
@@ -1596,7 +1599,8 @@ async function route(request,env,ctx) {
     if(p.processing==='batch'&&prepared.totalBytes*count*1.38>18*1024*1024)fail(413,'This Batch would exceed Google inline batch size because the reference images are repeated for each request. Use fewer images, fewer references, or Normal mode.');
     const ids=Array.from({length:count},()=>crypto.randomUUID());
     for(let i=0;i<count;i++){
-      const params={...p,referenceSourceIds:prepared.refs.map(a=>a.id),batchIndex:i,batchCount:count};
+      const params={...p,referenceSourceIds:prepared.refs.map(a=>a.id),batchIndex:i,batchCount:count,
+        customerChargeCredits:creditsForJobUsd(estimate/1000000,p)};
       await run(env,"INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?, 'submitting',?,?,?)",ids[i],owner,primary?.id||null,JSON.stringify(params),estimate,t+i,t+i);
       await run(env,'INSERT INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)',ids[i],owner,estimate,t+i);
     }
@@ -1766,9 +1770,9 @@ async function route(request,env,ctx) {
     }
     if(p.provider==='fal'&&p.type==='video'){
       if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');
-      const {primary,input}=await prepareInput(env,owner,data,p,url),estimate=falVideoEstimateMicros(p),id=crypto.randomUUID(),expires=now()+290000,payload={model:p.model,input};
-      await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary?.id||null,JSON.stringify(p),estimate,expires,'fal-direct-video',String(estimate/1000000),JSON.stringify(payload));
-      return json({id,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,expiresAt:expires,settings:p,provider:'fal.ai',priceIsEstimate:true,notice:'fal.ai does not return a bound preflight quote for this route. This is the current pricing estimate for the selected duration, resolution and supplied references; fal.ai billing remains authoritative.'});
+      const {primary,input}=await prepareInput(env,owner,data,p,url),estimate=falVideoEstimateMicros(p),creditCost=creditsForJobUsd(estimate/1000000,p),id=crypto.randomUUID(),expires=now()+290000,payload={model:p.model,input};
+      await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary?.id||null,JSON.stringify({...p,customerChargeCredits:creditCost}),estimate,expires,'fal-direct-video',String(estimate/1000000),JSON.stringify(payload));
+      return json({id,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,creditCost,expiresAt:expires,settings:p,provider:'fal.ai',priceIsEstimate:true,notice:'fal.ai does not return a bound preflight quote for this route. This is the current pricing estimate for the selected duration, resolution and supplied references; fal.ai billing remains authoritative.'});
     }
     const {key}=await requireConfigured(env,owner);
     const {primary,input}=await prepareInput(env,owner,data,p,url);
@@ -1828,7 +1832,8 @@ async function route(request,env,ctx) {
     const time=now(),payloadJson=JSON.stringify(payload);
     const priced=replies.map(q=>{
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
-      if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||!Number.isFinite(expiry)||expiry<=time)
+      if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||
+         (customer&&maximum===0)||!Number.isFinite(expiry)||expiry<=time)
         fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
       const id=wakeQuoteId||crypto.randomUUID(),expires=Math.min(expiry,time+290000);
       return {id,estimatedUsd:estimate/1000000,maxUsd:maximum/1000000,expiresAt:expires,

@@ -19,6 +19,7 @@ test('reference conflicts require explicit review before generation',()=>{
 test('eye repair enters explicitly priced masked Retouch',()=>{
  assert.match(html,/id="image-detail-fix-eyes"/);
  assert.match(app,/precisionEditor\.suggest\('eyes'\)/);
- assert.match(repair,/creditCost:d\.creditsForJobUsd/);
+ assert.match(repair,/const creditCost=d\.creditsForJobUsd/);
+ assert.match(repair,/\(d\.customer\?\{creditCost\}:\{\}\)/);
  assert.match(repair,/Magic Select is owner-only/);
 });
