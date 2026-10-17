@@ -1,0 +1,113 @@
+/* Studio purchase experience: reuse the homepage editorial pricing section.
+   This stylesheet only adjusts its full-screen dialog frame and close control. */
+#lab-pricing-overlay{
+  box-sizing:border-box;
+  position:fixed;
+  inset:0;
+  width:min(1480px,calc(100vw - 28px));
+  height:calc(100dvh - 28px);
+  max-width:none;
+  max-height:none;
+  min-width:0;
+  margin:auto;
+  padding:0;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  border:1px solid #42413d;
+  border-radius:14px;
+  background:#0d0d0d;
+  color:#f6f3ed;
+  box-shadow:0 26px 100px #000c;
+  font-family:"DM Sans",Arial,sans-serif;
+}
+#lab-pricing-overlay:not([open]){display:none!important}
+#lab-pricing-overlay::backdrop{
+  background:rgba(0,0,0,.8);
+  backdrop-filter:blur(9px);
+  -webkit-backdrop-filter:blur(9px);
+}
+#lab-pricing-overlay-close{
+  position:fixed;
+  z-index:100;
+  top:calc(27px + env(safe-area-inset-top,0px));
+  right:max(27px,calc((100vw - 1480px)/2 + 27px));
+  display:grid;
+  place-items:center;
+  width:42px;height:42px;
+  margin:0;padding:0;
+  border:1px solid #5b5a57;
+  border-radius:50%;
+  background:#1e1e1d;
+  color:#f5f2ed;
+  font:300 29px/1 "DM Sans",Arial,sans-serif;
+  cursor:pointer;
+  transition:background .18s,border-color .18s,transform .18s;
+}
+#lab-pricing-overlay-close:hover{background:#343433;border-color:#e5e2dd}
+#lab-pricing-overlay-close:focus-visible{outline:2px solid white;outline-offset:3px}
+#lab-pricing-overlay-body{min-height:calc(100% - 18px);display:grid;align-items:center}
+#lab-pricing-overlay .lab-pricing-overlay-loading{
+  padding:95px 30px;
+  margin:auto;
+  color:#d1cfc9;
+  text-align:center;
+  font-size:14px;
+}
+#lab-pricing-overlay #pricing.lab-plans{
+  box-sizing:border-box;
+  min-height:calc(100dvh - 30px);
+  height:auto;
+  margin:0;
+  padding:74px clamp(26px,4vw,60px) 55px!important;
+  display:flex;
+  justify-content:center;
+}
+#lab-pricing-overlay #pricing .lab-plans-inner{
+  position:static;
+  top:auto;
+  max-width:1320px;
+  width:100%;
+}
+#lab-pricing-overlay #pricing .lab-pricing-deck{transform:none}
+#lab-pricing-overlay-status:not([hidden]){
+  position:sticky;
+  z-index:20;
+  bottom:16px;
+  display:block;
+  width:max-content;
+  max-width:calc(100% - 40px);
+  margin:0 auto 18px;
+  padding:12px 17px;
+  border:1px solid #55534e;
+  border-radius:7px;
+  background:#252524;
+  color:#f5f3ed;
+  font:400 12px/1.55 "DM Sans",Arial,sans-serif;
+  box-shadow:0 14px 40px #0009;
+  text-align:center;
+}
+#lab-pricing-overlay-status[hidden]{display:none!important}
+@media(max-width:760px){
+  #lab-pricing-overlay{
+    width:calc(100vw - 12px);
+    height:calc(100dvh - 12px);
+    border-radius:9px;
+    border-color:#333;
+  }
+  #lab-pricing-overlay-close{
+    top:calc(18px + env(safe-area-inset-top,0px));
+    right:19px;
+    width:37px;height:37px;
+    font-size:26px;
+    background:#242423;
+  }
+  #lab-pricing-overlay #pricing.lab-plans{
+    min-height:calc(100dvh - 16px);
+    padding:73px 17px 42px!important;
+  }
+  #lab-pricing-overlay #pricing .lab-plans-inner{max-width:480px}
+}
+@media(prefers-reduced-motion:reduce){
+  #lab-pricing-overlay-close{transition:none}
+}
