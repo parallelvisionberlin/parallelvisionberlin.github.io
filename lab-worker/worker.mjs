@@ -3,6 +3,7 @@ import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
 import {banClosedStudioIdentity,processStudioIdentityDeletions} from './studio-identity-deletion.mjs';
+import {processSignupWelcomeEmails} from './signup-welcome-email.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
 import {linkedStudioIdentity,migrationRoute} from './clerk-migration.mjs';
@@ -48,7 +49,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-18.1-terminal-account-deletion';
+export const VERSION = 'pv-lab-2026-10-18.2-signup-welcome-email';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1332,8 +1333,15 @@ async function route(request,env,ctx) {
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const identity=await authenticate(request,env);
   const {id:owner,issuer:authIssuer}=identity,path=url.pathname,method=request.method;
-  if(path.startsWith('/api/migration/'))
-    return migrationRoute(request,env,identity);
+  if(path.startsWith('/api/migration/')){
+    const answer=await migrationRoute(request,env,identity);
+    // New PV LAB wallet only. Delivery is asynchronous, never part of login.
+    if(path==='/api/migration/new'&&method==='POST'&&answer.status===201&&ctx?.waitUntil)
+      ctx.waitUntil(processSignupWelcomeEmails(env,{
+        customerId:'user_PvLabV2'+identity.subject.slice(5)
+      }).catch(()=>{}));
+    return answer;
+  }
   if(!owner){
     return new Response(JSON.stringify({error:'Set up your new PV LAB account to continue.',code:'PVLAB_ONBOARDING_REQUIRED'}),{
       status:409,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-PV-Lab-Onboarding':'required'}
@@ -2094,6 +2102,7 @@ export default {
   async scheduled(event,env,ctx) {
     // Customer-email repair is isolated from potentially failing generation maintenance.
     ctx.waitUntil(scheduledClerkBackfill(env));
+    ctx.waitUntil(processSignupWelcomeEmails(env).catch(()=>{}));
     ctx.waitUntil(maintenance(env));
     // Discard aggregate counts older than 90 days, once per UTC day.
     const clock=Number(event?.scheduledTime)||Date.now();
