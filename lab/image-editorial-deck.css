@@ -437,3 +437,62 @@ body:has(#app.image-studio-active:not([hidden]):not(.pv-moods-discovery-open) #l
     border-radius:11px!important;
   }
 }
+
+/* Welcome History Select: reserve a real row above the introductory Mood grid.
+   The History toolbar already pushes the populated image gallery down.
+   Only the EMPTY first-image welcome had an absolutely positioned overlay,
+   causing the toolbar to cover "Start with a feeling". While the original
+   selection tray is open, use a two-row grid: History controls in row one,
+   welcome Mood content in row two. Returning to Cancel restores the original
+   position, and after a generated result appears this rule never applies.
+   No Image prompt, background, price or gallery card rules are changed. */
+@media (min-width:1160px) and (min-height:680px){
+  html:not(.pv-native-lab)
+    #app.image-studio-active:not(.pv-moods-discovery-open)
+    .image-gallery-shell:has(> .image-gallery-host .history-selection:not([hidden])):has(> #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+    display:grid!important;
+    grid-template-rows:max-content minmax(0,1fr)!important;
+  }
+  html:not(.pv-native-lab)
+    #app.image-studio-active:not(.pv-moods-discovery-open)
+    .image-gallery-shell:has(> .image-gallery-host .history-selection:not([hidden])):has(> #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+    > .image-gallery-host > .archive{
+    min-height:0!important;
+    padding-bottom:0!important;
+  }
+  html:not(.pv-native-lab)
+    #app.image-studio-active:not(.pv-moods-discovery-open)
+    .image-gallery-shell:has(> .image-gallery-host .history-selection:not([hidden]))
+    > #image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    position:relative!important;
+    inset:auto!important;
+    grid-row:2;
+    align-self:stretch!important;
+    min-height:0!important;
+    height:auto!important;
+    justify-content:center!important;
+    padding:0 clamp(20px,2.55vw,48px) 93px!important;
+  }
+  html:not(.pv-native-lab)
+    #app.image-studio-active:not(.pv-moods-discovery-open)
+    .image-gallery-shell:has(> .image-gallery-host .history-selection:not([hidden]))
+    #lab-welcome-start .lab-welcome-preset{
+    height:clamp(192px,calc(39dvh - 50px),340px)!important;
+  }
+}
+/* At the 1160-1179px breakpoint the editing dock is taller. Keep the same
+   toolbar-above-content flow without obscuring cards behind that dock. */
+@media (min-width:1160px) and (max-width:1179px) and (min-height:680px){
+  html:not(.pv-native-lab)
+    #app.image-studio-active:not(.pv-moods-discovery-open)
+    .image-gallery-shell:has(> .image-gallery-host .history-selection:not([hidden]))
+    > #image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    justify-content:flex-start!important;
+  }
+  html:not(.pv-native-lab)
+    #app.image-studio-active:not(.pv-moods-discovery-open)
+    .image-gallery-shell:has(> .image-gallery-host .history-selection:not([hidden]))
+    #lab-welcome-start .lab-welcome-preset{
+    height:clamp(140px,calc(39dvh - 105px),235px)!important;
+  }
+}

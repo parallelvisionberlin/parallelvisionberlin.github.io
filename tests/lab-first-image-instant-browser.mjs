@@ -175,6 +175,54 @@ try{
   await page.mouse.move(2,2);
   assert.equal(await page.locator('.lab-welcome-preset').count(),6,
     'All six original welcome cards remain mounted');
+  // Regression: Select must reveal the original History toolbar above the
+  // first-image Mood welcome, never cover the kicker or heading (Oct 17 bug).
+  // The underlying archive uses normal flow for populated image galleries.
+  const selectGeometry=()=>page.evaluate(()=>{
+    const rect=selector=>{
+      const r=document.querySelector(selector).getBoundingClientRect();
+      return {top:r.top,bottom:r.bottom,height:r.height};
+    };
+    return {
+      header:rect('#app .image-studio .archivehead'),
+      bar:rect('#history-selection'),
+      kicker:rect('#lab-welcome-start .lab-welcome-kicker'),
+      title:rect('#lab-welcome-title'),
+      cards:rect('.lab-welcome-presets'),
+      deck:rect('#image-composer'),
+      display:getComputedStyle(document.querySelector('.image-gallery-shell')).display,
+      documentHeight:document.documentElement.scrollHeight,
+      viewportHeight:innerHeight
+    };
+  });
+  const untouched=await selectGeometry();
+  assert.equal(await page.locator('#history-selection').isVisible(),false);
+  await page.locator('#history-select').click();
+  assert.equal(await page.locator('#history-selection').isVisible(),true);
+  const selecting=await selectGeometry();
+  assert.equal(selecting.display,'grid',
+    'History Select occupies a dedicated flow row above first-image welcome');
+  assert.ok(selecting.bar.top>=selecting.header.bottom-3 &&
+    selecting.bar.bottom+8<=selecting.kicker.top,
+    'Selection toolbar must not cover PV LAB / IMAGE or Start with a feeling: '+
+      JSON.stringify(selecting));
+  assert.ok(selecting.kicker.top>untouched.kicker.top+25,
+    'Opening Select must move the welcome below the expanded History toolbar');
+  assert.ok(selecting.cards.bottom+12<=selecting.deck.top,
+    'Selection mode must keep all Mood cards clear of the fixed prompt deck: '+
+      JSON.stringify(selecting));
+  assert.ok(selecting.documentHeight<=selecting.viewportHeight+3,
+    'Opening Select in the first-image welcome must not introduce page scrolling');
+  assert.ok(Math.abs(selecting.deck.top-untouched.deck.top)<2,
+    'The bottom-anchored Image deck must not move when History Select opens');
+  await page.locator('#history-cancel-select').click();
+  assert.equal(await page.locator('#history-selection').isVisible(),false);
+  const cancelled=await selectGeometry();
+  assert.ok(Math.abs(cancelled.kicker.top-untouched.kicker.top)<3 &&
+    Math.abs(cancelled.cards.top-untouched.cards.top)<3,
+    'Cancel returns first-image welcome to its exact original position');
+  assert.notEqual(cancelled.display,'grid',
+    'Cancel removes the temporary History selection layout');
   const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   await field.click();
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
@@ -262,6 +310,12 @@ try{
     'After an image exists, normal History page/footer accessibility returns');
   assert.notEqual(historyRelease.overflow,'hidden',
     'After first-image transition, the cascading gallery scroll is restored');
+  await page.locator('#history-select').click();
+  assert.equal(await page.locator('#history-selection').isVisible(),true);
+  assert.notEqual(await page.locator('.image-gallery-shell').evaluate(el=>getComputedStyle(el).display),'grid',
+    'Populated History retains its existing selection flow, never the welcome-only grid');
+  await page.locator('#history-cancel-select').click();
+  assert.equal(await page.locator('#history-selection').isVisible(),false);
   assert.deepEqual(errors,[]);
   console.log('FIRST_IMAGE_INSTANT_QUOTED_GENERATE_OK=1');
 }finally{
