@@ -313,6 +313,7 @@ async function submitMoodGeneration(generation,moodId){
   }
 }
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
+let lastVideoCreateMode='reference',initialVideoEntryConfigured=false;
 let engine='seedance', imageEngine='seedream', imageProcessing='normal', soulProModel='soul2', soulProQuality='medium', soulProIdentity={configured:false,count:0,refs:[]}, soulProPackSelection=[], soulProPackUrls=[], poseMapSourceId=null, repairTarget=null, repairImage=null, repairMaskCanvas=null, repairMaskDirty=false;
 let tool='image', packs=[],resultKind='video',resultExt='mp4';
 const videoModelPicker=createVideoModelPicker({select:$('video-engine'),getBusy:()=>busy,isActive:()=>tool==='video'&&owner&&!fashionActive&&!assetLibrary?.active()});
@@ -919,6 +920,9 @@ function setTool(value){
   if(effectViewOpen){effectViewOpen=false;updateEffectUrl(false);}
   if(nextTool!=='video')activeVideoEffect=null;
   tool=nextTool;syncStudioRoute(tool);const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
+  // Seedance Create begins in a reference-friendly editor. Explicit opening-image
+  // handoffs and subsequent choices retain their original provider mode.
+  if(video&&!initialVideoEntryConfigured){initialVideoEntryConfigured=true;if(engine==='seedance'&&mode==='start'&&!file)mode='reference';}
   $('app').classList.toggle('upscale-studio-active',upscale);
   if(toolChanged){$('notice').textContent='';$('notice').classList.remove('error');}
   syncNoticePlacement();
@@ -2313,6 +2317,11 @@ function syncVideoStudioMode(){
   if(!mainWorkspace)return;
   const videoMode=tool==='video'&&!fashionActive&&!retouchActive;
   $('app').classList.toggle('video-studio-active',videoMode);
+  // Apply the final Video track widths in the same render as the video route.
+  // A later MutationObserver-only toggle causes the brief rightward layout jump.
+  $('app').classList.toggle('pv-video-ergonomic',videoMode);
+  $('app').classList.toggle('pv-video-seedance',videoMode&&engine==='seedance');
+  $('app').classList.toggle('pv-video-wan',videoMode&&['wan','wanprime'].includes(engine));
   mainWorkspace.classList.toggle('video-layout',videoMode);
   videoFeedCenter.hidden=!videoMode;
   videoInspector.hidden=!videoMode;
@@ -2714,6 +2723,8 @@ function configureVideoControls(){
   // Resolve unsupported modes before calculating which panels are visible.
   if(!model.modes.includes(mode))mode=model.modes[0];
   $('app').classList.toggle('video-extend-active',isVideo&&mode==='extend');
+  $('app').classList.toggle('pv-video-seedance',isVideo&&engine==='seedance');
+  $('app').classList.toggle('pv-video-wan',isVideo&&['wan','wanprime'].includes(engine));
   $('video-camera-lock-wrap').hidden=!isVideo||!sd15;
   $('video-task-switch').hidden=!isVideo||!sd;
   $('video-create-task').setAttribute('aria-selected',String(mode!=='extend'));
@@ -2761,11 +2772,12 @@ function configureVideoControls(){
 function setMode(nextMode){
   if(tool==='video'&&selectedVideoJob)clearVideoHistorySelection({reset:false});
   const modes=VIDEO_MODELS[engine].modes;mode=modes.includes(nextMode)?nextMode:modes[0];
+  if(mode!=='extend'&&['text','start','reference'].includes(mode))lastVideoCreateMode=mode;
   if(mode!=='start')activeVideoEffect=null;
   configureVideoControls();resetPreview();update();refreshEffectsView();
 }
 $('mode-extend').onclick=()=>{if(!busy)setMode('extend');};
-$('video-create-task').onclick=()=>{if(!busy)setMode('reference');};
+$('video-create-task').onclick=()=>{if(!busy)setMode(VIDEO_MODELS[engine].modes.includes(lastVideoCreateMode)?lastVideoCreateMode:'reference');};
 $('mode-text').onclick=()=>{if(!busy)setMode('text');};
 $('video-engine').onchange=()=>{
   if(busy){videoModelPicker.sync();return;}
@@ -2773,7 +2785,9 @@ $('video-engine').onchange=()=>{
   if(!Object.hasOwn(VIDEO_MODELS,requested)||!config.videoEngines?.includes(requested)){$('video-engine').value=engine;notify('The backend has not enabled this model yet.',true);videoModelPicker.sync();return;}
   if(references.length>VIDEO_MODELS[requested].maxImages){$('video-engine').value=engine;notify('Remove excess references or save an image pack before choosing this model.',true);videoModelPicker.sync();return;}
   if(requested!=='seedance'&&mediaRefs.count()){$('video-engine').value=engine;notify('Remove video/audio references before changing model. Your inputs have been kept.',true);videoModelPicker.sync();return;}
+  const previousEngine=engine;
   engine=requested;activeVideoEffect=null;currentQuote=null;if($('quote-dialog').open)$('quote-dialog').close();
+  if(engine==='seedance'&&previousEngine!=='seedance'&&mode==='start'&&!file)mode='reference';
   if(engine==='seedance'){$('duration').value='5';$('resolution').value='720p';$('audio').checked=true;}
   else if(engine==='seedance15'){$('duration').value='5';$('resolution').value='720p';$('audio').checked=false;$('video-camera-lock').checked=false;}
   else if(engine==='seedance4k'){$('duration').value='5';$('resolution').value='4k';}
