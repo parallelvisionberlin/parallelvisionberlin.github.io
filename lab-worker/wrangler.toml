@@ -10,6 +10,10 @@ LAB_CUSTOMER_SIGNUPS_ENABLED = "true"
 LAB_STUDIO_AUTH_ENABLED = "true"
 # One-time 200-credit gift, using the ordinary per-customer wallet ledger.
 LAB_WELCOME_CREDITS_ENABLED = "false"
+# First-account onboarding email only. Enable AFTER verifying pvlab.studio in
+# Resend and configuring LAB_RESEND_API_KEY as a Cloudflare Worker secret.
+# Default off: existing users and sign-ins are never backfilled or emailed.
+LAB_WELCOME_EMAIL_ENABLED = "false"
 # Temporarily pause generation funded solely by free/promotional credits.
 LAB_FREE_TRIAL_PAUSED = "true"
 # Hold unpaid generation for existing disposable-email free-trial accounts; checkout stays open.
