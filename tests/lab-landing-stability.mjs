@@ -144,9 +144,9 @@ try{
       assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Guests have a Get credits CTA in the same header slot');
       assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits');
       assert.equal(await page.locator('.lab-hero [data-lab-signin]').count(),0,'No separate Google button in the hero');
-      assert.match(await page.locator('.hero-welcome').innerText(),/200 free credits/i);
-      assert.match(await page.locator('.lab-pricing-welcome').innerText(),/No purchase required/);
-      assert.equal(await page.locator('[data-lab-welcome-start]').getAttribute('href'),'./studio.html?tool=image&welcome=1');
+      assert.equal(await page.locator('.hero-welcome').count(),0,'Home no longer advertises welcome credits');
+      assert.equal(await page.locator('.lab-pricing-welcome').count(),0,'Promotional pricing block is hidden');
+      assert.equal(await page.locator('[data-lab-welcome-start]').count(),0);
       assert.equal(await page.locator('.start-link').textContent(),'Start creating','Hero CTA never changes with login state');
       stable(initial,await geometry(page),`${width}: sign out`);
       await page.locator('#lab-header-signin').click();
