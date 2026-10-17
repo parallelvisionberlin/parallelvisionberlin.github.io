@@ -1,6 +1,7 @@
 import {ensureCustomer,isLabCustomer} from './customer-billing.mjs';
 import {LEGACY_ISSUER,STUDIO_ISSUER} from './clerk-issuer-policy.mjs';
 import {rejectDeletedStudioSubject} from './studio-identity-deletion.mjs';
+import {queueSignupWelcome} from './signup-welcome-email.mjs';
 
 // Account linking requires TWO separately authenticated Clerk sessions. The old
 // session generates a high-entropy single-use code; only a logged-in new session
@@ -98,7 +99,11 @@ export async function migrationRoute(request,env,identity){
       "INSERT OR IGNORE INTO lab_clerk_identity_links(new_subject,canonical_id,kind,created_at) VALUES(?,?,'customer',?)",
       identity.subject,id,t);
     if(result.meta?.changes!==1)fail(409,'This account has already been set up.');
-    await ensureCustomer(env,id); // Exactly one welcome credit ledger grant, no old account mutation.
+    await ensureCustomer(env,id); // Existing credit campaign remains independent.
+    // One-time operational welcome, not on sign-in or migrated older accounts.
+    // Never let an optional email block successful customer onboarding.
+    if(env.LAB_WELCOME_EMAIL_ENABLED==='true')
+      try{await queueSignupWelcome(env,id);}catch{/* Cron handles queued entries; signup stays successful. */}
     return response({linked:true,kind:'customer'},201);
   }
   if(path==='/api/migration/redeem'&&method==='POST'){
