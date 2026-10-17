@@ -79,3 +79,9 @@ Scope: Studio initial loading overlay only.
 - In `lab/studio.html`, a stalled boot shows the existing 12s status and Reload even if the authenticated app container is already mounted. The approved minimal wordmark, bar, stationary .24s fade, and guards are untouched.
 - Regression contract updated in `tests/lab-studio-layout-ui.mjs`; no changes to credits, generation, payment, worker, history records, account linking, or model selection.
 - Deployment and live signed-in confirmation remain pending until verified after this commit. 
+
+## October 17 release verification
+- Private Lab tests, run `39066204865` on code with the bounded History fix, SUCCESS (including private-lab and gallery browser jobs). Static validation on commit `6a6755e4743acdf3f43cd0c5f1b3822247bae2e5` also succeeded.
+- Production custom-domain smoke `39066494994` SUCCEEDED and explicitly required the published `https://pvlab.studio/lab.js` to include the five-second History race and `loadHistory().catch`, and the published Studio HTML to include the stalled-loader retry change. This is verification of deployed source, NOT a real Eva or Camila authenticated session.
+- Added a dedicated Studio module URL cache marker `studioAuthRecovery=20261017-1` in `lab/studio.html` (commit `a1ce0bdd1361d3cb3689fa8030b64ec14c58769a`) to prevent browsers from reusing pre-fix `lab.js`. Post-commit custom-domain smoke run `39066604570` succeeded; it verifies the recovery JavaScript but does not separately assert the new query marker.
+- Remaining user-side check: hard-refresh Image and Video when signed in as Eva and Camila; verify the splash clears, and saved History appears after any delayed request. No personal account login or credit spending was performed by this audit.
