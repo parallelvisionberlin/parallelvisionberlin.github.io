@@ -83,6 +83,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0023-welcome-guard.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0024-owner-acquisition.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0025-promo-generation-holds.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0026-generation-review-audit.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health
