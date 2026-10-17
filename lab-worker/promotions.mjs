@@ -1,6 +1,7 @@
 import {ownerProviderBalances} from './owner-providers.mjs';
 import {labTrafficReport} from './traffic.mjs';
 import {grantVerifiedWelcome,welcomeReviewFlag} from './welcome-guard.mjs';
+import {ownerGenerationReviewRoute} from './generation-review.mjs';
 // PV LAB promotional credits and private customer administration.
 // All money and wallet records belong to LAB_DB. OWNER_DB is read for owner authorization only.
 const CODE=/^[A-Z0-9][A-Z0-9-]{5,23}$/;
@@ -182,6 +183,9 @@ async function requireOwner(env,owner){
 export async function labAdminRoute(request,env,owner,{decryptKey,providerFetcher,providerClock}={}){
   await requireOwner(env,owner);
   const url=new URL(request.url),path=url.pathname,method=request.method;
+  // This handler remains behind requireOwner above. No customer token can read media.
+  if(path==='/api/admin/customers/review'||path==='/api/admin/customers/review-thumbnail')
+    return ownerGenerationReviewRoute(request,env,owner);
   if(path==='/api/admin/traffic'&&method==='GET'){
     const days=Number(url.searchParams.get('days')||'7');
     return json(await labTrafficReport(env,{days}));
