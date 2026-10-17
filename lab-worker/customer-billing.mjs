@@ -1,4 +1,4 @@
-import {assertCustomerOpen,customerRestrictions,customerAccount,requestAccountClosure} from './customer-lifecycle.mjs';
+import {assertCustomerOpen,customerRestrictions,customerAccount,requestAccountClosure,customerPromotionalReview} from './customer-lifecycle.mjs';
 import {rewardQualifiedReferral} from './referrals.mjs';
 import {labMetaOptIn,sendLabMetaPurchase} from './meta-capi.mjs';
 import {grantVerifiedWelcome} from './welcome-guard.mjs';
@@ -51,10 +51,13 @@ export async function isLabCustomer(env,id){
 export async function customerSession(env,id){
   const c=await one(env,'SELECT balance_credits,stripe_customer_id,created_at FROM lab_customers WHERE id=?',id);
   if(!c)fail(403,'This PV Lab account is unavailable.');
-  const restrictions=await customerRestrictions(env,id);
-  const sub=await one(env,'SELECT plan_id,status FROM lab_subscriptions WHERE customer_id=?',id);
+  const [restrictions,promoReview,sub]=await Promise.all([
+    customerRestrictions(env,id),customerPromotionalReview(env,id),
+    one(env,'SELECT plan_id,status FROM lab_subscriptions WHERE customer_id=?',id)
+  ]);
   return {customer:true,balanceCredits:c.balance_credits,createdAt:c.created_at,subscription:sub||{plan_id:null,status:'none'},
-    billingReady:!restrictions.closed&&!restrictions.billingReview&&enabled(env,id),generationReady:!restrictions.closed&&!restrictions.billingReview&&canCustomerGenerate(env,id),
+    billingReady:!restrictions.closed&&!restrictions.billingReview&&enabled(env,id),generationReady:!restrictions.closed&&!restrictions.billingReview&&!promoReview.held&&canCustomerGenerate(env,id),
+    promotionReview:promoReview.held,
     billingReview:restrictions.billingReview,accountClosed:restrictions.closed,
     pilot:isPrivateLivePilot(env,id),
     products:isPrivateLivePilot(env,id)?catalog().filter(item=>['topup10','starter'].includes(item.id)):catalog(),creditMultiplier:CREDIT_MULTIPLIER,
