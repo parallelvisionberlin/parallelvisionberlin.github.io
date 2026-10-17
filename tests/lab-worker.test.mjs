@@ -462,7 +462,7 @@ test('Gemini batches remain available beyond 500 history entries for owners and 
 });
 test('new customer: signed signup, paid credits once, generation, private download, return gallery and failed-job refund',async()=>{
   const {env}=fixture(),db=env.LAB_DB.db,customer='user_LaunchQA',other='user_LaunchOther';
-  for(const file of ['0006-customers-billing.sql','0007-lab-referrals.sql','0008-soul-id-launch-credits.sql','0011-customer-lifecycle.sql'])db.exec(readFileSync(new URL('../lab-worker/migrations/'+file,import.meta.url),'utf8'));
+  for(const file of ['0006-customers-billing.sql','0007-lab-referrals.sql','0008-soul-id-launch-credits.sql','0011-customer-lifecycle.sql','0024-owner-acquisition.sql'])db.exec(readFileSync(new URL('../lab-worker/migrations/'+file,import.meta.url),'utf8'));
   Object.assign(env,{LAB_CUSTOMER_SIGNUPS_ENABLED:'true',LAB_CHECKOUT_ENABLED:'true',LAB_PUBLIC_GENERATION_ENABLED:'true',LAB_CUSTOMER_SPICY_API_KEY:KEY,LAB_STRIPE_SECRET_KEY:'sk_test_synthetic',LAB_STRIPE_WEBHOOK_SECRET:'whsec_synthetic'});
   const authToken=await token(customer),otherToken=await token(other);
   const balance=()=>db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(customer).n;
