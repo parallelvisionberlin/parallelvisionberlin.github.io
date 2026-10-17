@@ -1341,9 +1341,9 @@ function useWelcomeMood(id){
         block:'start'
       }));
     }
-  }else{
-    composerField.focus({preventScroll:true});
   }
+  // Desktop Mood selection also keeps the deck compact. The prompt is
+  // already loaded; opening the editor is a separate deliberate click.
 }
 document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
   button.addEventListener('click',()=>useWelcomeMood(button.dataset.welcomeMood));

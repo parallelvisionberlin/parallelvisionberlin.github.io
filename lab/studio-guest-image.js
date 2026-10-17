@@ -39,9 +39,9 @@ cards.forEach(button=>button.addEventListener('click',()=>{
       behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
       block:'start'
     }));
-  }else{
-    prompt.focus({preventScroll:true});
   }
+  // Desktop also keeps focus on the chosen card. Editing starts only after
+  // the user intentionally clicks the prompt deck.
 }));
 prompt.addEventListener('input',storeDraft);
 composer?.addEventListener('submit',event=>{

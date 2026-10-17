@@ -9,11 +9,15 @@ on:
       - 'lab/studio-mobile-entry.js'
       - 'lab/studio-guest-image.css'
       - 'lab/studio-guest-image.js'
+      - 'lab/image-editorial-deck.js'
+      - 'lab/image-editorial-deck.css'
       - 'lab/image-welcome-editorial.css'
       - 'lab/studio-finish-v2.css'
       - 'lab/image-welcome-editorial.css'
       - 'lab/studio-guest-image.css'
       - 'lab/studio-guest-image.js'
+      - 'lab/image-editorial-deck.js'
+      - 'lab/image-editorial-deck.css'
       - 'tests/lab-customer-image-quotes.test.mjs'
       - 'tests/lab-first-image-instant-browser.mjs'
       - 'tests/lab-mobile-mood-entry.mjs'
@@ -46,6 +50,8 @@ jobs:
       - name: Validate module syntax and first-image price guards
         run: |
           node --check lab/lab.js
+          node --check lab/image-editorial-deck.js
+          node --check lab/studio-guest-image.js
           node --check lab/customer-image-pricing.js
           node --check tests/lab-first-image-instant-browser.mjs
           node --check tests/lab-mobile-mood-entry.mjs

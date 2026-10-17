@@ -67,6 +67,10 @@ try{
     assert.equal(await page.locator('[data-guest-mood="90s-cinema"]').getAttribute('aria-pressed'),'true');
     assert.notEqual(await page.evaluate(()=>document.activeElement?.id),'pv-guest-prompt',
       'Mood selection must not focus the textarea or open the software keyboard');
+    assert.equal(await page.locator('#pv-guest-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'On phones the selected Mood displays its multi-line prompt without keyboard focus');
+    assert.ok(await page.locator('#pv-guest-prompt').evaluate(el=>el.getBoundingClientRect().height)>=99,
+      'The loaded prompt should be readable on mobile');
     await page.waitForFunction(()=>window.scrollY>250,null,{timeout:4000});
     await page.waitForFunction(()=>document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed'),null,{timeout:3000});
     const state=await page.evaluate(()=>{
@@ -92,8 +96,18 @@ try{
     const oldDesktopHeight=await page.locator('.pv-guest-card').first().evaluate(e=>e.getBoundingClientRect().height);
     assert.ok(oldDesktopHeight>=275,'Desktop card geometry remains unchanged');
     await page.locator('[data-guest-mood="dream-blur"]').click();
+    assert.notEqual(await page.evaluate(()=>document.activeElement?.id),'pv-guest-prompt',
+      'Desktop Mood selection loads the prompt without forcing the expanded editor');
+    assert.equal(await page.locator('#pv-guest-composer').evaluate(el=>getComputedStyle(el).flexDirection),'row',
+      'Desktop guest deck keeps the single-row compact mockup until editing begins');
+    await page.locator('#pv-guest-prompt').click();
     assert.equal(await page.evaluate(()=>document.activeElement?.id),'pv-guest-prompt',
-      'Desktop keeps the existing prompt-focus behavior');
+      'Intentional prompt click opens the actual editor');
+    assert.equal(await page.locator('#pv-guest-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'Desktop guest prompt expands on intentional click');
+    await page.locator('#pv-guest-prompt').fill('Visual poetry in an everyday street. '.repeat(45));
+    assert.equal(await page.locator('#pv-guest-prompt').evaluate(el=>el.scrollHeight>el.clientHeight),true,
+      'Long guest prompts scroll inside the editor');
     assert.equal(await page.locator('#studio-header').evaluate(e=>e.classList.contains('pv-mobile-entry-condensed')),false);
     assert.deepEqual(errors,[]);
     console.log('DESKTOP_WELCOME_UNCHANGED=1');

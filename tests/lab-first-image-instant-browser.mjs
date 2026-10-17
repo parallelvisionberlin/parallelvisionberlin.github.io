@@ -75,7 +75,37 @@ try{
   assert.equal(await page.locator('.lab-welcome-preset[aria-pressed="true"]').count(),0,
     'No card should claim selection before the user selects it');
   const button=page.locator('#image-composer-generate');
+  const deck=page.locator('#image-composer');
+  const field=page.locator('#image-composer-prompt');
+  await page.waitForFunction(()=>document.querySelector('#image-composer')?.classList.contains('pv-editorial-deck'));
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
+    'Empty Image deck must start collapsed, like the approved compact reference');
+  assert.equal(await deck.evaluate(el=>getComputedStyle(el).display),'flex',
+    'Desktop Image deck should be one visual horizontal instrument');
+  await field.click();
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+    'Clicking the prompt opens its multi-line editor');
+  await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(35));
+  const expanded=await page.evaluate(()=>{
+    const field=document.getElementById('image-composer-prompt');
+    const deck=document.getElementById('image-composer');
+    const prompt=field.getBoundingClientRect(),controls=deck.querySelector('.image-composer-toolbar').getBoundingClientRect();
+    const generate=document.getElementById('image-composer-generate').getBoundingClientRect();
+    return {promptHeight:prompt.height,promptScrollHeight:field.scrollHeight,promptClientHeight:field.clientHeight,
+      controlsTop:controls.top,promptBottom:prompt.bottom,generateBottom:generate.bottom,
+      viewportHeight:innerHeight,deckHeight:deck.getBoundingClientRect().height};
+  });
+  assert.ok(expanded.promptHeight>=100&&expanded.promptHeight<=155,
+    'Expanded prompt remains bounded to approximately five visible lines: '+JSON.stringify(expanded));
+  assert.ok(expanded.promptScrollHeight>expanded.promptClientHeight,
+    'Long prompts must scroll inside the textarea rather than enlarge the entire deck');
+  assert.ok(expanded.controlsTop>=expanded.promptBottom-3,
+    'Image controls remain attached below the expanded prompt: '+JSON.stringify(expanded));
+  assert.ok(expanded.generateBottom<=expanded.viewportHeight,
+    'Generate must remain visible when typing long prompts: '+JSON.stringify(expanded));
   await page.locator('[data-welcome-mood="hong-kong-nights"]').click();
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
+    'Choosing a Mood returns to the compact deck without requiring a keyboard');
   assert.match(await page.locator('#image-composer-prompt').inputValue(),/jade-green-lit corner shop/);
   assert.equal(await button.isEnabled(),true,'Green Haze must enable Generate in the same click');
   await page.locator('[data-welcome-mood="dream-blur"]').click();
