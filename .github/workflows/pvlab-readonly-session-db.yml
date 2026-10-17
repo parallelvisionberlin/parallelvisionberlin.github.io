@@ -1,0 +1,30 @@
+name: PV LAB read-only session DB diagnosis
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/pvlab-readonly-session-db.yml']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check authenticated-session table dependencies (read-only)
+        working-directory: lab-worker
+        env:
+          RAW_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export CLOUDFLARE_API_TOKEN="$(printf '%s' "$RAW_CLOUDFLARE_API_TOKEN" | tr -d '\r\n\t ')"
+          test -n "$CLOUDFLARE_API_TOKEN"
+          echo "::add-mask::$CLOUDFLARE_API_TOKEN"
+          echo 'SESSION_SCHEMA (public table existence only)'
+          npx --yes wrangler@4 d1 execute parallel-vision-lab --remote --json --command "SELECT (SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='lab_trial_program_controls') AS trial_controls, (SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='lab_promo_generation_holds') AS promo_holds, (SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='lab_customer_contacts') AS contacts, (SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='lab_customers') AS customers, (SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='lab_account_closures') AS closures, (SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='lab_billing_reviews') AS billing_reviews;"
+          echo 'TRIAL_POLICY (non-sensitive global settings)'
+          npx --yes wrangler@4 d1 execute parallel-vision-lab --remote --json --command "SELECT id,welcome_enabled,free_generation_enabled FROM lab_trial_program_controls WHERE id=1;"
+          echo 'SAMPLE_SESSION_JOIN (SELECT constant only; no IDs, emails, balances)'
+          npx --yes wrangler@4 d1 execute parallel-vision-lab --remote --json --command "SELECT 1 AS session_join_valid FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id LEFT JOIN lab_promo_generation_holds h ON h.customer_id=c.id WHERE c.id=(SELECT id FROM lab_customers LIMIT 1) LIMIT 1;"
