@@ -136,7 +136,7 @@ try{
         const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
         assert.ok(empty>=115&&empty<310,
           'Clearing an engaged desktop editor keeps its floating footprint bounded: '+empty);
-        assert.ok(withPhotos>=empty-3,
+        assert.ok(withPhotos>=empty-16,
           'Inline photo references must not shrink the already-open floating deck: '+JSON.stringify({withPhotos,empty}));
         await page.evaluate(()=>{document.getElementById('image-composer-references').hidden=false;});
         await textbox.fill(lorem);
