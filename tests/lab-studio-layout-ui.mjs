@@ -32,6 +32,10 @@ assert.match(studioHtml, /<div id="lab-boot"[^>]*>\s*<div class="lab-boot-conten
   'The original centered brand and progress line are the only visible boot content');
 assert.match(studioHtml, /animation:pv-boot-dismiss \.24s ease-out both/,
   'Retain the approved 240ms exit fade without modification');
+assert.match(studioHtml, /@keyframes pv-boot-out\{0%,12%\{opacity:1;filter:blur\(0\);transform:none\}55%\{opacity:\.82;filter:blur\(3px\);transform:none\}100%\{opacity:0;filter:blur\(9px\);transform:none\}\}/,
+  'The PV LAB logo fades and blurs on exit, without horizontal translation or scaling');
+assert.match(studioHtml, /@keyframes pv-boot-trail-out\{0%,17%\{opacity:0;filter:blur\(0\);transform:none\}56%\{opacity:\.46;filter:blur\(5px\);transform:none\}100%\{opacity:0;filter:blur\(12px\);transform:none\}\}/,
+  'The duplicate blur trail also stays at fixed coordinates during fade-out');
 assert.match(studioHtml,/history\.scrollRestoration='manual';/,'All direct routes opt out of stale Chrome scroll restoration');
 assert.match(studioHtml,/new MutationObserver\(scheduleBootUnlock\)/,'Native route completion can release the boot scroll lock');
 const splashWordmark=studioHtml.match(/\.lab-boot-wordmark\{([^}]*)\}/)?.[1]||'';
@@ -545,6 +549,24 @@ try{
   const logoBefore=await loaderLogo.boundingBox();
   assert.ok(Math.abs(logoBefore.x+logoBefore.width/2-720)<1,
     'Brand is centered within the complete 1440px viewport, not the reduced scroll area');
+  const stableExit=await bootPage.evaluate(()=>{
+    const mark=document.getElementById('lab-boot-name');
+    const before=mark.getBoundingClientRect();
+    // Seek the exact production keyframes while the real Studio script is held.
+    // This proves the exit does not shift or resize the text, even at mid-fade.
+    mark.style.animation='pv-boot-out .24s linear both paused';
+    const exit=mark.getAnimations().find(a=>a.effect?.target===mark);
+    if(exit)exit.currentTime=130;
+    const mid=mark.getBoundingClientRect();
+    const transform=getComputedStyle(mark).transform;
+    mark.style.removeProperty('animation');
+    return {hasAnimation:!!exit,dx:mid.x-before.x,dy:mid.y-before.y,
+      dw:mid.width-before.width,transform};
+  });
+  assert.equal(stableExit.hasAnimation,true,'Loading wordmark exit has testable keyframes');
+  assert.ok(Math.abs(stableExit.dx)<.2&&Math.abs(stableExit.dy)<.2&&Math.abs(stableExit.dw)<.2,
+    'Refreshing must not shift or stretch the PV LAB wordmark while it fades out');
+  assert.equal(stableExit.transform,'none','The mid-exit frame has no transform');
   await bootPage.evaluate(()=>document.getElementById('app').classList.add('image-studio-active'));
   const logoAfterImageInit=await loaderLogo.boundingBox();
   assert.ok(Math.abs(logoAfterImageInit.x-logoBefore.x)<1&&Math.abs(logoAfterImageInit.y-logoBefore.y)<1,
