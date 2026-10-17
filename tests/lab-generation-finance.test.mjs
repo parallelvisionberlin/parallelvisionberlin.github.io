@@ -104,7 +104,7 @@ test('reconstructs only the seven verified 16 October completions, excluding ref
   const a=f.get('SELECT last_state,estimated_microusd,origin FROM lab_generation_finance WHERE job_id=?','gone_success');
   const b=f.get('SELECT last_state FROM lab_generation_finance WHERE job_id=?','gone_refund');
   const otherRow=f.get('SELECT last_state FROM lab_generation_finance WHERE job_id=?','other_unknown');
-  assert.deepEqual(a,{last_state:'reconstructed_completed',estimated_microusd:36000,origin:'reconstructed'});
+  assert.deepEqual({...a},{last_state:'reconstructed_completed',estimated_microusd:36000,origin:'reconstructed'});
   assert.equal(b.last_state,'failed');
   assert.equal(otherRow.last_state,'unknown','Unrelated deleted job must not be asserted completed');
   assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_generation_finance').n,3,'Migration is repeat-safe');
