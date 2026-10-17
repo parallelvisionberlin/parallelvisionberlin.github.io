@@ -141,3 +141,40 @@ jobs:
           }finally{await browser.close()}
           EOF
           node /tmp/pv-clerk-portal-check.mjs
+
+      - name: Live Studio Image and Video boot watchdog
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /tmp/pv-auth/node_modules/playwright/index.mjs || npm install --prefix /tmp/pv-auth --no-audit --no-fund playwright@1.62.1
+          /tmp/pv-auth/node_modules/.bin/playwright install chromium
+          cat > /tmp/pv-studio-boot-check.mjs <<'EOF'
+          import {chromium} from '/tmp/pv-auth/node_modules/playwright/index.mjs';
+          const browser=await chromium.launch({headless:true});
+          try{
+            for(const tool of ['image','video']){
+              const page=await browser.newPage({viewport:{width:1440,height:900}});
+              const exceptions=[],failedRequests=[],httpErrors=[];
+              page.on('pageerror',error=>exceptions.push(String(error.stack||error).slice(0,1100)));
+              page.on('requestfailed',req=>{if(failedRequests.length<12)failedRequests.push({host:new URL(req.url()).hostname,path:new URL(req.url()).pathname,reason:req.failure()?.errorText});});
+              page.on('response',response=>{if(response.status()>=400&&httpErrors.length<12)httpErrors.push({host:new URL(response.url()).hostname,path:new URL(response.url()).pathname,status:response.status()});});
+              try{
+                const response=await page.goto('https://pvlab.studio/studio?tool='+tool,{waitUntil:'domcontentloaded',timeout:30000});
+                await page.waitForTimeout(20000);
+                const state=await page.evaluate(()=>{
+                  const boot=document.getElementById('lab-boot'),app=document.getElementById('app'),gate=document.getElementById('gate'),retry=document.getElementById('lab-boot-retry');
+                  const css=boot?getComputedStyle(boot):null;
+                  return {root:document.documentElement.className,body:document.body.className,overlay:!!boot&&css.display!=='none'&&css.visibility!=='hidden'&&Number(css.opacity)>0.05,overlayOpacity:css?.opacity,appHidden:app?.hidden,gateHidden:gate?.hidden,retryHidden:retry?.hidden,bootStatus:document.getElementById('lab-boot-status')?.textContent,href:location.pathname+location.search};
+                });
+                console.log('PV LAB live Studio',tool,'HTTP',response?.status(),'state',JSON.stringify(state));
+                console.log('PV LAB live Studio',tool,'exceptions',JSON.stringify(exceptions),'networkFailures',JSON.stringify(failedRequests),'httpErrors',JSON.stringify(httpErrors));
+                if(response?.status()!==200||state.overlay)process.exitCode=1;
+              }catch(error){
+                console.log('PV LAB live Studio',tool,'NAVIGATION FAILURE',String(error.stack||error).slice(0,800));
+                process.exitCode=1;
+              }finally{await page.close();}
+            }
+          }finally{await browser.close();}
+          EOF
+          node /tmp/pv-studio-boot-check.mjs
