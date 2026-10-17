@@ -1,4 +1,4 @@
-import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
+import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24&closure=20261017-logout1';
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261015-standalone1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
@@ -73,8 +73,12 @@ function show(){
   const homeCredits=$('lab-home-credits');
   $('lab-header-signin').hidden=!ready||signed;
   if(homeCredits){
-    homeCredits.hidden=!ready;
-    if(ready&&!signed){
+    const closed=ready&&signed&&!!profile?.accountClosed;
+    homeCredits.hidden=!ready||closed;
+    if(closed){
+      $('lab-home-credit-copy').textContent='Account closed';
+      $('lab-home-credit-unit').hidden=true;
+    }else if(ready&&!signed){
       $('lab-home-credit-copy').textContent='Get credits';
       $('lab-home-credit-unit').hidden=true;
       homeCredits.setAttribute('aria-label','Get credits and view pricing');
