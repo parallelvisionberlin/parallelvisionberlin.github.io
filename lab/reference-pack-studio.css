@@ -813,3 +813,37 @@
   #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{height:150px;flex-basis:150px}
   #pack-studio-dialog:not(.is-creating) .pack-studio-collection-heading{flex-wrap:wrap}
 }
+
+
+/* 2026-10-18: approved compact editorial Photo Packs viewport.
+   Keep the existing photo, shadow overlay, pack names and API interactions. */
+@media(min-width:941px){
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro{
+    height:174px;min-height:174px;margin:9px 0 14px;padding:21px 26px;
+    background-position:center,60% 44%;
+    box-shadow:inset 0 -32px 68px #080b0e9c,0 9px 24px #0004;
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro h3{font-size:30px}
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro p{font-size:11.5px}
+  #pack-studio-dialog:not(.is-creating) .pack-studio-collection-heading{
+    margin:0 0 10px;min-height:37px;
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-collection-heading strong{font-size:18px}
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]){
+    gap:12px;
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{
+    height:177px;flex-basis:177px;
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-card-name{margin-top:7px}
+  #pack-studio-dialog:not(.is-creating) .pack-studio-card-count{margin:2px 0 8px}
+  #pack-studio-dialog:not(.is-creating) .pack-studio-footnote{margin-top:10px}
+}
+@media(min-width:701px) and (max-width:940px){
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro{height:165px;min-height:165px;margin:9px 0 12px}
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{height:172px;flex-basis:172px}
+}
+@media(max-width:700px){
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro{height:133px;min-height:133px;margin:9px 0 12px}
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{height:151px;flex-basis:151px}
+}
