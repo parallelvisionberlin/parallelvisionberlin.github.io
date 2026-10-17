@@ -24,8 +24,8 @@ assert.ok(source.includes("document.documentElement.classList.add('pv-studio-boo
 const studioHtml=readFileSync('lab/studio.html','utf8');
 assert.match(studioHtml,/<html lang="en" class="pv-studio-boot-lock">/,'Initial HTML locks scroll before any route renders');
 assert.match(studioHtml,/html\.pv-studio-boot-lock\{scroll-behavior:auto!important\}/,'Boot overrides smooth scrolling while locked');
-assert.match(studioHtml,/html\.pv-studio-boot-lock\{scrollbar-gutter:stable\}/,
-  'First-paint gutter is reserved before Image initializes and before native route selection');
+assert.match(studioHtml,/#lab-boot\{position:fixed;inset:0;width:100vw;/,
+  'Splash keeps true viewport width even when the Image route adds a scrollbar gutter');
 assert.match(studioHtml,/<svg class="lab-boot-fluid"[^>]+aria-hidden="true"/,
   'Chrome ribbons are decorative inline SVG, with no network dependency or accessible duplicate');
 assert.match(studioHtml,/@keyframes pv-fluid-right/, 'Fluid motion is CSS-only and independent of Studio readiness');
@@ -534,10 +534,14 @@ try{
   assert.equal(await fluid.evaluate(el=>getComputedStyle(el).animationName),'pv-fluid-arrive',
     'Fluid reflections animate while loading without animating the brand');
   const logoBefore=await loaderLogo.boundingBox();
+  assert.ok(Math.abs(logoBefore.x+logoBefore.width/2-720)<1,
+    'Brand is centered within the complete 1440px viewport, not the reduced scroll area');
   await bootPage.evaluate(()=>document.getElementById('app').classList.add('image-studio-active'));
   const logoAfterImageInit=await loaderLogo.boundingBox();
   assert.ok(Math.abs(logoAfterImageInit.x-logoBefore.x)<1&&Math.abs(logoAfterImageInit.y-logoBefore.y)<1,
     'Image route scrollbar gutter must not shift the centered PV LAB logo');
+  assert.equal(Math.round((await bootPage.locator('#lab-boot').boundingBox()).width),1440,
+    'Fluid splash continues to cover the entire viewport after Image initializes');
   await bootPage.evaluate(()=>document.getElementById('app').classList.remove('image-studio-active'));
   await bootPage.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await fluid.evaluate(el=>getComputedStyle(el).animationName),'none',

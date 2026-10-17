@@ -27,15 +27,14 @@ try{if(localStorage.getItem('pv-lab-image-previews-hidden-v1')==='1')document.do
    Hide the underlying document scrollbar until the 240ms splash exit has ended. */
 html.pv-studio-boot-lock,html.pv-studio-boot-lock body{overflow:hidden!important;overscroll-behavior:none!important}
 html.pv-studio-boot-lock{scroll-behavior:auto!important}
-/* Reserve the desktop scrollbar gutter before the Image editor selects its route.
-   Otherwise Chromium shifts the centered boot logo ~7.5px when that class arrives. */
-@media(min-width:761px){html.pv-studio-boot-lock{scrollbar-gutter:stable}}
 /* Reserve Image gallery scrollbar space through the splash and delayed history.
    Keep the mobile floating composer centered and other routes unchanged. */
 @media(min-width:761px){html:has(#app.image-studio-active){scrollbar-gutter:stable}}
 /* Visible before the external scripts and stylesheets load. No remote imagery or icon fonts. */
 body.lab-booting{margin:0;background:#101114}
-#lab-boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#121316 0%,#08090a 73%);color:#ededee;font-family:"Helvetica Neue",Arial,sans-serif;overflow:hidden}
+/* Fixed overlays using inset:0 alone shrink when the root reserves a classic
+   scrollbar gutter. 100vw stays tied to the full viewport, so the logo never jumps. */
+#lab-boot{position:fixed;inset:0;width:100vw;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#121316 0%,#08090a 73%);color:#ededee;font-family:"Helvetica Neue",Arial,sans-serif;overflow:hidden}
 /* Liquid-metal refractions at the viewport edges. The mark, track and exit never move. */
 .lab-boot-fluid{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.91;animation:pv-fluid-arrive .65s ease-out both}
 .lab-boot-fluid-left{animation:pv-fluid-left 7s ease-in-out infinite alternate;transform-origin:25% 50%}
