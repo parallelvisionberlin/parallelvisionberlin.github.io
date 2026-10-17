@@ -2317,6 +2317,11 @@ function syncVideoStudioMode(){
   if(!mainWorkspace)return;
   const videoMode=tool==='video'&&!fashionActive&&!retouchActive;
   $('app').classList.toggle('video-studio-active',videoMode);
+  // Apply the final Video track widths in the same render as the video route.
+  // A later MutationObserver-only toggle causes the brief rightward layout jump.
+  $('app').classList.toggle('pv-video-ergonomic',videoMode);
+  $('app').classList.toggle('pv-video-seedance',videoMode&&engine==='seedance');
+  $('app').classList.toggle('pv-video-wan',videoMode&&['wan','wanprime'].includes(engine));
   mainWorkspace.classList.toggle('video-layout',videoMode);
   videoFeedCenter.hidden=!videoMode;
   videoInspector.hidden=!videoMode;
@@ -2718,6 +2723,8 @@ function configureVideoControls(){
   // Resolve unsupported modes before calculating which panels are visible.
   if(!model.modes.includes(mode))mode=model.modes[0];
   $('app').classList.toggle('video-extend-active',isVideo&&mode==='extend');
+  $('app').classList.toggle('pv-video-seedance',isVideo&&engine==='seedance');
+  $('app').classList.toggle('pv-video-wan',isVideo&&['wan','wanprime'].includes(engine));
   $('video-camera-lock-wrap').hidden=!isVideo||!sd15;
   $('video-task-switch').hidden=!isVideo||!sd;
   $('video-create-task').setAttribute('aria-selected',String(mode!=='extend'));
