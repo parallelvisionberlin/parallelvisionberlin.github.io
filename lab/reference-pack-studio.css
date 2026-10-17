@@ -739,3 +739,12 @@
   #pack-studio-dialog .pack-studio-sort-label select{max-width:135px;font-size:10px}
   #pack-studio-dialog .pack-studio-intro h3{font-size:20px}
 }
+
+
+/* A full 5 × 2 desktop library is visible without scrolling. Keep overflow for
+   larger libraries, shorter desktop windows and all mobile viewports. */
+@media(min-width:941px) and (min-height:750px){
+  #pack-studio-dialog:not(.is-creating):not(:has(#pack-studio-grid .pack-studio-card:nth-of-type(n+11))) .pack-studio-main{
+    overflow-y:hidden
+  }
+}
