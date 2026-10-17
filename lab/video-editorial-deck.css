@@ -445,8 +445,10 @@
   border-color:#34363c;border-radius:15px;
 }
 #app.video-studio-active .video-feed-center .canvas{
-  background-color:#0d0e10;
-  background-image:radial-gradient(ellipse at 48% 48%,#1a1c20 0%,#131417 55%,#0d0e10 100%);
+  background:#0d0e10;
+}
+#app.video-studio-active .video-feed-center .canvas #empty{
+  background:radial-gradient(ellipse at 50% 47%,#202126 0%,#17191d 55%,transparent 80%);
 }
 #app.video-studio-active .video-feed-center .empty-title{
   font-size:27px;font-weight:650;letter-spacing:-.035em;
