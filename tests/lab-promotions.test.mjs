@@ -10,7 +10,7 @@ async function setup(t) {
   t.after(()=>db.close());
   const file=name=>readFileSync(new URL(name,import.meta.url),'utf8');
   db.exec(file('../lab-worker/schema.sql'));
-  for(const migration of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0016-clerk-sync-diagnostics'])db.exec(file('../lab-worker/migrations/'+migration+'.sql'));
+  for(const migration of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0016-clerk-sync-diagnostics','0023-welcome-guard','0024-owner-acquisition'])db.exec(file('../lab-worker/migrations/'+migration+'.sql'));
   db.exec(file('../lab-worker/migrations/0015-lab-promotional-credits.sql')); // safely applied more than once
   const dbBinding={
     prepare(sql){return {bind(...values){const stmt=db.prepare(sql);return {
@@ -289,4 +289,37 @@ test('missing Clerk secret is recorded as aggregate-only diagnostics, not a fabr
   assert.equal(summary.issues.missingKey,1);
   assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_customer_contacts').n,0);
   assert.equal(f.get('SELECT source FROM lab_clerk_sync_diagnostics WHERE id=1').source,'scheduled');
+});
+
+test('owner acquisition counts new users, activation, credit debits, checkout starts and true euro receipts',async t=>{
+  const f=await setup(t);if(!f)return;
+  await assert.rejects(()=>f.admin('/api/admin/acquisition?days=7',null,'GET','user_ALICE'),/owner access required/);
+  await assert.rejects(()=>f.admin('/api/admin/acquisition?days=3',null,'GET'),/Choose 7 or 30 days/);
+  const now=Date.now();
+  f.insert('INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at) VALUES(?,?,?,?)',
+    'user_ALICE','random@yournike.com',now,now);
+  f.insert("INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES('funds',?,500,'purchase','checkout:funds',?)",
+    'user_ALICE',now);
+  f.insert("INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,'completed',30000,?,?)",
+    'completed-1','user_ALICE',JSON.stringify({type:'image',provider:'spicy',prompt:'private data'}),now,now);
+  f.insert("INSERT INTO lab_checkout_attempts(session_id,customer_id,sku,amount_cents,created_at) VALUES('cs_live_testone','user_ALICE','topup10',1000,?)",now);
+  f.insert("INSERT INTO lab_checkout_attempts(session_id,customer_id,sku,amount_cents,created_at,paid_at) VALUES('cs_live_testtwo','user_ALICE','starter',1500,?,?)",now,now);
+  f.insert("INSERT INTO lab_revenue_events(reference,customer_id,amount_cents,created_at) VALUES('invoice:paid','user_ALICE',1500,?)",now);
+  const res=await f.admin('/api/admin/acquisition?days=7',null,'GET');
+  assert.equal(res.status,200);
+  const report=await res.json();
+  assert.equal(report.summary.newUsers,3);
+  assert.equal(report.summary.activatedUsers,1);
+  assert.equal(report.summary.completedJobs,1);
+  assert.equal(report.summary.checkoutStarts,2);
+  assert.equal(report.summary.checkoutPaid,1);
+  assert.equal(report.summary.revenueCents,1500);
+  assert.equal(report.summary.providerExposureUsd,.03);
+  assert.ok(report.summary.netCreditsSpent>0);
+  const account=report.customers.find(x=>x.id==='user_ALICE');
+  assert.equal(account.reviewFlag,'disposable-email');
+  assert.equal(account.completedJobs,1);
+  assert.equal(account.checkoutStarts,2);
+  assert.equal(account.revenueCents,1500);
+  assert.ok(!JSON.stringify(report).includes('private data'),'no creative prompts returned from acquisition');
 });
