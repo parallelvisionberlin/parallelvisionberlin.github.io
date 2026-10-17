@@ -14,8 +14,10 @@ assert.ok(boot>0&&bootEnd>boot,'Expected distinct auth bootstrap and Soul compos
 const authSync=source.slice(source.indexOf('async function sync(){'),source.indexOf("$('studio-invite-friends').onclick"));
 const requestedAt=authSync.indexOf('await restoreStudioEntry()');
 const revealedAt=authSync.indexOf('finishLabBoot();');
-const historyAt=authSync.indexOf('await Promise.all([loadHistory()');
-assert.ok(requestedAt>=0&&revealedAt>requestedAt&&historyAt>revealedAt,'Restore the actual Studio route before first paint, then load optional history');
+const historyAt=authSync.indexOf('const historyReady=loadHistory()',requestedAt);
+const historyAwaited=authSync.indexOf('await historyReady;',historyAt);
+assert.ok(requestedAt>=0&&historyAt>requestedAt&&historyAwaited>historyAt&&revealedAt>historyAwaited,
+  'Restore the requested Studio route and first private gallery history before removing the loading overlay');
 assert.ok(authSync.includes("document.documentElement.classList.add('pv-studio-route-pending')"),'Protect the loader during authenticated initialization');
 assert.ok(source.includes("document.documentElement.classList.remove('pv-studio-route-pending')"),'Boot release clears its route guard');
 assert.ok(source.includes("document.documentElement.classList.add('pv-studio-boot-lock')"),'In-place sign-in reactivates the loading scrollbar lock');
