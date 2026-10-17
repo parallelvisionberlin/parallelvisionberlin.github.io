@@ -1,4 +1,5 @@
 import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
+import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261017-scene-library1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3';
 import {preparePhotoInput} from './photo-input.js?v=1';
@@ -200,6 +201,7 @@ function beginImageFeedback(count,selected,ratio){
   };
 }
 let assetLibrary=null;
+let sceneLibrary=null;
 let retouchActive=false;
 let fashionActive=false,fashionController=null,fashionMount=null;
 function studioRoute(){const value=new URLSearchParams(location.search).get('tool');return ['image','retouch','video','upscale','assets','fashion'].includes(value)?value:'image';}
@@ -1118,6 +1120,23 @@ const packStudio=createReferencePackStudio({
   onUse:id=>{$('pack-select').value=id;$('pack-load').click();},
   notify,isOwner:()=>owner,isBusy:()=>busy,session:()=>epoch
 });
+sceneLibrary=createSceneLibrary({
+  api,uploadAsset,assetFile,assetPhoto:composerAssetPhoto,
+  getReferences:()=>references,getReferenceLimit:referenceLimit,
+  getContext:()=>({owner,busy,tool,mode,supportsReferences:usesReferenceGuidance()}),
+  prepareUse:()=>{
+    // A saved item starts a new composition rather than silently making
+    // its first image the Base. Preserve any existing Base/editor photos.
+    if(tool==='image'&&usesReferenceGuidance()&&!references.length){
+      imageReferenceMode='references';closeReferenceIntent();syncReferenceIntentUi();
+    }
+  },
+  addReferences,loadPacks,getAllPacks:()=>packs,notify,action,
+  closeOverlays:()=>{closeComposerLibrary();closeImageModelMenu();closeReferenceIntent();moodUI.close();toggleImageSettings(false);}
+});
+$('scene-video-open').onclick=()=>sceneLibrary.open('characters');
+$('scene-image-open').onclick=()=>sceneLibrary.open('characters');
+
 function composerMove(id,target){
   const node=$(id);if(!node)return;
   if(!composerHomes.has(id)){const anchor=document.createComment('Home: '+id);node.before(anchor);composerHomes.set(id,anchor);}
@@ -2549,6 +2568,7 @@ function renderReferences(){
     controls.append(up,remove);item.append(img,fields,controls);fragment.append(item);
   });
   syncDefaultRatio();box.replaceChildren(fragment);box.scrollTop=scroll;$('ref-count').textContent=`${references.length} / ${referenceLimit()}`;
+  sceneLibrary?.renderSelected();
 }
 async function addReferences(list,ids=[],labels=[]){
   clearImageComposerNotice();
@@ -3010,6 +3030,7 @@ function resultFormat(blob){
 
 /* Image detail: full viewport artwork plus a persistent metadata inspector. */
 let imageDetailJob=null;
+$('image-detail-scene-save').onclick=()=>{const job=imageDetailJob;if(!hasResult(job)){notify('Choose a completed Gallery image first.',true);return;}closeImageDetail();void sceneLibrary.fromGallery(job);};
 const imageDetailFavoritePending=new Set();
 function paintImageDetailFavorite(){
   const job=imageDetailJob,button=$('image-detail-favorite');
@@ -3781,7 +3802,7 @@ async function refineInSeedream(job,preset='full'){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-async function loadPacks(){const data=await api('/api/packs');packs=data.packs;$('pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.map(p=>new Option(p.name,p.id)));if($('soul-pro-pack-select'))$('soul-pro-pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.filter(p=>p.refs?.length>=1).map(p=>new Option(p.name+' · '+p.refs.length+' ref'+(p.refs.length===1?'':'s'),p.id)));composerLibraryKey='';syncImageComposer();packStudio.refresh();}
+async function loadPacks(){const data=await api('/api/packs');sceneLibrary?.sync(data.packs);packs=data.packs.filter(p=>!isSceneLibraryPack(p));$('pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.map(p=>new Option(p.name,p.id)));if($('soul-pro-pack-select'))$('soul-pro-pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.filter(p=>p.refs?.length>=1).map(p=>new Option(p.name+' · '+p.refs.length+' ref'+(p.refs.length===1?'':'s'),p.id)));composerLibraryKey='';syncImageComposer();packStudio.refresh();}
 $('pack-save').onclick=()=>action(async()=>{if(!references.length)throw new Error('Add reference images first.');const name=window.prompt('Name this reference pack, for example Nina FOK / Editorial');if(!name?.trim())return;const ids=await ensureReferences();await api('/api/packs',{method:'POST',body:{name:name.trim(),engine:tool==='video'?engine:'wan',referenceSourceIds:ids,referenceRoles:referenceRoles()}});await loadPacks();notify('Reference pack saved privately. No generation charge.');});
 $('pack-load').onclick=()=>action(async()=>{
   const pack=packs.find(p=>p.id===$('pack-select').value);
