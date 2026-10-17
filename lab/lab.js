@@ -1123,7 +1123,7 @@ const packStudio=createReferencePackStudio({
 sceneLibrary=createSceneLibrary({
   api,uploadAsset,assetFile,assetPhoto:composerAssetPhoto,
   getReferences:()=>references,getReferenceLimit:referenceLimit,
-  getContext:()=>({owner,busy,tool,mode,supportsReferences:usesReferenceGuidance()}),
+  getContext:()=>({owner,busy,tool,mode,supportsReferences:usesReferenceGuidance()&&imageEngine!=='kling'}),
   prepareUse:()=>{
     // A saved item starts a new composition rather than silently making
     // its first image the Base. Preserve any existing Base/editor photos.
