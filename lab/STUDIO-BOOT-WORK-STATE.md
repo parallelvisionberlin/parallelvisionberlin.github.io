@@ -64,3 +64,9 @@ Scope: Studio initial loading overlay only.
 - Reserve `scrollbar-gutter:stable` on `html.pv-studio-boot-lock` immediately on desktop widths >=761px, retaining the existing Image route gutter for after the loader ends. Mobile still reserves none. Leave `#lab-boot` 100vw, exit keyframes, blur, ghost alignment, progress line and ready guards untouched.
 - Focused Studio mock regression now verifies first-frame gutter, no late root-width change under classic scrollbars even with percent-sized overlay, and no mobile reservation. Live-domain smoke checks the published style.
 - Baseline main `cb1026a62a944ae5271c1ab371ac891ac63a43d6`. Actual browser results and deployment status must be updated after checks; unrelated generation, pricing and auth code untouched.
+
+## October 17 first-frame scrollbar fix: verified release
+- PR #298 merged into main at commit `81494e98d5de8708b9f3451f7151f998cb02470c`.
+- Mock browser startup regression `39060092184` passed, including first-frame desktop gutter, a percent-width/classic-scrollbar test that reproduces a 7.5px jump without the fix, root width stability, mobile no-gutter, and unchanged 240ms blur/fade plus native route gating.
+- Cloudflare Pages source check for merge commit reported **Deployed successfully**. Production custom-domain workflow `39060204657` also **passed**, with the live Studio HTML containing `html.pv-studio-boot-lock{scrollbar-gutter:stable}` and preexisting loader/route conditions.
+- This targeted correction does not alter logo identity, visual effects, progress behavior, provider calls, billing, data, or app content. User refresh is the final subjective check. If motion persists, collect a screen recording across the first frame rather than repeating exit animation changes.
