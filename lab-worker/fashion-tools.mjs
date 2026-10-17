@@ -1,3 +1,4 @@
+import {creditsForJobMicros} from './job-pricing.mjs';
 // Owner-only PV Lab Fashion: two fal.ai routes and direct FASHN Try-On Max.
 // No customer tenancy, bypass switches, background paid retries, or public credentials.
 export const FASHION_MODELS = Object.freeze({
@@ -108,10 +109,10 @@ export async function fashionRoute(request,env,owner,url,d) {
       personPixels=dimensions[0].width*dimensions[0].height;garmentPixels=dimensions[1].width*dimensions[1].height;
       if(personPixels>2e6||garmentPixels>1e6)fail(400,'FLUX requires a person image of at most 2 MP and a garment image of at most 1 MP. Resize a working copy, keeping your originals.');
     }
-    const estimate=fashionEstimateMicros(p,personPixels,garmentPixels),id=crypto.randomUUID(),expires=Date.now()+600000;
+    const estimate=fashionEstimateMicros(p,personPixels,garmentPixels),creditCost=creditsForJobMicros(estimate,p),id=crypto.randomUUID(),expires=Date.now()+600000;
     await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
-      id,owner,person.id,JSON.stringify(p),estimate,expires,'fashion-review-v1',String(estimate/1e6),JSON.stringify({garmentSourceId:garment.id}));
-    return {id,estimatedUsd:estimate/1e6,priceIsEstimate:true,expiresAt:expires,model:p.fashionModel,
+      id,owner,person.id,JSON.stringify({...p,customerChargeCredits:creditCost}),estimate,expires,'fashion-review-v1',String(estimate/1e6),JSON.stringify({garmentSourceId:garment.id}));
+    return {id,estimatedUsd:estimate/1e6,creditCost,priceIsEstimate:true,expiresAt:expires,model:p.fashionModel,
       sourceName:FASHION_MODELS[p.fashionModel].label,
       notice:'Published model pricing estimate, not a guaranteed charge. Your provider balance and its live billing remain authoritative. Confirmation submits ONE paid generation.'};
   }
