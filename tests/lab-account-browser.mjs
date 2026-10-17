@@ -45,21 +45,7 @@ async function setup(width,customer=true,overrides={}){
   });
   return {context,page,errors,writes,session,setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
 }
-async function fits(page,label){
-  const info=await page.evaluate(()=>{
-    const viewport=innerWidth,width=document.documentElement.scrollWidth;
-    const offenders=[...document.querySelectorAll('body *')].flatMap(el=>{
-      const rect=el.getBoundingClientRect(),style=getComputedStyle(el);
-      if(style.display==='none'||style.visibility==='hidden'||rect.width===0||rect.height===0||rect.right<=viewport+1)return [];
-      return [{tag:el.tagName,id:el.id,cls:String(el.className||'').slice(0,80),
-        right:Math.round(rect.right),left:Math.round(rect.left),width:Math.round(rect.width),
-        display:style.display,position:style.position}];
-    }).sort((a,b)=>b.right-a.right).slice(0,12);
-    return {viewport,width,offenders};
-  });
-  if(info.width>info.viewport+1)console.log('APPROVED_VIDEO_OVERFLOW_DIAGNOSTIC',label,JSON.stringify(info));
-  assert.equal(info.width<=info.viewport+1,true,label+' horizontal overflow');
-}
+async function fits(page,label){assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,label+' horizontal overflow');}
 try{
   // Homepage purchases: every arrow responds next to its product, with no real payment.
   for(const width of [1440,390]){
