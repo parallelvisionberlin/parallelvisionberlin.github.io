@@ -34,6 +34,27 @@ async function emailKey(env,normalizedEmail){
     new TextEncoder().encode('pvlab-welcome-v1:'+normalizedEmail)));
   return Array.from(result,b=>b.toString(16).padStart(2,'0')).join('');
 }
+// A legacy welcome grant might predate email-keyed claims. Preserve the
+// verified normalized email as a keyed digest before removing its contact row.
+// The account closure blocks a second award by the INSERT trigger.
+export async function preserveClosedWelcomeClaim(env,subject){
+  if(!subjectPattern.test(subject))return false;
+  const gift=await first(env,'SELECT 1 AS found FROM lab_credit_entries WHERE customer_id=? AND reference=?',
+    subject,'welcome:'+subject);
+  if(!gift)return true;
+  if(await first(env,'SELECT 1 AS found FROM lab_welcome_claims WHERE customer_id=?',subject))return true;
+  const contact=await first(env,`SELECT email FROM lab_customer_contacts
+    WHERE customer_id=? AND verified_at IS NOT NULL AND email IS NOT NULL`,subject);
+  const normalized=normalizeWelcomeEmail(contact?.email);
+  if(!normalized)return false; // No recoverable verified identity for this historical gift.
+  const key=await emailKey(env,normalized);
+  if(!key)throw Error('Verified welcome-claim protection is not configured.');
+  await execute(env,`INSERT OR IGNORE INTO lab_welcome_claims(email_key,customer_id,claimed_at)
+    SELECT ?,?,? WHERE EXISTS(SELECT 1 FROM lab_account_closures WHERE customer_id=?)`,
+    key,subject,Date.now(),subject);
+  return !!await first(env,'SELECT 1 AS found FROM lab_welcome_claims WHERE email_key=?',key);
+}
+
 export async function grantVerifiedWelcome(env,subject){
   if(env.LAB_WELCOME_CREDITS_ENABLED!=='true'||!subjectPattern.test(subject))return false;
   const contact=await first(env,`SELECT email FROM lab_customer_contacts
