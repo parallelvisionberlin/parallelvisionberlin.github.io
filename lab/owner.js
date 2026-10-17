@@ -268,7 +268,8 @@ for(const button of document.querySelectorAll('[data-traffic-days]'))button.addE
 $('owner-traffic-refresh').addEventListener('click',()=>void refreshTraffic());
 
 const generationReviewUI=createOwnerGenerationReviewUI({
-  call,request,ownerReady:()=>!!profile?.owner,revision:()=>revision,formatDate:activityDate
+  call:path=>call(path),request,ownerReady:()=>!!profile?.owner,
+  revision:()=>revision,formatDate:activityDate
 });
 const acquisitionUI=createOwnerAcquisitionUI({
   request:path=>call(path),ownerReady:()=>!!profile?.owner,revision:()=>revision,days:()=>trafficDays,
