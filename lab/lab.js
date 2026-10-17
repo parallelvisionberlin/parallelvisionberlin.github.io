@@ -4496,7 +4496,8 @@ if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
   };
 }
 
-try{window.__pvLabBootStage?.('Connecting your account');clerk=await loadLabAccount();clerk.addListener(()=>void sync());await sync();}catch{window.__pvLabBootStage?.('Account connection failed');document.documentElement.classList.remove('pv-native-route-pending');$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
+window.__pvLabBootStage?.('Connecting your account');
+try{clerk=await loadLabAccount();clerk.addListener(()=>void sync());await sync();}catch{window.__pvLabBootStage?.('Account connection failed');document.documentElement.classList.remove('pv-native-route-pending');$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
 
 
 
