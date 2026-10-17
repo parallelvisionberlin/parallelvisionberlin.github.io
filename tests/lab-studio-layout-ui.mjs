@@ -414,10 +414,10 @@ try{
   assert.equal(await x.page.locator('#scene-library-title').innerText(),'Characters');
   assert.equal(await x.page.locator('#scene-tabs .scene-category-tab').count(),5);
   for(const [label,image] of [
-    ['Characters','fashion-hero.webp'],
-    ['Outfits','lotus02heroale.webp'],
-    ['Props','liquid-metal-hero.webp'],
-    ['Locations','04-the-dense-city-below.webp']
+    ['Characters','scene-hero-art/characters.webp'],
+    ['Outfits','scene-hero-art/outfits.webp'],
+    ['Props','scene-hero-art/props.webp'],
+    ['Locations','scene-hero-art/locations.webp']
   ]){
     await x.page.locator('#scene-tabs .scene-category-tab').filter({hasText:label}).click();
     const hero=await x.page.locator('#scene-category-hero').evaluate(el=>{
@@ -428,9 +428,9 @@ try{
         contentScroll:document.querySelector('#scene-library-dialog .scene-main').scrollHeight-
           document.querySelector('#scene-library-dialog .scene-main').clientHeight};
     });
-    assert.ok(hero.visible&&hero.height<=124,'Compact '+label+' banner must be visible: '+JSON.stringify(hero));
+    assert.ok(hero.visible&&hero.height>=140&&hero.height<=154,'Approved '+label+' banner is slightly taller: '+JSON.stringify(hero));
     assert.equal(hero.title,label);
-    assert.ok(hero.background.includes(image),'Use the existing PV image for '+label+': '+hero.background.slice(0,150));
+    assert.ok(hero.background.includes(image),'Use the approved PV LAB hero image for '+label+': '+hero.background.slice(0,150));
     assert.equal(hero.centered,true,'Elements modal is vertically centered for '+label);
     assert.ok(hero.contentScroll<=3,'Empty Elements should not scroll: '+JSON.stringify(hero));
   }
