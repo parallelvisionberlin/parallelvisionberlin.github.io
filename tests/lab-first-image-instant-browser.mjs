@@ -339,6 +339,41 @@ try{
   await page.evaluate(()=>window.__welcomeMockInspiration(false));
   assert.equal(await page.locator('#history').isVisible(),true,
     'Returning to populated History must restore the actual gallery');
+  // Mobile regression: Inspiration must not appear below an empty, viewport-sized History.
+  await page.setViewportSize({width:390,height:844});
+  const mobileInspire=await page.locator('#history-moods-toggle').evaluate(button=>({
+    width:button.getBoundingClientRect().width,
+    visible:button.getBoundingClientRect().height>0,
+    label:getComputedStyle(button.querySelector('.mood-view-label'),'::after').content
+  }));
+  assert.ok(mobileInspire.visible&&mobileInspire.width>=72,
+    'Mobile History keeps an identifiable Inspiration button: '+JSON.stringify(mobileInspire));
+  assert.equal(mobileInspire.label,'"Inspire"','The mobile sparkle carries its visible Inspire label');
+  await page.locator('#history-moods-toggle').click();
+  assert.equal(await page.locator('#lab-welcome-start').isVisible(),true);
+  const mobileDiscovery=await page.evaluate(()=>{
+    const r=id=>document.querySelector(id).getBoundingClientRect();
+    return {
+      headBottom:r('.image-studio .archivehead').bottom,
+      welcomeTop:r('#lab-welcome-start').top,
+      cardTop:r('#lab-welcome-start .lab-welcome-preset').top,
+      dockTop:r('#image-composer').top,
+      archivePadding:getComputedStyle(document.querySelector('.image-studio .archive')).paddingBottom,
+      selectHidden:getComputedStyle(document.getElementById('history-select')).display==='none',
+      refreshHidden:getComputedStyle(document.getElementById('refresh')).display==='none'
+    };
+  });
+  assert.equal(mobileDiscovery.archivePadding,'0px','Moods cannot retain History bottom spacer');
+  assert.ok(mobileDiscovery.welcomeTop-mobileDiscovery.headBottom>=-5&&
+    mobileDiscovery.welcomeTop-mobileDiscovery.headBottom<65,
+    'Inspiration heading follows the toolbar without a black viewport: '+JSON.stringify(mobileDiscovery));
+  assert.ok(mobileDiscovery.cardTop<mobileDiscovery.dockTop,
+    'The first Mood images must be immediately visible above the floating composer: '+JSON.stringify(mobileDiscovery));
+  assert.ok(mobileDiscovery.selectHidden&&mobileDiscovery.refreshHidden,
+    'Hidden History cannot offer unusable Select or Refresh controls');
+  await page.locator('#history-moods-toggle').click();
+  assert.equal(await page.locator('#history').isVisible(),true,
+    'Mobile History resumes after closing Inspiration without losing results');
   assert.deepEqual(errors,[]);
   console.log('FIRST_IMAGE_INSTANT_QUOTED_GENERATE_OK=1');
 }finally{

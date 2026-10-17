@@ -66,12 +66,47 @@ html.pv-image-previews-hidden #app.image-studio-active.pv-moods-discovery-open
   background:none!important
 }
 @media(max-width:700px){
+  /* Inspiration stays recognizable on phones instead of becoming an unexplained star. */
   #app.image-studio-active .image-studio .history-head-actions{
-    grid-template-columns:34px 50px 58px 8px 34px;column-gap:4px
+    grid-template-columns:80px 50px 58px 8px 34px;column-gap:4px
   }
-  #app.image-studio-active #history-moods-toggle{padding:0}
-  #history-moods-toggle .mood-view-label{display:none}
+  #app.image-studio-active #history-moods-toggle{padding:0 7px;gap:5px}
+  #app.image-studio-active #history-moods-toggle .mood-view-label{
+    display:inline;font-size:11px;line-height:1.2
+  }
+  #app.image-studio-active:not(.pv-moods-discovery-open) #history-moods-toggle .mood-view-label{
+    font-size:0
+  }
+  #app.image-studio-active:not(.pv-moods-discovery-open) #history-moods-toggle .mood-view-label::after{
+    content:"Inspire";font-size:11px
+  }
   #history-moods-toggle svg{width:15px;height:15px}
+  /* While looking at Moods there is no visible History to Select or Refresh. */
+  #app.image-studio-active.pv-moods-discovery-open .image-studio .history-head-actions{
+    grid-template-columns:91px 34px
+  }
+  #app.image-studio-active.pv-moods-discovery-open .image-studio #history-moods-toggle{grid-column:1}
+  #app.image-studio-active.pv-moods-discovery-open .image-studio #history-preview-toggle{grid-column:2}
+  #app.image-studio-active.pv-moods-discovery-open .image-studio #history-select,
+  #app.image-studio-active.pv-moods-discovery-open .image-studio #refresh{
+    display:none!important
+  }
+  /* Drop History's vacant viewport spacer so the six real Mood cards start immediately. */
+  #app.image-studio-active.pv-moods-discovery-open .image-studio .archive{
+    min-height:0!important;padding-bottom:0!important
+  }
+  #app.image-studio-active.pv-moods-discovery-open .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    padding-top:16px!important
+  }
+}
+@media(max-width:360px){
+  /* Narrow phones retain the star icon rather than squeezing Select and Refresh. */
+  #app.image-studio-active:not(.pv-moods-discovery-open) .image-studio .history-head-actions{
+    grid-template-columns:34px 50px 58px 8px 34px
+  }
+  #app.image-studio-active:not(.pv-moods-discovery-open) #history-moods-toggle .mood-view-label{
+    display:none
+  }
 }
 @media(prefers-reduced-motion:reduce){
   #history-moods-toggle{transition:none!important}
