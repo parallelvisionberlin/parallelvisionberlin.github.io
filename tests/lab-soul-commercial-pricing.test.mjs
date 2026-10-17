@@ -98,7 +98,7 @@ test('site copy and customer training panel show credits without editing owner p
   assert.match(ui,/setCustomerPricing\(price\)/);
   assert.match(ui,/customerTrainingCredits\+' credits'/);
   assert.match(app,/hf\.setCustomerPricing\(customerMode\?/);
-  assert.match(app,/customerMode\?wallet\.describe\(q\.maxUsd\):money\(q\.estimatedUsd\)/);
+  assert.match(app,/customerMode\?q\.creditCost\.toLocaleString\(\)\+' credits':money\(q\.estimatedUsd\)/);
   assert.match(landing,/class="lab-pricing-options"/,'The updated tabbed monthly/one-time pricing UI remains published');
   assert.match(landing,/See the cost before you create\./,'Customers can still see the price before generating');
   assert.doesNotMatch(landing,/up to 85 Soul 2 images/);
