@@ -53,6 +53,9 @@ jobs:
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/?verify=20261015" -o /tmp/live-root.html \
               && grep -Fq "location.replace('./studio.html?tool=image')" /tmp/live-legacy-welcome.html \
               && grep -Fq 'id="pv-credit-toast"' /tmp/live-studio.html \
+              && grep -Fq '<svg class="lab-boot-fluid"' /tmp/live-studio.html \
+              && grep -Fq '#lab-boot{position:fixed;inset:0;width:100vw;' /tmp/live-studio.html \
+              && grep -Fq 'pv-boot-dismiss .24s ease-out both' /tmp/live-studio.html \
               && grep -Fq 'id="history-preview-toggle"' /tmp/live-studio.html \
               && grep -Fq 'image-discreet.css?v=20261016-label-clarity1' /tmp/live-studio.html \
               && grep -Fq 'image-discreet.js?v=20261015-1' /tmp/live-studio.html \
