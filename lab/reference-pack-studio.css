@@ -953,3 +953,40 @@
     overflow-y:hidden!important
   }
 }
+
+
+/* 2026-10-18 / Larger Photo Packs canvas and balanced editorial hero.
+   Retains the latest gallery controls and responsive grid logic. */
+@media(min-width:941px){
+  #pack-studio-dialog.pack-studio-dialog{
+    width:min(1190px,calc(100vw - 36px));
+    height:min(675px,calc(100dvh - 34px));
+    max-height:calc(100dvh - 34px);
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro{
+    height:146px;min-height:146px;max-height:146px;
+    padding:18px 25px;margin:8px 0 12px;
+    box-shadow:inset 0 -20px 44px #080b0e65,0 9px 24px #0004;
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro::after{
+    background:linear-gradient(90deg,rgba(8,11,14,.67) 0%,rgba(8,11,14,.36) 31%,rgba(8,11,14,.04) 70%,transparent 100%),
+      linear-gradient(0deg,rgba(8,11,14,.22),transparent 58%);
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{
+    height:170px;flex-basis:170px;
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-collection-heading{margin-bottom:10px}
+  #pack-studio-dialog:not(.is-creating) .pack-studio-card-name{font-size:11.5px}
+}
+@media(min-width:701px) and (max-width:940px){
+  #pack-studio-dialog.pack-studio-dialog{
+    width:calc(100vw - 22px);height:calc(100dvh - 24px);
+    max-height:calc(100dvh - 24px);
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro{
+    height:139px;min-height:139px;max-height:139px;
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{
+    height:152px;flex-basis:152px;
+  }
+}
