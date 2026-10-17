@@ -518,3 +518,36 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   #scene-library-dialog .scene-category-hero h3{font-size:20px}
   #scene-library-dialog .scene-feature-cover{height:117px}
 }
+
+
+/* 2026-10-18: The Elements and Photo Packs menus share the exact same
+   five navigation slots. Switching categories must never shift their icons. */
+@media(min-width:701px){
+  #scene-library-dialog .scene-sidebar,
+  #pack-studio-dialog .pack-studio-sidebar{
+    box-sizing:border-box;padding-top:18px
+  }
+  #scene-library-dialog .scene-sidebar-brand,
+  #pack-studio-dialog .pack-studio-sidebar-brand{
+    box-sizing:border-box;height:14px;line-height:14px;
+    margin:0 0 26px 12px;font-size:10px;font-weight:650
+  }
+  #scene-library-dialog .scene-tabs,
+  #pack-studio-dialog .pack-studio-side-nav{
+    display:flex;flex-direction:column;align-items:stretch;gap:6px
+  }
+  #scene-library-dialog .scene-category-tab,
+  #pack-studio-dialog .pack-studio-side-link{
+    box-sizing:border-box;display:flex;align-items:center;
+    flex:0 0 46px;width:100%;height:46px;min-height:46px;
+    margin:0;padding:0 13px;border:1px solid transparent;
+    font-size:13px;font-weight:500;line-height:20px;text-align:left
+  }
+  #scene-library-dialog .scene-photo-packs-link{
+    margin:0;padding:0 13px;border-top:1px solid transparent
+  }
+}
+@media(min-width:701px) and (max-width:940px){
+  #scene-library-dialog .scene-sidebar-brand,
+  #pack-studio-dialog .pack-studio-sidebar-brand{margin-left:8px}
+}
