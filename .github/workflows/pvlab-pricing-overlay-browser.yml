@@ -1,0 +1,44 @@
+name: PV LAB Studio pricing overlay
+on:
+  pull_request:
+    paths:
+      - 'lab/pricing-overlay*'
+      - 'lab/pricing-tabs.js'
+      - 'lab/studio.html'
+      - 'lab/lab.js'
+      - 'lab/customer-wallet.js'
+      - 'tests/lab-pricing-overlay-browser.mjs'
+      - '.github/workflows/pvlab-pricing-overlay-browser.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'lab/pricing-overlay*'
+      - 'lab/studio.html'
+      - 'lab/lab.js'
+      - 'lab/customer-wallet.js'
+      - '.github/workflows/pvlab-pricing-overlay-browser.yml'
+permissions:
+  contents: read
+jobs:
+  overlay-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax and source guard
+        run: |
+          node --check lab/pricing-overlay.js
+          node --check lab/customer-wallet.js
+          node --check lab/lab.js
+          node --check tests/lab-pricing-overlay-browser.mjs
+      - name: Install browser test runtime
+        run: |
+          npm install --prefix /tmp/pvlab-pricing-test --no-audit --no-fund playwright@1.62.1
+          /tmp/pvlab-pricing-test/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify home-derived modal, Stripe selection and preserved Studio draft
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pvlab-pricing-test/node_modules/playwright/index.mjs
+        run: node tests/lab-pricing-overlay-browser.mjs
