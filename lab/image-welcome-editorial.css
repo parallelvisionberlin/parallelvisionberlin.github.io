@@ -152,3 +152,31 @@
   #app.image-studio-active #lab-welcome-start .lab-welcome-preset,
   #app.image-studio-active #lab-welcome-start .lab-welcome-preset>img{transition:none!important}
 }
+
+/* 2026-10-17: mobile first-image Mood entry only. No desktop adjustments. */
+@media(max-width:680px){
+  #app.image-studio-active #lab-welcome-start .lab-welcome-preset{
+    height:clamp(188px,56vw,263px);
+  }
+  /* Keep the generator dock fully operational and visible during Mood selection. */
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+    #image-composer{scroll-margin-top:84px}
+  /* The signed-in Studio retains both navigation rows, just more compact. */
+  body:has(#app.image-studio-active:not([hidden]) #lab-welcome-start:not([hidden]))
+    >#studio-header.pv-mobile-entry-condensed{
+    height:78px!important;min-height:78px!important;
+  }
+  body:has(#app.image-studio-active:not([hidden]) #lab-welcome-start:not([hidden]))
+    >#studio-header.pv-mobile-entry-condensed .wrap.top{
+    height:78px!important;min-height:0!important;
+    grid-template-rows:39px 35px!important;
+    padding:2px 14px!important;row-gap:0!important;
+  }
+  body:has(#app.image-studio-active:not([hidden]) #lab-welcome-start:not([hidden]))
+    >#studio-header.pv-mobile-entry-condensed .tool-switch{
+    height:35px!important;
+  }
+}
+@media(max-width:390px){
+  #app.image-studio-active #lab-welcome-start .lab-welcome-preset{height:187px}
+}

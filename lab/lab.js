@@ -1327,7 +1327,23 @@ function useWelcomeMood(id){
   document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
     button.setAttribute('aria-pressed',String(button.dataset.welcomeMood===id));
   });
-  $('image-composer-prompt').focus({preventScroll:true});
+  // A Mood tap is not a request to type. A focused textarea would open
+  // the mobile keyboard and hide the selected style and Generate button.
+  const composerField=$('image-composer-prompt');
+  if(window.matchMedia('(max-width:680px)').matches && window.__PV_LAB_NATIVE__!==1){
+    if(document.activeElement===composerField)composerField.blur();
+    const dock=$('image-composer');
+    // Result galleries use a fixed dock, already visible. If a future welcome
+    // treatment puts it in document flow, navigate there without keyboard focus.
+    if(dock && getComputedStyle(dock).position!=='fixed'){
+      requestAnimationFrame(()=>dock.scrollIntoView({
+        behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+        block:'start'
+      }));
+    }
+  }else{
+    composerField.focus({preventScroll:true});
+  }
 }
 document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
   button.addEventListener('click',()=>useWelcomeMood(button.dataset.welcomeMood));

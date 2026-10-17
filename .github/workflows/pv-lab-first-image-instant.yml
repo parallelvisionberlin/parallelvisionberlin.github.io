@@ -6,12 +6,18 @@ on:
       - 'lab/lab.js'
       - 'lab/customer-image-pricing.js'
       - 'lab/studio.html'
+      - 'lab/studio-mobile-entry.js'
+      - 'lab/studio-guest-image.css'
+      - 'lab/studio-guest-image.js'
+      - 'lab/image-welcome-editorial.css'
       - 'lab/studio-finish-v2.css'
       - 'lab/image-welcome-editorial.css'
       - 'lab/studio-guest-image.css'
       - 'lab/studio-guest-image.js'
       - 'tests/lab-customer-image-quotes.test.mjs'
       - 'tests/lab-first-image-instant-browser.mjs'
+      - 'tests/lab-mobile-mood-entry.mjs'
+      - 'lab/studio-mobile-entry.js'
       - '.github/workflows/pv-lab-first-image-instant.yml'
   push:
     branches: [main]
@@ -22,6 +28,7 @@ on:
       - 'lab/studio-finish-v2.css'
       - 'tests/lab-customer-image-quotes.test.mjs'
       - 'tests/lab-first-image-instant-browser.mjs'
+      - 'tests/lab-mobile-mood-entry.mjs'
       - '.github/workflows/pv-lab-first-image-instant.yml'
 
 permissions:
@@ -41,11 +48,16 @@ jobs:
           node --check lab/lab.js
           node --check lab/customer-image-pricing.js
           node --check tests/lab-first-image-instant-browser.mjs
+          node --check tests/lab-mobile-mood-entry.mjs
           node --test tests/lab-customer-image-quotes.test.mjs
       - name: Install isolated Chromium runtime
         run: |
           npm install --prefix /tmp/pv-first-image --no-audit --no-fund playwright@1.62.1
           /tmp/pv-first-image/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify mobile Mood selection scrolls to Generate without keyboard
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-first-image/node_modules/playwright/index.mjs
+        run: node tests/lab-mobile-mood-entry.mjs
       - name: Verify immediate Generate, exact credit quote and no double job
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-first-image/node_modules/playwright/index.mjs

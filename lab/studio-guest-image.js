@@ -31,7 +31,17 @@ cards.forEach(button=>button.addEventListener('click',()=>{
   selected=button.dataset.guestMood;
   prompt.value=prompts[selected]||'';
   showSelection();storeDraft();
-  prompt.focus({preventScroll:true});
+  // Selecting a Mood prepares the prompt without invoking the iOS keyboard.
+  // On phones bring the full editor and Generate button into view instead.
+  if(window.matchMedia('(max-width:680px)').matches){
+    if(document.activeElement===prompt)prompt.blur();
+    window.requestAnimationFrame(()=>composer?.scrollIntoView({
+      behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+      block:'start'
+    }));
+  }else{
+    prompt.focus({preventScroll:true});
+  }
 }));
 prompt.addEventListener('input',storeDraft);
 composer?.addEventListener('submit',event=>{
