@@ -216,6 +216,14 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
       .sort((a,b)=>a.title.localeCompare(b.title));
     const selected=list.find(i=>i.id===selectedId)||list[0]||null;
     selectedId=selected?.id||null;
+    const hero=$('scene-category-hero');
+    hero.dataset.category=current;
+    hero.setAttribute('aria-label',categoryData.label+' visual collection');
+    $('scene-category-hero-title').textContent=categoryData.label;
+    $('scene-category-hero-subtitle').textContent=categoryDescriptions[current];
+    // When a user has saved an element, its actual private reference becomes
+    // the featured artwork; otherwise show the appropriate PV-owned archive.
+    hero.hidden=!!(selected?.refs?.length);
     renderFeatured(selected);
     $('scene-active-label').textContent='All '+categoryData.label.toLowerCase();
     $('scene-library-count').textContent=entries.filter(e=>e.category===current).length+' saved · private to your account';

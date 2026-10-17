@@ -413,6 +413,27 @@ try{
   assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true);
   assert.equal(await x.page.locator('#scene-library-title').innerText(),'Characters');
   assert.equal(await x.page.locator('#scene-tabs .scene-category-tab').count(),5);
+  for(const [label,image] of [
+    ['Characters','fashion-hero.webp'],
+    ['Outfits','lotus02heroale.webp'],
+    ['Props','liquid-metal-hero.webp'],
+    ['Locations','04-the-dense-city-below.webp']
+  ]){
+    await x.page.locator('#scene-tabs .scene-category-tab').filter({hasText:label}).click();
+    const hero=await x.page.locator('#scene-category-hero').evaluate(el=>{
+      const r=el.getBoundingClientRect(),dialog=document.getElementById('scene-library-dialog').getBoundingClientRect();
+      return {visible:r.width>0&&r.height>0,height:r.height,title:el.querySelector('h3')?.textContent,
+        background:getComputedStyle(el).backgroundImage,
+        centered:Math.abs((dialog.top+dialog.bottom)/2-innerHeight/2)<=8,
+        contentScroll:document.querySelector('#scene-library-dialog .scene-main').scrollHeight-
+          document.querySelector('#scene-library-dialog .scene-main').clientHeight};
+    });
+    assert.ok(hero.visible&&hero.height<=124,'Compact '+label+' banner must be visible: '+JSON.stringify(hero));
+    assert.equal(hero.title,label);
+    assert.ok(hero.background.includes(image),'Use the existing PV image for '+label+': '+hero.background.slice(0,150));
+    assert.equal(hero.centered,true,'Elements modal is vertically centered for '+label);
+    assert.ok(hero.contentScroll<=3,'Empty Elements should not scroll: '+JSON.stringify(hero));
+  }
   await x.page.click('#scene-close');
   await x.page.click('#scene-image-open');
   await x.page.click('#scene-menu-packs');
