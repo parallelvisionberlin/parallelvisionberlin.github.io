@@ -24,10 +24,12 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
     $('owner-acquisition-checkout').textContent=starts?(100*paid/starts).toFixed(1)+'%':'—';
     $('owner-acquisition-checkout-note').textContent=starts?
       paid+' paid / '+starts+' tracked sessions':'No tracked sessions yet';
+    const dollar=String.fromCharCode(36);
     $('owner-acquisition-summary').textContent='Last '+data.days+' days · '+
       formatNumber(s.completedJobs)+' completed jobs · '+formatNumber(s.netCreditsSpent)+
-      ' net credits used. '+formatNumber(s.archivedJobs||0)+' finance records retained after creative deletion ('+
-      money(s.archivedExposureUsd,'
+      ' net credits used. '+formatNumber(s.archivedJobs||0)+
+      ' finance records retained after creative deletion ('+
+      money(s.archivedExposureUsd,dollar)+' in retained cost exposure). Lifetime values below.';
     const body=$('owner-acquisition-customers');
     body.replaceChildren();
     const customers=Array.isArray(data.customers)?data.customers:[];
@@ -56,7 +58,12 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
       cell(row,customer.lastCompletedAt?new Date(Number(customer.lastCompletedAt)).toLocaleString('en-GB',
         {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—');
       cell(row,formatNumber(customer.creditsSpent));
-      const cost=cell(row,money(customer.providerExposureUsd,'
+      const cost=cell(row,money(customer.providerExposureUsd,dollar));
+      const archivedCount=Number(customer.archivedJobs)||0;
+      if(archivedCount){
+        cost.append(node('small',formatNumber(archivedCount)+
+          (archivedCount===1?' archived record':' archived records'),'owner-acquisition-subid'));
+      }
       cell(row,formatNumber(customer.checkoutStarts));
       cell(row,money(customer.revenueCents,'€',.01));
       const status=customer.promoHeld?'Free generation paused'
