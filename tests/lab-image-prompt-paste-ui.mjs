@@ -115,6 +115,7 @@ try{
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       assert.ok((await editor.evaluate(el=>el.scrollTop))<10,'Editing earlier lines keeps existing scroll');
       await editor.fill('');
+      if(viewport.width<=899)await editor.blur();
       await page.waitForTimeout(275);
       const cleared=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
       if(viewport.width>899){
