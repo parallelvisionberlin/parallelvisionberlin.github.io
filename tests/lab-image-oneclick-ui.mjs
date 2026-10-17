@@ -520,7 +520,7 @@ try{
  const originalDeckHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
  await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');
  assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'The Photo Packs menu opens the existing reference library modal');
- assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs.');
+ assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs');
  assert.equal(await x.page.locator('#composer-library').isVisible(),false,'No legacy oversized popover competes with the modal');
  assert.equal(await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height),originalDeckHeight,
    'Opening photo packs must not resize the compact Image composer');
