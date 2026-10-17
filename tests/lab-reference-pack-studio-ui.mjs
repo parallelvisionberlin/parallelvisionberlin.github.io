@@ -94,6 +94,16 @@ try{
   assert.ok(box.left>=12&&box.right<=1428&&box.top>=12&&box.bottom<=888,'Modal fits desktop viewport: '+JSON.stringify(box));
   assert.equal(await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height),before,'Modal must not change composer geometry');
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-new').count(),1);
+  assert.equal(await page.locator('#pack-studio-dialog .pack-studio-side-link').count(),5,
+    'Photo Packs uses the same five-section library navigation as Elements');
+  assert.equal(await page.locator('#pack-studio-intro').isVisible(),true);
+  assert.ok((await page.locator('#pack-studio-intro').evaluate(el=>getComputedStyle(el).backgroundImage)).includes('data:image/webp'),
+    'The approved water photograph must appear only inside the Photo Packs hero');
+  await page.locator('#pack-studio-list-view').click();
+  assert.equal(await page.locator('#pack-studio-grid').getAttribute('data-view'),'list');
+  await page.locator('#pack-studio-grid-view').click();
+  assert.equal(await page.locator('#pack-studio-grid').getAttribute('data-view'),'grid');
+
   await page.screenshot({path:'test-results/photo-packs/empty-library-desktop.png'});
   await page.locator('#pack-studio-new').click();
   assert.equal(await page.locator('#pack-studio-create-view').isVisible(),true);
@@ -113,7 +123,7 @@ try{
   assert.deepEqual(packs[0].refs.map(r=>r.role),['none','none']);
   await page.locator('#pack-studio-grid .pack-studio-card-photo img').first().waitFor({state:'visible'});
   await page.screenshot({path:'test-results/photo-packs/saved-library-desktop.png'});
-  assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-count').first().textContent(),'02 PHOTOS');
+  assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-count').first().textContent(),'2 photos');
   noPaid();
   await page.locator('#pack-studio-grid .pack-studio-card-select').first().click();
   await refs(page,2);
