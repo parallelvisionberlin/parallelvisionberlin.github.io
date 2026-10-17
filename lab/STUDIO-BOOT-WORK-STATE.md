@@ -70,3 +70,12 @@ Scope: Studio initial loading overlay only.
 - Mock browser startup regression `39060092184` passed, including first-frame desktop gutter, a percent-width/classic-scrollbar test that reproduces a 7.5px jump without the fix, root width stability, mobile no-gutter, and unchanged 240ms blur/fade plus native route gating.
 - Cloudflare Pages source check for merge commit reported **Deployed successfully**. Production custom-domain workflow `39060204657` also **passed**, with the live Studio HTML containing `html.pv-studio-boot-lock{scrollbar-gutter:stable}` and preexisting loader/route conditions.
 - This targeted correction does not alter logo identity, visual effects, progress behavior, provider calls, billing, data, or app content. User refresh is the final subjective check. If motion persists, collect a screen recording across the first frame rather than repeating exit animation changes.
+
+## October 17 authenticated Studio stuck-splash recovery
+- User screenshots: Image and Video stayed behind the PV LAB loader for signed-in Eva and Camila sessions after entering from the homepage. Signed-in tokens and account contents were not available to this diagnostic.
+- Verified live anonymous Chrome smoke: 2026-10-17 GitHub run 39065546981 opened both Studio routes, HTTP 200, no JS page errors and splash hidden by 20 seconds. The issue is isolated to, or aggravated by, signed-in initialization.
+- In `lab/lab.js`, authenticated `sync()` awaited the private `/api/jobs` History path (65s request timeout) after the account was verified and `#app` unhidden. Auth and fallback session requests could also keep users waiting too long.
+- Bound initial `/api/session` to 18s and migration-status fallback to 6s; signed-in Studio now gives private History 5s, then displays its authenticated workspace with a loading placeholder and accepts the eventual History result. The correct first-image Welcome is shown only after real History settles.
+- In `lab/studio.html`, a stalled boot shows the existing 12s status and Reload even if the authenticated app container is already mounted. The approved minimal wordmark, bar, stationary .24s fade, and guards are untouched.
+- Regression contract updated in `tests/lab-studio-layout-ui.mjs`; no changes to credits, generation, payment, worker, history records, account linking, or model selection.
+- Deployment and live signed-in confirmation remain pending until verified after this commit. 

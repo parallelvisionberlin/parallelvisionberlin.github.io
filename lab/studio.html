@@ -91,7 +91,7 @@ const scheduleBootUnlock=()=>{
 };
 // Native route selection can complete later than auth; unlock once the last guard clears.
 new MutationObserver(scheduleBootUnlock).observe(root,{attributes:true,attributeFilter:['class']});
-let timer=window.setTimeout(()=>{if(document.body?.classList.contains('lab-ready')||!document.getElementById('app')?.hidden)return;const status=document.getElementById('lab-boot-status'),retry=document.getElementById('lab-boot-retry');if(status){status.textContent='This is taking longer than expected.';status.classList.add('is-slow');}if(retry)retry.hidden=false;},16000);
+let timer=window.setTimeout(()=>{const root=document.documentElement,body=document.body;if(body?.classList.contains('lab-ready')&&!root.classList.contains('pv-studio-route-pending')&&!root.classList.contains('pv-native-route-pending'))return;const status=document.getElementById('lab-boot-status'),retry=document.getElementById('lab-boot-retry');if(status){status.textContent='This is taking longer than expected.';status.classList.add('is-slow');}if(retry)retry.hidden=false;},12000);
 window.__pvLabFinishBoot=()=>{window.clearTimeout(timer);document.body.classList.add('lab-ready');scheduleBootUnlock();};
 document.addEventListener('DOMContentLoaded',()=>{
   const retry=document.getElementById('lab-boot-retry');

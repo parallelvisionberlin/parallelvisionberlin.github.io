@@ -15,13 +15,17 @@ const authSync=source.slice(source.indexOf('async function sync(){'),source.inde
 const requestedAt=authSync.indexOf('await restoreStudioEntry()');
 const revealedAt=authSync.indexOf('finishLabBoot();');
 const historyAt=authSync.indexOf('const historyReady=loadHistory()',requestedAt);
-const historyAwaited=authSync.indexOf('await historyReady;',historyAt);
-assert.ok(requestedAt>=0&&historyAt>requestedAt&&historyAwaited>historyAt&&revealedAt>historyAwaited,
-  'Restore the requested Studio route and first private gallery history before removing the loading overlay');
+const historyGrace=authSync.indexOf('await Promise.race([historyReady,',historyAt);
+assert.ok(requestedAt>=0&&historyAt>requestedAt&&historyGrace>historyAt&&revealedAt>historyGrace,
+  'Restore the requested Studio route, then allow a bounded private History grace period before showing the verified workspace');
+assert.ok(authSync.includes('if(historyResolved)showWelcomeStart(data)')&&authSync.includes("document.body.classList.contains('lab-ready'))showWelcomeStart(data)"),
+  'Show welcome Moods only once private History has actually settled, including a late response');
 assert.ok(authSync.includes("document.documentElement.classList.add('pv-studio-route-pending')"),'Protect the loader during authenticated initialization');
 assert.ok(source.includes("document.documentElement.classList.remove('pv-studio-route-pending')"),'Boot release clears its route guard');
 assert.ok(source.includes("document.documentElement.classList.add('pv-studio-boot-lock')"),'In-place sign-in reactivates the loading scrollbar lock');
 const studioHtml=readFileSync('lab/studio.html','utf8');
+assert.match(studioHtml,/const root=document.documentElement,body=document.body;.*pv-studio-route-pending.*12000/,
+  'A stalled authenticated loader displays its retry even when the app container is mounted');
 assert.match(studioHtml,/<html lang="en" class="pv-studio-boot-lock">/,'Initial HTML locks scroll before any route renders');
 assert.match(studioHtml,/html\.pv-studio-boot-lock\{scroll-behavior:auto!important\}/,'Boot overrides smooth scrolling while locked');
 assert.match(studioHtml,/@media\(min-width:761px\)\{html\.pv-studio-boot-lock\{scrollbar-gutter:stable\}\}/,

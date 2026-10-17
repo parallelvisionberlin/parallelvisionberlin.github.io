@@ -2536,7 +2536,7 @@ async function api(path,options={}) {
   const generation=epoch;
   if(!owner&&path!=='/api/session')throw new Error('Sign in first.');
   const assertCurrent=()=>{if(generation!==epoch)throw new Error('Session changed.');};
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/api/gemini/jobs'||path==='/api/image-models/generate'?240000:path==='/api/fal/soul-pro'||path==='/api/fal/krea'||path==='/api/jobs'&&options.method==='POST'?150000:path==='/api/soul/datasets'?120000:65000);requestControllers.add(controller);
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/api/session'?18000:path==='/api/gemini/jobs'||path==='/api/image-models/generate'?240000:path==='/api/fal/soul-pro'||path==='/api/fal/krea'||path==='/api/jobs'&&options.method==='POST'?150000:path==='/api/soul/datasets'?120000:65000);requestControllers.add(controller);
   try{
     const headers={...options.headers};let b=options.body;
     if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
@@ -4369,17 +4369,34 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     }
     if(restoreEffects&&ownerAccount&&tool==='video')openEffectsView({scroll:false});
     if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();
-    const historyReady=loadHistory().finally(()=>$('history').removeAttribute('aria-busy')).catch(error=>{
-      notify('History could not refresh. Your saved work is unchanged. Try Refresh or Assets. '+error.message,true);
+    // Private History can be slow, but it must not lock an already verified Studio.
+    // Results still arrive through loadHistory and are checked against the session epoch.
+    const historyEpoch=epoch;
+    let historyResolved=false;
+    const historyReady=loadHistory().catch(error=>{
+      if(owner&&epoch===historyEpoch)notify('History could not refresh. Your saved work is unchanged. Try Refresh or Assets. '+error.message,true);
+    }).finally(()=>{
+      if(epoch!==historyEpoch)return;
+      historyResolved=true;
+      $('history').removeAttribute('aria-busy');
+      if(owner&&userId===clerk?.user?.id&&document.body.classList.contains('lab-ready'))showWelcomeStart(data);
     });
     // Non-essential account resources no longer delay the first visible frame.
     void Promise.all([loadPacks().catch(error=>console.warn('Photo packs could not load:',error)),
       soul.load().catch(error=>console.warn('Saved characters could not load:',error)),
       loadSoulProIdentity().catch(error=>console.warn('Saved identity could not load:',error))]);
-    await historyReady;
+    // A slow library request must not leave a signed-in customer on the splash.
+    // Until the verified History arrives, keep an explicit loading placeholder.
+    await Promise.race([historyReady,new Promise(resolve=>setTimeout(resolve,5000))]);
+    if(!historyResolved&&owner&&epoch===historyEpoch){
+      $('emptyarchive').hidden=false;
+      $('emptyarchive').textContent='Loading your saved work…';
+      const galleryEmpty=$('image-gallery-empty');if(galleryEmpty)galleryEmpty.hidden=true;
+    }
     void myMoods.refresh().catch(()=>{/* Personal boards must not block image Studio sign-in. */});
     syncVideoStudioMode();
-    showWelcomeStart(data);restoreGuestImageDraft();
+    if(historyResolved)showWelcomeStart(data);
+    restoreGuestImageDraft();
     finishLabBoot();
     if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){
   const stillSignedIn=!!clerk?.isSignedIn;
@@ -4388,7 +4405,11 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
   // Do not guess from email or treat a temporary /api/session failure as a new user.
   if(stillSignedIn&&!owner&&['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev'].includes(location.hostname.toLowerCase())){
     try{
-      const response=await sessionRequest('/api/migration/status',{cache:'no-store',credentials:'omit'});
+      const migrationController=new AbortController();
+      const migrationTimer=setTimeout(()=>migrationController.abort(),6000);
+      let response;
+      try{response=await sessionRequest('/api/migration/status',{cache:'no-store',credentials:'omit',signal:migrationController.signal});}
+      finally{clearTimeout(migrationTimer);}
       if(response.ok){
         const migration=await response.json();
         if(migration?.linked===false){
