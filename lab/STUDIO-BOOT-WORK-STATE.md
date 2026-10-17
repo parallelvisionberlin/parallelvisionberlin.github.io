@@ -4,7 +4,7 @@ Scope: Studio initial loading overlay only.
 
 ## Approved display
 - Restore the original minimal loading: near-black background, sharp centered 'PV LAB' with 'BY PARALLEL VISION', and a 1px animated progress line. No decorative shapes, liquid chrome, geometry, floating figures, particles, video, or additional graphics.
-- Preserve the original exit: .24s opacity fade plus the approved wordmark horizontal blur/trail after true Studio readiness. Do not add a minimum wait.
+- Preserve the original exit timing: .24s opacity fade with wordmark and trail blur after true Studio readiness, but NO position changes or scaling at any frame. Do not add a minimum wait.
 - Keep first-paint scroll lock, 100vw overlay to prevent the old -7.5px shift, stable system fonts, 16s slow-start message with Reload, route pending guards, and accessibility/reduced-motion behavior.
 - New logo directions are exploratory mockups only. Do NOT change production logo/brand without approval.
 
@@ -26,3 +26,11 @@ Scope: Studio initial loading overlay only.
 - Static validation passed on the PR; no charged generation was tested.
 - Live custom domain `https://pvlab.studio/studio` verified by `PV LAB domain live readiness` run `39055781452` (SUCCESS) against this merge SHA. The smoke asserts original centered loader markup and rejects fluid/geometric artwork while preserving .24s fade and viewport alignment.
 - Logo explorations are preview-only, not committed, and the existing production branding remains unchanged. Wait for explicit user selection before touching the wordmark.
+
+## October 17 stationary exit adjustment
+- User reproduced a noticeable leftward jump during Refresh and requested that PV LAB stay perfectly fixed until it fades.
+- Root cause verified in Studio CSS: `pv-boot-out` translated the wordmark -3px and -12px and scaled X; `pv-boot-trail-out` translated its duplicate 10px and 22px.
+- Changed only the two existing exit keyframe transforms to `none` at each phase. Blur/opacity curves, overlay .24s fade, loading progress, route guards, root scrollbar fix, and all other Studio UI unchanged.
+- Updated first-paint browser regression to seek 130ms into the exit and assert unchanged x/y/width, plus source checks for the no-motion trail.
+- Updated custom-domain smoke to require the literal new keyframes before declaring the live Studio corrected.
+- Baseline main: `f96c6a7d2b6a3de00488ec0e53ca4bc9bdadad67`. Branch: `fix/pvlab-stationary-boot-exit-20261017`. CI/merge/live activation must be independently verified.

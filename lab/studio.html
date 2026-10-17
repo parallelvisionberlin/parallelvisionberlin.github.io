@@ -47,10 +47,10 @@ body.lab-booting{margin:0;background:#101114}
 .lab-boot-status.is-slow{position:absolute;top:calc(100% + 18px);left:0;width:100%;margin:0;max-height:36px;opacity:1}
 #lab-boot-retry{position:absolute;left:50%;top:calc(100% + 52px);transform:translateX(-50%);margin:0;padding:9px 15px;white-space:nowrap;color:#ded9d2;background:transparent;border:1px solid #5a5657;border-radius:7px;cursor:pointer}
 #lab-boot-retry[hidden]{display:none}
-/* Hold the logo perfectly sharp during loading, then smear it away once the Studio is ready. */
+/* Hold the logo sharply centered during loading and stationary while it blurs and fades on readiness. */
 @keyframes pv-boot-dismiss{0%,35%{opacity:1;visibility:visible}99%{opacity:.01;visibility:visible}100%{opacity:0;visibility:hidden}}
-@keyframes pv-boot-out{0%,12%{opacity:1;filter:blur(0);transform:none}55%{opacity:.82;filter:blur(3px);transform:translateX(-3px) scaleX(1.055)}100%{opacity:0;filter:blur(9px);transform:translateX(-12px) scaleX(1.17)}}
-@keyframes pv-boot-trail-out{0%,17%{opacity:0;filter:blur(0);transform:none}56%{opacity:.46;filter:blur(5px);transform:translateX(10px) scaleX(1.1)}100%{opacity:0;filter:blur(12px);transform:translateX(22px) scaleX(1.2)}}
+@keyframes pv-boot-out{0%,12%{opacity:1;filter:blur(0);transform:none}55%{opacity:.82;filter:blur(3px);transform:none}100%{opacity:0;filter:blur(9px);transform:none}}
+@keyframes pv-boot-trail-out{0%,17%{opacity:0;filter:blur(0);transform:none}56%{opacity:.46;filter:blur(5px);transform:none}100%{opacity:0;filter:blur(12px);transform:none}}
 @keyframes pv-load{from{transform:translateX(-110%)}to{transform:translateX(335%)}}
 body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>header,body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>main,body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>footer{visibility:hidden}
 html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:pv-boot-dismiss .24s ease-out both;pointer-events:none}
