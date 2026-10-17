@@ -144,14 +144,15 @@ export async function precisionEditRoute(request,env,owner,url,d){
   }
   if(path==='/api/precision/quote'&&method==='POST'){
     const q=await quotedEdit(request,env,owner,d),quoteId=crypto.randomUUID();
+    const creditCost=d.creditsForJobUsd(q.price/1000000,q.p);
     const payload={originalSourceId:q.original.id,sourceId:q.working.id,maskSourceId:q.mask.id,
       prompt:q.p.prompt,strength:q.p.strength,sourceWidth:q.p.sourceWidth,sourceHeight:q.p.sourceHeight,
       allowJpegFallback:q.allowJpegFallback,ticket:q.ticket};
     await d.run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
-      quoteId,owner,q.working.id,JSON.stringify(q.p),q.price,q.expires,'fal-precision-edit',String(q.price/1000000),JSON.stringify(payload));
+      quoteId,owner,q.working.id,JSON.stringify({...q.p,customerChargeCredits:creditCost}),q.price,q.expires,'fal-precision-edit',String(q.price/1000000),JSON.stringify(payload));
     return d.json({quoteId,ticket:q.ticket,expiresAt:q.expires,estimatedUsd:q.price/1000000,
       priceIsEstimate:true,model:FAL_CONTROLLED_INPAINT,
-      ...(d.customer?{creditCost:d.creditsForJobUsd(q.price/1000000,q.p)}:{}),
+      ...(d.customer?{creditCost}:{}),
       notice:'Published fal.ai estimate, not a live bound quote. No generation submitted.'});
   }
   if(path==='/api/precision/submit'&&method==='POST'){
@@ -181,7 +182,8 @@ export async function precisionEditRoute(request,env,owner,url,d){
     }
     const p={...q.p,precisionEdit:true,precisionFinalized:false,precisionOriginalId:q.original.id,
       precisionWorkingId:q.working.id,maskSourceId:q.mask.id,repairSourceId:q.working.id,
-      precisionPriceEstimateUsd:q.price/1000000,precisionAllowJpegFallback:q.allowJpegFallback};
+      precisionPriceEstimateUsd:q.price/1000000,precisionAllowJpegFallback:q.allowJpegFallback,
+      customerChargeCredits:d.creditsForJobUsd(q.price/1000000,q.p)};
     // jobs.quote_id is UNIQUE. Reusing one quote never triggers a second inference.
     const reserved=await d.reserveFalImageJob(env,owner,q.working.id,p,q.price,quoteId);
     if(reserved._precisionReused)return d.json({job:d.jobView(reserved)},202);
