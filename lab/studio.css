@@ -556,3 +556,15 @@ footer {border-top-color:#353638;color:#9b9c9e;font-size:10px}
 @media(prefers-reduced-motion:reduce) {
   *,*:before,*:after {scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+/* Owner-only Motion Effects belongs after the public tool navigation.
+   Visual ordering only: existing tab behavior and access controls remain unchanged. */
+#studio-header .tool-group #tool-effects:not([hidden]) {
+  order: 20;
+  margin-left: clamp(26px, 3vw, 52px);
+}
+@media (max-width: 900px) {
+  #studio-header .tool-group #tool-effects:not([hidden]) {
+    margin-left: 14px;
+  }
+}
