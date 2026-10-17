@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./public-header.css?v=20261012-refined-access1">
 <link rel="stylesheet" href="./account-menu.css?v=20261016-account-menu-edge24">
 <link rel="stylesheet" href="./studio-credits.css?v=20261013-unified-upgrade2">
+<link rel="stylesheet" href="./pricing-overlay.css?v=20261017-editorial1">
 <link rel="stylesheet" href="./home-navigation.css?v=20261013-remove-studio-home3">
 <link rel="stylesheet" href="./studio-finish-v2.css?v=20261016-generate-always3&instantQuote=20261016v1&importNotice=20261015-2&buttonAnchor=20261014-1&soulButton=20261014-1&generateStable=20261014-1">
 <link rel="stylesheet" href="./mobile-polish.css?v=20261013-mobile-ux1&unifiedAdd=20261014-1">
@@ -213,6 +214,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   <p role="status"><strong>Your credits are empty.</strong> <span>Choose a plan to keep creating.</span></p>
   <button id="lab-credit-banner-dismiss" type="button" aria-label="Dismiss credit notice">×</button>
 </section>
+<dialog id="lab-pricing-overlay" aria-label="Choose a PV LAB plan">
+  <button type="button" id="lab-pricing-overlay-close" aria-label="Close pricing and return to Studio" title="Close">×</button>
+  <div id="lab-pricing-overlay-body">
+    <p class="lab-pricing-overlay-loading">Loading pricing…</p>
+  </div>
+  <p id="lab-pricing-overlay-status" role="status" aria-live="polite" hidden></p>
+</dialog>
 <dialog id="lab-credits-dialog" class="lab-credit-dialog lab-credit-deck" aria-labelledby="lab-credit-title" aria-describedby="lab-credit-description">
   <header><div><span class="lab-credit-eyebrow">PV LAB / CREDITS</span><h2 id="lab-credit-title">Add credits</h2></div><button id="lab-credits-close" type="button" aria-label="Close credits" autofocus>×</button></header>
   <div class="lab-credit-deck-intro"><p id="lab-credit-description">Choose a one-time pack.</p><p class="lab-credit-available">Available <strong id="lab-credit-balance">0 credits</strong></p></div>
