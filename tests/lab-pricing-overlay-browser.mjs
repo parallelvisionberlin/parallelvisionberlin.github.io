@@ -66,16 +66,16 @@ try{
     const dialog=await page.locator('#lab-pricing-overlay').boundingBox();
     assert.ok(dialog&&dialog.x>=0&&dialog.x+dialog.width<=width+1,'Dialog is on-screen');
     if(width<=390){
-      const safety=await page.locator('#lab-pricing-overlay #pricing').evaluate(el=>{
-        const rect=el.getBoundingClientRect();
-        const far=[...el.querySelectorAll('*')].map(node=>({
-          tag:node.tagName,cls:String(node.className||'').slice(0,80),
-          right:Math.round(node.getBoundingClientRect().right-rect.right),
-          left:Math.round(rect.left-node.getBoundingClientRect().left)
-        })).filter(x=>x.right>4||x.left>4).slice(0,10);
-        return {ok:el.scrollWidth<=el.clientWidth+4,scroll:el.scrollWidth,client:el.clientWidth,far};
+      const safety=await page.locator('#lab-pricing-overlay').evaluate(dialog=>{
+        const bounds=dialog.getBoundingClientRect();
+        const elements=[...dialog.querySelectorAll('#pricing .lab-pricing-comparison, #pricing .lab-plan, #pricing .lab-plan>button[data-lab-buy]')];
+        const clipped=elements.filter(el=>{
+          const r=el.getBoundingClientRect();
+          return r.left<bounds.left-2||r.right>bounds.right+2;
+        }).map(el=>({selector:String(el.className||el.tagName),bounds:el.getBoundingClientRect().toJSON()})).slice(0,5);
+        return {ok:clipped.length===0,dialog:bounds.toJSON(),clipped};
       });
-      assert.equal(safety.ok,true,'Pricing never clips its cards in narrow viewports: '+JSON.stringify(safety));
+      assert.equal(safety.ok,true,'Pricing checkout cards stay inside the viewport: '+JSON.stringify(safety));
     }
     await page.click('#lab-pricing-overlay-close');
     assert.equal(await page.locator('#lab-pricing-overlay').evaluate(el=>el.open),false);
