@@ -3030,7 +3030,7 @@ function resultFormat(blob){
 
 /* Image detail: full viewport artwork plus a persistent metadata inspector. */
 let imageDetailJob=null;
-$('image-detail-scene-save').onclick=()=>{const job=imageDetailJob;if(!hasResult(job)){notify('Choose a completed Gallery image first.',true);return;}closeImageDetail();void sceneLibrary.fromGallery(job);};
+$('image-detail-scene-save').onclick=()=>{const job=imageDetailJob;if(!job||!hasResult(job)){notify('Choose a completed Gallery image first.',true);return;}closeImageDetail();void sceneLibrary.fromGallery(job);};
 const imageDetailFavoritePending=new Set();
 function paintImageDetailFavorite(){
   const job=imageDetailJob,button=$('image-detail-favorite');
