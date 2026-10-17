@@ -141,6 +141,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <script type="module" src="./studio-guest-image.js?v=20261017-mobile-mood1&greenHaze=2"></script>
 <script defer src="./studio-mobile-entry.js?v=20261017-mobile-mood1"></script>
 <link rel="stylesheet" href="./scene-library.css?v=20261017-scene-library1">
+<link rel="stylesheet" href="./video-editorial-deck.css?v=20261017-video-editorial1">
+<script type="module" src="./video-editorial-deck.js?v=20261017-video-editorial1"></script>
 </head>
 <body class="lab-booting">
 <div id="pv-credit-toast" class="pv-credit-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
@@ -793,10 +795,14 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div id="reference-mode" class="mode-panel" hidden><p id="extend-help" class="fine" hidden>Upload one clip and describe what happens next. The continuation uses its framing.</p>
 <div class="upload-heading"><span class="label">Reference images</span><span class="micro" id="ref-count">0 / 10</span></div>
 <label class="drop reference-drop" id="reference-drop" aria-label="Drop reference images here or click to browse"><span>Drop reference images here or click to browse</span><small>JPG / PNG / WebP · up to 10 photos</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
-<div class="scene-video-access" aria-label="Your saved scene items"><span>Characters, outfits, props and locations</span><button id="scene-video-open" type="button">Scene Library ↗</button></div>
+<div class="scene-video-access" aria-label="Your saved scene items"><span>Characters, outfits, props and locations</span><button id="scene-video-open" type="button">Scene Library</button></div>
 <div id="scene-video-selected" hidden aria-label="Attached saved scene items"></div>
 <p id="reference-progress" class="fine" role="status" aria-live="polite"></p>
 <div id="reference-list" class="reference-list" role="region" aria-label="Input references" tabindex="0"></div>
+<button id="video-motion-toggle" class="pv-motion-toggle" type="button" aria-controls="reference-media" aria-expanded="false" hidden>
+ <span>♫ &nbsp; Motion &amp; sound references</span>
+ <svg class="pv-motion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+</button>
 <div id="reference-media" hidden>
 <div class="upload-heading video-media-heading"><span class="label" id="video-media-label">Video references</span><span class="micro" id="video-ref-count">0 / 10 · 0 / 30s</span></div>
 <label id="video-media-drop" class="drop compact-drop"><span id="video-media-title">Add motion or camera references</span><small>MP4 / MOV · 20 MiB each · 2 to 30 seconds</small><input id="video-references" type="file" multiple accept="video/mp4,video/quicktime"></label>
@@ -865,6 +871,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 <p id="pose-preview-status" class="fine" role="status"></p>
 </div>
 <label class="label prompt-label" id="prompt-label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
+<button id="pv-video-output-toggle" class="pv-video-output-toggle" type="button" aria-controls="duration-control resolution-control ratio-control video-utilities" aria-expanded="true">
+ <span class="pv-output-left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.4"/><circle cx="15" cy="17" r="2.4"/></svg><span>Output settings</span></span>
+ <span class="pv-output-right"><span id="pv-video-output-summary" class="pv-output-summary"></span><svg class="pv-output-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+</button>
 <div class="parameter-grid">
 <label id="duration-control"><span class="label">Duration</span><select id="duration"><option value="5" selected>5 sec</option><option value="10">10 sec</option><option value="15">15 sec</option><option value="30">30 sec</option></select></label>
 
