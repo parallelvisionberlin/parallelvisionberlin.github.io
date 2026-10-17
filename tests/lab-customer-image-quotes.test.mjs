@@ -147,11 +147,12 @@ test('signed-in first-image page has one boot reveal and a selected-only Mood hi
   const priceStyle=readFileSync(new URL('../lab/studio-finish-v2.css',import.meta.url),'utf8');
   const marker=lab.indexOf('const historyReady=loadHistory()');
   assert.ok(marker>0);
-  const awaiting=lab.indexOf('await historyReady;',marker);
-  const firstImage=lab.indexOf('showWelcomeStart(data);',marker);
-  const reveal=lab.indexOf('finishLabBoot();',marker);
-  assert.ok(marker<awaiting&&awaiting<firstImage&&firstImage<reveal,
-    'Never reveal the old short gallery before the first-image layout is resolved');
+  const onHistorySettled=lab.indexOf("document.body.classList.contains('lab-ready'))showWelcomeStart(data)",marker);
+  const grace=lab.indexOf('await Promise.race([historyReady,',marker);
+  const firstImage=lab.indexOf('if(historyResolved)showWelcomeStart(data);',grace);
+  const reveal=lab.indexOf('finishLabBoot();',firstImage);
+  assert.ok(marker<onHistorySettled&&onHistorySettled<grace&&grace<firstImage&&firstImage<reveal,
+    'First-image welcome must await real History while a delayed private fetch cannot freeze the signed-in workspace');
   assert.match(welcome,/\.lab-welcome-preset\[aria-pressed="true"\]/);
   assert.doesNotMatch(welcome,/\.lab-welcome-preset:first-child/);
   assert.doesNotMatch(guest,/\.pv-guest-card:first-child/);
