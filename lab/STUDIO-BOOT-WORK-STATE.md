@@ -34,3 +34,11 @@ Scope: Studio initial loading overlay only.
 - Updated first-paint browser regression to seek 130ms into the exit and assert unchanged x/y/width, plus source checks for the no-motion trail.
 - Updated custom-domain smoke to require the literal new keyframes before declaring the live Studio corrected.
 - Baseline main: `f96c6a7d2b6a3de00488ec0e53ca4bc9bdadad67`. Branch: `fix/pvlab-stationary-boot-exit-20261017`. CI/merge/live activation must be independently verified.
+
+## Verified release of stationary fade-out
+- PR #293 merged to main as `18c1a4a034ab1d2ef328abca60a0770381a44413`, affecting only Studio loader animation, scoped browser tests, domain smoke and this handoff.
+- Focused Studio/Fashion mock browser regression passed: run `39057034266`, including mid-fade geometry at 130ms with no x/y/width movement.
+- GitHub Pages build/deploy run `39057124363` passed.
+- The initial live-domain check ran before Pages deployment and timed out waiting for the updated markup. After Pages completed, a retry of domain run `39057124528`, attempt 2, **succeeded** against `https://pvlab.studio/studio.html` with assertions that *both* exit keyframes have `transform:none` at all phases, plus existing Studio readiness and canonical paths.
+- Logo appears immediately and does not move until the original .24s blur/opacity fade; status and retry still work when loading is slow. No extra waiting added.
+- Next visual QA: user can hard-refresh the custom domain and confirm the previous one-centimeter left shift has disappeared. A new logo redesign remains unapproved and must not be installed automatically.
