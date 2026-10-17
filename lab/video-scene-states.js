@@ -93,7 +93,7 @@ function mountVideoSceneStates(){
     if(!title||!subtitle)return;
     const values={
       text:['Imagine the next scene','Write a direction, then shape the scene, movement and sound.'],
-      start:['Your next scene starts here','Begin with a still image. An end frame is optional.'],
+      start:['Your next scene starts here','Choose an opening image to animate. Add an end frame only if you need a specific finish.'],
       reference:['Bring your ideas to life','Combine your references and describe the scene to generate a video.'],
       extend:['Continue the scene','Upload a clip and describe what happens next.']
     };
