@@ -1,12 +1,12 @@
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
-import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261016-account-menu-edge24';
+import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261016-account-menu-edge24&closure=20261017-logout1';
 
 const $=id=>document.getElementById(id);
 const menu=createAccountMenu($('account-menu'));
 const request=createSessionRequest({baseUrl:'https://parallel-vision-lab.parallelvision.workers.dev',getSession:()=>clerk?.session});
-let clerk=null,profile=null,revision=0,referralRevision=0,paymentPending=false,referralLoaded=false,voucherBusy=false;
+let clerk=null,profile=null,revision=0,referralRevision=0,paymentPending=false,referralLoaded=false,voucherBusy=false,closingAccount=false;
 const voucherFromLink=(new URLSearchParams(location.search).get('voucher')||'').trim().toUpperCase();
 if(/^[A-Z0-9][A-Z0-9-]{5,23}$/.test(voucherFromLink)){document.getElementById('account-voucher-code').value=voucherFromLink;if(!location.hash)location.hash='voucher';}
 const money=value=>new Intl.NumberFormat('en',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(value);
@@ -114,6 +114,7 @@ function drawProfile(){
   menu.update({signed:true,user:clerk.user,profile});
 }
 async function refresh(){
+  if(closingAccount)return;
   const current=++revision;clearPrivateView();status('Loading your account…');
   const signed=!!clerk?.isSignedIn;
   $('account-signin').hidden=signed;$('account-signin').disabled=!clerk;$('account-gate').hidden=true;
@@ -231,10 +232,43 @@ $('referrals-copy').onclick=async()=>{
 };
 $('settings-close-account').onclick=()=>{if(!profile?.customer||profile.accountClosed)return;$('account-close-confirm').value='';$('account-close-submit').disabled=true;$('account-close-status').textContent='';$('account-close-dialog').showModal();};
 $('account-close-confirm').oninput=()=>{$('account-close-submit').disabled=$('account-close-confirm').value!=='DELETE MY PV LAB ACCOUNT';};
+// Account closure returns 202 before asynchronous media cleanup finishes. Clear all
+// account UI and end the Clerk session instead of refreshing a closed wallet.
+async function finishAccountClosureSignOut(){
+  try{
+    await clerk.signOut();
+    location.replace('./');
+  }catch{
+    status('Your PV Lab account is closed, but sign-out could not finish.');
+    $('account-gate').hidden=false;
+    $('account-gate').querySelector('h2').textContent='PV Lab account closed.';
+    $('account-gate').querySelector('p').textContent='Creative data deletion is queued. Please retry signing out.';
+    $('account-gate-signin').textContent='Retry sign-out';
+    $('account-gate-signin').onclick=()=>void finishAccountClosureSignOut();
+  }
+}
 $('account-close-submit').onclick=async()=>{
-  const current=revision;$('account-close-submit').disabled=true;$('account-close-status').textContent='Submitting your closure request…';
-  try{await api('/api/customer/account',{method:'DELETE',body:{confirmation:$('account-close-confirm').value}});if(current!==revision)return;$('account-close-dialog').close();await refresh();}
-  catch(error){if(current===revision){$('account-close-status').textContent=error.message;$('account-close-submit').disabled=$('account-close-confirm').value!=='DELETE MY PV LAB ACCOUNT';}}
+  const sessionId=clerk?.session?.id;
+  $('account-close-submit').disabled=true;
+  $('account-close-status').textContent='Submitting your closure request…';
+  try{
+    const result=await api('/api/customer/account',{method:'DELETE',body:{confirmation:$('account-close-confirm').value}});
+    if(result.accepted!==true)throw Error('Account closure was not confirmed. Please try again.');
+    // A different user must never be signed out by a stale deletion response.
+    if(!clerk?.isSignedIn||clerk.session?.id!==sessionId)return;
+    closingAccount=true;
+    ++revision;
+    clearPrivateView();
+    $('account-signin').hidden=true;
+    $('account-gate').hidden=true;
+    status('Your PV Lab account is closed. Creative data deletion is queued. Signing you out…');
+    await finishAccountClosureSignOut();
+  }catch(error){
+    if(clerk?.session?.id===sessionId){
+      $('account-close-status').textContent=error.message;
+      $('account-close-submit').disabled=$('account-close-confirm').value!=='DELETE MY PV LAB ACCOUNT';
+    }
+  }
 };
 window.addEventListener('hashchange',paintRoute);
 try{clerk=await loadLabAccount();clerk.addListener(()=>void refresh());await refresh();}
