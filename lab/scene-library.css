@@ -385,3 +385,134 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   #scene-library-dialog .scene-card-actions .scene-use,
   #image-composer #scene-image-open.scene-image-launch{transition:none}
 }
+
+
+/* 2026-10-17 editorial centered library. Keep Image deck, Video and save semantics untouched. */
+#scene-library-dialog,
+#scene-library-dialog.scene-from-image{
+  inset:0!important;margin:auto!important;
+  width:min(1116px,calc(100vw - 40px));height:min(622px,calc(100dvh - 40px));
+  max-height:calc(100dvh - 40px);max-width:none;
+  border-radius:18px;overflow:hidden
+}
+#scene-library-dialog .scene-sidebar{padding:18px 16px 12px}
+#scene-library-dialog .scene-sidebar-brand{margin:0 0 26px 12px}
+#scene-library-dialog .scene-main{padding:14px 24px 13px;overflow-x:hidden}
+#scene-library-dialog:has(#scene-browser:not([hidden])) .scene-header{
+  align-items:center;height:36px;min-height:36px;margin:0;padding:0
+}
+#scene-library-dialog:has(#scene-browser:not([hidden])) .scene-header>div{
+  position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);
+  white-space:nowrap
+}
+#scene-library-dialog .scene-header .scene-icon-close{
+  margin-left:auto;width:35px;height:35px;min-height:35px
+}
+#scene-library-dialog:has(#scene-browser:not([hidden])) .scene-toolbar{
+  position:absolute;top:14px;right:69px;width:min(290px,30vw);
+  margin:0
+}
+#scene-library-dialog .scene-search-label{height:35px}
+#scene-library-dialog .scene-category-hero[hidden]{display:none!important}
+#scene-library-dialog .scene-category-hero{
+  position:relative;display:flex;align-items:center;min-width:0;
+  height:116px;box-sizing:border-box;margin:6px 0 11px;
+  padding:14px 22px;border:1px solid #34393e;border-radius:10px;
+  background-color:#171d20;
+  background-image:linear-gradient(90deg,rgba(13,17,21,.98) 0%,rgba(13,17,21,.83) 40%,rgba(13,17,21,.13) 100%),var(--scene-hero-image);
+  background-size:cover,cover;
+  background-position:center,var(--scene-hero-position,center);
+  background-repeat:no-repeat;
+  overflow:hidden
+}
+#scene-library-dialog .scene-category-hero[data-category="characters"]{
+  --scene-hero-image:url("../assets/optimized/fashion-hero.webp");
+  --scene-hero-position:60% 36%;
+}
+#scene-library-dialog .scene-category-hero[data-category="outfits"]{
+  --scene-hero-image:url("../assets/optimized/fashion-after-fabric/artists/alejandro/lotus02heroale.webp");
+  --scene-hero-position:58% 35%;
+}
+#scene-library-dialog .scene-category-hero[data-category="props"]{
+  --scene-hero-image:url("../assets/optimized/liquid-metal-hero.webp");
+  --scene-hero-position:58% 42%;
+}
+#scene-library-dialog .scene-category-hero[data-category="locations"]{
+  --scene-hero-image:url("../assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp");
+  --scene-hero-position:62% 46%;
+}
+#scene-library-dialog .scene-category-hero-copy{position:relative;z-index:1;max-width:80%}
+#scene-library-dialog .scene-category-hero-kicker{
+  display:block;color:#bdc1c5;font-size:9px;letter-spacing:.12em;font-weight:620
+}
+#scene-library-dialog .scene-category-hero h3{
+  margin:5px 0 4px;color:#f3f3f3;font-size:23px;line-height:1.1;
+  font-weight:620;letter-spacing:-.04em
+}
+#scene-library-dialog .scene-category-hero p{
+  margin:0;color:#c6c9cb;font-size:11px;line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+/* A saved identity's own photo replaces the archive study at the same compact scale. */
+#scene-library-dialog .scene-feature{
+  margin:6px 0 11px;min-height:116px;grid-template-columns:40% minmax(0,1fr)
+}
+#scene-library-dialog .scene-feature-cover{height:116px}
+#scene-library-dialog .scene-feature-content{padding:12px 18px 10px}
+#scene-library-dialog .scene-feature-content h3{font-size:21px;margin:3px 0}
+#scene-library-dialog .scene-feature-content p{
+  font-size:10px;line-height:1.3;display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+#scene-library-dialog .scene-feature-badges span{padding:5px 7px;font-size:10px}
+#scene-library-dialog .scene-feature-details{padding:7px 9px;font-size:11px}
+#scene-library-dialog .scene-feature-bottom{padding-top:6px}
+#scene-library-dialog .scene-library-meta{margin:0 0 8px;min-height:19px}
+#scene-library-dialog .scene-grid{gap:9px}
+#scene-library-dialog .scene-card-image{height:103px}
+#scene-library-dialog .scene-card-details{min-height:37px;padding:6px 9px 7px;gap:2px}
+#scene-library-dialog .scene-card-details strong{font-size:11px}
+#scene-library-dialog .scene-card-details small{font-size:9.5px}
+#scene-library-dialog .scene-card-actions .scene-use{bottom:42px}
+#scene-library-dialog .scene-create-tile{min-height:145px;padding:10px;gap:7px}
+#scene-library-dialog .scene-create-plus{width:34px;height:34px;font-size:23px}
+#scene-library-dialog .scene-create-tile small{font-size:9px}
+#scene-library-dialog #scene-browser-foot{
+  margin:11px 0 0;padding:7px 0 0;min-height:0
+}
+#scene-library-dialog #scene-browser-foot .scene-form-note{
+  margin:2px 0;font-size:9px
+}
+@media(max-width:940px){
+  #scene-library-dialog:has(#scene-browser:not([hidden])) .scene-toolbar{
+    right:62px;width:min(252px,30vw)
+  }
+  #scene-library-dialog .scene-main{padding:12px 17px}
+}
+@media(max-width:700px){
+  #scene-library-dialog,
+  #scene-library-dialog.scene-from-image{
+    inset:0!important;margin:auto!important;
+    width:calc(100vw - 12px);height:calc(100dvh - 16px);
+    max-height:calc(100dvh - 16px);border-radius:14px
+  }
+  #scene-library-dialog .scene-sidebar{padding:8px 12px 5px}
+  #scene-library-dialog .scene-main{padding:12px 14px}
+  #scene-library-dialog .scene-header{height:35px}
+  #scene-library-dialog:has(#scene-browser:not([hidden])) .scene-toolbar{
+    position:static;width:100%;margin:8px 0 10px
+  }
+  #scene-library-dialog .scene-category-hero{height:112px;margin:0 0 12px;padding:12px 16px}
+  #scene-library-dialog .scene-category-hero h3{font-size:21px}
+  #scene-library-dialog .scene-category-hero p{font-size:10px;white-space:normal}
+  #scene-library-dialog .scene-feature{margin:0 0 12px}
+  #scene-library-dialog .scene-feature-cover{height:122px}
+  #scene-library-dialog .scene-card-image{height:112px}
+  #scene-library-dialog .scene-create-tile{min-height:154px}
+}
+@media(max-width:430px){
+  #scene-library-dialog .scene-category-hero{height:103px;padding:12px}
+  #scene-library-dialog .scene-category-hero-copy{max-width:84%}
+  #scene-library-dialog .scene-category-hero h3{font-size:20px}
+  #scene-library-dialog .scene-feature-cover{height:117px}
+}
