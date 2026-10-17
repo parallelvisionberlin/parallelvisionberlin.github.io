@@ -1426,7 +1426,7 @@ function showWelcomeStart(session){
 }
 function useWelcomeMood(id){
   if(!Object.prototype.hasOwnProperty.call(welcomePrompts,id)||!moodById(id)
-    ||!owner||(!ownerAccount&&(!customerMode||!customerGenerationReady))||busy||imageSubmissionPending
+    ||!owner||busy||imageSubmissionPending
     ||$('lab-welcome-start')?.hidden)return;
   if(imageEngine!=='seedream'){
     $('image-engine').value='seedream';
@@ -1439,6 +1439,11 @@ function useWelcomeMood(id){
   moodUI.restore({moodId:id,moodIntensity:60},true);
   $('prompt').value=welcomePrompts[id];
   $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
+  // Mirror the selected Mood into the visible composer immediately.
+  // Eligibility to generate is checked separately when Generate is pressed.
+  const visiblePrompt=$('image-composer-prompt');
+  if(visiblePrompt)visiblePrompt.value=welcomePrompts[id];
+  syncImageComposer();
   // Curated first-image looks are deliberate selections, not keystrokes.
   // Start the read-only price request now instead of waiting 850 ms.
   customerImagePricing?.prime();
