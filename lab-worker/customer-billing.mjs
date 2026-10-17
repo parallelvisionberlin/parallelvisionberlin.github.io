@@ -1,6 +1,7 @@
 import {assertCustomerOpen,customerRestrictions,customerAccount,requestAccountClosure} from './customer-lifecycle.mjs';
 import {rewardQualifiedReferral} from './referrals.mjs';
 import {labMetaOptIn,sendLabMetaPurchase} from './meta-capi.mjs';
+import {grantVerifiedWelcome} from './welcome-guard.mjs';
 import {canCustomerGenerate,canCustomerCheckout,isPrivateLivePilot,isPermittedPilotPurchase} from './customer-rollout.mjs';
 // Customer billing belongs only to PV Lab's D1 database.
 // All changes in balances are immutable ledger entries. Never trust browser-supplied prices.
@@ -33,19 +34,9 @@ export async function ensureCustomer(env,subject) {
   if(!ID.test(subject))fail(401,'Invalid account identity.');
   const t=now();
   await exec(env,'INSERT OR IGNORE INTO lab_customers(id,clerk_subject,balance_credits,created_at,updated_at) VALUES(?,?,0,?,?)',subject,subject,t,t);
-  // The welcome gift uses the same wallet as images, videos and other billable jobs.
-  // A unique ledger reference makes repeat sign-ins and concurrent requests safe.
-  // Also welcome existing test customers whose first signup predated this rollout.
-  if(env.LAB_WELCOME_CREDITS_ENABLED==='true'){
-    const reference='welcome:'+subject;
-    await exec(env,`INSERT OR IGNORE INTO lab_credit_entries
-      (id,customer_id,delta_credits,kind,reference,created_at)
-      SELECT ?,c.id,?,'adjustment',?,?
-        FROM lab_customers c
-       WHERE c.id=?
-         AND NOT EXISTS (SELECT 1 FROM lab_account_closures WHERE customer_id=c.id)`,
-      reference,WELCOME_CREDITS,reference,t,subject);
-  }
+  // Only a Clerk-verified, non-disposable email qualifies. Duplicate identities
+  // sharing a verified email cannot repeatedly claim welcome credits.
+  await grantVerifiedWelcome(env,subject);
   return subject;
 }
 export async function isLabCustomer(env,id){
@@ -178,6 +169,12 @@ export async function customerRoute(request,env,subject){
     const session=await stripe(env,'checkout/sessions',form);
     const paymentUrl=safeUrl(session.url);
     if(!paymentUrl)fail(502,'Stripe did not return a verified checkout URL.');
+    // Forward-only checkout measurement; Stripe remains the payment authority.
+    if(/^cs_(?:live|test)_[A-Za-z0-9]+$/.test(session.id||'')){
+      try{await exec(env,`INSERT OR IGNORE INTO lab_checkout_attempts
+        (session_id,customer_id,sku,amount_cents,created_at) VALUES(?,?,?,?,?)`,
+        session.id,subject,sku,item.cents,now());}catch{/* Do not block real checkout for a metric. */}
+    }
     return json({url:paymentUrl,checkoutId:session.id});
   }
   if(p==='/api/billing/portal'&&method==='POST'){
@@ -266,11 +263,17 @@ export async function stripeWebhook(request,env,ctx){
       if(data.mode==='payment'&&item.type==='payment'&&data.payment_status==='paid'&&Number(data.amount_total)===item.cents){
         await setStripeCustomer(env,subject,typeof data.customer==='string'?data.customer:data.customer?.id);
         await credit(env,subject,item.credits,'purchase','checkout:'+data.id);
+        await exec(env,`INSERT OR IGNORE INTO lab_revenue_events(reference,customer_id,amount_cents,created_at)
+          VALUES(?,?,?,?)`,'checkout:'+data.id,subject,item.cents,now());
         await rewardQualifiedReferral(env,subject,'checkout:'+data.id,item.cents);
         if(data.metadata?.lab_meta_consent==='1')metaPurchase={subject,transactionId:data.id,amountCents:item.cents,consented:true};
       } else if(data.mode==='subscription'&&item.type==='subscription'&&data.subscription){
         const sub=await subscriptionDetails(env,typeof data.subscription==='string'?data.subscription:data.subscription.id);
         await syncSubscription(env,sub);
+      }
+      if(data.payment_status==='paid'){
+        await exec(env,'UPDATE lab_checkout_attempts SET paid_at=COALESCE(paid_at,?) WHERE session_id=? AND customer_id=?',
+          now(),data.id,subject);
       }
     }
   } else if(event.type==='invoice.paid'){
@@ -283,6 +286,8 @@ export async function stripeWebhook(request,env,ctx){
       const meta=await syncSubscription(env,sub);
       if(meta&&['subscription_create','subscription_cycle'].includes(data.billing_reason)&&data.currency==='eur'&&data.id&&sub.customer&&Number(data.amount_paid)===PACKS[meta.sku].cents){
         await credit(env,meta.subject,PACKS[meta.sku].credits,'subscription','invoice:'+data.id);
+        await exec(env,`INSERT OR IGNORE INTO lab_revenue_events(reference,customer_id,amount_cents,created_at)
+          VALUES(?,?,?,?)`,'invoice:'+data.id,meta.subject,Number(data.amount_paid),now());
         await rewardQualifiedReferral(env,meta.subject,'invoice:'+data.id,Number(data.amount_paid));
         if(data.billing_reason==='subscription_create'&&sub.metadata?.lab_meta_consent==='1')metaPurchase={subject:meta.subject,transactionId:data.id,amountCents:Number(data.amount_paid),consented:true};
       }
