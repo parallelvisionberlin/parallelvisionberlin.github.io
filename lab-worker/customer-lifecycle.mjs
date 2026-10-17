@@ -1,6 +1,6 @@
 // Customer content belongs only to LAB_DB / LAB_MEDIA. Never mutate shared Clerk
 // identities, Nina's OWNER_DB, or another account's objects.
-import {welcomeReviewFlag} from './welcome-guard.mjs';
+import {welcomeReviewFlag,preserveClosedWelcomeClaim} from './welcome-guard.mjs';
 const one=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).first();
 const run=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).run();
 const fail=(status,message)=>{const error=new Error(message);error.status=status;throw error;};
@@ -88,12 +88,17 @@ export async function processAccountClosures(env,verifyBilling){
     if(page.objects.length||page.truncated)continue;
     const existing=await env.LAB_DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").bind().all();
     const tables=new Set(existing.results.map(x=>x.name));
+    if(tables.has('lab_welcome_claims')&&tables.has('lab_customer_contacts'))
+      await preserveClosedWelcomeClaim(env,id);
     const statements=[];
     if(tables.has('soul_reinterpret_links'))statements.push(env.LAB_DB.prepare('DELETE FROM soul_reinterpret_links WHERE adapter_id IN (SELECT id FROM soul_characters WHERE owner_id=?) OR parent_id IN (SELECT id FROM soul_characters WHERE owner_id=?)').bind(id,id));
-    for(const table of ['library_members','library_favorites','library_folders','moodboard_style_data','moodboards','moodboard_analysis_quota','packs','jobs','quotes','soul_characters','soul_datasets','assets','settings']){
+    for(const table of ['library_members','library_favorites','library_folders','moodboard_style_data','moodboards','moodboard_analysis_quota','lab_spicy_reference_cache','lab_mood_performance','packs','jobs','quotes','spend','soul_characters','soul_datasets','assets','settings']){
       if(tables.has(table))statements.push(env.LAB_DB.prepare('DELETE FROM '+table+' WHERE owner_id=?').bind(id));
     }
     if(tables.has('lab_referral_codes'))statements.push(env.LAB_DB.prepare('DELETE FROM lab_referral_codes WHERE customer_id=?').bind(id));
+    if(tables.has('lab_referrals'))statements.push(env.LAB_DB.prepare('DELETE FROM lab_referrals WHERE (referrer_customer_id=? OR referred_customer_id=?) AND rewarded_at IS NULL').bind(id,id));
+    if(tables.has('lab_clerk_migration_codes'))statements.push(env.LAB_DB.prepare('DELETE FROM lab_clerk_migration_codes WHERE canonical_id=?').bind(id));
+    if(tables.has('lab_customer_contacts'))statements.push(env.LAB_DB.prepare('DELETE FROM lab_customer_contacts WHERE customer_id=?').bind(id));
     statements.push(env.LAB_DB.prepare("UPDATE lab_account_closures SET state='deleted',completed_at=? WHERE customer_id=?").bind(Date.now(),id));
     await env.LAB_DB.batch(statements);
     }catch{failed=true;}
