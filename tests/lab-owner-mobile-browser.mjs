@@ -4,17 +4,19 @@ import assert from 'node:assert/strict';
 import {readFile, mkdir} from 'node:fs/promises';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
 const root=new URL('../lab/',import.meta.url);
-const [rawHtml,css,rawJs,rawProviderUi]=await Promise.all([
+const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi]=await Promise.all([
   readFile(new URL('owner.html',root),'utf8'),
   readFile(new URL('owner.css',root),'utf8'),
   readFile(new URL('owner.js',root),'utf8'),
-  readFile(new URL('owner-providers-ui.js',root),'utf8')
+  readFile(new URL('owner-providers-ui.js',root),'utf8'),
+  readFile(new URL('owner-acquisition-ui.js',root),'utf8')
 ]);
 // Run the real dashboard renderer with synthetic owner data, without authentication/network requests.
 const providerJs="const {createOwnerProviderUI,renderOwnerProviderFinances}=(()=>{"+
   rawProviderUi.replace(/^export /gm,'')+
   ";return {createOwnerProviderUI,renderOwnerProviderFinances};})();\n";
-const runtimeJs=providerJs+"const createSessionRequest=()=>async()=>({ok:false,json:async()=>({})});\n"+
+const acquisitionJs=rawAcquisitionUi.replace(/^export /gm,'')+'\n';
+const runtimeJs=providerJs+acquisitionJs+"const createSessionRequest=()=>async()=>({ok:false,json:async()=>({})});\n"+
   rawJs.replace(/^import .*\n/gm,'').replace(/\ntry\{clerk=await loadLabAccount\(\);[\s\S]*$/,'');
 const html=rawHtml
   .replace(/<link\b[^>]*>/g,'')
