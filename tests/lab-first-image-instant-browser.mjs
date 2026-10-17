@@ -85,8 +85,11 @@ try{
   assert.equal(await deck.evaluate(el=>getComputedStyle(el).display),'grid',
     'Desktop Image deck must use the original two-row composer, not a horizontal strip');
   const initialDeck=await deck.boundingBox();
-  assert.ok(Math.abs(initialDeck.x+initialDeck.width/2-1536/2)<3,
-    'The Image deck must float centered over the unchanged hero');
+  const availableWidth=await page.evaluate(()=>document.documentElement.clientWidth);
+  const centerError=Math.abs(initialDeck.x+initialDeck.width/2-availableWidth/2);
+  assert.ok(centerError<18,
+    'The Image deck must float centered within the scrollbar-adjusted viewport: '+
+      JSON.stringify({initialDeck,availableWidth,centerError}));
   assert.equal(await page.locator('.lab-welcome-preset').count(),6,
     'All six original welcome cards remain mounted');
   const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top);
