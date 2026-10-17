@@ -775,13 +775,69 @@ try{
   assert.ok(compactComposer.left>=0&&compactComposer.right<=390,'Floating Image bar fits on mobile');
   assert.ok(await x.page.locator('#image-composer-add').isVisible(),'Mobile Image bar keeps in-bar reference action');
   assert.ok(await x.page.locator('#image-composer-mobile-more').isVisible(),'Mobile secondary settings have an explicit More disclosure');
+  // The image control surface stays at exactly two rows on phones.
+  const mobileRows=async()=>x.page.evaluate(()=>{
+    const ids=['image-composer-add','scene-image-open','image-composer-model',
+      'image-composer-moods','image-composer-edit-area','image-composer-ratio',
+      'image-composer-mobile-more','composer-reference-intent-toggle',
+      'composer-exact-prompt-option'];
+    const controls=ids.map(id=>document.getElementById(id))
+      .filter(el=>el&&!el.hidden&&el.getClientRects().length&&getComputedStyle(el).display!=='none')
+      .map(el=>({id:el.id,top:el.getBoundingClientRect().top,
+        left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right}));
+    const rows=[];
+    for(const control of controls){
+      const row=rows.find(r=>Math.abs(r.top-control.top)<4);
+      if(row)row.items.push(control.id);
+      else rows.push({top:control.top,items:[control.id]});
+    }
+    return {rows,controls,viewport:innerWidth};
+  });
+  let controlGeometry=await mobileRows();
+  assert.equal(controlGeometry.rows.length,2,'390px Image dock must use exactly two rows: '+JSON.stringify(controlGeometry));
+  assert.ok(controlGeometry.rows[0].items.includes('scene-image-open'),'Library icon belongs beside upload, not row three');
+  assert.ok(controlGeometry.rows[0].items.includes('image-composer-add'),'Upload stays in the first row');
+  assert.ok(controlGeometry.controls.every(c=>c.left>=8&&c.right<=controlGeometry.viewport-8),
+    'All mobile controls fit inside the viewport: '+JSON.stringify(controlGeometry));
+  await x.page.locator('#scene-image-open').click();
+  const libraryMenu=await x.page.locator('#scene-image-menu').evaluate(el=>{
+    const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};
+  });
+  assert.ok(libraryMenu.left>=8&&libraryMenu.right<=382,
+    'Photo Packs / Elements menu must remain entirely visible on the phone: '+JSON.stringify(libraryMenu));
+  await x.page.locator('#scene-menu-elements').click();
+  const categoriesMenu=await x.page.locator('#scene-image-menu').evaluate(el=>{
+    const r=el.getBoundingClientRect();return {left:r.left,right:r.right};
+  });
+  assert.ok(categoriesMenu.left>=8&&categoriesMenu.right<=382,'Elements categories must fit inside the viewport');
+  await x.page.locator('#scene-image-open').click();
+
+
   assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),false,'Secondary resolution is collapsed initially');
   await x.page.locator('#image-composer-mobile-more').click();
   assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),true,'More exposes the original resolution select');
   assert.equal(await x.page.locator('#image-composer-count').isVisible(),true,'More exposes the original image count select');
+  const extras=await x.page.evaluate(()=>{
+    const composer=document.getElementById('image-composer').getBoundingClientRect();
+    const labels=['image-composer-resolution-wrap','image-composer-count-wrap']
+      .map(id=>document.getElementById(id).getBoundingClientRect());
+    return {deckTop:composer.top,extras:labels.map(r=>({top:r.top,bottom:r.bottom,left:r.left,right:r.right}))};
+  });
+  assert.ok(extras.extras.every(rect=>rect.bottom<=extras.deckTop+1&&rect.left>=8&&rect.right<=382),
+    'More settings float fully above the deck, not row three: '+JSON.stringify(extras));
+  assert.equal((await mobileRows()).rows.length,2,'Opening More must not add a third controls row');
+
+
   await x.page.locator('#image-composer-mobile-more').click();
   assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),false,'More collapses without changing selected values');
   assert.equal(await x.page.locator('#image-composer-generate').evaluate(el=>Math.round(el.getBoundingClientRect().width)),await x.page.locator('#image-composer .image-composer-toolbar').evaluate(el=>Math.round(el.getBoundingClientRect().width)),'Generate is a full-width action underneath the controls');
+  await x.page.setViewportSize({width:320,height:730});
+  const narrowRows=await mobileRows();
+  assert.equal(narrowRows.rows.length,2,'320px Image dock also uses two rows: '+JSON.stringify(narrowRows));
+  assert.ok(narrowRows.controls.every(c=>c.left>=7&&c.right<=313),
+    '320px toolbar must not clip controls: '+JSON.stringify(narrowRows));
+  await x.page.setViewportSize({width:390,height:844});
+
   await x.page.screenshot({path:'test-results/lab-image-floating-mobile.png',fullPage:false});
   await x.page.click('#tool-video');
   assert.ok(await x.page.locator('.empty-actions').evaluate(el=>el.getBoundingClientRect().width<=document.querySelector('.canvas').getBoundingClientRect().width),'Empty actions must fit the mobile preview');
