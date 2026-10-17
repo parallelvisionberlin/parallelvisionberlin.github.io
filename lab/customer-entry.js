@@ -92,10 +92,10 @@ function show(){
       const valid=Number.isSafeInteger(profile.balanceCredits)&&profile.balanceCredits>=0;
       const balance=valid?profile.balanceCredits:null;
       const empty=balance===0;
-      $('lab-home-credit-copy').textContent=empty?'Get credits':valid?balance.toLocaleString('en-GB'):'Credits';
-      $('lab-home-credit-unit').hidden=!valid||empty;
-      homeCredits.setAttribute('aria-label',empty?'Get credits':valid?balance.toLocaleString('en-GB')+' credits. Buy more credits':'View credits and pricing');
-      homeCredits.title=empty?'Get credits':valid?balance.toLocaleString('en-GB')+' credits. Add credits':'View credits and pricing';
+      $('lab-home-credit-copy').textContent=valid?balance.toLocaleString('en-GB'):'Credits';
+      $('lab-home-credit-unit').hidden=!valid;
+      homeCredits.setAttribute('aria-label',valid?balance.toLocaleString('en-GB')+' credits. View credits and billing':'View credits and billing');
+      homeCredits.title=valid?balance.toLocaleString('en-GB')+' credits. View credits and billing':'View credits and billing';
     }
   }
   headerAccount.update({signed:ready&&signed,user:clerk?.user,profile:ready?profile:null});
