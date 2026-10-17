@@ -1,9 +1,9 @@
 name: PV LAB owner dashboard
 on:
   pull_request:
-    paths: ['lab/owner.*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-providers.test.mjs', '.github/workflows/pv-lab-owner-dashboard.yml']
+    paths: ['lab/owner.*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', 'tests/lab-owner-providers.test.mjs', '.github/workflows/pv-lab-owner-dashboard.yml']
   push:
-    paths: ['lab/owner.*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-providers.test.mjs', '.github/workflows/pv-lab-owner-dashboard.yml']
+    paths: ['lab/owner.*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', 'tests/lab-owner-providers.test.mjs', '.github/workflows/pv-lab-owner-dashboard.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '24'
       - run: node --check lab/owner.js && node --check lab-worker/owner-providers.mjs && node --check lab-worker/promotions.mjs
-      - run: node --test tests/lab-owner-providers.test.mjs
+      - run: node --test tests/lab-owner-providers.test.mjs tests/lab-owner-auth-guard.test.mjs
       - run: npm install --prefix /tmp/pv-owner-browser --no-audit --no-fund playwright@1.62.1
       - run: /tmp/pv-owner-browser/node_modules/.bin/playwright install --with-deps chromium
       - name: Verify real owner renderer, recent subscriber filter and mobile fit
