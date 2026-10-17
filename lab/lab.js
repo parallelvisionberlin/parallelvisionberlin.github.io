@@ -390,6 +390,8 @@ function syncReferenceIntentUi(){
   toggle.hidden=!eligible;toggle.disabled=busy;
   if(!eligible){closeReferenceIntent();return;}
   toggle.textContent=(referencesOnly()?'References only':'Base image')+' ⌄';
+  // Only narrow phones use this short display label; the control action stays unchanged.
+  toggle.dataset.compactLabel=referencesOnly()?'Refs ⌄':'Base ⌄';
   toggle.title=referencesOnly()?'Create a new composition using all images as references.':'Build on the first image. Your prompt can change anything.';
   toggle.setAttribute('aria-expanded',String(referenceIntentOpen));
   panel.hidden=!referenceIntentOpen;

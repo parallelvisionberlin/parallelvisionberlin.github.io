@@ -190,6 +190,26 @@ try{
   assert.ok(mobile.left>=0&&mobile.right<=390&&mobile.top>=0&&mobile.bottom<=844,
     'Modal should fit phones without clipping: '+JSON.stringify(mobile));
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card').count(),1);
+  const mobileShell=await page.evaluate(()=>{
+    const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();
+      return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+    const title=rect('#pack-studio-heading'),close=rect('#pack-studio-close'),search=rect('#pack-studio-search');
+    const selected=rect('#pack-studio-nav-packs'),side=rect('.pack-studio-sidebar');
+    const label=document.querySelector('#pack-studio-dialog .pack-studio-sort-label>.visually-hidden');
+    const style=getComputedStyle(label);
+    const controls=rect('#pack-studio-dialog .pack-studio-view-controls');
+    return {title,close,search,selected,side,sortLabel:{width:parseFloat(style.width),position:style.position},
+      heading:rect('#pack-studio-dialog .pack-studio-collection-heading'),controls};
+  });
+  assert.ok(mobileShell.selected.left>=mobileShell.side.left-1&&mobileShell.selected.right<=mobileShell.side.right+1,
+    'Active Photo Packs tab must not be cropped on phone: '+JSON.stringify(mobileShell));
+  assert.ok(mobileShell.close.bottom<mobileShell.search.top,
+    'Close button belongs above search, not on top of the Photo Packs input: '+JSON.stringify(mobileShell));
+  assert.ok(mobileShell.sortLabel.width<=1&&mobileShell.sortLabel.position==='absolute',
+    'Sort photo packs accessible label stays visually hidden on mobile');
+  assert.ok(mobileShell.controls.right<=384,
+    'Sort and grid/list controls fit within the phone viewport: '+JSON.stringify(mobileShell));
+
   await page.screenshot({path:'test-results/photo-packs/saved-library-mobile.png'});
   await page.locator('#pack-studio-new').click();
   await page.locator('#pack-studio-name').fill('Mobile reference pack');
