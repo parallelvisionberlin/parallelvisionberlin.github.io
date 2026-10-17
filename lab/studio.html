@@ -35,15 +35,25 @@ body.lab-booting{margin:0;background:#101114}
 /* Fixed overlays using inset:0 alone shrink when the root reserves a classic
    scrollbar gutter. 100vw stays tied to the full viewport, so the logo never jumps. */
 #lab-boot{position:fixed;inset:0;width:100vw;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#121316 0%,#08090a 73%);color:#ededee;font-family:"Helvetica Neue",Arial,sans-serif;overflow:hidden}
-/* Liquid-metal refractions at the viewport edges. The mark, track and exit never move. */
-.lab-boot-fluid{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.91;animation:pv-fluid-arrive .65s ease-out both}
-.lab-boot-fluid-left{animation:pv-fluid-left 7s ease-in-out infinite alternate;transform-origin:25% 50%}
-.lab-boot-fluid-right{animation:pv-fluid-right 8.5s ease-in-out infinite alternate;transform-origin:80% 50%}
-.lab-boot-fluid-glint{stroke-dasharray:160 1800;animation:pv-fluid-glint 6s linear infinite}
-@keyframes pv-fluid-arrive{from{opacity:.45}to{opacity:.91}}
-@keyframes pv-fluid-left{from{transform:translate3d(-12px,-7px,0) rotate(-.4deg)}to{transform:translate3d(10px,9px,0) rotate(.4deg)}}
-@keyframes pv-fluid-right{from{transform:translate3d(8px,-12px,0) rotate(.5deg)}to{transform:translate3d(-9px,10px,0) rotate(-.4deg)}}
-@keyframes pv-fluid-glint{to{stroke-dashoffset:-1960}}
+
+/* Architectural reveal: the existing logo and progress bar paint immediately.
+   Panels only gain opacity behind them as genuine loading continues. */
+.lab-boot-architecture{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.lab-boot-architecture .pv-architecture-panel,.lab-boot-architecture .pv-architecture-guide{position:absolute;pointer-events:none;opacity:0;animation:pv-architecture-reveal 1.2s ease-out both}
+.pv-architecture-panel{box-sizing:border-box}
+.pv-architecture-panel::after{content:"";position:absolute;pointer-events:none}
+.pv-architecture-left{--pv-alpha:.7;left:21.5%;top:23.5%;width:28%;height:53%;animation-delay:.16s!important;background:repeating-linear-gradient(90deg,transparent 0,rgba(246,246,250,.018) 1px,transparent 2px,transparent 6px),linear-gradient(90deg,rgba(16,18,20,.13),rgba(20,22,24,.53) 80%,rgba(31,33,36,.45) 100%);border-top:1px solid rgba(156,159,164,.12);box-shadow:inset -25px 0 70px rgba(0,0,0,.65);mask-image:linear-gradient(to bottom,#000 0%,#000 68%,transparent 100%)}
+.pv-architecture-left::after{right:0;top:0;height:74%;width:1px;background:linear-gradient(to bottom,rgba(235,235,240,.24),rgba(198,204,210,.6) 38%,transparent);box-shadow:0 0 10px rgba(170,176,182,.19)}
+.pv-architecture-center{--pv-alpha:.78;left:34.5%;top:18.5%;width:22.5%;height:61%;animation-delay:.33s!important;background:repeating-linear-gradient(90deg,transparent 0,rgba(251,251,250,.023) 1px,transparent 2px,transparent 5px),linear-gradient(95deg,rgba(15,16,18,.16),rgba(23,25,27,.68) 75%,rgba(60,64,68,.38) 99%);border-top:1px solid rgba(155,163,170,.11);mask-image:linear-gradient(to bottom,#000 0%,#000 68%,transparent 100%)}
+.pv-architecture-center::after{right:0;top:0;height:61%;width:1px;background:linear-gradient(to bottom,rgba(243,245,248,.84) 0%,rgba(214,220,225,.65) 35%,rgba(80,91,99,.3) 72%,transparent 100%);box-shadow:0 0 6px 1px rgba(230,233,237,.18),0 0 30px rgba(208,212,216,.12)}
+.pv-architecture-right{--pv-alpha:.8;left:63%;top:42%;width:20.5%;height:51%;animation-delay:.56s!important;background:repeating-linear-gradient(90deg,transparent 0,rgba(244,244,247,.022) 1px,transparent 2px,transparent 5px),linear-gradient(92deg,rgba(67,71,75,.64) 0%,rgba(36,38,40,.48) 11%,rgba(21,23,25,.65) 46%,rgba(4,5,6,.03) 100%);border-top:1px solid rgba(177,181,186,.19);mask-image:linear-gradient(to bottom,#000 0%,#000 71%,transparent 100%)}
+.pv-architecture-right::after{left:0;top:0;height:76%;width:2px;background:linear-gradient(to bottom,rgba(254,254,253,.94) 0%,rgba(234,237,243,.7) 28%,rgba(104,113,122,.18) 80%,transparent 100%);box-shadow:0 0 7px 1px rgba(244,246,248,.42),0 0 23px rgba(211,217,223,.2)}
+.pv-architecture-guide{background:linear-gradient(to bottom,transparent,rgba(161,166,171,.35),transparent)}
+.pv-architecture-guide-a{--pv-alpha:.3;left:46.6%;top:0;width:1px;height:25%;animation-delay:.62s!important}
+.pv-architecture-guide-b{--pv-alpha:.15;left:63%;top:28%;width:1px;height:61%;animation-delay:.85s!important}
+.pv-architecture-guide-c{--pv-alpha:.15;left:34.5%;top:18.5%;width:1px;height:55%;animation-delay:.45s!important}
+@keyframes pv-architecture-reveal{from{opacity:0}to{opacity:var(--pv-alpha,.7)}}
+@media(max-width:600px){.pv-architecture-left{left:-27%;top:29%;width:63%;height:51%}.pv-architecture-center{left:20%;top:19%;width:46%;height:57%}.pv-architecture-right{left:76%;top:46%;width:45%;height:48%}.pv-architecture-guide-a{left:53%}.pv-architecture-guide-b{left:76%}.pv-architecture-guide-c{left:20%}}
 .lab-boot-content{position:relative;z-index:1;width:min(360px,calc(100vw - 56px));text-align:center;transform:translateY(-1.5vh)}
 .lab-boot-brand{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .lab-boot-wordmark{position:relative;display:block;white-space:nowrap;padding-left:.24em;font-family:"Helvetica Neue",Arial,sans-serif;font-size:clamp(25px,3.2vw,33px);font-weight:400;letter-spacing:.24em;line-height:1.24;color:#ececef;will-change:filter,transform,opacity}
@@ -66,7 +76,7 @@ html:not(.pv-native-route-pending) body.lab-ready #lab-boot .lab-boot-wordmark,h
 html:not(.pv-native-route-pending) body.lab-ready #lab-boot .lab-boot-wordmark::before,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot .lab-boot-wordmark::before{animation:pv-boot-trail-out .24s ease-out both}
 html.pv-native-route-pending #lab-boot{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;animation:none!important}
 html.pv-native-route-pending #app{visibility:hidden!important}
-@media(prefers-reduced-motion:reduce){.lab-boot-fluid,.lab-boot-fluid-left,.lab-boot-fluid-right,.lab-boot-fluid-glint{animation:none!important}.lab-boot-fluid{opacity:.55!important}.lab-boot-wordmark,.lab-boot-wordmark::before,.lab-boot-sub{animation:none!important;filter:none!important;transform:none!important}.lab-boot-wordmark::before{display:none}.lab-boot-track:after{animation:none;width:100%;background:#5a5657}html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:none!important;opacity:0!important;visibility:hidden!important}}
+@media(prefers-reduced-motion:reduce){.lab-boot-architecture .pv-architecture-panel,.lab-boot-architecture .pv-architecture-guide{animation:none!important;opacity:var(--pv-alpha,.7)!important}.lab-boot-wordmark,.lab-boot-wordmark::before,.lab-boot-sub{animation:none!important;filter:none!important;transform:none!important}.lab-boot-wordmark::before{display:none}.lab-boot-track:after{animation:none;width:100%;background:#5a5657}html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:none!important;opacity:0!important;visibility:hidden!important}}
 </style>
 <script>
 if(window.__PV_LAB_NATIVE__===1)document.documentElement.classList.add('pv-native-route-pending');
@@ -162,31 +172,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   <span>Ready to create.</span>
 </div>
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Loading PV LAB">
-<svg class="lab-boot-fluid" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-<defs>
-<linearGradient id="pv-fluid-left-metal" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#050608"/><stop offset=".18" stop-color="#1b2025"/><stop offset=".28" stop-color="#59616a"/><stop offset=".32" stop-color="#bbc1c8"/><stop offset=".37" stop-color="#282e34"/><stop offset=".59" stop-color="#0e1115"/><stop offset=".76" stop-color="#676f77"/><stop offset=".81" stop-color="#262d33"/><stop offset="1" stop-color="#030405"/></linearGradient>
-<linearGradient id="pv-fluid-right-metal" x1="0" y1="0" x2=".75" y2="1"><stop offset="0" stop-color="#050608"/><stop offset=".16" stop-color="#39414a"/><stop offset=".21" stop-color="#b5bbc4"/><stop offset=".245" stop-color="#222831"/><stop offset=".43" stop-color="#060708"/><stop offset=".6" stop-color="#232a30"/><stop offset=".68" stop-color="#a4aab1"/><stop offset=".72" stop-color="#20262c"/><stop offset="1" stop-color="#060708"/></linearGradient>
-<linearGradient id="pv-fluid-line" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22272b"/><stop offset=".28" stop-color="#f8f9fb"/><stop offset=".47" stop-color="#59636b"/><stop offset=".76" stop-color="#f2f3f4"/><stop offset="1" stop-color="#131719"/></linearGradient>
-<radialGradient id="pv-fluid-haze"><stop offset="0" stop-color="#323942" stop-opacity=".38"/><stop offset="1" stop-color="#090b0d" stop-opacity="0"/></radialGradient>
-<filter id="pv-fluid-soft" x="-35%" y="-60%" width="170%" height="220%"><feGaussianBlur stdDeviation="5.5"/></filter>
-</defs>
-<ellipse cx="1235" cy="315" rx="460" ry="400" fill="url(#pv-fluid-haze)" opacity=".55"/>
-<g class="lab-boot-fluid-left">
-<path d="M -160 290 C 50 294 211 289 375 330 C 446 348 510 349 565 308 C 507 398 450 413 369 393 C 224 362 64 430 -160 508 Z" fill="url(#pv-fluid-left-metal)" opacity=".87"/>
-<path d="M -130 348 C 68 312 233 315 370 348 C 472 372 515 356 561 311" fill="none" stroke="#d4dce4" stroke-width="13" opacity=".35" filter="url(#pv-fluid-soft)"/>
-<path d="M -130 348 C 68 312 233 315 370 348 C 472 372 515 356 561 311" fill="none" stroke="url(#pv-fluid-line)" stroke-width="3" opacity=".85"/>
-<path d="M -130 513 C 116 455 257 461 377 503 C 451 528 474 584 529 608 C 385 568 302 568 192 600 C 50 639 -40 614 -130 648 Z" fill="url(#pv-fluid-right-metal)" opacity=".56"/>
-<path class="lab-boot-fluid-glint" d="M-125 342 C 68 308 238 320 368 349 C 474 375 524 347 560 310" fill="none" stroke="url(#pv-fluid-line)" stroke-width="3" opacity=".76"/>
-</g>
-<g class="lab-boot-fluid-right">
-<path d="M 1580 -140 C 1355 32 1149 67 1005 189 C 921 259 888 319 966 405 C 1025 474 1113 418 1263 315 C 1111 465 1014 518 937 433 C 823 317 856 210 981 108 C 1182 -57 1378 -40 1580 -140 Z" fill="url(#pv-fluid-right-metal)" opacity=".90"/>
-<path d="M 1530 38 C 1290 105 1162 113 1018 232 C 945 292 925 335 978 401 C 1012 445 1095 411 1167 358" fill="none" stroke="#ced5db" stroke-width="15" opacity=".29" filter="url(#pv-fluid-soft)"/>
-<path d="M 1530 38 C 1290 105 1162 113 1018 232 C 945 292 925 335 978 401 C 1012 445 1095 411 1167 358" fill="none" stroke="url(#pv-fluid-line)" stroke-width="3.5" opacity=".85"/>
-<path d="M 1575 232 C 1417 271 1317 315 1223 422 C 1136 525 1036 592 910 627 C 1031 590 1112 641 1161 708 C 1202 600 1292 544 1457 505 L1575 492 Z" fill="url(#pv-fluid-left-metal)" opacity=".66"/>
-<path d="M 1518 268 C 1377 307 1295 347 1222 434 C 1121 551 1016 603 931 624" fill="none" stroke="url(#pv-fluid-line)" stroke-width="1.6" opacity=".57"/>
-<path class="lab-boot-fluid-glint" d="M1538 32 C 1304 101 1164 125 1019 233 C 947 294 929 337 978 401 C 1021 448 1089 416 1168 357" fill="none" stroke="url(#pv-fluid-line)" stroke-width="3.5"/>
-</g>
-</svg>
+<div class="lab-boot-architecture" aria-hidden="true">
+<span class="pv-architecture-panel pv-architecture-left"></span>
+<span class="pv-architecture-panel pv-architecture-center"></span>
+<span class="pv-architecture-panel pv-architecture-right"></span>
+<span class="pv-architecture-guide pv-architecture-guide-a"></span>
+<span class="pv-architecture-guide pv-architecture-guide-b"></span>
+<span class="pv-architecture-guide pv-architecture-guide-c"></span>
+</div>
 <div class="lab-boot-content"><div class="lab-boot-brand" aria-label="PV LAB by Parallel Vision"><span class="lab-boot-wordmark" id="lab-boot-name" data-text="PV LAB">PV LAB</span><span class="lab-boot-sub">BY PARALLEL VISION</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
 
 <a class="skip" href="#main">Skip to workspace</a>
