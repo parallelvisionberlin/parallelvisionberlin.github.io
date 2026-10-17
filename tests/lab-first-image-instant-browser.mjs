@@ -80,6 +80,15 @@ try{
   const deck=page.locator('#image-composer');
   const field=page.locator('#image-composer-prompt');
   await page.waitForFunction(()=>document.querySelector('#image-composer')?.classList.contains('pv-editorial-deck'));
+  // The first impression is an actual floating deck within a deliberate gap,
+  // not the normal dock beneath the six Mood cards.
+  await page.waitForFunction(()=>{
+    const app=document.getElementById('app'),d=document.getElementById('image-composer')?.getBoundingClientRect();
+    const b=document.querySelector('#lab-welcome-start .lab-welcome-balance')?.getBoundingClientRect();
+    const c=document.querySelector('.lab-welcome-presets')?.getBoundingClientRect();
+    return app.classList.contains('pv-welcome-deck-resting') &&
+      d && b && c && d.top>=b.bottom+3 && d.bottom<=c.top-3;
+  },null,{timeout:5000});
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
     'Empty Image deck must start collapsed, like the approved compact reference');
   assert.equal(await deck.evaluate(el=>getComputedStyle(el).display),'grid',
@@ -92,7 +101,32 @@ try{
       JSON.stringify({initialDeck,availableWidth,centerError}));
   assert.equal(await page.locator('.lab-welcome-preset').count(),6,
     'All six original welcome cards remain mounted');
-  const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top);
+  const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
+  const welcomeGeometry=await page.evaluate(()=>{
+    const bounds=s=>{const {top,bottom}=document.querySelector(s).getBoundingClientRect();return {top,bottom};};
+    return {balance:bounds('#lab-welcome-start .lab-welcome-balance'),
+      cards:bounds('.lab-welcome-presets'),deck:bounds('#image-composer')};
+  });
+  assert.ok(welcomeGeometry.cards.top-welcomeGeometry.balance.bottom>145,
+    'The initial floating deck must have genuine space before the Mood cards: '+JSON.stringify(welcomeGeometry));
+  assert.ok(welcomeGeometry.deck.top>welcomeGeometry.balance.bottom+3 &&
+    welcomeGeometry.deck.bottom<welcomeGeometry.cards.top-3,
+    'The floating deck must never overlap introductory text or cards: '+JSON.stringify(welcomeGeometry));
+  assert.equal(await page.locator('#image-composer-resolution-wrap').isVisible(),false,
+    'Compact invitation hides only secondary controls, not the underlying settings');
+  await page.locator('[data-welcome-mood="hong-kong-nights"]').click();
+  await page.waitForFunction(()=>{
+    const app=document.getElementById('app'),deck=document.getElementById('image-composer');
+    return !app.classList.contains('pv-welcome-deck-resting')&&deck.classList.contains('pv-deck-expanded');
+  });
+  const engagedDeck=await deck.boundingBox();
+  const engagedCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
+  assert.ok(engagedCardY<cardY-110,
+    'After Mood selection the original six-card placement returns');
+  assert.ok(864-(engagedDeck.y+engagedDeck.height)<32,
+    'The same expanded workdeck docks to the viewport bottom: '+JSON.stringify(engagedDeck));
+  assert.equal(await page.locator('#image-composer-resolution-wrap').isVisible(),true,
+    'The full 2K selection becomes visible in the engaged workdeck');
   await field.click();
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Clicking the prompt opens its multi-line editor');
@@ -121,9 +155,9 @@ try{
   await page.locator('[data-welcome-mood="hong-kong-nights"]').click();
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Choosing a Mood keeps the opened deck permanently expanded after blur');
-  const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top);
-  assert.ok(Math.abs(newCardY-cardY)<2,
-    'Expanding the floating deck must not reflow or move the welcome cards');
+  const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
+  assert.ok(Math.abs(newCardY-engagedCardY)<2,
+    'Once engaged, choosing another Mood must not move the welcome cards');
   assert.match(await page.locator('#image-composer-prompt').inputValue(),/jade-green-lit corner shop/);
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
     'The first Mood selection must use Seedream 2K, not the generic Studio 1K default');
