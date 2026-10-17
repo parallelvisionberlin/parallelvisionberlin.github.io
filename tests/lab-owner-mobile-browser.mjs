@@ -4,17 +4,19 @@ import assert from 'node:assert/strict';
 import {readFile, mkdir} from 'node:fs/promises';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
 const root=new URL('../lab/',import.meta.url);
-const [rawHtml,css,rawJs,rawProviderUi]=await Promise.all([
+const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi]=await Promise.all([
   readFile(new URL('owner.html',root),'utf8'),
   readFile(new URL('owner.css',root),'utf8'),
   readFile(new URL('owner.js',root),'utf8'),
-  readFile(new URL('owner-providers-ui.js',root),'utf8')
+  readFile(new URL('owner-providers-ui.js',root),'utf8'),
+  readFile(new URL('owner-acquisition-ui.js',root),'utf8')
 ]);
 // Run the real dashboard renderer with synthetic owner data, without authentication/network requests.
 const providerJs="const {createOwnerProviderUI,renderOwnerProviderFinances}=(()=>{"+
   rawProviderUi.replace(/^export /gm,'')+
   ";return {createOwnerProviderUI,renderOwnerProviderFinances};})();\n";
-const runtimeJs=providerJs+"const createSessionRequest=()=>async()=>({ok:false,json:async()=>({})});\n"+
+const acquisitionJs=rawAcquisitionUi.replace(/^export /gm,'')+'\n';
+const runtimeJs=providerJs+acquisitionJs+"const createSessionRequest=()=>async()=>({ok:false,json:async()=>({})});\n"+
   rawJs.replace(/^import .*\n/gm,'').replace(/\ntry\{clerk=await loadLabAccount\(\);[\s\S]*$/,'');
 const html=rawHtml
   .replace(/<link\b[^>]*>/g,'')
@@ -99,6 +101,29 @@ try{
       assert.equal(await page.locator('#owner-traffic-chart .owner-traffic-chart-column').count(),7);
       assert.ok((await page.locator('#owner-traffic-sources').innerText()).includes('Reddit'));
       assert.equal(await page.locator('a[data-owner-nav][href="#owner-traffic-section"]').count(),1,'Traffic has a dedicated sidebar link');
+
+      await page.evaluate(async()=>{
+        call=async path=>{
+          if(!path.startsWith('/api/admin/acquisition?'))throw Error('Unexpected commercial test endpoint.');
+          return {days:7,summary:{
+            newUsers:2,activatedUsers:1,completedJobs:3,providerExposureUsd:.24,
+            netCreditsSpent:120,checkoutStarts:2,checkoutPaid:1,revenueCents:1000
+          },customers:[
+            {id:'user_3lZGUxxxxLongFakeClerkCustomerIdentifierABC',email:'editorial+very-long-signup-name@example.com',
+              joinedAt:Date.UTC(2026,9,14),completedJobs:2,creditsSpent:100,
+              providerExposureUsd:.15,checkoutStarts:1,revenueCents:1000,reviewFlag:''},
+            {id:'user_highly_long_disposable',email:'temp@yournike.com',joinedAt:Date.UTC(2026,9,15),
+              completedJobs:0,creditsSpent:0,providerExposureUsd:0,
+              checkoutStarts:0,revenueCents:0,reviewFlag:'disposable-email'}
+          ],notes:{checkout:'Tracking begins with this release.',cost:'Provider costs are estimates.'}};
+        };
+        await acquisitionUI.refresh();
+      });
+      assert.equal(await page.locator('#owner-acquisition-new').textContent(),'2');
+      assert.equal(await page.locator('#owner-acquisition-revenue').textContent(),'€10.00');
+      assert.equal(await page.locator('#owner-acquisition-customers tr').count(),2,'Customer activity table is populated');
+      assert.match(await page.locator('#owner-acquisition-customers').innerText(),/Review temporary email/);
+
 
 
       assert.equal(await page.locator('.owner-customer-open').count(),3,'Each customer has a private activity action');

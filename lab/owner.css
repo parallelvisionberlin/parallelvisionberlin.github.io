@@ -699,3 +699,27 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
  .owner-traffic-card-heading h3{font-size:13px}
 }
 @media(prefers-reduced-motion:reduce){.owner-traffic-chart-bar{transition:none}}
+
+
+/* Acquisition metrics: consistent with the monochrome owner dashboard. */
+.owner-acquisition{padding-top:30px}
+.owner-acquisition-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid #393939;background:#111}
+.owner-acquisition-metrics>div{min-width:0;padding:20px 15px 18px;border-right:1px solid #393939}
+.owner-acquisition-metrics>div:last-child{border-right:0}
+.owner-acquisition-metrics span{display:block;color:#aaa;font-size:10px;letter-spacing:.035em}
+.owner-acquisition-metrics strong{display:block;min-width:0;margin:9px 0 5px;color:#f3f3ef;font-size:clamp(23px,2.3vw,36px);line-height:1.1;letter-spacing:-.055em;font-weight:300;overflow-wrap:anywhere}
+.owner-acquisition-metrics small{display:block;color:#929292;font-size:10px;line-height:1.6}
+.owner-acquisition-explain{margin:12px 0 0;color:#999;font-size:11px;line-height:1.7}
+.owner-acquisition-table-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin:33px 0 14px}
+.owner-acquisition-table-head h3{margin:0;color:#efefec;font-size:18px;font-weight:400;letter-spacing:-.045em}
+.owner-acquisition-table-head span{color:#898989;font-size:10px}
+.owner-acquisition-table table{font-variant-numeric:tabular-nums}
+.owner-acquisition-table td,.owner-acquisition-table th{font-size:11px}
+.owner-acquisition-identity{display:block;max-width:280px;font-weight:450;color:#ecece8;overflow-wrap:anywhere}
+.owner-acquisition-subid{display:block;margin-top:4px;color:#828282;font-size:10px;max-width:280px;overflow-wrap:anywhere}
+.owner-acquisition-open{margin-top:7px;padding:0;border:0;background:none;color:#c7c7c7;text-decoration:underline;text-underline-offset:3px;font-size:10px;cursor:pointer}
+.owner-acquisition-open:hover{color:#fff}
+.owner-acquisition-review{color:#c7b9aa}
+.owner-acquisition-review[data-level="normal"]{color:#9d9d9d}
+@media(max-width:1280px){.owner-acquisition-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.owner-acquisition-metrics>div{border-bottom:1px solid #393939}.owner-acquisition-metrics>div:nth-child(3){border-right:0}.owner-acquisition-metrics>div:nth-last-child(-n+2){border-bottom:0}}
+@media(max-width:760px){.owner-acquisition-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-acquisition-metrics>div:nth-child(3){border-right:1px solid #393939}.owner-acquisition-metrics>div:nth-child(even){border-right:0}.owner-acquisition-metrics>div:nth-last-child(2){border-bottom:1px solid #393939}.owner-acquisition-table-head{align-items:flex-start;flex-direction:column;gap:4px}.owner-acquisition-metrics strong{font-size:27px}}

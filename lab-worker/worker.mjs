@@ -1336,8 +1336,13 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
-  if(customer&&path==='/api/session'&&(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY)&&ctx?.waitUntil)
-    ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
+  if(customer&&path==='/api/session'&&(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY)){
+    // A first authenticated Studio session needs the verified welcome grant
+    // before it reads the wallet. Returning users keep the cheap cached sync.
+    const granted=await first(env,"SELECT 1 AS ok FROM lab_credit_entries WHERE customer_id=? AND reference=?",owner,'welcome:'+owner);
+    if(!granted)await syncCustomerEmail(env,owner).catch(()=>false);
+    else if(ctx?.waitUntil)ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
+  }
   if(customer&&!['/api/session','/api/customer/wallet','/api/customer/account','/api/billing/portal'].includes(path))await assertCustomerOpen(env,owner,{spending:method==='POST'&&!path.startsWith('/api/customer/')});
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
     if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');

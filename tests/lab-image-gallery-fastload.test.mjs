@@ -5,15 +5,17 @@ import {readFileSync} from 'node:fs';
 const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
 const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
 
-test('authenticated Image studio can paint before account-dependent history completes',()=>{
+test('authenticated Image studio keeps the loader until first history is ready but does not block on secondary resources',()=>{
   const start=lab.indexOf('async function sync(){'),end=lab.indexOf("\n$('studio-invite-friends')",start);
   assert.ok(start>=0&&end>start);
   const boot=lab.slice(start,end);
   const appReady=boot.indexOf("$('app').hidden=false");
-  const visible=boot.indexOf('finishLabBoot();',appReady);
-  const wait=boot.indexOf('await Promise.all([loadHistory()',appReady);
-  assert.ok(appReady>=0&&visible>appReady&&wait>visible,
-    'finish the loading overlay after authenticating and before awaiting all metadata');
+  const history=boot.indexOf('const historyReady=loadHistory()',appReady);
+  const wait=boot.indexOf('await historyReady;',history);
+  const visible=boot.indexOf('finishLabBoot();',wait);
+  assert.ok(appReady>=0&&history>appReady&&wait>history&&visible>wait,
+    'avoid flashing an empty gallery before the private first history batch is ready');
+  assert.match(boot,/void Promise\.all\(\[loadPacks\(\)\.catch/);
   assert.match(boot,/Loading your images…/);
   assert.match(boot,/loadHistory\(\)\.finally\(\(\)=>\$\('history'\)\.removeAttribute\('aria-busy'\)\)/);
   assert.match(boot,/loadHistory\(\)\.finally\(\(\)=>\$\('history'\)\.removeAttribute\('aria-busy'\)\)\.catch/);

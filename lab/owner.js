@@ -1,6 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
+import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261017-v1';
 const $=id=>document.getElementById(id);
 const apiBase='https://parallel-vision-lab.parallelvision.workers.dev';
 let clerk=null,revision=0,profile=null,creating=false,syncing=false,emailSyncReady=false,fetchSerial=0,searchTimer=null,syncNotice='',autoClerkSyncAttempted=false;
@@ -239,7 +240,8 @@ function paintTraffic(data){
   trafficComparison('owner-traffic-pages',Array.isArray(data.pages)?data.pages:[],trafficPageLabels);
   $('owner-traffic-disclaimer').textContent='Counting since '+data.firstTrackedDay+
     '. Estimated entrances and page views, not unique people. Referral sources can be hidden by browser privacy settings. '+
-    'New accounts are period totals, not proof that a source caused a signup.';
+    'New accounts are period totals, not proof that a source caused a signup. '+
+    'Clean URL categories are corrected from this release; historical Other page counts cannot be recovered.';
 }
 async function refreshTraffic(){
   if(!profile?.owner)return;
@@ -260,9 +262,14 @@ for(const button of document.querySelectorAll('[data-traffic-days]'))button.addE
   if(!profile?.owner)return;
   trafficDays=Number(button.dataset.trafficDays);
   void refreshTraffic();
+  void acquisitionUI.refresh();
 });
 $('owner-traffic-refresh').addEventListener('click',()=>void refreshTraffic());
 
+const acquisitionUI=createOwnerAcquisitionUI({
+  request:path=>call(path),ownerReady:()=>!!profile?.owner,revision:()=>revision,days:()=>trafficDays,
+  formatDate,formatNumber,openActivity:openCustomerActivity,mobileLabels:labelTableCellsForMobile
+});
 let recentFilter='all',recentCustomers=[],recentPayments=[];
 function recentRow(list,index,{primary,secondary,emphasis,at}){
   const li=document.createElement('li');li.className='owner-recent-item';
@@ -432,7 +439,7 @@ async function refreshDashboard(){
     const data=await call('/api/admin/overview'+(search?'?search='+encodeURIComponent(search):''));
     if(current!==revision||requestId!==fetchSerial)return;
     render(data);status('');
-    if(!search)void refreshTraffic();
+    if(!search){void refreshTraffic();void acquisitionUI.refresh();}
     if(!autoClerkSyncAttempted&&!syncing&&!search&&data.emailSyncConfigured&&
         Array.isArray(data.customers)&&data.customers.some(c=>!c.email)){
       autoClerkSyncAttempted=true;

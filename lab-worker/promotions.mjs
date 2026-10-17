@@ -1,5 +1,6 @@
 import {ownerProviderBalances} from './owner-providers.mjs';
 import {labTrafficReport} from './traffic.mjs';
+import {grantVerifiedWelcome,welcomeReviewFlag} from './welcome-guard.mjs';
 // PV LAB promotional credits and private customer administration.
 // All money and wallet records belong to LAB_DB. OWNER_DB is read for owner authorization only.
 const CODE=/^[A-Z0-9][A-Z0-9-]{5,23}$/;
@@ -43,7 +44,7 @@ async function clerkEmailStatus(env,subject,force=false){
   const secret=studio?env.LAB_CLERK_V2_SECRET_KEY:(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY);
   if(!secret)return 'missing_key';
   const contact=await one(env,'SELECT email,synced_at FROM lab_customer_contacts WHERE customer_id=?',subject);
-  const ttl=contact?.email?86400000:7*86400000;
+  const ttl=contact?.email?86400000:5*60000; // Newly verified users can receive their welcome grant promptly.
   if(!force&&contact?.synced_at&&Date.now()-contact.synced_at<ttl)return 'cached';
   let response;
   try{
@@ -73,6 +74,7 @@ async function clerkEmailStatus(env,subject,force=false){
 }
 export async function syncCustomerEmail(env,subject,options={}){
   const status=await clerkEmailStatus(env,subject,!!options.force);
+  if(status==='verified'||status==='cached')await grantVerifiedWelcome(env,subject);
   return options.details?{status}:['verified','unverified','cached'].includes(status);
 }
 
@@ -183,6 +185,79 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
   if(path==='/api/admin/traffic'&&method==='GET'){
     const days=Number(url.searchParams.get('days')||'7');
     return json(await labTrafficReport(env,{days}));
+  }
+  if(path==='/api/admin/acquisition'&&method==='GET'){
+    const days=Number(url.searchParams.get('days')||'7');
+    if(days!==7&&days!==30)fail(400,'Choose 7 or 30 days.');
+    const nowTime=Date.now(),today=new Date(nowTime).toISOString().slice(0,10);
+    const start=new Date(Date.parse(today+'T00:00:00Z')-(days-1)*86400000).getTime();
+    const end=Date.parse(today+'T00:00:00Z')+86400000;
+    const [accounts,active,jobs,credits,checkouts,revenue,customers]=await Promise.all([
+      one(env,'SELECT COUNT(*) AS n FROM lab_customers WHERE created_at>=? AND created_at<?',start,end),
+      one(env,`SELECT COUNT(*) AS n FROM lab_customers c
+        WHERE c.created_at>=? AND c.created_at<?
+          AND EXISTS(SELECT 1 FROM jobs j WHERE j.owner_id=c.id AND j.state='completed')`,start,end),
+      one(env,`SELECT COALESCE(SUM(CASE WHEN j.state NOT IN ('draft','failed')
+          THEN COALESCE(j.settled_cost,j.estimate_microusd/1000000.0) ELSE 0 END),0) AS exposureUsd,
+        COALESCE(SUM(CASE WHEN j.state='completed' THEN 1 ELSE 0 END),0) AS completedJobs
+        FROM jobs j JOIN lab_customers c ON c.id=j.owner_id
+        WHERE j.created_at>=? AND j.created_at<?`,start,end),
+      one(env,`SELECT COALESCE(SUM(CASE WHEN kind='generation' THEN -delta_credits
+          WHEN kind='refund' THEN -delta_credits ELSE 0 END),0) AS netSpent
+        FROM lab_credit_entries WHERE created_at>=? AND created_at<?`,start,end),
+      one(env,`SELECT COUNT(*) AS starts,COALESCE(SUM(CASE WHEN paid_at IS NOT NULL THEN 1 ELSE 0 END),0) AS paid
+        FROM lab_checkout_attempts WHERE created_at>=? AND created_at<?`,start,end),
+      one(env,`SELECT COALESCE(SUM(amount_cents),0) AS cents
+        FROM lab_revenue_events WHERE created_at>=? AND created_at<?`,start,end),
+      all(env,`SELECT c.id,c.created_at AS joinedAt,c.balance_credits AS balanceCredits,p.email,
+        COALESCE(j.totalJobs,0) AS totalJobs,COALESCE(j.completedJobs,0) AS completedJobs,
+        COALESCE(j.failedJobs,0) AS failedJobs,COALESCE(j.providerExposureUsd,0) AS providerExposureUsd,
+        j.lastCompletedAt,
+        COALESCE(e.creditsSpent,0) AS creditsSpent,
+        COALESCE(e.welcomeCredits,0) AS welcomeCredits,
+        COALESCE(ch.starts,0) AS checkoutStarts,
+        COALESCE(rv.cents,0) AS revenueCents
+        FROM lab_customers c
+        LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
+        LEFT JOIN (
+          SELECT owner_id,COUNT(*) AS totalJobs,
+            SUM(CASE WHEN state='completed' THEN 1 ELSE 0 END) AS completedJobs,
+            SUM(CASE WHEN state='failed' THEN 1 ELSE 0 END) AS failedJobs,
+            MAX(CASE WHEN state='completed' THEN updated_at END) AS lastCompletedAt,
+            SUM(CASE WHEN state NOT IN ('draft','failed')
+              THEN COALESCE(settled_cost,estimate_microusd/1000000.0) ELSE 0 END) AS providerExposureUsd
+          FROM jobs GROUP BY owner_id
+        ) j ON j.owner_id=c.id
+        LEFT JOIN (
+          SELECT customer_id,
+            SUM(CASE WHEN kind='generation' THEN -delta_credits
+              WHEN kind='refund' THEN -delta_credits ELSE 0 END) AS creditsSpent,
+            SUM(CASE WHEN kind='adjustment' AND reference='welcome:'||customer_id
+              THEN delta_credits ELSE 0 END) AS welcomeCredits
+          FROM lab_credit_entries GROUP BY customer_id
+        ) e ON e.customer_id=c.id
+        LEFT JOIN (SELECT customer_id,COUNT(*) AS starts FROM lab_checkout_attempts GROUP BY customer_id)
+          ch ON ch.customer_id=c.id
+        LEFT JOIN (SELECT customer_id,SUM(amount_cents) AS cents FROM lab_revenue_events GROUP BY customer_id)
+          rv ON rv.customer_id=c.id
+        ORDER BY c.created_at DESC LIMIT 100`)
+    ]);
+    return json({days,from:new Date(start).toISOString().slice(0,10),to:today,
+      summary:{
+        newUsers:Number(accounts?.n)||0,activatedUsers:Number(active?.n)||0,
+        completedJobs:Number(jobs?.completedJobs)||0,providerExposureUsd:Number(jobs?.exposureUsd)||0,
+        netCreditsSpent:Number(credits?.netSpent)||0,checkoutStarts:Number(checkouts?.starts)||0,
+        checkoutPaid:Number(checkouts?.paid)||0,revenueCents:Number(revenue?.cents)||0
+      },
+      customers:customers.map(customer=>({...customer,
+        reviewFlag:welcomeReviewFlag(customer.email,env),
+        activated:Number(customer.completedJobs)>0
+      })),
+      notes:{
+        cost:'Provider exposure uses settled costs when recorded, otherwise quoted estimates. Failed or deleted jobs and unrecorded vendor charges are not included.',
+        checkout:'Checkout starts and euro revenue are recorded only after this release. Earlier Stripe sessions are not backfilled.',
+        source:'Anonymous page-source aggregates cannot be joined to individual customers or used as unique visitor counts.'
+      }});
   }
   if(path==='/api/admin/providers'&&method==='GET'){
     // Financial data is owner-only. This branch executes AFTER requireOwner, not customer auth.

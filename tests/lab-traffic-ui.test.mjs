@@ -33,6 +33,10 @@ test('Reddit referrer and UTM links are attributed without sending referrer URLs
   assert.equal(reddit.events[0].options.credentials,'omit');
   assert.equal(reddit.events[0].options.referrerPolicy,'no-referrer');
   assert.ok(!reddit.events[0].options.body.includes('secret'));
+  for(const [path,category] of [['/studio','studio'],['/studio.html','studio'],['/moods','moods'],['/mood-creator','mood-creator'],['/fashion','fashion'],['/account','account'],['/lab/studio','studio']]){
+    const counted=runPage({path});
+    assert.equal(counted.events[0].body.page,category,'Clean route '+path+' must not become Other');
+  }
   const utm=runPage({search:'?utm_source=reddit&utm_medium=organic&utm_campaign=launch',path:'/lab/moods.html'});
   assert.equal(utm.events[0].body.source,'reddit');
   assert.equal(utm.events[0].body.page,'moods');

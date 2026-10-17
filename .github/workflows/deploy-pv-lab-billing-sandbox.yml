@@ -7,6 +7,7 @@ on:
     paths:
       - 'sandbox/stripe-billing/**'
       - 'lab-worker/customer-billing.mjs'
+      - 'lab-worker/migrations/0024-owner-acquisition.sql'
       - 'lab-worker/customer-lifecycle.mjs'
       - 'lab-worker/migrations/0011-customer-lifecycle.sql'
       - 'tests/lab-sandbox-billing.test.mjs'
@@ -69,6 +70,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0007-lab-referrals.sql --yes
             wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0008-soul-id-launch-credits.sql --yes
             wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0011-customer-lifecycle.sql --yes
+            wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0024-owner-acquisition.sql --yes
           command: deploy
       - name: Confirm test-only Worker health
         shell: bash
