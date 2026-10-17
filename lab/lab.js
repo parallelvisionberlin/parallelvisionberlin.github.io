@@ -2499,6 +2499,8 @@ function hideFirstCreditToast(){
   if(toast){toast.classList.remove('is-visible');toast.hidden=true;}
 }
 function showFirstCreditToast(profile){
+  // The complimentary toast must not appear for purchased credit balances.
+  if(profile?.welcomeCreditsPaused===true){newCustomerGrant=null;return;}
   const grant=newCustomerGrant;
   if(!grant||!profile?.customer||profile.owner!==false||
     grant.ownerId!==profile.ownerId||grant.sessionId!==clerk?.session?.id||
