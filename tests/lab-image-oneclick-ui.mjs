@@ -518,8 +518,8 @@ try{
  ];
  x=await workspace({savedPacks:slowPacks,packPreviewGate,brokenPreviewAssets:[badId]});
  const originalDeckHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
- await x.page.click('#composer-add-saved-toggle');
- assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'The arrow opens the full reference library modal');
+ await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');
+ assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'The compact library's Photo Packs choice opens the same modal');
  assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs.');
  assert.equal(await x.page.locator('#composer-library').isVisible(),false,'No legacy oversized popover competes with the modal');
  assert.equal(await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height),originalDeckHeight,
@@ -544,7 +544,7 @@ try{
  // Non-billable Photo Pack creation mirrors Soul's library → create workflow.
  // It must not touch the generation quote/submit routes or reset the Image deck.
  x=await workspace();
- await x.page.click('#composer-add-saved-toggle');
+ await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');
  await x.page.click('#pack-studio-new');
  assert.equal(await x.page.locator('#pack-studio-create-view').isVisible(),true);
  assert.equal(await x.page.locator('#pack-studio-from-deck').isDisabled(),true);
@@ -570,7 +570,7 @@ try{
  ok('PV Soul-style creation saves device photos then loads packs with no generation');assert.deepEqual(x.errors,[]);await x.context.close();
 
  x=await workspace();await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);
- await x.page.click('#composer-add-saved-toggle');await x.page.click('#pack-studio-new');
+ await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');await x.page.click('#pack-studio-new');
  assert.equal(await x.page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'false');
  assert.equal(await x.page.locator('#pack-studio-previews .pack-studio-preview').count(),0);
  await x.page.click('#pack-studio-from-deck');
