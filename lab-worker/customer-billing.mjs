@@ -1,4 +1,4 @@
-import {DEFAULT_CREDITS_PER_USD,creditsForJobUsd} from './job-pricing.mjs';
+import {DEFAULT_CREDITS_PER_USD,creditsForJobUsd,SOUL_ID_TRAINING_CREDITS as TRAINING_PRICE} from './job-pricing.mjs';
 import {assertCustomerOpen,customerRestrictions,customerAccount,requestAccountClosure,customerPromotionalReview} from './customer-lifecycle.mjs';
 import {rewardQualifiedReferral} from './referrals.mjs';
 import {labMetaOptIn,sendLabMetaPurchase} from './meta-capi.mjs';
@@ -10,7 +10,7 @@ export const CREDIT_MULTIPLIER = DEFAULT_CREDITS_PER_USD;
 export const CREDIT_MINIMUM = 7;
 export const WELCOME_CREDITS = 200;
 // Commercial Soul ID launch price. Keep in sync with migration 0008.
-export const SOUL_ID_TRAINING_CREDITS = 400;
+export const SOUL_ID_TRAINING_CREDITS = TRAINING_PRICE;
 export const PACKS = Object.freeze({
   topup10:{type:'payment',cents:1000,credits:1000,title:'PV Lab · 1,000 credits'},
   topup29:{type:'payment',cents:2900,credits:3000,title:'PV Lab · 3,000 credits'},
