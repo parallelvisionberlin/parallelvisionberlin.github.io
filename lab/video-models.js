@@ -32,13 +32,13 @@ export const VIDEO_MODELS = Object.freeze({
     endpoints: {start: 'minimax/h3-spicy/image-to-video'}
   }),
   h3maxfal: Object.freeze({
-    label: 'MiniMax H3 Max Reference · FAL', minSeconds: 5, maxSeconds: 15, maxImages: 12,
+    label: 'MiniMax H3 Max Reference', minSeconds: 5, maxSeconds: 15, maxImages: 12,
     modes: ['reference'], resolutions: ['480p', '768p', '1080p'],
     ratios: ['auto', '21:9', '16:9', '4:3', '1:1', '3:4', '9:16'],
     endpoints: {reference: 'minimax/h3-max/reference-to-video'}
   }),
   omni: Object.freeze({
-    label: 'Gemini Omni Flash 1.1 · FAL', minSeconds: 3, maxSeconds: 10, maxImages: 10,
+    label: 'Gemini Omni Flash 1.1', minSeconds: 3, maxSeconds: 10, maxImages: 10,
     modes: ['start', 'reference', 'text'], resolutions: ['360p', '720p', '1080p', '4k'],
     ratios: ['16:9', '9:16'],
     endpoints: {
