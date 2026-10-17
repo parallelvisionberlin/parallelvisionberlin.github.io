@@ -241,3 +241,17 @@ CREATE TABLE IF NOT EXISTS lab_promo_generation_holds (
 );
 CREATE INDEX IF NOT EXISTS lab_promo_generation_holds_open
   ON lab_promo_generation_holds(released_at,created_at);
+
+-- Owner review access audit, customer outputs remain under their own R2 keys.
+CREATE TABLE IF NOT EXISTS lab_owner_generation_review_audit (
+  id TEXT PRIMARY KEY,
+  owner_id TEXT NOT NULL,
+  customer_id TEXT NOT NULL REFERENCES lab_customers(id),
+  job_id TEXT,
+  action TEXT NOT NULL CHECK(action IN ('gallery_opened','thumbnail_requested')),
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS lab_owner_generation_review_audit_date
+  ON lab_owner_generation_review_audit(created_at);
+CREATE INDEX IF NOT EXISTS lab_owner_generation_review_audit_customer
+  ON lab_owner_generation_review_audit(customer_id,created_at DESC);
