@@ -36,7 +36,7 @@ BEGIN
 END;
 CREATE TRIGGER IF NOT EXISTS lab_trial_pause_unpaid_job_activation
 BEFORE UPDATE OF state ON jobs
-WHEN OLD.state='draft' AND NEW.state<>'draft'
+WHEN OLD.state='draft' AND NEW.state NOT IN ('draft','failed','resolved')
  AND EXISTS(SELECT 1 FROM lab_trial_program_controls
    WHERE id=1 AND free_generation_enabled=0)
  AND EXISTS(SELECT 1 FROM lab_customers c WHERE c.id=NEW.owner_id)
