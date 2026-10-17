@@ -1,26 +1,26 @@
 # Parallel Vision Homepage Work State
-Updated: 2026-10-16
+Updated: 2026-10-17
 Site: https://parallelvisionlabel.com/
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 
-## Latest user direction
-- Preserve the homepage composition and the existing TALK TO NINA bottom-right treatment exactly.
-- Revert the Enter Berlin 2063 action to the ORIGINAL compact outlined-pillow/pill design, but polish the button.
-- User rejected the oversized/bare typographic CTA, detached arrow, vertical pink accent, white arrow end-cap and signup-style rectangle.
-- Main action remains ENTER BERLIN 2063 leading to `./berlin-2063.html`, while LAB stays in the navigation.
+## Approved direction
+- Change ONLY the ENTER BERLIN 2063 capsule to the latest refined design mockup, with better lettering.
+- Preserve the Parallel Vision title, city video, hero copy, navigation and TALK TO NINA exactly.
+- Keep the pill outline and subtle translucency, no neon or added decoration.
+- Keep navigation to `./berlin-2063.html`; Lab currently links to `https://pvlab.studio/`.
 
-## Implemented
-- `index.html`: only the `.hero-world-cta` CSS block was replaced, using the initial compact button proportions with refined 47px height, 12px Inter, muted outline, transparent dark background, arrow inside, understated hover.
-- 27px below hero description, in its original position. No added badges, rules, endcaps or accent lines.
-- Phone style centered, 46px tap area, compact typography and in-button arrow.
-- Existing HTML, EN/DE language.js translations, destination, video, Nina control, other modules unchanged.
-- Baseline main revision: `bf4f8d6bfedfdabe5ab849204b15fdf3c16a346a`.
+## Current implementation
+- `index.html`: replaced only the scoped `.hero-world-cta*` CSS region.
+- More distinctive geometric letters using already-loaded Michroma (11px desktop / 10px mobile), subtly tracked and full uppercase.
+- Slightly taller capsule (50px desktop, 48px mobile), refined ivory line, transparent dark fill and restrained arrow hover.
+- Original HTML, German/English mappings and layout all untouched.
+- Baseline main commit: `7b1f33a7b8ab6b68f2b558b383ca651469affaa4`.
 
-## Verification
-- Source checks: one destination link, original text spans, translation matches, no large separated typography, no end-cap.
-- CI / deployment: verify after commit.
-- Live desktop and phone appearance needs visual review; no browser screenshot performed.
+## Validation
+- Asserted original CTA HTML and link unchanged, outside CSS identical, translations unchanged, Nina control still present and Lab still points to pvlab.studio.
+- Reduced-motion and keyboard-focus styles retained.
+- Static site validation and GitHub Pages deployment: check after commit.
+- Browser visual checks on desktop/phone remain pending.
 
 ## Next
-- Confirm GitHub Pages success for a commit containing the fix.
-- Avoid further redesign until direct user feedback; retain TALK TO NINA untouched.
+- Verify deployment and visually assess the refined lettering without changing anything else.
