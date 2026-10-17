@@ -24,6 +24,10 @@ assert.ok(source.includes("document.documentElement.classList.add('pv-studio-boo
 const studioHtml=readFileSync('lab/studio.html','utf8');
 assert.match(studioHtml,/<html lang="en" class="pv-studio-boot-lock">/,'Initial HTML locks scroll before any route renders');
 assert.match(studioHtml,/html\.pv-studio-boot-lock\{scroll-behavior:auto!important\}/,'Boot overrides smooth scrolling while locked');
+assert.match(studioHtml,/@media\(min-width:761px\)\{html\.pv-studio-boot-lock\{scrollbar-gutter:stable\}\}/,
+  'Classic scrollbar gutter is reserved on the HTML root before the Image route initializes');
+assert.match(studioHtml,/@media\(min-width:761px\)\{html:has\(#app\.image-studio-active\)\{scrollbar-gutter:stable\}\}/,
+  'Image route retains the same gutter once the loading lock is removed');
 assert.match(studioHtml,/#lab-boot\{position:fixed;inset:0;width:100vw;/,
   'Splash keeps true viewport width even when the Image route adds a scrollbar gutter');
 assert.doesNotMatch(studioHtml, /lab-boot-architecture|pv-architecture-reveal|lab-boot-fluid|pv-fluid-/,
@@ -571,10 +575,13 @@ try{
   const splashAtStart=await bootPage.evaluate(()=>{
     const root=document.documentElement;
     return {overflow:getComputedStyle(root).overflowY,scrollY:window.scrollY,
+      gutter:getComputedStyle(root).scrollbarGutter,
       locked:root.classList.contains('pv-studio-boot-lock'),font:getComputedStyle(document.getElementById('lab-boot-name')).fontFamily};
   });
   assert.equal(splashAtStart.overflow,'hidden','Full-screen splash has no document scrollbar');
   assert.equal(splashAtStart.locked,true,'Splash maintains the initial scroll lock');
+  assert.equal(splashAtStart.gutter,'stable',
+    'Desktop loading reserves scrollbar gutter from its first frame, before Image activates');
   assert.equal(splashAtStart.scrollY,0,'Startup begins at the top instead of a restored scroll position');
   assert.match(splashAtStart.font,/Helvetica Neue|Arial/,'Loader never uses an asynchronously swapped font');
   assert.equal(await bootPage.locator('#lab-boot').locator('.lab-boot-content').count(),1,
@@ -609,6 +616,31 @@ try{
   assert.equal(Math.round((await bootPage.locator('#lab-boot').boundingBox()).width),1440,
     'Boot splash continues to cover the entire viewport after Image initializes');
   await bootPage.evaluate(()=>document.getElementById('app').classList.remove('image-studio-active'));
+  // Reproduce classic Windows scrollbars: a percent-sized fixed overlay would
+  // previously move 7.5px left when the Image route reserved its 15px gutter.
+  // The real overlay stays 100vw, but this checks the root layout independently.
+  const classicScrollbar=await bootPage.evaluate(()=>{
+    const root=document.documentElement;
+    const app=document.getElementById('app');
+    const overlay=document.getElementById('lab-boot');
+    const logo=document.getElementById('lab-boot-name');
+    const center=()=>{const r=logo.getBoundingClientRect();return r.left+r.width/2;};
+    overlay.style.width='100%';
+    const before={center:center(),rootWidth:root.getBoundingClientRect().width,
+      gutter:getComputedStyle(root).scrollbarGutter};
+    app.classList.add('image-studio-active');
+    const after={center:center(),rootWidth:root.getBoundingClientRect().width,
+      gutter:getComputedStyle(root).scrollbarGutter};
+    app.classList.remove('image-studio-active');
+    overlay.style.removeProperty('width');
+    return {before,after};
+  });
+  assert.equal(classicScrollbar.before.gutter,'stable');
+  assert.equal(classicScrollbar.after.gutter,'stable');
+  assert.ok(Math.abs(classicScrollbar.after.center-classicScrollbar.before.center)<.25,
+    'Classic scrollbar activation must not move the logo, even with a percent-sized overlay');
+  assert.ok(Math.abs(classicScrollbar.after.rootWidth-classicScrollbar.before.rootWidth)<.25,
+    'The available document width cannot shrink partway through Studio loading');
   await bootPage.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'none',
     'Reduced-motion mode leaves the original loader mark static');
@@ -634,6 +666,8 @@ try{
   await bootPage.setViewportSize({width:390,height:844});
   const mobileBootGeometry=await loaderLogo.boundingBox();
   assert.ok(mobileBootGeometry&&mobileBootGeometry.x>=0&&mobileBootGeometry.x+mobileBootGeometry.width<=390,'Brand stays inside the mobile viewport');
+  assert.equal(await bootPage.evaluate(()=>getComputedStyle(document.documentElement).scrollbarGutter),'auto',
+    'Narrow mobile view does not reserve a desktop scrollbar gutter');
   assert.equal(await bootPage.locator('#lab-boot-wordmark').count(),0,'Loader no longer waits for the old brand image');
   const loadingCdp=await bootContext.newCDPSession(bootPage);
   const loadingCapture=await loadingCdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});

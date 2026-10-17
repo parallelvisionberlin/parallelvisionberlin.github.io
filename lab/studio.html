@@ -27,8 +27,11 @@ try{if(localStorage.getItem('pv-lab-image-previews-hidden-v1')==='1')document.do
    Hide the underlying document scrollbar until the 240ms splash exit has ended. */
 html.pv-studio-boot-lock,html.pv-studio-boot-lock body{overflow:hidden!important;overscroll-behavior:none!important}
 html.pv-studio-boot-lock{scroll-behavior:auto!important}
-/* Reserve Image gallery scrollbar space through the splash and delayed history.
-   Keep the mobile floating composer centered and other routes unchanged. */
+/* Chrome/Windows classic scrollbars consume width when the Image route becomes active.
+   Reserve that gutter from the first loading frame to prevent the logo moving left. */
+@media(min-width:761px){html.pv-studio-boot-lock{scrollbar-gutter:stable}}
+/* Retain the reserved gutter after loading only for Image gallery/history.
+   Mobile stays centered without reserving unused scrollbar space. */
 @media(min-width:761px){html:has(#app.image-studio-active){scrollbar-gutter:stable}}
 /* Visible before the external scripts and stylesheets load. No remote imagery or icon fonts. */
 body.lab-booting{margin:0;background:#101114}
