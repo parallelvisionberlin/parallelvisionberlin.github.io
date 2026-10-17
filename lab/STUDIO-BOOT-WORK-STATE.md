@@ -87,3 +87,10 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - Tests in tests/lab-studio-layout-ui.mjs cover initial gutter reservation, inline SVG, no logo displacement when Image class appears, reduced motion and the previous exit.
 - Desktop/mobile art was rendered in local isolated Chromium previews. The repo full browser test and live Cloudflare deployment still require independent confirmation.
 - Scope: Studio loading overlay and layout test/state only. No galleries, generation, worker, accounts, pricing, or payments altered.
+
+## October 17 merge and live custom-domain verification
+- Studio fluid source was squash-merged as main commit 2035e5744434d2e28d059676f7e00d0b7abdf86c (PR #287).
+- A follow-up domain smoke check (commit 28222a86f7255928abb1f1a5dfdae180c3468d14) verifies the public https://pvlab.studio/studio.html payload contains the inline .lab-boot-fluid SVG, width:100vw fixed overlay and unchanged pv-boot-dismiss .24s fade.
+- GitHub Actions run 39051947781 (PV LAB domain live readiness) finished SUCCESS. Its custom-domain loop passed the added fluid and alignment checks and existing root/worker/route assertions.
+- Focused Studio/Fashion browser suite and site static checks passed on the PR. No user-paid generations were run. Other unrelated account, asset and video browser assertions were also failing on baseline main before the feature.
+- Next: user visually confirm the appearance in a normal and a hard-refresh load on desktop/mobile; tuning, if requested, should stay confined to the decorative SVG and CSS without touching readiness/fade or backend.
