@@ -847,3 +847,100 @@
   #pack-studio-dialog:not(.is-creating) .pack-studio-intro{height:133px;min-height:133px;margin:9px 0 12px}
   #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{height:151px;flex-basis:151px}
 }
+
+
+/* 2026-10-18: Quiet Photo Packs tools. Create stays in the gallery,
+   only the alternate layout control is shown, and pack data is untouched. */
+#pack-studio-dialog:not(.is-creating) .pack-studio-collection-heading{
+  justify-content:space-between;gap:12px;min-height:34px;margin:0 0 9px
+}
+#pack-studio-dialog:not(.is-creating) .pack-studio-collection-heading strong{
+  font-size:15px;font-weight:600
+}
+#pack-studio-dialog:not(.is-creating) #pack-studio-library-count{
+  font-size:10px;color:#858d94
+}
+#pack-studio-dialog .pack-studio-collection-title{gap:9px}
+#pack-studio-dialog .pack-studio-view-controls{
+  margin-left:auto;gap:6px
+}
+#pack-studio-dialog .pack-studio-view-button[aria-pressed="true"]{display:none}
+#pack-studio-dialog .pack-studio-view-button:not([aria-pressed="true"]){
+  border-color:#30363a;background:#171d21;color:#b4bac0
+}
+#pack-studio-dialog .pack-studio-grid .pack-studio-card-new{
+  position:relative;min-width:0;min-height:0;align-self:stretch;
+  border-radius:10px;gap:8px;background:#14191d;
+  border:1px dashed #485057;padding:12px;
+}
+#pack-studio-dialog .pack-studio-grid .pack-studio-card-new:hover{
+  background:#20262a;border-color:#899199
+}
+#pack-studio-dialog .pack-studio-grid .pack-studio-card-new-symbol{
+  width:35px;height:35px;border-radius:50%;font-size:24px;
+  border:1px solid #545b61;background:#1c2226;color:#f0f1ef
+}
+#pack-studio-dialog .pack-studio-grid .pack-studio-card-new strong{
+  font-size:11.5px;font-weight:620;color:#f1f2ef
+}
+#pack-studio-dialog .pack-studio-grid .pack-studio-card-new small{
+  color:#939aa0;font-size:10px;max-width:140px
+}
+#pack-studio-dialog .pack-studio-new-icon{
+  display:inline-grid;place-items:center;flex:0 0 27px;
+  width:27px;height:27px;min-height:27px;
+  margin:0;padding:0;border:1px solid #42494d;border-radius:8px;
+  background:#1b2125;color:#dedfdd;font-size:19px;line-height:1
+}
+#pack-studio-dialog .pack-studio-new-icon:hover{
+  background:#30383d;border-color:#899197
+}
+#pack-studio-dialog .pack-studio-new-icon:disabled{opacity:.4}
+@media(min-width:941px){
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro{
+    height:121px;min-height:121px;max-height:121px;
+    margin:6px 0 10px;padding:15px 24px;
+    box-shadow:inset 0 -26px 58px #080b0e92,0 7px 19px #0004
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro h3{
+    font-size:26px;font-weight:610
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro p{
+    margin:5px 0 0;font-size:11px
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]){
+    grid-template-columns:repeat(5,minmax(0,1fr));gap:10px
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{
+    height:132px;flex-basis:132px
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-card-name{
+    font-size:11px;margin:6px 0 0;padding:0 9px
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-card-count{
+    font-size:9.5px;margin:2px 0 8px;padding:0 9px
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-new{
+    min-height:165px
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-footnote{
+    margin-top:9px;padding-top:7px
+  }
+}
+@media(min-width:701px) and (max-width:940px){
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro{
+    height:123px;min-height:123px;max-height:123px
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{
+    height:132px;flex-basis:132px
+  }
+}
+@media(max-width:700px){
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro{
+    height:125px;min-height:125px;max-height:125px
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{
+    height:138px;flex-basis:138px
+  }
+  #pack-studio-dialog .pack-studio-grid .pack-studio-card-new{min-height:180px}
+}
