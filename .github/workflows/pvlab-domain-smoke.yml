@@ -84,6 +84,7 @@ jobs:
               && grep -Fq 'pv-studio-route-pending' /tmp/live-canonical-studio.html \
               && grep -Fq '<html lang="en" class="pv-studio-boot-lock">' /tmp/live-fashion-studio.html \
               && grep -Fq 'html.pv-studio-boot-lock{scroll-behavior:auto!important}' /tmp/live-fashion-studio.html \
+              && grep -Fq '@media(min-width:761px){html.pv-studio-boot-lock{scrollbar-gutter:stable}}' /tmp/live-fashion-studio.html \
               && grep -Fq "history.scrollRestoration='manual';" /tmp/live-fashion-studio.html \
               && grep -Fq "document.documentElement.classList.add('pv-studio-route-pending')" /tmp/live-studio-js \
               && grep -Fq "document.documentElement.classList.add('pv-studio-boot-lock')" /tmp/live-studio-js \
