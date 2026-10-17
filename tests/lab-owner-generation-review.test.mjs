@@ -40,10 +40,6 @@ function fixture(t){
     query('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)',
       id,id,1,1);
   }
-  query('INSERT INTO lab_promo_generation_holds(customer_id,reason,created_at) VALUES(?,?,?)',
-    'user_FLAGGED','disposable-email',Date.now());
-  query('INSERT INTO lab_promo_generation_holds(customer_id,reason,created_at) VALUES(?,?,?)',
-    'user_BUYER','disposable-email',Date.now());
   const asset=(id,owner,object,mime,kind='source')=>query(
     'INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)',
     id,owner,object,kind,mime,'private',42,1);
@@ -59,6 +55,11 @@ function fixture(t){
   job('job_video_001','user_FLAGGED',ids.video);
   job('job_uploaded_reference','user_FLAGGED',ids.uploaded,'draft');
   job('job_other_customer','user_REGULAR',ids.other);
+  // Backfill scenario: outputs existed before the suspicious accounts were held.
+  query('INSERT INTO lab_promo_generation_holds(customer_id,reason,created_at) VALUES(?,?,?)',
+    'user_FLAGGED','disposable-email',Date.now());
+  query('INSERT INTO lab_promo_generation_holds(customer_id,reason,created_at) VALUES(?,?,?)',
+    'user_BUYER','disposable-email',Date.now());
   const request=(path,method='GET')=>new Request('https://parallel-vision-lab.parallelvision.workers.dev'+path,{method});
   const admin=(path,subject='owner_live',method='GET')=>labAdminRoute(request(path,method),env,subject);
   return {db,env,query,get,request,admin,storageReads};
