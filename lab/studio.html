@@ -36,24 +36,6 @@ body.lab-booting{margin:0;background:#101114}
    scrollbar gutter. 100vw stays tied to the full viewport, so the logo never jumps. */
 #lab-boot{position:fixed;inset:0;width:100vw;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#121316 0%,#08090a 73%);color:#ededee;font-family:"Helvetica Neue",Arial,sans-serif;overflow:hidden}
 
-/* Architectural reveal: the existing logo and progress bar paint immediately.
-   Panels only gain opacity behind them as genuine loading continues. */
-.lab-boot-architecture{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.lab-boot-architecture .pv-architecture-panel,.lab-boot-architecture .pv-architecture-guide{position:absolute;pointer-events:none;opacity:0;animation:pv-architecture-reveal 1.2s ease-out both}
-.pv-architecture-panel{box-sizing:border-box}
-.pv-architecture-panel::after{content:"";position:absolute;pointer-events:none}
-.pv-architecture-left{--pv-alpha:.7;left:21.5%;top:23.5%;width:28%;height:53%;animation-delay:.16s!important;background:repeating-linear-gradient(90deg,transparent 0,rgba(246,246,250,.018) 1px,transparent 2px,transparent 6px),linear-gradient(90deg,rgba(16,18,20,.13),rgba(20,22,24,.53) 80%,rgba(31,33,36,.45) 100%);border-top:1px solid rgba(156,159,164,.12);box-shadow:inset -25px 0 70px rgba(0,0,0,.65);mask-image:linear-gradient(to bottom,#000 0%,#000 68%,transparent 100%)}
-.pv-architecture-left::after{right:0;top:0;height:74%;width:1px;background:linear-gradient(to bottom,rgba(235,235,240,.24),rgba(198,204,210,.6) 38%,transparent);box-shadow:0 0 10px rgba(170,176,182,.19)}
-.pv-architecture-center{--pv-alpha:.78;left:34.5%;top:18.5%;width:22.5%;height:61%;animation-delay:.33s!important;background:repeating-linear-gradient(90deg,transparent 0,rgba(251,251,250,.023) 1px,transparent 2px,transparent 5px),linear-gradient(95deg,rgba(15,16,18,.16),rgba(23,25,27,.68) 75%,rgba(60,64,68,.38) 99%);border-top:1px solid rgba(155,163,170,.11);mask-image:linear-gradient(to bottom,#000 0%,#000 68%,transparent 100%)}
-.pv-architecture-center::after{right:0;top:0;height:61%;width:1px;background:linear-gradient(to bottom,rgba(243,245,248,.84) 0%,rgba(214,220,225,.65) 35%,rgba(80,91,99,.3) 72%,transparent 100%);box-shadow:0 0 6px 1px rgba(230,233,237,.18),0 0 30px rgba(208,212,216,.12)}
-.pv-architecture-right{--pv-alpha:.8;left:63%;top:42%;width:20.5%;height:51%;animation-delay:.56s!important;background:repeating-linear-gradient(90deg,transparent 0,rgba(244,244,247,.022) 1px,transparent 2px,transparent 5px),linear-gradient(92deg,rgba(67,71,75,.64) 0%,rgba(36,38,40,.48) 11%,rgba(21,23,25,.65) 46%,rgba(4,5,6,.03) 100%);border-top:1px solid rgba(177,181,186,.19);mask-image:linear-gradient(to bottom,#000 0%,#000 71%,transparent 100%)}
-.pv-architecture-right::after{left:0;top:0;height:76%;width:2px;background:linear-gradient(to bottom,rgba(254,254,253,.94) 0%,rgba(234,237,243,.7) 28%,rgba(104,113,122,.18) 80%,transparent 100%);box-shadow:0 0 7px 1px rgba(244,246,248,.42),0 0 23px rgba(211,217,223,.2)}
-.pv-architecture-guide{background:linear-gradient(to bottom,transparent,rgba(161,166,171,.35),transparent)}
-.pv-architecture-guide-a{--pv-alpha:.3;left:46.6%;top:0;width:1px;height:25%;animation-delay:.62s!important}
-.pv-architecture-guide-b{--pv-alpha:.15;left:63%;top:28%;width:1px;height:61%;animation-delay:.85s!important}
-.pv-architecture-guide-c{--pv-alpha:.15;left:34.5%;top:18.5%;width:1px;height:55%;animation-delay:.45s!important}
-@keyframes pv-architecture-reveal{from{opacity:0}to{opacity:var(--pv-alpha,.7)}}
-@media(max-width:600px){.pv-architecture-left{left:-27%;top:29%;width:63%;height:51%}.pv-architecture-center{left:20%;top:19%;width:46%;height:57%}.pv-architecture-right{left:76%;top:46%;width:45%;height:48%}.pv-architecture-guide-a{left:53%}.pv-architecture-guide-b{left:76%}.pv-architecture-guide-c{left:20%}}
 .lab-boot-content{position:relative;z-index:1;width:min(360px,calc(100vw - 56px));text-align:center;transform:translateY(-1.5vh)}
 .lab-boot-brand{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .lab-boot-wordmark{position:relative;display:block;white-space:nowrap;padding-left:.24em;font-family:"Helvetica Neue",Arial,sans-serif;font-size:clamp(25px,3.2vw,33px);font-weight:400;letter-spacing:.24em;line-height:1.24;color:#ececef;will-change:filter,transform,opacity}
@@ -76,7 +58,7 @@ html:not(.pv-native-route-pending) body.lab-ready #lab-boot .lab-boot-wordmark,h
 html:not(.pv-native-route-pending) body.lab-ready #lab-boot .lab-boot-wordmark::before,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot .lab-boot-wordmark::before{animation:pv-boot-trail-out .24s ease-out both}
 html.pv-native-route-pending #lab-boot{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;animation:none!important}
 html.pv-native-route-pending #app{visibility:hidden!important}
-@media(prefers-reduced-motion:reduce){.lab-boot-architecture .pv-architecture-panel,.lab-boot-architecture .pv-architecture-guide{animation:none!important;opacity:var(--pv-alpha,.7)!important}.lab-boot-wordmark,.lab-boot-wordmark::before,.lab-boot-sub{animation:none!important;filter:none!important;transform:none!important}.lab-boot-wordmark::before{display:none}.lab-boot-track:after{animation:none;width:100%;background:#5a5657}html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:none!important;opacity:0!important;visibility:hidden!important}}
+@media(prefers-reduced-motion:reduce){.lab-boot-wordmark,.lab-boot-wordmark::before,.lab-boot-sub{animation:none!important;filter:none!important;transform:none!important}.lab-boot-wordmark::before{display:none}.lab-boot-track:after{animation:none;width:100%;background:#5a5657}html:not(.pv-native-route-pending) body.lab-ready #lab-boot,html:not(.pv-native-route-pending):not(.pv-studio-route-pending) body:has(#app:not([hidden])) #lab-boot{animation:none!important;opacity:0!important;visibility:hidden!important}}
 </style>
 <script>
 if(window.__PV_LAB_NATIVE__===1)document.documentElement.classList.add('pv-native-route-pending');
@@ -172,14 +154,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   <span>Ready to create.</span>
 </div>
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Loading PV LAB">
-<div class="lab-boot-architecture" aria-hidden="true">
-<span class="pv-architecture-panel pv-architecture-left"></span>
-<span class="pv-architecture-panel pv-architecture-center"></span>
-<span class="pv-architecture-panel pv-architecture-right"></span>
-<span class="pv-architecture-guide pv-architecture-guide-a"></span>
-<span class="pv-architecture-guide pv-architecture-guide-b"></span>
-<span class="pv-architecture-guide pv-architecture-guide-c"></span>
-</div>
 <div class="lab-boot-content"><div class="lab-boot-brand" aria-label="PV LAB by Parallel Vision"><span class="lab-boot-wordmark" id="lab-boot-name" data-text="PV LAB">PV LAB</span><span class="lab-boot-sub">BY PARALLEL VISION</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
 
 <a class="skip" href="#main">Skip to workspace</a>

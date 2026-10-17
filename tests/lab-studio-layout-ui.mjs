@@ -26,11 +26,12 @@ assert.match(studioHtml,/<html lang="en" class="pv-studio-boot-lock">/,'Initial 
 assert.match(studioHtml,/html\.pv-studio-boot-lock\{scroll-behavior:auto!important\}/,'Boot overrides smooth scrolling while locked');
 assert.match(studioHtml,/#lab-boot\{position:fixed;inset:0;width:100vw;/,
   'Splash keeps true viewport width even when the Image route adds a scrollbar gutter');
-assert.match(studioHtml,/<div class="lab-boot-architecture" aria-hidden="true">/,
-  'Geometric reveal is decorative HTML and does not need image or video downloads');
-assert.match(studioHtml,/@keyframes pv-architecture-reveal/, 'Panels fade in while the Studio is loading');
-assert.doesNotMatch(studioHtml, /lab-boot-fluid|pv-fluid-left|pv-fluid-right/,
-  'The previous large liquid-metal ribbons are fully removed');
+assert.doesNotMatch(studioHtml, /lab-boot-architecture|pv-architecture-reveal|lab-boot-fluid|pv-fluid-/,
+  'Restore the original quiet loading screen without geometric or fluid decoration');
+assert.match(studioHtml, /<div id="lab-boot"[^>]*>\s*<div class="lab-boot-content">/,
+  'The original centered brand and progress line are the only visible boot content');
+assert.match(studioHtml, /animation:pv-boot-dismiss \.24s ease-out both/,
+  'Retain the approved 240ms exit fade without modification');
 assert.match(studioHtml,/history\.scrollRestoration='manual';/,'All direct routes opt out of stale Chrome scroll restoration');
 assert.match(studioHtml,/new MutationObserver\(scheduleBootUnlock\)/,'Native route completion can release the boot scroll lock');
 const splashWordmark=studioHtml.match(/\.lab-boot-wordmark\{([^}]*)\}/)?.[1]||'';
@@ -537,17 +538,10 @@ try{
   assert.equal(splashAtStart.locked,true,'Splash maintains the initial scroll lock');
   assert.equal(splashAtStart.scrollY,0,'Startup begins at the top instead of a restored scroll position');
   assert.match(splashAtStart.font,/Helvetica Neue|Arial/,'Loader never uses an asynchronously swapped font');
-  const architecture=bootPage.locator('#lab-boot > .lab-boot-architecture');
-  const panels=architecture.locator('.pv-architecture-panel');
-  assert.equal(await panels.count(),3,'Only three restrained architectural panels frame the logo');
-  assert.equal(await architecture.getAttribute('aria-hidden'),'true','Geometry is excluded from accessibility');
-  assert.deepEqual(await panels.evaluateAll(els=>els.map(el=>getComputedStyle(el).animationDelay)),
-    ['0.16s','0.33s','0.56s'],'Panels enter gradually instead of showing at the initial logo paint');
-  assert.equal(await panels.first().evaluate(el=>getComputedStyle(el).animationName),
-    'pv-architecture-reveal','Panel reveal is visual only and does not wait for a JS signal');
-  await panels.evaluateAll(els=>els.forEach(el=>el.getAnimations().forEach(a=>a.finish())));
-  assert.ok(await panels.last().evaluate(el=>Number(getComputedStyle(el).opacity)>.65),
-    'Architectural forms are visible by the end of a longer real loading period');
+  assert.equal(await bootPage.locator('#lab-boot').locator('.lab-boot-content').count(),1,
+    'Original loader renders its centered content once');
+  assert.equal(await bootPage.locator('#lab-boot > *').count(),1,
+    'No decorative panels, artwork, or other visible loading elements remain');
   const logoBefore=await loaderLogo.boundingBox();
   assert.ok(Math.abs(logoBefore.x+logoBefore.width/2-720)<1,
     'Brand is centered within the complete 1440px viewport, not the reduced scroll area');
@@ -559,8 +553,8 @@ try{
     'Boot splash continues to cover the entire viewport after Image initializes');
   await bootPage.evaluate(()=>document.getElementById('app').classList.remove('image-studio-active'));
   await bootPage.emulateMedia({reducedMotion:'reduce'});
-  assert.equal(await panels.first().evaluate(el=>getComputedStyle(el).animationName),'none',
-    'System reduced-motion disables the geometric reveal while leaving the panels static');
+  assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'none',
+    'Reduced-motion mode leaves the original loader mark static');
   await bootPage.emulateMedia({reducedMotion:'no-preference'});
   await bootPage.mouse.wheel(0,820);
   await bootPage.waitForTimeout(500);
