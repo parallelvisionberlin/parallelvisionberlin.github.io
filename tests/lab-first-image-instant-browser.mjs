@@ -83,7 +83,26 @@ try{
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
     'Empty Image deck must start collapsed, like the approved compact reference');
   assert.equal(await deck.evaluate(el=>getComputedStyle(el).display),'grid',
-    'Desktop Image deck must use the original two-row composer, not a horizontal strip');
+    'Desktop welcome keeps one true Image composer, using a grid instrument');
+  const idleLayout=await page.evaluate(()=>{
+    const get=s=>document.querySelector(s).getBoundingClientRect();
+    const dock=get('#image-composer'),prompt=get('#image-composer-prompt'),
+      controls=get('#image-composer .composer-controls'),
+      generate=get('#image-composer-generate');
+    return {height:dock.height,bottom:dock.bottom,
+      promptRight:prompt.right,controlsLeft:controls.left,controlsRight:controls.right,
+      generateLeft:generate.left,generateRight:generate.right,
+      rows:getComputedStyle(document.querySelector('#image-composer')).gridTemplateRows,
+      viewportWidth:innerWidth,documentWidth:document.documentElement.scrollWidth};
+  });
+  assert.ok(idleLayout.height>=70&&idleLayout.height<=78,
+    'Empty Image welcome starts as a restrained single-row, ~74px deck: '+JSON.stringify(idleLayout));
+  assert.ok(idleLayout.promptRight<=idleLayout.controlsLeft+2 &&
+    idleLayout.controlsRight<=idleLayout.generateLeft+2,
+    'Compact prompt, controls and Generate must sit side by side without overlap: '+JSON.stringify(idleLayout));
+  assert.ok(idleLayout.generateRight<=idleLayout.viewportWidth-12 &&
+    idleLayout.documentWidth<=idleLayout.viewportWidth+3,
+    'Compact deck must not introduce horizontal overflow: '+JSON.stringify(idleLayout));
   const initialDeck=await deck.boundingBox();
   const availableWidth=await page.evaluate(()=>document.documentElement.clientWidth);
   const centerError=Math.abs(initialDeck.x+initialDeck.width/2-availableWidth/2);
@@ -121,10 +140,12 @@ try{
     'The empty Image Studio must have no unwanted lower section: '+JSON.stringify(welcomeSurface));
   assert.ok(Math.abs(welcomeSurface.backgroundHeight-welcomeSurface.shellHeight)<3,
     'The photographic background must cover the full welcome viewport: '+JSON.stringify(welcomeSurface));
-  assert.ok(Number(welcomeSurface.opacity)>=.95 && welcomeSurface.filter.includes('saturate(1.7)'),
-    'The original blue/copper photographic atmosphere must be vivid: '+JSON.stringify(welcomeSurface));
-  assert.ok(welcomeSurface.image.includes('dream-blur-20261015.jpg'),
-    'Use the approved Dream Blur photograph, not the reference screenshot as an asset');
+  assert.ok(Number(welcomeSurface.opacity)>=.99 && welcomeSurface.filter==='none',
+    'Clean blue/copper plate must not have a heavily blurred saturation filter: '+JSON.stringify(welcomeSurface));
+  assert.ok(welcomeSurface.image.includes('pvlab-subtle-cinematic-background-20261017.webp'),
+    'Welcome must use its own clean 01/Subtle & Cinematic backdrop, not a complete UI screenshot');
+  assert.ok(existsSync(resolve(root,'lab/visuals/pvlab-subtle-cinematic-background-20261017.webp')),
+    'The clean background asset must ship with the deployed site');
   const moodCard=page.locator('[data-welcome-mood="dream-blur"]');
   const idleShadow=await moodCard.evaluate(el=>getComputedStyle(el).boxShadow);
   const oldMoodGeometry=await moodCard.evaluate(el=>{
@@ -158,6 +179,9 @@ try{
   await field.click();
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Clicking the prompt opens its multi-line editor');
+  await page.waitForFunction(()=>document.querySelector('#image-composer').getBoundingClientRect().height>105);
+  assert.ok(await deck.evaluate(el=>el.getBoundingClientRect().height)>idleLayout.height+30,
+    'The same bottom-fixed compact deck must become the full editing deck after first focus');
   await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(35));
   // The editorial deck intentionally animates its height over 230ms.
   // Wait for that expansion before asserting the final readable geometry.
