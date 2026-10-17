@@ -211,6 +211,38 @@ try{
       console.log('PASS credit banner, deck, real balance changes, pilot products, checkout guards and sign-out at '+width+'px');
     }finally{rig.releaseCheckout();await rig.context.close();}
   }
+  // A successful deletion request signs out the same Clerk session and clears
+  // the deleted customer's identity and credit balance from the homepage.
+  for(const width of [1440,390]){
+    const rig=await setup(width,true),{page,writes,errors}=rig;
+    try{
+      await page.goto(origin+'/lab/account.html#settings');
+      await page.locator('#settings-close-account').waitFor({state:'visible'});
+      await page.click('#settings-close-account');
+      await page.fill('#account-close-confirm','DELETE MY PV LAB ACCOUNT');
+      await page.click('#account-close-submit');
+      await page.waitForURL(origin+'/lab/');
+      await page.locator('#lab-header-signin').waitFor({state:'visible'});
+      assert.equal(await page.locator('.pv-account-menu>summary').isVisible(),false,'Deleted user menu is hidden');
+      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits','Deleted user balance is cleared');
+      const requests=writes.filter(item=>item.path==='/api/customer/account');
+      assert.equal(requests.length,1,'Account closure submitted once');
+      assert.deepEqual(JSON.parse(requests[0].body),{confirmation:'DELETE MY PV LAB ACCOUNT'});
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
+  }
+  {
+    const rig=await setup(1440,true,{accountClosed:{state:'requested'},balanceCredits:200}),{page,errors}=rig;
+    try{
+      await page.goto(origin+'/lab/');
+      await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
+      assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'Closed accounts do not advertise spendable credits');
+      await page.locator('.pv-account-menu>summary').click();
+      assert.equal(await page.locator('[data-account-balance]').textContent(),'Account closed','Closed-account menu never advertises credits');
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
+  }
+  console.log('PASS post-deletion sign-out and closed-account balance presentation');
   for(const width of [1440,390,320]){
     const rig=await setup(width),{page,errors,writes}=rig;
     try{
@@ -297,37 +329,6 @@ try{
       }
     }
     console.log('PASS account, shared menus, keyboard, private state and billing guards at '+width+'px');
-  }
-  // A successful deletion request signs out the same Clerk session and clears
-  // the deleted customer's identity and credit balance from the homepage.
-  for(const width of [1440,390]){
-    const rig=await setup(width,true),{page,writes,errors}=rig;
-    try{
-      await page.goto(origin+'/lab/account.html#settings');
-      await page.locator('#settings-close-account').waitFor({state:'visible'});
-      await page.click('#settings-close-account');
-      await page.fill('#account-close-confirm','DELETE MY PV LAB ACCOUNT');
-      await page.click('#account-close-submit');
-      await page.waitForURL(origin+'/lab/');
-      await page.locator('#lab-header-signin').waitFor({state:'visible'});
-      assert.equal(await page.locator('.pv-account-menu>summary').isVisible(),false,'Deleted user menu is hidden');
-      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits','Deleted user balance is cleared');
-      const requests=writes.filter(item=>item.path==='/api/customer/account');
-      assert.equal(requests.length,1,'Account closure submitted once');
-      assert.deepEqual(JSON.parse(requests[0].body),{confirmation:'DELETE MY PV LAB ACCOUNT'});
-      assert.deepEqual(errors,[]);
-    }finally{await rig.context.close();}
-  }
-  {
-    const rig=await setup(1440,true,{accountClosed:{state:'requested'},balanceCredits:200}),{page,errors}=rig;
-    try{
-      await page.goto(origin+'/lab/');
-      await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
-      assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'Closed accounts do not advertise spendable credits');
-      await page.locator('.pv-account-menu>summary').click();
-      assert.equal(await page.locator('[data-account-balance]').textContent(),'Account closed','Closed-account menu never advertises credits');
-      assert.deepEqual(errors,[]);
-    }finally{await rig.context.close();}
   }
   // Empty, updated and signed-out credit states use the same authenticated session source.
   for(const width of [1440,390,320]){
