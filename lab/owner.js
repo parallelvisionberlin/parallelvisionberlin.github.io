@@ -3,6 +3,7 @@ import {createSessionRequest} from './session-request.js?v=20260927-auth1&studio
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
 import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261017-review2';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
+import {createOwnerAuthGuard} from './owner-auth-guard.js?v=20261017-stability1';
 const $=id=>document.getElementById(id);
 const apiBase='https://parallel-vision-lab.parallelvision.workers.dev';
 let clerk=null,revision=0,profile=null,creating=false,syncing=false,emailSyncReady=false,fetchSerial=0,searchTimer=null,syncNotice='',autoClerkSyncAttempted=false;
@@ -595,5 +596,14 @@ for(const preset of document.querySelectorAll('[data-credit-preset]'))preset.add
 });
 updateVoucherEstimate();
 $('owner-signin').addEventListener('click',()=>clerk?.openSignIn());
-try{clerk=await loadLabAccount();clerk.addListener(()=>void refreshSession());await refreshSession();}
+try{clerk=await loadLabAccount();
+  const onClerkAuthUpdate=createOwnerAuthGuard({
+    getClerk:()=>clerk,
+    onIdentityChange:()=>void refreshSession()
+  });
+  clerk.addListener(onClerkAuthUpdate);
+  // Initial login is handled exactly once. Token renewal/focus updates never
+  // tear down the dashboard or close an open generation-review dialog.
+  onClerkAuthUpdate();
+}
 catch{status('Sign-in could not load. Reload this page to try again.');$('owner-gate').hidden=false;$('owner-signin').disabled=true;}
