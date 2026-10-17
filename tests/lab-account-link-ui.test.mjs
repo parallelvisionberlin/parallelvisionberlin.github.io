@@ -124,7 +124,7 @@ test('Credit success is a short toast inside the authenticated Studio, never a p
  const script=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
  const style=readFileSync(new URL('../lab/studio-credit-toast.css',import.meta.url),'utf8');
  assert.match(page,/id="pv-credit-toast" class="pv-credit-toast" role="status"/);
- assert.match(page,/200 credits added/);
+ assert.match(page,/Credits ready/);
  assert.match(page,/Ready to create/);
  assert.match(script,/onNewCustomer:grant/);
  assert.match(script,/showFirstCreditToast\(data\)/);

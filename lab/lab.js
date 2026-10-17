@@ -38,7 +38,7 @@ import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop} from './vide
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']), slotStates=new Set(['submitting','queued','running','uncertain']);
-let clerk, owner=false, ownerAccount=false, customerMode=false, customerGenerationReady=false, customerImagePricing=null, imageRatioExplicit=false, soulRatioExplicit=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
+let clerk, owner=false, ownerAccount=false, customerMode=false, customerGenerationReady=false, customerTrialGenerationPaused=false, customerImagePricing=null, imageRatioExplicit=false, soulRatioExplicit=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
 let imageSubmissionPending=false,imageSubmissionStage='Sending…',customerPriceIntentPending=false;
 let frameMaker=null;
 const fastImageHandoff=createImageSubmitHandoff();
@@ -812,7 +812,7 @@ function applyCustomerImagePriceToGenerate(){
     customerImagePricing?.sync(false);
     button.disabled=true;
     button.textContent='Generate';
-    button.title='Customer generation and checkout are not enabled yet.';
+    button.title=customerTrialGenerationPaused?'Complimentary generations are paused. Buy credits to start generating.':'Customer generation and checkout are not enabled yet.';
     return;
   }
   if(busy||imageSubmissionPending||!hasInput()||button.disabled||!customerImageProviderReady()){
@@ -2501,6 +2501,8 @@ function hideFirstCreditToast(){
   if(toast){toast.classList.remove('is-visible');toast.hidden=true;}
 }
 function showFirstCreditToast(profile){
+  // The complimentary toast must not appear for purchased credit balances.
+  if(profile?.welcomeCreditsPaused===true){newCustomerGrant=null;return;}
   const grant=newCustomerGrant;
   if(!grant||!profile?.customer||profile.owner!==false||
     grant.ownerId!==profile.ownerId||grant.sessionId!==clerk?.session?.id||
@@ -4322,7 +4324,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
   document.documentElement.classList.add('pv-studio-boot-lock');
   document.documentElement.classList.add('pv-studio-route-pending');
   document.body.classList.remove('lab-ready');
-  const data=await api('/api/session');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('signin').hidden=true;$('signin').disabled=true;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
+  const data=await api('/api/session');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;customerTrialGenerationPaused=!!data.trialGenerationPaused;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('signin').hidden=true;$('signin').disabled=true;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
     if(data.accountClosed){
       await deviceMediaCache.signOut();$('studio-invite-friends').hidden=true;
       $('app').hidden=true;$('gate').hidden=false;$('signin').disabled=true;

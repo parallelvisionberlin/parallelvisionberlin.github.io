@@ -6,10 +6,12 @@ import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const html=read('lab/zencreator-alternative/index.html');
-test('ZenCreator comparison has independent canonical, factual citation and first-session offer',()=>{
+test('ZenCreator comparison has independent canonical, factual citation and truthful prepaid offer',()=>{
   assert.match(html,/<title>ZenCreator Alternative for AI Images/);
   assert.match(html,/href="https:\/\/pvlab\.studio\/zencreator-alternative\/"/);
-  assert.match(html,/200 welcome credits/);
+  assert.match(html,/One-time credits and monthly plans/);
+  assert.doesNotMatch(html,/200 (free|welcome) credits|free at sign-up/i);
+  assert.match(html,/New signups do not currently receive free generation credits/);
   assert.match(html,/ZenCreator's published pricing and credit documentation/);
   assert.match(html,/not affiliated with ZenCreator/);
   assert.doesNotMatch(html,/<meta[^>]+noindex/i);

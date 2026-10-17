@@ -43,7 +43,7 @@ jobs:
         run: |
           node --test tests/lab-smart-prompts.test.mjs tests/lab-smart-prompt-ui.test.mjs tests/lab-krea3-fashion.test.mjs
           node --test tests/lab-spicy-image-credit-steps.test.mjs tests/lab-pricing-integrity.test.mjs
-          node --test tests/lab-auth.test.mjs tests/lab-worker.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-sandbox-billing.test.mjs tests/lab-live-pilot.test.mjs tests/lab-new-models-pricing.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-welcome-credits.test.mjs
+          node --test tests/lab-auth.test.mjs tests/lab-worker.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-sandbox-billing.test.mjs tests/lab-live-pilot.test.mjs tests/lab-new-models-pricing.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-welcome-credits.test.mjs tests/lab-trial-pause.test.mjs
           node --test tests/lab-owner-providers.test.mjs tests/lab-promotions.test.mjs tests/lab-traffic.test.mjs tests/lab-traffic-ui.test.mjs tests/lab-promo-generation-holds.test.mjs tests/lab-owner-generation-review.test.mjs tests/lab-generation-finance.test.mjs
           node --check lab-worker/owner-providers.mjs
           node --check lab-worker/promotions.mjs
@@ -86,6 +86,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0025-promo-generation-holds.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0026-generation-review-audit.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0028-generation-finance-ledger.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0029-pause-welcome-promotion.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0029-pricing-debit-parity.sql --yes
           command: deploy --keep-vars
 

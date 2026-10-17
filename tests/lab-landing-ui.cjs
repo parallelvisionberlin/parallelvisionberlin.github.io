@@ -17,8 +17,8 @@ const server=http.createServer((req,res)=>{
   await page.setViewportSize({width,height});await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);
   await page.locator('.hero-poster').evaluate(img=>img.decode());
   assert.equal(await page.locator('h1').textContent(),'PV LAB');
-  assert.match(await page.locator('.hero-welcome').textContent(),/200 free credits/);
-  assert.match(await page.locator('.lab-pricing-welcome').textContent(),/No purchase required/);
+  assert.equal(await page.locator('.hero-welcome').count(),0,'Free credits banner is removed from the hero');
+  assert.equal(await page.locator('.lab-pricing-welcome').count(),0,'Free credits offer is removed from pricing');
   assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image&welcome=1');
   assert.deepEqual(await page.locator('.studio-tool-link').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
   assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),['Image','Retouch','Video','Upscaler','Fashion','Explore Moods','Pricing']);
@@ -90,15 +90,13 @@ const server=http.createServer((req,res)=>{
   assert.equal(paragraphRGB.length,3,'Referral description uses a valid color');
   assert.ok(paragraphRGB.every(n=>n>=180),'Referral description retains contrast on dark photography');
   if(width>760){
-    assert.equal(await page.locator('#pricing .lab-pricing-cta-label--mobile').isVisible(),false,'Mobile invitation does not change the desktop offer');
-    assert.equal(await page.locator('#pricing .lab-pricing-cta-label--desktop').isVisible(),true,'Original desktop welcome label stays visible');
     assert.ok(details.rowHeights.every(n=>n>=(width<=1250?195:(height<=940?115:160))&&n<=260),'Editorial purchase cards are appropriately sized for the viewport');
     assert.ok(layout.collection.right<=layout.comparison.x,'Desktop prices sit beside the film collection');
     assert.ok(layout.cardGap>=0,'Film deck does not hide the checkout column');
     assert.ok(details.headlineSize>=(width<=1000?34:37),'Desktop and tablet pricing headings retain their established type scale');
   }else{
-    // Mobile reuses the ORIGINAL photo deck and the ORIGINAL welcome link,
-    // visually reordered between the introduction and pricing tabs.
+    // Mobile keeps the original film strip and subscription tabs,
+    // without a promotion banner between them.
     const mobile=await page.locator('#pricing').evaluate(section=>{
       const pos=selector=>{
         const r=section.querySelector(selector).getBoundingClientRect();
@@ -108,20 +106,17 @@ const server=http.createServer((req,res)=>{
         headline:pos('h2'),
         intro:pos('.lab-plans-intro'),
         deck:pos('.lab-pricing-deck'),
-        offer:pos('.lab-pricing-free-cta'),
         tabs:pos('.lab-pricing-options'),
         starter:pos('#lab-monthly-plans .lab-plan:first-child'),
         creator:pos('#lab-monthly-plans .lab-plan:nth-child(2)'),
         studio:pos('#lab-monthly-plans .lab-plan:last-child'),
-        creatorPhoto:getComputedStyle(section.querySelector('.lab-plan--recommended'),'::before').backgroundImage,
-        desktopWelcome:getComputedStyle(section.querySelector('.lab-pricing-cta-label--desktop')).display,
-        mobileWelcome:getComputedStyle(section.querySelector('.lab-pricing-cta-label--mobile')).display
+        creatorPhoto:getComputedStyle(section.querySelector('.lab-plan--recommended'),'::before').backgroundImage
       };
     });
     assert.ok(details.headlineSize>=27&&details.headlineSize<=34,'Mobile heading is compact and editorial: '+JSON.stringify(mobile));
     assert.ok(mobile.headline.bottom<=mobile.deck.top&&mobile.intro.bottom<=mobile.deck.top,'Photography follows the introduction');
     assert.ok(mobile.deck.height>=100&&mobile.deck.height<=140,'Mobile uses a shallow photographic strip');
-    assert.ok(mobile.deck.bottom<=mobile.offer.top&&mobile.offer.bottom<=mobile.tabs.top,'Free credits appear after photos and BEFORE the plan tabs');
+    assert.ok(mobile.deck.bottom<=mobile.tabs.top,'Photography precedes purchase tabs without a free-trial banner');
     assert.ok(mobile.tabs.bottom<=mobile.starter.top,'Subscriptions follow the tab switch');
     assert.ok(mobile.starter.bottom<=mobile.creator.top&&mobile.creator.bottom<=mobile.studio.top,'All three plans remain visible in order');
     assert.ok(mobile.starter.height>=90&&mobile.starter.height<=155,'Starter is compact instead of a tall text card: '+JSON.stringify(mobile));
@@ -129,22 +124,17 @@ const server=http.createServer((req,res)=>{
     assert.ok(mobile.creator.height>=155&&mobile.creator.height<=225,'Creator has a distinct photographic layout: '+JSON.stringify(mobile));
     assert.ok(mobile.creator.height>mobile.starter.height+25,'Creator has stronger visual hierarchy');
     assert.match(mobile.creatorPhoto,/leather-editorial\/hero-desktop\.webp/,'Creator uses the existing fashion photograph');
-    assert.equal(mobile.desktopWelcome,'none','Desktop welcome text is hidden only on mobile');
-    assert.notEqual(mobile.mobileWelcome,'none','200 free credits link is visible on mobile');
-    assert.match(await page.locator('#pricing .lab-pricing-free-cta').innerText(),/Start with 200 free credits/);
     assert.equal(await page.locator('#pricing .lab-pricing-mood img').count(),3,'Original photographic deck remains the only deck');
     console.log('PV_LAB_MOBILE_PRICING_'+width+'='+JSON.stringify(mobile));
   }
   if(width>=1001&&height<=940){
     const fold=await page.locator('#pricing').evaluate(section=>{
       const sectionBox=section.getBoundingClientRect();
-      const welcome=section.querySelector('.lab-pricing-free-cta').getBoundingClientRect();
       const billing=section.querySelector('.lab-pricing-footnote').getBoundingClientRect();
       const lastPlan=section.querySelector('#lab-monthly-plans .lab-plan:last-child').getBoundingClientRect();
-      return {sectionTop:sectionBox.top,sectionHeight:sectionBox.height,welcomeBottom:welcome.bottom,billingBottom:billing.bottom,lastPlanBottom:lastPlan.bottom,viewport:innerHeight};
+      return {sectionTop:sectionBox.top,sectionHeight:sectionBox.height,billingBottom:billing.bottom,lastPlanBottom:lastPlan.bottom,viewport:innerHeight};
     });
     assert.ok(fold.sectionHeight<=height+2,'Entire pricing section fits without scrolling on '+width+'x'+height+': '+JSON.stringify(fold));
-    assert.ok(fold.welcomeBottom<=fold.sectionTop+height-12,'Free-credit button stays visible on '+width+'x'+height+': '+JSON.stringify(fold));
     assert.ok(fold.billingBottom<=fold.sectionTop+height-12,'Billing information stays visible on '+width+'x'+height+': '+JSON.stringify(fold));
     console.log('PRICING_FOLD_METRICS_'+width+'_'+height+'='+JSON.stringify(fold));
   }
@@ -154,24 +144,16 @@ const server=http.createServer((req,res)=>{
       const collection=section.querySelector('.lab-pricing-collection').getBoundingClientRect();
       const comparison=section.querySelector('.lab-pricing-comparison').getBoundingClientRect();
       const cards=[...section.querySelectorAll('.lab-pricing-mood')].map(c=>c.getBoundingClientRect());
-      const offer=section.querySelector('.lab-pricing-welcome h3');
-      const action=section.querySelector('.lab-pricing-free-cta').getBoundingClientRect();
       return {
         collectionX:collection.x,comparisonX:comparison.x,
         centerCardWidth:cards[2].width,
-        offerFont:parseFloat(getComputedStyle(offer).fontSize),
-        actionWidth:action.width,viewport:innerWidth
+        viewport:innerWidth
       };
     });
     assert.ok(glamour.collectionX<=width*.11,'Editorial photographs expand toward the left edge: '+JSON.stringify(glamour));
     assert.ok(glamour.comparisonX>=width*.52&&glamour.comparisonX<=width*.63,'Pricing sits in its own spacious right column: '+JSON.stringify(glamour));
-    assert.ok(glamour.offerFont>=32,'200-credit welcome offer is prominent at '+width+'px');
-    assert.ok(glamour.actionWidth>=285,'Free-credit primary action has editorial presence');
   }
-  assert.equal(await page.locator('#pricing .lab-pricing-collection .lab-pricing-welcome').count(),1,'Welcome offer sits below photography');
-  const offerPhotoGap=await page.locator('#pricing').evaluate(section=>section.querySelector('.lab-pricing-welcome').getBoundingClientRect().top-Math.max(...[...section.querySelectorAll('.lab-pricing-mood')].map(card=>card.getBoundingClientRect().bottom)));
-  if(width<=760)assert.ok(offerPhotoGap>=8,'Mobile welcome offer clears the film strip. Actual gap: '+offerPhotoGap);
-  assert.equal(await page.locator('#pricing .lab-pricing-welcome [data-lab-welcome-start]').count(),1,'Welcome CTA keeps original sign-in flow');
+  assert.equal(await page.locator('#pricing .lab-pricing-welcome').count(),0,'Paid pricing has no free-credit banner');
   assert.equal(await page.locator('#lab-monthly-plans .lab-plan-usage').count(),3,'Monthly pricing shows example model usage');
   assert.equal(await page.locator('#lab-one-time-credits .lab-plan-usage').count(),3,'One-time pricing shows example model usage');
   assert.equal(await page.locator('#pricing .lab-pricing-usage-note').count(),0,'No small model-rate paragraph under plans');

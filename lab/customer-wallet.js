@@ -3,7 +3,7 @@ import {referralsAvailable} from './account-menu.js?v=20261012-account2';
 import {metaConsentGranted,trackLabEvent} from './meta-pixel.js?v=20261013-a1';
 export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{}}){
   const $=id=>document.getElementById(id);
-  let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0;
+  let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0,trialGenerationPaused=false;
   let dismissed=false,purchasing=false,refreshing=null,refreshAgain=false;
   const add=$('lab-add-credits'),banner=$('lab-credit-banner');
   const toggle=$('lab-wallet-toggle'),dialog=$('lab-credits-dialog'),referralDialog=$('lab-referrals-dialog'),amount=$('lab-credit-balance'),
@@ -28,7 +28,7 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     onBalance(balance);
     toggle.textContent=balance.toLocaleString()+' credits';
     amount.textContent=balance.toLocaleString()+' credits';
-    state.textContent=accountClosed?'Your PV Lab account is closed. Visit Plans & billing for account support.':billingReview?'A refund or dispute is under review. Contact support; billing management remains available.':purchasing?'Opening secure checkout…':billingReady?'':'Checkout setup is being finalized. Payments are not being accepted yet.';
+    state.textContent=accountClosed?'Your PV Lab account is closed. Visit Plans & billing for account support.':billingReview?'A refund or dispute is under review. Contact support; billing management remains available.':purchasing?'Opening secure checkout…':trialGenerationPaused?'Free generations are paused. Your existing credits are saved. Choose a credit pack to start generating.':billingReady?'':'Checkout setup is being finalized. Payments are not being accepted yet.';
     list.replaceChildren();
     for(const p of products.filter(p=>p.type==='payment')){
       const button=document.createElement('button');button.type='button';
@@ -137,14 +137,14 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     refreshing=(async()=>{
     try{
       const data=await api('/api/customer/wallet');
-      if(!account||current!==accountEpoch)return;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;
+      if(!account||current!==accountEpoch)return;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;trialGenerationPaused=!!data.trialGenerationPaused;balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;
       products=Array.isArray(data.products)?data.products:products;$('lab-credit-invite').hidden=!referralsAvailable(data);update();
     }catch(e){if(account&&current===accountEpoch)notify(e.message,true);}
     finally{refreshing=null;if(refreshAgain){refreshAgain=false;if(account)void refresh();}}
     })();return refreshing;
   }
   function connect(data){
-    const next=!!data.customer;accountEpoch++;dismissed=false;purchasing=false;refreshAgain=false;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;
+    const next=!!data.customer;accountEpoch++;dismissed=false;purchasing=false;refreshAgain=false;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;trialGenerationPaused=!!data.trialGenerationPaused;
     if($('lab-close-confirm'))$('lab-close-confirm').value='';
     if($('lab-close-account'))$('lab-close-account').disabled=true;
     referralEpoch++;referralLoading=false;

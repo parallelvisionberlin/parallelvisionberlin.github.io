@@ -59,6 +59,8 @@ export async function customerSession(env,id){
   return {customer:true,balanceCredits:c.balance_credits,createdAt:c.created_at,subscription:sub||{plan_id:null,status:'none'},
     billingReady:!restrictions.closed&&!restrictions.billingReview&&enabled(env,id),generationReady:!restrictions.closed&&!restrictions.billingReview&&!promoReview.held&&canCustomerGenerate(env,id),
     promotionReview:promoReview.held,
+    trialGenerationPaused:promoReview.reason==='trial-paused',
+    welcomeCreditsPaused:env.LAB_WELCOME_CREDITS_ENABLED!=='true',
     billingReview:restrictions.billingReview,accountClosed:restrictions.closed,
     pilot:isPrivateLivePilot(env,id),
     products:isPrivateLivePilot(env,id)?catalog().filter(item=>['topup10','starter'].includes(item.id)):catalog(),creditMultiplier:CREDIT_MULTIPLIER,

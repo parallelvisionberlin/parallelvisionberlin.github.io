@@ -9,7 +9,9 @@ LAB_CUSTOMER_SIGNUPS_ENABLED = "true"
 # Account links are one-time verified, existing wallets preserved. Rollback: set false and redeploy.
 LAB_STUDIO_AUTH_ENABLED = "true"
 # One-time 200-credit gift, using the ordinary per-customer wallet ledger.
-LAB_WELCOME_CREDITS_ENABLED = "true"
+LAB_WELCOME_CREDITS_ENABLED = "false"
+# Temporarily pause generation funded solely by free/promotional credits.
+LAB_FREE_TRIAL_PAUSED = "true"
 # Hold unpaid generation for existing disposable-email free-trial accounts; checkout stays open.
 LAB_PROMO_HOLDS_ENABLED = "true"
 LAB_PUBLIC_GENERATION_ENABLED = "true"
