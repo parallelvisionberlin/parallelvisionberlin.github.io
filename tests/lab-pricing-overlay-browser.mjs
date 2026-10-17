@@ -7,7 +7,7 @@ import {readFileSync,existsSync,statSync} from 'node:fs';
 import {join,extname,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
-const root=fileURLToPath(new URL('../lab/',import.meta.url));
+const root=resolve(fileURLToPath(new URL('../lab/',import.meta.url)));
 const sample=`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="./pricing-overlay.css">
 <style>html,body{margin:0;background:#111;color:#eee;font-family:Arial,sans-serif}main{padding:55px 20px}input{width:200px;padding:10px}button{cursor:pointer}</style></head>
