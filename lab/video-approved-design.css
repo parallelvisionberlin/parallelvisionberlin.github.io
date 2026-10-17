@@ -496,11 +496,21 @@
  }
 }
 
-/* Mobile nav is independently scrollable, not a source of document overflow.
-   Contain its painted overflow without clipping the separate account menu. */
+/* Keep the mobile navigation independently scrollable without letting its
+   max-content tab strip increase the document width. Account menu is a sibling. */
 @media(max-width:560px){
  body>#studio-header .tool-switch{
-   contain:paint;
-   min-width:0;
+   width:100%;min-width:0;max-width:100%;
+   overflow-x:clip!important;
  }
+ #studio-header .tool-switch>.tool-group{
+   box-sizing:border-box;width:100%!important;max-width:100%;
+   min-width:0!important;display:flex;flex-wrap:nowrap;
+   overflow-x:auto!important;overflow-y:hidden;
+   scrollbar-width:none;-webkit-overflow-scrolling:touch;
+   overscroll-behavior-x:contain;
+ }
+ #studio-header .tool-switch>.tool-group::-webkit-scrollbar{display:none}
+ #studio-header .tool-switch>.tool-group>button,
+ #studio-header .tool-switch>.tool-group>a{flex:0 0 auto}
 }
