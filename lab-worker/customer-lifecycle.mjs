@@ -1,5 +1,6 @@
 // Customer content belongs only to LAB_DB / LAB_MEDIA. Never mutate shared Clerk
 // identities, Nina's OWNER_DB, or another account's objects.
+import {welcomeReviewFlag} from './welcome-guard.mjs';
 const one=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).first();
 const run=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).run();
 const fail=(status,message)=>{const error=new Error(message);error.status=status;throw error;};
@@ -9,10 +10,30 @@ export async function customerRestrictions(env,id){
   const review=await one(env,"SELECT event_id FROM lab_billing_reviews WHERE customer_id=? AND state='open' LIMIT 1",id);
   return {closed:closed||null,billingReview:!!review};
 }
-export async function assertCustomerOpen(env,id,{spending=false}={}){
+// Only free generation is stopped. Clerk login, saved media, deletion, checkout
+// and Stripe-verified paid credits are never blocked by an email review flag.
+export async function customerPromotionalReview(env,id){
+  if(env.LAB_PROMO_HOLDS_ENABLED!=='true')return {held:false};
+  const account=await one(env,`SELECT c.id,p.email,
+    h.reason AS holdReason,h.released_at AS releasedAt,
+    EXISTS (SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=c.id
+      AND e.kind IN ('purchase','subscription')) AS hasPaid
+    FROM lab_customers c
+    LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
+    LEFT JOIN lab_promo_generation_holds h ON h.customer_id=c.id
+    WHERE c.id=?`,id);
+  if(!account)return {held:false};
+  const explicitHold=!!account.holdReason&&account.releasedAt===null;
+  const flaggedEmail=welcomeReviewFlag(account.email,env)==='disposable-email';
+  return {held:!account.hasPaid&&(explicitHold||flaggedEmail),
+    hasPaid:!!account.hasPaid,reason:explicitHold?'disposable-email':flaggedEmail?'disposable-email':null};
+}
+export async function assertCustomerOpen(env,id,{spending=false,promotion=false}={}){
   const state=await customerRestrictions(env,id);
   if(state.closed)fail(403,'This PV Lab account is closed. Content deletion is queued or complete. Contact support for a billing or data request.');
   if(spending&&state.billingReview)fail(409,'A refund or dispute is being reviewed. Purchases and generation are paused; billing management remains available.');
+  if(promotion&&(await customerPromotionalReview(env,id)).held)
+    fail(403,'Free trial generation is unavailable for this account. Your saved work and billing remain accessible. Contact PV LAB support for a review.');
   return state;
 }
 export async function customerAccount(env,id){
