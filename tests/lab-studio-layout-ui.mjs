@@ -306,8 +306,10 @@ try{
   assert.equal(await x.page.locator('#image-composer-add').getAttribute('aria-label'),'Upload images',
     'The + button opens the real photo input directly');
   assert.equal(await x.page.locator('#image-composer-add .composer-add-plus').textContent(),'+');
-  assert.equal(await x.page.locator('#composer-add-saved-toggle').isVisible(),true,
-    'Saved packs have their own small arrow beside +');
+  assert.equal(await x.page.locator('#composer-add-saved-toggle').isVisible(),false,
+    'Standard Image uses one grid library button, not a separate saved-packs arrow');
+  assert.equal(await x.page.locator('#scene-image-open').isVisible(),true,
+    'Circular Elements / Photo Packs button is present beside the unchanged upload +');
   assert.equal(await x.page.locator('#composer-reference-intent-toggle').isVisible(),true,
     'Composition mode stays available before photos are uploaded');
   assert.equal(await x.page.locator('#image-composer-more').isVisible(),false,
@@ -360,7 +362,25 @@ try{
     'The inline Exact switch cannot resize the compact Generate deck');
 
   assert.equal(await x.page.locator('#composer-character').isVisible(),false,'No duplicate right-side references tile');
-  await x.page.click('#composer-add-saved-toggle');
+  await x.page.click('#scene-image-open');
+  assert.equal(await x.page.locator('#scene-image-menu').isVisible(),true);
+  const menuPlacement=await x.page.evaluate(()=>{
+    const menu=document.getElementById('scene-image-menu').getBoundingClientRect();
+    const trigger=document.getElementById('scene-image-open').getBoundingClientRect();
+    return {menuBottom:menu.bottom,triggerTop:trigger.top};
+  });
+  assert.ok(menuPlacement.menuBottom<=menuPlacement.triggerTop+2,
+    'Compact library opens above the circular trigger: '+JSON.stringify(menuPlacement));
+  await x.page.click('#scene-menu-elements');
+  assert.equal(await x.page.locator('#scene-image-menu-categories').isVisible(),true);
+  assert.equal(await x.page.locator('#scene-image-menu [data-scene-target]').count(),4);
+  await x.page.click('#scene-image-menu [data-scene-target="characters"]');
+  assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true);
+  assert.equal(await x.page.locator('#scene-library-title').innerText(),'Characters');
+  assert.equal(await x.page.locator('#scene-tabs .scene-category-tab').count(),4);
+  await x.page.click('#scene-close');
+  await x.page.click('#scene-image-open');
+  await x.page.click('#scene-menu-packs');
   assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs.');
   assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'Saved packs open an independent Soul-inspired library');
   const packDialog=await x.page.locator('#pack-studio-dialog').evaluate(el=>{

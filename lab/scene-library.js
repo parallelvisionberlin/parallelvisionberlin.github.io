@@ -12,7 +12,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
   const $=id=>document.getElementById(id);
   const dialog=$('scene-library-dialog');
   if(!dialog)return {open(){},sync(){},renderSelected(){},fromGallery(){}};
-  let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false;
+  let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false;
   const category=id=>CATEGORIES.find(c=>c.id===id)||CATEGORIES[0];
   const safeName=value=>String(value||'').trim().replace(/[\r\n|]+/g,' ').replace(/\s+/g,' ').slice(0,70);
   const displayName=pack=>pack.name.slice((PREFIX+pack.category+'|').length);
@@ -112,8 +112,14 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     if(!getContext().owner){notify('Sign in to use Scene Library.',true);return;}
     if(getContext().busy){notify('Wait for the current operation to finish.',true);return;}
     if(categoryId)current=category(categoryId).id;
+    selectedId=null;featuredExpanded=false;
     closeOverlays();
     view='browse';$('scene-create').hidden=true;$('scene-browser').hidden=false;
+    dialog.classList.toggle('scene-from-image',getContext().tool==='image');
+    if(getContext().tool==='image'){
+      const anchor=$('scene-image-open')?.getBoundingClientRect();
+      dialog.style.setProperty('--scene-dialog-bottom',Math.ceil(Math.max(80,window.innerHeight-(anchor?.top||window.innerHeight-130)+10))+'px');
+    }
     setStatus('');
     if(!dialog.open)dialog.showModal();
     render();
@@ -123,47 +129,122 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     if(dialog.open)dialog.close();
     clearPhotos();setStatus('');
   }
+
+  const iconPaths={
+    characters:'<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20v-2.2c0-3.8 14-3.8 14 0V20Z"/>',
+    outfits:'<path d="M9 4 7 6 3 8l3 5 2-1v9h8v-9l2 1 3-5-4-2-2-2c-.9 2-5.1 2-6 0Z"/>',
+    props:'<path d="m12 2.8 8 4.5v9.4l-8 4.5-8-4.5V7.3Z"/><path d="m4 7.3 8 4.5 8-4.5M12 11.8v9.4"/>',
+    locations:'<path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/>'
+  };
+  const categoryDescriptions={
+    characters:'People and identities for your projects.',
+    outfits:'Clothing and complete looks for your projects.',
+    props:'Objects and details for your projects.',
+    locations:'Places and environments for your projects.'
+  };
+  function renderFeatured(item){
+    const host=$('scene-feature');
+    host.replaceChildren();
+    host.hidden=!item||!item.refs?.length;
+    if(host.hidden)return;
+    const cover=document.createElement('div');cover.className='scene-feature-cover';
+    const portrait=document.createElement('img');portrait.alt=item.title+' reference photograph';portrait.decoding='async';
+    assetPhoto(portrait,item.refs[0].id);cover.append(portrait);
+    const content=document.createElement('div');content.className='scene-feature-content';
+    const eyebrow=document.createElement('span');eyebrow.className='scene-feature-eyebrow';
+    eyebrow.textContent=current==='characters'?'SELECTED IDENTITY':'SELECTED ELEMENT';
+    const title=document.createElement('h3');title.textContent=item.title;
+    const summary=document.createElement('p');
+    summary.textContent='Your saved '+(current==='characters'?'identity':category(current).label.toLowerCase().slice(0,-1))+' reference'+(item.refs.length===1?'':'s')+', ready for the next scene.';
+    const bottom=document.createElement('div');bottom.className='scene-feature-bottom';
+    const badges=document.createElement('div');badges.className='scene-feature-badges';
+    const count=document.createElement('span');count.textContent=item.refs.length+' image'+(item.refs.length===1?'':'s');
+    const kind=document.createElement('span');kind.textContent=category(current).label;badges.append(count,kind);
+    const detail=document.createElement('button');detail.type='button';detail.className='scene-feature-details';
+    detail.textContent=featuredExpanded?'Hide details ↑':'View details →';
+    detail.setAttribute('aria-expanded',String(featuredExpanded));
+    detail.onclick=()=>{featuredExpanded=!featuredExpanded;render();};
+    bottom.append(badges,detail);content.append(eyebrow,title,summary,bottom);
+    host.append(cover,content);
+    if(featuredExpanded){
+      const details=document.createElement('div');details.className='scene-feature-expanded';
+      const shots=document.createElement('div');shots.className='scene-feature-photos';
+      item.refs.forEach((ref,index)=>{
+        if(!ref.id)return;
+        const img=document.createElement('img');img.loading='lazy';img.alt=item.title+' view '+(index+1);
+        assetPhoto(img,ref.id);shots.append(img);
+      });
+      const attach=document.createElement('button');attach.type='button';attach.className='scene-feature-attach';
+      const attached=item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
+      attach.textContent=attached?'Already in deck ✓':'Use in scene →';
+      attach.disabled=attached||working;attach.dataset.sceneUse='';
+      attach.onclick=()=>{void useItem(item);};
+      details.append(shots,attach);host.append(details);
+    }
+  }
   function render(){
     if(view!=='browse'||!dialog.open)return;
     const categoryData=category(current);
     const tabs=$('scene-tabs');tabs.replaceChildren();
     for(const cat of CATEGORIES){
-      const btn=document.createElement('button');
-      btn.type='button';btn.className='scene-category-tab'+(current===cat.id?' is-selected':'');
-      const count=entries.filter(item=>item.category===cat.id).length;
-      btn.textContent=cat.label+' · '+count;btn.setAttribute('aria-pressed',String(current===cat.id));
-      btn.onclick=()=>{current=cat.id;render();};tabs.append(btn);
+      const btn=document.createElement('button');btn.type='button';
+      btn.className='scene-category-tab'+(current===cat.id?' is-selected':'');
+      btn.setAttribute('aria-pressed',String(current===cat.id));
+      const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('fill','none');
+      icon.setAttribute('stroke','currentColor');icon.setAttribute('stroke-width','1.7');
+      icon.setAttribute('stroke-linecap','round');icon.setAttribute('stroke-linejoin','round');
+      icon.setAttribute('aria-hidden','true');icon.innerHTML=iconPaths[cat.id];
+      const label=document.createElement('span');label.textContent=cat.label;
+      const arrow=document.createElement('span');arrow.className='scene-tab-chevron';
+      arrow.textContent='›';arrow.setAttribute('aria-hidden','true');
+      btn.append(icon,label,arrow);
+      btn.onclick=()=>{current=cat.id;selectedId=null;featuredExpanded=false;$('scene-search').value='';render();};
+      tabs.append(btn);
     }
-    $('scene-active-label').textContent=categoryData.label;
+    $('scene-library-title').textContent=categoryData.label;
+    $('scene-description').textContent=categoryDescriptions[current];
+    $('scene-search').placeholder='Search '+categoryData.label.toLowerCase()+'...';
     const query=String($('scene-search').value||'').trim().toLowerCase();
     const list=entries.filter(x=>x.category===current&&x.title.toLowerCase().includes(query))
       .sort((a,b)=>a.title.localeCompare(b.title));
+    const selected=list.find(i=>i.id===selectedId)||list[0]||null;
+    selectedId=selected?.id||null;
+    renderFeatured(selected);
+    $('scene-active-label').textContent='All '+categoryData.label.toLowerCase();
+    $('scene-library-count').textContent=entries.filter(e=>e.category===current).length+' saved · private to your account';
     const grid=$('scene-grid');grid.replaceChildren();
     for(const item of list){
-      const card=document.createElement('article');card.className='scene-card';
-      const image=document.createElement('img');image.alt=item.title+' reference preview';image.loading='lazy';image.decoding='async';
+      const card=document.createElement('article');card.className='scene-card'+(item.id===selectedId?' is-selected':'');
+      const select=document.createElement('button');select.type='button';select.className='scene-card-select';
+      select.setAttribute('aria-label','Preview '+item.title);
+      select.setAttribute('aria-pressed',String(item.id===selectedId));
+      const image=document.createElement('img');image.alt=item.title+' reference preview';
+      image.loading='lazy';image.decoding='async';
       if(item.refs?.[0]?.id)assetPhoto(image,item.refs[0].id);
       const top=document.createElement('div');top.className='scene-card-image';top.append(image);
       const title=document.createElement('strong');title.textContent=item.title;
       const meta=document.createElement('small');meta.textContent=item.refs.length+' image'+(item.refs.length===1?'':'s');
       const details=document.createElement('div');details.className='scene-card-details';details.append(title,meta);
+      select.append(top,details);
+      select.onclick=()=>{selectedId=item.id;featuredExpanded=false;render();};
       const actions=document.createElement('div');actions.className='scene-card-actions';
       const use=document.createElement('button');use.type='button';use.className='scene-use';
       const already=item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
       use.textContent=already?'Added ✓':'Use in scene';use.disabled=already||working;
       use.dataset.sceneUse='';use.onclick=()=>{void useItem(item);};
-      const remove=document.createElement('button');remove.type='button';remove.className='scene-delete';remove.textContent='···';
-      remove.title='Delete '+item.title;remove.setAttribute('aria-label','Delete '+item.title);
+      const remove=document.createElement('button');remove.type='button';remove.className='scene-delete';
+      remove.textContent='···';remove.title='Delete '+item.title;remove.setAttribute('aria-label','Delete '+item.title);
       remove.dataset.sceneDelete='';remove.onclick=()=>{void deleteItem(item);};
-      actions.append(use,remove);card.append(top,details,actions);grid.append(card);
+      actions.append(use,remove);card.append(select,actions);grid.append(card);
     }
     const add=document.createElement('button');add.type='button';add.className='scene-card scene-create-tile';
     const plus=document.createElement('span');plus.className='scene-create-plus';plus.textContent='+';
-    const label=document.createElement('strong');label.textContent='New '+categoryData.label.slice(0,-1).replace(/ie$/,'y');
+    const label=document.createElement('strong');
+    label.textContent='New '+({characters:'character',outfits:'outfit',props:'prop',locations:'location'}[current]);
     const sub=document.createElement('small');sub.textContent='Save your own images';
     add.append(plus,label,sub);add.onclick=()=>create(current);grid.append(add);
     $('scene-empty').hidden=!!list.length||!query;
-    $('scene-library-count').textContent=entries.length+' saved · private to your account';
     renderSelected();
   }
   function renderSelected(){
@@ -253,7 +334,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
       });
     }finally{setWorking(false);}
   }
-  function reset(){working=false;if(dialog.open)dialog.close();clearPhotos();allPacks=[];entries=[];setStatus('');renderSelected();}
+  function reset(){working=false;if(dialog.open)dialog.close();clearPhotos();allPacks=[];entries=[];selectedId=null;featuredExpanded=false;setStatus('');renderSelected();}
   function sync(packs){
     allPacks=Array.isArray(packs)?packs:[];
     entries=allPacks.map(itemFromPack).filter(Boolean);
