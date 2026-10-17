@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import worker from '../lab-worker/worker.mjs';
+import {grantVerifiedWelcome} from '../lab-worker/welcome-guard.mjs';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
 import {storedImageDimensions} from '../lab-worker/fal-upscale.mjs';
 import {buildSoulProInput} from '../lab-worker/soul-pro.mjs';
@@ -179,7 +180,8 @@ test('Independent Clerk domain authenticates only after signed-in account choice
   assert.equal((await req(env,'/api/session',{authToken:newToken})).status,401,'new issuer never authenticates on old origin');
   assert.equal((await req(env,'/api/session',{headers:{Origin:studio}})).status,401,'legacy issuer never authenticates on new origin');
   env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
-  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0017-clerk-domain-links.sql',import.meta.url),'utf8'));
+  for(const migration of ['0011-customer-lifecycle','0015-lab-promotional-credits','0023-welcome-guard','0017-clerk-domain-links'])
+    env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/'+migration+'.sql',import.meta.url),'utf8'));
   env.LAB_STUDIO_AUTH_ENABLED='true';env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';env.LAB_WELCOME_CREDITS_ENABLED='true';
   const unlinked=await newRequest('/api/session');
   assert.equal(unlinked.status,409);
@@ -188,6 +190,12 @@ test('Independent Clerk domain authenticates only after signed-in account choice
     'an unlinked new user cannot be silently given an independent wallet');
   assert.equal((await newRequest('/api/billing/checkout',{method:'POST',data:{sku:'topup10'}})).status,409);
   assert.equal((await req(env,'/api/session',{authToken:guest})).status,200,'old customer creates the original wallet');
+  assert.equal(env.LAB_DB.db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get('user_Guest').balance_credits,0,
+    'registration never awards a trial before Clerk email is verified');
+  const verifiedAt=Date.now();
+  env.LAB_DB.db.prepare('INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at) VALUES(?,?,?,?)')
+    .run('user_Guest','guest@example.com',verifiedAt,verifiedAt);
+  assert.equal((await req(env,'/api/session',{authToken:guest})).status,200,'Clerk-verified customer gets welcome credits');
   assert.equal(env.LAB_DB.db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get('user_Guest').balance_credits,200);
   const issued=await req(env,'/api/migration/issue',{method:'POST',authToken:guest});
   assert.equal(issued.status,200);
@@ -233,7 +241,8 @@ test('Fresh new users receive welcome credits once and expired transfer codes ca
   const {env}=fixture(),studio='https://pvlab.studio';
   env.LAB_STUDIO_AUTH_ENABLED='true';env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';env.LAB_WELCOME_CREDITS_ENABLED='true';
   env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
-  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0017-clerk-domain-links.sql',import.meta.url),'utf8'));
+  for(const migration of ['0011-customer-lifecycle','0015-lab-promotional-credits','0023-welcome-guard','0017-clerk-domain-links'])
+    env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/'+migration+'.sql',import.meta.url),'utf8'));
   const newToken=await token('user_Fresh',{iss:'https://clerk.pvlab.studio',azp:studio});
   const newCall=(path,options={})=>req(env,path,{authToken:newToken,headers:{Origin:studio},...options});
   const issued=await req(env,'/api/migration/issue',{method:'POST',authToken:guest});
@@ -241,6 +250,10 @@ test('Fresh new users receive welcome credits once and expired transfer codes ca
   env.LAB_DB.db.prepare('UPDATE lab_clerk_migration_codes SET expires_at=?').run(Date.now()-1000);
   assert.equal((await newCall('/api/migration/redeem',{method:'POST',data:{code}})).status,400);
   assert.equal((await newCall('/api/migration/new',{method:'POST'})).status,201);
+  const welcomeAt=Date.now();
+  env.LAB_DB.db.prepare('INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at) VALUES(?,?,?,?)')
+    .run('user_PvLabV2Fresh','fresh@example.com',welcomeAt,welcomeAt);
+  assert.equal(await grantVerifiedWelcome(env,'user_PvLabV2Fresh'),true);
   assert.equal((await newCall('/api/migration/new',{method:'POST'})).status,409);
   const session=await(await newCall('/api/session')).json();
   assert.equal(session.owner,false);assert.equal(session.customer,true);
@@ -254,7 +267,8 @@ test('An unused V2 welcome wallet may be linked to the proven original owner wit
   const {env}=fixture(),studio='https://pvlab.studio';
   env.LAB_STUDIO_AUTH_ENABLED='true';env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';env.LAB_WELCOME_CREDITS_ENABLED='true';
   env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
-  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0017-clerk-domain-links.sql',import.meta.url),'utf8'));
+  for(const migration of ['0011-customer-lifecycle','0015-lab-promotional-credits','0023-welcome-guard','0017-clerk-domain-links'])
+    env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/'+migration+'.sql',import.meta.url),'utf8'));
   const newToken=await token('user_StudioOwner',{iss:'https://clerk.pvlab.studio',azp:studio});
   const fresh=(path,options={})=>req(env,path,{authToken:newToken,headers:{Origin:studio},...options});
   assert.equal((await fresh('/api/migration/new',{method:'POST'})).status,201);
@@ -267,8 +281,8 @@ test('An unused V2 welcome wallet may be linked to the proven original owner wit
   assert.equal(recovered.customer,undefined);
   assert.equal((await(await fresh('/api/migration/status')).json()).relinkEligible,false);
   assert.equal(env.LAB_DB.db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?')
-    .get('user_PvLabV2StudioOwner').balance_credits,200,
-    'unused starter ledger remains untouched and separate from the original owner account');
+    .get('user_PvLabV2StudioOwner').balance_credits,0,
+    'unused zero-credit trial wallet remains untouched and separate from original owner account');
   assert.equal((await fresh('/api/migration/redeem',{method:'POST',data:{code:legacyCode.code}})).status,409,
     'a previously redeemed owner code is never usable again');
 });
@@ -276,7 +290,8 @@ test('A new customer with saved work cannot be silently relinked or lose their g
   const {env}=fixture(),studio='https://pvlab.studio';
   env.LAB_STUDIO_AUTH_ENABLED='true';env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';env.LAB_WELCOME_CREDITS_ENABLED='true';
   env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
-  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0017-clerk-domain-links.sql',import.meta.url),'utf8'));
+  for(const migration of ['0011-customer-lifecycle','0015-lab-promotional-credits','0023-welcome-guard','0017-clerk-domain-links'])
+    env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/'+migration+'.sql',import.meta.url),'utf8'));
   const newToken=await token('user_WithWork',{iss:'https://clerk.pvlab.studio',azp:studio});
   const fresh=(path,options={})=>req(env,path,{authToken:newToken,headers:{Origin:studio},...options});
   assert.equal((await fresh('/api/migration/new',{method:'POST'})).status,201);
