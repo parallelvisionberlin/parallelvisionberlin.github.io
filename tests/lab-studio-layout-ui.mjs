@@ -24,6 +24,11 @@ assert.ok(source.includes("document.documentElement.classList.add('pv-studio-boo
 const studioHtml=readFileSync('lab/studio.html','utf8');
 assert.match(studioHtml,/<html lang="en" class="pv-studio-boot-lock">/,'Initial HTML locks scroll before any route renders');
 assert.match(studioHtml,/html\.pv-studio-boot-lock\{scroll-behavior:auto!important\}/,'Boot overrides smooth scrolling while locked');
+assert.match(studioHtml,/html\.pv-studio-boot-lock\{scrollbar-gutter:stable\}/,
+  'First-paint gutter is reserved before Image initializes and before native route selection');
+assert.match(studioHtml,/<svg class="lab-boot-fluid"[^>]+aria-hidden="true"/,
+  'Chrome ribbons are decorative inline SVG, with no network dependency or accessible duplicate');
+assert.match(studioHtml,/@keyframes pv-fluid-right/, 'Fluid motion is CSS-only and independent of Studio readiness');
 assert.match(studioHtml,/history\.scrollRestoration='manual';/,'All direct routes opt out of stale Chrome scroll restoration');
 assert.match(studioHtml,/new MutationObserver\(scheduleBootUnlock\)/,'Native route completion can release the boot scroll lock');
 const splashWordmark=studioHtml.match(/\.lab-boot-wordmark\{([^}]*)\}/)?.[1]||'';
@@ -523,7 +528,21 @@ try{
   assert.equal(splashAtStart.locked,true,'Splash maintains the initial scroll lock');
   assert.equal(splashAtStart.scrollY,0,'Startup begins at the top instead of a restored scroll position');
   assert.match(splashAtStart.font,/Helvetica Neue|Arial/,'Loader never uses an asynchronously swapped font');
+  const fluid=bootPage.locator('#lab-boot > svg.lab-boot-fluid');
+  assert.equal(await fluid.count(),1,'One decorative fluid layer frames the centered logo');
+  assert.equal(await fluid.getAttribute('aria-hidden'),'true','The effect is excluded from the accessibility tree');
+  assert.equal(await fluid.evaluate(el=>getComputedStyle(el).animationName),'pv-fluid-arrive',
+    'Fluid reflections animate while loading without animating the brand');
   const logoBefore=await loaderLogo.boundingBox();
+  await bootPage.evaluate(()=>document.getElementById('app').classList.add('image-studio-active'));
+  const logoAfterImageInit=await loaderLogo.boundingBox();
+  assert.ok(Math.abs(logoAfterImageInit.x-logoBefore.x)<1&&Math.abs(logoAfterImageInit.y-logoBefore.y)<1,
+    'Image route scrollbar gutter must not shift the centered PV LAB logo');
+  await bootPage.evaluate(()=>document.getElementById('app').classList.remove('image-studio-active'));
+  await bootPage.emulateMedia({reducedMotion:'reduce'});
+  assert.equal(await fluid.evaluate(el=>getComputedStyle(el).animationName),'none',
+    'System reduced-motion disables chrome ribbon animation');
+  await bootPage.emulateMedia({reducedMotion:'no-preference'});
   await bootPage.mouse.wheel(0,820);
   await bootPage.waitForTimeout(500);
   assert.equal(await bootPage.evaluate(()=>window.scrollY),0,'Wheel input cannot scroll the hidden workspace during boot');
