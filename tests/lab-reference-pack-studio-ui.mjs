@@ -96,8 +96,8 @@ try{
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-new').count(),1);
   assert.equal(await page.locator('#pack-studio-dialog .pack-studio-side-link').count(),5,
     'Photo Packs uses the same five-section library navigation as Elements');
-  assert.equal(await page.locator('#pack-studio-intro').isVisible(),true);
-  assert.ok((await page.locator('#pack-studio-intro').evaluate(el=>getComputedStyle(el).backgroundImage)).includes('data:image/webp'),
+  assert.equal(await page.locator('.pack-studio-intro').isVisible(),true);
+  assert.ok((await page.locator('.pack-studio-intro').evaluate(el=>getComputedStyle(el).backgroundImage)).includes('data:image/webp'),
     'The approved water photograph must appear only inside the Photo Packs hero');
   await page.locator('#pack-studio-list-view').click();
   assert.equal(await page.locator('#pack-studio-grid').getAttribute('data-view'),'list');
