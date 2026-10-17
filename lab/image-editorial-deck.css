@@ -151,6 +151,47 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   }
 }
 
+/* The first Image visit has a distinct floating invitation, like approved mockup 5.
+   This only alters the breathing room around the EXISTING six cards so the
+   existing composer fits between the credit line and those cards. It does NOT
+   replace the background, change images or duplicate generation controls.
+   On prompt engagement/Mood selection it returns to the original bottom
+   workdeck, styled like mockup 6. History and Inspiration use their own flow. */
+@media (min-width:1260px) and (min-height:740px){
+  html:not(.pv-native-lab) #app.image-studio-active.pv-welcome-deck-resting
+    .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    justify-content:flex-start!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active.pv-welcome-deck-resting
+    #lab-welcome-start .lab-welcome-presets{
+    margin-top:175px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active.pv-welcome-deck-resting
+    #image-composer.pv-editorial-deck:not(.is-pv-soul){
+    position:fixed!important;
+    top:var(--pv-welcome-deck-top,350px)!important;
+    bottom:auto!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    width:min(800px,calc(100vw - 72px))!important;
+    min-height:0!important;
+    padding:14px 19px!important;
+  }
+  /* A quiet starter instrument. The actual Mood, resolution, reference mode
+     and Exact Prompt controls appear in full after selecting a Mood or editing
+     the prompt, rather than becoming cramped and unreadable on first arrival. */
+  html:not(.pv-native-lab) #app.image-studio-active.pv-welcome-deck-resting
+    #image-composer .composer-mood-control,
+  html:not(.pv-native-lab) #app.image-studio-active.pv-welcome-deck-resting
+    #image-composer #composer-reference-intent-toggle,
+  html:not(.pv-native-lab) #app.image-studio-active.pv-welcome-deck-resting
+    #image-composer #image-composer-resolution-wrap,
+  html:not(.pv-native-lab) #app.image-studio-active.pv-welcome-deck-resting
+    #image-composer #composer-exact-prompt-option{
+    display:none!important;
+  }
+}
+
 /* Mobile: never turn the prompt into a full-screen keyboard-triggering sheet.
    It previews the chosen Mood without focus, and expands only on intentional tap. */
 @media(max-width:680px){
