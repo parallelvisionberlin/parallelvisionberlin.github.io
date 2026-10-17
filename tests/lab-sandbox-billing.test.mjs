@@ -13,7 +13,8 @@ function setup(t){
     '../lab-worker/migrations/0004-pv-soul.sql',
     '../lab-worker/migrations/0006-customers-billing.sql',
     '../lab-worker/migrations/0007-lab-referrals.sql',
-    '../lab-worker/migrations/0008-soul-id-launch-credits.sql'])
+    '../lab-worker/migrations/0008-soul-id-launch-credits.sql',
+    '../lab-worker/migrations/0024-owner-acquisition.sql'])
     db.exec(readFileSync(new URL(path,import.meta.url),'utf8'));
   const LAB_DB={
     prepare(sql){return {bind(...args){
