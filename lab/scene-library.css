@@ -632,3 +632,29 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
     display:flex;flex-direction:column;justify-content:center;transform:none;
   }
 }
+
+
+/* 2026-10-18 / Align Elements hero content to the Photo Packs baseline.
+   Photo Packs anchors its copy near the bottom; centered Elements copy was ~20px high. */
+@media(min-width:941px){
+  #scene-library-dialog:has(#scene-browser:not([hidden])) .scene-category-hero{
+    display:flex;align-items:flex-end;justify-content:flex-start;
+    height:154px;min-height:154px;max-height:154px;
+    padding:18px 22px 19px;
+    margin:8px 0 12px;
+  }
+  #scene-library-dialog:has(#scene-browser:not([hidden])) .scene-category-hero-copy{
+    display:flex;flex-direction:column;align-items:flex-start;
+    justify-content:flex-end;max-width:360px;
+    margin:0;padding:0;transform:none;
+  }
+  #scene-library-dialog:has(#scene-browser:not([hidden])) .scene-category-hero-kicker{
+    margin:0 0 7px;
+  }
+  #scene-library-dialog:has(#scene-browser:not([hidden])) .scene-category-hero h3{
+    font-size:26px;line-height:1.1;margin:0;
+  }
+  #scene-library-dialog:has(#scene-browser:not([hidden])) .scene-category-hero p{
+    margin:6px 0 0;font-size:11px;line-height:1.45;
+  }
+}
