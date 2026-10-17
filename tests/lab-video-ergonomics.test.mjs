@@ -52,7 +52,7 @@ test('reference UI is compact but still includes the existing selected reference
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
 });
 test('Video navigation does not lose the scrollbar gutter after login finishes',()=>{
-  assert.match(html,/html:has\(#app\.image-studio-active\),html:has\(#app\.video-studio-active\)\{scrollbar-gutter:stable\}/);
+  assert.match(html,/html:has\(#app\.image-studio-active\)\{scrollbar-gutter:stable\}/);\n  assert.match(html,/html:has\(#app\.video-studio-active\)\{scrollbar-gutter:stable\}/);
   assert.match(css,/grid-template-columns:clamp\(352px,26vw,395px\) minmax\(0,1fr\)/);
   assert.match(css,/\.video-feed-center\{\s*min-width:0!important;scrollbar-gutter:stable!important;/);
   assert.match(css,/transition-property:none!important/);
