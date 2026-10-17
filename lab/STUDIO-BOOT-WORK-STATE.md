@@ -20,6 +20,9 @@ Scope: Studio initial loading overlay only.
 - Oct 17 geometric variant merged in PR #289, user rejected it and requested original unchanged.
 - Base main commit for restore: `41f7a6bf4902623e4e007c8ac7c71d4ebd178636`.
 
-## Verification
-- Source style/structure assertions passed in patch construction. Independent CI, merge and live custom-domain check must be recorded after execution.
-- Live verification should check original wordmark, animated bar and identical exit, full viewport alignment across Image and Fashion routes. The only pending design choice is a future logo direction.
+## Verification and production state
+- Original-loader restoration merged through PR #291 on main as commit `cdb7734c302e8b1fafcf70bed2244b586e2e8323`.
+- Focused Fashion/Studio mock browser regression passed in GitHub Actions run `39055691442`, covering stable first paint, centered desktop/mobile geometry, 100vw width, scrolling lock/recovery, native route guards, reduced-motion and original blur/fade exit.
+- Static validation passed on the PR; no charged generation was tested.
+- Live custom domain `https://pvlab.studio/studio` verified by `PV LAB domain live readiness` run `39055781452` (SUCCESS) against this merge SHA. The smoke asserts original centered loader markup and rejects fluid/geometric artwork while preserving .24s fade and viewport alignment.
+- Logo explorations are preview-only, not committed, and the existing production branding remains unchanged. Wait for explicit user selection before touching the wordmark.
