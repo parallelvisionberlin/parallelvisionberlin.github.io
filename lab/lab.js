@@ -1412,8 +1412,8 @@ function showWelcomeStart(session){
   // credit/grant/generation entitlement. New signed-in customers must see it
   // even with zero credits or while generation permissions are settling.
   // Server-side permission and wallet checks still govern actual generation.
-  const eligible=(welcomeRequested||tool==='image')&&owner&&customerMode
-    &&session?.customer===true&&session.accountClosed!==true
+  const eligible=(welcomeRequested||tool==='image')&&owner
+    &&session?.accountClosed!==true
     &&!$('history').querySelector('.card[data-kind="image"]');
   if(!eligible){resetWelcomeStart();return;}
   const amount=$('lab-welcome-balance');
