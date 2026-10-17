@@ -16,7 +16,7 @@ const products=[{id:'topup10',type:'payment',credits:1000,priceEur:10},{id:'topu
 for(const product of products)product.title='PV Lab '+product.id;
 const clerkMock=`export class Clerk {
   constructor(){window.mockClerk=this;this.listeners=[];this.isSignedIn=sessionStorage.getItem('mock-auth')!=='out';this.user={id:'user_Test',fullName:'Alex Test',hasImage:false,primaryEmailAddress:{emailAddress:'alex@example.test'}};this.session=this.isSignedIn?{id:'sess_Test',getToken:async()=> 'synthetic-token'}:null;}
-  async load(){} addListener(fn){this.listeners.push(fn);} async signOut(){this.isSignedIn=false;this.user=null;this.session=null;this.listeners.forEach(fn=>fn());}
+  async load(){} addListener(fn){this.listeners.push(fn);} async signOut(){sessionStorage.setItem('mock-auth','out');this.isSignedIn=false;this.user=null;this.session=null;this.listeners.forEach(fn=>fn());}
   openSignIn(options){window.signInOpened=true;window.signInOptions=options;} openUserProfile(){window.profileOpened=true;}
 }`;
 async function setup(width,customer=true,overrides={}){
@@ -37,6 +37,7 @@ async function setup(width,customer=true,overrides={}){
       if(heldWallet)await heldWallet;
       return send({...session,activity:[{delta_credits:-42,kind:'generation',created_at:1720000000000},{delta_credits:1000,kind:'purchase',created_at:1719000000000}]});
     }
+    if(url.pathname==='/api/customer/account'&&request.method()==='DELETE')return route.fulfill({status:202,contentType:'application/json',body:JSON.stringify({accepted:true})});
     if(url.pathname==='/api/customer/account')return send({storage:{bytes:1024**3,limitBytes:20*1024**3,files:15}});
     if(url.pathname==='/api/billing/portal')return send({url:'https://evil.example/stripe.com'});
     if(url.pathname==='/api/billing/checkout'){if(heldCheckout)await heldCheckout;return send({url:checkoutUrl});}
@@ -210,6 +211,38 @@ try{
       console.log('PASS credit banner, deck, real balance changes, pilot products, checkout guards and sign-out at '+width+'px');
     }finally{rig.releaseCheckout();await rig.context.close();}
   }
+  // A successful deletion request signs out the same Clerk session and clears
+  // the deleted customer's identity and credit balance from the homepage.
+  for(const width of [1440,390]){
+    const rig=await setup(width,true),{page,writes,errors}=rig;
+    try{
+      await page.goto(origin+'/lab/account.html#settings');
+      await page.locator('#settings-close-account').waitFor({state:'visible'});
+      await page.click('#settings-close-account');
+      await page.fill('#account-close-confirm','DELETE MY PV LAB ACCOUNT');
+      await page.click('#account-close-submit');
+      await page.waitForURL(origin+'/lab/');
+      await page.locator('#lab-header-signin').waitFor({state:'visible'});
+      assert.equal(await page.locator('.pv-account-menu>summary').isVisible(),false,'Deleted user menu is hidden');
+      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits','Deleted user balance is cleared');
+      const requests=writes.filter(item=>item.path==='/api/customer/account');
+      assert.equal(requests.length,1,'Account closure submitted once');
+      assert.deepEqual(JSON.parse(requests[0].body),{confirmation:'DELETE MY PV LAB ACCOUNT'});
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
+  }
+  {
+    const rig=await setup(1440,true,{accountClosed:{state:'requested'},balanceCredits:200}),{page,errors}=rig;
+    try{
+      await page.goto(origin+'/lab/');
+      await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
+      assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'Closed accounts do not advertise spendable credits');
+      await page.locator('.pv-account-menu>summary').click();
+      assert.equal(await page.locator('[data-account-balance]').textContent(),'Account closed','Closed-account menu never advertises credits');
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
+  }
+  console.log('PASS post-deletion sign-out and closed-account balance presentation');
   for(const width of [1440,390,320]){
     const rig=await setup(width),{page,errors,writes}=rig;
     try{
