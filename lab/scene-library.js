@@ -206,7 +206,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     if(working||!window.confirm('Delete '+item.title+' from Scene Library? Generations already made will remain in History.'))return;
     setWorking(true);setStatus('Removing saved item…');
     try{
-      await action(async()=>{
+      await runTask(async()=>{
         await api('/api/packs/'+encodeURIComponent(item.id),{method:'DELETE'});
         await loadPacks();
         setStatus('Removed '+item.title+'.');
@@ -237,7 +237,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     const role=cat.id==='characters'&&appearance==='full'?'custom':cat.role;
     setWorking(true);setStatus('Saving original references privately…');
     try{
-      await action(async()=>{
+      await runTask(async()=>{
         const ids=[];
         for(const item of photos)ids.push(item.id||await uploadAsset(item.file));
         const labels=ids.map((id,i)=>({
@@ -253,6 +253,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
       });
     }finally{setWorking(false);}
   }
+  function reset(){working=false;if(dialog.open)dialog.close();clearPhotos();allPacks=[];entries=[];setStatus('');renderSelected();}
   function sync(packs){
     allPacks=Array.isArray(packs)?packs:[];
     entries=allPacks.map(itemFromPack).filter(Boolean);
@@ -287,5 +288,5 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
   $('scene-save').onclick=()=>{void save();};
   dialog.addEventListener('cancel',event=>{if(working)event.preventDefault();});
   dialog.addEventListener('close',()=>{if(!working){clearPhotos();setStatus('');}});
-  return {open,close,sync,renderSelected,fromGallery};
+  return {open,close,reset,sync,renderSelected,fromGallery};
 }
