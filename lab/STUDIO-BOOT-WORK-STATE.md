@@ -92,3 +92,12 @@ Scope: Studio initial loading overlay only.
 - Additional recovery defect: Reload was bound in DOMContentLoaded, which does not fire while a module import remains pending.
 - New changes: concurrent Clerk SDK/UI load with 12s resource and 12s session-hydration bounds; referral claim asynchronous only after server session confirmation; 8s informative boot status; 22s independent safety gate that reveals verified Studio or a public retry screen but never reveals unverified private content; retry listener attached before DOMContentLoaded. No backend, payments, credit, wallet or provider changes.
 - New browser regression simulates a permanently pending Studio module using a held request and asserts the public fallback, private app hidden, and scroll unlocked. Static checks verify the auth bounds. Pending: CI, production deploy, actual signed-in user verification.
+
+## Signed-in loading recovery verification, October 17, 2026 (20:44 UTC)
+- Implemented bounded Clerk resource loading and session hydration in `lab/native-account.js`, removed the blocking referral claim from signed-in `sync()` in `lab/lab.js`, and added a head-script recovery to `lab/studio.html` that works even if DOMContentLoaded is blocked.
+- Browser regression `PV Lab Fashion browser checks` run `39067679086` succeeded, including a deliberately held Studio JavaScript module: private `#app` remained hidden, public gate/reload became available and scroll lock cleared. This is synthetic, not an actual Clerk customer sign-in.
+- Static validation `39067679066` passed.
+- Live custom-domain fingerprints were separately confirmed by `PV LAB signed-in Studio recovery live check` run `39068009006`, success at 20:44:47 UTC. Both `/studio?tool=image` and `/studio?tool=video` served HTTP 200 with the recovery and cache marker; `/native-account.js` and `/lab.js` matched the corrected startup logic.
+- The older omnibus domain check `39067678841` failed because at least one of its many unrelated/stale assertions never matched; the new focused smoke above independently verifies the scoped Studio fix.
+- Real Eva/Camila signed-in behavior remains NOT VERIFIED. Ask for an authenticated retest, and if still stalled request the state after the 22s recovery; do not claim the original root cause is fully diagnosed from anonymous or synthetic browser tests.
+- The unrelated Mood Creator style-regression checks and pre-existing 390px horizontal overflow remain separate work and are not evidence of a signed-in authentication failure.
