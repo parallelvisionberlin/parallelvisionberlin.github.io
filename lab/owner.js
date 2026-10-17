@@ -267,7 +267,7 @@ for(const button of document.querySelectorAll('[data-traffic-days]'))button.addE
 $('owner-traffic-refresh').addEventListener('click',()=>void refreshTraffic());
 
 const acquisitionUI=createOwnerAcquisitionUI({
-  request:call,ownerReady:()=>!!profile?.owner,revision:()=>revision,days:()=>trafficDays,
+  request:path=>call(path),ownerReady:()=>!!profile?.owner,revision:()=>revision,days:()=>trafficDays,
   formatDate,formatNumber,openActivity:openCustomerActivity,mobileLabels:labelTableCellsForMobile
 });
 let recentFilter='all',recentCustomers=[],recentPayments=[];
