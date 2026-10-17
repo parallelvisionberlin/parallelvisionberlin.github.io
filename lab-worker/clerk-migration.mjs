@@ -47,7 +47,7 @@ async function disposableTrial(env,identity){
   if(!ownNewCustomer(identity))return false;
   const id=identity.id;
   const wallet=await one(env,'SELECT balance_credits,stripe_customer_id FROM lab_customers WHERE id=?',id);
-  if(!wallet||wallet.balance_credits!==200||wallet.stripe_customer_id)return false;
+  if(!wallet||![0,200].includes(wallet.balance_credits)||wallet.stripe_customer_id)return false;
   const counts=await one(env,`
     SELECT
       (SELECT COUNT(*) FROM lab_credit_entries WHERE customer_id=?) AS entries,
@@ -59,7 +59,10 @@ async function disposableTrial(env,identity){
       (SELECT COUNT(*) FROM moodboards WHERE owner_id=?) AS moods,
       (SELECT COUNT(*) FROM lab_subscriptions WHERE customer_id=?) AS subscriptions
   `,id,id,'welcome:'+id,id,id,id,id,id,id);
-  return counts?.entries===1&&counts.welcome===1&&
+  // An unspent wallet can have its verified welcome grant or zero credits pending verification.
+  const cleanWallet=wallet.balance_credits===0?counts?.entries===0
+    :counts?.entries===1&&counts.welcome===1;
+  return !!cleanWallet&&
     !counts.jobs&&!counts.assets&&!counts.quotes&&!counts.packs&&!counts.moods&&!counts.subscriptions;
 }
 
@@ -111,9 +114,10 @@ export async function migrationRoute(request,env,identity){
     const safeRelink=trial
       ? env.LAB_DB.prepare(
         "UPDATE lab_clerk_identity_links SET canonical_id=?,kind=? WHERE new_subject=? AND canonical_id=? AND kind='customer' "+
-        "AND EXISTS (SELECT 1 FROM lab_customers WHERE id=? AND balance_credits=200 AND stripe_customer_id IS NULL) "+
-        "AND (SELECT COUNT(*) FROM lab_credit_entries WHERE customer_id=?)=1 "+
-        "AND EXISTS (SELECT 1 FROM lab_credit_entries WHERE customer_id=? AND reference=? AND kind='adjustment' AND delta_credits=200) "+
+        "AND EXISTS (SELECT 1 FROM lab_customers c WHERE c.id=? AND c.stripe_customer_id IS NULL AND "+
+        "((c.balance_credits=0 AND NOT EXISTS(SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=c.id)) OR "+
+        "(c.balance_credits=200 AND (SELECT COUNT(*) FROM lab_credit_entries e WHERE e.customer_id=c.id)=1 "+
+        "AND EXISTS(SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=c.id AND e.reference=? AND e.kind='adjustment' AND e.delta_credits=200)))) "+
         "AND NOT EXISTS (SELECT 1 FROM jobs WHERE owner_id=?) "+
         "AND NOT EXISTS (SELECT 1 FROM assets WHERE owner_id=?) "+
         "AND NOT EXISTS (SELECT 1 FROM quotes WHERE owner_id=?) "+
@@ -121,7 +125,7 @@ export async function migrationRoute(request,env,identity){
         "AND NOT EXISTS (SELECT 1 FROM moodboards WHERE owner_id=?) "+
         "AND NOT EXISTS (SELECT 1 FROM lab_subscriptions WHERE customer_id=?)"
       ).bind(ticket.canonical_id,ticket.kind,identity.subject,identity.id,
-        identity.id,identity.id,identity.id,'welcome:'+identity.id,
+        identity.id,'welcome:'+identity.id,
         identity.id,identity.id,identity.id,identity.id,identity.id,identity.id)
       : env.LAB_DB.prepare(
         'INSERT OR IGNORE INTO lab_clerk_identity_links(new_subject,canonical_id,kind,created_at) '+
