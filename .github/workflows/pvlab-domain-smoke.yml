@@ -58,6 +58,7 @@ jobs:
               && ! grep -Fq 'lab-boot-fluid' /tmp/live-studio.html \
               && grep -Fq '#lab-boot{position:fixed;inset:0;width:100vw;' /tmp/live-studio.html \
               && grep -Fq 'pv-boot-dismiss .24s ease-out both' /tmp/live-studio.html \
+              && grep -Fq '.lab-boot-wordmark::before{content:attr(data-text);position:absolute;inset:0;padding-left:inherit;box-sizing:border-box;pointer-events:none;white-space:nowrap;color:#ededee;opacity:0}' /tmp/live-studio.html \
               && grep -Fq '@keyframes pv-boot-out{0%,12%{opacity:1;filter:blur(0);transform:none}55%{opacity:.82;filter:blur(3px);transform:none}100%{opacity:0;filter:blur(9px);transform:none}}' /tmp/live-studio.html \
               && grep -Fq '@keyframes pv-boot-trail-out{0%,17%{opacity:0;filter:blur(0);transform:none}56%{opacity:.46;filter:blur(5px);transform:none}100%{opacity:0;filter:blur(12px);transform:none}}' /tmp/live-studio.html \
               && grep -Fq 'id="history-preview-toggle"' /tmp/live-studio.html \

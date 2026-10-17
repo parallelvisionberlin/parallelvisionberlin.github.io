@@ -42,3 +42,10 @@ Scope: Studio initial loading overlay only.
 - The initial live-domain check ran before Pages deployment and timed out waiting for the updated markup. After Pages completed, a retry of domain run `39057124528`, attempt 2, **succeeded** against `https://pvlab.studio/studio.html` with assertions that *both* exit keyframes have `transform:none` at all phases, plus existing Studio readiness and canonical paths.
 - Logo appears immediately and does not move until the original .24s blur/opacity fade; status and retry still work when loading is slow. No extra waiting added.
 - Next visual QA: user can hard-refresh the custom domain and confirm the previous one-centimeter left shift has disappeared. A new logo redesign remains unapproved and must not be installed automatically.
+
+## October 17 residual visual jump diagnosed and corrected
+- User still noticed the logo jumping left on Refresh after removing exit keyframe translations.
+- Reproduced with headless Chromium (1440x900) using the actual early boot CSS: initial logo bounds centered at x=720px, unchanged by the Image route scrollbar gutter, and unchanged mid-exit. However, computed ghost `::before` had zero left padding while the visible logo had `padding-left:.24em` = **7.92px**. Once the blurred duplicate appears, the lettering looks displaced left even though its bounding box is stationary.
+- Fixed ONLY that mismatch by adding `padding-left:inherit;box-sizing:border-box` to the pseudo-element. Exit blur/opacity/easing, 240 ms fade, progress line, route guards, scrollbar restoration and all studio tools stay unchanged.
+- Added a focused computed-style browser assertion that wordmark and duplicate have matching padding, tracking and aligned sizing. Domain smoke checks the new exact CSS on production.
+- Reference baseline main `84b40879b02a3c007f7f599d1a0338f059c074ab`; branch `fix/pvlab-loader-ghost-alignment-20261017`; release, CI and production checks must be verified separately.
