@@ -312,11 +312,15 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
       WHERE c.id=?`,customerId);
     if(!customer)fail(404,'Customer not found.');
-    const [jobCounts,creditTotals,jobs,entries]=await Promise.all([
+    const [jobCounts,creditTotals,jobs,entries,archivedFinance]=await Promise.all([
       one(env,`SELECT COUNT(*) AS totalJobs,
-        COALESCE(SUM(CASE WHEN state='completed' THEN 1 ELSE 0 END),0) AS completedJobs,
-        COALESCE(SUM(CASE WHEN state='failed' THEN 1 ELSE 0 END),0) AS failedJobs
-        FROM jobs WHERE owner_id=?`,customerId),
+        COALESCE(SUM(CASE WHEN last_state IN ('completed','reconstructed_completed') THEN 1 ELSE 0 END),0) AS completedJobs,
+        COALESCE(SUM(CASE WHEN last_state='failed' THEN 1 ELSE 0 END),0) AS failedJobs,
+        COALESCE(SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END),0) AS archivedJobs,
+        COALESCE(SUM(CASE WHEN last_state='reconstructed_completed' THEN 1 ELSE 0 END),0) AS reconstructedCompleted,
+        COALESCE(SUM(CASE WHEN last_state NOT IN ('draft','failed','unknown')
+          THEN COALESCE(settled_cost_usd,estimated_microusd/1000000.0) ELSE 0 END),0) AS providerExposureUsd
+        FROM lab_generation_finance WHERE customer_id=?`,customerId),
       one(env,`SELECT COALESCE(SUM(CASE WHEN kind='generation' THEN -delta_credits ELSE 0 END),0) AS creditsCharged,
         COALESCE(SUM(CASE WHEN kind='refund' THEN delta_credits ELSE 0 END),0) AS creditsRefunded
         FROM lab_credit_entries WHERE customer_id=?`,customerId),
@@ -327,7 +331,14 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
           WHERE e.customer_id=? AND e.kind='refund' AND e.reference='refund:job:'||j.id),0) AS refundedCredits
         FROM jobs j WHERE j.owner_id=? ORDER BY j.created_at DESC,j.id DESC LIMIT 50`,customerId,customerId,customerId),
       all(env,`SELECT kind,delta_credits AS credits,reference,created_at AS createdAt
-        FROM lab_credit_entries WHERE customer_id=? ORDER BY created_at DESC,id DESC LIMIT 80`,customerId)
+        FROM lab_credit_entries WHERE customer_id=? ORDER BY created_at DESC,id DESC LIMIT 80`,customerId),
+      all(env,`SELECT job_id AS jobId,created_at AS createdAt,last_state AS state,
+        provider,tool_kind AS type,origin,
+        CASE WHEN last_state IN ('draft','failed','unknown') THEN 0
+          ELSE COALESCE(settled_cost_usd,estimated_microusd/1000000.0) END AS exposureUsd,
+        CASE WHEN settled_cost_usd IS NOT NULL THEN 'settled' ELSE 'estimate' END AS costKind
+        FROM lab_generation_finance WHERE customer_id=? AND deleted_at IS NOT NULL
+        ORDER BY created_at DESC,job_id DESC LIMIT 50`,customerId)
     ]);
     // Return only curated metadata. Never expose prompts, reference URLs or private media.
     const safe=value=>typeof value==='string'?value.slice(0,120):'';
@@ -341,15 +352,19 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       generation:'Generation charge',refund:'Generation refund',adjustment:'Credit adjustment'};
     return json({customer,summary:{
       totalJobs:Number(jobCounts?.totalJobs)||0,completedJobs:Number(jobCounts?.completedJobs)||0,
-      failedJobs:Number(jobCounts?.failedJobs)||0,creditsCharged:Number(creditTotals?.creditsCharged)||0,
+      failedJobs:Number(jobCounts?.failedJobs)||0,
+      archivedJobs:Number(jobCounts?.archivedJobs)||0,
+      reconstructedCompleted:Number(jobCounts?.reconstructedCompleted)||0,
+      providerExposureUsd:Number(jobCounts?.providerExposureUsd)||0,
+      creditsCharged:Number(creditTotals?.creditsCharged)||0,
       creditsRefunded:Number(creditTotals?.creditsRefunded)||0,
       netCreditsSpent:(Number(creditTotals?.creditsCharged)||0)-(Number(creditTotals?.creditsRefunded)||0)
-    },jobs:history,entries:entries.map(e=>({createdAt:e.createdAt,credits:e.credits,kind:e.kind,
+    },jobs:history,archivedFinance,entries:entries.map(e=>({createdAt:e.createdAt,credits:e.credits,kind:e.kind,
       description:e.kind==='adjustment'&&e.reference?.startsWith('welcome:')?'Welcome credits':
         e.kind==='adjustment'&&e.reference?.startsWith('voucher:')?'Voucher credits':
         e.kind==='adjustment'&&e.reference?.startsWith('referral:')?'Referral credits':
         descriptions[e.kind]||'Credit movement'})),
-      limits:{jobs:50,entries:80}});
+      limits:{jobs:50,entries:80,archivedFinance:50}});
   }
   if(path==='/api/admin/overview'&&method==='GET'){
     const search=(url.searchParams.get('search')||'').trim().slice(0,80),match='%'+search.replace(/[\\%_]/g,'\\$&')+'%';
