@@ -22,5 +22,7 @@ Scope: initial Studio splash only, for every tool route. References: the user's 
 - Source baseline for this task: `09458598ad0d0a0d732a5846aa82056291fdfd1f`.
 
 ## Verification and deployment
-- New implementation branch: `feat/pvlab-geometric-boot-20261017`. Testing, merge and public activation must be verified from GitHub Actions and the custom domain; a commit alone does not establish live deployment.
-- Verify desktop and mobile overlay geometry, loading that exits before panel fades finish, native route pending, reduced motion and unchanged 240ms fade.
+- Approved geometric reveal merged via PR #289 into main commit `975ac4d70609978ee5a70abd200d38bc7e7316b9`.
+- Focused Fashion/Studio browser regression passed on PR (run `39053948512`); static-site validation passed on both PR and main. Its mock first-paint test covered staggered reveal, stable logo coordinates, mobile bounds, reduced motion and previous 240 ms exit. No provider jobs, payments or image generation were run.
+- **Live pvlab.studio verified** by domain readiness workflow run `39054064983` (SUCCESS): published `studio.html` contains the geometric artwork and reveal animation, excludes old fluid artwork, preserves `width:100vw`, and preserves `pv-boot-dismiss .24s` plus existing canonical-route/auth checks.
+- GitHub Pages build is a separate pipeline and may finish after Cloudflare custom-domain verification. User visual acceptance is the only remaining design feedback step.
