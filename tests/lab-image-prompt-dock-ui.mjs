@@ -129,7 +129,8 @@ try{
         await page.evaluate(()=>{document.getElementById('image-composer-references').hidden=true;window.__resizePVPrompt();});
         const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
         assert.ok(empty>=105&&empty<170,'No-photo desktop Image deck stays compact: '+empty);
-        assert.ok(withPhotos>empty+35,'Attached photos add their own reference row.');
+        assert.ok(withPhotos>=empty-3,
+          'Inline photo references must not shrink the already-open floating deck: '+JSON.stringify({withPhotos,empty}));
         await page.evaluate(()=>{document.getElementById('image-composer-references').hidden=false;});
         await textbox.fill(lorem);
         await page.evaluate(()=>window.__resizePVPrompt());
