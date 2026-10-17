@@ -1103,6 +1103,9 @@ async function reserveFalImageJob(env,owner,sourceId,p,estimate,approvedQuoteId=
     if(!approved||approved.source_id!==sourceId||approved.estimate_microusd!==estimate)
       fail(409,'Precision Edit quote expired or does not match the selected image. Check price again.');
   }
+  // Bind every direct fal.ai image reservation to the same server price that
+  // the atomic customer wallet debit will calculate.
+  p.customerChargeCredits=creditsForJobUsd(estimate/1000000,p);
   const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,id=crypto.randomUUID(),quoteId=approvedQuoteId||crypto.randomUUID();
   if(!approvedQuoteId)await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
     quoteId,owner,sourceId||null,JSON.stringify(p),estimate,t+600000,p.provider+'-direct',String(estimate/1000000),'{}');
@@ -1596,7 +1599,8 @@ async function route(request,env,ctx) {
     if(p.processing==='batch'&&prepared.totalBytes*count*1.38>18*1024*1024)fail(413,'This Batch would exceed Google inline batch size because the reference images are repeated for each request. Use fewer images, fewer references, or Normal mode.');
     const ids=Array.from({length:count},()=>crypto.randomUUID());
     for(let i=0;i<count;i++){
-      const params={...p,referenceSourceIds:prepared.refs.map(a=>a.id),batchIndex:i,batchCount:count};
+      const params={...p,referenceSourceIds:prepared.refs.map(a=>a.id),batchIndex:i,batchCount:count,
+        customerChargeCredits:creditsForJobUsd(estimate/1000000,p)};
       await run(env,"INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?, 'submitting',?,?,?)",ids[i],owner,primary?.id||null,JSON.stringify(params),estimate,t+i,t+i);
       await run(env,'INSERT INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)',ids[i],owner,estimate,t+i);
     }
