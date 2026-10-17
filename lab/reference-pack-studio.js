@@ -106,11 +106,17 @@ export function createReferencePackStudio({
       details.append(headline,message);empty.append(icon,details);grid.append(empty);
     }
     for(const pack of packs)grid.append(makeCard(pack));
-    const create=document.createElement('button');create.type='button';create.id='pack-studio-new';
-    create.className='pack-studio-card-new';
-    create.innerHTML='<span class="pack-studio-card-new-symbol" aria-hidden="true">+</span><strong>New photo pack</strong><small>Keep another set of references</small>';
+    // Keep creation prominent in the collection toolbar rather than an empty grid tile.
+    const heading=modal.querySelector('.pack-studio-collection-heading');
+    let create=$('pack-studio-new');
+    if(!create){
+      create=document.createElement('button');
+      create.type='button';create.id='pack-studio-new';
+      create.className='pack-studio-new-toolbar';
+      create.textContent='+  New photo pack';
+      heading?.querySelector('.pack-studio-collection-title')?.after(create);
+    }
     create.disabled=saving||isBusy();create.onclick=beginCreate;
-    grid.append(create);
   }
   function makePreview(item,i){
     const tile=document.createElement('div');tile.className='pack-studio-preview';
