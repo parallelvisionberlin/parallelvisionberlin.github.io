@@ -12,6 +12,7 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
         referralState=$('lab-referral-status'),referralStats=$('lab-referral-stats');
   // A USD provider estimate is not an authoritative customer price. Only
   // backend-quoted creditCost may be displayed as a payable PV LAB amount.
+  const cost=(_usd)=>null; // Legacy method only: never infer payable credits in a browser.
   function describe(_usd){return 'Price unavailable';}
   function jobCharge(job){
     if(job?.settings?.provider==='higgsfield'&&job.settings.mode==='soul-id-training'&&soulIdTrainingCredits!==null)
