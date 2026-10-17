@@ -990,3 +990,23 @@
     height:152px;flex-basis:152px;
   }
 }
+
+/* 2026-10-18: show four complete existing packs; creation is the toolbar +. */
+@media(min-width:941px){
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]){
+    grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-grid:not([data-view="list"]) .pack-studio-card-photo{
+    height:194px;flex-basis:194px;
+  }
+  #pack-studio-dialog:not(.is-creating) .pack-studio-intro{
+    height:154px;min-height:154px;max-height:154px;
+  }
+}
+#pack-studio-dialog:not(.is-creating) .pack-studio-new-icon{
+  width:32px;height:32px;min-height:32px;border-radius:9px;
+  font-size:23px;background:#e9ebeb;color:#131619;border-color:#e9ebeb;
+}
+#pack-studio-dialog:not(.is-creating) .pack-studio-new-icon:hover{
+  background:#fff;color:#111518;
+}
