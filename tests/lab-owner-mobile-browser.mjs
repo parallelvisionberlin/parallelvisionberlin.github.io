@@ -112,11 +112,13 @@ try{
           if(!path.startsWith('/api/admin/acquisition?'))throw Error('Unexpected commercial test endpoint.');
           return {days:7,summary:{
             newUsers:2,activatedUsers:1,completedJobs:3,providerExposureUsd:.24,
+            archivedJobs:1,archivedExposureUsd:.15,reconstructedCompleted:1,
             netCreditsSpent:120,checkoutStarts:2,checkoutPaid:1,revenueCents:1000
           },customers:[
             {id:'user_3lZGUxxxxLongFakeClerkCustomerIdentifierABC',email:'editorial+very-long-signup-name@example.com',
               joinedAt:Date.UTC(2026,9,14),completedJobs:2,creditsSpent:100,
-              providerExposureUsd:.15,checkoutStarts:1,revenueCents:1000,reviewFlag:''},
+              providerExposureUsd:.15,archivedJobs:1,archivedExposureUsd:.15,
+              reconstructedCompleted:1,checkoutStarts:1,revenueCents:1000,reviewFlag:''},
             {id:'user_SuspectedTemporaryA',email:'temp@yournike.com',joinedAt:Date.UTC(2026,9,15),
               completedJobs:1,creditsSpent:20,providerExposureUsd:.04,
               checkoutStarts:0,revenueCents:0,reviewFlag:'disposable-email',promoHeld:true}
@@ -126,6 +128,8 @@ try{
       });
       assert.equal(await page.locator('#owner-acquisition-new').textContent(),'2');
       assert.equal(await page.locator('#owner-acquisition-revenue').textContent(),'€10.00');
+      assert.match(await page.locator('#owner-acquisition-summary').textContent(),/1 finance records retained/);
+      assert.match(await page.locator('#owner-acquisition-customers').innerText(),/1 archived record/);
       assert.equal(await page.locator('#owner-acquisition-customers tr').count(),2,'Customer activity table is populated');
       assert.match(await page.locator('#owner-acquisition-customers').innerText(),/Free generation paused/);
       assert.equal(await page.locator('.owner-acquisition-review-button').count(),1,
@@ -147,11 +151,12 @@ try{
             if(!path.startsWith('/api/admin/customers/activity?'))throw Error('Unexpected activity test endpoint.');
             return {
               customer:{id:'user_active_creator',email:'editorial@example.com',balanceCredits:176},
-              summary:{totalJobs:2,completedJobs:1,failedJobs:1,creditsCharged:34,creditsRefunded:10,netCreditsSpent:24},
+              summary:{totalJobs:2,completedJobs:1,failedJobs:1,creditsCharged:34,creditsRefunded:10,netCreditsSpent:24,archivedJobs:1,providerExposureUsd:.15},
               jobs:[
                 {id:'job_fail',createdAt:Date.UTC(2026,9,14),type:'video',provider:'fal',model:'wan-video',state:'failed',chargedCredits:10,refundedCredits:10},
                 {id:'job_done',createdAt:Date.UTC(2026,9,13),type:'image',provider:'spicy',model:'seedream-v5',state:'completed',chargedCredits:24,refundedCredits:0}
               ],
+              archivedFinance:[{jobId:'archived_test_row',createdAt:Date.UTC(2026,9,13),state:'reconstructed_completed',provider:null,type:null,exposureUsd:.15,costKind:'estimate',origin:'reconstructed'}],
               entries:[
                 {createdAt:Date.UTC(2026,9,14),kind:'refund',credits:10,description:'Generation refund'},
                 {createdAt:Date.UTC(2026,9,13),kind:'adjustment',credits:200,description:'Welcome credits'}
@@ -163,6 +168,8 @@ try{
         await page.locator('#owner-customer-dialog[open]').waitFor();
         await page.locator('#owner-customer-dialog-body').getByText('seedream-v5').waitFor();
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Welcome credits/);
+        assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Archived financial activity/);
+        assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Completed \(reconstructed\)/);
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/24/);
         const dialogWidth=await page.locator('#owner-customer-dialog').evaluate(el=>el.getBoundingClientRect().width);
         assert.ok(dialogWidth<=width,'Private history dialog must fit viewport');
