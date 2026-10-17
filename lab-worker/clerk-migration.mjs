@@ -11,6 +11,33 @@ const response=(data,status=200)=>new Response(JSON.stringify(data),{
   status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}
 });
 function fail(status,message){const error=Error(message);error.status=status;throw error;}
+const BLOCKED_SIGNUP_DOMAINS=new Set(['yournike.com','weekprime.com']);
+export async function assertPermittedLabSignup(env,subject,issuer,{fetcher=fetch}={}){
+  if(env.LAB_BLOCK_SIGNUP_DOMAINS_ENABLED!=='true')return;
+  if(!SUBJECT.test(subject))fail(401,'Invalid account identity.');
+  const secret=issuer===STUDIO_ISSUER?env.LAB_CLERK_V2_SECRET_KEY:
+    issuer===LEGACY_ISSUER?(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY):null;
+  if(!secret)fail(503,'Email verification for new accounts is temporarily unavailable.');
+  let response;
+  try{
+    response=await fetcher('https://api.clerk.com/v1/users/'+encodeURIComponent(subject),{
+      method:'GET',headers:{Authorization:'Bearer '+secret,Accept:'application/json'},
+      redirect:'manual',signal:AbortSignal.timeout(8000)
+    });
+  }catch{fail(503,'Could not verify account email. Try again shortly.');}
+  if(!response?.ok||response.status>=300||response.redirected)
+    fail(503,'Could not verify account email. Try again shortly.');
+  const account=await response.json().catch(()=>null);
+  if(account?.id!==subject||!Array.isArray(account.email_addresses))
+    fail(503,'Could not verify account identity. Try again shortly.');
+  const primary=account.email_addresses.find(e=>e.id===account.primary_email_address_id);
+  const email=primary?.email_address?.trim()?.toLowerCase();
+  if(primary?.verification?.status!=='verified'||typeof email!=='string'||!email.includes('@'))
+    fail(403,'Verify your email address before creating a PV LAB account.');
+  if(BLOCKED_SIGNUP_DOMAINS.has(email.slice(email.lastIndexOf('@')+1)))
+    fail(403,'This email domain cannot be used to register for PV LAB.');
+}
+
 const one=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).first();
 const run=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).run();
 function randomCode(){
@@ -88,6 +115,7 @@ export async function migrationRoute(request,env,identity){
   if(path==='/api/migration/new'&&method==='POST'){
     if(!studio||identity.id)fail(409,'This account has already been set up.');
     if(!SUBJECT.test(identity.subject))fail(401,'Invalid identity.');
+    await assertPermittedLabSignup(env,identity.subject,identity.issuer);
     const id='user_PvLabV2'+identity.subject.slice(5),t=Date.now();
     const result=await run(env,
       "INSERT OR IGNORE INTO lab_clerk_identity_links(new_subject,canonical_id,kind,created_at) VALUES(?,?,'customer',?)",
