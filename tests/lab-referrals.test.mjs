@@ -18,6 +18,7 @@ async function fixture(t) {
   const referralMigration = sqlfile('../lab-worker/migrations/0007-lab-referrals.sql');
   db.exec(referralMigration);
   db.exec(referralMigration); // safe and repeatable during deployment
+  db.exec(sqlfile('../lab-worker/migrations/0024-owner-acquisition.sql'));
   function prepare(query) {
     return { bind(...params) {
       const s = db.prepare(query);
