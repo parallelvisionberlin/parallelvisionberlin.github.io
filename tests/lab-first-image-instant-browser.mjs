@@ -117,7 +117,7 @@ try{
   await page.mouse.move(2,2);
   assert.equal(await page.locator('.lab-welcome-preset').count(),6,
     'All six original welcome cards remain mounted');
-  const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top);
+  const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   await field.click();
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Clicking the prompt opens its multi-line editor');
@@ -149,9 +149,9 @@ try{
   const bottomAfterMood=await deck.boundingBox();
   assert.ok(Math.abs(864-bottomAfterMood.y-bottomAfterMood.height)<32,
     'The engaged deck remains fixed at the same bottom edge after Mood selection');
-  const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top);
+  const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   assert.ok(Math.abs(newCardY-cardY)<2,
-    'Expanding the floating deck must not reflow or move the welcome cards');
+    'Opening the docked deck must not reflow the six Mood cards in document coordinates');
   assert.match(await page.locator('#image-composer-prompt').inputValue(),/jade-green-lit corner shop/);
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
     'The first Mood selection must use Seedream 2K, not the generic Studio 1K default');
