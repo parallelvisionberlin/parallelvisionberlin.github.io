@@ -85,7 +85,7 @@ try{
       // The editorial textarea has a 230ms height transition; measure settled geometry.
       await page.waitForFunction(()=>{
         const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
-        return h>=(innerWidth>900?154:innerWidth<=740?90:110);
+        return h>=(document.getElementById('image-composer').classList.contains('is-pv-soul')?120:innerWidth>900?154:innerWidth<=740?90:110);
       },null,{timeout:2500});
       const metrics=await page.evaluate(()=>{
         const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height};};
