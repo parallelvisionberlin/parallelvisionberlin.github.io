@@ -789,12 +789,12 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="frame-pair">
 <div class="upload-block">
 <div class="upload-heading"><span class="label" id="start-label">Start frame</span><span class="micro">Required</span></div>
-<label class="drop compact-drop" id="drop"><img id="video-start-thumb" class="video-frame-thumb" alt="Selected start frame" hidden><span class="video-frame-label">Start frame</span><span>Drop or browse</span><small>JPG / PNG / WebP</small><input id="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label class="drop compact-drop" id="drop" aria-label="Choose start frame image"><img id="video-start-thumb" class="video-frame-thumb" alt="Selected start frame" hidden><svg class="pv-frame-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.8" width="15" height="15.5" rx="2"/><circle cx="8.2" cy="9" r="1.45"/><path d="m4.8 16 4.6-4.4 3.3 3 2-1.9"/><path d="M19.4 15v8m-4-4h8"/></svg><span class="video-frame-label">Choose image</span><span class="pv-frame-drop-help">or drop it here</span><small>JPG / PNG / WebP</small><input id="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <p class="filemeta" id="filemeta">Choose the exact opening frame.</p>
 </div>
 <div class="upload-block" id="last-upload">
-<div class="upload-heading"><span class="label">Last frame</span><span class="micro">Optional</span></div>
-<label class="drop compact-drop" id="last-drop"><img id="video-end-thumb" class="video-frame-thumb" alt="Selected end frame" hidden><span class="video-frame-label">End frame</span><span>Drop or browse</span><small>Land on a chosen frame</small><input id="last-image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<div class="upload-heading"><span class="label">End frame</span><span class="micro">Optional</span></div>
+<label class="drop compact-drop" id="last-drop" aria-label="Choose optional end frame image"><img id="video-end-thumb" class="video-frame-thumb" alt="Selected end frame" hidden><svg class="pv-frame-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.8" width="15" height="15.5" rx="2"/><circle cx="8.2" cy="9" r="1.45"/><path d="m4.8 16 4.6-4.4 3.3 3 2-1.9"/><path d="M19.4 15v8m-4-4h8"/></svg><span class="video-frame-label">Choose image</span><span class="pv-frame-drop-help">or drop it here</span><small>JPG / PNG / WebP</small><input id="last-image" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <p class="filemeta" id="last-filemeta">Leave empty for an open ending.</p>
 </div>
 </div>
@@ -910,11 +910,18 @@ document.addEventListener('DOMContentLoaded',()=>{
 </div>
 </section>
 <section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button id="pv-video-history-back" class="pv-video-history-back" type="button" hidden aria-label="Return from History to creating a video"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>Back to create</button><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas" id="upscale-canvas"><div id="empty" class="empty">
-  <div id="pv-video-start-visual" class="pv-video-scene-visual pv-video-start-visual" hidden aria-label="Illustrative start and end frame examples">
-    <div class="pv-scene-start-thumb"><img src="./mood-previews/midnight-reverie-original-20261011.png" alt="" loading="lazy"><small>START FRAME</small></div>
+  <div id="pv-video-start-visual" class="pv-video-scene-visual pv-video-start-visual" hidden aria-label="Start frame to optional end frame workflow">
+    <div class="pv-scene-start-thumb">
+      <span class="pv-scene-frame-number" aria-hidden="true">01</span>
+      <svg class="pv-scene-frame-symbol" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="10" width="34" height="28" rx="4"/><circle cx="18" cy="20" r="3.3"/><path d="m11 32 10-9 8 6 6-5 3 3"/></svg>
+      <small>START FRAME</small>
+    </div>
     <svg viewBox="0 0 42 24" width="42" height="24" class="pv-scene-direction-arrow" aria-hidden="true"><path d="M2 12h36m-8-8 8 8-8 8"/></svg>
-    <div class="pv-scene-end-thumb"><img src="./mood-previews/berlin-rave-detail-20261015.webp" alt="" loading="lazy"><small>END FRAME</small></div>
-    <span class="pv-scene-example-label">Illustrative PV LAB frames</span>
+    <div class="pv-scene-end-thumb">
+      <span class="pv-scene-frame-number" aria-hidden="true">02</span>
+      <svg class="pv-scene-frame-symbol" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="10" width="34" height="28" rx="4"/><circle cx="18" cy="20" r="3.3"/><path d="m11 32 10-9 8 6 6-5 3 3"/></svg>
+      <small>END FRAME <em>OPTIONAL</em></small>
+    </div>
   </div>
   <div id="pv-video-text-visual" class="pv-video-scene-visual pv-video-text-visual" hidden aria-label="Illustrative text to video concept">
     <img class="pv-text-preview-a" src="./mood-previews/berlin-rave-grid-20261015.webp" alt="" loading="lazy">
