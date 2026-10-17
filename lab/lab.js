@@ -34,7 +34,7 @@ import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-lim
 import {createImageSubmitHandoff} from './image-submit-handoff.js?v=20261011-fast-queue1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow2';
 import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
-import {createReferencePackStudio} from './reference-pack-studio.js?v=20261016-pack-select2';
+import {createReferencePackStudio} from './reference-pack-studio.js?v=20261018-gallery-create2';
 import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop} from './video-start-frame-maker.js?v=20261016-wan-startframe-drop1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
