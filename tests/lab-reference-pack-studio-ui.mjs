@@ -204,6 +204,7 @@ try{
       cols:getComputedStyle(grid).gridTemplateColumns.split(' ').length,
       bottomOfCards:Math.max(...cards.map(rect=>rect.bottom)),
       contentScroll:main.scrollHeight-main.clientHeight,
+      overflowY:getComputedStyle(main).overflowY,
       heroHeight:hero.getBoundingClientRect().height,
       headingClip:getComputedStyle(document.querySelector('#pack-studio-dialog .pack-studio-heading-copy')).clipPath};
   });
@@ -212,7 +213,7 @@ try{
   assert.equal(fullLayout.cols,5,'Five desktop columns preserve the approved layout');
   assert.ok(fullLayout.heroHeight<=123,'The Photo Packs hero must stay compact');
   assert.ok(fullLayout.bottomOfCards<fullLayout.bottom-6,'No second row should be clipped');
-  assert.ok(fullLayout.contentScroll<=3,'Two rows must fit without scrolling: '+JSON.stringify(fullLayout));
+  assert.equal(fullLayout.overflowY,'hidden','Two fully visible desktop rows should not expose a needless scrollbar: '+JSON.stringify(fullLayout));
   assert.equal(fullLayout.headingClip,'inset(50%)','Do not repeat Photo Packs above its hero');
   await page.screenshot({path:'test-results/photo-packs/two-rows-centered-desktop.png'});
   await context.close();
