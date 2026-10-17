@@ -121,3 +121,15 @@ test('unpaid existing drafts cannot activate and the temporary pause is reversib
   f.submit(id,'job_after_resume');
   assert.equal(f.one('SELECT COUNT(*) AS n FROM jobs WHERE id=?','job_after_resume').n,1);
 });
+
+test('paused welcome gifts cannot make authenticated /api/session await a Clerk email lookup',()=>{
+  const worker=read('worker.mjs');
+  const start=worker.indexOf("if(customer&&path==='/api/session'");
+  const end=worker.indexOf("  if(customer&&!['/api/session'",start);
+  assert.ok(start>=0&&end>start,'Production session route is present');
+  const block=worker.slice(start,end);
+  assert.match(block,/env\.LAB_WELCOME_CREDITS_ENABLED==='true'/,
+    'Welcome sync is gated off when the welcome promotion is paused');
+  assert.match(block,/await syncCustomerEmail\(env,owner\)/,
+    'Verified welcome sync still runs when the promotion is deliberately re-enabled');
+});
