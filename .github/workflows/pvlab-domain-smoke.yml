@@ -57,10 +57,15 @@ jobs:
               && grep -Fq '#lab-boot{position:fixed;inset:0;width:100vw;' /tmp/live-studio.html \
               && grep -Fq 'pv-boot-dismiss .24s ease-out both' /tmp/live-studio.html \
               && grep -Fq 'id="history-preview-toggle"' /tmp/live-studio.html \
-              && grep -Fq 'image-discreet.css?v=20261016-label-clarity1' /tmp/live-studio.html \
-              && grep -Fq 'image-discreet.js?v=20261015-1' /tmp/live-studio.html \
-              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.js?verify=20261015" | grep -Fq 'pv-lab-image-previews-hidden-v1' \
-              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.css?verify=20261016-label-clarity1" -o /tmp/live-image-discreet.css \
+              && grep -Fq 'image-discreet.css?v=20261017-transient-message1' /tmp/live-studio.html \
+              && grep -Fq 'image-discreet.js?v=20261017-transient-message1' /tmp/live-studio.html \
+              && grep -Fq 'image-moods-return.css?v=20261017-hidden-inspiration1' /tmp/live-studio.html \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.js?verify=20261017-transient-message1" -o /tmp/live-image-discreet.js \
+              && grep -Fq 'pv-lab-image-previews-hidden-v1' /tmp/live-image-discreet.js \
+              && grep -Fq 'setTimeout(()=>{noticeTimer=null;dismissNotice();},1600)' /tmp/live-image-discreet.js \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-moods-return.css?verify=20261017-hidden-inspiration1" -o /tmp/live-image-moods-return.css \
+              && grep -Fq 'html.pv-image-previews-hidden #app.image-studio-active #history-moods-toggle' /tmp/live-image-moods-return.css \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.css?verify=20261017-transient-message1" -o /tmp/live-image-discreet.css \
               && grep -Fq 'pv-image-previews-hidden' /tmp/live-image-discreet.css \
               && grep -Fq 'grid-template-columns:54px 62px 12px 34px' /tmp/live-image-discreet.css \
               && grep -Fq '#history-preview-toggle{' /tmp/live-image-discreet.css \
