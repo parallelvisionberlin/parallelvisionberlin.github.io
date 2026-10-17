@@ -19,6 +19,17 @@ test('Synthetic Romance is an invasive physical transformation with identity-awa
   assert.match(prepareMoodPrompt('A portrait',mood.id,100,{engine:'gemini'}).prompt,/TOTAL SYNTHETIC LIBERATION/);
 });
 
+test('Synthetic Romance never makes facial identity optional at strong intensities',()=>{
+  for(const intensity of [1,35,69,82,89,95,100]){
+    const {prompt,error}=prepareMoodPrompt('Keep this exact face', 'synthetic-romance',intensity,{engine:'seedream',referenceCount:1,referenceMode:'base'});
+    assert.equal(error,'');
+    assert.match(prompt,/FACE IDENTITY FIRST when a Base or Identity face is supplied/);
+    assert.match(prompt,/original facial features, expression, gaze and age untouched regardless of intensity/);
+    assert.doesNotMatch(prompt,/facial cues, functional internals|human face transitioning into machinery|retain facial structure with Lock Identity/);
+    if(intensity>=70)assert.match(prompt,/unchanged original face|original face must remain entirely unchanged/);
+  }
+});
+
 test('Synthetic Romance retains full instructions and stable morphology across reference modes',()=>{
   const random=Math.random;
   try{
