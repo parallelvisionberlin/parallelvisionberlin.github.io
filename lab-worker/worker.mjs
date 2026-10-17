@@ -13,6 +13,7 @@ import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
 import {labAdminRoute,voucherCustomerRoute,syncCustomerEmail,scheduledClerkBackfill} from './promotions.mjs';
 import {recordLabTraffic,pruneLabTraffic} from './traffic.mjs';
+import {pruneGenerationReviewAudit} from './generation-review.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {precisionEditRoute} from './precision-edit.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput} from './image-models.mjs';
@@ -2081,7 +2082,10 @@ export default {
     const clock=Number(event?.scheduledTime)||Date.now();
     const when=new Date(clock);
     if(when.getUTCHours()===3&&when.getUTCMinutes()<5)
-      ctx.waitUntil(pruneLabTraffic(env,{clock:()=>clock}));
+      ctx.waitUntil(Promise.all([
+        pruneLabTraffic(env,{clock:()=>clock}),
+        pruneGenerationReviewAudit(env,{clock:()=>clock})
+      ]));
   }
 };
 
