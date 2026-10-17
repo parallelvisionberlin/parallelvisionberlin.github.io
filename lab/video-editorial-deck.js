@@ -115,6 +115,11 @@ function installVideoEditorialDeck(){
     };
     heroName.textContent=name;
     heroDescription.textContent=hints[engine]||'Video creation with your selected model';
+    const autoRatio=Array.from(doc.getElementById('ratio')?.options||[]).find(opt=>opt.value==='auto');
+    if(autoRatio){
+      if(!autoRatio.dataset.pvPreviousLabel)autoRatio.dataset.pvPreviousLabel=autoRatio.textContent;
+      autoRatio.textContent='Auto';
+    }
     if(modelPill&&modelPillText){
       modelPill.hidden=false;modelPillText.textContent=name.replace(/ ·.*/,'');
       modelPill.disabled=!!modelSelect?.disabled;
@@ -146,7 +151,15 @@ function installVideoEditorialDeck(){
   }
   function refresh(){
     const active=app.classList.contains('video-studio-active');
-    if(!active){collage.hidden=true;return;}
+    if(!active){
+      collage.hidden=true;
+      const autoRatio=Array.from(doc.getElementById('ratio')?.options||[]).find(opt=>opt.value==='auto');
+      if(autoRatio?.dataset.pvPreviousLabel){
+        autoRatio.textContent=autoRatio.dataset.pvPreviousLabel;
+        delete autoRatio.dataset.pvPreviousLabel;
+      }
+      return;
+    }
     const mode=activeMode();
     const canExpand=mode==='reference'&&!media.hidden;
     motion.hidden=!canExpand;
