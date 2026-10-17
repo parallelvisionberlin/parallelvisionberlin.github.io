@@ -55,13 +55,6 @@
     if(kind==='real'&&!small.matches)realEditingStarted=true;
     deferSync();
   });
-  // Settings, model selection, uploads and Generate are part of the same deck.
-  // Activating any of them opens the desktop workdeck without stealing focus.
-  real.addEventListener('click',()=>{
-    if(small.matches)return;
-    realEditingStarted=true;
-    deferSync();
-  });
   document.addEventListener('pointerdown',event=>{
     if(!small.matches)return;
     if(!guest.contains(event.target)&&!event.target.closest?.('[data-guest-mood]'))preview.guest=false;
