@@ -242,6 +242,15 @@ CREATE TABLE IF NOT EXISTS lab_promo_generation_holds (
 CREATE INDEX IF NOT EXISTS lab_promo_generation_holds_open
   ON lab_promo_generation_holds(released_at,created_at);
 
+-- Global trial promotion controls (migration 0029 supplies the paused row).
+-- This table never contains prompts, images, or payment-provider credentials.
+CREATE TABLE IF NOT EXISTS lab_trial_program_controls (
+  id INTEGER PRIMARY KEY CHECK(id=1),
+  welcome_enabled INTEGER NOT NULL CHECK(welcome_enabled IN (0,1)),
+  free_generation_enabled INTEGER NOT NULL CHECK(free_generation_enabled IN (0,1)),
+  changed_at INTEGER NOT NULL
+);
+
 -- Prompt-free generation finance retained independently of deletable jobs.
 -- Only migration 0028 installs the snapshot and deletion triggers.
 CREATE TABLE IF NOT EXISTS lab_generation_finance (
