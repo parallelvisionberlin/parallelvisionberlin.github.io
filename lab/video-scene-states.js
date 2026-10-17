@@ -47,6 +47,8 @@ function mountVideoSceneStates(){
     if(mode==='extend'){
       const count=byId('video-reference-list')?.children.length||0;
       note(count+' video reference'+(count===1?'':'s')+' selected.');
+    }else if(mode==='start'&&items.some(item=>item.title==='Start')){
+      note('Start frame ready. Describe the motion; the ending frame is optional.');
     }else note(items.length?items.length+' reference'+(items.length===1?'':'s')+' attached.':'Nothing attached yet.');
     const key=mode+':'+items.map(x=>x.src+'|'+x.title).join('::');
     if(referencePreviewKey===key)return;
