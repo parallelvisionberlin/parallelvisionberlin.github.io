@@ -13,7 +13,11 @@ export async function customerRestrictions(env,id){
 // Only free generation is stopped. Clerk login, saved media, deletion, checkout
 // and Stripe-verified paid credits are never blocked by an email review flag.
 export async function customerPromotionalReview(env,id){
-  if(env.LAB_PROMO_HOLDS_ENABLED!=='true')return {held:false};
+  // Pause across every customer generation endpoint. This remains reversible
+  // without cancelling purchases or consuming existing complimentary balances.
+  const policy=await one(env,'SELECT free_generation_enabled FROM lab_trial_program_controls WHERE id=1');
+  const trialPaused=env.LAB_FREE_TRIAL_PAUSED==='true'||policy?.free_generation_enabled===0;
+  if(!trialPaused&&env.LAB_PROMO_HOLDS_ENABLED!=='true')return {held:false};
   const account=await one(env,`SELECT c.id,p.email,
     h.reason AS holdReason,h.released_at AS releasedAt,
     EXISTS (SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=c.id
@@ -23,17 +27,28 @@ export async function customerPromotionalReview(env,id){
     LEFT JOIN lab_promo_generation_holds h ON h.customer_id=c.id
     WHERE c.id=?`,id);
   if(!account)return {held:false};
-  const explicitHold=!!account.holdReason&&account.releasedAt===null;
-  const flaggedEmail=welcomeReviewFlag(account.email,env)==='disposable-email';
-  return {held:!account.hasPaid&&(explicitHold||flaggedEmail),
-    hasPaid:!!account.hasPaid,reason:explicitHold?'disposable-email':flaggedEmail?'disposable-email':null};
+  const hasPaid=!!account.hasPaid;
+  const explicitHold=env.LAB_PROMO_HOLDS_ENABLED==='true'&&
+    !!account.holdReason&&account.releasedAt===null;
+  const flaggedEmail=env.LAB_PROMO_HOLDS_ENABLED==='true'&&
+    welcomeReviewFlag(account.email,env)==='disposable-email';
+  return {
+    held:!hasPaid&&(trialPaused||explicitHold||flaggedEmail),
+    hasPaid,
+    reason:!hasPaid&&trialPaused?'trial-paused':
+      explicitHold?'disposable-email':flaggedEmail?'disposable-email':null
+  };
 }
 export async function assertCustomerOpen(env,id,{spending=false,promotion=false}={}){
   const state=await customerRestrictions(env,id);
   if(state.closed)fail(403,'This PV Lab account is closed. Content deletion is queued or complete. Contact support for a billing or data request.');
   if(spending&&state.billingReview)fail(409,'A refund or dispute is being reviewed. Purchases and generation are paused; billing management remains available.');
-  if(promotion&&(await customerPromotionalReview(env,id)).held)
-    fail(403,'Free trial generation is unavailable for this account. Your saved work and billing remain accessible. Contact PV LAB support for a review.');
+  if(promotion){
+    const review=await customerPromotionalReview(env,id);
+    if(review.held)fail(403,review.reason==='trial-paused'
+      ?'Complimentary generation is paused. Your credits and saved work remain intact. Purchase credits to continue creating.'
+      :'Free trial generation is unavailable for this account. Your saved work and billing remain accessible. Contact PV LAB support for a review.');
+  }
   return state;
 }
 export async function customerAccount(env,id){
