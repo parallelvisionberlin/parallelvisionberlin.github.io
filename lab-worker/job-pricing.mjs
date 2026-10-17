@@ -29,17 +29,28 @@ export function creditsPerUsdForJob(settings={}){
   }
   return DEFAULT_CREDITS_PER_USD;
 }
-export function creditsForJobUsd(usd,settings={}){
-  if(!Number.isFinite(usd)||usd<0)throw Error('Invalid provider quote.');
+// Store, reserve and settle provider estimates in integer USD micros. The
+// browser price and the D1 trigger use the same exact micros, including on
+// rounding boundaries. No exchange-rate or package-price assumptions here.
+export function creditsForJobMicros(micros,settings={}){
+  if(!Number.isSafeInteger(micros)||micros<0)throw Error('Invalid provider quote.');
   // Exact-model Premium Upscale retail prices; client labels cannot select a price.
   if(settings.type==='image'&&settings.provider==='fal'&&settings.mode==='upscale'&&settings.upscaleEngine==='seedvr2'&&settings.model==='fal-ai/seedvr/upscale/image'&&(settings.scale===2||settings.scale===4))return settings.scale===2?10:18;
   // Fixed introductory price for exact Google Nano Banana 2.1 routes only.
   if(isNano21Job(settings))return NANO21_CREDITS[settings.resolution];
   // All customer job quote amounts round upward. Minimum applies to all models.
-  const calculated=Math.max(7,Math.ceil(Math.round(usd*1000000)*creditsPerUsdForJob(settings)/1000000));
+  const calculated=Math.max(7,Math.ceil(micros*creditsPerUsdForJob(settings)/1000000));
   // A real, non-fixed SpicyAPI image generation has one clear five-credit retail increment.
   // This must match the LAB_DB lab_charge_job trigger in migration 0021.
   // Existing quote ledgers remain immutable; do not round videos, upscales or fixed-price Nano.
   return settings.type==='image'&&settings.provider==='spicy'&&settings.mode==='image'
     ?Math.ceil(calculated/5)*5:calculated;
+}
+
+// Compatibility entrypoint for callers holding a USD decimal. Once converted,
+// price calculation is integer micros, matching the persisted D1 estimate.
+export function creditsForJobUsd(usd,settings={}){
+  if(!Number.isFinite(usd)||usd<0||!Number.isSafeInteger(Math.round(usd*1000000)))
+    throw Error('Invalid provider quote.');
+  return creditsForJobMicros(Math.round(usd*1000000),settings);
 }
