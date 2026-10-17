@@ -269,7 +269,7 @@
 #app.video-studio-active.pv-video-ergonomic .workspace.video-layout .controls textarea#prompt{
   height:108px!important;min-height:108px!important;
   max-height:350px!important;padding:10px 12px!important;
-  border-radius:10px!important;font-size:13px!important;line-height:1.48!important;
+  border-radius:10px!important;font-size:14px!important;line-height:1.48!important;
 }
 #app.video-studio-active.pv-video-ergonomic.pv-video-mode-text .workspace.video-layout .controls textarea#prompt{
   height:190px!important;min-height:165px!important;
