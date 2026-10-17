@@ -4,7 +4,7 @@ import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
-import {linkedStudioIdentity,migrationRoute} from './clerk-migration.mjs';
+import {linkedStudioIdentity,migrationRoute,assertPermittedLabSignup} from './clerk-migration.mjs';
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
 import {klingHfParameters,quoteKlingHf,submitKlingHf} from './kling-hf.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
@@ -47,7 +47,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-17.1-private-generation-review';
+export const VERSION = 'pv-lab-2026-10-17.2-registration-policy';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -162,6 +162,7 @@ async function authenticate(request,env) {
   ).bind(p.sub).first();
   if(owner)return {id:owner.id,kind:'owner',issuer:p.iss,subject:p.sub};
   if(env.LAB_CUSTOMER_SIGNUPS_ENABLED!=='true')fail(403,'PV Lab registration is not enabled.');
+  if(!await isLabCustomer(env,p.sub))await assertPermittedLabSignup(env,p.sub,p.iss);
   const id=await ensureCustomer(env,p.sub);
   return {id,kind:'customer',issuer:p.iss,subject:p.sub};
 }

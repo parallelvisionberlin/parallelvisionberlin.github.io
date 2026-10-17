@@ -12,3 +12,12 @@
 
 # One canonical comparison URL for the new PV LAB domain.
 /zencreator-alternative /zencreator-alternative/ 301
+
+
+# Keep previously published legal links usable on the independent PV LAB domain.
+/lab/terms /terms/ 301
+/lab/terms/ /terms/ 301
+/lab/terms/index.html /terms/ 301
+/lab/privacy/ /privacy/ 301
+/lab/content-policy/ /content-policy/ 301
+/lab/customersupport/ /customersupport/ 301

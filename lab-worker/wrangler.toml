@@ -5,6 +5,8 @@ workers_dev = true
 
 [vars]
 LAB_CUSTOMER_SIGNUPS_ENABLED = "true"
+# PV LAB only. Verify Clerk primary email before account creation, reject blocked domains.
+LAB_BLOCK_SIGNUP_DOMAINS_ENABLED = "true"
 # Allow only verified new-Clerk sessions on their own domain; unlinked users must opt into an account.
 # Account links are one-time verified, existing wallets preserved. Rollback: set false and redeploy.
 LAB_STUDIO_AUTH_ENABLED = "true"
