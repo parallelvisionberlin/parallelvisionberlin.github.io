@@ -3,11 +3,11 @@
 // pack API and upload helpers; opening/choosing a pack never initiates generation.
 export function createReferencePackStudio({
   getPacks,getReferences,getRoleLabels,ensureReferences,uploadAsset,
-  api,loadPacks,assetPhoto,onUse,notify,isOwner,isBusy,session
+  api,loadPacks,assetPhoto,onUse,notify,isOwner,isBusy,session,openElementCategory
 }){
   const $=id=>document.getElementById(id);
   const modal=$('pack-studio-dialog');
-  let stage='library',source='none',files=[],saving=false;
+  let stage='library',source='none',files=[],saving=false,viewMode='grid',sortMode='recent';
   let sourceUploads=new WeakMap(),previewUrls=new Set(),currentSession=0;
   const maxPhotos=10,maxBytes=20*1024*1024;
   const fileKey=file=>[file.name,file.size,file.lastModified].join(':');
@@ -22,6 +22,8 @@ export function createReferencePackStudio({
   }
   function view(name){
     stage=name;
+    modal.classList.toggle('is-creating',name==='create');
+    $('pack-studio-heading').textContent=name==='create'?'New photo pack':'Photo packs';
     $('pack-studio-library-view').hidden=name!=='library';
     $('pack-studio-create-view').hidden=name!=='create';
     modal.scrollTop=0;
@@ -41,14 +43,12 @@ export function createReferencePackStudio({
     choose.setAttribute('aria-label','Load '+pack.name+', '+pack.refs.length+' photographs');
     const cover=document.createElement('span');cover.className='pack-studio-card-photo';
     const photo=document.createElement('span');photo.className='pack-studio-card-media';
-    const count=document.createElement('span');count.className='pack-studio-card-count';
-    count.textContent=String(pack.refs.length).padStart(2,'0')+' PHOTOS';
-    cover.append(photo,count);
+    const count=document.createElement('small');count.className='pack-studio-card-count';
+    count.textContent=pack.refs.length+' photo'+(pack.refs.length===1?'':'s');
+    cover.append(photo);
     const name=document.createElement('strong');name.className='pack-studio-card-name';
     name.textContent=pack.name;name.title=pack.name;
-    const info=document.createElement('small');info.className='pack-studio-card-detail';
-    info.textContent='Saved reference set';
-    choose.append(cover,name,info);
+    choose.append(cover,name,count);
     choose.onclick=()=>{if(saving||isBusy())return;close();onUse(pack.id);};
     const remove=document.createElement('button');remove.type='button';remove.className='pack-studio-card-delete';
     remove.textContent='×';remove.title='Delete '+pack.name;
@@ -79,16 +79,35 @@ export function createReferencePackStudio({
   }
   function renderLibrary(){
     if(!isOpen())return;
-    const packs=getPacks().filter(pack=>pack.refs?.length);
-    $('pack-studio-library-count').textContent=packs.length+' / 40 packs';
-    const grid=$('pack-studio-grid');grid.replaceChildren();
+    const allPacks=getPacks().filter(pack=>pack.refs?.length);
+    const query=String($('pack-studio-search')?.value||'').trim().toLocaleLowerCase();
+    const packs=allPacks.filter(pack=>pack.name.toLocaleLowerCase().includes(query));
+    if(sortMode==='name')packs.sort((a,b)=>a.name.localeCompare(b.name));
+    else if(sortMode==='name-desc')packs.sort((a,b)=>b.name.localeCompare(a.name));
+    else {
+      // Keep the original order when the API does not supply modification times.
+      const stamp=pack=>Date.parse(pack.updatedAt||pack.updated_at||pack.createdAt||pack.created_at||'')||0;
+      if(packs.some(pack=>stamp(pack)))packs.sort((a,b)=>stamp(b)-stamp(a));
+    }
+    $('pack-studio-library-count').textContent=query
+      ?packs.length+' matching · '+allPacks.length+' saved'
+      :allPacks.length+' / 40 packs';
+    const grid=$('pack-studio-grid');grid.replaceChildren();grid.dataset.view=viewMode;
+    $('pack-studio-grid-view').setAttribute('aria-pressed',String(viewMode==='grid'));
+    $('pack-studio-list-view').setAttribute('aria-pressed',String(viewMode==='list'));
     if(!packs.length){
       const empty=document.createElement('div');empty.className='pack-studio-empty';
-      empty.innerHTML='<span class="pack-studio-empty-symbol" aria-hidden="true">▧</span><div><strong>No packs yet</strong><small>Save your favorite photo references to find them here next time.</small></div>';
-      grid.append(empty);
+      const icon=document.createElement('span');icon.className='pack-studio-empty-symbol';icon.textContent='▧';
+      const details=document.createElement('div');
+      const headline=document.createElement('strong');
+      headline.textContent=query?'No matching photo packs':'No packs yet';
+      const message=document.createElement('small');
+      message.textContent=query?'Try a different search.':'Save your favorite photo references to find them here next time.';
+      details.append(headline,message);empty.append(icon,details);grid.append(empty);
     }
     for(const pack of packs)grid.append(makeCard(pack));
-    const create=document.createElement('button');create.type='button';create.className='pack-studio-card-new';
+    const create=document.createElement('button');create.type='button';create.id='pack-studio-new';
+    create.className='pack-studio-card-new';
     create.innerHTML='<span class="pack-studio-card-new-symbol" aria-hidden="true">+</span><strong>New photo pack</strong><small>Keep another set of references</small>';
     create.disabled=saving||isBusy();create.onclick=beginCreate;
     grid.append(create);
@@ -193,6 +212,8 @@ export function createReferencePackStudio({
     if(!modal.open)modal.showModal();
     currentSession=session();
     $('pack-studio-library-status').textContent='';
+    $('pack-studio-search').value='';
+    sortMode='recent';viewMode='grid';$('pack-studio-sort').value='recent';
     view('library');renderLibrary();
   }
   async function save(){
@@ -237,7 +258,23 @@ export function createReferencePackStudio({
   }
   function renderCreateIfNeeded(){if(stage==='create')renderCreate();}
   $('pack-studio-close').onclick=close;
-  $('pack-studio-new').onclick=beginCreate;
+  $('pack-studio-search').addEventListener('input',()=>{if(stage==='library')renderLibrary();});
+  $('pack-studio-sort').onchange=()=>{sortMode=$('pack-studio-sort').value;renderLibrary();};
+  for(const mode of ['grid','list'])$('pack-studio-'+mode+'-view').onclick=()=>{
+    viewMode=mode;renderLibrary();
+  };
+  for(const button of modal.querySelectorAll('[data-pack-element]')){
+    button.onclick=()=>{
+      if(saving||isBusy()||!isOwner())return;
+      const category=button.dataset.packElement;
+      close();
+      openElementCategory?.(category);
+    };
+  }
+  $('pack-studio-nav-packs').onclick=()=>{
+    if(saving)return;
+    if(stage==='create'){resetCreate();view('library');renderLibrary();}
+  };
   $('pack-studio-back').onclick=()=>{if(!saving){resetCreate();view('library');renderLibrary();}};
   $('pack-studio-name').oninput=()=>{
     $('pack-studio-create-status').textContent='';
