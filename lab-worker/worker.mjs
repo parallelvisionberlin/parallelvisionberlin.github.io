@@ -2,6 +2,7 @@ import {filmFinishSettings} from '../lab/film-finish.js';
 import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook.mjs';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
+import {banClosedStudioIdentity,processStudioIdentityDeletions} from './studio-identity-deletion.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
 import {linkedStudioIdentity,migrationRoute} from './clerk-migration.mjs';
@@ -47,7 +48,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-17.6-auth-session-unblocked';
+export const VERSION = 'pv-lab-2026-10-18.1-terminal-account-deletion';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1370,6 +1371,14 @@ async function route(request,env,ctx) {
       try{return await referralRoute(request,env,owner);}
       catch(e){if(Number.isInteger(e?.status)&&e.status>=400&&e.status<=599)fail(e.status,e.message);throw e;}
     }
+    if(path==='/api/customer/account'&&method==='DELETE'){
+      const result=await customerRoute(request,env,owner);
+      // D1 has already closed the account. Revoke PV LAB sessions without
+      // touching the shared Clerk application. Cron retries failures.
+      if(result.status===202&&ctx?.waitUntil)
+        ctx.waitUntil(banClosedStudioIdentity(env,owner).catch(()=>{}));
+      return result;
+    }
     return customerRoute(request,env,owner);
   }
   // Until payment/webhooks and shared vendor credentials have been tested, customer
@@ -2074,7 +2083,8 @@ async function maintenance(env) {
   await run(env,'DELETE FROM quotes WHERE expires_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.quote_id=quotes.id)',now());
   const unused=await rows(env,"SELECT * FROM assets WHERE kind='source' AND created_at<? ORDER BY created_at LIMIT 30",now()-86400000);
   for(const a of unused)await pruneSource(env,a.owner_id,a.id);
-  await processAccountClosures(env,verifyClosureBilling);
+  try{await processAccountClosures(env,verifyClosureBilling);}
+  finally{await processStudioIdentityDeletions(env);}
 }
 export default {
   async fetch(request,env,ctx) {
