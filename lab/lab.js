@@ -1325,7 +1325,9 @@ let moodDiscoveryOpen=false;
 function syncImageGalleryEmpty(){
   renderPendingImageCards();
   const imageCards=$('history').querySelectorAll('.card[data-kind="image"]').length;
-  $('image-gallery-empty').hidden=imageCards>0&&!moodDiscoveryOpen;
+  // A cleared gallery is not proof that History is empty while a tab switch is loading.
+  // Show the first-image welcome only after the current History page has resolved.
+  $('image-gallery-empty').hidden=!historyHasPage||(imageCards>0&&!moodDiscoveryOpen);
   // The customer welcome has no saved image to select. Synchronize History
   // actions when a first result appears (or the empty welcome returns), too.
   if(tool==='image')updateHistorySelectionUi();
@@ -4282,7 +4284,12 @@ async function loadEarlierHistory(){
 async function loadHistory(append=false,incremental=false){
   if(!owner||(append&&(!next||historyLoading)))return;
   assetLibrary?.heading();
-  if(!append&&!incremental){historySelected.clear();next=null;historyHasPage=false;historyAutoLoadPaused=false;videoJobCache.clear();imageDetailCache.clear();historyRevision++;observer.disconnect();galleryPreviewQueue.length=0;cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();updateHistorySelectionUi();}
+  if(!append&&!incremental){
+    // Prevent the empty Image welcome and its atmospheric hero flashing while
+    // the previous tool's cards are replaced by this account's saved History.
+    const emptyImageGallery=$('image-gallery-empty');
+    if(emptyImageGallery)emptyImageGallery.hidden=true;
+    historySelected.clear();next=null;historyHasPage=false;historyAutoLoadPaused=false;videoJobCache.clear();imageDetailCache.clear();historyRevision++;observer.disconnect();galleryPreviewQueue.length=0;cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();updateHistorySelectionUi();}
   renderPendingImageCards();
   const rev=historyRevision,loadId=++historyLoadId,q=assetLibrary?.query()||new URLSearchParams();
   if(append&&next){q.set('before',next.before);q.set('afterId',next.afterId);}
