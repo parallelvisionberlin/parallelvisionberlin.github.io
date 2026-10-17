@@ -24,6 +24,7 @@ update();
 // Test-only trigger for transitioning from an empty customer welcome to
 // one saved image without making any paid request or changing production APIs.
 window.__welcomeMockGalleryChanged=()=>syncImageGalleryEmpty();
+window.__welcomeMockInspiration=open=>setMoodDiscoveryOpen(open);
 window.__welcomeMockReady=true;
 `;
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png',
@@ -119,6 +120,19 @@ try{
     'No welcome floating state may move the cards or hide image controls');
   assert.equal(await page.locator('#image-composer-resolution-wrap').isVisible(),true,
     'Resolution is available on the initial bottom-locked deck');
+  const emptyPriceButton=await button.evaluate(el=>{
+    const rect=el.getBoundingClientRect();
+    const label=el.querySelector('.composer-generate-label').getBoundingClientRect();
+    const pricePseudo=getComputedStyle(el,'::after');
+    return {price:el.dataset.credits||'',centerX:label.x+label.width/2-rect.x-rect.width/2,
+      centerY:label.y+label.height/2-rect.y-rect.height/2,
+      pseudoContent:pricePseudo.content,pseudoDisplay:pricePseudo.display};
+  });
+  assert.equal(emptyPriceButton.price,'','Initial welcome has no quoted price before typing');
+  assert.ok(Math.abs(emptyPriceButton.centerX)<1.5&&Math.abs(emptyPriceButton.centerY)<1.5,
+    'Generate lettering must be precisely centered when no price is available: '+JSON.stringify(emptyPriceButton));
+  assert.ok(emptyPriceButton.pseudoContent==='none'||emptyPriceButton.pseudoDisplay==='none',
+    'Empty credit placeholder must not offset the Generate label: '+JSON.stringify(emptyPriceButton));
   const welcomeSurface=await page.evaluate(()=>{
     const shell=document.querySelector('.image-gallery-shell'),footer=document.querySelector('body>footer.pv-lab-footer');
     const backdrop=getComputedStyle(shell,'::before');
@@ -299,6 +313,32 @@ try{
     'Populated History retains its existing selection flow, never the welcome-only grid');
   await page.locator('#history-cancel-select').click();
   assert.equal(await page.locator('#history-selection').isVisible(),false);
+  // The same six Mood cards reappear through Inspiration after a real History
+  // result. Their background must be identical to the original welcome.
+  await page.evaluate(()=>window.__welcomeMockInspiration(true));
+  assert.equal(await page.locator('#lab-welcome-start').isVisible(),true);
+  const inspirationSurface=await page.locator('.image-gallery-shell').evaluate(shell=>{
+    const back=getComputedStyle(shell,'::before');
+    const overlay=getComputedStyle(shell,'::after');
+    return {image:back.backgroundImage,opacity:back.opacity,
+      filter:back.filter,gradient:overlay.backgroundImage};
+  });
+  assert.equal(inspirationSurface.image,welcomeSurface.image,
+    'Inspiration must use the same blue/copper background as first-image welcome');
+  assert.equal(inspirationSurface.filter,'none','Inspiration must not restore the saturated/blurred wallpaper');
+  assert.equal(inspirationSurface.opacity,'1');
+  assert.equal(inspirationSurface.gradient,welcomeSurface.gradient,
+    'Inspiration and welcome must use the same legibility overlay');
+  // Discreet Mode is a distinct intentional backdrop and must win over the
+  // Inspiration artwork while images are hidden.
+  await page.locator('#history-preview-toggle').click();
+  const privateBackground=await page.locator('.image-gallery-shell').evaluate(shell=>getComputedStyle(shell,'::before').backgroundImage);
+  assert.match(privateBackground,/open-atmosphere-hd\.jpg/,
+    'Discreet Mode keeps the original private-preview background');
+  await page.locator('#history-preview-toggle').click();
+  await page.evaluate(()=>window.__welcomeMockInspiration(false));
+  assert.equal(await page.locator('#history').isVisible(),true,
+    'Returning to populated History must restore the actual gallery');
   assert.deepEqual(errors,[]);
   console.log('FIRST_IMAGE_INSTANT_QUOTED_GENERATE_OK=1');
 }finally{
