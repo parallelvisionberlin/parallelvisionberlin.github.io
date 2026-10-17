@@ -51,8 +51,10 @@ await context.route('https://**/*',async route=>{
   if(path==='/api/uploads')return send({id:id()},201);
   if(path==='/api/quotes'){
     await new Promise(done=>setTimeout(done,1400));
+    // Model resolution must flow all the way into the bound provider quote.
+    const twoK=data.settings.resolution==='2k',cost=twoK?.06:.04;
     const quote={id:id(),provider:'SpicyAPI',settings:{...data.settings,type:'image',mode:'image'},
-      maxUsd:.04,estimatedUsd:.04,creditCost:25,expiresAt:Date.now()+180000};
+      maxUsd:cost,estimatedUsd:cost,creditCost:twoK?30:20,expiresAt:Date.now()+180000};
     quotes.set(quote.id,quote);
     return send(quote);
   }
@@ -111,9 +113,15 @@ try{
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
     'Choosing a Mood returns to the compact deck without requiring a keyboard');
   assert.match(await page.locator('#image-composer-prompt').inputValue(),/jade-green-lit corner shop/);
+  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
+    'The first Mood selection must use Seedream 2K, not the generic Studio 1K default');
   assert.equal(await button.isEnabled(),true,'Green Haze must enable Generate in the same click');
   await page.locator('[data-welcome-mood="dream-blur"]').click();
   assert.match(await page.locator('#image-composer-prompt').inputValue(),/blue motion blur/);
+  assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
+    'Switching welcome Moods must retain the agreed 2K default');
+  assert.doesNotMatch(await button.getAttribute('data-credits')||'',/Confirming credits/i,
+    'The preflight must not put Confirming credits inside Generate');
   assert.equal(await button.isEnabled(),true,'Dream Blur must instantly enable Generate before the price');
   const heightBefore=await button.evaluate(el=>el.getBoundingClientRect().height);
   await button.click();
@@ -123,6 +131,11 @@ try{
   while(submissions<1&&Date.now()<timeout)await new Promise(done=>setTimeout(done,60));
   assert.equal(submissions,1,'One click must create exactly one paid job');
   assert.equal(requests.filter(x=>x.path==='/api/jobs'&&x.method==='POST').length,1);
+  const submission=requests.find(x=>x.path==='/api/jobs'&&x.method==='POST');
+  assert.equal(quotes.get(submission.data.quoteId)?.settings.resolution,'2k',
+    'Paid submission must reuse the exact 2K quote selected by the customer');
+  assert.equal(quotes.get(submission.data.quoteId)?.creditCost,30,
+    'Mock 2K price must be taken from the verified quote, not the 1K amount');
   assert.equal(requests.filter(x=>x.path==='/api/quotes').length>=1,true);
   assert.ok(quotes.size>=1);
   assert.equal(await button.evaluate(el=>el.getBoundingClientRect().height),heightBefore,

@@ -20,7 +20,7 @@ import {createVideoModelPicker} from './video-model-picker.js?v=20261016-wan-min
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&moodDefault2k=20261017v1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
 import {saveStudioReturnDraft,readStudioReturnDraft,clearStudioReturnDraft,storedImageFile} from './studio-return-draft.js?v=20261016-moods-return1';
@@ -254,6 +254,7 @@ async function restoreStudioEntry(){
         moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70},true);
         title=mood.name;
       }
+      if(imageEngine==='seedream')$('resolution').value='2k';
       let hadPhoto=false,generation=null;
       if(query.has('handoff')){
         try{
@@ -264,7 +265,7 @@ async function restoreStudioEntry(){
             // the previous Image workspace used another model or batch size.
             clearMedia();imageEngine='seedream';imageProcessing='normal';imageReferenceMode='base';
             $('image-engine').value='seedream';setTool('image');
-            $('resolution').value='1k';$('image-count').value='1';
+            $('resolution').value='2k';$('image-count').value='1';
           }
           if(packet.file){await addReferences([packet.file],generation?.sourceId?[generation.sourceId]:[]);hadPhoto=true;}
           if(generation){
@@ -358,7 +359,15 @@ const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-compo
   },
   onCreatePersonal:()=>location.assign('./mood-creator.html?start=idea'),
   onEditPersonal:board=>location.assign('./mood-creator.html?board='+encodeURIComponent(board.id)),
-  onChange:()=>{autoPreview=null;update();}
+  onChange:change=>{
+    // A newly selected Mood starts at the approved 2K Seedream quality.
+    // A later explicit resolution choice is still respected.
+    if(change?.selectedMood&&moodUI.selected()&&imageEngine==='seedream'&&!busy)
+      $('resolution').value='2k';
+    autoPreview=null;update();
+    // Bypass the generic typing debounce on an intentional Mood selection.
+    if(change?.selectedMood)customerImagePricing?.prime();
+  }
 });
 myMoods=createMyMoods({api,assetBlob,moodUI,notify:(...args)=>notify(...args),active:()=>owner});
 $('image-reference-mode').onchange=()=>setImageReferenceMode($('image-reference-mode').value);
@@ -769,7 +778,7 @@ async function fetchCustomerImagePrice(s,check){
         body:{...inputs,settings:selected,...(count>1?{count}:{})}});
       check();
       const priced=pricedBoundQuotes(reply,count,'SpicyAPI');
-      if(priced.quotes.some(q=>q.settings?.engine!==selected.engine||q.settings?.type!=='image'))
+      if(priced.quotes.some(q=>q.settings?.engine!==selected.engine||q.settings?.type!=='image'||q.settings?.resolution!==selected.resolution))
         throw new Error('Provider priced a different image model.');
       return {...priced,provider,inputs};
     }
@@ -1276,6 +1285,7 @@ function restoreGuestImageDraft(){
   if(typeof draft.mood==='string'&&moodById(draft.mood)){
     if(imageEngine!=='seedream'){$('image-engine').value='seedream';$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));}
     moodUI.restore({moodId:draft.mood,moodIntensity:60},true);
+    $('resolution').value='2k';
   }
   $('prompt').value=prompt;
   $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
@@ -1316,7 +1326,7 @@ function useWelcomeMood(id){
   }else if(tool!=='image')setTool('image');
   // This is a single text-first image, not an automatic paid submission.
   imageProcessing='normal';$('image-processing').value='normal';
-  $('resolution').value='1k';$('image-count').value='1';
+  $('resolution').value='2k';$('image-count').value='1';
   if(!references.length&&!file){$('ratio').value='16:9';imageRatioExplicit=false;}
   moodUI.restore({moodId:id,moodIntensity:60},true);
   $('prompt').value=welcomePrompts[id];
@@ -1550,7 +1560,8 @@ function syncImageComposer(){
     (customerPriceIntentPending||priceState?.status==='checking')&&!creditCost;
   const priceUnavailable=customerMode&&customerGenerationReady&&priceState?.status==='error'&&!creditCost;
   // Reserve a second line even during pricing so Generate never changes size.
-  generate.dataset.credits=creditCost|| (awaitingCreditPrice?'Confirming credits…':priceUnavailable?'Retry credit check':'');
+  // Keep the button settled while a bound quote loads. Never display an invented credit amount.
+  generate.dataset.credits=creditCost||(priceUnavailable?'Retry credit check':'');
   generate.classList.toggle('has-credit-cost',!!creditCost);
   generate.classList.toggle('has-price-pending',!creditCost&&(awaitingCreditPrice||priceUnavailable));
   generate.setAttribute('aria-label',creditCost?'Generate · '+creditCost:'Generate');
@@ -4250,6 +4261,7 @@ if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
         if(command.action==='mood'){
           if(command.moodboard){await myMoods.refresh();const board=myMoods.find(command.moodboard);if(!board)throw Error('This Mood is unavailable.');moodUI.restore({moodId:'custom',customMoodBoardId:board.id,moodIntensity:board.intensity});}
           else {const mood=moodById(command.mood);if(!mood)throw Error('This Mood is unavailable.');moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70});}
+          if(imageEngine==='seedream')$('resolution').value='2k';
           update();
         }
         if(command.handoff){
