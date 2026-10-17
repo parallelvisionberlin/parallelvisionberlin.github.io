@@ -142,6 +142,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <script defer src="./studio-mobile-entry.js?v=20261017-mobile-mood1"></script>
 <link rel="stylesheet" href="./scene-library.css?v=20261017-scene-library1">
 <link rel="stylesheet" href="./video-editorial-deck.css?v=20261017-video-editorial1">
+<link rel="stylesheet" href="./video-approved-design.css?v=20261017-video-approved1">
 <script type="module" src="./video-editorial-deck.js?v=20261017-video-editorial1"></script>
 </head>
 <body class="lab-booting">
@@ -794,8 +795,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 </div>
 <div id="reference-mode" class="mode-panel" hidden><p id="extend-help" class="fine" hidden>Upload one clip and describe what happens next. The continuation uses its framing.</p>
 <div class="upload-heading"><span class="label">Reference images</span><span class="micro" id="ref-count">0 / 10</span></div>
-<label class="drop reference-drop" id="reference-drop" aria-label="Drop reference images here or click to browse"><span>Drop reference images here or click to browse</span><small>JPG / PNG / WebP · up to 10 photos</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
-<div class="scene-video-access" aria-label="Your saved scene items"><span>Characters, outfits, props and locations</span><button id="scene-video-open" type="button">Scene Library</button></div>
+<label class="drop reference-drop" id="reference-drop" aria-label="Add reference images, drop or browse"><svg viewBox="0 0 24 24" class="pv-reference-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="15" height="14" rx="2"/><circle cx="8.5" cy="9.5" r="1.3"/><path d="m5 16 4-4 3.2 2.5 2.1-2"/><path d="M19 15v7m-3.5-3.5h7"/></svg><span>Drop reference images here or click to browse</span><small>JPG / PNG / WebP · up to 10 photos</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
+<div class="scene-video-access" aria-label="Your saved scene items"><span>Characters, outfits, props and locations</span><button id="scene-video-open" type="button"><svg viewBox="0 0 24 24" class="pv-scene-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg><span>Scene Library</span><small>Your saved collection</small></button></div>
 <div id="scene-video-selected" hidden aria-label="Attached saved scene items"></div>
 <p id="reference-progress" class="fine" role="status" aria-live="polite"></p>
 <div id="pv-video-ref-title" class="pv-video-ref-title" hidden><strong>Added references <span id="pv-video-added-count">0</span></strong><button id="pv-video-clear-refs" type="button">Clear all</button></div>
@@ -871,7 +872,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <button id="preview-pose" type="button" class="secondary full">Preview detected pose</button>
 <p id="pose-preview-status" class="fine" role="status"></p>
 </div>
-<label class="label prompt-label" id="prompt-label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
+<div id="pv-video-prompt-head"><label class="label prompt-label" id="prompt-label" for="prompt">Prompt</label><span id="pv-video-prompt-count" aria-live="off">0</span></div><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
 <button id="pv-video-output-toggle" class="pv-video-output-toggle" type="button" aria-controls="duration-control resolution-control ratio-control video-utilities" aria-expanded="true">
  <span class="pv-output-left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.4"/><circle cx="15" cy="17" r="2.4"/></svg><span>Output settings</span></span>
  <span class="pv-output-right"><span id="pv-video-output-summary" class="pv-output-summary"></span><svg class="pv-output-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
