@@ -123,6 +123,22 @@ try{
   assert.deepEqual(packs[0].refs.map(r=>r.role),['none','none']);
   await page.locator('#pack-studio-grid .pack-studio-card-photo img').first().waitFor({state:'visible'});
   await page.screenshot({path:'test-results/photo-packs/saved-library-desktop.png'});
+  await page.locator('#pack-studio-search').fill('no matching collection');
+  assert.equal(await page.locator('#pack-studio-grid .pack-studio-card').count(),0,
+    'Search shows no unrelated collections');
+  await page.locator('#pack-studio-search').fill('Private editorial');
+  assert.equal(await page.locator('#pack-studio-grid .pack-studio-card').count(),1,
+    'Search finds an existing saved collection');
+  await page.locator('#pack-studio-search').fill('');
+  await page.locator('#pack-studio-dialog [data-pack-element="characters"]').click();
+  assert.equal(await page.locator('#scene-library-dialog').isVisible(),true,
+    'Characters opens from the matching Photo Packs sidebar');
+  assert.equal(await page.locator('#pack-studio-dialog').isVisible(),false);
+  await page.locator('#scene-tabs .scene-photo-packs-link').click();
+  assert.equal(await page.locator('#pack-studio-dialog').isVisible(),true,
+    'Photo Packs reopens from Elements without losing the collection');
+  assert.equal(await page.locator('#pack-studio-grid .pack-studio-card').count(),1);
+
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-count').first().textContent(),'2 photos');
   noPaid();
   await page.locator('#pack-studio-grid .pack-studio-card-select').first().click();
