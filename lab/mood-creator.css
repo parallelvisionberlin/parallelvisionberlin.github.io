@@ -289,6 +289,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .mc-direction-main .mc-field :is(input:not([type=range]),textarea){padding:11px 13px;font-size:14px;background:#242927;border-color:#4b554d;border-radius:0}
 .mc-direction-main #mc-name{min-height:45px}
 .mc-direction-main textarea#mc-idea{min-height:83px;height:83px;resize:vertical;scroll-margin-top:28px}
+/* Single 1px focus border for the Mood Creator description field. */
+.mc-direction-main textarea#mc-idea:focus-visible{outline:none;border-color:#c4db9f}
 .mc-direction-main textarea#mc-direction{min-height:112px;height:112px;resize:vertical}
 .mc-workspace .mc-field small{font-size:11px;color:#a1afa3;line-height:1.5}
 .mc-direction-main .mc-analyze-button{min-height:49px;padding:11px 15px;background:#d7f58b;border-color:#d7f58b;border-radius:0}
