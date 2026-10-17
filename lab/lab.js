@@ -15,7 +15,7 @@ import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-cr
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261013-character-studio1';
-import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1&seedance15-4k=1';
+import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1&seedance15-4k=1&publicLabels=20261017-1';
 import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=20261016-1';
 import {createVideoModelPicker} from './video-model-picker.js?v=20261016-wan-mini-priority1';
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
