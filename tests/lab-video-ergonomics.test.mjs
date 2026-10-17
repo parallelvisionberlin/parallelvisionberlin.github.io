@@ -56,4 +56,8 @@ test('Video navigation does not lose the scrollbar gutter after login finishes',
   assert.match(css,/grid-template-columns:clamp\(352px,26vw,395px\) minmax\(0,1fr\)/);
   assert.match(css,/\.video-feed-center\{\s*min-width:0!important;scrollbar-gutter:stable!important;/);
   assert.match(css,/transition-property:none!important/);
+  assert.match(app,/\$\('app'\)\.classList\.toggle\('pv-video-ergonomic',videoMode\)/,
+    'final grid columns are active before the Studio is first revealed');
+  assert.match(app,/\$\('app'\)\.classList\.toggle\('pv-video-seedance',isVideo&&engine==='seedance'\)/,
+    'model switching should never wait for an animation frame to update the layout');
 });
