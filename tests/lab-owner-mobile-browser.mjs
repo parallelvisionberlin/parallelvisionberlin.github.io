@@ -102,6 +102,29 @@ try{
       assert.ok((await page.locator('#owner-traffic-sources').innerText()).includes('Reddit'));
       assert.equal(await page.locator('a[data-owner-nav][href="#owner-traffic-section"]').count(),1,'Traffic has a dedicated sidebar link');
 
+      await page.evaluate(async()=>{
+        call=async path=>{
+          if(!path.startsWith('/api/admin/acquisition?'))throw Error('Unexpected commercial test endpoint.');
+          return {days:7,summary:{
+            newUsers:2,activatedUsers:1,completedJobs:3,providerExposureUsd:.24,
+            netCreditsSpent:120,checkoutStarts:2,checkoutPaid:1,revenueCents:1000
+          },customers:[
+            {id:'user_3lZGUxxxxLongFakeClerkCustomerIdentifierABC',email:'editorial+very-long-signup-name@example.com',
+              joinedAt:Date.UTC(2026,9,14),completedJobs:2,creditsSpent:100,
+              providerExposureUsd:.15,checkoutStarts:1,revenueCents:1000,reviewFlag:''},
+            {id:'user_highly_long_disposable',email:'temp@yournike.com',joinedAt:Date.UTC(2026,9,15),
+              completedJobs:0,creditsSpent:0,providerExposureUsd:0,
+              checkoutStarts:0,revenueCents:0,reviewFlag:'disposable-email'}
+          ],notes:{checkout:'Tracking begins with this release.',cost:'Provider costs are estimates.'}};
+        };
+        await acquisitionUI.refresh();
+      });
+      assert.equal(await page.locator('#owner-acquisition-new').textContent(),'2');
+      assert.equal(await page.locator('#owner-acquisition-revenue').textContent(),'€10.00');
+      assert.equal(await page.locator('#owner-acquisition-customers tr').count(),2,'Customer activity table is populated');
+      assert.match(await page.locator('#owner-acquisition-customers').innerText(),/Review temporary email/);
+
+
 
       assert.equal(await page.locator('.owner-customer-open').count(),3,'Each customer has a private activity action');
       if(width===390||width===1792){
