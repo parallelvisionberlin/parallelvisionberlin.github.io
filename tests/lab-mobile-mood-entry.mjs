@@ -41,7 +41,8 @@ async function openViewport(width,height){
   await page.route(/\/lab\/[^/]+\.js(?:\?.*)?$/,route=>{
     const pathname=new URL(route.request().url()).pathname;
     if(pathname.endsWith('/studio-guest-image.js')||
-       pathname.endsWith('/studio-mobile-entry.js'))return route.continue();
+       pathname.endsWith('/studio-mobile-entry.js')||
+       pathname.endsWith('/image-editorial-deck.js'))return route.continue();
     return route.fulfill({status:200,contentType:'text/javascript',body:''});
   });
   await page.route('https://**/*',route=>route.abort());
