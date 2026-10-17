@@ -1,5 +1,5 @@
 // Owner-only acquisition UI. Renders only text from the secure admin endpoint.
-export function createOwnerAcquisitionUI({request,ownerReady,revision,days,formatDate,formatNumber,openActivity,mobileLabels}){
+export function createOwnerAcquisitionUI({request,ownerReady,revision,days,formatDate,formatNumber,openActivity,openReview,mobileLabels}){
   const $=id=>document.getElementById(id);
   const money=(value,symbol,multiplier=1)=>symbol+(Number(value||0)*multiplier)
     .toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -41,7 +41,15 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
       const button=node('button','View activity ↗','owner-acquisition-open');
       button.type='button';
       button.addEventListener('click',()=>openActivity(customer));
-      identity.append(button);row.append(identity);
+      identity.append(button);
+      if(customer.promoHeld===true&&typeof openReview==='function'){
+        const reviewButton=node('button','Review generations ↗','owner-acquisition-review-button');
+        reviewButton.type='button';
+        reviewButton.setAttribute('aria-label','Review completed generated image previews for '+(customer.email||customer.id));
+        reviewButton.addEventListener('click',()=>openReview(customer));
+        identity.append(reviewButton);
+      }
+      row.append(identity);
       cell(row,formatDate(customer.joinedAt));
       cell(row,formatNumber(customer.completedJobs));
       cell(row,customer.lastCompletedAt?new Date(Number(customer.lastCompletedAt)).toLocaleString('en-GB',

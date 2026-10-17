@@ -12,6 +12,9 @@ on:
       - 'lab/account*'
       - 'lab/owner*'
       - 'tests/lab-promotions.test.mjs'
+      - 'tests/lab-owner-generation-review.test.mjs'
+      - 'lab-worker/generation-review.mjs'
+      - 'lab-worker/migrations/0026-generation-review-audit.sql'
       - 'tests/lab-owner-providers.test.mjs'
       - '.github/workflows/pv-lab-promotions.yml'
   push:
@@ -26,6 +29,9 @@ on:
       - 'lab/account*'
       - 'lab/owner*'
       - 'tests/lab-promotions.test.mjs'
+      - 'tests/lab-owner-generation-review.test.mjs'
+      - 'lab-worker/generation-review.mjs'
+      - 'lab-worker/migrations/0026-generation-review-audit.sql'
       - 'tests/lab-owner-providers.test.mjs'
       - '.github/workflows/pv-lab-promotions.yml'
 permissions:
@@ -50,4 +56,4 @@ jobs:
           node --check lab/account-menu.js
       - name: Verify voucher security, owner access and existing referral rules
         run: |
-          node --test tests/lab-owner-providers.test.mjs tests/lab-promotions.test.mjs tests/lab-referrals.test.mjs tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs tests/lab-promo-generation-holds.test.mjs
+          node --test tests/lab-owner-providers.test.mjs tests/lab-promotions.test.mjs tests/lab-referrals.test.mjs tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs tests/lab-promo-generation-holds.test.mjs tests/lab-owner-generation-review.test.mjs

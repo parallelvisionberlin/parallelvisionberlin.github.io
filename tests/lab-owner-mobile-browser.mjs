@@ -4,19 +4,21 @@ import assert from 'node:assert/strict';
 import {readFile, mkdir} from 'node:fs/promises';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
 const root=new URL('../lab/',import.meta.url);
-const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi]=await Promise.all([
+const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi,rawReviewUi]=await Promise.all([
   readFile(new URL('owner.html',root),'utf8'),
   readFile(new URL('owner.css',root),'utf8'),
   readFile(new URL('owner.js',root),'utf8'),
   readFile(new URL('owner-providers-ui.js',root),'utf8'),
-  readFile(new URL('owner-acquisition-ui.js',root),'utf8')
+  readFile(new URL('owner-acquisition-ui.js',root),'utf8'),
+  readFile(new URL('owner-generation-review-ui.js',root),'utf8')
 ]);
 // Run the real dashboard renderer with synthetic owner data, without authentication/network requests.
 const providerJs="const {createOwnerProviderUI,renderOwnerProviderFinances}=(()=>{"+
   rawProviderUi.replace(/^export /gm,'')+
   ";return {createOwnerProviderUI,renderOwnerProviderFinances};})();\n";
 const acquisitionJs=rawAcquisitionUi.replace(/^export /gm,'')+'\n';
-const runtimeJs=providerJs+acquisitionJs+"const createSessionRequest=()=>async()=>({ok:false,json:async()=>({})});\n"+
+const reviewJs=rawReviewUi.replace(/^export /gm,'')+'\n';
+const runtimeJs=providerJs+acquisitionJs+reviewJs+"const createSessionRequest=()=>async()=>({ok:false,json:async()=>({})});\n"+
   rawJs.replace(/^import .*\n/gm,'').replace(/\ntry\{clerk=await loadLabAccount\(\);[\s\S]*$/,'');
 const html=rawHtml
   .replace(/<link\b[^>]*>/g,'')
@@ -104,6 +106,9 @@ try{
 
       await page.evaluate(async()=>{
         call=async path=>{
+          if(path.startsWith('/api/admin/customers/review?'))
+            return {images:[{jobId:'job_flaggedpreview001',finishedAt:Date.UTC(2026,9,16)}],
+              counts:{images:1,videos:1}};
           if(!path.startsWith('/api/admin/acquisition?'))throw Error('Unexpected commercial test endpoint.');
           return {days:7,summary:{
             newUsers:2,activatedUsers:1,completedJobs:3,providerExposureUsd:.24,
@@ -112,9 +117,9 @@ try{
             {id:'user_3lZGUxxxxLongFakeClerkCustomerIdentifierABC',email:'editorial+very-long-signup-name@example.com',
               joinedAt:Date.UTC(2026,9,14),completedJobs:2,creditsSpent:100,
               providerExposureUsd:.15,checkoutStarts:1,revenueCents:1000,reviewFlag:''},
-            {id:'user_highly_long_disposable',email:'temp@yournike.com',joinedAt:Date.UTC(2026,9,15),
-              completedJobs:0,creditsSpent:0,providerExposureUsd:0,
-              checkoutStarts:0,revenueCents:0,reviewFlag:'disposable-email'}
+            {id:'user_SuspectedTemporaryA',email:'temp@yournike.com',joinedAt:Date.UTC(2026,9,15),
+              completedJobs:1,creditsSpent:20,providerExposureUsd:.04,
+              checkoutStarts:0,revenueCents:0,reviewFlag:'disposable-email',promoHeld:true}
           ],notes:{checkout:'Tracking begins with this release.',cost:'Provider costs are estimates.'}};
         };
         await acquisitionUI.refresh();
@@ -122,7 +127,16 @@ try{
       assert.equal(await page.locator('#owner-acquisition-new').textContent(),'2');
       assert.equal(await page.locator('#owner-acquisition-revenue').textContent(),'€10.00');
       assert.equal(await page.locator('#owner-acquisition-customers tr').count(),2,'Customer activity table is populated');
-      assert.match(await page.locator('#owner-acquisition-customers').innerText(),/Review temporary email/);
+      assert.match(await page.locator('#owner-acquisition-customers').innerText(),/Free generation paused/);
+      assert.equal(await page.locator('.owner-acquisition-review-button').count(),1,
+        'Only the active promotional hold shows a review control');
+      await page.locator('.owner-acquisition-review-button').click();
+      await page.locator('#owner-generation-review-dialog').waitFor({state:'visible'});
+      await page.locator('.owner-generation-review-placeholder').first().waitFor({state:'visible'});
+      assert.match(await page.locator('#owner-generation-review-status').innerText(),/Review access is logged/);
+      assert.match(await page.locator('#owner-generation-review-disclosure').innerText(),/Uploaded photos/);
+      await page.locator('#owner-generation-review-close').click();
+      assert.equal(await page.locator('#owner-generation-review-dialog').evaluate(el=>el.open),false);
 
 
 

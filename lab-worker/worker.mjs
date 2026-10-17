@@ -13,6 +13,7 @@ import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
 import {labAdminRoute,voucherCustomerRoute,syncCustomerEmail,scheduledClerkBackfill} from './promotions.mjs';
 import {recordLabTraffic,pruneLabTraffic} from './traffic.mjs';
+import {pruneGenerationReviewAudit} from './generation-review.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {precisionEditRoute} from './precision-edit.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput} from './image-models.mjs';
@@ -46,7 +47,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-16.3-spicy-mood-wakeup';
+export const VERSION = 'pv-lab-2026-10-17.1-private-generation-review';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -2081,7 +2082,10 @@ export default {
     const clock=Number(event?.scheduledTime)||Date.now();
     const when=new Date(clock);
     if(when.getUTCHours()===3&&when.getUTCMinutes()<5)
-      ctx.waitUntil(pruneLabTraffic(env,{clock:()=>clock}));
+      ctx.waitUntil(Promise.all([
+        pruneLabTraffic(env,{clock:()=>clock}),
+        pruneGenerationReviewAudit(env,{clock:()=>clock})
+      ]));
   }
 };
 
