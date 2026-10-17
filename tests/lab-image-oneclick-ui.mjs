@@ -174,6 +174,13 @@ async function retouchFillsDesktop(page){
   }
   assert.ok(g.horizontalOverflow<=3,'No horizontal scroll allowed: '+JSON.stringify(g));
 }
+async function setLegacyOutputFormat(page,value){
+  // Legacy output controls are hidden behind the modern Image composer.
+  // Exercise the retained change handler without treating the select as visible UI.
+  await page.locator('#output-format').evaluate((element,next)=>{
+    element.value=next;element.dispatchEvent(new Event('change',{bubbles:true}));
+  },value);
+}
 async function imageForm(x){
   await imageAdvanced(x.page);
   await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);
@@ -182,7 +189,7 @@ async function imageForm(x){
   if(await mobileMore.isVisible()&&!await x.page.locator('#image-composer-resolution').isVisible())await mobileMore.click();
   await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');
   await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');
-  await x.page.selectOption('#output-format','png');
+  await setLegacyOutputFormat(x.page,'png');
 }
 try{
  let x;
