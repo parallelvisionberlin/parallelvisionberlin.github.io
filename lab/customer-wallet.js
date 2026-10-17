@@ -1,7 +1,7 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
 import {referralsAvailable} from './account-menu.js?v=20261012-account2';
 import {metaConsentGranted,trackLabEvent} from './meta-pixel.js?v=20261013-a1';
-export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{}}){
+export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{},openPricing=()=>{window.location.assign('./#pricing');}}){
   const $=id=>document.getElementById(id);
   let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0,trialGenerationPaused=false;
   let dismissed=false,purchasing=false,refreshing=null,refreshAgain=false;
@@ -44,23 +44,34 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
       list.append(button);
     }
   }
-  async function purchase(sku){
-    if(purchasing)return;
-    if(!account||!billingReady||accountClosed||billingReview){state.textContent='Checkout has not been enabled. No payment was attempted.';return;}
+  async function purchase(sku,report=()=>{}){
+    if(purchasing)return false;
+    if(!account||!billingReady||accountClosed||billingReview){
+      const message='Checkout is not available for this account. No payment was attempted.';
+      state.textContent=message;report(message);return false;
+    }
     const current=accountEpoch;purchasing=true;update();
     try{
       // Only forward voluntary analytics consent; Stripe remains the payment authority.
       const consent=metaConsentGranted();
       const data=await api('/api/billing/checkout',{method:'POST',body:consent?{sku,metaConsent:true}:{sku}});
-      if(!account||current!==accountEpoch)return;
+      if(!account||current!==accountEpoch)return false;
       const uri=new URL(data.url);
       if(uri.protocol!=='https:'||!(uri.hostname==='stripe.com'||uri.hostname.endsWith('.stripe.com')))throw new Error('Unverified checkout link.');
       // Allow the consented browser event a moment to leave before navigating to Stripe.
       if(trackLabEvent('InitiateCheckout',{currency:'EUR',content_name:sku}))
         await new Promise(resolve=>setTimeout(resolve,240));
-      if(!account||current!==accountEpoch)return;
+      if(!account||current!==accountEpoch)return false;
+      report('Opening secure checkout…');
       location.assign(uri.href);
-    }catch(e){if(current===accountEpoch){purchasing=false;update();state.textContent=e.message;notify(e.message,true);}}
+      return true;
+    }catch(e){
+      if(current===accountEpoch){
+        purchasing=false;update();state.textContent=e.message;
+        report(e.message);notify(e.message,true);
+      }
+      return false;
+    }
   }
   function open(){
     if(!account)return;
@@ -94,8 +105,8 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     }catch(e){state.textContent=e.message;button.disabled=false;}
   };
   toggle.onclick=open;
-  if(add)add.onclick=()=>{window.location.assign('./#pricing');};
-  if($('lab-credit-banner-add'))$('lab-credit-banner-add').onclick=open;
+  if(add)add.onclick=()=>openPricing({oneTime:false});
+  if($('lab-credit-banner-add'))$('lab-credit-banner-add').onclick=()=>openPricing({oneTime:true});
   if($('lab-credit-banner-dismiss'))$('lab-credit-banner-dismiss').onclick=()=>{dismissed=true;banner.hidden=true;};
   $('lab-credit-invite').onclick=openReferrals;
   $('lab-referrals-close').onclick=()=>referralDialog.close();
@@ -156,5 +167,5 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     update();
   }
   window.addEventListener('focus',()=>{if(account&&document.visibilityState==='visible')void refresh();});
-  return {connect,refresh,open,openReferrals,cost,describe,jobCharge,isCustomer:()=>account};
+  return {connect,refresh,open,openReferrals,cost,describe,jobCharge,buyPlan:purchase,isCustomer:()=>account};
 }
