@@ -58,9 +58,10 @@ test('Fashion quote stores a bound cost but does not submit or purchase a genera
    run:async(_env,query,...args)=>{calls.push({query,args});return{meta:{changes:1}};}
  };
  const q=await fashionRoute(new Request('https://lab.example/api/fashion/quote',{method:'POST'}),{FAL_KEY:'mock-fal'},'owner-a',new URL('https://lab.example/api/fashion/quote'),fake);
- assert.equal(q.estimatedUsd,.075);assert.equal(q.priceIsEstimate,true);assert.equal(calls.length,1);
+ assert.equal(q.estimatedUsd,.075);assert.equal(q.creditCost,35);assert.equal(q.priceIsEstimate,true);assert.equal(calls.length,1);
  assert.match(calls[0].query,/INSERT INTO quotes/);
  assert.equal(calls[0].args[1],'owner-a');
+ assert.equal(JSON.parse(calls[0].args[3]).customerChargeCredits,35);
 });
 test('Missing direct FASHN API key prevents purchasing Max before any generation',async()=>{
  const d={fail,body:async()=>({...base,model:'fashnmax'})};
@@ -110,7 +111,8 @@ test('Confirmed fashion quote submits once; duplicate confirmation returns the o
   jobView:job=>({id:job.id,status:job.state,providerTaskId:job.provider_id||null,settings:JSON.parse(job.params)})
  };
  const quoted=await fashionRoute(new Request('https://lab.example/api/fashion/quote',{method:'POST'}),env,'owner-a',new URL('https://lab.example/api/fashion/quote'),deps);
- assert.equal(quoted.estimatedUsd,.075);
+ assert.equal(quoted.estimatedUsd,.075);assert.equal(quoted.creditCost,35);
+ assert.equal(JSON.parse([...quotes.values()][0].params).customerChargeCredits,35);
  const first=await fashionRoute(new Request('https://lab.example/api/fashion/submit',{method:'POST'}),env,'owner-a',new URL('https://lab.example/api/fashion/submit'),deps);
  const repeat=await fashionRoute(new Request('https://lab.example/api/fashion/submit',{method:'POST'}),env,'owner-a',new URL('https://lab.example/api/fashion/submit'),deps);
  assert.equal(first.job.status,'queued');assert.equal(first.job.id,repeat.job.id);
