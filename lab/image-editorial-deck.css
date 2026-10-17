@@ -496,3 +496,49 @@ body:has(#app.image-studio-active:not([hidden]):not(.pv-moods-discovery-open) #l
     height:clamp(140px,calc(39dvh - 105px),235px)!important;
   }
 }
+
+/* Consistent Image welcome and Inspiration appearance, 2026-10-17.
+   Inspiration reuses the six real Mood cards, so changing to its discovery
+   state must not silently revert to the older bright Dream Blur wallpaper.
+   The owner/customer History waterfall and the user's preview-hidden
+   atmospheric background are explicitly excluded. */
+html:not(.pv-native-lab):not(.pv-image-previews-hidden)
+  #app.image-studio-active.pv-moods-discovery-open
+  .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::before{
+  inset:0!important;
+  height:100%!important;
+  background:url("./visuals/pvlab-subtle-cinematic-background-20261017.webp") center center/cover no-repeat!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:scale(1.008)!important;
+}
+html:not(.pv-native-lab):not(.pv-image-previews-hidden)
+  #app.image-studio-active.pv-moods-discovery-open
+  .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::after{
+  background:linear-gradient(180deg,rgba(2,4,8,.16) 0%,rgba(2,4,8,.035) 38%,rgba(2,4,8,.08) 74%,rgba(3,4,7,.25) 100%)!important;
+}
+
+/* The decorative credit-price line previously reserved 15px even when the
+   quote was empty. It pushed the visible Generate word above the button's
+   optical center. Only remove that empty pseudo-element: genuine prices,
+   retry notices, disabled state and submitting spinner retain their values. */
+html:not(.pv-native-lab) #app.image-studio-active
+  #image-composer.pv-editorial-deck:not(.is-pv-soul) .composer-generate:not(.is-submitting){
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+}
+html:not(.pv-native-lab) #app.image-studio-active
+  #image-composer.pv-editorial-deck:not(.is-pv-soul) .composer-generate:not(.is-submitting) .composer-generate-label{
+  align-self:center;
+  margin-inline:auto;
+  text-align:center;
+}
+html:not(.pv-native-lab) #app.image-studio-active
+  #image-composer.pv-editorial-deck:not(.is-pv-soul) .composer-generate:not(.is-submitting):is([data-credits=""],:not([data-credits]))::after{
+  content:none!important;
+  display:none!important;
+  min-height:0!important;
+}
