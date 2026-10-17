@@ -1,0 +1,222 @@
+/* PV LAB / mobile Image deck and saved-library fixes, 17 October 2026.
+   Responsive presentation only. No native app, desktop editor, video, billing or generator changes. */
+@media(max-width:650px){
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul){
+    /* Keep the workdeck slightly nearer the lower safe border. */
+    bottom:max(3px,env(safe-area-inset-bottom))!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-controls{
+    display:flex!important;flex-wrap:wrap!important;justify-content:flex-start!important;
+    align-items:center!important;align-content:flex-start!important;
+    column-gap:4px!important;row-gap:4px!important;width:100%;min-width:0;
+    position:static!important;
+  }
+  /* The invisible original saved arrow must not reserve 25px in the first row. */
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-controls>.composer-add-wrap{
+    order:0!important;flex:0 0 35px!important;width:35px!important;min-width:35px!important;
+    height:35px!important;max-height:35px!important;gap:0!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #image-composer-add{
+    width:35px!important;min-width:35px!important;height:35px!important;min-height:35px!important;
+    max-height:35px!important;flex:0 0 35px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .scene-image-library-wrap{
+    order:1!important;flex:0 0 35px!important;width:35px!important;min-width:35px!important;height:35px!important;
+    z-index:90;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #scene-image-open.scene-image-launch{
+    box-sizing:border-box;width:35px!important;min-width:35px!important;
+    height:35px!important;min-height:35px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-model-wrap{
+    order:2!important;flex:1 1 93px!important;min-width:0!important;max-width:none!important;width:auto!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-model-pill{
+    box-sizing:border-box;width:100%!important;max-width:none!important;
+    height:35px!important;min-height:35px!important;
+    padding:5px 6px!important;gap:4px!important;font-size:11px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #image-composer-model-label{
+    min-width:0;max-width:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-mood-control{
+    order:3!important;flex:0 0 75px!important;min-width:75px!important;max-width:75px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-mood-control #image-composer-moods{
+    box-sizing:border-box;width:100%!important;min-width:0!important;
+    height:35px!important;min-height:35px!important;
+    padding:5px 6px!important;font-size:10.5px!important;gap:2px!important
+  }
+  /* A real line break after the first four tools prevents a stray third toolbar row. */
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-controls::before{
+    content:"";order:4;display:block;flex:0 0 100%;height:0;min-height:0;padding:0;margin:0;visibility:hidden
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #image-composer-edit-area{
+    order:5!important;box-sizing:border-box;flex:0 0 68px!important;width:68px!important;
+    max-width:68px!important;min-height:35px!important;height:35px!important;
+    padding:5px 3px!important;font-size:10.5px!important;letter-spacing:-.015em
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-select-pill:has(#image-composer-ratio){
+    order:6!important;box-sizing:border-box;flex:0 0 58px!important;width:58px!important;
+    min-width:58px!important;height:35px!important;min-height:35px!important;padding:0!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #image-composer-ratio{
+    box-sizing:border-box;width:100%!important;min-width:0!important;max-width:100%!important;
+    height:34px!important;min-height:34px!important;padding:5px 16px 5px 5px!important;
+    font-size:10.5px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-mobile-more{
+    order:7!important;box-sizing:border-box;flex:0 0 50px!important;width:50px!important;
+    min-width:50px!important;height:35px!important;min-height:35px!important;
+    padding:5px 4px!important;gap:2px!important;font-size:10.5px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-mobile-more svg{
+    width:11px!important;height:11px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #composer-reference-intent-toggle:not([hidden]){
+    order:8!important;box-sizing:border-box;flex:1 1 49px!important;min-width:0!important;
+    width:auto!important;height:35px!important;min-height:35px!important;
+    padding:5px 3px!important;font-size:10px!important;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #composer-exact-prompt-option:not([hidden]){
+    order:9!important;box-sizing:border-box;flex:0 0 29px!important;min-width:29px!important;
+    width:29px!important;height:35px!important;min-height:35px!important;padding:0!important
+  }
+  /* A further model-specific settings icon remains in row two when available. */
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #composer-more-anchor{
+    order:10!important;min-width:0
+  }
+
+  /* More opens a small floating pair of native selects instead of creating row three. */
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.mobile-polish-ready:not(.is-pv-soul)[data-mobile-settings="open"] .composer-controls::after{
+    content:"";position:absolute;right:9px;bottom:calc(100% + 8px);
+    width:208px;height:61px;box-sizing:border-box;border:1px solid #42494e;
+    border-radius:12px;background:#171b1f;box-shadow:0 12px 38px #000b;
+    pointer-events:none;z-index:170
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.mobile-polish-ready:not(.is-pv-soul)[data-mobile-settings="open"] #image-composer-resolution-wrap,
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.mobile-polish-ready:not(.is-pv-soul)[data-mobile-settings="open"] #image-composer-count-wrap{
+    position:absolute!important;bottom:calc(100% + 21px);z-index:171;
+    height:35px!important;min-height:35px!important;
+    box-sizing:border-box;background:#252a2d;border:1px solid #44494c;border-radius:8px;
+    padding-inline:2px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.mobile-polish-ready:not(.is-pv-soul)[data-mobile-settings="open"] #image-composer-resolution-wrap{
+    right:113px;width:95px
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.mobile-polish-ready:not(.is-pv-soul)[data-mobile-settings="open"] #image-composer-count-wrap{
+    right:18px;width:88px
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.mobile-polish-ready:not(.is-pv-soul)[data-mobile-settings="open"] :is(#image-composer-resolution,#image-composer-count){
+    min-width:0!important;max-width:100%!important;width:100%!important;
+    font-size:11px!important;padding-left:6px!important;padding-right:14px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) :is(.image-composer-toolbar,.composer-controls){
+    position:static!important
+  }
+
+  /* Menu was left:-46px at 390px, clipping the image and person icons. */
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer .scene-image-menu{
+    box-sizing:border-box;left:0!important;right:auto!important;
+    bottom:calc(100% + 8px)!important;
+    width:min(245px,calc(100vw - 88px))!important;
+    max-height:min(43dvh,260px);overflow-y:auto;overflow-x:hidden
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer .scene-image-menu .scene-menu-option{
+    box-sizing:border-box;min-width:0;padding:8px
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer .scene-image-menu .scene-menu-text small{
+    white-space:normal;overflow-wrap:normal;font-size:10px;line-height:1.25
+  }
+}
+@media(max-width:360px){
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-controls{
+    column-gap:3px!important;row-gap:3px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-controls>.composer-add-wrap,
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #image-composer-add,
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .scene-image-library-wrap,
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #scene-image-open.scene-image-launch{
+    flex-basis:33px!important;min-width:33px!important;width:33px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-mood-control{
+    flex-basis:71px!important;min-width:71px!important;max-width:71px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #image-composer-edit-area{
+    flex-basis:44px!important;width:44px!important;max-width:44px!important;font-size:0!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #image-composer-edit-area::before{
+    content:"◈";font-size:17px
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-select-pill:has(#image-composer-ratio){
+    flex-basis:54px!important;min-width:54px!important;width:54px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) .composer-mobile-more{
+    flex-basis:47px!important;min-width:47px!important;width:47px!important
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #composer-reference-intent-toggle{
+    font-size:0!important;letter-spacing:0
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #composer-reference-intent-toggle::before{
+    content:attr(data-compact-label);font-size:10.5px;white-space:nowrap
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer .scene-image-menu{
+    width:min(238px,calc(100vw - 72px))!important
+  }
+}
+
+/* Match Photo Packs modal controls to the Elements scale, without modifying desktop. */
+@media(max-width:700px){
+  #pack-studio-dialog .pack-studio-side-link.is-selected{order:-1}
+  #pack-studio-dialog .pack-studio-side-nav{scrollbar-width:none}
+  #pack-studio-dialog .pack-studio-sidebar::-webkit-scrollbar{display:none}
+  #pack-studio-dialog .pack-studio-header{
+    position:relative;display:block;padding:14px 14px 0;min-width:0
+  }
+  #pack-studio-dialog .pack-studio-heading-copy{padding-right:47px;min-width:0}
+  #pack-studio-dialog .pack-studio-header-actions{
+    display:flex;position:static;flex:none;order:unset;align-items:center;
+    gap:0;width:100%;min-width:0;margin-top:13px
+  }
+  #pack-studio-dialog .pack-studio-close{
+    position:absolute!important;top:32px!important;right:14px!important;
+    min-height:35px!important;height:35px!important;width:35px!important
+  }
+  #pack-studio-dialog .pack-studio-search-label{
+    max-width:100%!important;width:100%;min-width:0;height:37px
+  }
+  #pack-studio-dialog .pack-studio-sort-label>.visually-hidden{
+    position:absolute!important;width:1px!important;height:1px!important;
+    overflow:hidden!important;clip:rect(0,0,0,0)!important;
+    clip-path:inset(50%)!important;white-space:nowrap!important;padding:0!important;border:0!important
+  }
+  #pack-studio-dialog .pack-studio-collection-heading{
+    display:flex!important;flex-wrap:nowrap!important;align-items:center;justify-content:space-between;
+    gap:5px;min-width:0
+  }
+  #pack-studio-dialog .pack-studio-collection-title{
+    display:flex;flex-direction:column;align-items:flex-start;
+    min-width:0;flex:1 1 auto;gap:2px
+  }
+  #pack-studio-dialog .pack-studio-collection-heading strong{
+    font-size:12px;font-weight:600;white-space:nowrap;letter-spacing:-.02em
+  }
+  #pack-studio-dialog #pack-studio-library-count{font-size:9px;white-space:nowrap}
+  #pack-studio-dialog .pack-studio-view-controls{gap:4px;flex:0 0 auto;margin:0}
+  #pack-studio-dialog .pack-studio-sort-label select{
+    display:block;box-sizing:border-box;max-width:117px!important;width:117px;
+    height:34px;padding:0 17px 0 6px;font-size:10px
+  }
+  #pack-studio-dialog .pack-studio-view-button{
+    box-sizing:border-box;flex:0 0 31px;width:31px;height:34px;min-height:34px
+  }
+  #pack-studio-dialog .pack-studio-intro{height:128px;min-height:128px}
+  #pack-studio-dialog.is-creating .pack-studio-search-label{display:none!important}
+  /* Keep the close button accessible while the creation form is displayed. */
+}
+@media(max-width:360px){
+  #pack-studio-dialog .pack-studio-sort-label select{width:103px;max-width:103px!important}
+  #pack-studio-dialog .pack-studio-view-button{flex-basis:29px;width:29px}
+  #pack-studio-dialog .pack-studio-header h2{font-size:21px}
+}
