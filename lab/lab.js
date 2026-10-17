@@ -1408,14 +1408,18 @@ function showWelcomeStart(session){
   // Do not infer new-user eligibility from the URL or a localStorage flag.
   // Show only after authenticated /api/session and history have both arrived.
   // Normal Image entry is as eligible as the promotional welcome link.
-  const eligible=(welcomeRequested||tool==='image')&&owner&&customerMode&&customerGenerationReady
-    &&session?.customer===true&&session?.generationReady===true
-    &&session.accountClosed!==true&&session.billingReview!==true
-    &&Number.isSafeInteger(session.balanceCredits)&&session.balanceCredits>0
+  // The approved six-card Image welcome is a visual entry state, not a
+  // credit/grant/generation entitlement. New signed-in customers must see it
+  // even with zero credits or while generation permissions are settling.
+  // Server-side permission and wallet checks still govern actual generation.
+  const eligible=(welcomeRequested||tool==='image')&&owner&&customerMode
+    &&session?.customer===true&&session.accountClosed!==true
     &&!$('history').querySelector('.card[data-kind="image"]');
   if(!eligible){resetWelcomeStart();return;}
   const amount=$('lab-welcome-balance');
-  if(amount)amount.textContent=session.balanceCredits.toLocaleString('en-GB')+' credits';
+  if(amount)amount.textContent=Number.isSafeInteger(session.balanceCredits)
+    ?session.balanceCredits.toLocaleString('en-GB')+' credits'
+    :'Your credits';
   panel.hidden=false;
   $('lab-image-empty-intro').hidden=true;
   syncImageGalleryEmpty();
