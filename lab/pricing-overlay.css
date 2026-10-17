@@ -90,10 +90,10 @@
 #lab-pricing-overlay-status[hidden]{display:none!important}
 @media(max-width:760px){
   #lab-pricing-overlay{
-    width:calc(100vw - 12px);
-    height:calc(100dvh - 12px);
-    border-radius:9px;
-    border-color:#333;
+    width:100vw;
+    height:100dvh;
+    border:0;
+    border-radius:0;
   }
   #lab-pricing-overlay-close{
     top:calc(18px + env(safe-area-inset-top,0px));
@@ -104,9 +104,12 @@
   }
   #lab-pricing-overlay #pricing.lab-plans{
     min-height:calc(100dvh - 16px);
-    padding:73px 17px 42px!important;
+    padding:73px 18px 42px!important;
   }
   #lab-pricing-overlay #pricing .lab-plans-inner{max-width:480px}
+}
+@media(max-width:360px){
+  #lab-pricing-overlay #pricing.lab-plans{padding-inline:15px!important}
 }
 @media(prefers-reduced-motion:reduce){
   #lab-pricing-overlay-close{transition:none}
