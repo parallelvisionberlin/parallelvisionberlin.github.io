@@ -140,6 +140,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <script defer src="./image-editorial-deck.js?v=20261017-hero-floating3"></script>
 <script type="module" src="./studio-guest-image.js?v=20261017-mobile-mood1&greenHaze=2"></script>
 <script defer src="./studio-mobile-entry.js?v=20261017-mobile-mood1"></script>
+<link rel="stylesheet" href="./scene-library.css?v=20261017-scene-library1">
 </head>
 <body class="lab-booting">
 <div id="pv-credit-toast" class="pv-credit-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
@@ -483,6 +484,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <button id="image-composer-add" type="button" class="composer-add" aria-label="Upload images" title="Upload images directly"><span class="composer-add-plus" aria-hidden="true">+</span></button>
         <button id="composer-add-saved-toggle" type="button" class="composer-add-saved-toggle" aria-label="Open saved photo packs" title="Saved photo packs" aria-expanded="false" aria-controls="composer-library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button>
       </div>
+        <button id="scene-image-open" class="composer-settings-pill scene-image-launch" type="button" aria-label="Open Scene Library" title="Scene Library: Characters, Outfits, Props, Locations"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg></button>
       <div class="composer-model-wrap">
         <button id="image-composer-model" class="composer-model-pill" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="image-composer-model-menu">
           <span class="composer-model-symbol" aria-hidden="true">◈</span>
@@ -678,7 +680,8 @@ document.addEventListener('DOMContentLoaded',()=>{
               <button id="image-detail-edit-area" type="button">Retouch</button>
               <button id="image-detail-fix-eyes" type="button">Fix eyes precisely</button>
               <div id="image-detail-extra-list" class="detail-extra-list"></div>
-              <button id="image-detail-delete" type="button">Delete</button>
+              <button id="image-detail-scene-save" type="button">Save to Scene Library</button>
+               <button id="image-detail-delete" type="button">Delete</button>
             </div>
           </details>
         </div>
@@ -790,6 +793,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div id="reference-mode" class="mode-panel" hidden><p id="extend-help" class="fine" hidden>Upload one clip and describe what happens next. The continuation uses its framing.</p>
 <div class="upload-heading"><span class="label">Reference images</span><span class="micro" id="ref-count">0 / 10</span></div>
 <label class="drop reference-drop" id="reference-drop" aria-label="Drop reference images here or click to browse"><span>Drop reference images here or click to browse</span><small>JPG / PNG / WebP · up to 10 photos</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
+<div class="scene-video-access" aria-label="Your saved scene items"><span>Characters, outfits, props and locations</span><button id="scene-video-open" type="button">Scene Library ↗</button></div>
+<div id="scene-video-selected" hidden aria-label="Attached saved scene items"></div>
 <p id="reference-progress" class="fine" role="status" aria-live="polite"></p>
 <div id="reference-list" class="reference-list" role="region" aria-label="Input references" tabindex="0"></div>
 <div id="reference-media" hidden>
@@ -1145,6 +1150,49 @@ document.addEventListener('DOMContentLoaded',()=>{
 </dialog>
 <dialog id="asset-folder-dialog" aria-labelledby="asset-folder-title"><div class="folder-dialog-head"><h2 id="asset-folder-title">Add to folder</h2><button id="asset-folder-close" type="button" aria-label="Close folder dialog">×</button></div><div id="asset-folder-choices"></div><form id="asset-folder-form"><label for="asset-folder-name">Create a new folder</label><div class="folder-create-row"><input id="asset-folder-name" maxlength="80" placeholder="Folder name" required><button id="asset-folder-create" type="submit">Create</button></div><p id="asset-folder-error" role="alert"></p></form></dialog>
 <dialog id="asset-video-dialog" aria-label="Video preview"><div class="asset-video-actions"><button id="asset-video-download" type="button">Download</button><button id="asset-video-close" type="button">Close</button></div><video id="asset-video-player" controls playsinline></video></dialog>
+
+<dialog id="scene-library-dialog" aria-labelledby="scene-library-title">
+ <div class="scene-shell">
+  <header class="scene-header">
+   <div><span class="scene-kicker">PV LAB / YOUR COLLECTION</span><h2 id="scene-library-title">Scene Library</h2>
+    <p>Keep your people, clothing, objects and places ready for the next scene. Saved references stay private to your account.</p></div>
+   <button id="scene-close" class="scene-icon-close" type="button" aria-label="Close Scene Library">×</button>
+  </header>
+  <section id="scene-browser" aria-label="Saved scene items">
+   <div class="scene-toolbar">
+    <label class="scene-search-label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.8"/><path d="m15.5 15.5 5 5"/></svg><input id="scene-search" type="search" placeholder="Search your library" autocomplete="off" aria-label="Search saved scene items"></label>
+    <button id="scene-new" class="scene-primary" type="button">+ New item</button>
+   </div>
+   <nav id="scene-tabs" class="scene-tabs" aria-label="Scene Library categories"></nav>
+   <div class="scene-library-meta"><strong id="scene-active-label">Characters</strong><small id="scene-library-count">Private collection</small></div>
+   <div id="scene-grid" class="scene-grid" aria-live="polite"></div>
+   <p id="scene-empty" class="scene-empty" hidden>No matches. Try another search or create an item.</p>
+  </section>
+  <section id="scene-create" hidden aria-label="Save a new scene item">
+   <div class="scene-create-heading"><h3>Save to Scene Library</h3><button id="scene-back" class="scene-back" type="button">← Your library</button></div>
+   <div class="scene-form-grid">
+    <label class="scene-field"><span>Name</span><input id="scene-name" type="text" maxlength="70" autocomplete="off" placeholder="e.g. Nina FOK, silver coat or metro"></label>
+    <label class="scene-field"><span>Type</span><select id="scene-category"><option value="characters">Characters</option><option value="outfits">Outfits</option><option value="props">Props</option><option value="locations">Locations</option></select></label>
+   </div>
+   <p id="scene-create-description" class="scene-form-note">Save reusable photographs for future scenes.</p>
+   <div class="scene-photo-source">
+    <label class="scene-upload-label">+ Upload photos<input id="scene-files" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+    <button id="scene-attached" class="scene-muted-button" type="button">Use attached photos</button>
+    <span id="scene-photo-count">0 / 8 images</span>
+   </div>
+   <div id="scene-photos" aria-label="Images to save"></div>
+   <p id="scene-photo-hint">Select 1 to 8 images. For a character, different views of the same person work best.</p>
+   <div id="scene-identity-options" class="scene-identity-options">
+    <label><input type="radio" name="scene-appearance" id="scene-appearance" value="identity" checked><span><strong>Identity only</strong><small>Face and recognizable features, not the original outfit or setting.</small></span></label>
+    <label><input type="radio" name="scene-appearance" value="full"><span><strong>Full appearance</strong><small>Ask the model to reuse the person, hair and outfit.</small></span></label>
+   </div>
+   <label class="scene-field" style="margin-top:17px"><span>Notes (optional)</span><textarea id="scene-note" maxlength="120" placeholder="Details you want the model to keep"></textarea></label>
+   <label id="scene-consent-wrap" class="scene-consent"><input id="scene-consent" type="checkbox">I confirm I have the rights or permission to use these character photographs.</label>
+   <div class="scene-foot"><p id="scene-library-status" role="status" aria-live="polite"></p><div class="scene-create-action-row"><button id="scene-cancel" class="scene-muted-button" type="button">Cancel</button><button id="scene-save" class="scene-primary" type="button">Save item</button></div></div>
+  </section>
+  <div id="scene-browser-foot" class="scene-foot"><div><p id="scene-browse-status" role="status" aria-live="polite"></p><p id="scene-library-footnote" class="scene-form-note">These are reusable references, not trained models. Identity matching depends on the selected generator.</p></div><button id="scene-done" class="scene-muted-button" type="button">Done</button></div>
+ </div>
+</dialog>
 <script type="module" src="./traffic.js?v=20261015-traffic1"></script>
 </body></html>
 
