@@ -1254,10 +1254,11 @@ function synchronizeComposerSelect(composerId,realId){
     mirror.replaceChildren(...current.map(([value,label])=>new Option(label,value)));
   if(mirror.value!==real.value)mirror.value=real.value;
 }
+let moodDiscoveryOpen=false;
 function syncImageGalleryEmpty(){
   renderPendingImageCards();
   const imageCards=$('history').querySelectorAll('.card[data-kind="image"]').length;
-  $('image-gallery-empty').hidden=imageCards>0;
+  $('image-gallery-empty').hidden=imageCards>0&&!moodDiscoveryOpen;
 }
 
 // A one-time, text-first welcome path. Authentication, wallet funding, model
@@ -1298,6 +1299,33 @@ function resetWelcomeStart(){
   if(intro)intro.hidden=false;
   document.querySelectorAll('[data-welcome-mood]').forEach(button=>button.setAttribute('aria-pressed','false'));
 }
+function setMoodDiscoveryOpen(next){
+  if(next&&(!owner||tool!=='image'||!$('app').classList.contains('image-studio-active')||assetLibrary?.active()||document.documentElement.classList.contains('pv-image-previews-hidden')))return;
+  moodDiscoveryOpen=!!next;
+  $('app').classList.toggle('pv-moods-discovery-open',moodDiscoveryOpen);
+  const panel=$('lab-welcome-start'),intro=$('lab-image-empty-intro'),button=$('history-moods-toggle');
+  if(moodDiscoveryOpen){
+    panel.hidden=false;intro.hidden=true;
+    const balanceLine=panel.querySelector('.lab-welcome-balance');
+    if(balanceLine)balanceLine.hidden=!customerMode;
+    if(customerMode){
+      const walletText=$('lab-wallet-toggle')?.textContent.trim()||'';
+      if(/^\d[\d,.\s]*\s+credits?$/i.test(walletText))$('lab-welcome-balance').textContent=walletText;
+    }
+  }else{
+    panel.hidden=true;intro.hidden=false;
+    const balanceLine=panel.querySelector('.lab-welcome-balance');
+    if(balanceLine)balanceLine.hidden=false;
+  }
+  if(button){
+    button.querySelector('.mood-view-label').textContent=moodDiscoveryOpen?'History':'Moods';
+    button.setAttribute('aria-pressed',String(moodDiscoveryOpen));
+    button.setAttribute('aria-label',moodDiscoveryOpen?'Back to image History':'Show featured image Moods');
+    button.title=moodDiscoveryOpen?'Back to History':'Show Moods';
+  }
+  syncImageGalleryEmpty();
+}
+$('history-moods-toggle')?.addEventListener('click',()=>setMoodDiscoveryOpen(!moodDiscoveryOpen));
 function showWelcomeStart(session){
   const panel=$('lab-welcome-start');
   if(!panel)return;
@@ -1318,7 +1346,7 @@ function showWelcomeStart(session){
 }
 function useWelcomeMood(id){
   if(!Object.prototype.hasOwnProperty.call(welcomePrompts,id)||!moodById(id)
-    ||!owner||!customerMode||!customerGenerationReady||busy||imageSubmissionPending
+    ||!owner||(!ownerAccount&&(!customerMode||!customerGenerationReady))||busy||imageSubmissionPending
     ||$('lab-welcome-start')?.hidden)return;
   if(imageEngine!=='seedream'){
     $('image-engine').value='seedream';
@@ -1731,7 +1759,7 @@ function syncImageStudioMode(){
   const isImage=tool==='image'&&!fashionActive&&!retouchActive;
   $('app').classList.toggle('image-studio-active',isImage);
   imageStudio.hidden=!isImage;
-  if(!isImage){closeComposerLibrary();closeComposerAddMenu();}
+  if(!isImage){if(moodDiscoveryOpen)setMoodDiscoveryOpen(false);closeComposerLibrary();closeComposerAddMenu();}
   if(isImage){
     if(archive.parentElement!==$('image-gallery-host'))$('image-gallery-host').append(archive);
   }else{
@@ -2733,6 +2761,7 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
   if(!q||!Number.isFinite(q.expiresAt)||Date.now()>=q.expiresAt)throw new Error('Quote expired. No generation submitted. Please try again.');
   // Retain the same quote ID through the session-safe request helper. Never reprice/retry a paid task here.
   const data=await api(q.provider==='Higgsfield'&&q.settings?.type==='image'?'/api/higgsfield/generate':'/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
+  if(q.settings?.type==='image'&&moodDiscoveryOpen)setMoodDiscoveryOpen(false);
   if($('quote-dialog').open)$('quote-dialog').close();
   resetPreview();setActive(data.job);surfaceHistoryJob(data.job);
   if(q.settings?.type==='video'&&tool==='video'){
@@ -4161,6 +4190,7 @@ function refreshHistorySoon(){
   queueMicrotask(()=>syncHistory().catch(error=>{if(owner&&epoch===expectedEpoch)notify('History refresh delayed. Your queued job is safe. '+error.message,true);}));
 }
 $('refresh').onclick=()=>action(()=>loadHistory());$('more').onclick=loadEarlierHistory;
+for(const id of ['refresh','history-select'])$(id)?.addEventListener('click',()=>{if(moodDiscoveryOpen)setMoodDiscoveryOpen(false);});
 $('history-select').onclick=()=>setHistorySelectMode(true);
 $('history-cancel-select').onclick=()=>setHistorySelectMode(false);
 $('history-select-all').onclick=()=>{
@@ -4175,7 +4205,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();document.documentElement.classList.remove('pv-studio-route-pending');}
-function lock(){customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();finishLabBoot();}
+function lock(){setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();finishLabBoot();}
 const wallet=createCustomerWallet({api,notify,onBalance:value=>studioAccount.updateBalance(value),onClosed:async()=>{lock();await clerk.signOut();}});
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').hidden=false;$('signin').disabled=false;$('auth-retry').hidden=true;return;}if(owner&&userId===clerk.user.id)return;if(owner&&userId!==clerk.user.id)lock();
@@ -4350,6 +4380,7 @@ async function submitImageSnapshot(){
   const record=job=>{
     if(!job)return;
     check();dispatched=false;
+    if(moodDiscoveryOpen)setMoodDiscoveryOpen(false);
     // The real server queue replaces the local preparation reservation only
     // when the provider-bound job has been acknowledged.
     if(fastTicket){fastImageHandoff.release(fastTicket);fastTicket=null;}
