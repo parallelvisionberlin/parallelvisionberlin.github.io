@@ -1343,7 +1343,10 @@ async function route(request,env,ctx) {
     if(!granted)await syncCustomerEmail(env,owner).catch(()=>false);
     else if(ctx?.waitUntil)ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
   }
-  if(customer&&!['/api/session','/api/customer/wallet','/api/customer/account','/api/billing/portal'].includes(path))await assertCustomerOpen(env,owner,{spending:method==='POST'&&!path.startsWith('/api/customer/')});
+  if(customer&&!['/api/session','/api/customer/wallet','/api/customer/account','/api/billing/portal'].includes(path)){
+    const creativePost=method==='POST'&&!path.startsWith('/api/customer/')&&!path.startsWith('/api/billing/');
+    await assertCustomerOpen(env,owner,{spending:method==='POST'&&!path.startsWith('/api/customer/'),promotion:creativePost});
+  }
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
     if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');
     if(path==='/api/customer/image-price'&&method==='POST'){

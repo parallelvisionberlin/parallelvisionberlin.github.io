@@ -32,7 +32,7 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
     const customers=Array.isArray(data.customers)?data.customers:[];
     if(!customers.length){
       const tr=document.createElement('tr'),td=cell(tr,'No customer records yet.');
-      td.colSpan=8;body.append(tr);
+      td.colSpan=9;body.append(tr);
     }
     for(const customer of customers){
       const row=document.createElement('tr'),identity=document.createElement('td');
@@ -44,11 +44,14 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
       identity.append(button);row.append(identity);
       cell(row,formatDate(customer.joinedAt));
       cell(row,formatNumber(customer.completedJobs));
+      cell(row,customer.lastCompletedAt?new Date(Number(customer.lastCompletedAt)).toLocaleString('en-GB',
+        {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—');
       cell(row,formatNumber(customer.creditsSpent));
       cell(row,money(customer.providerExposureUsd,'$'));
       cell(row,formatNumber(customer.checkoutStarts));
       cell(row,money(customer.revenueCents,'€',.01));
-      const status=customer.reviewFlag==='disposable-email'?'Review temporary email'
+      const status=customer.promoHeld?'Free generation paused'
+        :customer.reviewFlag==='disposable-email'?'Review temporary email'
         :customer.reviewFlag==='unverified'?'Email not verified'
         :Number(customer.revenueCents)>0?'Purchased'
         :Number(customer.checkoutStarts)>0?'Checkout unfinished'

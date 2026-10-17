@@ -230,3 +230,14 @@ CREATE TABLE IF NOT EXISTS lab_traffic_daily (
 CREATE INDEX IF NOT EXISTS lab_traffic_daily_day ON lab_traffic_daily(day_utc);
 INSERT OR IGNORE INTO lab_migrations(id,applied_at)
 VALUES('0018-anonymous-traffic',CAST(strftime('%s','now') AS INTEGER)*1000);
+
+-- PV LAB-only durable holds on unpaid promotional generation. Trigger and backfill
+-- are installed by migration 0025, not by the fresh base schema.
+CREATE TABLE IF NOT EXISTS lab_promo_generation_holds (
+  customer_id TEXT PRIMARY KEY REFERENCES lab_customers(id),
+  reason TEXT NOT NULL CHECK(reason IN ('disposable-email')),
+  created_at INTEGER NOT NULL,
+  released_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS lab_promo_generation_holds_open
+  ON lab_promo_generation_holds(released_at,created_at);
