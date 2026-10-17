@@ -536,7 +536,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     const title=document.createElement('strong');title.textContent=mood.name;
     const subtitle=document.createElement('small');subtitle.textContent=captions[mood.id]||mood.description;info.append(title,subtitle);
     card.append(media,info);
-    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;render();fitPanelViewport();onChange();};
+    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;render();fitPanelViewport();onChange({selectedMood:true});};
     grid.append(card);cards.set(mood.id,card);
   }
   function render(){
@@ -609,7 +609,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
       const sub=document.createElement('small');sub.textContent=board.direction||((moodById(board.baseMoodId)?.name||'Saved')+' creative direction');
       card.title=sub.textContent;card.setAttribute('aria-description',sub.textContent);
       copy.append(title,sub);card.append(media,copy);
-      card.onclick=()=>{selected=key;intensity=board.intensity||60;render();onChange();};
+      card.onclick=()=>{selected=key;intensity=board.intensity||60;render();onChange({selectedMood:true});};
       const edit=document.createElement('button');edit.type='button';edit.className='moods-board-edit';edit.textContent='Edit';
       edit.setAttribute('aria-label','Edit moodboard '+board.name);
       edit.onclick=event=>{event.stopPropagation();close();onEditPersonal(board);};
@@ -729,7 +729,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
       }
     }
   });
-  switcher.onclick=()=>{chooseEngine('seedream');render();onChange();};
+  switcher.onclick=()=>{chooseEngine('seedream');render();onChange({selectedMood:true});};
   grid.setAttribute('aria-label','Available moods; scroll down to explore more looks');
   function refreshViewport(){
     if(panel.hidden||document.documentElement.classList.contains('pv-native-lab'))return;
