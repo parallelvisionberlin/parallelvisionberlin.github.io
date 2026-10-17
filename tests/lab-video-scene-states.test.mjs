@@ -20,6 +20,26 @@ test('all four Video modes keep the production inputs and original two-frame int
   assert.match(css,/video-studio-active/,'styles never override Image, Retouch or Upscaler');
 });
 
+test('Start and End frame controls use identical accessible upload affordances',()=>{
+  const start=html.match(/<div id="start-mode"[\s\S]*?<div id="reference-mode"/)?.[0]||'';
+  assert.match(start,/<span class="label" id="start-label">Start frame<\/span><span class="micro">Required<\/span>/);
+  assert.match(start,/<span class="label">End frame<\/span><span class="micro">Optional<\/span>/);
+  assert.equal((start.match(/class="pv-frame-upload-icon"/g)||[]).length,2,
+    'Matching upload icon in both real file inputs');
+  assert.equal((start.match(/class="video-frame-label">Choose image<\/span>/g)||[]).length,2,
+    'Both upload tiles use the same action copy');
+  for(const id of ['image','last-image','video-start-thumb','video-end-thumb']){
+    assert.equal((start.match(new RegExp('id="'+id+'"','g'))||[]).length,1,
+      'retain native handler and selected-frame thumbnail '+id);
+  }
+  assert.match(css,/\.pv-video-start-visual \.pv-scene-frame-symbol/,
+    'The center uses neutral frame artwork, not example photographs');
+  assert.match(css,/#drop\.has-frame \.video-frame-label:after/,
+    'Selecting a frame changes the upload affordance to Replace image');
+  assert.match(css,/#last-drop\.has-frame \.video-frame-label:after/,
+    'End frame uses the same replace behavior');
+});
+
 test('History loads records without automatically selecting or replacing the create stage',()=>{
   const first=app.indexOf('function restoreLatestVideoSelection(){');
   const last=app.indexOf('\nfunction syncVideoStudioMode()',first);
@@ -44,7 +64,11 @@ test('live Scene details and empty-state illustration are not fake generated res
     'pv-video-current-resolution','pv-video-current-ratio','pv-video-current-audio']){
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
   }
-  assert.match(html,/Illustrative PV LAB frames/);
+  assert.doesNotMatch(
+    html.slice(html.indexOf('id="pv-video-start-visual"'),html.indexOf('id="pv-video-text-visual"')),
+    /<img[^>]*src=/,
+    'Empty Start and End frames use neutral editorial placeholders, never unrelated invented photographs'
+  );
   assert.match(html,/Illustrative PV LAB moods/);
   assert.match(js,/const history=app\.classList\.contains\('pv-video-history-selected'\)/);
   assert.match(js,/if\(!visible\)return/,'example visuals disappear when viewing History or uploads');
