@@ -22,8 +22,10 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     return {...pack,category:name[0],title:name.slice(1).join('|')};
   };
   const setStatus=(message,error=false)=>{
-    const node=$('scene-library-status');
-    if(node){node.textContent=message||'';node.classList.toggle('is-error',!!error);}
+    for(const id of ['scene-library-status','scene-browse-status']){
+      const node=$(id);
+      if(node){node.textContent=message||'';node.classList.toggle('is-error',!!error);}
+    }
   };
   function setWorking(value){
     working=!!value;
@@ -91,7 +93,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     $('scene-name').value='';
     $('scene-note').value='';
     $('scene-consent').checked=false;
-    $('scene-appearance').value='identity';
+    $('scene-appearance').checked=true;
     $('scene-browser').hidden=true;
     $('scene-create').hidden=false;
     updateAppearance();
@@ -228,7 +230,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     const packName=PREFIX+cat.id+'|'+title;
     if(allPacks.length>=40){setStatus('The current private archive allows 40 saved packs and Scene Library entries combined.',true);return;}
     if(entries.some(e=>e.name.toLowerCase()===packName.toLowerCase())){setStatus('You already saved '+title+' in '+cat.label+'. Use another name.',true);return;}
-    const appearance=$('scene-appearance').value,extra=String($('scene-note').value||'').trim().slice(0,120);
+    const appearance=dialog.querySelector('input[name="scene-appearance"]:checked')?.value||'identity',extra=String($('scene-note').value||'').trim().slice(0,120);
     const role=cat.id==='characters'&&appearance==='full'?'custom':cat.role;
     setWorking(true);setStatus('Saving original references privately…');
     try{
