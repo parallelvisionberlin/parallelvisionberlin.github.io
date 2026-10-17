@@ -1,0 +1,66 @@
+/* Revisit the six featured Moods without changing private History or image generation. */
+#app.image-studio-active .image-studio .history-head-actions{
+  grid-template-columns:80px 54px 62px 12px 34px;
+}
+#history-moods-toggle{display:none}
+#app.image-studio-active #history-moods-toggle{
+  display:inline-flex;grid-column:1;grid-row:1;align-items:center;justify-content:center;gap:6px;
+  width:100%;height:32px;min-height:32px;min-width:0;padding:5px 8px;
+  box-sizing:border-box;white-space:nowrap;
+}
+#app.image-studio-active .image-studio #history-select{grid-column:2;grid-row:1}
+#app.image-studio-active .image-studio #refresh{grid-column:3;grid-row:1}
+#app.image-studio-active #history-preview-toggle{grid-column:5;grid-row:1}
+#history-moods-toggle svg{
+  display:block;width:13px;height:13px;flex:none;fill:none;stroke:currentColor;
+  stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round
+}
+#history-moods-toggle .history-view-icon{display:none}
+#app.pv-moods-discovery-open #history-moods-toggle .mood-view-icon{display:none}
+#app.pv-moods-discovery-open #history-moods-toggle .history-view-icon{display:block}
+#app.image-studio-active.pv-moods-discovery-open #history-moods-toggle{
+  color:#f0eeea;border-color:rgba(237,233,226,.36);background:rgba(44,45,48,.7)
+}
+#app.image-studio-active:not(.pv-moods-discovery-open)
+  .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+  #history-moods-toggle{visibility:hidden;pointer-events:none}
+/* The discovery view reuses the real first-image gallery; cards in History remain mounted. */
+#app.image-studio-active.pv-moods-discovery-open #history,
+#app.image-studio-active.pv-moods-discovery-open #history-selection,
+#app.image-studio-active.pv-moods-discovery-open #more{display:none!important}
+#app.image-studio-active.pv-moods-discovery-open
+  .image-gallery-shell>.image-gallery-host:has(.card[data-kind="image"]) + #image-gallery-empty{
+  display:flex!important
+}
+/* Discreet Mode always takes precedence; a Mood tile must never appear under the eye. */
+html.pv-image-previews-hidden #app.image-studio-active.pv-moods-discovery-open #image-gallery-empty{
+  display:none!important
+}
+html.pv-image-previews-hidden #app.image-studio-active.pv-moods-discovery-open #history-moods-toggle{
+  visibility:hidden!important;pointer-events:none!important
+}
+html.pv-image-previews-hidden #app.image-studio-active.pv-moods-discovery-open
+  .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::before{
+  background-image:
+    radial-gradient(ellipse 115% 85% at 50% 44%,transparent 28%,rgba(3,5,10,.28) 100%),
+    linear-gradient(180deg,rgba(9,12,18,.23) 0%,rgba(9,12,18,.075) 34%,rgba(9,12,18,.17) 56%,rgba(4,6,12,.67) 100%),
+    url('./visuals/open-atmosphere-hd.jpg')!important;
+  background-size:cover,cover,cover!important;
+  background-position:center,center,center center!important;
+  filter:none!important;opacity:1!important
+}
+html.pv-image-previews-hidden #app.image-studio-active.pv-moods-discovery-open
+  .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::after{
+  background:none!important
+}
+@media(max-width:700px){
+  #app.image-studio-active .image-studio .history-head-actions{
+    grid-template-columns:34px 50px 58px 8px 34px;column-gap:4px
+  }
+  #app.image-studio-active #history-moods-toggle{padding:0}
+  #history-moods-toggle .mood-view-label{display:none}
+  #history-moods-toggle svg{width:15px;height:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  #history-moods-toggle{transition:none!important}
+}
