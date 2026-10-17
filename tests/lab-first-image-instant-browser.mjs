@@ -82,8 +82,14 @@ try{
   await page.waitForFunction(()=>document.querySelector('#image-composer')?.classList.contains('pv-editorial-deck'));
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
     'Empty Image deck must start collapsed, like the approved compact reference');
-  assert.equal(await deck.evaluate(el=>getComputedStyle(el).display),'flex',
-    'Desktop Image deck should be one visual horizontal instrument');
+  assert.equal(await deck.evaluate(el=>getComputedStyle(el).display),'grid',
+    'Desktop Image deck must use the original two-row composer, not a horizontal strip');
+  const initialDeck=await deck.boundingBox();
+  assert.ok(Math.abs(initialDeck.x+initialDeck.width/2-1536/2)<3,
+    'The Image deck must float centered over the unchanged hero');
+  assert.equal(await page.locator('.lab-welcome-preset').count(),6,
+    'All six original welcome cards remain mounted');
+  const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top);
   await field.click();
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Clicking the prompt opens its multi-line editor');
@@ -95,14 +101,14 @@ try{
   const expanded=await page.evaluate(()=>{
     const field=document.getElementById('image-composer-prompt');
     const deck=document.getElementById('image-composer');
-    const prompt=field.getBoundingClientRect(),controls=deck.querySelector('.image-composer-toolbar').getBoundingClientRect();
+    const prompt=field.getBoundingClientRect(),controls=deck.querySelector('.composer-controls').getBoundingClientRect();
     const generate=document.getElementById('image-composer-generate').getBoundingClientRect();
     return {promptHeight:prompt.height,promptScrollHeight:field.scrollHeight,promptClientHeight:field.clientHeight,
       controlsTop:controls.top,promptBottom:prompt.bottom,generateBottom:generate.bottom,
       viewportHeight:innerHeight,deckHeight:deck.getBoundingClientRect().height};
   });
-  assert.ok(expanded.promptHeight>=100&&expanded.promptHeight<=155,
-    'Expanded prompt remains bounded to approximately five visible lines: '+JSON.stringify(expanded));
+  assert.ok(expanded.promptHeight>=100&&expanded.promptHeight<=190,
+    'Expanded prompt remains scrollable without taking over the gallery: '+JSON.stringify(expanded));
   assert.ok(expanded.promptScrollHeight>expanded.promptClientHeight,
     'Long prompts must scroll inside the textarea rather than enlarge the entire deck');
   assert.ok(expanded.controlsTop>=expanded.promptBottom-3,
@@ -110,8 +116,11 @@ try{
   assert.ok(expanded.generateBottom<=expanded.viewportHeight,
     'Generate must remain visible when typing long prompts: '+JSON.stringify(expanded));
   await page.locator('[data-welcome-mood="hong-kong-nights"]').click();
-  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
-    'Choosing a Mood returns to the compact deck without requiring a keyboard');
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+    'Choosing a Mood keeps the opened deck permanently expanded after blur');
+  const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top);
+  assert.ok(Math.abs(newCardY-cardY)<2,
+    'Expanding the floating deck must not reflow or move the welcome cards');
   assert.match(await page.locator('#image-composer-prompt').inputValue(),/jade-green-lit corner shop/);
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
     'The first Mood selection must use Seedream 2K, not the generic Studio 1K default');
@@ -122,6 +131,8 @@ try{
     'Switching welcome Moods must retain the agreed 2K default');
   assert.doesNotMatch(await button.getAttribute('data-credits')||'',/Confirming credits/i,
     'The preflight must not put Confirming credits inside Generate');
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+    'Switching selected Moods must not collapse the Image deck');
   assert.equal(await button.isEnabled(),true,'Dream Blur must instantly enable Generate before the price');
   const heightBefore=await button.evaluate(el=>el.getBoundingClientRect().height);
   await button.click();
@@ -138,6 +149,8 @@ try{
     'Mock 2K price must be taken from the verified quote, not the 1K amount');
   assert.equal(requests.filter(x=>x.path==='/api/quotes').length>=1,true);
   assert.ok(quotes.size>=1);
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+    'Submitting Generate must preserve the open editing deck');
   assert.equal(await button.evaluate(el=>el.getBoundingClientRect().height),heightBefore,
     'Generate dimensions must not change while checking price or submitting');
   assert.deepEqual(errors,[]);
