@@ -1318,10 +1318,10 @@ function setMoodDiscoveryOpen(next){
     if(balanceLine)balanceLine.hidden=false;
   }
   if(button){
-    button.querySelector('.mood-view-label').textContent=moodDiscoveryOpen?'History':'Moods';
+    button.querySelector('.mood-view-label').textContent=moodDiscoveryOpen?'History':'Inspiration';
     button.setAttribute('aria-pressed',String(moodDiscoveryOpen));
-    button.setAttribute('aria-label',moodDiscoveryOpen?'Back to image History':'Show featured image Moods');
-    button.title=moodDiscoveryOpen?'Back to History':'Show Moods';
+    button.setAttribute('aria-label',moodDiscoveryOpen?'Back to image History':'Open Inspiration gallery');
+    button.title=moodDiscoveryOpen?'Back to History':'Open Inspiration';
   }
   syncImageGalleryEmpty();
 }
