@@ -98,14 +98,17 @@ function paintCustomerActivity(data){
     stats.append(stat);
   }
   root.append(stats);
+  const usd=String.fromCharCode(36);
   root.append(activityElement('p','owner-customer-activity-caption',
     formatNumber(summary.failedJobs)+' failed jobs · '+
     formatNumber(summary.creditsCharged)+' credits charged · '+
-    formatNumber(summary.creditsRefunded)+' refunded. '+
-    formatNumber(summary.archivedJobs||0)+' archived finance records · 
+    formatNumber(summary.creditsRefunded)+' refunded · '+
+    formatNumber(summary.archivedJobs||0)+' archived finance records · '+
+    usd+Number(summary.providerExposureUsd||0).toFixed(2)+
+    ' estimated/settled provider exposure. A reservation does not prove a finished result.'));
   const jobs=Array.isArray(data.jobs)?data.jobs:[];
   activityTable(root,{
-    heading:'Generation history',note:'Latest '+(data.limits?.jobs||50)+' jobs',
+    heading:'Generation history',note:'Latest '+(data.limits?.jobs||50)+' available jobs',
     columns:['Date','Model / provider','Type','Status','Credits'],
     rows:jobs.map(job=>{
       const charged=Number(job.chargedCredits)||0,refunded=Number(job.refundedCredits)||0;
@@ -115,13 +118,13 @@ function paintCustomerActivity(data){
         type,{state:job.state||'unknown'},
         charged?{main:charged===refunded?'0 net':'−'+formatNumber(charged-refunded),
           sub:refunded?'+'+formatNumber(refunded)+' refunded':''}:'No charge'];
-    }),emptyMessage:'No generations recorded for this account.'
+    }),emptyMessage:'No creative generations are currently stored for this account.'
   });
   const archived=Array.isArray(data.archivedFinance)?data.archivedFinance:[];
   if(archived.length){
     activityTable(root,{
       heading:'Archived financial activity',
-      note:'Latest '+(data.limits?.archivedFinance||50)+' records, without creative content',
+      note:'Latest '+(data.limits?.archivedFinance||50)+' finance-only records',
       columns:['Date','State','Provider / tool','Cost USD'],
       rows:archived.map(item=>[
         activityDate(item.createdAt),
@@ -129,7 +132,16 @@ function paintCustomerActivity(data){
           item.state==='unknown'?'Unverified old reservation':
           item.state==='failed'?'Failed / refunded':String(item.state||'Unknown'),
         {main:item.provider||'Historical provider unrecorded',sub:item.type||'No creative details retained'},
-        {main:'
+        {main:usd+Number(item.exposureUsd||0).toFixed(4),
+          sub:item.costKind==='settled'?'Recorded settled cost':'Reservation estimate'}
+      ]),
+      emptyMessage:'No archived finance rows are available.'
+    });
+    root.append(activityElement('p','owner-customer-activity-caption',
+      'Archived rows contain cost and status only. Older completions were reconstructed from existing reservations and refund records, not from deleted images, prompts or invoices.'));
+  }
+  activityTable(root,{
+    heading:'Credit movements',note:'Latest '+(data.limits?.entries||80)+' transactions',
     columns:['Date','Event','Credits'],
     rows:(Array.isArray(data.entries)?data.entries:[]).map(entry=>[
       activityDate(entry.createdAt),entry.description||entry.kind,
@@ -137,7 +149,7 @@ function paintCustomerActivity(data){
     ]),emptyMessage:'No credit movements recorded.'
   });
   root.append(activityElement('p','owner-customer-activity-caption',
-    'Wallet transactions are authoritative. Deleted generation records may no longer appear in the job list.'));
+    'Wallet transactions are authoritative. Deleted images and prompts are not recoverable from these financial records.'));
 }
 async function openCustomerActivity(customer){
   if(!profile?.owner||!customer?.id)return;
