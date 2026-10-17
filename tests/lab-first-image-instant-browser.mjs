@@ -97,23 +97,60 @@ try{
     'No welcome floating state may move the cards or hide image controls');
   assert.equal(await page.locator('#image-composer-resolution-wrap').isVisible(),true,
     'Resolution is available on the initial bottom-locked deck');
-  const atmosphere=await page.locator('.image-gallery-shell').evaluate(el=>({
-    opacity:getComputedStyle(el,'::before').opacity,
-    filter:getComputedStyle(el,'::before').filter,
-    gradient:getComputedStyle(el,'::after').backgroundImage
-  }));
-  assert.ok(Number(atmosphere.opacity)>=.9 && atmosphere.filter.includes('saturate(1.55)'),
-    'The welcome backdrop must retain a vibrant blue film field: '+JSON.stringify(atmosphere));
-  assert.ok(atmosphere.gradient.includes('linear-gradient'),
-    'The background remains a photographic field with a dark legibility gradient');
+  const welcomeSurface=await page.evaluate(()=>{
+    const shell=document.querySelector('.image-gallery-shell'),footer=document.querySelector('body>footer.pv-lab-footer');
+    const backdrop=getComputedStyle(shell,'::before');
+    return {
+      shellHeight:shell.getBoundingClientRect().height,
+      backgroundHeight:parseFloat(backdrop.height),
+      opacity:backdrop.opacity,
+      filter:backdrop.filter,
+      image:backdrop.backgroundImage,
+      gradient:getComputedStyle(shell,'::after').backgroundImage,
+      footer:getComputedStyle(footer).display,
+      documentHeight:document.documentElement.scrollHeight,
+      viewportHeight:innerHeight,
+      overflow:getComputedStyle(document.documentElement).overflowY
+    };
+  });
+  assert.equal(welcomeSurface.footer,'none',
+    'Empty Image Studio must not scroll into the marketing/footer sections');
+  assert.equal(welcomeSurface.overflow,'hidden',
+    'First-image welcome should be a single non-scrolling desktop viewport');
+  assert.ok(welcomeSurface.documentHeight<=welcomeSurface.viewportHeight+3,
+    'The empty Image Studio must have no unwanted lower section: '+JSON.stringify(welcomeSurface));
+  assert.ok(Math.abs(welcomeSurface.backgroundHeight-welcomeSurface.shellHeight)<3,
+    'The photographic background must cover the full welcome viewport: '+JSON.stringify(welcomeSurface));
+  assert.ok(Number(welcomeSurface.opacity)>=.95 && welcomeSurface.filter.includes('saturate(1.7)'),
+    'The original blue/copper photographic atmosphere must be vivid: '+JSON.stringify(welcomeSurface));
+  assert.ok(welcomeSurface.image.includes('dream-blur-20261015.jpg'),
+    'Use the approved Dream Blur photograph, not the reference screenshot as an asset');
   const moodCard=page.locator('[data-welcome-mood="dream-blur"]');
   const idleShadow=await moodCard.evaluate(el=>getComputedStyle(el).boxShadow);
+  const oldMoodGeometry=await moodCard.evaluate(el=>{
+    const card=el.getBoundingClientRect(),image=el.querySelector('img').getBoundingClientRect();
+    return {cardX:card.x,cardY:card.y,cardW:card.width,cardH:card.height,
+      imageX:image.x,imageY:image.y,imageW:image.width,imageH:image.height};
+  });
   await moodCard.hover();
-  await page.waitForTimeout(260);
-  const hoverShadow=await moodCard.evaluate(el=>getComputedStyle(el).boxShadow);
-  assert.notEqual(hoverShadow,idleShadow,'Mood hover must produce the pearl light-border halo');
-  assert.ok(hoverShadow.includes('rgba(254, 249, 237')||hoverShadow.includes('rgba(247, 225, 198'),
-    'The hover halo should be warm pearl, not neon: '+hoverShadow);
+  await page.waitForTimeout(270);
+  const hovered=await moodCard.evaluate(el=>{
+    const card=el.getBoundingClientRect(),image=el.querySelector('img').getBoundingClientRect();
+    return {cardX:card.x,cardY:card.y,cardW:card.width,cardH:card.height,
+      imageX:image.x,imageY:image.y,imageW:image.width,imageH:image.height,
+      cardTransform:getComputedStyle(el).transform,
+      imageTransform:getComputedStyle(el.querySelector('img')).transform,
+      boxShadow:getComputedStyle(el).boxShadow};
+  });
+  for(const key of Object.keys(oldMoodGeometry))
+    assert.ok(Math.abs(oldMoodGeometry[key]-hovered[key])<1,
+      'Mood hover must not zoom or lift photographs: '+JSON.stringify({key,oldMoodGeometry,hovered}));
+  assert.equal(hovered.cardTransform,'none');
+  assert.equal(hovered.imageTransform,'none');
+  assert.notEqual(hovered.boxShadow,idleShadow,
+    'Mood hover keeps a thin feedback border without image animation');
+  assert.ok(!hovered.boxShadow.includes('0.87')&&!hovered.boxShadow.includes('0.33'),
+    'The earlier overbright halo must be removed: '+hovered.boxShadow);
   await page.mouse.move(2,2);
   assert.equal(await page.locator('.lab-welcome-preset').count(),6,
     'All six original welcome cards remain mounted');
@@ -185,6 +222,22 @@ try{
     'Submitting Generate must preserve the open editing deck');
   assert.equal(await button.evaluate(el=>el.getBoundingClientRect().height),heightBefore,
     'Generate dimensions must not change while checking price or submitting');
+  // Simulate the first result becoming visible, without a paid provider call.
+  // Only the welcome presentation relaxes: the actual cascade and footer
+  // regain their ordinary scroll styles after first-image transition.
+  const historyRelease=await page.evaluate(()=>{
+    document.getElementById('lab-welcome-start').hidden=true;
+    document.getElementById('image-gallery-empty').hidden=true;
+    const host=document.getElementById('image-gallery-host');
+    const thumb=document.createElement('article');
+    thumb.className='card';thumb.dataset.kind='image';host.append(thumb);
+    return {footer:getComputedStyle(document.querySelector('body>footer.pv-lab-footer')).display,
+      overflow:getComputedStyle(document.documentElement).overflowY};
+  });
+  assert.notEqual(historyRelease.footer,'none',
+    'After an image exists, normal History page/footer accessibility returns');
+  assert.notEqual(historyRelease.overflow,'hidden',
+    'After first-image transition, the cascading gallery scroll is restored');
   assert.deepEqual(errors,[]);
   console.log('FIRST_IMAGE_INSTANT_QUOTED_GENERATE_OK=1');
 }finally{

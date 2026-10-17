@@ -20,9 +20,9 @@ assert.ok(handlerStart>0&&handlerEnd>handlerStart);
 const sizing=source.slice(sizingStart,sizingEnd);
 const handler=source.slice(handlerStart,handlerEnd);
 assert.match(handler,/inputType==='insertFromPaste'/);
-assert.match(html,/image-composer-stable\.css\?v=20261016-[a-z0-9-]+/);
+assert.match(html,/image-composer-stable\.css\?v=\d{8}-[a-z0-9-]+/);
 const stable=readFileSync('lab/image-composer-stable.css','utf8');
-assert.match(stable,/font-size:17px!important/);
+assert.match(stable,/font-size:15\.5px!important/);
 assert.doesNotMatch(stable,/height:54px!important;min-height:54px!important/);
 assert.match(stable,/grid-template-rows:minmax\(64px,max-content\) 41px!important/);
 
@@ -93,8 +93,8 @@ try{
         };
       });
       assert.equal(result.value,longPrompt,'Pasted text is preserved');
-      if(viewport.width>=741)assert.equal(result.fontSize,17,'Only the desktop Image prompt letters grow to 17px');
-      else assert.ok(result.fontSize<17,'Mobile font remains unchanged');
+      if(viewport.width>=741)assert.equal(result.fontSize,15.5,'Desktop Image prompt is reduced to 15.5px');
+      else assert.ok(result.fontSize<15.5,'Mobile font remains unchanged');
       assert.equal(result.overflow,'auto','Long prompt scrolls in its own field');
       assert.ok(result.scrollMax>140,'The input must contain hidden text beyond the visible area');
       assert.ok(result.scrollTop>=result.scrollMax-3,'Pasting at end shows the final lines');

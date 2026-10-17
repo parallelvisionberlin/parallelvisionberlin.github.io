@@ -113,10 +113,10 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-prompt
  }
 }
 
-/* Desktop prompt typography only. The editor/dock heights and controls are unchanged.
-   Higgsfield-style readable direction text without enlarging toolbar labels. */
+/* Desktop prompt typography only. Keep large pasted directions readable, but
+   quieter than the former 17px setting; controls and native Create are unchanged. */
 @media(min-width:741px){
  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-prompt{
-  font-size:17px!important;
+  font-size:15.5px!important;
  }
 }

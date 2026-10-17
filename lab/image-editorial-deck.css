@@ -169,6 +169,42 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   }
 }
 
+/* Reference-loaded Image workspace: match the restrained compact editing
+   instrument, not a tall pasted-prompt panel over the History thumbnails.
+   Only the normal authenticated WEB Image composer with actual photo tiles;
+   Soul, native Create, text-only prompts and every other tool are unchanged.
+   The complete 5,000-character direction stays in the same scrollable textarea. */
+@media (min-width:900px){
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul) #image-composer-prompt{
+    font-size:15.5px!important;
+    line-height:1.48!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):has(#image-composer-references:not([hidden]) .composer-reference-tile)
+    .image-composer-top{
+    height:64px!important;
+    min-height:64px!important;
+    max-height:64px!important;
+    align-items:center!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):has(#image-composer-references:not([hidden]) .composer-reference-tile)
+    #image-composer-prompt{
+    height:56px!important;
+    min-height:56px!important;
+    max-height:56px!important;
+    align-self:center!important;
+    resize:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    white-space:pre-wrap!important;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(199,203,201,.38) transparent;
+    transition:none!important;
+  }
+}
+
 /* Smaller desktops keep the existing two-row controls, with polish only. */
 @media(min-width:681px) and (max-width:1259px){
   #app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul){
@@ -206,4 +242,92 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   #app.image-studio-active #image-composer.pv-editorial-deck #image-composer-prompt{
     transition:none!important;
   }
+}
+
+
+/* PV LAB static welcome viewport, October 17.
+   Scope is the signed-in Image FIRST-IMAGE welcome, not Inspiration revisits,
+   not the generated History waterfall and never the native editor. The footer
+   remains present and accessible again when the normal gallery appears. */
+body:has(#app.image-studio-active:not([hidden]):not(.pv-moods-discovery-open) #lab-welcome-start:not([hidden]))
+  > footer.pv-lab-footer{
+  display:none!important;
+}
+@media (min-width:1160px) and (min-height:680px){
+  html:has(#app.image-studio-active:not([hidden]):not(.pv-moods-discovery-open) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+    overflow-y:hidden!important;
+    overscroll-behavior-y:none;
+  }
+  body:has(#app.image-studio-active:not([hidden]):not(.pv-moods-discovery-open) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+    >main#main{
+    height:calc(100dvh - var(--lab-header-height,82px))!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+    height:100%!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+    >.image-studio:not([hidden]),
+  #app.image-studio-active:not(.pv-moods-discovery-open) .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+    height:100%!important;
+    min-height:0!important;
+  }
+  #app.image-studio-active:not(.pv-moods-discovery-open) .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+    overflow:hidden!important;
+  }
+  #app.image-studio-active:not(.pv-moods-discovery-open) .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    inset:clamp(25px,5.6dvh,53px) 0 clamp(138px,19dvh,185px)!important;
+  }
+  #app.image-studio-active:not(.pv-moods-discovery-open) #lab-welcome-start .lab-welcome-preset{
+    height:clamp(240px,39dvh,379px);
+  }
+}
+
+/* Restore a bright cobalt / warm copper PHOTOGRAPHIC background like the
+   earlier approved Image 2, using PV LAB's original Dream Blur asset only.
+   Avoid flattening the lower third into a solid black horizontal strip. */
+#app.image-studio-active:not(.pv-moods-discovery-open) .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::before{
+  inset:0!important;
+  height:100%!important;
+  background:url("./mood-previews/dream-blur-20261015.jpg") 50% 40%/cover no-repeat!important;
+  opacity:.99!important;
+  filter:blur(3px) saturate(1.7) contrast(1.14) brightness(1.19)!important;
+  transform:scale(1.03)!important;
+}
+#app.image-studio-active:not(.pv-moods-discovery-open) .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::after{
+  background:
+    radial-gradient(ellipse 47% 44% at 76% 21%,rgba(155,78,68,.10),transparent 84%),
+    linear-gradient(180deg,rgba(3,7,13,.20),rgba(5,8,15,.08) 38%,rgba(7,9,13,.16) 70%,rgba(8,9,12,.42) 100%)!important;
+}
+
+/* All six Mood photographs remain absolutely still. Selection and hover only
+   adjust a fine outline; never enlarge, elevate or brighten the actual photo.
+   The earlier broad ivory glow was far too pronounced. */
+#app.image-studio-active #lab-welcome-start .lab-welcome-preset,
+#app.image-studio-active #lab-welcome-start .lab-welcome-preset:is(:hover,:focus-visible),
+#gate.pv-guest-image .pv-guest-card,
+#gate.pv-guest-image .pv-guest-card:is(:hover,:focus-visible){
+  transform:none!important;
+  transition:border-color .17s ease,box-shadow .17s ease!important;
+}
+#app.image-studio-active #lab-welcome-start .lab-welcome-preset>img,
+#app.image-studio-active #lab-welcome-start .lab-welcome-preset:hover>img,
+#gate.pv-guest-image .pv-guest-card img,
+#gate.pv-guest-image .pv-guest-card:hover img{
+  transform:none!important;
+  filter:brightness(.94)!important;
+  transition:none!important;
+}
+#app.image-studio-active #lab-welcome-start .lab-welcome-preset:is(:hover,:focus-visible),
+#gate.pv-guest-image .pv-guest-card:is(:hover,:focus-visible){
+  border-color:rgba(244,240,234,.64)!important;
+  box-shadow:0 0 0 1px rgba(252,247,238,.17),0 0 12px rgba(245,236,221,.085),0 12px 32px rgba(0,0,0,.27)!important;
+}
+#app.image-studio-active #lab-welcome-start .lab-welcome-preset[aria-pressed="true"]:not(:hover):not(:focus-visible),
+#gate.pv-guest-image .pv-guest-card[aria-pressed="true"]:not(:hover):not(:focus-visible){
+  border-color:rgba(249,238,224,.69)!important;
+  box-shadow:0 0 0 1px rgba(248,237,220,.22),0 0 14px rgba(228,200,174,.13),0 14px 32px rgba(0,0,0,.27)!important;
 }

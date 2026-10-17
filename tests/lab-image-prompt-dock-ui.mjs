@@ -82,11 +82,21 @@ try{
       await textbox.fill(lorem);
       assert.equal(await textbox.inputValue(),lorem,kind+': pasted prompt must stay intact');
       await page.evaluate(()=>window.__resizePVPrompt());
-      // The editorial textarea has a 230ms height transition; measure settled geometry.
-      await page.waitForFunction(()=>{
-        const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
-        return h>=(document.getElementById('image-composer').classList.contains('is-pv-soul')?120:innerWidth>900?154:innerWidth<=740?90:110);
-      },null,{timeout:2500});
+      // Reference-loaded standard Image stays compact even with a huge prompt.
+      // Other modes retain their existing bounded editor behavior.
+      if(kind==='seedream'){
+        await page.waitForFunction(()=>{
+          const deck=document.getElementById('image-composer'),field=document.getElementById('image-composer-prompt');
+          return deck.classList.contains('pv-editorial-deck')&&
+            deck.querySelectorAll('.composer-reference-tile').length===14&&
+            field.getBoundingClientRect().height<=58;
+        },null,{timeout:2500});
+      }else{
+        await page.waitForFunction(()=>{
+          const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
+          return h>=(document.getElementById('image-composer').classList.contains('is-pv-soul')?120:innerWidth>900?154:innerWidth<=740?90:110);
+        },null,{timeout:2500});
+      }
       const metrics=await page.evaluate(()=>{
         const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height};};
         const el=document.querySelector('#image-composer-prompt'),tray=document.querySelector('#image-composer-references');
@@ -136,15 +146,20 @@ try{
         const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
         assert.ok(empty>=115&&empty<310,
           'Clearing an engaged desktop editor keeps its floating footprint bounded: '+empty);
-        assert.ok(withPhotos>=empty-16,
-          'Inline photo references must not shrink the already-open floating deck: '+JSON.stringify({withPhotos,empty}));
+        assert.ok(withPhotos<=empty+8 && withPhotos<=172,
+          'Adding reference photos keeps the Image deck in its compact baseline: '+JSON.stringify({withPhotos,empty}));
         await page.evaluate(()=>{document.getElementById('image-composer-references').hidden=false;});
         await textbox.fill(lorem);
         await page.evaluate(()=>window.__resizePVPrompt());
       }
       assert.ok(metrics.prompt.height<=178,kind+': editor must never fill the screen');
       if(kind==='seedream'){
-        assert.ok(metrics.prompt.height>=160,'Long prompts must expand beyond one line before scrolling: '+metrics.prompt.height);
+        assert.ok(metrics.prompt.height>=54&&metrics.prompt.height<=58,
+          'A long prompt with photos is a 56px scrollable strip, not a tall deck: '+metrics.prompt.height);
+        assert.ok(metrics.dock.height<=172,
+          'Attached photos must not make the bottom dock obscure the gallery: '+JSON.stringify(metrics));
+        assert.ok(await page.locator('#image-composer-prompt').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))===15.5,
+          'Uploaded-photo prompt uses smaller 15.5px Image typography');
         assert.ok(Math.abs(metrics.generate.bottom-metrics.controls.bottom)<=6,
           'Generate remains bottom-aligned with controls after loading references and pasting a long prompt: '+JSON.stringify(metrics));
       }
