@@ -3,21 +3,24 @@
    It affects Video only, preserves every production model, input, mode,
    quote, generated result, Gallery and History control. */
 @media(min-width:1300px){
- #app.video-studio-active>.workspace.video-layout{
+ #app.video-studio-active>.workspace.video-layout,
+ #app.video-studio-active.pv-video-ergonomic>.workspace.video-layout{
    grid-template-columns:clamp(430px,30.5vw,520px) minmax(0,1fr) clamp(245px,16.5vw,282px)!important;
    gap:12px!important;
    min-width:0!important;
  }
 }
 @media(min-width:1161px) and (max-width:1299px){
- #app.video-studio-active>.workspace.video-layout{
+ #app.video-studio-active>.workspace.video-layout,
+ #app.video-studio-active.pv-video-ergonomic>.workspace.video-layout{
    grid-template-columns:clamp(382px,31vw,430px) minmax(0,1fr) clamp(216px,18vw,245px)!important;
    gap:10px!important;
    min-width:0!important;
  }
 }
 @media(min-width:821px) and (max-width:1160px){
- #app.video-studio-active>.workspace.video-layout{
+ #app.video-studio-active>.workspace.video-layout,
+ #app.video-studio-active.pv-video-ergonomic>.workspace.video-layout{
    grid-template-columns:clamp(315px,33vw,362px) minmax(0,1fr)!important;
    gap:10px!important;
  }
