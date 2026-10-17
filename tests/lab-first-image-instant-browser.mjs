@@ -101,7 +101,7 @@ try{
       JSON.stringify({initialDeck,availableWidth,centerError}));
   assert.equal(await page.locator('.lab-welcome-preset').count(),6,
     'All six original welcome cards remain mounted');
-  const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top);
+  const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   const welcomeGeometry=await page.evaluate(()=>{
     const bounds=s=>{const {top,bottom}=document.querySelector(s).getBoundingClientRect();return {top,bottom};};
     return {balance:bounds('#lab-welcome-start .lab-welcome-balance'),
@@ -120,7 +120,7 @@ try{
     return !app.classList.contains('pv-welcome-deck-resting')&&deck.classList.contains('pv-deck-expanded');
   });
   const engagedDeck=await deck.boundingBox();
-  const engagedCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top);
+  const engagedCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   assert.ok(engagedCardY<cardY-110,
     'After Mood selection the original six-card placement returns');
   assert.ok(864-(engagedDeck.y+engagedDeck.height)<32,
@@ -155,7 +155,7 @@ try{
   await page.locator('[data-welcome-mood="hong-kong-nights"]').click();
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Choosing a Mood keeps the opened deck permanently expanded after blur');
-  const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top);
+  const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   assert.ok(Math.abs(newCardY-engagedCardY)<2,
     'Once engaged, choosing another Mood must not move the welcome cards');
   assert.match(await page.locator('#image-composer-prompt').inputValue(),/jade-green-lit corner shop/);
