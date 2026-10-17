@@ -1,5 +1,9 @@
 /* Studio purchase experience: reuse the homepage editorial pricing section.
    This stylesheet only adjusts its full-screen dialog frame and close control. */
+#lab-pricing-overlay,
+#lab-pricing-overlay *,
+#lab-pricing-overlay *::before,
+#lab-pricing-overlay *::after{box-sizing:border-box}
 #lab-pricing-overlay{
   box-sizing:border-box;
   position:fixed;
