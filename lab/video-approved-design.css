@@ -1,3 +1,8 @@
+/* The original Image/Upscale legacy prompt keeps its inline label flow. */
+#pv-video-prompt-head{display:contents}
+#pv-video-prompt-count{display:none}
+#app.video-studio-active.pv-video-approved-ready #pv-video-prompt-count{display:block}
+
 /* PV LAB / APPROVED VIDEO STUDIO
    Match the approved graphite three-column Video reference, using genuine
    source images and existing production controls. Does not restyle Image. */
