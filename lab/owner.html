@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261017-acquisition1">
+<link rel="stylesheet" href="./owner.css?v=20261017-generation-review1">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -172,6 +172,24 @@
         </div>
         <div id="owner-customer-dialog-body" aria-live="polite"></div>
       </dialog>
+      <dialog class="owner-customer-dialog owner-generation-review-dialog" id="owner-generation-review-dialog"
+        aria-labelledby="owner-generation-review-title" aria-describedby="owner-generation-review-disclosure">
+        <div class="owner-customer-dialog-head">
+          <div>
+            <span class="owner-index">PRIVATE / PROMOTIONAL ABUSE REVIEW</span>
+            <h2 id="owner-generation-review-title">Generated outputs<span>.</span></h2>
+            <p id="owner-generation-review-identity">Restricted review for an account under an active promotional hold.</p>
+          </div>
+          <button type="button" id="owner-generation-review-close">Close <span aria-hidden="true">×</span></button>
+        </div>
+        <p id="owner-generation-review-disclosure" class="owner-generation-review-disclosure">
+          Only small previews of completed generated images are shown. Uploaded photos, references,
+          private prompts, video files and full-resolution originals remain inaccessible.
+          This owner review is logged and limited to actively held unpaid promotional accounts.
+        </p>
+        <p class="owner-generation-review-status" id="owner-generation-review-status" role="status" aria-live="polite">Preparing review…</p>
+        <div id="owner-generation-review-body"></div>
+      </dialog>
     </section>
 
     <section class="owner-section" id="owner-payments-section" aria-labelledby="owner-payments-title">
@@ -234,6 +252,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261017-acquisition1"></script>
+<script type="module" src="./owner.js?v=20261017-generation-review1"></script>
 </body>
 </html>
