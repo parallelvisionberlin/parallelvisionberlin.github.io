@@ -35,9 +35,9 @@
  overflow:visible!important;isolation:isolate;
  background-image:linear-gradient(90deg,#061018b3 0%,#09131a44 48%,#0a0e14a0 100%),
    linear-gradient(0deg,#070b11d9,transparent 72%),
-   url('./mood-previews/midnight-reverie-original-20261011.png')!important;
+   url('./visuals/leather-editorial/hero-desktop.webp')!important;
  background-size:cover!important;
- background-position:center center!important;
+ background-position:center 30%!important;
  box-shadow:inset 0 1px #ffffff19,0 6px 18px #0005!important;
 }
 #app.video-studio-active.pv-video-approved-ready #video-model-control:before{
@@ -271,11 +271,11 @@
  margin:0 1px -6px;padding:0;
 }
 #app.video-studio-active.pv-video-approved-ready #pv-video-prompt-head #prompt-label{
- margin:0!important;font-size:13.5px!important;
+ order:0!important;margin:0!important;font-size:13.5px!important;
  font-weight:650!important;color:#eeeff2!important;
 }
 #app.video-studio-active.pv-video-approved-ready #pv-video-prompt-count{
- color:#9199a5;font-size:11px;font-variant-numeric:tabular-nums;
+ order:1!important;color:#9199a5;font-size:11px;font-variant-numeric:tabular-nums;
 }
 #app.video-studio-active.pv-video-approved-ready textarea#prompt{
  min-height:124px!important;height:124px!important;
@@ -292,7 +292,7 @@
  font-size:13px!important;
 }
 #app.video-studio-active.pv-video-approved-ready .controls-body>.parameter-grid{
- order:8;display:grid;grid-template-columns:1.26fr .75fr .78fr .84fr 1fr;
+ order:8;display:grid;grid-template-columns:1.58fr .74fr .85fr .77fr 1.02fr;
  gap:6px;margin:0;align-items:stretch;
 }
 #app.video-studio-active.pv-video-approved-ready .controls-body>.parameter-grid>label:not([hidden]),
