@@ -182,6 +182,42 @@ try{
   console.log('PASS desktop gallery, covers, staged uploads, editor roles, delete, direct +, zero paid jobs');
   await context.close();
 
+  // Exercise the full two-row capacity with API-mocked collections, never
+  // inserting demonstration packs into production accounts.
+  const originalPackCount=packs.length;
+  for(let i=0;i<9;i++)packs.push({
+    id:uuid(),name:'Viewport study '+i,
+    refs:[{id:uuid(),name:'study.png',role:'none',note:'',target:''}]
+  });
+  ({page,context,errors}=await workspace(1440,900));
+  await page.locator('#scene-image-open').click();
+  await page.locator('#scene-menu-packs').click();
+  assert.equal(await page.locator('#pack-studio-grid .pack-studio-card').count(),10);
+  const fullLayout=await page.evaluate(()=>{
+    const dialog=document.getElementById('pack-studio-dialog').getBoundingClientRect();
+    const main=document.querySelector('#pack-studio-dialog .pack-studio-main');
+    const grid=document.getElementById('pack-studio-grid');
+    const cards=[...grid.querySelectorAll('.pack-studio-card')].map(el=>el.getBoundingClientRect());
+    const hero=document.querySelector('#pack-studio-dialog .pack-studio-intro');
+    return {centerY:(dialog.top+dialog.bottom)/2,bottom:dialog.bottom,
+      rows:new Set(cards.map(rect=>Math.round(rect.top))).size,
+      cols:getComputedStyle(grid).gridTemplateColumns.split(' ').length,
+      bottomOfCards:Math.max(...cards.map(rect=>rect.bottom)),
+      contentScroll:main.scrollHeight-main.clientHeight,
+      heroHeight:hero.getBoundingClientRect().height,
+      headingClip:getComputedStyle(document.querySelector('#pack-studio-dialog .pack-studio-heading-copy')).clipPath};
+  });
+  assert.ok(Math.abs(fullLayout.centerY-450)<=8,'Photo Packs must be centered: '+JSON.stringify(fullLayout));
+  assert.equal(fullLayout.rows,2,'Ten library cards use exactly two visible rows: '+JSON.stringify(fullLayout));
+  assert.equal(fullLayout.cols,5,'Five desktop columns preserve the approved layout');
+  assert.ok(fullLayout.heroHeight<=123,'The Photo Packs hero must stay compact');
+  assert.ok(fullLayout.bottomOfCards<fullLayout.bottom-6,'No second row should be clipped');
+  assert.ok(fullLayout.contentScroll<=3,'Two rows must fit without scrolling: '+JSON.stringify(fullLayout));
+  assert.equal(fullLayout.headingClip,'inset(50%)','Do not repeat Photo Packs above its hero');
+  await page.screenshot({path:'test-results/photo-packs/two-rows-centered-desktop.png'});
+  await context.close();
+  packs.splice(originalPackCount);
+
   ({page,context,errors}=await workspace(390,844));
   await page.locator('#scene-image-open').click();await page.locator('#scene-menu-packs').click();
   const mobile=await page.locator('#pack-studio-dialog').evaluate(el=>{
@@ -195,18 +231,17 @@ try{
       return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
     const title=rect('#pack-studio-heading'),close=rect('#pack-studio-close'),search=rect('#pack-studio-search');
     const selected=rect('#pack-studio-nav-packs'),side=rect('.pack-studio-sidebar');
-    const label=document.querySelector('#pack-studio-dialog .pack-studio-sort-label>.visually-hidden');
-    const style=getComputedStyle(label);
+    const sort=document.getElementById('pack-studio-sort');
     const controls=rect('#pack-studio-dialog .pack-studio-view-controls');
-    return {title,close,search,selected,side,sortLabel:{width:parseFloat(style.width),position:style.position},
+    return {title,close,search,selected,side,sortAria:sort.getAttribute('aria-label'),
       heading:rect('#pack-studio-dialog .pack-studio-collection-heading'),controls};
   });
   assert.ok(mobileShell.selected.left>=mobileShell.side.left-1&&mobileShell.selected.right<=mobileShell.side.right+1,
     'Active Photo Packs tab must not be cropped on phone: '+JSON.stringify(mobileShell));
-  assert.ok(mobileShell.close.bottom<mobileShell.search.top,
-    'Close button belongs above search, not on top of the Photo Packs input: '+JSON.stringify(mobileShell));
-  assert.ok(mobileShell.sortLabel.width<=1&&mobileShell.sortLabel.position==='absolute',
-    'Sort photo packs accessible label stays visually hidden on mobile');
+  assert.ok(Math.abs((mobileShell.close.top+mobileShell.close.bottom)/2-(mobileShell.search.top+mobileShell.search.bottom)/2)<10,
+    'Close button aligns next to search instead of obscuring it: '+JSON.stringify(mobileShell));
+  assert.equal(mobileShell.sortAria,'Sort photo packs',
+    'Sorting keeps an accessible name without a visible extra caption');
   assert.ok(mobileShell.controls.right<=384,
     'Sort and grid/list controls fit within the phone viewport: '+JSON.stringify(mobileShell));
 
