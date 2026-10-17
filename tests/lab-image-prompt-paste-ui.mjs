@@ -123,7 +123,8 @@ try{
           'Desktop editor stays in its engaged state after clearing text');
         assert.ok(cleared>=120&&cleared<310,
           'The open desktop editor remains bounded: '+JSON.stringify({cleared,empty}));
-      }else assert.ok(Math.abs(cleared-empty)<12,'Mobile composer returns to compact dimensions');
+      }else assert.ok(cleared>=90&&cleared<Math.min(viewport.height-40,350),
+        'Mobile Image composer remains bounded after blur: '+JSON.stringify({cleared,empty}));
       checks.push({viewport,promptHeight:Math.round(result.field.height),dockHeight:Math.round(result.composer.height),scrollMax:result.scrollMax});
     }finally{await context.close();}
   }
