@@ -68,12 +68,14 @@ function show(){
   // Do not paint a guest CTA or an unverified wallet while Clerk and the
   // authenticated /api/session request are still resolving.
   const ready=!!clerk&&(!signed||currentProfile||!profileLoading);
-  const customer=ready&&!!profile?.customer;
+  const customer=ready&&currentProfile&&!!profile.customer;
   const header=document.querySelector('.landing-header--home');
   const homeCredits=$('lab-home-credits');
   $('lab-header-signin').hidden=!ready||signed;
   if(homeCredits){
-    const closed=ready&&signed&&!!profile?.accountClosed;
+    const closed=ready&&signed&&currentProfile&&!!profile.accountClosed;
+    // Keep the credit control present while authentication resolves, but never
+    // display a stale wallet value from a prior account or session.
     homeCredits.hidden=!ready||closed;
     if(closed){
       $('lab-home-credit-copy').textContent='Account closed';
