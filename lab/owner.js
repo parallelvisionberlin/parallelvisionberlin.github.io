@@ -1,7 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
-import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261017-review2';
+import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261017-finance1';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
 import {createOwnerAuthGuard} from './owner-auth-guard.js?v=20261017-stability1';
 const $=id=>document.getElementById(id);
