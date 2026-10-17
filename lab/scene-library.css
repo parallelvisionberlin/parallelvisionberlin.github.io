@@ -426,19 +426,19 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   overflow:hidden
 }
 #scene-library-dialog .scene-category-hero[data-category="characters"]{
-  --scene-hero-image:url("../assets/optimized/fashion-hero.webp");
+  --scene-hero-image:url("https://parallelvisionlabel.com/assets/optimized/fashion-hero.webp");
   --scene-hero-position:60% 36%;
 }
 #scene-library-dialog .scene-category-hero[data-category="outfits"]{
-  --scene-hero-image:url("../assets/optimized/fashion-after-fabric/artists/alejandro/lotus02heroale.webp");
+  --scene-hero-image:url("https://parallelvisionlabel.com/assets/optimized/fashion-after-fabric/artists/alejandro/lotus02heroale.webp");
   --scene-hero-position:58% 35%;
 }
 #scene-library-dialog .scene-category-hero[data-category="props"]{
-  --scene-hero-image:url("../assets/optimized/liquid-metal-hero.webp");
+  --scene-hero-image:url("https://parallelvisionlabel.com/assets/optimized/liquid-metal-hero.webp");
   --scene-hero-position:58% 42%;
 }
 #scene-library-dialog .scene-category-hero[data-category="locations"]{
-  --scene-hero-image:url("../assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp");
+  --scene-hero-image:url("https://parallelvisionlabel.com/assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp");
   --scene-hero-position:62% 46%;
 }
 #scene-library-dialog .scene-category-hero-copy{position:relative;z-index:1;max-width:80%}
