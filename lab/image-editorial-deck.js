@@ -9,12 +9,16 @@
   if(!guest||!guestField||!real||!realField)return;
   const small=window.matchMedia('(max-width:680px)');
   const preview={guest:false,real:false};
+  // Once a desktop user engages with the real deck, keep the editing layout.
+  // Do not reset it on blur, choosing another Mood or completing a generation.
+  let realEditingStarted=false;
   function update(surface,field,kind){
     if(!surface)return;
     const hasRefs=kind==='real' && refs && !refs.hidden && refs.children.length>0;
     const active=document.activeElement===field;
     const isSmall=small.matches;
-    const expanded=active||hasRefs||(isSmall&&preview[kind]&&!!field.value.trim());
+    const expanded=(kind==='real'&&realEditingStarted&&!isSmall)||
+      active||hasRefs||(isSmall&&preview[kind]&&!!field.value.trim());
     surface.classList.toggle('pv-deck-expanded',!!expanded);
     surface.classList.toggle('pv-deck-has-prompt',!!field.value.trim());
   }
@@ -26,12 +30,18 @@
   }
   const deferSync=()=>queueMicrotask(sync);
   for(const [field,kind] of [[guestField,'guest'],[realField,'real']]){
-    field.addEventListener('focus',sync);
+    field.addEventListener('focus',()=>{
+      if(kind==='real'&&!small.matches)realEditingStarted=true;
+      sync();
+    });
     field.addEventListener('blur',()=>{
       if(!small.matches)preview[kind]=false;
       requestAnimationFrame(sync);
     });
-    field.addEventListener('input',()=>{preview[kind]=small.matches;sync()});
+    field.addEventListener('input',()=>{
+      if(kind==='real'&&!small.matches)realEditingStarted=true;
+      preview[kind]=small.matches;sync();
+    });
   }
   // Mood handlers run first and own their actual prompt data. This only rechecks
   // presentation after they fill the field, avoiding any duplicate state.
@@ -42,6 +52,7 @@
     if(!g&&!r)return;
     const kind=g?'guest':'real';
     preview[kind]=small.matches;
+    if(kind==='real'&&!small.matches)realEditingStarted=true;
     deferSync();
   });
   document.addEventListener('pointerdown',event=>{

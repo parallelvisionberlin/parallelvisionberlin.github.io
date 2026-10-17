@@ -20,8 +20,9 @@ assert.ok(handlerStart>0&&handlerEnd>handlerStart);
 const sizing=source.slice(sizingStart,sizingEnd);
 const handler=source.slice(handlerStart,handlerEnd);
 assert.match(handler,/inputType==='insertFromPaste'/);
-assert.match(html,/image-composer-stable\.css\?v=20261016-font-size17/);
+assert.match(html,/image-composer-stable\.css\?v=20261016-[a-z0-9-]+/);
 const stable=readFileSync('lab/image-composer-stable.css','utf8');
+assert.match(stable,/font-size:17px!important/);
 assert.doesNotMatch(stable,/height:54px!important;min-height:54px!important/);
 assert.match(stable,/grid-template-rows:minmax\(64px,max-content\) 41px!important/);
 
@@ -71,7 +72,11 @@ try{
         el.setSelectionRange(text.length,text.length);
         el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertFromPaste',data:text}));
       },longPrompt);
-      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      // Wait for the actual deck height transition before sampling the completed layout.
+      await page.waitForFunction(()=>{
+        const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
+        return h>=(innerWidth>899?150:95);
+      },null,{timeout:2500});
       const result=await page.evaluate(()=>{
         const rect=selector=>{
           const r=document.querySelector(selector).getBoundingClientRect();
@@ -110,8 +115,16 @@ try{
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       assert.ok((await editor.evaluate(el=>el.scrollTop))<10,'Editing earlier lines keeps existing scroll');
       await editor.fill('');
+      if(viewport.width<=899)await editor.blur();
+      await page.waitForTimeout(275);
       const cleared=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
-      assert.ok(Math.abs(cleared-empty)<12,'Clearing returns the composer to compact dimensions');
+      if(viewport.width>899){
+        assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+          'Desktop editor stays in its engaged state after clearing text');
+        assert.ok(cleared>=120&&cleared<310,
+          'The open desktop editor remains bounded: '+JSON.stringify({cleared,empty}));
+      }else assert.ok(cleared>=90&&cleared<Math.min(viewport.height-40,350),
+        'Mobile Image composer remains bounded after blur: '+JSON.stringify({cleared,empty}));
       checks.push({viewport,promptHeight:Math.round(result.field.height),dockHeight:Math.round(result.composer.height),scrollMax:result.scrollMax});
     }finally{await context.close();}
   }

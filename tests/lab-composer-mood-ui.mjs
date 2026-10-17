@@ -233,7 +233,10 @@ try{
   await waitRefs(stable.page,1);
   await stable.page.click('#image-composer-moods');
   const withBase=await measureMood();
-  assert.ok(withBase.deckHeight>selectedGallery.deckHeight,'Reference tray should retain its intentional space');
+  assert.equal(await stable.page.locator('#image-composer-references').isVisible(),true,
+    'Uploaded reference thumbnails remain visible in the inline reference tray');
+  assert.ok(withBase.deckHeight>=selectedGallery.deckHeight-3,
+    'Inline references must not shrink the floating deck');
   assert.ok(Math.abs(withBase.gridHeight-selectedGallery.gridHeight)<=3,
     'Uploaded base compressed the gallery: '+JSON.stringify({selectedGallery,withBase}));
   assert.ok(Math.abs(withBase.panelHeight-selectedGallery.panelHeight)<=3,
@@ -244,8 +247,8 @@ try{
     'The second gallery row should remain completely visible: '+JSON.stringify(withBase));
   assert.ok(withBase.panelTop>=23,
     'The panel must remain clear of the viewport top: '+JSON.stringify(withBase));
-  assert.ok(withBase.deckTop<selectedGallery.deckTop,
-    'The taller deck should shift the popup, not shrink the gallery');
+  assert.ok(withBase.deckTop<=selectedGallery.deckTop+3,
+    'Reference previews must not displace the Mood gallery or push the deck down');
   await stable.context.close();
 
   const x=await workspace({width:1240,height:900});

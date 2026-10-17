@@ -82,6 +82,11 @@ try{
       await textbox.fill(lorem);
       assert.equal(await textbox.inputValue(),lorem,kind+': pasted prompt must stay intact');
       await page.evaluate(()=>window.__resizePVPrompt());
+      // The editorial textarea has a 230ms height transition; measure settled geometry.
+      await page.waitForFunction(()=>{
+        const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
+        return h>=(document.getElementById('image-composer').classList.contains('is-pv-soul')?120:innerWidth>900?154:innerWidth<=740?90:110);
+      },null,{timeout:2500});
       const metrics=await page.evaluate(()=>{
         const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height};};
         const el=document.querySelector('#image-composer-prompt'),tray=document.querySelector('#image-composer-references');
@@ -127,9 +132,12 @@ try{
         const withPhotos=metrics.dock.height;
         await textbox.fill('');
         await page.evaluate(()=>{document.getElementById('image-composer-references').hidden=true;window.__resizePVPrompt();});
+        await page.waitForTimeout(275);
         const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
-        assert.ok(empty>=105&&empty<170,'No-photo desktop Image deck stays compact: '+empty);
-        assert.ok(withPhotos>empty+35,'Attached photos add their own reference row.');
+        assert.ok(empty>=115&&empty<310,
+          'Clearing an engaged desktop editor keeps its floating footprint bounded: '+empty);
+        assert.ok(withPhotos>=empty-16,
+          'Inline photo references must not shrink the already-open floating deck: '+JSON.stringify({withPhotos,empty}));
         await page.evaluate(()=>{document.getElementById('image-composer-references').hidden=false;});
         await textbox.fill(lorem);
         await page.evaluate(()=>window.__resizePVPrompt());
