@@ -216,6 +216,11 @@
 
 /* Value badge is green; SpicyAPI moderation information is indicated by a purple dot. */
 .pv-video-model-badge[data-tone="green"]{color:#b9e8be;background:#25452e;border-color:#447b4d}
+/* Seedance 2.5 Premium only: restrained antique-gold finish, unchanged sizing. */
+.pv-video-model-item[data-model="seedance"] .pv-video-model-badge{
+  color:#e6cc94;background:#352f23;border-color:#977d4b;
+  box-shadow:inset 0 1px rgba(255,233,177,.07);
+}
 /* Sidebar card stays editorial and uncluttered; detailed copy belongs in picker. */
 #app.video-studio-active #video-model-control .video-price-hint{display:none!important}
 
