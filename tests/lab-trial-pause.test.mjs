@@ -18,7 +18,9 @@ function fixture(t){
   const env={
     LAB_WELCOME_CREDITS_ENABLED:'false',LAB_FREE_TRIAL_PAUSED:'true',
     LAB_PROMO_HOLDS_ENABLED:'true',
-    LAB_PUBLIC_GENERATION_ENABLED:'true',
+    LAB_PUBLIC_GENERATION_ENABLED:'true',LAB_CHECKOUT_ENABLED:'true',
+    LAB_STRIPE_SECRET_KEY:'sk_test_synthetic_not_a_real_key',
+    LAB_STRIPE_WEBHOOK_SECRET:'whsec_synthetic_not_a_real_key',
     LAB_CUSTOMER_SPICY_API_KEY:'synthetic-test-api-key-not-a-real-secret',
     LAB_SECRET:'synthetic-test-secret-12345678901234567890123',
     LAB_DB:{prepare(sql){return {bind(...values){const stmt=db.prepare(sql);return {
