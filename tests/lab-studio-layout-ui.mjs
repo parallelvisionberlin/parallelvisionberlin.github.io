@@ -89,7 +89,14 @@ try{
   await x.page.click('#mode-text');
   await x.page.locator('#prompt').fill('Gentle camera movement.');
   assert.equal(await x.page.locator('#generate').isEnabled(),true);
-  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#generate')).backgroundColor==='rgb(237, 236, 229)',{},{timeout:3000});
+  await x.page.waitForFunction(()=>{
+    const style=getComputedStyle(document.querySelector('#generate'));
+    // Owner-approved satin-white gradient replaces the old flat cream finish.
+    return style.backgroundColor==='rgb(237, 236, 229)'||
+      (style.backgroundImage.includes('linear-gradient')&&
+       style.backgroundImage.includes('252, 252, 253')&&
+       style.backgroundImage.includes('230, 232, 235'));
+  },{},{timeout:3000});
   await x.page.screenshot({path:'test-results/lab-video-white-generate.png',fullPage:false});
   await x.page.locator('#prompt').fill('');
   await x.page.click('#mode-start');
