@@ -102,7 +102,7 @@ export function createAccountMenu(root) {
   document.addEventListener('scroll',()=>{if(root.open)positionPanel();},{capture:true,passive:true});
   function updateBalance(value){
     if(!currentProfile?.customer)return;
-    root.querySelector('[data-account-balance]').textContent=Number.isSafeInteger(value)?value.toLocaleString()+' credits':'Balance unavailable';
+    root.querySelector('[data-account-balance]').textContent=currentProfile.accountClosed?'Account closed':Number.isSafeInteger(value)?value.toLocaleString()+' credits':'Balance unavailable';
   }
   function update({signed=false,user=null,profile=null}={}){
     currentProfile=profile;root.hidden=!signed;
