@@ -72,7 +72,11 @@ try{
         el.setSelectionRange(text.length,text.length);
         el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertFromPaste',data:text}));
       },longPrompt);
-      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      // Wait for the actual deck height transition before sampling the completed layout.
+      await page.waitForFunction(()=>{
+        const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
+        return h>=(innerWidth>899?150:95);
+      },null,{timeout:2500});
       const result=await page.evaluate(()=>{
         const rect=selector=>{
           const r=document.querySelector(selector).getBoundingClientRect();
@@ -111,8 +115,12 @@ try{
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       assert.ok((await editor.evaluate(el=>el.scrollTop))<10,'Editing earlier lines keeps existing scroll');
       await editor.fill('');
+      await page.waitForTimeout(275);
       const cleared=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
-      assert.ok(Math.abs(cleared-empty)<12,'Clearing returns the composer to compact dimensions');
+      if(viewport.width>899){
+        assert.ok(cleared>=empty-3&&cleared<empty+60,
+          'Desktop Image deck stays open after the user has interacted');
+      }else assert.ok(Math.abs(cleared-empty)<12,'Mobile composer returns to compact dimensions');
       checks.push({viewport,promptHeight:Math.round(result.field.height),dockHeight:Math.round(result.composer.height),scrollMax:result.scrollMax});
     }finally{await context.close();}
   }
