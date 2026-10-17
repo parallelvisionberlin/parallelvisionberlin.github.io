@@ -2178,7 +2178,8 @@ function updateVideoInspector(job){
   updateVideoInspectorReferences(job);
   if(!job){
     $('video-detail-status').textContent=videoStartFrameHandoff&&file?'Start frame':'';
-    $('video-inspector-empty').textContent=videoStartFrameHandoff&&file?'Start frame ready. Add motion direction in the controls to create your video.':'Select a video to see its settings and actions.';
+    const sceneFoot=$('pv-video-sidebar-footnote');
+    if(sceneFoot)sceneFoot.textContent=videoStartFrameHandoff&&file?'Opening frame ready. Describe its motion to generate a video.':'Settings for your next video. Nothing has been generated.';
     for(const card of $('history').querySelectorAll('.is-current-video'))card.classList.remove('is-current-video');
     return;
   }
