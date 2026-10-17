@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const terms=readFileSync(new URL('../lab/terms/index.html',import.meta.url),'utf8');
+const policy=readFileSync(new URL('../lab/content-policy/index.html',import.meta.url),'utf8');
+test('PV LAB public rules preserve lawful adult artistic expression while prohibiting exploitation',()=>{
+  assert.match(terms,/id="acceptable-use"/);
+  assert.match(terms,/Lawful artistic nudity/);
+  assert.match(terms,/Prohibited content and conduct/);
+  assert.match(terms,/synthetic or AI-generated/);
+  assert.match(terms,/non-consensual intimate/i);
+  assert.match(terms,/abuse promotional credits/i);
+  assert.match(terms,/href="\/content-policy\/"/);
+  assert.match(policy,/Content &amp; Safety Policy/);
+  assert.match(policy,/Updated 17 October 2026/);
+  assert.match(policy,/artistic nudity/i);
+  assert.match(policy,/Sexual exploitation of minors/);
+  assert.match(policy,/Non-consensual sexual content/);
+  assert.match(policy,/misuse of disposable addresses/);
+  assert.match(policy,/request human review/i);
+});
