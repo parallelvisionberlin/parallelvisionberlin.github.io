@@ -61,7 +61,8 @@ export function createAppMoodGeneration(){
       if(dimensions&&(Math.min(dimensions.width,dimensions.height)<240||Math.max(dimensions.width,dimensions.height)>8000||Math.max(dimensions.width/dimensions.height,dimensions.height/dimensions.width)>8))throw Error('Choose a photograph between 240 and 8,000 pixels per side.');
       const recipe=prepareMoodPrompt(direction,mood.id,mood.defaultIntensity||70,{engine:'seedream',referenceCount:file?1:0,referenceMode:'base'});
       if(recipe.error)throw Error(recipe.error);
-      const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'2k',aspectRatio:imageAutoRatio({values:['16:9','9:16','1:1','4:3','3:4','3:2','2:3','4:5','5:4','21:9'],reference:dimensions}),outputFormat:'png',referenceRoles:file?[normalizeReferenceLabel({name:file.name,role:'base'})]:[]};
+      // Photobooth favors faster first results at 1K. Studio keeps its independent HD selector.
+      const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'1k',aspectRatio:imageAutoRatio({values:['16:9','9:16','1:1','4:3','3:4','3:2','2:3','4:5','5:4','21:9'],reference:dimensions}),outputFormat:'png',referenceRoles:file?[normalizeReferenceLabel({name:file.name,role:'base'})]:[]};
       moodReferencePlan(settings); // Validate the complete prompt before any source or Style upload.
       // Prepare the person's Base photo and four Mood Style photos in parallel.
       // Quote is still requested only once all exact input IDs are validated.

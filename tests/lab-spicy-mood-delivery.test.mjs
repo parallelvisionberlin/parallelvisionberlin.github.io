@@ -45,12 +45,12 @@ test('webhook rejects oversized bodies and bad task shape',async()=>{
   const bad={code:200,data:{taskId:null,state:'succeeded'}};
   await assert.rejects(verifySpicyCallback(await signedRequest({...event,data:{...event.data,taskId:'x'}},{body:JSON.stringify(bad)}),secret,{now:()=>time}),/task/);
 });
-test('Mood pipeline uses 2K bound quotes, verified previews and private quality settings',()=>{
+test('Mood Photobooth pipeline uses 1K bound quotes, verified previews and private quality settings',()=>{
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   const client=readFileSync(new URL('../lab/app-mood-generation.js',import.meta.url),'utf8');
   const mood=readFileSync(new URL('../lab/explore-moods.js',import.meta.url),'utf8');
   const pricing=readFileSync(new URL('../lab-worker/customer-image-pricing.mjs',import.meta.url),'utf8');
-  assert.match(client,/resolution:'2k',aspectRatio:imageAutoRatio/);
+  assert.match(client,/resolution:'1k',aspectRatio:imageAutoRatio/);
   assert.match(worker,/p\.engine==='seedream'&&p\.model===STILL_EDIT\?\{enable_thinking:true\}/);
   assert.match(worker,/const callBackUrl=callbackEnabled/);
   assert.match(worker,/spicyWakeToken\(env\.LAB_SECRET,wakeQuoteId\)/);

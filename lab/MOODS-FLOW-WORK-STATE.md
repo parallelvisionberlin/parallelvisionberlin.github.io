@@ -198,3 +198,9 @@ Updated: 2026-10-16
   `pv-lab-2026-10-16.3-spicy-mood-wakeup`. No real paid generation was run.
   Future natural completions will validate callback delivery end-to-end.
 - No changes required in SpicyAPI or Cloudflare dashboards.
+
+## 2026-10-18 Photobooth first-result speed default
+- Explore Moods web modal and native mobile Moods now request Seedream 1K (previously 2K) through the shared `app-mood-generation.js` prepare and server-bound quote.
+- Regular Studio retains explicit 1K/2K selection and existing Mood handoff defaults; no model, reference, identity, style, pricing math or paid submission logic changed.
+- Refresh both Photobooth module imports, assert the quote resolution in the Explore Moods browser test and the private delivery unit test.
+- Resolution may improve provider latency but per-job results remain variable; production measurements should confirm any improvement.
