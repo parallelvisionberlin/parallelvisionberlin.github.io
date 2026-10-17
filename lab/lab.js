@@ -1132,10 +1132,53 @@ sceneLibrary=createSceneLibrary({
     }
   },
   addReferences,loadPacks,getAllPacks:()=>packs,notify,action,
-  closeOverlays:()=>{closeComposerLibrary();closeImageModelMenu();closeReferenceIntent();moodUI.close();toggleImageSettings(false);}
+  closeOverlays:()=>{sceneImageMenuClose();closeComposerLibrary();closeImageModelMenu();closeReferenceIntent();moodUI.close();toggleImageSettings(false);}
 });
 $('scene-video-open').onclick=()=>sceneLibrary.open('characters');
-$('scene-image-open').onclick=()=>sceneLibrary.open('characters');
+
+function sceneImageMenuClose(){
+  $('scene-image-menu').hidden=true;
+  $('scene-image-menu-home').hidden=false;
+  $('scene-image-menu-categories').hidden=true;
+  $('scene-image-open').setAttribute('aria-expanded','false');
+}
+$('scene-image-open').onclick=()=>{
+  if(busy)return;
+  if(!owner){notify('Sign in to use your library.',true);return;}
+  const menu=$('scene-image-menu');
+  if(!menu.hidden){sceneImageMenuClose();return;}
+  closeComposerLibrary();closeImageModelMenu();closeReferenceIntent();
+  moodUI.close();toggleImageSettings(false);
+  $('scene-image-menu-home').hidden=false;
+  $('scene-image-menu-categories').hidden=true;
+  menu.hidden=false;
+  $('scene-image-open').setAttribute('aria-expanded','true');
+};
+$('scene-menu-elements').onclick=()=>{
+  $('scene-image-menu-home').hidden=true;
+  $('scene-image-menu-categories').hidden=false;
+  $('scene-menu-back').focus({preventScroll:true});
+};
+$('scene-menu-back').onclick=()=>{
+  $('scene-image-menu-categories').hidden=true;
+  $('scene-image-menu-home').hidden=false;
+  $('scene-menu-elements').focus({preventScroll:true});
+};
+$('scene-menu-packs').onclick=()=>{
+  sceneImageMenuClose();
+  // Preserve the working, private Photo Packs selector and its existing callbacks.
+  $('composer-add-saved-toggle').click();
+};
+for(const button of document.querySelectorAll('#scene-image-menu [data-scene-target]')){
+  button.onclick=()=>{const id=button.dataset.sceneTarget;sceneImageMenuClose();sceneLibrary.open(id);};
+}
+document.addEventListener('click',event=>{
+  if(!$('scene-image-library-wrap').contains(event.target))sceneImageMenuClose();
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')sceneImageMenuClose();
+});
+
 
 function composerMove(id,target){
   const node=$(id);if(!node)return;
@@ -1781,7 +1824,7 @@ function syncImageStudioMode(){
   const isImage=tool==='image'&&!fashionActive&&!retouchActive;
   $('app').classList.toggle('image-studio-active',isImage);
   imageStudio.hidden=!isImage;
-  if(!isImage){if(moodDiscoveryOpen)setMoodDiscoveryOpen(false);closeComposerLibrary();closeComposerAddMenu();}
+  if(!isImage){sceneImageMenuClose();if(moodDiscoveryOpen)setMoodDiscoveryOpen(false);closeComposerLibrary();closeComposerAddMenu();}
   if(isImage){
     if(archive.parentElement!==$('image-gallery-host'))$('image-gallery-host').append(archive);
   }else{
