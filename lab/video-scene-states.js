@@ -77,6 +77,14 @@ function mountVideoSceneStates(){
     byId('pv-video-current-ratio').textContent=ratioHidden?'Source':quoteOption('ratio');
     byId('pv-video-current-audio').textContent=byId('audio')?.disabled?'Unavailable':byId('audio')?.checked?'On':'Off';
     renderLiveReferences(mode);
+    const foot=byId('pv-video-sidebar-footnote');
+    if(foot){
+      const start=byId('video-start-thumb');
+      const hasStart=mode==='start'&&!!start&&!start.hidden&&!!(start.currentSrc||start.src);
+      foot.textContent=hasStart
+        ?'Start frame ready. Describe its motion to create a video.'
+        :'Settings for your next video. Nothing has been generated.';
+    }
   }
   function updateTextAndVisual(mode){
     const video=app.classList.contains('video-studio-active');
