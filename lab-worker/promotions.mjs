@@ -44,7 +44,7 @@ async function clerkEmailStatus(env,subject,force=false){
   const secret=studio?env.LAB_CLERK_V2_SECRET_KEY:(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY);
   if(!secret)return 'missing_key';
   const contact=await one(env,'SELECT email,synced_at FROM lab_customer_contacts WHERE customer_id=?',subject);
-  const ttl=contact?.email?86400000:7*86400000;
+  const ttl=contact?.email?86400000:5*60000; // Newly verified users can receive their welcome grant promptly.
   if(!force&&contact?.synced_at&&Date.now()-contact.synced_at<ttl)return 'cached';
   let response;
   try{
