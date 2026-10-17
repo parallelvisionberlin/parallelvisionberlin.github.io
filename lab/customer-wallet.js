@@ -75,6 +75,14 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
   }
   function open(){
     if(!account)return;
+    // Empty or frozen complimentary wallets go straight to the complete
+    // in-Studio pricing panel, instead of a second smaller credit deck.
+    // Funded customers retain the existing balance-management dialog.
+    if(!accountClosed&&(balance<=0||trialGenerationPaused)){
+      if(dialog.open)dialog.close();
+      openPricing({oneTime:true});
+      return;
+    }
     if(referralDialog.open)referralDialog.close();
     if(!dialog.open)dialog.showModal();
     void refresh();
