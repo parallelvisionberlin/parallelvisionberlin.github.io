@@ -1766,9 +1766,9 @@ async function route(request,env,ctx) {
     }
     if(p.provider==='fal'&&p.type==='video'){
       if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');
-      const {primary,input}=await prepareInput(env,owner,data,p,url),estimate=falVideoEstimateMicros(p),id=crypto.randomUUID(),expires=now()+290000,payload={model:p.model,input};
-      await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary?.id||null,JSON.stringify(p),estimate,expires,'fal-direct-video',String(estimate/1000000),JSON.stringify(payload));
-      return json({id,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,expiresAt:expires,settings:p,provider:'fal.ai',priceIsEstimate:true,notice:'fal.ai does not return a bound preflight quote for this route. This is the current pricing estimate for the selected duration, resolution and supplied references; fal.ai billing remains authoritative.'});
+      const {primary,input}=await prepareInput(env,owner,data,p,url),estimate=falVideoEstimateMicros(p),creditCost=creditsForJobUsd(estimate/1000000,p),id=crypto.randomUUID(),expires=now()+290000,payload={model:p.model,input};
+      await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary?.id||null,JSON.stringify({...p,customerChargeCredits:creditCost}),estimate,expires,'fal-direct-video',String(estimate/1000000),JSON.stringify(payload));
+      return json({id,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,creditCost,expiresAt:expires,settings:p,provider:'fal.ai',priceIsEstimate:true,notice:'fal.ai does not return a bound preflight quote for this route. This is the current pricing estimate for the selected duration, resolution and supplied references; fal.ai billing remains authoritative.'});
     }
     const {key}=await requireConfigured(env,owner);
     const {primary,input}=await prepareInput(env,owner,data,p,url);
