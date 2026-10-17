@@ -32,7 +32,7 @@ html.pv-studio-boot-lock{scroll-behavior:auto!important}
 @media(min-width:761px){html.pv-studio-boot-lock{scrollbar-gutter:stable}}
 /* Retain the reserved gutter after loading only for Image gallery/history.
    Mobile stays centered without reserving unused scrollbar space. */
-@media(min-width:761px){html:has(#app.image-studio-active){scrollbar-gutter:stable}}
+@media(min-width:761px){html:has(#app.image-studio-active),html:has(#app.video-studio-active){scrollbar-gutter:stable}}
 /* Visible before the external scripts and stylesheets load. No remote imagery or icon fonts. */
 body.lab-booting{margin:0;background:#101114}
 /* Fixed overlays using inset:0 alone shrink when the root reserves a classic
@@ -187,6 +187,7 @@ document.addEventListener('click',event=>{
 <link rel="stylesheet" href="./video-approved-design.css?v=20261017-video-approved1">
 <link rel="stylesheet" href="./mobile-library-polish.css?v=20261017-mobile-two-row1">
 <link rel="stylesheet" href="./video-scene-states.css?v=20261017-frame-coherence2">
+<link rel="stylesheet" href="./video-ergonomics.css?v=20261017-ergonomic1">
 <script type="module" src="./video-editorial-deck.js?v=20261017-video-editorial1"></script>
 <script type="module" src="./video-scene-states.js?v=20261017-frame-coherence2"></script>
 </head>
@@ -793,11 +794,11 @@ document.addEventListener('click',event=>{
   <p class="video-effect-active-note">One start frame · Editable motion prompt · Live credit quote before confirmation.</p>
 </div>
 <div id="video-model-control"><span class="video-model-kicker" aria-hidden="true">GENERAL</span><label for="video-engine" class="pv-video-native-label">Video model</label><select id="video-engine" tabindex="-1" aria-hidden="true"><option value="seedance" selected>Seedance 2.5</option><option value="seedance15">Seedance 1.5 Pro · Motion</option><option value="seedance4k">Seedance 2.5 · 4K</option><option value="klinghf" hidden>Kling 3.0 Pro · Higgsfield</option><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference</option><option value="omni">Gemini Omni Flash 1.1</option></select><button id="video-model-trigger" class="pv-video-model-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="video-model-popover" aria-label="Choose video model"><span id="video-model-current" class="pv-video-model-trigger-name">Seedance 2.5</span><svg class="pv-video-model-trigger-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><p class="video-price-hint" id="video-price-hint" role="status">A live video price is shown before you confirm.</p><details class="model-details"><summary>About this model</summary><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></details></div>
-<div id="video-task-switch" role="tablist" aria-label="Video task" hidden><button id="video-create-task" type="button" role="tab" aria-selected="true"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5 17 5-5 3.2 3 2.6-2.5 3.4 3.5"/></svg>References</button><button id="mode-extend" type="button" role="tab" aria-selected="false"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4"/></svg>Extend video</button></div>
+<div id="video-task-switch" role="tablist" aria-label="Video task" hidden><button id="video-create-task" type="button" role="tab" aria-selected="true"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5 17 5-5 3.2 3 2.6-2.5 3.4 3.5"/></svg>Create</button><button id="mode-extend" type="button" role="tab" aria-selected="false"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4"/></svg>Extend</button></div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M12 6v13M8.5 19h7"/></svg>Text</button>
-<button id="mode-start" class="mode-tab active" type="button" role="tab" aria-selected="true"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5 17 5-5 3.2 3 2.6-2.5 3.4 3.5"/></svg>Start frame</button>
-<button id="mode-reference" class="mode-tab" type="button" role="tab" aria-selected="false"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5 17 5-5 3.2 3 2.6-2.5 3.4 3.5"/></svg>References</button>
+<button id="mode-start" class="mode-tab active" type="button" role="tab" aria-selected="true"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5 17 5-5 3.2 3 2.6-2.5 3.4 3.5"/></svg><span id="pv-mode-start-label">Start frame</span></button>
+<button id="mode-reference" class="mode-tab" type="button" role="tab" aria-selected="false"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5 17 5-5 3.2 3 2.6-2.5 3.4 3.5"/></svg><span id="pv-mode-reference-label">References</span></button>
 </div>
 <div id="upscale-model-display" class="upscale-model-display" hidden>
   <span class="label">Model</span>
@@ -832,10 +833,14 @@ document.addEventListener('click',event=>{
 </div>
 </div>
 </div>
-<div id="reference-mode" class="mode-panel" hidden><p id="extend-help" class="fine" hidden>Upload one clip and describe what happens next. The continuation uses its framing.</p>
+<div id="reference-mode" class="mode-panel" hidden><p id="extend-help" class="fine" hidden>Continue from an existing clip.</p>
 <div class="upload-heading"><span class="label">Reference images</span><span class="micro" id="ref-count">0 / 10</span></div>
 <label class="drop reference-drop" id="reference-drop" aria-label="Add reference images, drop or browse"><svg viewBox="0 0 24 24" class="pv-reference-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="15" height="14" rx="2"/><circle cx="8.5" cy="9.5" r="1.3"/><path d="m5 16 4-4 3.2 2.5 2.1-2"/><path d="M19 15v7m-3.5-3.5h7"/></svg><span>Drop reference images here or click to browse</span><small>JPG / PNG / WebP · up to 10 photos</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
 <div class="scene-video-access" aria-label="Your saved scene items"><span>Characters, outfits, props and locations</span><button id="scene-video-open" type="button"><svg viewBox="0 0 24 24" class="pv-scene-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg><span>Scene Library</span><small>Your saved collection</small></button></div>
+<div id="start-frame-maker" class="generate-zone">
+<button id="create-start-frame" class="secondary full" type="button">Create opening image</button>
+<p class="fine">Optional · Seedream image credits charged separately after review.</p>
+</div>
 <div id="scene-video-selected" hidden aria-label="Attached saved scene items"></div>
 <p id="reference-progress" class="fine" role="status" aria-live="polite"></p>
 <div id="pv-video-ref-title" class="pv-video-ref-title" hidden><strong>Added references <span id="pv-video-added-count">0</span></strong><button id="pv-video-clear-refs" type="button">Clear all</button></div>
@@ -859,10 +864,7 @@ document.addEventListener('click',event=>{
 <p id="reference-guidance-warning" class="fine" role="status" hidden></p>
 <details><summary>What will be sent</summary><p id="reference-guidance-count" class="micro"></p><pre id="reference-guidance-text"></pre><p class="fine">These are image instructions, not a pixel lock or a selection mask.</p></details>
 </div>
-<div id="start-frame-maker" class="generate-zone">
-<button id="create-start-frame" class="secondary full" type="button">Create Start Frame</button>
-<p class="fine">Compose a still in Seedream, approve the image, then animate it in Start Frame mode. A separate image charge applies.</p>
-</div>
+
 <div class="pack-bar"><label><span class="label">Reference packs</span><select id="pack-select"><option value="">Choose a saved pack</option></select></label><button id="pack-load" class="quiet" type="button">Load</button><button id="pack-save" class="quiet" type="button">Save pack</button><button id="pack-delete" class="quiet" type="button">Delete pack</button></div>
 </div>
 <div id="soul-controls" class="soul-controls" hidden>
