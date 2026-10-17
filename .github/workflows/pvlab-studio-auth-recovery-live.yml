@@ -38,8 +38,9 @@ jobs:
             }
             check "Image boot recovery code" "window.__pvLabBootRecover=" /tmp/pv-studio-image.html
             check "Video boot recovery code" "window.__pvLabBootRecover=" /tmp/pv-studio-video.html
-            check "Image new auth cache marker" "studioAuthRecovery=20261017-2" /tmp/pv-studio-image.html
-            check "Video new auth cache marker" "studioAuthRecovery=20261017-2" /tmp/pv-studio-video.html
+            check "Image failure stage" "Studio setup stalled during" /tmp/pv-studio-image.html
+            check "Image new auth cache marker" "studioAuthRecovery=20261017-3" /tmp/pv-studio-image.html
+            check "Video new auth cache marker" "studioAuthRecovery=20261017-3" /tmp/pv-studio-video.html
             check "Clerk bounded setup" "boundedSetup(Promise.all([sdk,ui]),12000" /tmp/pv-native-account.js
             check "Clerk hydrate timeout" "boundedSetup(clerk.load(" /tmp/pv-native-account.js
             check "Nonblocking referral" "if(customerMode)void claimReferral" /tmp/pv-lab.js
