@@ -193,8 +193,10 @@
 #app.video-studio-active.pv-video-history-selected .pv-video-history-back svg{flex-shrink:0}
 /* Atmosphere applies only to empty creative invitation, never generated video playback. */
 #app.video-studio-active.pv-video-state-ready .video-feed-center .canvas:has(>#empty:not([hidden])){
+  /* Keep the video player's opaque near-black canvas. Editorial illumination
+     stays in the existing create-only empty-state pseudo layer. */
   background-color:#0d0e10!important;
-  background-image:radial-gradient(ellipse 65% 62% at 48% 48%,#1d324652 0%,#111c2c40 52%,transparent 90%)!important;
+  background-image:none!important;
 }
 #app.video-studio-active.pv-video-state-ready .video-feed-center .canvas #empty{
   width:min(650px,96%);padding:14px 8px;gap:0;
