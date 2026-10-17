@@ -3,6 +3,7 @@
 // Existing jobs and subscriptions keep their original immutable ledger entries.
 import {NANO21_CREDITS,isNano21Job} from './nano-banana-21.mjs';
 export const DEFAULT_CREDITS_PER_USD=460;
+export const SOUL_ID_TRAINING_CREDITS=400;
 export const MODEL_CREDITS_PER_USD=Object.freeze({
   seedance15:320,
   seedance15Silent720:300,
@@ -34,6 +35,9 @@ export function creditsPerUsdForJob(settings={}){
 // rounding boundaries. No exchange-rate or package-price assumptions here.
 export function creditsForJobMicros(micros,settings={}){
   if(!Number.isSafeInteger(micros)||micros<0)throw Error('Invalid provider quote.');
+  // Match the long-standing D1 Soul ID training fixed-price exception.
+  if(settings.provider==='higgsfield'&&settings.mode==='soul-id-training'&&settings.model==='soul-id')
+    return SOUL_ID_TRAINING_CREDITS;
   // Exact-model Premium Upscale retail prices; client labels cannot select a price.
   if(settings.type==='image'&&settings.provider==='fal'&&settings.mode==='upscale'&&settings.upscaleEngine==='seedvr2'&&settings.model==='fal-ai/seedvr/upscale/image'&&(settings.scale===2||settings.scale===4))return settings.scale===2?10:18;
   // Fixed introductory price for exact Google Nano Banana 2.1 routes only.
