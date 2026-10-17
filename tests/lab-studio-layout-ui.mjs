@@ -30,8 +30,8 @@ assert.match(accountSdk,/boundedSetup\(clerk\.load\(/,'Signed-in Clerk initializ
 assert.match(studioHtml,/window\.__pvLabBootRecover=/,'Early loader provides an independent recovery action');
 assert.match(studioHtml,/window\.setTimeout\(window\.__pvLabBootRecover,22000\)/,'A stalled Studio cannot hide behind the splash indefinitely');
 assert.match(studioHtml,/document\.addEventListener\('click',event=>/,'Reload works before DOMContentLoaded');
-assert.match(studioHtml,/const root=document.documentElement,body=document.body;.*pv-studio-route-pending.*12000/,
-  'A stalled authenticated loader displays its retry even when the app container is mounted');
+assert.match(studioHtml,/recoveryTimer=window.setTimeout\(window.__pvLabBootRecover,22000\)/,
+  'A stalled account handshake gets a bounded recovery independently of Studio modules');
 assert.match(studioHtml,/<html lang="en" class="pv-studio-boot-lock">/,'Initial HTML locks scroll before any route renders');
 assert.match(studioHtml,/html\.pv-studio-boot-lock\{scroll-behavior:auto!important\}/,'Boot overrides smooth scrolling while locked');
 assert.match(studioHtml,/@media\(min-width:761px\)\{html\.pv-studio-boot-lock\{scrollbar-gutter:stable\}\}/,
