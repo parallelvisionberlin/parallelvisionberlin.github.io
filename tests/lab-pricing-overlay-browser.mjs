@@ -66,8 +66,16 @@ try{
     const dialog=await page.locator('#lab-pricing-overlay').boundingBox();
     assert.ok(dialog&&dialog.x>=0&&dialog.x+dialog.width<=width+1,'Dialog is on-screen');
     if(width<=390){
-      const safe=await page.locator('#lab-pricing-overlay #pricing').evaluate(el=>el.scrollWidth<=el.clientWidth+4);
-      assert.equal(safe,true,'Pricing never clips its cards in narrow viewports');
+      const safety=await page.locator('#lab-pricing-overlay #pricing').evaluate(el=>{
+        const rect=el.getBoundingClientRect();
+        const far=[...el.querySelectorAll('*')].map(node=>({
+          tag:node.tagName,cls:String(node.className||'').slice(0,80),
+          right:Math.round(node.getBoundingClientRect().right-rect.right),
+          left:Math.round(rect.left-node.getBoundingClientRect().left)
+        })).filter(x=>x.right>4||x.left>4).slice(0,10);
+        return {ok:el.scrollWidth<=el.clientWidth+4,scroll:el.scrollWidth,client:el.clientWidth,far};
+      });
+      assert.equal(safety.ok,true,'Pricing never clips its cards in narrow viewports: '+JSON.stringify(safety));
     }
     await page.click('#lab-pricing-overlay-close');
     assert.equal(await page.locator('#lab-pricing-overlay').evaluate(el=>el.open),false);
