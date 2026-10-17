@@ -36,6 +36,8 @@ assert.match(studioHtml, /@keyframes pv-boot-out\{0%,12%\{opacity:1;filter:blur\
   'The PV LAB logo fades and blurs on exit, without horizontal translation or scaling');
 assert.match(studioHtml, /@keyframes pv-boot-trail-out\{0%,17%\{opacity:0;filter:blur\(0\);transform:none\}56%\{opacity:\.46;filter:blur\(5px\);transform:none\}100%\{opacity:0;filter:blur\(12px\);transform:none\}\}/,
   'The duplicate blur trail also stays at fixed coordinates during fade-out');
+assert.match(studioHtml, /\.lab-boot-wordmark::before\{[^}]*padding-left:inherit;box-sizing:border-box;/,
+  'Blur duplicate inherits the exact wordmark inset instead of shifting 0.24em left');
 assert.match(studioHtml,/history\.scrollRestoration='manual';/,'All direct routes opt out of stale Chrome scroll restoration');
 assert.match(studioHtml,/new MutationObserver\(scheduleBootUnlock\)/,'Native route completion can release the boot scroll lock');
 const splashWordmark=studioHtml.match(/\.lab-boot-wordmark\{([^}]*)\}/)?.[1]||'';
@@ -533,6 +535,19 @@ try{
   assert.equal(await loaderLogo.isVisible(),true,'Brand is present without downloading an image');
   assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'none','PV LAB appears crisp at first paint');
   assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).filter),'none','Brand is not blurred during loading');
+  const duplicateAlignment=await loaderLogo.evaluate(el=>{
+    const a=getComputedStyle(el);
+    const b=getComputedStyle(el,'::before');
+    return {wordmarkPadding:parseFloat(a.paddingLeft),ghostPadding:parseFloat(b.paddingLeft),
+      ghostSizing:b.boxSizing,wordmarkTracking:a.letterSpacing,ghostTracking:b.letterSpacing};
+  });
+  assert.ok(duplicateAlignment.wordmarkPadding>0,'Original logo uses optical tracking inset');
+  assert.ok(Math.abs(duplicateAlignment.wordmarkPadding-duplicateAlignment.ghostPadding)<.1,
+    'Ghost text starts at the exact same left inset as the real wordmark');
+  assert.equal(duplicateAlignment.ghostSizing,'border-box',
+    'Aligned ghost fits the same box and does not cause a width shift');
+  assert.equal(duplicateAlignment.wordmarkTracking,duplicateAlignment.ghostTracking,
+    'Ghost text matches the wordmark letter spacing');
   const splashAtStart=await bootPage.evaluate(()=>{
     const root=document.documentElement;
     return {overflow:getComputedStyle(root).overflowY,scrollY:window.scrollY,

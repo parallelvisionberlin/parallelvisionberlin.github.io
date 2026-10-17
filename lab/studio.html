@@ -39,7 +39,9 @@ body.lab-booting{margin:0;background:#101114}
 .lab-boot-content{position:relative;z-index:1;width:min(360px,calc(100vw - 56px));text-align:center;transform:translateY(-1.5vh)}
 .lab-boot-brand{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .lab-boot-wordmark{position:relative;display:block;white-space:nowrap;padding-left:.24em;font-family:"Helvetica Neue",Arial,sans-serif;font-size:clamp(25px,3.2vw,33px);font-weight:400;letter-spacing:.24em;line-height:1.24;color:#ececef;will-change:filter,transform,opacity}
-.lab-boot-wordmark::before{content:attr(data-text);position:absolute;inset:0;pointer-events:none;white-space:nowrap;color:#ededee;opacity:0}
+/* The duplicate blur layer must start at the same text inset as the real wordmark.
+   Without inherited padding, it appears 7.92px left on a 33px logo during exit. */
+.lab-boot-wordmark::before{content:attr(data-text);position:absolute;inset:0;padding-left:inherit;box-sizing:border-box;pointer-events:none;white-space:nowrap;color:#ededee;opacity:0}
 .lab-boot-sub{display:block;margin-top:9px;padding-left:.34em;font-size:7px;font-weight:500;letter-spacing:.34em;color:#9b9ba1}
 .lab-boot-track{width:min(152px,45vw);height:1px;background:#343538;margin:29px auto 0;overflow:hidden}
 .lab-boot-track:after{content:"";display:block;width:32%;height:100%;background:#d9dbdd;animation:pv-load 1.5s ease-in-out infinite alternate}
