@@ -5,20 +5,28 @@ import {readFileSync} from 'node:fs';
 const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
 const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
 
-test('authenticated Image studio keeps the loader until first history is ready but does not block on secondary resources',()=>{
+test('authenticated Studio uses a bounded private History wait and does not block on secondary resources',()=>{
   const start=lab.indexOf('async function sync(){'),end=lab.indexOf("\n$('studio-invite-friends')",start);
   assert.ok(start>=0&&end>start);
   const boot=lab.slice(start,end);
   const appReady=boot.indexOf("$('app').hidden=false");
   const history=boot.indexOf('const historyReady=loadHistory()',appReady);
-  const wait=boot.indexOf('await historyReady;',history);
+  const wait=boot.indexOf('await Promise.race([historyReady,',history);
   const visible=boot.indexOf('finishLabBoot();',wait);
   assert.ok(appReady>=0&&history>appReady&&wait>history&&visible>wait,
-    'avoid flashing an empty gallery before the private first history batch is ready');
+    'await private History briefly but reveal the authenticated workspace if the fetch stalls');
+  assert.match(boot,/new Promise\(resolve=>setTimeout\(resolve,5000\)\)/,
+    'give first private History up to five seconds without indefinite loading');
+  assert.match(boot,/if\(!historyResolved&&owner&&epoch===historyEpoch\)/,
+    'an unresolved library displays loading UI rather than a false empty state');
+  assert.match(boot,/Loading your saved work…/);
+  assert.match(boot,/if\(historyResolved\)showWelcomeStart\(data\)/,
+    'first-image onboarding cannot misidentify customers before saved History arrives');
   assert.match(boot,/void Promise\.all\(\[loadPacks\(\)\.catch/);
   assert.match(boot,/Loading your images…/);
-  assert.match(boot,/loadHistory\(\)\.finally\(\(\)=>\$\('history'\)\.removeAttribute\('aria-busy'\)\)/);
-  assert.match(boot,/loadHistory\(\)\.finally\(\(\)=>\$\('history'\)\.removeAttribute\('aria-busy'\)\)\.catch/);
+  assert.match(boot,/const historyReady=loadHistory\(\)\.catch/);
+  assert.match(boot,/historyResolved=true;\s*\$\('history'\)\.removeAttribute\('aria-busy'\)/);
+  assert.match(boot,/document\.body\.classList\.contains\('lab-ready'\)\)showWelcomeStart\(data\)/);
   assert.match(boot,/loadPacks\(\)\.catch/);
   assert.match(boot,/soul\.load\(\)\.catch/);
   assert.match(boot,/loadSoulProIdentity\(\)\.catch/);
