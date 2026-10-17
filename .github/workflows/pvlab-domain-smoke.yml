@@ -36,6 +36,23 @@ jobs:
             "https://pvlab-studio.pages.dev/" -o /tmp/home.html
           grep -Fq 'Fashion.' /tmp/home.html
           echo "PASS: old website, Cloudflare Pages, and secure transfer entry published."
+      - name: Independently verify PV LAB stationary loader on custom domain
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 5); do
+            if curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio.html?verify=stationary-loader-20261017" -o /tmp/live-stationary-loader.html \
+              && grep -Fq 'padding-left:inherit;box-sizing:border-box;pointer-events:none' /tmp/live-stationary-loader.html \
+              && grep -Fq '@keyframes pv-boot-out{0%,12%{opacity:1;filter:blur(0);transform:none}55%{opacity:.82;filter:blur(3px);transform:none}100%{opacity:0;filter:blur(9px);transform:none}}' /tmp/live-stationary-loader.html \
+              && grep -Fq '#lab-boot{position:fixed;inset:0;width:100vw;' /tmp/live-stationary-loader.html; then
+              echo 'PASS: pvlab.studio serves the aligned stationary PV LAB loading logo.'
+              exit 0
+            fi
+            echo "Waiting for live PV LAB loader (attempt $attempt)"
+            sleep 10
+          done
+          echo 'FAIL: PV LAB custom domain does not yet serve aligned stationary loader.'
+          exit 1
       - name: Verify direct Studio welcome and canonical hero
         shell: bash
         run: |

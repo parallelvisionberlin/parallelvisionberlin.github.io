@@ -49,3 +49,6 @@ Scope: Studio initial loading overlay only.
 - Fixed ONLY that mismatch by adding `padding-left:inherit;box-sizing:border-box` to the pseudo-element. Exit blur/opacity/easing, 240 ms fade, progress line, route guards, scrollbar restoration and all studio tools stay unchanged.
 - Added a focused computed-style browser assertion that wordmark and duplicate have matching padding, tracking and aligned sizing. Domain smoke checks the new exact CSS on production.
 - Reference baseline main `84b40879b02a3c007f7f599d1a0338f059c074ab`; branch `fix/pvlab-loader-ghost-alignment-20261017`; release, CI and production checks must be verified separately.
+
+## Separate production fingerprint (2026-10-17)
+- The omnibus PV LAB readiness check failed twice after the code merged; its first check combines dozens of independent image/gallery assets and does not identify the missing assertion. To avoid conflating those with the loader, added an independent targeted `pvlab.studio/studio.html` fingerprint check for the pseudo-element padding, unchanged stationary keyframes and 100vw overlay. Run is pending. The loader code is already merged; this addition changes checks only, not the Studio.
