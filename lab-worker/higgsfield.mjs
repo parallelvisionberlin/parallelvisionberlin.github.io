@@ -51,6 +51,8 @@ export async function hfRequest(env,path,{input,idempotencyKey}={}){
   return r.json();
 }
 async function reserve(env,owner,sourceId,p,estimate,d,approvedQuote=null){
+  // Pin the same authoritative credit quote to the job before the D1 debit.
+  p.customerChargeCredits=creditsForUsd(estimate/1000000);
   const {first,run,fail,now,config}=d,t=now(),id=crypto.randomUUID(),quoteId=approvedQuote?.id||crypto.randomUUID(),c=await config(env,owner),limit=c?.daily_limit_microusd||10000000;
   if(!approvedQuote)await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',quoteId,owner,sourceId,JSON.stringify(p),estimate,t+600000,'higgsfield-direct',String(estimate/1000000),'{}');
   const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?, 'submitting',?,?,? WHERE (SELECT COUNT(*) FROM quotes WHERE id=? AND owner_id=? AND expires_at>?)=1 AND NOT EXISTS(SELECT 1 FROM jobs WHERE quote_id=?) AND NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND json_extract(params,'$.provider')='higgsfield') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND json_extract(params,'$.provider')='higgsfield')<2 AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,sourceId,quoteId,JSON.stringify(p),estimate,t,t,quoteId,owner,t,quoteId,owner,owner,owner,Math.floor(t/86400000)*86400000,estimate,limit);
@@ -149,6 +151,7 @@ export async function higgsfieldRoute(request,env,owner,url,d){
     if(d.isLabCustomer&&await d.isLabCustomer(env,owner)&&estimate>SOUL2_CUSTOMER_MAX_QUOTE_MICROS)
       fail(409,'Soul 2 is temporarily above the 7-credit launch price. Nothing submitted or charged. The live API quote must be reviewed before the model can be sold at the advertised rate.');
     p.accountEstimateUsd=estimate/1000000;
+    p.customerChargeCredits=creditsForUsd(estimate/1000000);
     const id=crypto.randomUUID(),expiresAt=d.now()+300000;
     await d.run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,base?.id||null,JSON.stringify(p),estimate,expiresAt,'higgsfield-soul2-quote-v1',String(estimateReply.usd),JSON.stringify({model:p.model,input}));
     return {id,provider:'Higgsfield',sourceId:base?.id||null,settings:p,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,creditCost:creditsForUsd(estimate/1000000),priceIsEstimate:true,expiresAt,
