@@ -108,8 +108,9 @@ test('PV LAB deletes creative records and V2 identity, retains financial receipt
   await processStudioIdentityDeletions(env);
   assert.equal(calls.filter(x=>x.method==='DELETE').length,1);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_clerk_identity_links WHERE canonical_id=?').get(internal).n,0);
-  assert.deepEqual(db.prepare('SELECT state,new_subject FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal),
-    {state:'complete',new_subject:null});
+  const task=db.prepare('SELECT state,new_subject FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal);
+  assert.equal(task.state,'complete');
+  assert.equal(task.new_subject,null);
   assert.deepEqual([...objects.keys()],['user_LegacyKeep/sources/other.png']);
   assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_clerk_identity_links WHERE canonical_id='user_LegacyKeep'").get().n,1);
   await assert.rejects(()=>rejectDeletedStudioSubject(env,subject),/deleted/);
