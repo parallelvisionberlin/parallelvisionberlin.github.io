@@ -115,20 +115,12 @@ export function createReferencePackStudio({
       create=document.createElement('button');create.type='button';
       create.id='pack-studio-new';
     }
-    const compact=allPacks.length>=10&&!query;
-    if(compact){
-      create.className='pack-studio-new-icon';
-      create.textContent='+';
-      create.setAttribute('aria-label','New photo pack');
-      create.title='New photo pack';
-      heading?.append(create);
-    }else{
-      create.className='pack-studio-card-new';
-      create.innerHTML='<span class="pack-studio-card-new-symbol" aria-hidden="true">+</span><strong>New photo pack</strong><small>Keep another set of references</small>';
-      create.setAttribute('aria-label','New photo pack');
-      create.title='New photo pack';
-      grid.append(create);
-    }
+    // Keep all saved collections visible; creation remains in the collection toolbar.
+    create.className='pack-studio-new-icon';
+    create.textContent='+';
+    create.setAttribute('aria-label','New photo pack');
+    create.title='New photo pack';
+    heading?.append(create);
     create.disabled=saving||isBusy()||allPacks.length>=40;
     create.onclick=beginCreate;
   }
