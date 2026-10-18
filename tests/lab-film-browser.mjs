@@ -49,7 +49,7 @@ try{
     await page.waitForFunction(()=>!!window.__filmTest);
     await page.evaluate(()=>window.__filmTest.select());
     const composer=page.locator('#composer-moods .film-finish');await composer.waitFor({state:'visible'});
-    assert.deepEqual(HONG_KONG_FILM_FINISH,{version:2,grain:58,haze:78,halation:80,film:90},'Approved Hong Kong Nights defaults');
+    assert.deepEqual(HONG_KONG_FILM_FINISH,{version:2,grain:0,haze:0,halation:0,film:0},'Restored Hong Kong Nights defaults are off');
     for(const [label,key] of [['Grain','grain'],['Haze','haze'],['Halation','halation'],['Film','film']]){
       assert.equal(await composer.getByRole('slider',{name:label+' intensity'}).inputValue(),String(HONG_KONG_FILM_FINISH[key]),label+' should load the approved default');
     }

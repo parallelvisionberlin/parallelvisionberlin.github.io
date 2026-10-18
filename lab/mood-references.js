@@ -1,5 +1,5 @@
 import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyBudget=20261018v1';
-import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2';
+import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1';
 
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.
@@ -49,6 +49,18 @@ export function moodReferencePlan(settings){
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
   const isHongKong=settings.moodId==='hong-kong-nights';
+  // The original October 10 Hong Kong Nights treatment used its creative
+  // text direction and only user-supplied photographs. Auto-injecting four
+  // unrelated scene photographs changed the input conditioning model.
+  // Restore the original behavior for Base, References-only and text-only.
+  // Preserve saved historical style labels for History and Reuse filtering.
+  if(isHongKong){
+    const budget=settings.engine==='seedreamlite'?3000:5000;
+    const compiled=compileImagePrompt(settings.prompt,labels,{...settings,referenceRoles:labels});
+    const over=compiled.length-budget;
+    if(over>0)throw Error('Direction, Mood and reference instructions exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or optional reference notes.');
+    return {settings,references:[]};
+  }
   const source=isHongKong?HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]:DREAM_BLUR_REFERENCES;
   const moodLabel=isHongKong?'Hong Kong Nights':'Dream Blur';
   // Saved older jobs retain their original four Style sources. Never silently

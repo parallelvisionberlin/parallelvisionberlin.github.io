@@ -16,7 +16,7 @@ config={enabled:true,geminiEnabled:true,concurrency:{image:4,video:1}};
 $('app').hidden=false;$('gate').hidden=true;
 await loadHistory();await restoreStudioEntry();update();finishLabBoot();
 window.__hkTest={
-  select:()=>{moodUI.restore({moodId:'hong-kong-nights',moodIntensity:85},true);moodUI.open();},
+  select:()=>{moodUI.restore({moodId:'hong-kong-nights',moodIntensity:60},true);moodUI.open();},
   active:()=>moodUI.selected(),variant:()=>moodUI.variant(),
   settings:()=>settings(),enrich:()=>moodUI.enrich('One person with existing natural lighting.',{engine:'seedream',referenceCount:1,referenceMode:'base'}),
   close:()=>moodUI.close()
@@ -61,7 +61,7 @@ try{
     assert.equal(snapshot.id,id);
     assert.equal(snapshot.data.metadata.moodVariant,id);
     assert.equal(snapshot.settings.moodVariant,id);
-    assert.equal(snapshot.settings.moodIntensity,85);
+    assert.equal(snapshot.settings.moodIntensity,60);
     assert.equal(snapshot.data.error,'');
     assert.equal(snapshot.selected.filter(x=>x==='true').length,1);
     assert.equal(snapshot.selected[i],'true');

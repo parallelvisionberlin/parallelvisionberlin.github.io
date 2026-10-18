@@ -20,21 +20,24 @@ test('settings reject unsupported values and stable asset IDs isolate owners and
   const a=await filmAssetId('owner-a','image',HONG_KONG_FILM_FINISH);
   assert.equal(a,await filmAssetId('owner-a','image',HONG_KONG_FILM_FINISH));
   assert.notEqual(a,await filmAssetId('owner-b','image',HONG_KONG_FILM_FINISH));
-  assert.notEqual(a,await filmAssetId('owner-a','image',{...HONG_KONG_FILM_FINISH,film:0}));
+  assert.notEqual(a,await filmAssetId('owner-a','image',{...HONG_KONG_FILM_FINISH,film:65}));
 });
 test('off bypasses processing and cached derivatives bypass all rendering',async()=>{
   const original={id:'original',owner_id:'owner',bytes:100,object_key:'owner/original'};
   assert.equal(await prepareFilmAsset({},original,{version:1,grain:0,glow:0},{}),original);
   const saved={id:'finished',owner_id:'owner',object_key:'owner/finished'};
-  assert.equal(await prepareFilmAsset({LAB_MEDIA:{head:async()=>({size:100})}},original,HONG_KONG_FILM_FINISH,{first:async()=>saved}),saved);
-  await assert.rejects(renderFilmFinish(null,new Uint8Array(),HONG_KONG_FILM_FINISH,'x'),/unavailable/);
+  assert.deepEqual(HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,'Restored Hong Kong must not reprocess AI results automatically');
+  assert.equal(await prepareFilmAsset({},original,HONG_KONG_FILM_FINISH,{}),original);
+  const manual={...HONG_KONG_FILM_FINISH,grain:50,haze:60};
+  assert.equal(await prepareFilmAsset({LAB_MEDIA:{head:async()=>({size:100})}},original,manual,{first:async()=>saved}),saved);
+  await assert.rejects(renderFilmFinish(null,new Uint8Array(),manual,'x'),/unavailable/);
 });
 test('Hong Kong finish controls change metadata independently of creative intensity and preserve references',()=>{
   const a=prepareMoodPrompt('One woman by a window','hong-kong-nights',100,{referenceCount:1,filmFinish:{version:1,grain:20,glow:80}});
   const b=prepareMoodPrompt('One woman by a window','hong-kong-nights',100,{referenceCount:1,filmFinish:{version:1,grain:100,glow:0}});
   assert.equal(a.prompt,b.prompt);assert.equal(a.metadata.moodIntensity,100);assert.equal(b.metadata.filmFinish.grain,100);
-  assert.match(a.prompt,/Preserve realistic skin, architecture, identity and camera/);
-  assert.match(a.prompt,/BLOOM: motivated scene-wide optical softness/);
+  assert.match(a.prompt,/Preserve face, identity, real body proportions/);
+  assert.match(a.prompt,/Respect the original scene and lighting/);
   assert.doesNotMatch(a.prompt,/Heavy irregular clustered grain/);
   assert.equal(prepareMoodPrompt('Portrait','berlin-rave',100).metadata.filmFinish,undefined);
   assert.equal(preparePersonalMoodPrompt('Portrait',{id:'board',name:'Mine',baseMoodId:'hong-kong-nights',direction:'Quiet light'},60).metadata.filmFinish,undefined);
@@ -55,12 +58,13 @@ test('source-aware grain preserves black and white, favors midtones and does not
   for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
   assert.equal(FILM_RENDER_REVISION,7,'new processing must not reuse earlier cached derivatives');
 });
-test('Hong Kong optical finish preserves the setting and addresses foreground light at every tier',()=>{
+test('Restored Hong Kong look preserves subject and does not require invented scene relighting at any strength',()=>{
   for(const intensity of [21,70,100]){
     const {prompt,error}=prepareMoodPrompt('Portrait','hong-kong-nights',intensity,{referenceCount:1});
-    assert.equal(error,'');assert.match(prompt,/Relight whole Base \(face, clothes and room\/rock\)/);
-    assert.match(prompt,/Preserve body, pose, wardrobe, camera and original scene/);assert.match(prompt,/WET \/ GLOSS/);
-    assert.match(prompt,/no coarse generated noise/);
+    assert.equal(error,'');
+    assert.match(prompt,/Preserve face, identity, real body proportions, pose, camera, wardrobe and composition/);
+    assert.match(prompt,/Avoid: forced all-green tint/);
+    assert.doesNotMatch(prompt,/Relight whole Base|reconstruct cinematic scene lighting|off-axis light modeling/);
   }
 });
 
@@ -104,9 +108,11 @@ test('deluxe photochemical response builds progressively above 70 without changi
   assert.equal(baseline.signature,0);
   assert.equal(baseline.hazeRadius,43);
   const newDefault=photochemicalPlan(HONG_KONG_FILM_FINISH);
-  assert.ok(newDefault.signature>0&&newDefault.hazeRadius>baseline.hazeRadius);
-  assert.ok(newDefault.halationOpacity>baseline.halationOpacity);
-  assert.ok(newDefault.grainAmount<100,'The default must not be maximum coarse grain');
+  assert.equal(newDefault.signature,0,'Automatic Film Finish must be completely disabled');
+  assert.equal(newDefault.hazeOpacity,0);
+  assert.equal(newDefault.halationOpacity,0);
+  assert.equal(newDefault.printOpacity,0);
+  assert.equal(newDefault.grainAmount,0);
   const full=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100});
   assert.equal(full.signature,1);
   assert.ok(full.grainAmount>125&&full.grainAmount<=134);

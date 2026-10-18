@@ -83,7 +83,7 @@ for(const mood of MOODS){
         }else{
           assert.ok(roles.every(r=>r.role!=='base'),context+' cannot invent a Base from style photos');
         }
-        if(['dream-blur','hong-kong-nights'].includes(mood.id)){
+        if(mood.id==='dream-blur'){
           assert.equal(planned.references.length,4,context+' optical Mood needs four style references');
           assert.ok(roles.slice(hasPhoto?1:0).every(r=>r.role==='style'),context+' style photos must not override identity');
         }else{
