@@ -419,9 +419,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(prefers-reduced-motion:reduce){.mc-hero-upload{transition:none}}
 
 /* Hong Kong Nights: favor the street-level lower part of the original. */
-.mc-frame-two img{object-position:50% 100%}
-.mc-look-card[data-mood-id="hong-kong-nights"] .mc-look-photo img{object-position:50% 100%}
-.mc-look-dialog[data-mood-id="hong-kong-nights"] .mc-look-dialog-media img{object-position:50% 100%}
+.mc-frame-two img{object-position:57% 48%}
+.mc-look-card[data-mood-id="hong-kong-nights"] .mc-look-photo img{object-position:60% 48%}
+.mc-look-dialog[data-mood-id="hong-kong-nights"] .mc-look-dialog-media img{object-position:55% 48%}
 
 
 /* Plain line icons stay monochrome on iOS, including dynamic saved-Mood actions. */
