@@ -24,3 +24,14 @@ Apply the owner-approved Elements tab hero visuals without redesigning library, 
 
 ## Next action
 Confirm Cloudflare Pages production deploy for merge `1064c992` or later, and visually inspect the four tabs at `https://pvlab.studio/studio?tool=image`, including narrow viewport behavior. Keep all existing Photo Packs, Elements, and generation flows.
+
+## 2026-10-18 saved-element thumbnail and hero repair
+- Reproduced from the owner's MyRoom screenshot: after creating a Location, the category hero vanished and both the selected-element preview and the card showed broken-image text.
+- Root causes verified in `lab/scene-library.js`: it set `hero.hidden=true` for any saved item, and passed a precreated `<img>` to `composerAssetPhoto`, which requires a connected container element and inserts its own decoded image.
+- PR #322 merged as `e29d9f54a7d172058a62baed9cef3282030cab56`. Static category hero always remains; cards and expanded details use authentic private-thumbnail DIV hosts. First item is not auto-selected, while clicking a card opens a separate feature panel. No reference order, prompts, credits, provider, or Photo Packs were changed.
+- Cards compute a deterministic ratio-matched best cover from their existing private reference thumbnails with first-valid fallback. The selection is UI-only and recomputed on new sessions; no persistent cover URL or database field was added.
+- `lab/scene-library.css` scopes correct `object-fit:cover` image containers and unavailable-image placeholder. `lab/lab.js` supplies dimension reading through authenticated thumbnail blobs, not provider generation. `lab/studio.html` refreshes CSS and script versions.
+- Added pure selector tests `tests/lab-scene-library-cover.test.mjs` and a 4-photo MyRoom fixture regression in `tests/lab-studio-layout-ui.mjs`.
+- CI on PR #322 reached the new MyRoom assertion after verifying visible hero, decoded landscape card photo and selected-item details, but its immediate image-count check after list toggle raced asynchronous decoding. PR #323 merged `156232b9476cc26d1f0dbb623870f2d5516134af` to wait for the image instead.
+- The existing Photo Packs browser check also used an outdated create-card assertion after a separate toolbar redesign; PR #323 updates this test to the approved toolbar layout.
+- Full post-merge browser CI and Cloudflare Pages live domain verification remain outstanding unless subsequently confirmed.
