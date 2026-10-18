@@ -1,10 +1,12 @@
-import {moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&hongKongStreet=1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&berlinCard=20261015&dreamBlur=20261015v1&filmCapture=20261016v2';
+import {moodById} from './moods.js?v=20261018-girard-originals2&old=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&hongKongStreet=1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&berlinCard=20261015&dreamBlur=20261015v1&filmCapture=20261016v2';
 import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261012-generate1';
+import {hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2';
 // Browsing and uploads only prepare a price. Generate explicitly authorizes one job.
-export function moodExploreDestination(moodId,{create=false,handoff=null}={}){
+export function moodExploreDestination(moodId,{create=false,handoff=null,moodVariant='original'}={}){
   if(!moodById(moodId))throw Error('Choose a valid PV Lab Mood.');
   const query=new URLSearchParams(create?{base:moodId}:{tool:'image',mood:moodId});
   if(handoff)query.set('handoff',handoff);
+  if(moodId==='hong-kong-nights'&&!create&&hongKongVariant(moodVariant)!=='original')query.set('variation',hongKongVariant(moodVariant));
   return './'+(create?'mood-creator.html':'studio.html')+'?'+query;
 }
 function initialize(){
@@ -13,7 +15,24 @@ function initialize(){
   const direction=$('mc-look-direction'),status=$('mc-look-status');
   const uploadError=$('mc-look-upload-error'),uploadErrorTitle=$('mc-look-upload-error-title'),
     uploadErrorDetail=$('mc-look-upload-error-detail');
-  let mood=null,file=null,fileURL=null,busy=false,dragDepth=0;
+  let mood=null,file=null,fileURL=null,busy=false,dragDepth=0,moodVariant='original';
+  const variationRow=$('mc-hk-variation');
+  const variationOptions=[...variationRow.querySelectorAll('[data-hk-variant]')];
+  function renderVariation(){
+    variationRow.hidden=mood?.id!=='hong-kong-nights';
+    for(const option of variationOptions){
+      const active=option.dataset.hkVariant===moodVariant;
+      option.classList.toggle('is-selected',active);
+      option.setAttribute('aria-pressed',String(active));
+      option.disabled=busy;
+    }
+  }
+  for(const option of variationOptions)option.onclick=()=>{
+    if(busy||mood?.id!=='hong-kong-nights')return;
+    const choice=hongKongVariant(option.dataset.hkVariant);
+    if(choice===moodVariant)return;
+    moodVariant=choice;renderVariation();schedulePrice(0);
+  };
   let price=null,priceTask=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
   const creditNote=$('mc-look-credit-note'),accessAction=$('mc-look-access-action');
   const generate=$('mc-look-continue'),result=$('mc-look-result');
@@ -188,7 +207,7 @@ function initialize(){
     const promise=(async()=>{
       const client=await generationService();
       if(stamp!==priceRevision||!dialog.open)return null;
-      const ready=await client.prepare(source,selected,description);
+      const ready=await client.prepare(source,selected,description,moodVariant);
       if(stamp!==priceRevision||!dialog.open)return null;
       price=ready;needsSignIn=false;clearAccessNotice();
       // Keep the exact verified charge separate from the main button.
@@ -282,7 +301,7 @@ function initialize(){
   }
   function showMood(selected,photo=null){
     if(!selected||busy)return;
-    clearResult();resetPrice();mood=selected;clearPhoto();direction.value='';status.textContent='';
+    clearResult();resetPrice();mood=selected;moodVariant='original';renderVariation();clearPhoto();direction.value='';status.textContent='';
     const preview=$('mc-look-preview');
     preview.dataset.moodId=selected.id;
     // Reuse the gallery's HD image while the untouched original decodes offscreen.
@@ -309,7 +328,7 @@ function initialize(){
   dialog.addEventListener('close',()=>{
     if(dialog.open)return;
     dialog.style.removeProperty('--mc-editor-height');
-    clearResult();resetPrice();clearPhoto();mood=null;setBusy(false);generate.disabled=true;
+    clearResult();resetPrice();clearPhoto();mood=null;moodVariant='original';renderVariation();setBusy(false);generate.disabled=true;
     $('mc-look-preview').removeAttribute('src');
   });
   $('mc-look-close').onclick=close;
@@ -365,7 +384,7 @@ function initialize(){
     status.textContent='Preparing your private photo handoff. Nothing is being generated.';
     try{
       const token=await saveMoodHandoff({file,prompt:direction.value.trim()});
-      location.assign(moodExploreDestination(mood.id,{create,handoff:token}));
+      location.assign(moodExploreDestination(mood.id,{create,handoff:token,moodVariant}));
     }catch(error){
       status.textContent=error.message;
       setBusy(false);schedulePrice();status.textContent=error.message;
@@ -478,7 +497,7 @@ function initialize(){
     try{
       const created=new File([resultBlob],'pvlab-'+mood.id+'.'+ext,{type});
       const token=await saveMoodHandoff({file:created,prompt:direction.value.trim()});
-      location.assign(moodExploreDestination(mood.id,{handoff:token}));
+      location.assign(moodExploreDestination(mood.id,{handoff:token,moodVariant}));
     }catch(error){setBusy(false);status.textContent=error.message;}
   })();
   $('mc-look-make').onclick=()=>void continueWithMood(true);
