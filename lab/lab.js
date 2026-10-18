@@ -1,4 +1,4 @@
-import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
+import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24&creditHeader=20261018v1';
 import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261017-category-heroes3';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3';
