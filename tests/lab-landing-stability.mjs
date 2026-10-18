@@ -128,7 +128,7 @@ try{
       await page.waitForFunction(()=>document.querySelector('#lab-home-credit-copy')?.textContent==='1,200',null,{timeout:10000});
       assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'1,200');
       assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),width>560);
-      assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'#pricing');
+      assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'./account.html#balance');
       assert.equal(await page.locator('#lab-home-upgrade').count(),0);
       assert.equal(await page.locator('[data-lab-signin]').isVisible(),false);
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width}: signed-in header fits viewport`);
