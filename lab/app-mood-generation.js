@@ -1,7 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
-import {prepareMoodPrompt} from './moods.js?filmOptics=2&app=5&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&hkPhoto=20261018v1&hkVariants=20261018-real1';
-import {createMoodReferenceLoader,moodReferencePlan} from './mood-references.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1';
+import {prepareMoodPrompt} from './moods.js?hkRealPhotos=20261018v2&filmOptics=2&app=5&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&hkPhoto=20261018v1&hkVariants=20261018-real1';
+import {createMoodReferenceLoader,moodReferencePlan} from './mood-references.js?hkRealPhotos=20261018v2&dreamBlurBudget=20261016v1&v=20261013-compact-map2&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1';
 import {normalizeReferenceLabel} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyDreamBlurFix=20261018v1';
 import {imageDimensions,seedreamWorkingCopy,providerWorkingCopy,PROVIDER_IMAGE_LIMIT} from './image-tools.js?v=20261011-reference-prewarm1';
 import {pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1&imageRatio=20261016-inherit1';
@@ -46,7 +46,7 @@ export function createAppMoodGeneration(){
     cancel(){revision++;},
     async onAccountChange(listener){return (await identity()).addListener(listener);},
     async signIn(){const user=await identity();if(!user.isSignedIn)user.openSignIn();return user.isSignedIn;},
-    async prepare(file,mood,direction){
+    async prepare(file,mood,direction,moodVariant='original'){
       const preparationStarted=performance.now();
       const stamp=++revision,user=await identity();
       if(!user.isSignedIn){const error=Error('Sign in to generate. Your photograph stays here.');error.code='SIGN_IN';throw error;}
@@ -74,7 +74,7 @@ export function createAppMoodGeneration(){
       if(!file&&!direction.trim())throw Error('Add a photograph or describe what you want to create.');
       check();
       if(dimensions&&(Math.min(dimensions.width,dimensions.height)<240||Math.max(dimensions.width,dimensions.height)>8000||Math.max(dimensions.width/dimensions.height,dimensions.height/dimensions.width)>8))throw Error('Choose a photograph between 240 and 8,000 pixels per side.');
-      const recipe=prepareMoodPrompt(direction,mood.id,mood.defaultIntensity||70,{engine:'seedream',referenceCount:file?1:0,referenceMode:'base'});
+      const recipe=prepareMoodPrompt(direction,mood.id,mood.defaultIntensity||70,{engine:'seedream',referenceCount:file?1:0,referenceMode:'base',moodVariant});
       if(recipe.error)throw Error(recipe.error);
       // Photobooth favors faster first results at 1K. Studio keeps its independent HD selector.
       const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'1k',aspectRatio:imageAutoRatio({values:['16:9','9:16','1:1','4:3','3:4','3:2','2:3','4:5','5:4','21:9'],reference:dimensions}),outputFormat:'png',referenceRoles:file?[normalizeReferenceLabel({name:file.name,role:'base'})]:[]};
@@ -94,7 +94,7 @@ export function createAppMoodGeneration(){
       ]);check();
       const styleIds=curated.references.map(ref=>ref.id);
       const quote=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:[...(original?[original.id]:[]),...styleIds],transferSourceIds:[...(transfer?[transfer]:[]),...styleIds],settings:curated.settings}});check();
-      if(!quote?.id||quote.settings?.engine!=='seedream'||quote.settings?.moodId!==mood.id||!Number.isFinite(quote.expiresAt)||quote.expiresAt<=Date.now()||!Number.isFinite(quote.maxUsd))throw Error('Could not verify the generation price. Try again.');
+      if(!quote?.id||quote.settings?.engine!=='seedream'||quote.settings?.moodId!==mood.id||quote.settings?.moodVariant!==recipe.metadata.moodVariant||!Number.isFinite(quote.expiresAt)||quote.expiresAt<=Date.now()||!Number.isFinite(quote.maxUsd))throw Error('Could not verify the generation price. Try again.');
       // Owner and customer see the exact same server-bound retail credit cost.
       // Owner testing is not a wallet charge; the label previews customer pricing.
       const label=pricedBoundQuotes(quote,1,'SpicyAPI').credits+' credits';

@@ -10,7 +10,7 @@
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;450;500;550;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./mood-creator.css?v=20261011-direction-deck1">
+<link rel="stylesheet" href="./mood-creator.css?v=20261018-girard2&20261011-direction-deck1">
 <link rel="stylesheet" href="./explore-moods-editorial.css?v=20261015-berlin-rave-card1&dreamBlur=20261015v1&uniformCardTitle=20261016v2&uploadFeedback=20261016v1&accessNotice=20261018v1">
 <link rel="stylesheet" href="./explore-moods-hero.css?v=20261012-photo-lift1">
 <link rel="stylesheet" href="./public-header.css?v=20261012-context-nav1">
@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="./home-navigation.css?v=20261012-home1">
 <link rel="stylesheet" href="./explore-moods-nav.css?v=20261016-unified-nav1&resultFit=20261016v1&exposure=20261016v3">
 <link rel="stylesheet" href="/lab/site-footer.css?v=20261013-footer1">
+<link rel="stylesheet" href="./hk-original-variation.css?v=20261018-girard1">
 </head>
 <body class="mc-explore-page">
 <a class="mc-skip" href="#discover">Skip to Moods</a>
@@ -79,7 +80,7 @@
     <div class="mc-discovery-bar"><span>01 / EXPLORE THE MOODS</span><span>CHOOSE · DROP · TRANSFORM</span></div>
     <div class="mc-look-grid" id="mc-look-grid" aria-label="All 16 curated visual Moods">
       <button class="mc-look-card" type="button" data-mood-id="hong-kong-nights" aria-label="Explore Hong Kong Nights Mood photography. Add a photograph or direction.">
-  <span class="mc-look-photo"><img src="/lab/mood-previews/hong-kong-nights-street-20261011.svg" alt="Emerald night street, car and reflected city lights" fetchpriority="high" decoding="async"><span class="mc-look-try" aria-hidden="true">Try this Mood <svg class="pv-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg></span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-photo"><img src="/lab/mood-references/hong-kong-nights/plaza-grill.webp" alt="Actual analog nighttime street photograph, emerald and warm neon" fetchpriority="high" decoding="async"><span class="mc-look-try" aria-hidden="true">Try this Mood <svg class="pv-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg></span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
   <span class="mc-look-index">01</span>
   <span class="mc-look-copy"><strong>Hong Kong Nights</strong></span>
   <small>Neon. Rain. Reality on film.</small>
@@ -184,6 +185,14 @@
     <span class="mc-look-dialog-eyebrow">PV LAB / SELECTED MOOD</span>
     <h2 id="mc-look-title">Choose your Mood.</h2>
     <p id="mc-look-description">Transform an image with this creative direction.</p>
+    <div id="mc-hk-variation" class="mc-hk-variation" role="group" aria-label="Hong Kong Nights photographic treatment" hidden>
+      <span class="mc-hk-variation-title">PHOTOGRAPHIC TREATMENT</span>
+      <div class="mc-hk-variation-choices">
+        <button type="button" data-hk-variant="original" aria-pressed="true">Original</button>
+        <button type="button" data-hk-variant="deep-green" aria-pressed="false">Deep Green</button>
+        <button type="button" data-hk-variant="slow-shutter" aria-pressed="false">Slow Shutter</button>
+      </div>
+    </div>
     <div class="mc-look-dropzone" id="mc-look-dropzone" role="group" aria-label="Photo for the chosen Mood">
       <label for="mc-look-file" id="mc-look-file-label">
         <span id="mc-look-upload-symbol" aria-hidden="true">+</span>
@@ -259,7 +268,7 @@
   </div>
   <div class="mc-invent-collage" aria-label="Photographic inspiration for your own Mood">
     <div class="mc-invent-frame mc-invent-frame-one"><img src="./visuals/greenhouse-portrait.webp" alt="Sculptural ivory fashion in a sunlit greenhouse" loading="lazy" decoding="async"></div>
-    <div class="mc-invent-frame mc-invent-frame-two"><img src="./mood-previews/hong-kong-nights-street-20261011.svg" alt="Emerald city lights over a nighttime street" loading="lazy" decoding="async"></div>
+    <div class="mc-invent-frame mc-invent-frame-two"><img src="./mood-references/hong-kong-nights/plaza-grill.webp" alt="Emerald city lights over a nighttime street" loading="lazy" decoding="async"></div>
     <div class="mc-invent-frame mc-invent-frame-three"><img src="./mood-bank/2026-10-11/dreamcore/preview.webp" alt="A pastel train platform reflected in the rain" loading="lazy" decoding="async"></div>
     <a class="mc-invent-photo" href="./mood-creator.html?start=image"><span aria-hidden="true">+</span><strong>Start with a photograph</strong></a>
     <span class="mc-invent-caption">A NEW LOOK STARTS WITH YOU.</span>
@@ -297,7 +306,7 @@
   </div>
   <div class="pv-lab-footer__bottom"><p>© 2026 PV LAB · Berlin</p><p>Image. Motion. Possibility.</p></div>
 </footer>
-<script type="module" src="./explore-moods.js?accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261015-berlin-rave-preview1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&quoteUX=20261016v1&ratioAndReferences=20261016v2&inlineResult=20261016v1&oneClick=20261016v2&resultFit=20261016v1&uploadFeedback=20261016v1&exposure=20261016v3&mood2k=20261016v1&savingPoll=20261017v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkVariants=20261018-real1"></script>
+<script type="module" src="./explore-moods.js?hkRealPhotos=20261018&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261015-berlin-rave-preview1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&quoteUX=20261016v1&ratioAndReferences=20261016v2&inlineResult=20261016v1&oneClick=20261016v2&resultFit=20261016v1&uploadFeedback=20261016v1&exposure=20261016v3&mood2k=20261016v1&savingPoll=20261017v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkVariants=20261018-real1"></script>
 <script type="module" src="./explore-moods-hero.js?v=20261012-editorial-order1"></script>
 <script type="module" src="./customer-entry.js?v=20261012-account2&menu=20261014-editorial1&studioAuth=20261015-1&accountEdge=20261016-24&closure=20261017-logout1"></script>
 <script type="module" src="./traffic.js?v=20261015-traffic1"></script>
