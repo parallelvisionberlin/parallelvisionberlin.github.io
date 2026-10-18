@@ -53,7 +53,7 @@ try{
     await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
     assert.equal(await page.locator('#lab-pricing-overlay #pricing button[data-lab-buy]').count(),6,'Live homepage SKUs are shown without duplicate markup');
     assert.equal(await page.locator('#lab-pricing-overlay .lab-overlay-brand').textContent(),'PV LAB','Compact Studio-only brand is present');
-    assert.equal((await page.locator('#lab-pricing-overlay #lab-plans-title').innerText()).replace(/\\s+/g,' ').trim(),'More room to create.','Approved headline is shown in the Studio only');
+    assert.equal((await page.locator('#lab-pricing-overlay #lab-plans-title').innerText()).replace(/\s+/g,' ').trim(),'More room to create.','Approved headline is shown in the Studio only');
     assert.equal(await page.locator('#lab-pricing-overlay .lab-pricing-deck').isVisible(),false,'Homepage image fan is not duplicated into the Studio modal');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-overlay-plan-note').count(),3,'Each monthly card has its short capability note');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-overlay-icon').count(),12,'All usage and capability icons appear');

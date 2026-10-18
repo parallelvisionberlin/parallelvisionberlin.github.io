@@ -57,7 +57,7 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
     // come directly from the homepage. Never rewrite the public pricing page.
     section.classList.add('lab-studio-pricing');
     const comparison=section.querySelector('.lab-pricing-comparison');
-    comparison?.insertAdjacentHTML('afterbegin','<span class="lab-overlay-brand">PV LAB</span><p class="lab-overlay-tagline" aria-hidden="true">SAME VISION.\\nMORE POSSIBILITIES.</p>');
+    comparison?.insertAdjacentHTML('afterbegin','<span class="lab-overlay-brand">PV LAB</span><p class="lab-overlay-tagline" aria-hidden="true">SAME VISION.<br>MORE POSSIBILITIES.</p>');
     const heading=section.querySelector('#lab-plans-title');
     if(heading)heading.innerHTML='More room <span>to create.</span>';
     const intro=section.querySelector('.lab-plans-intro');
