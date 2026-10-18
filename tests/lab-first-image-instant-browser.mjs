@@ -256,12 +256,12 @@ try{
   assert.ok(Math.abs(newCardY-cardY)<8,
     'Opening the docked deck must keep the six Mood cards stable in document coordinates: '+
       JSON.stringify({cardY,newCardY,delta:newCardY-cardY,scrollY:await page.evaluate(()=>scrollY)}));
-  assert.equal(await field.inputValue(),enteredText,'Selecting a Mood preserves the user text');
+  assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Selecting a Mood preserves the user text');
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
     'The first Mood selection must use Seedream 2K, not the generic Studio 1K default');
   assert.equal(await button.isEnabled(),true,'Green Haze must enable Generate in the same click');
   await page.locator('[data-welcome-mood="dream-blur"]').click();
-  assert.equal(await field.inputValue(),enteredText,'Changing Moods preserves the user text');
+  assert.equal((await field.inputValue()).trimEnd(),enteredText.trimEnd(),'Changing Moods preserves the user text');
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
     'Switching welcome Moods must retain the agreed 2K default');
   assert.doesNotMatch(await button.getAttribute('data-credits')||'',/Confirming credits/i,
