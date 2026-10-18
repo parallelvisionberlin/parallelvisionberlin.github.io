@@ -403,7 +403,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           ?[
             mood.ultra, mood.ultraRouting,
             intensity===100?'MAXIMUM 100%: dense luminous humid air; thin black letterbox bars top/bottom without hiding the subject.':intensity>=70?'Strong night atmosphere and luminous haze with rich dark gaps.':'Gentle photographic night atmosphere.',
-            hongKongOpticalDirection(variation),
+            hongKongOpticalDirection(variation,{lite:true}),
             'IDENTITY FIRST: keep Base/Identity facial geometry, expression, hairline, anatomy, outfit, pose, place and framing. Style references guide optics, not faces. GRAIN: fine integrated film texture. BLOOM: optical softness of people and setting. HALATION: only existing lamps, windows and specular reflections, no body halo or bright backdrop patch. WET / GLOSS: plausible glass and polished surfaces, no invented rain.'
           ].join(' ')
           :[
@@ -413,7 +413,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           'Photographic treatment strength '+intensity+'/100: reconstruct cinematic scene lighting, NOT a green overlay or post-process filter.',
           intensity<=34?mood.subtle:intensity<=69?mood.moderate:intensity<100?mood.intense:mood.climax,
           compactHongKong
-            ?'IDENTITY FIRST: Base/Identity images control facial geometry, eyes, age, expression and hairline. Preserve body, pose, wardrobe, camera and original scene. Style references are optics only. GRAIN: visible natural 35mm emulsion texture, not added digital speckles. BLOOM: motivated scene-wide optical softness. HALATION: spread only at existing lamps, windows and specular reflections, no body halo or bright backdrop patch. WET / GLOSS: moisture sheen only on believable existing surfaces.'
+            ?'IDENTITY FIRST: Base/Identity images control facial geometry, eyes, age, expression and hairline. Preserve body, pose, wardrobe, camera and original scene. Style references are optics only. GRAIN: visible natural 35mm emulsion texture, no coarse generated noise or added digital speckles. BLOOM: motivated scene-wide optical softness. HALATION: spread only at existing lamps, windows and specular reflections, no body halo or bright backdrop patch. WET / GLOSS: moisture sheen only on believable existing surfaces.'
             :'IDENTITY FIRST at every strength: Base/Identity references govern facial geometry, age, expression and hairline. Keep the Base location, architecture, subject, wardrobe, body, pose, camera and composition while allowing pores, hair and fabric edges to soften optically without reshaping the face. Style references contribute optical lighting, never other people. WET / GLOSS: integrate reflective moisture only into appropriate glass, floors and surfaces; no water on sofas or skin. GRAIN: irregular, tactile 35mm photochemical texture with believable shadow grain, not coarse digital speckles. BLOOM: luminous light spread across the real environment and subject, not a flat filter. HALATION: luminous spill tied to existing lamps, windows and specular reflections, no body outline, glowing silhouette or bright backdrop patch.'
         ].join(' ')
         :intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
@@ -564,7 +564,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     const title=document.createElement('strong');title.textContent=mood.name;
     const subtitle=document.createElement('small');subtitle.textContent=captions[mood.id]||mood.description;info.append(title,subtitle);
     card.append(media,info);
-    card.onclick=()=>{const previous=selected;selected=selected===mood.id?null:mood.id;if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;if(selected==='hong-kong-nights'&&previous!==selected){variation='original';finishControls.set(hongKongFinishPreset(variation));}render();fitPanelViewport();onChange({selectedMood:true});};
+    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;if(selected==='hong-kong-nights'){variation='original';finishControls.set(hongKongFinishPreset(variation));}render();fitPanelViewport();onChange({selectedMood:true});};
     grid.append(card);cards.set(mood.id,card);
   }
   function render(){
