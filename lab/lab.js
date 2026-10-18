@@ -1904,12 +1904,71 @@ function syncImageStudioMode(){
   }
   syncImageComposer();
 }
+// Elements autocomplete changes only the text entry experience. Its underlying
+// selected images and profiles remain in the existing private reference pipeline.
+const elementSuggestions=$('scene-element-suggestions');
+let elementMentionMatches=[];
+function closeElementSuggestions(){
+  elementSuggestions.hidden=true;elementSuggestions.replaceChildren();elementMentionMatches=[];
+}
+function elementMentionContext(){
+  const field=$('image-composer-prompt');
+  const cursor=field.selectionStart;
+  const prefix=field.value.slice(0,cursor);
+  const found=/(?:^|[\s(])@([^@\n,;]{0,70})$/.exec(prefix);
+  if(!found)return null;
+  const phrase=found[1],start=cursor-phrase.length-1;
+  return {start,end:cursor,query:phrase.trim().toLocaleLowerCase()};
+}
+function updateElementSuggestions(){
+  if(tool!=='image'||busy||!owner){closeElementSuggestions();return;}
+  const found=elementMentionContext();
+  if(!found){closeElementSuggestions();return;}
+  const available=sceneLibrary?.items?.()||[];
+  const matches=available.filter(entry=>entry.title.toLocaleLowerCase().includes(found.query)).slice(0,6);
+  if(!matches.length){closeElementSuggestions();return;}
+  elementMentionMatches=matches;
+  elementSuggestions.replaceChildren();
+  for(const entry of matches){
+    const choice=document.createElement('button');choice.type='button';choice.className='scene-element-choice';
+    choice.setAttribute('role','option');
+    const name=document.createElement('strong');name.textContent='@'+entry.title;
+    const kind=document.createElement('small');kind.textContent=entry.category.slice(0,-1)+' · '+entry.refs.length+' saved view'+(entry.refs.length===1?'':'s');
+    choice.append(name,kind);
+    choice.onmousedown=event=>event.preventDefault();
+    choice.onclick=()=>{void chooseElementMention(entry);};
+    elementSuggestions.append(choice);
+  }
+  elementSuggestions.hidden=false;
+}
+async function chooseElementMention(entry){
+  const field=$('image-composer-prompt'),found=elementMentionContext();
+  if(!found){closeElementSuggestions();return;}
+  field.value=field.value.slice(0,found.start)+'@'+entry.title+field.value.slice(found.end);
+  const cursor=found.start+entry.title.length+1;
+  field.focus();field.setSelectionRange(cursor,cursor);
+  closeElementSuggestions();
+  field.dispatchEvent(new Event('input',{bubbles:true}));
+  await sceneLibrary?.useById?.(entry.id);
+}
+$('image-composer-prompt').addEventListener('keydown',event=>{
+  if(elementSuggestions.hidden)return;
+  if(event.key==='Escape'){closeElementSuggestions();event.stopPropagation();}
+  if(event.key==='Enter'&&elementMentionMatches.length){
+    event.preventDefault();void chooseElementMention(elementMentionMatches[0]);
+  }
+});
+document.addEventListener('pointerdown',event=>{
+  if(!event.target.closest('#scene-element-suggestions,#image-composer-prompt'))
+    closeElementSuggestions();
+});
 $('image-composer-prompt').addEventListener('input',event=>{
   if(busy)return;
   const textbox=$('image-composer-prompt');
   const pastedAtEnd=event.inputType==='insertFromPaste'&&textbox.selectionEnd===textbox.value.length;
   $('prompt').value=textbox.value;
   $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
+  updateElementSuggestions();
   // A long paste at the end should land on the newest lines, not on the first.
   // Wait for the normal composer sync to fit the field, then scroll the field only.
   if(pastedAtEnd)requestAnimationFrame(()=>{
