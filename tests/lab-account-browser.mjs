@@ -236,7 +236,8 @@ try{
     try{
       await page.goto(origin+'/lab/');
       await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
-      assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'Closed accounts do not advertise spendable credits');
+      assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Closed accounts retain billing access without showing spendable credits');
+      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Account closed');
       await page.locator('.pv-account-menu>summary').click();
       assert.equal(await page.locator('[data-account-balance]').textContent(),'Account closed','Closed-account menu never advertises credits');
       assert.deepEqual(errors,[]);
