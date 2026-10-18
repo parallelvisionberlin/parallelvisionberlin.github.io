@@ -1,0 +1,102 @@
+// Focused, mock-only Elements browser test. No generation, training or spending.
+import assert from 'node:assert/strict';
+import http from 'node:http';
+import {readFileSync,existsSync} from 'node:fs';
+import {resolve,extname} from 'node:path';
+import {pathToFileURL} from 'node:url';
+
+const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
+const root=resolve('.');
+const source=readFileSync('lab/lab.js','utf8');
+const start=source.indexOf("try{clerk=await loadLabAccount();");
+const end=source.indexOf("\n// Soul composer:",start);
+assert.ok(start>0&&end>start,'Expected tested account bootstrap');
+const testSource=source.slice(0,start)+source.slice(end)+
+  "clerk={isSignedIn:true,user:{id:'elements-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='elements-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__pvLabFinishBoot?.();window.__elementsBrowserReady=true;";
+const server=http.createServer((req,res)=>{
+  const u=new URL(req.url,'http://localhost');
+  const file=resolve(root,'.'+u.pathname+(u.pathname.endsWith('/')?'index.html':''));
+  if(!file.startsWith(root+'/')||!existsSync(file)){res.writeHead(404).end();return;}
+  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.jpg':'image/jpeg','.webp':'image/webp'})[extname(file)]||'text/plain');
+  res.end(u.pathname==='/lab/lab.js'?testSource:readFileSync(file));
+});
+await new Promise(ok=>server.listen(4189,'127.0.0.1',ok));
+const id=n=>'ad4b7111-39f4-47a9-898b-'+String(n).padStart(12,'0');
+const room={id:id(1),name:'PVSCENE1|locations|MyRoom',created_at:Date.now(),
+  refs:[{id:id(101),name:'room-a.webp',role:'room',note:'Preserve the real room'},
+        {id:id(102),name:'room-b.webp',role:'room',note:'Preserve the real room'},
+        {id:id(103),name:'room-c.webp',role:'room',note:'Preserve the real room'},
+        {id:id(104),name:'room-d.webp',role:'room',note:'Preserve the real room'}],
+  profile:{version:1,category:'locations',summary:'One real room with a wooden door, bookshelf and window.',
+    signature:'Preserve the same floor plan, room dimensions, furnishings and spatial landmarks.',
+    landmarks:['door','bookshelf','window'],
+    shots:[{index:0,description:'door view',keywords:['door']},
+           {index:1,description:'bed view',keywords:['bed']},
+           {index:2,description:'window view',keywords:['window']},
+           {index:3,description:'wide view',keywords:['wide']}]}
+};
+const nina={id:id(2),name:'PVSCENE1|characters|Nina FOK',created_at:Date.now(),
+  refs:[{id:id(201),name:'nina-front.webp',role:'identity',note:'Nina face'},
+        {id:id(202),name:'nina-side.webp',role:'identity',note:'Nina face'},
+        {id:id(203),name:'nina-back.webp',role:'identity',note:'Nina face'},
+        {id:id(204),name:'nina-three-quarter.webp',role:'identity',note:'Nina face'}],
+  profile:{version:1,category:'characters',summary:'One consistent female editorial portrait subject with dark hair.',
+    signature:'Preserve the facial geometry, hairline, eye spacing and distinctive facial structure.',
+    landmarks:['dark hair'],shots:[0,1,2,3].map(i=>({index:i,description:'portrait angle',keywords:['portrait']}))}
+};
+const media=readFileSync('lab/scene-hero-art/locations.webp');
+const browser=await chromium.launch({headless:true});
+const context=await browser.newContext({viewport:{width:1440,height:900}});
+const page=await context.newPage();
+const errors=[];
+page.on('pageerror',err=>errors.push(err.message));
+await page.route('https://**/*',async route=>{
+  const url=new URL(route.request().url()),path=url.pathname;
+  if(!url.hostname.endsWith('parallelvision.workers.dev'))return route.abort();
+  if(path.startsWith('/api/assets/'))return route.fulfill({
+    status:200,contentType:'image/webp',body:media
+  });
+  if(path==='/api/jobs')return route.fulfill({status:200,contentType:'application/json',
+    body:JSON.stringify({jobs:[],activeJobs:[],next:null,concurrency:{image:4,video:1}})});
+  if(path==='/api/packs')return route.fulfill({status:200,contentType:'application/json',
+    body:JSON.stringify({packs:[room,nina]})});
+  if(path==='/api/soul-pro/identity')return route.fulfill({status:200,contentType:'application/json',
+    body:JSON.stringify({configured:false,count:0,refs:[]})});
+  return route.fulfill({status:200,contentType:'application/json',body:'{}'});
+});
+try{
+  await page.goto('http://127.0.0.1:4189/lab/studio.html?tool=image');
+  await page.waitForFunction(()=>window.__elementsBrowserReady===true,{timeout:30000});
+  await page.locator('#lab-boot').waitFor({state:'hidden',timeout:5000});
+  await page.locator('#tool-image').click();
+  const text=page.locator('#image-composer-prompt');
+  await text.fill('Nina posing by the window in @My');
+  await page.locator('#scene-element-suggestions .scene-element-choice').filter({hasText:'@MyRoom'}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-element-tile').length===1&&
+    document.querySelectorAll('#reference-list .reference-element-item').length===1,{timeout:20000});
+  assert.equal(await page.locator('#image-composer-references .composer-reference-role').count(),0,
+    'One Element should not show repeated Environment selectors');
+  assert.match(await page.locator('.composer-element-tile .composer-reference-index').innerText(),/@MyRoom/);
+  assert.match(await page.locator('#composer-reference-intent-toggle').innerText(),/References only/i);
+  await text.fill('Nina sitting on the bed inside @Nina');
+  await page.locator('#scene-element-suggestions .scene-element-choice').filter({hasText:'@Nina FOK'}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-element-tile').length===2,{
+    timeout:20000
+  });
+  assert.equal(await page.locator('#reference-list .reference-element-item').count(),2,
+    'Two Elements have two grouped advanced entries');
+  assert.equal(await page.locator('#image-composer-references .composer-reference-role').count(),0);
+  const compiled=await page.locator('#reference-guidance-text').textContent();
+  assert.match(compiled,/ELEMENT CONTINUITY/);
+  assert.match(compiled,/@MyRoom/);
+  assert.match(compiled,/@Nina FOK/);
+  await page.locator('.composer-element-tile').first().locator('.composer-reference-remove').click();
+  await page.waitForFunction(()=>document.querySelectorAll('.composer-element-tile').length===1);
+  assert.match(await page.locator('.composer-element-tile').first().innerText(),/@Nina FOK/);
+  assert.deepEqual(errors,[]);
+  console.log('PASS two saved Elements attach as two compact chips, no repeated roles or provider jobs');
+}finally{
+  await context.close();
+  await browser.close();
+  await new Promise(done=>server.close(done));
+}
