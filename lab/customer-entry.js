@@ -76,10 +76,10 @@ function show(){
   // Render from the active Clerk session only. A new session never inherits
   // the former user's credit text, even while /api/session is pending.
   renderHeaderCredits(homeCredits,{
-    signed:!!clerk&&signed,profile:currentProfile?profile:null,
+    signed:ready&&signed,profile:currentProfile?profile:null,
     guestVisible:ready&&!!header,guestHref:'#pricing',billingHref:'./account.html#balance'
   });
-  headerAccount.update({signed:!!clerk&&signed,user:clerk?.user,profile:currentProfile?profile:null});
+  headerAccount.update({signed:ready&&signed,user:clerk?.user,profile:currentProfile?profile:null});
   const invitation=document.querySelector('.lab-invite-promo__cta');
   if(invitation){
     const owner=ready&&profile?.owner===true;
@@ -90,7 +90,7 @@ function show(){
   document.querySelectorAll('[data-lab-signin]').forEach(button=>{button.hidden=!ready||signed;});
   // Publish the resolved presentation as the last operation, so neither the
   // placeholder nor its actual replacement causes a visible layout shift.
-  if(header)header.dataset.accountPhase=clerk?'ready':'pending';
+  if(header)header.dataset.accountPhase=ready?'ready':'pending';
   if(ready&&signed&&pilotSetup){
     if(customer&&profile?.ownerId)status('Private pilot setup: your test account ID is '+profile.ownerId+'. Copy this ID into the Cloudflare LAB_LIVE_PILOT_CUSTOMER_ID secret. This ID is not a password.');
     else if(profile&&!customer)status('This is the PV Lab owner account. For a safe live test, sign in using another Google account.');
