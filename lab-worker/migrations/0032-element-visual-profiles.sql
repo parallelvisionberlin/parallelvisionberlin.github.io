@@ -1,7 +1,13 @@
--- Elements remains the existing private packs library. Add only optional
--- machine-readable scene identity metadata and bounded one-time analysis quotas.
--- Existing users, images, pack IDs, reference order and Photo Packs are intact.
-ALTER TABLE packs ADD COLUMN element_profile TEXT;
+-- Additive and repeatable Elements metadata. Photo Packs and the existing packs
+-- table are unchanged; both old and newly saved Elements retain their IDs.
+CREATE TABLE IF NOT EXISTS element_visual_profiles (
+  pack_id TEXT PRIMARY KEY REFERENCES packs(id) ON DELETE CASCADE,
+  owner_id TEXT NOT NULL,
+  profile_json TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS element_visual_profiles_owner
+ON element_visual_profiles(owner_id);
 CREATE TABLE IF NOT EXISTS element_analysis_quota (
   owner_id TEXT NOT NULL,
   day_key INTEGER NOT NULL,
