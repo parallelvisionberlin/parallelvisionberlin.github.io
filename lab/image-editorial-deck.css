@@ -169,39 +169,111 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   }
 }
 
-/* Reference-loaded Image workspace: match the restrained compact editing
-   instrument, not a tall pasted-prompt panel over the History thumbnails.
-   Only the normal authenticated WEB Image composer with actual photo tiles;
-   Soul, native Create, text-only prompts and every other tool are unchanged.
-   The complete 5,000-character direction stays in the same scrollable textarea. */
-@media (min-width:900px){
+/* Reference-first desktop Image composer, inspired by the clear two-state
+   flow: one horizontally scrollable photo strip; below it, the full-width
+   auto-sized prompt; below that, the existing tool row. The prompt's inline
+   height is owned by fitImageComposerPrompt() and MUST NOT be overridden.
+   Do not affect the compact no-reference welcome, text-only modes, PV Soul,
+   native Create, smaller tablets or mobile. */
+@media(min-width:900px){
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.is-text-only):has(#image-composer-references:not([hidden]) .composer-reference-tile){
+    display:grid!important;
+    grid-template-rows:minmax(0,max-content) 41px!important;
+    row-gap:7px!important;
+    height:auto!important;
+  }
   html:not(.pv-native-lab) #app.image-studio-active
     #image-composer.pv-editorial-deck:not(.is-pv-soul) #image-composer-prompt{
     font-size:15.5px!important;
     line-height:1.48!important;
   }
   html:not(.pv-native-lab) #app.image-studio-active
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):has(#image-composer-references:not([hidden]) .composer-reference-tile)
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.is-text-only):has(#image-composer-references:not([hidden]) .composer-reference-tile)
     .image-composer-top{
-    height:64px!important;
-    min-height:64px!important;
-    max-height:64px!important;
-    align-items:center!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    gap:7px!important;
+    padding:0!important;
+    overflow:visible!important;
   }
   html:not(.pv-native-lab) #app.image-studio-active
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):has(#image-composer-references:not([hidden]) .composer-reference-tile)
-    #image-composer-prompt{
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.is-text-only):has(#image-composer-references:not([hidden]) .composer-reference-tile)
+    .image-composer-references:not([hidden]){
+    display:flex!important;
+    flex:0 0 56px!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    align-self:stretch!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
     height:56px!important;
     min-height:56px!important;
     max-height:56px!important;
-    align-self:center!important;
+    padding:2px 2px 3px!important;
+    gap:7px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    overscroll-behavior-x:contain;
+    scrollbar-width:thin;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.is-text-only):has(#image-composer-references:not([hidden]) .composer-reference-tile)
+    .composer-reference-tile{
+    flex:0 0 50px!important;
+    width:50px!important;
+    min-width:50px!important;
+    height:51px!important;
+    min-height:51px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.is-text-only):has(#image-composer-references:not([hidden]) .composer-reference-tile)
+    #image-composer-prompt{
+    display:block!important;
+    box-sizing:border-box!important;
+    flex:0 0 auto!important;
+    align-self:stretch!important;
+    width:100%!important;
+    min-width:0!important;
+    /* Important: no height declaration here; the existing JS inline height
+       expands short/long prompts up to 176px, then scrolls internally. */
+    min-height:44px!important;
+    max-height:min(176px,25dvh)!important;
+    margin:0!important;
+    padding:7px 4px!important;
     resize:none!important;
+    white-space:pre-wrap!important;
     overflow-x:hidden!important;
     overflow-y:auto!important;
-    white-space:pre-wrap!important;
     scrollbar-width:thin;
     scrollbar-color:rgba(199,203,201,.38) transparent;
-    transition:none!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.is-text-only):has(#image-composer-references:not([hidden]) .composer-reference-tile)
+    .composer-controls{
+    grid-column:1!important;
+    grid-row:2!important;
+    align-self:center!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.is-text-only):has(#image-composer-references:not([hidden]) .composer-reference-tile)
+    .composer-generate{
+    grid-column:2!important;
+    grid-row:1/3!important;
+    align-self:end!important;
+  }
+}
+@media(min-width:900px) and (max-width:1159px){
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.is-text-only):has(#image-composer-references:not([hidden]) .composer-reference-tile){
+    grid-template-rows:minmax(0,max-content) 83px!important;
   }
 }
 
