@@ -607,6 +607,70 @@ test('Reference editing preserves source order, roles, notes and original prompt
   const oversized={...imageSettings,prompt:'x'.repeat(5000),referenceRoles:labels};assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings:oversized,referenceSourceIds:[id]}})).status,400);
 });
 
+test('Scene Library edit preserves pack identity, updates references and rejects stale or unauthorized changes',async()=>{
+  const {env}=fixture();await setup(env);
+  const front=await seedreamTestReference(env,'room-front.png',33);
+  const side=await seedreamTestReference(env,'room-side.png',34);
+  const addition=await seedreamTestReference(env,'room-window.png',35);
+  const note='Location @MyRoom: use this setting, without copying incidental people.';
+  const createdResponse=await req(env,'/api/packs',{method:'POST',data:{
+    name:'PVSCENE1|locations|MyRoom',referenceSourceIds:[front,side],
+    referenceRoles:[{role:'room',note},{role:'room',note}]
+  }});
+  assert.equal(createdResponse.status,201,await createdResponse.clone().text());
+  const created=await createdResponse.json();
+  const oldName=created.name,oldRefs=created.refs;
+  const newName='PVSCENE1|locations|MyRoom updated';
+  const newNote='Location @MyRoom updated: preserve the original architecture and furniture.';
+  const payload={
+    name:newName,expectedName:oldName,expectedRefs:oldRefs,
+    referenceSourceIds:[side,addition],
+    referenceRoles:[{role:'room',note:newNote},{role:'room',note:newNote}]
+  };
+  const existingMedia=await req(env,'/api/assets/'+front);
+  assert.equal(existingMedia.status,200);
+  const generationCount=createCount;
+  const editedResponse=await req(env,'/api/packs/'+created.id,{method:'PATCH',data:payload});
+  assert.equal(editedResponse.status,200,await editedResponse.clone().text());
+  const edited=await editedResponse.json();
+  assert.equal(edited.id,created.id,'Edits must keep the stable saved Element ID');
+  assert.equal(edited.name,newName);
+  assert.deepEqual(edited.refs.map(ref=>ref.id),[side,addition]);
+  assert.deepEqual(edited.refs.map(ref=>ref.note),[newNote,newNote]);
+  assert.equal(createCount,generationCount,'Library edits must never submit paid generation');
+  const listResponse=await req(env,'/api/packs');
+  const saved=(await listResponse.json()).packs.find(item=>item.id===created.id);
+  assert.equal(saved.name,newName);
+  assert.deepEqual(saved.refs,edited.refs,'Saved order and notes survive fresh load');
+  assert.equal((await req(env,'/api/assets/'+front)).status,200,
+    'A removed pack photo may still be in an open Studio draft');
+  const stale=await req(env,'/api/packs/'+created.id,{method:'PATCH',data:payload});
+  assert.equal(stale.status,409,'Stale edits cannot silently replace a newer Element');
+  const invalidRole=await req(env,'/api/packs/'+created.id,{method:'PATCH',data:{
+    ...payload,expectedName:saved.name,expectedRefs:saved.refs,
+    referenceRoles:[{role:'identity',note:''},{role:'identity',note:''}]
+  }});
+  assert.equal(invalidRole.status,400);
+  const duplicateRefs=await req(env,'/api/packs/'+created.id,{method:'PATCH',data:{
+    ...payload,expectedName:saved.name,expectedRefs:saved.refs,
+    referenceSourceIds:[side,side]
+  }});
+  assert.equal(duplicateRefs.status,400);
+  assert.equal((await req(env,'/api/packs/'+created.id,{
+    method:'PATCH',authToken:guest,data:{...payload,expectedName:saved.name,expectedRefs:saved.refs}
+  })).status,403,'Another account cannot edit this private Element');
+  const normal=await req(env,'/api/packs',{method:'POST',data:{
+    name:'A standard Photo Pack',referenceSourceIds:[front],referenceRoles:[{role:'none'}]
+  }});
+  const pack=await normal.json();
+  assert.equal((await req(env,'/api/packs/'+pack.id,{method:'PATCH',data:{
+    ...payload,expectedName:pack.name,expectedRefs:pack.refs
+  }})).status,403,'Photo Packs cannot be changed through the Elements editor');
+  const final=(await(await req(env,'/api/packs')).json()).packs.find(item=>item.id===created.id);
+  assert.equal(final.name,newName);
+  assert.deepEqual(final.refs.map(ref=>ref.id),[side,addition]);
+});
+
 async function seedreamTestReference(env,name,marker=0,width=512,height=512){
   const bytes=pngDimensions(width,height);bytes[bytes.length-1]=marker;
   const r=await req(env,'/api/uploads',{method:'POST',raw:bytes,headers:{'Content-Type':'image/png','X-Filename':name}});
