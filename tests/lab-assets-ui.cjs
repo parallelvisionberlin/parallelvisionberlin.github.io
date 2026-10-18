@@ -364,7 +364,20 @@ await page.waitForFunction(()=>!document.querySelector('#video-start-thumb').hid
 await page.setInputFiles('#last-image',{name:'ending-frame.webp',mimeType:'image/webp',buffer:videoFrame});
 await page.waitForFunction(()=>!document.querySelector('#video-end-thumb').hidden);
 await page.fill('#prompt','A slow camera move across the garment, with natural fabric movement.');
-assert.equal(await page.locator('#generate').textContent(),'Generate');assert.equal(await page.locator('#generate').isEnabled(),true);
+assert.equal(await page.locator('#generate').textContent(),'Generate');
+if(await page.locator('#generate').isDisabled())console.log('VIDEO_READY_DIAG='+JSON.stringify(await page.evaluate(()=>({
+  engine:document.getElementById('video-engine')?.value,
+  mode:document.querySelector('#mode-start')?.getAttribute('aria-selected'),
+  promptLength:document.getElementById('prompt')?.value.length,
+  generateTitle:document.getElementById('generate')?.title,
+  help:document.getElementById('generation-help')?.textContent,
+  status:document.getElementById('notice')?.textContent,
+  startThumb:document.getElementById('video-start-thumb')?.hidden,
+  endThumb:document.getElementById('video-end-thumb')?.hidden,
+  file:document.getElementById('image')?.files?.length,
+  lastFile:document.getElementById('last-image')?.files?.length
+}))));
+assert.equal(await page.locator('#generate').isEnabled(),true);
 assert.equal(await page.locator('#video-detail-prompt').evaluate(el=>getComputedStyle(el).fontSize),'14px');
 assert.ok((await page.locator('#video-model-control').boundingBox()).y<(await page.locator('#prompt').boundingBox()).y,'Model precedes references and prompt');
 await page.click('#mode-extend');assert.equal(await page.locator('#video-media-drop').isVisible(),true);assert.equal(await page.locator('#start-mode').isVisible(),false);assert.equal(await page.locator('#reference-drop').isVisible(),false);assert.equal(await page.locator('#generate').isDisabled(),true);await page.click('#video-create-task');await page.click('#mode-start');assert.equal(await page.evaluate(()=>window.__referenceSettings().mode),'start');assert.equal(await page.locator('#mode-start').getAttribute('aria-selected'),'true');assert.equal(await page.locator('#generate').isEnabled(),true);
