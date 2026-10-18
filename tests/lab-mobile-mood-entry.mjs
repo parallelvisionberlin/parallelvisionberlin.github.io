@@ -19,7 +19,7 @@ assert.match(studio,/studio-mobile-entry\.js\?v=/,
   'The compact Image header controller must be loaded on the Studio route');
 
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css',
-  '.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.woff2':'font/woff2','.svg':'image/svg+xml'};
+  '.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.avif':'image/avif','.woff2':'font/woff2','.svg':'image/svg+xml'};
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://127.0.0.1').pathname;
   const path=resolve(root,'.'+pathname);
@@ -42,6 +42,7 @@ async function openViewport(width,height){
     const pathname=new URL(route.request().url()).pathname;
     if(pathname.endsWith('/studio-guest-image.js')||
        pathname.endsWith('/inspiration-looks.js')||
+       pathname.endsWith('/inspiration-carousel.js')||
        pathname.endsWith('/studio-mobile-entry.js')||
        pathname.endsWith('/image-editorial-deck.js'))return route.continue();
     return route.fulfill({status:200,contentType:'text/javascript',body:''});
@@ -61,7 +62,7 @@ async function openViewport(width,height){
 try{
   let {page,context,errors}=await openViewport(390,844);
   try{
-    assert.equal(await page.locator('.pv-guest-card').count(),6);
+    assert.equal(await page.locator('.pv-guest-card').count(),7);
     const height=await page.locator('.pv-guest-card').first().evaluate(e=>e.getBoundingClientRect().height);
     assert.ok(height>185&&height<216,'390px phone keeps the cards about 15% shorter: '+height);
     await page.locator('[data-guest-mood="90s-cinema"]').click();
