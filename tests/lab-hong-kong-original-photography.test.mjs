@@ -31,7 +31,7 @@ test('one Hong Kong Nights Mood retains three variant sets of four actual origin
   const seen=new Set();
   for(const [id,v] of Object.entries(HONG_KONG_VARIANTS)){
     assert.equal(v.files.length,4,id);
-    assert.ok(v.filmFinish.film>=90);
+    assert.deepEqual(v.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0},'Film is opt-in for every look');
     for(const file of v.files){assert.ok(originalHashes[file],file);seen.add(file);}
   }
   assert.equal(seen.size,8);
@@ -47,29 +47,31 @@ test('variant camera and color recipes retain authored subject and identity',()=
     assert.equal(recipe.metadata.moodVariant,id);
     assert.deepEqual(recipe.metadata.filmFinish,v.filmFinish);
     assert.match(recipe.prompt,/IDENTITY FIRST/);
-    assert.match(recipe.prompt,/Style references/);
+    assert.match(recipe.prompt,/Preserve face, identity, real body proportions/);
     assert.ok(recipe.prompt.includes(v.direction));
     seen.add(recipe.prompt);
   }
   assert.equal(seen.size,3);
 });
-test('real photo source maps and MIME types fit provider limits without stealing Base',()=>{
+test('original photographic sources stay intact for look previews without being injected into user Base generations',()=>{
   for(const [id,variant] of Object.entries(HONG_KONG_VARIANTS)){
     for(const engine of ['seedream','seedreamlite']){
-      const recipe=prepareMoodPrompt('Portrait in my room','hong-kong-nights',70,{engine,referenceCount:1,moodVariant:id});
+      const recipe=prepareMoodPrompt('Portrait in my room','hong-kong-nights',60,{engine,referenceCount:1,moodVariant:id});
       assert.equal(recipe.error,'',id+'/'+engine);
-      const settings={type:'image',mode:'image',engine,aspectRatio:'auto',referenceRoles:[{name:'room.jpg',role:'base'}],prompt:recipe.prompt,...recipe.metadata};
+      const settings={type:'image',mode:'image',engine,aspectRatio:'auto',
+        referenceRoles:[{name:'room.jpg',role:'base'}],prompt:recipe.prompt,...recipe.metadata};
       const plan=moodReferencePlan(settings);
-      assert.deepEqual(plan.references.map(r=>r.file),variant.files);
-      assert.equal(plan.references.length,4);
-      assert.deepEqual(plan.settings.referenceRoles.map(r=>r.role),['base','style','style','style','style']);
+      assert.deepEqual(plan.references,[],'no hidden photography enters the model');
+      assert.deepEqual(plan.settings.referenceRoles.map(r=>r.role),['base']);
       assert.deepEqual(plan.settings.referenceRoles.filter(r=>!isMoodStyleReference(r)).map(r=>[r.role,r.name]),[['base','room.jpg']]);
-      assert.equal(moodReferencePlan(plan.settings).references.length,0,'reuse must not double attach');
+      assert.equal(plan.settings,settings,'no hidden changes to user request');
       const full=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings);
       assert.ok(full.length<=(engine==='seedreamlite'?3000:5000),id+'/'+engine+' length '+full.length);
-      for(const ref of plan.references){
-        const expected=ref.file.endsWith('.png')?'image/png':ref.file.endsWith('.webp')?'image/webp':'image/jpeg';
-        assert.equal(ref.type,expected,ref.file);
+      for(const file of variant.files){
+        const expected=file.endsWith('.png')?'image/png':file.endsWith('.webp')?'image/webp':'image/jpeg';
+        assert.ok(['image/png','image/webp','image/jpeg'].includes(expected));
+        const bytes=readFileSync(new URL('../lab/mood-references/hong-kong-nights/'+file,import.meta.url));
+        assert.ok(bytes.length>40000,'original look photo remains available');
       }
     }
   }
