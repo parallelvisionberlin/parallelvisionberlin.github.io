@@ -252,12 +252,17 @@ function imageMoodMetadata(value){
     if(!name||name.length>64||!UUID.test(boardId||''))fail(400,'Choose a valid saved Mood.');
     return {moodId:'custom',moodIntensity,moodOriginalPrompt,customMoodName:name,customMoodBoardId:boardId};
   }
-  let filmFinish;
+  let filmFinish,moodVariation;
+  if(value.moodVariation!=null){
+    if(value.moodId!=='hong-kong-nights'||!['original','deep-green','slow-shutter'].includes(value.moodVariation))
+      fail(400,'Unknown Hong Kong Nights photographic treatment.');
+    if(value.moodVariation!=='original')moodVariation=value.moodVariation;
+  }
   if(value.filmFinish!=null){
     if(value.moodId!=='hong-kong-nights')fail(400,'Film finish is available for Hong Kong Nights.');
     try{filmFinish=filmFinishSettings(value.filmFinish);}catch(e){fail(400,e.message);}
   }
-  return {moodId:value.moodId,moodIntensity,moodOriginalPrompt,...(filmFinish?{filmFinish}:{})};
+  return {moodId:value.moodId,moodIntensity,moodOriginalPrompt,...(moodVariation?{moodVariation}:{}),...(filmFinish?{filmFinish}:{})};
 }
 function parseParameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');

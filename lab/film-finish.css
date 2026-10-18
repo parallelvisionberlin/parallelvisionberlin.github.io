@@ -75,3 +75,33 @@
   background:#292b2b;border:1px solid #666b67;border-radius:8px;
   color:#e1e3de;font-size:12px;line-height:1.5;box-shadow:0 12px 26px #0009
 }
+
+/* Hong Kong Nights variations: a single quiet treatment row within the existing Mood. */
+#image-composer .moods-hk-variation[hidden]{display:none!important}
+.moods-controls.has-hk-variation>.moods-hk-variation{
+  grid-column:1;grid-row:2;min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:8px 13px
+}
+.moods-hk-label{color:#b8bcb9;font-size:10px;font-weight:650;letter-spacing:.08em;white-space:nowrap}
+.moods-hk-choices{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0}
+#image-composer .moods-hk-choice{
+  min-height:34px;padding:7px 11px;border:1px solid #565b58;border-radius:7px;
+  background:#222625;color:#d4d8d4;font:inherit;font-size:11px;font-weight:590;
+  white-space:nowrap;cursor:pointer;transition:background-color .14s,border-color .14s
+}
+#image-composer .moods-hk-choice:hover{border-color:#a0aaa1;background:#2c322e}
+#image-composer .moods-hk-choice.is-selected{border-color:#c5ff62;color:#efffd3;background:#354032}
+#image-composer .moods-hk-choice:focus-visible{outline:2px solid #c5ff62;outline-offset:2px}
+#image-composer .moods-hk-choice:disabled{opacity:.4;cursor:wait}
+.moods-controls.has-hk-variation>.film-finish-compact{grid-column:1;grid-row:3}
+.moods-controls.has-hk-variation>.moods-actions{grid-column:2;grid-row:1/4;align-self:center}
+@media(max-width:740px){
+  .moods-controls.has-hk-variation>.moods-hk-variation{grid-column:1;grid-row:2}
+  .moods-controls.has-hk-variation>.film-finish-compact{grid-column:1;grid-row:3}
+  .moods-controls.has-hk-variation>.moods-actions{grid-column:1;grid-row:4}
+}
+@media(max-width:520px){
+  .moods-controls.has-hk-variation>.moods-hk-variation{gap:6px}
+  .moods-hk-label{width:100%}
+  .moods-hk-choices{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+  #image-composer .moods-hk-choice{font-size:10px;padding:8px 5px}
+}

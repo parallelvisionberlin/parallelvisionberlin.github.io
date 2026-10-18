@@ -1,4 +1,5 @@
 import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3';
+import {HONG_KONG_VARIATIONS,normalizeHongKongVariation,hongKongFinishPreset,hongKongOpticalDirection} from './hong-kong-presets.js?v=20261018-analog3';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
@@ -61,9 +62,9 @@ const ALL_MOODS=Object.freeze([
     "name": "Hong Kong Nights",
     "category": "Cinema",
     "preview": "/lab/mood-previews/hong-kong-nights-street-20261011.svg",
-    "description": "Luminous 1990s night cinema, amber and ruby practicals, petrol shadows and humid depth",
+    "description": "Real analog Hong Kong after dark: fluorescent green, ruby neon, tungsten, grain and humid depth",
     "defaultIntensity": 85,
-    "direction": "Direct the existing photograph as a genuine 1990s Hong Kong nighttime movie still, on pushed 35mm. READ THE BASE FIRST: identify the actual room/exterior, existing lights, reflectances, faces and depth. Relight the subject AND its environment as one coherent exposure. Cinematography, not a flat green filter: believable amber/tungsten practical pools and soft directional bounce, deep pockets of unlit black, selective cyan/emerald only in ambient shadows, untouched neutral skin and fabrics. Warm light must be physically motivated by an existing source, window, reflected glow or plausible spill; never add a lamp, spotlight or glowing rim just to create the look. Replace the flat feel of frontal flash and hard digital fill with off-axis light modeling, natural falloff and genuine shadow shape on both people and architecture. Atmospheric emerald haze lives in illuminated depth around real lights, not everywhere; separate foreground, middle distance and dark background. WET / GLOSS: moisture and glints only where glass, wet paving or polished surfaces support them, never fake indoor rain. GRAIN: restrained organic 35mm, not coarse noise. BLOOM: diffuse real practical highlights with optical falloff. HALATION: existing lamps, windows and specular reflections only, no body halo or bright backdrop patch. Keep face, anatomy, wardrobe, camera, setting and location recognizable.",
+    "direction": "Direct the existing photograph as a genuine 1990s Hong Kong nighttime movie still, on pushed 35mm. READ THE BASE FIRST: identify the actual room/exterior, existing lights, reflectances, faces and depth. Relight the subject AND its environment as one coherent exposure. Cinematography, not a flat green filter: believable amber/tungsten practical pools and soft directional bounce, deep pockets of unlit black, selective cyan/emerald only in ambient shadows, untouched neutral skin and fabrics. Warm light must be physically motivated by an existing source, window, reflected glow or plausible spill; never add a lamp, spotlight or glowing rim just to create the look. Replace the flat feel of frontal flash and hard digital fill with off-axis light modeling, natural falloff and genuine shadow shape on both people and architecture. Atmospheric emerald haze lives in illuminated depth around real lights, not everywhere; separate foreground, middle distance and dark background. WET / GLOSS: moisture and glints only where glass, wet paving or polished surfaces support them, never fake indoor rain. GRAIN: pronounced, uneven 35mm color-negative emulsion, tactile and scene-integrated, never flat digital noise. BLOOM: diffuse real practical highlights with optical falloff. HALATION: existing lamps, windows and specular reflections only, no body halo or bright backdrop patch. Keep face, anatomy, wardrobe, camera, setting and location recognizable.",
     "subtle": "1–34%: natural scene preserved, mild off-axis shaping, warm/cool light separation, faint practical diffusion, unlit black intervals; gentle cinematic shift.",
     "moderate": "35–69%: decisive whole-scene day-to-night light where needed, visibly warm/red practical separation against selective teal shadow, natural skin and dimensional humid depth without green coating.",
     "intense": "70–99%: saturated but believable tungsten and restrained ruby practical light model the person and architecture together; deep petrol-black pockets, source-lit atmospheric haze and luminous analog optics. No relocated people or environment.",
@@ -308,9 +309,11 @@ export function userFacingImagePrompt(settings={}){
 export function imageHistoryCaption(settings={}){
   const text=userFacingImagePrompt(settings),mood=moodById(settings?.moodId);
   if(mood){
+    const treatment=mood.id==='hong-kong-nights'&&settings.moodVariation&&normalizeHongKongVariation(settings.moodVariation)!=='original'
+      ?HONG_KONG_VARIATIONS.find(item=>item.id===settings.moodVariation)?.label:'';
     const intensity=Number(settings.moodIntensity);
     const strength=Number.isInteger(intensity)&&intensity>=1&&intensity<=100?intensity+'%':'';
-    return [mood.name,strength,text].filter(Boolean).join(' · ');
+    return [mood.name,treatment,strength,text].filter(Boolean).join(' · ');
   }
   if(settings?.moodId==='custom')return [settings.customMoodName||'My Mood',Number.isInteger(settings.moodIntensity)?settings.moodIntensity+'%':'',text].filter(Boolean).join(' · ');
   if(settings?.moodId)return ['Mood',text].filter(Boolean).join(' · ');
@@ -319,11 +322,12 @@ export function imageHistoryCaption(settings={}){
 }
 
 
-export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=HONG_KONG_FILM_FINISH}={}){
+export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=HONG_KONG_FILM_FINISH,moodVariation='original'}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
+  const variation=mood.id==='hong-kong-nights'?normalizeHongKongVariation(moodVariation):'original';
   const finish=mood.id==='hong-kong-nights'&&filmFinish?filmFinishSettings(filmFinish):null;
   const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance',midnightReverie=mood.id==='midnight-reverie',dreamBlur=mood.id==='dream-blur';
   // FIXED MOOD RECIPE: never switch between full/compact/ultra based on
@@ -399,16 +403,18 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           ?[
             mood.ultra, mood.ultraRouting,
             intensity===100?'MAXIMUM 100%: dense luminous humid air; thin black letterbox bars top/bottom without hiding the subject.':intensity>=70?'Strong night atmosphere and luminous haze with rich dark gaps.':'Gentle photographic night atmosphere.',
+            hongKongOpticalDirection(variation),
             'IDENTITY FIRST: keep Base/Identity facial geometry, expression, hairline, anatomy, outfit, pose, place and framing. Style references guide optics, not faces. GRAIN: fine integrated film texture. BLOOM: optical softness of people and setting. HALATION: only existing lamps, windows and specular reflections, no body halo or bright backdrop patch. WET / GLOSS: plausible glass and polished surfaces, no invented rain.'
           ].join(' ')
           :[
           compactHongKong?mood.compact:mood.direction,
           compactHongKong?mood.compactRouting:mood.cinematography,
+          hongKongOpticalDirection(variation),
           'Photographic treatment strength '+intensity+'/100: reconstruct cinematic scene lighting, NOT a green overlay or post-process filter.',
           intensity<=34?mood.subtle:intensity<=69?mood.moderate:intensity<100?mood.intense:mood.climax,
           compactHongKong
-            ?'IDENTITY FIRST: Base/Identity images control facial geometry, eyes, age, expression and hairline. Preserve body, pose, wardrobe, camera and original scene. Style references are optics only. GRAIN: fine integrated texture, no coarse generated noise. BLOOM: motivated scene-wide optical softness. HALATION: spread only at existing lamps, windows and specular reflections, no body halo or bright backdrop patch. WET / GLOSS: moisture sheen only on believable existing surfaces.'
-            :'IDENTITY FIRST at every strength: Base/Identity references govern facial geometry, age, expression and hairline. Keep the Base location, architecture, subject, wardrobe, body, pose, camera and composition while allowing pores, hair and fabric edges to soften optically without reshaping the face. Style references contribute optical lighting, never other people. WET / GLOSS: integrate reflective moisture only into appropriate glass, floors and surfaces; no water on sofas or skin. GRAIN: fine natural photochemical texture, no coarse generated noise. BLOOM: luminous light spread across the real environment and subject, not a flat filter. HALATION: luminous spill tied to existing lamps, windows and specular reflections, no body outline, glowing silhouette or bright backdrop patch.'
+            ?'IDENTITY FIRST: Base/Identity images control facial geometry, eyes, age, expression and hairline. Preserve body, pose, wardrobe, camera and original scene. Style references are optics only. GRAIN: visible natural 35mm emulsion texture, not added digital speckles. BLOOM: motivated scene-wide optical softness. HALATION: spread only at existing lamps, windows and specular reflections, no body halo or bright backdrop patch. WET / GLOSS: moisture sheen only on believable existing surfaces.'
+            :'IDENTITY FIRST at every strength: Base/Identity references govern facial geometry, age, expression and hairline. Keep the Base location, architecture, subject, wardrobe, body, pose, camera and composition while allowing pores, hair and fabric edges to soften optically without reshaping the face. Style references contribute optical lighting, never other people. WET / GLOSS: integrate reflective moisture only into appropriate glass, floors and surfaces; no water on sofas or skin. GRAIN: irregular, tactile 35mm photochemical texture with believable shadow grain, not coarse digital speckles. BLOOM: luminous light spread across the real environment and subject, not a flat filter. HALATION: luminous spill tied to existing lamps, windows and specular reflections, no body outline, glowing silhouette or bright backdrop patch.'
         ].join(' ')
         :intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
   const preservation=referenceCount>0
@@ -434,7 +440,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     :'Honor the requested subject and composition.';
   const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamBlur||compactMidnight||ultraMidnight?mood.compactAvoid:compactHongKong?'flat green tint, direct flash unchanged, plastic skin, body halos, invented lamps, facial reshaping, flat fog, copied Style scenes':compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
   const budget=lite?3000:5000,over=prompt.length-budget;
-  return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,...(finish?{filmFinish:finish}:{})},
+  return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,...(variation!=='original'?{moodVariation:variation}:{}),...(finish?{filmFinish:finish}:{})},
     error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
 }
 
@@ -487,10 +493,31 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const aboutButton=panel.querySelector('#composer-moods-about');
   const aboutDetails=panel.querySelector('#composer-moods-explanation');
   const backdrop=panel.parentElement.querySelector('#composer-moods-backdrop');
-  let selected=null,intensity=60,category='All',personalMoods=[];
+  let selected=null,intensity=60,category='All',personalMoods=[],variation='original';
+  const controlDeck=panel.querySelector('.moods-controls');
+  const treatmentPanel=document.createElement('div');
+  treatmentPanel.className='moods-hk-variation';treatmentPanel.hidden=true;
+  treatmentPanel.setAttribute('role','group');
+  treatmentPanel.setAttribute('aria-label','Hong Kong Nights photographic treatment');
+  const treatmentLabel=document.createElement('span');treatmentLabel.className='moods-hk-label';treatmentLabel.textContent='PHOTOGRAPHIC TREATMENT';
+  const treatmentChoices=document.createElement('div');treatmentChoices.className='moods-hk-choices';
+  const treatmentButtons=new Map();
   const finishPanel=document.createElement('div');finishPanel.hidden=true;
   const finishControls=createFilmFinishControls(finishPanel,{onChange:()=>onChange(),compact:true});
-  const controlDeck=panel.querySelector('.moods-controls');
+  for(const choice of HONG_KONG_VARIATIONS){
+    const option=document.createElement('button');option.type='button';
+    option.className='moods-hk-choice';option.textContent=choice.label;option.title=choice.hint;
+    option.setAttribute('aria-label',choice.label+' photographic treatment. '+choice.hint);
+    option.onclick=()=>{
+      if(variation===choice.id)return;
+      variation=choice.id;
+      finishControls.set(hongKongFinishPreset(choice.id));
+      render();fitPanelViewport();onChange();
+    };
+    treatmentChoices.append(option);treatmentButtons.set(choice.id,option);
+  }
+  treatmentPanel.append(treatmentLabel,treatmentChoices);
+  controlDeck?.insertBefore(treatmentPanel,controlDeck.querySelector('.moods-actions'));
   controlDeck?.insertBefore(finishPanel,controlDeck.querySelector('.moods-actions'));
   const boardById=id=>personalMoods.find(board=>'custom:'+board.id===id)||null;
   const findMood=id=>moodById(id)||boardById(id);
@@ -537,7 +564,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     const title=document.createElement('strong');title.textContent=mood.name;
     const subtitle=document.createElement('small');subtitle.textContent=captions[mood.id]||mood.description;info.append(title,subtitle);
     card.append(media,info);
-    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;render();fitPanelViewport();onChange({selectedMood:true});};
+    card.onclick=()=>{const previous=selected;selected=selected===mood.id?null:mood.id;if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;if(selected==='hong-kong-nights'&&previous!==selected){variation='original';finishControls.set(hongKongFinishPreset(variation));}render();fitPanelViewport();onChange({selectedMood:true});};
     grid.append(card);cards.set(mood.id,card);
   }
   function render(){
@@ -553,7 +580,13 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     emptyPersonal.hidden=category!=='My Moods'||personalMoods.length>0;
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
     finishPanel.hidden=selected!=='hong-kong-nights';
+    treatmentPanel.hidden=finishPanel.hidden;
     controlDeck?.classList.toggle('has-film-finish',!finishPanel.hidden);
+    controlDeck?.classList.toggle('has-hk-variation',!treatmentPanel.hidden);
+    for(const [id,option] of treatmentButtons){
+      option.classList.toggle('is-selected',id===variation);
+      option.setAttribute('aria-pressed',String(id===variation));
+    }
     const chosen=findMood(selected);
     summary.textContent=chosen?chosen.name:'';
     summary.title=chosen?.description||chosen?.direction||'';
@@ -674,11 +707,12 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     }
     panel.querySelector('#composer-moods-title')?.focus();
   }
-  function clear(silent=false){selected=null;intensity=60;finishControls.set();close(!silent);render();if(!silent)onChange();}
+  function clear(silent=false){selected=null;intensity=60;variation='original';finishControls.set();close(!silent);render();if(!silent)onChange();}
   function restore(settings,silent=false){
     selected=settings?.moodId==='custom'&&typeof settings.customMoodBoardId==='string'?'custom:'+settings.customMoodBoardId:moodById(settings?.moodId)?.id||null;
     intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));
-    finishControls.set(settings?.filmFinish||HONG_KONG_FILM_FINISH);
+    variation=normalizeHongKongVariation(settings?.moodVariation);
+    finishControls.set(settings?.filmFinish||hongKongFinishPreset(variation));
     close();render();if(!silent)onChange();
   }
   function enrich(prompt,options={}){
@@ -686,10 +720,10 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
       const mood=boardById(selected);
       return mood?preparePersonalMoodPrompt(prompt,mood,intensity,options):{prompt:String(prompt||'').trim(),metadata:{},error:'This saved Mood is not available. Open My Moods and choose another.'};
     }
-    return prepareMoodPrompt(prompt,selected,intensity,{...options,filmFinish:finishControls.get()});
+    return prepareMoodPrompt(prompt,selected,intensity,{...options,filmFinish:finishControls.get(),moodVariation:variation});
   }
   function error(engine,prompt,count=0,referenceMode='base'){return enrich(prompt,{engine,referenceCount:count,referenceMode}).error;}
-  function sync({visible=true,locked=false}={}){button.hidden=!visible;button.disabled=locked;finishControls.lock(locked);if(!visible||locked)close();if(visible)render();}
+  function sync({visible=true,locked=false}={}){button.hidden=!visible;button.disabled=locked;finishControls.lock(locked);for(const option of treatmentButtons.values())option.disabled=locked;if(!visible||locked)close();if(visible)render();}
   slider.addEventListener('input',()=>{intensity=Number(slider.value);render();onChange();});
   button.onclick=()=>{if(panel.hidden)open();else close();};
   // Close when clicking anywhere outside the popup; consume that first click

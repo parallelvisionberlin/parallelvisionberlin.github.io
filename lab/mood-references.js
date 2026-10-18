@@ -1,15 +1,24 @@
+import {HONG_KONG_REFERENCE_FILES,normalizeHongKongVariation} from './hong-kong-presets.js?v=20261018-analog3';
 import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyBudget=20261018v1';
 
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.
-const HONG_KONG_REFERENCES=Object.freeze([
-  {file:'06-interior-portrait.jpg',type:'image/jpeg',note:'Skin optics: natural face, cool shadow, warm/red bounce. No copied faces, bodies, poses or tunnel; Base identity wins.'},
-  {file:'05-passage-diffusion.jpg',type:'image/jpeg',note:'Source-lit humid diffusion and realistic skin. Never borrow green wash, figures or passage.'},
-  {file:'02-city-haze.jpg',type:'image/jpeg',note:'Deep emerald air and real warm/ruby practical lights. No green wash, copied city, cars or framing.'},
-  {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Real wet/polished glints, warm/teal and selective red practical reflections. No copied taxis, streets, shops, signage or fake wet ground.'}
+const HONG_KONG_PHOTOS=Object.freeze([
+  {file:'06-interior-portrait.jpg',type:'image/jpeg',note:'Natural face and cool shadow with warm/red bounce. Do not copy the reference person or pose; user identity wins.'},
+  {file:'05-passage-diffusion.jpg',type:'image/jpeg',note:'Source-lit humid diffusion, practical highlights and real shadow detail. No copied passage or figures.'},
+  {file:'02-city-haze.jpg',type:'image/jpeg',note:'Deep emerald nocturnal air with real warm and ruby practical lights. No copied city, cars, or composition.'},
+  {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Authentic reflective glints, warm/cool separation and selective red practical reflections. Never invent wet floors or transplant shops.'},
+  {file:'01-traffic-grain.png',type:'image/png',note:'OPTICS ONLY: analog traffic motion and irregular grain in real nocturnal light. No copied vehicles, scene, signage or people.'}
 ].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/hong-kong-nights/'+ref.file,
   label:Object.freeze({name:'Hong Kong Nights style - '+ref.file,role:'style',note:ref.note})})));
-
+const HONG_KONG_REFERENCE_SETS=Object.freeze(Object.fromEntries(
+  Object.entries(HONG_KONG_REFERENCE_FILES).map(([variation,files])=>[variation,Object.freeze(files.map(file=>{
+    const photo=HONG_KONG_PHOTOS.find(ref=>ref.file===file);
+    if(!photo)throw Error('Missing Hong Kong Nights photographic asset configuration: '+file);
+    return photo;
+  }))])
+));
+const HONG_KONG_REFERENCES=HONG_KONG_REFERENCE_SETS.original;
 
 const DREAM_BLUR_REFERENCES=Object.freeze([
   {file:'01-blue-eye-light-memory.jpg',type:'image/jpeg',note:'OPTICS ONLY: broad cyan handheld streaks near eye highlights, thin warm line, uneven analog grain. Never copy face, hair or eyes.'},
@@ -20,19 +29,19 @@ const DREAM_BLUR_REFERENCES=Object.freeze([
   label:Object.freeze({name:'Dream Blur style - '+ref.file,role:'style',note:ref.note})})));
 
 export function isMoodStyleReference(label){
-  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCES.some(ref=>ref.label.name===label.name)||['01-traffic-grain.png','04-warm-lamp.png'].some(file=>label.name==='Hong Kong Nights style - '+file));
+  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_PHOTOS.some(ref=>ref.label.name===label.name)||['01-traffic-grain.png','04-warm-lamp.png'].some(file=>label.name==='Hong Kong Nights style - '+file));
 }
 
 export function moodReferencePlan(settings){
   if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur'].includes(settings.moodId)||!['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine))
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
-  const source=settings.moodId==='dream-blur'?DREAM_BLUR_REFERENCES:HONG_KONG_REFERENCES;
+  const source=settings.moodId==='dream-blur'?DREAM_BLUR_REFERENCES:HONG_KONG_REFERENCE_SETS[normalizeHongKongVariation(settings.moodVariation)];
   const moodLabel=settings.moodId==='dream-blur'?'Dream Blur':'Hong Kong Nights';
   const references=source.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
   if(labels.length+references.length>10)throw Error(moodLabel+' includes four Style references. Keep at most six of your own images, or choose another Mood.');
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
-  // Add the four canonical Style photos without rewriting the selected Mood.
+  // Add exactly four Style photos for the selected treatment without rewriting the subject.
   // Check the full provider prompt, including the full/compact role map.
   const budget=settings.engine==='seedreamlite'?3000:5000;
   const compiled=compileImagePrompt(settings.prompt,referenceRoles,{...settings,referenceRoles});
