@@ -58,7 +58,7 @@ export function createAppMoodGeneration(){
         // Respect production rollout, payment and account-review restrictions.
         // Surface the actual reason rather than suggesting a broken Mood/model.
         let code='GENERATION_UNAVAILABLE';
-        let message='Image generation is temporarily unavailable for this account. No credits were spent.';
+        let message='Image generation is not available for this account right now. No credits were spent.';
         if(session.accountClosed){
           code='ACCOUNT_CLOSED';message='This PV LAB account is closed. Image generation is unavailable.';
         }else if(session.billingReview){
