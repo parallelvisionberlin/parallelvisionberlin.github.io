@@ -591,7 +591,11 @@ try{
  assert.equal(count(x,'/api/jobs'),0);
  ok('PV Soul-style creation saves device photos then loads packs with no generation');assert.deepEqual(x.errors,[]);await x.context.close();
 
- x=await workspace();await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);
+ // The Photo Pack test uses its own input files, independent of the earlier reference-mode block.
+ const deckPhotos=[{name:'front.png',mimeType:'image/png',buffer:png},
+   {name:'side.png',mimeType:'image/png',buffer:png},
+   {name:'back.png',mimeType:'image/png',buffer:png}];
+ x=await workspace();await x.page.locator('#reference-images').setInputFiles(deckPhotos);await waitRefs(x.page,3);
  await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');await x.page.click('#pack-studio-new');
  assert.equal(await x.page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'false');
  assert.equal(await x.page.locator('#pack-studio-previews .pack-studio-preview').count(),0);
