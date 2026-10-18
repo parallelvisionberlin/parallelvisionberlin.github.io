@@ -1,4 +1,5 @@
-import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
+import {renderHeaderCredits} from './header-credits.js?v=20261018-unified1';
+import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24&creditHeader=20261018v1';
 import {loadLabAccount} from './native-account.js?v=2&studioAuth=20261015-1';
 import {MOODS,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016v2';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
@@ -62,7 +63,7 @@ async function blobDataUrl(blob){
 }
 function initMoodCreator(){
   const q=new URLSearchParams(location.search),chosenBoard=q.get('board'),sourceJob=q.get('fromJob'),initialBase=q.get('base'),initialHandoff=q.get('handoff');
-  let clerk=null,account=null,authGeneration=0,sessionVersion=0;
+  let clerk=null,account=null,accountSessionId=null,authGeneration=0,sessionVersion=0;
   let boards=[],boardId=null,items=[],urls=new Map(),busy=false,analyzing=false,selectedIndex=0;
   let manualStyle=false;
   let suggestion=null,analysisApplied=false,loadGeneration=0,libraryGeneration=0,loadedJob=false;
@@ -453,9 +454,11 @@ function initMoodCreator(){
   const headerAccount=createAccountMenu($('mc-account-menu'));
   $('mc-account-refer').onclick=()=>location.assign('./account.html#referrals');
   function showAuth(){
-    headerAccount.update({signed:!!clerk?.isSignedIn,user:clerk?.user,profile:account});
-    const signed=authenticated();
-    signin.hidden=signed;signout.hidden=!clerk?.isSignedIn;
+    const signed=!!clerk?.isSignedIn;
+    const verified=accountSessionId===clerk?.session?.id?account:null;
+    headerAccount.update({signed,user:clerk?.user,profile:verified});
+    renderHeaderCredits($('mc-header-credits'),{signed,profile:verified});
+    signin.hidden=signed;signout.hidden=!signed;
     label.hidden=!signed;
     if(signed)label.textContent=account?.customer?'PRIVATE WORKSPACE':'OWNER WORKSPACE';
   }
@@ -463,16 +466,20 @@ function initMoodCreator(){
     const local=++authGeneration;
     const previousAccount=account?.ownerId;
     if(!clerk?.isSignedIn){
-      account=null;sessionVersion++;boards=[];clearPrivateUrls();renderLibrary();
+      account=null;accountSessionId=null;sessionVersion++;boards=[];clearPrivateUrls();renderLibrary();
       // Never retain one account's private images after logout.
       if(previousAccount)resetBoard();
       showAuth();return;
+    }
+    // Clear the old account header while a different Clerk session loads.
+    if(accountSessionId!==clerk?.session?.id){
+      account=null;accountSessionId=null;showAuth();
     }
     try{
       const data=await call('/api/session');
       if(local!==authGeneration)return;
       if(previousAccount&&previousAccount!==data.ownerId){sessionVersion++;clearPrivateUrls();resetBoard();}
-      account=data;showAuth();
+      account=data;accountSessionId=clerk?.session?.id||null;showAuth();
       await loadBoards();
       if(local!==authGeneration)return;
       if(chosenBoard&&uuid.test(chosenBoard)&&boards.some(b=>b.id===chosenBoard)){
@@ -482,7 +489,7 @@ function initMoodCreator(){
         try{await openImageResult(sourceJob);}
         catch(error){feedback('Unable to bring in your result. '+error.message,true);}
       }
-    }catch(error){if(local===authGeneration){account=null;showAuth();feedback('Sign-in worked, but your private Mood collection could not load. '+error.message,true);}}
+    }catch(error){if(local===authGeneration){account=null;accountSessionId=null;showAuth();feedback('Sign-in worked, but your private Mood collection could not load. '+error.message,true);}}
   }
   signin.onclick=()=>clerk?.openSignIn?.();
   signout.onclick=()=>void clerk?.signOut?.();
