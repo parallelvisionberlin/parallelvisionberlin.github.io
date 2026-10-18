@@ -7,6 +7,9 @@ on:
       - 'lab/reference-pack-studio.css'
       - 'lab/studio.html'
       - 'lab/lab.js'
+      - 'lab/scene-library.js'
+      - 'lab/scene-library.css'
+      - 'tests/lab-scene-library-edit-ui.mjs'
       - 'tests/lab-reference-pack-studio-ui.mjs'
       - '.github/workflows/pv-lab-photo-packs.yml'
   push:
@@ -16,6 +19,9 @@ on:
       - 'lab/reference-pack-studio.css'
       - 'lab/studio.html'
       - 'lab/lab.js'
+      - 'lab/scene-library.js'
+      - 'lab/scene-library.css'
+      - 'tests/lab-scene-library-edit-ui.mjs'
       - 'tests/lab-reference-pack-studio-ui.mjs'
       - '.github/workflows/pv-lab-photo-packs.yml'
   workflow_dispatch:
@@ -42,6 +48,9 @@ jobs:
           node --check lab/lab.js
           node --check lab/reference-pack-studio.js
           node --check tests/lab-reference-pack-studio-ui.mjs
+          node --check lab/scene-library.js
+          node --check tests/lab-scene-library-edit-ui.mjs
+          node --test tests/lab-scene-library-notes.test.mjs
       - name: Install headless browser
         run: |
           npm install --prefix /tmp/pv-pack-browser --no-save playwright@1.62.1
@@ -49,11 +58,15 @@ jobs:
       - name: Verify photo packs and no paid generation
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-pack-browser/node_modules/playwright/index.mjs
-        run: node tests/lab-reference-pack-studio-ui.mjs
+        run: |
+          node tests/lab-reference-pack-studio-ui.mjs
+          node tests/lab-scene-library-edit-ui.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: reference-pack-studio-previews
-          path: test-results/photo-packs/*.png
+          path: |
+            test-results/photo-packs/*.png
+            test-results/scene-elements-edit/*.png
           if-no-files-found: ignore
           retention-days: 2
