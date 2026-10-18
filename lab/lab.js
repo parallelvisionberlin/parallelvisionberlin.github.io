@@ -1,5 +1,5 @@
 import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
-import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-suggested-note1';
+import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-static-heroes-cover2';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3';
 import {preparePhotoInput} from './photo-input.js?v=1';
@@ -1115,6 +1115,15 @@ function composerAssetPhoto(host,id,characterName='',characterId=''){
   }
   void composerPortraits.get(cacheKey).then(reveal);
 }
+// Reuse the authenticated lightweight thumbnail pipeline for aspect-ratio
+// matching. This never accesses public image URLs or paid generation APIs.
+async function sceneAssetRatio(id){
+  const blob=await assetThumbnailBlob(id);
+  if(!blob?.type?.startsWith('image/')||!blob.size)return null;
+  const bitmap=await createImageBitmap(blob);
+  try{return bitmap.width&&bitmap.height?bitmap.width/bitmap.height:null;}
+  finally{bitmap.close();}
+}
 function composerCharacterAsset(id){
   const job=[...imageDetailCache.values()].find(j=>j.settings?.characterId===id&&j.outputId);
   return job?.outputId||null;
@@ -1129,7 +1138,7 @@ const packStudio=createReferencePackStudio({
   openElementCategory:categoryId=>sceneLibrary?.open(categoryId)
 });
 sceneLibrary=createSceneLibrary({
-  api,uploadAsset,assetFile,assetPhoto:composerAssetPhoto,
+  api,uploadAsset,assetFile,assetPhoto:composerAssetPhoto,getAssetRatio:sceneAssetRatio,
   getReferences:()=>references,getReferenceLimit:referenceLimit,
   getContext:()=>({owner,busy,tool,mode,supportsReferences:usesReferenceGuidance()&&imageEngine!=='kling'}),
   prepareUse:()=>{
