@@ -879,3 +879,27 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
     padding-right:82px;
   }
 }
+
+/* 2026-10-18: private Elements cards and details use real thumbnail containers. */
+#scene-library-dialog .scene-card-image,
+#scene-library-dialog .scene-feature-cover,
+#scene-library-dialog .scene-feature-photos .scene-feature-shot{
+  position:relative;box-sizing:border-box;overflow:hidden;background:#20262a
+}
+#scene-library-dialog .scene-feature-photos .scene-feature-shot{
+  flex:0 0 54px;width:54px;height:62px;border-radius:6px
+}
+#scene-library-dialog .scene-card-image>img,
+#scene-library-dialog .scene-feature-cover>img,
+#scene-library-dialog .scene-feature-shot>img{
+  display:block;width:100%;height:100%;object-fit:cover;object-position:center
+}
+#scene-library-dialog :is(.scene-card-image,.scene-feature-cover,.scene-feature-shot).is-photo-unavailable{
+  display:grid;place-items:center;color:#8e979e
+}
+#scene-library-dialog .composer-photo-fallback{
+  display:grid;place-items:center;width:30px;height:30px
+}
+#scene-library-dialog .composer-photo-fallback svg{
+  width:22px;height:22px;fill:none;stroke:currentColor
+}
