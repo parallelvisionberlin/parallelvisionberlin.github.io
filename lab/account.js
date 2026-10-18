@@ -2,7 +2,7 @@ import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixe
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {renderHeaderCredits} from './header-credits.js?v=20261018-unified1';
-import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261016-account-menu-edge24&closure=20261017-logout1';
+import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261016-account-menu-edge24&creditHeader=20261018v1&closure=20261017-logout1';
 
 const $=id=>document.getElementById(id);
 const menu=createAccountMenu($('account-menu'));
