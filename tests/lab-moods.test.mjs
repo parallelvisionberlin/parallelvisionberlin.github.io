@@ -179,9 +179,9 @@ test('only explicitly compatible image engines receive moods',()=>{
 test('original prompt is not lost; mood metadata can be restored',()=>{
   const data=prepareMoodPrompt('Nina sitting by a window','hong-kong-nights',64,{engine:'gemini',referenceCount:1});
   assert.ok(data.prompt.startsWith('Nina sitting by a window\n\n'));
-  assert.match(data.prompt,/restrained teal\/emerald/i);
-  assert.match(data.prompt,/EDIT IMAGE 1, the existing photograph/);
-  assert.match(data.prompt,/Keep the same face, expression, age, hair/);
+  assert.match(data.prompt,/restrained emerald\/teal/i);
+  assert.match(data.prompt,/EDIT IMAGE 1, not a new scene/);
+  assert.match(data.prompt,/Keep identical face, expression, age, hair/);
   assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',moodVariant:'original',filmFinish:{version:2,grain:0,haze:0,halation:0,film:0}});
   assert.equal(data.error,'');
 });
