@@ -593,6 +593,15 @@ html:not(.pv-native-lab):not(.pv-image-previews-hidden)
   background:linear-gradient(180deg,rgba(2,4,8,.16) 0%,rgba(2,4,8,.035) 38%,rgba(2,4,8,.08) 74%,rgba(3,4,7,.25) 100%)!important;
 }
 
+/* Constrain the 1.008x first-image background inside its gallery on phones.
+   The image and cards stay unchanged; the decorative ::before cannot widen the page. */
+@media(max-width:900px){
+  html:not(.pv-native-lab) #app.image-studio-active
+    .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+    overflow-x:clip;
+  }
+}
+
 /* The decorative credit-price line previously reserved 15px even when the
    quote was empty. It pushed the visible Generate word above the button's
    optical center. Only remove that empty pseudo-element: genuine prices,
