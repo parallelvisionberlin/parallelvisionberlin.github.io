@@ -1,0 +1,41 @@
+name: Verify Hong Kong Nights Cloudflare live
+on:
+  push:
+    branches: ['verify/hong-kong-live-20261018']
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Check pvlab.studio photo variants and actual media
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 18); do
+            echo "Checking production release, attempt $attempt"
+            if curl -fsSL --retry 1 --connect-timeout 5 --max-time 20 'https://pvlab.studio/hong-kong-variants.js?hkphoto=20261018-real1' -o /tmp/hk-variants.js \
+              && curl -fsSL --retry 1 --connect-timeout 5 --max-time 20 'https://pvlab.studio/mood-references.js?hkphoto=20261018-real1' -o /tmp/hk-references.js \
+              && curl -fsSL --retry 1 --connect-timeout 5 --max-time 20 'https://pvlab.studio/moods.js?hkphoto=20261018-real1' -o /tmp/hk-moods.js \
+              && curl -fsSL --retry 1 --connect-timeout 5 --max-time 20 'https://pvlab.studio/studio.html?hkphoto=20261018-real1' -o /tmp/hk-studio.html \
+              && grep -Fq "deep-green" /tmp/hk-variants.js \
+              && grep -Fq "slow-shutter" /tmp/hk-variants.js \
+              && grep -Fq "HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]" /tmp/hk-references.js \
+              && grep -Fq "hk-variation-bar" /tmp/hk-moods.js \
+              && grep -Fq "hong-kong-variations.css" /tmp/hk-studio.html; then
+              echo 'PASS versioned JS, UI, style reference planner.'
+              ready=1
+              break
+            fi
+            sleep 10
+          done
+          test "${ready:-0}" = 1
+          for image in 01-person-interior 02-person-street 03-red-night 04-golden-lion 05-club-gold-star 06-sheung-wan; do
+            curl -fsSL --connect-timeout 5 --max-time 25 "https://pvlab.studio/mood-references/hong-kong-nights-real/${image}.jpg?v=20261018" -o "/tmp/${image}.jpg"
+            size=$(wc -c < "/tmp/${image}.jpg")
+            bytes=$(od -An -tx1 -N2 "/tmp/${image}.jpg" | tr -d ' \n')
+            echo "${image}: ${size} bytes, JPEG signature ${bytes}"
+            test "$size" -gt 65000
+            test "$bytes" = ffd8
+          done
+          echo 'PASS: Six full photographic references actually served by pvlab.studio.'
