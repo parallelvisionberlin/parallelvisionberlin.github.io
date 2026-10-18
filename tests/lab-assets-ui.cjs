@@ -174,7 +174,7 @@ const generateBeforeRefs=await page.locator('#image-composer-generate').bounding
 await page.locator('#reference-images').setInputFiles([{name:'face.png',mimeType:'image/png',buffer:png},{name:'body.png',mimeType:'image/png',buffer:png}]);
 await page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===2);
 assert.equal((await page.locator('#image-composer-generate').boundingBox()).height,generateBeforeRefs.height,'Generate stays the same height after adding images');
-assert.match(await page.locator('#image-composer-ratio option:checked').textContent(),/^Auto · \d+:\d+$/,'Automatic ratio identifies Auto and the source dimensions');
+assert.equal(await page.locator('#image-composer-ratio option:checked').textContent(),'3:2','Uploaded 900×600 source resolves to its native 3:2 ratio');
 await chooseReferenceMode(page,'references');
 assert.equal(await page.locator('.composer-reference-role').count(),2,'Every reference has a role without a base');
 await page.selectOption('[aria-label="Role for image 1"]','identity');await page.selectOption('[aria-label="Role for image 2"]','body');
