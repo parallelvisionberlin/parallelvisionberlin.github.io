@@ -23,11 +23,12 @@ export function createAccountMenu(root) {
     const firstAction=panel.querySelector(':scope > a, :scope > button');
     if(firstAction)firstAction.before(accountLink);else panel.append(accountLink);
   }
-  const voucherLink=document.createElement('a'),adminLink=document.createElement('a');
+  const voucherLink=document.createElement('a'),adminLink=document.createElement('a'),agencyLink=document.createElement('a');
   voucherLink.href='./account.html#voucher';voucherLink.textContent='Redeem voucher';voucherLink.dataset.accountVouchers='';voucherLink.hidden=true;
   adminLink.href='./owner.html';adminLink.textContent='Owner dashboard';adminLink.dataset.accountAdmin='';adminLink.hidden=true;
+  agencyLink.href='https://parallelvisionlabel.com/agency/';agencyLink.textContent='Agency preview ↗';agencyLink.dataset.accountAgency='';agencyLink.hidden=true;
   // Keep the established wordmark. Add an authenticated identity row and quiet navigation icons.
-  if(settings){settings.before(voucherLink);settings.after(adminLink);}else if(panel)panel.append(voucherLink,adminLink);
+  if(settings){settings.before(voucherLink);settings.after(adminLink);adminLink.after(agencyLink);}else if(panel)panel.append(voucherLink,adminLink,agencyLink);
   const identityRow=document.createElement('div');
   identityRow.className='pv-account-identity';
   identityRow.hidden=true;
@@ -49,6 +50,7 @@ export function createAccountMenu(root) {
     invite:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m4-12v8m-4-4h8"/>',
     voucher:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 5v14"/>',
     owner:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 16v-4m5 4V7m5 9v-6"/>',
+    agency:'<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18m-13 5h8m-8 3h5"/>',
     settings:'<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5"/><circle cx="15" cy="17" r="2.5"/>',
     connection:'<path d="M8 3v5m8-5v5M5 8h14v3a7 7 0 0 1-14 0zm7 10v3"/>',
     signout:'<path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5m4-4 4-4-4-4m-8 4h12"/>'
@@ -56,6 +58,7 @@ export function createAccountMenu(root) {
   for(const item of panel.querySelectorAll(':scope > a, :scope > button')){
     const href=item.getAttribute('href')||'';
     const kind=item.hasAttribute('data-account-signout')?'signout':
+      item.hasAttribute('data-account-agency')?'agency':
       item.hasAttribute('data-account-admin')?'owner':
       item.hasAttribute('data-account-vouchers')?'voucher':
       item.hasAttribute('data-account-referrals')?'invite':
@@ -106,7 +109,7 @@ export function createAccountMenu(root) {
   }
   function update({signed=false,user=null,profile=null}={}){
     currentProfile=profile;root.hidden=!signed;
-    if(!signed){close();voucherLink.hidden=true;adminLink.hidden=true;identityRow.hidden=true;identityAvatar.replaceChildren();delete identityAvatar.dataset.identity;avatar.replaceChildren();delete avatar.dataset.identity;root.querySelector('[data-account-name]').textContent='';root.querySelector('[data-account-balance]').textContent='';return;}
+    if(!signed){close();voucherLink.hidden=true;adminLink.hidden=true;agencyLink.hidden=true;identityRow.hidden=true;identityAvatar.replaceChildren();delete identityAvatar.dataset.identity;avatar.replaceChildren();delete avatar.dataset.identity;root.querySelector('[data-account-name]').textContent='';root.querySelector('[data-account-balance]').textContent='';return;}
     const identity=accountIdentity(user);
     identityRow.hidden=false;
     identityName.textContent=identity.name;
@@ -133,6 +136,7 @@ export function createAccountMenu(root) {
     root.querySelector('[data-account-referrals]').hidden=!referralsAvailable(profile);
     voucherLink.hidden=!profile?.customer||!!profile?.accountClosed;
     adminLink.hidden=profile?.owner!==true;
+    agencyLink.hidden=profile?.owner!==true;
     const connection=root.querySelector('[data-account-connection]');if(connection)connection.hidden=!profile||!!profile.customer;
   }
   return {update,updateBalance};

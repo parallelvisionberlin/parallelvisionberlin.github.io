@@ -15,3 +15,10 @@ test('referral menu appears only for an eligible customer, never owner, pilot or
   for(const override of [{customer:false},{billingReady:false},{generationReady:false},{pilot:true},{accountClosed:{state:'requested'}},{billingReview:true}])assert.equal(referralsAvailable({...eligible,...override}),false);
   assert.equal(referralsAvailable(null),false);
 });
+
+test('Agency stays in the verified owner-only account actions',()=>{
+  assert.match(source,/agencyLink\.href='https:\/\/parallelvisionlabel\.com\/agency\//);
+  assert.match(source,/agencyLink\.hidden=true/);
+  assert.match(source,/agencyLink\.hidden=profile\?\.owner!==true/);
+  assert.match(source,/if\(!signed\).*agencyLink\.hidden=true/);
+});
