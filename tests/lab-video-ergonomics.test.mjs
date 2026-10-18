@@ -87,6 +87,8 @@ test('mode naming, compact Video rail and mode-specific preview copy are Video-o
   assert.match(css,/content:"Upload images"!important/);
   assert.match(css,/grid-template-columns:clamp\(360px,29\.5vw,400px\)/);
   assert.match(css,/grid-template-columns:clamp\(304px,31vw,348px\)/);
+  assert.match(css,/@media\(min-width:821px\) and \(max-width:1299px\)/);
+  assert.match(css,/@media\(min-width:821px\) and \(max-width:1040px\)/);
   assert.match(app,/mode==='extend'/,'Extend remains an independent native flow');
   assert.match(html,/<span class="label" id="start-label">Start frame<\/span><span class="micro">Required<\/span>/);
   assert.match(html,/<span class="label">End frame<\/span><span class="micro">Optional<\/span>/);
