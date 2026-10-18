@@ -608,9 +608,12 @@ try{
   await x.page.screenshot({path:'test-results/lab-workspace-image.png',fullPage:false});
   await x.page.click('#tool-video');
   await x.page.click('#mode-reference');
-  assert.match(await x.page.locator('#empty-title').innerText(),/Bring your ideas to life|references/i,
-    'References retains the approved cinematic create invitation');
-  assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Add references/);
+  assert.equal(await x.page.locator('#empty-title').innerText(),'Guide the motion with references',
+    'Reference set shows the requested mode-specific invitation');
+  assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Upload images/);
+  assert.equal(await x.page.locator('#pv-mode-reference-label').innerText(),'Reference set');
+  assert.equal(await x.page.locator('#reference-drop>span').innerText(),'Upload images');
+  assert.equal(await x.page.locator('#video-inspector-empty .pv-video-sidebar-section:nth-of-type(2) h3').innerText(),'Attached images');
   await x.page.locator('#canvas-secondary').click();
   assert.equal(await x.page.evaluate(()=>document.activeElement.id),'prompt','Reference secondary action focuses motion direction');
   const outputFit=await x.page.evaluate(()=>{

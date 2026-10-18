@@ -799,7 +799,7 @@ document.addEventListener('click',event=>{
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M12 6v13M8.5 19h7"/></svg>Text</button>
 <button id="mode-start" class="mode-tab active" type="button" role="tab" aria-selected="true"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5 17 5-5 3.2 3 2.6-2.5 3.4 3.5"/></svg><span id="pv-mode-start-label">Start frame</span></button>
-<button id="mode-reference" class="mode-tab" type="button" role="tab" aria-selected="false"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5 17 5-5 3.2 3 2.6-2.5 3.4 3.5"/></svg><span id="pv-mode-reference-label">References</span></button>
+<button id="mode-reference" class="mode-tab" type="button" role="tab" aria-selected="false"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5 17 5-5 3.2 3 2.6-2.5 3.4 3.5"/></svg><span id="pv-mode-reference-label">Reference set</span></button>
 </div>
 <div id="upscale-model-display" class="upscale-model-display" hidden>
   <span class="label">Model</span>
@@ -836,7 +836,7 @@ document.addEventListener('click',event=>{
 </div>
 <div id="reference-mode" class="mode-panel" hidden><p id="extend-help" class="fine" hidden>Continue from an existing clip.</p>
 <div class="upload-heading"><span class="label">Reference images</span><span class="micro" id="ref-count">0 / 10</span></div>
-<label class="drop reference-drop" id="reference-drop" aria-label="Add reference images, drop or browse"><svg viewBox="0 0 24 24" class="pv-reference-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="15" height="14" rx="2"/><circle cx="8.5" cy="9.5" r="1.3"/><path d="m5 16 4-4 3.2 2.5 2.1-2"/><path d="M19 15v7m-3.5-3.5h7"/></svg><span>Drop reference images here or click to browse</span><small>JPG / PNG / WebP · up to 10 photos</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
+<label class="drop reference-drop" id="reference-drop" aria-label="Add reference images, drop or browse"><svg viewBox="0 0 24 24" class="pv-reference-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="15" height="14" rx="2"/><circle cx="8.5" cy="9.5" r="1.3"/><path d="m5 16 4-4 3.2 2.5 2.1-2"/><path d="M19 15v7m-3.5-3.5h7"/></svg><span>Upload images</span><small>JPG / PNG / WebP · up to 10 photos</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
 <div class="scene-video-access" aria-label="Your saved scene items"><span>Characters, outfits, props and locations</span><button id="scene-video-open" type="button"><svg viewBox="0 0 24 24" class="pv-scene-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg><span>Scene Library</span><small>Your saved collection</small></button></div>
 <div id="start-frame-maker" class="generate-zone">
 <button id="create-start-frame" class="secondary full" type="button">Create opening image</button>
@@ -844,7 +844,7 @@ document.addEventListener('click',event=>{
 </div>
 <div id="scene-video-selected" hidden aria-label="Attached saved scene items"></div>
 <p id="reference-progress" class="fine" role="status" aria-live="polite"></p>
-<div id="pv-video-ref-title" class="pv-video-ref-title" hidden><strong>Added references <span id="pv-video-added-count">0</span></strong><button id="pv-video-clear-refs" type="button">Clear all</button></div>
+<div id="pv-video-ref-title" class="pv-video-ref-title" hidden><strong>Uploaded images <span id="pv-video-added-count">0</span></strong><button id="pv-video-clear-refs" type="button">Clear all</button></div>
 <div id="reference-list" class="reference-list" role="region" aria-label="Input references" tabindex="0"></div>
 <button id="video-motion-toggle" class="pv-motion-toggle" type="button" aria-controls="reference-media" aria-expanded="false" hidden>
  <span>♫ &nbsp; Motion &amp; sound references</span>
@@ -987,7 +987,7 @@ document.addEventListener('click',event=>{
     <p id="pv-video-current-prompt">Describe the movement, camera and sound to begin.</p>
   </section>
   <section class="pv-video-sidebar-section">
-    <h3>References</h3>
+    <h3>Attached images</h3>
     <div id="pv-video-current-references" class="pv-video-current-references"></div>
     <p id="pv-video-current-reference-note">Nothing attached yet.</p>
   </section>
@@ -1007,7 +1007,7 @@ document.addEventListener('click',event=>{
       <span id="video-detail-model" class="video-detail-model"></span>
       <p id="video-detail-prompt" class="video-detail-prompt"></p>
       <section id="pv-video-detail-references" class="pv-video-detail-references" hidden aria-label="Video source references">
-        <h3>References</h3><div id="pv-video-detail-reference-strip" class="pv-video-detail-reference-strip"></div>
+        <h3>Attached images</h3><div id="pv-video-detail-reference-strip" class="pv-video-detail-reference-strip"></div>
       </section>
       <h3 class="pv-video-details-section-title">Settings</h3>
       <dl class="video-detail-data">

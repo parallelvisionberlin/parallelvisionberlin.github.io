@@ -11,14 +11,14 @@ test('the approved editorial deck replaces the superseded compact layer',()=>{
   assert.match(html,/video-restored-editorial\.css\?v=20261018-approved-restoration1/);
   assert.doesNotMatch(html,/<link[^>]*video-ergonomics\.css/);
   assert.doesNotMatch(html,/<script[^>]*video-ergonomics\.js/);
-  assert.match(css,/grid-template-columns:clamp\(430px,30\.5vw,520px\) minmax\(0,1fr\) clamp\(245px,16\.5vw,282px\)/);
+  assert.match(css,/grid-template-columns:clamp\(398px,28vw,484px\) minmax\(0,1fr\) clamp\(245px,16\.5vw,282px\)/);
   assert.match(css,/#app\.video-studio-active>.workspace\.video-layout/,'final track widths apply in the very first render');
   assert.match(css,/#app\.video-studio-active\.pv-video-approved-ready\.pv-video-state-ready/,
     'the restored visual rules override earlier design layers');
-  assert.match(css,/min-height:43px!important;height:43px!important/,
-    'Create and Extend are large enough to use comfortably');
   assert.match(css,/min-height:41px!important;height:41px!important/,
-    'Text, Start frame and References are equally legible');
+    'Create and Extend remain usable while slightly more compact');
+  assert.match(css,/min-height:41px!important;height:41px!important/,
+    'Text, Start frame and Reference set remain equally legible');
   assert.match(css,/font-size:14px!important;line-height:1\.62!important/,
     'Prompt remains readable, not condensed to 13px');
 });
@@ -70,4 +70,26 @@ test('Video first-paint width and scrollbar gutter stay stable without affecting
   assert.match(css,/scrollbar-gutter:stable!important/);
   assert.match(app,/\$\('app'\)\.classList\.toggle\('pv-video-ergonomic',videoMode\)/,
     'Video route is established before the overlay finishes');
+});
+
+
+test('mode naming, compact Video rail and mode-specific preview copy are Video-only',()=>{
+  const scene=source('video-scene-states.js');
+  assert.match(html,/id="pv-mode-reference-label">Reference set<\/span>/);
+  assert.equal((html.match(/<h3>Attached images<\/h3>/g)||[]).length,2);
+  assert.match(app,/isVideo\?'Upload images':'Add identity, wardrobe or set references'/);
+  assert.match(app,/isVideo\?'Reference set':'References'/);
+  assert.match(app,/title:'Guide the motion with references'/);
+  assert.match(app,/title:'Describe the scene'/);
+  assert.match(scene,/text:\['Describe the scene'/);
+  assert.match(scene,/reference:\['Guide the motion with references'/);
+  assert.match(editor,/textContent='Guide the motion with references'/);
+  assert.match(css,/content:"Upload images"!important/);
+  assert.match(css,/grid-template-columns:clamp\(360px,29\.5vw,400px\)/);
+  assert.match(css,/grid-template-columns:clamp\(304px,31vw,348px\)/);
+  assert.match(app,/mode==='extend'/,'Extend remains an independent native flow');
+  assert.match(html,/<span class="label" id="start-label">Start frame<\/span><span class="micro">Required<\/span>/);
+  assert.match(html,/<span class="label">End frame<\/span><span class="micro">Optional<\/span>/);
+  assert.match(html,/id="scene-video-open"/);
+  assert.match(html,/id="video-motion-toggle"/);
 });
