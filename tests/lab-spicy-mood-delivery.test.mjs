@@ -51,7 +51,7 @@ test('Mood Photobooth pipeline uses 1K bound quotes, verified previews and priva
   const mood=readFileSync(new URL('../lab/explore-moods.js',import.meta.url),'utf8');
   const pricing=readFileSync(new URL('../lab-worker/customer-image-pricing.mjs',import.meta.url),'utf8');
   assert.match(client,/resolution:'1k',aspectRatio:imageAutoRatio/);
-  assert.match(worker,/p\.engine==='seedream'&&p\.model===STILL_EDIT\?\{enable_thinking:true\}/);
+  assert.match(worker,/p\.engine==='seedream'&&p\.model===STILL_EDIT&&p\.moodId!=='hong-kong-nights'\?\{enable_thinking:true\}/);
   assert.match(worker,/const callBackUrl=callbackEnabled/);
   assert.match(worker,/spicyWakeToken\(env\.LAB_SECRET,wakeQuoteId\)/);
   assert.match(worker,/wakeQuoteId\|\|crypto\.randomUUID\(\)/);
