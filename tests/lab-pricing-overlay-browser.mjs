@@ -52,6 +52,17 @@ try{
     await page.click('#upgrade');
     await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
     assert.equal(await page.locator('#lab-pricing-overlay #pricing button[data-lab-buy]').count(),6,'Live homepage SKUs are shown without duplicate markup');
+    assert.equal(await page.locator('#lab-pricing-overlay .lab-overlay-brand').textContent(),'PV LAB','Compact Studio-only brand is present');
+    assert.equal((await page.locator('#lab-pricing-overlay #lab-plans-title').innerText()).replace(/\\s+/g,' ').trim(),'More room to create.','Approved headline is shown in the Studio only');
+    assert.equal(await page.locator('#lab-pricing-overlay .lab-pricing-deck').isVisible(),false,'Homepage image fan is not duplicated into the Studio modal');
+    assert.equal(await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-overlay-plan-note').count(),3,'Each monthly card has its short capability note');
+    assert.equal(await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-overlay-icon').count(),12,'All usage and capability icons appear');
+    if(width===1440){
+      const positions=await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-plan').evaluateAll(nodes=>nodes.map(node=>({x:node.getBoundingClientRect().x,y:node.getBoundingClientRect().y,width:node.getBoundingClientRect().width})));
+      assert.ok(positions[0].x<positions[1].x&&positions[1].x<positions[2].x,'Desktop modal uses three pricing columns');
+      assert.ok(Math.abs(positions[0].y-positions[1].y)<3&&Math.abs(positions[1].y-positions[2].y)<3,'All three cards align along the same row');
+    }
+
     assert.equal(await page.locator('#lab-pricing-overlay #pricing button[data-lab-buy][disabled]').count(),0,'Paid actions are available');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-monthly').getAttribute('aria-selected'),'true');
     await page.click('#lab-pricing-overlay #lab-tab-onetime');
