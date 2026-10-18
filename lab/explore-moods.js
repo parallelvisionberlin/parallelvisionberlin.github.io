@@ -1,10 +1,12 @@
 import {moodById} from './moods.js?hkAnalog=20261018v1&v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&hongKongStreet=1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&berlinCard=20261015&dreamBlur=20261015v1&filmCapture=20261016v2';
 import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261012-generate1';
+import {normalizeHongKongVariation} from './hong-kong-presets.js?v=20261018-analog3';
 // Browsing and uploads only prepare a price. Generate explicitly authorizes one job.
-export function moodExploreDestination(moodId,{create=false,handoff=null}={}){
+export function moodExploreDestination(moodId,{create=false,handoff=null,moodVariation='original'}={}){
   if(!moodById(moodId))throw Error('Choose a valid PV Lab Mood.');
   const query=new URLSearchParams(create?{base:moodId}:{tool:'image',mood:moodId});
   if(handoff)query.set('handoff',handoff);
+  if(moodId==='hong-kong-nights'&&normalizeHongKongVariation(moodVariation)!=='original'&&!create)query.set('variation',normalizeHongKongVariation(moodVariation));
   return './'+(create?'mood-creator.html':'studio.html')+'?'+query;
 }
 function initialize(){
@@ -13,7 +15,24 @@ function initialize(){
   const direction=$('mc-look-direction'),status=$('mc-look-status');
   const uploadError=$('mc-look-upload-error'),uploadErrorTitle=$('mc-look-upload-error-title'),
     uploadErrorDetail=$('mc-look-upload-error-detail');
-  let mood=null,file=null,fileURL=null,busy=false,dragDepth=0;
+  let mood=null,file=null,fileURL=null,busy=false,dragDepth=0,moodVariation='original';
+  const variationRow=$('mc-hk-variation');
+  const variationButtons=[...variationRow.querySelectorAll('[data-hk-variation]')];
+  function showVariation(){
+    variationRow.hidden=mood?.id!=='hong-kong-nights';
+    for(const button of variationButtons){
+      const active=button.dataset.hkVariation===moodVariation;
+      button.classList.toggle('is-selected',active);
+      button.setAttribute('aria-pressed',String(active));
+      button.disabled=busy;
+    }
+  }
+  for(const option of variationButtons)option.onclick=()=>{
+    if(busy||mood?.id!=='hong-kong-nights')return;
+    const next=normalizeHongKongVariation(option.dataset.hkVariation);
+    if(next===moodVariation)return;
+    moodVariation=next;showVariation();schedulePrice(0);
+  };
   let price=null,priceTask=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
   const creditNote=$('mc-look-credit-note');
   const generate=$('mc-look-continue'),result=$('mc-look-result');
@@ -154,7 +173,7 @@ function initialize(){
     const promise=(async()=>{
       const client=await generationService();
       if(stamp!==priceRevision||!dialog.open)return null;
-      const ready=await client.prepare(source,selected,description);
+      const ready=await client.prepare(source,selected,description,moodVariation);
       if(stamp!==priceRevision||!dialog.open)return null;
       price=ready;needsSignIn=false;
       // Keep the exact verified charge separate from the main button.
@@ -248,7 +267,7 @@ function initialize(){
   }
   function showMood(selected,photo=null){
     if(!selected||busy)return;
-    clearResult();resetPrice();mood=selected;clearPhoto();direction.value='';status.textContent='';
+    clearResult();resetPrice();mood=selected;moodVariation='original';showVariation();clearPhoto();direction.value='';status.textContent='';
     const preview=$('mc-look-preview');
     preview.dataset.moodId=selected.id;
     // Reuse the gallery's HD image while the untouched original decodes offscreen.
@@ -275,7 +294,7 @@ function initialize(){
   dialog.addEventListener('close',()=>{
     if(dialog.open)return;
     dialog.style.removeProperty('--mc-editor-height');
-    clearResult();resetPrice();clearPhoto();mood=null;setBusy(false);generate.disabled=true;
+    clearResult();resetPrice();clearPhoto();mood=null;moodVariation='original';showVariation();setBusy(false);generate.disabled=true;
     $('mc-look-preview').removeAttribute('src');
   });
   $('mc-look-close').onclick=close;
@@ -331,7 +350,7 @@ function initialize(){
     status.textContent='Preparing your private photo handoff. Nothing is being generated.';
     try{
       const token=await saveMoodHandoff({file,prompt:direction.value.trim()});
-      location.assign(moodExploreDestination(mood.id,{create,handoff:token}));
+      location.assign(moodExploreDestination(mood.id,{create,handoff:token,moodVariation}));
     }catch(error){
       status.textContent=error.message;
       setBusy(false);schedulePrice();status.textContent=error.message;
@@ -438,7 +457,7 @@ function initialize(){
     try{
       const created=new File([resultBlob],'pvlab-'+mood.id+'.'+ext,{type});
       const token=await saveMoodHandoff({file:created,prompt:direction.value.trim()});
-      location.assign(moodExploreDestination(mood.id,{handoff:token}));
+      location.assign(moodExploreDestination(mood.id,{handoff:token,moodVariation}));
     }catch(error){setBusy(false);status.textContent=error.message;}
   })();
   $('mc-look-make').onclick=()=>void continueWithMood(true);
