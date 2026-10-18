@@ -27,3 +27,15 @@ test('category artwork is never replaced by selected element previews',()=>{
   assert.match(js,/renderCover\(top,item\);/);
   assert.doesNotMatch(js,/assetPhoto\((?:image|portrait|img),/);
 });
+
+test('loads the displayed cover before scanning other private thumbnails',()=>{
+  const js=readFileSync(new URL('../lab/scene-library.js',import.meta.url),'utf8');
+  const displayed=js.indexOf('assetPhoto(host,chosen);');
+  const firstRatio=js.indexOf('await getAssetRatio(first);',displayed);
+  const laterPhotos=js.indexOf('const remaining=refs.map((ref,i)=>({ref,i}))',firstRatio);
+  const requestCap=js.indexOf('Math.min(2,remaining.length)',laterPhotos);
+  assert.ok(displayed>=0&&firstRatio>displayed&&laterPhotos>firstRatio&&requestCap>laterPhotos,
+    'Visible thumbnail resolves before an idle, concurrency-limited best-cover scan');
+  assert.match(js,/window\.requestIdleCallback\(resolve,\{timeout:1000\}\)/);
+  assert.match(js,/if\(revision!==coverRevision\)return null;/);
+});
