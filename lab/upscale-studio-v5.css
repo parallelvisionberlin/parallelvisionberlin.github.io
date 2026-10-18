@@ -156,7 +156,7 @@
   margin:0!important;
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>#upscale-info{
-  order:0!important;
+  order:1!important;
   grid-column:1/-1!important;
   width:100%!important;
   min-height:32px!important;
@@ -292,7 +292,7 @@
   border-radius:10px!important;
   background:
     linear-gradient(180deg,rgba(3,6,10,.04),rgba(3,6,10,.12)),
-    url('./visuals/studio-tools/upscale-golden-macro-source.webp') 50% 48% / cover no-repeat!important;
+    url('./visuals/invite-after-fabric-user-approved-20261014.webp') 50% 46% / cover no-repeat!important;
   box-shadow:0 10px 50px rgba(0,0,0,.28);
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .upscale-empty-kicker{
