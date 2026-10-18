@@ -113,6 +113,33 @@ try{
   await page.locator('#scene-menu-elements').click();
   await page.locator('#scene-image-menu [data-scene-target="locations"]').click();
   await page.locator('#scene-library-dialog[open]').waitFor();
+  // The long technical note lives behind the compact About Elements control.
+  assert.equal(await page.locator('#scene-library-footnote').count(),0,
+    'Do not show the legacy technical paragraph at the bottom of the browser');
+  assert.equal(await page.locator('#scene-browser-foot').isVisible(),false,
+    'A browser without a status message has no empty footer or border');
+  const info=page.locator('#scene-elements-info');
+  assert.equal(await info.isVisible(),false);
+  await page.locator('#scene-elements-info-toggle').click();
+  assert.equal(await info.isVisible(),true);
+  assert.equal(await page.locator('#scene-elements-info-toggle').getAttribute('aria-expanded'),'true');
+  assert.match(await info.innerText(),/reusable visual references/);
+  assert.match(await info.innerText(),/Google Gemini/);
+  await page.keyboard.press('Escape');
+  assert.equal(await info.isVisible(),false,'Escape dismisses the info panel');
+  assert.equal(await page.locator('#scene-library-dialog').evaluate(node=>node.open),true,
+    'Escape must not close Elements while the info panel is open');
+  await page.locator('#scene-elements-info-toggle').click();
+  await page.locator('#scene-tabs .scene-category-tab.is-selected').click();
+  assert.equal(await info.isVisible(),false,'Clicking outside the panel dismisses it');
+  await page.setViewportSize({width:390,height:820});
+  assert.equal(await page.locator('#scene-elements-info-toggle-mobile').isVisible(),true,
+    'About Elements remains accessible on mobile');
+  await page.locator('#scene-elements-info-toggle-mobile').click();
+  assert.equal(await info.isVisible(),true);
+  await page.locator('#scene-elements-info-toggle-mobile').click();
+  assert.equal(await info.isVisible(),false);
+  await page.setViewportSize({width:1440,height:900});
   await page.locator('#scene-grid .scene-card').filter({hasText:'MyRoom'}).locator('.scene-use').click();
   await page.waitForFunction(()=>{
     const dialog=document.getElementById('scene-library-dialog');
