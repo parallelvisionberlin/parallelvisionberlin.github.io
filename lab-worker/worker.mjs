@@ -257,7 +257,14 @@ function imageMoodMetadata(value){
     if(value.moodId!=='hong-kong-nights')fail(400,'Film finish is available for Hong Kong Nights.');
     try{filmFinish=filmFinishSettings(value.filmFinish);}catch(e){fail(400,e.message);}
   }
-  return {moodId:value.moodId,moodIntensity,moodOriginalPrompt,...(filmFinish?{filmFinish}:{})};
+  let moodVariant=null;
+  if(value.moodVariant!=null){
+    if(value.moodId!=='hong-kong-nights'||!['original','deep-green','slow-shutter'].includes(value.moodVariant))
+      fail(400,'Choose an available Hong Kong Nights photographic direction.');
+    moodVariant=value.moodVariant;
+  }
+  return {moodId:value.moodId,moodIntensity,moodOriginalPrompt,
+    ...(moodVariant?{moodVariant}:{}),...(filmFinish?{filmFinish}:{})};
 }
 function parseParameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');

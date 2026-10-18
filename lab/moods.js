@@ -1,4 +1,5 @@
 import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3';
+import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-photography1';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
@@ -310,7 +311,8 @@ export function imageHistoryCaption(settings={}){
   if(mood){
     const intensity=Number(settings.moodIntensity);
     const strength=Number.isInteger(intensity)&&intensity>=1&&intensity<=100?intensity+'%':'';
-    return [mood.name,strength,text].filter(Boolean).join(' · ');
+    const look=mood.id==='hong-kong-nights'&&settings.moodVariant?HONG_KONG_VARIANTS[hongKongVariant(settings.moodVariant)].label:'';
+    return [mood.name,look,strength,text].filter(Boolean).join(' · ');
   }
   if(settings?.moodId==='custom')return [settings.customMoodName||'My Mood',Number.isInteger(settings.moodIntensity)?settings.moodIntensity+'%':'',text].filter(Boolean).join(' · ');
   if(settings?.moodId)return ['Mood',text].filter(Boolean).join(' · ');
@@ -319,12 +321,14 @@ export function imageHistoryCaption(settings={}){
 }
 
 
-export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=HONG_KONG_FILM_FINISH}={}){
+export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=HONG_KONG_FILM_FINISH,moodVariant='original'}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   const finish=mood.id==='hong-kong-nights'&&filmFinish?filmFinishSettings(filmFinish):null;
+  const hkVariant=mood.id==='hong-kong-nights'?hongKongVariant(moodVariant):null;
+  const hkLook=hkVariant?HONG_KONG_VARIANTS[hkVariant].direction:'';
   const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance',midnightReverie=mood.id==='midnight-reverie',dreamBlur=mood.id==='dream-blur';
   // FIXED MOOD RECIPE: never switch between full/compact/ultra based on
   // direction length, reference count or whether a budget is almost exhausted.
@@ -397,7 +401,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
       :mood.id==='hong-kong-nights'
         ?ultraHongKong
           ?[
-            mood.ultra, mood.ultraRouting,
+            mood.ultra, mood.ultraRouting,hkLook,
             intensity===100?'MAXIMUM 100%: dense luminous humid air; thin black letterbox bars top/bottom without hiding the subject.':intensity>=70?'Strong night atmosphere and luminous haze with rich dark gaps.':'Gentle photographic night atmosphere.',
             'IDENTITY FIRST: keep Base/Identity facial geometry, expression, hairline, anatomy, outfit, pose, place and framing. Style references guide optics, not faces. GRAIN: fine integrated film texture. BLOOM: optical softness of people and setting. HALATION: only existing lamps, windows and specular reflections, no body halo or bright backdrop patch. WET / GLOSS: plausible glass and polished surfaces, no invented rain.'
           ].join(' ')
@@ -406,6 +410,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           compactHongKong?mood.compactRouting:mood.cinematography,
           'Photographic treatment strength '+intensity+'/100: reconstruct cinematic scene lighting, NOT a green overlay or post-process filter.',
           intensity<=34?mood.subtle:intensity<=69?mood.moderate:intensity<100?mood.intense:mood.climax,
+          hkLook,
           compactHongKong
             ?'IDENTITY FIRST: Base/Identity images control facial geometry, eyes, age, expression and hairline. Preserve body, pose, wardrobe, camera and original scene. Style references are optics only. GRAIN: fine integrated texture, no coarse generated noise. BLOOM: motivated scene-wide optical softness. HALATION: spread only at existing lamps, windows and specular reflections, no body halo or bright backdrop patch. WET / GLOSS: moisture sheen only on believable existing surfaces.'
             :'IDENTITY FIRST at every strength: Base/Identity references govern facial geometry, age, expression and hairline. Keep the Base location, architecture, subject, wardrobe, body, pose, camera and composition while allowing pores, hair and fabric edges to soften optically without reshaping the face. Style references contribute optical lighting, never other people. WET / GLOSS: integrate reflective moisture only into appropriate glass, floors and surfaces; no water on sofas or skin. GRAIN: fine natural photochemical texture, no coarse generated noise. BLOOM: luminous light spread across the real environment and subject, not a flat filter. HALATION: luminous spill tied to existing lamps, windows and specular reflections, no body outline, glowing silhouette or bright backdrop patch.'
@@ -434,7 +439,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     :'Honor the requested subject and composition.';
   const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamBlur||compactMidnight||ultraMidnight?mood.compactAvoid:compactHongKong?'flat green tint, direct flash unchanged, plastic skin, body halos, invented lamps, facial reshaping, flat fog, copied Style scenes':compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
   const budget=lite?3000:5000,over=prompt.length-budget;
-  return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,...(finish?{filmFinish:finish}:{})},
+  return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,...(hkVariant?{moodVariant:hkVariant}:{}),...(finish?{filmFinish:finish}:{})},
     error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
 }
 
@@ -487,11 +492,35 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const aboutButton=panel.querySelector('#composer-moods-about');
   const aboutDetails=panel.querySelector('#composer-moods-explanation');
   const backdrop=panel.parentElement.querySelector('#composer-moods-backdrop');
-  let selected=null,intensity=60,category='All',personalMoods=[];
+  let selected=null,intensity=60,category='All',personalMoods=[],hkVariation='original';
   const finishPanel=document.createElement('div');finishPanel.hidden=true;
   const finishControls=createFilmFinishControls(finishPanel,{onChange:()=>onChange(),compact:true});
   const controlDeck=panel.querySelector('.moods-controls');
   controlDeck?.insertBefore(finishPanel,controlDeck.querySelector('.moods-actions'));
+  const variationBar=document.createElement('div');
+  variationBar.className='hk-variation-bar';variationBar.hidden=true;
+  variationBar.setAttribute('role','group');
+  variationBar.setAttribute('aria-label','Hong Kong Nights photographic direction');
+  const variationCaption=document.createElement('span');
+  variationCaption.className='hk-variation-caption';
+  variationCaption.textContent='Photo direction';
+  variationBar.append(variationCaption);
+  const variationChoices=document.createElement('div');
+  variationChoices.className='hk-variation-choices';
+  const variationButtons=new Map();
+  for(const [id,look] of Object.entries(HONG_KONG_VARIANTS)){
+    const variantButton=document.createElement('button');
+    variantButton.type='button';variantButton.className='hk-variation-choice';
+    variantButton.textContent=look.label;variantButton.title=look.direction;
+    variantButton.setAttribute('aria-pressed','false');
+    variantButton.onclick=()=>{
+      if(selected!=='hong-kong-nights'||hkVariation===id)return;
+      hkVariation=id;render();fitPanelViewport();onChange();
+    };
+    variationChoices.append(variantButton);variationButtons.set(id,variantButton);
+  }
+  variationBar.append(variationChoices);
+  controlDeck?.insertBefore(variationBar,finishPanel);
   const boardById=id=>personalMoods.find(board=>'custom:'+board.id===id)||null;
   const findMood=id=>moodById(id)||boardById(id);
   const desktopGridColumns=5,initiallyVisibleRows=2;
@@ -537,7 +566,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     const title=document.createElement('strong');title.textContent=mood.name;
     const subtitle=document.createElement('small');subtitle.textContent=captions[mood.id]||mood.description;info.append(title,subtitle);
     card.append(media,info);
-    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;render();fitPanelViewport();onChange({selectedMood:true});};
+    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected==='hong-kong-nights')hkVariation='original';if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;render();fitPanelViewport();onChange({selectedMood:true});};
     grid.append(card);cards.set(mood.id,card);
   }
   function render(){
@@ -553,6 +582,8 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     emptyPersonal.hidden=category!=='My Moods'||personalMoods.length>0;
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
     finishPanel.hidden=selected!=='hong-kong-nights';
+    variationBar.hidden=finishPanel.hidden;
+    for(const [id,b] of variationButtons){b.classList.toggle('is-selected',hkVariation===id);b.setAttribute('aria-pressed',String(hkVariation===id));}
     controlDeck?.classList.toggle('has-film-finish',!finishPanel.hidden);
     const chosen=findMood(selected);
     summary.textContent=chosen?chosen.name:'';
@@ -674,10 +705,11 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     }
     panel.querySelector('#composer-moods-title')?.focus();
   }
-  function clear(silent=false){selected=null;intensity=60;finishControls.set();close(!silent);render();if(!silent)onChange();}
+  function clear(silent=false){selected=null;intensity=60;hkVariation='original';finishControls.set();close(!silent);render();if(!silent)onChange();}
   function restore(settings,silent=false){
     selected=settings?.moodId==='custom'&&typeof settings.customMoodBoardId==='string'?'custom:'+settings.customMoodBoardId:moodById(settings?.moodId)?.id||null;
     intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));
+    hkVariation=selected==='hong-kong-nights'?hongKongVariant(settings?.moodVariant):'original';
     finishControls.set(settings?.filmFinish||HONG_KONG_FILM_FINISH);
     close();render();if(!silent)onChange();
   }
@@ -686,7 +718,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
       const mood=boardById(selected);
       return mood?preparePersonalMoodPrompt(prompt,mood,intensity,options):{prompt:String(prompt||'').trim(),metadata:{},error:'This saved Mood is not available. Open My Moods and choose another.'};
     }
-    return prepareMoodPrompt(prompt,selected,intensity,{...options,filmFinish:finishControls.get()});
+    return prepareMoodPrompt(prompt,selected,intensity,{...options,moodVariant:hkVariation,filmFinish:finishControls.get()});
   }
   function error(engine,prompt,count=0,referenceMode='base'){return enrich(prompt,{engine,referenceCount:count,referenceMode}).error;}
   function sync({visible=true,locked=false}={}){button.hidden=!visible;button.disabled=locked;finishControls.lock(locked);if(!visible||locked)close();if(visible)render();}
@@ -745,7 +777,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     observer.observe(panel.parentElement);
   }
   render();
-  return {active:()=>!!selected,selected:()=>selected,intensity:()=>intensity,enrich,error,setPersonalMoods,
+  return {active:()=>!!selected,selected:()=>selected,intensity:()=>intensity,variant:()=>selected==='hong-kong-nights'?hkVariation:null,enrich,error,setPersonalMoods,
     invalid:(engine,prompt,count=0,referenceMode='base')=>!!error(engine,prompt,count,referenceMode),
     sync,open,close,clear,restore};
 }

@@ -181,7 +181,7 @@ test('original prompt is not lost; mood metadata can be restored',()=>{
   assert.ok(data.prompt.startsWith('Nina sitting by a window\n\n'));
   assert.match(data.prompt,/atmospheric emerald haze/i);
   assert.match(data.prompt,/Base\/Identity images control facial geometry/);
-  assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',filmFinish:{version:2,grain:58,haze:78,halation:80,film:90}});
+  assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',moodVariant:'original',filmFinish:{version:2,grain:58,haze:78,halation:80,film:90}});
   assert.equal(data.error,'');
 });
 test('mood intensity actually affects the generated directions',()=>{

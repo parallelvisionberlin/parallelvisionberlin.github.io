@@ -1,0 +1,12 @@
+# Hong Kong Nights / approved real-photography sources
+
+These are full photographs from the named gallery pages, not screenshots or generated images.
+Photographer copyright remains with Greg Girard. Original sources are credited here.
+Automatically attached as style-only references; they are not subjects, identities, locations or poses.
+
+- **01-person-interior.jpg**: Greg Girard, Wan Loy Teahouse, Mongkok, Hong Kong, 1985; Blue Lotus Gallery. https://images.squarespace-cdn.com/content/v1/54e9ba8ae4b0165bdcf59868/1642682564110-7155H6TPJD20KRZCBYHD/Greg+Girard%2C+Wan+Loy+Teahouse%2C+Mongkok%2C+Hong+Kong+1985%2C+Courtesy+of+Blue+Lotus+Gallery.jpeg (source 2500×1666, hosted 2200×1466)
+- **02-person-street.jpg**: Greg Girard, Young Woman Exiting Tram, Hong Kong, 1990; Blue Lotus Gallery. https://images.squarespace-cdn.com/content/v1/54e9ba8ae4b0165bdcf59868/1642682594502-XDRZPX3YSAX7P51EV4VN/Greg+Girard%2C+Young+woman+exiting+tram%2C+Hong+Kong+1990%2C+Courtesy+of+Blue+Lotus+Gallery.jpeg (source 2500×2504, hosted 2196×2200)
+- **03-red-night.jpg**: Greg Girard, Peking Road, Tsimshatsui, Hong Kong, 1987; Blue Lotus Gallery. https://images.squarespace-cdn.com/content/v1/54e9ba8ae4b0165bdcf59868/1642682543392-GBSDT18M5XGVUIAQZTL1/Greg+Girard%2C+Peking+Road%2C+Tsimshatsui%2C+Hong+Kong+1987%2C+Courtesy+of+Blue+Lotus+Gallery.jpeg (source 2500×3755, hosted 1465×2200)
+- **04-golden-lion.jpg**: Greg Girard, Golden Lion Bar, Wanchai, Hong Kong, 1974; Blue Lotus Gallery. https://images.squarespace-cdn.com/content/v1/54e9ba8ae4b0165bdcf59868/1642682517592-KC02WVXXC4EWGV9HFPL5/Greg+Girard%2C+Golden+Lion+Bar%2C+Wanchai%2C+Hong+Kong+1974%2C+Courtesy+of+Blue+Lotus+Gallery.jpeg (source 2500×1673, hosted 2200×1472)
+- **05-club-gold-star.jpg**: Greg Girard, Club Gold Star, Wanchai, Hong Kong, 1993; Blue Lotus Gallery. https://images.squarespace-cdn.com/content/v1/54e9ba8ae4b0165bdcf59868/1642682506648-3BZ7ZLZ56DYEADTBUZAP/Greg+Girard%2C+Club+Gold+Star%2C+Wanchai%2C+Hong+Kong+1993%2C+Courtesy+of+Blue+Lotus+Gallery.jpeg (source 2500×1830, hosted 2200×1610)
+- **06-sheung-wan.jpg**: Greg Girard, Sheung Wan Street Scene, Hong Kong, 1975; Blue Lotus Gallery. https://images.squarespace-cdn.com/content/v1/54e9ba8ae4b0165bdcf59868/1642682556468-3HIPYCYI8JRFN9FVAOS9/Greg+Girard%2C+Sheung+Wan+Street+Scene%2C+Hong+Kong+1975%2C+Courtesy+of+Blue+Lotus+Gallery..jpeg (source 2500×1677, hosted 2200×1476)

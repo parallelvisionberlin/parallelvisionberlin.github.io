@@ -1,0 +1,33 @@
+/* Hong Kong Nights: one compact photographic-direction switch, not extra Moods. */
+#image-composer .hk-variation-bar[hidden]{display:none!important}
+#image-composer .moods-controls.has-film-finish>.hk-variation-bar{
+  grid-column:1;grid-row:2;display:flex;align-items:center;min-width:0;gap:13px
+}
+#image-composer .hk-variation-caption{
+  flex:0 0 auto;font-size:11px;font-weight:640;color:#c6c9c8;white-space:nowrap
+}
+#image-composer .hk-variation-choices{display:flex;flex:1 1 auto;min-width:0;align-items:center;gap:6px}
+#image-composer .hk-variation-choice{
+  appearance:none;min-width:0;flex:1 1 auto;height:31px;
+  display:flex;align-items:center;justify-content:center;padding:5px 11px;
+  border:1px solid #515357;border-radius:8px;background:#242627;
+  color:#bdc0c1;font:600 11px/1.1 inherit;white-space:nowrap;cursor:pointer;
+}
+#image-composer .hk-variation-choice:hover{border-color:#858a8b;color:#f4f4f4}
+#image-composer .hk-variation-choice.is-selected{
+  border-color:#d6ff00;color:#d6ff00;background:#272e20
+}
+#image-composer .hk-variation-choice:focus-visible{outline:2px solid #d6ff00;outline-offset:2px}
+#image-composer .moods-controls.has-film-finish>.film-finish-compact{grid-row:3}
+#image-composer .moods-controls.has-film-finish>.moods-actions{grid-row:1/4;align-self:center}
+@media(max-width:740px){
+  #image-composer .moods-controls.has-film-finish>.hk-variation-bar{grid-column:1;grid-row:2;gap:9px}
+  #image-composer .moods-controls.has-film-finish>.film-finish-compact{grid-column:1;grid-row:3}
+  #image-composer .moods-controls.has-film-finish>.moods-actions{grid-column:1;grid-row:4}
+}
+@media(max-width:420px){
+  #image-composer .hk-variation-caption{font-size:10px}
+  #image-composer .hk-variation-choice{height:32px;padding:4px 6px;font-size:10.5px}
+  #image-composer .hk-variation-choices{gap:5px}
+}
+@media(max-width:350px){#image-composer .hk-variation-caption{display:none}}
