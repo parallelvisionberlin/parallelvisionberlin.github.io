@@ -13,7 +13,8 @@ function fixture(t){
   db.exec(read('schema.sql'));
   for(const migration of [
     '0006-customers-billing','0011-customer-lifecycle','0015-lab-promotional-credits',
-    '0023-welcome-guard','0025-promo-generation-holds','0029-pause-welcome-promotion'
+    '0023-welcome-guard','0025-promo-generation-holds','0029-pause-welcome-promotion',
+    '0033-owner-voucher-generation'
   ]) db.exec(read('migrations/'+migration+'.sql'));
   const env={
     LAB_WELCOME_CREDITS_ENABLED:'false',LAB_FREE_TRIAL_PAUSED:'true',
@@ -78,6 +79,42 @@ test('previously granted promotional balance remains intact and cannot fund a ne
   assert.throws(()=>f.submit(id),/complimentary generation is paused/i);
   assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,200);
   assert.equal(f.one('SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',id).n,0);
+});
+
+test('redeemed owner-issued voucher can be spent while automatic welcome credits are paused',async t=>{
+  const f=fixture(t),id=await f.create('user_RealVoucher');
+  f.verified(id,'legitimate.friend@example.com');
+  f.run('INSERT INTO lab_vouchers(code,credits,max_redemptions,note,created_at,created_by) VALUES(?,?,?,?,?,?)',
+    'PVFRIEND200',200,1,'Friend invitation',950,'owner_live');
+  // An unredeemed code cannot bypass the free-credit pause.
+  assert.equal((await customerSession(f.env,id)).generationReady,false);
+  await assert.rejects(()=>assertCustomerOpen(f.env,id,{promotion:true}),/Complimentary generation is paused/);
+  assert.throws(()=>f.submit(id,'job_before_voucher'),/complimentary generation is paused/i);
+  // Redemption is single-use, atomic, and automatically credits the ordinary wallet.
+  f.run('INSERT INTO lab_voucher_redemptions(voucher_code,customer_id,redeemed_at) VALUES(?,?,?)',
+    'PVFRIEND200',id,1000);
+  assert.equal(f.one('SELECT redeemed_count FROM lab_vouchers WHERE code=?','PVFRIEND200').redeemed_count,1);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,200);
+  assert.equal((await customerSession(f.env,id)).generationReady,true);
+  await assertCustomerOpen(f.env,id,{spending:true,promotion:true});
+  f.submit(id,'job_redeemed_voucher');
+  assert.equal(f.one('SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',id).n,1);
+  assert.ok(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits<200);
+  assert.equal(f.one("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='purchase'",id).n,0,
+    'An owner gift is not misclassified as Stripe revenue');
+});
+
+test('redeeming an owner voucher never overrides persistent disposable-email abuse holds',async t=>{
+  const f=fixture(t),id=await f.create('user_BlockedGift');
+  f.verified(id,'temporary@yournike.com');
+  f.run('INSERT INTO lab_vouchers(code,credits,max_redemptions,note,created_at,created_by) VALUES(?,?,?,?,?,?)',
+    'PVBLOCKED200',200,1,'Held case',950,'owner_live');
+  f.run('INSERT INTO lab_voucher_redemptions(voucher_code,customer_id,redeemed_at) VALUES(?,?,?)',
+    'PVBLOCKED200',id,1000);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,200);
+  assert.equal((await customerSession(f.env,id)).generationReady,false);
+  await assert.rejects(()=>assertCustomerOpen(f.env,id,{promotion:true}),/Free trial generation/);
+  assert.throws(()=>f.submit(id,'job_held_gift'),/promotional generation paused/i);
 });
 
 test('purchasing credits restores all generation access without altering welcome receipts',async t=>{
