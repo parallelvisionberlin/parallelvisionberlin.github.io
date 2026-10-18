@@ -293,8 +293,8 @@ try{
             assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Credits entry remains visible for customers and owner');
             if(customer){
               assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'1,234');
-              assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'#pricing');
-              assert.equal(await page.locator('.pv-account-panel a[href="#pricing"]').count(),1);
+              assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'./account.html#balance');
+              assert.equal(await page.locator('.pv-account-panel a[href="./account.html#balance"]').count(),1);
               assert.equal(await page.locator('.pv-account-panel a[href="./account.html"]').count(),1);
             }
           }
