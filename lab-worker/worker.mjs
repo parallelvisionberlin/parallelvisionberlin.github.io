@@ -1520,7 +1520,7 @@ async function route(request,env,ctx) {
     const id=uid(path.split('/')[3]),pack=await first(env,
       'SELECT name,refs,created_at FROM packs WHERE id=? AND owner_id=?',id,owner);
     if(!pack)fail(404,'Saved Element not found.');
-    const sceneName=/^PVSCENE1\\|(characters|outfits|props|locations)\\|[^|\\r\\n]{1,70}$/;
+    const sceneName=/^PVSCENE1\|(characters|outfits|props|locations)\|[^|\r\n]{1,70}$/;
     if(!sceneName.test(pack.name))fail(403,'Only Scene Library Elements can be edited here.');
     const data=await body(request);
     const name=String(data.name||'').trim();
