@@ -254,6 +254,9 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
     overflow-y:auto!important;
     scrollbar-width:thin;
     scrollbar-color:rgba(199,203,201,.38) transparent;
+    /* JS measures scrollHeight synchronously; a CSS height transition makes
+       it read the previous tall height and prevents the empty prompt shrinking. */
+    transition:none!important;
   }
   html:not(.pv-native-lab) #app.image-studio-active
     #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.is-text-only):has(#image-composer-references:not([hidden]) .composer-reference-tile)
