@@ -62,19 +62,12 @@ const ALL_MOODS=Object.freeze([
     "name": "Hong Kong Nights",
     "category": "Cinema",
     "preview": "/lab/mood-references/hong-kong-nights/plaza-grill.webp",
-    "description": "Luminous 1990s night cinema, amber and ruby practicals, petrol shadows and humid depth",
-    "defaultIntensity": 85,
-    "direction": "Direct the existing photograph as a genuine 1990s Hong Kong nighttime movie still, on pushed 35mm. READ THE BASE FIRST: identify the actual room/exterior, existing lights, reflectances, faces and depth. Relight the subject AND its environment as one coherent exposure. Cinematography, not a flat green filter: believable amber/tungsten practical pools and soft directional bounce, deep pockets of unlit black, selective cyan/emerald only in ambient shadows, untouched neutral skin and fabrics. Warm light must be physically motivated by an existing source, window, reflected glow or plausible spill; never add a lamp, spotlight or glowing rim just to create the look. Replace the flat feel of frontal flash and hard digital fill with off-axis light modeling, natural falloff and genuine shadow shape on both people and architecture. Atmospheric emerald haze lives in illuminated depth around real lights, not everywhere; separate foreground, middle distance and dark background. WET / GLOSS: moisture and glints only where glass, wet paving or polished surfaces support them, never fake indoor rain. GRAIN: restrained organic 35mm, not coarse noise. BLOOM: diffuse real practical highlights with optical falloff. HALATION: existing lamps, windows and specular reflections only, no body halo or bright backdrop patch. Keep face, anatomy, wardrobe, camera, setting and location recognizable.",
-    "subtle": "1–34%: natural scene preserved, mild off-axis shaping, warm/cool light separation, faint practical diffusion, unlit black intervals; gentle cinematic shift.",
-    "moderate": "35–69%: decisive whole-scene day-to-night light where needed, visibly warm/red practical separation against selective teal shadow, natural skin and dimensional humid depth without green coating.",
-    "intense": "70–99%: saturated but believable tungsten and restrained ruby practical light model the person and architecture together; deep petrol-black pockets, source-lit atmospheric haze and luminous analog optics. No relocated people or environment.",
-    "climax": "MAXIMUM 100%: strong scene-aware off-axis night lighting across subject and scene, expressive amber/ruby practical pools against deep teal shadows and luminous layered humidity, without inventing fixtures or locations. Thin black letterbox bars without cropping the subject.",
-    "avoid": "uniform emerald wash, green faces, flat frontal flash unchanged, neon sci-fi, cyan flood, mint-green rocks and white walls, invented lamps, fake rim lights, body outline, bright backdrop patch, uniform fog, rain indoors, copied Style-ref scenes, over-sharpening, oversmoothed skin, changed face, pose, outfit, architecture or camera",
-    "compact": "1990s Hong Kong 35mm night photography, not a green filter. Relight whole Base (face, clothes and room/rock) as one credible night exposure. Keep face, expression, body, pose, contact with ground or furniture, outfit, camera, framing and location. Luminous amber/tungsten pools and selective ruby-red practical spill from existing light or plausible bounce against petrol-black and emerald shadows. Light must visibly touch skin, hair, hands and fabrics as well as nearby surfaces, not just backdrop. Preserve realistic skin, architecture, identity and camera. Atmospheric emerald haze ONLY in lit depth; source-bound bloom, fine analog grain. Never transplant scenery, invent lamps, wet dry floors or mint-green skin.",
-    "cinematography": "VISUAL SCENE ROUTING, choose only what matches the Base image: INTERIOR / BEDROOM: warm existing lamp/hallway/window or plausible bounce, cool corners, intimate face modeling, neutral skin and upholstery. STREET / EXTERIOR: distant practicals, wet reflections only where supported, humid depth, real darkness. DIRECT FLASH / HARSH FRONT LIGHT: transform the on-camera flat flash on person AND backdrop/rock/walls into directional nighttime exposure and local shadow; preserve details but stop looking flash-lit. If there is no real visible light, use physically plausible bounced spill without inventing bright lamps, signs or body rim lights. CLUB / PORTRAIT: retain natural face and clothing, selectively soften real practicals, preserve deep black gaps. Do not transplant scenes from Style references.",
-    "compactRouting": "VISUAL ROUTE from Base: DAYLIGHT OUTDOORS -> credible night lighting of same place and subject, without moving them onto a street or changing support. INTERIOR -> existing warm lamp/window/bounce shapes face and walls, dark teal corners. STREET / EXTERIOR -> preserve setting; warm/red practical glints and dimensional humidity, wet only if plausible. DIRECT FLASH -> replace flat front light on person AND backdrop/rock with motivated off-axis shadows. PORTRAIT -> preserve natural face, mixed warm/cool modeling; no copied people or green face.",
-    "ultra": "1990s Hong Kong 35mm night. Relight entire Base including real skin, outfit and setting into physically credible night; motivated amber and occasional ruby-red practical pools against selective petrol/emerald shadow, authentic atmospheric emerald haze ONLY around existing light paths, deep black gaps. No green wash or scene transplant.",
-    "ultraRouting": "VISUAL ROUTE: INTERIOR warm existing practical/bounce on person and room; STREET / EXTERIOR existing red/amber glints and humid dark depth; DIRECT FLASH replace on-axis fill across face and background with motivated side light, no new lamps, copied streets or body rim."
+    "description": "Emerald haze, neon bloom and nocturnal melancholy",
+    "direction": "Dreamlike 1990s Hong Kong night-film photography: humid urban darkness, atmospheric emerald haze, softened practical neon, diffused city lights, rain-wet reflections, organic 35mm grain, optical halation and nocturnal melancholy. Respect the original scene and lighting. Emerald green is an atmospheric possibility, not a mandatory color overlay.",
+    "subtle": "Gentle night-film diffusion, soft practical-light bloom, subtle grain and intimate haze. Keep natural skin tones and recognizable surroundings.",
+    "intense": "Immersive humid nighttime atmosphere, thick but realistic haze, luminous diffused neon in scene-appropriate greens or warm tones, wet reflections, deep layered shadows, strong analog halation and grain. Preserve referenced faces, poses and composition.",
+    "avoid": "forced all-green tint, generic cyberpunk, synthetic skin, neon outlines, fake rain pasted onto dry rooms, smudged facial features",
+    "defaultIntensity": 60
   },
   {
     "id": "night-flash",
@@ -326,6 +319,26 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
+  // Hong Kong Nights: restore the approved October 10 photographic recipe.
+  // One short art direction and the user's own photograph; no scene rebuilding
+  // instructions, automatic cinematography reference map, or extra AI pass.
+  // The three existing look choices remain optional, with a concise variation
+  // only for Deep Green and Slow Shutter. Film finishing is opt-in.
+  if(mood.id==='hong-kong-nights'){
+    const variant=hongKongVariant(moodVariant);
+    const film=filmFinish===null?null:filmFinishSettings(filmFinish??HONG_KONG_VARIANTS[variant].filmFinish);
+    const strength=intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
+    const variantDirection=variant==='original'?'':HONG_KONG_VARIANTS[variant].direction;
+    const preservation=referenceCount>0
+      ?referenceMode==='references'
+        ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
+        :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
+      :'Honor the requested subject and composition.';
+    const prompt=[original,'PV LAB MOOD / '+mood.name+': '+[strength,variantDirection].filter(Boolean).join(' ')+' '+preservation+' Avoid: '+mood.avoid+'.'].filter(Boolean).join('\\n\\n');
+    const budget=engine==='seedreamlite'?3000:5000,over=prompt.length-budget;
+    return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,moodVariant:variant,...(film?{filmFinish:film}:{})},
+      error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
+  }
   const hkVariant=mood.id==='hong-kong-nights'?hongKongVariant(moodVariant):null;
   const finish=hkVariant&&filmFinish!==null?filmFinishSettings(filmFinish??HONG_KONG_VARIANTS[hkVariant].filmFinish):null;
   const hkLook=hkVariant?HONG_KONG_VARIANTS[hkVariant].direction:'';
