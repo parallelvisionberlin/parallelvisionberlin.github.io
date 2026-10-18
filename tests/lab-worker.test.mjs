@@ -634,8 +634,8 @@ test('Hong Kong photo editing uses only the customer Base and explicitly disable
   assert.equal(quotedRequest.input.image_urls.length,1,'no built-in mood photos sent');
   assert.equal(quotedRequest.input.enable_thinking,false,'the provider defaults to true unless explicitly false');
   assert.match(quotedRequest.input.prompt,/EDIT IMAGE 1/);
-  assert.match(quotedRequest.input.prompt,/Hong Kong Nights describes color/);
-  assert.match(quotedRequest.input.prompt,/softly lit eyes/);
+  assert.match(quotedRequest.input.prompt,/Hong Kong Nights is a color treatment/);
+  assert.match(quotedRequest.input.prompt,/softly visible eyes/);
 });
 
 test('Seedream uses SpicyAPI with ordered images, compiled properties and reusable detail metadata',async()=>{
