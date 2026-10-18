@@ -1026,7 +1026,12 @@ try{
   await coverTest.page.waitForFunction(()=>[...document.querySelectorAll('.scene-feature-shot img')].every(img=>img.complete&&img.naturalWidth>0),null,{timeout:12000});
   await coverTest.page.click('#scene-list-view');
   assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true);
-  assert.equal(await coverTest.page.locator('#scene-grid .scene-card-image img').count(),1);
+  // A list toggle re-renders the card. Private images decode asynchronously:
+  // wait for the photo, not for an immediate DOM <img> count on that frame.
+  await coverTest.page.waitForFunction(()=>{
+    const image=document.querySelector('#scene-grid .scene-card-image img');
+    return image?.complete&&image.naturalWidth===8&&image.naturalHeight===5;
+  },null,{timeout:12000});
   await coverTest.page.setViewportSize({width:390,height:844});
   assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true,'Mobile Locations keeps its static banner');
   assert.ok(await coverTest.page.locator('#scene-library-dialog').evaluate(el=>el.getBoundingClientRect().width<=window.innerWidth),

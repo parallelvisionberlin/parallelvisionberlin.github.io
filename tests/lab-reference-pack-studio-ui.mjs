@@ -93,9 +93,10 @@ try{
   });
   assert.ok(box.left>=12&&box.right<=1428&&box.top>=12&&box.bottom<=888,'Modal fits desktop viewport: '+JSON.stringify(box));
   assert.equal(await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height),before,'Modal must not change composer geometry');
-  assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-new').count(),1);
-  assert.equal(await page.locator('.pack-studio-collection-heading #pack-studio-new').count(),0,
-    'New photo pack lives inside the gallery, not above its toolbar');
+  assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-new').count(),0,
+    'Photo Packs no longer adds a creation tile to its saved gallery');
+  assert.equal(await page.locator('.pack-studio-collection-title #pack-studio-new').count(),1,
+    'New photo pack lives in the current compact collection toolbar');
   assert.equal(await page.locator('#pack-studio-dialog .pack-studio-view-button:visible').count(),1,
     'Grid and list share one contextual layout toggle, not two competing buttons');
   assert.equal(await page.locator('#pack-studio-library-count').textContent(),'0 saved');
