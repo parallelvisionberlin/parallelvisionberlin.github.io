@@ -3,13 +3,13 @@
 export const HONG_KONG_VARIANTS=Object.freeze({
   original:Object.freeze({
     label:'Original',
-    direction:'ORIGINAL COLOR NEGATIVE: handheld 35mm f/2 lens, pushed low-light 35mm color negative with visible, irregular grain and optical halation; an intimate, imperfect night exposure. Amber and restrained ruby practicals, deep petrol/emerald shadow separation, dark unlit gaps. Human skin, hair, clothes and surrounding surfaces must share the same physically motivated light. Not a uniform green filter.',
+    direction:'ORIGINAL COLOR NEGATIVE: handheld 35mm at f/2, pushed grain and real light halation; intimate imperfect night exposure. Amber and restrained ruby practicals, deep petrol/emerald shadow separation, dark unlit gaps. Human skin, hair, clothes and surrounding surfaces must share the same physically motivated light. Not a uniform green filter.',
     filmFinish:Object.freeze({version:2,grain:58,haze:78,halation:80,film:90}),
     files:Object.freeze(['greg-iii.png','plaza-grill.webp','young-woman-tram.webp','greg-reds.png'])
   }),
   'deep-green':Object.freeze({
     label:'Deep Green',
-    direction:'DEEP GREEN COLOR NEGATIVE: handheld 50mm f/1.8, substantial emulsion grain and soft highlight halation; dense emerald darkness and humid optical depth lit by existing practicals, with controlled warm amber and ruby contrast. Preserve natural skin color under motivated light, distinct garment materials and deep black intervals. Never tint faces uniformly green or invent scenery.',
+    direction:'DEEP GREEN COLOR NEGATIVE: handheld 50mm at f/1.8, grain and real halation; dense emerald darkness and humid optical depth lit by existing practicals, with controlled warm amber and ruby contrast. Preserve natural skin color under motivated light, distinct garment materials and deep black intervals. Never tint faces uniformly green or invent scenery.',
     filmFinish:Object.freeze({version:2,grain:78,haze:86,halation:81,film:93}),
     files:Object.freeze(['greg22.png','supervalu.jpg','silver-grill-cafe.jpg','plaza-grill.webp'])
   }),
