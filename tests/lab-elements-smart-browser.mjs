@@ -86,6 +86,7 @@ try{
   await page.locator('#scene-element-suggestions .scene-element-choice').filter({hasText:'@MyRoom'}).click();
   await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-element-tile').length===1&&
     document.querySelectorAll('#reference-list .reference-element-item').length===1,{timeout:20000});
+  await page.waitForFunction(()=>document.getElementById('scene-done')?.disabled===false,null,{timeout:20000});
   assert.equal(await page.locator('#scene-element-suggestions').isVisible(),false,
     'Selecting @MyRoom closes the suggestion list without waiting for more typing');
   assert.match(await text.inputValue(),/@MyRoom$/,'The selected @mention remains in the prompt');
@@ -105,6 +106,7 @@ try{
   await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-element-tile').length===2,{
     timeout:20000
   });
+  await page.waitForFunction(()=>document.getElementById('scene-done')?.disabled===false,null,{timeout:20000});
   assert.equal(await page.locator('#scene-element-suggestions').isVisible(),false,
     'Selecting @Nina FOK also closes suggestions while keeping both Element thumbnails');
   assert.equal(await page.locator('#reference-list .reference-element-item').count(),2,
