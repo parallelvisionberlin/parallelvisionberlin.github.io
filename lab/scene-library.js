@@ -436,6 +436,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     }
     const capacity=getReferenceLimit()-currentRefs.length;
     if(capacity<1){setStatus('This model has no free reference slots. Remove an image or choose a model with more references.',true);return;}
+    let attached=false;
     setWorking(true);setStatus('Preparing @'+item.title+' as one Element…');
     try{
       await runTask(async()=>{
@@ -464,9 +465,26 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
           note:elementReferenceNote(item,i)
         }));
         await addReferences(files,chosen.map(({ref})=>ref.id),labels);
+        // Never dismiss the library for an interrupted or partially attached set.
+        if(!chosen.every(({ref})=>getReferences().some(active=>active.elementId===item.id&&active.id===ref.id)))
+          throw Error('Not all selected views were attached. Please try again.');
+        attached=true;
         setStatus('@'+item.title+' added as one Element · '+chosen.length+' selected view'+(chosen.length===1?'':'s')+'.');
       });
-    }finally{setWorking(false);render();}
+    }finally{
+      setWorking(false);
+      if(attached&&dialog.open){
+        // Returning to the existing Image deck is navigation only. The saved
+        // Element is already represented by one @name thumbnail; do not insert
+        // text into the user's prompt or start a paid generation.
+        close();
+        if(context.tool==='image'&&window.matchMedia('(min-width:821px)').matches)
+          requestAnimationFrame(()=>{
+            if(!dialog.open&&getContext().owner&&getContext().tool==='image')
+              $('image-composer-prompt')?.focus({preventScroll:true});
+          });
+      }else render();
+    }
   }
   async function deleteItem(item){
     if(working||!window.confirm('Delete '+item.title+' from Scene Library? Generations already made will remain in History.'))return;
