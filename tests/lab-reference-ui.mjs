@@ -71,7 +71,7 @@ async function populatedReferenceControls(page){
 try{
   let x=await workspace();await imageAdvanced(x.page);
   assert.equal(await x.page.locator('#output-format').inputValue(),'png');
-  await x.page.locator('#output-format').selectOption('jpeg');
+  await x.page.locator('#output-format').evaluate(select=>{select.value='jpeg';select.dispatchEvent(new Event('change',{bubbles:true}));});
   assert.equal(await x.page.locator('#output-format').inputValue(),'jpeg');
   await x.page.click('#tool-upscale');assert.equal(await x.page.locator('#output-format').inputValue(),'png');
   await imageAdvanced(x.page);assert.equal(await x.page.locator('#output-format').inputValue(),'png');
