@@ -36,6 +36,7 @@ export function voucherLink(env,code,origin=''){
 // Provide safe status information for owner-initiated diagnostics without returning Clerk data.
 async function clerkEmailStatus(env,subject,force=false){
   if(!/^user_[A-Za-z0-9]+$/.test(subject))return 'invalid_subject';
+  if(await one(env,'SELECT 1 AS closed FROM lab_account_closures WHERE customer_id=?',subject))return 'closed';
   // Verified new Clerk identity maps to an internal D1 wallet ID; never infer identity by email.
   const link=subject.startsWith('user_PvLabV2')
     ?await one(env,"SELECT new_subject FROM lab_clerk_identity_links WHERE canonical_id=? AND kind='customer'",subject)
@@ -67,10 +68,15 @@ async function clerkEmailStatus(env,subject,force=false){
   const email=primary?.verification?.status==='verified'&&typeof primary.email_address==='string'&&
     primary.email_address.length<=254&&EMAIL.test(primary.email_address)?primary.email_address.toLowerCase():null;
   const t=Date.now();
+  // If closure was accepted while the Clerk GET was in flight, never recreate
+  // a deleted email or its verified status.
   await run(env,`INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at)
-    VALUES(?,?,?,?)
-    ON CONFLICT(customer_id) DO UPDATE SET email=excluded.email,verified_at=excluded.verified_at,synced_at=excluded.synced_at`,
-    subject,email,email?t:null,t);
+    SELECT ?,?,?,? WHERE NOT EXISTS
+      (SELECT 1 FROM lab_account_closures WHERE customer_id=?)
+    ON CONFLICT(customer_id) DO UPDATE SET
+      email=excluded.email,verified_at=excluded.verified_at,synced_at=excluded.synced_at
+    WHERE NOT EXISTS(SELECT 1 FROM lab_account_closures WHERE customer_id=excluded.customer_id)`,
+    subject,email,email?t:null,t,subject);
   return email?'verified':'unverified';
 }
 export async function syncCustomerEmail(env,subject,options={}){
@@ -112,11 +118,12 @@ async function syncMissingClerkBatch(env,{source='scheduled',force=false}={}){
   // Missing email records are eligible on the first attempt. The periodic job
   // respects a 24-hour per-contact interval, and the owner button bypasses it.
   const condition=source==='scheduled'
-    ?'WHERE p.synced_at IS NULL OR p.synced_at<?'
-    :'WHERE p.email IS NULL OR p.synced_at IS NULL OR p.synced_at<?';
+    ?'WHERE (p.synced_at IS NULL OR p.synced_at<?)'
+    :'WHERE (p.email IS NULL OR p.synced_at IS NULL OR p.synced_at<?)';
   const candidates=await all(env,`SELECT c.id FROM lab_customers c
     LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
-    ${condition}
+    ${condition} AND NOT EXISTS
+      (SELECT 1 FROM lab_account_closures x WHERE x.customer_id=c.id)
     ORDER BY CASE WHEN p.synced_at IS NULL THEN 0 ELSE 1 END,COALESCE(p.synced_at,0),c.created_at DESC LIMIT 12`,
     freshness);
   const outcomes=Object.fromEntries(CLERK_STATUS_NAMES.map(name=>[name,0]));

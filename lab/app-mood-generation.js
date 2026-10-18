@@ -1,7 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {prepareMoodPrompt} from './moods.js?filmOptics=2&app=5&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1';
-import {createMoodReferenceLoader,moodReferencePlan} from './mood-references.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2';
+import {createMoodReferenceLoader,moodReferencePlan} from './mood-references.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&dreamBlurNotes=20261018v1';
 import {normalizeReferenceLabel} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1';
 import {imageDimensions,seedreamWorkingCopy,providerWorkingCopy,PROVIDER_IMAGE_LIMIT} from './image-tools.js?v=20261011-reference-prewarm1';
 import {pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1&imageRatio=20261016-inherit1';
@@ -61,7 +61,8 @@ export function createAppMoodGeneration(){
       if(dimensions&&(Math.min(dimensions.width,dimensions.height)<240||Math.max(dimensions.width,dimensions.height)>8000||Math.max(dimensions.width/dimensions.height,dimensions.height/dimensions.width)>8))throw Error('Choose a photograph between 240 and 8,000 pixels per side.');
       const recipe=prepareMoodPrompt(direction,mood.id,mood.defaultIntensity||70,{engine:'seedream',referenceCount:file?1:0,referenceMode:'base'});
       if(recipe.error)throw Error(recipe.error);
-      const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'2k',aspectRatio:imageAutoRatio({values:['16:9','9:16','1:1','4:3','3:4','3:2','2:3','4:5','5:4','21:9'],reference:dimensions}),outputFormat:'png',referenceRoles:file?[normalizeReferenceLabel({name:file.name,role:'base'})]:[]};
+      // Photobooth favors faster first results at 1K. Studio keeps its independent HD selector.
+      const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'1k',aspectRatio:imageAutoRatio({values:['16:9','9:16','1:1','4:3','3:4','3:2','2:3','4:5','5:4','21:9'],reference:dimensions}),outputFormat:'png',referenceRoles:file?[normalizeReferenceLabel({name:file.name,role:'base'})]:[]};
       moodReferencePlan(settings); // Validate the complete prompt before any source or Style upload.
       // Prepare the person's Base photo and four Mood Style photos in parallel.
       // Quote is still requested only once all exact input IDs are validated.

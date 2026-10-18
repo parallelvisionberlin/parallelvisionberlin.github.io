@@ -12,7 +12,8 @@ try{for(const [width,height] of [[390,650],[320,520],[768,900],[1200,900]]){
    const send=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});assert.equal(req.headers()['x-pv-lab-client'],'mobile-v1');
    if(url.pathname==='/api/session')return send({owner:true,config:{enabled:true}});
    if(url.pathname==='/api/uploads')return send({id:'20000000-0000-4000-8000-000000000001'});
-   if(url.pathname==='/api/quotes'){quotes++;const data=req.postDataJSON();assert.equal(data.settings.moodId,'dreamcore');assert.equal(data.settings.referenceRoles[0].role,'base');return send({id:'quote-test',settings:data.settings,maxUsd:.22,provider:'SpicyAPI',creditCost:25,expiresAt:Date.now()+180000});}
+   if(url.pathname==='/api/quotes'){quotes++;const data=req.postDataJSON();assert.equal(data.settings.moodId,'dreamcore');assert.equal(data.settings.referenceRoles[0].role,'base');assert.equal(data.settings.resolution,'1k','Mobile Photobooth must quote 1K by default');return send({id:'quote-test',settings:data.settings,maxUsd:.22,provider:'SpicyAPI',creditCost:25,expiresAt:Date.now()+180000});}
+   if(url.pathname==='/api/jobs/job-test/performance')return send({ok:true});
    if(url.pathname==='/api/jobs'){paid++;assert.deepEqual(req.postDataJSON(),{quoteId:'quote-test',confirm:true});return send({job:{id:'job-test',status:'queued'}});}
    throw Error('Unexpected API '+url.pathname);
   }
@@ -30,13 +31,14 @@ for(const mode of ['guest','customer','disabled','uncertain']){
  await page.route('https://**/*',async route=>{const path=new URL(route.request().url()).pathname,send=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
  if(path==='/api/session')return send({customer:mode!=='uncertain',generationReady:mode!=='disabled',config:{enabled:true}});
  if(path==='/api/uploads')return send({id:'20000000-0000-4000-8000-000000000001'});
- if(path==='/api/quotes')return send({id:'quote-test',provider:'SpicyAPI',creditCost:25,maxUsd:.22,expiresAt:Date.now()+180000,settings:route.request().postDataJSON().settings});
+ if(path==='/api/quotes'){const settings=route.request().postDataJSON().settings;assert.equal(settings.resolution,'1k','Mobile Photobooth quotes 1K for all signed-in test modes');return send({id:'quote-test',provider:'SpicyAPI',creditCost:25,maxUsd:.22,expiresAt:Date.now()+180000,settings});}
+ if(path==='/api/jobs/job-test/performance')return send({ok:true});
  if(path==='/api/jobs'){paid++;if(mode==='uncertain')return route.abort();return send({job:{id:'job-test',status:'queued'}});}return route.abort();});
  await page.goto('http://127.0.0.1:4189/lab/app-moods.html');await page.getByRole('button',{name:'Explore Dreamcore',exact:true}).click();
  const photo=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;return c.toDataURL().split(',')[1];}),'base64');await page.locator('#photo-input').setInputFiles({name:'source.png',mimeType:'image/png',buffer:photo});
  if(mode==='guest'){await page.waitForFunction(()=>document.querySelector('#continue-create').textContent==='Sign in to generate');assert.equal(paid,0);}
  if(mode==='disabled'){await page.waitForFunction(()=>document.querySelector('#photo-error').textContent.includes('not available'));assert.equal(paid,0);}
- if(mode==='customer'){await page.waitForFunction(()=>document.querySelector('#continue-create').textContent==='Generate · 4 credits');assert.equal(paid,0);await page.locator('#continue-create').click();await page.waitForFunction(()=>document.querySelector('#continue-create').textContent==='Sent to Gallery');assert.equal(paid,1);}
+ if(mode==='customer'){await page.waitForFunction(()=>document.querySelector('#continue-create').textContent==='Generate · 25 credits');assert.equal(paid,0);await page.locator('#continue-create').click();await page.waitForFunction(()=>document.querySelector('#continue-create').textContent==='Sent to Gallery');assert.equal(paid,1);}
  if(mode==='uncertain'){await page.waitForFunction(()=>document.querySelector('#continue-create').textContent.includes('25 credits'));await page.locator('#continue-create').click();await page.waitForFunction(()=>document.querySelector('#continue-create').textContent==='Check Gallery');await page.locator('#deck-form').evaluate(form=>form.requestSubmit());assert.equal(paid,1);assert.equal(await page.locator('#continue-create').isDisabled(),true);}
  await page.close();console.log('PASS',mode);
 }

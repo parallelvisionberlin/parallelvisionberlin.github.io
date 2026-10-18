@@ -12,10 +12,10 @@ const HONG_KONG_REFERENCES=Object.freeze([
 
 
 const DREAM_BLUR_REFERENCES=Object.freeze([
-  {file:'01-blue-eye-light-memory.jpg',type:'image/jpeg',note:'OPTICS ONLY: eye landmark under broad cyan camera-motion sweeps; thin warm light line and uneven analogue grain. Never borrow face, eyes or hair.'},
-  {file:'02-silhouette-blue-room.jpg',type:'image/jpeg',note:'OPTICS ONLY: moving highlights across black silhouette and real cool interior exposure. Preserve Base people, framing and place; do not copy the silhouette.'},
-  {file:'03-city-light-trails.jpg',type:'image/jpeg',note:'OPTICS ONLY: imperfect handheld shutter streaks, scattered hot cores and dark negative space; never add a city or cars to another scene.'},
-  {file:'04-abstract-cyan-exposure.jpg',type:'image/jpeg',note:'OPTICS ONLY: broad cobalt/cyan exposure sweep, layered halation, fine red-orange flecks and pushed grain. Adapt color to actual scene, not a fixed blue filter.'}
+  {file:'01-blue-eye-light-memory.jpg',type:'image/jpeg',note:'OPTICS ONLY: broad cyan handheld streaks near eye highlights, thin warm line, uneven analog grain. Never copy face, hair or eyes.'},
+  {file:'02-silhouette-blue-room.jpg',type:'image/jpeg',note:'OPTICS ONLY: moving highlights, dark silhouette and cool room exposure. Keep Base people, framing and place; never copy silhouette.'},
+  {file:'03-city-light-trails.jpg',type:'image/jpeg',note:'OPTICS ONLY: imperfect handheld light trails, scattered hot cores and dark negative space. Never import city, cars or people.'},
+  {file:'04-abstract-cyan-exposure.jpg',type:'image/jpeg',note:'OPTICS ONLY: cobalt/cyan exposure sweep, halation, red-orange flecks, pushed grain. Adapt to the Base, never apply a blue filter.'}
 ].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/dream-blur/'+ref.file,
   label:Object.freeze({name:'Dream Blur style - '+ref.file,role:'style',note:ref.note})})));
 

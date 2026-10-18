@@ -219,6 +219,36 @@ INSERT OR IGNORE INTO lab_migrations(id,applied_at)
 VALUES ('0017-clerk-domain-links',CAST(strftime('%s','now') AS INTEGER)*1000);
 
 -- Aggregate-only public traffic metrics; applied by the matching 0018 remote migration.
+CREATE TABLE IF NOT EXISTS lab_studio_identity_deletions (
+  customer_id TEXT PRIMARY KEY REFERENCES lab_customers(id),
+  new_subject TEXT,
+  requested_at INTEGER NOT NULL,
+  banned_at INTEGER,
+  completed_at INTEGER,
+  state TEXT NOT NULL DEFAULT 'pending' CHECK(state IN ('pending','complete'))
+);
+CREATE INDEX IF NOT EXISTS lab_studio_identity_deletions_pending
+  ON lab_studio_identity_deletions(state,requested_at);
+-- One-time PV LAB account onboarding email; no recipient address in this table.
+CREATE TABLE IF NOT EXISTS lab_signup_welcome_emails (
+  customer_id TEXT PRIMARY KEY REFERENCES lab_customers(id),
+  state TEXT NOT NULL DEFAULT 'pending'
+    CHECK(state IN ('pending','sending','sent','failed','uncertain','skipped')),
+  queued_at INTEGER NOT NULL,
+  attempted_at INTEGER,
+  sent_at INTEGER,
+  provider_message_id TEXT,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  last_error TEXT
+);
+CREATE INDEX IF NOT EXISTS lab_signup_welcome_emails_pending
+  ON lab_signup_welcome_emails(state,queued_at);
+CREATE TABLE IF NOT EXISTS lab_studio_deleted_subject_keys (
+  subject_key TEXT PRIMARY KEY CHECK(length(subject_key)=64),
+  expires_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS lab_studio_deleted_subjects_expires
+  ON lab_studio_deleted_subject_keys(expires_at);
 CREATE TABLE IF NOT EXISTS lab_traffic_daily (
   day_utc TEXT NOT NULL,
   page TEXT NOT NULL,

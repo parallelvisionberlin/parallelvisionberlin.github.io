@@ -94,6 +94,12 @@ try{
   assert.ok(box.left>=12&&box.right<=1428&&box.top>=12&&box.bottom<=888,'Modal fits desktop viewport: '+JSON.stringify(box));
   assert.equal(await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height),before,'Modal must not change composer geometry');
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-new').count(),1);
+  assert.equal(await page.locator('.pack-studio-collection-heading #pack-studio-new').count(),0,
+    'New photo pack lives inside the gallery, not above its toolbar');
+  assert.equal(await page.locator('#pack-studio-dialog .pack-studio-view-button:visible').count(),1,
+    'Grid and list share one contextual layout toggle, not two competing buttons');
+  assert.equal(await page.locator('#pack-studio-library-count').textContent(),'0 saved');
+
   assert.equal(await page.locator('#pack-studio-dialog .pack-studio-side-link').count(),5,
     'Photo Packs uses the same five-section library navigation as Elements');
   assert.equal(await page.locator('.pack-studio-intro').isVisible(),true);
@@ -130,13 +136,28 @@ try{
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card').count(),1,
     'Search finds an existing saved collection');
   await page.locator('#pack-studio-search').fill('');
+  const rects=selector=>page.locator(selector).evaluateAll(nodes=>nodes.map(node=>{
+    const r=node.getBoundingClientRect();
+    return {x:r.x,y:r.y,width:r.width,height:r.height};
+  }));
+  const photoNavBefore=await rects('#pack-studio-dialog .pack-studio-side-link');
   await page.locator('#pack-studio-dialog [data-pack-element="characters"]').click();
   assert.equal(await page.locator('#scene-library-dialog').isVisible(),true,
     'Characters opens from the matching Photo Packs sidebar');
   assert.equal(await page.locator('#pack-studio-dialog').isVisible(),false);
+  const elementNav=await rects('#scene-tabs .scene-category-tab');
+  assert.equal(elementNav.length,5);
+  for(let i=0;i<5;i++){
+    for(const metric of ['x','y','width','height'])
+      assert.ok(Math.abs(photoNavBefore[i][metric]-elementNav[i][metric])<=1.5,
+        'Sidebar position should not jump for menu item '+i+' '+metric+': '+JSON.stringify({photo:photoNavBefore[i],elements:elementNav[i]}));
+  }
   await page.locator('#scene-tabs .scene-photo-packs-link').click();
   assert.equal(await page.locator('#pack-studio-dialog').isVisible(),true,
     'Photo Packs reopens from Elements without losing the collection');
+  const photoNavAfter=await rects('#pack-studio-dialog .pack-studio-side-link');
+  for(let i=0;i<5;i++)assert.ok(Math.abs(photoNavBefore[i].y-photoNavAfter[i].y)<=1,
+    'Returning to Photo Packs must not move any sidebar icon');
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card').count(),1);
 
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-count').first().textContent(),'2 photos');
@@ -193,6 +214,11 @@ try{
   await page.locator('#scene-image-open').click();
   await page.locator('#scene-menu-packs').click();
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card').count(),10);
+  assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-new').count(),0,
+    'A full two-row gallery avoids an eleventh tile');
+  assert.equal(await page.locator('.pack-studio-collection-title #pack-studio-new').count(),1,
+    'Creation remains accessible as one discreet + beside the collection count');
+
   const fullLayout=await page.evaluate(()=>{
     const dialog=document.getElementById('pack-studio-dialog').getBoundingClientRect();
     const main=document.querySelector('#pack-studio-dialog .pack-studio-main');

@@ -1,5 +1,7 @@
 import {ensureCustomer,isLabCustomer} from './customer-billing.mjs';
 import {LEGACY_ISSUER,STUDIO_ISSUER} from './clerk-issuer-policy.mjs';
+import {rejectDeletedStudioSubject} from './studio-identity-deletion.mjs';
+import {queueSignupWelcome} from './signup-welcome-email.mjs';
 
 // Account linking requires TWO separately authenticated Clerk sessions. The old
 // session generates a high-entropy single-use code; only a logged-in new session
@@ -45,6 +47,7 @@ function ownNewCustomer(identity){
 }
 async function disposableTrial(env,identity){
   if(!ownNewCustomer(identity))return false;
+  if(await one(env,'SELECT 1 AS closed FROM lab_account_closures WHERE customer_id=?',identity.id))return false;
   const id=identity.id;
   const wallet=await one(env,'SELECT balance_credits,stripe_customer_id FROM lab_customers WHERE id=?',id);
   if(!wallet||![0,200].includes(wallet.balance_credits)||wallet.stripe_customer_id)return false;
@@ -76,6 +79,8 @@ export async function migrationRoute(request,env,identity){
   if(path==='/api/migration/issue'&&method==='POST'){
     if(!old||!identity.id||!['owner','customer'].includes(identity.kind))
       fail(403,'Sign in on the original PV LAB site to request a transfer code.');
+    if(identity.kind==='customer'&&await one(env,'SELECT 1 FROM lab_account_closures WHERE customer_id=?',identity.id))
+      fail(403,'This PV LAB account has been closed and cannot be transferred.');
     const code=randomCode(),hash=await codeHash(code),now=Date.now();
     await env.LAB_DB.batch([
       env.LAB_DB.prepare('DELETE FROM lab_clerk_migration_codes WHERE canonical_id=?').bind(identity.id),
@@ -88,23 +93,31 @@ export async function migrationRoute(request,env,identity){
   if(path==='/api/migration/new'&&method==='POST'){
     if(!studio||identity.id)fail(409,'This account has already been set up.');
     if(!SUBJECT.test(identity.subject))fail(401,'Invalid identity.');
+    await rejectDeletedStudioSubject(env,identity.subject);
     const id='user_PvLabV2'+identity.subject.slice(5),t=Date.now();
     const result=await run(env,
       "INSERT OR IGNORE INTO lab_clerk_identity_links(new_subject,canonical_id,kind,created_at) VALUES(?,?,'customer',?)",
       identity.subject,id,t);
     if(result.meta?.changes!==1)fail(409,'This account has already been set up.');
-    await ensureCustomer(env,id); // Exactly one welcome credit ledger grant, no old account mutation.
+    await ensureCustomer(env,id); // Existing credit campaign remains independent.
+    // One-time operational welcome, not on sign-in or migrated older accounts.
+    // Never let an optional email block successful customer onboarding.
+    if(env.LAB_WELCOME_EMAIL_ENABLED==='true')
+      try{await queueSignupWelcome(env,id);}catch{/* Cron handles queued entries; signup stays successful. */}
     return response({linked:true,kind:'customer'},201);
   }
   if(path==='/api/migration/redeem'&&method==='POST'){
     const trial=identity.id&&await disposableTrial(env,identity);
     if(!studio||(identity.id&&!trial))fail(409,'This account already has work or is linked. Contact support before transferring an older account.');
+    await rejectDeletedStudioSubject(env,identity.subject);
     const code=await readCode(request),hash=await codeHash(code),t=Date.now();
     const ticket=await one(env,
       'SELECT canonical_id,kind FROM lab_clerk_migration_codes WHERE code_hash=? AND expires_at>?',hash,t);
     if(!ticket)fail(400,'This transfer code is invalid or expired. Generate a new code from the original site.');
     if(ticket.kind==='customer'){
       if(!await isLabCustomer(env,ticket.canonical_id))fail(403,'Original customer account is unavailable.');
+      if(await one(env,'SELECT 1 FROM lab_account_closures WHERE customer_id=?',ticket.canonical_id))
+        fail(403,'This PV LAB account has been closed and cannot be restored.');
     }else if(ticket.kind==='owner'){
       const owner=await env.OWNER_DB.prepare(
         "SELECT id FROM users WHERE id=? AND auth_provider='clerk' AND role='owner' LIMIT 1"

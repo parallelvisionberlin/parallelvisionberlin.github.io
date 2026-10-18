@@ -1,5 +1,5 @@
 import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
-import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261017-category-heroes3';
+import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-suggested-note1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3';
 import {preparePhotoInput} from './photo-input.js?v=1';
@@ -9,7 +9,7 @@ import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1';
-import {createPricingOverlay} from './pricing-overlay.js?v=20261017-editorial1';
+import {createPricingOverlay} from './pricing-overlay.js?v=20261018-reference2';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1&imageRatio=20261016-inherit1';
@@ -34,7 +34,7 @@ import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-lim
 import {createImageSubmitHandoff} from './image-submit-handoff.js?v=20261011-fast-queue1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow2';
 import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
-import {createReferencePackStudio} from './reference-pack-studio.js?v=20261016-pack-select2';
+import {createReferencePackStudio} from './reference-pack-studio.js?v=20261018-gallery-create2';
 import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop} from './video-start-frame-maker.js?v=20261016-wan-startframe-drop1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
@@ -1408,22 +1408,37 @@ function showWelcomeStart(session){
   // Do not infer new-user eligibility from the URL or a localStorage flag.
   // Show only after authenticated /api/session and history have both arrived.
   // Normal Image entry is as eligible as the promotional welcome link.
-  const eligible=(welcomeRequested||tool==='image')&&owner&&customerMode&&customerGenerationReady
-    &&session?.customer===true&&session?.generationReady===true
-    &&session.accountClosed!==true&&session.billingReview!==true
-    &&Number.isSafeInteger(session.balanceCredits)&&session.balanceCredits>0
+  // The approved six-card Image welcome is a visual entry state, not a
+  // credit/grant/generation entitlement. New signed-in customers must see it
+  // even with zero credits or while generation permissions are settling.
+  // Server-side permission and wallet checks still govern actual generation.
+  const eligible=(welcomeRequested||tool==='image')&&owner
+    &&session?.accountClosed!==true
     &&!$('history').querySelector('.card[data-kind="image"]');
   if(!eligible){resetWelcomeStart();return;}
   const amount=$('lab-welcome-balance');
-  if(amount)amount.textContent=session.balanceCredits.toLocaleString('en-GB')+' credits';
+  if(amount)amount.textContent=Number.isSafeInteger(session.balanceCredits)
+    ?session.balanceCredits.toLocaleString('en-GB')+' credits'
+    :'Your credits';
   panel.hidden=false;
   $('lab-image-empty-intro').hidden=true;
   syncImageGalleryEmpty();
 }
 function useWelcomeMood(id){
-  if(!Object.prototype.hasOwnProperty.call(welcomePrompts,id)||!moodById(id)
-    ||!owner||(!ownerAccount&&(!customerMode||!customerGenerationReady))||busy||imageSubmissionPending
-    ||$('lab-welcome-start')?.hidden)return;
+  if(!Object.prototype.hasOwnProperty.call(welcomePrompts,id)||!owner
+    ||busy||imageSubmissionPending||$('lab-welcome-start')?.hidden)return;
+  // Commit the user-visible choice before running model/mood synchronization.
+  // The decorative deck expansion must never be the only result of a click.
+  const selectedPrompt=welcomePrompts[id];
+  const visiblePrompt=$('image-composer-prompt');
+  $('prompt').value=selectedPrompt;
+  if(visiblePrompt){
+    visiblePrompt.value=selectedPrompt;
+    visiblePrompt.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
+    button.setAttribute('aria-pressed',String(button.dataset.welcomeMood===id));
+  });
   if(imageEngine!=='seedream'){
     $('image-engine').value='seedream';
     $('image-engine').dispatchEvent(new Event('change',{bubbles:true}));
@@ -1432,15 +1447,19 @@ function useWelcomeMood(id){
   imageProcessing='normal';$('image-processing').value='normal';
   $('resolution').value='2k';$('image-count').value='1';
   if(!references.length&&!file){$('ratio').value='16:9';imageRatioExplicit=false;}
-  moodUI.restore({moodId:id,moodIntensity:60},true);
-  $('prompt').value=welcomePrompts[id];
+  if(moodById(id))moodUI.restore({moodId:id,moodIntensity:60},true);
+  $('prompt').value=selectedPrompt;
   $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
+  syncImageComposer();
+  // Apply after all synchronous Mood sync work, including any composer update.
+  if(visiblePrompt){
+    visiblePrompt.value=selectedPrompt;
+    visiblePrompt.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  update();
   // Curated first-image looks are deliberate selections, not keystrokes.
   // Start the read-only price request now instead of waiting 850 ms.
   customerImagePricing?.prime();
-  document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
-    button.setAttribute('aria-pressed',String(button.dataset.welcomeMood===id));
-  });
   // A Mood tap is not a request to type. A focused textarea would open
   // the mobile keyboard and hide the selected style and Generate button.
   const composerField=$('image-composer-prompt');

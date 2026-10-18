@@ -68,12 +68,14 @@ function show(){
   // Do not paint a guest CTA or an unverified wallet while Clerk and the
   // authenticated /api/session request are still resolving.
   const ready=!!clerk&&(!signed||currentProfile||!profileLoading);
-  const customer=ready&&!!profile?.customer;
+  const customer=ready&&currentProfile&&!!profile.customer;
   const header=document.querySelector('.landing-header--home');
   const homeCredits=$('lab-home-credits');
   $('lab-header-signin').hidden=!ready||signed;
   if(homeCredits){
-    const closed=ready&&signed&&!!profile?.accountClosed;
+    const closed=ready&&signed&&currentProfile&&!!profile.accountClosed;
+    // Keep the credit control present while authentication resolves, but never
+    // display a stale wallet value from a prior account or session.
     homeCredits.hidden=!ready||closed;
     if(closed){
       $('lab-home-credit-copy').textContent='Account closed';
@@ -92,10 +94,10 @@ function show(){
       const valid=Number.isSafeInteger(profile.balanceCredits)&&profile.balanceCredits>=0;
       const balance=valid?profile.balanceCredits:null;
       const empty=balance===0;
-      $('lab-home-credit-copy').textContent=empty?'Get credits':valid?balance.toLocaleString('en-GB'):'Credits';
-      $('lab-home-credit-unit').hidden=!valid||empty;
-      homeCredits.setAttribute('aria-label',empty?'Get credits':valid?balance.toLocaleString('en-GB')+' credits. Buy more credits':'View credits and pricing');
-      homeCredits.title=empty?'Get credits':valid?balance.toLocaleString('en-GB')+' credits. Add credits':'View credits and pricing';
+      $('lab-home-credit-copy').textContent=valid?balance.toLocaleString('en-GB'):'Credits';
+      $('lab-home-credit-unit').hidden=!valid;
+      homeCredits.setAttribute('aria-label',valid?balance.toLocaleString('en-GB')+' credits. View credits and billing':'View credits and billing');
+      homeCredits.title=valid?balance.toLocaleString('en-GB')+' credits. View credits and billing':'View credits and billing';
     }
   }
   headerAccount.update({signed:ready&&signed,user:clerk?.user,profile:ready?profile:null});

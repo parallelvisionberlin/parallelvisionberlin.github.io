@@ -91,7 +91,7 @@ export function createReferencePackStudio({
     }
     $('pack-studio-library-count').textContent=query
       ?packs.length+' matching · '+allPacks.length+' saved'
-      :allPacks.length+' / 40 packs';
+      :allPacks.length+' saved';
     const grid=$('pack-studio-grid');grid.replaceChildren();grid.dataset.view=viewMode;
     $('pack-studio-grid-view').setAttribute('aria-pressed',String(viewMode==='grid'));
     $('pack-studio-list-view').setAttribute('aria-pressed',String(viewMode==='list'));
@@ -106,11 +106,23 @@ export function createReferencePackStudio({
       details.append(headline,message);empty.append(icon,details);grid.append(empty);
     }
     for(const pack of packs)grid.append(makeCard(pack));
-    const create=document.createElement('button');create.type='button';create.id='pack-studio-new';
-    create.className='pack-studio-card-new';
-    create.innerHTML='<span class="pack-studio-card-new-symbol" aria-hidden="true">+</span><strong>New photo pack</strong><small>Keep another set of references</small>';
-    create.disabled=saving||isBusy();create.onclick=beginCreate;
-    grid.append(create);
+    // Keep the header editorial and quiet. Creation lives inside the card grid
+    // until it reaches two full rows, then becomes a small icon by the count.
+    // This preserves room for all ten saved cards without making them scroll.
+    const heading=modal.querySelector('.pack-studio-collection-title');
+    let create=$('pack-studio-new');
+    if(!create){
+      create=document.createElement('button');create.type='button';
+      create.id='pack-studio-new';
+    }
+    // Keep all saved collections visible; creation remains in the collection toolbar.
+    create.className='pack-studio-new-icon';
+    create.textContent='+';
+    create.setAttribute('aria-label','New photo pack');
+    create.title='New photo pack';
+    heading?.append(create);
+    create.disabled=saving||isBusy()||allPacks.length>=40;
+    create.onclick=beginCreate;
   }
   function makePreview(item,i){
     const tile=document.createElement('div');tile.className='pack-studio-preview';
