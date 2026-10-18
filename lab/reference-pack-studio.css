@@ -741,13 +741,6 @@
 }
 
 
-/* A full 5 × 2 desktop library is visible without scrolling. Keep overflow for
-   larger libraries, shorter desktop windows and all mobile viewports. */
-@media(min-width:941px) and (min-height:750px){
-  #pack-studio-dialog:not(.is-creating):not(:has(#pack-studio-grid .pack-studio-card:nth-of-type(n+11))) .pack-studio-main{
-    overflow-y:hidden
-  }
-}
 
 
 /* 2026-10-18: editorial Photo Packs library, scoped to saved-pack dialog only. */
@@ -946,13 +939,6 @@
 }
 
 
-/* Only a complete two-row GRID with at most ten saved packs can suppress
-   internal scrolling. List mode and longer libraries keep normal scrolling. */
-@media(min-width:941px) and (min-height:750px){
-  #pack-studio-dialog:not(.is-creating):has(#pack-studio-grid[data-view="grid"]):not(:has(#pack-studio-grid .pack-studio-card:nth-of-type(n+11))) .pack-studio-main{
-    overflow-y:hidden!important
-  }
-}
 
 
 /* 2026-10-18 / Larger Photo Packs canvas and balanced editorial hero.
