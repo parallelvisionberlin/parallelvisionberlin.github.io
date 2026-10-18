@@ -1,5 +1,5 @@
 import {renderHeaderCredits} from './header-credits.js?v=20261018-unified1';
-import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
+import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24&creditHeader=20261018v1';
 import {loadLabAccount} from './native-account.js?v=2&studioAuth=20261015-1';
 import {MOODS,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016v2';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
