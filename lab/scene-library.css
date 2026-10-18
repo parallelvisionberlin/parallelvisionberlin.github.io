@@ -669,7 +669,7 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
 #scene-library-dialog .scene-header,
 #scene-library-dialog:has(#scene-browser:not([hidden])) .scene-header{
   box-sizing:content-box;display:flex;align-items:center;justify-content:flex-end;
-  height:35px;min-height:35px;margin:0;padding:14px 20px 0;gap:12px;
+  height:35px;min-height:35px;margin:0;padding:14px 24px 0;gap:12px;
 }
 #scene-library-dialog .scene-header-actions{
   display:flex;align-items:center;flex:0 1 360px;min-width:0;
@@ -696,7 +696,7 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   background:#2e3337;border-color:#50575c;
 }
 #scene-library-dialog #scene-browser{
-  box-sizing:border-box;padding:0 20px 16px;min-width:0;
+  box-sizing:border-box;padding:0 24px 16px;min-width:0;
 }
 #scene-library-dialog .scene-library-meta{
   box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;
@@ -787,7 +787,7 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
 }
 #scene-library-dialog:has(#scene-create:not([hidden])) .scene-header{
   box-sizing:border-box;align-items:flex-start;justify-content:space-between;
-  height:auto;min-height:100px;padding:18px 20px 0;
+  height:auto;min-height:100px;padding:18px 24px 0;
 }
 #scene-library-dialog:has(#scene-create:not([hidden])) .scene-header-actions{
   flex:0 0 35px;
@@ -796,7 +796,7 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   display:none;
 }
 #scene-library-dialog #scene-create{
-  box-sizing:border-box;padding:0 20px 18px;
+  box-sizing:border-box;padding:0 24px 18px;
 }
 @media(min-width:941px){
   #scene-library-dialog,
