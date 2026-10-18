@@ -334,7 +334,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
         ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
         :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
       :'Honor the requested subject and composition.';
-    const prompt=[original,'PV LAB MOOD / '+mood.name+': '+[strength,variantDirection].filter(Boolean).join(' ')+' '+preservation+' Avoid: '+mood.avoid+'.'].filter(Boolean).join('\\n\\n');
+    const prompt=[original,'PV LAB MOOD / '+mood.name+': '+[strength,variantDirection].filter(Boolean).join(' ')+' '+preservation+' Avoid: '+mood.avoid+'.'].filter(Boolean).join('\n\n');
     const budget=engine==='seedreamlite'?3000:5000,over=prompt.length-budget;
     return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,moodVariant:variant,...(film?{filmFinish:film}:{})},
       error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
