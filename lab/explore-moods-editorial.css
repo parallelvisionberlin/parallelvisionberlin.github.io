@@ -597,3 +597,25 @@
 /* The Dream Blur caption now inherits precisely the other Mood captions. */
 .mc-explore-page #mc-look-credit-note{display:block;margin-bottom:4px;color:#adb9ac;letter-spacing:.005em}
 .mc-explore-page #mc-look-credit-note[hidden]{display:none}
+
+/* Show real account restrictions without a falsely actionable paid button or
+   an empty half-screen gap. Keep the local photo and editor available. */
+.mc-explore-page .mc-look-dialog.is-generation-blocked:not(.is-result-view)[open]{
+  height:auto;max-height:90dvh;
+}
+.mc-explore-page .mc-look-dialog.is-generation-blocked .mc-look-dialog-actions{
+  margin-top:8px;
+}
+.mc-explore-page .mc-look-status.is-access-notice{
+  padding:11px 13px;border:1px solid #8593884a;border-radius:9px;
+  background:#f2fff006;color:#d2ddd2;font-size:12px;line-height:1.55;
+}
+.mc-explore-page .mc-look-access-action{
+  align-self:flex-start;display:inline-flex;align-items:center;
+  color:#d4f89c;text-decoration:underline;text-underline-offset:4px;
+  font:500 12px/1.4 'DM Sans',Arial,sans-serif;
+}
+.mc-explore-page .mc-look-access-action[hidden]{display:none}
+.mc-explore-page .mc-look-dialog.is-generation-blocked #mc-look-continue{
+  opacity:.47;filter:saturate(.36);cursor:not-allowed;
+}

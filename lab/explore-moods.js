@@ -15,8 +15,9 @@ function initialize(){
     uploadErrorDetail=$('mc-look-upload-error-detail');
   let mood=null,file=null,fileURL=null,busy=false,dragDepth=0;
   let price=null,priceTask=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
-  const creditNote=$('mc-look-credit-note');
+  const creditNote=$('mc-look-credit-note'),accessAction=$('mc-look-access-action');
   const generate=$('mc-look-continue'),result=$('mc-look-result');
+  let blockedCode=null;
   const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
   const resultActions=$('mc-look-result-actions');
   let runSerial=0,activeJobId=null,resultURL=null,resultBlob=null,resultOutputId=null,waitNoteTimer=null;
@@ -111,7 +112,7 @@ function initialize(){
   }
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{
@@ -126,10 +127,43 @@ function initialize(){
     }).catch(error=>{serviceLoading=null;throw error;}));
   }
   function hasGenerationInput(){return !!mood&&!!(file||direction.value.trim());}
+  const accessCodes=new Set(['TRIAL_PAUSED','ACCOUNT_REVIEW','BILLING_REVIEW','ACCOUNT_CLOSED','GENERATION_UNAVAILABLE']);
+  function clearAccessNotice(){
+    blockedCode=null;
+    dialog.classList.remove('is-generation-blocked');
+    status.classList.remove('is-access-notice');
+    accessAction.hidden=true;
+    accessAction.textContent='';
+    accessAction.removeAttribute('href');
+  }
+  function showAccessNotice(error){
+    if(!accessCodes.has(error?.code))return false;
+    blockedCode=error.code;
+    dialog.classList.add('is-generation-blocked');
+    status.classList.add('is-access-notice');
+    status.textContent=error.message;
+    const payment=error.code==='TRIAL_PAUSED';
+    const support=error.code==='ACCOUNT_REVIEW'||error.code==='BILLING_REVIEW';
+    accessAction.hidden=!(payment||support);
+    if(payment){
+      accessAction.href='./account.html#balance';
+      accessAction.textContent='Add credits ↗';
+    }else if(support){
+      accessAction.href='mailto:contact@parallelvisionlabel.com?subject=PV%20LAB%20account%20review';
+      accessAction.textContent='Contact support ↗';
+    }else{
+      accessAction.removeAttribute('href');
+      accessAction.textContent='';
+    }
+    generate.textContent='Generate';
+    generate.disabled=true;
+    return true;
+  }
   function resetPrice(){
     // Invalidate only a prepared quote, not the user's photo or creative draft.
     priceRevision++;clearTimeout(priceTimer);clearTimeout(expiryTimer);service?.cancel();
     price=null;priceTask=null;needsSignIn=false;
+    clearAccessNotice();
     creditNote.hidden=true;creditNote.textContent='';
     generate.textContent='Generate';
     // The UX must never wait for uploads or a quote to activate Generate.
@@ -156,7 +190,7 @@ function initialize(){
       if(stamp!==priceRevision||!dialog.open)return null;
       const ready=await client.prepare(source,selected,description);
       if(stamp!==priceRevision||!dialog.open)return null;
-      price=ready;needsSignIn=false;
+      price=ready;needsSignIn=false;clearAccessNotice();
       // Keep the exact verified charge separate from the main button.
       creditNote.textContent=ready.label+' per image';creditNote.hidden=false;
       expiryTimer=setTimeout(()=>{
@@ -166,7 +200,7 @@ function initialize(){
     })().catch(error=>{
       if(stamp===priceRevision&&dialog.open){
         needsSignIn=error.code==='SIGN_IN';
-        if(!busy)status.textContent=error.message;
+        if(!busy&&!showAccessNotice(error))status.textContent=error.message;
       }
       throw error;
     }).finally(()=>{
@@ -344,8 +378,13 @@ function initialize(){
     if(await client.signIn())schedulePrice(0);
     else status.textContent='Sign in to generate. Your photograph stays here.';
   }
+  window.addEventListener('focus',()=>{
+    // Billing opens in another tab so the selected local photograph stays here.
+    // Recheck readiness upon return without creating a second paid request.
+    if(dialog.open&&blockedCode&&!busy&&hasGenerationInput())schedulePrice(0);
+  });
   generate.onclick=()=>void (async()=>{
-    if(!hasGenerationInput()||busy)return;
+    if(!hasGenerationInput()||busy||blockedCode)return;
     if(needsSignIn){
       try{await openGenerationSignIn();}
       catch(error){status.textContent=error.message;}
@@ -414,7 +453,8 @@ function initialize(){
         // photo/prompt editor with the error clearly visible and try again.
         clearResult();
         status.textContent=error.message;
-        generate.textContent='Generate';generate.disabled=!hasGenerationInput();
+        generate.textContent='Generate';
+        if(!showAccessNotice(error))generate.disabled=!hasGenerationInput();
       }
     }
   })();

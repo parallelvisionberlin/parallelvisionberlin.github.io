@@ -26,7 +26,7 @@ const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
-try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize']){
+try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize','paused','review']){
  const page=await browser.newPage({viewport:{
   width:scenario==='small'?320:['mobile','phone'].includes(scenario)?390:scenario==='compact'?1280:1440,
   height:scenario==='small'?640:scenario==='compact'?720:scenario==='phone'?700:900
@@ -36,7 +36,11 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
   if(url.pathname==='/lab/native-account.js')return route.fulfill({contentType:'text/javascript',body:accountSource(scenario==='guest')});
   if(url.hostname==='parallel-vision-lab.parallelvision.workers.dev'){
    const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
-   if(url.pathname==='/api/session')return send({customer:scenario!=='desktop',generationReady:true,config:{enabled:true}});
+   if(url.pathname==='/api/session')return send(scenario==='paused'
+     ?{customer:true,generationReady:false,trialGenerationPaused:true,billingReady:true,config:{enabled:false}}
+     :scenario==='review'
+       ?{customer:true,generationReady:false,promotionReview:true,billingReady:true,config:{enabled:false}}
+       :{customer:scenario!=='desktop',generationReady:true,config:{enabled:true}});
    if(url.pathname==='/api/uploads')return send({id:'20000000-0000-4000-8000-'+String(++uploads).padStart(12,'0')});
    if(url.pathname==='/api/quotes'){quotes++;if(scenario==='slowquote')await new Promise(resolve=>setTimeout(resolve,1100));const data=req.postDataJSON();assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'1k','Photobooth quotes the fast 1K resolution for web and mobile');assert.equal(data.settings.aspectRatio,scenario==='text'?'16:9':'3:4','The first customer photo, not four internal mood photos, determines the output ratio');assert.equal(data.referenceSourceIds.length,scenario==='text'?4:5);assert.equal(new Set(data.referenceSourceIds).size,data.referenceSourceIds.length);assert.deepEqual(data.transferSourceIds,data.referenceSourceIds);assert.deepEqual(data.settings.referenceRoles.map(r=>r.role),[...(scenario==='text'?[]:['base']),'style','style','style','style']);return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
    if(url.pathname==='/api/jobs'&&req.method()==='POST'){
@@ -106,6 +110,22 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
  assert.equal(await button.textContent(),'Generate');
  assert.equal(await button.isDisabled(),false,'Generate is available as soon as photo or direction is present');
  assert.equal(paid,0);
+ if(scenario==='paused'||scenario==='review'){
+   await page.waitForFunction(()=>document.querySelector('#mc-look-dialog').classList.contains('is-generation-blocked'));
+   const action=page.locator('#mc-look-access-action');
+   assert.equal(await button.isDisabled(),true,'Blocked accounts cannot trigger an unusable Generate action');
+   assert.equal(await action.isVisible(),true,'Blocked users see a next step');
+   assert.equal(await action.getAttribute('target'),'_blank','Credits open separately, preserving the original uploaded photo');
+   assert.match(await action.textContent(),scenario==='paused'?/Add credits/:/Contact support/);
+   assert.match(await page.locator('#mc-look-status').textContent(),scenario==='paused'?/Complimentary generations/:/account review/);
+   assert.equal(await page.locator('#mc-look-result').isVisible(),false);
+   assert.equal(quotes,0,'Blocked customer is rejected before quoting');
+   assert.equal(uploads,0,'Blocked customer is rejected before original or style upload');
+   assert.equal(paid,0,'Blocked account never submits a paid job');
+   await page.screenshot({path:out+'/blocked-'+scenario+'.png'});
+   assert.deepEqual(errors,[]);await page.close();console.log('PASS',scenario);
+   continue;
+ }
  if(scenario==='guest'){
    await page.waitForFunction(()=>document.querySelector('#mc-look-status').textContent.includes('Sign in'));
    assert.equal(quotes,0);await button.click();await page.locator('#mock-signin').click();

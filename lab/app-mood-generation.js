@@ -54,7 +54,22 @@ export function createAppMoodGeneration(){
       const check=()=>{if(stamp!==revision||!account?.isSignedIn||account.session?.id!==sessionId)throw Error('The photograph or session changed. Please try again.');};
       // Image metadata and authenticated session validation can happen together.
       const [session,dimensions]=await Promise.all([api('/api/session'),file?imageDimensions(file):Promise.resolve(null)]);check();
-      if(session.customer&&!session.generationReady)throw Error('Image generation is not available for this account yet.');
+      if(session.customer&&!session.generationReady){
+        // Respect production rollout, payment and account-review restrictions.
+        // Surface the actual reason rather than suggesting a broken Mood/model.
+        let code='GENERATION_UNAVAILABLE';
+        let message='Image generation is temporarily unavailable for this account. No credits were spent.';
+        if(session.accountClosed){
+          code='ACCOUNT_CLOSED';message='This PV LAB account is closed. Image generation is unavailable.';
+        }else if(session.billingReview){
+          code='BILLING_REVIEW';message='Generation is paused while billing is under review. Contact support for help.';
+        }else if(session.trialGenerationPaused&&session.billingReady){
+          code='TRIAL_PAUSED';message='Complimentary generations are temporarily paused. Purchased credits can still be used. Your existing credits and saved work remain intact.';
+        }else if(session.promotionReview){
+          code='ACCOUNT_REVIEW';message='Free generation is unavailable for this account. Contact PV LAB support for an account review.';
+        }
+        const error=new Error(message);error.code=code;throw error;
+      }
       if(!session.config?.enabled)throw Error('Image generation is currently unavailable.');
       if(!file&&!direction.trim())throw Error('Add a photograph or describe what you want to create.');
       check();
