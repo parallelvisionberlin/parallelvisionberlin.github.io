@@ -2827,6 +2827,8 @@ function renderReferences(){
 async function addReferences(list,ids=[],labels=[]){
   clearImageComposerNotice();
   const e=epoch,incoming=[...list];if(imageEngine==='fal')poseMapSourceId=null;if(references.length+incoming.length>referenceLimit())throw new Error('This mode supports up to '+referenceLimit()+' image references.');
+  const explicitBaseAfterElement=tool==='image'&&usesReferenceGuidance()&&referencesOnly()&&incoming.length===1&&
+    references.some(ref=>ref.elementId)&&!labels[0]?.elementId&&!references.some(ref=>ref.role==='base');
   autoPreview=null;$('reference-list').setAttribute('aria-busy','true');let added=0;const toWarm=[];
   try{
     for(let i=0;i<incoming.length;i++){
@@ -2838,7 +2840,10 @@ async function addReferences(list,ids=[],labels=[]){
       if(e!==epoch||!owner){releaseReference(item);return;}
       item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';
        item.elementId=labels[i]?.elementId||null;item.elementName=labels[i]?.elementName||'';item.elementCategory=labels[i]?.elementCategory||'';
-       item.elementView=labels[i]?.elementView;item.elementCount=labels[i]?.elementCount;if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;toWarm.push(item);
+       item.elementView=labels[i]?.elementView;item.elementCount=labels[i]?.elementCount;if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);if(explicitBaseAfterElement&&!item.elementId){
+         imageReferenceMode='base';references.splice(references.indexOf(item),1);references.unshift(item);
+         item.role='base';closeReferenceIntent();
+       }added++;toWarm.push(item);
       renderReferences();refreshInputPreview();update();
       await new Promise(resolve=>setTimeout(resolve,0));
     }
