@@ -74,6 +74,16 @@ try{
   await page.locator('#scene-element-suggestions .scene-element-choice').filter({hasText:'@MyRoom'}).click();
   await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-element-tile').length===1&&
     document.querySelectorAll('#reference-list .reference-element-item').length===1,{timeout:20000});
+  assert.equal(await page.locator('#scene-element-suggestions').isVisible(),false,
+    'Selecting @MyRoom closes the suggestion list without waiting for more typing');
+  assert.match(await text.inputValue(),/@MyRoom$/,'The selected @mention remains in the prompt');
+  await text.press('End');
+  await text.type(' ');
+  assert.equal(await page.locator('#scene-element-suggestions').isVisible(),false,
+    'Typing after a committed @MyRoom must not reopen its own suggestion');
+  await text.type('and @Ni');
+  assert.equal(await page.locator('#scene-element-suggestions .scene-element-choice').filter({hasText:'@Nina FOK'}).isVisible(),true,
+    'A new @mention opens a fresh list, even when another Element was selected');
   assert.equal(await page.locator('#image-composer-references .composer-reference-role').count(),0,
     'One Element should not show repeated Environment selectors');
   assert.match(await page.locator('.composer-element-tile .composer-reference-index').innerText(),/@MyRoom/);
@@ -83,6 +93,8 @@ try{
   await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-element-tile').length===2,{
     timeout:20000
   });
+  assert.equal(await page.locator('#scene-element-suggestions').isVisible(),false,
+    'Selecting @Nina FOK also closes suggestions while keeping both Element thumbnails');
   assert.equal(await page.locator('#reference-list .reference-element-item').count(),2,
     'Two Elements have two grouped advanced entries');
   assert.equal(await page.locator('#image-composer-references .composer-reference-role').count(),0);
