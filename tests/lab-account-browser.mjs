@@ -46,7 +46,23 @@ async function setup(width,customer=true,overrides={}){
   });
   return {context,page,errors,writes,session,setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
 }
-async function fits(page,label){const result=await page.evaluate(()=>({viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,layout:[document.documentElement,document.body,document.querySelector('#studio-header'),document.querySelector('#studio-header .wrap.top'),document.querySelector('#studio-header .tool-switch'),document.querySelector('#studio-header .tool-group')].filter(Boolean).map(el=>({tag:el.tagName,id:el.id,cls:el.className,scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,width:el.getBoundingClientRect().width,left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,overflowX:getComputedStyle(el).overflowX,minWidth:getComputedStyle(el).minWidth})),offenders:[...document.querySelectorAll('body *')].map(el=>({tag:el.tagName,id:el.id,cls:typeof el.className==='string'?el.className.slice(0,90):'',left:Math.round(el.getBoundingClientRect().left),right:Math.round(el.getBoundingClientRect().right)})).filter(x=>x.right>innerWidth+1||x.left< -1).slice(0,20)}));assert.equal(result.scrollWidth<=result.viewport+1,true,label+' horizontal overflow '+JSON.stringify(result));}
+async function fits(page,label){
+ const result=await page.evaluate(()=>({viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth}));
+ if(result.scrollWidth>result.viewport+1){
+  const probe=await page.evaluate(()=>{
+   const elements=[...document.body.children].filter(el=>el.tagName!=='SCRIPT'&&el.tagName!=='STYLE');
+   return elements.map(el=>{
+    const old=el.style.display;
+    el.style.display='none';
+    const width=document.documentElement.scrollWidth;
+    el.style.display=old;
+    return {element:el.tagName+'#'+el.id+'.'+el.className,widthWithout:width};
+   });
+  });
+  console.log('MOBILE_OVERFLOW_PROBE '+label+' '+JSON.stringify(probe));
+ }
+ assert.equal(result.scrollWidth<=result.viewport+1,true,label+' horizontal overflow '+JSON.stringify(result));
+}
 try{
   // Homepage purchases: every arrow responds next to its product, with no real payment.
   for(const width of [1440,390]){
