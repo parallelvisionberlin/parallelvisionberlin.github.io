@@ -1458,7 +1458,9 @@ function useWelcomeMood(id){
   document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
     button.setAttribute('aria-pressed',String(button.dataset.welcomeMood===id));
   });
-  if(imageEngine!=='seedream'&&!preserveWorkspace){
+  // Respect a compatible user-chosen model; only switch when the current model cannot run Moods.
+  const moodCompatible=['seedream','seedreamlite','gemini','gemini21','qwen3','zspicy'].includes(imageEngine);
+  if(imageEngine!=='seedream'&&(!preserveWorkspace||!moodCompatible)){
     $('image-engine').value='seedream';
     $('image-engine').dispatchEvent(new Event('change',{bubbles:true}));
   }else if(tool!=='image')setTool('image');
