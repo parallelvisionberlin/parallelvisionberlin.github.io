@@ -73,6 +73,16 @@ try{
         el.setSelectionRange(text.length,text.length);
         el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertFromPaste',data:text}));
       },longPrompt);
+      await page.waitForTimeout(280);
+      console.log('IMAGE_PASTE_LAYOUT_DIAG '+JSON.stringify(await page.evaluate(()=>{
+        const e=document.getElementById('image-composer-prompt'),deck=document.getElementById('image-composer'),top=deck.querySelector('.image-composer-top');
+        const st=getComputedStyle(e);
+        return {width:innerWidth,height:innerHeight,editorRect:e.getBoundingClientRect().height,
+          editorInline:e.style.height,editorScroll:e.scrollHeight,editorClient:e.clientHeight,
+          boxMin:st.minHeight,boxMax:st.maxHeight,boxHeight:st.height,boxOverflow:st.overflowY,
+          deckHeight:deck.getBoundingClientRect().height,topHeight:top.getBoundingClientRect().height,
+          expanded:deck.classList.contains('pv-deck-expanded'),editorFocus:document.activeElement===e,classes:deck.className};
+      })));
       // Wait for the actual deck height transition before sampling the completed layout.
       await page.waitForFunction(()=>{
         const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
