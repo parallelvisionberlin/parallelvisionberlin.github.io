@@ -7,6 +7,13 @@ const CATEGORIES=[
   {id:'props',label:'Props',role:'object',help:'Objects, products and vehicles'},
   {id:'locations',label:'Locations',role:'room',help:'Places, interiors and sets'}
 ];
+const SCENE_NOTE_SUGGESTIONS=Object.freeze({
+    "characters": "Keep recognizable facial features, hair, proportions and skin details consistent. Do not copy the original background.",
+    "outfits": "Preserve garment silhouette, fabric, colors, patterns and distinctive details; fit naturally to the new scene.",
+    "props": "Preserve the object shape, size, materials, markings and color. Do not replace, duplicate or redesign it.",
+    "locations": "Preserve the architecture, layout, objects and distinctive details. Do not add, remove, replace or rearrange elements."
+  });
+export const suggestedSceneNote=categoryId=>SCENE_NOTE_SUGGESTIONS[categoryId]||'';
 export const isSceneLibraryPack=pack=>typeof pack?.name==='string'&&/^PVSCENE1\|(characters|outfits|props|locations)\|.{1,80}$/.test(pack.name);
 export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getReferences,getReferenceLimit,getContext,prepareUse,addReferences,loadPacks,getAllPacks,notify,action,closeOverlays,openPhotoPacks}) {
   const $=id=>document.getElementById(id);
@@ -37,6 +44,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     $('scene-done').disabled=working;
     $('scene-attached').disabled=working;
     $('scene-files').disabled=working;
+    $('scene-note-suggest').disabled=working;
     dialog.querySelectorAll('[data-scene-use],[data-scene-delete]').forEach(btn=>btn.disabled=working);
   }
   function removePhoto(i){
@@ -81,6 +89,17 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     }
     renderPhotos();
   }
+  function syncNoteUi(){
+    const field=$('scene-note'),counter=$('scene-note-count');
+    counter.textContent=field.value.length+' / '+field.maxLength;
+    counter.classList.toggle('is-full',field.value.length>=field.maxLength);
+    field.placeholder=({
+      characters:'What facial or personal details must stay consistent?',
+      outfits:'Which clothing details should stay unchanged?',
+      props:'What makes this object recognizable?',
+      locations:'What must stay the same in this location?'
+    })[selectedCategory().id]||'Details you want the model to preserve';
+  }
   function updateAppearance(){
     const isCharacter=$('scene-category').value==='characters';
     $('scene-identity-options').hidden=!isCharacter;
@@ -88,6 +107,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     $('scene-create-description').textContent=isCharacter
       ?'Use clear photographs of the same adult. Identity only guides the face without copying wardrobe or background.'
       :'Save reference images for future scenes. Roles are applied automatically when you use them.';
+    syncNoteUi();
   }
   function create(categoryId=current,starting=[]){
     current=category(categoryId).id;view='create';setStatus('');
@@ -394,6 +414,16 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
   $('scene-grid-view').onclick=()=>{viewMode='grid';render();};
   $('scene-list-view').onclick=()=>{viewMode='list';render();};
   $('scene-category').onchange=updateAppearance;
+  $('scene-note').addEventListener('input',syncNoteUi);
+  $('scene-note-suggest').onclick=()=>{
+    if(working)return;
+    const field=$('scene-note'),suggestion=suggestedSceneNote(selectedCategory().id);
+    if(!suggestion)return;
+    if(field.value.trim()&&field.value.trim()!==suggestion
+      &&!window.confirm('Replace your current note with the suggested note?'))return;
+    field.value=suggestion;syncNoteUi();field.focus();
+    field.setSelectionRange(field.value.length,field.value.length);
+  };
   $('scene-files').onchange=event=>{
     try{appendPhotos(event.target.files);}catch(error){setStatus(error.message,true);}
     event.target.value='';
