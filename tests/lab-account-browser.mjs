@@ -285,10 +285,21 @@ try{
             assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Credits entry remains visible for customers and owner');
             if(customer){
               assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'1,234');
-              assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'#pricing');
+              assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'./account.html#balance');
               assert.equal(await page.locator('.pv-account-panel a[href="#pricing"]').count(),1);
               assert.equal(await page.locator('.pv-account-panel a[href="./account.html"]').count(),1);
             }
+          }
+          // One canonical balance presentation on desktop and phone, including owner fallback.
+          const balanceId=path==='/lab/studio.html'?'#lab-wallet-toggle'
+            :path==='/lab/mood-creator.html'?'#mc-header-credits':'#lab-home-credits';
+          assert.equal(await page.locator(balanceId).isVisible(),true,
+            path+' authenticated credits entry remains available at '+width);
+          const balanceText=await page.locator(balanceId).innerText();
+          assert.match(balanceText,customer?/1,234/:/Credits/,path+' shared balance text');
+          if(path==='/lab/moods.html'){
+            assert.equal(await page.locator(balanceId).getAttribute('href'),'./account.html#balance',
+              'Explore Moods reuses the existing billing route');
           }
           const identity=page.locator('.pv-account-identity');
           assert.equal(await identity.isVisible(),true,'Authenticated identity appears beneath the original wordmark');
@@ -338,10 +349,10 @@ try{
       await page.locator('#lab-home-credits').waitFor({state:'visible'});
       // Header reserves its dimensions before the authenticated wallet loads.
       // Wait for the confirmed zero balance, not simply a visible placeholder.
-      await page.waitForFunction(()=>document.getElementById('lab-home-credit-copy')?.textContent==='Get credits');
-      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits');
-      assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),false);
-      assert.equal(await page.locator('#lab-home-credits').getAttribute('aria-label'),'Get credits');
+      await page.waitForFunction(()=>document.getElementById('lab-home-credit-copy')?.textContent==='0');
+      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'0');
+      assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),true);
+      assert.match(await page.locator('#lab-home-credits').getAttribute('aria-label'),/0 credits/);
       await fits(page,'zero balance header '+width);
       session.balanceCredits=2850;
       await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
