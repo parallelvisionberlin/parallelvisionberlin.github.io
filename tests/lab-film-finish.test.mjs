@@ -62,7 +62,7 @@ test('Restored Hong Kong look preserves subject and does not require invented sc
   for(const intensity of [21,70,100]){
     const {prompt,error}=prepareMoodPrompt('Portrait','hong-kong-nights',intensity,{referenceCount:1});
     assert.equal(error,'');
-    assert.match(prompt,/Preserve face, identity, real body proportions, pose, camera, wardrobe and composition/);
+    assert.match(prompt,/Keep identical face, expression, age, hair, body, pose, outfit/);
     assert.match(prompt,/Avoid: forced all-green tint/);
     assert.doesNotMatch(prompt,/Relight whole Base|reconstruct cinematic scene lighting|off-axis light modeling/);
   }
