@@ -26,7 +26,14 @@ export const HONG_KONG_REFERENCE_FILES=Object.freeze({
   'slow-shutter':Object.freeze(['01-traffic-grain.png','05-passage-diffusion.jpg','02-city-haze.jpg','03-shop-reflections.jpg'])
 });
 
-export function hongKongOpticalDirection(value){
+export function hongKongOpticalDirection(value,{lite=false}={}){
+  if(lite){
+    switch(normalizeHongKongVariation(value)){
+      case 'deep-green':return 'DEEP GREEN: stronger source-lit fluorescent green shadow and haze, heavier organic grain, warm tungsten pockets and selective ruby reds. Natural skin, no painted green overlay.';
+      case 'slow-shutter':return 'SLOW SHUTTER: real handheld 1/8-1/15s motion drag on existing moving light only, analog grain, source-lit green and red practicals; keep faces and stationary geometry legible.';
+      default:return 'ORIGINAL: tactile analog 35mm night photography, uneven grain, motivated green fluorescent shade, real tungsten and selective red, humid lit depth and natural skin.';
+    }
+  }
   switch(normalizeHongKongVariation(value)){
     case 'deep-green':
       return 'DEEP GREEN / 35mm NIGHT NEGATIVE: strong but source-motivated fluorescent emerald contamination in shadows and distant air, dense organic grain, humid diffusion, darker unlit zones, retained warm tungsten pockets and scarce ruby-red practical accents. Keep skin plausibly lit, NEVER flat green paint or all-over fog. Camera feeling: handheld 50mm at f/1.8, slightly underexposed, tactile emulsion.';
