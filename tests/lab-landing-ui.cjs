@@ -29,7 +29,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationName),'none');
   assert.equal(await page.locator('#motion-toggle').count(),0);
   const current=await page.locator('.hero-poster').evaluate(el=>el.currentSrc);
-  assert.ok(current.endsWith(width<=700?'/leather-editorial/hero-mobile.webp':'/leather-editorial/hero-desktop.webp'),'Approved editorial portrait matches the viewport');
+  assert.ok(current.endsWith(width<=700?'/leather-editorial/hero-mobile-editorial-20261017.jpg':'/leather-editorial/hero-desktop.webp'),'Approved responsive editorial portrait matches the viewport');
   assert.equal(await page.locator('#pv-hero-motion').count(),0,'The selected still hero does not request an old hero video');
   assert.equal(await page.locator('#hero-motion-toggle').count(),0,'The still hero needs no playback control');
   await page.locator('#tools').scrollIntoViewIfNeeded();await page.locator('.studio-tool-link img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
