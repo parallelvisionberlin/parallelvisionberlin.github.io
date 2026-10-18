@@ -514,14 +514,22 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
         await loadPacks();
         current=cat.id;browse();setStatus(title+' saved to '+cat.label+'. No generation was started.');
         if($('scene-smart-analyze')?.checked&&created?.id){
-          setStatus('Creating a reusable visual profile for @'+title+'…');
-          try{
-            await api('/api/elements/'+encodeURIComponent(created.id)+'/analyze',{method:'POST'});
-            await loadPacks();
-            setStatus('@'+title+' ready. Its visual profile is saved for future generations.');
-          }catch(error){
-            setStatus('@'+title+' saved. Visual analysis unavailable: '+error.message+'. You can still use it.');
-          }
+          setStatus('@'+title+' saved. Preparing its reusable visual profile…');
+          const pending=api('/api/elements/'+encodeURIComponent(created.id)+'/analyze',{method:'POST'})
+            .then(async result=>{
+              await loadPacks();
+              if(view==='browse'&&current===cat.id)
+                setStatus('@'+title+' ready. Its visual profile is saved for future generations.');
+              return result?.profile||null;
+            })
+            .catch(error=>{
+              if(view==='browse'&&current===cat.id)
+                setStatus('@'+title+' saved. Visual analysis unavailable: '+error.message+'. You can still use it.');
+              return null;
+            });
+          pendingProfiles.set(created.id,pending);
+          // Never hold the Save modal while Gemini indexes already-saved photos.
+          void pending;
         }
       });
     }finally{setWorking(false);}
