@@ -102,8 +102,18 @@ try{
   assert.ok(originals.every(r=>r.size===1048576&&r.width===3072&&r.height===2048));pass('Sidebar decodes small thumbnails while original dimensions and file sizes remain intact');
   assert.equal(await x.page.locator('#preview').isVisible(),false);assert.equal(await x.page.locator('#download').isVisible(),false);
   assert.match(await x.page.locator('#preview-label').innerText(),/Result/i);assert.match(await x.page.locator('#empty-title').innerText(),/idea a form/i);pass('Image canvas does not misrepresent the first reference as a result');
-  const layout=await x.page.evaluate(()=>({stage:document.querySelector('.stage').getBoundingClientRect().height,list:document.querySelector('#reference-list').clientHeight,scroll:document.querySelector('#reference-list').scrollHeight,canvas:document.querySelector('.canvas').getBoundingClientRect().height}));
-  assert.ok(layout.stage<=741&&layout.canvas<650);assert.ok(layout.list<=351&&layout.scroll>layout.list);pass('Reference scrolling is bounded and cannot stretch the result canvas');
+  const layout=await x.page.evaluate(()=>({
+    stage:document.querySelector('.stage').getBoundingClientRect().height,
+    canvas:document.querySelector('.canvas').getBoundingClientRect().height,
+    trayCount:document.querySelectorAll('#image-composer-references .composer-reference-tile').length,
+    width:document.documentElement.scrollWidth,viewport:innerWidth,
+    deckWidth:document.querySelector('#image-composer').getBoundingClientRect().width
+  }));
+  assert.ok(layout.stage<=741&&layout.canvas<650,'Legacy video preview must remain bounded');
+  assert.equal(layout.trayCount,7,'All seven prepared originals are represented in the current Image composer');
+  assert.ok(layout.width<=layout.viewport+2,'Reference deck must not create horizontal page overflow: '+JSON.stringify(layout));
+  assert.ok(layout.deckWidth<=layout.viewport+2,'Reference deck must remain within the viewport');
+  pass('All seven references fit the modern bounded composer without horizontal overflow');
   await x.page.locator('.reference-item img').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
   assert.match(await x.page.locator('#input-preview-description').innerText(),/not a generated result/);
   const size=await x.page.locator('#input-preview-image').evaluate(async i=>{await i.decode();return [i.naturalWidth,i.naturalHeight];});assert.ok(Math.max(...size)<=1280);
