@@ -72,6 +72,24 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
   const $=id=>document.getElementById(id);
   const dialog=$('scene-library-dialog');
   if(!dialog)return {open(){},sync(){},renderSelected(){},fromGallery(){}};
+  const elementsInfo=$('scene-elements-info');
+  const elementsInfoTriggers=[$('scene-elements-info-toggle'),$('scene-elements-info-toggle-mobile')].filter(Boolean);
+  let elementsInfoFocus=elementsInfoTriggers[0]||null;
+  function setElementsInfoOpen(visible){
+    if(!elementsInfo)return;
+    elementsInfo.hidden=!visible;
+    for(const button of elementsInfoTriggers)button.setAttribute('aria-expanded',String(visible));
+  }
+  for(const button of elementsInfoTriggers){
+    button.addEventListener('click',()=>{
+      elementsInfoFocus=button;
+      setElementsInfoOpen(elementsInfo.hidden);
+    });
+  }
+  dialog.addEventListener('click',event=>{
+    if(!elementsInfo?.hidden&&!elementsInfo.contains(event.target)
+      &&!elementsInfoTriggers.some(button=>button.contains(event.target)))setElementsInfoOpen(false);
+  });
   let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false,sortMode='recent',viewMode='grid';
   const coverChoices=new Map(),coverRequests=new Map();
    const pendingProfiles=new Map();
@@ -249,12 +267,14 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
       dialog.style.setProperty('--scene-dialog-bottom',Math.ceil(Math.max(80,window.innerHeight-(anchor?.top||window.innerHeight-130)+10))+'px');
     }
     setStatus('');
+    setElementsInfoOpen(false);
     if(!dialog.open)dialog.showModal();
     render();
   }
   function close(){
     if(working)return;
     if(dialog.open)dialog.close();
+    setElementsInfoOpen(false);
     clearPhotos();setStatus('');
   }
 
@@ -605,8 +625,16 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     }catch(error){setStatus(error.message,true);}
   };
   $('scene-save').onclick=()=>{void save();};
-  dialog.addEventListener('cancel',event=>{if(working)event.preventDefault();});
-  dialog.addEventListener('close',()=>{if(!working){clearPhotos();setStatus('');}});
+  dialog.addEventListener('cancel',event=>{
+    if(elementsInfo&&!elementsInfo.hidden){
+      event.preventDefault();setElementsInfoOpen(false);elementsInfoFocus?.focus();return;
+    }
+    if(working)event.preventDefault();
+  });
+  dialog.addEventListener('close',()=>{
+    setElementsInfoOpen(false);
+    if(!working){clearPhotos();setStatus('');}
+  });
   return {open,close,reset,sync,renderSelected,fromGallery,
     items:()=>entries.slice(),useById:async id=>{
       const item=entries.find(entry=>entry.id===id);
