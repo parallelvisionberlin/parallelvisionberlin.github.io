@@ -83,6 +83,26 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  // Exercise the visible Add photo button and its real file chooser.
  const chooser=page.waitForEvent('filechooser');await page.click('#mobile-add-photo');await (await chooser).setFiles({name:'source.png',mimeType:'image/png',buffer:photo});
  await page.waitForFunction(()=>document.querySelector('#image-composer-references img'));
+
+ // Regression: Dream Blur + one uploaded photo + References Only + Studio 2K.
+ await page.locator('#image-reference-mode').evaluate(select=>{
+   select.value='references';
+   select.dispatchEvent(new Event('change',{bubbles:true}));
+ });
+ await page.getByRole('button',{name:'Select Dream Blur',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('#composer-moods-summary')?.textContent==='Dream Blur');
+ assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k');
+ assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,
+   'Dream Blur References Only must not exceed prompt budget before a paid click');
+ assert.doesNotMatch((await page.locator('#reference-guidance-warning').textContent())||'',
+   /exceed.*5,000|characters over limit/i);
+ assert.equal(requests.filter(r=>r.method==='POST'&&r.path==='/api/jobs').length,0,
+   'Editing a Mood or reference mode must never generate or charge');
+ await page.screenshot({path:out+`/dream-blur-ref-only-${width}.png`,fullPage:true});
+ await page.locator('#image-reference-mode').evaluate(select=>{
+   select.value='base';
+   select.dispatchEvent(new Event('change',{bubbles:true}));
+ });
  await page.getByRole('button',{name:'Select Hong Kong Nights',exact:true}).click();
  await page.locator('#composer-moods-intensity').fill('80');
  assert.equal(await page.locator('#image-composer-generate').isEnabled(),true);
