@@ -193,9 +193,34 @@ try{
       assert.ok(metrics.refHeight<=100,kind+': thumbnail tray does not become an unbounded grid');
       if(kind==='seedream'){
         assert.equal(metrics.refOverflowX,'auto','Extra references must scroll horizontally, not clip onto a new row');
-        assert.ok(metrics.refScrollWidth>metrics.refClientWidth,'Long reference packs must have a usable horizontal scrollbar');
+        assert.ok(metrics.refScrollWidth>=metrics.refClientWidth-2,
+          'Full-width photo strip must lay out without clipping or wrapping tiles');
       }
       assert.ok(metrics.docWidth<=width+3,kind+': no horizontal overflow');
+      if(kind==='seedream'){
+        // A narrower desktop cannot fit all 14 photos. The same strip must
+        // scroll horizontally without shrinking the prompt or hiding Generate.
+        await page.setViewportSize({width:990,height:740});
+        await page.evaluate(()=>window.__resizePVPrompt());
+        await page.waitForTimeout(120);
+        const narrower=await page.evaluate(()=>{
+          const r=selector=>{const b=document.querySelector(selector).getBoundingClientRect();return{top:b.top,bottom:b.bottom,width:b.width};};
+          const strip=document.getElementById('image-composer-references');
+          return{refs:r('#image-composer-references'),prompt:r('#image-composer-prompt'),
+            toolbar:r('.composer-controls'),generate:r('#image-composer-generate'),
+            dock:r('#image-composer'),stripScroll:strip.scrollWidth,stripClient:strip.clientWidth,
+            overflow:getComputedStyle(strip).overflowX};
+        });
+        assert.equal(narrower.overflow,'auto','Narrow desktop photos must allow sideways scroll');
+        assert.ok(narrower.stripScroll>narrower.stripClient+8,
+          'References overflow horizontally when they cannot all fit: '+JSON.stringify(narrower));
+        assert.ok(narrower.refs.bottom<=narrower.prompt.top+3&&narrower.prompt.bottom<=narrower.toolbar.top+3,
+          'Narrow desktop rows must remain separated: '+JSON.stringify(narrower));
+        assert.ok(narrower.generate.bottom<=narrower.dock.bottom+2&&narrower.toolbar.bottom<=narrower.dock.bottom+2,
+          'Narrow desktop Generate and controls remain inside the deck: '+JSON.stringify(narrower));
+        await page.setViewportSize({width,height});
+        await page.evaluate(()=>window.__resizePVPrompt());
+      }
       await textbox.evaluate(el=>{el.scrollTop=el.scrollHeight;});
       assert.ok(await textbox.evaluate(el=>el.scrollTop)>0,kind+': last prompt lines are accessible');
       await page.evaluate(()=>{const button=document.querySelector('#image-composer-generate');button.disabled=true;button.textContent='Sending…';});
