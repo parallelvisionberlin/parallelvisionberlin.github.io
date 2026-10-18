@@ -311,7 +311,6 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
   }
   function requestNavigation(destination){
     if(working)return;
-    if(view==='create'&&destination?.type==='category'&&destination.id===current)return;
     if(!hasUnsavedDraft()){navigateTo(destination);return;}
     if(!leaveConfirm)return;
     const active=category($('scene-category').value);
