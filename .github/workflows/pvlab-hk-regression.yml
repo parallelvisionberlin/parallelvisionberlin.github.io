@@ -1,0 +1,36 @@
+name: Verify Hong Kong Nights original photo presets
+on:
+  push:
+    branches: [feature/hong-kong-night-analog-looks-20261018]
+    paths:
+      - 'lab/hong-kong-presets.js'
+      - 'lab/mood-references.js'
+      - 'lab/moods.js'
+      - 'tests/lab-hong-kong-variations.test.mjs'
+      - '.github/workflows/pvlab-hk-regression.yml'
+permissions:
+  contents: read
+jobs:
+  verify-analog-presets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+            js/pv-auth.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check photographic mood source syntax
+        run: |
+          node --check lab/hong-kong-presets.js
+          node --check lab/mood-references.js
+          node --check lab/moods.js
+          node --check lab-worker/worker.mjs
+      - name: Test optical variations, identities, actual original photo bytes, pricing and history
+        run: |
+          node --test tests/lab-hong-kong-variations.test.mjs tests/lab-hong-kong-continuity.test.mjs tests/lab-mood-references.test.mjs tests/lab-film-finish.test.mjs tests/lab-moods.test.mjs tests/lab-photobooth-all-moods.test.mjs tests/lab-customer-image-quotes.test.mjs
