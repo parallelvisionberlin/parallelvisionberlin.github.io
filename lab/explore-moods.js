@@ -31,6 +31,9 @@ function initialize(){
     if(busy||mood?.id!=='hong-kong-nights')return;
     const choice=hongKongVariant(option.dataset.hkVariant);
     if(choice===moodVariant)return;
+    // A generated image belongs to the variation used at submission time.
+    // Switching looks must never mislabel the previous result as Deep Green.
+    if(!result.hidden)clearResult();
     moodVariant=choice;renderVariation();schedulePrice(0);
   };
   let price=null,priceTask=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
