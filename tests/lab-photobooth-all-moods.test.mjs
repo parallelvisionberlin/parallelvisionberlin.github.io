@@ -3,7 +3,7 @@
 // without submitting paid generation jobs or accessing customer photographs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync, existsSync} from 'node:fs';
 import {MOODS, moodById, prepareMoodPrompt} from '../lab/moods.js';
 import {moodReferencePlan} from '../lab/mood-references.js';
 import {builtInMoodReferenceCount, compileImagePrompt} from '../lab/reference-guidance.js';
@@ -28,6 +28,21 @@ test('Photobooth uses 1K for both web and native mobile, with one bound paid sub
   assert.equal((client.match(/confirm:true/g)||[]).length,1,'Only one explicit paid confirmation is allowed');
   assert.match(worker,/p\.referenceRoles=Array\.from\(\{length:count\}/);
   assert.match(worker,/const prompt=compileImagePrompt\(p\.prompt,p\.referenceRoles,p\)/);
+});
+
+test('all sixteen Mood thumbnails and editorial detail assets exist',()=>{
+  for(const mood of MOODS){
+    for(const asset of [mood.preview,mood.previewFull]){
+      if(!asset)continue;
+      const pathname=new URL(asset,'https://pvlab.studio').pathname;
+      assert.match(pathname,/^\\/lab\\//,'Mood preview paths must remain under PV LAB');
+      assert.ok(existsSync(new URL('..'+pathname,import.meta.url)),mood.id+': missing '+pathname);
+    }
+    for(const suffix of ['', '-detail']){
+      const pathname='/lab/mood-previews/mobile/v1/'+mood.id+suffix+'.jpg';
+      assert.ok(existsSync(new URL('..'+pathname,import.meta.url)),mood.id+': missing native '+pathname);
+    }
+  }
 });
 
 for(const mood of MOODS){
