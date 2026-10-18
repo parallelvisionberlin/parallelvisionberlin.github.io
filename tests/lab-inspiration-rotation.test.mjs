@@ -129,11 +129,10 @@ test('Chrome Couture preserves the original non-explicit editorial scene and add
   assert.match(sample,/sharp chrome blade resting against her shoulder/);
   assert.match(sample,/vintage optical starburst diffraction/);
   assert.match(sample,/believable direct-flash falloff/);
+  const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  assert.match(lab,/id==='chrome-couture'\?'fashion-editorial':id/);
+  assert.match(lab,/draft.mood==='chrome-couture'\?'fashion-editorial':draft.mood/);
+  assert.match(lab,/inspirationMoodId=underlyingMood/);
   const moods=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
-  const start=moods.indexOf('"id": "chrome-couture"');
-  const end=moods.indexOf('"id": "berlin-rave"',start);
-  assert.ok(start>=0&&end>start);
-  const treatment=moods.slice(start,end);
-  assert.match(treatment,/RETRO STAR FILTER/);
-  assert.match(treatment,/Never force a woman, corset, blade/);
+  assert.doesNotMatch(moods,/"id": "chrome-couture"/,'Do not alter the fixed curated Mood catalog');
 });
