@@ -534,6 +534,7 @@ document.addEventListener('click',event=>{
     <div class="image-composer-top">
       <div id="image-composer-references" class="image-composer-references" hidden aria-label="Attached reference images"></div>
       <textarea id="image-composer-prompt" rows="1" placeholder="What do you imagine?" aria-label="Describe the image"></textarea>
+       <div id="scene-element-suggestions" class="scene-element-suggestions" role="listbox" aria-label="Insert saved Element" hidden></div>
       <span id="composer-prompt-budget" class="composer-prompt-budget" hidden></span>
     </div>
     <div class="image-composer-toolbar"><div class="composer-controls">
@@ -1299,7 +1300,8 @@ document.addEventListener('click',event=>{
      <small id="scene-note-count" aria-live="polite">0 / 120</small>
     </div>
    </div>
-   <label id="scene-consent-wrap" class="scene-consent"><input id="scene-consent" type="checkbox">I confirm I have the rights or permission to use these character photographs.</label>
+   <label class="scene-smart-profile"><input id="scene-smart-analyze" type="checkbox" checked><span>Build a visual profile once <small>Google Gemini analyzes reduced previews to identify consistent details and viewpoints. Original photos stay in your private library. No generation credits used.</small></span></label>
+    <label id="scene-consent-wrap" class="scene-consent"><input id="scene-consent" type="checkbox">I confirm I have the rights or permission to use these character photographs.</label>
    <div class="scene-foot"><p id="scene-library-status" role="status" aria-live="polite"></p><div class="scene-create-action-row"><button id="scene-cancel" class="scene-muted-button" type="button">Cancel</button><button id="scene-save" class="scene-primary" type="button">Save item</button></div></div>
   </section>
   <div id="scene-browser-foot" class="scene-foot"><div><p id="scene-browse-status" role="status" aria-live="polite"></p><p id="scene-library-footnote" class="scene-form-note">These are reusable references, not trained models. Identity matching depends on the selected generator.</p></div><button id="scene-done" class="scene-muted-button" type="button">Done</button></div>
