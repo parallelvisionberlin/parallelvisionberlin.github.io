@@ -1,0 +1,11 @@
+/* Hong Kong Nights stays one Mood with three photographic finish choices. */
+#mc-hk-variation[hidden]{display:none!important}
+.mc-hk-variation{display:flex;flex-direction:column;gap:8px;margin:4px 0 12px;min-width:0}
+.mc-hk-variation-title{font-size:10px;letter-spacing:.1em;color:#bac3b9;font-weight:650}
+.mc-hk-variation-choices{display:flex;gap:7px;flex-wrap:wrap}
+.mc-hk-variation-choices button{min-height:36px;padding:8px 13px;font:inherit;font-size:12px;font-weight:590;background:#19211d;color:#d0d9d0;border:1px solid #59615b;border-radius:7px;cursor:pointer}
+.mc-hk-variation-choices button:hover{border-color:#c0d0c3;background:#273029}
+.mc-hk-variation-choices button.is-selected{border-color:#c5ff62;background:#2b3828;color:#f1ffdc}
+.mc-hk-variation-choices button:focus-visible{outline:2px solid #c5ff62;outline-offset:2px}
+.mc-hk-variation-choices button:disabled{opacity:.45;cursor:wait}
+@media(max-width:540px){.mc-hk-variation-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.mc-hk-variation-choices button{min-height:36px;padding:7px 4px;font-size:11px}}
