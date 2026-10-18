@@ -6,6 +6,9 @@ on:
       - 'lab/**'
       - 'lab-worker/**'
       - 'tests/lab-hong-kong-original-photography.test.mjs'
+      - 'tests/lab-hong-kong-photographic-variations.test.mjs'
+      - 'tests/lab-mood-creator-flow.test.mjs'
+      - 'tests/lab-photobooth-all-moods.test.mjs'
       - '.github/workflows/pvlab-hk-launch-test.yml'
 permissions:
   contents: read
@@ -34,4 +37,4 @@ jobs:
           node --check lab-worker/worker.mjs
       - name: Test real photographs and original Moods and providers
         run: |
-          node --test tests/lab-hong-kong-original-photography.test.mjs tests/lab-hong-kong-continuity.test.mjs tests/lab-mood-references.test.mjs tests/lab-moods.test.mjs tests/lab-photobooth-all-moods.test.mjs tests/lab-customer-image-quotes.test.mjs
+          node --test tests/lab*.test.mjs
