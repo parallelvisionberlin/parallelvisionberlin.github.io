@@ -114,7 +114,7 @@ try{
   assert.ok(layout.width<=layout.viewport+2,'Reference deck must not create horizontal page overflow: '+JSON.stringify(layout));
   assert.ok(layout.deckWidth<=layout.viewport+2,'Reference deck must remain within the viewport');
   pass('All seven references fit the modern bounded composer without horizontal overflow');
-  await x.page.locator('.reference-item img').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
+  await x.page.locator('#image-composer-references .composer-reference-tile').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
   assert.match(await x.page.locator('#input-preview-description').innerText(),/not a generated result/);
   const size=await x.page.locator('#input-preview-image').evaluate(async i=>{await i.decode();return [i.naturalWidth,i.naturalHeight];});assert.ok(Math.max(...size)<=1280);
   await x.page.locator('#input-preview-dialog [data-close]').click();assert.equal(await x.page.locator('#preview').isVisible(),false);pass('Input previews open separately and never replace the result canvas');
