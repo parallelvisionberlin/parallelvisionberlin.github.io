@@ -442,3 +442,10 @@
  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready #video-modes .mode-tab,
  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready #reference-drop{transition:none!important}
 }
+
+/* The left Video controls panel owns vertical scrolling. Keeping the
+   thumbnail grid unbounded prevents the nested wheel-scroll dead zone. */
+#app.video-studio-active.pv-video-approved-ready.pv-video-state-ready #reference-list{
+  max-height:none!important;
+  overflow:visible!important;
+}
