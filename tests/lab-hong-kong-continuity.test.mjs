@@ -73,3 +73,13 @@ test('scene-aware relighting survives final provider compile without truncating 
   assert.match(compiled,/rock|setting/);
  }
 });
+
+test('Hong Kong defaults and direction cover source-faithful mixed practical lighting',()=>{
+  const recipe=prepareMoodPrompt('Keep the photograph and person.','hong-kong-nights',85,{engine:'gemini',referenceCount:1});
+  assert.equal(recipe.error,'');
+  assert.match(recipe.prompt,/ruby-red practical spill/i);
+  assert.match(recipe.prompt,/skin, hair, hands and fabrics/i);
+  assert.match(recipe.prompt,/contact with ground or furniture/i);
+  assert.match(recipe.prompt,/DAYLIGHT OUTDOORS/);
+  assert.match(recipe.prompt,/without moving them onto a street/i);
+});
