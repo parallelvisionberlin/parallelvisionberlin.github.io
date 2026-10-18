@@ -346,10 +346,10 @@ try{
       await page.locator('#lab-home-credits').waitFor({state:'visible'});
       // Header reserves its dimensions before the authenticated wallet loads.
       // Wait for the confirmed zero balance, not simply a visible placeholder.
-      await page.waitForFunction(()=>document.getElementById('lab-home-credit-copy')?.textContent==='Get credits');
-      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits');
-      assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),false);
-      assert.equal(await page.locator('#lab-home-credits').getAttribute('aria-label'),'Get credits');
+      await page.waitForFunction(()=>document.getElementById('lab-home-credit-copy')?.textContent==='0');
+      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'0','Empty customer wallet must show the real zero balance');
+      assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),true);
+      assert.equal(await page.locator('#lab-home-credits').getAttribute('aria-label'),'0 credits. View credits and billing');
       await fits(page,'zero balance header '+width);
       session.balanceCredits=2850;
       await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
