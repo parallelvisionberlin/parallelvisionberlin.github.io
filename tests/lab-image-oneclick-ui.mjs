@@ -651,7 +651,7 @@ try{
  ok('Controlled Pose keeps FAL isolated from Seedream and Nano and reuses the preview pose map');await x.context.close();
 
  for(const tool of ['video']){
-  x=await workspace();await x.page.click('#tool-'+tool);if(tool==='image')await clickAdvanced(x.page);await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt:visible, #image-composer-prompt:visible','The camera slowly moves around the sculpture.');
+  x=await workspace();await x.page.click('#tool-'+tool);if(tool==='image')await clickAdvanced(x.page);if(tool==='video')await x.page.click('#mode-start');await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt:visible, #image-composer-prompt:visible','The camera slowly moves around the sculpture.');
   assert.equal(await x.page.locator('#generate').innerText(),'Generate');await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(x.accepted(),0);assert.equal(count(x,'/api/jobs'),0);await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);ok(tool+': separate price confirmation remains required');await x.context.close();
  }
 
