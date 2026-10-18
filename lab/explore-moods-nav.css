@@ -63,6 +63,24 @@
   .mc-explore-page .landing-header--moods .pv-unified-tools{gap:22px;font-size:13px}
   .mc-explore-page .landing-header--moods .pv-moods-utility{font-size:11px}
 }
+/* Reuse the approved quiet homepage credit pill on Explore Moods. */
+.mc-explore-page .landing-header--moods .lab-header-credit-link{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  flex:none;min-height:38px;padding:5px 9px;box-sizing:border-box;
+  border:1px solid transparent;border-radius:999px;background:transparent;
+  color:#f3f1ed;font:600 12px/1.2 'PV Lab Homepage Action','PV Lab Navigation',Arial,sans-serif;
+  text-decoration:none;white-space:nowrap;
+}
+.mc-explore-page .landing-header--moods .lab-header-credit-link[hidden]{display:none!important}
+.mc-explore-page .landing-header--moods .lab-header-credit-link:hover{border-color:#ffffff38;background:#ffffff08}
+.mc-explore-page .landing-header--moods .lab-header-credit-link .lab-home-credit-plus{
+  display:inline-grid;place-items:center;width:19px;height:19px;box-sizing:border-box;
+  border:1px solid #797b76;border-radius:50%;color:#e9e7e2;font-size:15px;font-weight:400;
+}
+@media(max-width:560px){
+ .mc-explore-page .landing-header--moods .lab-header-credit-link{min-height:34px;padding:4px 2px;gap:4px;font-size:11px}
+ .mc-explore-page .landing-header--moods .lab-header-credit-link .lab-home-credit-plus{width:16px;height:16px;font-size:13px}
+}
 /* Expand only the right side to show a reserved result frame once. */
 .mc-explore-page .mc-look-result[hidden]{display:none}
 .mc-explore-page .mc-look-result{

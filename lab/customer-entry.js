@@ -1,4 +1,5 @@
-import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24&closure=20261017-logout1';
+import {renderHeaderCredits} from './header-credits.js?v=20261018-credit-unified1';
+import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24&creditHeader=20261018v1&closure=20261017-logout1';
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261015-standalone1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
@@ -72,35 +73,13 @@ function show(){
   const header=document.querySelector('.landing-header--home');
   const homeCredits=$('lab-home-credits');
   $('lab-header-signin').hidden=!ready||signed;
-  if(homeCredits){
-    const closed=ready&&signed&&currentProfile&&!!profile.accountClosed;
-    // Keep the credit control present while authentication resolves, but never
-    // display a stale wallet value from a prior account or session.
-    homeCredits.hidden=!ready||closed;
-    if(closed){
-      $('lab-home-credit-copy').textContent='Account closed';
-      $('lab-home-credit-unit').hidden=true;
-    }else if(ready&&!signed){
-      $('lab-home-credit-copy').textContent='Get credits';
-      $('lab-home-credit-unit').hidden=true;
-      homeCredits.setAttribute('aria-label','Get credits and view pricing');
-      homeCredits.title='Get credits';
-    }else if(ready&&!customer){
-      $('lab-home-credit-copy').textContent='Credits';
-      $('lab-home-credit-unit').hidden=true;
-      homeCredits.setAttribute('aria-label','View credits and pricing');
-      homeCredits.title='View credits and pricing';
-    }else if(ready&&customer){
-      const valid=Number.isSafeInteger(profile.balanceCredits)&&profile.balanceCredits>=0;
-      const balance=valid?profile.balanceCredits:null;
-      const empty=balance===0;
-      $('lab-home-credit-copy').textContent=valid?balance.toLocaleString('en-GB'):'Credits';
-      $('lab-home-credit-unit').hidden=!valid;
-      homeCredits.setAttribute('aria-label',valid?balance.toLocaleString('en-GB')+' credits. View credits and billing':'View credits and billing');
-      homeCredits.title=valid?balance.toLocaleString('en-GB')+' credits. View credits and billing':'View credits and billing';
-    }
-  }
-  headerAccount.update({signed:ready&&signed,user:clerk?.user,profile:ready?profile:null});
+  // Render from the active Clerk session only. A new session never inherits
+  // the former user's credit text, even while /api/session is pending.
+  renderHeaderCredits(homeCredits,{
+    signed:ready&&signed,profile:currentProfile?profile:null,
+    guestVisible:ready&&!!header,guestHref:'#pricing',billingHref:'./account.html#balance'
+  });
+  headerAccount.update({signed:ready&&signed,user:clerk?.user,profile:currentProfile?profile:null});
   const invitation=document.querySelector('.lab-invite-promo__cta');
   if(invitation){
     const owner=ready&&profile?.owner===true;

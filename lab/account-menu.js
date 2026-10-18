@@ -128,7 +128,7 @@ export function createAccountMenu(root) {
       avatar.dataset.identity=identity.initials+identity.image;avatar.textContent=identity.initials;
       if(identity.image){const img=document.createElement('img');img.alt='';img.src=identity.image;img.referrerPolicy='no-referrer';img.addEventListener('error',()=>img.remove());avatar.append(img);}
     }
-    root.querySelector('[data-account-balance]').textContent=profile?(profile.customer?'':'Owner workspace'):'Account unavailable';
+    root.querySelector('[data-account-balance]').textContent=profile?(profile.customer?'':profile.owner===true?'Owner workspace':'Balance unavailable'):'Balance unavailable';
     updateBalance(profile?.balanceCredits);
     root.querySelector('[data-account-referrals]').hidden=!referralsAvailable(profile);
     voucherLink.hidden=!profile?.customer||!!profile?.accountClosed;
