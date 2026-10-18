@@ -48,7 +48,7 @@ test('reselecting one card cycles through eight visible prompts and wraps cleanl
   }
   assert.deepEqual(visited,INSPIRATION_VARIATIONS['fashion-editorial']);
   assert.equal(rotation.select('fashion-editorial',current).prompt,visited[0]);
-  assert.equal(rotation.select('unknown-mood').prompt,undefined);
+  assert.equal(rotation.select('unknown-mood'),null);
 });
 
 test('user-written and manually altered prompts are never replaced',()=>{
