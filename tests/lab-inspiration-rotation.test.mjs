@@ -15,20 +15,20 @@ function memoryStorage(){
   };
 }
 
-test('six Inspiration cards have eight distinct photographic examples each',()=>{
-  const names=['dream-blur','90s-cinema','fashion-editorial','dreamcore','hong-kong-nights','80s-film'];
+test('seven Inspiration cards have eight distinct photographic examples each',()=>{
+  const names=['dream-blur','90s-cinema','fashion-editorial','chrome-couture','dreamcore','hong-kong-nights','80s-film'];
   assert.deepEqual(Object.keys(INSPIRATION_VARIATIONS).sort(),names.sort());
   const all=[];
   for(const [id,scenes] of Object.entries(INSPIRATION_VARIATIONS)){
     assert.equal(scenes.length,8,id+' needs eight editorial variations');
     assert.equal(new Set(scenes).size,8,id+' includes duplicate scenarios');
     for(const scene of scenes){
-      assert.ok(scene.length>85&&scene.length<600,id+' scene is implausibly short/long');
+      assert.ok(scene.length>85&&scene.length<1100,id+' scene is implausibly short/long');
       assert.ok(isInspirationExample(scene));
       all.push(scene);
     }
   }
-  assert.equal(new Set(all).size,48,'No repeated scenes across different Moods');
+  assert.equal(new Set(all).size,56,'No repeated scenes across different Moods');
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/older woman/i.test(scene)));
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/male fashion model/i.test(scene)));
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/two adult models/i.test(scene)));
@@ -105,8 +105,8 @@ test('authenticated requests skip invisible Mood photos but retain explicit user
   assert.match(lab,/imageInputReferences\(\)\.map\(ref=>\(\{file:ref\.file/);
   assert.match(guest,/createInspirationRotation\(sessionStorage\)/);
   assert.match(html,/inspiration=rotation1/);
-  assert.equal([...html.matchAll(/data-welcome-mood=/g)].length,6,'Keep six signed-in photographs');
-  assert.equal([...html.matchAll(/data-guest-mood=/g)].length,6,'Keep six public photographs');
+  assert.equal([...html.matchAll(/data-welcome-mood=/g)].length,7,'Keep the six original signed-in photographs and add Chrome Couture');
+  assert.equal([...html.matchAll(/data-guest-mood=/g)].length,7,'Keep the six original public photographs and add Chrome Couture');
 });
 
 
@@ -120,4 +120,20 @@ test('Flash Leather treatment is about flash, material and lighting, not a defau
   assert.match(direction,/tactile leather and fabric texture/);
   assert.match(direction,/Respect the written subject/);
   assert.match(direction,/Never introduce a default wet-haired woman/);
+});
+
+
+test('Chrome Couture preserves the original non-explicit editorial scene and adds selective starburst optics',()=>{
+  const sample=INSPIRATION_VARIATIONS['chrome-couture'][0];
+  assert.match(sample,/High-fashion futuristic editorial, portrait of a woman in a silver metallic corset/);
+  assert.match(sample,/sharp chrome blade resting against her shoulder/);
+  assert.match(sample,/vintage optical starburst diffraction/);
+  assert.match(sample,/believable direct-flash falloff/);
+  const moods=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+  const start=moods.indexOf('"id": "chrome-couture"');
+  const end=moods.indexOf('"id": "berlin-rave"',start);
+  assert.ok(start>=0&&end>start);
+  const treatment=moods.slice(start,end);
+  assert.match(treatment,/RETRO STAR FILTER/);
+  assert.match(treatment,/Never force a woman, corset, blade/);
 });
