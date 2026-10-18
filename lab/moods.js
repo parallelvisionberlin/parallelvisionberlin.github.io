@@ -1,5 +1,5 @@
 import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3';
-import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-photography1';
+import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
@@ -61,7 +61,7 @@ const ALL_MOODS=Object.freeze([
     "id": "hong-kong-nights",
     "name": "Hong Kong Nights",
     "category": "Cinema",
-    "preview": "/lab/mood-previews/hong-kong-nights-street-20261011.svg",
+    "preview": "/lab/mood-references/hong-kong-nights/plaza-grill.webp",
     "description": "Luminous 1990s night cinema, amber and ruby practicals, petrol shadows and humid depth",
     "defaultIntensity": 85,
     "direction": "Direct the existing photograph as a genuine 1990s Hong Kong nighttime movie still, on pushed 35mm. READ THE BASE FIRST: identify the actual room/exterior, existing lights, reflectances, faces and depth. Relight the subject AND its environment as one coherent exposure. Cinematography, not a flat green filter: believable amber/tungsten practical pools and soft directional bounce, deep pockets of unlit black, selective cyan/emerald only in ambient shadows, untouched neutral skin and fabrics. Warm light must be physically motivated by an existing source, window, reflected glow or plausible spill; never add a lamp, spotlight or glowing rim just to create the look. Replace the flat feel of frontal flash and hard digital fill with off-axis light modeling, natural falloff and genuine shadow shape on both people and architecture. Atmospheric emerald haze lives in illuminated depth around real lights, not everywhere; separate foreground, middle distance and dark background. WET / GLOSS: moisture and glints only where glass, wet paving or polished surfaces support them, never fake indoor rain. GRAIN: restrained organic 35mm, not coarse noise. BLOOM: diffuse real practical highlights with optical falloff. HALATION: existing lamps, windows and specular reflections only, no body halo or bright backdrop patch. Keep face, anatomy, wardrobe, camera, setting and location recognizable.",
@@ -321,13 +321,13 @@ export function imageHistoryCaption(settings={}){
 }
 
 
-export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=HONG_KONG_FILM_FINISH,moodVariant='original'}={}){
+export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=undefined,moodVariant='original'}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
-  const finish=mood.id==='hong-kong-nights'&&filmFinish?filmFinishSettings(filmFinish):null;
   const hkVariant=mood.id==='hong-kong-nights'?hongKongVariant(moodVariant):null;
+  const finish=hkVariant&&filmFinish!==null?filmFinishSettings(filmFinish??HONG_KONG_VARIANTS[hkVariant].filmFinish):null;
   const hkLook=hkVariant?HONG_KONG_VARIANTS[hkVariant].direction:'';
   const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance',midnightReverie=mood.id==='midnight-reverie',dreamBlur=mood.id==='dream-blur';
   // FIXED MOOD RECIPE: never switch between full/compact/ultra based on
@@ -515,7 +515,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     variantButton.setAttribute('aria-pressed','false');
     variantButton.onclick=()=>{
       if(selected!=='hong-kong-nights'||hkVariation===id)return;
-      hkVariation=id;render();fitPanelViewport();onChange();
+      hkVariation=id;finishControls.set(look.filmFinish);render();fitPanelViewport();onChange();
     };
     variationChoices.append(variantButton);variationButtons.set(id,variantButton);
   }
@@ -710,7 +710,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     selected=settings?.moodId==='custom'&&typeof settings.customMoodBoardId==='string'?'custom:'+settings.customMoodBoardId:moodById(settings?.moodId)?.id||null;
     intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));
     hkVariation=selected==='hong-kong-nights'?hongKongVariant(settings?.moodVariant):'original';
-    finishControls.set(settings?.filmFinish||HONG_KONG_FILM_FINISH);
+    finishControls.set(settings?.filmFinish||(selected==='hong-kong-nights'?HONG_KONG_VARIANTS[hkVariation].filmFinish:HONG_KONG_FILM_FINISH));
     close();render();if(!silent)onChange();
   }
   function enrich(prompt,options={}){
