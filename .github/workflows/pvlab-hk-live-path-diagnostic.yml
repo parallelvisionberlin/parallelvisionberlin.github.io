@@ -1,0 +1,21 @@
+name: Temporary Hong Kong Nights asset-path diagnostic
+on:
+  push:
+    branches:
+      - fix/pvlab-hong-kong-originals-live-path-20261018
+permissions:
+  contents: read
+jobs:
+  paths:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Inspect both asset URL formats on live PV LAB
+        run: |
+          set -euo pipefail
+          for path in "/moods" "/moods.html" "/mood-references/hong-kong-nights/plaza-grill.webp" "/lab/mood-references/hong-kong-nights/plaza-grill.webp" "/mood-references/hong-kong-nights/greg-iii.png" "/lab/mood-references/hong-kong-nights/greg-iii.png"; do
+            echo "CHECK $path"
+            curl --silent --show-error --location --max-time 15 --output /tmp/hk-body --write-out 'STATUS:%{http_code} CONTENT_TYPE:%{content_type} FINAL:%{url_effective} SIZE:%{size_download}\n' "https://pvlab.studio${path}?verify=20261018-hk-asset"
+            file --brief /tmp/hk-body | head -c 240
+            echo
+          done
