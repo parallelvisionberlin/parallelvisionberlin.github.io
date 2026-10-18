@@ -68,6 +68,9 @@ try{
       const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
       await editor.evaluate((el,text)=>{
         el.focus({preventScroll:true});
+        // Current Studio focus activates the expanded deck before measuring
+        // a pasted prompt. Match that real interaction in this isolated test.
+        el.closest('#image-composer')?.classList.add('pv-deck-expanded');
         el.value=text;
         el.setSelectionRange(text.length,text.length);
         el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertFromPaste',data:text}));
