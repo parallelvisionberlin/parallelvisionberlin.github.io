@@ -76,12 +76,13 @@ test('cold thumbnail returns before its private R2 cache write completes',async(
    responsePromise.then(response=>({response})),
    new Promise(resolve=>setTimeout(()=>resolve({timedOut:true}),1000))
  ]);
- releaseWrite();
- if(early.timedOut){await responsePromise;assert.fail('Thumbnail waited for the R2 write');}
- assert.equal(early.response.status,200);
+ if(early.timedOut){releaseWrite();await responsePromise;assert.fail('Thumbnail waited for the R2 write');}
+ try{
+   assert.equal(early.response.status,200);
+   assert.equal(objects.has(key),false,'The background cache write was still waiting');
+   assert.equal(background.length,1);
+ }finally{releaseWrite();}
  assert.deepEqual(new Uint8Array(await early.response.arrayBuffer()),WEBP);
- assert.equal(objects.has(key),false,'The background cache write was still waiting');
- assert.equal(background.length,1);
  await Promise.all(background);
  assert.deepEqual(objects.get(key),WEBP,'Background storage keeps the same private derivative');
 });
