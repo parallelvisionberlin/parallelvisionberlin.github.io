@@ -21,7 +21,9 @@ export async function customerPromotionalReview(env,id){
   const account=await one(env,`SELECT c.id,p.email,
     h.reason AS holdReason,h.released_at AS releasedAt,
     EXISTS (SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=c.id
-      AND e.kind IN ('purchase','subscription')) AS hasPaid
+      AND e.kind IN ('purchase','subscription')) AS hasPaid,
+    EXISTS (SELECT 1 FROM lab_voucher_redemptions r
+      WHERE r.customer_id=c.id) AS hasOwnerVoucher
     FROM lab_customers c
     LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
     LEFT JOIN lab_promo_generation_holds h ON h.customer_id=c.id
@@ -32,11 +34,14 @@ export async function customerPromotionalReview(env,id){
     !!account.holdReason&&account.releasedAt===null;
   const flaggedEmail=env.LAB_PROMO_HOLDS_ENABLED==='true'&&
     welcomeReviewFlag(account.email,env)==='disposable-email';
+  // Owner-issued vouchers are redeemable gifts, not automatic signup credits.
+  // Keep the temporary welcome/free-trial pause for unpaid accounts without a
+  // voucher. An explicit abuse hold or flagged email still blocks free spending.
+  const hasOwnerVoucher=!!account.hasOwnerVoucher;
+  const held=!hasPaid&&(explicitHold||flaggedEmail||(trialPaused&&!hasOwnerVoucher));
   return {
-    held:!hasPaid&&(trialPaused||explicitHold||flaggedEmail),
-    hasPaid,
-    reason:!hasPaid&&trialPaused?'trial-paused':
-      explicitHold?'disposable-email':flaggedEmail?'disposable-email':null
+    held,hasPaid,
+    reason:held?(explicitHold||flaggedEmail?'disposable-email':'trial-paused'):null
   };
 }
 export async function assertCustomerOpen(env,id,{spending=false,promotion=false}={}){
