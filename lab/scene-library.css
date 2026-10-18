@@ -74,6 +74,27 @@
 .scene-field input,.scene-field select,.scene-field textarea{width:100%;box-sizing:border-box;border:1px solid #42444c;border-radius:10px;background:#222329;color:#f5f4f4;padding:11px 13px;font-size:13px;outline:0}
 .scene-field textarea{min-height:65px;resize:vertical}
 .scene-form-note{color:#9698a0;font-size:11px;line-height:1.5}
+
+/* Scene Library notes: practical prompt guidance, without another card or modal. */
+#scene-library-dialog .scene-note-heading{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+#scene-library-dialog .scene-note-heading label{
+  font-size:11px;font-weight:650;color:#babac0;letter-spacing:.02em;
+}
+#scene-library-dialog .scene-note-heading label span{font-weight:400;color:#858b91}
+#scene-library-dialog .scene-note-suggest{
+  border:0;background:transparent;padding:5px 0;color:#c9d0d5;
+  font-size:11px;font-weight:600;cursor:pointer;text-decoration:underline;
+  text-decoration-color:#636b71;text-underline-offset:4px;
+}
+#scene-library-dialog .scene-note-suggest:hover{color:#fff;text-decoration-color:#dadfe2}
+#scene-library-dialog .scene-note-suggest:focus-visible{outline:2px solid #c5ccd2;outline-offset:3px;border-radius:3px}
+#scene-library-dialog .scene-note-suggest:disabled{opacity:.4;cursor:default}
+#scene-library-dialog .scene-note-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+#scene-library-dialog .scene-note-meta p{margin:0;max-width:680px;font-size:11px;line-height:1.5;color:#929ba2}
+#scene-library-dialog .scene-note-meta small{flex:none;font-size:10px;line-height:1.5;color:#8c939a;font-variant-numeric:tabular-nums}
+#scene-library-dialog .scene-note-meta small.is-full{color:#d9c6ae}
 .scene-photo-source{display:flex;gap:10px;align-items:center;margin:17px 0 12px}
 .scene-upload-label{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:650;color:#f3f3f3;background:#2c2d33;border:1px solid #55565e;padding:10px 13px;border-radius:9px}
 .scene-upload-label:hover{background:#37383f}
