@@ -597,3 +597,15 @@
 /* The Dream Blur caption now inherits precisely the other Mood captions. */
 .mc-explore-page #mc-look-credit-note{display:block;margin-bottom:4px;color:#adb9ac;letter-spacing:.005em}
 .mc-explore-page #mc-look-credit-note[hidden]{display:none}
+
+/* Single Hong Kong Nights Mood: opt-in photographic treatment, never a submood. */
+.mc-hk-variation[hidden]{display:none!important}
+.mc-hk-variation{display:flex;flex-direction:column;gap:8px;margin:8px 0 13px;min-width:0}
+.mc-hk-variation>span{color:#bbc8bb;font-size:10px;font-weight:650;letter-spacing:.09em}
+.mc-hk-variation-picks{display:flex;flex-wrap:wrap;gap:7px}
+.mc-hk-variation-picks button{min-height:36px;padding:8px 14px;border:1px solid #59635e;border-radius:8px;background:#171c19;color:#ccd6cf;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.mc-hk-variation-picks button:hover{background:#29312a;border-color:#becabe}
+.mc-hk-variation-picks button.is-selected{background:#303e2e;color:#e8ffd4;border-color:#c5ff62}
+.mc-hk-variation-picks button:focus-visible{outline:2px solid #c5ff62;outline-offset:3px}
+.mc-hk-variation-picks button:disabled{opacity:.55;cursor:wait}
+@media(max-width:540px){.mc-hk-variation-picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.mc-hk-variation-picks button{padding:8px 5px;font-size:11px}}
