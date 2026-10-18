@@ -92,7 +92,7 @@ export async function processAccountClosures(env,verifyBilling){
       await preserveClosedWelcomeClaim(env,id);
     const statements=[];
     if(tables.has('soul_reinterpret_links'))statements.push(env.LAB_DB.prepare('DELETE FROM soul_reinterpret_links WHERE adapter_id IN (SELECT id FROM soul_characters WHERE owner_id=?) OR parent_id IN (SELECT id FROM soul_characters WHERE owner_id=?)').bind(id,id));
-    for(const table of ['library_members','library_favorites','library_folders','moodboard_style_data','moodboards','moodboard_analysis_quota','lab_spicy_reference_cache','lab_mood_performance','packs','jobs','quotes','spend','soul_characters','soul_datasets','assets','settings']){
+    for(const table of ['library_members','library_favorites','library_folders','moodboard_style_data','moodboards','moodboard_analysis_quota','element_visual_profiles','element_analysis_quota','lab_spicy_reference_cache','lab_mood_performance','packs','jobs','quotes','spend','soul_characters','soul_datasets','assets','settings']){
       if(tables.has(table))statements.push(env.LAB_DB.prepare('DELETE FROM '+table+' WHERE owner_id=?').bind(id));
     }
     if(tables.has('lab_referral_codes'))statements.push(env.LAB_DB.prepare('DELETE FROM lab_referral_codes WHERE customer_id=?').bind(id));

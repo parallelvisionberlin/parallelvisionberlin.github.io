@@ -76,6 +76,10 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-lab-browser/node_modules/playwright/index.mjs
         run: node tests/lab-berlin-rave-browser.mjs
+      - name: Verify smart Elements @mentions without any paid generation
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-lab-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-elements-smart-browser.mjs
       - name: Verify desktop and mobile gallery, original downloads and account cache
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-lab-browser/node_modules/playwright/index.mjs

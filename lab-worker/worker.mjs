@@ -24,6 +24,7 @@ import {FLASH_TEXT,FLASH_EDIT,seedreamFlashParameters,seedreamFlashInput} from '
 import {QWEN3_TEXT,QWEN3_EDIT,Z_IMAGE_SPICY,experimentalImageParameters,buildExperimentalImageInput} from './experimental-image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
 import {serveGalleryThumbnail,galleryThumbnailKey} from './gallery-thumbnails.mjs';
+import {analyzeElementProfile} from './element-profiles.mjs';
 import {libraryRoute,libraryJobs} from './asset-library.mjs';
 import {higgsfieldRoute,refreshHiggsfield,SOUL2_PRICES,soul2Parameters} from './higgsfield.mjs';
 import {publicSoulPresets} from './soul-presets.mjs';
@@ -49,7 +50,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-18.2-signup-welcome-email';
+export const VERSION = 'pv-lab-2026-10-18.3-elements-visual-profiles';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1499,9 +1500,20 @@ async function route(request,env,ctx) {
     if(await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain')",owner))fail(409,'Wait for or resolve the active job before removing its API key.');
     await run(env,'DELETE FROM settings WHERE owner_id=?',owner);return json({config:publicConfig(null,!!env.FAL_KEY)});
   }
+  if(path.startsWith('/api/elements/')&&path.endsWith('/analyze')&&method==='POST'){
+    const parts=path.split('/');
+    if(parts.length!==5||parts[4]!=='analyze')fail(404,'Unknown Element action.');
+    return json(await analyzeElementProfile(env,owner,uid(parts[3]),ctx,{first,run,now,fail}));
+  }
   if(path==='/api/packs'&&method==='GET'){
+    // Preserve the exact old Photo Packs data path. Only actual Elements need
+    // a second profile lookup; normal packs remain unaffected by the new table.
     const list=await rows(env,'SELECT id,name,refs,created_at FROM packs WHERE owner_id=? AND name<>? ORDER BY name',owner,SOUL_PRO_IDENTITY_PACK);
-    return json({packs:list.map(p=>({...p,refs:JSON.parse(p.refs)}))});
+    const hasElements=list.some(p=>/^PVSCENE1\|(characters|outfits|props|locations)\|/.test(p.name));
+    const savedProfiles=hasElements?await rows(env,'SELECT pack_id,profile_json FROM element_visual_profiles WHERE owner_id=?',owner):[];
+    const profiles=new Map(savedProfiles.map(p=>[p.pack_id,p.profile_json]));
+    return json({packs:list.map(p=>({...p,refs:JSON.parse(p.refs),
+      ...(profiles.has(p.id)?{profile:JSON.parse(profiles.get(p.id))}:{})}))});
   }
   if(path==='/api/packs'&&method==='POST'){
     const data=await body(request),name=String(data.name||'').trim().slice(0,100);

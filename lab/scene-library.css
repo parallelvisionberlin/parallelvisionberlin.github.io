@@ -903,3 +903,54 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
 #scene-library-dialog .composer-photo-fallback svg{
   width:22px;height:22px;fill:none;stroke:currentColor
 }
+
+
+/* Elements visual identities. Scoped to the existing editor and save form.
+   Unrelated Photo Packs, Moods, History and hero artwork remain untouched. */
+#scene-library-dialog .scene-smart-profile{
+  display:flex;gap:10px;align-items:flex-start;margin:13px 0 4px;color:#d7dadd;
+  font-size:11px;line-height:1.35;cursor:pointer
+}
+#scene-library-dialog .scene-smart-profile input{margin:2px 0 0;accent-color:#c3c7c8}
+#scene-library-dialog .scene-smart-profile span{display:flex;flex-direction:column;gap:3px}
+#scene-library-dialog .scene-smart-profile small{font-size:10px;color:#92969b;max-width:660px;line-height:1.4}
+#image-composer .composer-reference-tile.composer-element-tile{
+  flex:0 0 108px;width:108px;max-width:108px;overflow:hidden;
+  border:1px solid #52565b;border-radius:8px
+}
+#image-composer .composer-reference-tile.composer-element-tile img{
+  width:100%;height:100%;object-fit:cover
+}
+#image-composer .composer-element-tile .composer-reference-index{
+  left:0;right:0;bottom:0;top:auto;max-width:100%;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;padding:0 12px 0 6px;
+  box-sizing:border-box;line-height:20px;text-align:left;font-size:10px;
+  font-weight:600;letter-spacing:0;background:linear-gradient(0deg,#101316ed,#171a1fb0);
+}
+#image-composer .composer-element-tile .composer-reference-remove{z-index:2}
+#image-composer .scene-element-suggestions{
+  position:absolute;bottom:calc(100% + 6px);left:0;
+  z-index:140;width:min(320px,calc(100vw - 26px));max-height:244px;
+  overflow:auto;border:1px solid #3b4246;border-radius:11px;
+  background:#181c1f;box-shadow:0 16px 35px #0008;padding:5px;
+}
+#image-composer .scene-element-suggestions[hidden]{display:none!important}
+#image-composer .scene-element-choice{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  width:100%;border:0;border-radius:7px;padding:10px 9px;
+  background:transparent;color:#e6e9ea;cursor:pointer;text-align:left
+}
+#image-composer .scene-element-choice strong{
+  font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+#image-composer .scene-element-choice small{font-size:10px;color:#9b9fa4;flex-shrink:0}
+#image-composer .scene-element-choice:hover,
+#image-composer .scene-element-choice:focus-visible{
+  outline:0;background:#2b3135
+}
+@media(max-width:550px){
+  #image-composer .composer-reference-tile.composer-element-tile{
+    flex-basis:92px;width:92px;max-width:92px
+  }
+  #image-composer .scene-element-suggestions{max-height:40dvh}
+}

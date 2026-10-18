@@ -1,5 +1,5 @@
 import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
-import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-cover-first-priority3';
+import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-elements-visual-profiles1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1';
 import {preparePhotoInput} from './photo-input.js?v=1';
@@ -21,7 +21,7 @@ import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=
 import {createVideoModelPicker} from './video-model-picker.js?v=20261016-wan-mini-priority1';
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
@@ -50,7 +50,9 @@ const pendingImageCards=new Map();
 function studioReturnPhoto(item){
   if(!item?.file)return null;
   return {file:item.file,name:item.file.name,type:item.file.type,lastModified:item.file.lastModified,
-    id:item.id||null,role:item.role||'none',note:item.note||'',target:item.target||'',nonBaseRole:item.nonBaseRole||''};
+    id:item.id||null,role:item.role||'none',note:item.note||'',target:item.target||'',nonBaseRole:item.nonBaseRole||'',
+    elementId:item.elementId||null,elementName:item.elementName||'',elementCategory:item.elementCategory||'',
+    elementView:item.elementView,elementCount:item.elementCount};
 }
 async function saveImageForMoods(){
   if(!owner||tool!=='image'||fashionActive)return false;
@@ -99,7 +101,8 @@ async function restoreStudioFromMoods(){
   if(state.source)await setImage(storedImageFile(state.source),state.source.id||null);
   if(chosen.length){
     await addReferences(chosen.map(storedImageFile),chosen.map(r=>r.id||null),
-      chosen.map(r=>({role:r.role,note:r.note,target:r.target})));
+      chosen.map(r=>({role:r.role,note:r.note,target:r.target,elementId:r.elementId,
+        elementName:r.elementName,elementCategory:r.elementCategory,elementView:r.elementView,elementCount:r.elementCount})));
     // Preserve non-base role for a later toggle back to References only.
     for(let i=0;i<chosen.length;i++)if(references[i])references[i].nonBaseRole=chosen[i].nonBaseRole||'none';
   }
@@ -597,7 +600,8 @@ const notify=(text,error=false)=>{
 function release(url){if(url)URL.revokeObjectURL(url);}
 function isSoul2(){return tool==='image'&&imageEngine==='soulpro'&&soulProModel==='soul2';}
 const hf=createSoul2UI({api,uploadAsset,assetPhoto:composerAssetPhoto,notify,getPacks:()=>packs,onChange:()=>{composerLibraryKey='';update();},onJob:job=>{if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);refreshHistorySoon();}});
-function referenceRoles(){return references.map(r=>normalizeReferenceLabel({name:r.file.name,role:r.role||'none',note:r.note||'',target:r.target||''}));}
+function referenceRoles(){return references.map(r=>normalizeReferenceLabel({name:r.file.name,role:r.role||'none',note:r.note||'',target:r.target||'',
+  elementId:r.elementId,elementName:r.elementName,elementCategory:r.elementCategory,elementView:r.elementView,elementCount:r.elementCount}));}
 // Switching to a text-only model parks photos in the editor, it never deletes them.
 function imageInputReferences(){return tool==='image'&&imageEngine==='zspicy'?[]:references;}
 function usesReferenceGuidance(){return tool==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(imageEngine);}
@@ -1137,7 +1141,7 @@ const packStudio=createReferencePackStudio({
 sceneLibrary=createSceneLibrary({
   api,uploadAsset,assetFile,assetPhoto:composerAssetPhoto,getAssetRatio:sceneAssetRatio,
   getReferences:()=>references,getReferenceLimit:referenceLimit,
-  getContext:()=>({owner,busy,tool,mode,supportsReferences:usesReferenceGuidance()&&imageEngine!=='kling'}),
+  getContext:()=>({owner,busy,tool,mode,prompt:$('prompt').value.trim(),supportsReferences:usesReferenceGuidance()&&imageEngine!=='kling'}),
   prepareUse:()=>{
     // A saved item starts a new composition rather than silently making
     // its first image the Base. Preserve any existing Base/editor photos.
@@ -1516,14 +1520,14 @@ function syncImageReferences(){
     composerReferenceRenderKey=null;
     tray.hidden=true;return;
   }
-  const items=isSoul2()?[]:[...references];
+  const items=isSoul2()?[]:references.filter((ref,i)=>!ref.elementId||references.findIndex(other=>other.elementId===ref.elementId)===i);
   if((imageEngine==='soulpro'||isReinterpret())&&sourceUrl)items.unshift({thumbUrl:sourceUrl,file:{name:'Base image'},isBase:true});
   const renderKey=JSON.stringify([imageEngine,imageReferenceMode,usesReferenceGuidance(),isSoul2(),
-    items.map(ref=>[ref.thumbUrl||ref.url,ref.url,ref.role,ref.file?.name,!!ref.isBase])]);
+    items.map(ref=>[ref.thumbUrl||ref.url,ref.url,ref.role,ref.file?.name,!!ref.isBase,ref.elementId||'',ref.elementName||'',ref.elementCount||0])]);
   if(renderKey===composerReferenceRenderKey&&tray.childElementCount===items.length){
     // Maintain the upload lock but do not reset already decoded thumbnail elements.
     for(const tile of tray.children){
-      if(!tile.hasAttribute('role'))tile.draggable=!busy;
+      if(!tile.hasAttribute('role'))tile.draggable=!busy&&!tile.classList.contains('composer-element-tile');
       const role=tile.querySelector('.composer-reference-role');if(role)role.disabled=busy;
       const remove=tile.querySelector('.composer-reference-remove');if(remove)remove.disabled=busy;
     }
@@ -1534,7 +1538,7 @@ function syncImageReferences(){
   tray.replaceChildren();
   for(let i=0;i<items.length;i++){
     const ref=items[i],tile=document.createElement('div');
-    tile.className='composer-reference-tile';tile.title=ref.file?.name||'Reference image';
+    tile.className='composer-reference-tile'+(ref.elementId?' composer-element-tile':'');tile.title=ref.elementId?'@'+ref.elementName+' · saved '+(ref.elementCount||1)+' views':ref.file?.name||'Reference image';
     tile.classList.toggle('role-general',usesReferenceGuidance()&&!ref.isBase&&(!ref.role||ref.role==='none'));
     const img=document.createElement('img');
     img.src=ref.thumbUrl||ref.url;img.alt=(ref.isBase?'Base image':'Image reference '+(i+1));
@@ -1548,7 +1552,7 @@ function syncImageReferences(){
       tile.title='Preview unavailable. Remove and add this reference again.';
     });
     tile.append(img);
-    if(!ref.isBase){
+    if(!ref.isBase&&!ref.elementId){
       tile.draggable=!busy;tile.tabIndex=0;tile.setAttribute('aria-label','Image '+(i+1)+'. Drag to reorder, or use Alt and arrow keys.');
       tile.addEventListener('dragstart',e=>{
         if(busy||e.target.closest('button,select')){e.preventDefault();return;}
@@ -1561,9 +1565,9 @@ function syncImageReferences(){
       tile.addEventListener('keydown',e=>{if(e.target!==tile||!e.altKey||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const next=references.indexOf(ref)+(e.key==='ArrowLeft'?-1:1);if(references[next]){moveComposerReference(ref,references[next],e.key==='ArrowRight');tray.querySelectorAll('.composer-reference-tile')[next]?.focus();}});
     }
     const marker=document.createElement('span');marker.className='composer-reference-index';
-    marker.textContent=ref.isBase||ref.role==='base'?'BASE':ref.role&&ref.role!=='none'?ref.role.toUpperCase():String(i+1);
+    marker.textContent=ref.elementId?'@'+ref.elementName:ref.isBase||ref.role==='base'?'BASE':ref.role&&ref.role!=='none'?ref.role.toUpperCase():String(i+1);
     marker.setAttribute('aria-hidden','true');if(isSoul2())marker.hidden=true;tile.append(marker);
-    if(usesReferenceGuidance()&&(i>0||referencesOnly())){
+    if(usesReferenceGuidance()&&(i>0||referencesOnly())&&!ref.elementId){
       marker.hidden=true;
       const role=document.createElement('select');role.className='composer-reference-role';role.setAttribute('aria-label','Role for image '+(i+1));role.disabled=busy;
       for(const [value,label] of REFERENCE_ROLES.filter(([value])=>value!=='base'))role.add(new Option(value==='none'?'General':label,value));
@@ -1587,7 +1591,10 @@ function syncImageReferences(){
         if(busy)return;
         if(target.isBase){file=null;sourceId=null;release(sourceUrl);sourceUrl=null;sourceWidth=0;sourceHeight=0;sourcePixels=0;update();return;}
         const idx=references.indexOf(target);if(idx<0)return;
-        closeInputPreview();releaseReference(target);references.splice(idx,1);
+        closeInputPreview();
+        if(target.elementId){
+          for(let at=references.length-1;at>=0;at--)if(references[at].elementId===target.elementId){releaseReference(references[at]);references.splice(at,1);}
+        }else{releaseReference(target);references.splice(idx,1);}
         if(!references.length){imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();}
         if(imageEngine==='fal')poseMapSourceId=null;
         renderReferences();refreshInputPreview();update();
@@ -1897,12 +1904,71 @@ function syncImageStudioMode(){
   }
   syncImageComposer();
 }
+// Elements autocomplete changes only the text entry experience. Its underlying
+// selected images and profiles remain in the existing private reference pipeline.
+const elementSuggestions=$('scene-element-suggestions');
+let elementMentionMatches=[];
+function closeElementSuggestions(){
+  elementSuggestions.hidden=true;elementSuggestions.replaceChildren();elementMentionMatches=[];
+}
+function elementMentionContext(){
+  const field=$('image-composer-prompt');
+  const cursor=field.selectionStart;
+  const prefix=field.value.slice(0,cursor);
+  const found=/(?:^|[\s(])@([^@\n,;]{0,70})$/.exec(prefix);
+  if(!found)return null;
+  const phrase=found[1],start=cursor-phrase.length-1;
+  return {start,end:cursor,query:phrase.trim().toLocaleLowerCase()};
+}
+function updateElementSuggestions(){
+  if(tool!=='image'||busy||!owner){closeElementSuggestions();return;}
+  const found=elementMentionContext();
+  if(!found){closeElementSuggestions();return;}
+  const available=sceneLibrary?.items?.()||[];
+  const matches=available.filter(entry=>entry.title.toLocaleLowerCase().includes(found.query)).slice(0,6);
+  if(!matches.length){closeElementSuggestions();return;}
+  elementMentionMatches=matches;
+  elementSuggestions.replaceChildren();
+  for(const entry of matches){
+    const choice=document.createElement('button');choice.type='button';choice.className='scene-element-choice';
+    choice.setAttribute('role','option');
+    const name=document.createElement('strong');name.textContent='@'+entry.title;
+    const kind=document.createElement('small');kind.textContent=entry.category.slice(0,-1)+' · '+entry.refs.length+' saved view'+(entry.refs.length===1?'':'s');
+    choice.append(name,kind);
+    choice.onmousedown=event=>event.preventDefault();
+    choice.onclick=()=>{void chooseElementMention(entry);};
+    elementSuggestions.append(choice);
+  }
+  elementSuggestions.hidden=false;
+}
+async function chooseElementMention(entry){
+  const field=$('image-composer-prompt'),found=elementMentionContext();
+  if(!found){closeElementSuggestions();return;}
+  field.value=field.value.slice(0,found.start)+'@'+entry.title+field.value.slice(found.end);
+  const cursor=found.start+entry.title.length+1;
+  field.focus();field.setSelectionRange(cursor,cursor);
+  closeElementSuggestions();
+  field.dispatchEvent(new Event('input',{bubbles:true}));
+  await sceneLibrary?.useById?.(entry.id);
+}
+$('image-composer-prompt').addEventListener('keydown',event=>{
+  if(elementSuggestions.hidden)return;
+  if(event.key==='Escape'){closeElementSuggestions();event.stopPropagation();}
+  if(event.key==='Enter'&&elementMentionMatches.length){
+    event.preventDefault();void chooseElementMention(elementMentionMatches[0]);
+  }
+});
+document.addEventListener('pointerdown',event=>{
+  if(!event.target.closest('#scene-element-suggestions,#image-composer-prompt'))
+    closeElementSuggestions();
+});
 $('image-composer-prompt').addEventListener('input',event=>{
   if(busy)return;
   const textbox=$('image-composer-prompt');
   const pastedAtEnd=event.inputType==='insertFromPaste'&&textbox.selectionEnd===textbox.value.length;
   $('prompt').value=textbox.value;
   $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
+  updateElementSuggestions();
   // A long paste at the end should land on the newest lines, not on the first.
   // Wait for the normal composer sync to fit the field, then scroll the field only.
   if(pastedAtEnd)requestAnimationFrame(()=>{
@@ -2703,6 +2769,22 @@ function renderReferences(){
   }
   const box=$('reference-list'),scroll=box.scrollTop,fragment=document.createDocumentFragment();
   references.forEach((r,i)=>{
+    if(r.elementId&&references.findIndex(x=>x.elementId===r.elementId)!==i)return;
+    if(r.elementId){
+      const item=document.createElement('div');item.className='reference-item reference-element-item';
+      const img=document.createElement('img');img.src=r.thumbUrl||r.url;img.alt='Element @'+r.elementName;img.width=68;img.height=82;
+      const fields=document.createElement('div');fields.className='reference-fields';
+      const name=document.createElement('strong');name.textContent='@'+r.elementName;
+      const count=references.filter(x=>x.elementId===r.elementId).length;
+      const hint=document.createElement('small');hint.textContent=(r.elementCategory||'Element')+' · '+count+' selected view'+(count===1?'':'s')+' of '+(r.elementCount||count)+' saved';
+      fields.append(name,hint);
+      const controls=document.createElement('div');controls.className='reference-actions';
+      const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.disabled=busy;
+      remove.onclick=()=>{if(busy)return;closeInputPreview();for(let j=references.length-1;j>=0;j--){if(references[j].elementId===r.elementId){releaseReference(references[j]);references.splice(j,1);}}
+        if(!references.length){imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();}
+        renderReferences();refreshInputPreview();update();};
+      controls.append(remove);item.append(img,fields,controls);fragment.append(item);return;
+    }
     const item=document.createElement('div');item.className='reference-item';
     const img=document.createElement('img');img.src=r.thumbUrl;img.alt='Input reference '+(i+1);img.width=68;img.height=82;img.decoding='async';
     img.tabIndex=0;img.setAttribute('role','button');img.setAttribute('aria-label','Preview input reference '+(i+1));
@@ -2745,6 +2827,8 @@ function renderReferences(){
 async function addReferences(list,ids=[],labels=[]){
   clearImageComposerNotice();
   const e=epoch,incoming=[...list];if(imageEngine==='fal')poseMapSourceId=null;if(references.length+incoming.length>referenceLimit())throw new Error('This mode supports up to '+referenceLimit()+' image references.');
+  const explicitBaseAfterElement=tool==='image'&&usesReferenceGuidance()&&referencesOnly()&&incoming.length===1&&
+    references.some(ref=>ref.elementId)&&!labels[0]?.elementId&&!references.some(ref=>ref.role==='base');
   autoPreview=null;$('reference-list').setAttribute('aria-busy','true');let added=0;const toWarm=[];
   try{
     for(let i=0;i<incoming.length;i++){
@@ -2754,7 +2838,13 @@ async function addReferences(list,ids=[],labels=[]){
       }
       const item=await inspectImage(incoming[i]);
       if(e!==epoch||!owner){releaseReference(item);return;}
-      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;toWarm.push(item);
+      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';
+       item.elementId=labels[i]?.elementId||null;item.elementName=labels[i]?.elementName||'';item.elementCategory=labels[i]?.elementCategory||'';
+       item.elementView=labels[i]?.elementView;item.elementCount=labels[i]?.elementCount;if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;toWarm.push(item);
+       if(explicitBaseAfterElement&&!item.elementId){
+         imageReferenceMode='base';references.splice(references.indexOf(item),1);references.unshift(item);
+         item.role='base';closeReferenceIntent();
+       }
       renderReferences();refreshInputPreview();update();
       await new Promise(resolve=>setTimeout(resolve,0));
     }

@@ -30,12 +30,51 @@ export function sceneCoverId(refs,ratios=[],targetRatio=1.55){
   });
   return chosen;
 }
+// Select a small, prompt-relevant view subset from ONE saved visual entity.
+// Profile shot descriptions come from optional one-time image analysis. Without
+// analysis, preserve input order. Never pretend that this is a trained LoRA.
+export function selectElementViews(item,prompt='',limit=2){
+  const refs=Array.isArray(item?.refs)?item.refs:[];
+  const max=Math.max(0,Math.min(refs.length,Number.isInteger(limit)?limit:2));
+  if(!max)return [];
+  const profile=item?.profile;
+  const stop=new Set(['the','and','for','with','from','in','on','at','this','that','inside','into','a','an',
+    'of','to','de','la','el','en','con','un','una','del','los','las','por','que','room','location']);
+  const tokens=String(prompt||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .split(/[^\p{L}\p{N}]+/u).filter(x=>x.length>2&&!stop.has(x));
+  const shots=Array.isArray(profile?.shots)?profile.shots:[];
+  const ranked=refs.map((ref,index)=>{
+    const shot=shots.find(s=>s.index===index);
+    const words=[...(shot?.keywords||[]),shot?.description||'',ref?.name||'']
+      .join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    const matched=tokens.filter(t=>words.some(w=>w===t||w.startsWith(t)||t.startsWith(w)));
+    return {index,score:new Set(matched).size*10+Math.min((shot?.keywords||[]).length,6)*0.01};
+  });
+  ranked.sort((a,b)=>b.score-a.score||a.index-b.index);
+  const chosen=ranked.slice(0,max).map(x=>x.index);
+  return chosen;
+}
+function elementReferenceNote(item,selectedIndex){
+  // Preserve the user's authored saved note (including full appearance/props)
+  // before adding only the visual facts that fit the provider's note budget.
+  const authored=String(item.refs?.[selectedIndex]?.note||'').slice(0,230);
+  const identity=String(item.profile?.signature||item.profile?.summary||'').slice(0,145);
+  const shot=item.profile?.shots?.find(s=>s.index===selectedIndex);
+  const view=String(shot?.description||'').slice(0,65);
+  const notes=[authored||'@'+String(item.title||'').slice(0,70)+' is one consistent '+item.category+'.'];
+  if(identity)notes.push('Visual signature: '+identity);
+  if(view)notes.push('View: '+view);
+  return notes.join(' ').slice(0,300);
+}
+
 export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAssetRatio,getReferences,getReferenceLimit,getContext,prepareUse,addReferences,loadPacks,getAllPacks,notify,action,closeOverlays,openPhotoPacks}) {
   const $=id=>document.getElementById(id);
   const dialog=$('scene-library-dialog');
   if(!dialog)return {open(){},sync(){},renderSelected(){},fromGallery(){}};
   let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false,sortMode='recent',viewMode='grid';
   const coverChoices=new Map(),coverRequests=new Map();
+   const pendingProfiles=new Map();
   let coverRevision=0;
   function renderCover(host,item){
     const refs=item?.refs||[];
@@ -184,6 +223,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     $('scene-name').value='';
     $('scene-note').value='';
     $('scene-consent').checked=false;
+    if($('scene-smart-analyze'))$('scene-smart-analyze').checked=true;
     $('scene-appearance').checked=true;
     $('scene-browser').hidden=true;
     $('scene-create').hidden=false;
@@ -265,7 +305,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
         assetPhoto(tile,ref.id);shots.append(tile);
       });
       const attach=document.createElement('button');attach.type='button';attach.className='scene-feature-attach';
-      const attached=item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
+      const attached=getReferences().some(active=>active.elementId===item.id)||item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
       attach.textContent=attached?'Already in deck ✓':'Use in scene →';
       attach.disabled=attached||working;attach.dataset.sceneUse='';
       attach.onclick=()=>{void useItem(item);};
@@ -353,7 +393,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
       select.onclick=()=>{selectedId=item.id;featuredExpanded=false;render();};
       const actions=document.createElement('div');actions.className='scene-card-actions';
       const use=document.createElement('button');use.type='button';use.className='scene-use';
-      const already=item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
+      const already=getReferences().some(active=>active.elementId===item.id)||item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
       use.textContent=already?'Added ✓':'Use in scene';use.disabled=already||working;
       use.dataset.sceneUse='';use.onclick=()=>{void useItem(item);};
       const remove=document.createElement('button');remove.type='button';remove.className='scene-delete';
@@ -373,7 +413,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     const host=$('scene-video-selected');
     if(!host)return;
     host.replaceChildren();
-    const selected=entries.filter(e=>e.refs.length&&e.refs.every(r=>getReferences().some(a=>a.id===r.id)));
+    const selected=entries.filter(e=>getReferences().some(a=>a.elementId===e.id)||(e.refs.length&&e.refs.every(r=>getReferences().some(a=>a.id===r.id))));
     host.hidden=!selected.length;
     if(!selected.length)return;
     const label=document.createElement('small');label.textContent='Saved in this scene';
@@ -391,17 +431,40 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     if(context.tool==='video'&&context.mode!=='reference'){setStatus('Use Scene Library in Video → References.',true);return;}
     if(context.tool==='image'&&!context.supportsReferences){setStatus('Choose an Image model that supports image references.',true);return;}
     const currentRefs=getReferences();
-    const missing=item.refs.filter(r=>!currentRefs.some(active=>active.id===r.id));
-    if(!missing.length){setStatus(item.title+' is already attached.');return;}
-    if(currentRefs.length+missing.length>getReferenceLimit()){setStatus('This model supports up to '+getReferenceLimit()+' image references. Remove some before adding this item.',true);return;}
-    setWorking(true);setStatus('Loading original images…');
+    if(currentRefs.some(ref=>ref.elementId===item.id)||item.refs.every(ref=>currentRefs.some(active=>active.id===ref.id))){
+      setStatus(item.title+' is already attached.');return;
+    }
+    const capacity=getReferenceLimit()-currentRefs.length;
+    if(capacity<1){setStatus('This model has no free reference slots. Remove an image or choose a model with more references.',true);return;}
+    setWorking(true);setStatus('Preparing @'+item.title+' as one Element…');
     try{
       await runTask(async()=>{
-        // Use the existing validated asset download and reference pipeline.
-        const files=await Promise.all(missing.map((ref,i)=>assetFile(ref.id,safeName(item.title)+'-'+(i+1))));
+        // Build the visual profile once, then reuse it on later insertions.
+        // An unavailable analysis never destroys or changes the saved pack.
+        if(context.tool==='image'&&!item.profile){
+          let pending=pendingProfiles.get(item.id);
+          if(!pending){
+            pending=api('/api/elements/'+encodeURIComponent(item.id)+'/analyze',{method:'POST'})
+              .then(result=>result?.profile||null).catch(()=>null);
+            pendingProfiles.set(item.id,pending);
+          }
+          const profile=await pending;
+          if(profile)item.profile=profile;
+        }
+        // Two relevant views at most: one Element, not an uncontrolled stack.
+        const count=Math.min(capacity,item.category==='props'?1:2);
+        const indices=selectElementViews(item,context.prompt||'',count);
+        const chosen=indices.map(i=>({ref:item.refs[i],i})).filter(x=>x.ref?.id);
+        if(!chosen.length)throw Error('This Element has no usable photographs.');
+        const files=await Promise.all(chosen.map(({ref,i})=>assetFile(ref.id,safeName(item.title)+'-'+(i+1))));
         if(context.tool==='image'&&!currentRefs.length)prepareUse();
-        await addReferences(files,missing.map(ref=>ref.id),missing.map(ref=>({...ref,note:(ref.note||'').slice(0,300)})));
-        setStatus(item.title+' added. You can add more references or close the library.');
+        const labels=chosen.map(({ref,i})=>({...ref,
+          elementId:item.id,elementName:item.title,elementCategory:item.category,
+          elementView:i,elementCount:item.refs.length,
+          note:elementReferenceNote(item,i)
+        }));
+        await addReferences(files,chosen.map(({ref})=>ref.id),labels);
+        setStatus('@'+item.title+' added as one Element · '+chosen.length+' selected view'+(chosen.length===1?'':'s')+'.');
       });
     }finally{setWorking(false);render();}
   }
@@ -448,15 +511,33 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
           ...(role==='outfit'?{target:'full'}:role==='object'?{target:'prop'}:{}),
           note:referenceNote(cat,title,appearance,extra)
         }));
-        await api('/api/packs',{method:'POST',body:{
+        const created=await api('/api/packs',{method:'POST',body:{
           name:packName,engine:'seedance',referenceSourceIds:ids,referenceRoles:labels
         }});
         await loadPacks();
         current=cat.id;browse();setStatus(title+' saved to '+cat.label+'. No generation was started.');
+        if($('scene-smart-analyze')?.checked&&created?.id){
+          setStatus('@'+title+' saved. Preparing its reusable visual profile…');
+          const pending=api('/api/elements/'+encodeURIComponent(created.id)+'/analyze',{method:'POST'})
+            .then(async result=>{
+              await loadPacks();
+              if(view==='browse'&&current===cat.id)
+                setStatus('@'+title+' ready. Its visual profile is saved for future generations.');
+              return result?.profile||null;
+            })
+            .catch(error=>{
+              if(view==='browse'&&current===cat.id)
+                setStatus('@'+title+' saved. Visual analysis unavailable: '+error.message+'. You can still use it.');
+              return null;
+            });
+          pendingProfiles.set(created.id,pending);
+          // Never hold the Save modal while Gemini indexes already-saved photos.
+          void pending;
+        }
       });
     }finally{setWorking(false);}
   }
-  function reset(){working=false;if(dialog.open)dialog.close();clearPhotos();allPacks=[];entries=[];selectedId=null;featuredExpanded=false;coverRevision++;coverChoices.clear();coverRequests.clear();setStatus('');renderSelected();}
+  function reset(){working=false;if(dialog.open)dialog.close();clearPhotos();allPacks=[];entries=[];selectedId=null;featuredExpanded=false;coverRevision++;coverChoices.clear();coverRequests.clear();pendingProfiles.clear();setStatus('');renderSelected();}
   function sync(packs){
     allPacks=Array.isArray(packs)?packs:[];
     coverRevision++;coverChoices.clear();coverRequests.clear();
@@ -508,5 +589,11 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
   $('scene-save').onclick=()=>{void save();};
   dialog.addEventListener('cancel',event=>{if(working)event.preventDefault();});
   dialog.addEventListener('close',()=>{if(!working){clearPhotos();setStatus('');}});
-  return {open,close,reset,sync,renderSelected,fromGallery};
+  return {open,close,reset,sync,renderSelected,fromGallery,
+    items:()=>entries.slice(),useById:async id=>{
+      const item=entries.find(entry=>entry.id===id);
+      if(!item)return false;
+      await useItem(item);return true;
+    }
+  };
 }
