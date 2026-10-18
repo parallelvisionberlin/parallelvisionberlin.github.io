@@ -46,6 +46,14 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       const card=document.createElement('article');card.className='card';card.dataset.kind='image';card.dataset.job='mock-upscale';
       card.textContent='Completed upscale result';document.getElementById('history').append(card);
       app.classList.add('upscale-studio-active');
+      // In production lab.js sets this copy when Upscaler is selected.
+      // Mirror that view state in the isolated mock so visual snapshots are accurate.
+      document.getElementById('empty-title').textContent='Upscaler';
+      document.getElementById('empty-description').textContent='Restore fine detail and resolution while keeping your original composition.';
+      document.getElementById('canvas-import').textContent='Upload image';
+      document.getElementById('canvas-secondary').hidden=true;
+      document.getElementById('generate').textContent='Upscale · 10 credits';
+      document.getElementById('emptyarchive').textContent='No upscaled images yet';
       const tool=document.getElementById('tool-upscale');tool.classList.add('active');tool.setAttribute('aria-pressed','true');
       // Set the same visibility flags the authenticated Upscaler uses, without providers.
       for(const id of ['upscale-model-display','upscale-scale-control','upscale-info','upscale-price','format-control']){
