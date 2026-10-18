@@ -62,15 +62,18 @@ jobs:
               && grep -Fq '@keyframes pv-boot-out{0%,12%{opacity:1;filter:blur(0);transform:none}55%{opacity:.82;filter:blur(3px);transform:none}100%{opacity:0;filter:blur(9px);transform:none}}' /tmp/live-studio.html \
               && grep -Fq '@keyframes pv-boot-trail-out{0%,17%{opacity:0;filter:blur(0);transform:none}56%{opacity:.46;filter:blur(5px);transform:none}100%{opacity:0;filter:blur(12px);transform:none}}' /tmp/live-studio.html \
               && grep -Fq 'id="history-preview-toggle"' /tmp/live-studio.html \
-              && grep -Fq 'image-discreet.css?v=20261017-transient-message1' /tmp/live-studio.html \
+              && grep -Fq 'image-discreet.css?v=20261018-preview-label1' /tmp/live-studio.html \
               && grep -Fq 'image-discreet.js?v=20261017-transient-message1' /tmp/live-studio.html \
+              && grep -Fq 'image-studio.css?v=20261018-preview-fallback1' /tmp/live-studio.html \
+              && grep -Fq 'studio.css?v=20261018-owner-effects-nav1&reference-nav=1' /tmp/live-studio.html \
+              && grep -Fq 'lab.js?v=20261018-ref-stable1' /tmp/live-studio.html \
               && grep -Fq 'image-moods-return.css?v=20261017-hidden-inspiration1' /tmp/live-studio.html \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.js?verify=20261017-transient-message1" -o /tmp/live-image-discreet.js \
               && grep -Fq 'pv-lab-image-previews-hidden-v1' /tmp/live-image-discreet.js \
               && grep -Fq 'setTimeout(()=>{noticeTimer=null;dismissNotice();},1600)' /tmp/live-image-discreet.js \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-moods-return.css?verify=20261017-hidden-inspiration1" -o /tmp/live-image-moods-return.css \
               && grep -Fq 'html.pv-image-previews-hidden #app.image-studio-active #history-moods-toggle' /tmp/live-image-moods-return.css \
-              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.css?verify=20261017-transient-message1" -o /tmp/live-image-discreet.css \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.css?verify=20261018-preview-label1" -o /tmp/live-image-discreet.css \
               && grep -Fq 'pv-image-previews-hidden' /tmp/live-image-discreet.css \
               && grep -Fq 'grid-template-columns:54px 62px 12px 34px' /tmp/live-image-discreet.css \
               && grep -Fq '#history-preview-toggle{' /tmp/live-image-discreet.css \
@@ -79,6 +82,10 @@ jobs:
               && grep -Fq "font:600 12px/1.5 'DM Sans'" /tmp/live-image-discreet.css \
               && grep -Fq 'visibility:hidden!important' /tmp/live-image-discreet.css \
               && grep -Fq 'radial-gradient(ellipse 115% 85%' /tmp/live-image-discreet.css \
+              && grep -Fq "content:'HIDDEN'" /tmp/live-image-discreet.css \
+              && grep -Fq 'composerReferenceRenderKey' /tmp/live-studio-js \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio.css?verify=20261018-nav-opacity1" -o /tmp/live-studio.css \
+              && grep -Fq '#studio-header .tool-switch .tool-tab:disabled{opacity:1;cursor:default}' /tmp/live-studio.css \
               && grep -Fq 'id="gate"' /tmp/live-canonical-studio.html \
               && grep -Fq 'canonicalStudio=20261015-1' /tmp/live-canonical-studio.html \
               && grep -Fq 'pv-studio-route-pending' /tmp/live-canonical-studio.html \
