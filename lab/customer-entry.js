@@ -77,7 +77,7 @@ function show(){
   // the former user's credit text, even while /api/session is pending.
   renderHeaderCredits(homeCredits,{
     signed:!!clerk&&signed,profile:currentProfile?profile:null,
-    guestVisible:ready,guestHref:'#pricing',billingHref:'./account.html#balance'
+    guestVisible:ready&&!!header,guestHref:'#pricing',billingHref:'./account.html#balance'
   });
   headerAccount.update({signed:!!clerk&&signed,user:clerk?.user,profile:currentProfile?profile:null});
   const invitation=document.querySelector('.lab-invite-promo__cta');
