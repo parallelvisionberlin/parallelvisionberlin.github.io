@@ -24,6 +24,7 @@ import {FLASH_TEXT,FLASH_EDIT,seedreamFlashParameters,seedreamFlashInput} from '
 import {QWEN3_TEXT,QWEN3_EDIT,Z_IMAGE_SPICY,experimentalImageParameters,buildExperimentalImageInput} from './experimental-image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
 import {serveGalleryThumbnail,galleryThumbnailKey} from './gallery-thumbnails.mjs';
+import {analyzeElementProfile} from './element-profiles.mjs';
 import {libraryRoute,libraryJobs} from './asset-library.mjs';
 import {higgsfieldRoute,refreshHiggsfield,SOUL2_PRICES,soul2Parameters} from './higgsfield.mjs';
 import {publicSoulPresets} from './soul-presets.mjs';
@@ -1499,9 +1500,15 @@ async function route(request,env,ctx) {
     if(await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain')",owner))fail(409,'Wait for or resolve the active job before removing its API key.');
     await run(env,'DELETE FROM settings WHERE owner_id=?',owner);return json({config:publicConfig(null,!!env.FAL_KEY)});
   }
+  if(path.startsWith('/api/elements/')&&path.endsWith('/analyze')&&method==='POST'){
+    const parts=path.split('/');
+    if(parts.length!==5||parts[4]!=='analyze')fail(404,'Unknown Element action.');
+    return json(await analyzeElementProfile(env,owner,uid(parts[3]),ctx,{first,run,now,fail}));
+  }
   if(path==='/api/packs'&&method==='GET'){
-    const list=await rows(env,'SELECT id,name,refs,created_at FROM packs WHERE owner_id=? AND name<>? ORDER BY name',owner,SOUL_PRO_IDENTITY_PACK);
-    return json({packs:list.map(p=>({...p,refs:JSON.parse(p.refs)}))});
+    const list=await rows(env,'SELECT id,name,refs,created_at,element_profile FROM packs WHERE owner_id=? AND name<>? ORDER BY name',owner,SOUL_PRO_IDENTITY_PACK);
+    return json({packs:list.map(p=>({id:p.id,name:p.name,refs:JSON.parse(p.refs),created_at:p.created_at,
+      ...(p.element_profile?{profile:JSON.parse(p.element_profile)}:{})}))});
   }
   if(path==='/api/packs'&&method==='POST'){
     const data=await body(request),name=String(data.name||'').trim().slice(0,100);
