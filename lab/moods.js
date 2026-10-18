@@ -333,16 +333,14 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     // imagined Hong Kong street. The original open-ended 1990s night-film
     // direction is retained for text-only and References-only compositions.
     const editingBase=referenceCount>0&&referenceMode!=='references';
-    const originalImageLock='EDIT IMAGE 1, the existing photograph. Keep the IDENTICAL person, recognizable facial geometry, expression, age, hairstyle, anatomy, wardrobe, pose, crop, camera viewpoint, and every original building, window, wall, pavement, sign and scene object. This is color and light finishing of the SAME moment, not a new photograph or location. Hong Kong Nights is the color inspiration, NOT a request for Hong Kong buildings, Asian alleys, Chinese signage, new neon or invented objects. Preserve the original flattering editorial expression and natural beauty without remodeling the face. Keep eyes readable and softly illuminated, facial skin naturally warm/neutral, with pores and existing fine details. Do not age, harden, green-tint or heavily shadow the face. Do not crush black fabrics or skin detail. Do not add visible artificial grain, speckle, film damage, over-sharpening, smoke, fake rain or a uniform green filter. Treat only the lighting, atmospheric tonal separation and gentle highlight bloom already supported by the input scene; allow explicit customer edits to take precedence.';
+    const originalImageLock='EDIT IMAGE 1, the existing photograph, NOT a new scene. Keep the same face, expression, age, hair, body, pose, outfit, camera, framing, original buildings, pavement, signs and objects. Hong Kong Nights describes color, NOT a request for Asian streets, new neon or changed architecture. Preserve the original expressive, flattering face, softly lit eyes, natural warm skin and real clothing detail. Never age or remodel the person, blacken eye sockets, green-tint skin, crush shadows or add visible grain, dirt, film damage, fake fog or rain. Shift only existing shadows toward restrained teal/emerald and existing highlights toward warm amber, with soft source-bound bloom. For a daylight photo, keep recognizable daylight unless the user expressly requests night. User-requested edits take precedence.';
     const photoStrength=intensity<=34
-      ?'Subtle: barely perceptible cool-teal separation in existing distant shadows, natural warm skin and soft highlight rolloff.'
+      ?'Subtle: gentle tonal separation and optical softness.'
       :intensity<=69
-        ?'Editorial: luminous existing highlights, warm skin against restrained deep teal shadows, dimensional atmosphere, fine photographic detail and tasteful soft lens diffusion.'
-        :'Expressive yet elegant: rich emerald only in existing background shadow gradients, amber warmth on existing light, gentle optical softness; face and location remain unchanged. Never add strong darkness or green to the person.';
-    const preservation=referenceCount>0
-      ?referenceMode==='references'
-        ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
-        :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
+        ?'Editorial: luminous flattering skin light, amber highlights and textured deep-teal background shadows.'
+        :'Expressive: richer emerald in existing BACKGROUND shadow gradients only; same luminous face, clean texture and original location.';
+    const preservation=editingBase?'':referenceCount>0
+      ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
       :'Honor the requested subject and composition.';
     const look=editingBase?[originalImageLock,photoStrength,variantDirection].filter(Boolean).join(' '):[strength,variantDirection].filter(Boolean).join(' ');
     const prompt=[original,'PV LAB MOOD / '+mood.name+': '+look+' '+preservation+' Avoid: '+mood.avoid+'.'].filter(Boolean).join('\n\n');
