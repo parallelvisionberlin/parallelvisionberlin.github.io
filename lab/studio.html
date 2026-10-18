@@ -183,7 +183,7 @@ document.addEventListener('click',event=>{
 <script defer src="./image-editorial-deck.js?v=20261017-bottom-blue-glow4"></script>
 <script type="module" src="./studio-guest-image.js?v=20261017-mobile-mood1&greenHaze=2"></script>
 <script defer src="./studio-mobile-entry.js?v=20261017-mobile-mood1"></script>
-<link rel="stylesheet" href="./scene-library.css?v=20261018-hero-alignment2">
+<link rel="stylesheet" href="./scene-library.css?v=20261018-photo-packs-parity1">
 <link rel="stylesheet" href="./video-editorial-deck.css?v=20261017-video-editorial1">
 <link rel="stylesheet" href="./video-approved-design.css?v=20261017-video-approved1">
 <link rel="stylesheet" href="./mobile-library-polish.css?v=20261017-mobile-two-row1">
@@ -1263,18 +1263,24 @@ document.addEventListener('click',event=>{
   <div class="scene-main">
    <header class="scene-header">
     <div><span class="scene-kicker">PV LAB / YOUR LIBRARY</span><h2 id="scene-library-title">Characters</h2><p id="scene-description">People and identities for your projects.</p></div>
-    <button id="scene-close" class="scene-icon-close" type="button" aria-label="Close Elements">×</button>
+    <div class="scene-header-actions">
+     <label class="scene-search-label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.8"/><path d="m15.5 15.5 5 5"/></svg><input id="scene-search" type="search" placeholder="Search characters..." autocomplete="off" aria-label="Search saved elements"></label>
+     <button id="scene-close" class="scene-icon-close" type="button" aria-label="Close Elements">×</button>
+    </div>
    </header>
    <section id="scene-browser" aria-label="Saved elements">
-    <div class="scene-toolbar">
-     <label class="scene-search-label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.8"/><path d="m15.5 15.5 5 5"/></svg><input id="scene-search" type="search" placeholder="Search characters..." autocomplete="off" aria-label="Search saved elements"></label>
-     <button id="scene-new" class="scene-primary" type="button" hidden>+ New item</button>
-    </div>
     <div id="scene-category-hero" class="scene-category-hero" data-category="characters" role="group" aria-label="Characters collection"><div class="scene-category-hero-copy"><span class="scene-category-hero-kicker">PV LAB / ELEMENTS</span><h3 id="scene-category-hero-title">Characters</h3><p id="scene-category-hero-subtitle">People and identities for your projects.</p></div></div>
     <div id="scene-feature" class="scene-feature" aria-label="Selected element" hidden></div>
-    <div class="scene-library-meta"><strong id="scene-active-label">All characters</strong><small id="scene-library-count">Private collection</small></div>
+    <div class="scene-library-meta">
+     <div class="scene-collection-title"><strong id="scene-active-label">All characters</strong><small id="scene-library-count">0 saved</small><button id="scene-new" class="scene-new-icon" type="button" aria-label="New character" title="New character">+</button></div>
+     <div class="scene-view-controls" role="group" aria-label="Sort and view elements">
+      <label class="scene-sort-label"><select id="scene-sort" aria-label="Sort elements"><option value="recent">Recently updated</option><option value="name">Name A–Z</option><option value="name-desc">Name Z–A</option></select></label>
+      <button id="scene-grid-view" class="scene-view-button" type="button" aria-label="Grid view" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.1"/><rect x="14" y="3" width="7" height="7" rx="1.1"/><rect x="3" y="14" width="7" height="7" rx="1.1"/><rect x="14" y="14" width="7" height="7" rx="1.1"/></svg></button>
+      <button id="scene-list-view" class="scene-view-button" type="button" aria-label="List view" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="5" rx=".8"/><path d="M11 6.5h10"/><rect x="3" y="15" width="5" height="5" rx=".8"/><path d="M11 17.5h10"/></svg></button>
+     </div>
+    </div>
     <div id="scene-grid" class="scene-grid" aria-live="polite"></div>
-    <p id="scene-empty" class="scene-empty" hidden>No matching elements. Try another search.</p>
+    <div id="scene-empty" class="scene-empty" hidden><span class="scene-empty-symbol" aria-hidden="true">▧</span><div><strong id="scene-empty-heading">No characters yet</strong><small id="scene-empty-description">Save your favorite reference images to find them here next time.</small></div></div>
    </section>
   <section id="scene-create" hidden aria-label="Save a new scene item">
    <div class="scene-create-heading"><h3>Save to Scene Library</h3><button id="scene-back" class="scene-back" type="button">← Your library</button></div>
