@@ -135,9 +135,9 @@ function installVideoEditorialDeck(){
     // Never claim an illustrative montage is the user's generated result.
     const mode=activeMode();
     if(mode==='reference'&&doc.getElementById('empty-title')){
-      doc.getElementById('empty-title').textContent='Bring your ideas to life';
+      doc.getElementById('empty-title').textContent='Guide the motion with references';
       const subtitle=doc.getElementById('empty-description');
-      if(subtitle)subtitle.textContent='Add references, describe your scene, and generate video with PV LAB.';
+      if(subtitle)subtitle.textContent='Upload images or choose saved elements, then describe how they move and interact.';
       doc.getElementById('empty')?.classList.add('pv-video-references-empty');
     }else{
       doc.getElementById('empty')?.classList.remove('pv-video-references-empty');

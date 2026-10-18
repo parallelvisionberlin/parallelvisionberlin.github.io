@@ -153,7 +153,7 @@ test('Seedream quote requires explicit confirmation; approved image switches to 
 test('Studio includes a real visible drop-and-browse input and a separate price confirmation',()=>{
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
-  assert.match(html,/id="reference-drop"[^>]*>.*Drop reference images here or click to browse/);
+  assert.match(html,/id="reference-drop"[^>]*>.*<span>Upload images<\/span>/);
   assert.match(html,/id="reference-images" type="file" multiple/);
   assert.match(html,/id="start-frame-quote-info"/);
   assert.match(html,/id="start-frame-confirm"/);

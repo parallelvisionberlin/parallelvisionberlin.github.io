@@ -2434,20 +2434,20 @@ function emptyExperience(){
   if(tool==='video'){
     if(mode==='extend')return {title:'Continue the scene.',description:'Upload a video and describe what happens next.',action:'extend',button:'Choose a video',secondary:'Write the direction',secondaryAction:'prompt',footnote:'YOUR ORIGINAL VIDEO STAYS UNCHANGED'};
     if(mode==='text')return {
-      title:'Imagine the next scene.',
-      description:'Describe a place, a movement or a moment worth seeing.',
+      title:'Describe the scene',
+      description:'Write the movement, setting and sound for your video.',
       action:'prompt',button:'Write a direction',secondary:'Create an image first',secondaryAction:'image',
       footnote:'START WITH A DIRECTION'
     };
     if(mode==='reference')return {
-      title:'Build from your references.',
-      description:'Bring images, motion and atmosphere into a single visual direction.',
-      action:'references',button:'Add references',secondary:'Write the direction',secondaryAction:'prompt',
+      title:'Guide the motion with references',
+      description:'Upload images or choose saved elements, then describe how they move and interact.',
+      action:'references',button:'Upload images',secondary:'Write the direction',secondaryAction:'prompt',
       footnote:'YOUR REFERENCES STAY SEPARATE FROM GENERATED RESULTS'
     };
     return {
-      title:'Your next scene starts here.',
-      description:'Begin with a still, then shape its motion, light and atmosphere.',
+      title:'Your next scene starts here',
+      description:'Choose an opening image to animate. Add an end frame only if you need a specific finish.',
       action:'source',button:'Choose start frame',secondary:'Create an image first',secondaryAction:'image',
       footnote:'A STILL IS ONLY THE BEGINNING'
     };
@@ -2783,6 +2783,7 @@ function configureVideoControls(){
   $('video-create-task').setAttribute('aria-selected',String(mode!=='extend'));
   $('mode-extend').setAttribute('aria-selected',String(mode==='extend'));
   $('video-modes').hidden=!isVideo||mode==='extend';
+  $('pv-mode-reference-label').textContent=isVideo?'Reference set':'References';
   $('extend-help').hidden=!isVideo||mode!=='extend';
   $('video-media-label').textContent=mode==='extend'?'Video to extend':'Video references';
   $('video-media-title').textContent=mode==='extend'?'Add a video':'Add motion or camera references';
@@ -2818,7 +2819,8 @@ function configureVideoControls(){
     $('video-model-note').textContent=klingHf?'Kling 3.0 Pro via Higgsfield API · 3–15s · Text or one Start frame, optional end frame. Audio starts off. Pro is a fixed model profile; its API has no resolution parameter. Your actual Higgsfield account price is checked before submission. Soul Elements are not yet linked.':sd15?'Seedance 1.5 Pro / 4–12s / 480p–1080p / Start or Text / optional camera lock. Switch sound off for economical motion loops. SpicyAPI describes this route as uncensored, meaning no added platform scan. The model may still reject requests and its content rules apply. At 1080p no closing frame or fixed seed is supported.':sd4k?'Seedance 2.5 · 4K / 4–30s / Start frame / upscaled 4K delivery from a native up-to-1080p render. This premium output costs substantially more. Review the live credit price before creating.':sd?'Seedance 2.5 Standard / 4–30s / up to 1080p. Start frame follows your image ratio. Reference mode supports image, video and audio guidance. SpicyAPI describes Start, Text and Reference modes as uncensored: it adds no content scan, but the model can still refuse. Extend runs through Higgsfield instead and is subject to its separate policy.':h3maxfal?'H3 Max Reference on fal.ai / 5–15s / 480p–1080p / up to 12 image references. fal.ai safety checking is enabled, and provider/model/account rules can reject a request.':omni?'Gemini Omni Flash 1.1 on fal.ai / 3–10s / 360p–4K / Start, Reference and Text modes. Google/fal safety filters apply.':engine==='wanprime'?'Wan 3.0 Prime / faster Wan render / 2–30s / 480p–1080p / same Start frame and Reference modes as Wan 3.0. Higher live provider price.':engine==='h3'||engine==='h3max'||engine==='h3spicy'?'MiniMax H3 family on SpicyAPI. Available modes and resolution depend on the selected variant.':'Wan 3.0 / Start frame or image references. 21:9 start-frame mode makes a private local center crop, keeps your original, then uses Wan adaptive ratio because Wan rejects an explicit 21:9 parameter. Provider policies and model refusals apply.';
   }
   $('reference-drop').querySelector('small').textContent=tool==='image'&&imageEngine==='zspicy'?'Text-only model · no reference photos':'JPG / PNG / WebP · up to '+referenceLimit()+' photos';
-  $('reference-drop').querySelector('span').textContent=isVideo?'Drop reference images here or click to browse':'Add identity, wardrobe or set references';
+  $('reference-drop').querySelector('span').textContent=isVideo?'Upload images':'Add identity, wardrobe or set references';
+  $('reference-drop').setAttribute('aria-label',isVideo?'Upload images':'Add reference images, drop or browse');
   $('ref-count').textContent=references.length+' / '+referenceLimit();
   videoModelPicker.sync();
 }
