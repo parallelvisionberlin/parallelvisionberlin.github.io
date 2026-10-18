@@ -357,6 +357,7 @@ await page.click('#video-model-trigger');
 await page.locator('.pv-video-model-item[data-model="seedance"]').click();
 assert.equal(await page.locator('#video-engine').inputValue(),'seedance','Default engine can be restored without generation');
 
+await page.click('#mode-start');assert.equal(await page.locator('#mode-start').getAttribute('aria-selected'),'true','Start/end video mode is explicitly selected before reference uploads');
 assert.equal(await page.locator('#duration').inputValue(),'5');assert.equal(await page.locator('#resolution').inputValue(),'720p');
 const videoFrame=fs.readFileSync('assets/optimized/liquid-metal-hero.webp');
 await page.setInputFiles('#image',{name:'editorial-frame.webp',mimeType:'image/webp',buffer:videoFrame});
@@ -365,18 +366,6 @@ await page.setInputFiles('#last-image',{name:'ending-frame.webp',mimeType:'image
 await page.waitForFunction(()=>!document.querySelector('#video-end-thumb').hidden);
 await page.fill('#prompt','A slow camera move across the garment, with natural fabric movement.');
 assert.equal(await page.locator('#generate').textContent(),'Generate');
-if(await page.locator('#generate').isDisabled())console.log('VIDEO_READY_DIAG='+JSON.stringify(await page.evaluate(()=>({
-  engine:document.getElementById('video-engine')?.value,
-  mode:document.querySelector('#mode-start')?.getAttribute('aria-selected'),
-  promptLength:document.getElementById('prompt')?.value.length,
-  generateTitle:document.getElementById('generate')?.title,
-  help:document.getElementById('generation-help')?.textContent,
-  status:document.getElementById('notice')?.textContent,
-  startThumb:document.getElementById('video-start-thumb')?.hidden,
-  endThumb:document.getElementById('video-end-thumb')?.hidden,
-  file:document.getElementById('image')?.files?.length,
-  lastFile:document.getElementById('last-image')?.files?.length
-}))));
 assert.equal(await page.locator('#generate').isEnabled(),true);
 assert.equal(await page.locator('#video-detail-prompt').evaluate(el=>getComputedStyle(el).fontSize),'14px');
 assert.ok((await page.locator('#video-model-control').boundingBox()).y<(await page.locator('#prompt').boundingBox()).y,'Model precedes references and prompt');
