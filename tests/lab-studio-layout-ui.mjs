@@ -434,6 +434,41 @@ try{
     assert.equal(hero.centered,true,'Elements modal is vertically centered for '+label);
     assert.ok(hero.contentScroll<=3,'Empty Elements should not scroll: '+JSON.stringify(hero));
   }
+  // All Elements categories use Photo Packs' collection controls and frame.
+  assert.equal(await x.page.locator('#scene-library-count').textContent(),'0 saved');
+  assert.equal(await x.page.locator('#scene-empty-heading').textContent(),'No locations yet');
+  assert.equal(await x.page.locator('#scene-new').getAttribute('aria-label'),'New location');
+  assert.equal(await x.page.locator('#scene-new').isVisible(),true,
+    'New location lives next to the saved-count label, not in an oversized tile');
+  assert.equal(await x.page.locator('#scene-grid .scene-create-tile').count(),0,
+    'Do not leave the old giant creation tile in empty categories');
+  const sceneLayout=await x.page.evaluate(()=>{
+    const rect=id=>{
+      const r=document.querySelector(id).getBoundingClientRect();
+      return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};
+    };
+    return {dialog:rect('#scene-library-dialog'),search:rect('#scene-search'),
+      close:rect('#scene-close'),hero:rect('#scene-category-hero'),
+      heading:rect('.scene-library-meta'),add:rect('#scene-new')};
+  });
+  assert.ok(sceneLayout.search.width>150&&sceneLayout.search.height>=30,
+    'Elements has the same visible search input as Photo Packs');
+  assert.ok(Math.abs(sceneLayout.search.top-sceneLayout.close.top)<=3,
+    'Search and close share a common top row');
+  assert.ok(sceneLayout.add.top>=sceneLayout.heading.top-2&&
+    sceneLayout.add.bottom<=sceneLayout.heading.bottom+2,'New button is inline in the collection header');
+  await x.page.locator('#scene-sort').selectOption('name-desc');
+  assert.equal(await x.page.locator('#scene-sort').inputValue(),'name-desc',
+    'Elements sort follows Photo Packs and is usable');
+  await x.page.click('#scene-list-view');
+  assert.equal(await x.page.locator('#scene-grid').getAttribute('data-view'),'list');
+  await x.page.click('#scene-grid-view');
+  assert.equal(await x.page.locator('#scene-grid').getAttribute('data-view'),'grid');
+  await x.page.click('#scene-new');
+  assert.equal(await x.page.locator('#scene-create').isVisible(),true,
+    'Inline New location opens the original private upload form');
+  await x.page.click('#scene-back');
+  assert.equal(await x.page.locator('#scene-browser').isVisible(),true);
   await x.page.click('#scene-close');
   await x.page.click('#scene-image-open');
   await x.page.click('#scene-menu-packs');
@@ -442,8 +477,27 @@ try{
   const packDialog=await x.page.locator('#pack-studio-dialog').evaluate(el=>{
     const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width};
   });
-  assert.ok(packDialog.width<=1150&&packDialog.top>=12&&packDialog.bottom<=890,
+  assert.ok(packDialog.width<=1220&&packDialog.top>=12&&packDialog.bottom<=890,
     'Library is centered and contained inside the viewport: '+JSON.stringify(packDialog));
+  assert.ok(Math.abs(packDialog.top-sceneLayout.dialog.top)<=2&&
+    Math.abs(packDialog.left-sceneLayout.dialog.left)<=2&&
+    Math.abs(packDialog.width-sceneLayout.dialog.width)<=2,
+    'All five Elements categories and Photo Packs share one fixed modal frame');
+  const packLayout=await x.page.evaluate(()=>{
+    const rect=selector=>{
+      const r=document.querySelector(selector).getBoundingClientRect();
+      return {top:r.top,left:r.left,width:r.width};
+    };
+    return {search:rect('#pack-studio-search'),close:rect('#pack-studio-close'),
+      hero:rect('#pack-studio-dialog .pack-studio-intro')};
+  });
+  assert.ok(Math.abs(packLayout.search.top-sceneLayout.search.top)<=3&&
+    Math.abs(packLayout.close.top-sceneLayout.close.top)<=3,
+    'Search and close controls stay in position when switching to Photo Packs');
+  assert.ok(Math.abs(packLayout.hero.top-sceneLayout.hero.top)<=3&&
+    Math.abs(packLayout.hero.left-sceneLayout.hero.left)<=3&&
+    Math.abs(packLayout.hero.width-sceneLayout.hero.width)<=3,
+    'Elements heroes and Photo Packs share the same banner geometry');
   await x.page.click('#pack-studio-close');
   const floatingChooser=x.page.waitForEvent('filechooser');
   await x.page.click('#image-composer-add');
