@@ -12,7 +12,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
   const $=id=>document.getElementById(id);
   const dialog=$('scene-library-dialog');
   if(!dialog)return {open(){},sync(){},renderSelected(){},fromGallery(){}};
-  let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false;
+  let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false,sortMode='recent',viewMode='grid';
   const category=id=>CATEGORIES.find(c=>c.id===id)||CATEGORIES[0];
   const safeName=value=>String(value||'').trim().replace(/[\r\n|]+/g,' ').replace(/\s+/g,' ').slice(0,70);
   const displayName=pack=>pack.name.slice((PREFIX+pack.category+'|').length);
@@ -33,7 +33,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
   function setWorking(value){
     working=!!value;
     $('scene-save').disabled=working;
-    $('scene-new').disabled=working;
+    $('scene-new').disabled=working||allPacks.length>=40;
     $('scene-done').disabled=working;
     $('scene-attached').disabled=working;
     $('scene-files').disabled=working;
@@ -211,9 +211,18 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     $('scene-library-title').textContent=categoryData.label;
     $('scene-description').textContent=categoryDescriptions[current];
     $('scene-search').placeholder='Search '+categoryData.label.toLowerCase()+'...';
+    $('scene-search').setAttribute('aria-label','Search '+categoryData.label.toLowerCase());
     const query=String($('scene-search').value||'').trim().toLowerCase();
-    const list=entries.filter(x=>x.category===current&&x.title.toLowerCase().includes(query))
-      .sort((a,b)=>a.title.localeCompare(b.title));
+    const categoryItems=entries.filter(x=>x.category===current);
+    const list=categoryItems.filter(x=>x.title.toLowerCase().includes(query));
+    if(sortMode==='name')list.sort((a,b)=>a.title.localeCompare(b.title));
+    else if(sortMode==='name-desc')list.sort((a,b)=>b.title.localeCompare(a.title));
+    else {
+      // Photo Packs defaults to recent, retaining API order when timestamps
+      // are unavailable. Sorting is presentation-only, never saved to D1.
+      const stamp=item=>Date.parse(item.updatedAt||item.updated_at||item.createdAt||item.created_at||'')||0;
+      if(list.some(item=>stamp(item)))list.sort((a,b)=>stamp(b)-stamp(a));
+    }
     const selected=list.find(i=>i.id===selectedId)||list[0]||null;
     selectedId=selected?.id||null;
     const hero=$('scene-category-hero');
@@ -226,8 +235,18 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     hero.hidden=!!(selected?.refs?.length);
     renderFeatured(selected);
     $('scene-active-label').textContent='All '+categoryData.label.toLowerCase();
-    $('scene-library-count').textContent=entries.filter(e=>e.category===current).length+' saved · private to your account';
-    const grid=$('scene-grid');grid.replaceChildren();
+    $('scene-library-count').textContent=query
+      ?list.length+' matching · '+categoryItems.length+' saved'
+      :categoryItems.length+' saved';
+    const singular={characters:'character',outfits:'outfit',props:'prop',locations:'location'}[current];
+    const createButton=$('scene-new');
+    createButton.setAttribute('aria-label','New '+singular);
+    createButton.title='New '+singular;
+    createButton.disabled=working||allPacks.length>=40;
+    $('scene-sort').setAttribute('aria-label','Sort '+categoryData.label.toLowerCase());
+    const grid=$('scene-grid');grid.replaceChildren();grid.dataset.view=viewMode;
+    $('scene-grid-view').setAttribute('aria-pressed',String(viewMode==='grid'));
+    $('scene-list-view').setAttribute('aria-pressed',String(viewMode==='list'));
     for(const item of list){
       const card=document.createElement('article');card.className='scene-card'+(item.id===selectedId?' is-selected':'');
       const select=document.createElement('button');select.type='button';select.className='scene-card-select';
@@ -252,13 +271,12 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
       remove.dataset.sceneDelete='';remove.onclick=()=>{void deleteItem(item);};
       actions.append(use,remove);card.append(select,actions);grid.append(card);
     }
-    const add=document.createElement('button');add.type='button';add.className='scene-card scene-create-tile';
-    const plus=document.createElement('span');plus.className='scene-create-plus';plus.textContent='+';
-    const label=document.createElement('strong');
-    label.textContent='New '+({characters:'character',outfits:'outfit',props:'prop',locations:'location'}[current]);
-    const sub=document.createElement('small');sub.textContent='Save your own images';
-    add.append(plus,label,sub);add.onclick=()=>create(current);grid.append(add);
-    $('scene-empty').hidden=!!list.length||!query;
+    const empty=$('scene-empty');
+    empty.hidden=!!list.length;
+    $('scene-empty-heading').textContent=query?'No matching '+categoryData.label.toLowerCase():'No '+categoryData.label.toLowerCase()+' yet';
+    $('scene-empty-description').textContent=query
+      ?'Try a different search.'
+      :'Save reusable reference photographs and find them here next time.';
     renderSelected();
   }
   function renderSelected(){
@@ -369,6 +387,12 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
   $('scene-cancel').onclick=browse;
   $('scene-new').onclick=()=>create(current);
   $('scene-search').addEventListener('input',render);
+  $('scene-sort').addEventListener('change',event=>{
+    if(!['recent','name','name-desc'].includes(event.target.value))return;
+    sortMode=event.target.value;featuredExpanded=false;render();
+  });
+  $('scene-grid-view').onclick=()=>{viewMode='grid';render();};
+  $('scene-list-view').onclick=()=>{viewMode='list';render();};
   $('scene-category').onchange=updateAppearance;
   $('scene-files').onchange=event=>{
     try{appendPhotos(event.target.files);}catch(error){setStatus(error.message,true);}
