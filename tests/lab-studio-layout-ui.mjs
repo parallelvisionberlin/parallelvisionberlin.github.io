@@ -556,10 +556,10 @@ try{
     return {refLeft:ref.left,refRight:ref.right,refTop:ref.top,refBottom:ref.bottom,
       promptLeft:prompt.left,promptRight:prompt.right,promptTop:prompt.top};
   });
-  assert.ok(inlineGeometry.refRight<=inlineGeometry.promptLeft+12 &&
-    inlineGeometry.refBottom>inlineGeometry.promptTop+10 &&
-    inlineGeometry.refTop<inlineGeometry.promptTop+48,
-    'Thumbnails remain beside the prompt, not in a separate row: '+JSON.stringify(inlineGeometry));
+  assert.ok(Math.abs(inlineGeometry.refLeft-inlineGeometry.promptLeft)<=16 &&
+    inlineGeometry.refBottom<inlineGeometry.promptTop &&
+    inlineGeometry.promptTop-inlineGeometry.refBottom<=22,
+    'The uploaded thumbnail occupies one compact row above the prompt, aligned to the text: '+JSON.stringify(inlineGeometry));
   await x.page.screenshot({path:'test-results/lab-image-inline-reference.png',fullPage:false});
   await x.page.click('.composer-reference-remove');
   await x.page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===0);
