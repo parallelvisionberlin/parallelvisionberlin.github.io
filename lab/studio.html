@@ -172,6 +172,8 @@ document.addEventListener('click',event=>{
 <link rel="stylesheet" href="./studio-credit-toast.css?v=20261015-direct-studio1">
 <link rel="stylesheet" href="./open-atmosphere.css?v=20261015-hd-landscape1">
 <link rel="stylesheet" href="./upscale-result-ui.css?v=20261015-flow2">
+<link rel="stylesheet" href="./upscale-studio-v5.css?v=20261018-editorial1">
+<script type="module" src="./upscale-studio-v5.js?v=20261018-editorial1"></script>
 <link rel="stylesheet" href="./image-composer-stable.css?v=20261018-ref-flow-safe1">
 <link rel="stylesheet" href="./reference-pack-studio.css?v=20261018-unified-elements2">
 <link rel="stylesheet" href="./image-discreet.css?v=20261018-preview-label1">
@@ -790,6 +792,11 @@ document.addEventListener('click',event=>{
 <div class="workspace">
 <section class="controls" aria-label="Generation settings">
 <div class="controls-body">
+<div class="pv-upscale-workspace-intro">
+  <span class="pv-upscale-kicker">PV LAB / IMAGE ENHANCEMENT</span>
+  <h2>Refine every detail.</h2>
+  <p>Resolution, texture and clarity. Keep the composition yours.</p>
+</div>
 <div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="seedreamlite">Seedream 5 Lite</option><option value="flash">Seedream Flash</option><option value="qwen3">Qwen Image 3.0</option><option value="krea3">Krea 3</option><option value="kling">Kling V3</option><option value="gemini21">Nano Banana 2.1</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">PV Soul</option><option value="soul" hidden>Character LoRAs · Krea 2 / Qwen</option><option value="fal">Controlled Pose · FAL FLUX</option><option value="zspicy">Z-Image Spicy</option></select></label></div>
 <div id="video-effect-active" class="video-effect-active" hidden>
   <div class="video-effect-active-top"><div><small>PV LAB / MOTION EFFECT</small><strong id="video-effect-name">Effect</strong></div><button id="video-effect-change" type="button">All effects ↗</button></div>
@@ -821,6 +828,14 @@ document.addEventListener('click',event=>{
   <option value="topaz-precision">Topaz Precision</option>
   <option value="topaz-wonder">Topaz Wonder 3.5</option>
 </select></div>
+<div class="pv-upscale-source-control">
+  <span class="pv-upscale-field-label">Source image</span>
+  <button id="pv-upscale-source-upload" type="button" aria-label="Choose source image for upscaling">
+    <span class="pv-upscale-source-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="14.5" height="15.5" rx="2.1"/><circle cx="8" cy="8.5" r="1.5"/><path d="m4.5 15 4.7-4.1 3.1 2.9 1.9-1.7M19 14v8m-4-4h8"/></svg></span>
+    <span class="pv-upscale-source-copy"><strong id="pv-upscale-source-upload-title">Choose image</strong><small>PNG, JPEG or WebP · up to 20 MB</small></span>
+  </button>
+  <p id="pv-upscale-source-state" role="status">Your original will remain available for comparison.</p>
+</div>
 <details id="upscale-info" class="fine upscale-info" hidden><summary>More options</summary><div class="upscale-technical-summary"><span>Current setup</span><span id="upscale-technical-summary">Image Upscaler / 4K / source ratio</span></div><label id="upscale-topaz-control" class="upscale-topaz-quality" hidden><span class="label">Precision quality</span><select id="upscale-topaz-model"><option value="Standard V2">Standard V2</option><option value="High Fidelity V3">High Fidelity V3</option></select></label><strong id="upscale-model-name">ByteDance SeedVR2</strong><p id="upscale-model-description">Enhance photographic texture at 2× or 4×, up to 32 MP. Generative restoration can alter fine details.</p><p><strong id="upscale-published-price">Provider estimate: $0.001 per output megapixel.</strong> <a id="upscale-pricing-link" href="https://fal.ai/models/fal-ai/seedvr/upscale/image" target="_blank" rel="noopener noreferrer">Provider pricing</a> · checked 14 Oct 2026.</p><p class="upscale-content"><a id="upscale-content-link" href="https://fal.ai/legal/acceptable-use-policy" target="_blank" rel="noopener noreferrer"><strong id="upscale-content-label">FAL content restrictions</strong></a>. <span id="upscale-content-note">The provider may decline unsupported inputs.</span></p></details>
 <div id="start-mode" class="mode-panel">
 <div class="frame-pair">
@@ -965,6 +980,7 @@ document.addEventListener('click',event=>{
     <button id="canvas-secondary" type="button" class="canvas-secondary">Create an image first </button>
   </div>
   <span class="upscale-drop-hint">OR DROP A PNG, JPG OR WEBP · MAX 20 MB</span>
+  <p class="pv-upscale-example-note">Illustrative PV LAB photograph. No upscale has been generated.</p>
   <span class="empty-footnote" id="empty-footnote" hidden></span>
 </div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video>
 <div id="video-job-stage" class="video-job-stage" hidden role="status" aria-live="polite" aria-atomic="true">
