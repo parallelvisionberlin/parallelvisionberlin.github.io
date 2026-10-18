@@ -1922,6 +1922,9 @@ function syncImageStudioMode(){
 // selected images and profiles remain in the existing private reference pipeline.
 const elementSuggestions=$('scene-element-suggestions');
 let elementMentionMatches=[];
+// Keep accepted @Elements from being offered again when their input event
+// synchronizes the prompt, while allowing another @ to open fresh suggestions.
+const committedElementMentions=[];
 function closeElementSuggestions(){
   elementSuggestions.hidden=true;elementSuggestions.replaceChildren();elementMentionMatches=[];
 }
@@ -1932,6 +1935,7 @@ function elementMentionContext(){
   const found=/(?:^|[\s(])@([^@\n,;]{0,70})$/.exec(prefix);
   if(!found)return null;
   const phrase=found[1],start=cursor-phrase.length-1;
+  if(committedElementMentions.some(m=>m.start===start&&prefix.slice(start).startsWith(m.token)))return null;
   return {start,end:cursor,query:phrase.trim().toLocaleLowerCase()};
 }
 function updateElementSuggestions(){
@@ -1958,8 +1962,10 @@ function updateElementSuggestions(){
 async function chooseElementMention(entry){
   const field=$('image-composer-prompt'),found=elementMentionContext();
   if(!found){closeElementSuggestions();return;}
-  field.value=field.value.slice(0,found.start)+'@'+entry.title+field.value.slice(found.end);
-  const cursor=found.start+entry.title.length+1;
+  const token='@'+entry.title;
+  field.value=field.value.slice(0,found.start)+token+field.value.slice(found.end);
+  committedElementMentions.push({start:found.start,token});
+  const cursor=found.start+token.length;
   field.focus();field.setSelectionRange(cursor,cursor);
   closeElementSuggestions();
   field.dispatchEvent(new Event('input',{bubbles:true}));
@@ -1980,6 +1986,12 @@ $('image-composer-prompt').addEventListener('input',event=>{
   if(busy)return;
   const textbox=$('image-composer-prompt');
   const pastedAtEnd=event.inputType==='insertFromPaste'&&textbox.selectionEnd===textbox.value.length;
+  // Removing or changing a selected mention makes it eligible again.
+  for(let i=committedElementMentions.length-1;i>=0;i--){
+    const mention=committedElementMentions[i];
+    if(textbox.value.slice(mention.start,mention.start+mention.token.length)!==mention.token)
+      committedElementMentions.splice(i,1);
+  }
   $('prompt').value=textbox.value;
   $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
   updateElementSuggestions();
