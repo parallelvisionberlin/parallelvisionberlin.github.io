@@ -47,35 +47,13 @@ async function setup(width,customer=true,overrides={}){
   return {context,page,errors,writes,session,setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
 }
 async function fits(page,label){
- const result=await page.evaluate(()=>({viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth}));
- if(result.scrollWidth>result.viewport+1){
-  const probe=await page.evaluate(()=>{
-   let node=document.querySelector('#main');
-   const trace=[];
-   for(let depth=0;depth<14&&node;depth++){
-    const before=document.documentElement.scrollWidth;
-    const children=[...node.children];
-    const measures=children.map(el=>{
-     const old=el.style.display;
-     el.style.display='none';
-     const without=document.documentElement.scrollWidth;
-     el.style.display=old;
-     return {el,without};
-    }).sort((a,b)=>a.without-b.without);
-    const candidates=measures.filter(x=>x.without<before);
-    const rect=node.getBoundingClientRect(),css=getComputedStyle(node);
-    trace.push({node:node.tagName+'#'+node.id+'.'+(typeof node.className==='string'?node.className.slice(0,70):''),
-      before,own:node.scrollWidth,client:node.clientWidth,rect:{left:rect.left,right:rect.right},
-      overflowX:css.overflowX,paddingRight:css.paddingRight,
-      children:candidates.slice(0,5).map(x=>({name:x.el.tagName+'#'+x.el.id+'.'+(typeof x.el.className==='string'?x.el.className.slice(0,60):''),without:x.without}))});
-    if(!candidates.length)break;
-    node=candidates[0].el;
-   }
-   return trace;
-  });
-  console.log('MOBILE_OVERFLOW_PROBE '+label+' '+JSON.stringify(probe));
- }
- assert.equal(result.scrollWidth<=result.viewport+1,true,label+' horizontal overflow '+JSON.stringify(result));
+  const metrics=await page.evaluate(()=>({
+    viewport:innerWidth,
+    documentWidth:document.documentElement.scrollWidth,
+    studioWidth:document.querySelector('#main')?.scrollWidth
+  }));
+  assert.ok(metrics.documentWidth<=metrics.viewport+1,
+    label+' must not scroll horizontally: '+JSON.stringify(metrics));
 }
 try{
   // Homepage purchases: every arrow responds next to its product, with no real payment.
