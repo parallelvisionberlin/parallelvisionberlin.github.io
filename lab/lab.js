@@ -3,7 +3,7 @@ import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=202610
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1';
 import {preparePhotoInput} from './photo-input.js?v=1';
-import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1';
+import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1';
 import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-hidden-preset1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
@@ -23,7 +23,8 @@ import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1';
 import {createInspirationRotation,INSPIRATION_VARIATIONS} from './inspiration-looks.js?v=20261018-inspire1';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1&hkVariants=20261018-real1';
+import {HONG_KONG_VARIANTS} from './hong-kong-variants.js?v=20261018-photography1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
 import {saveStudioReturnDraft,readStudioReturnDraft,clearStudioReturnDraft,storedImageFile} from './studio-return-draft.js?v=20261016-moods-return1';
@@ -65,7 +66,7 @@ async function saveImageForMoods(){
     count:$('image-count').value,outputFormat:$('output-format').value,
     exactPrompt:$('composer-exact-prompt').checked,source:studioReturnPhoto(file?{file,id:sourceId}:null),
     references:references.map(studioReturnPhoto),
-    mood:{selected:moodUI.selected(),intensity:moodUI.intensity()},
+    mood:{selected:moodUI.selected(),intensity:moodUI.intensity(),variant:moodUI.variant()},
     soulCharacter:$('soul-character').value,
     poseStrength:$('pose-strength').value,identityStrength:$('identity-strength').value,
     controlledPoseSeed:$('controlled-pose-seed').value
@@ -97,7 +98,7 @@ async function restoreStudioFromMoods(){
   }
   setTool('image');
   if(state.mood?.selected?.startsWith('custom:'))await myMoods.refresh();
-  moodUI.restore(p.moodId? p : {moodId:state.mood?.selected,moodIntensity:state.mood?.intensity},true);
+  moodUI.restore(p.moodId? p : {moodId:state.mood?.selected,moodIntensity:state.mood?.intensity,moodVariant:state.mood?.variant},true);
   const chosen=Array.isArray(state.references)?state.references:[];
   if(state.source)await setImage(storedImageFile(state.source),state.source.id||null);
   if(chosen.length){
@@ -3620,7 +3621,8 @@ function showImageDetail(job,hasOutput,loading=false){
   document.querySelector('#image-detail-metadata .image-detail-secondary-data').open=false;
   $('image-detail-model').textContent=detailModelName(job);
   $('image-detail-mood-row').hidden=!!moodName || !params.moodId;
-  $('image-detail-mood-value').textContent=params.moodId?((moodName||'Mood')+' · '+(params.moodIntensity||60)+'%'):'';
+  const photoLook=params.moodId==='hong-kong-nights'&&params.moodVariant?(HONG_KONG_VARIANTS[params.moodVariant]?.label||''):'';
+  $('image-detail-mood-value').textContent=params.moodId?[moodName||'Mood',photoLook,(params.moodIntensity||60)+'%'].filter(Boolean).join(' · '):'';
   $('image-detail-resolution').textContent=String(params.resolution||'Source').toUpperCase();
   $('image-detail-pixels').textContent='';
   $('image-detail-ratio').textContent=params.aspectRatio==='auto'?'Adaptive':String(params.aspectRatio||'Original');
