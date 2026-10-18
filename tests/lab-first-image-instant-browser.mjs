@@ -28,7 +28,7 @@ window.__welcomeMockInspiration=open=>setMoodDiscoveryOpen(open);
 window.__welcomeMockReady=true;
 `;
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png',
-  '.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.woff2':'font/woff2','.svg':'image/svg+xml'};
+  '.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.avif':'image/avif','.woff2':'font/woff2','.svg':'image/svg+xml'};
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
   const file=resolve(root,'.'+pathname);
@@ -190,8 +190,8 @@ try{
   assert.ok(!hovered.boxShadow.includes('0.87')&&!hovered.boxShadow.includes('0.33'),
     'The earlier overbright halo must be removed: '+hovered.boxShadow);
   await page.mouse.move(2,2);
-  assert.equal(await page.locator('.lab-welcome-preset').count(),6,
-    'All six original welcome cards remain mounted');
+  assert.equal(await page.locator('.lab-welcome-preset').count(),7,
+    'All six original welcome cards and Chrome Couture remain mounted');
   // An empty CUSTOMER Image welcome has no selectable image jobs.
   // Do not advertise History Select or expose a useless "0 selected" toolbar.
   assert.equal(await page.locator('#history-select').isVisible(),false,
@@ -214,7 +214,7 @@ try{
   assert.equal(await page.locator('#history-selection').isVisible(),false);
   await eye.click();
   assert.equal(await eye.getAttribute('aria-pressed'),'false',
-    'Customer can return to the same six-Mood welcome');
+    'Customer can return to the same seven-look welcome');
   assert.equal(await page.locator('#history-select').isVisible(),false);
   const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   await field.click();
