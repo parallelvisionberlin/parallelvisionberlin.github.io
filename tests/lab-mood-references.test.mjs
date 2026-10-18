@@ -5,98 +5,121 @@ import {moodReferencePlan,createMoodReferenceLoader,isMoodStyleReference} from '
 import {prepareMoodPrompt} from '../lab/moods.js';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
 
-const base=(intensity=70,count=1)=>{
-  const recipe=prepareMoodPrompt('Portrait by a window','hong-kong-nights',intensity,{referenceCount:count});
-  return {type:'image',mode:'image',engine:'seedream',aspectRatio:'auto',prompt:recipe.prompt,...recipe.metadata,
-    referenceRoles:Array.from({length:count},(_,i)=>({name:'source-'+i+'.png',role:i?'identity':'base',note:''}))};
-};
+function settingsFor(moodId='hong-kong-nights',count=1,{engine='seedream',variant='original',intensity=60,referenceMode='base'}={}){
+  const recipe=prepareMoodPrompt('Portrait by a window',moodId,intensity,
+    {engine,referenceCount:count,referenceMode,moodVariant:variant});
+  assert.equal(recipe.error,'');
+  return {type:'image',mode:'image',engine,referenceMode,aspectRatio:'auto',
+    prompt:recipe.prompt,...recipe.metadata,
+    referenceRoles:Array.from({length:count},(_,i)=>({
+      name:'source-'+i+'.png',role:referenceMode==='references'?'identity':i?'identity':'base',note:''}))};
+}
 
-test('four real style images follow the Base, fit the prompt budget and survive history reuse without duplication',()=>{
-  for(const intensity of [1,34,35,70,75,76,100]){
-    const settings=base(intensity),plan=moodReferencePlan(settings);
-    assert.deepEqual(plan.settings.referenceRoles.map(r=>r.role),['base','style','style','style','style']);
-    assert.equal(settings.referenceRoles.length,1,'snapshot is not mutated');
-    assert.equal(plan.settings.aspectRatio,'auto');
-    assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings).length<=5000);
-    assert.equal(moodReferencePlan(plan.settings).references.length,0,'restored jobs do not double-attach');
-    assert.deepEqual(plan.settings.referenceRoles.filter(label=>!isMoodStyleReference(label)),settings.referenceRoles);
-    assert.equal(plan.references.length,4);
-    for(const ref of plan.references)assert.ok(readFileSync(new URL('..'+ref.url,import.meta.url)).length>1000);
-  }
-  assert.notEqual(base(65).prompt,base(70).prompt);
-  assert.match(base().prompt,/GRAIN:.*BLOOM:.*HALATION:/);
+test('restored Hong Kong Nights never automatically inserts Style images in Base, References-only or text-only',()=>{
+  for(const engine of ['seedream','seedreamlite','gemini','gemini21'])
+    for(const variant of ['original','deep-green','slow-shutter'])
+    for(const referenceMode of ['base','references'])
+    for(const count of [0,1,6,10]){
+      const settings=settingsFor('hong-kong-nights',count,{engine,variant,referenceMode});
+      const plan=moodReferencePlan(settings);
+      assert.equal(plan.settings,settings,'the unchanged input settings are returned');
+      assert.deepEqual(plan.references,[],'no hidden reference photos');
+      assert.equal(plan.settings.referenceRoles.length,count,'user references are not rewritten');
+      assert.equal(plan.settings.aspectRatio,'auto','preserve inherited ratio');
+      assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings).length<=(engine==='seedreamlite'?3000:5000));
+    }
 });
-
-test('limits and prompt overflow fail before any upload; other moods and models retain their inputs',async()=>{
+test('Hong Kong authentic photos remain recognizable as historical Style references but are not reattached',()=>{
+  const saved=settingsFor();
+  saved.referenceRoles.push({name:'Hong Kong Nights style - 02-city-haze.jpg',role:'style'});
+  assert.ok(isMoodStyleReference(saved.referenceRoles.at(-1)));
+  const plan=moodReferencePlan(saved);
+  assert.equal(plan.settings,saved);
+  assert.deepEqual(plan.references,[]);
+});
+test('Hong Kong preflight rejects prompt overflow before any fetch or upload',async()=>{
   let calls=0;
-  const loader=createMoodReferenceLoader({upload:()=>{calls++;},fetchFile:()=>{calls++;}});
-  for(const settings of [base(70,7),{...base(),prompt:'x'.repeat(5000),moodOriginalPrompt:'x'.repeat(5000)}])
-    await assert.rejects(loader.prepare(settings,{sessionKey:'a'}),/six|exceed/);
+  const loader=createMoodReferenceLoader({
+    fetchFile:async()=>{calls++;throw Error('must not download');},
+    upload:async()=>{calls++;throw Error('must not upload');}
+  });
+  const normal=settingsFor();
+  const done=await loader.prepare(normal,{sessionKey:'session-a'});
+  assert.equal(done.settings,normal);
+  assert.deepEqual(done.references,[]);
   assert.equal(calls,0);
-  for(const settings of [{...base(),moodId:'night-flash'},{...base(),moodId:'custom'}, {...base(),engine:'kling'},{...base(),mode:'upscale'}]){
-    const result=await loader.prepare(settings,{sessionKey:'a'});
-    assert.equal(result.settings,settings);assert.deepEqual(result.references,[]);
-  }
-  assert.equal(moodReferencePlan(base(70,6)).settings.referenceRoles.length,10);
-  const text=moodReferencePlan(base(70,0));
-  assert.equal(text.settings.aspectRatio,'16:9');
-  assert.ok(text.settings.referenceRoles.every(r=>r.role==='style'));
-  assert.match(compileImagePrompt(text.settings.prompt,text.settings.referenceRoles,text.settings),/There is no base image/);
+  const over={...normal,prompt:'x'.repeat(5000)};
+  await assert.rejects(loader.prepare(over,{sessionKey:'session-a'}),/exceed 5,000 characters by/);
+  assert.equal(calls,0);
 });
-
-test('reference uploads retain order, reuse IDs within a session and cannot cross accounts',async()=>{
+test('Dream Blur still has its existing four analog Style references and 10-image budget',()=>{
+  const settings=settingsFor('dream-blur');
+  const plan=moodReferencePlan(settings);
+  assert.equal(plan.references.length,4);
+  assert.deepEqual(plan.settings.referenceRoles.map(r=>r.role),['base','style','style','style','style']);
+  assert.equal(moodReferencePlan(plan.settings).references.length,0,'History does not duplicate Style photos');
+  for(const ref of plan.references)assert.ok(readFileSync(new URL('..'+ref.url,import.meta.url)).length>1000);
+  assert.throws(()=>moodReferencePlan(settingsFor('dream-blur',7)),/six/);
+});
+test('Dream Blur cached uploads stay account-scoped and retain reference order',async()=>{
   let seq=0,downloads=0;
   const loader=createMoodReferenceLoader({
-    fetchFile:async()=>{downloads++;return new Response(new Blob(['reference'],{type:'image/png'}));},
-    upload:async file=>({id:'upload-'+(++seq),name:file.name})
+    fetchFile:async()=>{downloads++;return new Response(new Blob(['reference'],{type:'image/jpeg'}));},
+    upload:async()=>({id:'upload-'+(++seq)})
   });
-  const first=await loader.prepare(base(),{sessionKey:0});
-  assert.deepEqual(first.references.map(r=>r.id),['upload-1','upload-2','upload-3','upload-4']);
-  assert.deepEqual((await loader.prepare(base(),{sessionKey:0})).references.map(r=>r.id),first.references.map(r=>r.id));
+  const settings=settingsFor('dream-blur');
+  assert.deepEqual((await loader.prepare(settings,{sessionKey:'a'})).references.map(r=>r.id),['upload-1','upload-2','upload-3','upload-4']);
+  assert.deepEqual((await loader.prepare(settings,{sessionKey:'a'})).references.map(r=>r.id),['upload-1','upload-2','upload-3','upload-4']);
   assert.equal(downloads,4);
-  assert.deepEqual((await loader.prepare(base(),{sessionKey:'b'})).references.map(r=>r.id),['upload-5','upload-6','upload-7','upload-8']);
+  assert.deepEqual((await loader.prepare(settings,{sessionKey:'b'})).references.map(r=>r.id),['upload-5','upload-6','upload-7','upload-8']);
   loader.clear();
-  await loader.prepare(base(),{sessionKey:'b'});assert.equal(seq,12);
+  await loader.prepare(settings,{sessionKey:'b'});
+  assert.equal(seq,12);
 });
-
-test('failed downloads are retriable and cancellation prevents upload',async()=>{
+test('Dream Blur failed Style downloads are retriable, and cancellation prevents upload',async()=>{
   let fail=true,cancelled=false,uploads=0;
-  const loader=createMoodReferenceLoader({fetchFile:async()=>new Response('image',{status:fail?404:200}),upload:async()=>({id:String(++uploads)})});
-  await assert.rejects(loader.prepare(base(),{sessionKey:'a'}),/could not load/);
-  assert.equal(uploads,0);fail=false;
-  assert.equal((await loader.prepare(base(),{sessionKey:'a'})).references.length,4);
-  const stopped=createMoodReferenceLoader({fetchFile:async()=>{cancelled=true;return new Response('image');},upload:async()=>{throw Error('must not upload');}});
-  await assert.rejects(stopped.prepare(base(),{sessionKey:'a',check(){if(cancelled)throw Error('Session changed');}}),/Session changed/);
+  const loader=createMoodReferenceLoader({
+    fetchFile:async()=>new Response('image',{status:fail?404:200}),
+    upload:async()=>({id:String(++uploads)})
+  });
+  await assert.rejects(loader.prepare(settingsFor('dream-blur'),{sessionKey:'a'}),/could not load/);
+  assert.equal(uploads,0);
+  fail=false;
+  assert.equal((await loader.prepare(settingsFor('dream-blur'),{sessionKey:'a'})).references.length,4);
+  const stopped=createMoodReferenceLoader({
+    fetchFile:async()=>{cancelled=true;return new Response('image');},
+    upload:async()=>{throw Error('must not upload');}
+  });
+  await assert.rejects(stopped.prepare(settingsFor('dream-blur'),{
+    sessionKey:'a',check(){if(cancelled)throw Error('Session changed');}
+  }),/Session changed/);
 });
-
-test('Hong Kong keeps its fixed optical recipe with long directions and extra Style photos',()=>{
-  const direction='Keep the same face, cafe, table and outfit. '.repeat(28).trim();
-  for(const engine of ['seedream','gemini'])for(const intensity of [21,70,100])for(const count of [0,1,6]){
-    const short='Same face and real place.';
-    const small=prepareMoodPrompt(short,'hong-kong-nights',intensity,{engine,referenceCount:count});
-    const large=prepareMoodPrompt(direction,'hong-kong-nights',intensity,{engine,referenceCount:count});
-    assert.equal(large.prompt.slice(direction.length),small.prompt.slice(short.length),'Direction length does not switch optics');
-    const settings={...base(intensity,count),engine,prompt:large.prompt,...large.metadata};
-    try{
-      const plan=moodReferencePlan(settings);
-      assert.equal(plan.settings.prompt,settings.prompt,'Mood recipe must be identical after adding Style photos');
-      assert.equal(plan.settings.moodOriginalPrompt,direction);
-      assert.equal(plan.settings.filmFinish,settings.filmFinish);
-      assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings).length<=5000);
-      assert.equal(moodReferencePlan(plan.settings).references.length,0);
-    }catch(error){
-      assert.match(error.message,/exceed 5,000 characters by [\d,]+/,'Provider limit must be explicit');
-      assert.equal(settings.prompt,large.prompt,'Overflow may not rewrite the Mood or direction');
-    }
+test('Unrelated Moods, unsupported models and modes are not changed by reference restoration',async()=>{
+  const loader=createMoodReferenceLoader({fetchFile:()=>{throw Error('unexpected download');},upload:()=>{throw Error('unexpected upload');}});
+  const cases=[
+    {...settingsFor(),moodId:'night-flash'},
+    {...settingsFor(),moodId:'custom'},
+    {...settingsFor(),engine:'kling'},
+    {...settingsFor(),mode:'upscale'}
+  ];
+  for(const settings of cases){
+    const plan=await loader.prepare(settings,{sessionKey:'a'});
+    assert.equal(plan.settings,settings);
+    assert.deepEqual(plan.references,[]);
   }
-  const settings=base(100);
-  settings.prompt+=' Extra internal recipe wording.'.repeat(70);
-  settings.referenceRoles[0].note='Preserve the cafe and her face exactly.';
-  const unmodified=settings.prompt;
-  assert.throws(()=>moodReferencePlan(settings),/exceed 5,000 characters by [\d,]+/);
-  assert.equal(settings.prompt,unmodified,'No automatic compact fallback is allowed');
-  assert.equal(settings.referenceRoles[0].note,'Preserve the cafe and her face exactly.');
+});
+test('Hong Kong text recipe is fixed independently of direction length and Film Finish',()=>{
+  for(const engine of ['seedream','gemini'])for(const amount of [21,60,85,100]){
+    const small=prepareMoodPrompt('Same original face.','hong-kong-nights',amount,{engine,referenceCount:1});
+    const large=prepareMoodPrompt('Keep the same person and room. '.repeat(28).trim(),
+      'hong-kong-nights',amount,{engine,referenceCount:1});
+    assert.equal(small.error,'');assert.equal(large.error,'');
+    assert.equal(large.prompt.slice(large.metadata.moodOriginalPrompt.length),
+      small.prompt.slice(small.metadata.moodOriginalPrompt.length));
+    assert.equal(large.metadata.filmFinish.film,0);
+    assert.deepEqual(moodReferencePlan({...settingsFor(),prompt:large.prompt}).references,[]);
+  }
   const source=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   assert.match(source,/compileImagePrompt\(planned.settings.prompt,planned.settings.referenceRoles,current\)/,
-    'Frontend preview must validate the exact planned provider instructions');
+    'Frontend still checks final provider instructions');
 });
