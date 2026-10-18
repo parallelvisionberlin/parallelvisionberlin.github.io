@@ -45,7 +45,7 @@ test('Mood Creator gallery handoff accepts saved board UUIDs and preserves an op
   const exploreCode=readFileSync(new URL('../lab/explore-moods.js',import.meta.url),'utf8');
   assert.match(explore,/data-mood-id="dreamcore"/);
   assert.match(exploreCode,/const token=await saveMoodHandoff\(\{file,prompt:direction\.value\.trim\(\)\}\)/);
-  assert.match(exploreCode,/location\.assign\(moodExploreDestination\(mood\.id,\{create,handoff:token\}\)\)/);
+  assert.match(exploreCode,/location\.assign\(moodExploreDestination\(mood\.id,\{create,handoff:token,moodVariant\}\)\)/);
   assert.match(creator,/if\(packet\.prompt\)concept\.value=packet\.prompt/);
   assert.match(page,/href="#my-moods">My Moods/);
   assert.match(homepage,/href="\.\/moods"/);
