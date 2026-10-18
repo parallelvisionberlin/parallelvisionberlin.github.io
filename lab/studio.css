@@ -568,3 +568,6 @@ footer {border-top-color:#353638;color:#9b9c9e;font-size:10px}
     margin-left: 14px;
   }
 }
+
+/* Keep navigation visually steady while reference preparation temporarily locks tabs. */
+#studio-header .tool-switch .tool-tab:disabled{opacity:1;cursor:default}

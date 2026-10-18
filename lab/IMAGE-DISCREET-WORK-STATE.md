@@ -50,3 +50,11 @@ Initial implementation commits: 85db913, ea6d648, 90c7d985.
 
 ## Handoff
 Next action: test signed-in desktop/mobile Hide, Show and reload persistence visually when browser access is available. Do not change unrelated tools.
+
+## 2026-10-18: Reference thumbnail and navigation stability
+- The screenshot showed Discreet Mode enabled. Its deliberate concealment of working image pixels remains; the tile says HIDDEN instead of the ambiguous REF placeholder.
+- Existing reference-image DOM nodes are retained across editor, quote and upload lock updates for unchanged references. Role, model, order or actual image changes still rerender as required.
+- Working thumbnails load eagerly and fall back to their reduced preview if an image cannot load. If neither representation loads, show No preview, not the browser's broken-image glyph. Private source originals and storage are unchanged.
+- The Studio navigation remains disabled during input preparation for state safety, but uses unchanged opacity to prevent visible Image, Video, Retouch, Upscaler and Fashion tab blinking.
+- No Worker routes, paid provider calls, session credentials, credits, pricing or history changes. Targeted Node regression added and wired into reference CI.
+- Verify CI, published Cloudflare Pages assets and authenticated browser interactions separately; a Git commit alone is not proof of production deployment.

@@ -40,6 +40,8 @@ jobs:
           node --check tests/lab-worker.test.mjs
       - name: Test image role compilation and Worker submission
         run: node --test tests/lab-worker.test.mjs tests/lab-krea3-fashion.test.mjs tests/lab-smart-prompts.test.mjs tests/lab-mood-references.test.mjs tests/lab-dream-blur.test.mjs
+      - name: Verify reference preview stability without API or paid jobs
+        run: node --test tests/lab-reference-preview-stability.test.mjs
       - name: Install browser test runner
         run: |
           npm install --no-save --no-package-lock playwright

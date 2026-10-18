@@ -1502,6 +1502,8 @@ $('image-empty-moods')?.addEventListener('click',()=>{
   if(owner&&tool==='image')$('image-composer-moods')?.click();
 });
 let draggedComposerReference=null;
+// Keep reference previews mounted while unrelated editor/pricing state changes.
+let composerReferenceRenderKey=null;
 function moveComposerReference(ref,target,after=false){
   if(busy||ref===target)return;
   const from=references.indexOf(ref);if(from<0||!references.includes(target))return;
@@ -1512,17 +1514,43 @@ function moveComposerReference(ref,target,after=false){
 function syncImageReferences(){
   const tray=$('image-composer-references');
   if(!tray)return;
-  tray.replaceChildren();
-  if(tool!=='image'||imageEngine==='zspicy'||imageEngine==='soul'&&!isReinterpret()){tray.hidden=true;return;}
+  if(tool!=='image'||imageEngine==='zspicy'||imageEngine==='soul'&&!isReinterpret()){
+    if(tray.childElementCount)tray.replaceChildren();
+    composerReferenceRenderKey=null;
+    tray.hidden=true;return;
+  }
   const items=isSoul2()?[]:[...references];
   if((imageEngine==='soulpro'||isReinterpret())&&sourceUrl)items.unshift({thumbUrl:sourceUrl,file:{name:'Base image'},isBase:true});
+  const renderKey=JSON.stringify([imageEngine,imageReferenceMode,usesReferenceGuidance(),isSoul2(),
+    items.map(ref=>[ref.thumbUrl||ref.url,ref.url,ref.role,ref.file?.name,!!ref.isBase])]);
+  if(renderKey===composerReferenceRenderKey&&tray.childElementCount===items.length){
+    // Maintain the upload lock but do not reset already decoded thumbnail elements.
+    for(const tile of tray.children){
+      if(!tile.hasAttribute('role'))tile.draggable=!busy;
+      const role=tile.querySelector('.composer-reference-role');if(role)role.disabled=busy;
+      const remove=tile.querySelector('.composer-reference-remove');if(remove)remove.disabled=busy;
+    }
+    tray.hidden=!items.length;
+    return;
+  }
+  composerReferenceRenderKey=renderKey;
+  tray.replaceChildren();
   for(let i=0;i<items.length;i++){
     const ref=items[i],tile=document.createElement('div');
     tile.className='composer-reference-tile';tile.title=ref.file?.name||'Reference image';
     tile.classList.toggle('role-general',usesReferenceGuidance()&&!ref.isBase&&(!ref.role||ref.role==='none'));
     const img=document.createElement('img');
     img.src=ref.thumbUrl||ref.url;img.alt=(ref.isBase?'Base image':'Image reference '+(i+1));
-    img.loading='lazy';img.decoding='async';img.draggable=false;tile.append(img);
+    // Working previews are already reduced, local assets; display them immediately.
+    img.loading='eager';img.decoding='async';img.draggable=false;
+    img.addEventListener('error',()=>{
+      if(img.dataset.previewFallback!=='1'&&ref.url&&img.src!==ref.url){
+        img.dataset.previewFallback='1';img.src=ref.url;return;
+      }
+      img.hidden=true;tile.classList.add('preview-unavailable');
+      tile.title='Preview unavailable. Remove and add this reference again.';
+    });
+    tile.append(img);
     if(!ref.isBase){
       tile.draggable=!busy;tile.tabIndex=0;tile.setAttribute('aria-label','Image '+(i+1)+'. Drag to reorder, or use Alt and arrow keys.');
       tile.addEventListener('dragstart',e=>{

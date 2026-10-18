@@ -610,3 +610,11 @@ html:has(#image-lightbox[open]),body:has(#image-lightbox[open]){overflow:hidden}
 .composer-exact-prompt span{display:grid;gap:3px;min-width:0}
 .composer-exact-prompt strong{font-size:12px;font-weight:600}
 .composer-exact-prompt small{font-size:11px;line-height:1.45;color:#aaaead}
+
+/* Display a clear fallback if both local thumbnail representations fail. */
+#image-composer .composer-reference-tile.preview-unavailable::after{
+  content:'No preview';position:absolute;inset:0;display:flex;
+  align-items:flex-start;justify-content:center;padding-top:10px;
+  color:#aeb0b7;text-align:center;font:600 9px/1.2 'DM Sans',sans-serif;
+  pointer-events:none;
+}
