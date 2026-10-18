@@ -2,9 +2,9 @@
 
 Eight exact original photo uploads were imported to this directory on 2026-10-18. File bytes were checked against their SHA-256 hashes during import, with no AI regeneration or screenshot crop. The source names below describe the owner's uploaded reference files. They do not certify photo rights.
 
-**One Mood, three treatments.** The image processor attaches four style photographs to each supported image generation for consistency, preserving six customer reference slots under the existing ten-image limit. These references are strictly optical: never copy a person's identity, sign, street, costume, architecture or composition without an explicit customer instruction.
+**One Mood, three optional looks.** The original eight photo assets remain available for the visual presentation of Original, Deep Green and Slow Shutter and for continuity with historical results. As of the October 18 restoration, new Hong Kong Nights generations do **not** automatically send these images to the provider. Only photographs selected by the user are passed as image references. Existing saved results and the original source files remain unchanged.
 
-| Treatment | Four actual style photographs (in provider order) | Intent |
+| Treatment | Preserved original photographs (visual reference archive) | Intent |
 | --- | --- | --- |
 | Original | `greg-iii.png`, `plaza-grill.webp`, `young-woman-tram.webp`, `greg-reds.png` | Analog nighttime streets, tungsten/emerald separation, natural human presence, red neon |
 | Deep Green | `greg22.png`, `supervalu.jpg`, `silver-grill-cafe.jpg`, `plaza-grill.webp` | Stronger source-lit green, humid air, grain, darker real shadows, warm practicals |
