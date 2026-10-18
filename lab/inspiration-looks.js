@@ -19,7 +19,7 @@ export const INSPIRATION_VARIATIONS=Object.freeze({
     "Close-up of two hands lowering a needle onto a worn record, chipped nail polish and scratched black vinyl, a dim desk lamp, a tactile 1990s documentary film still.",
     "A Black female DJ pauses beside a mixer in a narrow backstage room, sweat on her forehead, cables and stacked record bags behind, harsh practical lighting and honest film grain.",
     "An older couple in everyday clothes stand outside a neighborhood music store holding one used vinyl sleeve, late-afternoon sun and slightly faded 35mm color.",
-    "A teenage-looking but clearly adult pair of friends in their twenties sit on the steps of a record shop, casual layered clothing, passing strangers half out of focus, imperfect snapshot framing.",
+    "Two adult friends in their twenties sit on the steps of a record shop, casual layered clothing, passing strangers half out of focus, imperfect snapshot framing.",
     "Wide interior of an independent record store just before closing, mismatched shelves, torn gig posters, a lone customer silhouetted by the door, warm muted 1990s film atmosphere."
   ],
   "fashion-editorial": [
@@ -43,7 +43,7 @@ export const INSPIRATION_VARIATIONS=Object.freeze({
     "A wide view of an old coastal hotel terrace with pale columns and a small empty pool beneath apricot clouds, realistic materials, subtle airborne haze and calm dreamlike color."
   ],
   "hong-kong-nights": [
-    "A rain-darkened street corner outside an old jade-green-lit grocery at night, hand-painted red shop sign, one distant pedestrian and a parked older dark sedan; humid 35mm night photography, deep shadows.",
+    "A rain-darkened street corner outside an old jade-green-lit corner shop at night, hand-painted red shop sign, one distant pedestrian and a parked older dark sedan; humid 35mm night photography, deep shadows.",
     "A woman in her fifties in a plain coat waits beneath a fluorescent green awning outside a late-night shop, red reflections on her cheek, candid half-profile and imperfect 35mm grain.",
     "A young man with a buzz cut seen from inside a night bus, blurred green street lamps and small warm storefront lights passing outside the window, documentary night frame.",
     "An older street-food vendor working alone under greenish fluorescent tubes and a single orange bulb, worn metal counter, drifting steam and natural low-light film grain.",
