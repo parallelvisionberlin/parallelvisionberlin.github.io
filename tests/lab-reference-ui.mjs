@@ -1,6 +1,22 @@
 // Legacy model integration uses the retained options handler; the visible customer composer is covered separately.
 async function clickAdvanced(page){const control=page.locator('#image-composer-more');if(await control.isVisible())await control.click();else await page.evaluate(()=>document.querySelector('#image-composer-more').click());}
 async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await clickAdvanced(page);}
+async function setRetainedOutputFormat(page,value){
+  // Image output format now lives in the hidden legacy settings; the current
+  // visible composer is verified independently. Trigger the retained change event.
+  await page.locator('#output-format').evaluate((element,next)=>{
+    element.value=next;element.dispatchEvent(new Event('change',{bubbles:true}));
+  },value);
+}
+async function saveThroughRetainedDraftHandler(page){
+  // The Image Save draft button is intentionally not visible. Exercise only
+  // the retained draft handler to verify original uploads, roles and order.
+  // User-visible Photo Pack saving is tested in lab-image-oneclick-ui.mjs.
+  await page.locator('#save').evaluate(button=>{
+    if(button.disabled)throw Error('Retained draft handler disabled unexpectedly');
+    button.click();
+  });
+}
 // Synthetic media and mock authentication/API only. Does not purchase generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -71,7 +87,7 @@ async function populatedReferenceControls(page){
 try{
   let x=await workspace();await imageAdvanced(x.page);
   assert.equal(await x.page.locator('#output-format').inputValue(),'png');
-  await x.page.locator('#output-format').selectOption('jpeg');
+  await setRetainedOutputFormat(x.page,'jpeg');
   assert.equal(await x.page.locator('#output-format').inputValue(),'jpeg');
   await x.page.click('#tool-upscale');assert.equal(await x.page.locator('#output-format').inputValue(),'png');
   await imageAdvanced(x.page);assert.equal(await x.page.locator('#output-format').inputValue(),'png');
@@ -86,9 +102,19 @@ try{
   assert.ok(originals.every(r=>r.size===1048576&&r.width===3072&&r.height===2048));pass('Sidebar decodes small thumbnails while original dimensions and file sizes remain intact');
   assert.equal(await x.page.locator('#preview').isVisible(),false);assert.equal(await x.page.locator('#download').isVisible(),false);
   assert.match(await x.page.locator('#preview-label').innerText(),/Result/i);assert.match(await x.page.locator('#empty-title').innerText(),/idea a form/i);pass('Image canvas does not misrepresent the first reference as a result');
-  const layout=await x.page.evaluate(()=>({stage:document.querySelector('.stage').getBoundingClientRect().height,list:document.querySelector('#reference-list').clientHeight,scroll:document.querySelector('#reference-list').scrollHeight,canvas:document.querySelector('.canvas').getBoundingClientRect().height}));
-  assert.ok(layout.stage<=741&&layout.canvas<650);assert.ok(layout.list<=351&&layout.scroll>layout.list);pass('Reference scrolling is bounded and cannot stretch the result canvas');
-  await x.page.locator('.reference-item img').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
+  const layout=await x.page.evaluate(()=>({
+    stage:document.querySelector('.stage').getBoundingClientRect().height,
+    canvas:document.querySelector('.canvas').getBoundingClientRect().height,
+    trayCount:document.querySelectorAll('#image-composer-references .composer-reference-tile').length,
+    width:document.documentElement.scrollWidth,viewport:innerWidth,
+    deckWidth:document.querySelector('#image-composer').getBoundingClientRect().width
+  }));
+  assert.ok(layout.stage<=741&&layout.canvas<650,'Legacy video preview must remain bounded');
+  assert.equal(layout.trayCount,7,'All seven prepared originals are represented in the current Image composer');
+  assert.ok(layout.width<=layout.viewport+2,'Reference deck must not create horizontal page overflow: '+JSON.stringify(layout));
+  assert.ok(layout.deckWidth<=layout.viewport+2,'Reference deck must remain within the viewport');
+  pass('All seven references fit the modern bounded composer without horizontal overflow');
+  await x.page.locator('#image-composer-references .composer-reference-tile').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
   assert.match(await x.page.locator('#input-preview-description').innerText(),/not a generated result/);
   const size=await x.page.locator('#input-preview-image').evaluate(async i=>{await i.decode();return [i.naturalWidth,i.naturalHeight];});assert.ok(Math.max(...size)<=1280);
   await x.page.locator('#input-preview-dialog [data-close]').click();assert.equal(await x.page.locator('#preview').isVisible(),false);pass('Input previews open separately and never replace the result canvas');
@@ -96,7 +122,7 @@ try{
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');await imageAdvanced(x.page);
   await x.page.locator('.reference-item select').first().selectOption('room');
   await x.page.locator('.reference-item input').first().fill('Use only the architecture.');
-  await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
+  await saveThroughRetainedDraftHandler(x.page);await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   assert.equal(x.uploads.length,7);const expectedHash=createHash('sha256').update(input).digest('hex');assert.ok(x.uploads.every(u=>u.sha===expectedHash&&u.bytes===input.length));
   const draft=x.requests.find(r=>r.path==='/api/drafts').data;assert.equal(draft.settings.outputFormat,'png');assert.equal(draft.referenceSourceIds.length,7);assert.equal(draft.settings.referenceRoles[0].role,'room');assert.equal(draft.settings.referenceRoles[0].note,'Use only the architecture.');
   assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);pass('Save sends original bytes, ordered reference IDs, roles and notes, never the thumbnails');
@@ -144,7 +170,7 @@ try{
   assert.ok(preview.indexOf('Reference 1 [Base image]')<preview.indexOf('Reference 2 [Detail / Hands]'));
   pass('Clothing exposes Pants and the collapsed SpicyAPI preview expands into the ordered automatic instructions');
   await x.page.getByLabel('Note for reference 2',{exact:true}).fill('Keep the existing hand position.');
-  await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
+  await saveThroughRetainedDraftHandler(x.page);await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   const guidedDraft=x.requests.find(r=>r.path==='/api/drafts').data;
   assert.match(guidedDraft.settings.prompt,/^Create a natural photographic variation of the base image/,
     'Blank written direction receives approved base-image variation guidance');

@@ -36,12 +36,16 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
         run: |
-          node tests/lab-studio-layout-ui.mjs
-          node tests/lab-soul-reinterpret-ui.mjs
-          node tests/lab-image-oneclick-ui.mjs
-          node tests/lab-upscale-ui.mjs
-          node tests/lab-reference-ui.mjs
-          node tests/lab-seedance-ui.mjs
+          # Report every independent browser suite, even when an earlier one fails.
+          # Keep this job red until all checks pass; do not bypass regressions.
+          status=0
+          node tests/lab-studio-layout-ui.mjs || status=1
+          node tests/lab-soul-reinterpret-ui.mjs || status=1
+          node tests/lab-image-oneclick-ui.mjs || status=1
+          node tests/lab-upscale-ui.mjs || status=1
+          node tests/lab-reference-ui.mjs || status=1
+          node tests/lab-seedance-ui.mjs || status=1
+          exit "$status"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

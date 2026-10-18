@@ -82,7 +82,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       const box=deck.getBoundingClientRect();
       return {gap:box.top-preview.bottom,paddingTop:parseFloat(computed.paddingTop),paddingBottom:parseFloat(computed.paddingBottom)};
     });
-    assert.ok(spacing.gap>=17&&spacing.gap<=40,profile+': preserve breathing room below the large preview');
+    assert.ok(spacing.gap>=17&&spacing.gap<=40,profile+': preserve breathing room below the large preview: '+JSON.stringify(spacing));
     assert.ok(spacing.paddingTop>=14&&spacing.paddingBottom>=12,profile+': workdeck is slightly taller');
     if(profile==='desktop'){
       assert.ok(geometry.canvas.height>=420&&geometry.canvas.height<=660,'Empty desktop preview restored to its original large format');

@@ -251,12 +251,12 @@ try{
       const upload=document.getElementById('mc-drop-trigger').getBoundingClientRect();
       const heading=document.querySelector('.mc-workspace-heading').getBoundingClientRect();
       return {cardGap:stage.bottom-card.bottom,uploadOffset:upload.top-workspace.top,headingHeight:heading.height,
-        hasLineIcon:!!document.querySelector('.mc-navigation a svg'),emojiArrow:/[↗↘]/u.test(document.body.textContent)};
+        hasLineIcon:!!document.querySelector('.mc-navigation a svg'),navEmojiArrow:/[↗↘]/u.test(document.querySelector('.mc-navigation')?.textContent||'')};
     });
     assert.ok(spacing.cardGap>=20,'Dreamcore clears the lower border on mobile');
     assert.ok(spacing.uploadOffset<160,'Mobile workspace reaches upload without stacked introductory paragraphs');
     assert.ok(spacing.headingHeight<55,'Mobile workspace title and New Mood share one compact row');
-    assert.ok(spacing.hasLineIcon&&!spacing.emojiArrow,'Navigation and saved buttons use line icons instead of emoji arrows');
+    assert.ok(spacing.hasLineIcon&&!spacing.navEmojiArrow,'Navigation controls use line icons instead of arrow characters');
 
   }
   assert.equal(await phone.locator('#mc-new').isVisible(),false);

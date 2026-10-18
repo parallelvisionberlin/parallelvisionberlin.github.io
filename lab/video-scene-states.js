@@ -63,21 +63,30 @@ function mountVideoSceneStates(){
     host.replaceChildren(frag);
   }
   function refreshInspector(mode){
-    if(!inspector||inspector.hidden)return;
+    // History and Video transitions can replace the live inspector subtree
+    // while observers still have a refresh scheduled. Never update a detached
+    // or incomplete inspector. When creating a scene, all fields are present.
+    if(!inspector.isConnected||inspector.hidden)return;
+    const fields={};
+    for(const key of ['model','prompt','duration','resolution','ratio','audio']){
+      const node=inspector.querySelector('#pv-video-current-'+key);
+      if(!node)return;
+      fields[key]=node;
+    }
     const name=model?.textContent?.trim()||engine?.selectedOptions?.[0]?.textContent?.trim()||'Video model';
-    byId('pv-video-current-model').textContent=name;
+    fields.model.textContent=name;
     const p=prompt?.value.trim();
-    byId('pv-video-current-prompt').textContent=p||(
+    fields.prompt.textContent=p||(
       mode==='extend'?'Describe what happens after the original clip.':
       mode==='reference'?'Add reference images, then describe how they interact.':
       mode==='start'?'Choose the opening frame, then describe its motion.':
       'Write what happens, where it takes place and how the camera moves.'
     );
-    byId('pv-video-current-duration').textContent=quoteOption('duration');
-    byId('pv-video-current-resolution').textContent=quoteOption('resolution').toUpperCase();
+    fields.duration.textContent=quoteOption('duration');
+    fields.resolution.textContent=quoteOption('resolution').toUpperCase();
     const ratio=byId('ratio'),ratioHidden=ratio?.closest('label')?.hidden;
-    byId('pv-video-current-ratio').textContent=ratioHidden?'Source':quoteOption('ratio');
-    byId('pv-video-current-audio').textContent=byId('audio')?.disabled?'Unavailable':byId('audio')?.checked?'On':'Off';
+    fields.ratio.textContent=ratioHidden?'Source':quoteOption('ratio');
+    fields.audio.textContent=byId('audio')?.disabled?'Unavailable':byId('audio')?.checked?'On':'Off';
     renderLiveReferences(mode);
     // The editor owns readiness, including Gallery-to-Start-Frame handoffs.
     // Do not overwrite its synchronous status with a thumbnail decode race.

@@ -339,7 +339,27 @@ try{
  x=await workspace();await imageForm(x);assert.equal(await x.page.locator('#generate').innerText(),'Generate');assert.match(await x.page.locator('#generation-help').innerText(),/one paid image/);
  await clickAdvanced(x.page);await x.page.click('#image-composer-generate');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);
  const q=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(q.settings.prompt,settings.prompt);assert.equal(q.settings.resolution,'2k');assert.equal(q.settings.aspectRatio,'16:9');assert.equal(q.settings.outputFormat,'png');ok('Text-to-image: one click, one quote, one submission, no review modal');
- await clickAdvanced(x.page);await x.page.click('#save');await ready(x.page);assert.equal(x.accepted(),1);const draft=x.page.locator('.card[data-state="draft"]');await clickAdvanced(x.page);await draft.click();await x.page.click('#image-detail-reuse');await ready(x.page);await clickAdvanced(x.page);assert.equal(await x.page.locator('#prompt').inputValue(),settings.prompt);assert.equal(x.accepted(),1);ok('Saving and reusing a draft do not generate or charge');assert.deepEqual(x.errors,[]);await x.context.close();
+ // Image intentionally hides the retired Save draft control; do not put it back.
+ assert.equal(await x.page.locator('#save').isVisible(),false,'Save draft must stay hidden in the Image composer');
+ assert.equal(count(x,'/api/drafts'),0,'Image Generate must not silently save drafts');
+ assert.deepEqual(x.errors,[]);await x.context.close();
+
+ // Reusing an existing draft from History must still work without a quote or debit.
+ const existingDraft={id:id(870),status:'draft',sourceId:null,
+   settings:{...settings},createdAt:Date.now()};
+ x=await workspace({initial:[existingDraft]});
+ const draft=x.page.locator('#history .card[data-state="draft"]').first();
+ await draft.waitFor({state:'visible'});
+ await draft.click();
+ await x.page.locator('#image-detail-reuse').click();
+ await ready(x.page);
+ assert.equal(await x.page.locator('#image-composer-prompt').inputValue(),settings.prompt);
+ assert.equal(x.accepted(),0,'Reuse must not generate');
+ assert.equal(count(x,'/api/drafts'),0,'Reuse must not save another draft');
+ assert.equal(count(x,'/api/quotes'),0,'Reuse must not quote a paid request');
+ assert.equal(count(x,'/api/jobs'),0,'Reuse must not submit a job');
+ ok('Existing History draft restores the Image prompt without a generation or charge');
+ assert.deepEqual(x.errors,[]);await x.context.close();
 
   x=await workspace();await imageForm(x);
   await x.page.selectOption('#image-composer-count','2');
@@ -571,7 +591,11 @@ try{
  assert.equal(count(x,'/api/jobs'),0);
  ok('PV Soul-style creation saves device photos then loads packs with no generation');assert.deepEqual(x.errors,[]);await x.context.close();
 
- x=await workspace();await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);
+ // The Photo Pack test uses its own input files, independent of the earlier reference-mode block.
+ const deckPhotos=[{name:'front.png',mimeType:'image/png',buffer:png},
+   {name:'side.png',mimeType:'image/png',buffer:png},
+   {name:'back.png',mimeType:'image/png',buffer:png}];
+ x=await workspace();await x.page.locator('#reference-images').setInputFiles(deckPhotos);await waitRefs(x.page,3);
  await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');await x.page.click('#pack-studio-new');
  assert.equal(await x.page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'false');
  assert.equal(await x.page.locator('#pack-studio-previews .pack-studio-preview').count(),0);
@@ -627,7 +651,7 @@ try{
  ok('Controlled Pose keeps FAL isolated from Seedream and Nano and reuses the preview pose map');await x.context.close();
 
  for(const tool of ['video']){
-  x=await workspace();await x.page.click('#tool-'+tool);if(tool==='image')await clickAdvanced(x.page);await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt:visible, #image-composer-prompt:visible','The camera slowly moves around the sculpture.');
+  x=await workspace();await x.page.click('#tool-'+tool);if(tool==='image')await clickAdvanced(x.page);if(tool==='video')await x.page.click('#mode-start');await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt:visible, #image-composer-prompt:visible','The camera slowly moves around the sculpture.');
   assert.equal(await x.page.locator('#generate').innerText(),'Generate');await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(x.accepted(),0);assert.equal(count(x,'/api/jobs'),0);await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);ok(tool+': separate price confirmation remains required');await x.context.close();
  }
 

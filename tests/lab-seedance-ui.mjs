@@ -22,7 +22,7 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
  const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true}),page=await context.newPage();
  const requests=[],errors=[],dialogs=[],jobs=[...initial],quotes=new Map(),assets=new Map();let sequence=100,accepted=0,renewed=false;
  for(const entry of initial)if(entry.outputId&&entry.settings?.type==='video')assets.set(entry.outputId,{mime:'video/mp4',bytes:motion});
- page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept();});
+ page.on('pageerror',e=>errors.push(e.stack||e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept();});
  await context.route('https://**/*',async route=>{
   const req=route.request(),url=new URL(req.url());if(!url.href.startsWith(API)){await route.abort();return;}
   const path=url.pathname,method=req.method(),data=req.headers()['content-type']?.startsWith('application/json')?req.postDataJSON():{};
@@ -77,7 +77,11 @@ try{
  x=await workspace();await choose(x,'reference');await still(x,'reference-images');
  await x.page.locator('#video-references').setInputFiles({name:'motion.mp4',mimeType:'video/mp4',buffer:motion});await x.page.waitForFunction(()=>document.querySelector('#video-ref-count').textContent.startsWith('1 / 10'));assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);
  await x.page.locator('#audio-references').setInputFiles({name:'score.wav',mimeType:'audio/wav',buffer:sound});await x.page.waitForFunction(()=>document.querySelector('#audio-ref-count').textContent.startsWith('1 / 10'));assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);
- await x.page.locator('#video-reference-list input').fill('Camera movement only.');await x.page.locator('#audio-reference-list input').fill('Rhythm.');
+ // The compact Video sidebar keeps note inputs behind its collapsed detail control.
+ // Exercise the retained note handler without forcing invisible fields into view.
+ for(const [selector,note] of [['#video-reference-list input','Camera movement only.'],['#audio-reference-list input','Rhythm.']]){
+   await x.page.locator(selector).evaluate((el,text)=>{el.value=text;el.dispatchEvent(new Event('input',{bubbles:true}));},note);
+ }
  await x.page.click('#save');await ready(x.page);assert.equal(count(x,'/api/jobs'),0);assert.equal(count(x,'/api/reference-uploads'),2);
  await x.page.click('#clear');await x.page.locator('.card[data-state="draft"]').click();await x.page.click('#video-detail-reuse');await ready(x.page);
  assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);assert.equal(await x.page.locator('#video-reference-list input').inputValue(),'Camera movement only.');assert.equal(await x.page.locator('#audio-reference-list input').inputValue(),'Rhythm.');assert.equal(count(x,'/api/jobs'),0);ok('Mixed references retain media, durations and notes through draft, clear and Reuse');

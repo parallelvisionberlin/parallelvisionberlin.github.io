@@ -1010,3 +1010,11 @@
 #pack-studio-dialog:not(.is-creating) .pack-studio-new-icon:hover{
   background:#fff;color:#111518;
 }
+
+/* The current four-column desktop gallery can contain three or more rows.
+   Keep every saved pack accessible instead of clipping row 3 behind the modal. */
+@media(min-width:941px) and (min-height:750px){
+  #pack-studio-dialog:not(.is-creating):has(#pack-studio-grid[data-view="grid"]):not(:has(#pack-studio-grid .pack-studio-card:nth-of-type(n+11))) .pack-studio-main{
+    overflow-y:auto!important;
+  }
+}

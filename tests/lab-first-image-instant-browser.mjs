@@ -255,12 +255,16 @@ try{
   assert.ok(Math.abs(newCardY-cardY)<8,
     'Opening the docked deck must keep the six Mood cards stable in document coordinates: '+
       JSON.stringify({cardY,newCardY,delta:newCardY-cardY,scrollY:await page.evaluate(()=>scrollY)}));
-  assert.match(await page.locator('#image-composer-prompt').inputValue(),/jade-green-lit corner shop/);
+  assert.match(await page.locator('#image-composer-prompt').inputValue(),/Realistic editorial atmosphere and tactile photographic details/,
+    'Choosing Hong Kong Nights preserves the customer's existing subject and directions');
+  assert.equal(await page.locator('[data-welcome-mood="hong-kong-nights"]').getAttribute('aria-pressed'),'true');
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
     'The first Mood selection must use Seedream 2K, not the generic Studio 1K default');
   assert.equal(await button.isEnabled(),true,'Green Haze must enable Generate in the same click');
   await page.locator('[data-welcome-mood="dream-blur"]').click();
-  assert.match(await page.locator('#image-composer-prompt').inputValue(),/blue motion blur/);
+  assert.match(await page.locator('#image-composer-prompt').inputValue(),/Realistic editorial atmosphere and tactile photographic details/,
+    'Changing Moods does not overwrite an existing creative subject');
+  assert.equal(await page.locator('[data-welcome-mood="dream-blur"]').getAttribute('aria-pressed'),'true');
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
     'Switching welcome Moods must retain the agreed 2K default');
   assert.doesNotMatch(await button.getAttribute('data-credits')||'',/Confirming credits/i,
