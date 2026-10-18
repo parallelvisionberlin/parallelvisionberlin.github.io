@@ -9,13 +9,13 @@ export const HONG_KONG_VARIANTS=Object.freeze({
   }),
   'deep-green':Object.freeze({
     label:'Deep Green',
-    direction:'Deep Green variation: a restrained jade/emerald shift ONLY in the existing background shadows. Keep original naturally lit face, warm healthy skin, crisp eyes, rich material texture and visible shadow detail. Never coat the person, walls or whole photograph green, and never invent neon, signs or a different street.',
+    direction:'Deep Green: emerald ONLY in the existing background shadows, never on the face. Keep warm skin, clear texture, original street and no invented neon.',
     filmFinish:Object.freeze({version:2,grain:0,haze:0,halation:0,film:0}),
     files:Object.freeze(['greg22.png','supervalu.jpg','silver-grill-cafe.jpg','plaza-grill.webp'])
   }),
   'slow-shutter':Object.freeze({
     label:'Slow Shutter',
-    direction:'Slow Shutter variation: very soft optical bloom and directional light drag only where the original photo already contains moving lights or bright reflections. If there are no moving practical lights, preserve the clean scene with subtle lens diffusion; never invent lights, smear the person or transplant the background.',
+    direction:'Slow Shutter: drag ONLY on existing distant moving lights. If there are no moving practical lights, keep the scene clean; never blur the person or change location.',
     filmFinish:Object.freeze({version:2,grain:0,haze:0,halation:0,film:0}),
     files:Object.freeze(['sheung-wan-street.webp','greg-iii.png','young-woman-tram.webp','silver-grill-cafe.jpg'])
   })
