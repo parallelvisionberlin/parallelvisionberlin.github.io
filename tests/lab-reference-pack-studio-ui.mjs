@@ -236,11 +236,15 @@ try{
       headingClip:getComputedStyle(document.querySelector('#pack-studio-dialog .pack-studio-heading-copy')).clipPath};
   });
   assert.ok(Math.abs(fullLayout.centerY-450)<=8,'Photo Packs must be centered: '+JSON.stringify(fullLayout));
-  assert.equal(fullLayout.rows,2,'Ten library cards use exactly two visible rows: '+JSON.stringify(fullLayout));
-  assert.equal(fullLayout.cols,5,'Five desktop columns preserve the approved layout');
-  assert.ok(fullLayout.heroHeight<=123,'The Photo Packs hero must stay compact');
-  assert.ok(fullLayout.bottomOfCards<fullLayout.bottom-6,'No second row should be clipped');
-  assert.equal(fullLayout.overflowY,'hidden','Two fully visible desktop rows should not expose a needless scrollbar: '+JSON.stringify(fullLayout));
+  assert.equal(fullLayout.rows,3,'Ten cards occupy three rows in the approved four-column gallery: '+JSON.stringify(fullLayout));
+  assert.equal(fullLayout.cols,4,'The new editorial Photo Packs layout preserves four spacious columns');
+  assert.ok(fullLayout.heroHeight<=160,'The editorial Photo Packs hero stays within its approved compact height');
+  assert.ok(fullLayout.contentScroll>0,'Cards beyond the visible rows require an accessible internal scroll');
+  assert.equal(fullLayout.overflowY,'auto','Four-column libraries must never clip saved packs: '+JSON.stringify(fullLayout));
+  await page.locator('#pack-studio-grid .pack-studio-card').last().scrollIntoViewIfNeeded();
+  const lastCard=await page.locator('#pack-studio-grid .pack-studio-card').last().boundingBox();
+  assert.ok(lastCard.y+lastCard.height<=fullLayout.bottom+2,
+    'Scrolling must bring the tenth photo pack within the modal viewport');
   assert.equal(fullLayout.headingClip,'inset(50%)','Do not repeat Photo Packs above its hero');
   await page.screenshot({path:'test-results/photo-packs/two-rows-centered-desktop.png'});
   await context.close();
