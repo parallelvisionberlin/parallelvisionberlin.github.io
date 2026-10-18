@@ -220,8 +220,8 @@ try{
       await page.evaluate(()=>window.releaseTestGuest());
       await page.locator('#gate.pv-guest-image').waitFor({state:'visible'});
       await page.locator('#signin').waitFor({state:'visible'});
-      assert.equal(await page.locator('#pv-guest-cards .pv-guest-card').count(),6,
-        'Guest Image Studio offers six photographic looks');
+      assert.equal(await page.locator('#pv-guest-cards .pv-guest-card').count(),7,
+        'Guest Image Studio retains six photographic looks and adds Chrome Couture');
       assert.equal(await page.locator('#app').isVisible(),false,'Private workspace remains closed');
       assert.match(await page.locator('#pv-guest-title').innerText(),/Start with a feeling/i);
       await page.locator('[data-guest-mood="dream-blur"]').click();
