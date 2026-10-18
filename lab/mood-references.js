@@ -54,7 +54,13 @@ export function moodReferencePlan(settings){
   // Saved older jobs retain their original four Style sources. Never silently
   // append another pack of four to a reused result or duplicate user uploads.
   const preservedHistoricStyle=isHongKong&&labels.some(label=>label.role==='style'&&HONG_KONG_REFERENCE_LABELS.has(label.name));
-  const references=preservedHistoricStyle?[]:source.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
+  // Diagnostic pilot only: when a customer edits a Base photograph, isolate
+  // that Base from four competing visual Style inputs. Keep the exact Mood
+  // prompt and Film Finish; text-only and References-only still use four photos.
+  // Historic saved jobs retain their already-attached Style references.
+  const isolateBase=isHongKong&&settings.hkBaseFidelityPilot===true&&
+    settings.referenceMode!=='references'&&labels[0]?.role==='base'&&!preservedHistoricStyle;
+  const references=preservedHistoricStyle||isolateBase?[]:source.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
   if(labels.length+references.length>10)throw Error(moodLabel+' includes four Style references. Keep at most six of your own images, or choose another Mood.');
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
   // Add the four canonical Style photos without rewriting the selected Mood.
