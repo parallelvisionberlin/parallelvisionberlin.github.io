@@ -93,6 +93,27 @@ try{
   await page.locator('.composer-element-tile').first().locator('.composer-reference-remove').click();
   await page.waitForFunction(()=>document.querySelectorAll('.composer-element-tile').length===1);
   assert.match(await page.locator('.composer-element-tile').first().innerText(),/@Nina FOK/);
+  // A Scene Library card must close the modal only after the Element is fully
+  // attached, leaving the original Image prompt and history/deck flow intact.
+  const preservedDirection='A photographic portrait inside the same room';
+  await text.fill(preservedDirection);
+  await page.locator('#scene-image-open').click();
+  await page.locator('#scene-menu-elements').click();
+  await page.locator('#scene-image-menu [data-scene-target="locations"]').click();
+  await page.locator('#scene-library-dialog[open]').waitFor();
+  await page.locator('#scene-grid .scene-card').filter({hasText:'MyRoom'}).locator('.scene-use').click();
+  await page.waitForFunction(()=>{
+    const dialog=document.getElementById('scene-library-dialog');
+    return !dialog.open&&!!document.querySelector('#image-composer-references .composer-element-tile')
+      &&Array.from(document.querySelectorAll('#image-composer-references .composer-reference-index'))
+        .some(marker=>marker.textContent==='@MyRoom');
+  },null,{timeout:20000});
+  assert.equal(await page.locator('#image-composer').isVisible(),true,
+    'Use in scene returns to the original floating Image deck');
+  assert.equal(await text.inputValue(),preservedDirection,
+    'The saved @MyRoom Element must not overwrite or inject literal text into the prompt');
+  assert.equal(await page.locator('#reference-list .reference-element-item').count(),2,
+    'Both saved Elements remain grouped and the original one is preserved');
   assert.deepEqual(errors,[]);
   console.log('PASS two saved Elements attach as two compact chips, no repeated roles or provider jobs');
 }finally{
