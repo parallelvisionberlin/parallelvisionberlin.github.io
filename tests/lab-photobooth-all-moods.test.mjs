@@ -24,7 +24,7 @@ test('Photobooth uses 1K for both web and native mobile, with one bound paid sub
   assert.match(client,/referenceRoles:file\?\[normalizeReferenceLabel\(\{name:file\.name,role:'base'\}\)\]:\[\]/);
   assert.match(client,/referenceSourceIds:\[\.\.\.\(original\?\[original\.id\]:\[\]\),\.\.\.styleIds\]/);
   assert.match(client,/quote\.settings\?\.moodId!==mood\.id/);
-  assert.match(client,/client\.prepare|async prepare\(file,mood,direction\)/);
+  assert.match(client,/client\.prepare|async prepare\(file,mood,direction(?:,moodVariant='original')?\)/);
   assert.equal((client.match(/confirm:true/g)||[]).length,1,'Only one explicit paid confirmation is allowed');
   assert.match(worker,/p\.referenceRoles=Array\.from\(\{length:count\}/);
   assert.match(worker,/const prompt=compileImagePrompt\(p\.prompt,p\.referenceRoles,p\)/);
