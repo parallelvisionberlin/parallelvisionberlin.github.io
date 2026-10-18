@@ -120,3 +120,48 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-prompt
   font-size:15.5px!important;
  }
 }
+
+
+/* 2026-10-18: correct overlap between reference images, prompt and tool row.
+   Scope to desktop web Image composer; no provider, role or mobile behavior changes. */
+@media(min-width:900px){
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul){
+  height:auto!important;min-height:0!important;
+  grid-template-rows:auto auto!important;
+  align-content:stretch!important;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .image-composer-top{
+  box-sizing:border-box;display:flex!important;flex-direction:column!important;
+  align-items:stretch!important;justify-content:flex-start!important;
+  grid-column:1!important;grid-row:1!important;
+  height:auto!important;min-height:54px!important;max-height:none!important;
+  gap:8px!important;padding:0 0 5px!important;
+  overflow:visible!important;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .image-composer-references:not([hidden]){
+  display:flex!important;align-items:center!important;align-self:stretch!important;
+  flex:0 0 55px!important;
+  width:100%!important;max-width:100%!important;
+  height:55px!important;min-height:55px!important;max-height:55px!important;
+  flex-wrap:nowrap!important;gap:7px!important;
+  padding:2px 2px 3px!important;overflow-x:auto!important;overflow-y:hidden!important;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-reference-tile{
+  flex:0 0 48px!important;width:48px!important;min-width:48px!important;
+  height:49px!important;min-height:49px!important;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-prompt{
+  display:block!important;box-sizing:border-box!important;
+  flex:0 0 auto!important;align-self:stretch!important;
+  width:100%!important;min-width:0!important;
+  height:47px!important;min-height:47px!important;max-height:47px!important;
+  padding:9px 4px!important;margin:0!important;
+  overflow-y:auto!important;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-controls{
+  grid-row:2!important;align-self:center!important;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-generate{
+  grid-row:1/3!important;align-self:stretch!important;
+ }
+}
