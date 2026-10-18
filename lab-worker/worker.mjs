@@ -1528,7 +1528,7 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/packs/')&&method==='DELETE'){
     const id=uid(path.split('/')[3]),pack=await first(env,'SELECT refs FROM packs WHERE id=? AND owner_id=?',id,owner);
-    if(!pack)fail(404,'Pack not found.');await run(env,'DELETE FROM element_visual_profiles WHERE pack_id=? AND owner_id=?',id,owner);await run(env,'DELETE FROM packs WHERE id=? AND owner_id=?',id,owner);
+    if(!pack)fail(404,'Pack not found.');await run(env,'DELETE FROM packs WHERE id=? AND owner_id=?',id,owner);
     for(const a of JSON.parse(pack.refs))await pruneSource(env,owner,a.id);return json({ok:true});
   }
   if(path==='/api/reference-uploads'&&method==='POST') {
