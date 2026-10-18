@@ -15,9 +15,9 @@ test('the October 10 cinematic inspiration stays available for compositions, whi
   assert.equal(edit.error,'');
   assert.ok(edit.prompt.startsWith(user+'\n\n'));
   assert.match(edit.prompt,/EDIT IMAGE 1, the existing photograph/);
-  assert.match(edit.prompt,/not a new photograph or location/);
-  assert.match(edit.prompt,/NOT a request for Hong Kong buildings/);
-  assert.match(edit.prompt,/natural beauty without remodeling the face/);
+  assert.match(edit.prompt,/NOT a new scene/);
+  assert.match(edit.prompt,/NOT a request for Asian streets/);
+  assert.match(edit.prompt,/original expressive, flattering face/);
   assert.doesNotMatch(edit.prompt,/humid urban darkness|rain-wet reflections|organic 35mm grain/);
   assert.equal(edit.metadata.moodIntensity,60);
   assert.equal(edit.metadata.moodVariant,'original');
@@ -33,12 +33,12 @@ test('every supported engine and Mood strength preserves face, flattering skin e
   for(const intensity of [1,34,35,60,75,76,90,100]){
     const recipe=prepareMoodPrompt('Preserve her face and original street.','hong-kong-nights',intensity,{engine,referenceCount:1});
     assert.equal(recipe.error,'',engine+'/'+intensity);
-    assert.match(recipe.prompt,/SAME moment, not a new photograph or location/);
-    assert.match(recipe.prompt,/natural beauty without remodeling the face/);
-    assert.match(recipe.prompt,/Keep eyes readable and softly illuminated/);
-    assert.match(recipe.prompt,/every original building, window, wall, pavement, sign and scene object/);
-    assert.match(recipe.prompt,/Do not add visible artificial grain, speckle/);
-    assert.match(recipe.prompt,/No?t a request for Hong Kong buildings|NOT a request for Hong Kong buildings/);
+    assert.match(recipe.prompt,/NOT a new scene/);
+    assert.match(recipe.prompt,/original expressive, flattering face/);
+    assert.match(recipe.prompt,/softly lit eyes/);
+    assert.match(recipe.prompt,/original buildings, pavement, signs and objects/);
+    assert.match(recipe.prompt,/add visible grain, dirt, film damage/);
+    assert.match(recipe.prompt,/NOT a request for Asian streets, new neon/);
     assert.doesNotMatch(recipe.prompt,/reconstruct cinematic scene lighting|off-axis light modeling|Relight whole Base/);
     assert.deepEqual(recipe.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
     assert.ok(recipe.prompt.length<(engine==='seedreamlite'?3000:5000));
@@ -48,14 +48,14 @@ test('increasing the strength changes existing light only, never scene identity 
   const low=prepareMoodPrompt('Portrait','hong-kong-nights',20,{referenceCount:1}).prompt;
   const medium=prepareMoodPrompt('Portrait','hong-kong-nights',60,{referenceCount:1}).prompt;
   const high=prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1}).prompt;
-  assert.match(low,/Subtle: barely perceptible/);
-  assert.match(medium,/Editorial: luminous existing highlights/);
-  assert.match(high,/Expressive yet elegant: rich emerald only in existing background shadow gradients/);
+  assert.match(low,/Subtle: gentle tonal separation/);
+  assert.match(medium,/Editorial: luminous flattering skin light/);
+  assert.match(high,/Expressive: richer emerald in existing BACKGROUND shadow gradients only/);
   assert.doesNotMatch(high,/thick but realistic haze|rain-wet reflections|nighttime exposure/);
   assert.notEqual(low,medium);
   assert.notEqual(medium,high);
   assert.match(medium,/Keep eyes readable/);
-  assert.match(high,/Do not crush black fabrics or skin detail/);
+  assert.match(high,/blacken eye sockets, green-tint skin, crush shadows/);
 });
 test('Deep Green and Slow Shutter are optical treatments, not alternate characters or locations',()=>{
   const prompts=[];
@@ -65,7 +65,7 @@ test('Deep Green and Slow Shutter are optical treatments, not alternate characte
     assert.equal(r.metadata.moodVariant,variant);
     assert.ok(r.prompt.startsWith('Original portrait.\n\n'));
     assert.match(r.prompt,/EDIT IMAGE 1/);
-    assert.match(r.prompt,/SAME moment, not a new photograph or location/);
+    assert.match(r.prompt,/NOT a new scene/);
     if(variant!=='original')assert.ok(r.prompt.includes(HONG_KONG_VARIANTS[variant].direction));
     const settings={type:'image',mode:'image',engine:'seedream',referenceMode:'base',
       referenceRoles:[{name:'portrait.png',role:'base'}],prompt:r.prompt,...r.metadata};
