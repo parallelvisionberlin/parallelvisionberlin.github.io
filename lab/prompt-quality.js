@@ -9,10 +9,14 @@ const photograph=/\b(photo(graph(y|ic)?)?|photoreal\w*|camera|lens|35mm|film.sti
 const role=x=>typeof x==='string'?x:(x?.role||'none');
 export function referenceRoleAdvisories(labels=[]){
  const roles=labels.map(role),count=name=>roles.filter(r=>r===name).length,notes=[];
- if(count('pose')>1)notes.push('Multiple Pose photos can request different poses. Choose one controlling pose or remove conflicting pose references.');
- if(count('room')>1)notes.push('Multiple Environment photos can describe different locations. Select one environment for the scene.');
- if(count('outfit')>1)notes.push('Multiple Clothing photos can disagree on the outfit. Keep one outfit reference or specify the intended pieces.');
- if(count('body')>1)notes.push('Multiple Body photos can disagree on proportions. Confirm that they depict the same intended physique.');
+ const independent=name=>{
+   const matching=labels.filter(x=>role(x)===name);
+   return matching.length>1&&new Set(matching.map((x,i)=>x?.elementId||'manual-'+i)).size>1;
+ };
+ if(independent('pose'))notes.push('Multiple Pose photos can request different poses. Choose one controlling pose or remove conflicting pose references.');
+ if(independent('room'))notes.push('Multiple Environment photos can describe different locations. Select one environment for the scene.');
+ if(independent('outfit'))notes.push('Multiple Clothing photos can disagree on the outfit. Keep one outfit reference or specify the intended pieces.');
+ if(independent('body'))notes.push('Multiple Body photos can disagree on proportions. Confirm that they depict the same intended physique.');
  return notes;
 }
 export function imageQualityGuidance(direction='',labels=[],settings={},currentLength=0){
