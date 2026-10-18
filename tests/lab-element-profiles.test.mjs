@@ -129,7 +129,7 @@ test('UI keeps Elements grouped and offers @ mentions without changing Photo Pac
  assert.match(library,/elementId:item.id/);
  assert.match(script,/composer-element-tile/);
  assert.match(script,/scene-element-suggestions/);
- assert.match(script,/elementId:labels\[i\]\?\.elementId/);
+ assert.match(script,/item\.elementId=labels\[i\]\?\.elementId/);
  assert.match(script,/elementId:r\.elementId/);
  assert.match(markup,/id="scene-smart-analyze"/);
  assert.match(markup,/id="scene-element-suggestions"/);
