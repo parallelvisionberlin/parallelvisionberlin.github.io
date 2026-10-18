@@ -46,7 +46,18 @@ async function setup(width,customer=true,overrides={}){
   });
   return {context,page,errors,writes,session,setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
 }
-async function fits(page,label){assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,label+' horizontal overflow');}
+async function fits(page,label){
+  const result=await page.evaluate(()=>{
+    const overflow=document.documentElement.scrollWidth-innerWidth;
+    const offenders=overflow>1?[...document.querySelectorAll('body *')].map(el=>{
+      const rect=el.getBoundingClientRect();
+      return {name:el.tagName.toLowerCase()+'#'+el.id+'.'+String(el.className||'').slice(0,48),
+        left:Math.round(rect.left),right:Math.round(rect.right),width:Math.round(rect.width)};
+    }).filter(x=>x.right>innerWidth+2&&x.width>0).slice(0,18):[];
+    return {overflow,offenders};
+  });
+  assert.equal(result.overflow<=1,true,label+' horizontal overflow '+JSON.stringify(result));
+}
 try{
   // Homepage purchases: every arrow responds next to its product, with no real payment.
   for(const width of [1440,390]){
