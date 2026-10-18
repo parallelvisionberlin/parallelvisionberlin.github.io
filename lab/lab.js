@@ -1,5 +1,5 @@
 import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
-import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-cover-first-priority3';
+import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-elements-visual-profiles1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1';
 import {preparePhotoInput} from './photo-input.js?v=1';
@@ -21,7 +21,7 @@ import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=
 import {createVideoModelPicker} from './video-model-picker.js?v=20261016-wan-mini-priority1';
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
