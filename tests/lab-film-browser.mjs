@@ -4,6 +4,7 @@ import http from 'node:http';
 import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {HONG_KONG_FILM_FINISH} from '../lab/film-finish.js';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const start=source.indexOf('try{clerk=await loadLabAccount();'),end=source.indexOf('\n// Soul composer:',start);
@@ -37,7 +38,7 @@ try{
       const send=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
       if(request.method()==='POST'){
         writes.push(u.pathname);assert.equal(u.pathname,'/api/jobs/film-job/film-finish','Only pixel processing may be submitted');
-        const data=request.postDataJSON();assert.equal(data.outputId,job.outputId);assert.equal(data.settings.version,2);assert.equal(data.settings.grain,85);assert.equal(data.settings.haze,40);assert.equal(data.settings.halation,22);assert.equal(data.settings.film,70);
+        const data=request.postDataJSON();assert.equal(data.outputId,job.outputId);assert.equal(data.settings.version,2);assert.equal(data.settings.grain,85);assert.equal(data.settings.haze,40);assert.equal(data.settings.halation,HONG_KONG_FILM_FINISH.halation);assert.equal(data.settings.film,70);
         job={...job,outputId:'finished',settings:{...job.settings,filmOriginalId:'original',filmFinish:data.settings,filmFinishStatus:'applied',filmFinishRevision:7}};return send({job});
       }
       if(u.pathname==='/api/jobs')return send({jobs:[job],activeJobs:[],next:null});
@@ -48,7 +49,10 @@ try{
     await page.waitForFunction(()=>!!window.__filmTest);
     await page.evaluate(()=>window.__filmTest.select());
     const composer=page.locator('#composer-moods .film-finish');await composer.waitFor({state:'visible'});
-    assert.equal(await composer.getByRole('slider',{name:'Grain intensity'}).inputValue(),'36');
+    assert.deepEqual(HONG_KONG_FILM_FINISH,{version:2,grain:58,haze:78,halation:80,film:90},'Approved Hong Kong Nights defaults');
+    for(const [label,key] of [['Grain','grain'],['Haze','haze'],['Halation','halation'],['Film','film']]){
+      assert.equal(await composer.getByRole('slider',{name:label+' intensity'}).inputValue(),String(HONG_KONG_FILM_FINISH[key]),label+' should load the approved default');
+    }
     await composer.getByRole('slider',{name:'Grain intensity'}).fill('90');
     const settings=await page.evaluate(()=>window.__filmTest.settings());assert.equal(settings.filmFinish.grain,90);assert.equal(settings.moodIntensity,80);
     assert.equal(await page.locator('#composer-moods').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Mood controls fit on mobile and desktop');
