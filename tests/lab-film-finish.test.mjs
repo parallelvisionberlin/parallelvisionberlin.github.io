@@ -100,9 +100,13 @@ test('deluxe photochemical response builds progressively above 70 without changi
   assert.equal(deluxeResponse(0),0);assert.equal(deluxeResponse(70),0);
   assert.equal(deluxeResponse(100),1);
   assert.ok(deluxeResponse(90)>deluxeResponse(80));
-  const baseline=photochemicalPlan(HONG_KONG_FILM_FINISH);
+  const baseline=photochemicalPlan({version:2,grain:36,haze:42,halation:22,film:65});
   assert.equal(baseline.signature,0);
   assert.equal(baseline.hazeRadius,43);
+  const newDefault=photochemicalPlan(HONG_KONG_FILM_FINISH);
+  assert.ok(newDefault.signature>0&&newDefault.hazeRadius>baseline.hazeRadius);
+  assert.ok(newDefault.halationOpacity>baseline.halationOpacity);
+  assert.ok(newDefault.grainAmount<100,'The default must not be maximum coarse grain');
   const full=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100});
   assert.equal(full.signature,1);
   assert.ok(full.grainAmount>125&&full.grainAmount<=134);

@@ -3,10 +3,10 @@ import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.j
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.
 const HONG_KONG_REFERENCES=Object.freeze([
-  {file:'06-interior-portrait.jpg',type:'image/jpeg',note:'Skin and hair optics: natural faces, selective teal shadow, warm practical bounce. Preserve Base identity and setting; never copy people or tunnel.'},
-  {file:'05-passage-diffusion.jpg',type:'image/jpeg',note:'Optical diffusion: motivated existing light through humid air, detailed nearby skin. Never copy passage or figures.'},
-  {file:'02-city-haze.jpg',type:'image/jpeg',note:'Atmosphere: selective emerald depth, warm distant practicals and unlit black gaps; no flat green wash or copied city.'},
-  {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Materials: wet or polished glints and warm/cool specular separation where plausible; no indoor street, taxi or signage.'}
+  {file:'06-interior-portrait.jpg',type:'image/jpeg',note:'Skin optics: natural face, cool shadow, warm/red bounce. No copied faces, bodies, poses or tunnel; Base identity wins.'},
+  {file:'05-passage-diffusion.jpg',type:'image/jpeg',note:'Source-lit humid diffusion and realistic skin. Never borrow green wash, figures or passage.'},
+  {file:'02-city-haze.jpg',type:'image/jpeg',note:'Deep emerald air and real warm/ruby practical lights. No green wash, copied city, cars or framing.'},
+  {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Real wet/polished glints, warm/teal and selective red practical reflections. No copied taxis, streets, shops, signage or fake wet ground.'}
 ].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/hong-kong-nights/'+ref.file,
   label:Object.freeze({name:'Hong Kong Nights style - '+ref.file,role:'style',note:ref.note})})));
 
