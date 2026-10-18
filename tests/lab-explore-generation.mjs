@@ -26,7 +26,7 @@ const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
-try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize','paused','review']){
+try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize','variant-swap','paused','review']){
  const page=await browser.newPage({viewport:{
   width:scenario==='small'?320:['mobile','phone'].includes(scenario)?390:scenario==='compact'?1280:1440,
   height:scenario==='small'?640:scenario==='compact'?720:scenario==='phone'?700:900
@@ -273,6 +273,18 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
          assert.ok(Math.abs((await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height))-editorHeight)<2,
            'Removing the photo leaves the card dimensions untouched');
          assert.equal(paid,1,'Remove photo does not start another paid generation');
+       }
+       if(scenario==='variant-swap'){
+         // The output was created for Original. Selecting another look must
+         // hide that image before quoting Deep Green, never mislabel it.
+         await page.locator('[data-hk-variant="deep-green"]').click();
+         assert.equal(await page.locator('#mc-look-result').isVisible(),false,
+           'Previous result is hidden when the photographic treatment changes');
+         assert.equal(await page.locator('#mc-look-dropzone').isVisible(),true,
+           'The user returns to the editor with their input photograph retained');
+         assert.equal(await page.locator('[data-hk-variant="deep-green"]').getAttribute('aria-pressed'),'true');
+         assert.equal(await page.locator('#mc-look-file-preview').count(),1);
+         assert.equal(paid,1,'Changing the look never starts a second paid generation');
        }
        await page.locator('#mc-look-close').click();
        assert.equal(await page.locator('#mc-look-dialog').isVisible(),false);
