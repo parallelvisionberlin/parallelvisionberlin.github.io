@@ -49,6 +49,18 @@ export function moodReferencePlan(settings){
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
   const isHongKong=settings.moodId==='hong-kong-nights';
+  // The original October 10 Hong Kong Nights treatment used its creative
+  // text direction and only user-supplied photographs. Auto-injecting four
+  // unrelated scene photographs changed the input conditioning model.
+  // Restore the original behavior for Base, References-only and text-only.
+  // Preserve saved historical style labels for History and Reuse filtering.
+  if(isHongKong){
+    const budget=settings.engine==='seedreamlite'?3000:5000;
+    const compiled=compileImagePrompt(settings.prompt,labels,{...settings,referenceRoles:labels});
+    const over=compiled.length-budget;
+    if(over>0)throw Error('Direction, Mood and reference instructions exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or optional reference notes.');
+    return {settings,references:[]};
+  }
   const source=isHongKong?HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]:DREAM_BLUR_REFERENCES;
   const moodLabel=isHongKong?'Hong Kong Nights':'Dream Blur';
   // Saved older jobs retain their original four Style sources. Never silently
