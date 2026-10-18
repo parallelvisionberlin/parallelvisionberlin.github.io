@@ -340,7 +340,9 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
       leaveConfirm.close();pendingNavigation=null;
       void save(()=>navigateTo(destination));
     };
-    leaveConfirm.addEventListener('close',()=>{pendingNavigation=null;});
+    // A queued close event from a previous confirmation must never erase
+    // the destination of a confirmation opened immediately afterward.
+    leaveConfirm.addEventListener('close',()=>{if(!leaveConfirm.open)pendingNavigation=null;});
   }
 
   const iconPaths={
