@@ -1,0 +1,51 @@
+name: Import verified Hong Kong Nights originals
+on:
+  push:
+    branches: [feature/hong-kong-night-analog-looks-20261018]
+    paths: ['.github/workflows/pvlab-import-hk-originals.yml']
+permissions:
+  contents: write
+jobs:
+  import-photographs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout only Mood photography
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab/mood-references/hong-kong-nights
+            .github/workflows/pvlab-import-hk-originals.yml
+          persist-credentials: true
+      - name: Retrieve exactly the originals, verify their SHA-256 hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd lab/mood-references/hong-kong-nights
+          curl --fail --location --retry 4 --retry-all-errors --max-time 120 --silent --show-error "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/1c489648-ea4c-4003-8c34-801cf4ffeb79.webp" -o "plaza-grill.webp"
+          echo 'f374494e03656eb0431c5c79e02412cf146405ba01bba19360bd7d2b0fa1b9d8  plaza-grill.webp' | sha256sum --check --status
+          curl --fail --location --retry 4 --retry-all-errors --max-time 120 --silent --show-error "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/4c9abe9c-a7a2-4927-8f90-ac0e70181341.png" -o "greg-iii.png"
+          echo '5a71e513a03809d3e79ebfe0e323a25f49b81387186eb3933c40ad839d3b2c04  greg-iii.png' | sha256sum --check --status
+          curl --fail --location --retry 4 --retry-all-errors --max-time 120 --silent --show-error "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/e63b9409-3365-4028-8bc8-dcfe8738eb6e.png" -o "greg-reds.png"
+          echo '3b5a605336163c0cf3e5384af7caa5951156b011029185cf2987dc0932b6ac58  greg-reds.png' | sha256sum --check --status
+          curl --fail --location --retry 4 --retry-all-errors --max-time 120 --silent --show-error "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/13e020ad-78a5-4a8a-8706-64274ff0b7ab.webp" -o "young-woman-tram.webp"
+          echo 'daf3222f20123167736a8527a69572636179363b6ef3e24080e9af1cd8142cb4  young-woman-tram.webp' | sha256sum --check --status
+          curl --fail --location --retry 4 --retry-all-errors --max-time 120 --silent --show-error "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/7fd6242e-bb3e-477a-a7c8-0338a8d889c9.jpg" -o "silver-grill-cafe.jpg"
+          echo 'f6347d2143a501645cc92ac31a78244d9afc9dea7c33528fca49aa5ce9d1a52c  silver-grill-cafe.jpg' | sha256sum --check --status
+          curl --fail --location --retry 4 --retry-all-errors --max-time 120 --silent --show-error "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/96d8e82d-b6c6-4331-b88b-9b42db328711.jpg" -o "supervalu.jpg"
+          echo '04b05a9d14a03fc2a3c82e980a235e98d35e715d21a29cacdd2f67fdf559f643  supervalu.jpg' | sha256sum --check --status
+          curl --fail --location --retry 4 --retry-all-errors --max-time 120 --silent --show-error "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/f6336697-9064-48b8-882d-5a4b132fbbd0.png" -o "greg22.png"
+          echo '312f30940550a782743a0bea74f4b1b86cb6259392b99cb2f58b3c541b4fb7ef  greg22.png' | sha256sum --check --status
+          curl --fail --location --retry 4 --retry-all-errors --max-time 120 --silent --show-error "https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/f28141bb-e876-4814-9bc6-e80ab42b8636.webp" -o "sheung-wan-street.webp"
+          echo '3cd80f74fe4f1fec29ecad173513d7537b1841cd3a7ab74ea119ad93d6fd4f86  sheung-wan-street.webp' | sha256sum --check --status
+      - name: Commit original photography assets to this branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lab/mood-references/hong-kong-nights
+          if ! git diff --cached --quiet; then
+            git commit -m "Add exact uploaded Hong Kong Nights photographic originals (verified SHA-256)"
+            git push origin HEAD:feature/hong-kong-night-analog-looks-20261018
+          fi
