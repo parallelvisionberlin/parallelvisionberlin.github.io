@@ -223,7 +223,7 @@ try{
   await page.waitForFunction(()=>document.querySelector('#image-composer').getBoundingClientRect().height>105);
   assert.ok(await deck.evaluate(el=>el.getBoundingClientRect().height)>idleLayout.height+30,
     'The same bottom-fixed compact deck must become the full editing deck after first focus');
-  await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(35));
+  await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(18));
   // The editorial deck intentionally animates its height over 230ms.
   // Wait for that expansion before asserting the final readable geometry.
   await page.waitForFunction(()=>document.getElementById('image-composer-prompt')
@@ -270,22 +270,6 @@ try{
     'Switching selected Moods must not collapse the Image deck');
   // The previous Mood's asynchronous bound price may still be settling.
   // Wait for the new Mood's preflight before submitting the single paid job.
-  await page.waitForTimeout(1800);
-  console.log('DREAM_BLUR_READINESS_DIAGNOSTIC='+JSON.stringify({
-    dom:await page.evaluate(()=>({
-      engine:document.getElementById('image-engine')?.value,
-      resolution:document.getElementById('resolution')?.value,
-      baseGenerateDisabled:document.getElementById('generate')?.disabled,
-      composerGenerateDisabled:document.getElementById('image-composer-generate')?.disabled,
-      baseTitle:document.getElementById('generate')?.title,
-      composerTitle:document.getElementById('image-composer-generate')?.title,
-      status:document.getElementById('image-composer-status')?.textContent,
-      composerCredits:document.getElementById('image-composer-generate')?.dataset.credits,
-      promptLength:document.getElementById('prompt')?.value.length,
-      moodButtons:[...document.querySelectorAll('[data-welcome-mood]')].filter(e=>e.getAttribute('aria-pressed')==='true').map(e=>e.dataset.welcomeMood),
-      tool:document.getElementById('tool-image')?.getAttribute('aria-pressed')
-    })), recentRequests:requests.slice(-12).map(r=>({path:r.path,method:r.method}))
-  }));
   await page.waitForFunction(()=>!document.querySelector('#image-composer-generate')?.disabled,null,{timeout:9000});
   assert.equal(await button.isEnabled(),true,'Dream Blur must become ready without a second click');
   const heightBefore=await button.evaluate(el=>el.getBoundingClientRect().height);
