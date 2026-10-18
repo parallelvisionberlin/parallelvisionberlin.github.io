@@ -120,3 +120,43 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-prompt
   font-size:15.5px!important;
  }
 }
+
+
+/* 2026-10-18: separate attached references from the prompt on desktop.
+   Keep the same fixed-width centered deck, generation toolbar and all role controls.
+   This supersedes the older 38%-references + inline-prompt layout. */
+@media(min-width:900px){
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .image-composer-top{
+  flex-direction:column!important;align-items:stretch!important;
+  justify-content:flex-start!important;gap:7px!important;
+  height:auto!important;min-height:64px!important;max-height:none!important;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .image-composer-references:not([hidden]){
+  display:flex!important;flex:0 0 56px!important;
+  align-self:stretch!important;width:100%!important;max-width:100%!important;
+  min-height:56px!important;height:56px!important;max-height:56px!important;
+  padding:2px 2px 4px!important;gap:7px!important;
+  flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-reference-tile{
+  flex:0 0 48px!important;width:48px!important;min-width:48px!important;
+  height:49px!important;min-height:49px!important;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-prompt{
+  flex:0 0 auto!important;align-self:stretch!important;
+  width:100%!important;min-width:0!important;
+  min-height:46px!important;height:46px;max-height:136px!important;
+  padding:7px 5px!important;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .image-composer-top:has(.image-composer-references:not([hidden])) #image-composer-prompt{
+  min-height:46px!important;height:46px;
+ }
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul){
+  grid-template-rows:minmax(64px,max-content) 41px!important;
+ }
+}
+@media(min-width:900px) and (max-width:1159px){
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul){
+  grid-template-rows:minmax(64px,max-content) 83px!important;
+ }
+}
