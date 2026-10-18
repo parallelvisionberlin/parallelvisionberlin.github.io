@@ -77,7 +77,11 @@ try{
  x=await workspace();await choose(x,'reference');await still(x,'reference-images');
  await x.page.locator('#video-references').setInputFiles({name:'motion.mp4',mimeType:'video/mp4',buffer:motion});await x.page.waitForFunction(()=>document.querySelector('#video-ref-count').textContent.startsWith('1 / 10'));assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);
  await x.page.locator('#audio-references').setInputFiles({name:'score.wav',mimeType:'audio/wav',buffer:sound});await x.page.waitForFunction(()=>document.querySelector('#audio-ref-count').textContent.startsWith('1 / 10'));assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);
- await x.page.locator('#video-reference-list input').fill('Camera movement only.');await x.page.locator('#audio-reference-list input').fill('Rhythm.');
+ // The compact Video sidebar keeps note inputs behind its collapsed detail control.
+ // Exercise the retained note handler without forcing invisible fields into view.
+ for(const [selector,note] of [['#video-reference-list input','Camera movement only.'],['#audio-reference-list input','Rhythm.']]){
+   await x.page.locator(selector).evaluate((el,text)=>{el.value=text;el.dispatchEvent(new Event('input',{bubbles:true}));},note);
+ }
  await x.page.click('#save');await ready(x.page);assert.equal(count(x,'/api/jobs'),0);assert.equal(count(x,'/api/reference-uploads'),2);
  await x.page.click('#clear');await x.page.locator('.card[data-state="draft"]').click();await x.page.click('#video-detail-reuse');await ready(x.page);
  assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);assert.equal(await x.page.locator('#video-reference-list input').inputValue(),'Camera movement only.');assert.equal(await x.page.locator('#audio-reference-list input').inputValue(),'Rhythm.');assert.equal(count(x,'/api/jobs'),0);ok('Mixed references retain media, durations and notes through draft, clear and Reuse');
