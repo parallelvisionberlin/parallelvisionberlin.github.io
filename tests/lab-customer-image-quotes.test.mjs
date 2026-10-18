@@ -159,10 +159,12 @@ test('signed-in first-image page has one boot reveal and a selected-only Mood hi
   assert.match(priceStyle,/\.composer-generate:not\(\.is-submitting\)::after/);
   assert.match(lab,/customerImagePricing\?\.prime\(\)/);
   assert.match(lab,/customerImagePricing\.readyForClick\(snapshot\.key\)/);
-  const welcomePrompt=lab.match(/'hong-kong-nights':'([^']+)'/)?.[1];
-  const publicPrompt=guestPrompt.match(/'hong-kong-nights':'([^']+)'/)?.[1];
-  assert.equal(publicPrompt,welcomePrompt,'Public and signed-in Green Haze scenes must match');
-  assert.match(welcomePrompt,/green-lit corner shop|jade-green-lit corner shop/i);
-  assert.match(welcomePrompt,/red sign/);
-  assert.match(welcomePrompt,/older dark sedan/);
+  const sharedPrompts=readFileSync(new URL('../lab/inspiration-looks.js',import.meta.url),'utf8');
+  assert.match(lab,/const welcomePrompts=INSPIRATION_VARIATIONS/);
+  assert.match(guestPrompt,/createInspirationRotation\(sessionStorage\)/);
+  assert.match(lab,/inspirationRotation\.select\(id,\$\('prompt'\)\.value\)/);
+  assert.match(sharedPrompts,/jade-green-lit grocery/);
+  assert.match(sharedPrompts,/older dark sedan/);
+  assert.match(lab,/disableAutoMoodReferences/);
+  assert.match(lab,/preserveWorkspace/);
 });
