@@ -22,7 +22,7 @@ LAB_PUBLIC_GENERATION_ENABLED = "true"
 # Private proxy previews become visible only after provider completion, before archival.
 LAB_EARLY_PREVIEW_ENABLED = "true"
 LAB_CHECKOUT_ENABLED = "true"
-LAB_PUBLIC_APP_URL = "https://parallelvisionlabel.com/lab/studio.html"
+LAB_PUBLIC_APP_URL = "https://pvlab.studio/studio.html"
 # Customer Higgsfield endpoints still use provider authentication and safeguards.
 LAB_CUSTOMER_HIGGSFIELD_ENABLED = "true"
 
