@@ -45,6 +45,8 @@ const nina={id:id(2),name:'PVSCENE1|characters|Nina FOK',created_at:Date.now(),
     landmarks:['dark hair'],shots:[0,1,2,3].map(i=>({index:i,description:'portrait angle',keywords:['portrait']}))}
 };
 const media=readFileSync('lab/scene-hero-art/locations.webp');
+const savedPacks=[room,nina];
+let nextUpload=20000,saveCount=0;
 const browser=await chromium.launch({headless:true});
 const context=await browser.newContext({viewport:{width:1440,height:900}});
 const page=await context.newPage();
@@ -58,8 +60,18 @@ await page.route('https://**/*',async route=>{
   });
   if(path==='/api/jobs')return route.fulfill({status:200,contentType:'application/json',
     body:JSON.stringify({jobs:[],activeJobs:[],next:null,concurrency:{image:4,video:1}})});
+  if(path==='/api/uploads'&&route.request().method()==='POST')
+    return route.fulfill({status:201,contentType:'application/json',
+      body:JSON.stringify({id:id(nextUpload++)})});
+  if(path==='/api/packs'&&route.request().method()==='POST'){
+    const request=route.request().postDataJSON();
+    const record={id:id(30000+saveCount++),name:request.name,created_at:Date.now(),
+      refs:request.referenceSourceIds.map((assetId,i)=>({id:assetId,...request.referenceRoles[i]}))};
+    savedPacks.push(record);
+    return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({id:record.id})});
+  }
   if(path==='/api/packs')return route.fulfill({status:200,contentType:'application/json',
-    body:JSON.stringify({packs:[room,nina]})});
+    body:JSON.stringify({packs:savedPacks})});
   if(path==='/api/soul-pro/identity')return route.fulfill({status:200,contentType:'application/json',
     body:JSON.stringify({configured:false,count:0,refs:[]})});
   return route.fulfill({status:200,contentType:'application/json',body:'{}'});
@@ -74,6 +86,7 @@ try{
   await page.locator('#scene-element-suggestions .scene-element-choice').filter({hasText:'@MyRoom'}).click();
   await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-element-tile').length===1&&
     document.querySelectorAll('#reference-list .reference-element-item').length===1,{timeout:20000});
+  await page.waitForFunction(()=>document.getElementById('scene-done')?.disabled===false,null,{timeout:20000});
   assert.equal(await page.locator('#scene-element-suggestions').isVisible(),false,
     'Selecting @MyRoom closes the suggestion list without waiting for more typing');
   assert.match(await text.inputValue(),/@MyRoom$/,'The selected @mention remains in the prompt');
@@ -93,6 +106,7 @@ try{
   await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-element-tile').length===2,{
     timeout:20000
   });
+  await page.waitForFunction(()=>document.getElementById('scene-done')?.disabled===false,null,{timeout:20000});
   assert.equal(await page.locator('#scene-element-suggestions').isVisible(),false,
     'Selecting @Nina FOK also closes suggestions while keeping both Element thumbnails');
   assert.equal(await page.locator('#reference-list .reference-element-item').count(),2,
@@ -153,7 +167,100 @@ try{
     'The saved @MyRoom Element must not overwrite or inject literal text into the prompt');
   assert.equal(await page.locator('#reference-list .reference-element-item').count(),2,
     'Both saved Elements remain grouped and the original one is preserved');
+  // Switching categories from an unsaved Element must never silently erase it
+  // or leave the Create view stranded beneath a newly selected sidebar tab.
+  await page.locator('#scene-image-open').click();
+  await page.locator('#scene-menu-elements').click();
+  await page.locator('#scene-image-menu [data-scene-target="characters"]').click();
+  await page.locator('#scene-new').click();
+  await page.locator('#scene-name').fill('Unsaved Nina Draft');
+  await page.locator('#scene-tabs .scene-category-tab').filter({hasText:'Locations'}).click();
+  assert.equal(await page.locator('#scene-leave-confirm').isVisible(),true,
+    'Switching categories with an unsaved name offers save/discard/stay');
+  assert.equal(await page.locator('#scene-name').inputValue(),'Unsaved Nina Draft');
+  await page.locator('#scene-leave-stay').click();
+  assert.equal(await page.locator('#scene-leave-confirm').isVisible(),false);
+  assert.equal(await page.locator('#scene-create').isVisible(),true);
+  assert.equal(await page.locator('#scene-name').inputValue(),'Unsaved Nina Draft',
+    'Keep editing must preserve the entire draft');
+  await page.locator('#scene-tabs .scene-category-tab').filter({hasText:'Locations'}).click();
+  await page.locator('#scene-leave-save').click();
+  assert.equal(await page.locator('#scene-create').isVisible(),true,
+    'Invalid Save & continue must not leave an incomplete character draft');
+  assert.equal(await page.locator('#scene-toast').isVisible(),true,
+    'A failed save validation is visible without scrolling');
+  assert.match(await page.locator('#scene-toast-message').innerText(),/at least one photograph/i);
+  await page.locator('#scene-toast-dismiss').click();
+  await page.locator('#scene-tabs .scene-category-tab').filter({hasText:'Locations'}).click();
+  await page.locator('#scene-leave-discard').click();
+  assert.equal(await page.locator('#scene-library-title').innerText(),'Locations');
+  assert.equal(await page.locator('#scene-browser').isVisible(),true);
+  assert.equal(await page.locator('#scene-create').isVisible(),false);
+  assert.equal(savedPacks.length,2,'Discard must not upload or save anything');
+
+  await page.locator('#scene-new').click();
+  await page.locator('#scene-name').fill('New Room Test');
+  const ninePhotos=Array.from({length:9},(_,i)=>({
+    name:'room-angle-'+(i+1)+'.webp',mimeType:'image/webp',buffer:media
+  }));
+  await page.locator('#scene-files').setInputFiles(ninePhotos);
+  assert.equal(await page.locator('#scene-toast').isVisible(),true,
+    'An eight-image limit should be a visible notification, not a footer message');
+  assert.match(await page.locator('#scene-toast-message').innerText(),/up to eight images/i);
+  assert.equal(await page.locator('#scene-photos .scene-photo').count(),0,
+    'Too many incoming images are rejected as a batch');
+  const toastLocation=await page.locator('#scene-toast').evaluate(element=>{
+    const r=element.getBoundingClientRect();
+    return {top:r.top,bottom:r.bottom,viewport:innerHeight};
+  });
+  assert.ok(toastLocation.top>=0&&toastLocation.bottom<=toastLocation.viewport,
+    'The notification must remain inside the visible viewport even when the form can scroll: '+JSON.stringify(toastLocation));
+  await page.locator('#scene-toast-dismiss').click();
+  assert.equal(await page.locator('#scene-toast').isVisible(),false,
+    'The toast X dismisses it immediately');
+  assert.equal(await page.locator('#scene-create').isVisible(),true);
+  await page.setViewportSize({width:390,height:820});
+  await page.locator('#scene-files').setInputFiles(ninePhotos);
+  const mobileToast=await page.locator('#scene-toast').evaluate(element=>{
+    const r=element.getBoundingClientRect();
+    return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:innerWidth,height:innerHeight};
+  });
+  assert.ok(mobileToast.left>=0&&mobileToast.right<=mobileToast.width
+    &&mobileToast.top>=0&&mobileToast.bottom<=mobileToast.height,
+    'The dismissible notification must remain visible at 390px: '+JSON.stringify(mobileToast));
+  await page.locator('#scene-toast-dismiss').click();
+  await page.setViewportSize({width:1440,height:900});
+
+  // Valid Save & continue stores the draft once, then switches to the chosen
+  // category. No generation job is submitted.
+  await page.locator('#scene-files').setInputFiles([{
+    name:'single-room.webp',mimeType:'image/webp',buffer:media
+  }]);
+  await page.locator('#scene-smart-analyze').uncheck();
+  await page.locator('#scene-tabs .scene-category-tab').filter({hasText:'Outfits'}).click();
+  assert.equal(await page.locator('#scene-leave-confirm').isVisible(),true);
+  await page.locator('#scene-leave-save').click();
+  await page.waitForFunction(()=>document.querySelector('#scene-library-title')?.textContent==='Outfits'
+    &&document.getElementById('scene-create').hidden===true,null,{timeout:20000});
+  assert.equal(await page.locator('#scene-library-title').innerText(),'Outfits');
+  assert.equal(await page.locator('#scene-browser').isVisible(),true);
+  assert.equal(savedPacks.length,3,'Save & continue creates the saved Element exactly once');
+  assert.equal(savedPacks[2].name,'PVSCENE1|locations|New Room Test');
+
+  // Closing another unsaved draft, including Escape, uses the same guard.
+  await page.locator('#scene-new').click();
+  await page.locator('#scene-name').fill('Unsaved Outfit');
+  await page.locator('#scene-close').click();
+  assert.equal(await page.locator('#scene-leave-confirm').isVisible(),true);
+  await page.locator('#scene-leave-stay').click();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#scene-leave-confirm').isVisible(),true);
+  await page.locator('#scene-leave-discard').click();
+  assert.equal(await page.locator('#scene-library-dialog').isVisible(),false);
+  assert.equal(savedPacks.length,3,'Dismissed drafts must not be saved');
+
   assert.deepEqual(errors,[]);
+  console.log('PASS Elements unsaved draft navigation, save/discard/keep and visible eight-image toast');
   console.log('PASS two saved Elements attach as two compact chips, no repeated roles or provider jobs');
 }finally{
   await context.close();
