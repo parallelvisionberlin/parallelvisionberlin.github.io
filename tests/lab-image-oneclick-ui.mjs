@@ -470,11 +470,13 @@ try{
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
   await clickAdvanced(x.page);await x.page.click('#composer-reference-same-person');
   assert.deepEqual(await x.page.locator('.composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['identity','identity']);
-  assert.equal(await x.page.evaluate(()=>localStorage.getItem('pvlab:image-reference-mode:v1')),'references');
+  assert.match(await x.page.locator('#composer-reference-intent-toggle').innerText(),/References only/,'Explicit References only stays active within the draft');
+  assert.equal(await x.page.evaluate(()=>localStorage.getItem('pvlab:image-reference-mode:v1')),null,'Reference mode should not leak into new Image drafts');
   await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['identity','identity']);
   assert.equal(x.accepted(),1);ok('Same person preset works in References only');assert.deepEqual(x.errors,[]);await x.context.close();
   x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));await waitRefs(x.page,2);await ready(x.page);
+  assert.match(await x.page.locator('#composer-reference-intent-toggle').innerText(),/Base image/,'New Image workspace must start with Base image');
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
   await x.page.fill('#image-composer-prompt','');
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false);
