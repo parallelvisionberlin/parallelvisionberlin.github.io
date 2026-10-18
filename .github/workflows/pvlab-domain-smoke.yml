@@ -97,7 +97,7 @@ jobs:
               && grep -Fq "document.documentElement.classList.add('pv-studio-boot-lock')" /tmp/live-studio-js \
               && grep -Fq 'await Promise.race([historyReady,new Promise(resolve=>setTimeout(resolve,5000))]);' /tmp/live-studio-js \
               && grep -Fq 'const historyReady=loadHistory().catch(error=>' /tmp/live-studio-js \
-              && grep -Fq 'const root=document.documentElement,body=document.body;' /tmp/live-canonical-studio.html \
+              && grep -Fq 'const root=document.documentElement;' /tmp/live-canonical-studio.html \
               && grep -Fq "browser.pathname!=='/studio'" /tmp/live-session-request.js \
               && grep -Fq 'pv-credit-toast.is-visible' /tmp/live-toast.css \
               && grep -Fq '/api/migration/new' /tmp/live-session-request.js \
