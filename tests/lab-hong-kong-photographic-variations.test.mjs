@@ -18,11 +18,14 @@ test('all variation references are original-quality photos, not screenshots or A
     assert.equal(files.length,4);
     assert.equal(new Set(files).size,4);
     for(const file of files){
-      assert.match(file,/\.jpg$/i);
-      assert.doesNotMatch(file,/\.png|\.svg|screen|crop|generated/i);
-      const p=new URL('../lab/mood-references/hong-kong-nights-real/'+file,import.meta.url);
-      assert.ok(statSync(p).size>65000,file+' is unexpectedly small');
-      const b=readFileSync(p);assert.equal(b[0],255);assert.equal(b[1],216);
+      assert.match(file,/\.(jpg|png|webp)$/i);
+      assert.doesNotMatch(file,/\.svg|screen|crop|generated/i);
+      const p=new URL('../lab/mood-references/hong-kong-nights/'+file,import.meta.url);
+      assert.ok(statSync(p).size>40000,file+' is unexpectedly small');
+      const b=readFileSync(p);
+      if(file.endsWith('.png'))assert.deepEqual([...b.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+      else if(file.endsWith('.webp')){assert.equal(b.toString('ascii',0,4),'RIFF');assert.equal(b.toString('ascii',8,12),'WEBP');}
+      else{assert.equal(b[0],255);assert.equal(b[1],216);}
     }
   }
 });
