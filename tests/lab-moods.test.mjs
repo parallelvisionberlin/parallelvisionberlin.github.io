@@ -180,8 +180,9 @@ test('original prompt is not lost; mood metadata can be restored',()=>{
   const data=prepareMoodPrompt('Nina sitting by a window','hong-kong-nights',64,{engine:'gemini',referenceCount:1});
   assert.ok(data.prompt.startsWith('Nina sitting by a window\n\n'));
   assert.match(data.prompt,/atmospheric emerald haze/i);
-  assert.match(data.prompt,/Base\/Identity images control facial geometry/);
-  assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',moodVariant:'original',filmFinish:{version:2,grain:58,haze:78,halation:80,film:90}});
+  assert.match(data.prompt,/first reference is the base photograph/i);
+  assert.match(data.prompt,/Preserve face, identity, real body proportions/);
+  assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',moodVariant:'original',filmFinish:{version:2,grain:0,haze:0,halation:0,film:0}});
   assert.equal(data.error,'');
 });
 test('mood intensity actually affects the generated directions',()=>{
@@ -327,7 +328,9 @@ test('Dreamcore V7 routes organic nature, people and built environments',()=>{
   assert.equal(text.error,'');
   assert.match(text.prompt,/No Base: use the written subject/);
   assert.equal(userFacingImagePrompt({...max.metadata,prompt:max.prompt}),'Portrait at sea');
-  assert.match(prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1}).prompt,/MAXIMUM 100%: strong scene-aware off-axis night lighting/);
+  const restoredHongKong=prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1}).prompt;
+  assert.match(restoredHongKong,/Immersive humid nighttime atmosphere/);
+  assert.doesNotMatch(restoredHongKong,/reconstruct cinematic scene lighting|off-axis light modeling/);
   assert.match(readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8'),/not a literal opacity percentage/);
 });
 
