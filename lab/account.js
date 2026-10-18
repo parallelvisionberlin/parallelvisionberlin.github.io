@@ -1,7 +1,8 @@
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
-import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261016-account-menu-edge24&closure=20261017-logout1';
+import {renderHeaderCredits} from './header-credits.js?v=20261018-unified1';
+import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261016-account-menu-edge24&creditHeader=20261018v1&closure=20261017-logout1';
 
 const $=id=>document.getElementById(id);
 const menu=createAccountMenu($('account-menu'));
@@ -26,7 +27,9 @@ export function stripeDestination(value){
 function route(){
   const value=location.hash.slice(1);return ['balance','usage','billing','referrals','voucher','settings'].includes(value)?value:'balance';
 }
-function clearPrivateView(){$('settings-legacy-transfer').hidden=true;
+function clearPrivateView(){
+  renderHeaderCredits($('account-header-credits'),{signed:!!clerk?.isSignedIn,profile:null,billingHref:'#balance'});
+  $('settings-legacy-transfer').hidden=true;
   profile=null;referralLoaded=false;referralRevision++;
   menu.update();$('account-workspace').hidden=true;$('account-identity').textContent='Your creative space.';
   $('account-profile-mark').textContent='PV';$('account-profile-kind').textContent='Image. Motion. Your direction.';
@@ -88,6 +91,7 @@ function drawActivity(id,entries,empty){
   }
 }
 function drawProfile(){
+  renderHeaderCredits($('account-header-credits'),{signed:true,profile,billingHref:'#balance'});
   const identity=accountIdentity(clerk.user);$('account-identity').textContent=identity.name;
   const mark=$('account-profile-mark');mark.textContent=identity.initials;
   if(identity.image){const img=document.createElement('img');img.alt='';img.src=identity.image;img.referrerPolicy='no-referrer';img.addEventListener('error',()=>img.remove());mark.append(img);}
