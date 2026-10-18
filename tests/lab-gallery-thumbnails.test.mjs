@@ -64,6 +64,29 @@ test('thumbnail is a sharp, downscaled WebP and never overwrites original image'
  assert.equal(calls.originalReads,1,'original is not reread after thumbnail is cached');
 });
 
+test('cold thumbnail returns before its private R2 cache write completes',async()=>{
+ const {env,objects}=fixture();
+ const key=galleryThumbnailKey(asset),background=[];
+ let releaseWrite;
+ const writeGate=new Promise(resolve=>{releaseWrite=resolve;});
+ const originalPut=env.LAB_MEDIA.put;
+ env.LAB_MEDIA.put=async(...args)=>{await writeGate;return originalPut(...args);};
+ const responsePromise=serveGalleryThumbnail(env,asset,{waitUntil:promise=>background.push(promise)});
+ const early=await Promise.race([
+   responsePromise.then(response=>({response})),
+   new Promise(resolve=>setTimeout(()=>resolve({timedOut:true}),1000))
+ ]);
+ if(early.timedOut){releaseWrite();await responsePromise;assert.fail('Thumbnail waited for the R2 write');}
+ try{
+   assert.equal(early.response.status,200);
+   assert.equal(objects.has(key),false,'The background cache write was still waiting');
+   assert.equal(background.length,1);
+ }finally{releaseWrite();}
+ assert.deepEqual(new Uint8Array(await early.response.arrayBuffer()),WEBP);
+ await Promise.all(background);
+ assert.deepEqual(objects.get(key),WEBP,'Background storage keeps the same private derivative');
+});
+
 test('thumbnail limits are safe, and failure never mutates original',async()=>{
  const {env,objects,calls}=fixture({images:false});
  const missing=await serveGalleryThumbnail(env,asset);
@@ -94,7 +117,7 @@ test('gallery requests previews while modal, download and original inspection lo
  assert.match(ui,/async function openVideo\(job,/);
  assert.match(ui,/blob=await assetBlob\(job\.outputId\)/);
  assert.match(ui,/async function downloadJob\(job\)/);
- assert.match(worker,/return serveGalleryThumbnail\(env,a\)/);
+ assert.match(worker,/return serveGalleryThumbnail\(env,a,ctx\)/);
  assert.match(worker,/if\(path\.startsWith\('\/api\/assets\/'\)&&method==='GET'\)/);
  assert.match(wrangler,/\[images\]\s*binding\s*=\s*"IMAGES"/);
  assert.match(studio,/galleryThumb=1/);

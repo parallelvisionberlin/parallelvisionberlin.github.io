@@ -1547,7 +1547,7 @@ async function route(request,env,ctx) {
     const parts=path.split('/');if(parts.length!==5||parts[4]!=='thumbnail')fail(404,'Unknown preview.');
     const a=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',uid(parts[3]),owner);
     if(!a)fail(404,'File not found.');
-    return serveGalleryThumbnail(env,a);
+    return serveGalleryThumbnail(env,a,ctx);
   }
   if(path.startsWith('/api/assets/')&&method==='GET') {
     const a=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',uid(path.split('/')[3]),owner);if(!a)fail(404,'File not found.');return media(request,env,a);
