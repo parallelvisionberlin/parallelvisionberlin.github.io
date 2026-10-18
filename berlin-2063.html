@@ -29,6 +29,24 @@
 <link href="./css/berlin-projects.css?v=20260916-film-width" rel="stylesheet"/><style>.pv-berlin .berlin-beyond-title{display:block;margin-top:16px;font:400 clamp(20px,3vw,36px)/1.25 Inter,Arial,sans-serif;letter-spacing:.01em;text-transform:none}.pv-berlin .berlin-world-line{max-width:530px;color:#d8d8d2;margin:32px 0 0;font-size:clamp(16px,1.5vw,20px);line-height:1.6}.pv-berlin .berlin-hero-media{z-index:0}.pv-berlin .berlin-hero-content{position:relative;z-index:1}.pv-berlin .berlin-hero>.archive-nav{z-index:3}</style>
 <link rel="stylesheet" href="./css/project-navigation.css?v=20261016-1">
 <script defer src="./js/project-navigation.js?v=20261016-1"></script>
+<!-- Hyperfuture gallery research text: centered reading column on desktop, unchanged mobile flow. -->
+<style>
+@media (min-width: 761px) {
+  .pv-berlin #hyperfuture-berlin .world-context {
+    width: min(100%, 820px);
+    max-width: 820px;
+    margin: 24px auto 8px;
+  }
+  .pv-berlin #hyperfuture-berlin .world-context p {
+    max-width: none;
+    font-size: 17px;
+    line-height: 1.75;
+  }
+  .pv-berlin #hyperfuture-berlin > .project-enter {
+    margin-left: max(0px, calc((100% - 820px) / 2));
+  }
+}
+</style>
 </head>
 <body class="berlin-page pv-berlin">
 <a class="skip-link" href="#archive">Skip to main content</a>
