@@ -11,7 +11,7 @@ function addStyle(file){
     .find(link=>link.href.split('?')[0]===href);
   if(existing)return Promise.resolve();
   const link=document.createElement('link');link.rel='stylesheet';
-  link.href=href+(file==='pricing-overlay.css'?'?v=20261018-wide-pricing1':'');
+  link.href=href+(file==='pricing-overlay.css'?'?v=20261018-reference2':'');
   const result=new Promise((resolve,reject)=>{
     link.addEventListener('load',resolve,{once:true});
     link.addEventListener('error',()=>reject(new Error('Pricing design could not load. Try again.')),{once:true});
@@ -92,10 +92,15 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
       }[sku]||'Image, video and upscaling tools';
       detail.append(document.createTextNode(note));
       button.before(detail);
-      const billing=document.createElement('p');
-      billing.className='lab-overlay-card-fineprint';
-      billing.textContent=sku.startsWith('topup')?'Pay once · No recurring charge':'Billed monthly · Renews until cancelled';
-      button.after(billing);
+
+    }
+    const benefits=section.querySelector('.lab-pricing-benefits');
+    const billingFootnote=section.querySelector('.lab-pricing-footnote');
+    if(benefits&&billingFootnote){
+      const footer=document.createElement('div');
+      footer.className='lab-overlay-footer';
+      benefits.before(footer);
+      footer.append(benefits,billingFootnote);
     }
     surface.replaceChildren(section);
     // The existing homepage pricing tabs implement the same monthly / one-time

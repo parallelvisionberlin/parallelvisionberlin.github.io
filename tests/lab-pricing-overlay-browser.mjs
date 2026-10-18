@@ -43,7 +43,7 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const address=server.address();
 const browser=await chromium.launch({headless:true});
 try{
-  for(const width of [320,390,1440]){
+  for(const width of [320,390,1440,1648]){
     const page=await browser.newPage({viewport:{width,height:width>600?900:844},reducedMotion:'reduce'});
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto('http://127.0.0.1:'+address.port+'/test-overlay.html',{waitUntil:'load'});
@@ -57,6 +57,25 @@ try{
     assert.equal(await page.locator('#lab-pricing-overlay .lab-pricing-deck').isVisible(),false,'Homepage image fan is not duplicated into the Studio modal');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-overlay-plan-note').count(),3,'Each monthly card has its short capability note');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-overlay-icon').count(),12,'All usage and capability icons appear');
+    assert.equal(await page.locator('#lab-pricing-overlay .lab-overlay-footer').count(),1,'Benefits and billing use one bottom row');
+    assert.equal(await page.locator('#lab-pricing-overlay .lab-overlay-card-fineprint').count(),0,'No duplicate billing notes');
+    const background=await page.locator('#lab-pricing-overlay').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
+    assert.equal(background.includes('url('),false,'Modal does not use a portrait photo');
+    if(width>=1440){
+      const g=await page.locator('#lab-pricing-overlay').evaluate(el=>{
+        const r=el.getBoundingClientRect();
+        const p=[...el.querySelectorAll('#lab-monthly-plans .lab-plan')].map(x=>x.getBoundingClientRect());
+        const d=el.querySelector('#lab-monthly-plans .lab-plan-description').getBoundingClientRect();
+        const c=el.querySelector('#lab-monthly-plans .lab-plan-credits').getBoundingClientRect();
+        return {width:r.width,height:r.height,viewport:innerWidth,plans:p.map(n=>({x:n.x,y:n.y,height:n.height})),descriptionY:d.y,creditsY:c.y};
+      });
+      assert.ok(g.width>g.viewport*.72,'Wide reference modal, not the narrow old one: '+JSON.stringify(g));
+      assert.ok(g.height>=680,'Reference modal retains generous vertical rhythm: '+JSON.stringify(g));
+      assert.ok(g.plans.every(x=>x.height>=400),'Three taller plan cards: '+JSON.stringify(g));
+      assert.ok(g.descriptionY<g.creditsY,'Description is above credit details');
+      console.log('REFERENCE MODAL',width,JSON.stringify(g));
+    }
+
     if(width===1440){
       const positions=await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-plan').evaluateAll(nodes=>nodes.map(node=>({x:node.getBoundingClientRect().x,y:node.getBoundingClientRect().y,width:node.getBoundingClientRect().width})));
       assert.ok(positions[0].x<positions[1].x&&positions[1].x<positions[2].x,'Desktop modal uses three pricing columns');
