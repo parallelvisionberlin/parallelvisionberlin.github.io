@@ -1,3 +1,5 @@
+> Current Chrome Couture + Image Inspiration carousel implementation: [INSPIRATION-WORK-STATE.md](./INSPIRATION-WORK-STATE.md).
+
 ## Image Discreet Mode (2026-10-15)
 The Image Studio History eye control visually hides saved generations, pending results and working photo thumbnails while showing the existing atmospheric background. The browser restores this preference before the studio paints. Hidden images and their generation records are neither changed nor deleted. The toggle affects Image Studio only and is not a security or data-privacy guarantee. See [IMAGE-DISCREET-WORK-STATE.md](IMAGE-DISCREET-WORK-STATE.md).
 

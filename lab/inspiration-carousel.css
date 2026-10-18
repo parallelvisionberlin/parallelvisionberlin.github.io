@@ -1,0 +1,49 @@
+/* Seven Inspiration looks without compressing the approved six-up desktop layout. */
+.inspiration-carousel-shell{position:relative;min-width:0;width:100%;--inspire-gap:clamp(9px,1vw,18px)}
+#gate .pv-guest-carousel{margin:31px 0 0}
+#app.image-studio-active #lab-welcome-start .lab-welcome-carousel{max-width:1610px;margin:21px auto 0}
+#gate .pv-guest-carousel .pv-guest-cards,
+#app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{
+  box-sizing:border-box;display:grid!important;grid-template-columns:none!important;
+  grid-auto-flow:column!important;grid-auto-columns:calc((100% - var(--inspire-gap)*5)/6)!important;
+  gap:var(--inspire-gap)!important;max-width:none!important;width:100%!important;margin:0!important;
+  overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;scroll-snap-type:x mandatory;
+  overscroll-behavior-inline:contain;scrollbar-width:none;-ms-overflow-style:none;
+}
+#gate .pv-guest-carousel .pv-guest-cards::-webkit-scrollbar,
+#app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets::-webkit-scrollbar{display:none}
+.inspiration-carousel-shell .pv-guest-card,.inspiration-carousel-shell .lab-welcome-preset{scroll-snap-align:start;flex-shrink:0}
+.inspiration-carousel-shell .inspiration-nav{
+  position:absolute;z-index:5;top:50%;transform:translateY(-50%);display:grid;place-items:center;
+  width:39px;height:39px;padding:0;appearance:none;border:1px solid rgba(255,255,255,.32);
+  background:rgba(15,16,20,.74);color:#f5f3f0;border-radius:50%;
+  font:400 23px/1 Arial,sans-serif;cursor:pointer;box-shadow:0 5px 19px #0009;
+  backdrop-filter:blur(9px);transition:background-color .2s,border-color .2s;
+}
+.inspiration-carousel-shell .inspiration-nav-prev{left:7px}
+.inspiration-carousel-shell .inspiration-nav-next{right:7px}
+.inspiration-carousel-shell .inspiration-nav:hover{background:rgba(24,25,27,.96);border-color:rgba(255,255,255,.85)}
+.inspiration-carousel-shell .inspiration-nav:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.inspiration-carousel-shell .inspiration-nav[hidden]{display:none!important}
+/* Photographs stay static on hover. No AI-style zoom effects. */
+#gate .pv-guest-carousel .pv-guest-card:hover img,
+#app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-preset:hover>img{transform:none!important}
+@media(max-width:1150px){
+  #gate .pv-guest-carousel .pv-guest-cards,
+  #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{grid-auto-columns:calc((100% - var(--inspire-gap)*2)/3)!important}
+}
+@media(max-width:680px){
+  .inspiration-carousel-shell{--inspire-gap:10px}
+  #gate .pv-guest-carousel{margin-top:23px}
+  #app.image-studio-active #lab-welcome-start .lab-welcome-carousel{margin-top:21px}
+  #gate .pv-guest-carousel .pv-guest-cards,
+  #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{grid-auto-columns:calc((100% - var(--inspire-gap))/2)!important}
+  .inspiration-carousel-shell .inspiration-nav{height:34px;width:34px;font-size:20px}
+  .inspiration-carousel-shell .inspiration-nav-prev{left:4px}
+  .inspiration-carousel-shell .inspiration-nav-next{right:4px}
+}
+@media(prefers-reduced-motion:reduce){
+  #gate .pv-guest-carousel .pv-guest-cards,
+  #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{scroll-behavior:auto}
+  .inspiration-carousel-shell .inspiration-nav{transition:none}
+}
