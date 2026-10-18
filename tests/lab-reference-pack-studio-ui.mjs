@@ -236,12 +236,19 @@ try{
       headingClip:getComputedStyle(document.querySelector('#pack-studio-dialog .pack-studio-heading-copy')).clipPath};
   });
   assert.ok(Math.abs(fullLayout.centerY-450)<=8,'Photo Packs must be centered: '+JSON.stringify(fullLayout));
-  assert.equal(fullLayout.rows,2,'Ten library cards use exactly two visible rows: '+JSON.stringify(fullLayout));
-  assert.equal(fullLayout.cols,5,'Five desktop columns preserve the approved layout');
-  assert.ok(fullLayout.heroHeight<=123,'The Photo Packs hero must stay compact');
-  assert.ok(fullLayout.bottomOfCards<fullLayout.bottom-6,'No second row should be clipped');
-  assert.equal(fullLayout.overflowY,'hidden','Two fully visible desktop rows should not expose a needless scrollbar: '+JSON.stringify(fullLayout));
+  assert.equal(fullLayout.rows,3,'Ten saved packs use three rows in the approved four-column layout: '+JSON.stringify(fullLayout));
+  assert.equal(fullLayout.cols,4,'Four desktop columns preserve the current editorial layout');
+  assert.ok(fullLayout.heroHeight<=165,'The Photo Packs hero remains compact');
+  assert.ok(fullLayout.contentScroll>0,'Additional saved packs require scrollable library content');
+  assert.equal(fullLayout.overflowY,'auto','Library must scroll so no saved pack becomes unreachable: '+JSON.stringify(fullLayout));
   assert.equal(fullLayout.headingClip,'inset(50%)','Do not repeat Photo Packs above its hero');
+  const lastPack=page.locator('#pack-studio-grid .pack-studio-card').last();
+  await lastPack.scrollIntoViewIfNeeded();
+  const lastPackAccessible=await lastPack.evaluate(el=>{
+    const rect=el.getBoundingClientRect(),pane=el.closest('.pack-studio-main').getBoundingClientRect();
+    return rect.top>=pane.top-2&&rect.bottom<=pane.bottom+2;
+  });
+  assert.ok(lastPackAccessible,'Final saved pack must be reachable by scrolling within the modal');
   await page.screenshot({path:'test-results/photo-packs/two-rows-centered-desktop.png'});
   await context.close();
   packs.splice(originalPackCount);
