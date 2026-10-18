@@ -245,6 +245,7 @@ try{
     'Image controls remain attached below the expanded prompt: '+JSON.stringify(expanded));
   assert.ok(expanded.generateBottom<=expanded.viewportHeight,
     'Generate must remain visible when typing long prompts: '+JSON.stringify(expanded));
+  const enteredText=await field.inputValue();
   await page.locator('[data-welcome-mood="hong-kong-nights"]').click();
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Choosing a Mood keeps the opened deck permanently expanded after blur');
@@ -255,12 +256,12 @@ try{
   assert.ok(Math.abs(newCardY-cardY)<8,
     'Opening the docked deck must keep the six Mood cards stable in document coordinates: '+
       JSON.stringify({cardY,newCardY,delta:newCardY-cardY,scrollY:await page.evaluate(()=>scrollY)}));
-  assert.match(await page.locator('#image-composer-prompt').inputValue(),/jade-green-lit corner shop/);
+  assert.equal(await field.inputValue(),enteredText,'Selecting a Mood preserves the user text');
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
     'The first Mood selection must use Seedream 2K, not the generic Studio 1K default');
   assert.equal(await button.isEnabled(),true,'Green Haze must enable Generate in the same click');
   await page.locator('[data-welcome-mood="dream-blur"]').click();
-  assert.match(await page.locator('#image-composer-prompt').inputValue(),/blue motion blur/);
+  assert.equal(await field.inputValue(),enteredText,'Changing Moods preserves the user text');
   assert.equal(await page.locator('#image-composer-resolution').inputValue(),'2k',
     'Switching welcome Moods must retain the agreed 2K default');
   assert.doesNotMatch(await button.getAttribute('data-credits')||'',/Confirming credits/i,
