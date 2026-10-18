@@ -1,9 +1,10 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
+import {creditHeaderState} from './header-credits.js?v=20261018-credit-unified1';
 import {referralsAvailable} from './account-menu.js?v=20261012-account2';
 import {metaConsentGranted,trackLabEvent} from './meta-pixel.js?v=20261013-a1';
 export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{},openPricing=()=>{window.location.assign('./#pricing');}}){
   const $=id=>document.getElementById(id);
-  let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0,trialGenerationPaused=false;
+  let account=false,authenticated=false,billingReady=false,balance=null,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0,trialGenerationPaused=false;
   let dismissed=false,purchasing=false,refreshing=null,refreshAgain=false;
   const add=$('lab-add-credits'),banner=$('lab-credit-banner');
   const toggle=$('lab-wallet-toggle'),dialog=$('lab-credits-dialog'),referralDialog=$('lab-referrals-dialog'),amount=$('lab-credit-balance'),
@@ -20,15 +21,30 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     return Number.isSafeInteger(job?.creditCost)&&job.creditCost>=7?job.creditCost.toLocaleString()+' credits':describe(job?.estimatedUsd);
   }
   function update(){
-    toggle.hidden=!account;
+    // Signed-in account identity controls visibility. Customer entitlement
+    // controls charging, but must not suppress access to credits and billing.
+    const badge=creditHeaderState({
+      signed:authenticated,
+      profile:account?{customer:true,balanceCredits:balance,accountClosed}:null
+    });
+    toggle.hidden=!badge.visible;
+    toggle.textContent=badge.unit?badge.label+' credits':badge.label;
+    toggle.setAttribute('aria-label',badge.description);
+    toggle.title=badge.description;
     if(add)add.hidden=!account;
     if(balance>0)dismissed=false;
-    if(banner)banner.hidden=!account||balance>0||dismissed||!!accountClosed||billingReview;
-    if(!account){if(dialog?.open)dialog.close();if(referralDialog?.open)referralDialog.close();list.replaceChildren();amount.textContent='0 credits';state.textContent='';return;}
-    onBalance(balance);
-    toggle.textContent=balance.toLocaleString()+' credits';
-    amount.textContent=balance.toLocaleString()+' credits';
-    state.textContent=accountClosed?'Your PV Lab account is closed. Visit Plans & billing for account support.':billingReview?'A refund or dispute is under review. Contact support; billing management remains available.':purchasing?'Opening secure checkout…':trialGenerationPaused?'Free generations are paused. Your existing credits are saved. Choose a credit pack to start generating.':billingReady?'':'Checkout setup is being finalized. Payments are not being accepted yet.';
+    if(banner)banner.hidden=!account||balance===null||balance>0||dismissed||!!accountClosed||billingReview;
+    if(!account){
+      if(dialog?.open)dialog.close();
+      if(referralDialog?.open)referralDialog.close();
+      list.replaceChildren();
+      amount.textContent='Balance unavailable';
+      state.textContent='';
+      return;
+    }
+    onBalance(Number.isSafeInteger(balance)&&balance>=0?balance:null);
+    amount.textContent=badge.unit?badge.label+' credits':'Balance unavailable';
+    state.textContent=accountClosed?'Your PV Lab account is closed. Visit Plans & billing for account support.':billingReview?'A refund or dispute is under review. Contact support; billing management remains available.':purchasing?'Opening secure checkout…':trialGenerationPaused?'Free generations are paused. Your existing credits are saved. Choose a credit pack to start generating.':balance===null?'Balance unavailable. Refresh to check your credits.':billingReady?'':'Checkout setup is being finalized. Payments are not being accepted yet.';
     list.replaceChildren();
     for(const p of products.filter(p=>p.type==='payment')){
       const button=document.createElement('button');button.type='button';
@@ -74,11 +90,14 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     }
   }
   function open(){
-    if(!account)return;
+    if(!account){
+      if(authenticated)location.assign('./account.html#balance');
+      return;
+    }
     // Empty or frozen complimentary wallets go straight to the complete
     // in-Studio pricing panel, instead of a second smaller credit deck.
     // Funded customers retain the existing balance-management dialog.
-    if(!accountClosed&&(balance<=0||trialGenerationPaused)){
+    if(!accountClosed&&((balance!==null&&balance<=0)||trialGenerationPaused)){
       if(dialog.open)dialog.close();
       openPricing({oneTime:true});
       return;
@@ -156,9 +175,9 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     refreshing=(async()=>{
     try{
       const data=await api('/api/customer/wallet');
-      if(!account||current!==accountEpoch)return;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;trialGenerationPaused=!!data.trialGenerationPaused;balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;
+      if(!account||current!==accountEpoch)return;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;trialGenerationPaused=!!data.trialGenerationPaused;balance=Number.isSafeInteger(data.balanceCredits)&&data.balanceCredits>=0?data.balanceCredits:null;billingReady=!!data.billingReady;
       products=Array.isArray(data.products)?data.products:products;$('lab-credit-invite').hidden=!referralsAvailable(data);update();
-    }catch(e){if(account&&current===accountEpoch)notify(e.message,true);}
+    }catch(e){if(account&&current===accountEpoch){balance=null;update();notify(e.message,true);}}
     finally{refreshing=null;if(refreshAgain){refreshAgain=false;if(account)void refresh();}}
     })();return refreshing;
   }
@@ -168,9 +187,9 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     if($('lab-close-account'))$('lab-close-account').disabled=true;
     referralEpoch++;referralLoading=false;
     referralUrl.value='';referralCopy.disabled=true;referralStats.textContent='';referralState.textContent='';
-    account=next;soulIdTrainingCredits=account&&Number.isSafeInteger(data.soulIdTrainingCredits)?data.soulIdTrainingCredits:null;
-    if(account){balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;products=data.products||[];}
-    else{balance=0;billingReady=false;products=[];}
+    account=next;authenticated=!!data.authenticated||next;soulIdTrainingCredits=account&&Number.isSafeInteger(data.soulIdTrainingCredits)?data.soulIdTrainingCredits:null;
+    if(account){balance=Number.isSafeInteger(data.balanceCredits)&&data.balanceCredits>=0?data.balanceCredits:null;billingReady=!!data.billingReady;products=data.products||[];}
+    else{balance=null;billingReady=false;products=[];}
     $('lab-credit-invite').hidden=!referralsAvailable(data);
     update();
   }
