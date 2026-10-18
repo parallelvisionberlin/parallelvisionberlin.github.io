@@ -613,6 +613,22 @@ try{
   assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Add references/);
   await x.page.locator('#canvas-secondary').click();
   assert.equal(await x.page.evaluate(()=>document.activeElement.id),'prompt','Reference secondary action focuses motion direction');
+  const outputFit=await x.page.evaluate(()=>{
+    const ids=['pv-video-model-pill','duration-control','ratio-control','resolution-control','pv-video-audio-pill'];
+    const nodes=ids.map(id=>document.getElementById(id));
+    if(nodes.some(el=>!el||el.hidden||getComputedStyle(el).display==='none'))return {ready:false};
+    const rects=nodes.map(el=>el.getBoundingClientRect());
+    const rail=document.querySelector('.workspace.video-layout>.controls').getBoundingClientRect();
+    return {ready:true,tops:rects.map(r=>r.top),right:Math.max(...rects.map(r=>r.right)),
+      railRight:rail.right,widths:rects.map(r=>r.width)};
+  });
+  assert.equal(outputFit.ready,true,'Reference mode has the five actual output settings');
+  assert.ok(Math.max(...outputFit.tops)-Math.min(...outputFit.tops)<3,
+    'Approved desktop Video settings stay on a single row: '+JSON.stringify(outputFit));
+  assert.ok(outputFit.right<=outputFit.railRight-8,
+    'Video settings cannot overflow the right edge of the editor: '+JSON.stringify(outputFit));
+  assert.ok(outputFit.widths.every(w=>w>48),
+    'Model, duration, ratio, resolution and audio remain usable');
   await x.page.screenshot({path:'test-results/lab-workspace-reference.png',fullPage:false});
   assert.deepEqual(x.errors,[]);
   await x.context.close();

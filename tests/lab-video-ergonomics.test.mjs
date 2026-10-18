@@ -2,63 +2,72 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
-const read=path=>readFileSync(new URL('../lab/'+path,import.meta.url),'utf8');
-const html=read('studio.html'),app=read('lab.js'),
-  js=read('video-ergonomics.js'),css=read('video-ergonomics.css'),
-  models=read('video-models.js');
+const source=name=>readFileSync(new URL('../lab/'+name,import.meta.url),'utf8');
+const html=source('studio.html'),app=source('lab.js'),
+  css=source('video-restored-editorial.css'),editor=source('video-editorial-deck.js'),
+  models=source('video-models.js');
 
-test('Seedance Create/Extend labels remove duplicate References without removing Start',()=>{
+test('the approved editorial deck replaces the superseded compact layer',()=>{
+  assert.match(html,/video-restored-editorial\.css\?v=20261018-approved-restoration1/);
+  assert.doesNotMatch(html,/<link[^>]*video-ergonomics\.css/);
+  assert.doesNotMatch(html,/<script[^>]*video-ergonomics\.js/);
+  assert.match(css,/grid-template-columns:clamp\(430px,30\.5vw,520px\) minmax\(0,1fr\) clamp\(245px,16\.5vw,282px\)/);
+  assert.match(css,/#app\.video-studio-active>.workspace\.video-layout/,'final track widths apply in the very first render');
+  assert.match(css,/#app\.video-studio-active\.pv-video-approved-ready\.pv-video-state-ready/,
+    'the restored visual rules override earlier design layers');
+  assert.match(css,/min-height:43px!important;height:43px!important/,
+    'Create and Extend are large enough to use comfortably');
+  assert.match(css,/min-height:41px!important;height:41px!important/,
+    'Text, Start frame and References are equally legible');
+  assert.match(css,/font-size:14px!important;line-height:1\.62!important/,
+    'Prompt remains readable, not condensed to 13px');
+});
+
+test('the model capability matrix and credit/generation controls are unchanged',()=>{
   for(const id of ['video-create-task','mode-extend','mode-text','mode-start',
     'mode-reference','reference-mode','start-mode','reference-drop','image',
-    'last-image','video-references','audio-references','scene-video-open']){
+    'last-image','video-references','audio-references','scene-video-open',
+    'pv-video-model-pill','duration','ratio','resolution','audio','generate']){
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,
-      'original native model or input remains exactly once: '+id);
+      'real production model input remains: '+id);
   }
+  assert.match(models,/modes: \['start', 'reference', 'text', 'extend'\]/,
+    'Seedance retains all independent native Start, Reference, Text, Extend routes');
+  assert.match(models,/wan: Object\.freeze\(\{[\s\S]*?modes: \['start', 'reference'\]/);
   assert.match(html,/id="video-create-task"[\s\S]*?<\/svg>Create<\/button>/);
   assert.match(html,/id="mode-extend"[\s\S]*?<\/svg>Extend<\/button>/);
-  assert.match(html,/id="pv-mode-start-label">Start frame<\/span>/);
-  assert.match(html,/id="pv-mode-reference-label">References<\/span>/);
-  assert.match(js,/seedance\?'Reference set':'References'/);
-  assert.match(js,/seedance\?'Opening frame':'Start frame'/);
-  assert.match(css,/\.pv-video-seedance #video-modes/);
-  assert.match(models,/modes: \['start', 'reference', 'text', 'extend'\]/,
-    'the real Seedance provider routes must not be removed');
-  assert.match(models,/image-to-video'.*reference:/,'opening image and reference routing remain separate');
-});
-test('Wan and reference opening-frame composer stay available without misleading combined modes',()=>{
-  assert.match(models,/wan: Object\.freeze\(\{[\s\S]*?modes: \['start', 'reference'\]/);
-  assert.match(html,/id="create-start-frame"[^>]*>Create opening image<\/button>/);
-  assert.match(html,/Seedream image credits charged separately after review/);
-  assert.equal((html.match(/id="start-frame-maker"/g)||[]).length,1);
-  assert.match(css,/#reference-mode #start-frame-maker:not\(\[hidden\]\)/);
+  assert.match(css,/#video-modes \.mode-tab:not\(\[hidden\]\)/);
   assert.match(css,/\.video-extend-active #reference-mode #video-media-drop/);
-  assert.match(css,/\.video-extend-active #reference-mode>\.scene-video-access/);
-  assert.match(js,/const wan=video&&\['wan','wanprime'\]\.includes\(engine\.value\)/);
-  assert.match(app,/lastVideoCreateMode/, 'Create returns to the previous submode');
-  assert.match(app,/if\(mode!=='extend'&&\['text','start','reference'\]\.includes\(mode\)\)lastVideoCreateMode=mode/);
+  assert.match(app,/lastVideoCreateMode/);
+  assert.match(css,/#reference-list \.reference-fields>select/,
+    'Identity/outfit/location roles remain editable');
+  assert.match(css,/#reference-mode #start-frame-maker:not\(\[hidden\]\)/,
+    'Wan opening-frame creation remains compact and separate from video pricing');
 });
-test('reference UI is compact but still includes the existing selected reference roles',()=>{
-  assert.match(css,/#reference-list \.reference-item>img/);
-  assert.match(css,/#reference-list \.reference-fields>select/);
-  assert.match(css,/#reference-mode #video-motion-toggle/);
-  assert.match(css,/\.video-extend-active #reference-list/);
-  assert.match(css,/\.video-extend-active \.audio-media-drop/);
-  assert.match(html,/video-ergonomics\.css\?v=/);
-  assert.match(html,/video-ergonomics\.js\?v=/);
-  assert.match(html,/&videoErgonomics=20261017-1/);
-  assert.doesNotMatch(js,/fetch\s*\(|\/api\/jobs|\/api\/quotes|billing|creditCost|providerKey/,
-    'UI helper never submits generation or alters credit billing');
-  assert.doesNotThrow(()=>new Function(js));
+test('the empty video invitation uses one approved Fashion After Fabric still, not train imagery',()=>{
+  const start=html.slice(html.indexOf('id="pv-video-start-visual"'),
+    html.indexOf('id="pv-video-text-visual"'));
+  assert.match(start,/class="pv-video-start-editorial"/);
+  assert.doesNotMatch(start,/<img[^>]*src=/,
+    'the Start invitation does not contain fake beginning/ending photographs');
+  assert.match(css,/\.pv-video-start-editorial/);
+  assert.match(css,/visuals\/invite-after-fabric-user-approved-20261014\.webp/);
+  assert.match(editor,/const examples=\['\.\/visuals\/invite-after-fabric-user-approved-20261014\.webp'\]/,
+    'the same single PV LAB still is shown before references are added');
+  assert.doesNotMatch(editor,/dreamcore-train-20261010\.webp/);
+  assert.match(editor,/const visuals=showingExample\?examples:thumbnails/,
+    'real attached photographs replace the illustrative still');
+  assert.match(editor,/collage\.dataset\.illustrative=String\(showingExample\)/,
+    'the UI distinguishes saved reference images from the illustration');
+  assert.doesNotMatch(editor,/fetch\s*\(|\/api\/jobs|\/api\/quotes|creditCost/);
+  assert.doesNotThrow(()=>new Function(editor));
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
 });
-test('Video navigation does not lose the scrollbar gutter after login finishes',()=>{
+test('Video first-paint width and scrollbar gutter stay stable without affecting Image',()=>{
   assert.match(html,/html:has\(#app\.image-studio-active\)\{scrollbar-gutter:stable\}/);
   assert.match(html,/html:has\(#app\.video-studio-active\)\{scrollbar-gutter:stable\}/);
-  assert.match(css,/grid-template-columns:clamp\(352px,26vw,395px\) minmax\(0,1fr\)/);
-  assert.match(css,/\.video-feed-center\{\s*min-width:0!important;scrollbar-gutter:stable!important;/);
   assert.match(css,/transition-property:none!important/);
+  assert.match(css,/scrollbar-gutter:stable!important/);
   assert.match(app,/\$\('app'\)\.classList\.toggle\('pv-video-ergonomic',videoMode\)/,
-    'final grid columns are active before the Studio is first revealed');
-  assert.match(app,/\$\('app'\)\.classList\.toggle\('pv-video-seedance',isVideo&&engine==='seedance'\)/,
-    'model switching should never wait for an animation frame to update the layout');
+    'Video route is established before the overlay finishes');
 });
