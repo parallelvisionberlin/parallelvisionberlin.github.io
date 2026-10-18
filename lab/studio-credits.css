@@ -40,6 +40,10 @@
 .lab-credit-deck-footer [hidden]{display:none!important}
 .lab-credit-deck :is(a,button):focus-visible{outline:2px solid #eeeae2;outline-offset:3px}
 @media(max-width:560px){
+  /* The balance pill opens the same existing pricing or billing flow.
+     Hide the redundant Upgrade button only when that pill is present,
+     so both controls do not overflow narrow signed-in headers. */
+  #studio-header .actions:has(.lab-wallet-toggle:not([hidden])) #lab-add-credits{display:none!important}
   /* A zero-balance customer must still have access to credits on phones. */
   #studio-header .lab-wallet-toggle:not([hidden]){display:inline-flex;align-items:center;justify-content:center;padding:7px 9px;font-size:10px}
   #studio-header .lab-add-credits{gap:8px;padding:9px 12px;font-size:11px}
