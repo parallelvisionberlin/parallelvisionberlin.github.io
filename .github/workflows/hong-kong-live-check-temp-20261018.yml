@@ -1,0 +1,32 @@
+name: Verify Hong Kong Nights on production domain
+on:
+  push:
+    branches: ['codex/hong-kong-film-finish-test-repair-20261018']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify actual Cloudflare-hosted PV LAB assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 6); do
+            if curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/film-finish.js?check=20261018-hk-live" -o /tmp/hk-film.js \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/moods.js?check=20261018-hk-live" -o /tmp/hk-moods.js \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/lab.js?check=20261018-hk-live" -o /tmp/hk-lab.js \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/studio.html?check=20261018-hk-live" -o /tmp/hk-studio.html \
+              && grep -Fq 'version:2,grain:58,haze:78,halation:80,film:90' /tmp/hk-film.js \
+              && grep -Fq '"defaultIntensity": 85' /tmp/hk-moods.js \
+              && grep -Fq "function preferredImageReferenceMode(){return 'base';}" /tmp/hk-lab.js \
+              && grep -Fq 'hkPhoto=20261018v1' /tmp/hk-studio.html; then
+              echo 'PASS: pvlab.studio serves approved Hong Kong Nights and Base image behavior.'
+              exit 0
+            fi
+            echo "Production propagation or validation pending, attempt $attempt."
+            sleep 12
+          done
+          echo 'FAIL: Could not verify production domain asset content.'
+          exit 1
