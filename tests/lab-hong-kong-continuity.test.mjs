@@ -33,7 +33,7 @@ test('every supported engine and Mood strength preserves face, flattering skin e
   for(const intensity of [1,34,35,60,75,76,90,100]){
     const recipe=prepareMoodPrompt('Preserve her face and original street.','hong-kong-nights',intensity,{engine,referenceCount:1});
     assert.equal(recipe.error,'',engine+'/'+intensity);
-    assert.match(recipe.prompt,/same moment, not a new photograph or location/);
+    assert.match(recipe.prompt,/SAME moment, not a new photograph or location/);
     assert.match(recipe.prompt,/natural beauty without remodeling the face/);
     assert.match(recipe.prompt,/Keep eyes readable and softly illuminated/);
     assert.match(recipe.prompt,/every original building, window, wall, pavement, sign and scene object/);
@@ -65,7 +65,7 @@ test('Deep Green and Slow Shutter are optical treatments, not alternate characte
     assert.equal(r.metadata.moodVariant,variant);
     assert.ok(r.prompt.startsWith('Original portrait.\n\n'));
     assert.match(r.prompt,/EDIT IMAGE 1/);
-    assert.match(r.prompt,/same moment, not a new photograph or location/);
+    assert.match(r.prompt,/SAME moment, not a new photograph or location/);
     if(variant!=='original')assert.ok(r.prompt.includes(HONG_KONG_VARIANTS[variant].direction));
     const settings={type:'image',mode:'image',engine:'seedream',referenceMode:'base',
       referenceRoles:[{name:'portrait.png',role:'base'}],prompt:r.prompt,...r.metadata};
