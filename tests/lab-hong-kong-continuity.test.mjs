@@ -54,7 +54,7 @@ test('increasing the strength changes existing light only, never scene identity 
   assert.doesNotMatch(high,/thick but realistic haze|rain-wet reflections|nighttime exposure/);
   assert.notEqual(low,medium);
   assert.notEqual(medium,high);
-  assert.match(medium,/Keep eyes readable/);
+  assert.match(medium,/softly lit eyes/);
   assert.match(high,/blacken eye sockets, green-tint skin, crush shadows/);
 });
 test('Deep Green and Slow Shutter are optical treatments, not alternate characters or locations',()=>{
