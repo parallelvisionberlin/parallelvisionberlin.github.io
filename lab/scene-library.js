@@ -225,7 +225,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
       photos.push({file,id:entry.file?entry.id||null:null,url:externalUrl||URL.createObjectURL(file),owned:!externalUrl});
     }
     renderPhotos();
-    hideSceneToast();
+    hideSceneToast();setStatus('');
   }
   function syncNoteUi(){
     const field=$('scene-note'),counter=$('scene-note-count');
