@@ -65,6 +65,12 @@ try{
     assert.equal(await page.locator('.pv-guest-card').count(),7);
     const height=await page.locator('.pv-guest-card').first().evaluate(e=>e.getBoundingClientRect().height);
     assert.ok(height>185&&height<216,'390px phone keeps the cards about 15% shorter: '+height);
+    const forward=page.locator('#gate .inspiration-nav-next');
+    await forward.waitFor({state:'visible'});
+    await forward.click();
+    await page.waitForFunction(()=>document.getElementById('pv-guest-cards').scrollLeft>30);
+    await page.locator('#gate .inspiration-nav-prev').click();
+    await page.waitForFunction(()=>document.getElementById('pv-guest-cards').scrollLeft<5);
     await page.locator('[data-guest-mood="90s-cinema"]').click();
     assert.match(await page.locator('#pv-guest-prompt').inputValue(),/vinyl records/);
     assert.equal(await page.locator('[data-guest-mood="90s-cinema"]').getAttribute('aria-pressed'),'true');
