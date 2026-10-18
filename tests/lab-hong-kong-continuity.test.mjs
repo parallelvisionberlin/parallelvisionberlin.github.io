@@ -14,10 +14,10 @@ test('the October 10 cinematic inspiration stays available for compositions, whi
   const edit=prepareMoodPrompt(user,mood.id,60,{referenceCount:1,referenceMode:'base'});
   assert.equal(edit.error,'');
   assert.ok(edit.prompt.startsWith(user+'\n\n'));
-  assert.match(edit.prompt,/EDIT IMAGE 1, the existing photograph/);
-  assert.match(edit.prompt,/NOT a new scene/);
-  assert.match(edit.prompt,/NOT a request for Asian streets/);
-  assert.match(edit.prompt,/original expressive, flattering face/);
+  assert.match(edit.prompt,/EDIT IMAGE 1, not a new scene/);
+  assert.match(edit.prompt,/not a new scene/);
+  assert.match(edit.prompt,/not an instruction to move anyone to Asia or add neon/);
+  assert.match(edit.prompt,/natural expressive beauty/);
   assert.doesNotMatch(edit.prompt,/humid urban darkness|rain-wet reflections|organic 35mm grain/);
   assert.equal(edit.metadata.moodIntensity,60);
   assert.equal(edit.metadata.moodVariant,'original');
@@ -33,12 +33,12 @@ test('every supported engine and Mood strength preserves face, flattering skin e
   for(const intensity of [1,34,35,60,75,76,90,100]){
     const recipe=prepareMoodPrompt('Preserve her face and original street.','hong-kong-nights',intensity,{engine,referenceCount:1});
     assert.equal(recipe.error,'',engine+'/'+intensity);
-    assert.match(recipe.prompt,/NOT a new scene/);
-    assert.match(recipe.prompt,/original expressive, flattering face/);
-    assert.match(recipe.prompt,/softly lit eyes/);
-    assert.match(recipe.prompt,/original buildings, pavement, signs and objects/);
-    assert.match(recipe.prompt,/add visible grain, dirt, film damage/);
-    assert.match(recipe.prompt,/NOT a request for Asian streets, new neon/);
+    assert.match(recipe.prompt,/not a new scene/);
+    assert.match(recipe.prompt,/natural expressive beauty/);
+    assert.match(recipe.prompt,/softly visible eyes/);
+    assert.match(recipe.prompt,/every background building, sign and street element/);
+    assert.match(recipe.prompt,/No added grain, noise, dirt/);
+    assert.match(recipe.prompt,/not an instruction to move anyone to Asia or add neon/);
     assert.doesNotMatch(recipe.prompt,/reconstruct cinematic scene lighting|off-axis light modeling|Relight whole Base/);
     assert.deepEqual(recipe.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
     assert.ok(recipe.prompt.length<(engine==='seedreamlite'?3000:5000));
@@ -54,8 +54,8 @@ test('increasing the strength changes existing light only, never scene identity 
   assert.doesNotMatch(high,/thick but realistic haze|rain-wet reflections|nighttime exposure/);
   assert.notEqual(low,medium);
   assert.notEqual(medium,high);
-  assert.match(medium,/softly lit eyes/);
-  assert.match(high,/blacken eye sockets, green-tint skin, crush shadows/);
+  assert.match(medium,/softly visible eyes/);
+  assert.match(high,/do not age, remodel, harden eye shadows or darken the face/);
 });
 test('Deep Green and Slow Shutter are optical treatments, not alternate characters or locations',()=>{
   const prompts=[];
@@ -65,7 +65,7 @@ test('Deep Green and Slow Shutter are optical treatments, not alternate characte
     assert.equal(r.metadata.moodVariant,variant);
     assert.ok(r.prompt.startsWith('Original portrait.\n\n'));
     assert.match(r.prompt,/EDIT IMAGE 1/);
-    assert.match(r.prompt,/NOT a new scene/);
+    assert.match(r.prompt,/not a new scene/);
     if(variant!=='original')assert.ok(r.prompt.includes(HONG_KONG_VARIANTS[variant].direction));
     const settings={type:'image',mode:'image',engine:'seedream',referenceMode:'base',
       referenceRoles:[{name:'portrait.png',role:'base'}],prompt:r.prompt,...r.metadata};
