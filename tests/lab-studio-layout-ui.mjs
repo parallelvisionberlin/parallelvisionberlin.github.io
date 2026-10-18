@@ -87,7 +87,7 @@ const geometry=async page=>page.evaluate(()=>{
     explanationCollapsed:!document.querySelector('.model-details').open
   };
 });
-async function open(width,height){
+async function open(width,height,packFixtures=[]){
   const context=await browser.newContext({viewport:{width,height},acceptDownloads:true});
   const page=await context.newPage();const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
@@ -95,7 +95,15 @@ async function open(width,height){
     const u=new URL(route.request().url());
     if(!u.hostname.endsWith('parallelvision.workers.dev'))return route.abort();
     const path=u.pathname;
-    const content=path==='/api/jobs'?{jobs:[],activeJobs:[],concurrency:{image:4,video:1},next:null}:path==='/api/packs'?{packs:[]}:path==='/api/soul-pro/identity'?{configured:false,count:0,refs:[]}:{};
+    if(packFixtures.length&&path.startsWith('/api/assets/')){
+      // Photographs are private mock bytes. The first image is portrait,
+      // later ones are landscape, so the cover chooser has a real comparison.
+      const portrait='iVBORw0KGgoAAAANSUhEUgAAAAUAAAAICAIAAAC+k6JsAAAAFElEQVR42mPsOfGMAQkwMaACWvMBHMECSiMsnzcAAAAASUVORK5CYII=';
+      const landscape='iVBORw0KGgoAAAANSUhEUgAAAAgAAAAFCAIAAAD38zoCAAAAFUlEQVR42mPsOfGMARtgYsABqCgBABSBAkSB+D7tAAAAAElFTkSuQmCC';
+      const isPortrait=path.includes('a101');
+      return route.fulfill({status:200,contentType:'image/png',body:Buffer.from(isPortrait?portrait:landscape,'base64')});
+    }
+    const content=path==='/api/jobs'?{jobs:[],activeJobs:[],concurrency:{image:4,video:1},next:null}:path==='/api/packs'?{packs:packFixtures}:path==='/api/soul-pro/identity'?{configured:false,count:0,refs:[]}:{};
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(content)});
   });
   await page.goto('http://127.0.0.1:4182/lab/studio.html?tool=video');
@@ -960,6 +968,57 @@ try{
   assert.deepEqual(x.errors,[]);
   await x.context.close();
   console.log('PASS mobile responsive layout');
+  // Regression: saving MyRoom must not replace the editorial Locations hero.
+  // The reference image helper requires a DIV host and decodes private bytes.
+  const fixture=[{
+    id:'ad4b7111-39f4-47a9-898b-45a1cf07a030',
+    name:'PVSCENE1|locations|MyRoom',
+    created_at:'2026-10-18T00:05:00Z',
+    refs:[
+      {id:'ad4b7111-39f4-47a9-898b-45a1cf07a101',name:'portrait.png',role:'room'},
+      {id:'ad4b7111-39f4-47a9-898b-45a1cf07a102',name:'room-landscape.png',role:'room'},
+      {id:'ad4b7111-39f4-47a9-898b-45a1cf07a103',name:'room-detail.png',role:'room'},
+      {id:'ad4b7111-39f4-47a9-898b-45a1cf07a104',name:'room-angle.png',role:'room'}
+    ]
+  }];
+  const coverTest=await open(1440,900,fixture);
+  await coverTest.page.click('#tool-image');
+  await coverTest.page.click('#scene-image-open');
+  await coverTest.page.click('#scene-menu-elements');
+  await coverTest.page.click('#scene-image-menu [data-scene-target="locations"]');
+  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true,'Saved Locations preserve their editorial hero');
+  assert.equal(await coverTest.page.locator('#scene-feature').isVisible(),false,'Saving an item does not hijack the hero with a selected feature');
+  assert.ok((await coverTest.page.locator('#scene-category-hero').evaluate(el=>getComputedStyle(el).backgroundImage)).includes('scene-hero-art/locations.webp'));
+  assert.equal(await coverTest.page.locator('#scene-grid .scene-card-select').count(),1);
+  await coverTest.page.waitForFunction(()=>{
+    const img=document.querySelector('#scene-grid .scene-card-image img');
+    return img?.complete&&img.naturalWidth===8&&img.naturalHeight===5;
+  },null,{timeout:12000});
+  const imgRules=await coverTest.page.locator('#scene-grid .scene-card-image img').evaluate(img=>({
+    fit:getComputedStyle(img).objectFit,width:img.getBoundingClientRect().width,
+    parentWidth:img.parentElement.getBoundingClientRect().width
+  }));
+  assert.equal(imgRules.fit,'cover','Saved Location card scales and crops the chosen photo');
+  assert.ok(Math.abs(imgRules.width-imgRules.parentWidth)<2,'Location card photo fills its frame');
+  await coverTest.page.click('#scene-grid .scene-card-select');
+  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true,'Selecting a location does not hide the editorial hero');
+  await coverTest.page.waitForFunction(()=>document.querySelector('#scene-feature-cover img')?.naturalWidth===8||
+    document.querySelector('.scene-feature-cover img')?.naturalWidth===8,{},{timeout:12000});
+  assert.equal(await coverTest.page.locator('#scene-feature').isVisible(),true,'Selected element has an independent detail panel');
+  await coverTest.page.click('#scene-feature .scene-feature-details');
+  assert.equal(await coverTest.page.locator('.scene-feature-photos .scene-feature-shot').count(),4);
+  await coverTest.page.waitForFunction(()=>[...document.querySelectorAll('.scene-feature-shot img')].every(img=>img.complete&&img.naturalWidth>0),null,{timeout:12000});
+  await coverTest.page.click('#scene-list-view');
+  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true);
+  assert.equal(await coverTest.page.locator('#scene-grid .scene-card-image img').count(),1);
+  await coverTest.page.setViewportSize({width:390,height:844});
+  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true,'Mobile Locations keeps its static banner');
+  assert.ok(await coverTest.page.locator('#scene-library-dialog').evaluate(el=>el.getBoundingClientRect().width<=window.innerWidth),
+    'Saved Locations modal does not overflow mobile horizontally');
+  await coverTest.page.screenshot({path:'test-results/lab-elements-saved-location.png',fullPage:false});
+  assert.deepEqual(coverTest.errors,[],'Saved Elements must not throw page errors');
+  await coverTest.context.close();
+  console.log('PASS saved Elements cover and persistent category hero');
 } finally {
   await browser.close();server.close();
 }
