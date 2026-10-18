@@ -15,15 +15,14 @@ const FINISH_PRESETS=Object.freeze({
 });
 export const hongKongFinishPreset=value=>({...FINISH_PRESETS[normalizeHongKongVariation(value)]});
 
-// Keep these four source files available and verified before requesting a paid
-// generation. The new Greg Girard photographs are not in the repository yet;
-// do NOT point at missing assets or silently use tiny screenshot thumbnails.
-// Once the actual photographs are supplied with permission to host, replace
-// these filenames with four curated assets per treatment.
+// Verified against SHA-256 checksums of the eight photographs the owner
+// supplied. Each variant uses exactly four actual photographs so six customer
+// reference slots remain free. These images are photographic STYLE ONLY.
+// Never borrow signage, architecture, people, wardrobe or a scene by default.
 export const HONG_KONG_REFERENCE_FILES=Object.freeze({
-  original:Object.freeze(['06-interior-portrait.jpg','05-passage-diffusion.jpg','02-city-haze.jpg','03-shop-reflections.jpg']),
-  'deep-green':Object.freeze(['02-city-haze.jpg','05-passage-diffusion.jpg','03-shop-reflections.jpg','06-interior-portrait.jpg']),
-  'slow-shutter':Object.freeze(['01-traffic-grain.png','05-passage-diffusion.jpg','02-city-haze.jpg','03-shop-reflections.jpg'])
+  original:Object.freeze(['greg-iii.png','plaza-grill.webp','young-woman-tram.webp','greg-reds.png']),
+  'deep-green':Object.freeze(['greg22.png','supervalu.jpg','silver-grill-cafe.jpg','plaza-grill.webp']),
+  'slow-shutter':Object.freeze(['sheung-wan-street.webp','greg-iii.png','young-woman-tram.webp','silver-grill-cafe.jpg'])
 });
 
 export function hongKongOpticalDirection(value,{lite=false}={}){
