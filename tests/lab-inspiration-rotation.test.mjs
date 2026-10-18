@@ -108,3 +108,16 @@ test('authenticated requests skip invisible Mood photos but retain explicit user
   assert.equal([...html.matchAll(/data-welcome-mood=/g)].length,6,'Keep six signed-in photographs');
   assert.equal([...html.matchAll(/data-guest-mood=/g)].length,6,'Keep six public photographs');
 });
+
+
+test('Flash Leather treatment is about flash, material and lighting, not a default model',()=>{
+  const moods=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+  const start=moods.indexOf('"id": "fashion-editorial"');
+  const end=moods.indexOf('"id": "berlin-rave"',start);
+  assert.ok(start>=0&&end>start);
+  const direction=moods.slice(start,end);
+  assert.match(direction,/direct or off-axis flash/);
+  assert.match(direction,/tactile leather and fabric texture/);
+  assert.match(direction,/Respect the written subject/);
+  assert.match(direction,/Never introduce a default wet-haired woman/);
+});
