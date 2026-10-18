@@ -35,7 +35,7 @@ test('all sixteen Mood thumbnails and editorial detail assets exist',()=>{
     for(const asset of [mood.preview,mood.previewFull]){
       if(!asset)continue;
       const pathname=new URL(asset,'https://pvlab.studio').pathname;
-      assert.match(pathname,/^\\/lab\\//,'Mood preview paths must remain under PV LAB');
+      assert.ok(pathname.startsWith('/lab/'),'Mood preview paths must remain under PV LAB');
       assert.ok(existsSync(new URL('..'+pathname,import.meta.url)),mood.id+': missing '+pathname);
     }
     for(const suffix of ['', '-detail']){
