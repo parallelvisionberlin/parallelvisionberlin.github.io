@@ -1514,6 +1514,42 @@ async function route(request,env,ctx) {
     const id=crypto.randomUUID();await run(env,'INSERT INTO packs(id,owner_id,name,refs,created_at) VALUES(?,?,?,?,?)',id,owner,name,JSON.stringify(refs),now());
     return json({id,name,refs},201);
   }
+  if(path.startsWith('/api/packs/')&&method==='PATCH'){
+    // Scene Library edits update the existing private record. Photo Packs and
+    // the reserved trained-identity pack cannot be modified through this route.
+    const id=uid(path.split('/')[3]),pack=await first(env,
+      'SELECT name,refs,created_at FROM packs WHERE id=? AND owner_id=?',id,owner);
+    if(!pack)fail(404,'Saved Element not found.');
+    const sceneName=/^PVSCENE1\\|(characters|outfits|props|locations)\\|[^|\\r\\n]{1,70}$/;
+    if(!sceneName.test(pack.name))fail(403,'Only Scene Library Elements can be edited here.');
+    const data=await body(request);
+    const name=String(data.name||'').trim();
+    const match=sceneName.exec(name);
+    if(!match)fail(400,'Choose a valid Element name and category.');
+    // Refuse stale saves, including another tab editing the same set.
+    if(data.expectedName!==pack.name||!Array.isArray(data.expectedRefs)
+       ||JSON.stringify(data.expectedRefs)!==pack.refs)
+      fail(409,'This Element changed elsewhere. Reopen it before saving.');
+    if(await first(env,'SELECT id FROM packs WHERE owner_id=? AND LOWER(name)=LOWER(?) AND id<>?',owner,name,id))
+      fail(409,'An Element or Photo Pack already has this name.');
+    const ids=data.referenceSourceIds;
+    if(!Array.isArray(ids)||ids.length<1||ids.length>8||new Set(ids).size!==ids.length)
+      fail(400,'Keep 1 to 8 distinct photos in an Element.');
+    const images=await sources(env,owner,ids,8),labels=referenceLabels(data.referenceRoles,8);
+    if(labels.length!==images.length||images.some(a=>!['image/jpeg','image/png','image/webp'].includes(a.mime)))
+      fail(400,'Provide a matching role for each JPG, PNG or WebP photo.');
+    const expectedRole={characters:null,outfits:'outfit',props:'object',locations:'room'}[match[1]];
+    if(labels.some(label=>expectedRole
+      ?label.role!==expectedRole:!['identity','custom'].includes(label.role)))
+      fail(400,'Reference roles must match the Element category.');
+    const refs=images.map((a,i)=>({id:a.id,...normalizeReferenceLabel({...labels[i],name:a.filename})}));
+    const result=await run(env,'UPDATE packs SET name=?,refs=? WHERE id=? AND owner_id=? AND name=? AND refs=?',
+      name,JSON.stringify(refs),id,owner,pack.name,pack.refs);
+    if(result?.meta?.changes!==1)fail(409,'This Element changed elsewhere. Reopen it before saving.');
+    // Removed photos may still be loaded in an active Studio deck. Retain
+    // their private originals; a collection edit never deletes source media.
+    return json({id,name,refs,created_at:pack.created_at});
+  }
   if(path.startsWith('/api/packs/')&&method==='DELETE'){
     const id=uid(path.split('/')[3]),pack=await first(env,'SELECT refs FROM packs WHERE id=? AND owner_id=?',id,owner);
     if(!pack)fail(404,'Pack not found.');await run(env,'DELETE FROM packs WHERE id=? AND owner_id=?',id,owner);
