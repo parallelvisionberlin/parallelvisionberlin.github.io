@@ -73,6 +73,9 @@ export function referenceInstruction(raw,index){
 }
 function compactReferenceInstruction(raw,index){
   const r=normalizeReferenceLabel(raw),target=REFERENCE_TARGETS[r.role]?.find(([id])=>id===r.target)?.[1];
+  // Curated Dream Blur Style notes already say OPTICS ONLY; don't repeat the generic instruction.
+  if(r.role==='style'&&r.name.startsWith('Dream Blur style - '))
+    return 'Reference '+(index+1)+' [Style optics / '+r.name.slice('Dream Blur style - '.length)+']: '+r.note;
   let instruction=compactDescriptions[r.role];
   if(r.role==='detail')instruction='Use only the '+(target||'selected detail').toLowerCase()+' as a localized visual reference; match camera and lighting. Do not copy the wearer, overall pose, outfit or scene.';
   if(r.role==='outfit')instruction='Use only the '+(target||'full outfit').toLowerCase()+'. Fit it to the target subject and pose. Do not copy the wearer, face, body, camera or background.';
@@ -86,10 +89,13 @@ export function compileImagePrompt(direction,labels=[],settings={}){
   // the complete provider prompt beyond 5,000 characters.
   // Custom references-only workflows keep their detailed role map.
   const roles=labels.map(normalizeReferenceLabel);
-  const builtInDreamBlurOnly=settings?.moodId==='dream-blur'&&roles.length===4&&
-    roles.every(ref=>ref.role==='style'&&ref.name.startsWith('Dream Blur style - '));
+  // Also use the concise role map when a user supplies General/Identity photos
+  // in References Only along with the four canonical Dream Blur optical photos.
+  // Every custom role/note and the complete authored Mood are preserved.
+  const curatedDreamBlurStyles=settings?.moodId==='dream-blur'&&
+    roles.some(ref=>ref.role==='style'&&ref.name.startsWith('Dream Blur style - '));
   const compact=Boolean(settings?.moodId&&
-    ((settings.referenceMode!=='references'&&roles.some(ref=>ref.role==='base'))||builtInDreamBlurOnly));
+    ((settings.referenceMode!=='references'&&roles.some(ref=>ref.role==='base'))||curatedDreamBlurStyles));
   const original=compact?compileCompactUserImagePrompt(direction,labels):compileUserImagePrompt(direction,labels);
   const quality=imageQualityGuidance(direction,labels,settings,original.length);
   const prompt=quality?[original,quality].filter(Boolean).join('\n\n'):original;

@@ -126,3 +126,51 @@ test('Dream Blur welcome text generates with four built-in Style photos without 
     }
   }
 });
+
+test('Dream Blur References Only uses concise guidance without shortening customer, Mood or optical notes',()=>{
+  for(const resolution of ['1k','2k'])
+    for(const direction of ['', 'Keep the same recognizable face and framing.'])
+      for(const intensity of [25,78,100]){
+        const recipe=prepareMoodPrompt(direction,'dream-blur',intensity,{engine:'seedream',referenceCount:1,referenceMode:'references'});
+        assert.equal(recipe.error,'');
+        const original={type:'image',mode:'image',engine:'seedream',referenceMode:'references',resolution,
+          aspectRatio:'16:9',prompt:recipe.prompt,...recipe.metadata,referenceRoles:[{name:'portrait.jpg',role:'none',note:''}]};
+        const plan=moodReferencePlan(original);
+        const compiled=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings);
+        assert.ok(compiled.length<=5000,'References Only '+resolution+'/'+intensity+' exceeds budget by '+(compiled.length-5000));
+        assert.equal(plan.settings.prompt,recipe.prompt,'Full Mood creative recipe unchanged');
+        assert.equal(plan.settings.moodOriginalPrompt,direction,'Never trim customer direction');
+        assert.match(compiled,/DREAM BLUR V2/);
+        assert.match(compiled,/IDENTITY FIRST/);
+        assert.match(compiled,/There is no base image/);
+        assert.deepEqual(plan.settings.referenceRoles.map(x=>x.role),['none','style','style','style','style']);
+        for(const ref of plan.references)assert.ok(compiled.includes(ref.label.note),'Keep exact optical note for '+ref.label.name);
+        assert.equal(moodReferencePlan(plan.settings).references.length,0);
+      }
+});
+test('Dream Blur References Only preserves explicit Identity roles and notes',()=>{
+  const direction='Keep the recognizable facial identity and framing.';
+  const recipe=prepareMoodPrompt(direction,'dream-blur',78,{engine:'seedream',referenceCount:2,referenceMode:'references'});
+  const settings={type:'image',mode:'image',engine:'seedream',resolution:'2k',referenceMode:'references',
+    aspectRatio:'16:9',prompt:recipe.prompt,...recipe.metadata,referenceRoles:[
+      {name:'scene.jpg',role:'none',note:'Architecture is optional inspiration.'},
+      {name:'portrait.jpg',role:'identity',note:'This photo defines the face.'}
+    ]};
+  const plan=moodReferencePlan(settings);
+  const compiled=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings);
+  assert.ok(compiled.length<=5000,'Over limit by '+(compiled.length-5000));
+  assert.match(compiled,/Architecture is optional inspiration/);
+  assert.match(compiled,/This photo defines the face/);
+  assert.match(compiled,/Keep one consistent subject/);
+  assert.deepEqual(plan.settings.referenceRoles.map(x=>x.role),['none','identity','style','style','style','style']);
+});
+test('Genuine long user notes are rejected before uploads, never silently cut',async()=>{
+  const recipe=prepareMoodPrompt('Keep original person.','dream-blur',78,{engine:'seedream',referenceCount:6,referenceMode:'references'});
+  const settings={type:'image',mode:'image',engine:'seedream',resolution:'2k',referenceMode:'references',aspectRatio:'16:9',
+    prompt:recipe.prompt,...recipe.metadata,referenceRoles:Array.from({length:6},(_,i)=>({name:'ref'+i+'.jpg',role:'none',note:'Custom personal instructions '.repeat(20)}))};
+  let uploads=0;
+  const loader=createMoodReferenceLoader({upload:async()=>{uploads++;throw Error('Unexpected paid upload');}});
+  await assert.rejects(loader.prepare(settings,{sessionKey:'test'}),/exceed 5,000 characters/);
+  assert.equal(uploads,0);
+  assert.equal(settings.prompt,recipe.prompt);
+});

@@ -608,7 +608,7 @@ function imageGuidance(){
   const labels=referenceRoles(),mood=moodUI.enrich(effectiveImagePrompt(),{engine:imageEngine,referenceCount:references.length,referenceMode:imageReferenceMode});
   const current={type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,exactPrompt:$('composer-exact-prompt').checked,...mood.metadata};
   try{
-    const planned=moodReferencePlan({type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,...mood.metadata,prompt:mood.prompt,referenceRoles:labels});
+    const planned=moodReferencePlan({...current,prompt:mood.prompt,referenceRoles:labels});
     const prompt=compileImagePrompt(planned.settings.prompt,planned.settings.referenceRoles,current);
     const limit=imageEngine==='seedreamlite'?3000:5000;
     const over=prompt.length-limit;
