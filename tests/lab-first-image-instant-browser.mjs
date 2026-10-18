@@ -268,7 +268,10 @@ try{
     'The preflight must not put Confirming credits inside Generate');
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Switching selected Moods must not collapse the Image deck');
-  assert.equal(await button.isEnabled(),true,'Dream Blur must instantly enable Generate before the price');
+  // The previous Mood's asynchronous bound price may still be settling.
+  // Wait for the new Mood's preflight before submitting the single paid job.
+  await page.waitForFunction(()=>!document.querySelector('#image-composer-generate')?.disabled,null,{timeout:9000});
+  assert.equal(await button.isEnabled(),true,'Dream Blur must become ready without a second click');
   const heightBefore=await button.evaluate(el=>el.getBoundingClientRect().height);
   await button.click();
   assert.equal(await button.isDisabled(),true,'Second click is disabled until the first request is confirmed');
