@@ -149,6 +149,18 @@ const ALL_MOODS=Object.freeze([
     "avoid": "generic e-commerce photo, cloned faces, wet-hair portrait default, forced leather outfit, airbrushed skin, glossy AI-plastic surfaces, physically impossible fabrics"
   },
   {
+      "id": "chrome-couture",
+      "name": "Chrome Couture",
+      "category": "Fashion",
+      "preview": "/lab/mood-previews/chrome-couture-20261019.webp",
+      "previewFull": "/lab/mood-previews/chrome-couture-20261019.webp",
+      "description": "Metallic couture, crystals, hard flash and retro starburst optics",
+      "direction": "CHROME COUTURE / LUXURY PHOTOGRAPHIC TREATMENT. Respect the user's written subject, age, facial identity, skin tone, body, wardrobe, pose, setting, crop, lighting intent and any assigned image references. Do not replace a requested person or invent new people. When wardrobe or fashion styling is requested, favor architectural metallic couture, engineered sheer mesh, intricate crystal embroidery, fine reflective beadwork, wearable silver fabrics and sculptural chrome accessories where they fit the direction. Never force a woman, corset, blade, weapon, nightclub, or futuristic costume. CAMERA: believable on-camera flash or a hard, controlled studio key with natural falloff into deep blacks; preserve detail in dark fabric and highlight rolloff on real materials. Preserve skin pores, fine hair, real hands, garment construction and physical imperfections. RETRO STAR FILTER: physically plausible four-, six- or eight-point diffraction spikes and occasional lens glints ONLY at true bright reflected points on metal, crystals and actual light sources. Vary the spikes with source intensity, angle and aperture; use sparing individual optical glints with delicate local halation, never identical digitally pasted stars or all-over glitter. Maintain an expensive European fashion editorial photographic look, not CGI, with crisp focal detail, organic lens falloff and subtle natural film grain. If the user asks for daylight, architecture, a different wardrobe or non-fashion subject, retain their scene and apply only relevant photographic and reflective treatment.",
+      "subtle": "Refined photographic realism with accurate light on genuine materials, sparse justified optical glints and controlled editorial contrast, respecting the user's original subject and location.",
+      "intense": "Striking couture texture, crisp crystal specularity, physically plausible starburst diffraction around bright highlights, dramatic direct flash and deep readable shadows without replacing the user's subject or distorting materials.",
+      "avoid": "synthetic plastic skin, airbrushing, fake anatomy, CGI, excessive HDR, identical star stickers, uniform glitter overlay, flare on dark nonreflective surfaces, artificial bloom, cheap generic cyberpunk, obligatory weapon or corset, changed facial identity, distorted jewelry, melted fingers and fabrics"
+  },
+  {
     "id": "berlin-rave",
     "name": "Berlin Rave",
     "category": "Fashion",
