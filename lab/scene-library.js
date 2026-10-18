@@ -49,14 +49,38 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     let pending=coverRequests.get(item.id);
     if(!pending){
       const revision=coverRevision;
-      pending=Promise.all(refs.map(async ref=>{
-        if(!ref?.id)return null;
-        try{return await getAssetRatio(ref.id);}catch{return null;}
-      })).then(ratios=>{
+      pending=(async()=>{
+        // The visible cover gets first priority. Reading every source immediately
+        // can force multiple cold Cloudflare thumbnail transformations at once.
+        const ratios=Array(refs.length).fill(null);
+        const firstIndex=refs.findIndex(ref=>ref?.id===first);
+        if(firstIndex>=0){
+          try{ratios[firstIndex]=await getAssetRatio(first);}catch{}
+        }
+        if(revision!==coverRevision)return null;
+        // Give the thumbnail a chance to paint before refining the crop.
+        await new Promise(resolve=>{
+          if(typeof window.requestIdleCallback==='function')
+            window.requestIdleCallback(resolve,{timeout:1000});
+          else window.setTimeout(resolve,80);
+        });
+        if(revision!==coverRevision)return null;
+        const remaining=refs.map((ref,i)=>({ref,i}))
+          .filter(({ref,i})=>i!==firstIndex&&ref?.id);
+        let next=0;
+        // Cover matching is optional background work, never a four-image burst
+        // competing with the first visible card.
+        await Promise.all(Array.from({length:Math.min(2,remaining.length)},async()=>{
+          while(next<remaining.length&&revision===coverRevision){
+            const {ref,i}=remaining[next++];
+            try{ratios[i]=await getAssetRatio(ref.id);}catch{}
+          }
+        }));
+        if(revision!==coverRevision)return null;
         const best=sceneCoverId(refs,ratios)||first;
-        if(revision===coverRevision)coverChoices.set(item.id,best);
-        return revision===coverRevision?best:null;
-      }).catch(()=>first);
+        coverChoices.set(item.id,best);
+        return best;
+      })().catch(()=>first);
       coverRequests.set(item.id,pending);
     }
     void pending.then(best=>{
