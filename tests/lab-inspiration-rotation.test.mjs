@@ -98,7 +98,7 @@ test('authenticated requests skip invisible Mood photos but retain explicit user
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.match(lab,/const choice=inspirationRotation\.select\(id,\$\('prompt'\)\.value\)/);
   assert.match(lab,/const preserveWorkspace=choice\.preserved\|\|references\.length>0\|\|!!file/);
-  assert.match(lab,/inspirationMoodId=id/);
+  assert.match(lab,/inspirationMoodId=underlyingMood/);
   assert.match(lab,/disableAutoMoodReferences:inspirationMoodId!==null&&selected\.moodId===inspirationMoodId/);
   assert.match(lab,/const curated=s\.disableAutoMoodReferences[\s\S]*?\?\{settings:selected,references:\[\]\}/);
   assert.match(lab,/const curated=disableAutoMoodReferences[\s\S]*?\?\{settings:selected,references:\[\]\}/);
