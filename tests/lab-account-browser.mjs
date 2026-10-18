@@ -348,7 +348,7 @@ try{
       // Wait for the confirmed zero balance, not simply a visible placeholder.
       await page.waitForFunction(()=>document.getElementById('lab-home-credit-copy')?.textContent==='0');
       assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'0','Empty customer wallet must show the real zero balance');
-      assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),true);
+      assert.equal(await page.locator('#lab-home-credit-unit').evaluate(el=>el.hidden),false,'Balance unit remains available even when compact mobile styling hides the word');
       assert.equal(await page.locator('#lab-home-credits').getAttribute('aria-label'),'0 credits. View credits and billing');
       await fits(page,'zero balance header '+width);
       session.balanceCredits=2850;
