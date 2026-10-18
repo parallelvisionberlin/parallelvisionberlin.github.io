@@ -76,7 +76,9 @@ for(const mood of MOODS){
         }
         if(['dreamcore','berlin-rave','synthetic-romance'].includes(mood.id)){
           assert.equal(builtInMoodReferenceCount(planned.settings),3,context+' built-in style images are still attached on the server');
-          assert.match(expanded,/These are not Base or identity images/,context+' built-ins must not replace face or composition');
+          if(mood.id==='synthetic-romance')assert.match(expanded,/These are not Base or identity images/,context+' synthetic references are never the person');
+          if(mood.id==='dreamcore')assert.match(expanded,/User sources and assigned roles control identity and camera/,context+' dream treatment cannot change identity');
+          if(mood.id==='berlin-rave')assert.match(expanded,/outfit construction, compatible hair styling and flash ONLY, never identity/,context+' rave refs change wardrobe, never face');
         }
       }
     }
