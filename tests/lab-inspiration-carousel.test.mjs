@@ -37,5 +37,6 @@ test('carousel navigation cannot invoke paid jobs or rewrite the current prompt'
   assert.doesNotMatch(code,/fetch\(|\/api\/|submit\(|dispatchEvent\(|\.click\(/);
   assert.match(looks,/A modified example is now a user's own direction/);
   assert.match(looks,/if\(existing&&!isInspirationExample\(existing\)\)/);
-  assert.match(read('moods.js'),/"id": "chrome-couture"/);
+  assert.doesNotMatch(read('moods.js'),/"id": "chrome-couture"/);
+  assert.match(read('lab.js'),/const underlyingMood=id==='chrome-couture'\?'fashion-editorial':id/);
 });
