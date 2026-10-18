@@ -1,5 +1,5 @@
 import {renderHeaderCredits} from './header-credits.js?v=20261018-credit-unified1';
-import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24&closure=20261017-logout1';
+import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24&creditHeader=20261018v1&closure=20261017-logout1';
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261015-standalone1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
