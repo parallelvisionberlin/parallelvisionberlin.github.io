@@ -1,5 +1,5 @@
 import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3';
-import {HONG_KONG_VARIATIONS,normalizeHongKongVariation,hongKongFinishPreset,hongKongOpticalDirection} from './hong-kong-presets.js?v=20261018-analog3';
+import {HONG_KONG_VARIATIONS,normalizeHongKongVariation,hongKongFinishPreset,hongKongOpticalDirection} from './hong-kong-presets.js?v=20261018-greg-originals5&20261018-analog3';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
