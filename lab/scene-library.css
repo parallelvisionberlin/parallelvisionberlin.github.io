@@ -317,7 +317,7 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   display:flex;align-items:flex-start;justify-content:flex-end;
   margin:0;padding:0;pointer-events:none
 }
-#scene-library-dialog .scene-card-actions .scene-delete{
+#scene-library-dialog .scene-card-actions .scene-more{
   pointer-events:auto;margin-left:auto;background:#181c22d6;
   border-color:#42484c;border-radius:50%;padding:0;
   width:25px;height:25px;line-height:19px;font-size:17px;color:#e5e7e8
@@ -332,6 +332,55 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   opacity:1;transform:none
 }
 #scene-library-dialog .scene-card-actions .scene-use:disabled{color:#505754}
+
+/* Element card options: edit and delete live behind the existing compact dots. */
+#scene-library-dialog .scene-card:has(.scene-card-menu:not([hidden])){
+  overflow:visible;z-index:20;
+}
+#scene-library-dialog .scene-card-actions .scene-more:hover{
+  background:#353b40;color:#fff;border-color:#6a7379;
+}
+#scene-library-dialog .scene-card-menu[hidden]{display:none!important}
+#scene-library-dialog .scene-card-menu{
+  pointer-events:auto;position:absolute;top:31px;right:0;
+  z-index:30;display:flex;flex-direction:column;gap:2px;
+  box-sizing:border-box;min-width:133px;padding:5px;
+  border:1px solid #4a4f53;border-radius:9px;
+  background:#171b1f;color:#f1f2f2;box-shadow:0 12px 30px #0009;
+}
+#scene-library-dialog .scene-card-menu button{
+  width:100%;padding:9px 10px;text-align:left;font-size:11px;
+  font-weight:560;line-height:1.2;border:0;border-radius:5px;
+  background:transparent;color:#e6e8e9;
+}
+#scene-library-dialog .scene-card-menu button:hover{
+  background:#2b3237;color:#fff;
+}
+#scene-library-dialog .scene-card-menu .scene-menu-danger{color:#e6aaaa}
+#scene-library-dialog .scene-card-menu .scene-menu-danger:hover{background:#3c262b;color:#ffd7d7}
+/* Saved photo previews are private, and their thumbnail loaders never
+   replace the separate remove/reorder controls. */
+#scene-library-dialog .scene-photo-preview{position:absolute;inset:0;overflow:hidden}
+#scene-library-dialog .scene-photo-preview img{
+  display:block;width:100%;height:100%;object-fit:cover;
+}
+#scene-library-dialog .scene-photo-order{
+  position:absolute;left:5px;bottom:5px;right:5px;
+  display:flex;justify-content:flex-end;gap:4px;pointer-events:none;
+}
+#scene-library-dialog .scene-photo .scene-photo-order button{
+  position:static;pointer-events:auto;
+  width:23px;height:22px;padding:0;border:1px solid #60666b;
+  border-radius:6px;color:#fafafa;background:#171c21d9;
+  font-size:13px;line-height:20px;
+}
+#scene-library-dialog .scene-photo .scene-photo-order button:hover{
+  background:#3d454b;color:white;
+}
+#scene-library-dialog .scene-photo .scene-photo-order button:disabled{
+  opacity:.38;cursor:default;
+}
+
 #scene-library-dialog .scene-create-tile{
   min-height:167px;gap:8px;background:#14191c;border:1px dashed #495055;
   color:#f2f3f2;padding:12px

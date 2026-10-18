@@ -34,7 +34,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
   const $=id=>document.getElementById(id);
   const dialog=$('scene-library-dialog');
   if(!dialog)return {open(){},sync(){},renderSelected(){},fromGallery(){}};
-  let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false,sortMode='recent',viewMode='grid';
+  let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false,sortMode='recent',viewMode='grid',editingItem=null;
   const coverChoices=new Map(),coverRequests=new Map();
   let coverRevision=0;
   function renderCover(host,item){
@@ -89,7 +89,13 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     $('scene-attached').disabled=working;
     $('scene-files').disabled=working;
     $('scene-note-suggest').disabled=working;
-    dialog.querySelectorAll('[data-scene-use],[data-scene-delete]').forEach(btn=>btn.disabled=working);
+    $('scene-name').disabled=working;
+    $('scene-category').disabled=working;
+    $('scene-note').disabled=working;
+    $('scene-back').disabled=working;
+    $('scene-cancel').disabled=working;
+    dialog.querySelectorAll('[data-scene-use],[data-scene-delete],[data-scene-edit],[data-scene-menu],.scene-photo button')
+      .forEach(btn=>btn.disabled=working);
   }
   function removePhoto(i){
     const p=photos[i];
@@ -103,16 +109,42 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
   function selectedCategory(){
     return category($('scene-category').value);
   }
+  function movePhoto(index,offset){
+    const next=index+offset;
+    if(working||next<0||next>=photos.length)return;
+    [photos[index],photos[next]]=[photos[next],photos[index]];
+    renderPhotos();
+  }
   function renderPhotos(){
     const tray=$('scene-photos');
     tray.replaceChildren();
     photos.forEach((item,i)=>{
       const box=document.createElement('div');box.className='scene-photo';
-      const img=document.createElement('img');img.src=item.url;img.alt='Selected reference '+(i+1);
+      const preview=document.createElement('div');preview.className='scene-photo-preview';
+      if(item.url){
+        const img=document.createElement('img');img.src=item.url;img.alt='Selected reference '+(i+1);
+        preview.append(img);
+      }else if(item.id){
+        // Saved references stay in private storage. The authenticated renderer
+        // is given its own preview node, so its async updates cannot remove controls.
+        assetPhoto(preview,item.id);
+      }
       const remove=document.createElement('button');remove.type='button';remove.textContent='×';
-      remove.setAttribute('aria-label','Remove selected photograph '+(i+1));
+      remove.className='scene-photo-remove';
+      remove.setAttribute('aria-label','Remove photo '+(i+1));
+      remove.title='Remove this photo from the Element';
+      remove.disabled=working;
       remove.onclick=()=>{if(!working)removePhoto(i);};
-      box.append(img,remove);tray.append(box);
+      const order=document.createElement('div');order.className='scene-photo-order';
+      for(const [offset,symbol,direction] of [[-1,'←','earlier'],[1,'→','later']]){
+        const move=document.createElement('button');move.type='button';move.textContent=symbol;
+        move.disabled=working||i+offset<0||i+offset>=photos.length;
+        move.setAttribute('aria-label','Move photo '+(i+1)+' '+direction);
+        move.title='Move photo '+direction;
+        move.onclick=()=>movePhoto(i,offset);
+        order.append(move);
+      }
+      box.append(preview,remove,order);tray.append(box);
     });
     $('scene-photo-count').textContent=photos.length+' / 8 images';
     $('scene-photo-hint').hidden=!!photos.length;
@@ -129,7 +161,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     for(const entry of incoming){
       const file=entry.file||entry;
       const externalUrl=entry.file&&(entry.thumbUrl||entry.url);
-      photos.push({file,id:entry.file?entry.id||null:null,url:externalUrl||URL.createObjectURL(file),owned:!externalUrl});
+      photos.push({file,id:entry.file?entry.id||null:null,name:file.name,url:externalUrl||URL.createObjectURL(file),owned:!externalUrl});
     }
     renderPhotos();
   }
@@ -154,7 +186,10 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     syncNoteUi();
   }
   function create(categoryId=current,starting=[]){
+    editingItem=null;
     current=category(categoryId).id;view='create';setStatus('');
+    $('scene-create-heading-title').textContent='Save to Scene Library';
+    $('scene-save').textContent='Save item';
     clearPhotos();
     $('scene-category').value=current;
     $('scene-name').value='';
@@ -167,7 +202,52 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     if(starting.length)appendPhotos(starting);
     $('scene-name').focus();
   }
-  function browse(){
+  function editingChanged(){
+    if(!editingItem)return false;
+    const appearance=dialog.querySelector('input[name="scene-appearance"]:checked')?.value||'identity';
+    return $('scene-name').value.trim()!==editingItem.title
+      ||selectedCategory().id!==editingItem.category
+      ||appearance!==editingItem.appearance
+      ||$('scene-note').value.trim()!==editingItem.initialExtra
+      ||photos.length!==editingItem.refs.length
+      ||photos.some((photo,i)=>photo.id!==editingItem.refs[i]?.id);
+  }
+  function confirmDiscard(){
+    return !editingChanged()||window.confirm('Discard your unsaved changes to '+editingItem.title+'?');
+  }
+  function editItem(item){
+    if(working||!item?.refs?.length)return;
+    closeCardMenus();
+    clearPhotos();
+    const appearance=item.refs[0]?.role==='custom'?'full':'identity';
+    const baseNote=referenceNote(category(item.category),item.title,appearance,'');
+    const raw=String(item.refs[0]?.note||'');
+    const initialExtra=raw.startsWith(baseNote+' ')?raw.slice(baseNote.length+1).slice(0,120):'';
+    editingItem={
+      id:item.id,name:item.name,title:item.title,category:item.category,
+      refs:item.refs.map(ref=>({...ref})),appearance,initialExtra
+    };
+    current=item.category;view='create';setStatus('');
+    $('scene-name').value=item.title;
+    $('scene-category').value=item.category;
+    $('scene-note').value=initialExtra;
+    $('scene-consent').checked=false;
+    const choice=dialog.querySelector('input[name="scene-appearance"][value="'+appearance+'"]');
+    if(choice)choice.checked=true;
+    $('scene-create-heading-title').textContent='Edit element';
+    $('scene-save').textContent='Save changes';
+    $('scene-browser').hidden=true;
+    $('scene-create').hidden=false;
+    photos=item.refs.map((ref,i)=>({
+      id:ref.id,name:ref.name||'Photo '+(i+1),file:null,url:null,owned:false
+    }));
+    renderPhotos();updateAppearance();
+    $('scene-name').focus();
+  }
+  function browse(saved=false){
+    if(working&&!saved)return;
+    if(!saved&&!confirmDiscard())return;
+    editingItem=null;
     view='browse';setStatus('');clearPhotos();
     $('scene-create').hidden=true;$('scene-browser').hidden=false;
     render();
@@ -176,7 +256,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     if(!getContext().owner){notify('Sign in to use Scene Library.',true);return;}
     if(getContext().busy){notify('Wait for the current operation to finish.',true);return;}
     if(categoryId)current=category(categoryId).id;
-    selectedId=null;featuredExpanded=false;
+    selectedId=null;featuredExpanded=false;editingItem=null;
     closeOverlays();
     view='browse';$('scene-create').hidden=true;$('scene-browser').hidden=false;
     dialog.classList.toggle('scene-from-image',getContext().tool==='image');
@@ -189,11 +269,17 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     render();
   }
   function close(){
-    if(working)return;
+    if(working||!confirmDiscard())return;
     if(dialog.open)dialog.close();
-    clearPhotos();setStatus('');
+    editingItem=null;clearPhotos();setStatus('');
   }
 
+  function closeCardMenus(){
+    dialog.querySelectorAll('.scene-card-menu').forEach(menu=>{
+      menu.hidden=true;
+      menu.parentElement?.querySelector('[data-scene-menu]')?.setAttribute('aria-expanded','false');
+    });
+  }
   const iconPaths={
     characters:'<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20v-2.2c0-3.8 14-3.8 14 0V20Z"/>',
     outfits:'<path d="M9 4 7 6 3 8l3 5 2-1v9h8v-9l2 1 3-5-4-2-2-2c-.9 2-5.1 2-6 0Z"/>',
@@ -332,10 +418,27 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
       const already=item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
       use.textContent=already?'Added ✓':'Use in scene';use.disabled=already||working;
       use.dataset.sceneUse='';use.onclick=()=>{void useItem(item);};
-      const remove=document.createElement('button');remove.type='button';remove.className='scene-delete';
-      remove.textContent='···';remove.title='Delete '+item.title;remove.setAttribute('aria-label','Delete '+item.title);
-      remove.dataset.sceneDelete='';remove.onclick=()=>{void deleteItem(item);};
-      actions.append(use,remove);card.append(select,actions);grid.append(card);
+      const more=document.createElement('button');more.type='button';more.className='scene-more';
+      more.textContent='···';more.title='Options for '+item.title;
+      more.setAttribute('aria-label','Options for '+item.title);
+      more.setAttribute('aria-haspopup','menu');more.setAttribute('aria-expanded','false');
+      more.dataset.sceneMenu='';
+      const menu=document.createElement('div');menu.className='scene-card-menu';menu.hidden=true;
+      menu.setAttribute('role','menu');menu.setAttribute('aria-label',item.title+' options');
+      const edit=document.createElement('button');edit.type='button';edit.textContent='Edit element';
+      edit.setAttribute('role','menuitem');edit.dataset.sceneEdit='';
+      edit.onclick=()=>editItem(item);
+      const remove=document.createElement('button');remove.type='button';remove.textContent='Delete';
+      remove.className='scene-menu-danger';remove.setAttribute('role','menuitem');
+      remove.dataset.sceneDelete='';remove.onclick=()=>{closeCardMenus();void deleteItem(item);};
+      menu.append(edit,remove);
+      more.onclick=event=>{
+        event.stopPropagation();
+        const shouldOpen=menu.hidden;
+        closeCardMenus();menu.hidden=!shouldOpen;
+        more.setAttribute('aria-expanded',String(shouldOpen));
+      };
+      actions.append(use,more,menu);card.append(select,actions);grid.append(card);
     }
     const empty=$('scene-empty');
     empty.hidden=!!list.length;
@@ -410,29 +513,47 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     if(!photos.length){setStatus('Choose at least one photograph.',true);return;}
     if(cat.id==='characters'&&!$('scene-consent').checked){setStatus('Confirm that you are authorized to use the person’s photos.',true);return;}
     const packName=PREFIX+cat.id+'|'+title;
-    if(allPacks.length>=40){setStatus('The current private archive allows 40 saved packs and Scene Library entries combined.',true);return;}
-    if(entries.some(e=>e.name.toLowerCase()===packName.toLowerCase())){setStatus('You already saved '+title+' in '+cat.label+'. Use another name.',true);return;}
+    if(!editingItem&&allPacks.length>=40){setStatus('The current private archive allows 40 saved packs and Scene Library entries combined.',true);return;}
+    if(entries.some(e=>e.id!==editingItem?.id&&e.name.toLowerCase()===packName.toLowerCase())){setStatus('You already saved '+title+' in '+cat.label+'. Use another name.',true);return;}
     const appearance=dialog.querySelector('input[name="scene-appearance"]:checked')?.value||'identity',extra=String($('scene-note').value||'').trim().slice(0,120);
     const role=cat.id==='characters'&&appearance==='full'?'custom':cat.role;
-    setWorking(true);setStatus('Saving original references privately…');
+    const original=editingItem;
+    const preserveNotes=!!original&&cat.id===original.category&&title===original.title
+      &&appearance===original.appearance&&extra===original.initialExtra;
+    setWorking(true);setStatus(original?'Updating saved Element…':'Saving original references privately…');
     try{
       await runTask(async()=>{
         const ids=[];
-        for(const item of photos)ids.push(item.id||await uploadAsset(item.file));
-        const labels=ids.map((id,i)=>({
-          name:photos[i].file.name||title+'-'+(i+1),role,
-          ...(role==='outfit'?{target:'full'}:role==='object'?{target:'prop'}:{}),
-          note:referenceNote(cat,title,appearance,extra)
-        }));
-        await api('/api/packs',{method:'POST',body:{
-          name:packName,engine:'seedance',referenceSourceIds:ids,referenceRoles:labels
-        }});
+        for(const photo of photos){
+          if(!photo.id)photo.id=await uploadAsset(photo.file);
+          ids.push(photo.id);
+        }
+        const labels=ids.map((id,i)=>{
+          const previous=preserveNotes?original.refs.find(ref=>ref.id===id):null;
+          return {
+            name:photos[i].name||photos[i].file?.name||title+'-'+(i+1),role,
+            ...(role==='outfit'?{target:'full'}:role==='object'?{target:'prop'}:{}),
+            note:previous?previous.note:referenceNote(cat,title,appearance,extra)
+          };
+        });
+        if(original){
+          await api('/api/packs/'+encodeURIComponent(original.id),{method:'PATCH',body:{
+            name:packName,referenceSourceIds:ids,referenceRoles:labels,
+            expectedName:original.name,expectedRefs:original.refs
+          }});
+        }else{
+          await api('/api/packs',{method:'POST',body:{
+            name:packName,engine:'seedance',referenceSourceIds:ids,referenceRoles:labels
+          }});
+        }
         await loadPacks();
-        current=cat.id;browse();setStatus(title+' saved to '+cat.label+'. No generation was started.');
+        current=cat.id;selectedId=original?.id||null;$('scene-search').value='';
+        browse(true);
+        setStatus(title+(original?' updated. Original files and history were preserved.':' saved to '+cat.label+'. No generation was started.'));
       });
     }finally{setWorking(false);}
   }
-  function reset(){working=false;if(dialog.open)dialog.close();clearPhotos();allPacks=[];entries=[];selectedId=null;featuredExpanded=false;coverRevision++;coverChoices.clear();coverRequests.clear();setStatus('');renderSelected();}
+  function reset(){working=false;editingItem=null;if(dialog.open)dialog.close();clearPhotos();allPacks=[];entries=[];selectedId=null;featuredExpanded=false;coverRevision++;coverChoices.clear();coverRequests.clear();setStatus('');renderSelected();}
   function sync(packs){
     allPacks=Array.isArray(packs)?packs:[];
     coverRevision++;coverChoices.clear();coverRequests.clear();
@@ -450,8 +571,8 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
   }
   $('scene-close').onclick=close;
   $('scene-done').onclick=close;
-  $('scene-back').onclick=browse;
-  $('scene-cancel').onclick=browse;
+  $('scene-back').onclick=()=>browse();
+  $('scene-cancel').onclick=()=>browse();
   $('scene-new').onclick=()=>create(current);
   $('scene-search').addEventListener('input',render);
   $('scene-sort').addEventListener('change',event=>{
@@ -482,7 +603,16 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     }catch(error){setStatus(error.message,true);}
   };
   $('scene-save').onclick=()=>{void save();};
-  dialog.addEventListener('cancel',event=>{if(working)event.preventDefault();});
-  dialog.addEventListener('close',()=>{if(!working){clearPhotos();setStatus('');}});
+  dialog.addEventListener('click',event=>{
+    if(!event.target.closest('.scene-card-menu,[data-scene-menu]'))closeCardMenus();
+  });
+  dialog.addEventListener('cancel',event=>{
+    if(working){event.preventDefault();return;}
+    if(dialog.querySelector('.scene-card-menu:not([hidden])')){
+      event.preventDefault();closeCardMenus();return;
+    }
+    if(!confirmDiscard())event.preventDefault();
+  });
+  dialog.addEventListener('close',()=>{if(!working){editingItem=null;clearPhotos();setStatus('');}});
   return {open,close,reset,sync,renderSelected,fromGallery};
 }
