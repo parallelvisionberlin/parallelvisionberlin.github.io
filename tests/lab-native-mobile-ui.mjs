@@ -122,7 +122,7 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  await page.waitForFunction(()=>document.querySelector('.card[data-state="queued"]'));
  assert.equal(requests.filter(r=>r.method==='POST'&&r.path==='/api/jobs').length,1,'One tap sends one paid job');
  const q=requests.find(r=>r.path==='/api/quotes').data;
- assert.equal(q.settings.moodId,'hong-kong-nights');assert.equal(q.settings.moodIntensity,80);assert.equal(q.referenceSourceIds.length,5);assert.deepEqual(q.settings.referenceRoles.map(r=>r.role),['base','style','style','style','style']);
+ assert.equal(q.settings.moodId,'hong-kong-nights');assert.equal(q.settings.moodIntensity,80);assert.equal(q.referenceSourceIds.length,1);assert.deepEqual(q.settings.referenceRoles.map(r=>r.role),['base']);
  assert.deepEqual(errors,[]);
  await page.screenshot({path:out+`/queued-${width}.png`,fullPage:true});
  await page.evaluate(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['test-image'],{type:'image/png'}));a.download='test.png';document.body.append(a);a.click();a.remove();});
