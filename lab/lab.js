@@ -1520,14 +1520,14 @@ function syncImageReferences(){
     composerReferenceRenderKey=null;
     tray.hidden=true;return;
   }
-  const items=isSoul2()?[]:[...references];
+  const items=isSoul2()?[]:references.filter((ref,i)=>!ref.elementId||references.findIndex(other=>other.elementId===ref.elementId)===i);
   if((imageEngine==='soulpro'||isReinterpret())&&sourceUrl)items.unshift({thumbUrl:sourceUrl,file:{name:'Base image'},isBase:true});
   const renderKey=JSON.stringify([imageEngine,imageReferenceMode,usesReferenceGuidance(),isSoul2(),
-    items.map(ref=>[ref.thumbUrl||ref.url,ref.url,ref.role,ref.file?.name,!!ref.isBase])]);
+    items.map(ref=>[ref.thumbUrl||ref.url,ref.url,ref.role,ref.file?.name,!!ref.isBase,ref.elementId||'',ref.elementName||'',ref.elementCount||0])]);
   if(renderKey===composerReferenceRenderKey&&tray.childElementCount===items.length){
     // Maintain the upload lock but do not reset already decoded thumbnail elements.
     for(const tile of tray.children){
-      if(!tile.hasAttribute('role'))tile.draggable=!busy;
+      if(!tile.hasAttribute('role'))tile.draggable=!busy&&!tile.classList.contains('composer-element-tile');
       const role=tile.querySelector('.composer-reference-role');if(role)role.disabled=busy;
       const remove=tile.querySelector('.composer-reference-remove');if(remove)remove.disabled=busy;
     }
@@ -1538,7 +1538,7 @@ function syncImageReferences(){
   tray.replaceChildren();
   for(let i=0;i<items.length;i++){
     const ref=items[i],tile=document.createElement('div');
-    tile.className='composer-reference-tile';tile.title=ref.file?.name||'Reference image';
+    tile.className='composer-reference-tile'+(ref.elementId?' composer-element-tile':'');tile.title=ref.elementId?'@'+ref.elementName+' · saved '+(ref.elementCount||1)+' views':ref.file?.name||'Reference image';
     tile.classList.toggle('role-general',usesReferenceGuidance()&&!ref.isBase&&(!ref.role||ref.role==='none'));
     const img=document.createElement('img');
     img.src=ref.thumbUrl||ref.url;img.alt=(ref.isBase?'Base image':'Image reference '+(i+1));
@@ -1552,7 +1552,7 @@ function syncImageReferences(){
       tile.title='Preview unavailable. Remove and add this reference again.';
     });
     tile.append(img);
-    if(!ref.isBase){
+    if(!ref.isBase&&!ref.elementId){
       tile.draggable=!busy;tile.tabIndex=0;tile.setAttribute('aria-label','Image '+(i+1)+'. Drag to reorder, or use Alt and arrow keys.');
       tile.addEventListener('dragstart',e=>{
         if(busy||e.target.closest('button,select')){e.preventDefault();return;}
@@ -1565,9 +1565,9 @@ function syncImageReferences(){
       tile.addEventListener('keydown',e=>{if(e.target!==tile||!e.altKey||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const next=references.indexOf(ref)+(e.key==='ArrowLeft'?-1:1);if(references[next]){moveComposerReference(ref,references[next],e.key==='ArrowRight');tray.querySelectorAll('.composer-reference-tile')[next]?.focus();}});
     }
     const marker=document.createElement('span');marker.className='composer-reference-index';
-    marker.textContent=ref.isBase||ref.role==='base'?'BASE':ref.role&&ref.role!=='none'?ref.role.toUpperCase():String(i+1);
+    marker.textContent=ref.elementId?'@'+ref.elementName:ref.isBase||ref.role==='base'?'BASE':ref.role&&ref.role!=='none'?ref.role.toUpperCase():String(i+1);
     marker.setAttribute('aria-hidden','true');if(isSoul2())marker.hidden=true;tile.append(marker);
-    if(usesReferenceGuidance()&&(i>0||referencesOnly())){
+    if(usesReferenceGuidance()&&(i>0||referencesOnly())&&!ref.elementId){
       marker.hidden=true;
       const role=document.createElement('select');role.className='composer-reference-role';role.setAttribute('aria-label','Role for image '+(i+1));role.disabled=busy;
       for(const [value,label] of REFERENCE_ROLES.filter(([value])=>value!=='base'))role.add(new Option(value==='none'?'General':label,value));
@@ -1591,7 +1591,10 @@ function syncImageReferences(){
         if(busy)return;
         if(target.isBase){file=null;sourceId=null;release(sourceUrl);sourceUrl=null;sourceWidth=0;sourceHeight=0;sourcePixels=0;update();return;}
         const idx=references.indexOf(target);if(idx<0)return;
-        closeInputPreview();releaseReference(target);references.splice(idx,1);
+        closeInputPreview();
+        if(target.elementId){
+          for(let at=references.length-1;at>=0;at--)if(references[at].elementId===target.elementId){releaseReference(references[at]);references.splice(at,1);}
+        }else{releaseReference(target);references.splice(idx,1);}
         if(!references.length){imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();}
         if(imageEngine==='fal')poseMapSourceId=null;
         renderReferences();refreshInputPreview();update();
