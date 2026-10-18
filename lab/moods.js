@@ -1,5 +1,5 @@
-import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?hkRestore=20261018v1&v=20261013-green-preserving-v3';
-import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?hkRestore=20261018v1&v=20261018-user-originals2';
+import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1';
+import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
