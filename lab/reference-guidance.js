@@ -42,6 +42,17 @@ export function supportsReferenceGuidance(p){
 export function normalizeReferenceLabel(x){
   const role=REFERENCE_ROLES.some(([id])=>id===x?.role)?x.role:'none';
   const label={name:String(x?.name||'').replace(/[\r\n]/g,' ').slice(0,180),role,note:String(x?.note||'').trim().slice(0,300)};
+  // Persist the grouped Element's ID through provider quotes and History.
+  if(/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(String(x?.elementId||''))){
+    label.elementId=String(x.elementId).slice(0,40);
+    label.elementName=String(x.elementName||'').replace(/[\r\n<>]/g,' ').trim().slice(0,70);
+    if(['characters','locations','outfits','props'].includes(x.elementCategory))
+      label.elementCategory=x.elementCategory;
+    if(Number.isInteger(x.elementView)&&x.elementView>=0&&x.elementView<8)
+      label.elementView=x.elementView;
+    if(Number.isInteger(x.elementCount)&&x.elementCount>=1&&x.elementCount<=8)
+      label.elementCount=x.elementCount;
+  }
   if(REFERENCE_TARGETS[role])label.target=REFERENCE_TARGETS[role].some(([id])=>id===x?.target)?x.target:(role==='outfit'?'full':'');
   return label;
 }
@@ -82,6 +93,32 @@ function compactReferenceInstruction(raw,index){
   if(r.role==='object')instruction='Use only the '+(target||'object').toLowerCase()+' and its shape/materials; match perspective and lighting. Do not copy people or scene.';
   return 'Reference '+(index+1)+' ['+(REFERENCE_ROLES.find(([id])=>id===r.role)?.[1]||r.role)+(target?' / '+target:'')+']: '+instruction+(r.note?' Note: '+r.note:'');
 }
+// Multiple photographs from one Element are viewpoints of one subject, not
+// independent scene or identity requests. This is not trained LoRA fidelity.
+export function elementContinuityGuidance(labels=[]){
+  const groups=new Map();
+  for(const label of labels){
+    if(!label?.elementId)continue;
+    const entry=groups.get(label.elementId);
+    if(entry){entry.count++;continue;}
+    groups.set(label.elementId,{name:label.elementName||'Element',
+      category:label.elementCategory||'',count:1});
+  }
+  if(!groups.size)return '';
+  return 'ELEMENT CONTINUITY: '+[...groups.values()].map(group=>{
+    const subject=group.category==='locations'?'ONE actual place with consistent physical architecture and fixed furniture':
+      group.category==='characters'?'ONE consistent person, facial identity and hair':
+      group.category==='outfits'?'ONE outfit with consistent garments and materials':
+      'ONE consistent object with fixed shape and markings';
+    return '@'+group.name+': the '+group.count+' selected viewpoint'+(group.count===1?'':'s')+
+      ' describe '+subject+'. Do not average different angles into a hybrid object, person or room.';
+  }).join(' ');
+}
+function elementReferenceInstructions(labels,compact=false){
+  const continuity=elementContinuityGuidance(labels);
+  return [...(continuity?[continuity]:[]),
+    ...labels.map((ref,index)=>compact?compactReferenceInstruction(ref,index):referenceInstruction(ref,index))];
+}
 export function compileImagePrompt(direction,labels=[],settings={}){
   // Keep authored Mood and user direction intact. Base edits use the established
   // concise role map. Text-only Dream Blur also needs that map for its four
@@ -113,11 +150,11 @@ function compileUserImagePrompt(direction,labels=[]){
   const prompt=String(direction||'').trim();
   if(!labels.length)return prompt;
   const hasBase=labels.some(r=>r.role==='base');
-  if(!hasBase)return ['REFERENCE MAP (same order as the attached images). Create a new image, not an edit of any one reference. There is no base image. Image order does not assign priority or composition. Honor each explicitly assigned property; treat General references as optional visual guidance only where relevant to the request. Identity defines facial features; Body defines physique and proportions, not pose. Compose the new scene, pose, clothing, framing and lighting according to the prompt unless a reference is explicitly assigned that property. Keep one consistent subject when the references show the same person.',...labels.map(referenceInstruction),'REQUESTED IMAGE: '+(prompt||'Create one cohesive new image inspired by the supplied photographs. Use their relevant details and aesthetics as visual guidance, preserving any consistently depicted person when applicable. Compose the new scene independently.')].join('\n');
+  if(!hasBase)return ['REFERENCE MAP (same order as the attached images). Create a new image, not an edit of any one reference. There is no base image. Image order does not assign priority or composition. Honor each explicitly assigned property; treat General references as optional visual guidance only where relevant to the request. Identity defines facial features; Body defines physique and proportions, not pose. Compose the new scene, pose, clothing, framing and lighting according to the prompt unless a reference is explicitly assigned that property. Keep one consistent subject when the references show the same person.',...elementReferenceInstructions(labels),'REQUESTED IMAGE: '+(prompt||'Create one cohesive new image inspired by the supplied photographs. Use their relevant details and aesthetics as visual guidance, preserving any consistently depicted person when applicable. Compose the new scene independently.')].join('\n');
   const rules='REFERENCE MAP (same order as the attached images). Respect explicitly assigned properties. General references supply only cues relevant to the request; the Base supplies everything else; other roles change only their assigned property. A separate Pose role changes posture only. Identity references define the person; detail, clothing and object references do not replace that identity. Match the final lighting consistently. Follow explicit requested changes.';
   const hasExplicitRoles=labels.slice(1).some(ref=>ref.role&&ref.role!=='none'&&ref.role!=='base');
   const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image, preserving everything else.':'Make a subtle, controlled variation of the Base image. Preserve the recognizable subject, body proportions, facial identity, pose, wardrobe, garment coverage, scene, light direction and camera perspective. Never undress the person or arbitrarily reshape their body or outfit. Match the original visual medium, with natural fabric tension and believable anatomy when photographic. Do not impose a different art style.';
-  return [rules,...labels.map(referenceInstruction),'REQUESTED IMAGE: '+(prompt||defaultDirection)].join('\n');
+  return [rules,...elementReferenceInstructions(labels),'REQUESTED IMAGE: '+(prompt||defaultDirection)].join('\n');
 }
 
 function compileCompactUserImagePrompt(direction,labels=[]){
@@ -126,10 +163,10 @@ function compileCompactUserImagePrompt(direction,labels=[]){
   const hasBase=labels.some(r=>r.role==='base');
   if(!hasBase){
     const rules='REFERENCE MAP (attached image order). There is no base image. Create a new composition from the direction. Each role provides only its assigned property; General images offer optional cues. Identity defines the face, Body defines body proportions, Pose defines posture. Keep one consistent subject across matching identity references; never import unrelated people or scenes.';
-    return [rules,...labels.map(compactReferenceInstruction),'REQUESTED IMAGE: '+(prompt||'Create a cohesive new image inspired by the supplied photographs; follow assigned roles and compose the scene independently.')].join('\n');
+    return [rules,...elementReferenceInstructions(labels,true),'REQUESTED IMAGE: '+(prompt||'Create a cohesive new image inspired by the supplied photographs; follow assigned roles and compose the scene independently.')].join('\n');
   }
   const rules='REFERENCE MAP (attached image order). Base supplies everything else. Each supporting role changes only its named property: Identity sets the face, Body sets proportions, Pose sets posture. General references are optional cues. Respect explicit user edits and match the final perspective and light.';
   const hasExplicitRoles=labels.slice(1).some(ref=>ref.role&&ref.role!=='none'&&ref.role!=='base');
   const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image; preserve everything else.':'Make a subtle, controlled variation of the Base image. Retain the subject identity, body, pose, wardrobe, garment coverage, camera and scene. Maintain its original medium and borrow only explicitly relevant reference cues.';
-  return [rules,...labels.map(compactReferenceInstruction),'REQUESTED IMAGE: '+(prompt||defaultDirection)].join('\n');
+  return [rules,...elementReferenceInstructions(labels,true),'REQUESTED IMAGE: '+(prompt||defaultDirection)].join('\n');
 }
