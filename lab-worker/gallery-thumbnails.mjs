@@ -30,7 +30,7 @@ function thumbnailError(status,message){
 
 // Authorized route only: caller already checked asset id AND owner id in D1.
 // This never exposes a public R2 URL or original media bytes to thumbnail clients.
-export async function serveGalleryThumbnail(env,asset){
+export async function serveGalleryThumbnail(env,asset,ctx){
   if(!imageAsset(asset))return thumbnailError(415,'No image thumbnail is available for this file.');
   const key=galleryThumbnailKey(asset);
   const cached=await env.LAB_MEDIA.get(key);
@@ -52,7 +52,12 @@ export async function serveGalleryThumbnail(env,asset){
       throw Error('The thumbnail encoding was invalid or unexpectedly large.');
     // Durable, account-private, one-time derivative. Repeat gallery visits read
     // only the little WebP from R2 without recompressing or downloading the original.
-    await env.LAB_MEDIA.put(key,bytes,{httpMetadata:{contentType:'image/webp'}});
+    const save=env.LAB_MEDIA.put(key,bytes,{httpMetadata:{contentType:'image/webp'}});
+    // The first preview must not wait for the R2 write: Cloudflare keeps the
+    // private derivative save alive in the request context after responding.
+    // Reads still use the identical owner-scoped key and original stays intact.
+    if(typeof ctx?.waitUntil==='function')ctx.waitUntil(save.catch(()=>{}));
+    else await save;
     return thumbResponse(bytes,bytes.length);
   }catch(error){
     // Only the preview fails. Gallery may fall back to the authenticated original;
