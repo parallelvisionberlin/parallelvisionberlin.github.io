@@ -27,7 +27,7 @@ test('notes editor explains provider use and exposes one-click assistance',()=>{
 });
 
 test('saved note text is retained with each reference for image generation',()=>{
-  assert.match(scene,/note:referenceNote\(cat,title,appearance,extra\)/);
+  assert.match(scene,/note:previous\?previous\.note:referenceNote\(cat,title,appearance,extra\)/);
   assert.match(scene,/note:\(ref\.note\|\|''\)\.slice\(0,300\)/);
   assert.match(guidance,/r\.note\?' Note: '/);
 });
