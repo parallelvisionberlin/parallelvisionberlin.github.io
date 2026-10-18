@@ -182,6 +182,14 @@ try{
   assert.equal(await page.locator('#scene-name').inputValue(),'Unsaved Nina Draft',
     'Keep editing must preserve the entire draft');
   await page.locator('#scene-tabs .scene-category-tab').filter({hasText:'Locations'}).click();
+  await page.locator('#scene-leave-save').click();
+  assert.equal(await page.locator('#scene-create').isVisible(),true,
+    'Invalid Save & continue must not leave an incomplete character draft');
+  assert.equal(await page.locator('#scene-toast').isVisible(),true,
+    'A failed save validation is visible without scrolling');
+  assert.match(await page.locator('#scene-toast-message').innerText(),/at least one photograph/i);
+  await page.locator('#scene-toast-dismiss').click();
+  await page.locator('#scene-tabs .scene-category-tab').filter({hasText:'Locations'}).click();
   await page.locator('#scene-leave-discard').click();
   assert.equal(await page.locator('#scene-library-title').innerText(),'Locations');
   assert.equal(await page.locator('#scene-browser').isVisible(),true);
@@ -209,6 +217,17 @@ try{
   assert.equal(await page.locator('#scene-toast').isVisible(),false,
     'The toast X dismisses it immediately');
   assert.equal(await page.locator('#scene-create').isVisible(),true);
+  await page.setViewportSize({width:390,height:820});
+  await page.locator('#scene-files').setInputFiles(ninePhotos);
+  const mobileToast=await page.locator('#scene-toast').evaluate(element=>{
+    const r=element.getBoundingClientRect();
+    return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:innerWidth,height:innerHeight};
+  });
+  assert.ok(mobileToast.left>=0&&mobileToast.right<=mobileToast.width
+    &&mobileToast.top>=0&&mobileToast.bottom<=mobileToast.height,
+    'The dismissible notification must remain visible at 390px: '+JSON.stringify(mobileToast));
+  await page.locator('#scene-toast-dismiss').click();
+  await page.setViewportSize({width:1440,height:900});
 
   // Valid Save & continue stores the draft once, then switches to the chosen
   // category. No generation job is submitted.
@@ -220,11 +239,7 @@ try{
   assert.equal(await page.locator('#scene-leave-confirm').isVisible(),true);
   await page.locator('#scene-leave-save').click();
   await page.waitForFunction(()=>document.querySelector('#scene-library-title')?.textContent==='Outfits'
-    && !document.getElementById('scene-create').hidden===false,{
-    timeout:20000
-  }).catch(async()=>{
-    await page.locator('#scene-library-title').getByText('Outfits').waitFor({timeout:5000});
-  });
+    &&document.getElementById('scene-create').hidden===true,null,{timeout:20000});
   assert.equal(await page.locator('#scene-library-title').innerText(),'Outfits');
   assert.equal(await page.locator('#scene-browser').isVisible(),true);
   assert.equal(savedPacks.length,3,'Save & continue creates the saved Element exactly once');
