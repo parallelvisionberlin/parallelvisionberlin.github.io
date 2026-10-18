@@ -149,10 +149,10 @@ const ALL_MOODS=Object.freeze([
     "preview": "/lab/mood-previews/hd/fashion-editorial-20261011.jpg",
     "previewFull": "/lab/mood-bank/2026-10-11/fashion-editorial/originals/fashion-editoral.png",
     "description": "Refined fashion art direction",
-    "direction": "High-end European fashion editorial photograph: sophisticated magazine lighting, deliberate pose, tactile garment construction, refined shadows, subtle 50mm lens character, natural skin pores and unretouched detail, coherent studio production design.",
-    "subtle": "Refined photographic grading and garment textures while keeping the clothes.",
-    "intense": "Stronger fashion-magazine lighting and considered set art direction without restructuring the subject.",
-    "avoid": "generic e-commerce photo, airbrushed skin, physically impossible fabrics"
+    "direction": "High-end European fashion editorial as a photographic treatment, not a fixed person or outfit. Deliberate direct or off-axis flash when motivated by the requested scene, deep sculptural blacks, controlled highlight falloff, tactile leather and fabric texture where those materials exist, restrained 50mm lens character, unretouched skin detail and considered negative space. Respect the written subject, age, face, hairstyle, identity, wardrobe, pose, setting and composition. Never introduce a default wet-haired woman or force a black leather jacket.",
+    "subtle": "Natural photographed contrast, material texture and restrained fashion lighting while keeping the user's exact subject and wardrobe.",
+    "intense": "Bolder editorial flash and deeper tonal separation with honest material detail, but retain the written person or scene, clothing, anatomy and composition.",
+    "avoid": "generic e-commerce photo, cloned faces, wet-hair portrait default, forced leather outfit, airbrushed skin, glossy AI-plastic surfaces, physically impossible fabrics"
   },
   {
     "id": "berlin-rave",
