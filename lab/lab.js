@@ -50,7 +50,9 @@ const pendingImageCards=new Map();
 function studioReturnPhoto(item){
   if(!item?.file)return null;
   return {file:item.file,name:item.file.name,type:item.file.type,lastModified:item.file.lastModified,
-    id:item.id||null,role:item.role||'none',note:item.note||'',target:item.target||'',nonBaseRole:item.nonBaseRole||''};
+    id:item.id||null,role:item.role||'none',note:item.note||'',target:item.target||'',nonBaseRole:item.nonBaseRole||'',
+    elementId:item.elementId||null,elementName:item.elementName||'',elementCategory:item.elementCategory||'',
+    elementView:item.elementView,elementCount:item.elementCount};
 }
 async function saveImageForMoods(){
   if(!owner||tool!=='image'||fashionActive)return false;
@@ -99,7 +101,8 @@ async function restoreStudioFromMoods(){
   if(state.source)await setImage(storedImageFile(state.source),state.source.id||null);
   if(chosen.length){
     await addReferences(chosen.map(storedImageFile),chosen.map(r=>r.id||null),
-      chosen.map(r=>({role:r.role,note:r.note,target:r.target})));
+      chosen.map(r=>({role:r.role,note:r.note,target:r.target,elementId:r.elementId,
+        elementName:r.elementName,elementCategory:r.elementCategory,elementView:r.elementView,elementCount:r.elementCount})));
     // Preserve non-base role for a later toggle back to References only.
     for(let i=0;i<chosen.length;i++)if(references[i])references[i].nonBaseRole=chosen[i].nonBaseRole||'none';
   }
@@ -597,7 +600,8 @@ const notify=(text,error=false)=>{
 function release(url){if(url)URL.revokeObjectURL(url);}
 function isSoul2(){return tool==='image'&&imageEngine==='soulpro'&&soulProModel==='soul2';}
 const hf=createSoul2UI({api,uploadAsset,assetPhoto:composerAssetPhoto,notify,getPacks:()=>packs,onChange:()=>{composerLibraryKey='';update();},onJob:job=>{if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);refreshHistorySoon();}});
-function referenceRoles(){return references.map(r=>normalizeReferenceLabel({name:r.file.name,role:r.role||'none',note:r.note||'',target:r.target||''}));}
+function referenceRoles(){return references.map(r=>normalizeReferenceLabel({name:r.file.name,role:r.role||'none',note:r.note||'',target:r.target||'',
+  elementId:r.elementId,elementName:r.elementName,elementCategory:r.elementCategory,elementView:r.elementView,elementCount:r.elementCount}));}
 // Switching to a text-only model parks photos in the editor, it never deletes them.
 function imageInputReferences(){return tool==='image'&&imageEngine==='zspicy'?[]:references;}
 function usesReferenceGuidance(){return tool==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3','krea3'].includes(imageEngine);}
@@ -1137,7 +1141,7 @@ const packStudio=createReferencePackStudio({
 sceneLibrary=createSceneLibrary({
   api,uploadAsset,assetFile,assetPhoto:composerAssetPhoto,getAssetRatio:sceneAssetRatio,
   getReferences:()=>references,getReferenceLimit:referenceLimit,
-  getContext:()=>({owner,busy,tool,mode,supportsReferences:usesReferenceGuidance()&&imageEngine!=='kling'}),
+  getContext:()=>({owner,busy,tool,mode,prompt:$('prompt').value.trim(),supportsReferences:usesReferenceGuidance()&&imageEngine!=='kling'}),
   prepareUse:()=>{
     // A saved item starts a new composition rather than silently making
     // its first image the Base. Preserve any existing Base/editor photos.
@@ -2754,7 +2758,9 @@ async function addReferences(list,ids=[],labels=[]){
       }
       const item=await inspectImage(incoming[i]);
       if(e!==epoch||!owner){releaseReference(item);return;}
-      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;toWarm.push(item);
+      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';
+       item.elementId=labels[i]?.elementId||null;item.elementName=labels[i]?.elementName||'';item.elementCategory=labels[i]?.elementCategory||'';
+       item.elementView=labels[i]?.elementView;item.elementCount=labels[i]?.elementCount;if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;toWarm.push(item);
       renderReferences();refreshInputPreview();update();
       await new Promise(resolve=>setTimeout(resolve,0));
     }
