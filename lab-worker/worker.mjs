@@ -1506,7 +1506,7 @@ async function route(request,env,ctx) {
     return json(await analyzeElementProfile(env,owner,uid(parts[3]),ctx,{first,run,now,fail}));
   }
   if(path==='/api/packs'&&method==='GET'){
-    const list=await rows(env,'SELECT id,name,refs,created_at,element_profile FROM packs WHERE owner_id=? AND name<>? ORDER BY name',owner,SOUL_PRO_IDENTITY_PACK);
+    const list=await rows(env,'SELECT p.id,p.name,p.refs,p.created_at,e.profile_json AS element_profile FROM packs p LEFT JOIN element_visual_profiles e ON e.pack_id=p.id AND e.owner_id=p.owner_id WHERE p.owner_id=? AND p.name<>? ORDER BY p.name',owner,SOUL_PRO_IDENTITY_PACK);
     return json({packs:list.map(p=>({id:p.id,name:p.name,refs:JSON.parse(p.refs),created_at:p.created_at,
       ...(p.element_profile?{profile:JSON.parse(p.element_profile)}:{})}))});
   }
@@ -1523,7 +1523,7 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/packs/')&&method==='DELETE'){
     const id=uid(path.split('/')[3]),pack=await first(env,'SELECT refs FROM packs WHERE id=? AND owner_id=?',id,owner);
-    if(!pack)fail(404,'Pack not found.');await run(env,'DELETE FROM packs WHERE id=? AND owner_id=?',id,owner);
+    if(!pack)fail(404,'Pack not found.');await run(env,'DELETE FROM element_visual_profiles WHERE pack_id=? AND owner_id=?',id,owner);await run(env,'DELETE FROM packs WHERE id=? AND owner_id=?',id,owner);
     for(const a of JSON.parse(pack.refs))await pruneSource(env,owner,a.id);return json({ok:true});
   }
   if(path==='/api/reference-uploads'&&method==='POST') {
