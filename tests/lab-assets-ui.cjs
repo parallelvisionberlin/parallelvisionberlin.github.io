@@ -367,7 +367,7 @@ await page.waitForFunction(()=>!document.querySelector('#video-end-thumb').hidde
 await page.fill('#prompt','A slow camera move across the garment, with natural fabric movement.');
 assert.equal(await page.locator('#generate').textContent(),'Generate');
 assert.equal(await page.locator('#generate').isEnabled(),true);
-assert.equal(await page.locator('#video-detail-prompt').evaluate(el=>getComputedStyle(el).fontSize),'14px');
+assert.equal(await page.locator('#video-detail-prompt').evaluate(el=>getComputedStyle(el).fontSize),'13px','Compact video editor uses the current 13px prompt typography');
 assert.ok((await page.locator('#video-model-control').boundingBox()).y<(await page.locator('#prompt').boundingBox()).y,'Model precedes references and prompt');
 await page.click('#mode-extend');assert.equal(await page.locator('#video-media-drop').isVisible(),true);assert.equal(await page.locator('#start-mode').isVisible(),false);assert.equal(await page.locator('#reference-drop').isVisible(),false);assert.equal(await page.locator('#generate').isDisabled(),true);await page.click('#video-create-task');await page.click('#mode-start');assert.equal(await page.evaluate(()=>window.__referenceSettings().mode),'start');assert.equal(await page.locator('#mode-start').getAttribute('aria-selected'),'true');assert.equal(await page.locator('#generate').isEnabled(),true);
 console.log('VIDEO_REFRESH_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
