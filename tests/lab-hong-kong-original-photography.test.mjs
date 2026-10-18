@@ -46,8 +46,8 @@ test('variant camera and color recipes retain authored subject and identity',()=
     assert.ok(recipe.prompt.startsWith(input+'\n\n'));
     assert.equal(recipe.metadata.moodVariant,id);
     assert.deepEqual(recipe.metadata.filmFinish,v.filmFinish);
-    assert.match(recipe.prompt,/The first reference is the base photograph\. Preserve face, identity/);
-    assert.match(recipe.prompt,/Preserve face, identity, real body proportions/);
+    assert.match(recipe.prompt,/EDIT IMAGE 1, the existing photograph/);
+    assert.match(recipe.prompt,/Keep the same face, expression, age, hair, body, pose, outfit, camera/);
     assert.ok(recipe.prompt.includes(v.direction));
     seen.add(recipe.prompt);
   }
