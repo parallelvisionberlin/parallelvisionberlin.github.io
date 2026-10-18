@@ -367,6 +367,18 @@ try{
       refreshHidden:getComputedStyle(document.getElementById('refresh')).display==='none'
     };
   });
+  if(mobileDiscovery.archivePadding!=='0px'){
+    const inspect=await page.evaluate(()=>{
+      const app=document.getElementById('app'),archive=document.querySelector('.image-studio .archive');
+      const css=Array.from(document.styleSheets).find(s=>s.href?.includes('image-moods-return.css'));
+      return {appClass:app.className,selectorMatch:archive.matches('#app.image-studio-active.pv-moods-discovery-open .image-studio .archive'),
+        rect:archive.getBoundingClientRect().toJSON(),cssLoaded:!!css,cssHref:css?.href,
+        open:!document.getElementById('lab-welcome-start').hidden,
+        selectStyle:getComputedStyle(document.getElementById('history-select')).display,
+        pointer:document.elementFromPoint(93,104)?.outerHTML?.slice(0,180)};
+    });
+    console.log('CHROME_INSPIRATION_DIAGNOSTIC',JSON.stringify(inspect),JSON.stringify(mobileDiscovery));
+  }
   assert.equal(mobileDiscovery.archivePadding,'0px','Moods cannot retain History bottom spacer');
   assert.ok(mobileDiscovery.welcomeTop-mobileDiscovery.headBottom>=-5&&
     mobileDiscovery.welcomeTop-mobileDiscovery.headBottom<65,
