@@ -317,7 +317,11 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     const target=destination.type==='category'?category(destination.id).label:
       destination.type==='packs'?'Photo packs':destination.type==='close'?'Image Studio':'your library';
     $('scene-leave-title').textContent='Save your '+active.label.toLowerCase().slice(0,-1)+'?';
-    $('scene-leave-message').textContent='You have unsaved changes. Save before opening '+target+', discard them, or keep editing.';
+    const needs=[];
+    if(!$('scene-name').value.trim())needs.push('a name');
+    if(!photos.length)needs.push('at least one photo');
+    $('scene-leave-message').textContent='You have unsaved changes. Save before opening '+target+', discard them, or keep editing.'
+      +(needs.length?' To save, add '+needs.join(' and ')+'.':'');
     pendingNavigation=destination;
     if(!leaveConfirm.open)leaveConfirm.showModal();
     $('scene-leave-stay').focus();
