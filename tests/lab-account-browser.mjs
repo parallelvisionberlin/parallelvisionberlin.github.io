@@ -50,14 +50,28 @@ async function fits(page,label){
  const result=await page.evaluate(()=>({viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth}));
  if(result.scrollWidth>result.viewport+1){
   const probe=await page.evaluate(()=>{
-   const elements=[...document.body.children].filter(el=>el.tagName!=='SCRIPT'&&el.tagName!=='STYLE');
-   return elements.map(el=>{
-    const old=el.style.display;
-    el.style.display='none';
-    const width=document.documentElement.scrollWidth;
-    el.style.display=old;
-    return {element:el.tagName+'#'+el.id+'.'+el.className,widthWithout:width};
-   });
+   let node=document.querySelector('#main');
+   const trace=[];
+   for(let depth=0;depth<14&&node;depth++){
+    const before=document.documentElement.scrollWidth;
+    const children=[...node.children];
+    const measures=children.map(el=>{
+     const old=el.style.display;
+     el.style.display='none';
+     const without=document.documentElement.scrollWidth;
+     el.style.display=old;
+     return {el,without};
+    }).sort((a,b)=>a.without-b.without);
+    const candidates=measures.filter(x=>x.without<before);
+    const rect=node.getBoundingClientRect(),css=getComputedStyle(node);
+    trace.push({node:node.tagName+'#'+node.id+'.'+(typeof node.className==='string'?node.className.slice(0,70):''),
+      before,own:node.scrollWidth,client:node.clientWidth,rect:{left:rect.left,right:rect.right},
+      overflowX:css.overflowX,paddingRight:css.paddingRight,
+      children:candidates.slice(0,5).map(x=>({name:x.el.tagName+'#'+x.el.id+'.'+(typeof x.el.className==='string'?x.el.className.slice(0,60):''),without:x.without}))});
+    if(!candidates.length)break;
+    node=candidates[0].el;
+   }
+   return trace;
   });
   console.log('MOBILE_OVERFLOW_PROBE '+label+' '+JSON.stringify(probe));
  }
