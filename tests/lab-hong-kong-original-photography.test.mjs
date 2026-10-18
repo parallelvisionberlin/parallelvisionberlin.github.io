@@ -63,7 +63,7 @@ test('real photo source maps and MIME types fit provider limits without stealing
       assert.deepEqual(plan.references.map(r=>r.file),variant.files);
       assert.equal(plan.references.length,4);
       assert.deepEqual(plan.settings.referenceRoles.map(r=>r.role),['base','style','style','style','style']);
-      assert.deepEqual(plan.settings.referenceRoles.filter(r=>!isMoodStyleReference(r)),settings.referenceRoles);
+      assert.deepEqual(plan.settings.referenceRoles.filter(r=>!isMoodStyleReference(r)).map(r=>[r.role,r.name]),[['base','room.jpg']]);
       assert.equal(moodReferencePlan(plan.settings).references.length,0,'reuse must not double attach');
       const full=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings);
       assert.ok(full.length<=(engine==='seedreamlite'?3000:5000),id+'/'+engine+' length '+full.length);
