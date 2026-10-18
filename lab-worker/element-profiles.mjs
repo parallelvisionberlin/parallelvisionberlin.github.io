@@ -72,7 +72,7 @@ function asBase64(bytes){
 }
 export async function analyzeElementProfile(env,owner,packId,ctx,{first,run,now,fail,fetchImpl=fetch}){
   const pack=await first(env,
-    'SELECT id,name,refs,element_profile FROM packs WHERE id=? AND owner_id=?',packId,owner);
+    'SELECT p.id,p.name,p.refs,e.profile_json AS element_profile FROM packs p LEFT JOIN element_visual_profiles e ON e.pack_id=p.id AND e.owner_id=p.owner_id WHERE p.id=? AND p.owner_id=?',packId,owner);
   if(!pack)fail(404,'Element not found.');
   const entry=elementCategoryFromName(pack.name);
   if(!entry)fail(400,'Only saved Elements can have a visual profile.');
@@ -132,7 +132,7 @@ export async function analyzeElementProfile(env,owner,packId,ctx,{first,run,now,
     const result=(payload.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();
     profile=normalizeElementProfile(JSON.parse(result),entry.category,shots.length);
   }catch{fail(502,'Element visual analysis could not describe this set. Photos remain usable.');}
-  await run(env,'UPDATE packs SET element_profile=? WHERE id=? AND owner_id=? AND element_profile IS NULL',
-    JSON.stringify(profile),packId,owner);
+  await run(env,'INSERT OR IGNORE INTO element_visual_profiles(pack_id,owner_id,profile_json,created_at) VALUES(?,?,?,?)',
+    packId,owner,JSON.stringify(profile),now());
   return {profile,cached:false};
 }
