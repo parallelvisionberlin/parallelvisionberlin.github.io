@@ -38,7 +38,7 @@ test('every variation follows its own optics but protects the source and prompt 
       assert.equal(recipe.error,'',id+' '+engine+' '+intensity+' '+count+': '+recipe.error);
       assert.equal(recipe.metadata.moodVariant,id);
       assert.ok(recipe.prompt.startsWith(author));
-      assert.match(recipe.prompt,/Honor the requested subject and composition|Preserve face, identity, real body proportions/);
+      assert.match(recipe.prompt,/Honor the requested subject and composition|EDIT IMAGE 1, not a new scene/);
       assert.doesNotMatch(recipe.prompt,/Relight whole Base|reconstruct cinematic scene lighting/);
       assert.ok(recipe.prompt.includes(HONG_KONG_VARIANTS[id].direction));
       const labels=Array.from({length:count},(_,i)=>({name:'customer-'+i+'.jpg',role:i?'identity':'base',note:''}));

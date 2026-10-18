@@ -1,5 +1,5 @@
 import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1';
-import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1';
+import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
@@ -329,12 +329,21 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     const film=filmFinish===null?null:filmFinishSettings(filmFinish??HONG_KONG_VARIANTS[variant].filmFinish);
     const strength=intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
     const variantDirection=variant==='original'?'':HONG_KONG_VARIANTS[variant].direction;
-    const preservation=referenceCount>0
-      ?referenceMode==='references'
-        ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
-        :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
+    // A supplied Base is a photograph to finish, not a brief to re-stage an
+    // imagined Hong Kong street. The original open-ended 1990s night-film
+    // direction is retained for text-only and References-only compositions.
+    const editingBase=referenceCount>0&&referenceMode!=='references';
+    const originalImageLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a color treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes; do not age, remodel, harden eye shadows or darken the face. Shift only existing shadows toward restrained emerald/teal and existing highlights toward warm amber, with gentle source-bound bloom. Maintain recognizable daylight if the source is daylight unless user asks otherwise. No added grain, noise, dirt, fake rain, fog or flat green filter. User edits take priority.'
+    const photoStrength=intensity<=34
+      ?'Subtle: gentle tonal separation and optical softness.'
+      :intensity<=69
+        ?'Editorial: luminous flattering skin light, amber highlights and textured deep-teal background shadows.'
+        :'Expressive: richer emerald in existing BACKGROUND shadow gradients only; same luminous face, clean texture and original location.';
+    const preservation=editingBase?'':referenceCount>0
+      ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
       :'Honor the requested subject and composition.';
-    const prompt=[original,'PV LAB MOOD / '+mood.name+': '+[strength,variantDirection].filter(Boolean).join(' ')+' '+preservation+' Avoid: '+mood.avoid+'.'].filter(Boolean).join('\n\n');
+    const look=editingBase?[originalImageLock,photoStrength,variantDirection].filter(Boolean).join(' '):[strength,variantDirection].filter(Boolean).join(' ');
+    const prompt=[original,'PV LAB MOOD / '+mood.name+': '+look+' '+preservation+' Avoid: '+mood.avoid+'.'].filter(Boolean).join('\n\n');
     const budget=engine==='seedreamlite'?3000:5000,over=prompt.length-budget;
     return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,moodVariant:variant,...(film?{filmFinish:film}:{})},
       error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};

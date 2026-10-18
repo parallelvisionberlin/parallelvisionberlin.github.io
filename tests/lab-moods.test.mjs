@@ -179,9 +179,9 @@ test('only explicitly compatible image engines receive moods',()=>{
 test('original prompt is not lost; mood metadata can be restored',()=>{
   const data=prepareMoodPrompt('Nina sitting by a window','hong-kong-nights',64,{engine:'gemini',referenceCount:1});
   assert.ok(data.prompt.startsWith('Nina sitting by a window\n\n'));
-  assert.match(data.prompt,/atmospheric emerald haze/i);
-  assert.match(data.prompt,/first reference is the base photograph/i);
-  assert.match(data.prompt,/Preserve face, identity, real body proportions/);
+  assert.match(data.prompt,/restrained emerald\/teal/i);
+  assert.match(data.prompt,/EDIT IMAGE 1, not a new scene/);
+  assert.match(data.prompt,/Keep identical face, expression, age, hair/);
   assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',moodVariant:'original',filmFinish:{version:2,grain:0,haze:0,halation:0,film:0}});
   assert.equal(data.error,'');
 });
@@ -329,7 +329,7 @@ test('Dreamcore V7 routes organic nature, people and built environments',()=>{
   assert.match(text.prompt,/No Base: use the written subject/);
   assert.equal(userFacingImagePrompt({...max.metadata,prompt:max.prompt}),'Portrait at sea');
   const restoredHongKong=prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1}).prompt;
-  assert.match(restoredHongKong,/Immersive humid nighttime atmosphere/);
+  assert.match(restoredHongKong,/Expressive: richer emerald in existing BACKGROUND shadow gradients only/);
   assert.doesNotMatch(restoredHongKong,/reconstruct cinematic scene lighting|off-axis light modeling/);
   assert.match(readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8'),/not a literal opacity percentage/);
 });

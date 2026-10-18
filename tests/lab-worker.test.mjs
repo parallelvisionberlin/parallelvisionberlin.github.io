@@ -615,6 +615,29 @@ async function seedreamTestReference(env,name,marker=0,width=512,height=512){
 async function uploadGuidanceReference(env,name,marker){
   return seedreamTestReference(env,name,marker);
 }
+test('Hong Kong photo editing uses only the customer Base and explicitly disables default Deep Thinking',async()=>{
+  const {env}=fixture();
+  await setup(env);
+  const source=await seedreamTestReference(env,'original-fashion.png',27,768,512);
+  const recipe=prepareMoodPrompt('Keep the same person and buildings.','hong-kong-nights',60,
+    {engine:'seedream',referenceCount:1,referenceMode:'base',moodVariant:'deep-green'});
+  assert.equal(recipe.error,'');
+  const settings={...imageSettings,engine:'seedream',mode:'image',prompt:recipe.prompt,
+    ...recipe.metadata,referenceMode:'base',referenceRoles:[{name:'original-fashion.png',role:'base'}]};
+  const quoteResponse=await req(env,'/api/quotes',{method:'POST',data:{
+    settings,referenceSourceIds:[source]}});
+  assert.equal(quoteResponse.status,200,await quoteResponse.clone().text());
+  const quote=await quoteResponse.json();
+  assert.equal(quote.settings.moodId,'hong-kong-nights');
+  assert.equal(quote.settings.moodVariant,'deep-green');
+  assert.equal(quote.settings.referenceSourceIds.length,1);
+  assert.equal(quotedRequest.input.image_urls.length,1,'no built-in mood photos sent');
+  assert.equal(quotedRequest.input.enable_thinking,false,'the provider defaults to true unless explicitly false');
+  assert.match(quotedRequest.input.prompt,/EDIT IMAGE 1/);
+  assert.match(quotedRequest.input.prompt,/Hong Kong Nights is a color treatment/);
+  assert.match(quotedRequest.input.prompt,/softly visible eyes/);
+});
+
 test('Seedream uses SpicyAPI with ordered images, compiled properties and reusable detail metadata',async()=>{
   const{env}=fixture();await setup(env);
   const ids=await Promise.all(['base','hands','coat','identity'].map((name,i)=>uploadGuidanceReference(env,name+'.png',i+1)));

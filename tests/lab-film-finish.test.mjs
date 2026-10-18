@@ -36,8 +36,8 @@ test('Hong Kong finish controls change metadata independently of creative intens
   const a=prepareMoodPrompt('One woman by a window','hong-kong-nights',100,{referenceCount:1,filmFinish:{version:1,grain:20,glow:80}});
   const b=prepareMoodPrompt('One woman by a window','hong-kong-nights',100,{referenceCount:1,filmFinish:{version:1,grain:100,glow:0}});
   assert.equal(a.prompt,b.prompt);assert.equal(a.metadata.moodIntensity,100);assert.equal(b.metadata.filmFinish.grain,100);
-  assert.match(a.prompt,/Preserve face, identity, real body proportions/);
-  assert.match(a.prompt,/Respect the original scene and lighting/);
+  assert.match(a.prompt,/Keep identical face, expression, age, hair, body, pose, outfit/);
+  assert.match(a.prompt,/EDIT IMAGE 1, not a new scene/);
   assert.doesNotMatch(a.prompt,/Heavy irregular clustered grain/);
   assert.equal(prepareMoodPrompt('Portrait','berlin-rave',100).metadata.filmFinish,undefined);
   assert.equal(preparePersonalMoodPrompt('Portrait',{id:'board',name:'Mine',baseMoodId:'hong-kong-nights',direction:'Quiet light'},60).metadata.filmFinish,undefined);
@@ -62,7 +62,7 @@ test('Restored Hong Kong look preserves subject and does not require invented sc
   for(const intensity of [21,70,100]){
     const {prompt,error}=prepareMoodPrompt('Portrait','hong-kong-nights',intensity,{referenceCount:1});
     assert.equal(error,'');
-    assert.match(prompt,/Preserve face, identity, real body proportions, pose, camera, wardrobe and composition/);
+    assert.match(prompt,/Keep identical face, expression, age, hair, body, pose, outfit/);
     assert.match(prompt,/Avoid: forced all-green tint/);
     assert.doesNotMatch(prompt,/Relight whole Base|reconstruct cinematic scene lighting|off-axis light modeling/);
   }
