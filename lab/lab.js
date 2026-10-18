@@ -22,6 +22,7 @@ import {createVideoModelPicker} from './video-model-picker.js?v=20261016-wan-min
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1';
+import {createInspirationRotation,INSPIRATION_VARIATIONS} from './inspiration-looks.js?v=20261018-inspire1';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
@@ -356,6 +357,8 @@ function preferredImageReferenceMode(){return 'base';}
 let imageReferenceMode=preferredImageReferenceMode();
 let referenceIntentOpen=false;
 let myMoods=null;
+// Only the explicit six-card Inspiration flow is text-only; manual Mood selection retains its own references.
+let inspirationMoodId=null;
 const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-composer-moods'),getEngine:()=>imageEngine,
   chooseEngine:engine=>{if(busy)return;$('image-engine').value=engine;$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));},
   onOpen:()=>{
@@ -365,6 +368,7 @@ const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-compo
   onCreatePersonal:()=>location.assign('./mood-creator.html?start=idea'),
   onEditPersonal:board=>location.assign('./mood-creator.html?board='+encodeURIComponent(board.id)),
   onChange:change=>{
+    if(change?.selectedMood||!moodUI.active())inspirationMoodId=null;
     // A newly selected Mood starts at the approved 2K Seedream quality.
     // A later explicit resolution choice is still respected.
     if(change?.selectedMood&&moodUI.selected()&&imageEngine==='seedream'&&!busy)
@@ -609,7 +613,10 @@ function imageGuidance(){
   const labels=referenceRoles(),mood=moodUI.enrich(effectiveImagePrompt(),{engine:imageEngine,referenceCount:references.length,referenceMode:imageReferenceMode});
   const current={type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,exactPrompt:$('composer-exact-prompt').checked,...mood.metadata};
   try{
-    const planned=moodReferencePlan({...current,prompt:mood.prompt,referenceRoles:labels});
+    // Inspiration examples use only the explicit prompt and the user's visible attachments.
+    const planned=inspirationMoodId===current.moodId
+      ?{settings:{...current,prompt:mood.prompt,referenceRoles:labels},references:[]}
+      :moodReferencePlan({...current,prompt:mood.prompt,referenceRoles:labels});
     const prompt=compileImagePrompt(planned.settings.prompt,planned.settings.referenceRoles,current);
     const limit=imageEngine==='seedreamlite'?3000:5000;
     const over=prompt.length-limit;
@@ -749,7 +756,8 @@ function imageCreditQuoteSnapshot(){
     sessionEpoch:epoch,settings:selected,count,images:sourceMode?[]:chosen,
     source:sourceMode&&file?{file,url:sourceUrl,width:sourceWidth,height:sourceHeight}:null
   });
-  return {key,settings:selected,count,chosen,sourceMode,provider:currentProvider()};
+  return {key,settings:selected,count,chosen,sourceMode,provider:currentProvider(),
+    disableAutoMoodReferences:inspirationMoodId!==null&&selected.moodId===inspirationMoodId};
 }
 function customerImageProviderReady(){
   const provider=currentProvider();
@@ -774,7 +782,9 @@ async function fetchCustomerImagePrice(s,check){
       originals.push({id,file:item.file,width:item.width,height:item.height});
     }
     check();
-    const curated=await moodReferences.prepare(selected,{sessionKey:epoch,check});
+    const curated=s.disableAutoMoodReferences
+      ?{settings:selected,references:[]}
+      :await moodReferences.prepare(selected,{sessionKey:epoch,check});
     selected=curated.settings;originals.push(...curated.references);
     let inputs={sourceId:sourceMode?originals[0]?.id||null:null,lastSourceId:null,
       referenceSourceIds:sourceMode?[]:originals.map(item=>item.id)};
@@ -1350,14 +1360,8 @@ function syncImageGalleryEmpty(){
 // A one-time, text-first welcome path. Authentication, wallet funding, model
 // quotations and final Generate all remain owned by their existing flows.
 const welcomeRequested=new URLSearchParams(location.search).get('welcome')==='1';
-const welcomePrompts=Object.freeze({
-  'dream-blur':'A photographic blue motion blur, passing headlights and rain-streaked reflections, intimate fragmented detail, realistic long exposure, deep cobalt shadows and light trails, natural film grain and beautiful imperfection.',
-  '90s-cinema':'An atmospheric 1990s film still of two friends browsing vinyl records in a dim independent record shop, warm window light, relaxed gestures, layered clothing, believable interior, realistic photography.',
-  'fashion-editorial':'A contemporary high-fashion editorial portrait of a woman in a black leather jacket, direct soft flash, natural wet hair, compelling gaze, authentic skin texture, rich deep blacks, striking camera presence, photographic realism.',
-  'dreamcore':'An uncanny tranquil indoor swimming pool with pastel pink and peach clouds beyond enormous windows, water reflecting the sunset, quiet tiled architecture, soft ambient light, believable photographed materials, dreamlike serenity.',
-  'hong-kong-nights':'Rainy East Asian street at night. A jade-green-lit corner shop with a red sign, one distant pedestrian and an older dark sedan; wet asphalt, deep shadows, humid emerald haze and realistic 35mm film grain.',
-  '80s-film':'A quiet golden sunset over a wide ocean beach, ripples breaking on wet sand, a distant dark rocky island, deep orange dusk, tactile analog color, soft warm film grain, peaceful natural landscape photography.'
-});
+const welcomePrompts=INSPIRATION_VARIATIONS;
+const inspirationRotation=createInspirationRotation(sessionStorage);
 // Consume only a short-lived text draft deliberately created in the public Studio.
 // Never touch identity, wallet, pricing or job state before authenticated /api/session.
 function restoreGuestImageDraft(){
@@ -1372,6 +1376,8 @@ function restoreGuestImageDraft(){
   if(typeof draft.mood==='string'&&moodById(draft.mood)){
     if(imageEngine!=='seedream'){$('image-engine').value='seedream';$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));}
     moodUI.restore({moodId:draft.mood,moodIntensity:60},true);
+    // A draft from the public six-card preview remains a visible-prompt-only Inspiration selection.
+    inspirationMoodId=draft.mood;
     $('resolution').value='2k';
   }
   $('prompt').value=prompt;
@@ -1439,7 +1445,10 @@ function useWelcomeMood(id){
     ||busy||imageSubmissionPending||$('lab-welcome-start')?.hidden)return;
   // Commit the user-visible choice before running model/mood synchronization.
   // The decorative deck expansion must never be the only result of a click.
-  const selectedPrompt=welcomePrompts[id];
+  const choice=inspirationRotation.select(id,$('prompt').value);
+  if(!choice)return;
+  const selectedPrompt=choice.prompt;
+  const preserveWorkspace=choice.preserved||references.length>0||!!file;
   const visiblePrompt=$('image-composer-prompt');
   $('prompt').value=selectedPrompt;
   if(visiblePrompt){
@@ -1449,15 +1458,18 @@ function useWelcomeMood(id){
   document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
     button.setAttribute('aria-pressed',String(button.dataset.welcomeMood===id));
   });
-  if(imageEngine!=='seedream'){
+  if(imageEngine!=='seedream'&&!preserveWorkspace){
     $('image-engine').value='seedream';
     $('image-engine').dispatchEvent(new Event('change',{bubbles:true}));
   }else if(tool!=='image')setTool('image');
-  // This is a single text-first image, not an automatic paid submission.
-  imageProcessing='normal';$('image-processing').value='normal';
-  $('resolution').value='2k';$('image-count').value='1';
-  if(!references.length&&!file){$('ratio').value='16:9';imageRatioExplicit=false;}
+  // Keep customer settings and user-uploaded photographs when applying the aesthetic to their own work.
+  if(!preserveWorkspace){
+    imageProcessing='normal';$('image-processing').value='normal';
+    $('resolution').value='2k';$('image-count').value='1';
+    if(!references.length&&!file){$('ratio').value='16:9';imageRatioExplicit=false;}
+  }
   if(moodById(id))moodUI.restore({moodId:id,moodIntensity:60},true);
+  inspirationMoodId=id;
   $('prompt').value=selectedPrompt;
   $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
   syncImageComposer();
@@ -2738,7 +2750,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){videoLoadJobId=null;videoLoadErrorJobId=null;++videoSelectionRevision;videoStartFrameHandoff=false;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';frameMaker?.clear();$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){inspirationMoodId=null;videoLoadJobId=null;videoLoadErrorJobId=null;++videoSelectionRevision;videoStartFrameHandoff=false;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';frameMaker?.clear();$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
   if(window.__PV_LAB_NATIVE__===1)candidate=await preparePhotoInput(candidate,{maxBytes:20*1024*1024});
   if(!candidate)throw new Error('No image was provided. Drop a JPG, PNG or WebP photograph.');
@@ -4721,6 +4733,7 @@ async function submitImageSnapshot(){
   }
   const sessionEpoch=epoch,provider=currentProvider();
   let selected=structuredClone(settings());
+  const disableAutoMoodReferences=inspirationMoodId!==null&&selected.moodId===inspirationMoodId;
   const requested=Math.max(1,Math.min(imageProcessing==='batch'?20:4,Number($('image-count').value)||1));
   const selectedPose=poseMapSourceId,selectedBase=file,selectedSourceId=sourceId;
   const sourceMode=imageEngine==='soulpro'||isReinterpret();
@@ -4788,7 +4801,9 @@ async function submitImageSnapshot(){
     await Promise.all(Array.from({length:Math.min(3,chosen.length)},uploadNext));
     if(uploadError)throw uploadError;
     check();
-    const curated=await moodReferences.prepare(selected,{sessionKey:sessionEpoch,check});
+    const curated=disableAutoMoodReferences
+      ?{settings:selected,references:[]}
+      :await moodReferences.prepare(selected,{sessionKey:sessionEpoch,check});
     selected=curated.settings;originals.push(...curated.references);
     let inputs={sourceId:sourceMode?originals[0]?.id||null:null,lastSourceId:null,referenceSourceIds:sourceMode?[]:originals.map(r=>r.id)};
     if(selected.engine==='kling'){
