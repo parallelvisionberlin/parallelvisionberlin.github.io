@@ -1,0 +1,37 @@
+name: HK originals launch regression
+on:
+  push:
+    branches: [feature/hk-girard-originals-launch-20261018]
+    paths:
+      - 'lab/**'
+      - 'lab-worker/**'
+      - 'tests/lab-hong-kong-original-photography.test.mjs'
+      - '.github/workflows/pvlab-hk-launch-test.yml'
+permissions:
+  contents: read
+jobs:
+  photo-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+            js/pv-auth.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax
+        run: |
+          node --check lab/hong-kong-variants.js
+          node --check lab/mood-references.js
+          node --check lab/moods.js
+          node --check lab/explore-moods.js
+          node --check lab/app-mood-generation.js
+          node --check lab-worker/worker.mjs
+      - name: Test real photographs and original Moods and providers
+        run: |
+          node --test tests/lab-hong-kong-original-photography.test.mjs tests/lab-hong-kong-continuity.test.mjs tests/lab-mood-references.test.mjs tests/lab-moods.test.mjs tests/lab-photobooth-all-moods.test.mjs tests/lab-customer-image-quotes.test.mjs
