@@ -258,7 +258,7 @@ async function restoreStudioEntry(){
         title=personal.name;
       }else{
         const mood=moodById(moodId);
-        moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70},true);
+        moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70,...(mood.id==='hong-kong-nights'?{moodVariation:query.get('variation')||'original'}:{})},true);
         title=mood.name;
       }
       if(imageEngine==='seedream')$('resolution').value='2k';
