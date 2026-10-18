@@ -525,8 +525,8 @@ try{
   assert.match(await x.page.locator('#image-composer-prompt').getAttribute('placeholder')||'',/variation of this image/i,
     'A selected base image offers an editable variation without an extra prompt row');
   const photoImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
-  assert.ok(Math.abs(photoImageHeight-compactImageHeight)<=4,
-    'Adding a photo must not resize the fixed Image deck: '+JSON.stringify({compactImageHeight,photoImageHeight}));
+  assert.ok(photoImageHeight>=compactImageHeight+28&&photoImageHeight<=compactImageHeight+72,
+    'Adding a photo reveals one compact reference strip while preserving the prompt and controls: '+JSON.stringify({compactImageHeight,photoImageHeight}));
   // Controlled Pose may need more references, but its instructional hint
   // must never expand the dock or shift the Generate button below its row.
   await x.page.click('#image-composer-model');
@@ -556,10 +556,10 @@ try{
     return {refLeft:ref.left,refRight:ref.right,refTop:ref.top,refBottom:ref.bottom,
       promptLeft:prompt.left,promptRight:prompt.right,promptTop:prompt.top};
   });
-  assert.ok(inlineGeometry.refRight<=inlineGeometry.promptLeft+12 &&
-    inlineGeometry.refBottom>inlineGeometry.promptTop+10 &&
-    inlineGeometry.refTop<inlineGeometry.promptTop+48,
-    'Thumbnails remain beside the prompt, not in a separate row: '+JSON.stringify(inlineGeometry));
+  assert.ok(Math.abs(inlineGeometry.refLeft-inlineGeometry.promptLeft)<=16 &&
+    inlineGeometry.refBottom<inlineGeometry.promptTop &&
+    inlineGeometry.promptTop-inlineGeometry.refBottom<=22,
+    'The uploaded thumbnail occupies one compact row above the prompt, aligned to the text: '+JSON.stringify(inlineGeometry));
   await x.page.screenshot({path:'test-results/lab-image-inline-reference.png',fullPage:false});
   await x.page.click('.composer-reference-remove');
   await x.page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===0);
