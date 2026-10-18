@@ -422,3 +422,12 @@
 @media(prefers-reduced-motion:reduce){
   #app.upscale-studio-active #pv-upscale-source-upload{transition:none}
 }
+
+/* Hide Video-only pills that can otherwise bleed into Upscaler after switching tools.
+   The actual Upscale engine picker, scale, format and paid action remain untouched. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #pv-video-model-pill,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #pv-video-audio-pill,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #pv-video-output-toggle,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #video-utilities{
+  display:none!important;
+}
