@@ -15,11 +15,55 @@ const SCENE_NOTE_SUGGESTIONS=Object.freeze({
   });
 export const suggestedSceneNote=categoryId=>SCENE_NOTE_SUGGESTIONS[categoryId]||'';
 export const isSceneLibraryPack=pack=>typeof pack?.name==='string'&&/^PVSCENE1\|(characters|outfits|props|locations)\|.{1,80}$/.test(pack.name);
-export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getReferences,getReferenceLimit,getContext,prepareUse,addReferences,loadPacks,getAllPacks,notify,action,closeOverlays,openPhotoPacks}) {
+// Choose a source image closest to the card's aspect ratio. Keep saved source
+// order unchanged so the image generator receives references in their original order.
+export function sceneCoverId(refs,ratios=[],targetRatio=1.55){
+  if(!Array.isArray(refs))return null;
+  let chosen=refs.find(ref=>typeof ref?.id==='string'&&ref.id)?.id||null;
+  let best=Infinity;
+  refs.forEach((ref,i)=>{
+    if(typeof ref?.id!=='string'||!ref.id)return;
+    const ratio=ratios[i];
+    if(!Number.isFinite(ratio)||ratio<=0)return;
+    const score=Math.abs(Math.log(ratio/targetRatio));
+    if(score<best){best=score;chosen=ref.id;}
+  });
+  return chosen;
+}
+export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAssetRatio,getReferences,getReferenceLimit,getContext,prepareUse,addReferences,loadPacks,getAllPacks,notify,action,closeOverlays,openPhotoPacks}) {
   const $=id=>document.getElementById(id);
   const dialog=$('scene-library-dialog');
   if(!dialog)return {open(){},sync(){},renderSelected(){},fromGallery(){}};
   let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false,sortMode='recent',viewMode='grid';
+  const coverChoices=new Map(),coverRequests=new Map();
+  let coverRevision=0;
+  function renderCover(host,item){
+    const refs=item?.refs||[];
+    const first=sceneCoverId(refs);
+    if(!first){assetPhoto(host,null);return;}
+    const chosen=coverChoices.get(item.id)||first;
+    // The authenticated thumbnail renderer takes a container, never an IMG.
+    // It inserts an image only after successfully decoding it.
+    assetPhoto(host,chosen);
+    if(refs.length<2||typeof getAssetRatio!=='function'||coverChoices.has(item.id))return;
+    let pending=coverRequests.get(item.id);
+    if(!pending){
+      const revision=coverRevision;
+      pending=Promise.all(refs.map(async ref=>{
+        if(!ref?.id)return null;
+        try{return await getAssetRatio(ref.id);}catch{return null;}
+      })).then(ratios=>{
+        const best=sceneCoverId(refs,ratios)||first;
+        if(revision===coverRevision)coverChoices.set(item.id,best);
+        return revision===coverRevision?best:null;
+      }).catch(()=>first);
+      coverRequests.set(item.id,pending);
+    }
+    void pending.then(best=>{
+      if(best&&best!==chosen&&host.isConnected&&entries.includes(item))
+        assetPhoto(host,best);
+    });
+  }
   const category=id=>CATEGORIES.find(c=>c.id===id)||CATEGORIES[0];
   const safeName=value=>String(value||'').trim().replace(/[\r\n|]+/g,' ').replace(/\s+/g,' ').slice(0,70);
   const displayName=pack=>pack.name.slice((PREFIX+pack.category+'|').length);
@@ -168,8 +212,9 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
     host.hidden=!item||!item.refs?.length;
     if(host.hidden)return;
     const cover=document.createElement('div');cover.className='scene-feature-cover';
-    const portrait=document.createElement('img');portrait.alt=item.title+' reference photograph';portrait.decoding='async';
-    assetPhoto(portrait,item.refs[0].id);cover.append(portrait);
+    cover.setAttribute('role','img');
+    cover.setAttribute('aria-label',item.title+' reference cover');
+    renderCover(cover,item);
     const content=document.createElement('div');content.className='scene-feature-content';
     const eyebrow=document.createElement('span');eyebrow.className='scene-feature-eyebrow';
     eyebrow.textContent=current==='characters'?'SELECTED IDENTITY':'SELECTED ELEMENT';
@@ -191,8 +236,9 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
       const shots=document.createElement('div');shots.className='scene-feature-photos';
       item.refs.forEach((ref,index)=>{
         if(!ref.id)return;
-        const img=document.createElement('img');img.loading='lazy';img.alt=item.title+' view '+(index+1);
-        assetPhoto(img,ref.id);shots.append(img);
+        const tile=document.createElement('div');tile.className='scene-feature-shot';
+        tile.setAttribute('role','img');tile.setAttribute('aria-label',item.title+' view '+(index+1));
+        assetPhoto(tile,ref.id);shots.append(tile);
       });
       const attach=document.createElement('button');attach.type='button';attach.className='scene-feature-attach';
       const attached=item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
@@ -243,16 +289,17 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
       const stamp=item=>Date.parse(item.updatedAt||item.updated_at||item.createdAt||item.created_at||'')||0;
       if(list.some(item=>stamp(item)))list.sort((a,b)=>stamp(b)-stamp(a));
     }
-    const selected=list.find(i=>i.id===selectedId)||list[0]||null;
-    selectedId=selected?.id||null;
+    // A saved item is not automatically selected; its private photograph
+    // belongs to the card, not in place of the category artwork.
+    const selected=list.find(i=>i.id===selectedId)||null;
+    if(!selected)selectedId=null;
     const hero=$('scene-category-hero');
     hero.dataset.category=current;
     hero.setAttribute('aria-label',categoryData.label+' visual collection');
     $('scene-category-hero-title').textContent=categoryData.label;
     $('scene-category-hero-subtitle').textContent=categoryDescriptions[current];
-    // When a user has saved an element, its actual private reference becomes
-    // the featured artwork; otherwise show the appropriate PV-owned archive.
-    hero.hidden=!!(selected?.refs?.length);
+    // Always preserve the chosen PV LAB category hero, even with saved items.
+    hero.hidden=false;
     renderFeatured(selected);
     $('scene-active-label').textContent='All '+categoryData.label.toLowerCase();
     $('scene-library-count').textContent=query
@@ -272,10 +319,9 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
       const select=document.createElement('button');select.type='button';select.className='scene-card-select';
       select.setAttribute('aria-label','Preview '+item.title);
       select.setAttribute('aria-pressed',String(item.id===selectedId));
-      const image=document.createElement('img');image.alt=item.title+' reference preview';
-      image.loading='lazy';image.decoding='async';
-      if(item.refs?.[0]?.id)assetPhoto(image,item.refs[0].id);
-      const top=document.createElement('div');top.className='scene-card-image';top.append(image);
+      const top=document.createElement('div');top.className='scene-card-image';
+      top.setAttribute('role','img');top.setAttribute('aria-label',item.title+' cover');
+      renderCover(top,item);
       const title=document.createElement('strong');title.textContent=item.title;
       const meta=document.createElement('small');meta.textContent=item.refs.length+' image'+(item.refs.length===1?'':'s');
       const details=document.createElement('div');details.className='scene-card-details';details.append(title,meta);
@@ -386,9 +432,10 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getRefe
       });
     }finally{setWorking(false);}
   }
-  function reset(){working=false;if(dialog.open)dialog.close();clearPhotos();allPacks=[];entries=[];selectedId=null;featuredExpanded=false;setStatus('');renderSelected();}
+  function reset(){working=false;if(dialog.open)dialog.close();clearPhotos();allPacks=[];entries=[];selectedId=null;featuredExpanded=false;coverRevision++;coverChoices.clear();coverRequests.clear();setStatus('');renderSelected();}
   function sync(packs){
     allPacks=Array.isArray(packs)?packs:[];
+    coverRevision++;coverChoices.clear();coverRequests.clear();
     entries=allPacks.map(itemFromPack).filter(Boolean);
     render();
     renderSelected();
