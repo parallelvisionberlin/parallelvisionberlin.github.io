@@ -97,6 +97,7 @@ const ninaAccountCreditsInfo = byId("ninaAccountCreditsInfo");
 const ninaAccountCreditsInfoClose = byId("ninaAccountCreditsInfoClose");
 const ninaAccountName = byId("ninaAccountName");
 const ninaAccountAnalytics = byId("ninaAccountAnalytics");
+const ninaAccountAgency = byId("ninaAccountAgency");
 const ninaAccountLab = byId("ninaAccountLab");
 const ninaAccountNewsletter = byId("ninaAccountNewsletter");
 const ninaSignalCredits = byId("ninaSignalCredits");
@@ -510,6 +511,7 @@ function updateNinaAccountControls(clerk = ninaClerk) {
   if (ninaAccountLoggedOut) ninaAccountLoggedOut.hidden = signedIn;
   if (ninaAccountLoggedIn) ninaAccountLoggedIn.hidden = !signedIn;
   if (ninaAccountAnalytics) ninaAccountAnalytics.hidden = true;
+  if (ninaAccountAgency) ninaAccountAgency.hidden = true;
   if (ninaAccountLab) ninaAccountLab.hidden = true;
   if (ninaAccountNewsletter) ninaAccountNewsletter.hidden = true;
   const userLabel = clerk?.user?.fullName || clerk?.user?.firstName || clerk?.user?.primaryEmailAddress?.emailAddress || "Connected account";
@@ -553,6 +555,7 @@ function syncNinaAccountCreditActions(balance, language = document.documentEleme
 
 async function loadAccountDisplayName(clerk = ninaClerk, fallback = "Connected account") {
   if (ninaAccountNewsletter) ninaAccountNewsletter.hidden = true;
+  if (ninaAccountAgency) ninaAccountAgency.hidden = true;
   if (!ninaAccountName || !clerk?.isSignedIn || !clerk?.session) return;
   try {
     const token = await clerk.session.getToken();
@@ -564,6 +567,7 @@ async function loadAccountDisplayName(clerk = ninaClerk, fallback = "Connected a
     if (response.ok) {
       if (typeof data.displayName === "string" && data.displayName.trim()) ninaAccountName.textContent = data.displayName.trim();
       if (ninaAccountAnalytics) ninaAccountAnalytics.hidden = data.role !== "owner";
+      if (ninaAccountAgency) ninaAccountAgency.hidden = data.role !== "owner";
       if (ninaAccountLab) ninaAccountLab.hidden = data.role !== "owner";
       if (ninaAccountNewsletter) ninaAccountNewsletter.hidden = data.role !== "user";
       ninaReferralCodeValue = normalizedReferralCode(data.referral_code);

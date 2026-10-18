@@ -749,3 +749,6 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
  .owner-generation-review-disclosure{font-size:10px}
  #owner-generation-review-close{padding:7px 9px}
 }
+
+/* Unlisted Agency entry: visible only after owner access has been verified. */
+.owner-side-bottom a[hidden]{display:none!important}

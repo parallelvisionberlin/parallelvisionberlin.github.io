@@ -93,7 +93,7 @@ test("newsletter menu follows authenticated account role and resets on logout", 
   const clerk={isSignedIn:true,session:{getToken:async()=>"test-token"}};
   const state={
     ninaAccountNewsletter:{hidden:true},ninaAccountName:{textContent:""},
-    ninaAccountAnalytics:{hidden:true},ninaAccountLab:{hidden:true},
+    ninaAccountAnalytics:{hidden:true},ninaAccountAgency:{hidden:true},ninaAccountLab:{hidden:true},
     ninaReferralCodeValue:"",ninaReferralLink:"",ninaClerk:clerk,
     ANAM_SESSION_TOKEN_ENDPOINT:"https://worker.example/session-token",
     normalizedReferralCode:value=>value||"",submitCapturedReferral:async()=>{},
@@ -112,6 +112,7 @@ test("newsletter menu follows authenticated account role and resets on logout", 
     await state.loadAccountDisplayName(clerk);
     assert.equal(state.ninaAccountNewsletter.hidden,role!=="user",`Newsletter visibility for ${role}`);
     assert.equal(state.ninaAccountAnalytics.hidden,role!=="owner");
+    assert.equal(state.ninaAccountAgency.hidden,role!=="owner");
     assert.equal(state.ninaAccountLab.hidden,role!=="owner");
   }
   responseData={role:"user"};
@@ -120,10 +121,12 @@ test("newsletter menu follows authenticated account role and resets on logout", 
   responseOk=false;
   await state.loadAccountDisplayName(clerk);
   assert.equal(state.ninaAccountNewsletter.hidden,true,"Failed account lookup cannot show Newsletter");
+  assert.equal(state.ninaAccountAgency.hidden,true,"Failed account lookup cannot show Agency preview");
   responseOk=true;
   await state.loadAccountDisplayName(clerk);
   state.updateNinaAccountControls({isSignedIn:false,session:null});
   assert.equal(state.ninaAccountNewsletter.hidden,true,"Signing out clears role-specific visibility");
+  assert.equal(state.ninaAccountAgency.hidden,true,"Signing out hides Agency preview");
   const callsBeforeLogout=fetchCalls;
   await state.loadAccountDisplayName({isSignedIn:false,session:null});
   assert.equal(fetchCalls,callsBeforeLogout,"Signed-out account does not fetch role data");
