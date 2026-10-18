@@ -56,13 +56,16 @@ export function selectElementViews(item,prompt='',limit=2){
   return chosen;
 }
 function elementReferenceNote(item,selectedIndex){
-  const name=String(item.title||'').slice(0,70);
-  const role=item.category==='locations'?'one real location':item.category==='characters'?'one person':
-    item.category==='outfits'?'one outfit':'one object';
-  const identity=String(item.profile?.signature||item.profile?.summary||'').slice(0,175);
+  // Preserve the user's authored saved note (including full appearance/props)
+  // before adding only the visual facts that fit the provider's note budget.
+  const authored=String(item.refs?.[selectedIndex]?.note||'').slice(0,230);
+  const identity=String(item.profile?.signature||item.profile?.summary||'').slice(0,145);
   const shot=item.profile?.shots?.find(s=>s.index===selectedIndex);
-  const view=String(shot?.description||'').slice(0,75);
-  return ('@'+name+': same '+role+' in all saved views. Maintain consistency, do not blend incompatible angles or invent replacement details. '+identity+' '+view).slice(0,300);
+  const view=String(shot?.description||'').slice(0,65);
+  const notes=[authored||'@'+String(item.title||'').slice(0,70)+' is one consistent '+item.category+'.'];
+  if(identity)notes.push('Visual signature: '+identity);
+  if(view)notes.push('View: '+view);
+  return notes.join(' ').slice(0,300);
 }
 
 export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAssetRatio,getReferences,getReferenceLimit,getContext,prepareUse,addReferences,loadPacks,getAllPacks,notify,action,closeOverlays,openPhotoPacks}) {
