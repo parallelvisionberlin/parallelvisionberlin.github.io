@@ -86,7 +86,9 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  await page.waitForFunction(()=>document.querySelector('#image-composer-status')?.textContent==='Checking price…');
  assert.equal(await page.locator('#image-composer-generate').textContent(),'Generate','Price checking must never replace Generate');
  assert.equal(await page.locator('#image-composer-generate').isDisabled(),true,'Generate waits for its confirmed quote');
- await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 17 credits');
+ await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 17 credits',null,{timeout:5500})
+   .catch(async()=>{const state=await page.evaluate(()=>({button:document.querySelector('#image-composer-generate')?.textContent,status:document.querySelector('#image-composer-status')?.textContent,engine:document.querySelector('#image-composer-model-label')?.textContent}));
+     throw Error('Expected the mock-backed 17-credit quote, received '+JSON.stringify({state,requests:requests.filter(r=>r.path==='/api/quotes').slice(-2)}));});
  assert.equal(await page.locator('#image-composer-ratio').inputValue(),'16:9');
  assert.equal(requests.filter(x=>x.path==='/api/quotes').length,1);
  console.log('PASS text defaults to 16:9 and uses 17 backend-quoted credits');
