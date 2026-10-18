@@ -525,8 +525,8 @@ try{
   assert.match(await x.page.locator('#image-composer-prompt').getAttribute('placeholder')||'',/variation of this image/i,
     'A selected base image offers an editable variation without an extra prompt row');
   const photoImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
-  assert.ok(Math.abs(photoImageHeight-compactImageHeight)<=4,
-    'Adding a photo must not resize the fixed Image deck: '+JSON.stringify({compactImageHeight,photoImageHeight}));
+  assert.ok(photoImageHeight>=compactImageHeight+28&&photoImageHeight<=compactImageHeight+72,
+    'Adding a photo reveals one compact reference strip while preserving the prompt and controls: '+JSON.stringify({compactImageHeight,photoImageHeight}));
   // Controlled Pose may need more references, but its instructional hint
   // must never expand the dock or shift the Generate button below its row.
   await x.page.click('#image-composer-model');
