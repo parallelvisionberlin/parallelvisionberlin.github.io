@@ -38,8 +38,8 @@ jobs:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-mobile-browser/node_modules/@playwright/test/index.mjs
         run: |
           node tests/lab-app-mood-deck.mjs
-          node tests/lab-app-discovery.mjs
           node tests/lab-native-mobile-ui.mjs
+          node tests/lab-app-discovery.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
