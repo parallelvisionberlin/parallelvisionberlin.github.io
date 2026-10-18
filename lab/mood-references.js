@@ -1,4 +1,4 @@
-import {HONG_KONG_REFERENCE_FILES,normalizeHongKongVariation} from './hong-kong-presets.js?v=20261018-analog3';
+import {HONG_KONG_REFERENCE_FILES,normalizeHongKongVariation} from './hong-kong-presets.js?v=20261018-analog-originals4';
 import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyBudget=20261018v1';
 
 // These are photographic treatment references, never a replacement Base.
@@ -8,7 +8,15 @@ const HONG_KONG_PHOTOS=Object.freeze([
   {file:'05-passage-diffusion.jpg',type:'image/jpeg',note:'Source-lit humid diffusion, practical highlights and real shadow detail. No copied passage or figures.'},
   {file:'02-city-haze.jpg',type:'image/jpeg',note:'Deep emerald nocturnal air with real warm and ruby practical lights. No copied city, cars, or composition.'},
   {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Authentic reflective glints, warm/cool separation and selective red practical reflections. Never invent wet floors or transplant shops.'},
-  {file:'01-traffic-grain.png',type:'image/png',note:'OPTICS ONLY: analog traffic motion and irregular grain in real nocturnal light. No copied vehicles, scene, signage or people.'}
+  {file:'01-traffic-grain.png',type:'image/png',note:'OPTICS ONLY: analog traffic motion and irregular grain in real nocturnal light. No copied vehicles, scene, signage or people.'},
+  {file:'greg-iii.png',type:'image/png',note:'Real 35mm neon city depth and tungsten/teal separation. Optics only, no copied city.'},
+  {file:'plaza-grill.webp',type:'image/webp',note:'Photographed storefront: cyan fluorescents, real night shadows and practical bloom. Style only.'},
+  {file:'greg-reds.png',type:'image/png',note:'Real ruby-red neon density against dark film shadows. Never duplicate signage or cars.'},
+  {file:'young-woman-tram.webp',type:'image/webp',note:'Human lighting and natural skin within city space. Never copy this person, clothing or tram.'},
+  {file:'silver-grill-cafe.jpg',type:'image/jpeg',note:'Real night cafe light and organic grain. Do not transplant its storefront or people.'},
+  {file:'supervalu.jpg',type:'image/jpeg',note:'Emerald humidity, dim practical bloom and shadow density. No imported location or vehicles.'},
+  {file:'greg22.png',type:'image/png',note:'Real green fluorescent contamination with amber light pockets. Never copy people or interior.'},
+  {file:'sheung-wan-street.webp',type:'image/webp',note:'Optical motion of pedestrians and tram on real film. Never import daylight, signs or road.'}
 ].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/hong-kong-nights/'+ref.file,
   label:Object.freeze({name:'Hong Kong Nights style - '+ref.file,role:'style',note:ref.note})})));
 const HONG_KONG_REFERENCE_SETS=Object.freeze(Object.fromEntries(
