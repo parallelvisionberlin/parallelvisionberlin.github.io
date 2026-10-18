@@ -1,7 +1,7 @@
 name: Mobile 06 interface checks
 on:
   push:
-    branches: [mobile-app-v1]
+    branches: [mobile-app-v1, mobile-art-direction-review]
     paths:
       - 'mobile-app/App.js'
       - 'mobile-app/src/**'
