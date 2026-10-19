@@ -66,9 +66,10 @@ try{
       });
       const editor=page.locator('#image-composer-prompt');
       const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
+      assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
+        'The empty Image deck must start compact');
       await editor.evaluate((el,text)=>{
         el.focus({preventScroll:true});
-        document.getElementById('image-composer').classList.add('pv-deck-expanded');
         el.value=text;
         el.setSelectionRange(text.length,text.length);
         el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertFromPaste',data:text}));
@@ -120,10 +121,55 @@ try{
       await page.waitForTimeout(275);
       const cleared=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
       if(viewport.width>899){
-        assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
-          'Desktop editor stays in its engaged state after clearing text');
-        assert.ok(cleared>=120&&cleared<310,
-          'The open desktop editor remains bounded: '+JSON.stringify({cleared,empty}));
+        const compact=await page.evaluate(()=>({
+          expanded:document.getElementById('image-composer').classList.contains('pv-deck-expanded'),
+          fieldHeight:document.getElementById('image-composer-prompt').getBoundingClientRect().height,
+          hasFocus:document.activeElement?.id==='image-composer-prompt'
+        }));
+        assert.equal(compact.expanded,false,
+          'Deleting all prompt text must immediately clear the desktop expanded state');
+        assert.equal(compact.hasFocus,true,
+          'The textarea must remain focused after deleting its text');
+        assert.ok(compact.fieldHeight<=65,
+          'Empty desktop textarea must shrink from the previous long height: '+JSON.stringify(compact));
+        assert.ok(Math.abs(cleared-empty)<=4,
+          'Empty deck must recover the same compact footprint as before typing: '+JSON.stringify({cleared,empty,compact}));
+
+        // Screenshot regression: populated History uses the two-row deck, and
+        // clearing a large prompt must restore its own compact baseline too.
+        const historyBaseline=await page.evaluate(()=>{
+          document.getElementById('image-gallery-empty').hidden=true;
+          return document.getElementById('image-composer').getBoundingClientRect().height;
+        });
+        await editor.fill(longPrompt);
+        await page.waitForFunction(()=>document.getElementById('image-composer-prompt')
+          .getBoundingClientRect().height>=150,null,{timeout:2500});
+        const historyTall=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
+        assert.ok(historyTall>historyBaseline+55,
+          'Typing in History must expand the two-row deck: '+JSON.stringify({historyTall,historyBaseline}));
+        await editor.fill('');
+        await page.waitForTimeout(75);
+        const historyRestored=await page.evaluate(()=>({
+          height:document.getElementById('image-composer').getBoundingClientRect().height,
+          fieldHeight:document.getElementById('image-composer-prompt').getBoundingClientRect().height,
+          expanded:document.getElementById('image-composer').classList.contains('pv-deck-expanded')
+        }));
+        assert.equal(historyRestored.expanded,false,'History must collapse as soon as its prompt is empty');
+        assert.ok(historyRestored.fieldHeight<=65,
+          'History must not keep an empty multi-line textarea: '+JSON.stringify(historyRestored));
+        assert.ok(Math.abs(historyRestored.height-historyBaseline)<=4,
+          'History deck returns to exactly the compact pretyping size: '+JSON.stringify({historyRestored,historyBaseline}));
+
+        // Existing reference guidance remains expanded even without typed text.
+        await page.evaluate(()=>{
+          const tray=document.getElementById('image-composer-references');
+          tray.hidden=false;
+          const ref=document.createElement('div');
+          ref.className='composer-reference-tile';
+          tray.append(ref);
+        });
+        await page.waitForFunction(()=>document.getElementById('image-composer')
+          .classList.contains('pv-deck-expanded'),null,{timeout:2000});
       }else assert.ok(cleared>=90&&cleared<Math.min(viewport.height-40,350),
         'Mobile Image composer remains bounded after blur: '+JSON.stringify({cleared,empty}));
       checks.push({viewport,promptHeight:Math.round(result.field.height),dockHeight:Math.round(result.composer.height),scrollMax:result.scrollMax});
