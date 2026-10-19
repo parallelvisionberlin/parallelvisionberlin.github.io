@@ -111,3 +111,52 @@ html.pv-image-previews-hidden #app.image-studio-active.pv-moods-discovery-open
 @media(prefers-reduced-motion:reduce){
   #history-moods-toggle{transition:none!important}
 }
+
+
+/* 2026-10-19: mobile Inspiration / first-image welcome, not generated History.
+   The earlier 100dvh + 200px gallery minimum kept an empty lower viewport
+   after the cards. The composer already has its own 255px clearance.
+   Let the shell size to real welcome content, without changing the dock. */
+@media(max-width:680px){
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+    .image-gallery-shell:has(> #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+    min-height:0!important;
+    height:auto!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+    .image-gallery-shell:has(> #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+    > .image-gallery-host > .archive{
+    min-height:0!important;
+    padding-bottom:0!important;
+  }
+  /* In mobile mode this is a normal-flow section; keep bottom clearance for
+     the fixed Generate deck, but remove the phantom min-height above it. */
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+    .image-gallery-shell:has(> #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+    > #image-gallery-empty{
+    position:relative!important;
+    inset:auto!important;
+    min-height:0!important;
+  }
+  /* This approved desktop plate is wide. 'cover' crops away the cobalt/copper
+     edges on a narrow portrait viewport. Display the full abstract color field
+     behind mobile Inspiration instead of only its near-black center.
+     Preserve the owner's preview-hidden atmosphere as a separate mode. */
+  html:not(.pv-native-lab):not(.pv-image-previews-hidden)
+    #app.image-studio-active:not([hidden])
+    .image-gallery-shell:has(> #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::before{
+    inset:0!important;
+    height:100%!important;
+    background:
+      radial-gradient(ellipse 85% 56% at 0% 25%,rgba(20,88,167,.19),transparent 86%),
+      radial-gradient(ellipse 83% 56% at 100% 64%,rgba(154,79,53,.16),transparent 86%),
+      url("./visuals/pvlab-subtle-cinematic-background-20261017.webp") center center/100% 100% no-repeat!important;
+    opacity:1!important;
+    filter:none!important;
+    transform:none!important;
+  }
+  /* The normal marketing footer must not extend the browse-only Inspiration
+     view beyond the last Mood; ordinary image History still has its footer. */
+  body:has(#app.image-studio-active.pv-moods-discovery-open:not([hidden]) #lab-welcome-start:not([hidden]))
+    > footer.pv-lab-footer{display:none!important}
+}
