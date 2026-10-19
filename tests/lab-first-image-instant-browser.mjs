@@ -210,6 +210,7 @@ try{
     const r=prev.getBoundingClientRect();
     const target=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
     return {hit:target?.tagName,hitClass:target?.className,
+      rect:{x:r.x,y:r.y,width:r.width,height:r.height},viewport:{width:innerWidth,height:innerHeight},
       within:target===prev||prev.contains(target)};
   });
   assert.ok(welcomeHit.within,'Carousel back arrow must receive pointer events: '+JSON.stringify(welcomeHit));

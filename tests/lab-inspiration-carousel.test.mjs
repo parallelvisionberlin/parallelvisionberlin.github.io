@@ -25,9 +25,11 @@ test('both Image Inspiration entrances show Chrome Couture sixth, with Sun Fade 
   const expected=['dream-blur','90s-cinema','fashion-editorial','dreamcore','hong-kong-nights','chrome-couture','80s-film'];
   assert.deepEqual(guest,expected);
   assert.deepEqual(signed,expected);
-  assert.equal((html.match(/aria-keyshortcuts="ArrowLeft"/g)||[]).length,2);
-  assert.equal((html.match(/aria-keyshortcuts="ArrowRight"/g)||[]).length,2);
-  assert.equal((html.match(/class="inspiration-nav[\s\S]*?<svg viewBox="0 0 24 24"/g)||[]).length,4);
+  const arrows=[...html.matchAll(/<button\b[^>]*class="inspiration-nav [^"]+"[^>]*>[\s\S]*?<\/button>/g)].map(match=>match[0]);
+  assert.equal(arrows.length,4);
+  assert.equal(arrows.filter(tag=>tag.includes('aria-keyshortcuts="ArrowLeft"')).length,2);
+  assert.equal(arrows.filter(tag=>tag.includes('aria-keyshortcuts="ArrowRight"')).length,2);
+  assert.ok(arrows.every(tag=>tag.includes('<svg viewBox="0 0 24 24"')));
 });
 test('carousel shows six unchanged-sized cards on wide desktop and two on mobile',()=>{
   const css=read('inspiration-carousel.css'),js=read('inspiration-carousel.js');
@@ -44,7 +46,7 @@ test('carousel shows six unchanged-sized cards on wide desktop and two on mobile
   assert.match(js,/next\.disabled=/);
   assert.match(css,/\.inspiration-nav:disabled/);
   assert.match(css,/\.inspiration-nav svg/);
-  assert.match(css,/inspiration-nav-prev\{left:clamp\(-60px,-4vw,-30px\)/);
+  assert.match(css,/inspiration-nav-prev\{left:-34px/);
   assert.match(js,/document\.addEventListener\('keydown'/);
   assert.match(js,/event\.key==='ArrowRight'\?1:-1/);
   assert.match(js,/target\.isContentEditable/);
