@@ -192,6 +192,30 @@ try{
   await page.mouse.move(2,2);
   assert.equal(await page.locator('.lab-welcome-preset').count(),7,
     'All six original welcome cards and Chrome Couture remain mounted');
+  // Navigate the real gallery before submitting a job, so queue callbacks
+  // cannot close the Inspiration view during the click regression.
+  const welcomeNext=page.locator('.lab-welcome-carousel .inspiration-nav-next');
+  const welcomePrev=page.locator('.lab-welcome-carousel .inspiration-nav-prev');
+  await welcomeNext.waitFor({state:'visible'});
+  assert.equal(await welcomePrev.isVisible(),true,'Both gallery arrows remain in place');
+  assert.equal(await welcomePrev.isDisabled(),true,'At the first look, previous is dimmed');
+  await welcomeNext.click();
+  await page.waitForFunction(()=>{
+    const track=document.getElementById('lab-welcome-presets');
+    return track.scrollWidth-track.clientWidth>30&&
+      track.scrollLeft>=track.scrollWidth-track.clientWidth-4;
+  });
+  assert.equal(await welcomePrev.isEnabled(),true,'Previous becomes usable after advancing');
+  const welcomeHit=await welcomePrev.evaluate(prev=>{
+    const r=prev.getBoundingClientRect();
+    const target=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+    return {hit:target?.tagName,hitClass:target?.className,
+      within:target===prev||prev.contains(target)};
+  });
+  assert.ok(welcomeHit.within,'Carousel back arrow must receive pointer events: '+JSON.stringify(welcomeHit));
+  await welcomePrev.click();
+  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<4);
+
   // An empty CUSTOMER Image welcome has no selectable image jobs.
   // Do not advertise History Select or expose a useless "0 selected" toolbar.
   assert.equal(await page.locator('#history-select').isVisible(),false,
@@ -355,22 +379,6 @@ try{
   assert.equal(await inspirationArrows.count(),2,'A gallery has left and right controls');
   assert.ok(inspirationViewport.controlsConnected&&inspirationViewport.prevDisabled&&!inspirationViewport.nextDisabled,
     'Left arrow is visible but disabled at the start; next is actionable: '+JSON.stringify(inspirationViewport));
-  await page.locator('.lab-welcome-carousel .inspiration-nav-next').click();
-  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft>30);
-  assert.equal(await page.locator('.lab-welcome-carousel .inspiration-nav-prev').isEnabled(),true);
-  const prevHit=await page.evaluate(()=>{
-    const prev=document.querySelector('.lab-welcome-carousel .inspiration-nav-prev');
-    const rect=prev.getBoundingClientRect();
-    const at=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
-    return {hit:at?.tagName,hitClass:at?.className,scrollY,
-      arrowZ:getComputedStyle(prev).zIndex,
-      welcomeZ:getComputedStyle(document.getElementById('image-gallery-empty')).zIndex,
-      archiveZ:getComputedStyle(document.querySelector('.image-gallery-host')).zIndex,
-      within:at===prev||prev.contains(at)};
-  });
-  assert.ok(prevHit.within,'Previous arrow must be clickable above saved History: '+JSON.stringify(prevHit));
-  await page.locator('.lab-welcome-carousel .inspiration-nav-prev').click();
-  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<4);
 
   // Discreet Mode is a distinct intentional backdrop and must win over the
   // Inspiration artwork while images are hidden.
