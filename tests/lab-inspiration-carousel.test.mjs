@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL('../lab/'+path,import.meta.url),'utf8');
 
-test('both Image inspiration entrances retain the original six cards and add Chrome Couture as #7',()=>{
+test('both Image Inspiration entrances show Chrome Couture sixth, with Sun Fade behind the arrow',()=>{
   const html=read('studio.html');
   assert.equal((html.match(/class="inspiration-carousel-shell/g)||[]).length,2);
   assert.equal((html.match(/data-guest-mood=/g)||[]).length,7);
@@ -17,9 +17,17 @@ test('both Image inspiration entrances retain the original six cards and add Chr
   assert.equal((html.match(/data-welcome-mood="chrome-couture"/g)||[]).length,1);
   assert.equal((html.match(/data-inspiration-nav="prev"/g)||[]).length,2);
   assert.equal((html.match(/data-inspiration-nav="next"/g)||[]).length,2);
-  assert.match(html,/inspiration-carousel\.css\?v=20261019-gallery-arrows1/);
-  assert.match(html,/inspiration-carousel\.js\?v=20261019-gallery-arrows1/);
+  assert.match(html,/inspiration-carousel\.css\?v=20261019-editorial-chevrons2/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261019-keyboard2/);
   assert.match(html,/id="lab-welcome-presets"/);
+  const guest=[...html.matchAll(/data-guest-mood="([^"]+)"/g)].map(match=>match[1]);
+  const signed=[...html.matchAll(/data-welcome-mood="([^"]+)"/g)].map(match=>match[1]);
+  const expected=['dream-blur','90s-cinema','fashion-editorial','dreamcore','hong-kong-nights','chrome-couture','80s-film'];
+  assert.deepEqual(guest,expected);
+  assert.deepEqual(signed,expected);
+  assert.equal((html.match(/aria-keyshortcuts="ArrowLeft"/g)||[]).length,2);
+  assert.equal((html.match(/aria-keyshortcuts="ArrowRight"/g)||[]).length,2);
+  assert.equal((html.match(/class="inspiration-nav[\s\S]*?<svg viewBox="0 0 24 24"/g)||[]).length,4);
 });
 test('carousel shows six unchanged-sized cards on wide desktop and two on mobile',()=>{
   const css=read('inspiration-carousel.css'),js=read('inspiration-carousel.js');
@@ -35,6 +43,12 @@ test('carousel shows six unchanged-sized cards on wide desktop and two on mobile
   assert.match(js,/prev\.disabled=/);
   assert.match(js,/next\.disabled=/);
   assert.match(css,/\.inspiration-nav:disabled/);
+  assert.match(css,/\.inspiration-nav svg/);
+  assert.match(css,/inspiration-nav-prev\{left:clamp\(-60px,-4vw,-30px\)/);
+  assert.match(js,/document\.addEventListener\('keydown'/);
+  assert.match(js,/event\.key==='ArrowRight'\?1:-1/);
+  assert.match(js,/target\.isContentEditable/);
+  assert.match(js,/document\.querySelector\('dialog\[open\]'\)/);
 });
 test('carousel navigation cannot invoke paid jobs or rewrite the current prompt',()=>{
   const code=read('inspiration-carousel.js'),looks=read('inspiration-looks.js');

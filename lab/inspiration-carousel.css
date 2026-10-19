@@ -13,22 +13,30 @@
 #gate .pv-guest-carousel .pv-guest-cards::-webkit-scrollbar,
 #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets::-webkit-scrollbar{display:none}
 .inspiration-carousel-shell .pv-guest-card,.inspiration-carousel-shell .lab-welcome-preset{scroll-snap-align:start;flex-shrink:0}
+/* Editorial side controls, outside the photographs on wide screens.
+   Both sides stay visible, and an unavailable direction is subdued. */
 .inspiration-carousel-shell .inspiration-nav{
-  position:absolute;z-index:5;top:50%;transform:translateY(-50%);display:grid;place-items:center;
-  width:39px;height:39px;padding:0;appearance:none;border:1px solid rgba(255,255,255,.32);
-  background:rgba(15,16,20,.74);color:#f5f3f0;border-radius:50%;
-  font:400 23px/1 Arial,sans-serif;cursor:pointer;box-shadow:0 5px 19px #0009;
-  backdrop-filter:blur(9px);transition:background-color .2s,border-color .2s;
+  position:absolute;z-index:7;top:50%;transform:translateY(-50%);
+  display:grid;place-items:center;width:44px;height:58px;
+  padding:0;appearance:none;border:0;border-radius:9px;
+  background:transparent;color:#f0efea;cursor:pointer;box-shadow:none;
+  transition:background-color .18s ease,opacity .18s ease;
 }
-.inspiration-carousel-shell .inspiration-nav-prev{left:7px}
-.inspiration-carousel-shell .inspiration-nav-next{right:7px}
-.inspiration-carousel-shell .inspiration-nav:not(:disabled):hover{background:rgba(24,25,27,.96);border-color:rgba(255,255,255,.85)}
+.inspiration-carousel-shell .inspiration-nav svg{display:block;width:26px;height:26px;flex:none;pointer-events:none}
+.inspiration-carousel-shell .inspiration-nav-prev{left:clamp(-60px,-4vw,-30px)}
+.inspiration-carousel-shell .inspiration-nav-next{right:clamp(-60px,-4vw,-30px)}
+#gate .pv-guest-carousel .inspiration-nav-prev{left:-26px}
+#gate .pv-guest-carousel .inspiration-nav-next{right:-26px}
+.inspiration-carousel-shell .inspiration-nav:not(:disabled):hover{background:rgba(239,240,237,.10)}
 .inspiration-carousel-shell .inspiration-nav:disabled{
-  opacity:.38;cursor:default;pointer-events:none;box-shadow:none;
-  border-color:rgba(255,255,255,.16);background:rgba(15,16,20,.38);
+  opacity:.35;cursor:default;pointer-events:none;background:transparent;
 }
-.inspiration-carousel-shell .inspiration-nav:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.inspiration-carousel-shell .inspiration-nav:focus-visible{outline:2px solid #f0efea;outline-offset:1px}
 .inspiration-carousel-shell .inspiration-nav[hidden]{display:none!important}
+@media(max-width:1349px){
+  #app.image-studio-active #lab-welcome-start .inspiration-nav-prev{left:-20px}
+  #app.image-studio-active #lab-welcome-start .inspiration-nav-next{right:-20px}
+}
 /* Photographs stay static on hover. No AI-style zoom effects. */
 #gate .pv-guest-carousel .pv-guest-card:hover img,
 #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-preset:hover>img{transform:none!important}
@@ -42,9 +50,14 @@
   #app.image-studio-active #lab-welcome-start .lab-welcome-carousel{margin-top:21px}
   #gate .pv-guest-carousel .pv-guest-cards,
   #app.image-studio-active #lab-welcome-start .lab-welcome-carousel .lab-welcome-presets{grid-auto-columns:calc((100% - var(--inspire-gap))/2)!important}
-  .inspiration-carousel-shell .inspiration-nav{height:34px;width:34px;font-size:20px}
-  .inspiration-carousel-shell .inspiration-nav-prev{left:4px}
-  .inspiration-carousel-shell .inspiration-nav-next{right:4px}
+  .inspiration-carousel-shell .inspiration-nav{height:44px;width:34px}
+  .inspiration-carousel-shell .inspiration-nav svg{width:21px;height:21px}
+  .inspiration-carousel-shell .inspiration-nav-prev,
+  #gate .pv-guest-carousel .inspiration-nav-prev,
+  #app.image-studio-active #lab-welcome-start .inspiration-nav-prev{left:-13px}
+  .inspiration-carousel-shell .inspiration-nav-next,
+  #gate .pv-guest-carousel .inspiration-nav-next,
+  #app.image-studio-active #lab-welcome-start .inspiration-nav-next{right:-13px}
 }
 @media(prefers-reduced-motion:reduce){
   #gate .pv-guest-carousel .pv-guest-cards,

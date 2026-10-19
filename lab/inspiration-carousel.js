@@ -24,6 +24,17 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   };
   prev.addEventListener('click',()=>move(-1));
   next.addEventListener('click',()=>move(1));
+  document.addEventListener('keydown',event=>{
+    if(event.defaultPrevented||!['ArrowLeft','ArrowRight'].includes(event.key))return;
+    if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+    if(!shell.getClientRects().length||shell.closest('[hidden]')||document.querySelector('dialog[open]'))return;
+    const target=event.target;
+    if(target instanceof Element&&
+      (target.isContentEditable||target.closest('input,textarea,select,[role="textbox"],[role="combobox"],[contenteditable]:not([contenteditable="false"])')))return;
+    if(track.scrollWidth-track.clientWidth<3)return;
+    event.preventDefault();
+    move(event.key==='ArrowRight'?1:-1);
+  });
   track.addEventListener('scroll',queue,{passive:true});
   if('ResizeObserver' in window)new ResizeObserver(queue).observe(track);
   else window.addEventListener('resize',queue,{passive:true});
