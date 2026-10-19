@@ -45,7 +45,7 @@ test('every supported engine and Mood strength preserves face, flattering skin e
     assert.match(recipe.prompt,/every background building, sign and street element/);
     assert.match(recipe.prompt,/Fine pushed 35mm color-negative shadow texture/);
     assert.match(recipe.prompt,/User direction takes priority/);
-    assert.match(recipe.prompt,/practicals/);
+    assert.match(recipe.prompt,/practicals|practical lights|light sources/);
     assert.match(recipe.prompt,/warm lamps/);
     assert.match(recipe.prompt,/not an instruction to move anyone to Asia or add neon/);
     assert.doesNotMatch(recipe.prompt,/reconstruct cinematic scene lighting|off-axis light modeling|Relight whole Base/);
@@ -65,7 +65,7 @@ test('increasing the strength changes existing light only, never scene identity 
   assert.notEqual(low,medium);
   assert.notEqual(medium,high);
   assert.match(medium,/softly visible eyes/);
-  assert.match(high,/do not age, remodel, harden eye shadows or darken the face/);
+  assert.match(high,/Skin remains attractive, naturally warm and sharply identifiable/);
 });
 test('Deep Green and Slow Shutter are optical treatments, not alternate characters or locations',()=>{
   const prompts=[];

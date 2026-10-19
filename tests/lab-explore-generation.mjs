@@ -275,16 +275,14 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
          assert.equal(paid,1,'Remove photo does not start another paid generation');
        }
        if(scenario==='variant-swap'){
-         // The output was created for Original. Selecting another look must
-         // hide that image before quoting Deep Green, never mislabel it.
-         await page.locator('[data-hk-variant="deep-green"]').click();
-         assert.equal(await page.locator('#mc-look-result').isVisible(),false,
-           'Previous result is hidden when the photographic treatment changes');
-         assert.equal(await page.locator('#mc-look-dropzone').isVisible(),true,
-           'The user returns to the editor with their input photograph retained');
-         assert.equal(await page.locator('[data-hk-variant="deep-green"]').getAttribute('aria-pressed'),'true');
-         assert.equal(await page.locator('#mc-look-file-preview').count(),1);
-         assert.equal(paid,1,'Changing the look never starts a second paid generation');
+         // New generations offer ONE canonical Hong Kong Nights, without
+         // exposing the archival variations or triggering another paid job.
+         assert.equal(await page.locator('#mc-hk-variation').isVisible(),false);
+         assert.equal(await page.locator('[data-hk-variant="deep-green"]').isVisible(),false);
+         assert.equal(await page.locator('[data-hk-variant="slow-shutter"]').isVisible(),false);
+         assert.equal(await page.locator('#mc-look-result').isVisible(),true,
+           'Collapsing historical variants must not hide a completed result');
+         assert.equal(paid,1,'The single-look interface never submits extra work');
        }
        await page.locator('#mc-look-close').click();
        assert.equal(await page.locator('#mc-look-dialog').isVisible(),false);
