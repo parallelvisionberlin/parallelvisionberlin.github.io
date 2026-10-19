@@ -3627,7 +3627,7 @@ function showImageDetail(job,hasOutput,loading=false){
   document.querySelector('#image-detail-metadata .image-detail-secondary-data').open=false;
   $('image-detail-model').textContent=detailModelName(job);
   $('image-detail-mood-row').hidden=!!moodName || !params.moodId;
-  const photoLook=params.moodId==='hong-kong-nights'&&params.moodVariant?(HONG_KONG_VARIANTS[params.moodVariant]?.label||''):'';
+  const photoLook=params.moodId==='hong-kong-nights'&&params.moodVariant&&params.moodVariant!=='original'?(HONG_KONG_VARIANTS[params.moodVariant]?.label||''):'';
   $('image-detail-mood-value').textContent=params.moodId?[moodName||'Mood',photoLook,(params.moodIntensity||60)+'%'].filter(Boolean).join(' · '):'';
   $('image-detail-resolution').textContent=String(params.resolution||'Source').toUpperCase();
   $('image-detail-pixels').textContent='';

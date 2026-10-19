@@ -19,7 +19,7 @@ function initialize(){
   const variationRow=$('mc-hk-variation');
   const variationOptions=[...variationRow.querySelectorAll('[data-hk-variant]')];
   function renderVariation(){
-    variationRow.hidden=mood?.id!=='hong-kong-nights';
+    variationRow.hidden=true; // One canonical treatment; old IDs remain archival.
     for(const option of variationOptions){
       const active=option.dataset.hkVariant===moodVariant;
       option.classList.toggle('is-selected',active);
