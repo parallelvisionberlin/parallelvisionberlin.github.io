@@ -463,8 +463,17 @@ try{
   const mobileMore=page.locator('#image-composer-mobile-more');
   await mobileMore.click();
   assert.equal(await mobileMore.getAttribute('aria-expanded'),'true');
+  const expandedControls=await page.evaluate(()=>{
+    const deck=document.getElementById('image-composer');
+    const retouch=document.getElementById('image-composer-edit-area');
+    const ratio=document.getElementById('image-composer-ratio');
+    return {state:deck.dataset.mobileSettings,
+      retouchHidden:retouch.hidden,retouchDisplay:getComputedStyle(retouch).display,
+      retouchRect:retouch.getBoundingClientRect().toJSON(),
+      ratioHidden:ratio.hidden,ratioDisplay:getComputedStyle(ratio).display};
+  });
   assert.equal(await page.locator('#image-composer-edit-area').isVisible(),true,
-    'Retouch must be accessible in expanded Options');
+    'Retouch must be accessible in expanded Options: '+JSON.stringify(expandedControls));
   assert.equal(await page.locator('#image-composer-ratio').isVisible(),true,
     'Aspect ratio must be accessible in expanded Options');
   assert.notEqual(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
