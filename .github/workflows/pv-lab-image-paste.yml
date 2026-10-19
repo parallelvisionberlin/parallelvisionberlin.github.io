@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'lab/image-composer-stable.css'
+      - 'lab/image-editorial-deck.css'
+      - 'lab/image-editorial-deck.js'
       - 'lab/lab.js'
       - 'lab/studio.html'
       - 'tests/lab-image-prompt-paste-ui.mjs'
@@ -11,6 +13,8 @@ on:
   pull_request:
     paths:
       - 'lab/image-composer-stable.css'
+      - 'lab/image-editorial-deck.css'
+      - 'lab/image-editorial-deck.js'
       - 'lab/lab.js'
       - 'lab/studio.html'
       - 'tests/lab-image-prompt-paste-ui.mjs'
