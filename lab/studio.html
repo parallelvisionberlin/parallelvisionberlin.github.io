@@ -179,12 +179,12 @@ document.addEventListener('click',event=>{
 <link rel="stylesheet" href="./video-effects.css?v=20261016-owner-only1">
 <link rel="stylesheet" href="./image-welcome-editorial.css?v=20261017-mobile-mood1&firstImageSelection=2">
 <link rel="stylesheet" href="./studio-guest-image.css?v=20261017-mobile-mood1&firstImageSelection=2">
-<link rel="stylesheet" href="./inspiration-carousel.css?v=20261019-gallery-arrows1">
+<link rel="stylesheet" href="./inspiration-carousel.css?v=20261019-editorial-chevrons2">
 <link rel="stylesheet" href="./image-editorial-deck.css?v=20261019-static-image1">
 <link rel="stylesheet" href="./image-moods-return.css?v=20261017-hidden-inspiration1&inspirationGlow=20261017-halo2&mobileInspire=20261018-1&phoneBackdrop=20261019-1">
 <script defer src="./image-editorial-deck.js?v=20261017-bottom-blue-glow4"></script>
 <script type="module" src="./studio-guest-image.js?v=20261017-mobile-mood1&inspiration=rotation1&chrome=1&greenHaze=2"></script>
-<script type="module" src="./inspiration-carousel.js?v=20261019-gallery-arrows1"></script>
+<script type="module" src="./inspiration-carousel.js?v=20261019-keyboard2"></script>
 <script defer src="./studio-mobile-entry.js?v=20261019-stable-welcome1"></script>
 <link rel="stylesheet" href="./scene-library.css?v=20261018-elements-profiles1&aboutElements=20261018v1&draftToast=20261018v1">
 <link rel="stylesheet" href="./video-editorial-deck.css?v=20261017-video-editorial1">
@@ -285,11 +285,11 @@ document.addEventListener('click',event=>{
       <button type="button" class="pv-guest-card" data-guest-mood="fashion-editorial" aria-pressed="false" aria-label="Choose Flash Leather"><img src="./visuals/leather-editorial/hero-desktop.webp" alt="" decoding="async"><span>Flash Leather<small>FASHION · ATTITUDE</small></span></button>
       <button type="button" class="pv-guest-card" data-guest-mood="dreamcore" aria-pressed="false" aria-label="Choose Cloud Spa"><img src="./welcome-cards/cloud-spa.webp" alt="" decoding="async"><span>Cloud Spa<small>DREAMCORE · SERENITY</small></span></button>
       <button type="button" class="pv-guest-card" data-guest-mood="hong-kong-nights" aria-pressed="false" aria-label="Choose Green Haze"><img src="./mood-references/hong-kong-nights/plaza-grill.webp" alt="" decoding="async"><span>Green Haze<small>CITY · ATMOSPHERE</small></span></button>
-      <button type="button" class="pv-guest-card" data-guest-mood="80s-film" aria-pressed="false" aria-label="Choose Sun Fade"><img src="./welcome-cards/sun-fade.webp" alt="" decoding="async"><span>Sun Fade<small>CINEMATIC · NOSTALGIA</small></span></button>
-      <button type="button" class="pv-guest-card" data-guest-mood="chrome-couture" aria-pressed="false" aria-label="Choose Chrome Couture"><img src="./mood-previews/chrome-couture-20261019.avif" alt="" decoding="async" loading="lazy"><span>Chrome Couture<small>CRYSTAL · STARBURST</small></span></button>
+      <button type="button" class="pv-guest-card" data-guest-mood="chrome-couture" aria-pressed="false" aria-label="Choose Chrome Couture"><img src="./mood-previews/chrome-couture-20261019.avif" alt="" decoding="async"><span>Chrome Couture<small>CRYSTAL · STARBURST</small></span></button>
+      <button type="button" class="pv-guest-card" data-guest-mood="80s-film" aria-pressed="false" aria-label="Choose Sun Fade"><img src="./welcome-cards/sun-fade.webp" alt="" decoding="async" loading="lazy"><span>Sun Fade<small>CINEMATIC · NOSTALGIA</small></span></button>
     </div>
-    <button type="button" class="inspiration-nav inspiration-nav-prev" data-inspiration-nav="prev" aria-controls="pv-guest-cards" aria-label="Previous inspiration looks" hidden>&#8592;</button>
-    <button type="button" class="inspiration-nav inspiration-nav-next" data-inspiration-nav="next" aria-controls="pv-guest-cards" aria-label="Next inspiration looks" hidden>&#8594;</button>
+    <button type="button" class="inspiration-nav inspiration-nav-prev" data-inspiration-nav="prev" aria-controls="pv-guest-cards" aria-label="Previous inspiration looks" aria-keyshortcuts="ArrowLeft" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 5-7 7 7 7"/></svg></button>
+    <button type="button" class="inspiration-nav inspiration-nav-next" data-inspiration-nav="next" aria-controls="pv-guest-cards" aria-label="Next inspiration looks" aria-keyshortcuts="ArrowRight" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></button>
     </div>
     <form id="pv-guest-composer" class="pv-guest-composer">
       <label class="pv-guest-sr-only" for="pv-guest-prompt">Describe the image you want to create</label>
@@ -463,11 +463,11 @@ document.addEventListener('click',event=>{
           <button class="lab-welcome-preset" type="button" data-welcome-mood="fashion-editorial" aria-pressed="false" aria-label="Choose Flash Leather style"><img src="./visuals/leather-editorial/hero-desktop.webp" alt="" loading="eager" decoding="async"><strong>Flash Leather</strong></button>
           <button class="lab-welcome-preset" type="button" data-welcome-mood="dreamcore" aria-pressed="false" aria-label="Choose Cloud Spa style"><img src="./welcome-cards/cloud-spa.webp" alt="" loading="eager" decoding="async"><strong>Cloud Spa</strong></button>
           <button class="lab-welcome-preset" type="button" data-welcome-mood="hong-kong-nights" aria-pressed="false" aria-label="Choose Green Haze style"><img src="./mood-references/hong-kong-nights/plaza-grill.webp" alt="" loading="lazy" decoding="async"><strong>Green Haze</strong></button>
-          <button class="lab-welcome-preset" type="button" data-welcome-mood="80s-film" aria-pressed="false" aria-label="Choose Sun Fade style"><img src="./welcome-cards/sun-fade.webp" alt="" loading="eager" decoding="async"><strong>Sun Fade</strong></button>
-          <button class="lab-welcome-preset" type="button" data-welcome-mood="chrome-couture" aria-pressed="false" aria-label="Choose Chrome Couture style"><img src="./mood-previews/chrome-couture-20261019.avif" alt="" loading="lazy" decoding="async"><strong>Chrome Couture</strong></button>
+          <button class="lab-welcome-preset" type="button" data-welcome-mood="chrome-couture" aria-pressed="false" aria-label="Choose Chrome Couture style"><img src="./mood-previews/chrome-couture-20261019.avif" alt="" loading="eager" decoding="async"><strong>Chrome Couture</strong></button>
+          <button class="lab-welcome-preset" type="button" data-welcome-mood="80s-film" aria-pressed="false" aria-label="Choose Sun Fade style"><img src="./welcome-cards/sun-fade.webp" alt="" loading="lazy" decoding="async"><strong>Sun Fade</strong></button>
         </div>
-        <button type="button" class="inspiration-nav inspiration-nav-prev" data-inspiration-nav="prev" aria-controls="lab-welcome-presets" aria-label="Previous inspiration looks" hidden>&#8592;</button>
-        <button type="button" class="inspiration-nav inspiration-nav-next" data-inspiration-nav="next" aria-controls="lab-welcome-presets" aria-label="Next inspiration looks" hidden>&#8594;</button>
+        <button type="button" class="inspiration-nav inspiration-nav-prev" data-inspiration-nav="prev" aria-controls="lab-welcome-presets" aria-label="Previous inspiration looks" aria-keyshortcuts="ArrowLeft" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 5-7 7 7 7"/></svg></button>
+        <button type="button" class="inspiration-nav inspiration-nav-next" data-inspiration-nav="next" aria-controls="lab-welcome-presets" aria-label="Next inspiration looks" aria-keyshortcuts="ArrowRight" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></button>
         </div>
         <p class="lab-welcome-hint">Review your prompt below. The credit price is shown before you press Generate.</p>
       </section>

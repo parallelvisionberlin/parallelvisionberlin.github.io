@@ -210,11 +210,28 @@ try{
     const r=prev.getBoundingClientRect();
     const target=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
     return {hit:target?.tagName,hitClass:target?.className,
+      rect:{x:r.x,y:r.y,width:r.width,height:r.height},viewport:{width:innerWidth,height:innerHeight},
       within:target===prev||prev.contains(target)};
   });
   assert.ok(welcomeHit.within,'Carousel back arrow must receive pointer events: '+JSON.stringify(welcomeHit));
   await welcomePrev.click();
   await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<4);
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft>30);
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<.4);
+  const placement=await page.evaluate(()=>{
+    const carousel=document.querySelector('.lab-welcome-carousel');
+    const first=carousel.querySelector('.lab-welcome-preset').getBoundingClientRect();
+    const sixth=carousel.querySelectorAll('.lab-welcome-preset')[5].getBoundingClientRect();
+    const prev=carousel.querySelector('.inspiration-nav-prev').getBoundingClientRect();
+    const next=carousel.querySelector('.inspiration-nav-next').getBoundingClientRect();
+    return {leftOutside:prev.right<=first.left+4,rightOutside:next.left>=sixth.right-4,
+      firstLeft:first.left,prevRight:prev.right,sixthRight:sixth.right,nextLeft:next.left,
+      trackScroll:carousel.querySelector('.lab-welcome-presets').scrollLeft};
+  });
+  assert.ok(placement.leftOutside&&placement.rightOutside,
+    'On desktop the arrow buttons belong to the outside gutters, not over the photographs: '+JSON.stringify(placement));
 
   // An empty CUSTOMER Image welcome has no selectable image jobs.
   // Do not advertise History Select or expose a useless "0 selected" toolbar.
@@ -242,6 +259,9 @@ try{
   assert.equal(await page.locator('#history-select').isVisible(),false);
   const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   await field.click();
+  await page.keyboard.press('ArrowRight');
+  assert.ok(await page.locator('#lab-welcome-presets').evaluate(track=>track.scrollLeft)<4,
+    'Keyboard arrows must edit the prompt caret, not move the gallery, while a text field is focused');
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Clicking the prompt opens its multi-line editor');
   await page.waitForFunction(()=>document.querySelector('#image-composer').getBoundingClientRect().height>105);

@@ -104,12 +104,19 @@ try{
   try{
     const oldDesktopHeight=await page.locator('.pv-guest-card').first().evaluate(e=>e.getBoundingClientRect().height);
     assert.ok(oldDesktopHeight>=275,'Desktop card geometry remains unchanged');
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(()=>document.getElementById('pv-guest-cards').scrollLeft>30);
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForFunction(()=>document.getElementById('pv-guest-cards').scrollLeft<4);
     await page.locator('[data-guest-mood="dream-blur"]').click();
     assert.notEqual(await page.evaluate(()=>document.activeElement?.id),'pv-guest-prompt',
       'Desktop Mood selection loads the prompt without forcing the expanded editor');
     assert.equal(await page.locator('#pv-guest-composer').evaluate(el=>getComputedStyle(el).flexDirection),'row',
       'Desktop guest deck keeps the single-row compact mockup until editing begins');
     await page.locator('#pv-guest-prompt').click();
+    await page.keyboard.press('ArrowRight');
+    assert.ok(await page.locator('#pv-guest-cards').evaluate(el=>el.scrollLeft)<4,
+      'Arrow keys keep their text-editing behavior inside the guest prompt');
     assert.equal(await page.evaluate(()=>document.activeElement?.id),'pv-guest-prompt',
       'Intentional prompt click opens the actual editor');
     assert.equal(await page.locator('#pv-guest-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),true,

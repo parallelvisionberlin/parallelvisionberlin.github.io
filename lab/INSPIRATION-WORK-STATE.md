@@ -55,3 +55,11 @@ Wait for updated PR checks, investigate relevant failures, merge when sound, the
 - Both Inspiration arrows remain visible while cards overflow, with the unavailable edge disabled rather than removed. Original seven photographic presets, card sizes and swipe behavior remain unchanged. Linked aria-controls now targets the actual carousel ID.
 - Scoped files: image-editorial-deck.css, inspiration-carousel.css/js, studio.html, tests/lab-first-image-instant-browser.mjs and tests/lab-inspiration-carousel.test.mjs. No image-generator/provider, credit, model, deck controls, footer contents, other tool layouts or backend changes.
 - Browser CI plus static assertions to confirm arrow movement, History release, desktop vertical/horizontal overflow and no marketing footer. Deployment is not confirmed until the relevant checks and live site are verified.
+
+
+## 2026-10-19 Gallery arrows and visual ordering
+- Following the approved single-screen Image fix, user requested a cleaner left/right navigation, keyboard ArrowLeft/ArrowRight movement, and Chrome Couture in the sixth visible slot with Sun Fade moved to seventh.
+- The public and signed-in Image entrance now share that seven-card order; source photographs and prompt/example mappings do not change.
+- Rounded glyph overlays were replaced by thin SVG editorial chevrons, in the outside gutters on wide desktop; both remain present with the unavailable direction subdued. Tablet/phone controls remain at the carousel edges, preserving the original six/three/two card sizing, no browser-wide scrolling, and touch/swipe browsing.
+- Keydown acts only while the carousel is visible, never when editing inputs, with modifiers, or in open dialogs. One card advances per arrow. No paid calls or prompt modifications.
+- Scope: lab/studio.html, lab/inspiration-carousel.css, lab/inspiration-carousel.js, targeted tests, and this handoff. No other image tools, footer, credits, Worker or provider change. Verification/production deployment to be confirmed by CI and GitHub Pages.
