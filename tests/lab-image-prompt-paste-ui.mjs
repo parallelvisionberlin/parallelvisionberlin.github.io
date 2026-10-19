@@ -170,6 +170,24 @@ try{
         });
         await page.waitForFunction(()=>document.getElementById('image-composer')
           .classList.contains('pv-deck-expanded'),null,{timeout:2000});
+        await page.evaluate(()=>{
+          // Reproduce stale inline height after an uploaded photo is removed.
+          const field=document.getElementById('image-composer-prompt');
+          field.style.height='78px';
+          const tray=document.getElementById('image-composer-references');
+          tray.replaceChildren();
+          tray.hidden=true;
+        });
+        await page.waitForFunction(()=>!document.getElementById('image-composer')
+          .classList.contains('pv-deck-expanded'),null,{timeout:2000});
+        const afterLastReference=await page.evaluate(()=>({
+          height:document.getElementById('image-composer').getBoundingClientRect().height,
+          fieldHeight:document.getElementById('image-composer-prompt').getBoundingClientRect().height
+        }));
+        assert.ok(afterLastReference.fieldHeight<=65,
+          'Removing last reference must discard stale inline editor height: '+JSON.stringify(afterLastReference));
+        assert.ok(Math.abs(afterLastReference.height-historyBaseline)<=4,
+          'Removing last reference must return the identical compact History deck: '+JSON.stringify({afterLastReference,historyBaseline}));
       }else assert.ok(cleared>=90&&cleared<Math.min(viewport.height-40,350),
         'Mobile Image composer remains bounded after blur: '+JSON.stringify({cleared,empty}));
       checks.push({viewport,promptHeight:Math.round(result.field.height),dockHeight:Math.round(result.composer.height),scrollMax:result.scrollMax});
