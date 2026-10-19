@@ -56,14 +56,14 @@ test('source-aware grain preserves black and white, favors midtones and does not
   assert.equal(energy[0],0);assert.equal(energy[5],0);
   assert.ok(energy[3]>energy[1]*3);assert.ok(energy[3]>energy[4]*3);
   for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
-  assert.equal(FILM_RENDER_REVISION,7,'new processing must not reuse earlier cached derivatives');
+  assert.equal(FILM_RENDER_REVISION,8,'new V8 processing must not reuse previous film derivatives');
 });
 test('Restored Hong Kong look preserves subject and does not require invented scene relighting at any strength',()=>{
   for(const intensity of [21,70,100]){
     const {prompt,error}=prepareMoodPrompt('Portrait','hong-kong-nights',intensity,{referenceCount:1});
     assert.equal(error,'');
     assert.match(prompt,/Keep identical face, expression, age, hair, body, pose, outfit/);
-    assert.match(prompt,/Avoid: forced all-green tint/);
+    assert.match(prompt,/Avoid: all-green tint/);
     assert.doesNotMatch(prompt,/Relight whole Base|reconstruct cinematic scene lighting|off-axis light modeling/);
   }
 });
@@ -114,6 +114,10 @@ test('deluxe photochemical response builds progressively above 70 without changi
   assert.equal(newDefault.printOpacity,0);
   assert.equal(newDefault.grainAmount,0);
   const full=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100});
+  const previous=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100},{engine:'v3'});
+  assert.ok(full.diffusionOpacity<previous.diffusionOpacity*.5,'V8 must reduce whole-image blur');
+  for(const key of ['grainAmount','printStrength','printOpacity','hazeRadius','hazeOpacity','halationRadius','halationOpacity'])
+    assert.equal(full[key],previous[key],'Preserve established source light behavior: '+key);
   assert.equal(full.signature,1);
   assert.ok(full.grainAmount>125&&full.grainAmount<=134);
   assert.ok(full.hazeRadius>60&&full.hazeOpacity>.45);
@@ -161,7 +165,7 @@ test('v6 analog maximum visibly changes dim midtones and preserves pure black',(
 });
 
 test('V3 promotion invalidates old derivatives and retains V6 as a reversible internal renderer',async()=>{
-  assert.equal(FILM_RENDER_REVISION,7);
+  assert.equal(FILM_RENDER_REVISION,8);
   const original=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAIAAAB2XpiaAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAFUlEQVQImWNgYGBoaGj4////s/U9AB+aBp+Ia7giAAAAAElFTkSuQmCC','base64');
   const v6=await printGradePng(original,1,'v6');
   const v3=await printGradePng(original,1,'v3');

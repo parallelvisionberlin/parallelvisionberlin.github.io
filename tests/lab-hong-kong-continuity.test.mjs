@@ -18,6 +18,10 @@ test('the October 10 cinematic inspiration stays available for compositions, whi
   assert.match(edit.prompt,/not a new scene/);
   assert.match(edit.prompt,/not an instruction to move anyone to Asia or add neon/);
   assert.match(edit.prompt,/natural expressive beauty/);
+  assert.match(edit.prompt,/photographic light-and-air treatment/);
+  assert.match(edit.prompt,/SCENE ADAPTATION, only what IMAGE 1 visibly supports/);
+  for(const route of ['FASHION PORTRAIT OR PERSON','STREET, CAFE OR TRANSIT','BEDROOM OR INTERIOR','DRY OR DAYLIGHT IMAGE'])
+    assert.ok(edit.prompt.includes(route),'Missing scene pathway: '+route);
   assert.doesNotMatch(edit.prompt,/humid urban darkness|rain-wet reflections|organic 35mm grain/);
   assert.equal(edit.metadata.moodIntensity,60);
   assert.equal(edit.metadata.moodVariant,'original');
@@ -38,6 +42,8 @@ test('every supported engine and Mood strength preserves face, flattering skin e
     assert.match(recipe.prompt,/softly visible eyes/);
     assert.match(recipe.prompt,/every background building, sign and street element/);
     assert.match(recipe.prompt,/No added grain, noise, dirt/);
+    assert.match(recipe.prompt,/Bloom only around existing luminous practicals/);
+    assert.match(recipe.prompt,/warm lamps/);
     assert.match(recipe.prompt,/not an instruction to move anyone to Asia or add neon/);
     assert.doesNotMatch(recipe.prompt,/reconstruct cinematic scene lighting|off-axis light modeling|Relight whole Base/);
     assert.deepEqual(recipe.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});

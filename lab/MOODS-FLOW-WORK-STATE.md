@@ -213,3 +213,10 @@ Updated: 2026-10-19
 - Production D1 read-only check on 2026-10-19: no failed Hong Kong Nights job, no generation-debit/refund ledger entries on that date, and zero uncertain jobs; the screenshot rejection likely happened during pricing, before a job was created. This is not proof of a specific Spicy provider invoice.
 - Worker version advances to `pv-lab-2026-10-19.1-hongkong-spicy-compat` solely for production health verification. No schema migration, UI redesign, provider migration, altered pricing or new paid generation.
 - Next: pass focused and complete Worker tests, merge with existing deployment process, verify the exact production health version; actual post-fix image quality still requires an explicitly authorized paid generation.
+
+## 2026-10-19 Hong Kong Nights controlled atmosphere and V8 finishing
+- Baseline 200c21a087960f772e1d7420c6ef422686ffb6d2. Existing Base-first identity, 0 default finish and SpicyAPI/Seedream Pro 1K/2K compatibility remain unchanged.
+- Refined the Mood toward authentic warm skin against emerald-petrol depth, real source-scattered humidity, nocturnal longing and sensual restraint. Conditional art direction routes a fashion portrait, street/transit, room/interior or dry/daylight through the visible Base, without classifier or additional paid calls. No new fog, neon, rain or grain.
+- V8 retains V3's scene-bound emitter masking and 35mm print curve, reducing only blanket softness by more than half. V3/V6 remain explicit A/B and rollback renderers. Render revision 8 separates new output cache from past film derivatives. Manual sliders remain 0-100 and off by default.
+- Three controlled non-paid Cloudflare Images optical A/B sheets (portrait, interior, street) compare original/V3/V8. These DO NOT replace paid AI generation comparison or user assessment of final image quality.
+- No provider route, authorization, customer credit, prompt reference, gallery or unrelated Mood changes. Branch tests, deployment and visual review pending.
