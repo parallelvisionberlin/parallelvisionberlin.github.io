@@ -336,7 +336,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     const originalImageLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a photographic light-and-air treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes; do not age, remodel, harden eye shadows or darken the face. Shift only existing shadows toward restrained emerald/teal and existing highlights toward warm amber, with gentle source-bound bloom. Maintain recognizable daylight if the source is daylight unless user asks otherwise. No added grain, noise, dirt, fake rain, fog or flat green filter. User edits take priority.'
     // No external scene classifier, additional references or extra API call. The
     // edit model reads IMAGE 1 and applies only the physically applicable path.
-    const sourceLightRouting='SCENE ADAPTATION, only what IMAGE 1 visibly supports: FASHION PORTRAIT OR PERSON: warm natural skin, clear eyes and tactile clothing against existing cool ambient; intimacy without changing pose. STREET, CAFE OR TRANSIT: let actual lamps and windows scatter softly into the distance; reflect only on existing wet or glossy surfaces. BEDROOM OR INTERIOR: keep furniture, warm lamps and real window direction; emerald spill only from existing light. DRY OR DAYLIGHT IMAGE: keep existing weather and time; invent no rain, fog, neon or night. Bloom only around existing luminous practicals; retain blacks and face detail.';
+    const sourceLightRouting=engine==='seedreamlite'
+      ?'SCENE ADAPTATION: PERSON keep warm skin; STREET keep existing lights; INTERIOR retain warm lamps and furniture; DAYLIGHT and DRY remain unchanged. Bloom only around existing luminous practicals.'
+      :'SCENE ADAPTATION, only what IMAGE 1 visibly supports: FASHION PORTRAIT OR PERSON: warm natural skin, clear eyes and tactile clothing against existing cool ambient; intimacy without changing pose. STREET, CAFE OR TRANSIT: let actual lamps and windows scatter softly into the distance; reflect only on existing wet or glossy surfaces. BEDROOM OR INTERIOR: keep furniture, warm lamps and real window direction; emerald spill only from existing light. DRY OR DAYLIGHT IMAGE: keep existing weather and time; invent no rain, fog, neon or night. Bloom only around existing luminous practicals; retain blacks and face detail.';
     const photoStrength=intensity<=34
       ?'Subtle: gentle tonal separation and optical softness.'
       :intensity<=69
@@ -345,8 +347,13 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     const preservation=editingBase?'':referenceCount>0
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
       :'Honor the requested subject and composition.';
-    const look=editingBase?[originalImageLock,sourceLightRouting,photoStrength,variantDirection].filter(Boolean).join(' '):[strength,variantDirection].filter(Boolean).join(' ');
-    const prompt=[original,'PV LAB MOOD / '+mood.name+': '+look+' '+preservation+' Avoid: '+mood.avoid+'.'].filter(Boolean).join('\n\n');
+    // Lite's documented 3K provider cap gets a fixed, equally source-safe
+    // recipe. No user text is shortened, and model choice alone selects it.
+    const liteTextStrength='Dreamlike 1990s Hong Kong night-film photography: emerald ambient depth, warm skin, soft bloom only at real lights and intimate urban longing; keep subjects, original scene and weather. '+(intensity>=76?'Strong light contrast, not added fog or grain.':intensity<=34?'Very restrained film-light treatment.':'Balanced warm/cool atmosphere.');
+    const look=editingBase?[originalImageLock,sourceLightRouting,photoStrength,variantDirection].filter(Boolean).join(' '):
+      [engine==='seedreamlite'?liteTextStrength:strength,variantDirection].filter(Boolean).join(' ');
+    const avoid=engine==='seedreamlite'?'all-green wash, invented rain, neon or fog, added grain, smeared face, changed clothes or location':mood.avoid;
+    const prompt=[original,'PV LAB MOOD / '+mood.name+': '+look+' '+preservation+' Avoid: '+avoid+'.'].filter(Boolean).join('\n\n');
     const budget=engine==='seedreamlite'?3000:5000,over=prompt.length-budget;
     return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,moodVariant:variant,...(film?{filmFinish:film}:{})},
       error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
