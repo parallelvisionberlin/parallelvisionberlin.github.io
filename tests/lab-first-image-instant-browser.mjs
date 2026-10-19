@@ -387,6 +387,47 @@ try{
     'The first Mood images must be immediately visible above the floating composer: '+JSON.stringify(mobileDiscovery));
   assert.ok(mobileDiscovery.selectHidden&&mobileDiscovery.refreshHidden,
     'Hidden History cannot offer unusable Select or Refresh controls');
+  const mobileSurface=await page.evaluate(()=>{
+    const shell=document.querySelector('.image-gallery-shell');
+    const archive=shell.querySelector('.image-gallery-host > .archive');
+    const welcome=shell.querySelector('#image-gallery-empty');
+    const backdrop=getComputedStyle(shell,'::before');
+    return {shellHeight:shell.getBoundingClientRect().height,
+      contentHeight:archive.getBoundingClientRect().height+welcome.getBoundingClientRect().height,
+      minHeight:getComputedStyle(shell).minHeight,
+      backgroundImage:backdrop.backgroundImage,
+      backgroundSize:backdrop.backgroundSize,
+      backdropHeight:parseFloat(backdrop.height),
+      footer:getComputedStyle(document.querySelector('body>footer.pv-lab-footer')).display};
+  });
+  assert.ok(mobileSurface.minHeight==='0px',
+    'Mobile Inspiration must not reserve the old viewport + 200px height: '+JSON.stringify(mobileSurface));
+  assert.ok(mobileSurface.shellHeight<=mobileSurface.contentHeight+8,
+    'Gallery height must follow actual visible content, without a black trailing void: '+JSON.stringify(mobileSurface));
+  assert.match(mobileSurface.backgroundImage,/pvlab-subtle-cinematic-background-20261017\.webp/,
+    'Keep the approved original photographic plate');
+  assert.match(mobileSurface.backgroundSize,/100% 100%/,
+    'On narrow phones show the complete cobalt/copper image, not the black center crop');
+  assert.ok(Math.abs(mobileSurface.backdropHeight-mobileSurface.shellHeight)<4,
+    'Mobile backdrop must cover the whole actual gallery: '+JSON.stringify(mobileSurface));
+  assert.equal(mobileSurface.footer,'none',
+    'Browsing Inspiration must not scroll into the marketing footer');
+  await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+  const mobileBottom=await page.evaluate(()=>{
+    const last=document.querySelector('#lab-welcome-start .lab-welcome-preset');
+    const dock=document.getElementById('image-composer');
+    return {cardBottom:last.getBoundingClientRect().bottom,
+      dockTop:dock.getBoundingClientRect().top,
+      viewportHeight:innerHeight,
+      scrollY:window.scrollY,
+      documentHeight:document.documentElement.scrollHeight,
+      documentWidth:document.documentElement.scrollWidth};
+  });
+  const visualGap=mobileBottom.dockTop-mobileBottom.cardBottom;
+  assert.ok(visualGap<125,
+    'No huge empty strip should separate last card and fixed Generate: '+JSON.stringify({visualGap,mobileBottom}));
+  assert.ok(mobileBottom.documentWidth<=391,
+    'The mobile background must not create horizontal scrolling');
   await page.locator('#history-moods-toggle').click();
   assert.equal(await page.locator('#history').isVisible(),true,
     'Mobile History resumes after closing Inspiration without losing results');
