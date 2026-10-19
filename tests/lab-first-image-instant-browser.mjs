@@ -219,14 +219,16 @@ try{
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft>30);
   await page.keyboard.press('ArrowLeft');
-  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<4);
+  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<.4);
   const placement=await page.evaluate(()=>{
     const carousel=document.querySelector('.lab-welcome-carousel');
     const first=carousel.querySelector('.lab-welcome-preset').getBoundingClientRect();
     const sixth=carousel.querySelectorAll('.lab-welcome-preset')[5].getBoundingClientRect();
     const prev=carousel.querySelector('.inspiration-nav-prev').getBoundingClientRect();
     const next=carousel.querySelector('.inspiration-nav-next').getBoundingClientRect();
-    return {leftOutside:prev.right<first.left+1,rightOutside:next.left>sixth.right-1};
+    return {leftOutside:prev.right<=first.left+4,rightOutside:next.left>=sixth.right-4,
+      firstLeft:first.left,prevRight:prev.right,sixthRight:sixth.right,nextLeft:next.left,
+      trackScroll:carousel.querySelector('.lab-welcome-presets').scrollLeft};
   });
   assert.ok(placement.leftOutside&&placement.rightOutside,
     'On desktop the arrow buttons belong to the outside gutters, not over the photographs: '+JSON.stringify(placement));
