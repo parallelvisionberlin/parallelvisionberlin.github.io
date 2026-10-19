@@ -286,7 +286,7 @@ export function moodPreviewURL(mood,{detail=false}={}){
   return detail?(mood.previewFull||mood.preview):mood.preview;
 }
 
-export const MOOD_MODELS=Object.freeze(['seedream','seedreamlite','gemini','gemini21','qwen3','zspicy']);
+export const MOOD_MODELS=Object.freeze(['seedream','seedreamlite','krea3','gemini','gemini21','qwen3','zspicy']);
 export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||null;
 // This is intentionally presentation-only. Jobs retain the full provider prompt for
 // reproduction, but the viewer and History show only user-authored text.
@@ -317,7 +317,7 @@ export function imageHistoryCaption(settings={}){
 export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=undefined,moodVariant='original'}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
-  if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
+  if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   // Hong Kong Nights: restore the approved October 10 photographic recipe.
   // One short art direction and the user's own photograph; no scene rebuilding
@@ -623,7 +623,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     selection.hidden=!chosen;
     selectedLabel.hidden=!chosen;
     const compatible=MOOD_MODELS.includes(getEngine());
-    hint.textContent=compatible?'':'This image model does not support Moods. Try Seedream Pro or Lite, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.';
+    hint.textContent=compatible?'':'This image model does not support Moods. Try Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.';
     hint.hidden=compatible;
     switcher.hidden=compatible;
     switcher.disabled=!chosen;
