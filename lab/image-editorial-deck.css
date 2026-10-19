@@ -679,3 +679,43 @@ html:not(.pv-native-lab) #app.image-studio-active
   display:none!important;
   min-height:0!important;
 }
+
+/* PV Soul 2 only: the separate Soul ID + IMAGE cards used to leave too little
+   horizontal space for both output selectors. Keep the toolbar on one line on
+   wide desktops, without touching the standard Image models or native app.
+   The existing bounded, internally-scrollable prompt remains unchanged. */
+@media(min-width:1200px){
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul:not(.has-soul-source){
+    grid-template-columns:minmax(0,1fr) 80px 108px 144px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul:not(.has-soul-source) #composer-character{
+    width:80px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-controls{
+    display:flex;flex-wrap:nowrap;align-items:center;gap:5px;min-width:0;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-model-wrap{
+    flex:0 1 124px;min-width:104px;max-width:124px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-model-pill{
+    box-sizing:border-box;width:100%;min-width:0;padding-inline:7px;gap:4px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul #image-composer-model-label{
+    min-width:0;max-width:82px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-mood-control{
+    flex:0 1 99px;min-width:77px;max-width:99px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-mood-control #image-composer-moods{
+    padding-inline:8px;gap:4px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul #image-composer-edit-area{
+    padding-inline:9px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-controls>.hf-bar-control{
+    min-width:0;padding-inline:3px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .hf-bar-control select{
+    min-width:0;max-width:100px;padding:6px 14px 6px 28px;font-size:12px;
+  }
+}
