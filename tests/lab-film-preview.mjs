@@ -154,3 +154,44 @@ const greenOld=await sharp(neonOld).removeAlpha().raw().toBuffer(),greenNew=awai
 assert.ok(at(greenNew,320,171,127)>at(greenOld,320,171,127)+1,'V3 colored practical must diffuse more visibly');
 assert.ok(at(greenNew,320,20,20)<38,'Unlit dark corner stays dark');
 console.log('V3 Cloudflare comparisons passed. V3 is now production default; explicit V6 comparison remains available. No AI generation.');
+
+
+// The portrait / interior / street comparisons only run the existing film
+// finishing engine. They never call SpicyAPI or spend any credits.
+const hkControls={grain:12,haze:24,halation:18,film:15};
+for(const [name,file] of [
+  ['portrait','lab/mood-previews/hd/night-flash-20261011.jpg'],
+  ['interior','lab/mood-references/hong-kong-nights/06-interior-portrait.jpg'],
+  ['street','lab/mood-references/hong-kong-nights/03-shop-reflections.jpg']
+]){
+  const base=await sharp(file).resize({width:850,height:850,fit:'inside',withoutEnlargement:true}).png().toBuffer();
+  const older=await gradeWithEngine(base,'v3',hkControls);
+  const improved=await gradeWithEngine(base,'v8',hkControls);
+  const originalPixels=await sharp(base).removeAlpha().raw().toBuffer();
+  const oldPixels=await sharp(older).removeAlpha().raw().toBuffer();
+  const newPixels=await sharp(improved).removeAlpha().raw().toBuffer();
+  assert.equal(newPixels.length,originalPixels.length);
+  let oldError=0,newError=0,difference=0,midPixels=0;
+  for(let i=0;i<originalPixels.length;i+=3){
+    const l=(.2126*originalPixels[i]+.7152*originalPixels[i+1]+.0722*originalPixels[i+2])/255;
+    if(l<.18||l>.78)continue;
+    midPixels++;
+    for(let c=0;c<3;c++){
+      oldError+=Math.abs(originalPixels[i+c]-oldPixels[i+c]);
+      newError+=Math.abs(originalPixels[i+c]-newPixels[i+c]);
+      difference+=Math.abs(oldPixels[i+c]-newPixels[i+c]);
+    }
+  }
+  assert.ok(midPixels>1000,name+' needs a real textured photograph');
+  assert.ok(difference>0,name+' optical upgrade must have a visible pixel effect');
+  assert.ok(newError<=oldError*1.035,name+' should retain at least as much midtone detail');
+  const assets=[base,older,improved],captions=['Original','Existing V3 finish','New V8 finish'],composite=[];
+  for(let col=0;col<3;col++){
+    const image=await sharp(assets[col]).resize(370,465,{fit:'contain',background:'#151716'}).png().toBuffer();
+    const label=Buffer.from('<svg width="370" height="35"><rect width="370" height="35" fill="#151716"/><text x="14" y="24" fill="#f4f2ed" font-family="sans-serif" font-size="16">'+captions[col]+'</text></svg>');
+    composite.push({input:image,left:col*370,top:35},{input:label,left:col*370,top:0});
+  }
+  await sharp({create:{width:1110,height:500,channels:3,background:'#151716'}})
+    .composite(composite).jpeg({quality:91}).toFile(dir+'/hong-kong-v8-'+name+'-ab.jpg');
+  console.log('HONG_KONG_V8_AB '+name+' '+JSON.stringify({midPixels,oldError,newError,difference}));
+}
