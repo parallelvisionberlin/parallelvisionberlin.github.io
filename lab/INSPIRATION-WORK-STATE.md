@@ -28,3 +28,14 @@ Implementation: `feature/chrome-couture-inspiration-20261019`
 
 ## Next action
 Wait for updated PR checks, investigate relevant failures, merge when sound, then verify Cloudflare Pages publication of pvlab.studio.
+
+
+## 2026-10-19 iPhone Inspiration spacing and background correction
+- User-supplied iPhone screenshots show a roughly several-hundred-pixel blank black scroll gap after the mood cards, with the cobalt/copper backdrop missing in the center.
+- Verified CSS cause: `lab/image-welcome-editorial.css` applies `min-height:calc(100dvh + 200px)` at tablet/mobile widths even for a browse-only Inspiration row. Meanwhile mobile welcome retains a 255px bottom padding to clear the *fixed* prompt deck, causing redundant empty height. Separate mobile background styling also crops the wide approved image with `cover` into its nearly black center.
+- Fix branch: `fix/mobile-inspiration-spacing-backdrop-20261019` from main `071c4c071cfa7df6550609109f9f49b8c2a77a1a`, PR #348.
+- Mobile-only `lab/image-moods-return.css` now derives shell height from the real welcome content, removes empty archive height/padding only while Inspiration/welcome is visible, preserves existing bottom composer clearance, and hides the browse-only marketing footer. Ordinary Image History, native app, Video, desktop and preview-hidden modes are excluded.
+- The same approved `pvlab-subtle-cinematic-background-20261017.webp` is used, with the full abstract cobalt/copper plate presented across the narrow width plus subtle radial atmospheric light. No added images or model changes.
+- `lab/studio.html` cache-busts the updated CSS. `tests/lab-first-image-instant-browser.mjs` adds 390px browser assertions for natural shell height, full background, scroll-bottom gap, no horizontal overflow, footer and History return.
+- Verification: PR browser/CI checks pending at time of writing. Live Cloudflare deployment not yet confirmed. No paid generations or backend changes.
+- Next: inspect the scoped first-image browser check, adjust if needed, merge only after passing, verify source publication, then ask user to reload the phone.
