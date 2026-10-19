@@ -2,7 +2,7 @@
 // Existing source photographs remain available for previews and saved History.\n// New image generations do not auto-attach them to the model.
 export const HONG_KONG_VARIANTS=Object.freeze({
   original:Object.freeze({
-    label:'Original',
+    label:'Nocturne',
     direction:'',
     filmFinish:Object.freeze({version:2,grain:0,haze:0,halation:0,film:0}),
     files:Object.freeze(['greg-iii.png','plaza-grill.webp','young-woman-tram.webp','greg-reds.png'])
