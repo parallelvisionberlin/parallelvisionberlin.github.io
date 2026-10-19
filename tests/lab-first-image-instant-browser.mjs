@@ -440,6 +440,7 @@ try{
     const essential=['.composer-add-wrap','.scene-image-library-wrap','.composer-model-wrap','.composer-mood-control','.composer-mobile-more'];
     return {headerHeight:r('#studio-header').height,dockHeight:dock.height,dockTop:dock.top,
       cardBottom:r('#lab-welcome-start .lab-welcome-preset').bottom,
+      cardHeight:r('#lab-welcome-start .lab-welcome-preset').height,
       titleTop:r('#lab-welcome-start h2').top,
       essential:essential.map(s=>({selector:s,display:getComputedStyle(controls.querySelector(s)).display,
         top:controls.querySelector(s).getBoundingClientRect().top})),
@@ -455,6 +456,8 @@ try{
     'Welcome tools must fit a single row: '+JSON.stringify(compact));
   assert.equal(compact.retouch,'none','Retouch is accessible through Options at rest');
   assert.equal(compact.lock,'hidden','Resting welcome must not bounce vertically');
+  assert.ok(compact.cardHeight>=240,
+    'Recovered toolbar space should enlarge the original mood photographs: '+JSON.stringify(compact));
   assert.ok(compact.cardBottom<compact.dockTop-5,
     'Both Mood photographs and their titles must clear the compact deck: '+JSON.stringify(compact));
   const mobileMore=page.locator('#image-composer-mobile-more');
