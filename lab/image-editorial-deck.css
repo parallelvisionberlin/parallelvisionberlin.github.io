@@ -146,6 +146,20 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   transition:none!important;
 }
 
+/* Clearing text or removing the last reference can change the expanded class
+   after the prompt was measured at its previous 78px minimum. The now-empty
+   desktop textarea must not retain that stale inline height. Keep the welcome
+   one-row override (44px) and all nonempty/reference-guided sizing intact. */
+@media(min-width:900px){
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded):not(.pv-deck-has-prompt)
+    #image-composer-prompt{
+    height:54px!important;
+    min-height:54px!important;
+    max-height:54px!important;
+  }
+}
+
 /* Preserve the original functional two-row Image grid. The previous
    one-row flex override squeezed the prompt and controls and replaced the
    approved floating composer with a permanently tiny strip. */
