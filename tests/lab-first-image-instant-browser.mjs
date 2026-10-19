@@ -358,6 +358,17 @@ try{
   await page.locator('.lab-welcome-carousel .inspiration-nav-next').click();
   await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft>30);
   assert.equal(await page.locator('.lab-welcome-carousel .inspiration-nav-prev').isEnabled(),true);
+  const prevHit=await page.evaluate(()=>{
+    const prev=document.querySelector('.lab-welcome-carousel .inspiration-nav-prev');
+    const rect=prev.getBoundingClientRect();
+    const at=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
+    return {hit:at?.tagName,hitClass:at?.className,scrollY,
+      arrowZ:getComputedStyle(prev).zIndex,
+      welcomeZ:getComputedStyle(document.getElementById('image-gallery-empty')).zIndex,
+      archiveZ:getComputedStyle(document.querySelector('.image-gallery-host')).zIndex,
+      within:at===prev||prev.contains(at)};
+  });
+  assert.ok(prevHit.within,'Previous arrow must be clickable above saved History: '+JSON.stringify(prevHit));
   await page.locator('.lab-welcome-carousel .inspiration-nav-prev').click();
   await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<4);
 
