@@ -412,6 +412,42 @@ try{
     'Returning to populated History must restore the actual gallery');
   // Mobile regression: Inspiration must not appear below an empty, viewport-sized History.
   await page.setViewportSize({width:390,height:844});
+  // History and first-image Inspiration must share the SAME compact editor,
+  // without changing History scrolling, generated results or quote behavior.
+  const historyCompact=await page.evaluate(()=>{
+    const dock=document.getElementById('image-composer');
+    const controls=dock.querySelector('.composer-controls');
+    const names=['.composer-add-wrap','.scene-image-library-wrap','.composer-model-wrap','.composer-mood-control','.composer-mobile-more'];
+    return {
+      deckHeight:dock.getBoundingClientRect().height,
+      row:names.map(name=>{
+        const el=controls.querySelector(name);
+        return {name,display:getComputedStyle(el).display,top:el.getBoundingClientRect().top};
+      }),
+      retouch:getComputedStyle(document.getElementById('image-composer-edit-area')).display,
+      htmlOverflow:getComputedStyle(document.documentElement).overflowY,
+      historyVisible:getComputedStyle(document.getElementById('history')).display
+    };
+  });
+  // A deliberately expanded prompt retains its full 102px editing area;
+  // the tools still occupy only one row, and long text is never clipped.
+  assert.ok(historyCompact.deckHeight<305,
+    'History must use the compact controls without collapsing an expanded prompt: '+JSON.stringify(historyCompact));
+  assert.ok(historyCompact.row.every(x=>x.display!=='none'),
+    'All essential History tools must remain visible: '+JSON.stringify(historyCompact));
+  assert.ok(Math.max(...historyCompact.row.map(x=>x.top))-Math.min(...historyCompact.row.map(x=>x.top))<8,
+    'History toolbar must fit one horizontal row: '+JSON.stringify(historyCompact));
+  assert.equal(historyCompact.retouch,'none',
+    'Retouch belongs under the same compact Options menu in History');
+  assert.notEqual(historyCompact.htmlOverflow,'hidden',
+    'Image History must remain vertically scrollable');
+  const historyOptions=page.locator('#image-composer-mobile-more');
+  await historyOptions.click();
+  assert.equal(await historyOptions.getAttribute('aria-expanded'),'true');
+  assert.equal(await page.locator('#image-composer-ratio').isVisible(),true,
+    'History options must expose aspect ratio without replacing its value');
+  await historyOptions.click();
+  assert.equal(await historyOptions.getAttribute('aria-expanded'),'false');
   const mobileInspire=await page.locator('#history-moods-toggle').evaluate(button=>({
     width:button.getBoundingClientRect().width,
     visible:button.getBoundingClientRect().height>0,
