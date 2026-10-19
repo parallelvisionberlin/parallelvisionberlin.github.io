@@ -9,14 +9,19 @@
   if(!header||!gate||!app||!welcome||!empty)return;
   const mobile=window.matchMedia('(max-width:680px)');
   let frame=0;
+  let wasFirstImage=false;
   function update(){
     frame=0;
     const guest=!gate.hidden&&gate.classList.contains('pv-guest-image');
     const firstImage=!app.hidden&&app.classList.contains('image-studio-active')&&
       !welcome.hidden&&!empty.hidden;
     const scrolled=(window.scrollY||document.documentElement.scrollTop)>110;
-    header.classList.toggle('pv-mobile-entry-condensed',
-      mobile.matches&&window.__PV_LAB_NATIVE__!==1&&(guest||firstImage)&&scrolled);
+    const active=mobile.matches&&window.__PV_LAB_NATIVE__!==1;
+    // Signed-in welcome must never change header height at a scroll threshold.
+    // This avoids the iPhone scroll/resize feedback loop reported by the owner.
+    header.classList.toggle('pv-mobile-entry-condensed',active&&(firstImage||(guest&&scrolled)));
+    if(active&&firstImage&&!wasFirstImage&&window.scrollY>0)window.scrollTo(0,0);
+    wasFirstImage=active&&firstImage;
   }
   function schedule(){
     if(frame)return;
