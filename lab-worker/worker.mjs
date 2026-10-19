@@ -288,7 +288,7 @@ function parseParameters(value) {
   }
   if(value.type==='image'&&value.engine==='flash')return seedreamFlashParameters({...value,referenceMode},{fail,referenceRoles,moodMetadata:imageMoodMetadata});
   if(value.type==='image'&&value.engine==='kling')return imageModelParameters({...value,referenceMode},{fail,referenceRoles});
-  if(value.type==='image'&&value.engine==='krea3')return krea3Parameters({...value,referenceMode},{fail,referenceRoles});
+  if(value.type==='image'&&value.engine==='krea3')return {...krea3Parameters({...value,referenceMode},{fail,referenceRoles}),...imageMoodMetadata(value)};
   if(value.type==='image'&&['qwen3','zspicy'].includes(value.engine))return experimentalImageParameters(value,{fail,referenceRoles,moodMetadata:imageMoodMetadata});
   if(value.type==='image'&&value.engine==='seedreamlite')return seedreamLiteParameters(value,{fail,referenceRoles,moodMetadata:imageMoodMetadata});
   if(value.type==='image'&&value.engine==='soulpro'&&value.soulProModel==='soul2')return soul2Parameters(value,fail);
