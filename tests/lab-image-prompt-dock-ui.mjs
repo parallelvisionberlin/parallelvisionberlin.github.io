@@ -260,8 +260,8 @@ try{
         document.getElementById('hf-bar-source').hidden=false;
       });
       await page.addScriptTag({content:
-        'const $=id=>document.getElementById(id);const imageComposer=document.getElementById("image-composer");\\n'+
-        sizingHelper+'\\nwindow.__resizePVPrompt=fitImageComposerPrompt;'});
+        'const $=id=>document.getElementById(id);const imageComposer=document.getElementById("image-composer");\n'+
+        sizingHelper+'\nwindow.__resizePVPrompt=fitImageComposerPrompt;'});
       await page.locator('#image-composer-prompt').fill(lorem);
       await page.evaluate(()=>window.__resizePVPrompt());
       const positions=await page.evaluate(()=>{
