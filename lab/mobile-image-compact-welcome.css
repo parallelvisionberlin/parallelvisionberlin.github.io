@@ -93,7 +93,7 @@
     .composer-controls::after{display:none!important}
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
     #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
-    :is(#image-composer-resolution-wrap,#image-composer-count-wrap){
+    :is(#image-composer-resolution-wrap,#image-composer-count-wrap):not([hidden]){
     position:relative!important;bottom:auto!important;right:auto!important;
     width:auto!important;min-width:65px!important;z-index:auto!important;
     display:inline-flex!important;
