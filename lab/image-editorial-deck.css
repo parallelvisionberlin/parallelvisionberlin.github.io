@@ -138,10 +138,12 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
 }
 #gate.pv-guest-image .pv-guest-composer textarea{transition:height .22s ease,min-height .22s ease}
 
-/* The authenticated editor keeps the existing functional controls and server quote. */
+/* The authenticated editor keeps the existing functional controls and server quote.
+   Height is measured synchronously by fitImageComposerPrompt(): do not animate
+   the textarea itself or scrollHeight can retain a stale tall measurement. */
 html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul) #image-composer-prompt{
   font-weight:420;letter-spacing:-.019em;
-  transition:height .23s ease,min-height .23s ease;
+  transition:none!important;
 }
 
 /* Preserve the original functional two-row Image grid. The previous
