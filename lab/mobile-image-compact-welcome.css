@@ -8,6 +8,12 @@
   html:not(.pv-native-lab) body:has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) #studio-header.pv-mobile-entry-condensed{
     height:78px!important;min-height:78px!important;
   }
+  /* Keep a small safety gap above the fixed compact dock, not the previous
+     255px reservation for a two-row deck. */
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+    .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    padding-bottom:182px!important;
+  }
   /* Reduce only welcome copy spacing; the original photographs are not resized. */
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
     .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
@@ -98,15 +104,14 @@
     padding:8px 12px!important;
   }
 }
-/* Prevent elastic vertical bouncing only for a resting, sufficiently tall
-   welcome viewport. Never lock typing, options, native apps or normal History. */
+/* Lock only the resting signed-in welcome, with enough phone height to
+   display both the cards and compact Generate. Keyboard, options and History
+   automatically restore scrolling through the :has exclusions. */
 @media(max-width:680px) and (min-height:690px){
-  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    :not(:has(#image-composer:focus-within)):not(:has(#image-composer[data-mobile-settings="open"])){
-    overscroll-behavior-y:none;
+  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])):not(:has(#image-composer:focus-within)):not(:has(#image-composer[data-mobile-settings="open"])){
+    height:100dvh!important;overflow-y:hidden!important;overscroll-behavior-y:none!important;
   }
-  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    :not(:has(#image-composer:focus-within)):not(:has(#image-composer[data-mobile-settings="open"])) body{
-    overscroll-behavior-y:none;
+  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])):not(:has(#image-composer:focus-within)):not(:has(#image-composer[data-mobile-settings="open"])) body{
+    max-height:100dvh!important;overflow-y:hidden!important;overscroll-behavior-y:none!important;
   }
 }
