@@ -39,14 +39,21 @@ try{
       if(request.method()==='POST'){
         writes.push(u.pathname);assert.equal(u.pathname,'/api/jobs/film-job/film-finish','Only pixel processing may be submitted');
         const data=request.postDataJSON();assert.equal(data.outputId,job.outputId);assert.equal(data.settings.version,2);assert.equal(data.settings.grain,85);assert.equal(data.settings.haze,40);assert.equal(data.settings.halation,HONG_KONG_FILM_FINISH.halation);assert.equal(data.settings.film,70);
-        job={...job,outputId:'finished',settings:{...job.settings,filmOriginalId:'original',filmFinish:data.settings,filmFinishStatus:'applied',filmFinishRevision:7}};return send({job});
+        job={...job,outputId:'finished',settings:{...job.settings,filmOriginalId:'original',filmFinish:data.settings,filmFinishStatus:'applied',filmFinishRevision:8}};return send({job});
       }
       if(u.pathname==='/api/jobs')return send({jobs:[job],activeJobs:[],next:null});
       if(u.pathname.startsWith('/api/assets/')){const done=u.pathname.includes('/finished');return route.fulfill({contentType:done?'image/png':'image/jpeg',body:done?finished:original});}
       return send({folders:[],packs:[],souls:[],moods:[],configured:false});
     });
     await page.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image');
-    await page.waitForFunction(()=>!!window.__filmTest);
+    try{await page.waitForFunction(()=>!!window.__filmTest,null,{timeout:13000});}
+    catch(error){
+      const state=await page.evaluate(()=>({ready:document.readyState,boot:document.body.className,
+        appHidden:document.getElementById('app')?.hidden,hasHeader:!!document.getElementById('studio-header'),
+        moduleScripts:[...document.querySelectorAll('script[type="module"]')].map(x=>x.src).slice(-5)}));
+      console.log('FILM_BROWSER_INIT_DIAGNOSTIC',JSON.stringify({width,errors,state}));
+      throw error;
+    }
     await page.evaluate(()=>window.__filmTest.select());
     const composer=page.locator('#composer-moods .film-finish');await composer.waitFor({state:'visible'});
     assert.deepEqual(HONG_KONG_FILM_FINISH,{version:2,grain:0,haze:0,halation:0,film:0},'Restored Hong Kong Nights defaults are off');
