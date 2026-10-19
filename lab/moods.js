@@ -1,4 +1,4 @@
-import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1';
+import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019';
 import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
@@ -62,11 +62,11 @@ const ALL_MOODS=Object.freeze([
     "name": "Hong Kong Nights",
     "category": "Cinema",
     "preview": "/lab/mood-references/hong-kong-nights/plaza-grill.webp",
-    "description": "Emerald haze, neon bloom and nocturnal melancholy",
-    "direction": "Dreamlike 1990s Hong Kong night-film photography: humid urban darkness, atmospheric emerald haze, softened practical neon, diffused city lights, rain-wet reflections, organic 35mm grain, optical halation and nocturnal melancholy. Respect the original scene and lighting. Emerald green is an atmospheric possibility, not a mandatory color overlay.",
-    "subtle": "Gentle night-film diffusion, soft practical-light bloom, subtle grain and intimate haze. Keep natural skin tones and recognizable surroundings.",
-    "intense": "Immersive humid nighttime atmosphere, thick but realistic haze, luminous diffused neon in scene-appropriate greens or warm tones, wet reflections, deep layered shadows, strong analog halation and grain. Preserve referenced faces, poses and composition.",
-    "avoid": "forced all-green tint, generic cyberpunk, synthetic skin, neon outlines, fake rain pasted onto dry rooms, smudged facial features",
+    "description": "Emerald night air, optical bloom and intimate urban longing",
+    "direction": "Dreamlike 1990s Hong Kong night-film photography: lived-in nocturnal air, sensual stillness and urban longing. Emerald and petrol-cyan light separates real background shadows from warm tungsten practicals; human skin stays warm, expressive and tactile. Actual lamps, windows and reflective surfaces may create gentle source-bound bloom and humid depth in the illuminated distance, never a gray veil over the frame. A portrait, street or intimate room has its own believable lighting. Wet reflections belong only on existing wet or reflective surfaces or when explicitly requested. Keep place, light logic and weather grounded, with understated photochemical texture rather than heavy generated grain or generic cyberpunk neon.",
+    "subtle": "Gentle emerald-petrol separation in already-lit shadows, soft practical-light scatter and intimate stillness. Keep skin warm, eyes clear and the real setting intact; no invented fog, lamps or generated grain.",
+    "intense": "Expressive but believable emerald shadow depth, warm skin against cool ambient light, luminous distance around existing bright practicals and quiet night longing. More intensity strengthens atmosphere and emotional color separation, NOT fog density, artificial grain or shadowing over the face. Dry scenes stay dry and existing locations, subjects, outfits and light sources remain recognizable.",
+    "avoid": "all-green tint, generic cyberpunk, invented lamps or neon signs, fake rain and wetness on dry rooms, pasted fog, global blur, dirty digital grain, bright outlines, hard eye shadows, artificial skin, changed wardrobe, new subjects or new locations",
     "defaultIntensity": 60
   },
   {
@@ -333,16 +333,19 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     // imagined Hong Kong street. The original open-ended 1990s night-film
     // direction is retained for text-only and References-only compositions.
     const editingBase=referenceCount>0&&referenceMode!=='references';
-    const originalImageLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a color treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes; do not age, remodel, harden eye shadows or darken the face. Shift only existing shadows toward restrained emerald/teal and existing highlights toward warm amber, with gentle source-bound bloom. Maintain recognizable daylight if the source is daylight unless user asks otherwise. No added grain, noise, dirt, fake rain, fog or flat green filter. User edits take priority.'
+    const originalImageLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a photographic light-and-air treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes; do not age, remodel, harden eye shadows or darken the face. Shift only existing shadows toward restrained emerald/teal and existing highlights toward warm amber, with gentle source-bound bloom. Maintain recognizable daylight if the source is daylight unless user asks otherwise. No added grain, noise, dirt, fake rain, fog or flat green filter. User edits take priority.'
+    // No external scene classifier, additional references or extra API call. The
+    // edit model reads IMAGE 1 and applies only the physically applicable path.
+    const sourceLightRouting='SCENE ADAPTATION, only what IMAGE 1 visibly supports: FASHION PORTRAIT OR PERSON: preserve natural warm skin, eyes, expression and tactile clothing against existing cooler background light; emotional intimacy comes from the real gesture. STREET, CAFE OR TRANSIT: scatter actual lamps and window highlights gently into illuminated distance; wet reflections only if the original surfaces are wet or naturally reflective. BEDROOM OR INTERIOR: preserve every object, furniture surface, warm lamp and window direction; emerald spill only from existing colored illumination, never from an invented neon sign. DRY OR DAYLIGHT IMAGE: keep its weather and time of day; no inserted rain, fabricated moisture, fog wall or false night. Bloom only around existing luminous practicals; retain clean unlit shadows and crisp subject detail.';
     const photoStrength=intensity<=34
       ?'Subtle: gentle tonal separation and optical softness.'
       :intensity<=69
-        ?'Editorial: luminous flattering skin light, amber highlights and textured deep-teal background shadows.'
-        :'Expressive: richer emerald in existing BACKGROUND shadow gradients only; same luminous face, clean texture and original location.';
+        ?'Editorial: luminous flattering skin light, warm practical highlights and textured deep-teal background shadows; delicate glow around real distant emitters only.'
+        :'Expressive: richer emerald in existing BACKGROUND shadow gradients only; same luminous face, clean texture and original location. More optical depth around real lights, not more film dirt or blanket haze.';
     const preservation=editingBase?'':referenceCount>0
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
       :'Honor the requested subject and composition.';
-    const look=editingBase?[originalImageLock,photoStrength,variantDirection].filter(Boolean).join(' '):[strength,variantDirection].filter(Boolean).join(' ');
+    const look=editingBase?[originalImageLock,sourceLightRouting,photoStrength,variantDirection].filter(Boolean).join(' '):[strength,variantDirection].filter(Boolean).join(' ');
     const prompt=[original,'PV LAB MOOD / '+mood.name+': '+look+' '+preservation+' Avoid: '+mood.avoid+'.'].filter(Boolean).join('\n\n');
     const budget=engine==='seedreamlite'?3000:5000,over=prompt.length-budget;
     return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,moodVariant:variant,...(film?{filmFinish:film}:{})},

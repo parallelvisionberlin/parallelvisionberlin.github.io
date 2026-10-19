@@ -99,7 +99,7 @@ export function deluxeResponse(value){
   const t=clamp((value-70)/30);
   return t*t*(3-2*t);
 }
-export function photochemicalPlan(value){
+export function photochemicalPlan(value,{engine='v8'}={}){
   const f=filmFinishSettings(value);
   const grainTop=deluxeResponse(f.grain),hazeTop=deluxeResponse(f.haze);
   const lightTop=deluxeResponse(f.halation),filmTop=deluxeResponse(f.film);
@@ -112,7 +112,11 @@ export function photochemicalPlan(value){
     hazeOpacity:Math.min(.56,f.haze/100*(.31+.09*hazeTop+.10*signature)),
     halationRadius:9*(1+.20*lightTop+.17*signature),
     halationOpacity:Math.min(.54,f.halation/100*(.32+.06*lightTop+.10*signature)),
-    diffusionOpacity:Math.min(.16,f.haze/100*(.09+.035*hazeTop+.025*signature)),
+    // V8 keeps halo energy near actual emitters and limits blanket softness.
+    // V3/V6 remain identical for back-to-back A/B comparisons.
+    diffusionOpacity:engine==='v8'
+      ?Math.min(.06,f.haze/100*(.026+.014*hazeTop+.01*signature))
+      :Math.min(.16,f.haze/100*(.09+.035*hazeTop+.025*signature)),
     signature
   };
 }
@@ -128,7 +132,7 @@ export async function luminousMaskPng(bytes,engine='v6'){
     const current=light(x,y),d=Math.max(4,Math.round(Math.min(width,height)/55));
     const around=(light(x-d,y)+light(x+d,y)+light(x,y-d)+light(x,y+d))/4;
     const baseline=sourceLightWeight(pixels[i],pixels[i+1],pixels[i+2],current-around);
-    const weight=engine==='v3'
+    const weight=['v3','v8'].includes(engine)
       ?filmEmitterWeightV3(pixels[i],pixels[i+1],pixels[i+2],current-around,baseline)
       :baseline;
     if(weight>.008)active=true;
@@ -166,7 +170,7 @@ export function photochemicalPixel(r,g,b,deluxe=0){
 export async function printGradePng(bytes,deluxe=0,engine='v6'){
   const {width,height,pixels}=await normalizedPixels(bytes),scan=new Uint8Array((width*4+1)*height);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
-    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=(engine==='v3'?filmPrintPixelV3:photochemicalPixel)(pixels[i],pixels[i+1],pixels[i+2],deluxe);
+    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=(['v3','v8'].includes(engine)?filmPrintPixelV3:photochemicalPixel)(pixels[i],pixels[i+1],pixels[i+2],deluxe);
     scan[j]=graded[0];scan[j+1]=graded[1];scan[j+2]=graded[2];scan[j+3]=pixels[i+3];
   }
   return png(width,height,scan,6);
@@ -228,10 +232,10 @@ async function bytesFrom(response,max=OUTPUT_LIMIT){
   const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length;}return bytes;
 }
 const stream=bytes=>new Blob([bytes]).stream();
-// V3 is the production default only after fixture, color and browser checks.
- // V6 remains available as an explicit internal fallback for comparison.
-export async function renderFilmFinish(images,bytes,settings,seed,{engine='v3'}={}){
-  if(engine!=='v6'&&engine!=='v3')throw Error('Unknown film engine.');
+// V8 retains the proven V3 color curve and real-lamp emitter masks with less
+// global haze. V3 and V6 stay callable internally for image A/B and rollback.
+export async function renderFilmFinish(images,bytes,settings,seed,{engine='v8'}={}){
+  if(!['v6','v3','v8'].includes(engine))throw Error('Unknown film engine.');
   const finish=filmFinishSettings(settings);
   if(!images?.input||!images?.info)throw Error('Film processing is temporarily unavailable.');
   if(bytes.length>INPUT_LIMIT)throw Error('This image is too large for the film finish.');
@@ -243,7 +247,7 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v3'}=
   const resized=(await images.input(stream(bytes)).transform({width:1000,height:1000,fit:'scale-down'})
     .output({format:'image/png',anim:false})).response();
   const sourcePng=await bytesFrom(resized,5_000_000);
-  const plan=photochemicalPlan(finish);
+  const plan=photochemicalPlan(finish,{engine});
   if(finish.film){
     // Blend a graded low-res negative/print layer over the native-resolution
     // photograph. Fine image detail remains in the original underneath.
@@ -251,7 +255,7 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v3'}=
     image=image.draw(grade,{opacity:plan.printOpacity,composite:'over'});
   }
   if(finish.haze){
-    // Subtle optical softness everywhere, but no global gray veil or green tint.
+    // Minimal global softness; most visible bloom follows real light sources.
     const diffuse=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/2400))});
     image=image.draw(diffuse,{opacity:plan.diffusionOpacity,composite:'over'});
   }
