@@ -204,3 +204,12 @@ Updated: 2026-10-19
 - Regular Studio retains explicit 1K/2K selection and existing Mood handoff defaults; no model, reference, identity, style, pricing math or paid submission logic changed.
 - Refresh both Photobooth module imports, assert the quote resolution in the Explore Moods browser test and the private delivery unit test.
 - Resolution may improve provider latency but per-job results remain variable; production measurements should confirm any improvement.
+
+## 2026-10-19 Hong Kong Nights provider parameter rollback
+- Root cause verified against production Cloudflare D1, not only synthetic mocks: Seedream 5 Pro Edit completed multiple Hong Kong Nights 1K jobs on 2026-10-18; two owner jobs at 21:44 and 21:46 UTC had one Base image and NO explicit `enable_thinking` property in their stored vendor quote payloads.
+- Historical commit `dde2a29e8983` at 22:27 UTC changed the existing conditional to send `enable_thinking:false` specifically for Hong Kong Nights. SpicyAPI rejected the combination with a provider preflight error.
+- Revert exactly that parameter behavior to the preceding successful source (`d6021026f43d`): leave `enable_thinking` omitted for Hong Kong Nights Edit; other Seedream Edit Moods still explicitly send true. Preserve explicit 1K and 2K values and the existing model, curated/user references, prompt, film finish, pricing, paid submit, history and customer data.
+- Targeted unit regression verifies stored vendor quote model, 1K resolution, one Base image, original Hong Kong prompt, and lack of `enable_thinking`. Spicy Mood delivery test rejects the accidental false override.
+- Production D1 read-only check on 2026-10-19: no failed Hong Kong Nights job, no generation-debit/refund ledger entries on that date, and zero uncertain jobs; the screenshot rejection likely happened during pricing, before a job was created. This is not proof of a specific Spicy provider invoice.
+- Worker version advances to `pv-lab-2026-10-19.1-hongkong-spicy-compat` solely for production health verification. No schema migration, UI redesign, provider migration, altered pricing or new paid generation.
+- Next: pass focused and complete Worker tests, merge with existing deployment process, verify the exact production health version; actual post-fix image quality still requires an explicitly authorized paid generation.

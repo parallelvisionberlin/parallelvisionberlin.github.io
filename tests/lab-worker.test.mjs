@@ -615,14 +615,14 @@ async function seedreamTestReference(env,name,marker=0,width=512,height=512){
 async function uploadGuidanceReference(env,name,marker){
   return seedreamTestReference(env,name,marker);
 }
-test('Hong Kong photo editing uses only the customer Base and explicitly disables default Deep Thinking',async()=>{
+test('Hong Kong 1K editing uses the user Base, original Mood prompt and proven Spicy default',async()=>{
   const {env}=fixture();
   await setup(env);
   const source=await seedreamTestReference(env,'original-fashion.png',27,768,512);
   const recipe=prepareMoodPrompt('Keep the same person and buildings.','hong-kong-nights',60,
     {engine:'seedream',referenceCount:1,referenceMode:'base',moodVariant:'deep-green'});
   assert.equal(recipe.error,'');
-  const settings={...imageSettings,engine:'seedream',mode:'image',prompt:recipe.prompt,
+  const settings={...imageSettings,engine:'seedream',mode:'image',resolution:'1k',prompt:recipe.prompt,
     ...recipe.metadata,referenceMode:'base',referenceRoles:[{name:'original-fashion.png',role:'base'}]};
   const quoteResponse=await req(env,'/api/quotes',{method:'POST',data:{
     settings,referenceSourceIds:[source]}});
@@ -631,8 +631,12 @@ test('Hong Kong photo editing uses only the customer Base and explicitly disable
   assert.equal(quote.settings.moodId,'hong-kong-nights');
   assert.equal(quote.settings.moodVariant,'deep-green');
   assert.equal(quote.settings.referenceSourceIds.length,1);
+  assert.equal(quote.settings.resolution,'1k','Keep the requested 1K resolution');
+  assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/edit','Keep Seedream Pro Edit');
+  assert.equal(quotedRequest.input.resolution,'1k');
   assert.equal(quotedRequest.input.image_urls.length,1,'no built-in mood photos sent');
-  assert.equal(quotedRequest.input.enable_thinking,false,'the provider defaults to true unless explicitly false');
+  assert.equal(Object.hasOwn(quotedRequest.input,'enable_thinking'),false,
+    'Do not force false: production completed this 1K Base edit with the parameter omitted');
   assert.match(quotedRequest.input.prompt,/EDIT IMAGE 1/);
   assert.match(quotedRequest.input.prompt,/Hong Kong Nights is a color treatment/);
   assert.match(quotedRequest.input.prompt,/softly visible eyes/);
