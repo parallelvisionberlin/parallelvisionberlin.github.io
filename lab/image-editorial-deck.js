@@ -9,18 +9,23 @@
   if(!guest||!guestField||!real||!realField)return;
   const small=window.matchMedia('(max-width:680px)');
   const preview={guest:false,real:false};
-  // Once a desktop user engages with the real deck, keep the editing layout.
-  // Do not reset it on blur, choosing another Mood or completing a generation.
+  // Keep a nonempty desktop prompt expanded across blur and Mood changes.
+  // A first focus may open an empty editor, but clearing the prompt must
+  // restore the compact deck even while the textarea remains focused.
   let realEditingStarted=false;
+  let emptyRealFocus=false;
   function update(surface,field,kind){
     if(!surface)return;
     const hasRefs=kind==='real' && refs && !refs.hidden && refs.children.length>0;
     const active=document.activeElement===field;
     const isSmall=small.matches;
-    const expanded=(kind==='real'&&realEditingStarted&&!isSmall)||
-      active||hasRefs||(isSmall&&preview[kind]&&!!field.value.trim());
+    const hasPrompt=!!field.value.trim();
+    const expanded=hasRefs||
+      (kind==='real'&&realEditingStarted&&!isSmall&&hasPrompt)||
+      (active&&(kind!=='real'||isSmall||hasPrompt||emptyRealFocus))||
+      (isSmall&&preview[kind]&&hasPrompt);
     surface.classList.toggle('pv-deck-expanded',!!expanded);
-    surface.classList.toggle('pv-deck-has-prompt',!!field.value.trim());
+    surface.classList.toggle('pv-deck-has-prompt',hasPrompt);
   }
   function sync(){
     if(window.__PV_LAB_NATIVE__===1)return;
@@ -31,15 +36,22 @@
   const deferSync=()=>queueMicrotask(sync);
   for(const [field,kind] of [[guestField,'guest'],[realField,'real']]){
     field.addEventListener('focus',()=>{
-      if(kind==='real'&&!small.matches)realEditingStarted=true;
+      if(kind==='real'&&!small.matches){
+        realEditingStarted=true;
+        emptyRealFocus=!field.value.trim();
+      }
       sync();
     });
     field.addEventListener('blur',()=>{
+      if(kind==='real')emptyRealFocus=false;
       if(!small.matches)preview[kind]=false;
       requestAnimationFrame(sync);
     });
     field.addEventListener('input',()=>{
-      if(kind==='real'&&!small.matches)realEditingStarted=true;
+      if(kind==='real'){
+        emptyRealFocus=false;
+        if(!small.matches)realEditingStarted=true;
+      }
       preview[kind]=small.matches;sync();
     });
   }
