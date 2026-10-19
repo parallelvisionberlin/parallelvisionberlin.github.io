@@ -8,8 +8,10 @@ for(const shell of document.querySelectorAll('.inspiration-carousel-shell')){
   const update=()=>{
     frame=0;
     const limit=Math.max(0,track.scrollWidth-track.clientWidth);
-    prev.hidden=limit<3||track.scrollLeft<3;
-    next.hidden=limit<3||track.scrollLeft>=limit-3;
+    prev.hidden=limit<3;
+    next.hidden=limit<3;
+    prev.disabled=limit<3||track.scrollLeft<3;
+    next.disabled=limit<3||track.scrollLeft>=limit-3;
   };
   const queue=()=>{if(!frame)frame=requestAnimationFrame(update)};
   const move=direction=>{
