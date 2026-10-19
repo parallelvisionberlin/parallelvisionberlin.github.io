@@ -260,7 +260,7 @@ test('High intensity is genuinely distinct for Cinema, Kodak and Sumi-e',()=>{
   const ink=prepareMoodPrompt('Portrait','sumi-ink',100,{referenceCount:1});
   assert.match(ink.prompt,/confidently executed Japanese ink-wash painting/i);
   assert.equal(moodById('sumi-ink').name,'Japanese Sumi-e');
-  assert.match(moodById('hong-kong-nights').direction,/lived-in nocturnal air.*source-bound bloom/i);
+  assert.match(moodById('hong-kong-nights').direction,/1990s Hong Kong night-film photography/i);
 });
 test('Gallery hover metadata identifies the exact image model',()=>{
   const src=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');

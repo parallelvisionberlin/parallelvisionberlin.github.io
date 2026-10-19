@@ -20,9 +20,11 @@ test('the October 10 cinematic inspiration stays available for compositions, whi
   assert.match(edit.prompt,/natural expressive beauty/);
   assert.match(edit.prompt,/photographic light-and-air treatment/);
   assert.match(edit.prompt,/SCENE ADAPTATION, only what IMAGE 1 visibly supports/);
-  for(const route of ['FASHION PORTRAIT OR PERSON','STREET, CAFE OR TRANSIT','BEDROOM OR INTERIOR','DRY OR DAYLIGHT IMAGE'])
+  for(const route of ['FASHION PORTRAIT OR PERSON','STREET OR TRANSIT','BEDROOM OR INTERIOR'])
     assert.ok(edit.prompt.includes(route),'Missing scene pathway: '+route);
-  assert.doesNotMatch(edit.prompt,/humid urban darkness|rain-wet reflections|organic 35mm grain/);
+  for(const primary of ['green taxi city','rain-polished exterior ground','lime-gold restaurant','fluorescent tunnel'])
+    assert.ok(edit.prompt.includes(primary),'Primary reference DNA must shape the light: '+primary);
+  assert.match(edit.prompt,/no new scene|not a new scene/);
   assert.equal(edit.metadata.moodIntensity,60);
   assert.equal(edit.metadata.moodVariant,'original');
   const text=prepareMoodPrompt('Woman in a Hong Kong street',mood.id,60,{referenceCount:0});
@@ -41,8 +43,9 @@ test('every supported engine and Mood strength preserves face, flattering skin e
     assert.match(recipe.prompt,/natural expressive beauty/);
     assert.match(recipe.prompt,/softly visible eyes/);
     assert.match(recipe.prompt,/every background building, sign and street element/);
-    assert.match(recipe.prompt,/No added grain, noise, dirt/);
-    assert.match(recipe.prompt,/Bloom only around existing luminous practicals/);
+    assert.match(recipe.prompt,/Fine pushed 35mm color-negative shadow texture/);
+    assert.match(recipe.prompt,/User direction takes priority/);
+    assert.match(recipe.prompt,/practicals/);
     assert.match(recipe.prompt,/warm lamps/);
     assert.match(recipe.prompt,/not an instruction to move anyone to Asia or add neon/);
     assert.doesNotMatch(recipe.prompt,/reconstruct cinematic scene lighting|off-axis light modeling|Relight whole Base/);
@@ -54,10 +57,11 @@ test('increasing the strength changes existing light only, never scene identity 
   const low=prepareMoodPrompt('Portrait','hong-kong-nights',20,{referenceCount:1}).prompt;
   const medium=prepareMoodPrompt('Portrait','hong-kong-nights',60,{referenceCount:1}).prompt;
   const high=prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1}).prompt;
-  assert.match(low,/Subtle: gentle tonal separation/);
+  assert.match(low,/Subtle: quiet warm\/cool film response/);
   assert.match(medium,/Editorial: luminous flattering skin light/);
-  assert.match(high,/Expressive: richer emerald in existing BACKGROUND shadow gradients only/);
-  assert.doesNotMatch(high,/thick but realistic haze|rain-wet reflections|nighttime exposure/);
+  assert.match(high,/Expressive: richer emerald night ambience/);
+  assert.match(high,/physically credible wet exterior reflections/);
+  assert.doesNotMatch(high,/automatically import style photos|replace background buildings/);
   assert.notEqual(low,medium);
   assert.notEqual(medium,high);
   assert.match(medium,/softly visible eyes/);
@@ -120,4 +124,30 @@ test('changing the look after completion hides a stale output instead of present
   const explore=readFileSync(new URL('../lab/explore-moods.js',import.meta.url),'utf8');
   assert.match(explore,/if\(!result\.hidden\)clearResult\(\);\s*moodVariant=choice;renderVariation\(\);schedulePrice\(0\);/);
   assert.match(explore,/resultURL=null;resultBlob=null;resultOutputId=null/);
+});
+
+test('three anchor photographs share one coherent source-preserving reference-led treatment',()=>{
+  const anchors=[
+    {name:'exterior fashion portrait',prompt:'Keep this woman in the same courtyard wearing her leather jacket.'},
+    {name:'intimate bedroom',prompt:'Keep every object, bed and lamp in this lived-in interior.'},
+    {name:'city street transit',prompt:'Keep the exact tram street and figures from the Base.'}
+  ];
+  for(const anchor of anchors)for(const engine of ['seedream','seedreamlite']){
+    const result=prepareMoodPrompt(anchor.prompt,'hong-kong-nights',100,
+      {engine,referenceCount:1,referenceMode:'base',moodVariant:'original'});
+    assert.equal(result.error,'',anchor.name+' '+engine+': '+result.error);
+    assert.ok(result.prompt.startsWith(anchor.prompt+'\n\n'));
+    assert.match(result.prompt,/EDIT IMAGE 1, not a new scene/);
+    assert.match(result.prompt,/emerald|green/i);
+    assert.match(result.prompt,/existing|same/i);
+    assert.match(result.prompt,/no new objects|no new scene|not a new scene|preserve/i);
+    assert.deepEqual(result.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
+    const labels=[{role:'base',name:anchor.name+'.jpg',note:''}];
+    const plan=moodReferencePlan({type:'image',mode:'image',engine,referenceMode:'base',
+      prompt:result.prompt,...result.metadata,referenceRoles:labels});
+    assert.deepEqual(plan.references,[],'Do not import external scene photographs into the user's Base');
+    const compiled=compileImagePrompt(plan.settings.prompt,labels,plan.settings);
+    assert.ok(compiled.length<=(engine==='seedreamlite'?3000:5000),
+      anchor.name+' '+engine+' '+compiled.length);
+  }
 });
