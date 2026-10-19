@@ -21,8 +21,8 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('.lab-pricing-welcome').count(),0,'Free credits offer is removed from pricing');
   assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image&welcome=1');
   assert.deepEqual(await page.locator('.studio-tool-link').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
-  assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),['Image','Retouch','Video','Upscaler','Fashion','Explore Moods','Pricing']);
-  assert.equal(await page.locator('.landing-header nav a').nth(1).getAttribute('href'),'./studio.html?tool=retouch');
+  assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),['Image','Video','Upscaler','Retouch','Fashion','Explore Moods','Pricing']);
+  assert.equal(await page.locator('.landing-header nav a').nth(3).getAttribute('href'),'./studio.html?tool=retouch');
   assert.equal(await page.locator('.landing-header nav a').nth(4).getAttribute('href'),'./studio.html?tool=fashion');
   assert.equal(await page.locator('.landing-header nav a.lab-nav-pricing').getAttribute('href'),'#pricing');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No overflow at '+width);

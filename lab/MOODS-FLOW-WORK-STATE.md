@@ -1,9 +1,9 @@
 # PV LAB / Explore Moods generation and Image return
-Updated: 2026-10-16
+Updated: 2026-10-19
 
 ## Approved experience
 - Explore Moods is an independent, photographic discovery page.
-- Its shared header links to Image, Retouch, Video, Upscaler and Fashion.
+- Its shared header links to Image, Video, Upscaler, Retouch and Fashion.
 - My Moods retains its existing `mood-creator.html#my-moods` scroll.
 - The sixteen gallery cards, original imagery, hero and presets are unchanged.
 - The Image Studio draft (prompt, references, model and settings) is preserved

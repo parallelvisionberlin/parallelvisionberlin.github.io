@@ -47,7 +47,7 @@ try{
   assert.equal(await page.locator('#studio-header .brand').innerText(),'PV LAB');
   await page.evaluate(()=>document.fonts.ready);
   assert.deepEqual(await page.locator('#studio-header .tool-group>button').allTextContents(),
-    ['Image','Retouch','Video','Effects','Upscaler','Fashion'],
+    ['Image','Video','Effects','Upscaler','Retouch','Fashion'],
     'Six text tools include Effects; Assets stays a separate icon');
   const moodLinks=page.locator('#studio-header .tool-group>a.tool-link');
   assert.deepEqual(await moodLinks.allTextContents(),['Explore Moods']);
@@ -133,10 +133,10 @@ try{
   for(const route of ['landing','moods']){
     await page.goto('http://127.0.0.1:4193/'+route+'-header');
     assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),route==='landing'
-      ?['Image','Retouch','Video','Upscaler','Fashion','Explore Moods','Pricing']:['Image','Retouch','Video','Upscaler','Fashion','Explore Moods']);
+      ?['Image','Video','Upscaler','Retouch','Fashion','Explore Moods','Pricing']:['Image','Video','Upscaler','Retouch','Fashion','Explore Moods']);
     if(route==='landing'){
       const paths=await page.locator('.landing-header nav a').evaluateAll(els=>els.map(el=>new URL(el.href).pathname+new URL(el.href).search));
-      assert.ok(paths[1].endsWith('/studio.html?tool=retouch'),'Retouch goes to the existing Studio tool');
+      assert.ok(paths[3].endsWith('/studio.html?tool=retouch'),'Retouch goes to the existing Studio tool');
       assert.ok(paths[4].endsWith('/studio.html?tool=fashion'),'Fashion goes to the existing Studio tool');
       const pricing=page.locator('.landing-header nav a.lab-nav-pricing');
       assert.equal(await pricing.count(),1,'Pricing has its own quiet utility treatment');
