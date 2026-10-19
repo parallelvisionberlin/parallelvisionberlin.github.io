@@ -429,8 +429,10 @@ try{
       historyVisible:getComputedStyle(document.getElementById('history')).display
     };
   });
-  assert.ok(historyCompact.deckHeight<225,
-    'History must reuse the shorter one-row Image composer: '+JSON.stringify(historyCompact));
+  // A deliberately expanded prompt retains its full 102px editing area;
+  // the tools still occupy only one row, and long text is never clipped.
+  assert.ok(historyCompact.deckHeight<305,
+    'History must use the compact controls without collapsing an expanded prompt: '+JSON.stringify(historyCompact));
   assert.ok(historyCompact.row.every(x=>x.display!=='none'),
     'All essential History tools must remain visible: '+JSON.stringify(historyCompact));
   assert.ok(Math.max(...historyCompact.row.map(x=>x.top))-Math.min(...historyCompact.row.map(x=>x.top))<8,
