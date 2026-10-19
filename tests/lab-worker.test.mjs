@@ -638,7 +638,7 @@ test('Hong Kong 1K editing uses the user Base, original Mood prompt and proven S
   assert.equal(Object.hasOwn(quotedRequest.input,'enable_thinking'),false,
     'Do not force false: production completed this 1K Base edit with the parameter omitted');
   assert.match(quotedRequest.input.prompt,/EDIT IMAGE 1/);
-  assert.match(quotedRequest.input.prompt,/Hong Kong Nights is a color treatment/);
+  assert.match(quotedRequest.input.prompt,/Hong Kong Nights is a photographic light-and-air treatment/);
   assert.match(quotedRequest.input.prompt,/softly visible eyes/);
 });
 
