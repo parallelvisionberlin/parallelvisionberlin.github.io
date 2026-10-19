@@ -326,6 +326,11 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
 body:has(#app.image-studio-active:not([hidden])) > footer.pv-lab-footer{
   display:none!important;
 }
+/* When Inspiration is reopened over populated History, its visible cards and
+   carousel arrows must receive pointer events above the retained archive. */
+#app.image-studio-active.pv-moods-discovery-open .image-gallery-shell > #image-gallery-empty:not([hidden]){
+  z-index:6!important;
+}
 /* An atmospheric background may extend beyond its visual container, but it
    must never create a browser-level horizontal scrollbar. */
 html:has(#app.image-studio-active:not([hidden])),
