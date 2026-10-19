@@ -65,6 +65,14 @@ try{
         "\n$('prompt').addEventListener('input',fitImageComposerPrompt);fitImageComposerPrompt();"
       });
       const editor=page.locator('#image-composer-prompt');
+      // The sizing helper must never replace the contextual copy already
+      // chosen by syncImageComposer() for a selected Base photograph.
+      await editor.evaluate(el=>{
+        el.placeholder='What would you like to change?';
+        fitImageComposerPrompt();
+      });
+      assert.equal(await editor.getAttribute('placeholder'),'What would you like to change?',
+        'Prompt height measurement must preserve approved Base-image placeholder');
       const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
       assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
         'The empty Image deck must start compact');
