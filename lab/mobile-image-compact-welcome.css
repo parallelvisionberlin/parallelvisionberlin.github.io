@@ -89,6 +89,18 @@
     .composer-controls>:not(.composer-add-wrap):not(.scene-image-library-wrap):not(.composer-model-wrap):not(.composer-mood-control):not(.composer-mobile-more){
     display:none!important;
   }
+  /* Restore secondary actions explicitly in the expanded state. Their
+     [hidden] flags still win for models where a control is unsupported. */
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+    :is(#image-composer-edit-area,#composer-reference-intent-toggle,#composer-exact-prompt-option,#composer-more-anchor):not([hidden]){
+    display:inline-flex!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+    .composer-select-pill:has(#image-composer-ratio):not([hidden]){
+    display:inline-flex!important;
+  }
   /* Expanded options are a real second row within the deck, not a floating
      overlay that can be cut off by Safari. */
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
