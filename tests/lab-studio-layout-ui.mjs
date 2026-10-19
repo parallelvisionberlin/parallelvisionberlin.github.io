@@ -522,8 +522,8 @@ try{
   assert.equal(await x.page.locator('.composer-reference-index').innerText(),'BASE','First reference defaults to Base in Seedream base-image mode');
   assert.equal(await x.page.locator('#image-composer-references .composer-add-tile').count(),0,
     'The thumbnail tray has no redundant plus tile');
-  assert.match(await x.page.locator('#image-composer-prompt').getAttribute('placeholder')||'',/variation of this image/i,
-    'A selected base image offers an editable variation without an extra prompt row');
+  assert.equal(await x.page.locator('#image-composer-prompt').getAttribute('placeholder'),'What would you like to change?',
+    'A selected Base image must retain the approved contextual placeholder after layout sizing');
   const photoImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
   assert.ok(photoImageHeight>=compactImageHeight+28&&photoImageHeight<=compactImageHeight+72,
     'Adding a photo reveals one compact reference strip while preserving the prompt and controls: '+JSON.stringify({compactImageHeight,photoImageHeight}));
