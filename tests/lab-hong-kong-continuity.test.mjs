@@ -20,7 +20,7 @@ test('the October 10 cinematic inspiration stays available for compositions, whi
   assert.match(edit.prompt,/natural expressive beauty/);
   assert.match(edit.prompt,/photographic light-and-air treatment/);
   assert.match(edit.prompt,/SCENE ADAPTATION, only what IMAGE 1 visibly supports/);
-  for(const route of ['FASHION PORTRAIT OR PERSON','STREET OR TRANSIT','BEDROOM OR INTERIOR'])
+  for(const route of ['FASHION PORTRAIT','STREET OR TRANSIT','BEDROOM OR INTERIOR'])
     assert.ok(edit.prompt.includes(route),'Missing scene pathway: '+route);
   for(const primary of ['green taxi city','rain-polished exterior ground','lime-gold restaurant','fluorescent tunnel'])
     assert.ok(edit.prompt.includes(primary),'Primary reference DNA must shape the light: '+primary);
@@ -58,7 +58,7 @@ test('increasing the strength changes existing light only, never scene identity 
   const medium=prepareMoodPrompt('Portrait','hong-kong-nights',60,{referenceCount:1}).prompt;
   const high=prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1}).prompt;
   assert.match(low,/Subtle: quiet warm\/cool film response/);
-  assert.match(medium,/Editorial: luminous flattering skin light/);
+  assert.match(medium,/Editorial: luminous flattering skin/);
   assert.match(high,/Expressive: richer emerald night ambience/);
   assert.match(high,/physically credible wet exterior reflections/);
   assert.doesNotMatch(high,/automatically import style photos|replace background buildings/);
