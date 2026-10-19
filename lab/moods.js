@@ -338,6 +338,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     // edit model reads IMAGE 1 and applies only the physically applicable path.
     // Primary refs 4-7 are translated into optics, never automatically staged as
     // foreign people/places. The prior four-Style-photo route damaged fidelity.
+    // The Lite edit input has a hard 3K compiled prompt budget. Keep the
+    // complete user instruction and use a fixed concise canon, not truncation.
+    const liteBaseLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a photographic light-and-air treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes. Existing lamps make humid emerald dusk and warm skin; outdoor paving may catch wet reflections but indoor floors stay dry. Fine pushed 35mm color-negative shadow texture, not digital noise. User direction takes priority.';
     const primaryOptics=engine==='seedreamlite'
       ?'PRIMARY FILM DNA: humid emerald city pinlights; broken reflections on wet streets; intimate lime-gold practicals in smoky rooms; green fluorescent light falling into depth. SECONDARY: ruby accents, dark film blacks. Borrow optics, never locations.'
       :'PRIMARY FILM REFERENCE DNA (OPTICS ONLY): green taxi city -> small emerald lights receding into humidity and deep black; wet pedestrian street -> rain-polished exterior ground mirroring warm shops; lime-gold restaurant -> close tungsten intimacy, skin and smoke illuminated by physical practicals; fluorescent tunnel -> continuous green falloff in dark space. SECONDARY palette cues are quiet ruby lamps, petrol-cyan depth, dark negative space and textured surfaces. Do not copy any reference person, building, vehicle or signage.';
@@ -355,7 +358,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     // Lite's documented 3K provider cap gets a fixed, equally source-safe
     // recipe. No user text is shortened, and model choice alone selects it.
     const liteTextStrength='1990s Hong Kong night-film light: humid emerald depth, glowing warm practicals, wet outdoor reflections when plausible, intimate real skin and organic fine pushed-film shadow texture. Preserve original people and place. '+(intensity>=76?'Stronger believable dusk or nocturnal air, no pasted fog.':intensity<=34?'Very restrained source bloom, existing weather.':'Balanced green-gold light and humid depth.');
-    const look=editingBase?[originalImageLock,primaryOptics,sourceLightRouting,photoStrength,variantDirection].filter(Boolean).join(' '):
+    const look=editingBase?[engine==='seedreamlite'?liteBaseLock:originalImageLock,primaryOptics,sourceLightRouting,photoStrength,variantDirection].filter(Boolean).join(' '):
       [engine==='seedreamlite'?liteTextStrength:strength,variantDirection].filter(Boolean).join(' ');
     const avoid=engine==='seedreamlite'?'teal color filter, artificial grain, copied reference faces, fake neon, indoor wetness, changed clothing or street layout':mood.avoid;
     const prompt=[original,'PV LAB MOOD / '+mood.name+': '+look+' '+preservation+' Avoid: '+avoid+'.'].filter(Boolean).join('\n\n');

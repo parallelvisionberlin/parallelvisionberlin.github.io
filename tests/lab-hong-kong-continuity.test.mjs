@@ -145,7 +145,7 @@ test('three anchor photographs share one coherent source-preserving reference-le
     const labels=[{role:'base',name:anchor.name+'.jpg',note:''}];
     const plan=moodReferencePlan({type:'image',mode:'image',engine,referenceMode:'base',
       prompt:result.prompt,...result.metadata,referenceRoles:labels});
-    assert.deepEqual(plan.references,[],'Do not import external scene photographs into the user's Base');
+    assert.deepEqual(plan.references,[],"Do not import external scene photographs into the user's Base");
     const compiled=compileImagePrompt(plan.settings.prompt,labels,plan.settings);
     assert.ok(compiled.length<=(engine==='seedreamlite'?3000:5000),
       anchor.name+' '+engine+' '+compiled.length);
