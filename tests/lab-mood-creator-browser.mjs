@@ -70,7 +70,7 @@ try{
   await page.waitForURL(origin+'/lab/moods');
   assert.equal(new URL(page.url()).pathname,'/lab/moods','Old Explore URL redirects to the short route');
   await page.reload({waitUntil:'domcontentloaded'});
-  assert.equal(await page.locator('.mc-look-card[data-mood-id]').count(),16);
+  assert.equal(await page.locator('.mc-look-card[data-mood-id]').count(),17);
   assert.equal(await page.locator('#mc-look-dialog').count(),1);
   const grid=await page.evaluate(()=>{
     const gallery=document.querySelector('.mc-look-grid'),photo=gallery.querySelector('.mc-look-photo').getBoundingClientRect();

@@ -87,6 +87,8 @@ function compactReferenceInstruction(raw,index){
   // Curated Dream Blur Style notes already say OPTICS ONLY; don't repeat the generic instruction.
   if(r.role==='style'&&r.name.startsWith('Dream Blur style - '))
     return 'Reference '+(index+1)+' [Style optics / '+r.name.slice('Dream Blur style - '.length)+']: '+r.note;
+  if(r.role==='style'&&r.name.startsWith('Fisheye 2000 style - '))
+    return 'Reference '+(index+1)+' [Style optics / '+r.name.slice('Fisheye 2000 style - '.length)+']: '+r.note;
   let instruction=compactDescriptions[r.role];
   if(r.role==='detail')instruction='Use only the '+(target||'selected detail').toLowerCase()+' as a localized visual reference; match camera and lighting. Do not copy the wearer, overall pose, outfit or scene.';
   if(r.role==='outfit')instruction='Use only the '+(target||'full outfit').toLowerCase()+'. Fit it to the target subject and pose. Do not copy the wearer, face, body, camera or background.';
@@ -131,8 +133,10 @@ export function compileImagePrompt(direction,labels=[],settings={}){
   // Every custom role/note and the complete authored Mood are preserved.
   const curatedDreamBlurStyles=settings?.moodId==='dream-blur'&&
     roles.some(ref=>ref.role==='style'&&ref.name.startsWith('Dream Blur style - '));
+  const curatedFisheyeStyles=settings?.moodId==='fisheye-2000'&&
+    roles.some(ref=>ref.role==='style'&&ref.name.startsWith('Fisheye 2000 style - '));
   const compact=Boolean(settings?.moodId&&
-    ((settings.referenceMode!=='references'&&roles.some(ref=>ref.role==='base'))||curatedDreamBlurStyles));
+    ((settings.referenceMode!=='references'&&roles.some(ref=>ref.role==='base'))||curatedDreamBlurStyles||curatedFisheyeStyles));
   const original=compact?compileCompactUserImagePrompt(direction,labels):compileUserImagePrompt(direction,labels);
   const quality=imageQualityGuidance(direction,labels,settings,original.length);
   const prompt=quality?[original,quality].filter(Boolean).join('\n\n'):original;

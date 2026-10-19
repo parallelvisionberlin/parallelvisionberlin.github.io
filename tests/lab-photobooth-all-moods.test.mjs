@@ -15,8 +15,8 @@ const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'u
 const direction='Keep the same recognizable person, expression, viewpoint and framing.';
 
 test('Photobooth uses 1K for both web and native mobile, with one bound paid submission',()=>{
-  assert.equal(MOODS.length,16,'Expected the entire PV LAB curated Mood catalogue');
-  assert.equal(new Set(MOODS.map(m=>m.id)).size,16,'Every Mood ID must be unique');
+  assert.equal(MOODS.length,17,'Expected the entire PV LAB curated Mood catalogue');
+  assert.equal(new Set(MOODS.map(m=>m.id)).size,17,'Every Mood ID must be unique');
   assert.match(client,/resolution:'1k',aspectRatio:imageAutoRatio/);
   assert.doesNotMatch(client,/resolution:'2k',aspectRatio:imageAutoRatio/);
   assert.match(explore,/import\('\.\/app-mood-generation\.js\?/);
@@ -30,7 +30,7 @@ test('Photobooth uses 1K for both web and native mobile, with one bound paid sub
   assert.match(worker,/const prompt=compileImagePrompt\(p\.prompt,p\.referenceRoles,p\)/);
 });
 
-test('all sixteen Mood thumbnails and editorial detail assets exist',()=>{
+test('all seventeen Mood thumbnails and editorial detail assets exist',()=>{
   for(const mood of MOODS){
     for(const asset of [mood.preview,mood.previewFull]){
       if(!asset)continue;
@@ -86,6 +86,9 @@ for(const mood of MOODS){
         if(mood.id==='dream-blur'){
           assert.equal(planned.references.length,4,context+' optical Mood needs four style references');
           assert.ok(roles.slice(hasPhoto?1:0).every(r=>r.role==='style'),context+' style photos must not override identity');
+        }else if(mood.id==='fisheye-2000'){
+          assert.equal(planned.references.length,2,context+' two approved real photographic style references');
+          assert.ok(roles.slice(hasPhoto?1:0).every(r=>r.role==='style'),context+' Mood does not override identity');
         }else{
           assert.equal(planned.references.length,0,context+' no extra network-hosted Style photos');
         }
