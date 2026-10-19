@@ -87,6 +87,13 @@ try{
         const h=document.getElementById('image-composer-prompt').getBoundingClientRect().height;
         return h>=(innerWidth>899?150:95);
       },null,{timeout:2500});
+      // Pasted-at-end scrolling occurs on the next animation frame. Await
+      // that frame before asserting the final scroll position.
+      await page.waitForFunction(()=>{
+        const field=document.getElementById('image-composer-prompt');
+        return field.scrollHeight>field.clientHeight+140 &&
+          field.scrollTop>=field.scrollHeight-field.clientHeight-3;
+      },null,{timeout:2500});
       const result=await page.evaluate(()=>{
         const rect=selector=>{
           const r=document.querySelector(selector).getBoundingClientRect();
