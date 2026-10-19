@@ -195,3 +195,25 @@ for(const [name,file] of [
     .composite(composite).jpeg({quality:91}).toFile(dir+'/hong-kong-v8-'+name+'-ab.jpg');
   console.log('HONG_KONG_V8_AB '+name+' '+JSON.stringify({midPixels,oldError,newError,difference}));
 }
+
+// Stress A/B mirrors the high-haze manual values shown in the owner's
+// October 19 screenshots. This is finishing only, not paid AI generation.
+const stressed={grain:53,haze:98,halation:0,film:100};
+for(const [name,file] of [
+  ['portrait','lab/mood-previews/hd/night-flash-20261011.jpg'],
+  ['interior','lab/mood-references/hong-kong-nights/06-interior-portrait.jpg'],
+  ['street','lab/mood-references/hong-kong-nights/03-shop-reflections.jpg']
+]){
+  const original=await sharp(file).resize({width:850,height:850,fit:'inside',withoutEnlargement:true}).png().toBuffer();
+  const oldFilm=await gradeWithEngine(original,'v3',stressed);
+  const v8Film=await gradeWithEngine(original,'v8',stressed);
+  const captions=['Original','V3 high haze','V8 high haze'],layers=[original,oldFilm,v8Film],cells=[];
+  for(let col=0;col<3;col++){
+    const frame=await sharp(layers[col]).resize(370,465,{fit:'contain',background:'#151716'}).png().toBuffer();
+    const label=Buffer.from('<svg width="370" height="35"><rect width="370" height="35" fill="#151716"/><text x="14" y="24" fill="#f4f2ed" font-family="sans-serif" font-size="16">'+captions[col]+'</text></svg>');
+    cells.push({input:frame,left:col*370,top:35},{input:label,left:col*370,top:0});
+  }
+  await sharp({create:{width:1110,height:500,channels:3,background:'#151716'}})
+    .composite(cells).jpeg({quality:91}).toFile(dir+'/hong-kong-v8-'+name+'-high-haze-ab.jpg');
+  console.log('HONG_KONG_V8_HIGH_HAZE_AB '+name+' saved');
+}
