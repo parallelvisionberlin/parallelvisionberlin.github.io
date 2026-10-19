@@ -172,9 +172,32 @@ test('sixteen unique curated moods with imagery',()=>{
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
 test('only explicitly compatible image engines receive moods',()=>{
-  assert.deepEqual([...MOOD_MODELS],['seedream','seedreamlite','gemini','gemini21','qwen3','zspicy']);
+  assert.deepEqual([...MOOD_MODELS],['seedream','seedreamlite','krea3','gemini','gemini21','qwen3','zspicy']);
   assert.match(prepareMoodPrompt('portrait','night-flash',60,{engine:'soulpro'}).error,/does not support Moods/);
   assert.equal(moodById('fake'),null);
+});
+test('Krea 3 accepts curated and personal Moods, preserves source directions and stays within reference limits',()=>{
+  const original='Editorial photograph of a woman in a studio.';
+  const mood=prepareMoodPrompt(original,'night-flash',82,{engine:'krea3',referenceCount:1,referenceMode:'base'});
+  assert.equal(mood.error,'');
+  assert.ok(mood.prompt.startsWith(original));
+  assert.match(mood.prompt,/PV LAB MOOD \/ Night Flash/);
+  assert.equal(mood.metadata.moodId,'night-flash');
+  assert.equal(mood.metadata.moodIntensity,82);
+  const refs=[{name:'source.png',role:'base'}];
+  const compiled=compileImagePrompt(mood.prompt,refs,{type:'image',mode:'image',engine:'krea3',referenceMode:'base',...mood.metadata});
+  assert.match(compiled,/Reference 1/);
+  assert.match(compiled,/PV LAB MOOD \/ Night Flash/);
+  assert.ok(compiled.length<=5000);
+  const custom=preparePersonalMoodPrompt(original,{id:'30000000-0000-4000-8000-000000000020',name:'My Flash',direction:'Soft red flash and deep shadows',baseMoodId:'night-flash'},76,{engine:'krea3',referenceCount:1,referenceMode:'base'});
+  assert.equal(custom.error,'');
+  assert.match(custom.prompt,/PV LAB MY MOOD \/ My Flash/);
+  assert.equal(custom.metadata.moodId,'custom');
+  assert.equal(userFacingImagePrompt({...mood.metadata,prompt:mood.prompt}),original);
+  assert.match(imageHistoryCaption({...mood.metadata,prompt:mood.prompt}),/Night Flash · 82%/);
+  assert.match(prepareMoodPrompt(original,'night-flash',82,{engine:'kling'}).error,/does not support Moods/);
+  const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
+  assert.match(worker,/engine==='krea3'\)return \{\.\.\.krea3Parameters\(\{\.\.\.value,referenceMode\},\{fail,referenceRoles\}\),\.\.\.imageMoodMetadata\(value\)\}/);
 });
 test('original prompt is not lost; mood metadata can be restored',()=>{
   const data=prepareMoodPrompt('Nina sitting by a window','hong-kong-nights',64,{engine:'gemini',referenceCount:1});
