@@ -404,7 +404,7 @@ try{
     'Mobile Inspiration must not reserve the old viewport + 200px height: '+JSON.stringify(mobileSurface));
   assert.ok(mobileSurface.shellHeight<=mobileSurface.contentHeight+8,
     'Gallery height must follow actual visible content, without a black trailing void: '+JSON.stringify(mobileSurface));
-  assert.match(mobileSurface.backgroundImage,/pvlab-subtle-cinematic-background-20261017\\.webp/,
+  assert.match(mobileSurface.backgroundImage,/pvlab-subtle-cinematic-background-20261017\.webp/,
     'Keep the approved original photographic plate');
   assert.match(mobileSurface.backgroundSize,/100% 100%/,
     'On narrow phones show the complete cobalt/copper image, not the black center crop');
