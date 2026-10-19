@@ -17,8 +17,9 @@ test('both Image inspiration entrances retain the original six cards and add Chr
   assert.equal((html.match(/data-welcome-mood="chrome-couture"/g)||[]).length,1);
   assert.equal((html.match(/data-inspiration-nav="prev"/g)||[]).length,2);
   assert.equal((html.match(/data-inspiration-nav="next"/g)||[]).length,2);
-  assert.match(html,/inspiration-carousel\.css\?v=20261019-chrome1/);
-  assert.match(html,/inspiration-carousel\.js\?v=20261019-chrome1/);
+  assert.match(html,/inspiration-carousel\.css\?v=20261019-gallery-arrows1/);
+  assert.match(html,/inspiration-carousel\.js\?v=20261019-gallery-arrows1/);
+  assert.match(html,/id="lab-welcome-presets"/);
 });
 test('carousel shows six unchanged-sized cards on wide desktop and two on mobile',()=>{
   const css=read('inspiration-carousel.css'),js=read('inspiration-carousel.js');
@@ -31,6 +32,9 @@ test('carousel shows six unchanged-sized cards on wide desktop and two on mobile
   assert.match(js,/ResizeObserver/);
   assert.match(js,/prev\.hidden=/);
   assert.match(js,/next\.hidden=/);
+  assert.match(js,/prev\.disabled=/);
+  assert.match(js,/next\.disabled=/);
+  assert.match(css,/\.inspiration-nav:disabled/);
 });
 test('carousel navigation cannot invoke paid jobs or rewrite the current prompt',()=>{
   const code=read('inspiration-carousel.js'),looks=read('inspiration-looks.js');
@@ -39,4 +43,20 @@ test('carousel navigation cannot invoke paid jobs or rewrite the current prompt'
   assert.match(looks,/if\(existing&&!isInspirationExample\(existing\)\)/);
   assert.doesNotMatch(read('moods.js'),/"id": "chrome-couture"/);
   assert.match(read('lab.js'),/const underlyingMood=id==='chrome-couture'\?'fashion-editorial':id/);
+});
+
+test('Image welcome and reopened Inspiration fit the viewport, but real History may grow',()=>{
+  const css=read('image-editorial-deck.css');
+  const start=css.indexOf('/* Image Studio is one creative surface.');
+  const end=css.indexOf('/* Restore a bright cobalt',start);
+  assert.ok(start>=0&&end>start,'Signed-in Image viewport rules are present');
+  const rules=css.slice(start,end);
+  assert.match(rules,/body:has\(#app\.image-studio-active:not\(\[hidden\]\)\) > footer\.pv-lab-footer/);
+  assert.match(rules,/html:has\(#app\.image-studio-active:not\(\[hidden\]\)\)/);
+  assert.doesNotMatch(rules,/:not\(\.pv-moods-discovery-open\)/,
+    'Reopened Inspiration must retain the first-image viewport layout');
+  assert.match(rules,/#image-gallery-empty:not\(\[hidden\]\) #lab-welcome-start:not\(\[hidden\]\)/,
+    'Only the visible welcome/Discovery gallery is viewport-locked');
+  assert.doesNotMatch(rules,/\.image-studio #history\s*\{/,
+    'History image grid and paid jobs remain unaffected');
 });

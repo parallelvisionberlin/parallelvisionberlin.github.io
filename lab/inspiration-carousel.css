@@ -22,7 +22,11 @@
 }
 .inspiration-carousel-shell .inspiration-nav-prev{left:7px}
 .inspiration-carousel-shell .inspiration-nav-next{right:7px}
-.inspiration-carousel-shell .inspiration-nav:hover{background:rgba(24,25,27,.96);border-color:rgba(255,255,255,.85)}
+.inspiration-carousel-shell .inspiration-nav:not(:disabled):hover{background:rgba(24,25,27,.96);border-color:rgba(255,255,255,.85)}
+.inspiration-carousel-shell .inspiration-nav:disabled{
+  opacity:.38;cursor:default;pointer-events:none;box-shadow:none;
+  border-color:rgba(255,255,255,.16);background:rgba(15,16,20,.38);
+}
 .inspiration-carousel-shell .inspiration-nav:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .inspiration-carousel-shell .inspiration-nav[hidden]{display:none!important}
 /* Photographs stay static on hover. No AI-style zoom effects. */

@@ -320,47 +320,84 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
 }
 
 
-/* PV LAB static welcome viewport, October 17.
-   Scope is the signed-in Image FIRST-IMAGE welcome, not Inspiration revisits,
-   not the generated History waterfall and never the native editor. The footer
-   remains present and accessible again when the normal gallery appears. */
-body:has(#app.image-studio-active:not([hidden]):not(.pv-moods-discovery-open) #lab-welcome-start:not([hidden]))
-  > footer.pv-lab-footer{
+/* Image Studio is one creative surface. Its marketing footer does not belong
+   inside the signed-in workspace. First-image welcome and reopened Inspiration
+   fit a desktop viewport; populated History remains naturally scrollable. */
+body:has(#app.image-studio-active:not([hidden])) > footer.pv-lab-footer{
   display:none!important;
 }
+/* When Inspiration is reopened over populated History, its visible cards and
+   carousel arrows must receive pointer events above the retained archive. */
+#app.image-studio-active.pv-moods-discovery-open .image-gallery-shell > #image-gallery-empty:not([hidden]){
+  z-index:6!important;
+}
+/* An atmospheric background may extend beyond its visual container, but it
+   must never create a browser-level horizontal scrollbar. */
+html:has(#app.image-studio-active:not([hidden])),
+body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
 @media (min-width:1160px) and (min-height:680px){
-  html:has(#app.image-studio-active:not([hidden]):not(.pv-moods-discovery-open) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+  html:has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
     overflow-y:hidden!important;
     overscroll-behavior-y:none;
   }
-  body:has(#app.image-studio-active:not([hidden]):not(.pv-moods-discovery-open) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+  body:has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
     >main#main{
     height:calc(100dvh - var(--lab-header-height,82px))!important;
     min-height:0!important;
     overflow:hidden!important;
   }
-  #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
     height:100%!important;
     min-height:0!important;
     overflow:hidden!important;
   }
-  #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
     >.image-studio:not([hidden]),
-  #app.image-studio-active:not(.pv-moods-discovery-open) .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+  #app.image-studio-active .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
     height:100%!important;
     min-height:0!important;
   }
-  #app.image-studio-active:not(.pv-moods-discovery-open) .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+  #app.image-studio-active .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
     overflow:hidden!important;
   }
-  #app.image-studio-active:not(.pv-moods-discovery-open) .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+  #app.image-studio-active .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
     inset:clamp(25px,5.6dvh,53px) 0 clamp(138px,19dvh,185px)!important;
   }
-  #app.image-studio-active:not(.pv-moods-discovery-open) #lab-welcome-start .lab-welcome-preset{
+  #app.image-studio-active #lab-welcome-start .lab-welcome-preset{
     height:clamp(240px,39dvh,379px);
   }
 }
 
+
+/* A laptop/tablet with room for the cards should not inherit the old
+   100dvh + 200px welcome minimum. Smaller or short displays keep natural
+   scrolling rather than hide working controls behind the floating deck. */
+@media (min-width:681px) and (max-width:1159px) and (min-height:740px){
+  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+    overflow-y:hidden!important;overscroll-behavior-y:none;
+  }
+  body:has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) > main#main{
+    height:calc(100dvh - var(--lab-header-height,82px))!important;
+    min-height:0!important;overflow:hidden!important;
+  }
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])),
+  #app.image-studio-active:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) > .image-studio:not([hidden]),
+  #app.image-studio-active .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+    height:100%!important;min-height:0!important;
+  }
+  #app.image-studio-active .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
+    overflow:hidden!important;
+  }
+  #app.image-studio-active .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    position:absolute!important;
+    inset:clamp(22px,5dvh,46px) 0 clamp(153px,21dvh,192px)!important;
+    min-height:0!important;
+    padding:0 clamp(18px,2.5vw,36px)!important;
+  }
+  #app.image-studio-active #lab-welcome-start .lab-welcome-preset{
+    height:clamp(205px,32dvh,310px)!important;
+  }
+}
 /* Restore a bright cobalt / warm copper PHOTOGRAPHIC background like the
    earlier approved Image 2, using PV LAB's original Dream Blur asset only.
    Avoid flattening the lower third into a solid black horizontal strip. */

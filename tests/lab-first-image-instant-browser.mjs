@@ -192,6 +192,30 @@ try{
   await page.mouse.move(2,2);
   assert.equal(await page.locator('.lab-welcome-preset').count(),7,
     'All six original welcome cards and Chrome Couture remain mounted');
+  // Navigate the real gallery before submitting a job, so queue callbacks
+  // cannot close the Inspiration view during the click regression.
+  const welcomeNext=page.locator('.lab-welcome-carousel .inspiration-nav-next');
+  const welcomePrev=page.locator('.lab-welcome-carousel .inspiration-nav-prev');
+  await welcomeNext.waitFor({state:'visible'});
+  assert.equal(await welcomePrev.isVisible(),true,'Both gallery arrows remain in place');
+  assert.equal(await welcomePrev.isDisabled(),true,'At the first look, previous is dimmed');
+  await welcomeNext.click();
+  await page.waitForFunction(()=>{
+    const track=document.getElementById('lab-welcome-presets');
+    return track.scrollWidth-track.clientWidth>30&&
+      track.scrollLeft>=track.scrollWidth-track.clientWidth-4;
+  });
+  assert.equal(await welcomePrev.isEnabled(),true,'Previous becomes usable after advancing');
+  const welcomeHit=await welcomePrev.evaluate(prev=>{
+    const r=prev.getBoundingClientRect();
+    const target=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+    return {hit:target?.tagName,hitClass:target?.className,
+      within:target===prev||prev.contains(target)};
+  });
+  assert.ok(welcomeHit.within,'Carousel back arrow must receive pointer events: '+JSON.stringify(welcomeHit));
+  await welcomePrev.click();
+  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<4);
+
   // An empty CUSTOMER Image welcome has no selectable image jobs.
   // Do not advertise History Select or expose a useless "0 selected" toolbar.
   assert.equal(await page.locator('#history-select').isVisible(),false,
@@ -292,8 +316,8 @@ try{
   assert.equal(await button.evaluate(el=>el.getBoundingClientRect().height),heightBefore,
     'Generate dimensions must not change while checking price or submitting');
   // Simulate the first result becoming visible, without a paid provider call.
-  // Only the welcome presentation relaxes: the actual cascade and footer
-  // regain their ordinary scroll styles after first-image transition.
+  // After the first result, History regains natural vertical scrolling.
+  // The marketing footer remains outside Image Studio in both views.
   const historyRelease=await page.evaluate(()=>{
     document.getElementById('lab-welcome-start').hidden=true;
     document.getElementById('image-gallery-empty').hidden=true;
@@ -305,8 +329,8 @@ try{
     return {footer:getComputedStyle(document.querySelector('body>footer.pv-lab-footer')).display,
       overflow:getComputedStyle(document.documentElement).overflowY};
   });
-  assert.notEqual(historyRelease.footer,'none',
-    'After an image exists, normal History page/footer accessibility returns');
+  assert.equal(historyRelease.footer,'none',
+    'Populated Image History must not expose the marketing footer');
   assert.notEqual(historyRelease.overflow,'hidden',
     'After first-image transition, the cascading gallery scroll is restored');
   assert.equal(await page.locator('#history-select').isVisible(),true,
@@ -333,6 +357,29 @@ try{
   assert.equal(inspirationSurface.opacity,'1');
   assert.equal(inspirationSurface.gradient,welcomeSurface.gradient,
     'Inspiration and welcome must use the same legibility overlay');
+  const inspirationArrows=page.locator('.lab-welcome-carousel .inspiration-nav');
+  await page.locator('.lab-welcome-carousel .inspiration-nav-next').waitFor({state:'visible'});
+  const inspirationViewport=await page.evaluate(()=>{
+    const prev=document.querySelector('.lab-welcome-carousel .inspiration-nav-prev');
+    const next=document.querySelector('.lab-welcome-carousel .inspiration-nav-next');
+    const track=document.getElementById('lab-welcome-presets');
+    return {footer:getComputedStyle(document.querySelector('body>footer.pv-lab-footer')).display,
+      viewportHeight:innerHeight,documentHeight:document.documentElement.scrollHeight,
+      viewportWidth:innerWidth,documentWidth:document.documentElement.scrollWidth,
+      verticalOverflow:getComputedStyle(document.documentElement).overflowY,
+      prevDisabled:prev.disabled,nextDisabled:next.disabled,
+      controlsConnected:prev.getAttribute('aria-controls')===track.id&&next.getAttribute('aria-controls')===track.id};
+  });
+  assert.equal(inspirationViewport.footer,'none','Inspiration must not reveal the marketing footer');
+  assert.equal(inspirationViewport.verticalOverflow,'hidden','Inspiration remains a static desktop workspace');
+  assert.ok(inspirationViewport.documentHeight<=inspirationViewport.viewportHeight+3,
+    'Inspiration must not add a second vertical section: '+JSON.stringify(inspirationViewport));
+  assert.ok(inspirationViewport.documentWidth<=inspirationViewport.viewportWidth+3,
+    'Inspiration background and cards must not create document horizontal scrolling: '+JSON.stringify(inspirationViewport));
+  assert.equal(await inspirationArrows.count(),2,'A gallery has left and right controls');
+  assert.ok(inspirationViewport.controlsConnected&&inspirationViewport.prevDisabled&&!inspirationViewport.nextDisabled,
+    'Left arrow is visible but disabled at the start; next is actionable: '+JSON.stringify(inspirationViewport));
+
   // Discreet Mode is a distinct intentional backdrop and must win over the
   // Inspiration artwork while images are hidden.
   await page.locator('#history-preview-toggle').click();
