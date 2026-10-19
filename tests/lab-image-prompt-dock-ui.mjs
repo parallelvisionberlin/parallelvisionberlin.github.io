@@ -234,6 +234,63 @@ try{
         maxHeight:metrics.textComputedMaxHeight});
     }finally{await context.close();}
   }
+  // Regression for the owner's PV Soul 2 screenshot: at desktop width the
+  // 1080p selector must not be left on a second line by the two identity tiles.
+  // This is a mock page, with no authenticated account or paid API request.
+  {
+    const context=await browser.newContext({viewport:{width:1440,height:900}});
+    try{
+      const page=await context.newPage();
+      await page.route('https://**/*',route=>route.abort());
+      await page.goto('http://127.0.0.1:'+port+'/lab/studio.html?tool=image',{waitUntil:'domcontentloaded'});
+      await page.evaluate(()=>{
+        document.body.classList.remove('lab-booting');
+        document.body.classList.add('lab-ready');
+        const app=document.getElementById('app');app.hidden=false;app.classList.add('image-studio-active');
+        document.getElementById('image-studio').hidden=false;
+        const composer=document.getElementById('image-composer');
+        composer.hidden=false;composer.classList.add('is-pv-soul');
+        document.getElementById('image-composer-model-label').textContent='PV Soul';
+        for(const id of ['image-composer-count-wrap','image-composer-resolution-wrap',
+          'image-reference-mode-wrap','composer-exact-prompt-option','composer-more-anchor'])
+          document.getElementById(id).hidden=true;
+        document.getElementById('image-composer-ratio').parentElement.hidden=true;
+        document.querySelectorAll('.hf-bar-control').forEach(el=>el.hidden=false);
+        document.getElementById('composer-character').hidden=false;
+        document.getElementById('hf-bar-source').hidden=false;
+      });
+      await page.addScriptTag({content:
+        'const $=id=>document.getElementById(id);const imageComposer=document.getElementById("image-composer");\\n'+
+        sizingHelper+'\\nwindow.__resizePVPrompt=fitImageComposerPrompt;'});
+      await page.locator('#image-composer-prompt').fill(lorem);
+      await page.evaluate(()=>window.__resizePVPrompt());
+      const positions=await page.evaluate(()=>{
+        const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();
+          return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,width:r.width};};
+        const controls=document.querySelector('.composer-controls');
+        return {ratio:rect('hf-bar-ratio'),resolution:rect('hf-bar-resolution'),
+          mood:rect('image-composer-moods'),model:rect('image-composer-model'),
+          generate:rect('image-composer-generate'),identity:rect('composer-character'),
+          source:rect('hf-bar-source'),dock:rect('image-composer'),
+          controls:{height:controls.getBoundingClientRect().height,
+            scrollWidth:controls.scrollWidth,clientWidth:controls.clientWidth},
+          prompt:rect('image-composer-prompt')};
+      });
+      assert.ok(Math.abs(positions.ratio.top-positions.resolution.top)<3,
+        'PV Soul ratio and 1080p must share one toolbar row: '+JSON.stringify(positions));
+      assert.ok(Math.abs(positions.model.top-positions.resolution.top)<6,
+        'PV Soul resolution must align with model and Mood controls: '+JSON.stringify(positions));
+      assert.ok(positions.controls.height<52 && positions.controls.scrollWidth<=positions.controls.clientWidth+2,
+        'PV Soul controls must not overflow or wrap: '+JSON.stringify(positions));
+      assert.ok(positions.prompt.height>=140&&positions.prompt.height<=178,
+        'Soul prompt continues using the original bounded scroll editor');
+      assert.ok(Math.abs(positions.identity.bottom-positions.generate.bottom)<10 &&
+        Math.abs(positions.source.bottom-positions.generate.bottom)<10,
+        'Both Soul cards must remain anchored beside Generate');
+      assert.ok(positions.dock.height<360,
+        'Soul prompt and selector row should not turn into a giant modal: '+positions.dock.height);
+    }finally{await context.close();}
+  }
   console.log('PASS compact scrollable pasted prompts and visible Generate:',JSON.stringify(records));
 }finally{
   await browser.close();await new Promise(done=>server.close(done));
