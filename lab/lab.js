@@ -1632,8 +1632,8 @@ function syncImageReferences(){
 function fitImageComposerPrompt(){
   const textbox=$('image-composer-prompt');
   if(!textbox)return;
-  const autoDirection=effectiveImagePrompt()&&!$('prompt').value.trim();
-  textbox.placeholder=autoDirection?'Create a variation of this image (tap to change)':'What do you imagine?';
+  // syncImageComposer() owns the contextual placeholder. Do not overwrite its
+  // approved Base-image text while measuring the textarea's height.
   const narrow=window.innerWidth<=740;
   const short=window.innerHeight<=640;
   const minimum=narrow?47:42;
