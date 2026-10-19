@@ -39,3 +39,12 @@ Wait for updated PR checks, investigate relevant failures, merge when sound, the
 - `lab/studio.html` cache-busts the updated CSS. `tests/lab-first-image-instant-browser.mjs` adds 390px browser assertions for natural shell height, full background, scroll-bottom gap, no horizontal overflow, footer and History return.
 - Verification: PR browser/CI checks pending at time of writing. Live Cloudflare deployment not yet confirmed. No paid generations or backend changes.
 - Next: inspect the scoped first-image browser check, adjust if needed, merge only after passing, verify source publication, then ask user to reload the phone.
+
+
+## 2026-10-19 mobile welcome compact deck and scroll stability
+- User approved moving the welcome heading slightly higher, keeping the original seven swipeable photographic cards, and reducing the mobile Image prompt deck to one visible tools row. Secondary settings remain reachable from the small More/Options dropdown.
+- Mobile iPhone-only implementation PR #349: `lab/mobile-image-compact-welcome.css` is loaded last; `lab/studio-mobile-entry.js` no longer toggles the signed-in welcome header at 110px scroll, which was causing geometry feedback/jitter. First welcome activation returns to scroll position zero.
+- Resting welcome controls: upload, Elements, current model, Moods and More. Opening More exposes Retouch, aspect ratio, resolution, count, reference controls and existing advanced controls; all original event handlers, values and credit quote logic are retained. Generate stays full-width and is slightly shorter.
+- The approved blue/copper background remains, the heading is 10-20px higher, and the welcome-only clearance is reduced to match the compact dock. Normal History, native Create, Video and desktop remain excluded.
+- For tall phone viewports, CSS locks resting welcome vertical scrolling but releases it for keyboard focus or expanded options. Small phones remain scrollable as a fallback. Browser regression tests assert header stability, one tools row, option accessibility, card/deck nonoverlap and normal History return.
+- Verification and production merge/deployment status must be updated after CI. No provider or paid generation changes.

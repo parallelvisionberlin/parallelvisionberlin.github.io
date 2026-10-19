@@ -428,6 +428,59 @@ try{
     'No huge empty strip should separate last card and fixed Generate: '+JSON.stringify({visualGap,mobileBottom}));
   assert.ok(mobileBottom.documentWidth<=391,
     'The mobile background must not create horizontal scrolling');
+  // The approved mobile deck has one tools row, a stable header and a real
+  // secondary-options expander. No paid requests are made in this check.
+  await page.waitForFunction(()=>document.getElementById('studio-header')?.classList.contains('pv-mobile-entry-condensed'));
+  const compact=await page.evaluate(()=>{
+    document.activeElement?.blur?.();
+    const r=s=>document.querySelector(s).getBoundingClientRect();
+    const css=s=>getComputedStyle(document.querySelector(s));
+    const dock=r('#image-composer');
+    const controls=document.querySelector('#image-composer .composer-controls');
+    const essential=['.composer-add-wrap','.scene-image-library-wrap','.composer-model-wrap','.composer-mood-control','.composer-mobile-more'];
+    return {headerHeight:r('#studio-header').height,dockHeight:dock.height,dockTop:dock.top,
+      cardBottom:r('#lab-welcome-start .lab-welcome-preset').bottom,
+      cardHeight:r('#lab-welcome-start .lab-welcome-preset').height,
+      titleTop:r('#lab-welcome-start h2').top,
+      essential:essential.map(s=>({selector:s,display:getComputedStyle(controls.querySelector(s)).display,
+        top:controls.querySelector(s).getBoundingClientRect().top})),
+      retouch:css('#image-composer-edit-area').display,
+      ratio:css('#image-composer-ratio').display,
+      lock:getComputedStyle(document.documentElement).overflowY};
+  });
+  assert.ok(compact.headerHeight>=76&&compact.headerHeight<=80,
+    'Mobile welcome header must stay stable and compact: '+JSON.stringify(compact));
+  assert.equal(compact.essential.every(x=>x.display!=='none'),true,
+    'Upload, saved elements, model, Moods and Options must all remain visible');
+  assert.ok(Math.max(...compact.essential.map(x=>x.top))-Math.min(...compact.essential.map(x=>x.top))<8,
+    'Welcome tools must fit a single row: '+JSON.stringify(compact));
+  assert.equal(compact.retouch,'none','Retouch is accessible through Options at rest');
+  assert.equal(compact.lock,'hidden','Resting welcome must not bounce vertically');
+  assert.ok(compact.cardHeight>=240,
+    'Recovered toolbar space should enlarge the original mood photographs: '+JSON.stringify(compact));
+  assert.ok(compact.cardBottom<compact.dockTop-5,
+    'Both Mood photographs and their titles must clear the compact deck: '+JSON.stringify(compact));
+  const mobileMore=page.locator('#image-composer-mobile-more');
+  await mobileMore.click();
+  assert.equal(await mobileMore.getAttribute('aria-expanded'),'true');
+  const expandedControls=await page.evaluate(()=>{
+    const deck=document.getElementById('image-composer');
+    const retouch=document.getElementById('image-composer-edit-area');
+    const ratio=document.getElementById('image-composer-ratio');
+    return {state:deck.dataset.mobileSettings,
+      retouchHidden:retouch.hidden,retouchDisplay:getComputedStyle(retouch).display,
+      retouchRect:retouch.getBoundingClientRect().toJSON(),
+      ratioHidden:ratio.hidden,ratioDisplay:getComputedStyle(ratio).display};
+  });
+  assert.equal(await page.locator('#image-composer-edit-area').isVisible(),!expandedControls.retouchHidden,
+    'Expanded Options must respect whether Retouch is available for this model/source: '+JSON.stringify(expandedControls));
+  assert.equal(await page.locator('#image-composer-ratio').isVisible(),true,
+    'Aspect ratio must be accessible in expanded Options');
+  assert.notEqual(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
+    'Options expansion must release the page scroll lock');
+  await mobileMore.click();
+  await page.evaluate(()=>document.activeElement?.blur?.());
+  assert.equal(await mobileMore.getAttribute('aria-expanded'),'false');
   await page.locator('#history-moods-toggle').click();
   assert.equal(await page.locator('#history').isVisible(),true,
     'Mobile History resumes after closing Inspiration without losing results');
