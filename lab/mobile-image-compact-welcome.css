@@ -28,6 +28,12 @@
   html:not(.pv-native-lab) #app.image-studio-active #lab-welcome-start .lab-welcome-carousel{
     margin-top:13px!important;
   }
+  /* Give the original photographs the space recovered from the second
+     toolbar row. This also closes the remaining blank gap above the deck. */
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+    #lab-welcome-start .lab-welcome-preset{
+    height:clamp(214px,calc(56vw + 30px),282px)!important;
+  }
   /* The resting composer becomes a single horizontal tools row. Its textarea,
      uploaded refs, quote, Generate and actual original inputs remain mounted. */
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
