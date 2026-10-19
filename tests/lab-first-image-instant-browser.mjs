@@ -472,8 +472,8 @@ try{
       retouchRect:retouch.getBoundingClientRect().toJSON(),
       ratioHidden:ratio.hidden,ratioDisplay:getComputedStyle(ratio).display};
   });
-  assert.equal(await page.locator('#image-composer-edit-area').isVisible(),true,
-    'Retouch must be accessible in expanded Options: '+JSON.stringify(expandedControls));
+  assert.equal(await page.locator('#image-composer-edit-area').isVisible(),!expandedControls.retouchHidden,
+    'Expanded Options must respect whether Retouch is available for this model/source: '+JSON.stringify(expandedControls));
   assert.equal(await page.locator('#image-composer-ratio').isVisible(),true,
     'Aspect ratio must be accessible in expanded Options');
   assert.notEqual(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
