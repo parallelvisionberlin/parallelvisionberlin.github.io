@@ -27,6 +27,8 @@ on:
     branches: [main]
     paths:
       - 'lab/lab.js'
+      - 'lab/image-editorial-deck.js'
+      - 'lab/image-editorial-deck.css'
       - 'lab/customer-image-pricing.js'
       - 'lab/studio.html'
       - 'lab/studio-finish-v2.css'

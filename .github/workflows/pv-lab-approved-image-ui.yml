@@ -1,0 +1,30 @@
+name: PV LAB approved Image UI contract
+
+# Always run, even if a future PR changes an unrelated file.
+# Fast and dependency-free so the approved Image copy and deck cannot
+# accidentally drift without a failing check.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  approved-image-ui:
+    name: approved-image-ui
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify Studio module syntax
+        run: |
+          node --check lab/lab.js
+          node --check lab/image-editorial-deck.js
+      - name: Enforce owner-approved copy, single writer, and deck shrink behavior
+        run: node --test tests/lab-approved-image-ui-contract.test.mjs

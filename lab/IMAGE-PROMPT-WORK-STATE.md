@@ -1,5 +1,19 @@
 # Image composer prompt: current state
 
+## Locked Image UI contract (2026-10-19)
+
+- User request: prevent future PV LAB updates from accidentally changing approved Image copy or leaving the prompt deck stuck at an expanded height.
+- Approved labels: empty `What do you imagine?`; Base `What would you like to change?`; references-only `Describe the image you want to create...`; native optional direction `Anything else? Add a direction (optional)`.
+- Source of truth: `syncImageComposer()` in `lab/lab.js` owns the contextual placeholder; `fitImageComposerPrompt()` owns height only; `lab/image-editorial-deck.js` owns presentation only.
+- New fast guard: `tests/lab-approved-image-ui-contract.test.mjs` exercises the actual placeholder expression, disallows extra writers or the unauthorized copy, and asserts the compact/expanded structure.
+- New always-on workflow: `.github/workflows/pv-lab-approved-image-ui.yml` runs on every pull request and push to `main` without path filters.
+- Existing browser workflows now trigger on changes to `image-editorial-deck.css` and `image-editorial-deck.js` as well.
+- Future coding agents must read `lab/AGENTS.md`, keep changes strictly scoped, and never update the locked UI contract without explicit owner approval.
+- Runtime behavior, prompts, CSS, models, prices, jobs, accounts, and customer data were intentionally not changed in this guardrail task.
+- Implementation branch: `protect-pvlab-approved-image-ui-20261019`; tests, merge, and hosting deployment need separate confirmation.
+- GitHub branch protection is a separate repository setting. CI checks alone report regressions but cannot prohibit a direct push without an enforced required-check rule.
+
+
 - Updated: 2026-10-14, Europe/Berlin.
 - Fix baseline: `bcf473df79f15e50f76094a238ef236200f354a1` on `main`.
 - User approved only the contextual prompt text, not changes to the deck design or dimensions.
