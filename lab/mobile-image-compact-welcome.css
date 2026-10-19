@@ -1,0 +1,112 @@
+/* 2026-10-19: iPhone Image welcome, compact at rest, full controls on demand.
+   Never change generated History, Video, desktop or native Create. */
+@media(max-width:680px){
+  html:not(.pv-native-lab) body:has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) #studio-header{
+    transition:none!important;
+  }
+  /* Keep the signed-in welcome masthead stable, regardless of scrollY. */
+  html:not(.pv-native-lab) body:has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])) #studio-header.pv-mobile-entry-condensed{
+    height:78px!important;min-height:78px!important;
+  }
+  /* Reduce only welcome copy spacing; the original photographs are not resized. */
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+    .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    padding-top:5px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #lab-welcome-start h2{
+    margin-top:7px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #lab-welcome-start .lab-welcome-subtitle{
+    margin-top:8px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #lab-welcome-start .lab-welcome-carousel{
+    margin-top:13px!important;
+  }
+  /* The resting composer becomes a single horizontal tools row. Its textarea,
+     uploaded refs, quote, Generate and actual original inputs remain mounted. */
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer.mobile-polish-ready:not(.is-pv-soul){
+    padding:9px 11px 10px!important;border-radius:18px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .image-composer-top{
+    min-height:39px!important;padding-bottom:4px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) #image-composer-prompt{
+    min-height:39px!important;height:39px;max-height:130px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .image-composer-toolbar{
+    margin-top:6px!important;gap:7px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .composer-controls{
+    gap:5px!important;flex-wrap:wrap!important;align-items:center!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .composer-controls::before{
+    order:5!important;display:none!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .composer-controls>.composer-add-wrap{order:0!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .composer-controls>.scene-image-library-wrap{order:1!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .composer-controls>.composer-model-wrap{order:2!important;flex:1 1 90px!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .composer-controls>.composer-mood-control{order:3!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .composer-controls>.composer-mobile-more{
+    order:4!important;display:inline-flex!important;
+    width:35px!important;min-width:35px!important;flex:0 0 35px!important;
+    height:35px!important;min-height:35px!important;padding:0!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .composer-mobile-more span{
+    position:absolute!important;width:1px!important;height:1px!important;
+    overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .composer-mobile-more svg{
+    width:17px!important;height:17px!important;
+  }
+  /* Collapse only secondary controls; do not alter their values or listeners. */
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer.mobile-polish-ready:not(.is-pv-soul):not([data-mobile-settings="open"])
+    .composer-controls>:not(.composer-add-wrap):not(.scene-image-library-wrap):not(.composer-model-wrap):not(.composer-mood-control):not(.composer-mobile-more){
+    display:none!important;
+  }
+  /* Expanded options are a real second row within the deck, not a floating
+     overlay that can be cut off by Safari. */
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+    .composer-controls::before{display:block!important;flex:0 0 100%!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+    .composer-controls::after{display:none!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+    :is(#image-composer-resolution-wrap,#image-composer-count-wrap){
+    position:relative!important;bottom:auto!important;right:auto!important;
+    width:auto!important;min-width:65px!important;z-index:auto!important;
+    display:inline-flex!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#lab-welcome-start:not([hidden]))
+    #image-composer:not(.is-pv-soul) .composer-generate{
+    height:48px!important;min-height:48px!important;max-height:48px!important;
+    padding:8px 12px!important;
+  }
+}
+/* Prevent elastic vertical bouncing only for a resting, sufficiently tall
+   welcome viewport. Never lock typing, options, native apps or normal History. */
+@media(max-width:680px) and (min-height:690px){
+  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+    :not(:has(#image-composer:focus-within)):not(:has(#image-composer[data-mobile-settings="open"])){
+    overscroll-behavior-y:none;
+  }
+  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
+    :not(:has(#image-composer:focus-within)):not(:has(#image-composer[data-mobile-settings="open"])) body{
+    overscroll-behavior-y:none;
+  }
+}
