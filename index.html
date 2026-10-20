@@ -437,6 +437,25 @@ body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline
   .pv-home .home-primary-links>a:nth-of-type(7)::before{content:"07"}
 }
 </style>
+<style id="pv-berlin-archive-image">
+/* Existing Hyper Future Berlin art, only on the homepage Berlin 2063 introduction. */
+body.pv-home #berlin.berlin-entry { position:relative; isolation:isolate; background:#030507; }
+body.pv-home #berlin.berlin-entry::before {
+ content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+ background:
+  linear-gradient(90deg,rgba(0,0,0,.80),rgba(0,0,0,.66) 44%,rgba(0,0,0,.76)),
+  linear-gradient(180deg,rgba(0,0,0,.73),rgba(0,0,0,.16) 48%,rgba(0,0,0,.86)),
+  url("./assets/optimized/video/berlin-2063/hyper-future-berlin-poster.webp") center 53% / cover no-repeat;
+}
+body.pv-home #berlin.berlin-entry .berlin-entry-content { position:relative; z-index:1; }
+@media(max-width:700px){
+ body.pv-home #berlin.berlin-entry::before {
+  background:
+   linear-gradient(180deg,rgba(0,0,0,.80),rgba(0,0,0,.76) 52%,rgba(0,0,0,.87)),
+   url("./assets/optimized/video/berlin-2063/hyper-future-berlin-poster.webp") 52% center / cover no-repeat;
+ }
+}
+</style>
 </head>
 
 
