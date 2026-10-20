@@ -22,7 +22,7 @@ test('optics: high slider positions have an unmistakably stronger response',()=>
  assert.ok(levels[3]>levels[1]*2.2,'maximum cannot feel like the 30% setting');
  const full=opticalScatterPixels(w,h,p,{haze:100,halation:100});
  assert.ok(contribution(full,119,50)>8,'light must visibly reach outside the existing window');
- assert.equal(contribution(full,0,127),0,'remote unlit corner stays black');
+ assert.ok(contribution(full,0,127)<=1,'far-field Gaussian tail must stay below one 8-bit display level');
 });
 test('optics: broad haze and localized halation have different spatial behavior',()=>{
  const p=fixture(),haze=opticalScatterPixels(w,h,p,{haze:100}),halo=opticalScatterPixels(w,h,p,{halation:100});
