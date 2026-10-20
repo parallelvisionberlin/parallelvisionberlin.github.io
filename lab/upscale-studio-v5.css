@@ -431,9 +431,9 @@
 }
 
 /* PV LAB MATERIAL STUDY 001
-   Gallery macro is reframed as an abstract material study: x=1215,y=50,w=312,h=195
-   within the original 1672x941 montage, entirely above the embedded lettering.
-   Image is an illustrative editorial crop, never a fabricated Upscale result. */
+   Uses a clean, already-present PV LAB studio photograph of reflective chrome
+   and white fibrous material. No additional generation or retouching.
+   The source image is illustrative, never a fabricated Upscale result. */
 #app .pv-upscale-editorial-blank{display:none}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty{position:relative!important;padding:0!important;overflow:hidden}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty::before{display:none!important;content:none!important}
@@ -446,13 +446,13 @@
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{
  display:grid!important;position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;
  grid-template-columns:minmax(0,44%) minmax(0,56%);overflow:hidden;text-align:left;
- background:radial-gradient(ellipse 70% 85% at 73% 50%,rgba(61,44,34,.14),transparent 78%),#0c1014;
+ background:radial-gradient(ellipse 70% 85% at 73% 50%,rgba(56,62,71,.13),transparent 78%),#0c1014;
  color:#eeece7;font-family:'DM Sans',Arial,sans-serif;
 }
 #app.upscale-studio-active .pv-upscale-editorial-blank::before{content:"";position:absolute;left:44%;top:9%;bottom:9%;width:1px;background:linear-gradient(transparent,#ffffff18 25%,#ffffff18 75%,transparent);pointer-events:none}
 #app.upscale-studio-active .pv-upscale-blank-copy{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;align-self:center;min-width:0;padding:25px clamp(24px,4vw,72px)}
 #app.upscale-studio-active .pv-upscale-blank-index{display:flex;gap:9px;align-items:center;margin:0 0 clamp(25px,5vh,48px);font:600 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.15em;color:#a3a3a0;white-space:nowrap}
-#app.upscale-studio-active .pv-upscale-blank-index i{display:block;width:5px;height:5px;flex:none;border-radius:50%;background:#bf9a79}
+#app.upscale-studio-active .pv-upscale-blank-index i{display:block;width:5px;height:5px;flex:none;border-radius:50%;background:#aeb6bf}
 #app.upscale-studio-active .pv-upscale-blank-copy h2{display:flex;flex-direction:column;margin:0 0 22px;font:500 clamp(46px,4.8vw,79px)/.99 'DM Sans',Arial,sans-serif;letter-spacing:-.065em;color:#f1eee9}
 #app.upscale-studio-active .pv-upscale-blank-copy p{max-width:282px;margin:0 0 37px;color:#9ca3a8;font:400 13px/1.8 'DM Sans',Arial,sans-serif}
 #app.upscale-studio-active #pv-upscale-hero-upload{display:flex;align-items:center;gap:16px;min-height:39px;padding:0 0 6px;border:0;border-bottom:1px solid #9c9e9d;border-radius:0;background:transparent;color:#ecebe7;font:600 12px 'DM Sans',Arial,sans-serif;cursor:pointer;transition:color .18s,border-color .18s}
@@ -463,7 +463,7 @@
 #app.upscale-studio-active .pv-upscale-blank-copy>small{margin-top:15px;color:#717a80;font:600 9px 'DM Sans',Arial,sans-serif;letter-spacing:.11em}
 #app.upscale-studio-active .pv-upscale-material-figure{display:flex;flex-direction:column;gap:13px;align-self:center;justify-self:center;width:clamp(205px,28vw,372px);max-width:80%;min-width:0;margin:0 0 12px}
 #app.upscale-studio-active .pv-upscale-material-photo{position:relative;width:100%;aspect-ratio:530/724;overflow:hidden;border:1px solid #ffffff30;border-radius:2px;background:#181816;box-shadow:0 22px 75px #0006}
-#app.upscale-studio-active .pv-upscale-material-photo img{position:absolute;display:block;max-width:none!important;width:407.8049%!important;height:168.0357%!important;left:-285.3659%!important;top:-7.5%!important;object-fit:fill}
+#app.upscale-studio-active .pv-upscale-material-photo img{position:absolute;display:block;inset:0;max-width:none!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:50% 50%!important}
 #app.upscale-studio-active .pv-upscale-material-photo::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent 65%,#0a0b0c18)}
 #app.upscale-studio-active .pv-upscale-material-figure figcaption{display:flex;justify-content:space-between;gap:12px;color:#97999a;font:600 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.11em;white-space:nowrap}
 #app.upscale-studio-active .pv-upscale-blank-footer{position:absolute;bottom:21px;left:clamp(24px,4vw,72px);right:29px;padding-top:14px;border-top:1px solid #ffffff20;color:#797e80;font:600 8px 'DM Sans',Arial,sans-serif;letter-spacing:.1em}
@@ -502,8 +502,7 @@
 
 /* 2026-10-21 Upscaler material-study refinement.
    Desktop workbench structure and all provider/billing behavior stay unchanged.
-   The original gallery image contains embedded lettering near its lower edge.
-   Crop strictly above the lettering, without altering the saved source asset. */
+   Use the clean PV LAB archive source without embedded typography. */
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-figure{
   width:clamp(280px,34vw,490px)!important;
   max-width:83%!important;
@@ -513,10 +512,12 @@
   height:auto!important;
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-photo img{
-  width:535.8974%!important;
-  height:482.5641%!important;
-  left:-389.4231%!important;
-  top:-25.641%!important;
+  width:100%!important;
+  height:100%!important;
+  left:0!important;
+  top:0!important;
+  object-fit:cover!important;
+  object-position:50% 50%!important;
 }
 @media(max-width:600px){
   /* Mobile is a distinct single-column editorial composition, not a tiny desktop split. */
@@ -563,11 +564,11 @@
   #app.upscale-studio-active .pv-upscale-material-photo{
     box-sizing:border-box;width:100%!important;height:auto!important;
     aspect-ratio:8/5!important;overflow:hidden;
-    border:1px solid rgba(226,214,191,.23)!important;
+    border:1px solid rgba(223,232,240,.23)!important;
     border-radius:3px!important;
     box-shadow:0 12px 42px rgba(0,0,0,.22)!important;
   }
-  /* Mobile uses the identical clean material crop as desktop, never the embedded title. */
+  /* The clean editorial photograph fills mobile and desktop without text cropping. */
   #app.upscale-studio-active .pv-upscale-material-figure figcaption{display:none!important}
   #app.upscale-studio-active #pv-upscale-hero-upload{
     grid-column:1!important;grid-row:5!important;
