@@ -1,134 +1,64 @@
-name: Hong Kong Image 3 controlled repair
+name: Hong Kong Image 3 live verification
 on:
   push:
     branches: ['codex/hk-image3-repair-runner-20261020']
-    paths: ['tools/hk-image3-repair.mjs', '.github/workflows/hk-image3-repair.yml']
+    paths: ['.github/workflows/hk-image3-repair.yml']
 permissions:
-  contents: write
+  contents: read
 concurrency:
-  group: hong-kong-image3-repair
+  group: hong-kong-image3-verification
   cancel-in-progress: true
 jobs:
-  prepare-and-test:
+  verify-public-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: a121fdaef3a566cd9c802dc9b52262a2fee301bd
           fetch-depth: 1
           sparse-checkout: |
-            tools
             lab
-            lab-worker
-            sandbox
-            tests
-            js/pv-auth.js
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Apply the approved atmospheric refinement without changing the V8 finish
+      - name: Read public deployed modules and entrypoints without generating images
         run: |
-          set -euo pipefail
-          cp tools/hk-image3-repair.mjs /tmp/hk-image3-repair.mjs
-          git fetch origin main fix/hk-image3-atmosphere-20261020 --depth=1
-          git switch --detach origin/main
-          node /tmp/hk-image3-repair.mjs
           node --input-type=module <<'NODE'
-          import {readFileSync,writeFileSync} from 'node:fs';
+          import {readFileSync,writeFileSync,appendFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
           import assert from 'node:assert/strict';
-          const replaceOnce=(file,a,b)=>{
-            const source=readFileSync(file,'utf8');
-            assert.equal(source.split(a).length-1,1,'Expected one assertion: '+file+' '+a);
-            writeFileSync(file,source.replace(a,b));
-          };
-          // The intentional 91-100% change preserves the palette instead of
-          // requiring the older "richer emerald" wording. Keep the old look
-          // explicitly covered at 90%, and test the actual new safeguards.
-          replaceOnce('tests/lab-hong-kong-continuity.test.mjs',
-            '  assert.match(high,/Expressive: richer emerald night ambience/);',
-            `  const approved=prepareMoodPrompt('Portrait','hong-kong-nights',90,{referenceCount:1}).prompt;
-            assert.match(approved,/Expressive: richer emerald night ambience/);
-            assert.doesNotMatch(approved,/Increase atmospheric diffusion slightly/);
-            assert.ok(high.includes('Keep existing emerald/petrol shadows, warm tungsten light, natural skin and contrast'));
-            assert.match(high,/Increase atmospheric diffusion slightly/);
-            assert.match(high,/localized halation/);
-            assert.match(high,/subtle veiling flare/);
-            assert.match(high,/No extra grain, muddy blacks or blanket blur/);`
-          );
-          replaceOnce('tests/lab-hong-kong-continuity.test.mjs',
-            '  assert.match(high,/physically credible wet exterior reflections/);',
-            '  assert.match(high,/Wet reflections only outdoors; dry interiors/);');
-          replaceOnce('tests/lab-moods.test.mjs',
-            '  assert.match(restoredHongKong,/Expressive: richer emerald night ambience/);',
-            `  assert.match(restoredHongKong,/Increase atmospheric diffusion slightly/);
-            assert.match(restoredHongKong,/Keep face, composition and room textures/);
-            assert.match(restoredHongKong,/Wet reflections only outdoors; dry interiors/);`
-          );
-          // Other Moods and provider/billing files are compared byte-for-byte
-          // during preparation. Do not add permanent hashes that would break
-          // unrelated future development in those files.
-          const baseline='tests/lab-hong-kong-image3-baseline.test.mjs';
-          replaceOnce(baseline,
-            "test('Image 3: every other Mood remains byte-identical',()=>assert.equal(other(moods),lock.other));",
-            `test('Image 3: atmosphere activates only above 90 on canonical Hong Kong',()=>{
-              for(const engine of moods.MOOD_MODELS){
-                for(const intensity of [1,34,60,90])assert.doesNotMatch(moods.prepareMoodPrompt('Portrait','hong-kong-nights',intensity,{engine,referenceCount:1}).prompt,/subtle veiling flare/);
-                for(const intensity of [91,95,100])assert.match(moods.prepareMoodPrompt('Portrait','hong-kong-nights',intensity,{engine,referenceCount:1}).prompt,/subtle veiling flare/);
-                for(const moodVariant of ['deep-green','slow-shutter'])assert.doesNotMatch(moods.prepareMoodPrompt('Portrait','hong-kong-nights',100,{engine,referenceCount:1,moodVariant}).prompt,/Increase atmospheric diffusion slightly/);
-              }
-            });`
-          );
-          replaceOnce(baseline,
-            "test('Image 3: preserve V8 finish, original refs, provider and billing files',()=>{for(const [path,hash] of Object.entries(lock.files))assert.equal(digest(readFileSync(path)),hash,path);});",
-            `test('Image 3: approved finish and original reference routing remain intact',async()=>{
-              const finish=await import('../lab/film-finish.js');
-              assert.equal(finish.FILM_FINISH_RENDER_REVISION,8);
-              for(const intensity of [90,95,100]){
-                const result=moods.prepareMoodPrompt('Preserve this room.','hong-kong-nights',intensity,{engine:'seedream',referenceCount:1});
-                const settings={type:'image',mode:'image',engine:'seedream',referenceMode:'base',referenceRoles:[{role:'base',name:'room.png',note:''}],prompt:result.prompt,...result.metadata};
-                assert.deepEqual(moodReferencePlan(settings).references,[]);
-                assert.deepEqual(result.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
-              }
-            });`
-          );
-          const state='lab/HONG-KONG-IMAGE3-WORK-STATE.md';
-          replaceOnce(state,
-            '- All other Moods are locked by a deterministic regression digest; the V8 implementation and provider/reference files are byte-locked.',
-            '- Preparation verifies all other Mood outputs by deterministic digest. The release diff excludes the V8 implementation, provider/reference routing, safety and billing. Permanent tests cover the approved Hong Kong recipe and controls without blocking unrelated future provider changes.');
-          console.log('Updated three obsolete high-intensity assertions; no checks skipped.');
+          const commit='a121fdaef3a566cd9c802dc9b52262a2fee301bd';
+          const marker='hkImage3=20261020v1';
+          const hash=x=>createHash('sha256').update(x).digest('hex');
+          const modules=['moods.js','film-finish.js','lab.js','app-mood-generation.js','explore-moods.js','mood-creator.js','app-moods.js'];
+          const pages=['studio','moods','app-moods','mood-creator'];
+          const targets=[...modules.map(name=>({path:name,expected:hash(readFileSync('lab/'+name))})),...pages.map(name=>({path:name,marker}))];
+          let report;
+          for(let attempt=1;attempt<=12;attempt++){
+            const results=await Promise.all(targets.map(async target=>{
+              try{
+                const url='https://pvlab.studio/'+target.path+'?hkRelease='+commit.slice(0,12)+'&verify='+Date.now();
+                const response=await fetch(url,{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(15000)});
+                const body=Buffer.from(await response.arrayBuffer());
+                const sameOrigin=new URL(response.url).hostname==='pvlab.studio';
+                const actual=hash(body);
+                const pass=response.ok&&sameOrigin&&(target.expected?actual===target.expected:body.toString('utf8').includes(target.marker));
+                return {path:target.path,status:response.status,pass,sha256:actual,...(target.expected?{expectedSha256:target.expected}:{cacheMarkerFound:body.toString('utf8').includes(target.marker)})};
+              }catch(error){return {path:target.path,pass:false,error:error.message};}
+            }));
+            report={commit,checkedAt:new Date().toISOString(),attempt,passed:results.every(r=>r.pass),results,noPaidGeneration:true,noAccountWrites:true};
+            console.log('HK_PUBLIC_RELEASE '+JSON.stringify(report));
+            if(report.passed)break;
+            if(attempt<12)await new Promise(r=>setTimeout(r,10000));
+          }
+          writeFileSync('hk-image3-live-verification.json',JSON.stringify(report,null,2));
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,'## Hong Kong Image 3 public release\n\nCommit: `'+commit+'`\n\n'+(report.passed?'PASS: all seven JavaScript modules match the merged release byte-for-byte; Studio, Explore, native Moods and Mood Creator load the new cache marker.':'FAIL: at least one public asset did not match the merged release.')+'\n\nV8 finishing is included in the byte comparison. No image generation or customer account write was performed.\n');
+          assert.equal(report.passed,true,'Public release must match the actual merged code before it is reported live');
           NODE
-          git diff --check
-          node --check lab/moods.js
-          node --check tests/lab-hong-kong-image3-baseline.test.mjs
-          node --check tests/lab-hong-kong-continuity.test.mjs
-          node --check tests/lab-moods.test.mjs
-      - name: Verify approved baseline, optical engine, anchor prompts and all Lab unit regressions
-        run: |
-          set -euo pipefail
-          node --test tests/lab-hong-kong-image3-baseline.test.mjs
-          node --test tests/lab*.test.mjs | tee /tmp/hk-image3-tests.log
-      - name: Commit only verified release files, never the maintenance runner
-        run: |
-          set -euo pipefail
-          git config user.name 'Parallel Vision'
-          git config user.email 'parallelvision.label@gmail.com'
-          git add lab/moods.js lab/lab.js lab/app-moods.js lab/app-mood-generation.js lab/explore-moods.js lab/mood-creator.js lab/studio.html lab/moods.html lab/app-moods.html lab/mood-creator.html lab/HONG-KONG-IMAGE3-WORK-STATE.md tests/lab-hong-kong-image3-baseline.test.mjs tests/lab-hong-kong-continuity.test.mjs tests/lab-moods.test.mjs
-          test "$(git diff --cached --name-only | wc -l)" -eq 14
-          git diff --cached --exit-code -- lab-worker lab/film-finish.js lab/mood-references.js lab/hong-kong-variants.js
-          git diff --cached --stat
-          git commit -m 'Hong Kong Nights: preserve Image 3, strengthen atmosphere only above 90 percent'
-          git push origin HEAD:refs/heads/fix/hk-image3-atmosphere-20261020
-          git rev-parse HEAD | tee /tmp/hk-image3-commit.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: hk-image3-repair-source
+          name: hong-kong-image3-live-verification
           retention-days: 7
-          path: |
-            lab/moods.js
-            lab/HONG-KONG-IMAGE3-WORK-STATE.md
-            tests/lab-hong-kong-image3-baseline.test.mjs
-            tests/lab-hong-kong-continuity.test.mjs
-            tests/lab-moods.test.mjs
-            /tmp/hk-image3-tests.log
-            /tmp/hk-image3-commit.txt
+          path: hk-image3-live-verification.json
