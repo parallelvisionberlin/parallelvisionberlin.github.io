@@ -64,16 +64,6 @@ export function parseGuardResponse(value){
   return codes.some(code=>code.toUpperCase()==='S4')?'block':'allow';
 }
 
-async function reserveDailyEvaluation(env,maxDaily){
-  if(!env.LAB_DB)throw new PromptSafetyError(UNAVAILABLE_MESSAGE,503);
-  const day=new Date().toISOString().slice(0,10);
-  try{
-    await env.LAB_DB.prepare('INSERT OR IGNORE INTO lab_prompt_safety_daily(day, checks) VALUES (?,0)').bind(day).run();
-    const result=await env.LAB_DB.prepare('UPDATE lab_prompt_safety_daily SET checks=checks+1 WHERE day=? AND checks<?').bind(day,maxDaily).run();
-    if(result?.meta?.changes!==1)throw new PromptSafetyError(UNAVAILABLE_MESSAGE,503);
-  }catch(e){if(e instanceof PromptSafetyError)throw e;throw new PromptSafetyError(UNAVAILABLE_MESSAGE,503);}
-}
-
 export async function checkCustomerPromptSafety(env,request){
   if(!request.headers.get('content-type')?.toLowerCase().startsWith('application/json'))return;
   const length=Number(request.headers.get('content-length')||'0');
@@ -88,9 +78,9 @@ export async function checkCustomerPromptSafety(env,request){
   if(!text)return; // Image-only requests need the separate image-safety phase.
   if(text.length>24000)throw new PromptSafetyError('Creative instructions exceed the safety-check limit. Shorten your prompt and reference notes.',413);
   if(obviousMinorSexualization(text))throw new PromptSafetyError(BLOCK_MESSAGE);
-  const limit=Number(env.LAB_MINOR_PROMPT_SAFETY_DAILY_LIMIT||'0');
-  if(!Number.isSafeInteger(limit)||limit<1||limit>50||!env.AI?.run)throw new PromptSafetyError(UNAVAILABLE_MESSAGE,503);
-  await reserveDailyEvaluation(env,limit);
+  // One Workers AI safety classification per submitted customer generation.
+  // Cloudflare handles its own free allowance/rate limits; an unavailable model fails closed.
+  if(!env.AI?.run)throw new PromptSafetyError(UNAVAILABLE_MESSAGE,503);
   let classified;
   try{
     classified=parseGuardResponse(await env.AI.run(GUARD_MODEL,{
