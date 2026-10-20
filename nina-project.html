@@ -164,7 +164,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/nina-exhibition-v4.css?v=20261008-mobile-cta-02">
+  <link rel="stylesheet" href="./css/nina-exhibition-v4.css?v=20261020-mobile-stability-01">
 
 </head>
 <body class="pv-nina-project">
@@ -822,6 +822,11 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
       if (window.innerWidth <= 760 && !reducedMotion.matches && !saveData) {
         document.addEventListener("pointerdown", () => loadVideo(heroVideo), { once: true, passive: true });
         document.addEventListener("keydown", () => loadVideo(heroVideo), { once: true });
+      }
+      // On mobile, reveal the film only after playback starts, so the
+      // static hero frame does not jump while Safari swaps poster/video layers.
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        heroVideo.addEventListener("playing", () => heroVideo.classList.add("nx-hero-video-ready"), { once: true });
       }
       scheduleHeroVideo();
       if ("IntersectionObserver" in window && !reducedMotion.matches && !saveData) {
