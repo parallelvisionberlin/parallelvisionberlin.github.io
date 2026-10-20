@@ -12,11 +12,11 @@ function mockEnv(answer='safe',limit=8){
 function req(settings){return new Request('https://test.example/api/quotes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings})});}
 
 test('family photographs, school campaigns and Nina FOK are not flagged by text rules',()=>{
-  for(const x of ['Family portrait with two children in a park','Teen fashion catalog with winter jackets','Nina FOK, 26, adult artistic nude portrait','Editorial of an adult 19-year-old woman in lingerie','Two 19-year-old adults in an erotic portrait'])
+  for(const x of ['Family portrait with two children in a park','Teen fashion catalog with winter jackets','Nina FOK, 26, adult artistic nude portrait','Editorial of an adult 19-year-old woman in lingerie','Two 19-year-old adults in an erotic portrait','An adult 19-year-old woman in lingerie'])
     assert.equal(obviousMinorSexualization(x),false,x);
 });
 test('clear minor sexualization and ambiguous teen+sex are blocked',()=>{
-  for(const x of ['Erotic nude photography of a 16-year-old','Fotografía sexual de una niña','Explicit nude image of a minor','Nacktaufnahme eines 15 Jahre alt Teenagers','Teen erotic imagery'])
+  for(const x of ['Erotic nude photography of a 16-year-old','Fotografía sexual de una niña','Explicit nude image of a minor','Nacktaufnahme eines 15 Jahre alt Teenagers','Teen erotic imagery','A 17-year-old dressed in lingerie for an erotic photograph','Erotisches Foto eines Mädchens'])
     assert.equal(obviousMinorSexualization(x),true,x);
 });
 test('negated minor references do not automatically block adult imagery',()=>{
