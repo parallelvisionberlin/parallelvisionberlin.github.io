@@ -10,7 +10,8 @@ function lower(mod){const rows=[];for(const engine of mod.MOOD_MODELS)for(const 
 function other(mod){const rows=[];for(const m of mod.MOODS.filter(m=>m.id!=='hong-kong-nights'))for(const engine of mod.MOOD_MODELS)for(const intensity of [34,60,90,100])rows.push(mod.prepareMoodPrompt('Preserve the original photograph.',m.id,intensity,{engine,referenceCount:1}));return digest(JSON.stringify(rows));}
 const lockedPaths=['lab/film-finish.js','lab-worker/film-finish.mjs','lab-worker/film-engine-v3.mjs','lab/mood-references.js','lab/hong-kong-variants.js','lab-worker/worker.mjs'];
 const lock={lower:lower(old),other:other(old),files:Object.fromEntries(lockedPaths.map(p=>[p,digest(readFileSync(p))]))};
-assert.match(readFileSync('lab/film-finish.js','utf8'),/FILM_FINISH_RENDER_REVISION=8;/,'The approved baseline must still be V8, not the rejected V9');
+const baselineFinish=await import(pathToFileURL(resolve('lab/film-finish.js')).href+'?image3baseline');
+assert.equal(baselineFinish.FILM_FINISH_RENDER_REVISION,8,'The approved baseline must still be V8, not the rejected V9');
 let src=readFileSync(file,'utf8');
 function once(a,b){assert.equal(src.split(a).length-1,1,'Patch anchor must be unique: '+a.slice(0,70));src=src.replace(a,b);}
 once("    const variantDirection=variant==='original'?'':HONG_KONG_VARIANTS[variant].direction;", "    const variantDirection=variant==='original'?'':HONG_KONG_VARIANTS[variant].direction;\n    // Image 3 baseline: 1-90% stays byte-identical. Only 91-100% refines air.\n    const refineAtmosphere=intensity>90&&variant==='original';");
