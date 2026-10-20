@@ -1,4 +1,4 @@
-import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019';
+import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10';
 import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
@@ -354,13 +354,14 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
       :intensity<=69
         ?'Editorial: luminous flattering skin, moist emerald night-air depth and restrained amber practical-light diffusion, without a uniform green veil.'
         :'Expressive: richer emerald night ambience, air-scattered practicals and physically credible wet exterior reflections. Keep the identical face, unchanged composition, clean real skin and original location. Mood intensity means light and atmosphere, not dirty film noise.';
+    const airLevel=intensity===100?'MAXIMUM ATMOSPHERE':intensity>=96?'STRONG ATMOSPHERE':'VISIBLE ATMOSPHERE';
     const photoStrength=refineAtmosphere
       ?engine==='seedreamlite'
-        ?'Keep emerald/tungsten color, face and textures. Add slight atmospheric diffusion, suspended humidity, soft practical bloom, localized halation and subtle veiling flare. No uniform green wash, digital sharpening, extra grain or blur. Wet reflections outdoors only; dry rooms.'
-        :'Keep existing emerald/petrol shadows, warm tungsten light, natural skin and contrast. Increase atmospheric diffusion slightly: suspended humidity with depth, soft bloom and localized halation from existing lights/neon, subtle veiling flare. Embed air in the scene, not a uniform green wash or clean digital sharpening. Keep face, composition and room textures. Wet reflections only outdoors; dry interiors. No extra grain, muddy blacks or blanket blur.'
+        ?airLevel+': Keep emerald/tungsten color, face and textures. Pronounced atmospheric diffusion and suspended humidity, lit by existing lights through mid/background depth. Broad soft practical bloom, localized halation and subtle veiling flare. Clear foreground eyes; rich unlit blacks. No uniform green wash, digital sharpening, extra grain or blur. Wet reflections outdoors only; dry rooms.'
+        :airLevel+': Keep existing emerald/petrol shadows, warm tungsten light, natural skin and contrast. Make atmospheric diffusion clearly visible: existing lamps and window light illuminate suspended humidity at several depths, with luminous middle distance and softer receding background. Broad soft practical bloom, localized halation and subtle veiling flare surround existing bright sources. At maximum make air unmistakable, not a subtle color grade. Embed air in the scene, not a uniform green wash or clean digital sharpening. Keep clear foreground eyes, face, composition, material textures and rich unlit blacks. Wet reflections only outdoors; dry interiors. No extra grain, muddy blacks, blanket blur or new lamps.'
       :approvedPhotoStrength;
     const sceneAtmosphere=refineAtmosphere
-      ?sourceLightRouting.replace('air scattering only close to actual light','translucent humidity illuminated by existing light through the middle distance, with clear foreground details and unlit dark pockets')
+      ?sourceLightRouting.replace('air scattering only close to actual light','visible layered humidity illuminated by existing light through the middle distance, with clear foreground details and unlit dark pockets')
       :sourceLightRouting;
     const preservation=editingBase?'':referenceCount>0
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'

@@ -1,5 +1,6 @@
 import {filmFinishSettings,FILM_FINISH_RENDER_REVISION} from '../lab/film-finish.js';
 import {filmPrintPixelV3,filmEmitterWeightV3} from './film-engine-v3.mjs';
+import {opticalScatterPixels} from './film-light-scatter.mjs';
 
 export const FILM_RENDER_REVISION=FILM_FINISH_RENDER_REVISION;
 const INPUT_LIMIT=20_000_000,OUTPUT_LIMIT=20*1024*1024;
@@ -67,6 +68,12 @@ async function normalizedPixels(bytes){
   }
   return {width,height,pixels};
 }
+export async function opticalScatterPng(bytes,settings){
+  const {width,height,pixels}=await normalizedPixels(bytes);
+  const light=opticalScatterPixels(width,height,pixels,settings),scan=new Uint8Array((width*4+1)*height);
+  for(let y=0;y<height;y++)scan.set(light.subarray(y*width*4,(y+1)*width*4),y*(width*4+1)+1);
+  return png(width,height,scan,6);
+}
 async function convertHighlights(bytes,asMask=false){
   const {width,height,pixels}=await normalizedPixels(bytes),output=new Uint8Array((width*4+1)*height);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
@@ -103,6 +110,14 @@ export function photochemicalPlan(value,{engine='v8'}={}){
   const f=filmFinishSettings(value);
   const grainTop=deluxeResponse(f.grain),hazeTop=deluxeResponse(f.haze);
   const lightTop=deluxeResponse(f.halation),filmTop=deluxeResponse(f.film);
+  if(engine==='v10')return {
+    ...photochemicalPlan(value,{engine:'v8'}),
+    // Independent controls; Film 100 retains the approved print color curve.
+    grainAmount:Math.min(134,f.grain*(1+.22*grainTop)),
+    printStrength:filmTop,
+    printOpacity:Math.min(.98,f.film/100*.88+.10*filmTop),
+    diffusionOpacity:0,signature:0
+  };
   const signature=filmTop*Math.min(hazeTop,lightTop);
   return {
     grainAmount:Math.min(134,f.grain*(1+.22*grainTop+.12*signature)),
@@ -170,7 +185,7 @@ export function photochemicalPixel(r,g,b,deluxe=0){
 export async function printGradePng(bytes,deluxe=0,engine='v6'){
   const {width,height,pixels}=await normalizedPixels(bytes),scan=new Uint8Array((width*4+1)*height);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
-    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=(['v3','v8'].includes(engine)?filmPrintPixelV3:photochemicalPixel)(pixels[i],pixels[i+1],pixels[i+2],deluxe);
+    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=(['v3','v8','v10'].includes(engine)?filmPrintPixelV3:photochemicalPixel)(pixels[i],pixels[i+1],pixels[i+2],deluxe);
     scan[j]=graded[0];scan[j+1]=graded[1];scan[j+2]=graded[2];scan[j+3]=pixels[i+3];
   }
   return png(width,height,scan,6);
@@ -232,10 +247,10 @@ async function bytesFrom(response,max=OUTPUT_LIMIT){
   const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length;}return bytes;
 }
 const stream=bytes=>new Blob([bytes]).stream();
-// V8 retains the proven V3 color curve and real-lamp emitter masks with less
-// global haze. V3 and V6 stay callable internally for image A/B and rollback.
-export async function renderFilmFinish(images,bytes,settings,seed,{engine='v8'}={}){
-  if(!['v6','v3','v8'].includes(engine))throw Error('Unknown film engine.');
+// V10 retains V3 print color, but uses independent multiscale light-only
+// scattering. V8/V3/V6 remain available for controlled comparison/rollback.
+export async function renderFilmFinish(images,bytes,settings,seed,{engine='v10'}={}){
+  if(!['v6','v3','v8','v10'].includes(engine))throw Error('Unknown film engine.');
   const finish=filmFinishSettings(settings);
   if(!images?.input||!images?.info)throw Error('Film processing is temporarily unavailable.');
   if(bytes.length>INPUT_LIMIT)throw Error('This image is too large for the film finish.');
@@ -254,12 +269,17 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v8'}=
     const grade=images.input(stream(await printGradePng(sourcePng,plan.printStrength,engine))).transform({width,height,fit:'squeeze'});
     image=image.draw(grade,{opacity:plan.printOpacity,composite:'over'});
   }
-  if(finish.haze){
+  if(engine==='v10'&&(finish.haze||finish.halation)){
+    const optical=await opticalScatterPng(sourcePng,finish);
+    const layer=images.input(stream(optical)).transform({width,height,fit:'squeeze'});
+    image=image.draw(layer,{opacity:1,composite:'lighter'});
+  }
+  if(engine!=='v10'&&finish.haze){
     // Minimal global softness; most visible bloom follows real light sources.
     const diffuse=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/2400))});
     image=image.draw(diffuse,{opacity:plan.diffusionOpacity,composite:'over'});
   }
-  if(finish.haze||finish.halation){
+  if(engine!=='v10'&&(finish.haze||finish.halation)){
     const mask=await luminousMaskPng(sourcePng,engine);
     if(mask.active){
       // Scene-scale humid diffusion is separate from tight source halation.

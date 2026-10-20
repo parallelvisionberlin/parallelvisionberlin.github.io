@@ -61,12 +61,12 @@ test('increasing the strength changes existing light only, never scene identity 
   assert.match(medium,/Editorial: luminous flattering skin/);
   const approved=prepareMoodPrompt('Portrait','hong-kong-nights',90,{referenceCount:1}).prompt;
   assert.match(approved,/Expressive: richer emerald night ambience/);
-  assert.doesNotMatch(approved,/Increase atmospheric diffusion slightly/);
+  assert.doesNotMatch(approved,/Make atmospheric diffusion clearly visible/);
   assert.ok(high.includes('Keep existing emerald/petrol shadows, warm tungsten light, natural skin and contrast'));
-  assert.match(high,/Increase atmospheric diffusion slightly/);
+  assert.match(high,/Make atmospheric diffusion clearly visible/);
   assert.match(high,/localized halation/);
   assert.match(high,/subtle veiling flare/);
-  assert.match(high,/No extra grain, muddy blacks or blanket blur/);
+  assert.match(high,/No extra grain, muddy blacks, blanket blur or new lamps/);
   assert.match(high,/Wet reflections only outdoors; dry interiors/);
   assert.doesNotMatch(high,/automatically import style photos|replace background buildings/);
   assert.notEqual(low,medium);
