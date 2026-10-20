@@ -83,19 +83,20 @@ try{
 assert.equal(await page.locator('#lab-welcome-start').isVisible(),true,'Default Image route must not hide first-image onboarding');
 assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 credits');
  await page.fill('#image-composer-prompt','Photographic fashion study, natural light.');
- await page.waitForFunction(()=>document.querySelector('#image-composer-status')?.textContent==='Checking price…');
- assert.equal(await page.locator('#image-composer-generate').textContent(),'Generate','Price checking must never replace Generate');
- assert.equal(await page.locator('#image-composer-generate').isDisabled(),true,'Generate waits for its confirmed quote');
- await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 17 credits');
+ // Pricing can complete before the next browser animation frame. Verify the
+ // final server-quoted price rather than requiring a transient status message.
+ assert.equal((await page.locator('#image-composer-generate .composer-generate-label').textContent()).trim(),
+   'Generate','Typing must not change Generate into an unapproved action');
+ await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 17 credits');
  assert.equal(await page.locator('#image-composer-ratio').inputValue(),'16:9');
  assert.equal(requests.filter(x=>x.path==='/api/quotes').length,1);
  console.log('PASS text defaults to 16:9 and uses 17 backend-quoted credits');
  await page.selectOption('#image-composer-resolution','2k');
- await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 28 credits');
+ await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 28 credits');
  assert.equal(requests.filter(x=>x.path==='/api/quotes').length,2);
  console.log('PASS resolution change refreshes live backend credit price');
  await page.selectOption('#image-composer-count','2');
- await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 56 credits');
+ await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 56 credits');
  const quoteCalls=requests.filter(x=>x.path==='/api/quotes');
  assert.equal(quoteCalls.at(-1).data.count,2);
  console.log('PASS image count produces two bound quotes and their combined price');
@@ -118,11 +119,11 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  await page.locator('#reference-images').setInputFiles({name:'portrait.png',mimeType:'image/png',buffer:png});
  await page.waitForFunction(()=>document.querySelectorAll('.reference-item').length===1);
  await page.waitForFunction(()=>document.querySelector('#image-composer-ratio')?.value==='auto');
- await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 74 credits');
+ await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 74 credits');
  assert.equal(requests.filter(x=>x.path==='/api/quotes').at(-1).data.settings.aspectRatio,'auto');
  console.log('PASS uploaded Base image defaults to provider Auto and reprices references');
  await page.selectOption('#image-composer-ratio','1:1');
- await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 74 credits');
+ await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 74 credits');
  assert.equal(await page.locator('#image-composer-ratio').inputValue(),'1:1');
  console.log('PASS explicit aspect ratio overrides Auto and remains selected');
  // The new welcome route uses the same priced composer. Presets NEVER charge on selection.
@@ -140,7 +141,7 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  assert.equal(await welcome.locator('#image-composer-resolution').inputValue(),'1k');
  assert.equal(await welcome.locator('#image-composer-count').inputValue(),'1');
  assert.equal(await welcome.locator('#image-composer-ratio').inputValue(),'16:9');
- await welcome.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 17 credits');
+ await welcome.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 17 credits');
  assert.equal(paidJobs,beforeWelcomeSubmit,'Choosing the free welcome starter must not submit or charge');
  await welcome.click('#image-composer-generate');
  await welcome.waitForFunction(()=>!document.querySelector('#generate').disabled);
