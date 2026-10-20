@@ -56,8 +56,10 @@ test('Eight saved Nina photos index with Flash-Lite when primary Gemini quota fa
     assert.equal(options.headers['x-goog-api-key'],'test-secret-only');
     const request=JSON.parse(options.body);
     assert.equal(request.contents[0].parts.filter(p=>p.inlineData).length,8);
-    assert.equal(request.generationConfig.thinkingConfig.thinkingBudget,0);
-    assert.equal(request.generationConfig.maxOutputTokens,2600);
+    assert.equal(request.generationConfig.thinkingConfig.thinkingLevel,calls.length===1?'low':'minimal');
+    assert.equal(request.generationConfig.thinkingConfig.thinkingBudget,undefined);
+    assert.equal(request.generationConfig.temperature,1);
+    assert.equal(request.generationConfig.maxOutputTokens,4096);
     if(calls.length===1)return new Response(JSON.stringify({error:{status:'RESOURCE_EXHAUSTED'}}),{status:429});
     return new Response(JSON.stringify({candidates:[{content:{parts:[
       {text:JSON.stringify(profile(8))}
@@ -68,10 +70,39 @@ test('Eight saved Nina photos index with Flash-Lite when primary Gemini quota fa
   assert.equal(f.stored.shots.length,8);
   assert.equal(f.quota,2,'The two providers share one single analysis quota reservation');
   assert.equal(calls.length,2);
-  assert.match(calls[0],/gemini-2\.5-flash:generateContent/);
-  assert.match(calls[1],/gemini-2\.5-flash-lite:generateContent/);
+  assert.match(calls[0],/gemini-3\.8-flash:generateContent/);
+  assert.match(calls[1],/gemini-3\.5-flash-lite:generateContent/);
   await analyzeElementProfile(f.env,'owner',ID,{},f.dependencies);
   assert.equal(calls.length,2,'Successful profiles are cached');
+});
+
+test('restricted legacy models are never called and a primary 404 recovers with eight complete views',async()=>{
+  const calls=[];
+  const f=fixture(async(url,options)=>{
+    calls.push(url);
+    assert.doesNotMatch(url,/gemini-2\.5/);
+    assert.equal(JSON.parse(options.body).contents[0].parts.filter(p=>p.inlineData).length,8);
+    if(calls.length===1)return new Response('{"error":{"status":"NOT_FOUND"}}',{status:404});
+    return Response.json({candidates:[{content:{parts:[
+      {thought:true,text:'Internal reasoning must not enter the saved JSON.'},
+      {text:JSON.stringify(profile(8))}
+    ]}}]});
+  },8);
+  const result=await analyzeElementProfile(f.env,'owner',ID,{},f.dependencies);
+  assert.deepEqual(result.profile.shots.map(shot=>shot.index),[0,1,2,3,4,5,6,7]);
+  assert.equal(calls.length,2);
+  assert.equal(f.quota,2);
+  await analyzeElementProfile(f.env,'owner',ID,{},f.dependencies);
+  assert.equal(calls.length,2,'The repaired analysis is cached');
+});
+
+test('two unavailable models stop after the bounded fallback without storing invented analysis',async()=>{
+  let calls=0;
+  const f=fixture(async()=>{calls++;return new Response('private provider details',{status:404});});
+  await assert.rejects(()=>analyzeElementProfile(f.env,'owner',ID,{},f.dependencies),
+    error=>error.status===503&&/HTTP 404/.test(error.message)&&!error.message.includes('private provider'));
+  assert.equal(calls,2);
+  assert.equal(f.stored,null);
 });
 
 test('Google HTTP 403 is surfaced safely without retrying or exposing provider data',async()=>{

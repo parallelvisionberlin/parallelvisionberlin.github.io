@@ -3,8 +3,10 @@
 // Raw originals remain in R2; only private 480px WebP previews are analyzed.
 import {serveGalleryThumbnail} from './gallery-thumbnails.mjs';
 
-export const ELEMENT_PROFILE_MODEL='gemini-2.5-flash';
-export const ELEMENT_PROFILE_FALLBACK_MODEL='gemini-2.5-flash-lite';
+// Google restricts 2.5 models to existing users. Both previous routes returned
+// 404 for this project; use the current generally available vision models.
+export const ELEMENT_PROFILE_MODEL='gemini-3.8-flash';
+export const ELEMENT_PROFILE_FALLBACK_MODEL='gemini-3.5-flash-lite';
 export const ELEMENT_PROFILE_VERSION=1;
 export const ELEMENT_ANALYSIS_USER_DAILY=6;
 export const ELEMENT_ANALYSIS_GLOBAL_DAILY=80;
@@ -119,17 +121,18 @@ export async function analyzeElementProfile(env,owner,packId,ctx,{first,run,now,
   // The original photos stay private in R2. Only short-lived 480px previews
   // reach Gemini. Flash remains primary; Flash-Lite is a bounded fallback for
   // provider quota/outages, retired models, or unusable JSON output.
-  // Disable 2.5 thinking for this extraction task to avoid spending the JSON
-  // output token budget on hidden reasoning.
-  const requestBody=JSON.stringify({contents:[{role:'user',parts}],generationConfig:{
-    temperature:0.15,responseMimeType:'application/json',maxOutputTokens:2600,
-    thinkingConfig:{thinkingBudget:0}
-  }});
+  // Gemini 3 uses thinkingLevel, not the previous 2.5 thinkingBudget:0.
+  // 3.8 supports low but not minimal; Flash-Lite supports minimal. Keep the
+  // recommended default temperature and allow room for all eight shot records.
   const models=[ELEMENT_PROFILE_MODEL,ELEMENT_PROFILE_FALLBACK_MODEL];
   const failures=[];
   let profile=null;
   for(let index=0;index<models.length;index++){
     const model=models[index];
+    const requestBody=JSON.stringify({contents:[{role:'user',parts}],generationConfig:{
+      temperature:1,responseMimeType:'application/json',maxOutputTokens:4096,
+      thinkingConfig:{thinkingLevel:model===ELEMENT_PROFILE_MODEL?'low':'minimal'}
+    }});
     let response;
     try{
       response=await fetchImpl('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
@@ -154,7 +157,7 @@ export async function analyzeElementProfile(env,owner,packId,ctx,{first,run,now,
     }
     try{
       const payload=await response.json();
-      const result=(payload.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();
+      const result=(payload.candidates?.[0]?.content?.parts||[]).filter(p=>!p.thought).map(p=>p.text||'').join('').trim();
       profile=normalizeElementProfile(JSON.parse(result),entry.category,shots.length);
       break;
     }catch{
