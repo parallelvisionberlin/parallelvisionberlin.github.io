@@ -51,7 +51,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-20.1-minor-prompt-safety';
+export const VERSION = 'pv-lab-2026-10-20.2-one-check-per-generation';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1409,10 +1409,28 @@ async function route(request,env,ctx) {
   );
   if(customer&&billable&&!canCustomerGenerate(env,owner))
     fail(503,'Customer generation is not yet available for this account. No job submitted.');
-  // Customer-only text gate before any paid vendor quote or direct submission.
-  // Image/video upload inspection is a separate phase; no Image UI changes.
-  if(customer&&billable&&path!=='/api/jobs'&&env.LAB_MINOR_PROMPT_SAFETY_ENABLED==='true')
+  // Screen creative text when a customer actually submits a generation.
+  // Price checks never consume AI moderation calls; Image UI remains untouched.
+  const safetyDirectSubmit=method==='POST'&&(
+    ['/api/gemini/jobs','/api/image-models/generate','/api/precision/submit','/api/fashion/submit'].includes(path)||
+    (path.startsWith('/api/fal/')&&path!=='/api/fal/pose-preview')
+  );
+  if(customer&&safetyDirectSubmit&&env.LAB_MINOR_PROMPT_SAFETY_ENABLED==='true')
     await checkCustomerPromptSafety(env,request);
+  // Higgsfield submits only a quote ID, so screen its stored bound prompt once.
+  if(customer&&method==='POST'&&path==='/api/higgsfield/generate'&&env.LAB_MINOR_PROMPT_SAFETY_ENABLED==='true'){
+    const submission=await body(request);
+    if(submission.confirm===true&&UUID.test(submission.quoteId||'')){
+      const already=await first(env,'SELECT id FROM jobs WHERE quote_id=? AND owner_id=?',submission.quoteId,owner);
+      if(!already){
+        const bound=await first(env,'SELECT params FROM quotes WHERE id=? AND owner_id=?',submission.quoteId,owner);
+        if(bound){
+          const checkRequest=new Request(request.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:JSON.parse(bound.params||'{}')})});
+          await checkCustomerPromptSafety(env,checkRequest);
+        }
+      }
+    }
+  }
   // Dataset training and the metered pose-preview route have no job-wallet charge yet.
   if(customer&&method==='POST'&&(
     path==='/api/soul/datasets'||path==='/api/soul/characters'||
