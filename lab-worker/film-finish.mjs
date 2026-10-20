@@ -67,7 +67,7 @@ async function normalizedPixels(bytes){
   }
   return {width,height,pixels};
 }
-async function convertHighlights(bytes,asMask=false,gain=1){
+async function convertHighlights(bytes,asMask=false,gain=1,gamma=1){
   const {width,height,pixels}=await normalizedPixels(bytes),output=new Uint8Array((width*4+1)*height);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
     const j=(y*width+x)*4,[r,g,b,a]=pixels.subarray(j,j+4),max=Math.max(r,g,b),i=y*(width*4+1)+1+x*4;
@@ -78,7 +78,7 @@ async function convertHighlights(bytes,asMask=false,gain=1){
       const brightness=saturation>.6&&max>235?Math.max(luminance,max/255*.88):luminance;
       const t=Math.min(1,Math.max(0,(brightness-.58)/.40)),weight=t*t*(3-2*t)*a/255;
       output[i]=Math.round(r*weight);output[i+1]=Math.round(g*weight);output[i+2]=Math.round(b*weight);output[i+3]=255;
-    }else if(max){output[i]=Math.round(r/max*255);output[i+1]=Math.round(g/max*255);output[i+2]=Math.round(b/max*255);output[i+3]=Math.round(Math.min(255,max*a/255*gain));}
+    }else if(max){output[i]=Math.round(r/max*255);output[i+1]=Math.round(g/max*255);output[i+2]=Math.round(b/max*255);output[i+3]=Math.round(255*Math.pow(Math.min(1,max*a/(255*255)*gain),gamma));}
   }
   return png(width,height,output,6);
 }
@@ -117,6 +117,11 @@ export function photochemicalPlan(value,{engine='v9'}={}){
     // real-light contribution above 70%, with no invented emitters.
     hazeGain:expressive?1+4*hazeTop:1,
     halationGain:expressive?1+1.5*lightTop:1,
+    // Optically scattered point-light energy is spread across many pixels
+    // and becomes nearly invisible if transparency remains linear.
+    // Nonlinear response makes the manually requested 80-100% bloom legible.
+    hazeGamma:expressive?1-.43*hazeTop:1,
+    halationGamma:expressive?1-.24*lightTop:1,
     // Lens diffusion is not generated spatial/volumetric fog, which belongs
     // in the mood generation. Keep the low-strength calibrated look.
     diffusionOpacity:expressive
@@ -183,7 +188,7 @@ export async function printGradePng(bytes,deluxe=0,engine='v6'){
   return png(width,height,scan,6);
 }
 
-export const transparentHighlights=(bytes,gain=1)=>convertHighlights(bytes,false,gain);
+export const transparentHighlights=(bytes,gain=1,gamma=1)=>convertHighlights(bytes,false,gain,gamma);
 export const highlightMask=bytes=>convertHighlights(bytes,true);
 // Custom multiscale grain, not a measured film-stock model. Isotropic smooth
 // fields avoid row-direction artifacts and pixel-white speckles. Output scale
@@ -275,16 +280,16 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v9'}=
       // haze pass plus one smaller source-halation pass leaves room for the
       // separate print curve, fine grain and restrained scene diffusion.
       const stages=[
-        ...(finish.haze?[[plan.hazeRadius,plan.hazeOpacity,plan.hazeGain]]:[]),
-        ...(finish.halation?[[plan.halationRadius,plan.halationOpacity,plan.halationGain]]:[])
+        ...(finish.haze?[[plan.hazeRadius,plan.hazeOpacity,plan.hazeGain,plan.hazeGamma]]:[]),
+        ...(finish.halation?[[plan.halationRadius,plan.halationOpacity,plan.halationGain,plan.halationGamma]]:[])
       ];
       const scale=Math.max(.35,Math.min(1,Math.max(width,height)/1400));
-      for(const [radius,opacity,gain] of stages){
+      for(const [radius,opacity,gain,gamma] of stages){
         const spread=(await images.input(stream(mask.bytes)).transform({blur:Math.max(1,Math.round(radius*scale))})
           .output({format:'image/png',anim:false})).response();
-        const halo=await transparentHighlights(await bytesFrom(spread,5_000_000),gain);
+        const halo=await transparentHighlights(await bytesFrom(spread,5_000_000),gain,gamma);
         const layer=images.input(stream(halo)).transform({width,height,fit:'squeeze'});
-        image=image.draw(layer,{opacity,composite:'over'});
+        image=image.draw(layer,{opacity,composite:engine==='v9'&&gamma<1?'lighter':'over'});
       }
     }
   }
