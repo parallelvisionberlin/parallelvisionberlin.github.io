@@ -25,8 +25,6 @@ LAB_CHECKOUT_ENABLED = "true"
 LAB_PUBLIC_APP_URL = "https://pvlab.studio/studio.html"
 # Phase 1 text screening enabled for customer generation only. Owner tools unaffected.
 LAB_MINOR_PROMPT_SAFETY_ENABLED = "true"
-# Hard per-day cap on classification calls (not a guaranteed billing limit).
-LAB_MINOR_PROMPT_SAFETY_DAILY_LIMIT = "20"
 # Customer Higgsfield endpoints still use provider authentication and safeguards.
 LAB_CUSTOMER_HIGGSFIELD_ENABLED = "true"
 
