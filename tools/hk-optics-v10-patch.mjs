@@ -7,8 +7,9 @@ const hash=x=>createHash('sha256').update(x).digest('hex');
 const before=await import(pathToFileURL(resolve('lab/moods.js')).href+'?beforeV10');
 function recipes(m,other=false){const out=[];for(const mood of m.MOODS.filter(x=>other?x.id!=='hong-kong-nights':x.id==='hong-kong-nights'))for(const engine of m.MOOD_MODELS)for(const referenceMode of ['base','references'])for(const referenceCount of [0,1])for(const intensity of other?[20,60,90,100]:[1,34,60,70,90])out.push(m.prepareMoodPrompt('Preserve the photograph.',mood.id,intensity,{engine,referenceMode,referenceCount}));return hash(JSON.stringify(out));}
 const locked={lower:recipes(before),other:recipes(before,true),color:hash(readFileSync('lab-worker/film-engine-v3.mjs')),worker:hash(readFileSync('lab-worker/worker.mjs')),references:hash(readFileSync('lab/mood-references.js'))};
-function edit(path,changes){let s=readFileSync(path,'utf8');for(const [a,b] of changes){assert.equal(s.split(a).length-1,1,path+' unique patch anchor: '+a.slice(0,70));s=s.replace(a,b);}writeFileSync(path,s);}
+function edit(path,changes){let s=readFileSync(path,'utf8');for(const [a,b] of changes){const n=a instanceof RegExp?[...s.matchAll(new RegExp(a.source,'g'))].length:s.split(a).length-1;assert.equal(n,1,path+' unique patch anchor: '+String(a).slice(0,100));s=s.replace(a,()=>b);}writeFileSync(path,s);}
 edit('lab-worker/film-finish.mjs',[
+ [/if\s*\(\s*finish\.haze\s*\|\|\s*finish\.halation\s*\)\s*\{/,"if(engine!=='v10'&&(finish.haze||finish.halation)){"],
  ["import {filmPrintPixelV3,filmEmitterWeightV3} from './film-engine-v3.mjs';","import {filmPrintPixelV3,filmEmitterWeightV3} from './film-engine-v3.mjs';\nimport {opticalScatterPixels} from './film-light-scatter.mjs';"],
  ["async function convertHighlights(bytes,asMask=false){",`export async function opticalScatterPng(bytes,settings){
   const {width,height,pixels}=await normalizedPixels(bytes);
@@ -19,8 +20,7 @@ edit('lab-worker/film-finish.mjs',[
 async function convertHighlights(bytes,asMask=false){`],
  ["  const signature=filmTop*Math.min(hazeTop,lightTop);",`  if(engine==='v10')return {
     ...photochemicalPlan(value,{engine:'v8'}),
-    // Film and Grain no longer change when either optical slider moves.
-    // At Film 100 this retains the approved V8 print color curve exactly.
+    // Independent controls; Film 100 retains the approved print color curve.
     grainAmount:Math.min(134,f.grain*(1+.22*grainTop)),
     printStrength:filmTop,
     printOpacity:Math.min(.98,f.film/100*.88+.10*filmTop),
@@ -37,7 +37,6 @@ async function convertHighlights(bytes,asMask=false){`],
   }
   if(engine!=='v10'&&finish.haze){
     // Minimal global softness;`],
- ["  if(finish.haze||finish.halation){","  if(engine!=='v10'&&(finish.haze||finish.halation)){"],
  ["// V8 retains the proven V3 color curve and real-lamp emitter masks with less\n// global haze. V3 and V6 stay callable internally for image A/B and rollback.","// V10 retains V3 print color, but uses independent multiscale light-only\n// scattering. V8/V3/V6 remain available for controlled comparison/rollback."]
 ]);
 edit('lab/film-finish.js',[
@@ -53,7 +52,6 @@ edit('lab/moods.js',[
  ["translucent humidity illuminated by existing light through the middle distance, with clear foreground details and unlit dark pockets","visible layered humidity illuminated by existing light through the middle distance, with clear foreground details and unlit dark pockets"]
 ]);
 edit('tests/lab-film-preview-worker.mjs',[["['v6','v3','v8'].includes(u.searchParams.get('engine'))","['v6','v3','v8','v10'].includes(u.searchParams.get('engine'))"]]);
-// Update version assertions, not behavior assertions; retain all legacy-engine tests.
 for(const path of ['tests/lab-film-finish.test.mjs','tests/lab-hong-kong-image3-baseline.test.mjs']){
  let s=readFileSync(path,'utf8');s=s.replaceAll('FILM_RENDER_REVISION,8','FILM_RENDER_REVISION,10').replaceAll('FILM_FINISH_RENDER_REVISION,8','FILM_FINISH_RENDER_REVISION,10');writeFileSync(path,s);
 }
