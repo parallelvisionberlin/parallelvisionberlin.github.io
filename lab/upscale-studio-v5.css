@@ -553,7 +553,7 @@
     font-size:11px!important;line-height:1.5!important;
     color:#a6a8a7!important;
   }
-  #app.upscale-studio-active .pv-upscale-material-figure{
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-figure{
     grid-column:1!important;grid-row:4!important;
     align-self:center!important;justify-self:stretch!important;
     display:block!important;width:100%!important;max-width:none!important;
