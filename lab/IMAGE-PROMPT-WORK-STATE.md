@@ -1,5 +1,11 @@
 # Image composer prompt: current state
 
+## Signed-out Image focus and header Sign in (2026-10-20)
+- Owner approved image 1 as the compact guest entry, with the existing short-to-long prompt flow. Removed only the extra guest text focus rectangle and outer focus brightening; retained the resting graphite border, card layouts, responsive expansion and prompt state controller.
+- Increased guest desktop Sign in from 36px/12px to 42px/13px, preserving the phone overrides and the signed-in account header.
+- Scoped files: `lab/studio-guest-image.css`, `lab/image-editorial-deck.css`, `lab/studio.html`, approved Image UI contract test, and this handoff. CSS asset cache tokens updated; no JavaScript, model, privacy, payment, credits or account data changed.
+- Branch: `fix/pvlab-guest-focus-signin-20261020`. Unit test/CI, merge and production need independent confirmation; do not treat a GitHub commit as a live deploy.
+
 ## Locked Image UI contract (2026-10-19)
 
 - User request: prevent future PV LAB updates from accidentally changing approved Image copy or leaving the prompt deck stuck at an expanded height.
