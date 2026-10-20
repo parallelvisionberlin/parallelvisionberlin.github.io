@@ -120,7 +120,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
           settingsTitleSize:parseFloat(getComputedStyle(document.querySelector('.pv-upscale-workspace-intro h2')).fontSize)
         };
       });
-      assert.equal(mobileEditorial.columns.trim().split(/\\s+/).length,1,'Mobile editorial has one real grid column');
+      assert.equal(mobileEditorial.columns.trim().split(/\s+/).length,1,'Mobile editorial has one real grid column');
       assert.ok(mobileEditorial.photo.width>=mobileEditorial.canvas.width*.78,'Mobile shows a wide material photograph');
       assert.ok(mobileEditorial.title.bottom<=mobileEditorial.photo.top,'Mobile title sits fully above photograph');
       assert.ok(mobileEditorial.photo.bottom<=mobileEditorial.button.top,'Photo and upload action do not overlap');
