@@ -88,7 +88,7 @@ try{
   assert.match(await x.page.locator('#preview-label').innerText(),/Result/i);assert.match(await x.page.locator('#empty-title').innerText(),/idea a form/i);pass('Image canvas does not misrepresent the first reference as a result');
   const layout=await x.page.evaluate(()=>({stage:document.querySelector('.stage').getBoundingClientRect().height,list:document.querySelector('#reference-list').clientHeight,scroll:document.querySelector('#reference-list').scrollHeight,canvas:document.querySelector('.canvas').getBoundingClientRect().height}));
   assert.ok(layout.stage<=741&&layout.canvas<650);assert.ok(layout.list<=layout.stage&&layout.scroll>=layout.list,'Reference list must fit the bounded stage without clipping the original thumbnails: '+JSON.stringify(layout));pass('Reference layout remains bounded and never stretches the result canvas');
-  await x.page.locator('.reference-item img').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
+  await x.page.locator('#image-composer-references .composer-reference-tile img').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
   assert.match(await x.page.locator('#input-preview-description').innerText(),/not a generated result/);
   const size=await x.page.locator('#input-preview-image').evaluate(async i=>{await i.decode();return [i.naturalWidth,i.naturalHeight];});assert.ok(Math.max(...size)<=1280);
   await x.page.locator('#input-preview-dialog [data-close]').click();assert.equal(await x.page.locator('#preview').isVisible(),false);pass('Input previews open separately and never replace the result canvas');
