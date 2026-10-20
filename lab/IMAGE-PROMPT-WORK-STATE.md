@@ -5,7 +5,9 @@
 - Targeted correction: for standard signed-in Image, focus alone never expands. Compact state persists while typed text fits, and long, wrapped or multiline directions expand based on the input's measured overflow against the compact textarea. Clearing or shortening restores the compact deck while the caret stays focused. Attached reference photos continue to expand the deck.
 - PV Soul's established special composition, guest Image preview, mobile native Create, prompt copy, models, Moods, tools, pricing, credits, generation and providers remain unchanged.
 - Changed only `lab/image-editorial-deck.js`, its cache token in `lab/studio.html`, protective tests and this handoff. Real-browser regressions assert empty focus, short prompt, long prompt and long-to-short transition in first-image and populated History flows; maintain the original long prompt scroll and references behavior.
-- Branch `fix/pvlab-image-focus-content-only-20261020`. CI, merge and production must be verified independently.
+- PR #372 squash-merged into main at `1b2a39cd981cec024c146a962cc839953449dd4b`; merged JS and Studio cache fingerprint independently confirmed on `main`.
+- Approved Image UI contract, first-image Chromium and long-prompt paste/History Chromium checks passed, including empty focus, short text, overflow and long-to-short collapse. Other broad browser failures were already observed before this focused change.
+- Cloudflare publication of pvlab.studio could not be independently checked from this environment. GitHub merge is confirmed, live deployment is not.
 
 ## Guest Image composer matches the real instrument (2026-10-20)
 - Owner supplied side-by-side signed-out and signed-in screens: merely focusing the anonymous textarea made a giant bordered inner box, while the real Studio kept an integrated prompt/toolbar/Generate instrument. Owner rejected the guest clone and unrelated Moods navigation.
