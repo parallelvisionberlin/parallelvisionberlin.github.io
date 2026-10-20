@@ -20,20 +20,32 @@
     /* Amatista film-first editorial layout only; shared artist pages are unchanged. */
     .amatista-fashion-study-page .amatista-fashion-film { margin-inline: auto; padding-bottom: 0; }
     .amatista-fashion-study-page .amatista-fashion-film > video { margin-top: 0; }
-    .amatista-fashion-study-page .amatista-fashion-film-head { margin-top: clamp(26px, 3vw, 38px); }
+    .amatista-fashion-study-page .amatista-fashion-film-head {
+      margin-top: clamp(24px, 2.6vw, 32px);
+      padding: 0;
+      border-bottom: 0;
+      text-align: center;
+    }
+    .amatista-fashion-study-page .amatista-fashion-film-head .cabizbajo-section-label {
+      color: rgba(255,255,255,.55);
+      font-size: 9px;
+      letter-spacing: .3em;
+    }
     .amatista-fashion-study-page .amatista-fashion-film-head h2 {
       max-width: none;
-      font-size: clamp(1.3rem, 2.05vw, 2.15rem);
-      line-height: 1.25;
-      letter-spacing: .025em;
+      margin-top: 12px;
+      font-size: clamp(1.05rem, 1.45vw, 1.55rem);
+      line-height: 1.4;
+      letter-spacing: .04em;
       white-space: nowrap;
     }
     .amatista-fashion-study-page .amatista-material-study { padding-bottom: 0; }
     @media (max-width: 760px) {
-      .amatista-fashion-study-page .amatista-fashion-film-head { margin-top: 22px; }
+      .amatista-fashion-study-page .amatista-fashion-film-head { margin-top: 20px; }
       .amatista-fashion-study-page .amatista-fashion-film-head h2 {
-        font-size: clamp(1.15rem, 4.7vw, 1.55rem);
-        letter-spacing: .015em;
+        margin-top: 11px;
+        font-size: clamp(.88rem, 3.65vw, 1.15rem);
+        letter-spacing: .025em;
         white-space: normal;
         text-wrap: balance;
       }
