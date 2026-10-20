@@ -263,7 +263,7 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v9'}=
   }
   if(finish.haze){
     // Minimal global softness; most visible bloom follows real light sources.
-    const diffuse=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/(engine==='v9'?1200:2400)))});
+    const diffuse=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/(engine==='v9'&&deluxeResponse(finish.haze)>0?1200:2400)))});
     image=image.draw(diffuse,{opacity:plan.diffusionOpacity,composite:'over'});
   }
   if(finish.haze||finish.halation){
