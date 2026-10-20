@@ -56,7 +56,7 @@ test('source-aware grain preserves black and white, favors midtones and does not
   assert.equal(energy[0],0);assert.equal(energy[5],0);
   assert.ok(energy[3]>energy[1]*3);assert.ok(energy[3]>energy[4]*3);
   for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
-  assert.equal(FILM_RENDER_REVISION,8,'new V8 processing must not reuse previous film derivatives');
+  assert.equal(FILM_RENDER_REVISION,9,'V9 must not reuse V8 derivatives or overwrite saved originals');
 });
 test('Restored Hong Kong look preserves subject and does not require invented scene relighting at any strength',()=>{
   for(const intensity of [21,70,100]){
@@ -115,9 +115,16 @@ test('deluxe photochemical response builds progressively above 70 without changi
   assert.equal(newDefault.grainAmount,0);
   const full=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100});
   const previous=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100},{engine:'v3'});
-  assert.ok(full.diffusionOpacity<previous.diffusionOpacity*.5,'V8 must reduce whole-image blur');
+  const v8=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100},{engine:'v8'});
+  assert.ok(v8.diffusionOpacity<previous.diffusionOpacity*.5,'V8 low-softness baseline remains available');
   for(const key of ['grainAmount','printStrength','printOpacity','hazeRadius','hazeOpacity','halationRadius','halationOpacity'])
-    assert.equal(full[key],previous[key],'Preserve established source light behavior: '+key);
+    assert.equal(v8[key],previous[key],'V8 and historic source light behavior remain intact: '+key);
+  assert.ok(full.hazeRadius>v8.hazeRadius,'V9 spreads the actual source light farther at 100%');
+  assert.ok(full.hazeOpacity>v8.hazeOpacity,'V9 strengthens haze over source emitters');
+  assert.ok(full.halationOpacity>v8.halationOpacity,'V9 strengthens source-bound halation');
+  assert.ok(full.hazeGain>=5&&full.halationGain>=2.5,'high sliders regain attenuated halo light');
+  assert.ok(full.diffusionOpacity>v8.diffusionOpacity*2,'V9 high settings are observably different');
+  assert.ok(full.diffusionOpacity<previous.diffusionOpacity,'do not over-blur the whole image');
   assert.equal(full.signature,1);
   assert.ok(full.grainAmount>125&&full.grainAmount<=134);
   assert.ok(full.hazeRadius>60&&full.hazeOpacity>.45);
@@ -129,6 +136,10 @@ test('deluxe photochemical response builds progressively above 70 without changi
   const mid=photochemicalPlan({version:2,grain:65,haze:65,halation:65,film:65});
   assert.equal(mid.signature,0);
   assert.equal(mid.grainAmount,65);
+  assert.equal(mid.hazeGain,1);
+  assert.equal(mid.halationGain,1);
+  for(const key of ['hazeRadius','hazeOpacity','halationRadius','halationOpacity','diffusionOpacity','printStrength'])
+    assert.equal(mid[key],photochemicalPlan({version:2,grain:65,haze:65,halation:65,film:65},{engine:'v8'})[key],'0-70 optical finish remains calibrated');
 });
 test('deluxe 35mm crossover is stronger than standard without inventing a skin halo',()=>{
   const standard=photochemicalPixel(235,228,212),deluxe=photochemicalPixel(235,228,212,1);
