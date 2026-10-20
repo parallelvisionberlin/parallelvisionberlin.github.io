@@ -141,7 +141,7 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  assert.equal(await welcome.locator('#image-composer-resolution').inputValue(),'2k');
  assert.equal(await welcome.locator('#image-composer-count').inputValue(),'1');
  assert.equal(await welcome.locator('#image-composer-ratio').inputValue(),'16:9');
- await welcome.waitForFunction(()=>/^Generate · [\\d,]+ credits$/.test(document.querySelector('#image-composer-generate')?.getAttribute('aria-label')||''));
+ await welcome.waitForFunction(()=>/^Generate · [\d,]+ credits$/.test(document.querySelector('#image-composer-generate')?.getAttribute('aria-label')||''));
  assert.equal(paidJobs,beforeWelcomeSubmit,'Choosing the free welcome starter must not submit or charge');
  await welcome.click('#image-composer-generate');
  await welcome.waitForFunction(()=>!document.querySelector('#generate').disabled);
