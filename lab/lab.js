@@ -1587,6 +1587,21 @@ function syncImageReferences(){
     img.src=ref.thumbUrl||ref.url;img.alt=(ref.isBase?'Base image':'Image reference '+(i+1));
     // Working previews are already reduced, local assets; display them immediately.
     img.loading='eager';img.decoding='async';img.draggable=false;
+    // Reference previews must remain reachable in the visible floating Image
+    // deck. The older side rail can be hidden without losing the read-only
+    // original/preview action. Soul's Base replacement retains its own flow.
+    if(!ref.isBase&&!ref.elementId){
+      img.tabIndex=0;
+      img.setAttribute('role','button');
+      img.setAttribute('aria-label','Preview input reference '+(i+1));
+      const preview=()=>{if(owner&&!busy&&references.includes(ref))
+        viewReference(ref,references.indexOf(ref));};
+      img.addEventListener('click',event=>{event.stopPropagation();preview();});
+      img.addEventListener('keydown',event=>{
+        if(event.key!=='Enter'&&event.key!==' ')return;
+        event.preventDefault();event.stopPropagation();preview();
+      });
+    }
     img.addEventListener('error',()=>{
       if(img.dataset.previewFallback!=='1'&&ref.url&&img.src!==ref.url){
         img.dataset.previewFallback='1';img.src=ref.url;return;
