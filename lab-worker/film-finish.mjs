@@ -93,6 +93,20 @@ export function sourceLightWeight(r,g,b,localContrast=0){
   const core=Math.max(smooth(.79,.98,l),saturated);
   return core*(.3+.7*smooth(.035,.22,localContrast));
 }
+
+// V8 ignored many dim fluorescent tubes and window-lit surfaces because the
+// highlight threshold was designed for near-white lamps. V9 can find physically
+// present colored practicals with positive local contrast, while excluding flat
+// green walls, skin midtones and dark saturated objects.
+export function softLightEmitterWeightV9(r,g,b,localContrast=0,baseline=0){
+  const max=Math.max(r,g,b)/255,lum=(.2126*r+.7152*g+.0722*b)/255;
+  const contrast=smooth(.025,.15,Math.max(0,localContrast));
+  const teal=smooth(.11,.30,(g-r)/255)*smooth(.025,.17,(b-r)/255);
+  const tungsten=smooth(.28,.47,(r-b)/255)*smooth(.12,.28,(g-b)/255)*smooth(.74,.91,max);
+  const colored=smooth(.44,.75,max)*contrast*Math.max(teal,tungsten)*.77;
+  const neutral=smooth(.79,.95,lum)*contrast*.43;
+  return Math.max(baseline,colored,neutral);
+}
 // Deluxe 35mm v5: 0-70 stays calibrated. 70-100 opens a photochemical
 // overdrive without inventing scene lighting or new processing passes.
 export function deluxeResponse(value){
@@ -144,9 +158,12 @@ export async function luminousMaskPng(bytes,engine='v6'){
     const current=light(x,y),d=Math.max(4,Math.round(Math.min(width,height)/55));
     const around=(light(x-d,y)+light(x+d,y)+light(x,y-d)+light(x,y+d))/4;
     const baseline=sourceLightWeight(pixels[i],pixels[i+1],pixels[i+2],current-around);
-    const weight=['v3','v8','v9'].includes(engine)
-      ?filmEmitterWeightV3(pixels[i],pixels[i+1],pixels[i+2],current-around,baseline)
-      :baseline;
+    const weight=engine==='v9'
+      ?softLightEmitterWeightV9(pixels[i],pixels[i+1],pixels[i+2],current-around,
+        filmEmitterWeightV3(pixels[i],pixels[i+1],pixels[i+2],current-around,baseline))
+      :['v3','v8'].includes(engine)
+        ?filmEmitterWeightV3(pixels[i],pixels[i+1],pixels[i+2],current-around,baseline)
+        :baseline;
     if(weight>.008)active=true;
     out[j]=Math.round(pixels[i]*weight);out[j+1]=Math.round(pixels[i+1]*weight);
     out[j+2]=Math.round(pixels[i+2]*weight);out[j+3]=255;
