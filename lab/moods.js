@@ -62,11 +62,11 @@ const ALL_MOODS=Object.freeze([
     "name": "Hong Kong Nights",
     "category": "Cinema",
     "preview": "/lab/mood-references/hong-kong-nights/plaza-grill.webp",
-    "description": "Emerald night air, optical bloom and intimate urban longing",
-    "direction": "Dreamlike 1990s Hong Kong night-film photography: lived-in nocturnal air, sensual stillness and urban longing. Emerald and petrol-cyan light separates real background shadows from warm tungsten practicals; human skin stays warm, expressive and tactile. Actual lamps, windows and reflective surfaces may create gentle source-bound bloom and humid depth in the illuminated distance, never a gray veil over the frame. A portrait, street or intimate room has its own believable lighting. Wet reflections belong only on existing wet or reflective surfaces or when explicitly requested. Keep place, light logic and weather grounded, with understated photochemical texture rather than heavy generated grain or generic cyberpunk neon.",
-    "subtle": "Gentle emerald-petrol separation in already-lit shadows, soft practical-light scatter and intimate stillness. Keep skin warm, eyes clear and the real setting intact; no invented fog, lamps or generated grain.",
-    "intense": "Expressive but believable emerald shadow depth, warm skin against cool ambient light, luminous distance around existing bright practicals and quiet night longing. More intensity strengthens atmosphere and emotional color separation, NOT fog density, artificial grain or shadowing over the face. Dry scenes stay dry and existing locations, subjects, outfits and light sources remain recognizable.",
-    "avoid": "all-green tint, generic cyberpunk, invented lamps or neon signs, fake rain and wetness on dry rooms, pasted fog, global blur, dirty digital grain, bright outlines, hard eye shadows, artificial skin, changed wardrobe, new subjects or new locations",
+    "description": "Humid green night, wet reflections and intimate amber light",
+    "direction": "Dreamlike 1990s Hong Kong night-film photography with dense humidity, not a flat teal grade. A single evocative visual language derived from four PRIMARY photographs: green city lights dissolve behind a taxi in nocturnal atmospheric depth; a solitary figure crosses reflective wet pavement between warmly lit shops; a smoky restaurant holds intimate lime-gold tungsten light on real skin against rich black; a green fluorescent tunnel stretches light into spatial falloff. These are references for light, color, air and feeling, never for copying their people, vehicles, sets or city. SECONDARY references contribute deep dark negative space, isolated ruby light, petrol-cyan undertones and real surface texture. The image should feel physically photographed: glowing practicals, scattered humidity, broken reflections on credible outdoor surfaces, imperfect pushed 35mm high-ISO shadow texture and sensual urban longing. Do not add pasted fog, huge grain specks, generic cyberpunk or fake signage. Preserve the subject and physical scene, yet let a neutral exterior become plausibly dusk or night when intensity requests it.",
+    "subtle": "Quiet warm/cool photographic separation, delicate humidity near real light sources and natural shadow emulsion. Keep the time, original weather, identity and scene; no pasted light or coarse digital noise.",
+    "intense": "High-intensity atmospheric translation: the existing city or exterior may become humid blue-hour or night, with deeper petrol-emerald darkness, practical tungsten/ruby lights blooming into air and plausible damp outdoor ground reflecting those sources. Interiors keep their real furniture and dry floor but gain light-scattered depth. Keep human skin luminous and real, face and garments unchanged, street geometry intact. Include tactile fast 35mm emulsion, never digital-grit or a green LUT.",
+    "avoid": "flat teal LUT, plastic green faces, copied reference people, cars, streets or signs, cyberpunk clichés, invented neon, fake indoor rain, wet beds or puddles in rooms, opaque fog overlay, coarse digital white-noise speckles, blurred eyes, harsh sharpening, dirty low-quality photo, changed clothing or architecture",
     "defaultIntensity": 60
   },
   {
@@ -304,7 +304,7 @@ export function imageHistoryCaption(settings={}){
   if(mood){
     const intensity=Number(settings.moodIntensity);
     const strength=Number.isInteger(intensity)&&intensity>=1&&intensity<=100?intensity+'%':'';
-    const look=mood.id==='hong-kong-nights'&&settings.moodVariant?HONG_KONG_VARIANTS[hongKongVariant(settings.moodVariant)].label:'';
+    const look=mood.id==='hong-kong-nights'&&settings.moodVariant&&settings.moodVariant!=='original'?HONG_KONG_VARIANTS[hongKongVariant(settings.moodVariant)].label:'';
     return [mood.name,look,strength,text].filter(Boolean).join(' · ');
   }
   if(settings?.moodId==='custom')return [settings.customMoodName||'My Mood',Number.isInteger(settings.moodIntensity)?settings.moodIntensity+'%':'',text].filter(Boolean).join(' · ');
@@ -322,8 +322,8 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   // Hong Kong Nights: restore the approved October 10 photographic recipe.
   // One short art direction and the user's own photograph; no scene rebuilding
   // instructions, automatic cinematography reference map, or extra AI pass.
-  // The three existing look choices remain optional, with a concise variation
-  // only for Deep Green and Slow Shutter. Film finishing is opt-in.
+  // Expose one canonical creative direction while preserving historical
+  // variation identifiers in saved History. 35mm Film Finish stays opt-in.
   if(mood.id==='hong-kong-nights'){
     const variant=hongKongVariant(moodVariant);
     const film=filmFinish===null?null:filmFinishSettings(filmFinish??HONG_KONG_VARIANTS[variant].filmFinish);
@@ -333,26 +333,34 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     // imagined Hong Kong street. The original open-ended 1990s night-film
     // direction is retained for text-only and References-only compositions.
     const editingBase=referenceCount>0&&referenceMode!=='references';
-    const originalImageLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a photographic light-and-air treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes; do not age, remodel, harden eye shadows or darken the face. Shift only existing shadows toward restrained emerald/teal and existing highlights toward warm amber, with gentle source-bound bloom. Maintain recognizable daylight if the source is daylight unless user asks otherwise. No added grain, noise, dirt, fake rain, fog or flat green filter. User edits take priority.'
+    const originalImageLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a photographic light-and-air treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes; do not age, remodel, harden eye shadows or darken the face. Change the atmosphere of the SAME photographed setting, not its geometry: permit believable dusk/night exposure, source-motivated humid air, emerald-petrol ambience and warm tungsten light. Outdoor paving may acquire a restrained wet sheen and broken reflections consistent with perspective, with no newly added rain or changed street. Interiors remain dry, intimate and physically lit. Fine pushed 35mm color-negative shadow texture is embedded in the photo, not artificial speckles or a global blur. User direction takes priority.'
     // No external scene classifier, additional references or extra API call. The
     // edit model reads IMAGE 1 and applies only the physically applicable path.
+    // Primary refs 4-7 are translated into optics, never automatically staged as
+    // foreign people/places. The prior four-Style-photo route damaged fidelity.
+    // The Lite edit input has a hard 3K compiled prompt budget. Keep the
+    // complete user instruction and use a fixed concise canon, not truncation.
+    const liteBaseLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a photographic light-and-air treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes. Existing lamps make humid emerald dusk and warm skin; outdoor paving may catch wet reflections but indoor floors stay dry. Fine pushed 35mm color-negative shadow texture, not digital noise. User direction takes priority.';
+    const primaryOptics=engine==='seedreamlite'
+      ?'PRIMARY OPTICS: emerald city humidity, wet outdoor shops, warm green-gold restaurant and deep fluorescent tunnel. Red accents, real black shadows. Never copy the scenes.'
+      :'PRIMARY FILM REFERENCE DNA (OPTICS ONLY): green taxi city -> small emerald lights receding into humidity and deep black; wet pedestrian street -> rain-polished exterior ground mirroring warm shops; lime-gold restaurant -> close tungsten intimacy, skin and smoke illuminated by physical practicals; fluorescent tunnel -> continuous green falloff in dark space. SECONDARY palette cues are quiet ruby lamps, petrol-cyan depth, dark negative space and textured surfaces. Do not copy any reference person, building, vehicle or signage.';
     const sourceLightRouting=engine==='seedreamlite'
-      ?'SCENE ADAPTATION: PERSON keep warm skin; STREET keep existing lights; INTERIOR retain warm lamps and furniture; DAYLIGHT and DRY remain unchanged. Bloom only around existing luminous practicals.'
-      :'SCENE ADAPTATION, only what IMAGE 1 visibly supports: FASHION PORTRAIT OR PERSON: warm natural skin, clear eyes and tactile clothing against existing cool ambient; intimacy without changing pose. STREET, CAFE OR TRANSIT: let actual lamps and windows scatter softly into the distance; reflect only on existing wet or glossy surfaces. BEDROOM OR INTERIOR: keep furniture, warm lamps and real window direction; emerald spill only from existing light. DRY OR DAYLIGHT IMAGE: keep existing weather and time; invent no rain, fog, neon or night. Bloom only around existing luminous practicals; retain blacks and face detail.';
+      ?'SCENE: PORTRAIT same face/outfit; STREET humid dusk, damp paving; ROOM warm lamps and dry floor. Keep existing light sources and architecture, no added objects.'
+      :'SCENE ADAPTATION, only what IMAGE 1 visibly supports: FASHION PORTRAIT -> untouched real identity, expression, pose, outfit and leather texture with inviting warm skin; the surrounding street gains plausible night air and soft scattered highlights. STREET OR TRANSIT -> allow a believable transition toward nocturnal exposure, richer dim green depth and localized damp outdoor pavement while keeping existing architecture and true light sources. BEDROOM OR INTERIOR -> the same room and furniture, warm lamps, cool spill through original windows, air scattering only close to actual light, absolutely no wet bed or floor. Light has depth, skin has life, shadows retain photographic texture; never add neon signs, taxis, rain curtains or people.';
     const photoStrength=intensity<=34
-      ?'Subtle: gentle tonal separation and optical softness.'
+      ?'Subtle: quiet warm/cool film response and gentle bloom from existing practical lights.'
       :intensity<=69
-        ?'Editorial: luminous flattering skin light, warm practical highlights and textured deep-teal background shadows; delicate glow around real distant emitters only.'
-        :'Expressive: richer emerald in existing BACKGROUND shadow gradients only; same luminous face, clean texture and original location. More optical depth around real lights, not more film dirt or blanket haze.';
+        ?'Editorial: luminous flattering skin, moist emerald night-air depth and restrained amber practical-light diffusion, without a uniform green veil.'
+        :'Expressive: richer emerald night ambience, air-scattered practicals and physically credible wet exterior reflections. Keep the identical face, unchanged composition, clean real skin and original location. Mood intensity means light and atmosphere, not dirty film noise.';
     const preservation=editingBase?'':referenceCount>0
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
       :'Honor the requested subject and composition.';
     // Lite's documented 3K provider cap gets a fixed, equally source-safe
     // recipe. No user text is shortened, and model choice alone selects it.
-    const liteTextStrength='Dreamlike 1990s Hong Kong night-film photography: emerald ambient depth, warm skin, soft bloom only at real lights and intimate urban longing; keep subjects, original scene and weather. '+(intensity>=76?'Strong light contrast, not added fog or grain.':intensity<=34?'Very restrained film-light treatment.':'Balanced warm/cool atmosphere.');
-    const look=editingBase?[originalImageLock,sourceLightRouting,photoStrength,variantDirection].filter(Boolean).join(' '):
+    const liteTextStrength='1990s Hong Kong night-film light: humid emerald depth, glowing warm practicals, wet outdoor reflections when plausible, intimate real skin and organic fine pushed-film shadow texture. Preserve original people and place. '+(intensity>=76?'Stronger believable dusk or nocturnal air, no pasted fog.':intensity<=34?'Very restrained source bloom, existing weather.':'Balanced green-gold light and humid depth.');
+    const look=editingBase?[engine==='seedreamlite'?liteBaseLock:originalImageLock,primaryOptics,sourceLightRouting,photoStrength,variantDirection].filter(Boolean).join(' '):
       [engine==='seedreamlite'?liteTextStrength:strength,variantDirection].filter(Boolean).join(' ');
-    const avoid=engine==='seedreamlite'?'all-green wash, invented rain, neon or fog, added grain, smeared face, changed clothes or location':mood.avoid;
+    const avoid=engine==='seedreamlite'?'teal color filter, artificial grain, copied reference faces, fake neon, indoor wetness, changed clothing or street layout':mood.avoid;
     const prompt=[original,'PV LAB MOOD / '+mood.name+': '+look+' '+preservation+' Avoid: '+avoid+'.'].filter(Boolean).join('\n\n');
     const budget=engine==='seedreamlite'?3000:5000,over=prompt.length-budget;
     return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,moodVariant:variant,...(film?{filmFinish:film}:{})},
@@ -614,7 +622,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     emptyPersonal.hidden=category!=='My Moods'||personalMoods.length>0;
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
     finishPanel.hidden=selected!=='hong-kong-nights';
-    variationBar.hidden=finishPanel.hidden;
+    variationBar.hidden=true; // New generations use a single Hong Kong Nights treatment.
     for(const [id,b] of variationButtons){b.classList.toggle('is-selected',hkVariation===id);b.setAttribute('aria-pressed',String(hkVariation===id));}
     controlDeck?.classList.toggle('has-film-finish',!finishPanel.hidden);
     const chosen=findMood(selected);
@@ -741,7 +749,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   function restore(settings,silent=false){
     selected=settings?.moodId==='custom'&&typeof settings.customMoodBoardId==='string'?'custom:'+settings.customMoodBoardId:moodById(settings?.moodId)?.id||null;
     intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));
-    hkVariation=selected==='hong-kong-nights'?hongKongVariant(settings?.moodVariant):'original';
+    hkVariation='original'; // Historic look IDs remain in History; Reuse starts canonical.
     finishControls.set(settings?.filmFinish||(selected==='hong-kong-nights'?HONG_KONG_VARIANTS[hkVariation].filmFinish:HONG_KONG_FILM_FINISH));
     close();render();if(!silent)onChange();
   }
