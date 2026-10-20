@@ -140,6 +140,30 @@ try{
     }finally{await rig.context.close();}
   }
   console.log('PASS all homepage purchase arrows, visible feedback, idle states, sign-in selection, duplicate and session guards');
+  // A newly verified customer has no free generation privilege while trials
+  // are paused. They may still prepare an image, then explicitly open pricing
+  // through Generate without any provider or Stripe request.
+  {
+    const rig=await setup(1440,true,{balanceCredits:0,generationReady:false,trialGenerationPaused:true,billingReady:true});
+    const {page,writes,errors}=rig;
+    try{
+      await page.goto(origin+'/lab/studio.html?tool=image');
+      await page.locator('#app').waitFor({state:'visible'});
+      const direction='An editorial portrait with natural film grain, quiet shadows and real fabric texture.';
+      await page.locator('#image-composer-prompt').fill(direction);
+      await page.waitForFunction(()=>!document.getElementById('image-composer-generate').disabled);
+      await page.locator('#image-composer-generate').click();
+      await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
+      assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6);
+      assert.equal(await page.locator('#image-composer-prompt').inputValue(),direction,
+        'Pricing must preserve the customer's drafted creative direction');
+      assert.equal(writes.some(x=>['/api/billing/checkout','/api/jobs','/api/quotes','/api/uploads'].includes(x.path)),false,
+        'Paused trial Generate previews plans without a payment, generation, or upload');
+      await page.locator('#lab-pricing-overlay-close').click();
+      assert.equal(await page.locator('#image-composer-prompt').inputValue(),direction);
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
+  }
   // Checkout is intercepted: verify zero-balance recovery without any real payment or generation.
   for(const width of [1440,768,390,320]){
     const rig=await setup(width,true,{balanceCredits:0}),{page,session,writes,errors}=rig;
