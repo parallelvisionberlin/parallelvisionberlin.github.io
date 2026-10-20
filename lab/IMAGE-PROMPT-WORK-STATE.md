@@ -1,5 +1,13 @@
 # Image composer prompt: current state
 
+## Guest Image composer matches the real instrument (2026-10-20)
+- Owner supplied side-by-side signed-out and signed-in screens: merely focusing the anonymous textarea made a giant bordered inner box, while the real Studio kept an integrated prompt/toolbar/Generate instrument. Owner rejected the guest clone and unrelated Moods navigation.
+- Signed-out first paint stays the previously approved small horizontal strip. Empty focus and short text never expand it. A real long direction, pasted text, or filled Inspiration Mood opens one clean two-row writing deck with no inner focus rectangle, bounded auto-height and a real toolbar beneath it. Clearing returns to compact even while focused.
+- Public toolbar now mirrors the signed-in controls visually. Moods targets the seven preview cards on the same page; all other protected controls use Clerk Sign in without fake anonymous selections or leaving for unrelated destinations. Generate still requires authentication.
+- CSS: guest layout now has a single owner (`lab/studio-guest-image.css`), avoiding conflicting guest layout rules in `lab/image-editorial-deck.css`. `lab/image-editorial-deck.js` changes only guest expansion and auto-fit, preserving real authenticated expression. `lab/studio-guest-image.js` wires the in-place Mood and protected toolbar actions. `lab/studio.html` updates guest HTML and asset cache keys.
+- Mock browser tests cover empty focus, short-to-long-to-empty, no inner outline/overlap, in-place Moods, protected Sign in, and mobile Mood handoff. `tests/lab-approved-image-ui-contract.test.mjs` protects these decisions; the existing first-image workflow runs them. No provider, backend, generation, user data, credit, pricing or signed-in edits.
+- Branch `fix/pvlab-guest-composer-parity-20261020`. Await CI and browser preview before merging. Production remains unverified until Cloudflare publication can be confirmed.
+
 ## Signed-out Image focus and header Sign in (2026-10-20)
 - Owner approved image 1 as the compact guest entry, with the existing short-to-long prompt flow. Removed only the extra guest text focus rectangle and outer focus brightening; retained the resting graphite border, card layouts, responsive expansion and prompt state controller.
 - Increased guest desktop Sign in from 36px/12px to 42px/13px, preserving the phone overrides and the signed-in account header.
