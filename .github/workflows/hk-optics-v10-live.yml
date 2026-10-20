@@ -1,0 +1,50 @@
+name: Hong Kong optics public release verification
+on:
+  push:
+    branches: ['codex/hk-optics-v10-20261021']
+    paths: ['.github/workflows/hk-optics-v10-live.yml']
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cef509fd901f0070a009c92e47a4e39faec3de54
+          fetch-depth: 1
+          sparse-checkout: lab
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Check public code and entrypoint cache markers without generation or account writes
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync,appendFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import assert from 'node:assert/strict';
+          const commit='cef509fd901f0070a009c92e47a4e39faec3de54',marker='hkLight=20261021v10';
+          const hash=b=>createHash('sha256').update(b).digest('hex');
+          const exact=['moods.js','film-finish.js','app-mood-generation.js','app-moods.js','explore-moods.js','mood-creator.js'];
+          const targets=[...exact.map(path=>({path,hash:hash(readFileSync('lab/'+path))})),...['studio','moods','app-moods','mood-creator','lab.js'].map(path=>({path,marker}))];
+          let report;
+          for(let attempt=1;attempt<=24;attempt++){
+            const results=await Promise.all(targets.map(async t=>{
+              try{const r=await fetch('https://pvlab.studio/'+t.path+'?hkVerify='+Date.now(),{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(15000)});const b=Buffer.from(await r.arrayBuffer());return {path:t.path,status:r.status,pass:r.ok&&new URL(r.url).hostname==='pvlab.studio'&&(t.hash?hash(b)===t.hash:b.toString().includes(marker)),sha256:hash(b)};}catch(e){return {path:t.path,pass:false,error:e.message};}
+            }));
+            report={commit,checkedAt:new Date().toISOString(),attempt,passed:results.every(x=>x.pass),results,noAiGeneration:true,noAccountWrites:true};
+            console.log('HK_OPTICS_LIVE '+JSON.stringify(report));
+            if(report.passed)break;
+            if(attempt<24)await new Promise(r=>setTimeout(r,10000));
+          }
+          writeFileSync('hk-optics-live.json',JSON.stringify(report,null,2));
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,'## Hong Kong light release\n\nCommit `'+commit+'`\n\n'+(report.passed?'PASS: public Mood and Film Finish modules match the merged code, and Studio/Moods entrypoints load the new cache marker.':'FAIL: public release not yet verified.')+'\n\nNo generation or account writes. Worker deployment is verified separately.\n');
+          assert.equal(report.passed,true,'Published files must match the merged release');
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hk-optics-live
+          retention-days: 5
+          path: hk-optics-live.json
