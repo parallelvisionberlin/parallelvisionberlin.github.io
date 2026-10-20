@@ -30,7 +30,7 @@ test('Image 3: atmosphere activates only above 90 on canonical Hong Kong',()=>{
   });
 test('Image 3: approved finish and original reference routing remain intact',async()=>{
     const finish=await import('../lab/film-finish.js');
-    assert.equal(finish.FILM_FINISH_RENDER_REVISION,8);
+    assert.equal(finish.FILM_FINISH_RENDER_REVISION,10);
     for(const intensity of [90,95,100]){
       const result=moods.prepareMoodPrompt('Preserve this room.','hong-kong-nights',intensity,{engine:'seedream',referenceCount:1});
       const settings={type:'image',mode:'image',engine:'seedream',referenceMode:'base',referenceRoles:[{role:'base',name:'room.png',note:''}],prompt:result.prompt,...result.metadata};

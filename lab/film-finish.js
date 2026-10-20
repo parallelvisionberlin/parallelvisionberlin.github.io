@@ -1,7 +1,7 @@
 // Photochemical finishing is a separate local imaging step; no second AI generation.
 // Version 1 remains readable for previously saved Hong Kong Nights results.
 export const FILM_FINISH_VERSION=2;
-export const FILM_FINISH_RENDER_REVISION=8;
+export const FILM_FINISH_RENDER_REVISION=10;
 // Keep Film Finish available for deliberate use, but OFF on new Hong Kong jobs.
 export const HONG_KONG_FILM_FINISH=Object.freeze({version:2,grain:0,haze:0,halation:0,film:0});
 export const FILM_FINISH_OFF=Object.freeze({version:2,grain:0,haze:0,halation:0,film:0});
@@ -32,7 +32,7 @@ export function createFilmFinishControls(container,{onChange=()=>{},compact=fals
   note.textContent='Photochemical texture, atmospheric light and analog color.';
   const explanation=document.createElement('p');explanation.className='film-finish-explanation';
   explanation.id=detailId;explanation.hidden=true;
-  explanation.textContent='Grain: irregular pushed-negative texture. Haze: practical light scattering through humid air. Halation: light-source bloom without body outlines. Film: 35mm print contrast, warm highlights, cool shadows and soft rolloff. At high strengths the finish becomes more expressive. No extra AI generation.';
+  explanation.textContent='Grain: texture only. Haze: broad, source-driven optical diffusion from real light sources. Halation: tighter glow around bright light edges. Film: the existing 35mm print color and tonal curve. Each control is independent; high optical settings are deliberately strong. Scene atmosphere comes from Mood intensity when generating; this finish adds optical diffusion, not reconstructed scene fog. No extra AI generation.';
   help.onclick=()=>{
     explanation.hidden=!explanation.hidden;
     help.setAttribute('aria-expanded',String(!explanation.hidden));
@@ -43,8 +43,8 @@ export function createFilmFinishControls(container,{onChange=()=>{},compact=fals
   const sync=(input,output)=>{output.textContent=input.value+'%';input.style.setProperty('--moods-progress',input.value+'%');};
   for(const [key,label,description] of [
     ['grain','Grain','Organic pushed 35mm negative texture'],
-    ['haze','Haze','Humid optical diffusion from actual light sources'],
-    ['halation','Halation','Light-source bloom without glowing silhouettes'],
+    ['haze','Haze','Multiscale optical light spread; high settings are strong'],
+    ['halation','Halation','Localized highlight-edge glow, not whole-image blur'],
     ['film','Film','35mm print curve, warm highlights and cool shadows']
   ]){
     const row=document.createElement('label'),caption=document.createElement('span');
