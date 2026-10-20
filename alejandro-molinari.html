@@ -653,6 +653,29 @@
       text-transform: uppercase;
     }
 
+    /* Isolated photographic-work entry in the existing editorial archive. */
+    .editorial .photo-work-link {
+      display: grid;
+      grid-template-columns: minmax(130px, .24fr) minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 22px;
+      padding: 25px 0;
+      border-top: 1px solid var(--line-dark);
+      border-bottom: 1px solid var(--line-dark);
+      margin-top: 20px;
+      color: #fff;
+      text-decoration: none;
+    }
+    .photo-work-link-index { font-size: 10px; letter-spacing: .14em; color: var(--muted-dark); }
+    .photo-work-link-title { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(22px, 2.7vw, 38px); letter-spacing: -.045em; line-height: 1.1; }
+    .photo-work-link-arrow { font-size: 25px; transition: transform .2s ease; }
+    .photo-work-link:hover .photo-work-link-arrow { transform: translate(3px, -3px); }
+    @media(max-width:620px) {
+      .editorial .photo-work-link { grid-template-columns: 1fr auto; gap: 9px; }
+      .photo-work-link-index { grid-column: 1 / -1; }
+      .photo-work-link-title { font-size: 28px; }
+    }
+
     .history {
       background: var(--paper);
       color: var(--ink);
@@ -1181,6 +1204,11 @@
           <p class="editorial-label">01 — Artist / Founder / Night Archive</p>
         </div>
       </div>
+      <a class="photo-work-link reveal" href="./photo-work/" aria-label="View Alejandro Molinari's photographic work">
+        <span class="photo-work-link-index">02 / PHOTOGRAPHIC WORK</span>
+        <span class="photo-work-link-title">Selected photographs</span>
+        <span class="photo-work-link-arrow" aria-hidden="true">↗</span>
+      </a>
     </section>
 
     <section class="history section-shell" id="history" aria-labelledby="history-title">
