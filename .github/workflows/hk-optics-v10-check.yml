@@ -39,11 +39,16 @@ jobs:
           node --input-type=module <<'NODE'
           import {readFileSync,writeFileSync} from 'node:fs';
           import assert from 'node:assert/strict';
-          for(const path of ['tests/lab-hong-kong-continuity.test.mjs','tests/lab-moods.test.mjs']){
-            const text=readFileSync(path,'utf8');
+          for(const [path,count,oldDetail,newDetail] of [
+            ['tests/lab-hong-kong-continuity.test.mjs',2,'/No extra grain, muddy blacks or blanket blur/','/No extra grain, muddy blacks, blanket blur or new lamps/'],
+            ['tests/lab-moods.test.mjs',1,'/Keep face, composition and room textures/','/Keep clear foreground eyes, face, composition, material textures and rich unlit blacks/']
+          ]){
+            let text=readFileSync(path,'utf8');
             const old='/Increase atmospheric diffusion slightly/';
-            assert.equal(text.split(old).length-1,1,'Expected one obsolete high-strength wording assertion: '+path);
-            writeFileSync(path,text.replace(old,'/Make atmospheric diffusion clearly visible/'));
+            assert.equal(text.split(old).length-1,count,'Expected baseline/maximum wording assertions: '+path);
+            assert.equal(text.split(oldDetail).length-1,1,'Expected preservation wording assertion: '+path);
+            text=text.replaceAll(old,'/Make atmospheric diffusion clearly visible/').replace(oldDetail,newDetail);
+            writeFileSync(path,text);
           }
           NODE
           git diff --check
