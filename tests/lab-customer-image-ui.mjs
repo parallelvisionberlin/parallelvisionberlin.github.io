@@ -118,10 +118,10 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  })),'base64');
  await page.locator('#reference-images').setInputFiles({name:'portrait.png',mimeType:'image/png',buffer:png});
  await page.waitForFunction(()=>document.querySelectorAll('.reference-item').length===1);
- await page.waitForFunction(()=>document.querySelector('#image-composer-ratio')?.value==='auto');
+ await page.waitForFunction(()=>document.querySelector('#image-composer-ratio')?.value==='3:4');
  await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 74 credits');
- assert.equal(requests.filter(x=>x.path==='/api/quotes').at(-1).data.settings.aspectRatio,'auto');
- console.log('PASS uploaded Base image defaults to provider Auto and reprices references');
+ assert.equal(requests.filter(x=>x.path==='/api/quotes').at(-1).data.settings.aspectRatio,'3:4');
+ console.log('PASS uploaded 3:4 Base image uses its matching concrete aspect and reprices references');
  await page.selectOption('#image-composer-ratio','1:1');
  await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 74 credits');
  assert.equal(await page.locator('#image-composer-ratio').inputValue(),'1:1');
