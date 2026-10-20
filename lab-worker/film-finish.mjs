@@ -67,7 +67,7 @@ async function normalizedPixels(bytes){
   }
   return {width,height,pixels};
 }
-async function convertHighlights(bytes,asMask=false){
+async function convertHighlights(bytes,asMask=false,gain=1,gamma=1){
   const {width,height,pixels}=await normalizedPixels(bytes),output=new Uint8Array((width*4+1)*height);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
     const j=(y*width+x)*4,[r,g,b,a]=pixels.subarray(j,j+4),max=Math.max(r,g,b),i=y*(width*4+1)+1+x*4;
@@ -78,7 +78,7 @@ async function convertHighlights(bytes,asMask=false){
       const brightness=saturation>.6&&max>235?Math.max(luminance,max/255*.88):luminance;
       const t=Math.min(1,Math.max(0,(brightness-.58)/.40)),weight=t*t*(3-2*t)*a/255;
       output[i]=Math.round(r*weight);output[i+1]=Math.round(g*weight);output[i+2]=Math.round(b*weight);output[i+3]=255;
-    }else if(max){output[i]=Math.round(r/max*255);output[i+1]=Math.round(g/max*255);output[i+2]=Math.round(b/max*255);output[i+3]=Math.round(max*a/255);}
+    }else if(max){output[i]=Math.round(r/max*255);output[i+1]=Math.round(g/max*255);output[i+2]=Math.round(b/max*255);output[i+3]=Math.round(255*Math.pow(Math.min(1,max*a/(255*255)*gain),gamma));}
   }
   return png(width,height,output,6);
 }
@@ -93,30 +93,56 @@ export function sourceLightWeight(r,g,b,localContrast=0){
   const core=Math.max(smooth(.79,.98,l),saturated);
   return core*(.3+.7*smooth(.035,.22,localContrast));
 }
+
+// V8 ignored many dim fluorescent tubes and window-lit surfaces because the
+// highlight threshold was designed for near-white lamps. V9 can find physically
+// present colored practicals with positive local contrast, while excluding flat
+// green walls, skin midtones and dark saturated objects.
+export function softLightEmitterWeightV9(r,g,b,localContrast=0,baseline=0){
+  const max=Math.max(r,g,b)/255,lum=(.2126*r+.7152*g+.0722*b)/255;
+  const contrast=smooth(.025,.15,Math.max(0,localContrast));
+  const teal=smooth(.11,.30,(g-r)/255)*smooth(.025,.17,(b-r)/255);
+  const tungsten=smooth(.28,.47,(r-b)/255)*smooth(.12,.28,(g-b)/255)*smooth(.74,.91,max);
+  const colored=smooth(.44,.75,max)*contrast*Math.max(teal,tungsten)*.77;
+  const neutral=smooth(.79,.95,lum)*contrast*.43;
+  return Math.max(baseline,colored,neutral);
+}
 // Deluxe 35mm v5: 0-70 stays calibrated. 70-100 opens a photochemical
 // overdrive without inventing scene lighting or new processing passes.
 export function deluxeResponse(value){
   const t=clamp((value-70)/30);
   return t*t*(3-2*t);
 }
-export function photochemicalPlan(value,{engine='v8'}={}){
+export function photochemicalPlan(value,{engine='v9'}={}){
   const f=filmFinishSettings(value);
   const grainTop=deluxeResponse(f.grain),hazeTop=deluxeResponse(f.haze);
   const lightTop=deluxeResponse(f.halation),filmTop=deluxeResponse(f.film);
   const signature=filmTop*Math.min(hazeTop,lightTop);
+  const expressive=engine==='v9';
   return {
     grainAmount:Math.min(134,f.grain*(1+.22*grainTop+.12*signature)),
     printStrength:.62*filmTop+.38*signature,
     printOpacity:Math.min(.98,f.film/100*.88+.07*filmTop+.03*signature),
-    hazeRadius:43*(1+.35*hazeTop+.20*signature),
-    hazeOpacity:Math.min(.56,f.haze/100*(.31+.09*hazeTop+.10*signature)),
-    halationRadius:9*(1+.20*lightTop+.17*signature),
-    halationOpacity:Math.min(.54,f.halation/100*(.32+.06*lightTop+.10*signature)),
-    // V8 keeps halo energy near actual emitters and limits blanket softness.
-    // V3/V6 remain identical for back-to-back A/B comparisons.
-    diffusionOpacity:engine==='v8'
-      ?Math.min(.06,f.haze/100*(.026+.014*hazeTop+.01*signature))
-      :Math.min(.16,f.haze/100*(.09+.035*hazeTop+.025*signature)),
+    hazeRadius:43*(1+.35*hazeTop+.20*signature+(expressive?.35*hazeTop:0)),
+    hazeOpacity:Math.min(expressive?.70:.56,f.haze/100*(.31+.09*hazeTop+.10*signature+(expressive?.08*hazeTop:0))),
+    halationRadius:9*(1+.20*lightTop+.17*signature+(expressive?.14*lightTop:0)),
+    halationOpacity:Math.min(expressive?.65:.54,f.halation/100*(.32+.06*lightTop+.10*signature+(expressive?.05*lightTop:0))),
+    // Gaussian scattering thins out small practicals: strengthen only their
+    // real-light contribution above 70%, with no invented emitters.
+    hazeGain:expressive?1+4*hazeTop:1,
+    halationGain:expressive?1+1.5*lightTop:1,
+    // Optically scattered point-light energy is spread across many pixels
+    // and becomes nearly invisible if transparency remains linear.
+    // Nonlinear response makes the manually requested 80-100% bloom legible.
+    hazeGamma:expressive?1-.43*hazeTop:1,
+    halationGamma:expressive?1-.24*lightTop:1,
+    // Lens diffusion is not generated spatial/volumetric fog, which belongs
+    // in the mood generation. Keep the low-strength calibrated look.
+    diffusionOpacity:expressive
+      ?Math.min(.16,f.haze/100*(.026+.014*hazeTop+.01*signature+.085*hazeTop))
+      :engine==='v8'
+        ?Math.min(.06,f.haze/100*(.026+.014*hazeTop+.01*signature))
+        :Math.min(.16,f.haze/100*(.09+.035*hazeTop+.025*signature)),
     signature
   };
 }
@@ -132,9 +158,12 @@ export async function luminousMaskPng(bytes,engine='v6'){
     const current=light(x,y),d=Math.max(4,Math.round(Math.min(width,height)/55));
     const around=(light(x-d,y)+light(x+d,y)+light(x,y-d)+light(x,y+d))/4;
     const baseline=sourceLightWeight(pixels[i],pixels[i+1],pixels[i+2],current-around);
-    const weight=['v3','v8'].includes(engine)
-      ?filmEmitterWeightV3(pixels[i],pixels[i+1],pixels[i+2],current-around,baseline)
-      :baseline;
+    const weight=engine==='v9'
+      ?softLightEmitterWeightV9(pixels[i],pixels[i+1],pixels[i+2],current-around,
+        filmEmitterWeightV3(pixels[i],pixels[i+1],pixels[i+2],current-around,baseline))
+      :['v3','v8'].includes(engine)
+        ?filmEmitterWeightV3(pixels[i],pixels[i+1],pixels[i+2],current-around,baseline)
+        :baseline;
     if(weight>.008)active=true;
     out[j]=Math.round(pixels[i]*weight);out[j+1]=Math.round(pixels[i+1]*weight);
     out[j+2]=Math.round(pixels[i+2]*weight);out[j+3]=255;
@@ -170,13 +199,13 @@ export function photochemicalPixel(r,g,b,deluxe=0){
 export async function printGradePng(bytes,deluxe=0,engine='v6'){
   const {width,height,pixels}=await normalizedPixels(bytes),scan=new Uint8Array((width*4+1)*height);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
-    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=(['v3','v8'].includes(engine)?filmPrintPixelV3:photochemicalPixel)(pixels[i],pixels[i+1],pixels[i+2],deluxe);
+    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=(['v3','v8','v9'].includes(engine)?filmPrintPixelV3:photochemicalPixel)(pixels[i],pixels[i+1],pixels[i+2],deluxe);
     scan[j]=graded[0];scan[j+1]=graded[1];scan[j+2]=graded[2];scan[j+3]=pixels[i+3];
   }
   return png(width,height,scan,6);
 }
 
-export const transparentHighlights=bytes=>convertHighlights(bytes,false);
+export const transparentHighlights=(bytes,gain=1,gamma=1)=>convertHighlights(bytes,false,gain,gamma);
 export const highlightMask=bytes=>convertHighlights(bytes,true);
 // Custom multiscale grain, not a measured film-stock model. Isotropic smooth
 // fields avoid row-direction artifacts and pixel-white speckles. Output scale
@@ -234,8 +263,8 @@ async function bytesFrom(response,max=OUTPUT_LIMIT){
 const stream=bytes=>new Blob([bytes]).stream();
 // V8 retains the proven V3 color curve and real-lamp emitter masks with less
 // global haze. V3 and V6 stay callable internally for image A/B and rollback.
-export async function renderFilmFinish(images,bytes,settings,seed,{engine='v8'}={}){
-  if(!['v6','v3','v8'].includes(engine))throw Error('Unknown film engine.');
+export async function renderFilmFinish(images,bytes,settings,seed,{engine='v9'}={}){
+  if(!['v6','v3','v8','v9'].includes(engine))throw Error('Unknown film engine.');
   const finish=filmFinishSettings(settings);
   if(!images?.input||!images?.info)throw Error('Film processing is temporarily unavailable.');
   if(bytes.length>INPUT_LIMIT)throw Error('This image is too large for the film finish.');
@@ -256,7 +285,7 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v8'}=
   }
   if(finish.haze){
     // Minimal global softness; most visible bloom follows real light sources.
-    const diffuse=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/2400))});
+    const diffuse=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/(engine==='v9'&&deluxeResponse(finish.haze)>0?1200:2400)))});
     image=image.draw(diffuse,{opacity:plan.diffusionOpacity,composite:'over'});
   }
   if(finish.haze||finish.halation){
@@ -268,14 +297,15 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v8'}=
       // haze pass plus one smaller source-halation pass leaves room for the
       // separate print curve, fine grain and restrained scene diffusion.
       const stages=[
-        ...(finish.haze?[[plan.hazeRadius,plan.hazeOpacity]]:[]),
-        ...(finish.halation?[[plan.halationRadius,plan.halationOpacity]]:[])
+        ...(finish.haze?[[plan.hazeRadius,plan.hazeOpacity,plan.hazeGain,plan.hazeGamma]]:[]),
+        ...(finish.halation?[[plan.halationRadius,plan.halationOpacity,plan.halationGain,plan.halationGamma]]:[])
       ];
       const scale=Math.max(.35,Math.min(1,Math.max(width,height)/1400));
-      for(const [radius,opacity] of stages){
+      for(const [radius,opacity,gain,gamma] of stages){
         const spread=(await images.input(stream(mask.bytes)).transform({blur:Math.max(1,Math.round(radius*scale))})
           .output({format:'image/png',anim:false})).response();
-        const halo=await transparentHighlights(await bytesFrom(spread,5_000_000));
+        const scattered=await bytesFrom(spread,5_000_000);
+        const halo=await transparentHighlights(scattered,gain,gamma);
         const layer=images.input(stream(halo)).transform({width,height,fit:'squeeze'});
         image=image.draw(layer,{opacity,composite:'over'});
       }

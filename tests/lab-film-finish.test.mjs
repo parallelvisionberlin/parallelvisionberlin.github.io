@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inflateSync} from 'node:zlib';
 import {readFileSync} from 'node:fs';
-import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION,photochemicalPixel,sourceLightWeight,printGradePng,luminousMaskPng,deluxeResponse,photochemicalPlan} from '../lab-worker/film-finish.mjs';
+import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION,photochemicalPixel,sourceLightWeight,softLightEmitterWeightV9,printGradePng,luminousMaskPng,deluxeResponse,photochemicalPlan} from '../lab-worker/film-finish.mjs';
 import {filmFinishSettings,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF} from '../lab/film-finish.js';
 import {prepareMoodPrompt,preparePersonalMoodPrompt} from '../lab/moods.js';
 
@@ -56,7 +56,7 @@ test('source-aware grain preserves black and white, favors midtones and does not
   assert.equal(energy[0],0);assert.equal(energy[5],0);
   assert.ok(energy[3]>energy[1]*3);assert.ok(energy[3]>energy[4]*3);
   for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
-  assert.equal(FILM_RENDER_REVISION,8,'new V8 processing must not reuse previous film derivatives');
+  assert.equal(FILM_RENDER_REVISION,9,'V9 must not reuse V8 derivatives or overwrite saved originals');
 });
 test('Restored Hong Kong look preserves subject and does not require invented scene relighting at any strength',()=>{
   for(const intensity of [21,70,100]){
@@ -100,6 +100,14 @@ test('35mm print curve shifts bright neutrals warm, shadows cool, keeps luminanc
   assert.ok(sourceLightWeight(14,30,30,0.5)<.01,'dark silhouettes cannot seed halos');
 });
 
+test('V9 catches real dim green practical light without illuminating skin or flat walls',()=>{
+  assert.ok(softLightEmitterWeightV9(100,197,169,.21)>.25,'green fluorescent practical is a valid emitter');
+  assert.ok(softLightEmitterWeightV9(245,210,110,.22)>.18,'warm practical is a valid emitter');
+  assert.equal(softLightEmitterWeightV9(20,45,35,.25),0,'dark green shadow stays dark');
+  assert.equal(softLightEmitterWeightV9(70,130,110,0),0,'flat green wall has no emission');
+  assert.equal(softLightEmitterWeightV9(190,145,119,.12),0,'skin midtones do not create ghost halos');
+});
+
 test('deluxe photochemical response builds progressively above 70 without changing calibrated defaults',()=>{
   assert.equal(deluxeResponse(0),0);assert.equal(deluxeResponse(70),0);
   assert.equal(deluxeResponse(100),1);
@@ -115,9 +123,16 @@ test('deluxe photochemical response builds progressively above 70 without changi
   assert.equal(newDefault.grainAmount,0);
   const full=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100});
   const previous=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100},{engine:'v3'});
-  assert.ok(full.diffusionOpacity<previous.diffusionOpacity*.5,'V8 must reduce whole-image blur');
+  const v8=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100},{engine:'v8'});
+  assert.ok(v8.diffusionOpacity<previous.diffusionOpacity*.5,'V8 low-softness baseline remains available');
   for(const key of ['grainAmount','printStrength','printOpacity','hazeRadius','hazeOpacity','halationRadius','halationOpacity'])
-    assert.equal(full[key],previous[key],'Preserve established source light behavior: '+key);
+    assert.equal(v8[key],previous[key],'V8 and historic source light behavior remain intact: '+key);
+  assert.ok(full.hazeRadius>v8.hazeRadius,'V9 spreads the actual source light farther at 100%');
+  assert.ok(full.hazeOpacity>v8.hazeOpacity,'V9 strengthens haze over source emitters');
+  assert.ok(full.halationOpacity>v8.halationOpacity,'V9 strengthens source-bound halation');
+  assert.ok(full.hazeGain>=5&&full.halationGain>=2.5,'high sliders regain attenuated halo light');
+  assert.ok(full.diffusionOpacity>v8.diffusionOpacity*2,'V9 high settings are observably different');
+  assert.ok(full.diffusionOpacity<previous.diffusionOpacity,'do not over-blur the whole image');
   assert.equal(full.signature,1);
   assert.ok(full.grainAmount>125&&full.grainAmount<=134);
   assert.ok(full.hazeRadius>60&&full.hazeOpacity>.45);
@@ -129,6 +144,10 @@ test('deluxe photochemical response builds progressively above 70 without changi
   const mid=photochemicalPlan({version:2,grain:65,haze:65,halation:65,film:65});
   assert.equal(mid.signature,0);
   assert.equal(mid.grainAmount,65);
+  assert.equal(mid.hazeGain,1);
+  assert.equal(mid.halationGain,1);
+  for(const key of ['hazeRadius','hazeOpacity','halationRadius','halationOpacity','diffusionOpacity','printStrength'])
+    assert.equal(mid[key],photochemicalPlan({version:2,grain:65,haze:65,halation:65,film:65},{engine:'v8'})[key],'0-70 optical finish remains calibrated');
 });
 test('deluxe 35mm crossover is stronger than standard without inventing a skin halo',()=>{
   const standard=photochemicalPixel(235,228,212),deluxe=photochemicalPixel(235,228,212,1);
@@ -164,8 +183,8 @@ test('v6 analog maximum visibly changes dim midtones and preserves pure black',(
   assert.match(backend,/filmFinishRevision:output.id===original.id\?null:FILM_RENDER_REVISION/);
 });
 
-test('V3 promotion invalidates old derivatives and retains V6 as a reversible internal renderer',async()=>{
-  assert.equal(FILM_RENDER_REVISION,8);
+test('V9 invalidates earlier derivatives and retains V6 and V3 as reversible optical engines',async()=>{
+  assert.equal(FILM_RENDER_REVISION,9);
   const original=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAIAAAB2XpiaAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAFUlEQVQImWNgYGBoaGj4////s/U9AB+aBp+Ia7giAAAAAElFTkSuQmCC','base64');
   const v6=await printGradePng(original,1,'v6');
   const v3=await printGradePng(original,1,'v3');
