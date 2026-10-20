@@ -262,12 +262,17 @@ try{
   await page.keyboard.press('ArrowRight');
   assert.ok(await page.locator('#lab-welcome-presets').evaluate(track=>track.scrollLeft)<4,
     'Keyboard arrows must edit the prompt caret, not move the gallery, while a text field is focused');
-  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
-    'Clicking the prompt opens its multi-line editor');
-  await page.waitForFunction(()=>document.querySelector('#image-composer').getBoundingClientRect().height>105);
-  assert.ok(await deck.evaluate(el=>el.getBoundingClientRect().height)>idleLayout.height+30,
-    'The same bottom-fixed compact deck must become the full editing deck after first focus');
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
+    'Clicking an empty signed-in prompt must NOT open a multi-line deck');
+  assert.ok(Math.abs(await deck.evaluate(el=>el.getBoundingClientRect().height)-idleLayout.height)<5,
+    'Simple cursor focus must keep the approved 74px first-image deck');
+  await field.fill('A quiet editorial portrait.');
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
+    'A short written prompt must stay within the compact one-row deck');
   await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(18));
+  await page.waitForFunction(()=>document.querySelector('#image-composer').getBoundingClientRect().height>105);
+  assert.ok(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),
+    'Long writing expands the same working Image deck only when space is required');
   // The editorial deck intentionally animates its height over 230ms.
   // Wait for that expansion before asserting the final readable geometry.
   await page.waitForFunction(()=>document.getElementById('image-composer-prompt')

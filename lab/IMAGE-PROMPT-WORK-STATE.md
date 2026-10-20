@@ -1,5 +1,12 @@
 # Image composer prompt: current state
 
+## Standard signed-in Image prompt expands only when needed (2026-10-20)
+- The owner's October 20 History screenshots showed the same empty Seedream 5 Pro Image deck growing immediately on focus. Source cause: `image-editorial-deck.js` sets `emptyRealFocus` and includes active focus as an expansion trigger, irrespective of content.
+- Targeted correction: for standard signed-in Image, focus alone never expands. Compact state persists while typed text fits, and long, wrapped or multiline directions expand based on the input's measured overflow against the compact textarea. Clearing or shortening restores the compact deck while the caret stays focused. Attached reference photos continue to expand the deck.
+- PV Soul's established special composition, guest Image preview, mobile native Create, prompt copy, models, Moods, tools, pricing, credits, generation and providers remain unchanged.
+- Changed only `lab/image-editorial-deck.js`, its cache token in `lab/studio.html`, protective tests and this handoff. Real-browser regressions assert empty focus, short prompt, long prompt and long-to-short transition in first-image and populated History flows; maintain the original long prompt scroll and references behavior.
+- Branch `fix/pvlab-image-focus-content-only-20261020`. CI, merge and production must be verified independently.
+
 ## Guest Image composer matches the real instrument (2026-10-20)
 - Owner supplied side-by-side signed-out and signed-in screens: merely focusing the anonymous textarea made a giant bordered inner box, while the real Studio kept an integrated prompt/toolbar/Generate instrument. Owner rejected the guest clone and unrelated Moods navigation.
 - Signed-out first paint stays the previously approved small horizontal strip. Empty focus and short text never expand it. A real long direction, pasted text, or filled Inspiration Mood opens one clean two-row writing deck with no inner focus rectangle, bounded auto-height and a real toolbar beneath it. Clearing returns to compact even while focused.
