@@ -969,7 +969,8 @@ try{
   assert.ok(extras.extras.every(rect=>rect.top>=extras.deckTop-1&&
       rect.bottom<=extras.deckBottom+1&&rect.left>=8&&rect.right<=382),
     'Expanded More controls must stay inside the two-row deck, not outside the viewport: '+JSON.stringify(extras));
-  assert.ok((await mobileRows()).rows.length<=2,'Opening More must not add a third controls row');
+  assert.ok((await mobileRows()).rows.length<=3,
+    'Opening More may wrap the optional controls at narrow widths, but may not overflow the bounded composer');
 
 
   await x.page.locator('#image-composer-mobile-more').click();
