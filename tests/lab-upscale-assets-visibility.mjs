@@ -48,6 +48,13 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       const card=document.createElement('article');card.className='card';card.dataset.kind='image';card.dataset.job='mock-upscale';
       card.textContent='Completed upscale result';document.getElementById('history').append(card);
       app.classList.add('upscale-studio-active');
+      // Match the authenticated Upscaler view for the isolated mock page.
+      document.getElementById('empty-title').textContent='Upscaler';
+      document.getElementById('empty-description').textContent='Restore fine detail and resolution while keeping your original composition.';
+      document.getElementById('canvas-import').textContent='Upload image';
+      document.getElementById('canvas-secondary').hidden=true;
+      document.getElementById('generate').textContent='Upscale · 10 credits';
+      document.getElementById('emptyarchive').textContent='No upscaled images yet';
       const tool=document.getElementById('tool-upscale');tool.classList.add('active');tool.setAttribute('aria-pressed','true');
       // Set the same visibility flags the authenticated Upscaler uses, without providers.
       for(const id of ['upscale-model-display','upscale-scale-control','upscale-info','upscale-price','format-control']){
@@ -62,14 +69,14 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       // Compare the actual input surfaces, not the model wrapper that also contains its label.
       return {model:rect('.upscale-model-readout'),size:rect('#upscale-scale'),format:rect('#output-format'),generate:rect('#generate')};
     });
-    if(profile==='desktop'){
-      const tops=[deck.model.top,deck.size.top,deck.format.top,deck.generate.top];
-      assert.ok(Math.max(...tops)-Math.min(...tops)<5,'Desktop model, enlargement, format and Upscale align in one row');
-      assert.ok(deck.model.left<deck.size.left&&deck.size.left<deck.format.left&&deck.format.left<deck.generate.left,'Desktop upscale controls follow logical order');
-    }else{
-      assert.ok(deck.model.width>0&&deck.generate.width>0,'Mobile upscale controls remain usable');
-      assert.ok(deck.model.top<deck.size.top&&deck.generate.top>deck.size.top,'Mobile model spans first row and Upscale wraps below settings');
-    }
+    assert.ok(deck.model.width>0&&deck.generate.width>0,profile+': Upscale settings remain usable');
+    assert.ok(deck.model.top<deck.size.top&&deck.format.top>=deck.size.top-2,profile+': model is above the output controls');
+    assert.ok(Math.abs(deck.size.top-deck.format.top)<5,profile+': enlargement and format share one readable row');
+    assert.ok(deck.generate.top>deck.size.top,profile+': paid Upscale action is distinct from settings');
+    const chooserPromise=page.waitForEvent('filechooser');
+    await page.locator('#pv-upscale-source-upload').click();
+    const chooser=await chooserPromise;
+    assert.equal(chooser.isMultiple(),false,profile+': editorial source button opens the existing single-image input');
     const geometry=await page.evaluate(()=>{
       const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
       return {
@@ -77,22 +84,20 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
         options:rect('#upscale-info summary'),size:rect('#upscale-scale'),imageLoaded:false
       };
     });
-    const spacing=await page.evaluate(()=>{
-      const deck=document.querySelector('#app .workspace>.controls');
-      const computed=getComputedStyle(deck);
-      const preview=document.getElementById('upscale-canvas').getBoundingClientRect();
-      const box=deck.getBoundingClientRect();
-      return {gap:box.top-preview.bottom,paddingTop:parseFloat(computed.paddingTop),paddingBottom:parseFloat(computed.paddingBottom)};
-    });
-    assert.ok(spacing.gap>=17&&spacing.gap<=40,profile+': preserve breathing room below the large preview');
-    assert.ok(spacing.paddingTop>=14&&spacing.paddingBottom>=12,profile+': workdeck is slightly taller');
     if(profile==='desktop'){
-      assert.ok(geometry.canvas.height>=420&&geometry.canvas.height<=660,'Empty desktop preview restored to its original large format');
-      assert.ok(geometry.results.top>=680&&geometry.results.top<=1000,'Gallery follows the restored large preview rather than a shrunken canvas');
-      assert.ok(geometry.options.left>=geometry.deck.right-165&&geometry.options.right<=geometry.deck.right,'More options aligns right within the working deck');
+      assert.ok(geometry.deck.right+7<=geometry.canvas.left,'Desktop controls sit to the left of the photographic stage');
+      assert.ok(Math.abs(geometry.deck.top-geometry.canvas.top)<55,'Desktop studio panels share a top baseline');
+      assert.ok(geometry.canvas.height>=540&&geometry.canvas.height<=821,'Desktop preview is a full photographic stage');
+      assert.ok(geometry.results.top>=geometry.canvas.bottom,'Upscaled results follow the preview');
+      assert.ok(geometry.results.left>=geometry.canvas.left-5,'Results align with the image stage, not the sidebar');
+      assert.ok(geometry.options.left>=geometry.deck.left&&geometry.options.right<=geometry.deck.right,'More options stays inside the left deck');
     }else{
-      assert.ok(geometry.canvas.height>=389&&geometry.canvas.height<=395,'Mobile preview restores its original 390px height');
+      assert.ok(geometry.deck.top>=geometry.canvas.bottom+7,'Mobile shows the image before the settings deck');
+      assert.ok(geometry.canvas.height>=415&&geometry.canvas.height<=425,'Narrow mobile preview remains a usable 420px stage');
+      assert.ok(geometry.results.top>=geometry.deck.bottom,'Mobile result gallery follows settings');
     }
+    assert.equal(await page.locator('.pv-upscale-workspace-intro').isVisible(),true,'Upscale has the editorial settings header');
+    assert.equal(await page.locator('.pv-upscale-example-note').isVisible(),true,'Upscale example imagery is explicitly labeled');
     const emptyCanvasHeight=geometry.canvas.height;
     await page.evaluate(()=>{
       const preview=document.getElementById('preview'),empty=document.getElementById('empty');
@@ -105,7 +110,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     assert.equal(await page.locator('.stagefoot').isVisible(),false,'Empty Upscaler does not show a technical footer');
     assert.equal(await page.locator('#settings-summary').isVisible(),false,'Redundant technical text is hidden on Upscaler');
     await page.evaluate(()=>{document.querySelector('#download').hidden=false;});
-    assert.equal(await page.locator('.stagefoot').isVisible(),true,'Finished result keeps its Download action');
+    assert.equal(await page.locator('.stagefoot').isVisible(),false,'Upscale relies on the existing result toolbar instead of a duplicate footer');
     await page.evaluate(()=>{document.querySelector('#download').hidden=true;});
     await page.evaluate(()=>{
       const card=document.querySelector('#history .card'),figure=document.createElement('figure');
