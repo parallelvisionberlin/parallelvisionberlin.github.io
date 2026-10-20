@@ -915,7 +915,7 @@ try{
   assert.ok(compactComposer.left>=0&&compactComposer.right<=390,'Floating Image bar fits on mobile');
   assert.ok(await x.page.locator('#image-composer-add').isVisible(),'Mobile Image bar keeps in-bar reference action');
   assert.ok(await x.page.locator('#image-composer-mobile-more').isVisible(),'Mobile secondary settings have an explicit More disclosure');
-  // The image control surface stays at exactly two rows on phones.
+  // The approved compact Image toolbar uses one row where it fits, never a third.
   const mobileRows=async()=>x.page.evaluate(()=>{
     const ids=['image-composer-add','scene-image-open','image-composer-model',
       'image-composer-moods','image-composer-edit-area','image-composer-ratio',
@@ -934,7 +934,7 @@ try{
     return {rows,controls,viewport:innerWidth};
   });
   let controlGeometry=await mobileRows();
-  assert.equal(controlGeometry.rows.length,2,'390px Image dock must use exactly two rows: '+JSON.stringify(controlGeometry));
+  assert.ok(controlGeometry.rows.length>=1&&controlGeometry.rows.length<=2,'390px Image toolbar must never force a third row: '+JSON.stringify(controlGeometry));
   assert.ok(controlGeometry.rows[0].items.includes('scene-image-open'),'Library icon belongs beside upload, not row three');
   assert.ok(controlGeometry.rows[0].items.includes('image-composer-add'),'Upload stays in the first row');
   assert.ok(controlGeometry.controls.every(c=>c.left>=8&&c.right<=controlGeometry.viewport-8),
@@ -965,7 +965,7 @@ try{
   });
   assert.ok(extras.extras.every(rect=>rect.bottom<=extras.deckTop+1&&rect.left>=8&&rect.right<=382),
     'More settings float fully above the deck, not row three: '+JSON.stringify(extras));
-  assert.equal((await mobileRows()).rows.length,2,'Opening More must not add a third controls row');
+  assert.ok((await mobileRows()).rows.length<=2,'Opening More must not add a third controls row');
 
 
   await x.page.locator('#image-composer-mobile-more').click();
@@ -973,7 +973,7 @@ try{
   assert.equal(await x.page.locator('#image-composer-generate').evaluate(el=>Math.round(el.getBoundingClientRect().width)),await x.page.locator('#image-composer .image-composer-toolbar').evaluate(el=>Math.round(el.getBoundingClientRect().width)),'Generate is a full-width action underneath the controls');
   await x.page.setViewportSize({width:320,height:730});
   const narrowRows=await mobileRows();
-  assert.equal(narrowRows.rows.length,2,'320px Image dock also uses two rows: '+JSON.stringify(narrowRows));
+  assert.ok(narrowRows.rows.length>=1&&narrowRows.rows.length<=2,'320px toolbar must not create a third row: '+JSON.stringify(narrowRows));
   assert.ok(narrowRows.controls.every(c=>c.left>=7&&c.right<=313),
     '320px toolbar must not clip controls: '+JSON.stringify(narrowRows));
   await x.page.setViewportSize({width:390,height:844});
