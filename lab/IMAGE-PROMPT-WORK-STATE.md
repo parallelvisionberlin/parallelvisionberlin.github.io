@@ -4,7 +4,9 @@
 - Owner approved image 1 as the compact guest entry, with the existing short-to-long prompt flow. Removed only the extra guest text focus rectangle and outer focus brightening; retained the resting graphite border, card layouts, responsive expansion and prompt state controller.
 - Increased guest desktop Sign in from 36px/12px to 42px/13px, preserving the phone overrides and the signed-in account header.
 - Scoped files: `lab/studio-guest-image.css`, `lab/image-editorial-deck.css`, `lab/studio.html`, approved Image UI contract test, and this handoff. CSS asset cache tokens updated; no JavaScript, model, privacy, payment, credits or account data changed.
-- Branch: `fix/pvlab-guest-focus-signin-20261020`. Unit test/CI, merge and production need independent confirmation; do not treat a GitHub commit as a live deploy.
+- PR #366 squash-merged into `main` as `ef76bf8c847188b8e7ee81de3079c93f7133df04` on 2026-10-20. The merged Studio HTML references both updated CSS assets. Approved Image contract, long prompt paste, instant first-image, static-site, queue, pricing and core Lab tests passed on the PR.
+- Six broader browser workflow failures (compact Image customer credit preview timeout, authenticated account alignment, mobile Studio dock row expectation, Upscaler spacing, Fashion dock and Mood Creator icons) matched the same failed workflows on the earlier 2026-10-19 PR #361; not altered or fixed by this styling change. Keep follow-up separate.
+- Cloudflare Pages production and custom-domain appearance were not independently accessible in this environment. Source merge is confirmed, production publication not confirmed.
 
 ## Locked Image UI contract (2026-10-19)
 
