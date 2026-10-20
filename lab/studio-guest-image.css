@@ -89,7 +89,6 @@
   font:400 14px/1.5 'DM Sans',Arial,sans-serif;letter-spacing:0;
 }
 #gate .pv-guest-composer textarea::placeholder{color:#ccc8c5}
-#gate .pv-guest-composer textarea:focus-visible{outline:2px solid #dad6d0;outline-offset:3px;border-radius:4px}
 #gate .pv-guest-composer-footer{display:flex;align-items:center;gap:15px;justify-content:space-between}
 #gate .pv-guest-settings{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 #gate .pv-guest-setting{
@@ -112,9 +111,9 @@
 #gate .pv-guest-retry{margin:11px auto 0;padding:10px 15px;background:#27292e;color:#fff;border:1px solid #ccc7c3;border-radius:9px;cursor:pointer}
 #studio-header #signin.pv-guest-signin:not([hidden]){
   display:inline-flex;align-items:center;justify-content:center;
-  flex:none;min-height:36px;padding:8px 18px;
+  flex:none;min-height:42px;padding:10px 21px;
   border-radius:20px;background:#eeeae5;color:#181818;border:1px solid #e9e5e0;
-  font:600 12px/1 'DM Sans',Arial,sans-serif;cursor:pointer;
+  font:600 13px/1 'DM Sans',Arial,sans-serif;cursor:pointer;
 }
 #studio-header #signin.pv-guest-signin:disabled{opacity:.55;cursor:wait}
 body:has(#gate.pv-guest-image:not([hidden])) #studio-header #identity,
