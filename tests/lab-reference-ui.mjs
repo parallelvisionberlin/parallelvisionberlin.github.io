@@ -96,12 +96,14 @@ try{
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');await imageAdvanced(x.page);
   await x.page.locator('.reference-item select').first().selectOption('room');
   await x.page.locator('.reference-item input').first().fill('Use only the architecture.');
-  await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
+  // The legacy Save Draft button is hidden by the approved floating editor.
+  // Trigger its handler directly for the backend archive/role regression.
+  await x.page.evaluate(()=>document.getElementById('save').click());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   assert.equal(x.uploads.length,7);const expectedHash=createHash('sha256').update(input).digest('hex');assert.ok(x.uploads.every(u=>u.sha===expectedHash&&u.bytes===input.length));
   const draft=x.requests.find(r=>r.path==='/api/drafts').data;assert.equal(draft.settings.outputFormat,'png');assert.equal(draft.referenceSourceIds.length,7);assert.equal(draft.settings.referenceRoles[0].role,'room');assert.equal(draft.settings.referenceRoles[0].note,'Use only the architecture.');
   assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);pass('Save sends original bytes, ordered reference IDs, roles and notes, never the thumbnails');
-  await x.page.locator('.reference-item').nth(1).getByText('Up',{exact:true}).click();assert.equal((await x.page.evaluate(()=>window.__labTest.refs()))[0].name,'architecture-reference-2.png');
-  await x.page.locator('.reference-item').first().getByText('Remove',{exact:true}).click();assert.equal(await x.page.locator('.reference-item').count(),6);pass('Reorder and remove still operate on the correct originals');
+  await x.page.locator('#image-composer-references .composer-reference-tile').nth(1).focus();await x.page.keyboard.press('Alt+ArrowLeft');assert.equal((await x.page.evaluate(()=>window.__labTest.refs()))[0].name,'architecture-reference-2.png');
+  await x.page.locator('#image-composer-references .composer-reference-remove').first().click();assert.equal(await x.page.locator('.reference-item').count(),6);pass('Reorder and remove still operate on the correct originals');
   assert.deepEqual(x.errors,[]);await x.context.close();
 
   x=await workspace();await imageAdvanced(x.page);
@@ -144,7 +146,7 @@ try{
   assert.ok(preview.indexOf('Reference 1 [Base image]')<preview.indexOf('Reference 2 [Detail / Hands]'));
   pass('Clothing exposes Pants and the collapsed SpicyAPI preview expands into the ordered automatic instructions');
   await x.page.getByLabel('Note for reference 2',{exact:true}).fill('Keep the existing hand position.');
-  await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
+  await x.page.evaluate(()=>document.getElementById('save').click());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   const guidedDraft=x.requests.find(r=>r.path==='/api/drafts').data;
   assert.match(guidedDraft.settings.prompt,/^Create a natural photographic variation of the base image/,
     'Blank written direction receives approved base-image variation guidance');
