@@ -31,3 +31,10 @@ Source base: `1566e668b4688bbf499a3fb700c316fbf1d08ca1`, main.
 - Direct production health read confirmed `pv-lab-2026-10-21.1-elements-gemini3` after release.
 - Browser at https://pvlab.studio/studio?tool=image is signed out in this session, so the real private Nina-pack provider response was not tested.
 - Next: signed-in owner should click Analyze photos on the existing NINA FULL BODY Element; no reupload or LoRA retraining is required.
+
+## Message spacing follow-up, 2026-10-21
+- User requested only removal of the small message scrollbar and inset text.
+- `lab/scene-library.css`: nonempty browse feedback gets a separate wrapping footer, aligned to the existing 24px desktop, 17px tablet and 14px phone content gutters.
+- With a message visible, the gallery retains wheel/touch scrolling; the message does not add an outer scrollbar. Empty-message layout and the create form retain their existing behavior.
+- `lab/studio.html`: stylesheet cache revision only. No JS, backend, asset, typography or card-layout changes.
+- Static diff checks passed. Local browser preview is unavailable because the browser download returned an invalid archive; existing browser CI and production asset verification are pending.

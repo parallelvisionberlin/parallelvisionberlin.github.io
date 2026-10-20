@@ -992,16 +992,35 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
 }
 #scene-library-dialog #scene-browser-foot:has(#scene-browse-status:empty){display:none}
 #scene-library-dialog #scene-browser-foot:not(:has(#scene-browse-status:empty)){
-  padding:10px 0 0;margin:14px 0 0
+  box-sizing:border-box;flex:0 0 auto;min-width:0;
+  padding:12px 24px 14px;margin:0;background:#111518
 }
-#scene-library-dialog #scene-browse-status{margin:0}
+#scene-library-dialog #scene-browse-status{
+  flex:1;min-width:0;margin:0;white-space:normal;overflow-wrap:anywhere
+}
+/* Keep analysis feedback in its own padded row. The gallery retains wheel
+   and touch scrolling without a second scrollbar caused by the message. */
+#scene-library-dialog:has(#scene-browser:not([hidden])) .scene-main:has(#scene-browse-status:not(:empty)){
+  display:flex;flex-direction:column;overflow:hidden
+}
+#scene-library-dialog .scene-main:has(#scene-browse-status:not(:empty))>.scene-header{
+  flex:0 0 auto
+}
+#scene-library-dialog .scene-main:has(#scene-browse-status:not(:empty))>#scene-browser{
+  flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none
+}
+#scene-library-dialog .scene-main:has(#scene-browse-status:not(:empty))>#scene-browser::-webkit-scrollbar{
+  display:none
+}
 @media(max-width:940px){
+  #scene-library-dialog #scene-browser-foot:not(:has(#scene-browse-status:empty)){padding-inline:17px}
   #scene-library-dialog .scene-sidebar-brand{font-size:9px;letter-spacing:.08em}
   #scene-library-dialog .scene-sidebar-brand span{margin:0 5px}
   #scene-library-dialog .scene-elements-info-trigger{flex-basis:18px;width:18px;height:18px;margin-left:4px}
   #scene-library-dialog .scene-elements-info-popover{left:151px;width:min(325px,calc(100% - 163px))}
 }
 @media(max-width:700px){
+  #scene-library-dialog #scene-browser-foot:not(:has(#scene-browse-status:empty)){padding-inline:14px}
   #scene-library-dialog .scene-sidebar-brand{display:none}
   #scene-library-dialog .scene-elements-info-trigger.is-mobile{
     display:inline-grid;flex:0 0 26px;width:26px;height:26px;margin:0
