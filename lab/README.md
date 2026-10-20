@@ -12,6 +12,7 @@ Approved Elements tab hero photos: [Elements hero visual work state](ELEMENTS-HE
 Elements Gemini photo-analysis repair: [Analysis work state](ELEMENT-ANALYSIS-WORK-STATE.md).
 Wan reference drag-and-drop and Seedream opening frame: [Video opening frame work state](VIDEO-OPENING-FRAME-WORK-STATE.md).
 Motion Effects discovery and video presets: [Video Effects work state](VIDEO-EFFECTS-WORK-STATE.md).
+Direct downloads from completed Video History cards: [Video downloads work state](VIDEO-DOWNLOAD-WORK-STATE.md).
 
 ## First-party public traffic meter (2026-10-15)
 
