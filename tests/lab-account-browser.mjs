@@ -156,7 +156,7 @@ try{
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
       assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6);
       assert.equal(await page.locator('#image-composer-prompt').inputValue(),direction,
-        'Pricing must preserve the customer's drafted creative direction');
+        "Pricing must preserve the customer's drafted creative direction");
       assert.equal(writes.some(x=>['/api/billing/checkout','/api/jobs','/api/quotes','/api/uploads'].includes(x.path)),false,
         'Paused trial Generate previews plans without a payment, generation, or upload');
       await page.locator('#lab-pricing-overlay-close').click();
