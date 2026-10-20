@@ -1,0 +1,63 @@
+name: Hong Kong Image 3 controlled repair
+on:
+  push:
+    branches: ['codex/hk-image3-repair-runner-20261020']
+    paths: ['tools/hk-image3-repair.mjs', '.github/workflows/hk-image3-repair.yml']
+permissions:
+  contents: write
+concurrency:
+  group: hong-kong-image3-repair
+  cancel-in-progress: false
+jobs:
+  prepare-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            tools
+            lab
+            lab-worker
+            sandbox
+            tests
+            js/pv-auth.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply only the scoped patch on the dedicated release branch
+        run: |
+          set -euo pipefail
+          cp tools/hk-image3-repair.mjs /tmp/hk-image3-repair.mjs
+          git fetch origin fix/hk-image3-atmosphere-20261020 --depth=1
+          git switch --detach FETCH_HEAD
+          node /tmp/hk-image3-repair.mjs
+          git diff --check
+          node --check lab/moods.js
+          node --check tests/lab-hong-kong-image3-baseline.test.mjs
+      - name: Verify approved baseline, optical engine, anchor prompts and all Lab unit regressions
+        run: |
+          set -euo pipefail
+          node --test tests/lab-hong-kong-image3-baseline.test.mjs
+          node --test tests/lab*.test.mjs
+      - name: Commit only verified release files, never the maintenance runner
+        run: |
+          set -euo pipefail
+          git config user.name 'Parallel Vision'
+          git config user.email 'parallelvision.label@gmail.com'
+          git add lab/moods.js lab/lab.js lab/app-moods.js lab/app-mood-generation.js lab/explore-moods.js lab/mood-creator.js lab/studio.html lab/moods.html lab/app-moods.html lab/mood-creator.html lab/HONG-KONG-IMAGE3-WORK-STATE.md tests/lab-hong-kong-image3-baseline.test.mjs
+          test "$(git diff --cached --name-only | wc -l)" -eq 12
+          git diff --cached --exit-code -- lab-worker lab/film-finish.js lab/mood-references.js lab/hong-kong-variants.js
+          git commit -m 'Hong Kong Nights: preserve Image 3 baseline, refine atmosphere only above 90 percent'
+          git push origin HEAD:refs/heads/fix/hk-image3-atmosphere-20261020
+          git rev-parse HEAD
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hk-image3-repair-source
+          retention-days: 2
+          path: |
+            lab/moods.js
+            lab/HONG-KONG-IMAGE3-WORK-STATE.md
+            tests/lab-hong-kong-image3-baseline.test.mjs
