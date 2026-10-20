@@ -4,368 +4,239 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="index,follow,max-image-preview:large">
-  <meta name="description" content="Parallel Vision is a Berlin creative studio for fashion campaigns, art direction, AI film and motion, and immersive digital experiences. Explore our work and start a project.">
-  <meta name="theme-color" content="#111210">
-  <title>Parallel Vision Agency | Fashion, Film, Digital & Immersive</title>
+  <meta name="description" content="Parallel Vision is a Berlin creative studio working across fashion, art direction, moving image, digital experiences and sound. Explore selected work and commissions.">
+  <meta name="theme-color" content="#111312">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Parallel Vision Agency | Fashion, Film, Digital">
+  <meta property="og:description" content="An independent creative studio in Berlin. Fashion, film, digital experiences and worlds beyond.">
+  <meta property="og:image" content="https://parallelvisionlabel.com/assets/optimized/LOOK03.webp">
   <link rel="canonical" href="https://parallelvisionlabel.com/agency/">
   <link rel="icon" href="../favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="../assets/optimized/LOOK04.webp">
-  <style>
-    :root{color-scheme:dark;--ink:#111210;--paper:#efefe9;--white:#f4f4ee;--muted:#b5b8ae;--line:#34372f;--dark-text:#595d52;--light-line:#cccec3}
-    *,*::before,*::after{box-sizing:border-box}
-    html{scroll-behavior:smooth;scroll-padding-top:100px}
-    body{margin:0;background:var(--ink);color:var(--white);font:400 16px/1.6 Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-    a{color:inherit;text-decoration:none}
-    button{font:inherit}
-    a,button,summary{-webkit-tap-highlight-color:transparent}
-    a:focus-visible,button:focus-visible,summary:focus-visible,video:focus-visible{outline:2px solid currentColor;outline-offset:5px}
-    [hidden]{display:none!important}
-    ::selection{background:#d6ddc9;color:#111210}
-    h1,h2,h3,p,figure{margin:0}
-    h1,h2,h3{font-weight:500;line-height:1.15;letter-spacing:-.035em}
-    h2{font-size:clamp(28px,2.7vw,38px)}
-    h3{font-size:25px}
-    img,video{display:block;max-width:100%}
-    .wrap{width:min(1220px,calc(100% - 80px));margin-inline:auto}
-    .skip{position:fixed;z-index:100;top:12px;left:16px;padding:10px 16px;background:var(--paper);color:var(--ink);transform:translateY(-180%)}
-    .skip:focus{transform:translateY(0)}
-    .site-header{position:sticky;top:0;z-index:20;background:var(--ink);border-bottom:1px solid var(--line)}
-    .header-inner{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:24px}
-    .brand{display:flex;align-items:center;gap:16px;min-height:44px}
-    .wordmark{font:400 12px/1.3 Michroma,Arial,sans-serif;letter-spacing:.01em;white-space:nowrap}
-    .brand-note{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-left:1px solid #5a5f52;padding-left:16px}
-    .nav{display:flex;align-items:center;gap:30px;font-size:13px}
-    .nav a{display:inline-flex;align-items:center;min-height:44px}
-    .nav a:hover,.text-link:hover{text-decoration:underline;text-underline-offset:5px}
-    .nav .nav-contact{gap:18px}
-    .eyebrow{font-size:11px;font-weight:500;line-height:1.5;letter-spacing:.14em;text-transform:uppercase}
-    .hero{padding:62px 0 48px}
-    .hero-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:52px;align-items:center}
-    .hero-copy,.hero-media{min-width:0}
-    .hero .eyebrow{color:var(--muted);margin-bottom:20px}
-    h1{font-size:clamp(34px,3.55vw,50px);line-height:1.09;letter-spacing:-.045em;margin-bottom:22px}
-    h1 span{display:block}
-    .hero-description{font-size:17px;line-height:1.65;color:#c2c5bb;max-width:490px}
-    .hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;margin-top:28px}
-    .button{display:inline-flex;align-items:center;justify-content:center;gap:24px;min-height:48px;padding:11px 20px;background:var(--paper);color:var(--ink);font-size:14px;font-weight:500;border:1px solid var(--paper);transition:background .15s}
-    .button:hover{background:#dfdcd4}
-    .text-link{display:inline-flex;align-items:center;gap:16px;min-height:44px;font-size:14px}
-    .film-frame{position:relative;aspect-ratio:16/10;background:#292b2a;overflow:hidden}
-    .film-frame video{width:100%;height:100%;object-fit:cover}
-    .film-frame.is-active video{object-fit:contain;background:#050505}
-    .play-film{position:absolute;bottom:20px;left:20px;display:flex;align-items:center;gap:12px;min-height:46px;padding:10px 16px;border:1px solid #ffffff6b;background:#10110feb;color:#fff;cursor:pointer;font-size:13px}
-    .play-film:hover{background:#343735}
-    .play-film:focus-visible{outline-offset:-5px}
-    .media-caption{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:12px;font-size:11px;color:var(--muted)}
-    .media-caption a{padding-block:4px;white-space:nowrap;text-decoration:underline;text-underline-offset:4px}
-    .media-error{font-size:12px;color:var(--muted);margin-top:8px}
-    .light{background:var(--paper);color:var(--ink);color-scheme:light}
-    .section{padding:72px 0}
-    .section-heading{display:flex;align-items:end;justify-content:space-between;gap:32px;margin-bottom:34px}
-    .section-heading .eyebrow{color:var(--dark-text);margin-bottom:10px}
-    .section-heading>p{max-width:385px;font-size:15px;line-height:1.6;color:var(--dark-text)}
-    .service-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 40px}
-    .service{padding:27px 0 26px;border-top:1px solid var(--light-line);scroll-margin-top:110px;min-width:0}
-    .service-top{display:flex;gap:20px;align-items:baseline;margin-bottom:14px}
-    .number{font-size:11px;color:var(--dark-text);letter-spacing:.07em;flex-shrink:0}
-    .service h3{font-size:24px;letter-spacing:-.03em}
-    .service>p{color:var(--dark-text);font-size:15px;line-height:1.65;max-width:520px}
-    .service .deliverable-line{color:#33372c;font-size:12px;line-height:1.7;margin-top:15px}
-    details{margin-top:12px}
-    summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:44px;font-size:13px;font-weight:500}
-    summary::-webkit-details-marker{display:none}
-    summary::after{content:'+';font-size:20px;line-height:1;font-weight:400}
-    details[open] summary::after{content:'−'}
-    summary:hover{text-decoration:underline;text-underline-offset:4px}
-    .detail-copy{font-size:14px;line-height:1.7;color:var(--dark-text);padding:8px 0 4px}
-    .detail-copy p+p{margin-top:10px}
-    .detail-note{font-size:12px}
-    .standalone{border-top:1px solid var(--light-line);padding-top:20px;margin-top:8px;font-size:13px;color:var(--dark-text)}
-    .standalone strong{font-weight:500;color:var(--ink)}
-    .work-section{border-top:1px solid var(--light-line)}
-    .work-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
-    .work-card{min-width:0}
-    .work-image{display:block;aspect-ratio:4/3;background:#292b2a;overflow:hidden}
-    .work-image img{width:100%;height:100%;object-fit:cover;transition:transform .3s ease}
-    .work-image:hover img{transform:scale(1.025)}
-    .work-image.nina img{object-position:center 32%}
-    .work-meta{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dark-text);margin:17px 0 9px}
-    .work-card h3{font-size:21px;line-height:1.3;margin-bottom:10px}
-    .work-card h3 a{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
-    .work-card h3 a:hover{text-decoration:underline;text-underline-offset:4px}
-    .work-card p{font-size:14px;line-height:1.65;color:var(--dark-text)}
-    .approach .section-heading .eyebrow,.approach .section-heading>p{color:var(--muted)}
-    .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:38px;margin:0;padding:0;list-style:none}
-    .steps li{border-top:1px solid var(--line);padding-top:20px}
-    .steps .number{color:var(--muted)}
-    .steps h3{font-size:20px;margin:17px 0 12px;letter-spacing:-.025em}
-    .steps p{font-size:14px;color:var(--muted);line-height:1.7}
-    .contact{padding:58px 0 62px;border-top:1px solid var(--line)}
-    .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
-    .contact .eyebrow{color:var(--muted);margin-bottom:13px}
-    .contact h2{font-size:clamp(28px,3vw,40px);max-width:430px}
-    .contact p{font-size:15px;color:var(--muted);margin-bottom:22px;max-width:450px}
-    .contact-email{display:block;width:fit-content;max-width:100%;font-size:14px;overflow-wrap:anywhere;margin-top:15px;padding-block:5px;text-decoration:underline;text-underline-offset:4px}
-    .footer{border-top:1px solid var(--line);padding:23px 0;font-size:11px;color:var(--muted)}
-    .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
-    .footer a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:4px}
-    @media(min-width:1600px){.hero{padding-top:72px}}
-    @media(max-width:1050px){.wrap{width:calc(100% - 56px)}.hero-grid{gap:32px}.hero-description{font-size:16px}.service h3{font-size:22px}.work-grid{gap:20px}.work-card h3{font-size:19px}}
-    @media(max-width:760px){html{scroll-padding-top:90px}.wrap{width:calc(100% - 40px)}.header-inner{min-height:68px;gap:16px}.brand{gap:10px}.brand-note{padding-left:10px;font-size:10px}.wordmark{font-size:10px}.nav{gap:18px;font-size:12px}.nav .nav-work{display:none}.nav .nav-contact{gap:8px}.hero{padding:36px 0 30px}.hero-grid{grid-template-columns:1fr;gap:30px}.hero-copy{max-width:530px}h1{font-size:clamp(33px,5.5vw,44px);margin-bottom:18px}.hero .eyebrow{margin-bottom:16px}.hero-description{font-size:16px}.hero-actions{margin-top:22px;gap:10px 16px}.hero-actions .button{gap:14px;padding-inline:14px}.hero-actions .text-link{gap:10px}.hero-actions .button,.hero-actions .text-link{font-size:13px}.film-frame{aspect-ratio:16/9}.section{padding:50px 0}.section-heading{display:block;margin-bottom:27px}.section-heading>p{margin-top:16px;max-width:480px}.service-grid{gap:0 25px}.service-top{gap:12px}.service h3{font-size:21px}.work-grid{grid-template-columns:1fr;gap:34px}.work-card{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:center}.work-meta{margin-top:0}.work-card h3{font-size:21px}.steps{gap:24px}.steps h3{font-size:18px}.contact-grid{gap:30px}.contact{padding:46px 0}.media-caption{font-size:10px}}
-    @media(max-width:540px){.brand{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px}.brand-note{border:0;padding:0;font-size:9px}.nav .nav-services{display:none}.service-grid{grid-template-columns:1fr}.service h3{font-size:23px}.service{padding:23px 0 20px}.service>p{font-size:15px}.service-top{gap:17px}.work-card{display:block}.work-image{aspect-ratio:16/10}.work-meta{margin-top:16px}.work-card h3{font-size:22px}.steps{grid-template-columns:1fr;gap:25px}.steps li{display:grid;grid-template-columns:28px 1fr;gap:0 12px}.steps .number{grid-row:1/3;margin-top:5px}.steps h3{font-size:20px;margin:0 0 10px}.steps p{grid-column:2}.contact-grid{grid-template-columns:1fr;gap:24px}.contact h2{max-width:330px}.contact p{margin-bottom:20px}.media-caption{align-items:start}.media-caption span{max-width:65%}}
-    @media(max-width:360px){.wrap{width:calc(100% - 32px)}.wordmark{font-size:10px}.brand{gap:4px}.brand-note{padding-left:0;font-size:9px}.nav{font-size:11px}.nav .nav-contact{gap:6px}.hero-actions{gap:8px 16px}h1{font-size:32px}}
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
-
-    /* Agency private preview: editorial art direction, preserving the established player. */
-    :root{--ink:#141515;--paper:#eeede9;--white:#f5f4f0;--muted:#babbb6;--line:#454846;--dark-text:#545954;--light-line:#cccdc7;--accent:#d2cec4}
-    .site-header{background:#141515f5;backdrop-filter:blur(13px)}
-    .header-inner{min-height:80px}.nav-contact{border-bottom:1px solid var(--accent)}
-    .hero{padding:28px 0 70px}
-    .hero-edition{display:flex;justify-content:space-between;gap:22px;border-bottom:1px solid var(--line);padding-bottom:19px;margin-bottom:40px;color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}
-    .hero-edition span:last-child{text-align:right}
-    .hero-grid{grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);gap:clamp(35px,5vw,75px);align-items:stretch}
-    .hero-copy{display:flex;flex-direction:column;align-items:flex-start;padding:8px 0}
-    h1{font-size:clamp(59px,6.85vw,106px);line-height:.99;letter-spacing:-.079em;margin-bottom:28px}
-    h1 span{display:block}h1 em{font:400 .97em/.93 Georgia,serif;letter-spacing:-.073em;color:var(--accent)}
-    .hero-description{font-size:16px;max-width:480px;line-height:1.72;color:#c4c5bf}
-    .hero-actions{margin-top:auto;padding-top:34px}.button{min-height:52px}
-    .hero-media{display:flex;flex-direction:column;justify-content:flex-end}
-    .film-frame{aspect-ratio:4/5;min-height:455px;border:1px solid #535754;background:#252726}
-    .film-frame::after{content:'PV / 001';position:absolute;top:16px;right:16px;padding:7px 10px;background:#141515dd;color:#efeee9;font-size:10px;letter-spacing:.1em;pointer-events:none}
-    .film-frame.is-active::after{display:none}
-    .media-caption{font-size:10px;letter-spacing:.015em;padding-top:15px}
-    .hero-runner{display:flex;gap:19px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:49px;padding-top:18px;border-top:1px solid var(--line);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-    .hero-runner strong{font-weight:500;color:var(--white)}
-    .section{padding:74px 0}
-    .section-heading{align-items:flex-end;gap:42px;margin-bottom:33px}
-    .section-heading h2{font-size:clamp(43px,5.3vw,77px);line-height:.99;letter-spacing:-.065em}
-    .service-grid{column-gap:52px}.service{padding:28px 0 25px}
-    .service-top{align-items:flex-start;gap:20px;margin-bottom:17px}
-    .service .number{padding-top:9px;font-size:11px}
-    .service h3{font-size:clamp(24px,2.2vw,31px);line-height:1.12;letter-spacing:-.045em;max-width:380px}
-    .service>p{font-size:15px}.service .deliverable-line{margin-top:18px;font-size:11px;color:#555b57}
-    .service details{border-top:1px solid #d2d3ce;padding-top:6px;margin-top:16px}
-    .service summary{font-size:12px}
-    .service-caption{border-top:1px solid var(--light-line);margin-top:27px;padding-top:23px;font-size:13px;color:var(--dark-text)}
-    .work-section{background:var(--ink);color:var(--white);border-top:1px solid var(--line)}
-    .work-section .section-heading .eyebrow,.work-section .section-heading>p{color:var(--muted)}
-    .work-grid{grid-template-columns:repeat(12,minmax(0,1fr));gap:46px 24px}
-    .work-card{grid-column:span 4;min-width:0}.work-card:nth-child(-n+2){grid-column:span 6}
-    .work-image{aspect-ratio:4/3;border:1px solid #505451}
-    .work-card:nth-child(-n+2) .work-image{aspect-ratio:16/10}
-    .work-image img{width:100%;height:100%;object-fit:cover;transition:none}
-    .work-image:hover img{transform:none}
-    .work-meta{color:#b6b8b2;margin-top:16px}
-    .work-card h3{font-size:clamp(21px,2.1vw,29px);letter-spacing:-.035em}
-    .work-card p{color:#b9bbb5}
-    .work-image--vr{position:relative}.work-image--vr::after{content:'WEBXR / META QUEST';position:absolute;left:13px;bottom:13px;padding:8px 11px;background:#171918dd;color:#ecece7;font-size:9px;letter-spacing:.12em}
-    .work-image--lab{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:22px;text-align:center;background:radial-gradient(circle at 50% 40%,#373b39,#191c1b 70%);}
-    .work-image--lab strong{font:400 clamp(27px,4.5vw,61px)/1 Michroma,Arial,sans-serif;letter-spacing:-.075em}
-    .work-image--lab small{color:#b9bcb7;font-size:9px;letter-spacing:.19em;text-transform:uppercase}
-    .package-section{border-top:1px solid var(--light-line)}
-    .package-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
-    .package{border-top:1px solid var(--light-line);padding:18px 0;display:flex;flex-direction:column;min-height:205px}
-    .package .number{margin-bottom:29px}.package h3{font-size:clamp(24px,2.3vw,32px);letter-spacing:-.045em;margin-bottom:12px}
-    .package p{font-size:14px;color:var(--dark-text)}.package a{font-size:12px;text-decoration:underline;text-underline-offset:5px;margin-top:auto;padding-top:20px;width:max-content}
-    .approach{border-top:1px solid var(--line)}
-    .contact{padding:60px 0}.contact h2{font-size:clamp(46px,5.6vw,78px);line-height:1;letter-spacing:-.06em;max-width:510px}
-    @media(max-width:1050px){.hero-grid{gap:32px}.hero h1{font-size:clamp(55px,6.9vw,80px)}.film-frame{min-height:390px}.service-grid{column-gap:35px}}
-    @media(max-width:760px){.hero{padding:26px 0 47px}.hero-edition{margin-bottom:32px}.hero-grid{grid-template-columns:1fr;gap:34px}.hero-copy{padding:0}.hero h1{font-size:clamp(59px,12vw,86px)}.hero-actions{margin-top:0;padding-top:25px}.film-frame{min-height:0;aspect-ratio:16/11}.hero-runner{margin-top:34px;justify-content:flex-start}.section{padding:60px 0}.section-heading{margin-bottom:31px}.work-card,.work-card:nth-child(-n+2){grid-column:span 6}.work-card{display:block}.package-list{grid-template-columns:1fr 1fr}.package{min-height:210px}.contact{padding:59px 0}}
-    @media(max-width:540px){.hero-edition span:last-child{display:none}.hero h1{font-size:clamp(53px,13vw,74px)}.hero-description{font-size:15px}.film-frame{aspect-ratio:5/4}.hero-runner{font-size:9px;gap:12px 18px}.section-heading h2{font-size:clamp(42px,11vw,60px)}.service-grid{grid-template-columns:1fr}.service{padding:28px 0}.service h3{font-size:27px}.work-grid{grid-template-columns:1fr;row-gap:38px}.work-card,.work-card:nth-child(-n+2){grid-column:1}.work-card:nth-child(-n+2) .work-image,.work-image{aspect-ratio:16/10}.work-card p{font-size:13px}.package-list{grid-template-columns:1fr}.package{min-height:0}.package .number{margin-bottom:18px}.package a{margin-top:20px}.contact h2{font-size:clamp(44px,11vw,60px)}}
-    @media(max-width:360px){.hero h1{font-size:48px}.hero-edition{font-size:9px}.film-frame{aspect-ratio:4/3}}
-    .capabilities-intro{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dark-text);margin:0 0 15px}
-    .capabilities-intro--support{margin-top:30px}
-    .service-grid--featured{grid-template-columns:repeat(3,minmax(0,1fr));gap:25px}
-    .service-grid--featured .service{border-top:2px solid var(--ink);padding-top:24px}
-    .service-grid--featured .service-top{display:block}
-    .service-grid--featured .service-top .number{display:block;margin-bottom:13px}
-    .service-grid--featured .service h3{font-size:clamp(21px,2vw,27px)}
-    .service-grid--featured{align-items:stretch}
-    .service-grid--featured .service{display:flex;flex-direction:column;padding-bottom:21px}
-    .service-grid--featured .service-top{min-height:74px}
-    .service-grid--featured .service>p:not(.deliverable-line){line-height:1.58}
-    .service-grid--featured .service .deliverable-line{margin-top:auto;padding-top:16px}
-    .service-grid--featured .service details{margin-top:14px}
-    .capabilities-intro--support{margin-top:34px}
-    .service-grid--support{column-gap:46px}
-    .service-grid--support .service{padding:19px 0 14px}
-    .service-grid--support .service-top{margin-bottom:9px;gap:16px}
-    .service-grid--support .service .number{padding-top:5px}
-    .service-grid--support .service h3{font-size:clamp(19px,1.65vw,23px);line-height:1.2;max-width:none}
-    .service-grid--support .service>p:not(.deliverable-line){font-size:13px;line-height:1.55}
-    .service-grid--support .service .deliverable-line{display:none}
-    .service-grid--support .service details{margin-top:9px;padding-top:2px}
-    .service-grid--support .service summary{min-height:36px}
-    .service-grid--support .service:last-child{grid-column:1 / -1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:46px}
-    .service-grid--support .service:last-child .service-top{grid-column:1;grid-row:1}
-    .service-grid--support .service:last-child>p:not(.deliverable-line){grid-column:2;grid-row:1}
-    .service-grid--support .service:last-child details{grid-column:1 / -1}
-    #cap{padding-bottom:58px}
-    .work-section{padding-top:51px;padding-bottom:64px}
-    .work-section .section-heading{margin-bottom:24px}
-    .work-grid{row-gap:34px}
-    .package-section{padding-top:66px;padding-bottom:58px}
-    .approach{padding-top:57px;padding-bottom:59px}
-    .approach .section-heading{margin-bottom:28px}
-    .contact{padding-top:55px;padding-bottom:62px}
-    .contact-grid>div:first-child{padding-top:2px}
-    @media(max-width:900px){
-      .service-grid--featured .service-top{min-height:0}
-      .service-grid--featured .service .deliverable-line{margin-top:16px;padding-top:0}
-    }
-    @media(max-width:760px){
-      #cap{padding-bottom:44px}
-      .work-section{padding-top:42px;padding-bottom:52px}
-      .work-section .section-heading{margin-bottom:24px}
-      .package-section{padding-top:51px;padding-bottom:46px}
-      .approach{padding-top:49px;padding-bottom:48px}
-      .contact{padding-top:44px;padding-bottom:50px}
-      .service-grid--support .service{padding:20px 0 15px}
-      .service-grid--support .service h3{font-size:20px}
-    }
-    @media(max-width:540px){
-      .service-grid--featured .service .service-top{display:block}
-      .service-grid--featured .service .service-top .number{margin-bottom:9px}
-      .service-grid--support .service:last-child{grid-column:auto;display:block}
-      .service-grid--support .service:last-child .service-top,
-      .service-grid--support .service:last-child>p:not(.deliverable-line),
-      .service-grid--support .service:last-child details{grid-column:auto;grid-row:auto}
-    }
-    .brief-form{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
-    .brief-form label{font-size:11px;letter-spacing:.06em;color:var(--muted);margin-top:8px}
-    .brief-form input,.brief-form select,.brief-form textarea{grid-column:span 2;width:100%;background:#242625;color:var(--white);border:1px solid #656a65;border-radius:0;padding:12px 13px;font:inherit;font-size:14px}
-    .brief-form input:focus-visible,.brief-form select:focus-visible,.brief-form textarea:focus-visible{outline:2px solid var(--white);outline-offset:2px}
-    .brief-form button{justify-self:start;margin-top:8px;border:0;cursor:pointer}
-    .brief-form .brief-note{grid-column:span 2;font-size:12px;margin:0;color:var(--muted)}
-    @media(max-width:900px){.service-grid--featured{grid-template-columns:1fr}.service-grid--featured .service{padding:20px 0}.service-grid--featured .service-top{display:flex}.service-grid--featured .service-top .number{margin:0}}
-  </style>
-
-  <style id="agency-capabilities-refinement">
-    /* A quieter stone surface with deliberate editorial rows, limited to Capabilities. */
-    #cap{background:#d5d2ca;color:#181a19;padding-top:62px;padding-bottom:58px}
-    #cap .section-heading{margin-bottom:33px}
-    #cap .section-heading>p{color:#4c504c;max-width:310px}
-    #cap .capabilities-intro{font-size:10px;letter-spacing:.16em;color:#555a55;margin:0 0 12px}
-    #cap .capabilities-intro--support{margin:37px 0 10px}
-    #cap .service-grid--featured,
-    #cap .service-grid--support{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
-    #cap .service{min-width:0;align-self:start;margin:0}
-    #cap .service .deliverable-line{display:none}
-    #cap .service-grid--featured .service{
-      display:grid;
-      grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(145px,.49fr);
-      align-items:center;column-gap:28px;row-gap:0;
-      background:#252827;color:#f0efeb;
-      border-top:1px solid #5f6360;
-      border-left:0;border-right:0;
-      padding:26px 24px;min-height:116px;
-    }
-    #cap .service-grid--featured .service:last-child{border-bottom:1px solid #5f6360}
-    #cap .service-grid--featured .service-top{grid-column:1;grid-row:1;display:flex;align-items:start;gap:15px;margin:0;min-height:0}
-    #cap .service-grid--featured .service-top .number{color:#aeb2ad;margin:0;padding:5px 0 0;line-height:1.2}
-    #cap .service-grid--featured .service h3{font-size:clamp(25px,2.5vw,34px);font-weight:500;letter-spacing:-.05em;line-height:1.12;max-width:380px}
-    #cap .service-grid--featured .service>p:not(.deliverable-line){
-      grid-column:2;grid-row:1;margin:0;padding:0;
-      color:#bdc0ba;font-size:14px;line-height:1.6;max-width:350px;
-    }
-    #cap .service-more{font:500 11px/1.45 Inter,Arial,sans-serif;letter-spacing:.01em;
-      border:0;border-top:1px solid currentColor;padding:12px 0;
-      background:transparent;color:inherit;cursor:pointer;display:flex;
-      justify-content:space-between;align-items:center;gap:14px;text-align:left;min-width:0}
-    #cap .service-more .service-more-symbol{font-size:22px;line-height:1;font-weight:400}
-    #cap .service-more:hover span:first-child{text-decoration:underline;text-underline-offset:4px}
-    #cap .service-more:focus-visible{outline:2px solid currentColor;outline-offset:5px}
-    #cap .service-grid--featured .service-more{grid-column:3;grid-row:1;color:#f0efeb;align-self:center}
-    #cap .service-includes{grid-column:1/-1;grid-row:2;border-top:1px solid #5e625f;margin-top:21px;padding:17px 0 2px}
-    #cap .service-includes[hidden]{display:none!important}
-    #cap .service-grid--featured .service-includes{color:#e3e3de}
-    #cap .service-includes .service-tags{font-size:11px;line-height:1.6;letter-spacing:.02em;opacity:.72;margin-bottom:11px}
-    #cap .service-includes .detail-copy{color:inherit;padding:0;max-width:740px;font-size:13px;line-height:1.7}
-    #cap .service-includes .detail-note{opacity:.8;font-size:12px}
-    /* Five supporting capabilities read as a compact list, not five extra feature cards. */
-    #cap .service-grid--support .service,
-    #cap .service-grid--support .service:last-child{
-      display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(145px,.49fr);
-      align-items:center;column-gap:28px;row-gap:0;
-      padding:20px 0;border-top:1px solid #a8aaa3;min-height:81px;
-      background:transparent;color:#1d201e;
-    }
-    #cap .service-grid--support .service:last-child{border-bottom:1px solid #a8aaa3}
-    #cap .service-grid--support .service-top,
-    #cap .service-grid--support .service:last-child .service-top{
-      grid-column:1;grid-row:1;display:flex;gap:15px;align-items:start;margin:0;
-    }
-    #cap .service-grid--support .service-top .number{padding:4px 0 0;color:#525852}
-    #cap .service-grid--support .service h3{font-size:clamp(19px,1.85vw,25px);line-height:1.15;letter-spacing:-.04em;max-width:none}
-    #cap .service-grid--support .service>p:not(.deliverable-line),
-    #cap .service-grid--support .service:last-child>p:not(.deliverable-line){
-      grid-column:2;grid-row:1;color:#4c514d;margin:0;
-      font-size:13px;line-height:1.55;max-width:360px;
-    }
-    #cap .service-grid--support .service-more{grid-column:3;grid-row:1;color:#252826;font-size:11px}
-    #cap .service-grid--support .service-includes,
-    #cap .service-grid--support .service:last-child .service-includes{
-      grid-column:1/-1;grid-row:2;border-top:1px solid #adb0a8;color:#353a36;margin-top:12px;
-    }
-    #cap .service-caption{border:0;color:#5e625d;padding:12px 0 0;margin:17px 0 0;font-size:12px}
-    @media(max-width:1020px){
-      #cap .service-grid--featured .service,
-      #cap .service-grid--support .service,
-      #cap .service-grid--support .service:last-child{column-gap:20px;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(120px,.53fr)}
-      #cap .service-grid--featured .service{padding-inline:19px}
-      #cap .service-grid--featured .service h3{font-size:clamp(22px,2.5vw,30px)}
-    }
-    @media(max-width:760px){
-      #cap{padding-top:42px;padding-bottom:41px}
-      #cap .section-heading{margin-bottom:27px}
-      #cap .capabilities-intro--support{margin-top:29px}
-      #cap .service-grid--featured .service,
-      #cap .service-grid--support .service,
-      #cap .service-grid--support .service:last-child{
-        grid-template-columns:minmax(0,1fr) auto;column-gap:14px;row-gap:11px;
-        padding:19px 0;min-height:0
-      }
-      #cap .service-grid--featured .service{padding:22px 18px}
-      #cap .service-grid--featured .service-top,
-      #cap .service-grid--support .service-top,
-      #cap .service-grid--support .service:last-child .service-top{grid-column:1;grid-row:1;display:flex;gap:12px;align-items:start}
-      #cap .service-grid--featured .service>p:not(.deliverable-line),
-      #cap .service-grid--support .service>p:not(.deliverable-line),
-      #cap .service-grid--support .service:last-child>p:not(.deliverable-line){
-        grid-column:1/-1;grid-row:2;max-width:560px
-      }
-      #cap .service-grid--featured .service-more,
-      #cap .service-grid--support .service-more{grid-column:2;grid-row:1;width:30px;height:36px;border:0;justify-content:end;align-self:start;overflow:hidden}
-      #cap .service-more span:first-child{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-      #cap .service-grid--featured .service-includes,
-      #cap .service-grid--support .service-includes,
-      #cap .service-grid--support .service:last-child .service-includes{grid-column:1/-1;grid-row:3;margin-top:7px}
-      #cap .service-grid--featured .service h3{font-size:clamp(23px,5vw,29px)}
-      #cap .service-grid--support .service h3{font-size:21px}
-      #cap .service-grid--featured .service-top .number,
-      #cap .service-grid--support .service-top .number{padding-top:5px}
-      #cap .service-grid--support .service>p:not(.deliverable-line){font-size:13px}
-    }
-  </style>
+  <title>Parallel Vision Agency | Fashion, Film, Digital</title>
+<style>
+:root{--ink:#111312;--ink2:#191b1a;--paper:#f5f5f2;--white:#f5f5f2;--muted:#afb3ac;--gray:#777b76;--line:#353937;--paper-line:#d7d9d5}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:91px}
+body{margin:0;background:var(--ink);color:var(--white);font:400 16px/1.55 Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit}
+img,video{display:block;max-width:100%}
+h1,h2,h3,p,figure{margin:0}
+h1,h2,h3{font-weight:600;line-height:1.08;letter-spacing:-.052em}
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid currentColor;outline-offset:4px}
+[hidden]{display:none!important}
+::selection{background:#c5c8c3;color:#111312}
+.wrap{width:min(1220px,calc(100% - 88px));margin-inline:auto}
+.skip{position:fixed;top:12px;left:12px;z-index:100;padding:10px 15px;background:var(--paper);color:var(--ink);transform:translateY(-160%)}
+.skip:focus{transform:none}
+.site-header{position:sticky;top:0;z-index:30;background:#111312f5;border-bottom:1px solid #313532;backdrop-filter:blur(12px)}
+.header-inner{min-height:78px;display:flex;justify-content:space-between;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:16px;min-height:44px}
+.wordmark{font:400 12px/1.3 Michroma,Arial,sans-serif;white-space:nowrap}
+.brand-note{padding-left:15px;border-left:1px solid #505450;color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.nav{display:flex;align-items:center;gap:29px;font-size:13px;font-weight:500}
+.nav a{display:inline-flex;align-items:center;min-height:44px}
+.nav a:hover,.text-link:hover{text-decoration:underline;text-underline-offset:5px}
+.nav-contact{gap:16px;border-bottom:1px solid var(--muted)}
+.eyebrow,.index-tag,.project-type,.project-number,.section-label{font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
+.hero{padding:26px 0 55px}
+.hero-edition{display:flex;justify-content:space-between;gap:20px;padding:0 0 18px;margin-bottom:38px;border-bottom:1px solid var(--line);color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.hero-edition span:last-child{text-align:right}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);gap:clamp(36px,5vw,75px);align-items:stretch}
+.hero-copy{display:flex;flex-direction:column;align-items:flex-start;padding:8px 0;min-width:0}
+.hero .eyebrow{color:var(--muted);margin-bottom:19px}
+.hero h1{font-size:clamp(59px,6.85vw,106px);line-height:.99;letter-spacing:-.079em;margin-bottom:29px}
+.hero h1 span{display:block}
+.hero h1 em{font:400 .97em/.93 Georgia,serif;letter-spacing:-.073em;color:#c6c8c2}
+.hero-description{font-size:16px;max-width:480px;line-height:1.72;color:#c0c2bc}
+.hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;margin-top:auto;padding-top:34px}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:22px;min-height:52px;padding:10px 20px;border:1px solid var(--paper);background:var(--paper);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;transition:background .2s ease}
+.button:hover{background:#dedfda}
+.text-link{display:inline-flex;align-items:center;gap:15px;min-height:44px;font-size:13px;font-weight:500}
+.hero-media{display:flex;flex-direction:column;justify-content:flex-end;min-width:0}
+.film-frame{position:relative;aspect-ratio:4/5;min-height:455px;overflow:hidden;border:1px solid #464a46;background:#292b29}
+.film-frame video{width:100%;height:100%;object-fit:cover}
+.film-frame.is-active video{object-fit:contain;background:#050505}
+.film-frame::after{content:'PV / 001';position:absolute;top:16px;right:16px;padding:7px 10px;background:#0e1010d9;color:#e9ebe5;font-size:10px;letter-spacing:.1em;pointer-events:none}
+.film-frame.is-active::after{display:none}
+.play-film{position:absolute;bottom:20px;left:20px;display:flex;align-items:center;gap:11px;min-height:45px;padding:10px 15px;border:1px solid #ffffff88;background:#101211eb;color:#fff;cursor:pointer;font-size:13px}
+.play-film:hover{background:#353737}
+.play-film:focus-visible{outline-offset:-5px}
+.media-caption{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:14px;font-size:10px;letter-spacing:.01em;color:var(--muted)}
+.media-caption a{text-decoration:underline;text-underline-offset:4px;white-space:nowrap}
+.media-error{font-size:12px;color:var(--muted);margin-top:10px}
+.hero-runner{display:flex;justify-content:space-between;align-items:center;gap:17px;flex-wrap:wrap;margin-top:45px;padding-top:17px;border-top:1px solid var(--line);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.hero-runner strong{font-weight:600;color:var(--white)}
+.light{background:var(--paper);color:var(--ink);color-scheme:light}
+.section-heading{display:flex;align-items:end;justify-content:space-between;gap:28px}
+.section-label{color:#5b5f5c;margin-bottom:13px}
+.section-heading h2{font-size:clamp(44px,5.1vw,78px);line-height:1;letter-spacing:-.075em}
+.section-heading>p{max-width:315px;color:#505551;font-size:15px;line-height:1.5}
+.work-section{padding:79px 0 93px}
+.work-section .section-heading{margin-bottom:38px}
+.work-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:46px 20px}
+.work-card{min-width:0}
+.project-image{position:relative;display:block;width:100%;aspect-ratio:1/1;overflow:hidden;background:#e5e5e1}
+.project-image img{width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
+.project-image:hover img{transform:scale(1.025)}
+.project-image:focus-visible{outline-offset:4px}
+.project-caption{padding-top:13px}
+.project-caption h3{font-size:clamp(20px,1.8vw,25px);line-height:1.23;letter-spacing:-.043em;margin-bottom:7px}
+.project-caption h3 a{display:flex;gap:12px;align-items:baseline;justify-content:space-between}
+.project-caption h3 a:hover{text-decoration:underline;text-underline-offset:3px}
+.project-caption h3 span{font-size:18px;font-weight:400}
+.project-type{color:#727772;font-size:10px;line-height:1.5;letter-spacing:.08em}
+.project-image--lab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:19px;background:#121514;color:var(--paper)}
+.project-image--lab strong{font:400 clamp(32px,4vw,55px)/1 Michroma,Arial,sans-serif;letter-spacing:-.07em}
+.project-image--lab small{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#a7ada6}
+.project-image--lab::after{content:'CREATIVE TOOLS / BERLIN';position:absolute;bottom:16px;left:17px;font-size:9px;letter-spacing:.12em;color:#a3aaa2}
+.project-image--record img{object-position:center}
+.project-image--vr img{object-position:center}
+.work-note{margin-top:30px;padding-top:15px;border-top:1px solid var(--paper-line);color:#767b76;font-size:12px}
+.practice{padding:66px 0 82px;border-top:1px solid var(--paper-line)}
+.practice .section-heading{margin-bottom:44px}
+.practice-list{border-top:1px solid var(--ink)}
+.practice-item{display:grid;grid-template-columns:42px minmax(0,1.25fr) minmax(0,.85fr);gap:22px;align-items:center;padding:26px 0;border-bottom:1px solid #bfc2bd}
+.practice-number{font-size:11px;color:#656a65;letter-spacing:.08em;align-self:start;padding-top:10px}
+.practice-item h3{font-size:clamp(27px,3.15vw,45px);letter-spacing:-.067em;max-width:530px}
+.practice-item p{font-size:16px;line-height:1.56;color:#545955;max-width:350px}
+.practice-extension{display:grid;grid-template-columns:220px 1fr;gap:25px;align-items:start;padding-top:25px}
+.practice-extension .section-label{margin:4px 0 0}
+.practice-extension p{font-size:17px;line-height:1.85;color:#303530}
+.practice-extension span{color:#8d928d;padding-inline:9px}
+.practice-action{display:inline-flex;align-items:center;gap:16px;margin-top:28px;border-bottom:1px solid currentColor;padding-bottom:6px;font-size:14px;font-weight:600}
+.practice-action:hover{text-decoration:none;opacity:.65}
+.approach{padding:69px 0 65px;border-top:1px solid var(--line)}
+.approach-intro{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:55px}
+.approach .section-label{color:var(--muted)}
+.approach h2{font-size:clamp(40px,4.8vw,68px);line-height:1.03;letter-spacing:-.072em;max-width:710px}
+.approach-intro>p{align-self:end;max-width:410px;font-size:17px;line-height:1.6;color:#c4c7c1}
+.studio-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:35px;margin-top:49px}
+.studio-step{border-top:1px solid #424743;padding-top:14px}
+.studio-step .project-number{color:#9ba19b;margin-bottom:15px}
+.studio-step h3{font-size:20px;letter-spacing:-.035em;margin-bottom:8px}
+.studio-step p{font-size:14px;line-height:1.6;color:#b5b9b2;max-width:340px}
+.contact{padding:61px 0 76px;border-top:1px solid #414641}
+.contact-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:55px;align-items:start}
+.contact .section-label{color:var(--muted)}
+.contact h2{font-size:clamp(48px,5.4vw,76px);line-height:.99;letter-spacing:-.068em;margin-bottom:26px}
+.contact-lead{max-width:460px;color:#bcbfb9;line-height:1.65;margin-bottom:25px}
+.contact-email{display:inline-flex;align-items:baseline;gap:15px;max-width:100%;font-size:clamp(18px,2.1vw,29px);letter-spacing:-.04em;border-bottom:1px solid #c7cac5;padding:0 0 8px;overflow-wrap:anywhere}
+.contact-email:hover{color:#d7d9d3}
+.contact-aside{border-top:1px solid #424743;padding-top:19px}
+.contact-aside>p{font-size:16px;line-height:1.65;color:#c0c2bc;max-width:380px;margin-bottom:23px}
+.brief-disclosure{border-top:1px solid #424743;border-bottom:1px solid #424743}
+.brief-disclosure>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 0;font-size:14px;font-weight:600;cursor:pointer}
+.brief-disclosure>summary::-webkit-details-marker{display:none}
+.brief-disclosure>summary::after{content:'+';font-size:23px;font-weight:400}
+.brief-disclosure[open]>summary::after{content:'−'}
+.brief-disclosure[open]>summary{border-bottom:1px solid #424743}
+.brief-form{display:grid;grid-template-columns:1fr;gap:8px;padding:18px 0 22px}
+.brief-form label{font-size:12px;color:#cccfc9;margin-top:8px}
+.brief-form input,.brief-form select,.brief-form textarea{width:100%;min-width:0;background:#202321;color:#f5f5f2;border:1px solid #545a55;padding:11px 12px;border-radius:0;font-size:14px}
+.brief-form textarea{resize:vertical}
+.brief-form button{justify-self:start;margin-top:12px}
+.brief-note{font-size:12px;line-height:1.55;color:#adb1aa}
+.footer{border-top:1px solid #414641;padding:21px 0;font-size:11px;color:var(--muted)}
+.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.footer a{text-decoration:underline;text-underline-offset:4px}
+@media(max-width:1050px){
+  .wrap{width:calc(100% - 58px)}
+  .hero-grid{gap:34px}
+  .hero h1{font-size:clamp(58px,7vw,82px)}
+  .film-frame{min-height:370px}
+  .practice-item{grid-template-columns:34px minmax(0,1.15fr) minmax(0,1fr)}
+}
+@media(max-width:760px){
+  html{scroll-padding-top:78px}
+  .wrap{width:calc(100% - 40px)}
+  .header-inner{min-height:68px}
+  .wordmark{font-size:10px}
+  .brand{gap:9px}
+  .brand-note{font-size:9px;padding-left:10px}
+  .nav{gap:17px;font-size:12px}
+  .hero{padding:24px 0 44px}
+  .hero-edition{margin-bottom:30px}
+  .hero-edition span:last-child{display:none}
+  .hero-grid{grid-template-columns:1fr;gap:30px}
+  .hero-copy{padding:0}
+  .hero h1{font-size:clamp(54px,11vw,78px)}
+  .hero-description{font-size:15px}
+  .hero-actions{margin-top:0;padding-top:26px}
+  .film-frame{min-height:0;aspect-ratio:16/11}
+  .hero-runner{margin-top:33px;justify-content:flex-start;gap:12px 18px}
+  .section-heading{display:block}
+  .section-heading h2{font-size:clamp(44px,9vw,64px)}
+  .section-heading>p{margin-top:17px;max-width:470px}
+  .work-section{padding:57px 0 64px}
+  .work-section .section-heading{margin-bottom:29px}
+  .work-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:31px 16px}
+  .practice{padding:55px 0 67px}
+  .practice .section-heading{margin-bottom:29px}
+  .practice-item{grid-template-columns:32px 1fr;gap:10px 14px;align-items:start;padding:22px 0}
+  .practice-number{grid-row:1/3}
+  .practice-item h3{font-size:clamp(27px,5.1vw,40px)}
+  .practice-item p{grid-column:2;max-width:530px;font-size:15px}
+  .practice-extension{grid-template-columns:1fr;gap:10px}
+  .practice-extension p{font-size:16px}
+  .approach{padding:54px 0}
+  .approach-intro{grid-template-columns:1fr;gap:19px}
+  .studio-steps{gap:20px;margin-top:34px}
+  .contact{padding:52px 0 66px}
+  .contact-grid{grid-template-columns:1fr;gap:45px}
+  .contact h2{font-size:clamp(52px,9vw,74px)}
+}
+@media(max-width:540px){
+  .nav .nav-services{display:none}
+  .nav{gap:14px}
+  .hero h1{font-size:clamp(50px,12vw,71px)}
+  .hero-actions{gap:10px 15px}
+  .film-frame{aspect-ratio:5/4}
+  .hero-runner{font-size:9px}
+  .work-grid{grid-template-columns:1fr;gap:34px}
+  .project-image{aspect-ratio:1/1}
+  .section-heading h2{font-size:clamp(43px,10.8vw,60px)}
+  .work-section{padding:49px 0 61px}
+  .practice-item{grid-template-columns:28px 1fr;gap:10px}
+  .practice-item h3{font-size:clamp(27px,7.5vw,35px)}
+  .practice-extension p{font-size:15px}
+  .studio-steps{grid-template-columns:1fr;gap:23px}
+  .studio-step{padding-top:13px}
+  .studio-step .project-number{margin-bottom:8px}
+  .studio-step h3{font-size:19px}
+  .contact h2{font-size:clamp(46px,11vw,60px)}
+  .contact-email{font-size:clamp(17px,5.1vw,26px)}
+  .footer-inner{align-items:flex-start}
+}
+@media(max-width:360px){
+  .wrap{width:calc(100% - 32px)}
+  .nav{font-size:11px}
+  .brand-note{display:none}
+  .hero h1{font-size:48px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
 </head>
 <body>
-  <!-- Public Parallel Vision creative studio and project enquiries. -->
-  <a class="skip" href="#main">Skip to content</a>
-  <header class="site-header">
-    <div class="wrap header-inner">
-      <a class="brand" href="../" aria-label="Parallel Vision homepage"><span class="wordmark">PARALLEL VISION</span><span class="brand-note">Agency</span></a>
-      <nav class="nav" aria-label="Agency navigation">
-        <a class="nav-services" href="#cap">Services</a>
-        <a class="nav-work" href="#work">Work</a>
-        <a class="nav-contact" href="#contact">Start a project <span aria-hidden="true">↗</span></a>
-      </nav>
-    </div>
-  </header>
-  <main id="main">
-
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../" aria-label="Parallel Vision homepage"><span class="wordmark">PARALLEL VISION</span><span class="brand-note">Agency</span></a>
+    <nav class="nav" aria-label="Agency navigation">
+      <a class="nav-work" href="#work">Work</a>
+      <a class="nav-services" href="#cap">Practice</a>
+      <a class="nav-contact" href="#contact">Start a project <span aria-hidden="true">↗</span></a>
+    </nav>
+  </div>
+</header>
+<main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="wrap">
         <div class="hero-edition"><span>PV / Creative studio / Berlin</span><span>Image · Film · Digital · Space · Sound</span></div>
@@ -374,7 +245,7 @@
             <p class="eyebrow">Parallel Vision / Independent creative practice</p>
             <h1 id="hero-title"><span>Fashion.</span><span>Film.</span><span>Digital.</span><span><em>Beyond.</em></span></h1>
             <p class="hero-description">Creative direction and production for brands, artists and ambitious ideas. We build images, moving worlds, websites, shops and immersive experiences, then help them reach an audience.</p>
-            <div class="hero-actions"><a class="button" href="#contact">Start a project <span aria-hidden="true">↗</span></a><a class="text-link" href="#cap">Explore our practice <span aria-hidden="true">↓</span></a></div>
+            <div class="hero-actions"><a class="button" href="#contact">Start a project <span aria-hidden="true">↗</span></a><a class="text-link" href="#work">View selected work <span aria-hidden="true">↓</span></a></div>
           </div>
           <figure class="hero-media">
             <div class="film-frame" id="film-frame">
@@ -389,150 +260,178 @@
       </div>
     </section>
 
-    <section class="section light" id="cap" aria-labelledby="services-title">
-      <div class="wrap">
-        <div class="section-heading"><div><p class="eyebrow">01 / Capabilities</p><h2 id="services-title">What we make.</h2></div><p>Fashion, moving image and digital environments, conceived and produced as one creative practice.</p></div>
-        <p class="capabilities-intro">Our focus / 01–03</p><div class="service-grid service-grid--featured">
-          <article class="service" id="service-1">
-            <div class="service-top"><span class="number">01</span><h3>Fashion &amp; Creative Direction</h3></div>
-            <p>Editorial imagery, campaign worlds and product stories with a distinct visual point of view.</p><p class="deliverable-line">Art direction · Fashion image making · Lookbooks &amp; product content</p>
-            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-1"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-1" hidden><p class="service-tags">Art direction · Fashion image making · Lookbooks &amp; product content</p><div class="detail-copy"><p>Moodboards, consistent models, styling, campaign stills, product scenes, retouching and moving-image assets.</p><p class="detail-note">People, likenesses and supplied products require appropriate usage rights.</p></div></div>
-          </article>
-          <article class="service" id="service-2">
-            <div class="service-top"><span class="number">02</span><h3>AI Film &amp; Motion</h3></div>
-            <p>Fashion films, music videos and moving portraits, from the first concept to the final image.</p><p class="deliverable-line">Storyboarding · AI-assisted film · Edit &amp; finishing</p>
-            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-2"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-2" hidden><p class="service-tags">Storyboarding · AI-assisted film · Edit &amp; finishing</p><div class="detail-copy"><p>Concepts, animatics, visual research, shot planning, motion tools, compositing, colour and sound, plus versions for social and web.</p></div></div>
-          </article>
-          <article class="service" id="service-7">
-            <div class="service-top"><span class="number">03</span><h3>Digital Experiences</h3></div>
-            <p>Spatial films, interactive environments and installations for screens, venues and headsets.</p><p class="deliverable-line">WebXR / Meta Quest · Spatial film · Installations</p>
-            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-7"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-7" hidden><p class="service-tags">WebXR / Meta Quest · Spatial film · Installations</p><div class="detail-copy"><p>Quest-ready curved-screen film, spatial prototyping, stereoscopic feasibility tests, depth studies, projection content and venue-specific visual installations.</p><p class="detail-note">Berlin 2063 VR is a curved-screen prototype. It is not a native 360° or stereoscopic environment.</p></div></div>
-          </article>
-        </div><p class="capabilities-intro capabilities-intro--support">Beyond the core / 04–08</p><div class="service-grid service-grid--support">
-          <article class="service" id="service-3">
-            <div class="service-top"><span class="number">04</span><h3>Websites & interactive design</h3></div>
-            <p>Editorial websites and interactive spaces for artists, brands and cultural projects.</p><p class="deliverable-line">Art direction · UX · Front-end development</p>
-            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-3"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-3" hidden><p class="service-tags">Art direction · UX · Front-end development</p><div class="detail-copy"><p>Launch pages, portfolios, campaign microsites, digital archives, galleries, animation, accessibility and performance work. Hosting and integrations are scoped per project.</p></div></div>
-          </article>
-          <article class="service" id="service-4">
-            <div class="service-top"><span class="number">05</span><h3>E-commerce & shop design</h3></div>
-            <p>Digital storefronts that carry the visual identity through to the purchase.</p><p class="deliverable-line">Shop design · Product presentation · Commerce UX</p>
-            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-4"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-4" hidden><p class="service-tags">Shop design · Product presentation · Commerce UX</p><div class="detail-copy"><p>Storefront concepts, catalogues, collection structure, product visuals, editorial shopping pages and campaigns. Checkout and platform integration depend on the chosen stack.</p></div></div>
-          </article>
-          <article class="service" id="service-5">
-            <div class="service-top"><span class="number">06</span><h3>Meta Ads & campaign growth</h3></div>
-            <p>Paid-social creative, campaign strategy and performance testing.</p><p class="deliverable-line">Meta Ads · Campaign creative · Retargeting</p>
-            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-5"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-5" hidden><p class="service-tags">Meta Ads · Campaign creative · Retargeting</p><div class="detail-copy"><p>Campaign planning, audience research, ad variants, A/B testing, landing pages, reporting, Pixel and Conversions API when appropriate.</p><p class="detail-note">Ad spend is separate. Outcomes cannot be guaranteed.</p></div></div>
-          </article>
-          <article class="service" id="service-6">
-            <div class="service-top"><span class="number">07</span><h3>Digital characters & AI identities</h3></div>
-            <p>Consistent digital characters for campaigns, moving image and interaction.</p><p class="deliverable-line">Character design · Identity continuity · Voice</p>
-            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-6"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-6" hidden><p class="service-tags">Character design · Identity continuity · Voice</p><div class="detail-copy"><p>Visual identity systems, consistent appearances, motion studies, voice and conversational features. Our Nina FOK and PV LAB projects inform this work.</p></div></div>
-          </article>
 
-          <article class="service" id="service-8">
-            <div class="service-top"><span class="number">08</span><h3>Music, sound & creative worlds</h3></div>
-            <p>Original composition, sound design and audiovisual direction.</p><p class="deliverable-line">Original composition · Sonic identity · Audiovisual work</p>
-            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-8"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-8" hidden><p class="service-tags">Original composition · Sonic identity · Audiovisual work</p><div class="detail-copy"><p>Music for campaigns and films, sound design, scores, release identities, audiovisual direction, performance and exhibition content.</p></div></div>
-          </article></div>
-        <p class="service-caption">Every commission begins with a brief. Scope, collaborators and technical approach are tailored to the project.</p>
-      </div>
-    </section>
-    <section class="section work-section" id="work" aria-labelledby="work-title">
-      <div class="wrap">
-        <div class="section-heading"><div><p class="eyebrow">02 / Selected projects</p><h2 id="work-title">Ideas made real.</h2></div><p>Our own projects, research and platforms. A view into the practice behind the services, not a list of outside clients.</p></div>
-        <div class="work-grid">
-          <article class="work-card">
-            <a class="work-image   " href="../future-fashion.html" aria-label="Explore Fashion After Fabric"><img src="../assets/optimized/LOOK03.webp" alt="Metallic sculptural fashion imagery" loading="lazy" decoding="async"></a>
-            <div><div class="work-meta">Fashion / Art direction / Moving image</div><h3><a href="../future-fashion.html">Fashion After Fabric <span aria-hidden="true">↗</span></a></h3><p>Our visual research and editorial work exploring sculptural materials, fashion imagery and moving image. Explore the project and film.</p></div>
-          </article>
-          <article class="work-card">
-            <a class="work-image   " href="../berlin-2063.html" aria-label="Explore Berlin 2063"><img src="../assets/optimized/2063/urban-form/urbangalleryfirst.webp" alt="Architecture and passages in the imagined Berlin 2063" loading="lazy" decoding="async"></a>
-            <div><div class="work-meta">Worldbuilding / Moving image / Web</div><h3><a href="../berlin-2063.html">Berlin 2063 <span aria-hidden="true">↗</span></a></h3><p>An original world developed through film, music, architecture, visual research and an interactive archive.</p></div>
-          </article>
-          <article class="work-card">
-            <a class="work-image nina  " href="../nina-project.html" aria-label="Explore Nina FOK"><img src="../assets/optimized/nina-fok/nina-window.webp" alt="Nina FOK behind a scratched window" loading="lazy" decoding="async"></a>
-            <div><div class="work-meta">Digital identity / Voice / Interaction</div><h3><a href="../nina-project.html">Nina FOK <span aria-hidden="true">↗</span></a></h3><p>A developing character identity with visual consistency, conversation and memory.</p></div>
-          </article>
-          <article class="work-card">
-            <a class="work-image  work-image--vr " href="../berlin-2063-vr.html" aria-label="Explore Berlin 2063 / VR"><img src="../assets/optimized/2063/urban-form/urbangalleryfirst.webp" alt="Berlin 2063 cityscape, an immersive film world" loading="lazy" decoding="async"></a>
-            <div><div class="work-meta">WebXR / Meta Quest / Spatial presentation</div><h3><a href="../berlin-2063-vr.html">Berlin 2063 / VR <span aria-hidden="true">↗</span></a></h3><p>A Quest-compatible curved-screen WebXR film prototype, distinct from 360° and stereoscopic VR.</p></div>
-          </article>
-          <article class="work-card">
-            <a class="work-image   work-image--lab" href="https://pvlab.studio/" aria-label="Explore PV LAB" target="_blank" rel="noopener noreferrer"><strong aria-hidden="true">PV LAB</strong><small aria-hidden="true">Creative tools / Berlin</small></a>
-            <div><div class="work-meta">Product design / Web / AI creation</div><h3><a href="https://pvlab.studio/" target="_blank" rel="noopener noreferrer">PV LAB <span aria-hidden="true">↗</span></a></h3><p>Our independently developed creative platform for image and motion, built around moods, characters and production workflows.</p></div>
-          </article></div>
-      </div>
-    </section>
-    <section class="section light package-section" id="formats" aria-labelledby="formats-title">
-      <div class="wrap">
-        <div class="section-heading"><div><p class="eyebrow">03 / Ways to collaborate</p><h2 id="formats-title">Bring an idea.</h2></div><p>Some concepts become a film. Others need a storefront, a campaign or a whole world.</p></div>
-        <div class="package-list">
-          <article class="package"><span class="number">A / FASHION &amp; PRODUCT</span><h3>The campaign world.</h3><p>Fashion imagery, short films, product content, a shop and paid-social creative shaped around one direction.</p><a href="#contact">Discuss this direction ↗</a></article>
-          <article class="package"><span class="number">B / CULTURE &amp; ARTISTS</span><h3>The artist world.</h3><p>Identity, release visuals, an editorial website, moving image and original sound.</p><a href="#contact">Discuss this direction ↗</a></article>
-          <article class="package"><span class="number">C / IMMERSIVE &amp; SPATIAL</span><h3>The space beyond.</h3><p>A film adapted for immersive display, a Quest prototype or exhibition content for a real venue.</p><a href="#contact">Discuss this direction ↗</a></article>
+<section class="work-section light" id="work" aria-labelledby="work-title">
+  <div class="wrap">
+    <div class="section-heading">
+      <div><p class="section-label">01 / Selected work</p><h2 id="work-title">Selected work.</h2></div>
+      <p>Our own projects, worlds and tools. An insight into what we create, not a list of outside clients.</p>
+    </div>
+    <div class="work-grid">
+      <article class="work-card">
+        <a class="project-image" href="../future-fashion.html" aria-label="Explore Fashion After Fabric">
+          <img src="../assets/optimized/LOOK03.webp" alt="Sculptural chrome fashion artwork from Fashion After Fabric" loading="lazy" decoding="async">
+        </a>
+        <div class="project-caption">
+          <h3><a href="../future-fashion.html">Fashion After Fabric <span aria-hidden="true">↗</span></a></h3>
+          <p class="project-type">Fashion / Art direction / Moving image</p>
         </div>
-      </div>
-    </section>
-    <section class="section approach" id="approach" aria-labelledby="approach-title">
-      <div class="wrap">
-        <div class="section-heading"><div><p class="eyebrow">04 / The process</p><h2 id="approach-title">From first thought to final form.</h2></div></div>
-        <ol class="steps">
-          <li><span class="number">01</span><h3>Brief & scope</h3><p>Agree the goal, deliverables, budget and timeline before production begins.</p></li>
-          <li><span class="number">02</span><h3>Direction & production</h3><p>Approve a concept or prototype, then develop the work through agreed review rounds.</p></li>
-          <li><span class="number">03</span><h3>Launch & handover</h3><p>Receive the finished assets or website. Campaign management and ongoing support can be scoped separately.</p></li>
-        </ol>
-      </div>
-    </section>
-    <section class="contact" id="contact" aria-labelledby="contact-title">
-      <div class="wrap contact-grid">
-        <div><p class="eyebrow">Start a conversation</p><h2 id="contact-title">Let's make something.</h2></div>
-        <div><p>Tell us about your idea, timing and indicative budget. Every project is scoped individually.</p>
-          <form id="project-brief" class="brief-form" action="mailto:contact@parallelvisionlabel.com" method="get">
-            <label for="brief-name">Your name</label><input id="brief-name" name="name" type="text" autocomplete="name" required maxlength="120" placeholder="Name">
-            <label for="brief-email">Email</label><input id="brief-email" name="email" type="email" autocomplete="email" required maxlength="200" placeholder="you@example.com">
-            <label for="brief-type">Project direction</label><select id="brief-type" name="direction"><option>Fashion & creative direction</option><option>AI film & motion</option><option>Digital experiences</option><option>Web, commerce or campaigns</option><option>Music & sound</option><option>Something else</option></select>
-            <label for="brief-budget">Indicative budget (optional)</label><select id="brief-budget" name="budget"><option value="">Let's discuss</option><option>Under €2,500</option><option>€2,500 to €5,000</option><option>€5,000 to €15,000</option><option>€15,000+</option></select>
-            <label for="brief-message">Tell us about your project</label><textarea id="brief-message" name="message" rows="4" required maxlength="3000" placeholder="What are you imagining? Any timeline or links?"></textarea>
-            <button class="button" type="submit">Prepare project email <span aria-hidden="true">↗</span></button><p class="brief-note">Opens your email app with the brief prepared. Nothing is submitted automatically.</p>
-          </form><a class="contact-email" href="mailto:contact@parallelvisionlabel.com">contact@parallelvisionlabel.com</a></div>
-      </div>
-    </section>
-  </main>
-  <footer class="footer"><div class="wrap footer-inner"><span>© 2026 Parallel Vision / Agency / Berlin</span><a href="../">Explore Parallel Vision <span aria-hidden="true">&nbsp;↗</span></a></div></footer>
-  <script>
-
-    (() => {
-      const region = document.getElementById('cap');
-      if (!region) return;
-      const buttons = [...region.querySelectorAll('.service-more')];
-      buttons.forEach(button => button.addEventListener('click', () => {
-        const openNext = button.getAttribute('aria-expanded') !== 'true';
-        buttons.forEach(item => {
-          const panel = document.getElementById(item.getAttribute('aria-controls'));
-          if (!panel) return;
-          panel.hidden = true;
-          item.setAttribute('aria-expanded', 'false');
-          item.querySelector('.service-more-symbol').textContent = '+';
-        });
-        if (openNext) {
-          document.getElementById(button.getAttribute('aria-controls')).hidden = false;
-          button.setAttribute('aria-expanded', 'true');
-          button.querySelector('.service-more-symbol').textContent = '−';
-        }
-      }));
-    })();
-    (() => {
-      const form=document.getElementById('project-brief');
-      form?.addEventListener('submit',event=>{
-        event.preventDefault();
-        if(!form.reportValidity())return;
-        const values=new FormData(form);
-        const subject='Parallel Vision Agency / Project enquiry';
-        const body=['Name: '+values.get('name'),'Email: '+values.get('email'),'Direction: '+values.get('direction'),'Budget: '+(values.get('budget')||'To discuss'),'','Project brief:',''+values.get('message')].join('\n');
-        window.location.href='mailto:contact@parallelvisionlabel.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-      });
-    })();
+      </article>
+      <article class="work-card">
+        <a class="project-image" href="../berlin-2063.html" aria-label="Explore Berlin 2063">
+          <img src="../assets/optimized/2063/urban-form/urbangalleryfirst.webp" alt="A city passage from the original Berlin 2063 universe" loading="lazy" decoding="async">
+        </a>
+        <div class="project-caption">
+          <h3><a href="../berlin-2063.html">Berlin 2063 <span aria-hidden="true">↗</span></a></h3>
+          <p class="project-type">Worldbuilding / Film / Sound</p>
+        </div>
+      </article>
+      <article class="work-card">
+        <a class="project-image" href="../nina-project.html" aria-label="Explore Nina FOK">
+          <img src="../assets/optimized/nina-fok/nina-window.webp" alt="Nina FOK seen through a scratched window" loading="lazy" decoding="async">
+        </a>
+        <div class="project-caption">
+          <h3><a href="../nina-project.html">Nina FOK <span aria-hidden="true">↗</span></a></h3>
+          <p class="project-type">Character / Identity / Interaction</p>
+        </div>
+      </article>
+      <article class="work-card">
+        <a class="project-image project-image--record" href="../#releases" aria-label="Explore Parallel Vision music releases">
+          <img src="../assets/optimized/artworks/sube-pv015.jpg" alt="Sube single artwork, Parallel Vision PV015" loading="lazy" decoding="async">
+        </a>
+        <div class="project-caption">
+          <h3><a href="../#releases">Parallel Vision Records <span aria-hidden="true">↗</span></a></h3>
+          <p class="project-type">Music / Culture / Art direction</p>
+        </div>
+      </article>
+      <article class="work-card">
+        <a class="project-image project-image--lab" href="https://pvlab.studio/" target="_blank" rel="noopener noreferrer" aria-label="Visit PV LAB creative platform">
+          <strong aria-hidden="true">PV LAB</strong><small>Image / Film / Creation</small>
+        </a>
+        <div class="project-caption">
+          <h3><a href="https://pvlab.studio/" target="_blank" rel="noopener noreferrer">PV LAB <span aria-hidden="true">↗</span></a></h3>
+          <p class="project-type">Creative tools / Product / Web</p>
+        </div>
+      </article>
+      <article class="work-card">
+        <a class="project-image project-image--vr" href="../berlin-2063-vr.html" aria-label="Explore Berlin 2063 immersive film prototype">
+          <img src="../assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" alt="A scene from Berlin 2063, presented through a WebXR film prototype" loading="lazy" decoding="async">
+        </a>
+        <div class="project-caption">
+          <h3><a href="../berlin-2063-vr.html">Berlin 2063 / WebXR <span aria-hidden="true">↗</span></a></h3>
+          <p class="project-type">Spatial film / Meta Quest prototype</p>
+        </div>
+      </article>
+    </div>
+    <p class="work-note">Independent projects developed within Parallel Vision, shown as examples of our creative practice.</p>
+  </div>
+</section>
+<section class="practice light" id="cap" aria-labelledby="practice-title">
+  <div class="wrap">
+    <div class="section-heading">
+      <div><p class="section-label">02 / The practice</p><h2 id="practice-title">What we do.</h2></div>
+      <p>Art direction, production and technology, brought together under one visual point of view.</p>
+    </div>
+    <div class="practice-list">
+      <article class="practice-item">
+        <span class="practice-number">01</span>
+        <h3>Fashion &amp; Creative Direction</h3>
+        <p>Campaign imagery, editorial worlds and art direction for brands and artists.</p>
+      </article>
+      <article class="practice-item">
+        <span class="practice-number">02</span>
+        <h3>Film &amp; Motion</h3>
+        <p>Fashion films, music videos and moving image, using production and AI-assisted techniques.</p>
+      </article>
+      <article class="practice-item">
+        <span class="practice-number">03</span>
+        <h3>Digital &amp; Spatial Experiences</h3>
+        <p>Digital environments, interactive projects and immersive film for screens and physical spaces.</p>
+      </article>
+    </div>
+    <div class="practice-extension">
+      <p class="section-label">Also in the studio</p>
+      <p>Websites <span aria-hidden="true">/</span> E-commerce <span aria-hidden="true">/</span> Campaigns <span aria-hidden="true">/</span> Digital Characters <span aria-hidden="true">/</span> Original Sound</p>
+    </div>
+    <a class="practice-action" href="#contact">Discuss a commission <span aria-hidden="true">↗</span></a>
+  </div>
+</section>
+<section class="approach" id="approach" aria-labelledby="approach-title">
+  <div class="wrap" id="formats">
+    <div class="approach-intro">
+      <div><p class="section-label">03 / Working together</p><h2 id="approach-title">From an image to an entire world.</h2></div>
+      <p>Some projects start with a single film or image. Others become a visual identity, a digital platform or a live experience. We shape the team and scope around the idea.</p>
+    </div>
+    <div class="studio-steps">
+      <div class="studio-step"><p class="project-number">01</p><h3>Conversation</h3><p>We understand the idea, goals, timing and budget.</p></div>
+      <div class="studio-step"><p class="project-number">02</p><h3>Direction</h3><p>A visual concept and clear scope before production.</p></div>
+      <div class="studio-step"><p class="project-number">03</p><h3>Production</h3><p>We create the work, refine it together and deliver.</p></div>
+    </div>
+  </div>
+</section>
+<section class="contact" id="contact" aria-labelledby="contact-title">
+  <div class="wrap contact-grid">
+    <div>
+      <p class="section-label">04 / Start a conversation</p>
+      <h2 id="contact-title">Let's make<br>something.</h2>
+      <p class="contact-lead">A collection, a campaign, a film, a digital space or an idea you haven't quite named yet. Tell us what you're imagining.</p>
+      <a class="contact-email" href="mailto:contact@parallelvisionlabel.com?subject=Parallel%20Vision%20Agency%20%2F%20Project%20enquiry">contact@parallelvisionlabel.com <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="contact-aside">
+      <p>We work with brands, artists and creative partners. Every commission begins with a conversation and is scoped individually.</p>
+      <details class="brief-disclosure">
+        <summary>Prefer to write a project brief?</summary>
+        <form id="project-brief" class="brief-form" action="mailto:contact@parallelvisionlabel.com" method="get">
+          <label for="brief-name">Your name</label>
+          <input id="brief-name" name="name" type="text" autocomplete="name" required maxlength="120" placeholder="Name">
+          <label for="brief-email">Email</label>
+          <input id="brief-email" name="email" type="email" autocomplete="email" required maxlength="200" placeholder="you@example.com">
+          <label for="brief-type">Project direction</label>
+          <select id="brief-type" name="direction">
+            <option>Fashion &amp; Creative Direction</option><option>Film &amp; Motion</option>
+            <option>Digital &amp; Spatial Experiences</option><option>Web, commerce or campaigns</option>
+            <option>Music &amp; sound</option><option>Something else</option>
+          </select>
+          <label for="brief-budget">Indicative budget (optional)</label>
+          <select id="brief-budget" name="budget">
+            <option value="">Let's discuss</option>
+            <option>Under €2,500</option><option>€2,500 to €5,000</option>
+            <option>€5,000 to €15,000</option><option>€15,000+</option>
+          </select>
+          <label for="brief-message">About the project</label>
+          <textarea id="brief-message" name="message" rows="4" required maxlength="3000" placeholder="A few words about the idea, timeline or references"></textarea>
+          <button class="button" type="submit">Prepare project email <span aria-hidden="true">↗</span></button>
+          <p class="brief-note">Opens your email app with the brief prepared. Nothing is submitted automatically.</p>
+        </form>
+      </details>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="footer">
+  <div class="wrap footer-inner"><span>© 2026 Parallel Vision / Agency / Berlin</span><a href="../">Explore Parallel Vision ↗</a></div>
+</footer>
+<script>
+(() => {
+  const form=document.getElementById('project-brief');
+  form?.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    const data = new FormData(form);
+    const body = [
+      'Name: ' + data.get('name'),
+      'Email: ' + data.get('email'),
+      'Direction: ' + data.get('direction'),
+      'Budget: ' + (data.get('budget') || 'To discuss'),
+      '',
+      'Project brief:',
+      String(data.get('message') || '')
+    ].join('\n');
+    window.location.href = 'mailto:contact@parallelvisionlabel.com?subject='
+      + encodeURIComponent('Parallel Vision Agency / Project enquiry')
+      + '&body=' + encodeURIComponent(body);
+  });
+})();
     (() => {
       const video = document.getElementById('studio-film');
       const button = document.getElementById('play-film');
@@ -571,6 +470,6 @@
       });
       document.addEventListener('visibilitychange', () => { if (document.hidden) video.pause(); });
     })();
-  </script>
+</script>
 </body>
 </html>
