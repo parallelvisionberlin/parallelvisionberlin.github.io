@@ -102,42 +102,7 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
 
 #gate.pv-guest-image .pv-guest-composer{position:relative}
 
-/* Public preview compact row. The selections are informative, not fake model buttons.
-   On touch viewports the existing legible stacked composer is retained. */
-@media(min-width:1220px){
-  #gate.pv-guest-image .pv-guest-composer:not(.pv-deck-expanded){
-    display:flex;align-items:center;gap:13px;
-    width:min(1220px,100%);min-height:82px;
-    padding:11px 15px;
-  }
-  #gate.pv-guest-image .pv-guest-composer:not(.pv-deck-expanded)>textarea{
-    flex:1 1 220px;min-width:165px;
-    height:46px;min-height:46px;max-height:46px;resize:none;
-    margin:0;padding:11px 9px;
-    white-space:nowrap;overflow:hidden;
-  }
-  #gate.pv-guest-image .pv-guest-composer:not(.pv-deck-expanded) .pv-guest-composer-footer{
-    flex:0 1 auto;min-width:0;display:flex;align-items:center;gap:11px;
-  }
-  #gate.pv-guest-image .pv-guest-composer:not(.pv-deck-expanded) #pv-guest-generate{
-    min-height:51px;min-width:134px;
-  }
-}
-@media(min-width:681px){
-  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded{
-    display:flex;flex-direction:column;align-items:stretch;gap:12px;
-    width:min(1120px,100%);padding:15px 19px 17px;
-  }
-  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded textarea{
-    height:112px;min-height:112px;max-height:152px;
-    padding:10px 8px;resize:none;white-space:pre-wrap;
-    overflow-x:hidden;overflow-y:auto;margin:0;
-  }
-  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded .pv-guest-composer-footer{
-    width:100%;align-items:center;
-  }
-}
-#gate.pv-guest-image .pv-guest-composer textarea{transition:height .22s ease,min-height .22s ease}
+/* Signed-out composer geometry belongs exclusively to studio-guest-image.css. */
 
 /* The authenticated editor keeps the existing functional controls and server quote.
    Height is measured synchronously by fitImageComposerPrompt(): do not animate
@@ -313,14 +278,6 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
 /* Mobile: never turn the prompt into a full-screen keyboard-triggering sheet.
    It previews the chosen Mood without focus, and expands only on intentional tap. */
 @media(max-width:680px){
-  #gate.pv-guest-image .pv-guest-composer textarea{
-    transition:height .20s ease;white-space:nowrap;overflow:hidden;
-  }
-  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded textarea{
-    height:104px;min-height:104px;max-height:132px;
-    white-space:pre-wrap;overflow-y:auto;overflow-x:hidden;
-    resize:none;
-  }
   #app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul).pv-deck-expanded .image-composer-top{
     min-height:107px!important;height:107px!important;max-height:128px!important;
   }
