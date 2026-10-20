@@ -86,7 +86,8 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   background:linear-gradient(90deg,transparent,rgba(234,238,236,.29) 26%,rgba(234,238,236,.13) 69%,transparent);
   pointer-events:none;
 }
-#gate.pv-guest-image .pv-guest-composer:focus-within,
+/* Keep the guest composer finish constant while writing; authenticated controls
+   retain their previously approved focus treatment. */
 html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul):focus-within{
   border-color:rgba(238,238,233,.40)!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 24px 72px rgba(0,0,0,.51)!important;
