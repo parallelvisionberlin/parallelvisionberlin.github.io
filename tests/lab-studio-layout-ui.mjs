@@ -961,7 +961,8 @@ try{
     const composer=document.getElementById('image-composer').getBoundingClientRect();
     const labels=['image-composer-resolution-wrap','image-composer-count-wrap']
       .map(id=>document.getElementById(id).getBoundingClientRect());
-    return {deckTop:composer.top,extras:labels.map(r=>({top:r.top,bottom:r.bottom,left:r.left,right:r.right}))};
+    return {deckTop:composer.top,deckBottom:composer.bottom,
+      extras:labels.map(r=>({top:r.top,bottom:r.bottom,left:r.left,right:r.right}))};
   });
   assert.ok(extras.extras.every(rect=>rect.bottom<=extras.deckTop+1&&rect.left>=8&&rect.right<=382),
     'More settings float fully above the deck, not row three: '+JSON.stringify(extras));
