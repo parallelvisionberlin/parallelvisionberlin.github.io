@@ -4,11 +4,14 @@ Updated: 2026-10-21
 Scope: A visible Download video button on completed Video Studio History cards.
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 Source base: 876b9548a6e8495c0317f899a37c440f65c3b10a
-Release: f5e7fab0f31bc804d8e74104f887aebdce7fc1da on main.
+Previous release: f5e7fab0f31bc804d8e74104f887aebdce7fc1da on main.
+Active revision: user requested a smaller control after seeing the full-width button.
 
 ## Approved behavior
 - Completed video cards expose their existing Download video action directly.
-- The button is always visible, including on touch screens, with a 44px target.
+- Small 30px dark download icon in the thumbnail's upper-right corner.
+- Invisible 44px tap target; always visible on desktop and touch screens.
+- No extra button row or added card height; accessible Download video text remains in the button.
 - Keyboard users have a visible focus outline.
 - Clicking the button uses the authenticated stored output through downloadJob.
 - The existing card handler excludes button clicks, so download does not open playback.
@@ -18,7 +21,7 @@ Release: f5e7fab0f31bc804d8e74104f887aebdce7fc1da on main.
 
 ## Implementation
 - lab/video-refresh.css: show only the existing completed-output action in Video History.
-- lab/studio.html: refresh the video stylesheet cache marker, cardDownload=20261021v1.
+- lab/studio.html: refresh the video stylesheet cache marker, cardDownload=20261021v2.
 - lab/README.md: pointer to this scoped handoff.
 - lab/lab.js already creates result-download only when hasResult(job) is true.
 - No JavaScript, backend, dependency or database change is needed.
@@ -40,6 +43,6 @@ Release: f5e7fab0f31bc804d8e74104f887aebdce7fc1da on main.
 - No paid generation or private video download is needed for verification.
 
 ## Next action
-- Completed. User can refresh Video Studio to receive the new stylesheet.
+- Compact revision: local checks, publish and live verification pending.
 - Suggested future improvement only: use finished-video frames as card thumbnails;
   current source-frame thumbnails and playback behavior remain unchanged.
