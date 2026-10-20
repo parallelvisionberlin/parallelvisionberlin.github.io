@@ -13,6 +13,7 @@
   // deck must not turn a simple cursor focus into a taller writing surface.
   let realEditingStarted=false;
   let emptyRealFocus=false;
+  let emptyGuestFocus=false;
   function realPromptNeedsSpace(surface,field){
     if(!field.value.trim())return false;
     // A deliberate line break needs a writing surface, even when short.
@@ -32,18 +33,19 @@
   function update(surface,field,kind){
     if(!surface)return;
     const hasRefs=kind==='real' && refs && !refs.hidden && refs.children.length>0;
+    const guestPhotos=document.getElementById('pv-guest-attachments');
+    const hasGuestPhotos=kind==='guest'&&!!guestPhotos&&!guestPhotos.hidden;
     const active=document.activeElement===field;
     const isSmall=small.matches;
     const hasPrompt=!!field.value.trim();
-    // Public focus is not an expand command. Open a two-row deck only when
-    // there is enough actual direction to need a writing area.
-    const guestNeedsSpace=kind==='guest'&&hasPrompt&&(
-      field.value.includes('\n')||field.value.length>(isSmall?36:88)||
-      (isSmall&&preview.guest));
+    // Keep the public entrance compact at rest, then open the same unframed
+    // writing instrument on focus, when typing, or when photos are selected.
+    const guestNeedsSpace=kind==='guest'&&
+      (hasPrompt||(active&&emptyGuestFocus));
     const isSoul=kind==='real'&&surface.classList.contains('is-pv-soul');
     const realNeedsSpace=kind==='real'&&!isSoul&&!hasRefs&&
       realPromptNeedsSpace(surface,field);
-    const expanded=hasRefs||
+    const expanded=hasRefs||hasGuestPhotos||
       (kind==='guest'&&guestNeedsSpace)||
       realNeedsSpace||
       (isSoul&&realEditingStarted&&!isSmall&&hasPrompt)||
@@ -79,10 +81,12 @@
         realEditingStarted=true;
         emptyRealFocus=!field.value.trim();
       }
+      if(kind==='guest')emptyGuestFocus=!field.value.trim();
       sync();
     });
     field.addEventListener('blur',()=>{
       if(kind==='real')emptyRealFocus=false;
+      if(kind==='guest')emptyGuestFocus=false;
       if(!small.matches)preview[kind]=false;
       requestAnimationFrame(sync);
     });
@@ -91,6 +95,7 @@
         emptyRealFocus=false;
         if(!small.matches)realEditingStarted=true;
       }
+      if(kind==='guest')emptyGuestFocus=false;
       preview[kind]=small.matches;sync();
     });
   }
@@ -114,6 +119,7 @@
   if(refs){
     new MutationObserver(sync).observe(refs,{attributes:true,attributeFilter:['hidden'],childList:true});
   }
+  window.addEventListener('pv-guest-photos-changed',sync);
   window.addEventListener('resize',sync,{passive:true});
   window.addEventListener('pageshow',sync);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});

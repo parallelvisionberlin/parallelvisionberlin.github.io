@@ -75,10 +75,10 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
   }
   function open(){
     if(!account)return;
-    // Empty or frozen complimentary wallets go straight to the complete
-    // in-Studio pricing panel, instead of a second smaller credit deck.
-    // Funded customers retain the existing balance-management dialog.
-    if(!accountClosed&&(balance<=0||trialGenerationPaused)){
+    // Every active customer gets the same editorial six-plan pricing view.
+    // The compact legacy wallet remains only for account-closure/billing
+    // support. Purchases still use the verified Stripe SKU and wallet path.
+    if(!accountClosed){
       if(dialog.open)dialog.close();
       openPricing({oneTime:true});
       return;
