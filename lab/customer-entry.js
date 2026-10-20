@@ -76,10 +76,15 @@ function show(){
     const closed=ready&&signed&&currentProfile&&!!profile.accountClosed;
     // Keep the credit control present while authentication resolves, but never
     // display a stale wallet value from a prior account or session.
-    homeCredits.hidden=!ready||closed;
+    homeCredits.hidden=!ready;
+    homeCredits.href=closed?'./account.html#settings':'./account.html#balance';
+    const plus=homeCredits.querySelector('.lab-home-credit-plus');
+    if(plus)plus.style.display=closed?'none':'';
     if(closed){
       $('lab-home-credit-copy').textContent='Account closed';
       $('lab-home-credit-unit').hidden=true;
+      homeCredits.setAttribute('aria-label','Account closed. View account settings and deletion status');
+      homeCredits.title='Account closed. View account settings';
     }else if(ready&&!signed){
       $('lab-home-credit-copy').textContent='Get credits';
       $('lab-home-credit-unit').hidden=true;
