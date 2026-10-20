@@ -14,6 +14,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: pvlab-isolated-ai-safety-smoke
+  cancel-in-progress: false
+
 jobs:
   test:
     name: Isolated prompt safety and UI contract
@@ -71,7 +75,21 @@ jobs:
             }
           };
           WORKER
-          cleanup() { npx --yes wrangler@4 delete --config wrangler.toml --name pvlab-guard-smoke-20261020 --force || true; }
+          cleanup() {
+            node --input-type=module <<'CLEAN'
+          const token=process.env.CLOUDFLARE_API_TOKEN;
+          const base='https://api.cloudflare.com/client/v4';
+          if(!token)throw Error('Cannot clean up smoke Worker without deploy token.');
+          const list=await fetch(base+'/accounts?per_page=50',{headers:{Authorization:'Bearer '+token}});
+          if(!list.ok)throw Error('Smoke cleanup account lookup failed: '+list.status);
+          const accounts=(await list.json()).result||[];
+          if(accounts.length!==1)throw Error('Smoke cleanup needs exactly one Cloudflare account.');
+          const url=base+'/accounts/'+accounts[0].id+'/workers/scripts/pvlab-guard-smoke-20261020';
+          const response=await fetch(url,{method:'DELETE',headers:{Authorization:'Bearer '+token}});
+          if(!response.ok&&response.status!==404)throw Error('Smoke Worker cleanup failed: '+response.status);
+          console.log('Isolated Workers AI smoke Worker deleted or already absent.');
+          CLEAN
+          }
           trap cleanup EXIT
           npx --yes wrangler@4 deploy --config wrangler.toml
           sleep 5
