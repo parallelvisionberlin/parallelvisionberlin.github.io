@@ -9,11 +9,26 @@
   if(!guest||!guestField||!real||!realField)return;
   const small=window.matchMedia('(max-width:680px)');
   const preview={guest:false,real:false};
-  // Keep a nonempty desktop prompt expanded across blur and Mood changes.
-  // A first focus may open an empty editor, but clearing the prompt must
-  // restore the compact deck even while the textarea remains focused.
+  // PV Soul keeps its own established editor behavior. The standard Image
+  // deck must not turn a simple cursor focus into a taller writing surface.
   let realEditingStarted=false;
   let emptyRealFocus=false;
+  function realPromptNeedsSpace(surface,field){
+    if(!field.value.trim())return false;
+    // A deliberate line break needs a writing surface, even when short.
+    if(field.value.includes('\n'))return true;
+    // Measure against the *compact* field. Reading an already-expanded
+    // textarea would make a previously long prompt sticky after shortening.
+    const wasExpanded=surface.classList.contains('pv-deck-expanded');
+    const previousHeight=field.style.height;
+    if(wasExpanded)surface.classList.remove('pv-deck-expanded');
+    field.style.removeProperty('height');
+    const needsSpace=field.scrollHeight>field.clientHeight+3||
+      field.scrollWidth>field.clientWidth+3;
+    field.style.height=previousHeight;
+    if(wasExpanded)surface.classList.add('pv-deck-expanded');
+    return needsSpace;
+  }
   function update(surface,field,kind){
     if(!surface)return;
     const hasRefs=kind==='real' && refs && !refs.hidden && refs.children.length>0;
@@ -25,13 +40,20 @@
     const guestNeedsSpace=kind==='guest'&&hasPrompt&&(
       field.value.includes('\n')||field.value.length>(isSmall?36:88)||
       (isSmall&&preview.guest));
+    const isSoul=kind==='real'&&surface.classList.contains('is-pv-soul');
+    const realNeedsSpace=kind==='real'&&!isSoul&&!hasRefs&&
+      realPromptNeedsSpace(surface,field);
     const expanded=hasRefs||
       (kind==='guest'&&guestNeedsSpace)||
-      (kind==='real'&&realEditingStarted&&!isSmall&&hasPrompt)||
-      (kind==='real'&&active&&(isSmall||hasPrompt||emptyRealFocus))||
-      (kind==='real'&&isSmall&&preview.real&&hasPrompt);
+      realNeedsSpace||
+      (isSoul&&realEditingStarted&&!isSmall&&hasPrompt)||
+      (isSoul&&active&&(isSmall||hasPrompt||emptyRealFocus))||
+      (isSoul&&isSmall&&preview.real&&hasPrompt);
     surface.classList.toggle('pv-deck-expanded',!!expanded);
     surface.classList.toggle('pv-deck-has-prompt',hasPrompt);
+    // Clearing or shortening an expanded prompt must also drop its old inline
+    // textarea height, not merely remove the expanded container class.
+    if(kind==='real'&&!isSoul&&!expanded)field.style.removeProperty('height');
   }
   function fitGuestPrompt(){
     if(!guest.classList.contains('pv-deck-expanded')){
