@@ -99,7 +99,6 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0031-signup-welcome-email.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0032-element-visual-profiles.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0033-owner-voucher-generation.sql --yes
-            wrangler d1 execute parallel-vision-lab --remote --file migrations/0034-prompt-safety-daily.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health

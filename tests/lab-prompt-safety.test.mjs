@@ -3,11 +3,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {customerCreativeText,obviousMinorSexualization,parseGuardResponse,checkCustomerPromptSafety,PromptSafetyError,GUARD_MODEL} from '../lab-worker/prompt-safety.mjs';
 
-function mockEnv(answer='safe',limit=8){
-  let count=0,modelCalls=0;
+function mockEnv(answer='safe'){
+  let modelCalls=0;
   const ai={async run(model,input){modelCalls++;assert.equal(model,GUARD_MODEL);assert.ok(input.messages[0].content);return {response:answer};}};
-  const db={prepare(sql){return {bind(){return this;},async run(){if(sql.includes('UPDATE lab_prompt_safety_daily'))return {meta:{changes:++count<=limit?1:0}};return {meta:{changes:1}};}};}};
-  return {AI:ai,LAB_DB:db,LAB_MINOR_PROMPT_SAFETY_DAILY_LIMIT:String(limit),calls:()=>modelCalls};
+  return {AI:ai,calls:()=>modelCalls};
 }
 function req(settings){return new Request('https://test.example/api/quotes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings})});}
 
@@ -51,10 +50,10 @@ test('Guard S4 fails closed, and unknown responses or missing AI fail closed',as
   const env=mockEnv();delete env.AI;
   await assert.rejects(checkCustomerPromptSafety(env,req({prompt:'Studio photograph'})),e=>e.status===503);
 });
-test('daily AI evaluation limit prevents excess model calls',async()=>{
-  const env=mockEnv('safe',1);await checkCustomerPromptSafety(env,req({prompt:'Fashion portrait'}));
-  await assert.rejects(checkCustomerPromptSafety(env,req({prompt:'Another fashion portrait'})),e=>e.status===503);
-  assert.equal(env.calls(),1);
+test('no arbitrary 20-check cutoff, every submitted creative prompt gets a classification',async()=>{
+  const env=mockEnv();
+  for(let i=0;i<40;i++)await checkCustomerPromptSafety(env,req({prompt:'Editorial portrait '+i}));
+  assert.equal(env.calls(),40);
 });
 test('image-only requests are not falsely claimed to be visually moderated',async()=>{
   const env=mockEnv();await checkCustomerPromptSafety(env,req({referenceSourceIds:['synthetic-reference-id'],prompt:''}));assert.equal(env.calls(),0);
@@ -64,6 +63,11 @@ test('worker integration remains backend-only and preserves Exact Prompt',()=>{
   assert.match(worker,/import \{checkCustomerPromptSafety\} from '\.\/prompt-safety\.mjs';/);
   assert.match(worker,/await checkCustomerPromptSafety\(env,request\)/);
   assert.match(worker,/LAB_MINOR_PROMPT_SAFETY_ENABLED/);
+  assert.match(worker,/const safetyDirectSubmit=method==='POST'/);
+  assert.match(worker,/path==='\/api\/higgsfield\/generate'/);
+  assert.match(worker,/if\(path==='\/api\/jobs'&&method==='POST'\)/);
+  assert.doesNotMatch(worker,/billable&&path!=='\/api\/jobs'&&env\.LAB_MINOR_PROMPT_SAFETY_ENABLED/);
+  assert.doesNotMatch(readFileSync('lab-worker/prompt-safety.mjs','utf8'),/reserveDailyEvaluation|LAB_MINOR_PROMPT_SAFETY_DAILY_LIMIT/);
   assert.match(worker,/if\(p\?\.type==='image'&&supportsReferenceGuidance\(p\)&&value\?\.exactPrompt===true\)p\.exactPrompt=true;/);
 });
 
