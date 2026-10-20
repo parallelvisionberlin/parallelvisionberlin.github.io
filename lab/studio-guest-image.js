@@ -4,6 +4,7 @@ const gate=document.getElementById('gate');
 const composer=document.getElementById('pv-guest-composer');
 const prompt=document.getElementById('pv-guest-prompt');
 const cards=[...document.querySelectorAll('[data-guest-mood]')];
+const moodButton=document.getElementById('pv-guest-moods');
 const draftKey='pv-lab-guest-image-draft-v1';
 const inspirationRotation=createInspirationRotation(sessionStorage);
 
@@ -41,11 +42,31 @@ cards.forEach(button=>button.addEventListener('click',()=>{
   // the user intentionally clicks the prompt deck.
 }));
 prompt.addEventListener('input',storeDraft);
-composer?.addEventListener('submit',event=>{
-  event.preventDefault();storeDraft();
+// A public Mood button belongs to the seven looks already on this page.
+// No redirect to an unrelated Moods route and no surprise sign-in.
+moodButton?.addEventListener('click',()=>{
+  const first=cards[0],carousel=document.getElementById('pv-guest-cards');
+  if(!first||!carousel)return;
+  carousel.scrollIntoView({
+    behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+    block:'center'
+  });
+  first.focus({preventScroll:true});
+});
+function requestSignIn(){
+  storeDraft();
   const signIn=document.getElementById('signin');
   if(signIn&&!signIn.disabled)signIn.click();
   else document.getElementById('auth-status').textContent='Sign-in is loading. Please try again in a moment.';
+}
+// Account-only tools share the real Clerk entry point; none navigate to an
+// arbitrary public page or advertise unsupported anonymous generation.
+composer?.querySelectorAll('[data-guest-signin]').forEach(button=>
+  button.addEventListener('click',requestSignIn)
+);
+composer?.addEventListener('submit',event=>{
+  event.preventDefault();
+  requestSignIn();
 });
 // Other tool tabs require an account. Keep the public Image preview visible
 // when the visitor cancels sign-in; their selected tool opens after login.

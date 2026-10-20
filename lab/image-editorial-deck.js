@@ -20,17 +20,34 @@
     const active=document.activeElement===field;
     const isSmall=small.matches;
     const hasPrompt=!!field.value.trim();
+    // Public focus is not an expand command. Open a two-row deck only when
+    // there is enough actual direction to need a writing area.
+    const guestNeedsSpace=kind==='guest'&&hasPrompt&&(
+      field.value.includes('\n')||field.value.length>(isSmall?36:88)||
+      (isSmall&&preview.guest));
     const expanded=hasRefs||
+      (kind==='guest'&&guestNeedsSpace)||
       (kind==='real'&&realEditingStarted&&!isSmall&&hasPrompt)||
-      (active&&(kind!=='real'||isSmall||hasPrompt||emptyRealFocus))||
-      (isSmall&&preview[kind]&&hasPrompt);
+      (kind==='real'&&active&&(isSmall||hasPrompt||emptyRealFocus))||
+      (kind==='real'&&isSmall&&preview.real&&hasPrompt);
     surface.classList.toggle('pv-deck-expanded',!!expanded);
     surface.classList.toggle('pv-deck-has-prompt',hasPrompt);
+  }
+  function fitGuestPrompt(){
+    if(!guest.classList.contains('pv-deck-expanded')){
+      guestField.style.height='';
+      return;
+    }
+    const minimum=small.matches?104:50,maximum=small.matches?132:150;
+    // Measure from a known minimum, never the previous long height.
+    guestField.style.height=minimum+'px';
+    guestField.style.height=Math.min(maximum,Math.max(minimum,guestField.scrollHeight))+'px';
   }
   function sync(){
     if(window.__PV_LAB_NATIVE__===1)return;
     real.classList.add('pv-editorial-deck');
     update(guest,guestField,'guest');
+    fitGuestPrompt();
     update(real,realField,'real');
   }
   const deferSync=()=>queueMicrotask(sync);

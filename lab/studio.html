@@ -178,12 +178,12 @@ document.addEventListener('click',event=>{
 <script defer src="./image-discreet.js?v=20261017-transient-message1"></script>
 <link rel="stylesheet" href="./video-effects.css?v=20261016-owner-only1">
 <link rel="stylesheet" href="./image-welcome-editorial.css?v=20261017-mobile-mood1&firstImageSelection=2">
-<link rel="stylesheet" href="./studio-guest-image.css?v=20261017-mobile-mood1&firstImageSelection=2&quietFocus=20261020">
+<link rel="stylesheet" href="./studio-guest-image.css?v=20261020-guest-parity1">
 <link rel="stylesheet" href="./inspiration-carousel.css?v=20261019-editorial-chevrons2">
-<link rel="stylesheet" href="./image-editorial-deck.css?v=20261020-pv-soul-toolbar1&quietGuestFocus=1">
+<link rel="stylesheet" href="./image-editorial-deck.css?v=20261020-guest-parity1">
 <link rel="stylesheet" href="./image-moods-return.css?v=20261017-hidden-inspiration1&inspirationGlow=20261017-halo2&mobileInspire=20261018-1&phoneBackdrop=20261019-1">
-<script defer src="./image-editorial-deck.js?v=20261019-prompt-shrink1"></script>
-<script type="module" src="./studio-guest-image.js?v=20261017-mobile-mood1&inspiration=rotation1&chrome=1&greenHaze=2"></script>
+<script defer src="./image-editorial-deck.js?v=20261020-guest-content-expand1"></script>
+<script type="module" src="./studio-guest-image.js?v=20261020-guest-tools1&inspiration=rotation1&chrome=1&greenHaze=2"></script>
 <script type="module" src="./inspiration-carousel.js?v=20261019-keyboard2"></script>
 <script defer src="./studio-mobile-entry.js?v=20261019-stable-welcome1"></script>
 <link rel="stylesheet" href="./scene-library.css?v=20261018-elements-profiles1&aboutElements=20261018v1&draftToast=20261018v1&geminiRepair=20261020v1">
@@ -295,11 +295,16 @@ document.addEventListener('click',event=>{
       <label class="pv-guest-sr-only" for="pv-guest-prompt">Describe the image you want to create</label>
       <textarea id="pv-guest-prompt" rows="2" maxlength="5000" placeholder="What do you imagine?" aria-label="What do you imagine?"></textarea>
       <div class="pv-guest-composer-footer">
-        <div class="pv-guest-settings">
-          <span class="pv-guest-setting">Seedream 5 Pro</span>
-          <a class="pv-guest-setting pv-guest-moods-link" href="./moods">✦ Moods</a>
-          <span class="pv-guest-setting">16:9</span>
-          <span class="pv-guest-setting">1 image</span>
+        <div class="pv-guest-settings" role="group" aria-label="Image creation tools">
+          <button id="pv-guest-add" class="pv-guest-setting pv-guest-icon pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to add an image" aria-label="Sign in to add an image">+</button>
+          <button id="pv-guest-library" class="pv-guest-setting pv-guest-icon pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to open your library" aria-label="Sign in to open your library"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg></button>
+          <button id="pv-guest-model" class="pv-guest-setting pv-guest-model" type="button" data-guest-signin title="Sign in to choose a model"><span aria-hidden="true">◈</span> Seedream 5 Pro <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
+          <button id="pv-guest-retouch" class="pv-guest-setting pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to use Retouch">◈ Retouch</button>
+          <button id="pv-guest-moods" class="pv-guest-setting pv-guest-moods-link" type="button" aria-controls="pv-guest-cards" title="Choose an Inspiration mood above"><span aria-hidden="true">✦</span> Moods</button>
+          <button id="pv-guest-base" class="pv-guest-setting pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to add a base image">Base image <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
+          <button id="pv-guest-ratio" class="pv-guest-setting" type="button" data-guest-signin title="Sign in to choose an aspect ratio">16:9 <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
+          <button id="pv-guest-resolution" class="pv-guest-setting pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to choose resolution">1K <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
+          <button id="pv-guest-count" class="pv-guest-setting" type="button" data-guest-signin title="Sign in to choose image count">1 image <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
         </div>
         <button id="pv-guest-generate" type="submit"><strong>Generate</strong><small>Sign in to create</small></button>
       </div>

@@ -84,10 +84,10 @@ test('the long-to-empty prompt shrink and reference-aware presentation remain in
 });
 
 test('guest focus stays borderless and the desktop Sign in pill matches the header scale',()=>{
-  assert.match(guestStyle,/#gate \.pv-guest-composer textarea\{[^}]*outline:none;/,
-    'Guest writing area keeps its native text caret without a framing ring');
-  assert.doesNotMatch(guestStyle,/#gate \.pv-guest-composer textarea:focus-visible\s*\{/,
-    'Clicking or tabbing into the guest editor must not draw an inner rectangle');
+  assert.match(guestStyle,/#gate \.pv-guest-composer textarea:focus-visible\s*\{[^}]*outline:none!important;/,
+    'Guest writing area has an unfenced focus state with a visible text caret');
+  assert.doesNotMatch(guestStyle,/textarea:focus-visible\s*\{[^}]*outline:(?:1|2|3)px/,
+    'No bright focus rectangle is allowed inside the public deck');
   assert.doesNotMatch(style,/#gate\.pv-guest-image \.pv-guest-composer:focus-within/,
     'Guest editor focus must not brighten the outer frame');
   assert.match(guestStyle,/#studio-header #signin\.pv-guest-signin:not\(\[hidden\]\)\s*\{[^}]*min-height:42px;[^}]*font:600 13px\/1 /,
@@ -95,5 +95,17 @@ test('guest focus stays borderless and the desktop Sign in pill matches the head
   assert.match(guestStyle,/@media\(max-width:680px\)\{[\s\S]*?#studio-header #signin\.pv-guest-signin:not\(\[hidden\]\)\{padding:8px 13px;min-height:33px;font-size:11px\}/,
     'Existing small-screen Sign in proportions stay untouched');
   assert.match(presentation,/const expanded=hasRefs\|\|/,
-    'Guest focus appearance must not change the compact/expanded state controller');
+    'Authenticated composer keeps its approved sizing expression');
+  assert.match(presentation,/const guestNeedsSpace=kind==='guest'&&hasPrompt/,
+    'Guest expansion must require actual written content');
+  assert.doesNotMatch(presentation,/active&&\(kind!=='real'/,
+    'Guest focus alone must never expand an empty textarea');
+  assert.match(guestStyle,/\.pv-guest-composer\.pv-deck-expanded\s*\{\s*display:grid;/,
+    'Long guest directions use a genuine two-row instrument');
+  assert.match(studio,/id="pv-guest-moods"[^>]*aria-controls="pv-guest-cards"/,
+    'Guest Moods stays tied to the public Inspiration carousel');
+  assert.doesNotMatch(studio,/pv-guest-moods-link" href="\.\/moods"/,
+    'Guest toolbar must never send visitors to a different Mood page');
+  assert.match(studio,/id="pv-guest-add"[^>]*data-guest-signin/,
+    'Account-only guest tools must clearly require authentication');
 });
