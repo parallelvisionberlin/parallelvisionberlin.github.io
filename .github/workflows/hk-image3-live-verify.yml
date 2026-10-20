@@ -1,0 +1,45 @@
+name: Verify Hong Kong Image 3 production
+on:
+  push:
+    branches: ['codex/hk-image3-repair-runner-20261020']
+    paths: ['tools/hk-image3-live-check.txt']
+permissions:
+  contents: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          sparse-checkout: |
+            lab
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Confirm exact new Mood code and retained V8 engine are served by pvlab.studio
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import assert from 'node:assert/strict';
+          const hash=s=>createHash('sha256').update(s).digest('hex');
+          const marker='hkImage3=20261020v1';
+          const targets=[['/moods.js','lab/moods.js'],['/film-finish.js','lab/film-finish.js']];
+          assert.match(readFileSync('lab/moods.js','utf8'),/refineAtmosphere=intensity>90/);
+          assert.match(readFileSync('lab/film-finish.js','utf8'),/FILM_FINISH_RENDER_REVISION=8;/);
+          for(let attempt=0;attempt<15;attempt++){
+            const results=[];
+            for(const [path,file] of targets){
+              try{const r=await fetch('https://pvlab.studio'+path+'?'+marker+'&verify='+attempt,{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});const text=await r.text();results.push({path,status:r.status,match:r.ok&&hash(text)===hash(readFileSync(file)),sha256:hash(text)});}catch(e){results.push({path,error:e.message,match:false});}
+            }
+            for(const path of ['/studio?tool=image','/lab.js?'+marker,'/app-mood-generation.js?'+marker]){
+              try{const r=await fetch('https://pvlab.studio'+path,{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});const text=await r.text();results.push({path,status:r.status,match:r.ok&&text.includes(marker)});}catch(e){results.push({path,error:e.message,match:false});}
+            }
+            console.log('IMAGE3_LIVE_CHECK',attempt+1,JSON.stringify(results));
+            if(results.every(r=>r.match)){console.log('IMAGE3_PRODUCTION_VERIFIED: live Mood refinement, refreshed Studio modules, unchanged V8 renderer; no generation submitted.');process.exit(0);}
+            await new Promise(r=>setTimeout(r,10000));
+          }
+          throw Error('Production has not served all expected Image 3 assets within this verification window.');
+          JS
