@@ -100,10 +100,34 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     assert.equal(await page.locator('.pv-upscale-editorial-blank').isVisible(),true,'PV LAB editorial macro replaces generic model photo');
     assert.equal(await page.locator('.pv-upscale-example-note').isVisible(),false,'Old generic illustration copy is hidden');
     const material=page.locator('.pv-upscale-material-photo img');
-    assert.equal(await material.getAttribute('src'),'./visuals/studio-tools/upscale-golden-macro-source.webp');
+    assert.equal(await material.getAttribute('src'),'./visuals/reptare-detail.webp','Uses a clean PV LAB archive image without a model portrait or embedded heading');
     await material.evaluate(image=>image.decode());
-    assert.equal(await material.evaluate(image=>image.naturalWidth),1672,'Approved PV LAB macro source loads');
+    assert.ok(await material.evaluate(image=>image.naturalWidth)>300,'Editorial material photograph loads');
     assert.equal(await page.locator('.pv-upscale-blank-footer').isVisible(),true,'Editorial original is labeled as not upscaled');
+    if(profile==='mobile'){
+      const mobileEditorial=await page.evaluate(()=>{
+        const bounds=selector=>{
+          const x=document.querySelector(selector).getBoundingClientRect();
+          return {top:x.top,bottom:x.bottom,left:x.left,right:x.right,width:x.width};
+        };
+        return {
+          columns:getComputedStyle(document.querySelector('.pv-upscale-editorial-blank')).gridTemplateColumns,
+          canvas:bounds('#upscale-canvas'),
+          title:bounds('.pv-upscale-blank-copy h2'),
+          photo:bounds('.pv-upscale-material-photo'),
+          button:bounds('#pv-upscale-hero-upload'),
+          footer:bounds('.pv-upscale-blank-footer'),
+          settingsTitleSize:parseFloat(getComputedStyle(document.querySelector('.pv-upscale-workspace-intro h2')).fontSize)
+        };
+      });
+      assert.equal(mobileEditorial.columns.trim().split(/\s+/).length,1,'Mobile editorial has one real grid column');
+      assert.ok(mobileEditorial.photo.width>=mobileEditorial.canvas.width*.78,'Mobile shows a wide material photograph');
+      assert.ok(mobileEditorial.title.bottom<=mobileEditorial.photo.top,'Mobile title sits fully above photograph');
+      assert.ok(mobileEditorial.photo.bottom<=mobileEditorial.button.top,'Photo and upload action do not overlap');
+      assert.ok(mobileEditorial.button.bottom<=mobileEditorial.footer.top+2,'Editorial source label follows upload action');
+      assert.ok(mobileEditorial.title.right<=mobileEditorial.canvas.right-10,'Mobile headline fits within preview');
+      assert.ok(mobileEditorial.settingsTitleSize<=22,'Mobile settings heading stays compact');
+    }
     const heroChooser=page.waitForEvent('filechooser');
     await page.locator('#pv-upscale-hero-upload').click();
     assert.equal((await heroChooser).isMultiple(),false,'Editorial button opens original single-image input');

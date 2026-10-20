@@ -431,9 +431,9 @@
 }
 
 /* PV LAB MATERIAL STUDY 001
-   Original gallery macro recropped to x=1170,y=42,w=410,h=560 in 1672x941 source,
-   eliminating baked-in typography and black matte at the bottom.
-   Image is an illustrative editorial crop, never a fabricated Upscale result. */
+   Uses a clean, already-present PV LAB studio photograph of reflective chrome
+   and white fibrous material. No additional generation or retouching.
+   The source image is illustrative, never a fabricated Upscale result. */
 #app .pv-upscale-editorial-blank{display:none}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty{position:relative!important;padding:0!important;overflow:hidden}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty::before{display:none!important;content:none!important}
@@ -446,13 +446,13 @@
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{
  display:grid!important;position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;
  grid-template-columns:minmax(0,44%) minmax(0,56%);overflow:hidden;text-align:left;
- background:radial-gradient(ellipse 70% 85% at 73% 50%,rgba(61,44,34,.14),transparent 78%),#0c1014;
+ background:radial-gradient(ellipse 70% 85% at 73% 50%,rgba(56,62,71,.13),transparent 78%),#0c1014;
  color:#eeece7;font-family:'DM Sans',Arial,sans-serif;
 }
 #app.upscale-studio-active .pv-upscale-editorial-blank::before{content:"";position:absolute;left:44%;top:9%;bottom:9%;width:1px;background:linear-gradient(transparent,#ffffff18 25%,#ffffff18 75%,transparent);pointer-events:none}
 #app.upscale-studio-active .pv-upscale-blank-copy{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;align-self:center;min-width:0;padding:25px clamp(24px,4vw,72px)}
 #app.upscale-studio-active .pv-upscale-blank-index{display:flex;gap:9px;align-items:center;margin:0 0 clamp(25px,5vh,48px);font:600 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.15em;color:#a3a3a0;white-space:nowrap}
-#app.upscale-studio-active .pv-upscale-blank-index i{display:block;width:5px;height:5px;flex:none;border-radius:50%;background:#bf9a79}
+#app.upscale-studio-active .pv-upscale-blank-index i{display:block;width:5px;height:5px;flex:none;border-radius:50%;background:#aeb6bf}
 #app.upscale-studio-active .pv-upscale-blank-copy h2{display:flex;flex-direction:column;margin:0 0 22px;font:500 clamp(46px,4.8vw,79px)/.99 'DM Sans',Arial,sans-serif;letter-spacing:-.065em;color:#f1eee9}
 #app.upscale-studio-active .pv-upscale-blank-copy p{max-width:282px;margin:0 0 37px;color:#9ca3a8;font:400 13px/1.8 'DM Sans',Arial,sans-serif}
 #app.upscale-studio-active #pv-upscale-hero-upload{display:flex;align-items:center;gap:16px;min-height:39px;padding:0 0 6px;border:0;border-bottom:1px solid #9c9e9d;border-radius:0;background:transparent;color:#ecebe7;font:600 12px 'DM Sans',Arial,sans-serif;cursor:pointer;transition:color .18s,border-color .18s}
@@ -463,7 +463,7 @@
 #app.upscale-studio-active .pv-upscale-blank-copy>small{margin-top:15px;color:#717a80;font:600 9px 'DM Sans',Arial,sans-serif;letter-spacing:.11em}
 #app.upscale-studio-active .pv-upscale-material-figure{display:flex;flex-direction:column;gap:13px;align-self:center;justify-self:center;width:clamp(205px,28vw,372px);max-width:80%;min-width:0;margin:0 0 12px}
 #app.upscale-studio-active .pv-upscale-material-photo{position:relative;width:100%;aspect-ratio:530/724;overflow:hidden;border:1px solid #ffffff30;border-radius:2px;background:#181816;box-shadow:0 22px 75px #0006}
-#app.upscale-studio-active .pv-upscale-material-photo img{position:absolute;display:block;max-width:none!important;width:407.8049%!important;height:168.0357%!important;left:-285.3659%!important;top:-7.5%!important;object-fit:fill}
+#app.upscale-studio-active .pv-upscale-material-photo img{position:absolute;display:block;inset:0;max-width:none!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:50% 50%!important}
 #app.upscale-studio-active .pv-upscale-material-photo::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent 65%,#0a0b0c18)}
 #app.upscale-studio-active .pv-upscale-material-figure figcaption{display:flex;justify-content:space-between;gap:12px;color:#97999a;font:600 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.11em;white-space:nowrap}
 #app.upscale-studio-active .pv-upscale-blank-footer{position:absolute;bottom:21px;left:clamp(24px,4vw,72px);right:29px;padding-top:14px;border-top:1px solid #ffffff20;color:#797e80;font:600 8px 'DM Sans',Arial,sans-serif;letter-spacing:.1em}
@@ -498,4 +498,118 @@
 @media(prefers-reduced-motion:reduce){
  #app.upscale-studio-active #pv-upscale-hero-upload,
  #app.upscale-studio-active #pv-upscale-hero-upload svg{transition:none}
+}
+
+/* 2026-10-21 Upscaler material-study refinement.
+   Desktop workbench structure and all provider/billing behavior stay unchanged.
+   Use the clean PV LAB archive source without embedded typography. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-figure{
+  width:clamp(280px,34vw,490px)!important;
+  max-width:83%!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-photo{
+  aspect-ratio:8/5!important;
+  height:auto!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-photo img{
+  width:100%!important;
+  height:100%!important;
+  left:0!important;
+  top:0!important;
+  object-fit:cover!important;
+  object-position:50% 50%!important;
+}
+@media(max-width:600px){
+  /* Mobile is a distinct single-column editorial composition, not a tiny desktop split. */
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:16px 42px 30px minmax(0,1fr) 40px 13px!important;
+    row-gap:6px!important;
+    padding:16px 18px 12px!important;
+    align-items:stretch!important;
+  }
+  #app.upscale-studio-active .pv-upscale-editorial-blank::before{display:none!important;content:none!important}
+  #app.upscale-studio-active .pv-upscale-blank-copy{display:contents!important}
+  #app.upscale-studio-active .pv-upscale-blank-index{
+    grid-column:1!important;grid-row:1!important;
+    align-self:center!important;justify-self:start;
+    margin:0!important;white-space:nowrap!important;
+    max-width:100%!important;font-size:8px!important;letter-spacing:.12em!important;
+  }
+  #app.upscale-studio-active .pv-upscale-blank-copy h2{
+    display:block!important;grid-column:1!important;grid-row:2!important;
+    align-self:center!important;justify-self:start;
+    margin:0!important;padding:0!important;
+    font-size:clamp(31px,8.8vw,38px)!important;line-height:1.1!important;
+    letter-spacing:-.06em!important;white-space:nowrap;
+  }
+  #app.upscale-studio-active .pv-upscale-blank-copy h2 span{display:inline!important}
+  #app.upscale-studio-active .pv-upscale-blank-copy h2 span:first-child::after{content:" "}
+  #app.upscale-studio-active .pv-upscale-blank-copy p{
+    grid-column:1!important;grid-row:3!important;
+    align-self:start!important;justify-self:start;
+    margin:0!important;padding:0!important;
+    max-width:100%!important;
+    font-size:11px!important;line-height:1.5!important;
+    color:#a6a8a7!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-figure{
+    grid-column:1!important;grid-row:4!important;
+    align-self:center!important;justify-self:stretch!important;
+    display:block!important;width:100%!important;max-width:none!important;
+    height:auto!important;margin:0!important;padding:0!important;
+    transform:none!important;
+  }
+  #app.upscale-studio-active .pv-upscale-material-photo{
+    box-sizing:border-box;width:100%!important;height:auto!important;
+    aspect-ratio:8/5!important;overflow:hidden;
+    border:1px solid rgba(223,232,240,.23)!important;
+    border-radius:3px!important;
+    box-shadow:0 12px 42px rgba(0,0,0,.22)!important;
+  }
+  /* The clean editorial photograph fills mobile and desktop without text cropping. */
+  #app.upscale-studio-active .pv-upscale-material-figure figcaption{display:none!important}
+  #app.upscale-studio-active #pv-upscale-hero-upload{
+    grid-column:1!important;grid-row:5!important;
+    align-self:center!important;justify-self:start!important;
+    margin:0!important;padding:0 0 4px!important;
+    min-height:34px!important;
+    font-size:12px!important;line-height:1.2!important;
+    gap:13px!important;
+  }
+  #app.upscale-studio-active #pv-upscale-hero-upload svg{width:15px!important;height:15px!important}
+  #app.upscale-studio-active .pv-upscale-blank-copy>small{display:none!important}
+  #app.upscale-studio-active .pv-upscale-blank-footer{
+    position:static!important;
+    grid-column:1!important;grid-row:6!important;
+    align-self:end!important;
+    padding:0!important;margin:0!important;
+    border:0!important;
+    font-size:7px!important;line-height:1.25!important;letter-spacing:.085em!important;
+    white-space:nowrap;
+  }
+  /* Shorter, cleaner settings panel below the preview. Full-size tap targets remain. */
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+    padding:16px 16px 11px!important;
+    gap:13px 10px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+    margin:0!important;padding:0 0 12px!important;gap:0!important;
+  }
+  #app.upscale-studio-active .pv-upscale-workspace-intro .pv-upscale-kicker,
+  #app.upscale-studio-active .pv-upscale-workspace-intro p{display:none!important}
+  #app.upscale-studio-active .pv-upscale-workspace-intro h2{
+    font-size:20px!important;line-height:1.25!important;letter-spacing:-.035em!important;
+  }
+  #app.upscale-studio-active #pv-upscale-source-upload{
+    min-height:78px!important;padding:12px 13px!important;gap:12px!important;
+  }
+  #app.upscale-studio-active #pv-upscale-source-upload .pv-upscale-source-icon{
+    width:36px!important;height:36px!important;
+  }
+  #app.upscale-studio-active #pv-upscale-source-upload svg{width:20px!important;height:20px!important}
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+    padding:12px 16px 15px!important;
+  }
 }
