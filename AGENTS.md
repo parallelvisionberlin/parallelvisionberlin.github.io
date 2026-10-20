@@ -88,6 +88,7 @@ Do not repeatedly ask for confirmation for normal implementation decisions.
 
 ## Active feature handoffs
 - PV LAB Control Room: `lab/OWNER-WORK-STATE.md`.
+- PV LAB staged prompt safety: `lab-worker/SAFETY-WORK-STATE.md`.
 - Parallel Vision homepage hero: `WORK-STATE.md`.
 
 ## Automatic continuity and usage efficiency
