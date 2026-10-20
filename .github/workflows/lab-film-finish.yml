@@ -40,14 +40,7 @@ jobs:
           done
           if [ "$ready" != 1 ]; then cat /tmp/film-preview.log; exit 1; fi
           node tests/lab-film-preview.mjs
-      - name: Install browser verification runtime
-        run: |
-          npm install --prefix /tmp/pv-film-browser --no-audit --no-fund playwright@1.62.1
-          /tmp/pv-film-browser/node_modules/.bin/playwright install --with-deps chromium
-      - name: Verify desktop and mobile finishing controls
-        env:
-          PV_PLAYWRIGHT_MODULE: /tmp/pv-film-browser/node_modules/playwright/index.mjs
-        run: node tests/lab-film-browser.mjs
+      # Optical-only staging run. PR browser suites run independently.
       - uses: actions/upload-artifact@v4
         if: always()
         with:
