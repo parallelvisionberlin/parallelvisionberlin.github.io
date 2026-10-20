@@ -1,0 +1,30 @@
+name: PV LAB prompt safety review
+
+on:
+  pull_request:
+    paths:
+      - 'lab-worker/prompt-safety.mjs'
+      - 'lab-worker/worker.mjs'
+      - 'lab-worker/wrangler.toml'
+      - 'lab-worker/migrations/0034-prompt-safety-daily.sql'
+      - 'tests/lab-prompt-safety.test.mjs'
+      - '.github/workflows/pv-lab-prompt-safety-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Isolated prompt safety and UI contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Worker and prompt safety syntax
+        run: |
+          node --check lab-worker/worker.mjs
+          node --check lab-worker/prompt-safety.mjs
+      - name: Test minor safety gate and locked UI copy
+        run: |
+          node --test tests/lab-prompt-safety.test.mjs
+          node --test tests/lab-approved-image-ui-contract.test.mjs
