@@ -24,9 +24,10 @@ test('negated minor references do not automatically block adult imagery',()=>{
   assert.equal(obviousMinorSexualization('Sin menores, retrato erótico de una mujer adulta'),false);
 });
 test('collects creative text without changing Exact Prompt, skips non-creative keys',()=>{
-  const payload={settings:{prompt:'Editorial portrait',moodOriginalPrompt:'Chrome fashion',exactPrompt:true,referenceRoles:[{role:'identity',note:'studio wardrobe'}]},quoteId:'do-not-scan'};
+  const payload={settings:{prompt:'Editorial portrait',moodOriginalPrompt:'Old irrelevant Mood directions',exactPrompt:true,referenceRoles:[{role:'identity',name:'studio reference',note:'studio wardrobe'}]},quoteId:'do-not-scan'};
   const collected=customerCreativeText(payload);
-  assert.match(collected,/Editorial portrait/);assert.match(collected,/Chrome fashion/);assert.match(collected,/studio wardrobe/);assert.doesNotMatch(collected,/do-not-scan|true/);
+  assert.match(collected,/Editorial portrait/);assert.match(collected,/studio reference/);assert.match(collected,/studio wardrobe/);
+  assert.doesNotMatch(collected,/Old irrelevant Mood|do-not-scan|true/);
   assert.equal(payload.settings.exactPrompt,true);
 });
 test('Llama Guard category S4 blocks but adult S12 is allowed',()=>{
@@ -64,4 +65,12 @@ test('worker integration remains backend-only and preserves Exact Prompt',()=>{
   assert.match(worker,/await checkCustomerPromptSafety\(env,request\)/);
   assert.match(worker,/LAB_MINOR_PROMPT_SAFETY_ENABLED/);
   assert.match(worker,/if\(p\?\.type==='image'&&supportsReferenceGuidance\(p\)&&value\?\.exactPrompt===true\)p\.exactPrompt=true;/);
+});
+
+test('long legitimate prompts remain permitted without truncation',async()=>{
+  const env=mockEnv('safe');
+  const longPrompt='high-fashion studio portrait, natural texture. '.repeat(150);
+  const request=req({prompt:longPrompt,moodOriginalPrompt:'Archive notes not part of effective prompt'});
+  await checkCustomerPromptSafety(env,request);
+  assert.equal(env.calls(),1);
 });
