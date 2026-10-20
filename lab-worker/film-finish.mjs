@@ -205,6 +205,20 @@ export async function printGradePng(bytes,deluxe=0,engine='v6'){
   return png(width,height,scan,6);
 }
 
+// Linear, color-preserving source radiance for strong manual V9 optical bloom.
+// Unlike normalizing each blurred pixel to white, this keeps a continuous
+// Gaussian light field: no circular alpha contour or artificially white globs.
+export async function opticalRadiancePng(bytes,gain=1){
+  const {width,height,pixels}=await normalizedPixels(bytes),out=new Uint8Array((width*4+1)*height);
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4;
+    out[j]=Math.round(Math.min(255,pixels[i]*gain));
+    out[j+1]=Math.round(Math.min(255,pixels[i+1]*gain));
+    out[j+2]=Math.round(Math.min(255,pixels[i+2]*gain));
+    out[j+3]=pixels[i+3];
+  }
+  return png(width,height,out,6);
+}
 export const transparentHighlights=(bytes,gain=1,gamma=1)=>convertHighlights(bytes,false,gain,gamma);
 export const highlightMask=bytes=>convertHighlights(bytes,true);
 // Custom multiscale grain, not a measured film-stock model. Isotropic smooth
@@ -304,7 +318,10 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v9'}=
       for(const [radius,opacity,gain,gamma] of stages){
         const spread=(await images.input(stream(mask.bytes)).transform({blur:Math.max(1,Math.round(radius*scale))})
           .output({format:'image/png',anim:false})).response();
-        const halo=await transparentHighlights(await bytesFrom(spread,5_000_000),gain,gamma);
+        const scattered=await bytesFrom(spread,5_000_000);
+        const halo=engine==='v9'&&gamma<1
+          ?await opticalRadiancePng(scattered,gain)
+          :await transparentHighlights(scattered,gain,gamma);
         const layer=images.input(stream(halo)).transform({width,height,fit:'squeeze'});
         image=image.draw(layer,{opacity,composite:engine==='v9'&&gamma<1?'lighter':'over'});
       }
