@@ -10,6 +10,7 @@ const studio=readFileSync('lab/studio.html','utf8');
 const lab=readFileSync('lab/lab.js','utf8');
 const presentation=readFileSync('lab/image-editorial-deck.js','utf8');
 const style=readFileSync('lab/image-editorial-deck.css','utf8');
+const guestStyle=readFileSync('lab/studio-guest-image.css','utf8');
 
 function section(source,start,end){
   const first=source.indexOf(start);
@@ -80,4 +81,19 @@ test('the long-to-empty prompt shrink and reference-aware presentation remain in
   const editorialEditor=section(style,'/* The authenticated editor keeps','/* Preserve the original functional two-row Image grid.');
   assert.match(editorialEditor,/transition:none!important;/,
     'Do not animate the textarea measurement and trap the previous tall height');
+});
+
+test('guest focus stays borderless and the desktop Sign in pill matches the header scale',()=>{
+  assert.match(guestStyle,/#gate \.pv-guest-composer textarea\{[^}]*outline:none;/,
+    'Guest writing area keeps its native text caret without a framing ring');
+  assert.doesNotMatch(guestStyle,/#gate \.pv-guest-composer textarea:focus-visible\s*\{/,
+    'Clicking or tabbing into the guest editor must not draw an inner rectangle');
+  assert.doesNotMatch(style,/#gate\.pv-guest-image \.pv-guest-composer:focus-within/,
+    'Guest editor focus must not brighten the outer frame');
+  assert.match(guestStyle,/#studio-header #signin\.pv-guest-signin:not\(\[hidden\]\)\s*\{[^}]*min-height:42px;[^}]*font:600 13px\/1 /,
+    'Desktop guest Sign in must use the approved more legible scale');
+  assert.match(guestStyle,/@media\(max-width:680px\)\{[\s\S]*?#studio-header #signin\.pv-guest-signin:not\(\[hidden\]\)\{padding:8px 13px;min-height:33px;font-size:11px\}/,
+    'Existing small-screen Sign in proportions stay untouched');
+  assert.match(presentation,/const expanded=hasRefs\|\|/,
+    'Guest focus appearance must not change the compact/expanded state controller');
 });
