@@ -26,5 +26,8 @@ Source base: `1566e668b4688bbf499a3fb700c316fbf1d08ca1`, main.
 - 11 targeted tests passed, including cache behavior, ownership, and original-image preservation.
 - Worker syntax and whitespace checks passed.
 - Before release, live health reported `pv-lab-2026-10-20.2-one-check-per-generation`.
-- Deployment and a real Gemini response are not yet confirmed.
-- Next: commit/push, verify Worker deployment and health, then check Analyze photos in an authenticated session.
+- Released commit: `0c4dbf1dc46acbacd430c2af5113e46c4b2e5995` on main.
+- GitHub Actions deployment `39514538194` completed successfully, including all required tests and production health verification.
+- Direct production health read confirmed `pv-lab-2026-10-21.1-elements-gemini3` after release.
+- Browser at https://pvlab.studio/studio?tool=image is signed out in this session, so the real private Nina-pack provider response was not tested.
+- Next: signed-in owner should click Analyze photos on the existing NINA FULL BODY Element; no reupload or LoRA retraining is required.
