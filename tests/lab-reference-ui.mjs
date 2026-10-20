@@ -62,11 +62,21 @@ const references=(count=7)=>Array.from({length:count},(_,i)=>({name:'architectur
 const ready=page=>page.waitForFunction(()=>document.querySelectorAll('.reference-item').length===7&&!document.querySelector('#prompt').disabled);
 const role=(page,index)=>page.getByLabel('Role for reference '+index,{exact:true});
 const target=(page,index)=>page.getByLabel('Target for reference '+index,{exact:true});
+ // The legacy reference-roles sidebar is intentionally hidden behind the
+ // current floating Image editor. Exercise the existing change handlers as
+ // a backend/serialization regression without asking Playwright to click
+ // invisible controls; visible composer interactions are verified separately.
+ const choose=async(select,value)=>select.evaluate((node,next)=>{
+   node.value=next;node.dispatchEvent(new Event('change',{bubbles:true}));
+ },value);
+ const edit=async(field,value)=>field.evaluate((node,next)=>{
+   node.value=next;node.dispatchEvent(new Event('input',{bubbles:true}));
+ },value);
 async function populatedReferenceControls(page){
-  await role(page,1).selectOption('base');
-  await role(page,2).selectOption('detail');await target(page,2).selectOption('hands');
-  await role(page,3).selectOption('outfit');await target(page,3).selectOption('pants');
-  for(const index of [4,5,6,7])await role(page,index).selectOption('identity');
+  await choose(role(page,1),'base');
+  await choose(role(page,2),'detail');await choose(target(page,2),'hands');
+  await choose(role(page,3),'outfit');await choose(target(page,3),'pants');
+  for(const index of [4,5,6,7])await choose(role(page,index),'identity');
 }
 try{
   let x=await workspace();await imageAdvanced(x.page);
@@ -95,7 +105,7 @@ try{
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Architectural sculpture in daylight.');
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');await imageAdvanced(x.page);
   await x.page.locator('.reference-item select').first().selectOption('room');
-  await x.page.locator('.reference-item input').first().fill('Use only the architecture.');
+  await edit(x.page.locator('.reference-item input').first(),'Use only the architecture.');
   // The legacy Save Draft button is hidden by the approved floating editor.
   // Trigger its handler directly for the backend archive/role regression.
   await x.page.evaluate(()=>document.getElementById('save').click());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
@@ -108,29 +118,29 @@ try{
 
   x=await workspace();await imageAdvanced(x.page);
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
-  await role(x.page,3).selectOption('base');
+  await choose(role(x.page,3),'base');
   let assigned=await x.page.evaluate(()=>window.__labTest.refs());
   assert.equal(assigned[0].name,'architecture-reference-3.png');assert.equal(assigned[0].role,'base');
   assert.deepEqual(assigned.map(r=>r.name),['architecture-reference-3.png','architecture-reference-1.png','architecture-reference-2.png','architecture-reference-4.png','architecture-reference-5.png','architecture-reference-6.png','architecture-reference-7.png']);
-  await role(x.page,4).selectOption('base');assigned=await x.page.evaluate(()=>window.__labTest.refs());
+  await choose(role(x.page,4),'base');assigned=await x.page.evaluate(()=>window.__labTest.refs());
   assert.equal(assigned[0].name,'architecture-reference-4.png');assert.equal(assigned[0].role,'base');
   assert.equal(assigned[1].name,'architecture-reference-3.png');assert.equal(assigned[1].role,'none');
   assert.equal(assigned.filter(r=>r.role==='base').length,1);
   assert.equal(await x.page.locator('.reference-item').nth(1).getByRole('button',{name:'Up',exact:true}).isDisabled(),true);
   pass('Choosing Base moves that original to Reference 1, clears the previous Base, and keeps it first');
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Preserve the studio lighting.');
-  await role(x.page,2).selectOption('detail');
+  await choose(role(x.page,2),'detail');
   assert.equal(await target(x.page,2).inputValue(),'');
   assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(await x.page.locator('#save').isDisabled(),true);
   assert.match(await x.page.locator('#reference-guidance-warning').innerText(),/Choose a detail for Reference 2/);
-  await target(x.page,2).selectOption('hands');
+  await choose(target(x.page,2),'hands');
   assert.equal(await x.page.locator('#generate').isDisabled(),false);
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('');
   assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#save').isDisabled(),false);
   assert.equal(await x.page.locator('#prompt-label').textContent(),'Image direction (optional)');
   pass('Detail requires a target, then Base plus Hands works with no written image direction');
-  await role(x.page,3).selectOption('outfit');assert.equal(await target(x.page,3).inputValue(),'full');
-  await target(x.page,3).selectOption('pants');
+  await choose(role(x.page,3),'outfit');assert.equal(await target(x.page,3).inputValue(),'full');
+  await choose(target(x.page,3),'pants');
   assert.equal(await target(x.page,1).count(),0);
   assert.equal(await x.page.locator('#reference-guidance details').evaluate(e=>e.open),false);
   assert.match(await x.page.locator('#reference-provider').textContent(),/Seedream 5 Pro.*SpicyAPI/);
@@ -145,7 +155,7 @@ try{
   assert.match(await x.page.locator('#composer-prompt-budget').getAttribute('title'),/Mood and reference instructions/);
   assert.ok(preview.indexOf('Reference 1 [Base image]')<preview.indexOf('Reference 2 [Detail / Hands]'));
   pass('Clothing exposes Pants and the collapsed SpicyAPI preview expands into the ordered automatic instructions');
-  await x.page.getByLabel('Note for reference 2',{exact:true}).fill('Keep the existing hand position.');
+  await edit(x.page.getByLabel('Note for reference 2',{exact:true}),'Keep the existing hand position.');
   await x.page.evaluate(()=>document.getElementById('save').click());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   const guidedDraft=x.requests.find(r=>r.path==='/api/drafts').data;
   assert.match(guidedDraft.settings.prompt,/^Create a natural photographic variation of the base image/,
