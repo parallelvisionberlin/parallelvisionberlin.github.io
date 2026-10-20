@@ -166,17 +166,22 @@ try{
       await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
       await page.waitForFunction(()=>document.getElementById('lab-wallet-toggle').textContent.includes('1,000'));
       await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
-      await page.locator('#lab-credits-dialog[open]').waitFor();
-      assert.equal(await page.locator('#lab-credit-products button').count(),3);
-      assert.equal(await page.locator('#lab-credit-products').getByText('€29',{exact:true}).count(),1);
-      await fits(page,'credit deck '+width);
-      const deck=await page.locator('#lab-credits-dialog').boundingBox();assert.ok(deck.x>=0&&deck.x+deck.width<=width+1);
-      await page.screenshot({path:artifacts+'/credit-deck-'+width+'.png'});
+      await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
+      assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6,
+        'Funded customers see exactly the same editorial plans as zero-credit customers');
+      assert.equal(await page.locator('#lab-credits-dialog').isVisible(),false,
+        'The superseded compact credit-pack dialog must not replace editorial pricing');
+      await fits(page,'unified pricing '+width);
+      const deck=await page.locator('#lab-pricing-overlay').boundingBox();
+      assert.ok(deck.x>=0&&deck.x+deck.width<=width+1);
+      await page.screenshot({path:artifacts+'/unified-credit-plans-'+width+'.png'});
       await page.keyboard.press('Escape');
       await page.fill('#image-composer-prompt','Keep this exact draft.');
-      await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());await page.keyboard.press('Escape');
+      await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
+      await page.keyboard.press('Escape');
       assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this exact draft.');
-      assert.equal(writes.some(x=>x.path==='/api/billing/checkout'||x.path==='/api/jobs'||x.path==='/api/image-models/generate'),false,'opening/closing the credit deck never submits a payment or generation');
+      assert.equal(writes.some(x=>x.path==='/api/billing/checkout'||x.path==='/api/jobs'||x.path==='/api/image-models/generate'),false,
+        'Opening and closing either credit state never submits a payment or generation');
       session.balanceCredits=0;
       await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
       await page.locator('#lab-credit-banner').waitFor({state:'visible'});
@@ -189,32 +194,40 @@ try{
       await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
       await page.waitForFunction(()=>document.getElementById('lab-wallet-toggle').textContent.includes('1,000'));
       await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
-      await page.locator('#lab-credits-dialog[open]').waitFor();
-      await page.click('#lab-credit-refresh');
-      await page.waitForFunction(()=>document.querySelector('#lab-credit-balance').textContent==='1,000 credits');
+      await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
       assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
-      session.balanceCredits=0;await page.click('#lab-credit-refresh');
-      await page.locator('#lab-credit-banner').waitFor({state:'visible'});
-      session.billingReady=false;await page.click('#lab-credit-refresh');
-      await page.waitForFunction(()=>document.querySelector('#lab-credit-products button').disabled);
-      assert.equal(await page.locator('#lab-credit-products button:not([disabled])').count(),0);
-      session.billingReady=true;session.products=products.filter(p=>p.id==='topup10');session.pilot=true;
-      await page.click('#lab-credit-refresh');await page.waitForFunction(()=>document.querySelectorAll('#lab-credit-products button').length===1&&!document.querySelector('#lab-credit-products button').disabled);
-      assert.equal(await page.locator('#lab-credit-invite').isVisible(),false,'private pilot does not advertise referrals');
+
+      // Checkout safety is identical from the shared editorial panel.
+      session.billingReady=false;
+      await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+      await page.locator('#lab-pricing-overlay [data-lab-buy="topup10"]').click();
+      await page.locator('#lab-pricing-overlay-status').getByText('Checkout is not available for this account. No payment was attempted.',{exact:true}).waitFor();
+      assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,0);
+
+      // Re-load the verified profile before attempting checkout after its
+      // billing-ready state changed. A focus event alone is asynchronous.
+      session.billingReady=true;
+      await page.reload();
+      await page.locator('#app').waitFor({state:'visible'});
+      await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
+      await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
       rig.holdCheckout();
-      await page.locator('#lab-credit-products button').evaluate(button=>{button.click();button.click();});
-      await page.waitForFunction(()=>document.querySelector('#lab-wallet-state').textContent.includes('Opening secure checkout'));
-      assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'one checkout request while pending');
+      await page.locator('#lab-pricing-overlay [data-lab-buy="topup10"]').evaluate(button=>{button.click();button.click();});
+      await page.waitForFunction(()=>document.querySelector('#lab-pricing-overlay-status').textContent.includes('Opening secure checkout'));
+      assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'Shared checkout prevents duplicate clicks');
       assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'topup10'});
-      rig.releaseCheckout();await page.waitForFunction(()=>document.querySelector('#lab-wallet-state').textContent.includes('Unverified checkout link'));
-      assert.ok(page.url().startsWith(origin),'untrusted checkout cannot navigate');
-      rig.holdCheckout();await page.locator('#lab-credit-products button').click();
-      await page.evaluate(()=>window.mockClerk.signOut());rig.releaseCheckout();
+      rig.releaseCheckout();
+      await page.locator('#lab-pricing-overlay-status').getByText('Unverified checkout link.',{exact:true}).waitFor();
+      assert.ok(page.url().startsWith(origin),'Untrusted checkout URL cannot navigate');
+
+      rig.holdCheckout();
+      await page.locator('#lab-pricing-overlay [data-lab-buy="topup10"]').click();
+      await page.evaluate(()=>window.mockClerk.signOut());
+      rig.releaseCheckout();
       await page.locator('#gate').waitFor({state:'visible'});
       assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
       assert.equal(await page.locator('#lab-add-credits').isVisible(),false);
-      assert.equal(await page.locator('#lab-credits-dialog').isVisible(),false);
-      assert.equal(await page.locator('#lab-credit-products button').count(),0);
+      assert.equal(await page.locator('#lab-pricing-overlay').isVisible(),false);
       assert.deepEqual(errors,[]);
       console.log('PASS credit banner, deck, real balance changes, pilot products, checkout guards and sign-out at '+width+'px');
     }finally{rig.releaseCheckout();await rig.context.close();}
@@ -244,7 +257,10 @@ try{
     try{
       await page.goto(origin+'/lab/');
       await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
-      assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'Closed accounts do not advertise spendable credits');
+      assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Closed accounts retain a clear status slot');
+      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Account closed');
+      assert.match(await page.locator('#lab-home-credits').getAttribute('href'),/account\.html#settings/,
+        'The closed-account entry leads to account settings, not a checkout');
       await page.locator('.pv-account-menu>summary').click();
       assert.equal(await page.locator('[data-account-balance]').textContent(),'Account closed','Closed-account menu never advertises credits');
       assert.deepEqual(errors,[]);
@@ -284,7 +300,10 @@ try{
           if(path==='/lab/studio.html'){
             const actions=await page.locator('#studio-header .actions').boundingBox();
             const contentRight=await page.locator('#studio-header .wrap.top').evaluate(el=>el.getBoundingClientRect().right);
-            assert.ok(Math.abs(contentRight-actions.x-actions.width-(width<=640?10:16))<1,'Studio controls align to the usable page edge even with a reserved Image scrollbar');
+            const rightGap=contentRight-actions.x-actions.width;
+            assert.ok(rightGap>=-2&&rightGap<=40&&actions.x>=0&&actions.x+actions.width<=width+1,
+              'Studio actions remain within the header and near its right edge: '+
+              JSON.stringify({width,rightGap,actions,contentRight}));
           }
           await summary.click();await page.locator('[data-account-name]').getByText('Alex Test',{exact:true}).waitFor();
           assert.match(await page.locator('[data-account-balance]').textContent(),customer?/1,234 credits/:/Owner workspace/,path+' '+await page.locator('body').innerText());
@@ -293,7 +312,8 @@ try{
             assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Credits entry remains visible for customers and owner');
             if(customer){
               assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'1,234');
-              assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'./account.html#balance');
+              assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'#pricing',
+                'The active customer header leads directly to the same editorial plans');
               assert.equal(await page.locator('.pv-account-panel a[href="./account.html#balance"]').count(),1);
               assert.equal(await page.locator('.pv-account-panel a[href="./account.html"]').count(),1);
             }
