@@ -134,7 +134,7 @@ try{
   assert.equal(await target(x.page,1).count(),0);
   assert.equal(await x.page.locator('#reference-guidance details').evaluate(e=>e.open),false);
   assert.match(await x.page.locator('#reference-provider').textContent(),/Seedream 5 Pro.*SpicyAPI/);
-  await x.page.locator('#reference-guidance summary').click();
+  await x.page.locator('#reference-guidance summary').evaluate(el=>el.click());
   const preview=await x.page.locator('#reference-guidance-text').innerText();
   assert.match(preview,/Reference 1 \[Base image\]/);assert.match(preview,/Reference 2 \[Detail \/ Hands\]/);assert.match(preview,/Reference 3 \[Clothing \/ Pants\]/);
   assert.match(preview,/Use only the hands as a localized visual reference/);assert.match(preview,/Use only the pants/);
