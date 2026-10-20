@@ -3,9 +3,9 @@
 Updated: 2026-10-21
 Scope: A visible Download video button on completed Video Studio History cards.
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
-Source base: 876b9548a6e8495c0317f899a37c440f65c3b10a
-Previous release: f5e7fab0f31bc804d8e74104f887aebdce7fc1da on main.
-Active revision: user requested a smaller control after seeing the full-width button.
+Source base: 426c98e9d5c37c346fd135e5897beb620d3b7afa
+Release: f021f28cd1642345e04e9f9308b053b734aca688 on main.
+User requested a smaller control after seeing the initial full-width button.
 
 ## Approved behavior
 - Completed video cards expose their existing Download video action directly.
@@ -29,20 +29,19 @@ Active revision: user requested a smaller control after seeing the full-width bu
 ## Verification and release
 - Local verification: 16 approved Image/Video contract, ergonomics and scene-state checks passed.
 - git diff --check passed; scoped CSS cascade and existing click/download handling reviewed.
-- Lab tests run 39516690715 passed both private-lab and gallery-browser jobs.
+- Lab tests run 39518038955 passed both private-lab and gallery-browser jobs.
 - Desktop/mobile gallery, original downloads and account-cache checks passed.
-- Required approved Image UI contract, static validation and Motion Effects checks passed.
-- Broader video integration run 39516690798 passed desktop/mobile Video layout,
-  then stopped at the unrelated 390px Image dock two-row assertion (line 937).
-- Cloudflare Pages reports successful deployment of f5e7fab.
-- Live pvlab.studio/studio?tool=video serves cardDownload=20261021v1.
-- Production browser CSSOM contains all four download visibility/size/focus rules.
+- Required approved Image UI contract and static validation passed.
+- Cloudflare Pages reports successful deployment of f021f28.
+- Live pvlab.studio/studio?tool=video serves cardDownload=20261021v2.
+- Production browser CSSOM confirms absolute corner placement, the 30px icon,
+  transparent 44px target, no added row, and hover/focus rules.
 - Existing tests/lab-image-viewer-browser.mjs covers desktop/mobile Video History,
   selecting saved videos, original-media retrieval and gallery layout.
 - Live browser is signed out; private owner History cannot be inspected there.
 - No paid generation or private video download is needed for verification.
 
 ## Next action
-- Compact revision: local checks, publish and live verification pending.
+- Completed and live. User can refresh Video Studio to receive the compact control.
 - Suggested future improvement only: use finished-video frames as card thumbnails;
   current source-frame thumbnails and playback behavior remain unchanged.
