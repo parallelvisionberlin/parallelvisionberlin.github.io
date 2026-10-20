@@ -65,7 +65,7 @@ test('increasing the strength changes existing light only, never scene identity 
   assert.notEqual(low,medium);
   assert.notEqual(medium,high);
   assert.match(medium,/softly visible eyes/);
-  assert.match(high,/Skin remains attractive, naturally warm and sharply identifiable/);
+  assert.match(high,/Keep natural expressive beauty, warm healthy skin and softly visible eyes/);
 });
 test('Deep Green and Slow Shutter are optical treatments, not alternate characters or locations',()=>{
   const prompts=[];

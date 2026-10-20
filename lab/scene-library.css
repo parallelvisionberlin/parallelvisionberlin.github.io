@@ -288,6 +288,13 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   color:#151719;background:#e9ebe7;white-space:nowrap;font-size:12px;font-weight:650
 }
 #scene-library-dialog .scene-feature-attach:disabled{opacity:.55}
+#scene-library-dialog .scene-feature-action-row{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;flex:0 0 auto}
+#scene-library-dialog .scene-feature-analyze:disabled{opacity:.55}
+@media(max-width:700px){
+  #scene-library-dialog .scene-feature-expanded{flex-wrap:wrap}
+  #scene-library-dialog .scene-feature-action-row{width:100%}
+}
+
 #scene-library-dialog .scene-library-meta{margin:0 0 11px}
 #scene-library-dialog .scene-library-meta strong{font-size:14px;font-weight:600}
 #scene-library-dialog .scene-grid{
