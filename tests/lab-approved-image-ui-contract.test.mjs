@@ -102,16 +102,24 @@ test('guest focus stays borderless and the desktop Sign in pill matches the head
     'Existing small-screen Sign in proportions stay untouched');
   assert.match(presentation,/const expanded=hasRefs\|\|/,
     'Authenticated composer keeps its approved sizing expression');
-  assert.match(presentation,/const guestNeedsSpace=kind==='guest'&&hasPrompt/,
-    'Guest expansion must require actual written content');
-  assert.doesNotMatch(presentation,/active&&\(kind!=='real'/,
-    'Guest focus alone must never expand an empty textarea');
+  assert.match(presentation,/const guestNeedsSpace=kind==='guest'&&/,
+    'Guest editor expansion must remain distinct from the standard signed-in editor');
+  assert.match(presentation,/active&&emptyGuestFocus/,
+    'Guest click reveals an unframed two-row input without submitting to a provider');
+  assert.match(presentation,/if\(kind==='guest'\)emptyGuestFocus=false;/,
+    'Clearing the guest prompt must return it to compact size');
   assert.match(guestStyle,/\.pv-guest-composer\.pv-deck-expanded\s*\{\s*display:grid;/,
     'Long guest directions use a genuine two-row instrument');
   assert.match(studio,/id="pv-guest-moods"[^>]*aria-controls="pv-guest-cards"/,
     'Guest Moods stays tied to the public Inspiration carousel');
   assert.doesNotMatch(studio,/pv-guest-moods-link" href="\.\/moods"/,
     'Guest toolbar must never send visitors to a different Mood page');
-  assert.match(studio,/id="pv-guest-add"[^>]*data-guest-signin/,
-    'Account-only guest tools must clearly require authentication');
+  assert.match(studio,/id="pv-guest-add"[^>]*title="Add photographs locally"/,
+    'Public Image permits local photo selection before sign-in');
+  assert.match(studio,/id="pv-guest-image-file"[^>]*type="file"[^>]*accept="image\/jpeg,image\/png,image\/webp"/,
+    'Public photo references must come from a local file picker');
+  assert.match(studio,/id="pv-guest-library"[^>]*data-guest-signin/,
+    'Saving personal elements and using private libraries requires authentication');
+  assert.match(studio,/id="pv-guest-closed-signout"/,
+    'Closed-identity recovery must provide an explicit sign-out option');
 });
