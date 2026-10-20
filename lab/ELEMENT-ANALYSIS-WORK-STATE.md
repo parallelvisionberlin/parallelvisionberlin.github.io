@@ -37,4 +37,7 @@ Source base: `1566e668b4688bbf499a3fb700c316fbf1d08ca1`, main.
 - `lab/scene-library.css`: nonempty browse feedback gets a separate wrapping footer, aligned to the existing 24px desktop, 17px tablet and 14px phone content gutters.
 - With a message visible, the gallery retains wheel/touch scrolling; the message does not add an outer scrollbar. Empty-message layout and the create form retain their existing behavior.
 - `lab/studio.html`: stylesheet cache revision only. No JS, backend, asset, typography or card-layout changes.
-- Static diff checks passed. Local browser preview is unavailable because the browser download returned an invalid archive; existing browser CI and production asset verification are pending.
+- Published commit: `558dc8599d7f9a1c563b221e8765ce6478b74da9`.
+- Static diff checks and existing Lab desktop/mobile browser CI `39515740820` passed.
+- Live browser at pvlab.studio confirmed stylesheet revision `statusSpacing=20261021v1` and computed message wrapping `anywhere`.
+- Local preview browser download was unavailable; the signed-out production session cannot open the owner's actual saved Element.
