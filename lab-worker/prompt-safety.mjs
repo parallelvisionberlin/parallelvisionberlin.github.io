@@ -33,7 +33,7 @@ function normalize(text){return String(text).normalize('NFKD').replace(/[\u0300-
 // High-confidence low-cost safety fallback. Avoid treating "Nina FOK" as Spanish "niña".
 const MINOR=/\b(?:underage|under aged|preteen|pre teen|children|child|kids?|schoolgirls?|schoolboys?|minors?|menores?|menor de edad|adolescentes?|minderjahrig\w*|madchen|maedchen|schulmadchen|kinder|kindern|teenagers?|teens?)\b|\b(?:[0-9]|1[0-7])\s*(?:year\s*old|years\s*old|yr\s*old|yo|y\/o|anos|jahrig\w*|jahre\s*alt)\b/iu;
 const ADULT_AGE=/\b(?:18|19|2\d|[3-9]\d)\s*(?:year\s*old|years\s*old|yr\s*old|yo|y\/o|anos|jahrig\w*|jahre\s*alt)\b/iu;
-const SEXUAL=/\b(?:nude|nudity|naked|topless|undress\w*|lingerie|sexy|sex|sexual\w*|porn\w*|erotic\w*|explicit|genital\w*|masturbat\w*|fetish\w*|seduct\w*|nsfw|desnud\w*|desvest\w*|erotic\w*|sexo|sexuales?|pornografia|nackt\w*|erotik|ausziehen|auszieh\w*)\b/iu;
+const SEXUAL=/\b(?:nude|nudity|naked|topless|undress\w*|lingerie|sexy|sex|sexual\w*|porn\w*|erotic\w*|explicit|genital\w*|masturbat\w*|fetish\w*|seduct\w*|nsfw|desnud\w*|desvest\w*|erotic\w*|sexo|sexuales?|pornografia|nackt\w*|erotik|erotisch\w*|ausziehen|auszieh\w*)\b/iu;
 const NEGATED_MINOR=/\b(?:no|not|never|without|exclude|excluding|sin|ningun|ninguna|keine|keinen|kein|ohne)\s+(?:(?:any|ningun|ninguna)\s+)?(?:children|child|kids?|minors?|underage|under aged|menores?|menor de edad|kinder|kindern|teenagers?)\b/giu;
 export function obviousMinorSexualization(text){
   const original=String(text);
