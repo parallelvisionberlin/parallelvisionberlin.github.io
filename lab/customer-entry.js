@@ -77,7 +77,7 @@ function show(){
     // Keep the credit control present while authentication resolves, but never
     // display a stale wallet value from a prior account or session.
     homeCredits.hidden=!ready;
-    homeCredits.href=closed?'./account.html#settings':'./account.html#balance';
+    homeCredits.href=closed?'./account.html#settings':'#pricing';
     const plus=homeCredits.querySelector('.lab-home-credit-plus');
     if(plus)plus.style.display=closed?'none':'';
     if(closed){
