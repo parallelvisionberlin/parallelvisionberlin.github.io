@@ -85,5 +85,5 @@ test('Discreet concealment and nonblinking disabled header are preserved',()=>{
   assert.match(discreet,/#image-composer-references img/);
   assert.match(discreet,/content:'HIDDEN'/);
   assert.match(css,/#studio-header \.tool-switch \.tool-tab:disabled\{opacity:1/);
-  assert.match(html,/lab\.js\?v=20261020-account-flow5/);
+  assert.match(html,/lab\.js\?v=20261018-ref-stable1/);
 });
