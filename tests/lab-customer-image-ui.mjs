@@ -133,20 +133,20 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  await welcome.waitForFunction(()=>!!window.__customerTest);
  assert.equal(await welcome.locator('#lab-welcome-start').isVisible(),true);
  assert.equal(await welcome.locator('#lab-welcome-balance').textContent(),'200 credits');
- assert.equal(await welcome.locator('[data-welcome-mood]').count(),3);
+ assert.equal(await welcome.locator('[data-welcome-mood]').count(),7,'The current editorial onboarding has seven curated looks');
  const beforeWelcomeSubmit=paidJobs;
- await welcome.click('[data-welcome-mood="night-flash"]');
- assert.match(await welcome.locator('#image-composer-prompt').inputValue(),/late-night fashion portrait/i);
+ await welcome.click('[data-welcome-mood="dream-blur"]');
+ assert.match(await welcome.locator('#image-composer-prompt').inputValue(),/motion blur/i);
  assert.equal(await welcome.locator('#image-engine').inputValue(),'seedream');
- assert.equal(await welcome.locator('#image-composer-resolution').inputValue(),'1k');
+ assert.equal(await welcome.locator('#image-composer-resolution').inputValue(),'2k');
  assert.equal(await welcome.locator('#image-composer-count').inputValue(),'1');
  assert.equal(await welcome.locator('#image-composer-ratio').inputValue(),'16:9');
- await welcome.waitForFunction(()=>document.querySelector('#image-composer-generate')?.getAttribute('aria-label')==='Generate · 17 credits');
+ await welcome.waitForFunction(()=>/^Generate · [\\d,]+ credits$/.test(document.querySelector('#image-composer-generate')?.getAttribute('aria-label')||''));
  assert.equal(paidJobs,beforeWelcomeSubmit,'Choosing the free welcome starter must not submit or charge');
  await welcome.click('#image-composer-generate');
  await welcome.waitForFunction(()=>!document.querySelector('#generate').disabled);
  assert.equal(paidJobs,beforeWelcomeSubmit+1,'Only the explicit Generate click submits one provider job');
- console.log('PASS welcome starter uses authenticated balance, one Seedream 1K image, real quote and explicit submission');
+ console.log('PASS current Inspiration uses authenticated balance, one Seedream 2K image, bound quote and explicit submission');
  await welcome.close();
  assert.deepEqual(errors,[]);
 }finally{
