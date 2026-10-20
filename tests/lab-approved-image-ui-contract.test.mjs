@@ -69,8 +69,14 @@ test('the long-to-empty prompt shrink and reference-aware presentation remain in
     'Long prompts stay bounded instead of growing indefinitely');
   assert.match(presentation,/const hasPrompt=!!field\.value\.trim\(\);/,
     'The deck must react to an actually nonempty prompt');
-  assert.match(presentation,/realEditingStarted&&!isSmall&&hasPrompt/,
-    'An earlier editing session must not keep an empty desktop deck expanded');
+  assert.match(presentation,/const realNeedsSpace=kind==='real'&&!isSoul&&!hasRefs&&\s*realPromptNeedsSpace\(surface,field\)/,
+    'Standard Image deck expands only when content needs the extra writing area');
+  assert.doesNotMatch(presentation,/\(kind==='real'&&active&&/,
+    'Clicking into the standard Image editor must not expand it');
+  assert.match(presentation,/field\.scrollHeight>field\.clientHeight\+3\|\|\s*field\.scrollWidth>field\.clientWidth\+3/,
+    'Prompt growth must use actual text overflow, including long unbroken lines');
+  assert.match(presentation,/if\(kind==='real'&&!isSoul&&!expanded\)field\.style\.removeProperty\('height'\)/,
+    'Shortening the prompt must clear stale inline height immediately');
   assert.match(presentation,/const expanded=hasRefs\|\|/,
     'References can keep their separate photo strip when needed');
   const emptyRule=style.match(/:not\(\.pv-deck-expanded\):not\(\.pv-deck-has-prompt\)\s*#image-composer-prompt\s*\{([^}]*)\}/);
