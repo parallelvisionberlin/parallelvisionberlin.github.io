@@ -242,6 +242,114 @@
     .brief-form .brief-note{grid-column:span 2;font-size:12px;margin:0;color:var(--muted)}
     @media(max-width:900px){.service-grid--featured{grid-template-columns:1fr}.service-grid--featured .service{padding:20px 0}.service-grid--featured .service-top{display:flex}.service-grid--featured .service-top .number{margin:0}}
   </style>
+
+  <style id="agency-capabilities-refinement">
+    /* A quieter stone surface with deliberate editorial rows, limited to Capabilities. */
+    #cap{background:#d5d2ca;color:#181a19;padding-top:62px;padding-bottom:58px}
+    #cap .section-heading{margin-bottom:33px}
+    #cap .section-heading>p{color:#4c504c;max-width:310px}
+    #cap .capabilities-intro{font-size:10px;letter-spacing:.16em;color:#555a55;margin:0 0 12px}
+    #cap .capabilities-intro--support{margin:37px 0 10px}
+    #cap .service-grid--featured,
+    #cap .service-grid--support{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+    #cap .service{min-width:0;align-self:start;margin:0}
+    #cap .service .deliverable-line{display:none}
+    #cap .service-grid--featured .service{
+      display:grid;
+      grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(145px,.49fr);
+      align-items:center;column-gap:28px;row-gap:0;
+      background:#252827;color:#f0efeb;
+      border-top:1px solid #5f6360;
+      border-left:0;border-right:0;
+      padding:26px 24px;min-height:116px;
+    }
+    #cap .service-grid--featured .service:last-child{border-bottom:1px solid #5f6360}
+    #cap .service-grid--featured .service-top{grid-column:1;grid-row:1;display:flex;align-items:start;gap:15px;margin:0;min-height:0}
+    #cap .service-grid--featured .service-top .number{color:#aeb2ad;margin:0;padding:5px 0 0;line-height:1.2}
+    #cap .service-grid--featured .service h3{font-size:clamp(25px,2.5vw,34px);font-weight:500;letter-spacing:-.05em;line-height:1.12;max-width:380px}
+    #cap .service-grid--featured .service>p:not(.deliverable-line){
+      grid-column:2;grid-row:1;margin:0;padding:0;
+      color:#bdc0ba;font-size:14px;line-height:1.6;max-width:350px;
+    }
+    #cap .service-more{font:500 11px/1.45 Inter,Arial,sans-serif;letter-spacing:.01em;
+      border:0;border-top:1px solid currentColor;padding:12px 0;
+      background:transparent;color:inherit;cursor:pointer;display:flex;
+      justify-content:space-between;align-items:center;gap:14px;text-align:left;min-width:0}
+    #cap .service-more .service-more-symbol{font-size:22px;line-height:1;font-weight:400}
+    #cap .service-more:hover span:first-child{text-decoration:underline;text-underline-offset:4px}
+    #cap .service-more:focus-visible{outline:2px solid currentColor;outline-offset:5px}
+    #cap .service-grid--featured .service-more{grid-column:3;grid-row:1;color:#f0efeb;align-self:center}
+    #cap .service-includes{grid-column:1/-1;grid-row:2;border-top:1px solid #5e625f;margin-top:21px;padding:17px 0 2px}
+    #cap .service-includes[hidden]{display:none!important}
+    #cap .service-grid--featured .service-includes{color:#e3e3de}
+    #cap .service-includes .service-tags{font-size:11px;line-height:1.6;letter-spacing:.02em;opacity:.72;margin-bottom:11px}
+    #cap .service-includes .detail-copy{color:inherit;padding:0;max-width:740px;font-size:13px;line-height:1.7}
+    #cap .service-includes .detail-note{opacity:.8;font-size:12px}
+    /* Five supporting capabilities read as a compact list, not five extra feature cards. */
+    #cap .service-grid--support .service,
+    #cap .service-grid--support .service:last-child{
+      display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(145px,.49fr);
+      align-items:center;column-gap:28px;row-gap:0;
+      padding:20px 0;border-top:1px solid #a8aaa3;min-height:81px;
+      background:transparent;color:#1d201e;
+    }
+    #cap .service-grid--support .service:last-child{border-bottom:1px solid #a8aaa3}
+    #cap .service-grid--support .service-top,
+    #cap .service-grid--support .service:last-child .service-top{
+      grid-column:1;grid-row:1;display:flex;gap:15px;align-items:start;margin:0;
+    }
+    #cap .service-grid--support .service-top .number{padding:4px 0 0;color:#525852}
+    #cap .service-grid--support .service h3{font-size:clamp(19px,1.85vw,25px);line-height:1.15;letter-spacing:-.04em;max-width:none}
+    #cap .service-grid--support .service>p:not(.deliverable-line),
+    #cap .service-grid--support .service:last-child>p:not(.deliverable-line){
+      grid-column:2;grid-row:1;color:#4c514d;margin:0;
+      font-size:13px;line-height:1.55;max-width:360px;
+    }
+    #cap .service-grid--support .service-more{grid-column:3;grid-row:1;color:#252826;font-size:11px}
+    #cap .service-grid--support .service-includes,
+    #cap .service-grid--support .service:last-child .service-includes{
+      grid-column:1/-1;grid-row:2;border-top:1px solid #adb0a8;color:#353a36;margin-top:12px;
+    }
+    #cap .service-caption{border:0;color:#5e625d;padding:12px 0 0;margin:17px 0 0;font-size:12px}
+    @media(max-width:1020px){
+      #cap .service-grid--featured .service,
+      #cap .service-grid--support .service,
+      #cap .service-grid--support .service:last-child{column-gap:20px;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(120px,.53fr)}
+      #cap .service-grid--featured .service{padding-inline:19px}
+      #cap .service-grid--featured .service h3{font-size:clamp(22px,2.5vw,30px)}
+    }
+    @media(max-width:760px){
+      #cap{padding-top:42px;padding-bottom:41px}
+      #cap .section-heading{margin-bottom:27px}
+      #cap .capabilities-intro--support{margin-top:29px}
+      #cap .service-grid--featured .service,
+      #cap .service-grid--support .service,
+      #cap .service-grid--support .service:last-child{
+        grid-template-columns:minmax(0,1fr) auto;column-gap:14px;row-gap:11px;
+        padding:19px 0;min-height:0
+      }
+      #cap .service-grid--featured .service{padding:22px 18px}
+      #cap .service-grid--featured .service-top,
+      #cap .service-grid--support .service-top,
+      #cap .service-grid--support .service:last-child .service-top{grid-column:1;grid-row:1;display:flex;gap:12px;align-items:start}
+      #cap .service-grid--featured .service>p:not(.deliverable-line),
+      #cap .service-grid--support .service>p:not(.deliverable-line),
+      #cap .service-grid--support .service:last-child>p:not(.deliverable-line){
+        grid-column:1/-1;grid-row:2;max-width:560px
+      }
+      #cap .service-grid--featured .service-more,
+      #cap .service-grid--support .service-more{grid-column:2;grid-row:1;width:30px;height:36px;border:0;justify-content:end;align-self:start;overflow:hidden}
+      #cap .service-more span:first-child{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+      #cap .service-grid--featured .service-includes,
+      #cap .service-grid--support .service-includes,
+      #cap .service-grid--support .service:last-child .service-includes{grid-column:1/-1;grid-row:3;margin-top:7px}
+      #cap .service-grid--featured .service h3{font-size:clamp(23px,5vw,29px)}
+      #cap .service-grid--support .service h3{font-size:21px}
+      #cap .service-grid--featured .service-top .number,
+      #cap .service-grid--support .service-top .number{padding-top:5px}
+      #cap .service-grid--support .service>p:not(.deliverable-line){font-size:13px}
+    }
+  </style>
 </head>
 <body>
   <!-- Public Parallel Vision creative studio and project enquiries. -->
@@ -283,49 +391,49 @@
 
     <section class="section light" id="cap" aria-labelledby="services-title">
       <div class="wrap">
-        <div class="section-heading"><div><p class="eyebrow">01 / Capabilities</p><h2 id="services-title">What we make.</h2></div><p>Three connected practices, with the wider production and digital capabilities to take an idea through to launch.</p></div>
-        <p class="capabilities-intro">Three core disciplines</p><div class="service-grid service-grid--featured">
+        <div class="section-heading"><div><p class="eyebrow">01 / Capabilities</p><h2 id="services-title">What we make.</h2></div><p>Fashion, moving image and digital environments, conceived and produced as one creative practice.</p></div>
+        <p class="capabilities-intro">Our focus / 01–03</p><div class="service-grid service-grid--featured">
           <article class="service" id="service-1">
             <div class="service-top"><span class="number">01</span><h3>Fashion &amp; Creative Direction</h3></div>
-            <p>Editorials, campaign worlds and product imagery with a clear visual point of view, combining photography, AI-assisted tools and considered creative direction.</p><p class="deliverable-line">Art direction · Fashion image making · Lookbooks &amp; product content</p>
-            <details><summary>What this can include</summary><div class="detail-copy"><p>Moodboards, consistent models, styling, campaign stills, product scenes, retouching and moving-image assets.</p><p class="detail-note">People, likenesses and supplied products require appropriate usage rights.</p></div></details>
+            <p>Editorial imagery, campaign worlds and product stories with a distinct visual point of view.</p><p class="deliverable-line">Art direction · Fashion image making · Lookbooks &amp; product content</p>
+            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-1"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-1" hidden><p class="service-tags">Art direction · Fashion image making · Lookbooks &amp; product content</p><div class="detail-copy"><p>Moodboards, consistent models, styling, campaign stills, product scenes, retouching and moving-image assets.</p><p class="detail-note">People, likenesses and supplied products require appropriate usage rights.</p></div></div>
           </article>
           <article class="service" id="service-2">
             <div class="service-top"><span class="number">02</span><h3>AI Film &amp; Motion</h3></div>
-            <p>Music videos, short commercials, fashion films and moving portraits, from concept and storyboard to final cut.</p><p class="deliverable-line">Storyboarding · AI-assisted film · Edit &amp; finishing</p>
-            <details><summary>What this can include</summary><div class="detail-copy"><p>Concepts, animatics, visual research, shot planning, motion tools, compositing, colour and sound, plus versions for social and web.</p></div></details>
+            <p>Fashion films, music videos and moving portraits, from the first concept to the final image.</p><p class="deliverable-line">Storyboarding · AI-assisted film · Edit &amp; finishing</p>
+            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-2"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-2" hidden><p class="service-tags">Storyboarding · AI-assisted film · Edit &amp; finishing</p><div class="detail-copy"><p>Concepts, animatics, visual research, shot planning, motion tools, compositing, colour and sound, plus versions for social and web.</p></div></div>
           </article>
           <article class="service" id="service-7">
             <div class="service-top"><span class="number">03</span><h3>Digital Experiences</h3></div>
-            <p>Immersive films, WebXR prototypes and spatial presentations made for screens, physical spaces and headsets.</p><p class="deliverable-line">WebXR / Meta Quest · Spatial film · Installations</p>
-            <details><summary>What this can include</summary><div class="detail-copy"><p>Quest-ready curved-screen film, spatial prototyping, stereoscopic feasibility tests, depth studies, projection content and venue-specific visual installations.</p><p class="detail-note">Berlin 2063 VR is a curved-screen prototype. It is not a native 360° or stereoscopic environment.</p></div></details>
+            <p>Spatial films, interactive environments and installations for screens, venues and headsets.</p><p class="deliverable-line">WebXR / Meta Quest · Spatial film · Installations</p>
+            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-7"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-7" hidden><p class="service-tags">WebXR / Meta Quest · Spatial film · Installations</p><div class="detail-copy"><p>Quest-ready curved-screen film, spatial prototyping, stereoscopic feasibility tests, depth studies, projection content and venue-specific visual installations.</p><p class="detail-note">Berlin 2063 VR is a curved-screen prototype. It is not a native 360° or stereoscopic environment.</p></div></div>
           </article>
-        </div><p class="capabilities-intro capabilities-intro--support">Additional capabilities</p><div class="service-grid service-grid--support">
+        </div><p class="capabilities-intro capabilities-intro--support">Beyond the core / 04–08</p><div class="service-grid service-grid--support">
           <article class="service" id="service-3">
             <div class="service-top"><span class="number">04</span><h3>Websites & interactive design</h3></div>
-            <p>Distinctive responsive websites for artists, labels, cultural platforms, collections and brands.</p><p class="deliverable-line">Art direction · UX · Front-end development</p>
-            <details><summary>What this can include</summary><div class="detail-copy"><p>Launch pages, portfolios, campaign microsites, digital archives, galleries, animation, accessibility and performance work. Hosting and integrations are scoped per project.</p></div></details>
+            <p>Editorial websites and interactive spaces for artists, brands and cultural projects.</p><p class="deliverable-line">Art direction · UX · Front-end development</p>
+            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-3"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-3" hidden><p class="service-tags">Art direction · UX · Front-end development</p><div class="detail-copy"><p>Launch pages, portfolios, campaign microsites, digital archives, galleries, animation, accessibility and performance work. Hosting and integrations are scoped per project.</p></div></div>
           </article>
           <article class="service" id="service-4">
             <div class="service-top"><span class="number">05</span><h3>E-commerce & shop design</h3></div>
-            <p>Bring product, presentation and conversion into one visual system, from storefront design to product pages.</p><p class="deliverable-line">Shop design · Product presentation · Commerce UX</p>
-            <details><summary>What this can include</summary><div class="detail-copy"><p>Storefront concepts, catalogues, collection structure, product visuals, editorial shopping pages and campaigns. Checkout and platform integration depend on the chosen stack.</p></div></details>
+            <p>Digital storefronts that carry the visual identity through to the purchase.</p><p class="deliverable-line">Shop design · Product presentation · Commerce UX</p>
+            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-4"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-4" hidden><p class="service-tags">Shop design · Product presentation · Commerce UX</p><div class="detail-copy"><p>Storefront concepts, catalogues, collection structure, product visuals, editorial shopping pages and campaigns. Checkout and platform integration depend on the chosen stack.</p></div></div>
           </article>
           <article class="service" id="service-5">
             <div class="service-top"><span class="number">06</span><h3>Meta Ads & campaign growth</h3></div>
-            <p>Connect strong creative to audience strategy, paid-social campaigns and measurable iteration.</p><p class="deliverable-line">Meta Ads · Campaign creative · Retargeting</p>
-            <details><summary>What this can include</summary><div class="detail-copy"><p>Campaign planning, audience research, ad variants, A/B testing, landing pages, reporting, Pixel and Conversions API when appropriate.</p><p class="detail-note">Ad spend is separate. Outcomes cannot be guaranteed.</p></div></details>
+            <p>Paid-social creative, campaign strategy and performance testing.</p><p class="deliverable-line">Meta Ads · Campaign creative · Retargeting</p>
+            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-5"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-5" hidden><p class="service-tags">Meta Ads · Campaign creative · Retargeting</p><div class="detail-copy"><p>Campaign planning, audience research, ad variants, A/B testing, landing pages, reporting, Pixel and Conversions API when appropriate.</p><p class="detail-note">Ad spend is separate. Outcomes cannot be guaranteed.</p></div></div>
           </article>
           <article class="service" id="service-6">
             <div class="service-top"><span class="number">07</span><h3>Digital characters & AI identities</h3></div>
-            <p>Create consistent characters and brand personas for campaigns, moving image and interactive experiences.</p><p class="deliverable-line">Character design · Identity continuity · Voice</p>
-            <details><summary>What this can include</summary><div class="detail-copy"><p>Visual identity systems, consistent appearances, motion studies, voice and conversational features. Our Nina FOK and PV LAB projects inform this work.</p></div></details>
+            <p>Consistent digital characters for campaigns, moving image and interaction.</p><p class="deliverable-line">Character design · Identity continuity · Voice</p>
+            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-6"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-6" hidden><p class="service-tags">Character design · Identity continuity · Voice</p><div class="detail-copy"><p>Visual identity systems, consistent appearances, motion studies, voice and conversational features. Our Nina FOK and PV LAB projects inform this work.</p></div></div>
           </article>
 
           <article class="service" id="service-8">
             <div class="service-top"><span class="number">08</span><h3>Music, sound & creative worlds</h3></div>
-            <p>Original music and sound tied to the visual concept, informed by our independent Berlin record label.</p><p class="deliverable-line">Original composition · Sonic identity · Audiovisual work</p>
-            <details><summary>What this can include</summary><div class="detail-copy"><p>Music for campaigns and films, sound design, scores, release identities, audiovisual direction, performance and exhibition content.</p></div></details>
+            <p>Original composition, sound design and audiovisual direction.</p><p class="deliverable-line">Original composition · Sonic identity · Audiovisual work</p>
+            <button type="button" class="service-more" aria-expanded="false" aria-controls="service-includes-service-8"><span>What this can include</span><span class="service-more-symbol" aria-hidden="true">+</span></button><div class="service-includes" id="service-includes-service-8" hidden><p class="service-tags">Original composition · Sonic identity · Audiovisual work</p><div class="detail-copy"><p>Music for campaigns and films, sound design, scores, release identities, audiovisual direction, performance and exhibition content.</p></div></div>
           </article></div>
         <p class="service-caption">Every commission begins with a brief. Scope, collaborators and technical approach are tailored to the project.</p>
       </div>
@@ -393,6 +501,27 @@
   </main>
   <footer class="footer"><div class="wrap footer-inner"><span>© 2026 Parallel Vision / Agency / Berlin</span><a href="../">Explore Parallel Vision <span aria-hidden="true">&nbsp;↗</span></a></div></footer>
   <script>
+
+    (() => {
+      const region = document.getElementById('cap');
+      if (!region) return;
+      const buttons = [...region.querySelectorAll('.service-more')];
+      buttons.forEach(button => button.addEventListener('click', () => {
+        const openNext = button.getAttribute('aria-expanded') !== 'true';
+        buttons.forEach(item => {
+          const panel = document.getElementById(item.getAttribute('aria-controls'));
+          if (!panel) return;
+          panel.hidden = true;
+          item.setAttribute('aria-expanded', 'false');
+          item.querySelector('.service-more-symbol').textContent = '+';
+        });
+        if (openNext) {
+          document.getElementById(button.getAttribute('aria-controls')).hidden = false;
+          button.setAttribute('aria-expanded', 'true');
+          button.querySelector('.service-more-symbol').textContent = '−';
+        }
+      }));
+    })();
     (() => {
       const form=document.getElementById('project-brief');
       form?.addEventListener('submit',event=>{
