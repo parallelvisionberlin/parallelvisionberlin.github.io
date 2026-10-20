@@ -964,8 +964,11 @@ try{
     return {deckTop:composer.top,deckBottom:composer.bottom,
       extras:labels.map(r=>({top:r.top,bottom:r.bottom,left:r.left,right:r.right}))};
   });
-  assert.ok(extras.extras.every(rect=>rect.bottom<=extras.deckTop+1&&rect.left>=8&&rect.right<=382),
-    'More settings float fully above the deck, not row three: '+JSON.stringify(extras));
+  // The approved 2026-10-19 iPhone layout opens Options as a SECOND
+  // row inside the composer, not a separate Safari-clipped floating overlay.
+  assert.ok(extras.extras.every(rect=>rect.top>=extras.deckTop-1&&
+      rect.bottom<=extras.deckBottom+1&&rect.left>=8&&rect.right<=382),
+    'Expanded More controls must stay inside the two-row deck, not outside the viewport: '+JSON.stringify(extras));
   assert.ok((await mobileRows()).rows.length<=2,'Opening More must not add a third controls row');
 
 
