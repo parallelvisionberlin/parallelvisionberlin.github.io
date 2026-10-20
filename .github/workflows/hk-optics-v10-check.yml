@@ -36,6 +36,16 @@ jobs:
           cp /tmp/hk-v10-source/film-light-scatter.mjs lab-worker/
           cp /tmp/hk-v10-source/lab-film-light-scatter.test.mjs /tmp/hk-v10-source/lab-film-light-remote.mjs tests/
           node /tmp/hk-v10-source/hk-optics-v10-patch.mjs
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          for(const path of ['tests/lab-hong-kong-continuity.test.mjs','tests/lab-moods.test.mjs']){
+            const text=readFileSync(path,'utf8');
+            const old='/Increase atmospheric diffusion slightly/';
+            assert.equal(text.split(old).length-1,1,'Expected one obsolete high-strength wording assertion: '+path);
+            writeFileSync(path,text.replace(old,'/Make atmospheric diffusion clearly visible/'));
+          }
+          NODE
           git diff --check
           node --check lab-worker/film-finish.mjs
           node --check lab-worker/film-light-scatter.mjs
@@ -71,7 +81,7 @@ jobs:
         run: |
           set -euo pipefail
           git diff --exit-code -- lab-worker/worker.mjs lab-worker/film-engine-v3.mjs lab/mood-references.js lab/hong-kong-variants.js
-          git add lab lab-worker/film-finish.mjs lab-worker/film-light-scatter.mjs tests/lab-film-finish.test.mjs tests/lab-hong-kong-image3-baseline.test.mjs tests/lab-film-preview-worker.mjs tests/lab-film-light-scatter.test.mjs tests/lab-film-light-remote.mjs
+          git add lab lab-worker/film-finish.mjs lab-worker/film-light-scatter.mjs tests/lab-film-finish.test.mjs tests/lab-hong-kong-image3-baseline.test.mjs tests/lab-film-preview-worker.mjs tests/lab-film-light-scatter.test.mjs tests/lab-film-light-remote.mjs tests/lab-hong-kong-continuity.test.mjs tests/lab-moods.test.mjs
           git diff --cached --name-only > test-results/hk-optics-v10/release-files.txt
           git config user.name 'Parallel Vision'
           git config user.email 'parallelvision.label@gmail.com'
