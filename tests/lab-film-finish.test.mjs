@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inflateSync} from 'node:zlib';
 import {readFileSync} from 'node:fs';
-import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION,photochemicalPixel,sourceLightWeight,printGradePng,luminousMaskPng,deluxeResponse,photochemicalPlan} from '../lab-worker/film-finish.mjs';
+import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION,photochemicalPixel,sourceLightWeight,softLightEmitterWeightV9,printGradePng,luminousMaskPng,deluxeResponse,photochemicalPlan} from '../lab-worker/film-finish.mjs';
 import {filmFinishSettings,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF} from '../lab/film-finish.js';
 import {prepareMoodPrompt,preparePersonalMoodPrompt} from '../lab/moods.js';
 
@@ -98,6 +98,14 @@ test('35mm print curve shifts bright neutrals warm, shadows cool, keeps luminanc
   assert.equal(sourceLightWeight(108,130,111,0.6),0,'skin/background midtones never become invented glow sources');
   assert.ok(sourceLightWeight(250,245,222,0.24)>.4,'only near-white luminous sources spread');
   assert.ok(sourceLightWeight(14,30,30,0.5)<.01,'dark silhouettes cannot seed halos');
+});
+
+test('V9 catches real dim green practical light without illuminating skin or flat walls',()=>{
+  assert.ok(softLightEmitterWeightV9(100,197,169,.21)>.25,'green fluorescent practical is a valid emitter');
+  assert.ok(softLightEmitterWeightV9(245,210,110,.22)>.18,'warm practical is a valid emitter');
+  assert.equal(softLightEmitterWeightV9(20,45,35,.25),0,'dark green shadow stays dark');
+  assert.equal(softLightEmitterWeightV9(70,130,110,0),0,'flat green wall has no emission');
+  assert.equal(softLightEmitterWeightV9(190,145,119,.12),0,'skin midtones do not create ghost halos');
 });
 
 test('deluxe photochemical response builds progressively above 70 without changing calibrated defaults',()=>{
