@@ -431,8 +431,8 @@
 }
 
 /* PV LAB MATERIAL STUDY 001
-   Original gallery macro recropped to x=1170,y=42,w=410,h=560 in 1672x941 source,
-   eliminating baked-in typography and black matte at the bottom.
+   Gallery macro is reframed as an abstract material study: x=1215,y=50,w=312,h=195
+   within the original 1672x941 montage, entirely above the embedded lettering.
    Image is an illustrative editorial crop, never a fabricated Upscale result. */
 #app .pv-upscale-editorial-blank{display:none}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty{position:relative!important;padding:0!important;overflow:hidden}
@@ -504,11 +504,19 @@
    Desktop workbench structure and all provider/billing behavior stay unchanged.
    The original gallery image contains embedded lettering near its lower edge.
    Crop strictly above the lettering, without altering the saved source asset. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-figure{
+  width:clamp(280px,34vw,490px)!important;
+  max-width:83%!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-photo{
+  aspect-ratio:8/5!important;
+  height:auto!important;
+}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-photo img{
-  width:522.5%!important;
-  height:214.8402%!important;
-  left:-375%!important;
-  top:-10.05%!important;
+  width:535.8974%!important;
+  height:482.5641%!important;
+  left:-389.4231%!important;
+  top:-25.641%!important;
 }
 @media(max-width:600px){
   /* Mobile is a distinct single-column editorial composition, not a tiny desktop split. */
@@ -559,11 +567,7 @@
     border-radius:3px!important;
     box-shadow:0 12px 42px rgba(0,0,0,.22)!important;
   }
-  /* Landscape crop x=1135..1610, y=50..347 in the original 1672x941 montage. */
-  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-photo img{
-    width:352%!important;height:316.835%!important;
-    left:-238.947%!important;top:-16.835%!important;
-  }
+  /* Mobile uses the identical clean material crop as desktop, never the embedded title. */
   #app.upscale-studio-active .pv-upscale-material-figure figcaption{display:none!important}
   #app.upscale-studio-active #pv-upscale-hero-upload{
     grid-column:1!important;grid-row:5!important;
