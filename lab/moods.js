@@ -329,6 +329,8 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     const film=filmFinish===null?null:filmFinishSettings(filmFinish??HONG_KONG_VARIANTS[variant].filmFinish);
     const strength=intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
     const variantDirection=variant==='original'?'':HONG_KONG_VARIANTS[variant].direction;
+    // Image 3 baseline: 1-90% stays byte-identical. Only 91-100% refines air.
+    const refineAtmosphere=intensity>90&&variant==='original';
     // A supplied Base is a photograph to finish, not a brief to re-stage an
     // imagined Hong Kong street. The original open-ended 1990s night-film
     // direction is retained for text-only and References-only compositions.
@@ -347,19 +349,27 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     const sourceLightRouting=engine==='seedreamlite'
       ?'SCENE: PORTRAIT same face/outfit; STREET humid dusk, damp paving; ROOM warm lamps and dry floor. Keep existing light sources and architecture, no added objects.'
       :'SCENE ADAPTATION, only what IMAGE 1 visibly supports: FASHION PORTRAIT -> untouched real identity, expression, pose, outfit and leather texture with inviting warm skin; the surrounding street gains plausible night air and soft scattered highlights. STREET OR TRANSIT -> allow a believable transition toward nocturnal exposure, richer dim green depth and localized damp outdoor pavement while keeping existing architecture and true light sources. BEDROOM OR INTERIOR -> the same room and furniture, warm lamps, cool spill through original windows, air scattering only close to actual light, absolutely no wet bed or floor. Light has depth, skin has life, shadows retain photographic texture; never add neon signs, taxis, rain curtains or people.';
-    const photoStrength=intensity<=34
+    const approvedPhotoStrength=intensity<=34
       ?'Subtle: quiet warm/cool film response and gentle bloom from existing practical lights.'
       :intensity<=69
         ?'Editorial: luminous flattering skin, moist emerald night-air depth and restrained amber practical-light diffusion, without a uniform green veil.'
         :'Expressive: richer emerald night ambience, air-scattered practicals and physically credible wet exterior reflections. Keep the identical face, unchanged composition, clean real skin and original location. Mood intensity means light and atmosphere, not dirty film noise.';
+    const photoStrength=refineAtmosphere
+      ?engine==='seedreamlite'
+        ?'Keep emerald/tungsten color, face and textures. Add slight atmospheric diffusion, suspended humidity, soft practical bloom, localized halation and subtle veiling flare. No uniform green wash, digital sharpening, extra grain or blur. Wet reflections outdoors only; dry rooms.'
+        :'Keep existing emerald/petrol shadows, warm tungsten light, natural skin and contrast. Increase atmospheric diffusion slightly: suspended humidity with depth, soft bloom and localized halation from existing lights/neon, subtle veiling flare. Embed air in the scene, not a uniform green wash or clean digital sharpening. Keep face, composition and room textures. Wet reflections only outdoors; dry interiors. No extra grain, muddy blacks or blanket blur.'
+      :approvedPhotoStrength;
+    const sceneAtmosphere=refineAtmosphere
+      ?sourceLightRouting.replace('air scattering only close to actual light','translucent humidity illuminated by existing light through the middle distance, with clear foreground details and unlit dark pockets')
+      :sourceLightRouting;
     const preservation=editingBase?'':referenceCount>0
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
       :'Honor the requested subject and composition.';
     // Lite's documented 3K provider cap gets a fixed, equally source-safe
     // recipe. No user text is shortened, and model choice alone selects it.
     const liteTextStrength='1990s Hong Kong night-film light: humid emerald depth, glowing warm practicals, wet outdoor reflections when plausible, intimate real skin and organic fine pushed-film shadow texture. Preserve original people and place. '+(intensity>=76?'Stronger believable dusk or nocturnal air, no pasted fog.':intensity<=34?'Very restrained source bloom, existing weather.':'Balanced green-gold light and humid depth.');
-    const look=editingBase?[engine==='seedreamlite'?liteBaseLock:originalImageLock,primaryOptics,sourceLightRouting,photoStrength,variantDirection].filter(Boolean).join(' '):
-      [engine==='seedreamlite'?liteTextStrength:strength,variantDirection].filter(Boolean).join(' ');
+    const look=editingBase?[engine==='seedreamlite'?liteBaseLock:originalImageLock,primaryOptics,sceneAtmosphere,photoStrength,variantDirection].filter(Boolean).join(' '):
+      [engine==='seedreamlite'?liteTextStrength:strength,variantDirection,refineAtmosphere?photoStrength:''].filter(Boolean).join(' ');
     const avoid=engine==='seedreamlite'?'teal color filter, artificial grain, copied reference faces, fake neon, indoor wetness, changed clothing or street layout':mood.avoid;
     const prompt=[original,'PV LAB MOOD / '+mood.name+': '+look+' '+preservation+' Avoid: '+avoid+'.'].filter(Boolean).join('\n\n');
     const budget=engine==='seedreamlite'?3000:5000,over=prompt.length-budget;
