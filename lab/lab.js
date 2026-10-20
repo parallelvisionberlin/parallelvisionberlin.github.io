@@ -684,6 +684,8 @@ function openUpscaleModelMenu(){
   (menu.querySelector('[data-upscale-engine="'+upscaleEngine+'"]')||menu.querySelector('button'))?.focus({preventScroll:true});
 }
 function updateUpscaleModel(){
+  // Provider diagnostics are for the verified PV LAB owner, never customer accounts.
+  for(const diagnostic of $('upscale-info').querySelectorAll('[data-upscale-owner-only]'))diagnostic.hidden=!ownerAccount;
   const active=tool==='upscale',fal=isFalUpscale(),model=UPSCALE_MODELS[upscaleEngine];$('upscale-model-control').hidden=true;$('upscale-model-display').hidden=!active;$('upscale-topaz-control').hidden=!active||upscaleEngine!=='topaz-precision';$('upscale-scale-control').hidden=!fal;$('mode-heading').parentElement.classList.toggle('upscale-mode',active);
   if(!active)closeUpscaleModelMenu();
   const shown=UPSCALE_MODEL_UI[upscaleEngine]||UPSCALE_MODEL_UI.seedvr2;
