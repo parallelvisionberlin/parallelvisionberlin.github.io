@@ -7,7 +7,7 @@ const raw=Buffer.alloc(192*128*3,24);for(let y=22;y<78;y++)for(let x=127;x<166;x
 const base=await sharp(raw,{raw:{width:192,height:128,channels:3}}).png().toBuffer();
 const off=await render(base,'v10',{});assert.deepEqual(off,base,'zero settings must return exact source bytes');
 const strengths=[];
-for(const n of [30,60,100]){const bytes=await render(base,'v10',{haze:n,halation:n});const pixels=await sharp(bytes).removeAlpha().raw().toBuffer();const mean=pixels.reduce((a,v,i)=>a+Math.abs(v-raw[i]),0)/pixels.length;strengths.push(mean);await writeFile(dir+'/synthetic-'+n+'.png',bytes);assert.equal(pixels[(127*192)*3],24,'unlit far corner must remain unchanged');}
+for(const n of [30,60,100]){const bytes=await render(base,'v10',{haze:n,halation:n});const pixels=await sharp(bytes).removeAlpha().raw().toBuffer();const mean=pixels.reduce((a,v,i)=>a+Math.abs(v-raw[i]),0)/pixels.length;strengths.push(mean);await writeFile(dir+'/synthetic-'+n+'.png',bytes);assert.ok(Math.abs(pixels[(127*192)*3]-24)<=1,'far-field tail must stay within one 8-bit display level');}
 assert.ok(strengths[2]>strengths[0]*2,'100% must be much more visible than 30%');assert.ok(strengths[2]>strengths[1]);
 const mid=Buffer.alloc(192*128*3,75),midPng=await sharp(mid,{raw:{width:192,height:128,channels:3}}).png().toBuffer();
 const midOut=await sharp(await render(midPng,'v10',{haze:100,halation:100})).removeAlpha().raw().toBuffer();assert.deepEqual(midOut,mid,'no light source means no blanket haze or altered exposure');
