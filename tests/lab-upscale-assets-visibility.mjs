@@ -103,6 +103,25 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     assert.equal(await material.getAttribute('src'),'./visuals/studio-tools/upscale-golden-macro-source.webp');
     await material.evaluate(image=>image.decode());
     assert.equal(await material.evaluate(image=>image.naturalWidth),1672,'Approved PV LAB macro source loads');
+    // Read-only browser visual audit: compare existing PV LAB editorial details, restore original.
+    if(profile==='mobile'){
+      for(const [asset,name] of [['silver-detail.webp','silver'],['reptare-detail.webp','reptare'],['vessel-card.webp','vessel'],['ivory-motion.webp','ivory']]){
+        await material.evaluate(async (img,url)=>{
+          img.style.setProperty('width','100%','important');
+          img.style.setProperty('height','100%','important');
+          img.style.setProperty('left','0','important');
+          img.style.setProperty('top','0','important');
+          img.style.setProperty('object-fit','cover','important');
+          img.src=url;await img.decode();
+        },'./visuals/'+asset);
+        await page.screenshot({path:'test-results/upscaler-choice-'+name+'.png',fullPage:false});
+      }
+      await material.evaluate(async img=>{
+        img.removeAttribute('style');
+        img.src='./visuals/studio-tools/upscale-golden-macro-source.webp';
+        await img.decode();
+      });
+    }
     const cropAspect=await page.locator('.pv-upscale-material-photo').evaluate(el=>{
       const r=el.getBoundingClientRect();
       return r.width/r.height;
