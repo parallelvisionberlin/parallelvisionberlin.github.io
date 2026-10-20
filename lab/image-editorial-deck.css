@@ -677,3 +677,15 @@ html:not(.pv-native-lab) #app.image-studio-active
     min-width:0;max-width:100px;padding:6px 14px 6px 28px;font-size:12px;
   }
 }
+
+
+/* Resting and expanded desktop Image decks share one fixed baseline.
+   More lines/photos grow the writing surface upward, not toward the
+   browser bottom edge. Does not affect native, mobile, or other tools. */
+@media(min-width:900px) and (min-height:680px){
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul){
+    position:fixed!important;top:auto!important;
+    bottom:max(30px,env(safe-area-inset-bottom))!important;
+  }
+}
