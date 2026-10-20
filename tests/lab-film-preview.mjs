@@ -1,3 +1,4 @@
+// Optical V9 visual validation for PR #368; does not submit paid image generation.
 import sharp from 'sharp';
 import {mkdir,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
