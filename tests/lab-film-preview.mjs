@@ -217,3 +217,33 @@ for(const [name,file] of [
     .composite(cells).jpeg({quality:91}).toFile(dir+'/hong-kong-v8-'+name+'-high-haze-ab.jpg');
   console.log('HONG_KONG_V8_HIGH_HAZE_AB '+name+' saved');
 }
+
+
+// V9 visual acceptance pack: identical inputs, distinct high-value optical
+// rendering only. This contacts the existing Images test binding, never the AI
+// image provider and never a customer wallet.
+const ownerV9Controls={grain:29,haze:100,halation:100,film:100};
+for(const [name,file] of [
+  ['portrait','lab/mood-previews/hd/night-flash-20261011.jpg'],
+  ['interior','lab/mood-references/hong-kong-nights/06-interior-portrait.jpg'],
+  ['street','lab/mood-references/hong-kong-nights/03-shop-reflections.jpg']
+]){
+  const src=await sharp(file).resize({width:850,height:850,fit:'inside',withoutEnlargement:true}).png().toBuffer();
+  const v8=await gradeWithEngine(src,'v8',ownerV9Controls);
+  const v9=await gradeWithEngine(src,'v9',ownerV9Controls);
+  const oldPixels=await sharp(v8).removeAlpha().raw().toBuffer();
+  const newPixels=await sharp(v9).removeAlpha().raw().toBuffer();
+  assert.equal(oldPixels.length,newPixels.length,name+' V9 preserves dimensions');
+  let changed=0;
+  for(let i=0;i<oldPixels.length;i++)changed+=Math.abs(oldPixels[i]-newPixels[i]);
+  assert.ok(changed>0,name+' high Haze/Halation must not silently return V8');
+  const cells=[],frames=[src,v8,v9],labels=['Original','V8 high optics','V9 high optics'];
+  for(let i=0;i<3;i++){
+    const frame=await sharp(frames[i]).resize(370,465,{fit:'contain',background:'#151716'}).png().toBuffer();
+    const label=Buffer.from('<svg width="370" height="35"><rect width="370" height="35" fill="#151716"/><text x="14" y="24" fill="#f4f2ed" font-family="sans-serif" font-size="16">'+labels[i]+'</text></svg>');
+    cells.push({input:frame,left:i*370,top:35},{input:label,left:i*370,top:0});
+  }
+  await sharp({create:{width:1110,height:500,channels:3,background:'#151716'}})
+    .composite(cells).jpeg({quality:91}).toFile(dir+'/hong-kong-v9-'+name+'-high-optics-ab.jpg');
+  console.log('HONG_KONG_V9_AB '+name+' changed='+(changed/oldPixels.length).toFixed(3));
+}
