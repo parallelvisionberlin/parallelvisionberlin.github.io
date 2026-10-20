@@ -175,8 +175,8 @@ test('v6 analog maximum visibly changes dim midtones and preserves pure black',(
   assert.match(backend,/filmFinishRevision:output.id===original.id\?null:FILM_RENDER_REVISION/);
 });
 
-test('V3 promotion invalidates old derivatives and retains V6 as a reversible internal renderer',async()=>{
-  assert.equal(FILM_RENDER_REVISION,8);
+test('V9 invalidates earlier derivatives and retains V6 and V3 as reversible optical engines',async()=>{
+  assert.equal(FILM_RENDER_REVISION,9);
   const original=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAIAAAB2XpiaAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAFUlEQVQImWNgYGBoaGj4////s/U9AB+aBp+Ia7giAAAAAElFTkSuQmCC','base64');
   const v6=await printGradePng(original,1,'v6');
   const v3=await printGradePng(original,1,'v3');
