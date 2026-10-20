@@ -290,9 +290,7 @@
   margin:0 0 25px!important;
   border:1px solid rgba(212,220,230,.18)!important;
   border-radius:10px!important;
-  background:
-    linear-gradient(180deg,rgba(3,6,10,.04),rgba(3,6,10,.12)),
-    url('./visuals/invite-after-fabric-user-approved-20261014.webp') 50% 46% / cover no-repeat!important;
+  background:none!important;
   box-shadow:0 10px 50px rgba(0,0,0,.28);
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .upscale-empty-kicker{
@@ -430,4 +428,74 @@
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #pv-video-output-toggle,
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #video-utilities{
   display:none!important;
+}
+
+/* PV LAB MATERIAL STUDY 001
+   Original gallery macro recropped to x=1170,y=42,w=410,h=560 in 1672x941 source,
+   eliminating baked-in typography and black matte at the bottom.
+   Image is an illustrative editorial crop, never a fabricated Upscale result. */
+#app .pv-upscale-editorial-blank{display:none}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty{position:relative!important;padding:0!important;overflow:hidden}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty::before{display:none!important;content:none!important}
+#app.upscale-studio-active #empty>.upscale-empty-kicker,
+#app.upscale-studio-active #empty>#empty-title,
+#app.upscale-studio-active #empty>#empty-description,
+#app.upscale-studio-active #empty>.empty-actions,
+#app.upscale-studio-active #empty>.upscale-drop-hint,
+#app.upscale-studio-active #empty>.pv-upscale-example-note{display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{
+ display:grid!important;position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;
+ grid-template-columns:minmax(0,44%) minmax(0,56%);overflow:hidden;text-align:left;
+ background:radial-gradient(ellipse 70% 85% at 73% 50%,rgba(61,44,34,.14),transparent 78%),#0c1014;
+ color:#eeece7;font-family:'DM Sans',Arial,sans-serif;
+}
+#app.upscale-studio-active .pv-upscale-editorial-blank::before{content:"";position:absolute;left:44%;top:9%;bottom:9%;width:1px;background:linear-gradient(transparent,#ffffff18 25%,#ffffff18 75%,transparent);pointer-events:none}
+#app.upscale-studio-active .pv-upscale-blank-copy{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;align-self:center;min-width:0;padding:25px clamp(24px,4vw,72px)}
+#app.upscale-studio-active .pv-upscale-blank-index{display:flex;gap:9px;align-items:center;margin:0 0 clamp(25px,5vh,48px);font:600 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.15em;color:#a3a3a0;white-space:nowrap}
+#app.upscale-studio-active .pv-upscale-blank-index i{display:block;width:5px;height:5px;flex:none;border-radius:50%;background:#bf9a79}
+#app.upscale-studio-active .pv-upscale-blank-copy h2{display:flex;flex-direction:column;margin:0 0 22px;font:500 clamp(46px,4.8vw,79px)/.99 'DM Sans',Arial,sans-serif;letter-spacing:-.065em;color:#f1eee9}
+#app.upscale-studio-active .pv-upscale-blank-copy p{max-width:282px;margin:0 0 37px;color:#9ca3a8;font:400 13px/1.8 'DM Sans',Arial,sans-serif}
+#app.upscale-studio-active #pv-upscale-hero-upload{display:flex;align-items:center;gap:16px;min-height:39px;padding:0 0 6px;border:0;border-bottom:1px solid #9c9e9d;border-radius:0;background:transparent;color:#ecebe7;font:600 12px 'DM Sans',Arial,sans-serif;cursor:pointer;transition:color .18s,border-color .18s}
+#app.upscale-studio-active #pv-upscale-hero-upload svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s}
+#app.upscale-studio-active #pv-upscale-hero-upload:hover{color:#fff;border-color:#fff}
+#app.upscale-studio-active #pv-upscale-hero-upload:hover svg{transform:translateX(4px)}
+#app.upscale-studio-active #pv-upscale-hero-upload:focus-visible{outline:2px solid #f0ebe6;outline-offset:5px}
+#app.upscale-studio-active .pv-upscale-blank-copy>small{margin-top:15px;color:#717a80;font:600 9px 'DM Sans',Arial,sans-serif;letter-spacing:.11em}
+#app.upscale-studio-active .pv-upscale-material-figure{display:flex;flex-direction:column;gap:13px;align-self:center;justify-self:center;width:clamp(205px,28vw,372px);max-width:80%;min-width:0;margin:0 0 12px}
+#app.upscale-studio-active .pv-upscale-material-photo{position:relative;width:100%;aspect-ratio:530/724;overflow:hidden;border:1px solid #ffffff30;border-radius:2px;background:#181816;box-shadow:0 22px 75px #0006}
+#app.upscale-studio-active .pv-upscale-material-photo img{position:absolute;display:block;max-width:none!important;width:407.8049%!important;height:168.0357%!important;left:-285.3659%!important;top:-7.5%!important;object-fit:fill}
+#app.upscale-studio-active .pv-upscale-material-photo::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent 65%,#0a0b0c18)}
+#app.upscale-studio-active .pv-upscale-material-figure figcaption{display:flex;justify-content:space-between;gap:12px;color:#97999a;font:600 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.11em;white-space:nowrap}
+#app.upscale-studio-active .pv-upscale-blank-footer{position:absolute;bottom:21px;left:clamp(24px,4vw,72px);right:29px;padding-top:14px;border-top:1px solid #ffffff20;color:#797e80;font:600 8px 'DM Sans',Arial,sans-serif;letter-spacing:.1em}
+@media(max-width:1050px){
+ #app.upscale-studio-active .pv-upscale-blank-copy{padding:20px 26px}
+ #app.upscale-studio-active .pv-upscale-blank-copy h2{font-size:clamp(41px,5vw,65px)}
+ #app.upscale-studio-active .pv-upscale-blank-index{margin-bottom:24px}
+ #app.upscale-studio-active .pv-upscale-blank-copy p{font-size:12px;margin-bottom:25px}
+ #app.upscale-studio-active .pv-upscale-material-figure{width:clamp(195px,29vw,305px)}
+ #app.upscale-studio-active .pv-upscale-blank-footer{left:26px}
+}
+@media(max-width:600px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{grid-template-columns:minmax(0,49%) minmax(0,51%)}
+ #app.upscale-studio-active .pv-upscale-editorial-blank::before{left:49%}
+ #app.upscale-studio-active .pv-upscale-blank-copy{padding:12px 0 30px 21px}
+ #app.upscale-studio-active .pv-upscale-blank-index{font-size:7px;letter-spacing:.07em;white-space:normal;max-width:150px;margin-bottom:23px}
+ #app.upscale-studio-active .pv-upscale-blank-copy h2{font-size:clamp(32px,9.4vw,48px);margin-bottom:15px}
+ #app.upscale-studio-active .pv-upscale-blank-copy p{max-width:148px;font-size:10px;line-height:1.6;margin-bottom:20px}
+ #app.upscale-studio-active #pv-upscale-hero-upload{font-size:10px;gap:7px;min-height:32px;white-space:nowrap}
+ #app.upscale-studio-active #pv-upscale-hero-upload svg{width:12px;height:12px}
+ #app.upscale-studio-active .pv-upscale-blank-copy>small{font-size:7px;letter-spacing:0;margin-top:12px}
+ #app.upscale-studio-active .pv-upscale-material-figure{width:clamp(127px,43vw,190px);max-width:91%;margin-bottom:12px;gap:9px;transform:translateX(3px)}
+ #app.upscale-studio-active .pv-upscale-material-figure figcaption{font-size:7px;letter-spacing:0;gap:4px}
+ #app.upscale-studio-active .pv-upscale-blank-footer{left:21px;right:20px;bottom:17px;font-size:7px}
+}
+@media(max-width:355px){
+ #app.upscale-studio-active .pv-upscale-blank-copy{padding-left:14px}
+ #app.upscale-studio-active .pv-upscale-blank-copy h2{font-size:31px}
+ #app.upscale-studio-active #pv-upscale-hero-upload{font-size:9px}
+ #app.upscale-studio-active .pv-upscale-blank-footer{left:14px}
+}
+@media(prefers-reduced-motion:reduce){
+ #app.upscale-studio-active #pv-upscale-hero-upload,
+ #app.upscale-studio-active #pv-upscale-hero-upload svg{transition:none}
 }

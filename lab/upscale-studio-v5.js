@@ -8,10 +8,13 @@ function installUpscaleSidebar(){
   const input=document.getElementById('image');
   const preview=document.getElementById('preview');
   if(!app||!upload||!copy||!status||!input||!preview)return;
-  upload.addEventListener('click',()=>{
-    if(!app.classList.contains('upscale-studio-active'))return;
-    input.click();
-  });
+  // Both Upscaler CTAs use the same original file input and upload path.
+  for(const button of [upload,document.getElementById('pv-upscale-hero-upload')].filter(Boolean)){
+    button.addEventListener('click',()=>{
+      if(!app.classList.contains('upscale-studio-active'))return;
+      input.click();
+    });
+  }
   const sync=()=>{
     const active=app.classList.contains('upscale-studio-active');
     if(!active)return;

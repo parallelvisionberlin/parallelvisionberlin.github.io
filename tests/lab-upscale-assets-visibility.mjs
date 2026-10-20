@@ -97,7 +97,16 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       assert.ok(geometry.results.top>=geometry.deck.bottom,'Mobile result gallery follows settings');
     }
     assert.equal(await page.locator('.pv-upscale-workspace-intro').isVisible(),true,'Upscale has the editorial settings header');
-    assert.equal(await page.locator('.pv-upscale-example-note').isVisible(),true,'Upscale example imagery is explicitly labeled');
+    assert.equal(await page.locator('.pv-upscale-editorial-blank').isVisible(),true,'PV LAB editorial macro replaces generic model photo');
+    assert.equal(await page.locator('.pv-upscale-example-note').isVisible(),false,'Old generic illustration copy is hidden');
+    const material=page.locator('.pv-upscale-material-photo img');
+    assert.equal(await material.getAttribute('src'),'./visuals/studio-tools/upscale-golden-macro-source.webp');
+    await material.evaluate(image=>image.decode());
+    assert.equal(await material.evaluate(image=>image.naturalWidth),1672,'Approved PV LAB macro source loads');
+    assert.equal(await page.locator('.pv-upscale-blank-footer').isVisible(),true,'Editorial original is labeled as not upscaled');
+    const heroChooser=page.waitForEvent('filechooser');
+    await page.locator('#pv-upscale-hero-upload').click();
+    assert.equal((await heroChooser).isMultiple(),false,'Editorial button opens original single-image input');
     const emptyCanvasHeight=geometry.canvas.height;
     await page.evaluate(()=>{
       const preview=document.getElementById('preview'),empty=document.getElementById('empty');
@@ -158,6 +167,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     assert.equal(await page.locator('.archive').isVisible(),true,profile+': Image and Video History remain available');
     assert.ok(main.includes("tool==='upscale'?'No upscaled images yet'"),'Empty Upscaler response uses a true no-results label');
     assert.equal(await page.locator('.upscale-assets-shortcut').isVisible(),false,profile+': No Upscale shortcut in other tools');
+    assert.equal(await page.locator('.pv-upscale-editorial-blank').isVisible(),false,'Upscaler artwork stays isolated from Image and Video');
     const widthCheck=await page.evaluate(()=>({documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth}));
     assert.ok(widthCheck.documentWidth<=widthCheck.viewportWidth,profile+': No horizontal overflow');
     assert.deepEqual(errors,[],profile+': Browser errors');
