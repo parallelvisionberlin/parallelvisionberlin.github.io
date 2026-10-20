@@ -352,7 +352,9 @@ test('Dreamcore V7 routes organic nature, people and built environments',()=>{
   assert.match(text.prompt,/No Base: use the written subject/);
   assert.equal(userFacingImagePrompt({...max.metadata,prompt:max.prompt}),'Portrait at sea');
   const restoredHongKong=prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1}).prompt;
-  assert.match(restoredHongKong,/Expressive: richer emerald night ambience/);
+  assert.match(restoredHongKong,/Increase atmospheric diffusion slightly/);
+  assert.match(restoredHongKong,/Keep face, composition and room textures/);
+  assert.match(restoredHongKong,/Wet reflections only outdoors; dry interiors/);
   assert.doesNotMatch(restoredHongKong,/reconstruct cinematic scene lighting|off-axis light modeling/);
   assert.match(readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8'),/not a literal opacity percentage/);
 });
