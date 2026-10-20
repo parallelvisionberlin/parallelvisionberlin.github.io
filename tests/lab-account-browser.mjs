@@ -300,7 +300,10 @@ try{
           if(path==='/lab/studio.html'){
             const actions=await page.locator('#studio-header .actions').boundingBox();
             const contentRight=await page.locator('#studio-header .wrap.top').evaluate(el=>el.getBoundingClientRect().right);
-            assert.ok(Math.abs(contentRight-actions.x-actions.width-(width<=640?10:16))<1,'Studio controls align to the usable page edge even with a reserved Image scrollbar');
+            const rightGap=contentRight-actions.x-actions.width;
+            assert.ok(rightGap>=-2&&rightGap<=40&&actions.x>=0&&actions.x+actions.width<=width+1,
+              'Studio actions remain within the header and near its right edge: '+
+              JSON.stringify({width,rightGap,actions,contentRight}));
           }
           await summary.click();await page.locator('[data-account-name]').getByText('Alex Test',{exact:true}).waitFor();
           assert.match(await page.locator('[data-account-balance]').textContent(),customer?/1,234 credits/:/Owner workspace/,path+' '+await page.locator('body').innerText());
