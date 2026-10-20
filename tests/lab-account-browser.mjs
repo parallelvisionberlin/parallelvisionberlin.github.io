@@ -204,8 +204,13 @@ try{
       await page.locator('#lab-pricing-overlay-status').getByText('Checkout is not available for this account. No payment was attempted.',{exact:true}).waitFor();
       assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,0);
 
+      // Re-load the verified profile before attempting checkout after its
+      // billing-ready state changed. A focus event alone is asynchronous.
       session.billingReady=true;
-      await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+      await page.reload();
+      await page.locator('#app').waitFor({state:'visible'});
+      await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
+      await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
       rig.holdCheckout();
       await page.locator('#lab-pricing-overlay [data-lab-buy="topup10"]').evaluate(button=>{button.click();button.click();});
       await page.waitForFunction(()=>document.querySelector('#lab-pricing-overlay-status').textContent.includes('Opening secure checkout'));
