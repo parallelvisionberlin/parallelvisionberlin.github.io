@@ -217,7 +217,7 @@ try{
       assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'Shared checkout prevents duplicate clicks');
       assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'topup10'});
       rig.releaseCheckout();
-      await page.getByText('Unverified checkout link.',{exact:false}).waitFor();
+      await page.locator('#lab-pricing-overlay-status').getByText('Unverified checkout link.',{exact:true}).waitFor();
       assert.ok(page.url().startsWith(origin),'Untrusted checkout URL cannot navigate');
 
       rig.holdCheckout();
