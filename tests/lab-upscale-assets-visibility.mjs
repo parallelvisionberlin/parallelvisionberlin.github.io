@@ -103,6 +103,26 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     assert.equal(await material.getAttribute('src'),'./visuals/studio-tools/upscale-golden-macro-source.webp');
     await material.evaluate(image=>image.decode());
     assert.equal(await material.evaluate(image=>image.naturalWidth),1672,'Approved PV LAB macro source loads');
+    // Temporary visual audit of the two other existing PV LAB textile assets.
+    // This changes no site content and restores the original before continuing.
+    if(profile==='mobile'){
+      for(const [asset,name] of [['upscale-golden-weave.webp','weave'],['upscale-skin-and-collar.webp','collar']]){
+        await material.evaluate(async (img,url)=>{
+          img.style.setProperty('width','100%','important');
+          img.style.setProperty('height','100%','important');
+          img.style.setProperty('left','0','important');
+          img.style.setProperty('top','0','important');
+          img.style.setProperty('object-fit','cover','important');
+          img.src=url;await img.decode();
+        },'./visuals/studio-tools/'+asset);
+        await page.screenshot({path:'test-results/upscaler-candidate-'+name+'.png',fullPage:false});
+      }
+      await material.evaluate(async img=>{
+        img.removeAttribute('style');
+        img.src='./visuals/studio-tools/upscale-golden-macro-source.webp';
+        await img.decode();
+      });
+    }
     assert.equal(await page.locator('.pv-upscale-blank-footer').isVisible(),true,'Editorial original is labeled as not upscaled');
     if(profile==='mobile'){
       const mobileEditorial=await page.evaluate(()=>{
