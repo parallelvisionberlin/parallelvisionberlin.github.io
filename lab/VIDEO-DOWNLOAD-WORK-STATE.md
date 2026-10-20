@@ -4,6 +4,7 @@ Updated: 2026-10-21
 Scope: A visible Download video button on completed Video Studio History cards.
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 Source base: 876b9548a6e8495c0317f899a37c440f65c3b10a
+Release: f5e7fab0f31bc804d8e74104f887aebdce7fc1da on main.
 
 ## Approved behavior
 - Completed video cards expose their existing Download video action directly.
@@ -25,12 +26,20 @@ Source base: 876b9548a6e8495c0317f899a37c440f65c3b10a
 ## Verification and release
 - Local verification: 16 approved Image/Video contract, ergonomics and scene-state checks passed.
 - git diff --check passed; scoped CSS cascade and existing click/download handling reviewed.
-- Deployment and browser CI verification pending at implementation time.
+- Lab tests run 39516690715 passed both private-lab and gallery-browser jobs.
+- Desktop/mobile gallery, original downloads and account-cache checks passed.
+- Required approved Image UI contract, static validation and Motion Effects checks passed.
+- Broader video integration run 39516690798 passed desktop/mobile Video layout,
+  then stopped at the unrelated 390px Image dock two-row assertion (line 937).
+- Cloudflare Pages reports successful deployment of f5e7fab.
+- Live pvlab.studio/studio?tool=video serves cardDownload=20261021v1.
+- Production browser CSSOM contains all four download visibility/size/focus rules.
 - Existing tests/lab-image-viewer-browser.mjs covers desktop/mobile Video History,
   selecting saved videos, original-media retrieval and gallery layout.
 - Live browser is signed out; private owner History cannot be inspected there.
 - No paid generation or private video download is needed for verification.
 
 ## Next action
-- Publish the scoped change, verify CI and the actual pvlab.studio asset marker.
-- Record confirmed release status here before finishing.
+- Completed. User can refresh Video Studio to receive the new stylesheet.
+- Suggested future improvement only: use finished-video frames as card thumbnails;
+  current source-frame thumbnails and playback behavior remain unchanged.
