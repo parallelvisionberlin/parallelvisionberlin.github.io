@@ -10,7 +10,7 @@ export class PromptSafetyError extends Error {
 }
 
 // Restrict moderation to creative text, not URLs, source IDs, names of files, payment data or tokens.
-const TEXT_FIELDS=/^(?:prompt|.*prompt|direction|instructions?|description|caption|notes?|text|scene|story|storyline|styleDirection|creativeDirection|negativePrompt|positivePrompt)$/i;
+const TEXT_FIELDS=/^(?:prompt|negativePrompt|positivePrompt|direction|instructions?|description|caption|notes?|text|scene|story|storyline|styleDirection|creativeDirection)$/i;
 export function customerCreativeText(body){
   const pieces=[];
   function walk(value,key='',depth=0){
@@ -20,7 +20,10 @@ export function customerCreativeText(body){
       return;
     }
     if(Array.isArray(value)){for(const v of value.slice(0,35))walk(v,key,depth+1);return;}
-    if(typeof value==='object')for(const [k,v] of Object.entries(value).slice(0,75))walk(v,k,depth+1);
+    if(typeof value==='object')for(const [k,v] of Object.entries(value).slice(0,75)){
+      if(k==='referenceRoles'&&Array.isArray(v))for(const role of v.slice(0,35))if(typeof role?.name==='string'&&role.name.trim())pieces.push(role.name.trim());
+      walk(v,k,depth+1);
+    }
   }
   walk(body);
   return [...new Set(pieces)].join('\n');
@@ -83,7 +86,7 @@ export async function checkCustomerPromptSafety(env,request){
   }catch(e){if(e instanceof PromptSafetyError)throw e;return;} // Existing request validator handles malformed JSON.
   const text=customerCreativeText(body);
   if(!text)return; // Image-only requests need the separate image-safety phase.
-  if(text.length>7500)throw new PromptSafetyError('Creative instructions exceed the safety-check limit. Shorten your prompt and reference notes.',413);
+  if(text.length>24000)throw new PromptSafetyError('Creative instructions exceed the safety-check limit. Shorten your prompt and reference notes.',413);
   if(obviousMinorSexualization(text))throw new PromptSafetyError(BLOCK_MESSAGE);
   const limit=Number(env.LAB_MINOR_PROMPT_SAFETY_DAILY_LIMIT||'0');
   if(!Number.isSafeInteger(limit)||limit<1||limit>50||!env.AI?.run)throw new PromptSafetyError(UNAVAILABLE_MESSAGE,503);
