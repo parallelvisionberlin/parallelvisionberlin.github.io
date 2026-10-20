@@ -113,8 +113,8 @@ try{
     assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
       'Signed-out first paint keeps the small approved prompt');
     await field.click();
-    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
-      'Clicking an empty guest prompt must NOT create a tall inner writing box');
+    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'Clicking a guest prompt opens the full two-row editor without an inner frame');
     const emptyFocus=await field.evaluate(el=>{
       const input=getComputedStyle(el),box=el.getBoundingClientRect();
       return {outline:input.outlineStyle,border:input.borderTopWidth,
@@ -123,10 +123,11 @@ try{
     assert.equal(emptyFocus.outline,'none','Guest caret needs no nested focus rectangle');
     assert.equal(emptyFocus.border,'0px','Guest textarea must not draw an interior border');
     assert.equal(emptyFocus.shadow,'none');
-    assert.ok(emptyFocus.height<=50,'Empty input remains a one-line field: '+JSON.stringify(emptyFocus));
+    assert.ok(emptyFocus.height>=50&&emptyFocus.height<=150,
+      'Expanded empty input is useful, never an oversized empty inner box: '+JSON.stringify(emptyFocus));
     await field.fill('A quiet portrait in Berlin');
-    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
-      'A brief direction stays in the compact strip');
+    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'An edited brief prompt retains the genuine two-row instrument');
     await field.fill('');
     const beforeMoodUrl=page.url();
     await page.locator('#pv-guest-moods').click();
@@ -175,12 +176,20 @@ try{
       window.__guestSignInClicks=0;
       signIn.addEventListener('click',()=>window.__guestSignInClicks++);
     });
-    await page.locator('#pv-guest-add').click();
-    assert.equal(await page.evaluate(()=>window.__guestSignInClicks),1,
-      'Account-only Upload must use the real Sign in action, never an unrelated route');
+    const photoInput=page.locator('#pv-guest-image-file');
+    await photoInput.setInputFiles({
+      name:'guest-preview.png',mimeType:'image/png',
+      buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/mAAAAABJRU5ErkJggg==','base64')
+    });
+    assert.equal(await page.evaluate(()=>window.__guestSignInClicks),0,
+      'Selecting a local photo never triggers sign in or upload');
+    assert.equal(await page.locator('#pv-guest-attachments .pv-guest-photo').count(),1,
+      'Guest image preview is visible above the composer tools');
+    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'A chosen photograph opens the expanded composer without hiding its toolbar');
     await page.locator('#pv-guest-generate').click();
-    assert.equal(await page.evaluate(()=>window.__guestSignInClicks),2,
-      'Generate from a guest deck must open Sign in without making a paid request');
+    assert.equal(await page.evaluate(()=>window.__guestSignInClicks),1,
+      'Only Generate from the guest deck requests sign-in; no paid request');
     assert.equal(await page.locator('#studio-header').evaluate(e=>e.classList.contains('pv-mobile-entry-condensed')),false);
     assert.deepEqual(errors,[]);
     console.log('DESKTOP_WELCOME_UNCHANGED=1');
