@@ -14,7 +14,7 @@ function ninaVoiceFailureReply(history = []) {
     return "I couldn't hear that audio. Can you send it again or write it?";
   if (/\b(?:hallo|wie|was|ich|du|bitte|Sprachnachricht)\b/i.test(text))
     return 'Ich konnte die Sprachnachricht nicht hören. Schickst du sie nochmal oder schreibst es?';
-  return 'No pude escuchar el audio. Me lo mandas otra vez o me lo escribes?';
+  return 'No pude escuchar el audio. Me lo mandás otra vez o me lo escribís?';
 }
 async function ninaVoiceStage(env, id, stage) {
   await env.IG_MEMORY_DB.prepare("UPDATE ig_voice_receipts SET stage=?,updated_at=CURRENT_TIMESTAMP WHERE incoming_message_id=?")
@@ -204,4 +204,5 @@ async function ninaRecoverFailedVoice(env) {
     await ninaHandleVoice(env,{senderId:row.instagram_user_id,messageId:row.message_id,audio:{}},true);
   }
 }
+
 

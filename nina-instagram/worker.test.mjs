@@ -5,6 +5,30 @@ import { webcrypto } from 'node:crypto';
 import vm from 'node:vm';
 import test from 'node:test';
 
+test('Spanish uses soft Argentine instructions and strips opening punctuation before sending', async () => {
+  let prompt;
+  const h=harness({AI:{async run(model,input){prompt=input.messages[0].content;return {response:'¡Bien! ¿Vos cómo andás?'};}}});
+  await h.incoming('123456','Hola');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.match(prompt,/Argentine Rioplatense Spanish with natural voseo/);
+  assert.equal(h.effects.sends[0].message.text,'Bien! Vos cómo andás?');
+});
+
+test('Spain-specific phrasing is rewritten once into neutral voseo', async () => {
+  let calls=0;
+  const h=harness({AI:{async run(){return {response:++calls===1?'Vale, tío, eso mola.':'Sí, contame. Qué tenés en mente?'};}}});
+  await h.incoming('123456','Te quiero contar una idea');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(calls,2);
+  assert.match(h.effects.sends[0].message.text,/contame.*tenés/);
+});
+
+test('short-gap reminder avoids a reunion speech and generic topic menu', async () => {
+  let calls=0;
+  const h=harness({AI:{async run(){calls++;return {response:'Me alegra que estés aquí de nuevo. Querías hablar de algo en particular o solo charlar un rato?'};}}});
+  await h.incoming('123456','Desde que hablamos hace 10 minutos, no mucho');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(calls,2);
+  assert.equal(h.effects.sends[0].message.text,'Sí, me fui de largo con el saludo.');
+});
+
 test('reply timing follows the time taken by the visitor, including old contacts', async () => {
   for (const [elapsed,min,max] of [[20,120,300],[300,120,300],[301,300,900],[1800,300,900],[1801,600,2700],[7200,600,2700],[7201,600,7200]]) {
     const h=harness();
@@ -61,7 +85,7 @@ test('failed audio gets one paced, short acknowledgment without a model call', a
   h.setTime(h.job('123456').due_at); await h.cron(); await h.cron();
   assert.equal(h.effects.models.length,0);
   assert.equal(h.effects.sends.length,1);
-  assert.equal(h.effects.sends[0].message.text,'No pude escuchar el audio. Me lo mandas otra vez o me lo escribes?');
+  assert.equal(h.effects.sends[0].message.text,'No pude escuchar el audio. Me lo mandás otra vez o me lo escribís?');
   assert.equal(h.one('SELECT status FROM ig_voice_receipts').status,'failed');
 });
 
@@ -466,5 +490,6 @@ test('a correct Workroom correction is accepted without another model call', asy
   assert.equal(calls, 1);
   assert.match(h.effects.sends[0].message.text, /no es mi estudio/);
 });
+
 
 
