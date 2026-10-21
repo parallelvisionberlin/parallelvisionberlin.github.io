@@ -5,7 +5,9 @@
 - Fix: lift the Studio header only while the account menu is open, and remove its backdrop-filter containing block so the fixed menu positions against the viewport.
 - Preserve menu design, prompt deck, account permissions and all billing behavior.
 - Browser regression: customer and owner at 390/320px, 660px height; scroll to Sign out and verify actual tap target plus no horizontal overflow.
-- Local approved Image contract and account unit checks: 7 passed; browser validation and deployment pending.
+- Local approved Image contract and account unit checks: 7 passed. Account browser workflow 39580042516 passed, including short-screen tap reachability for customer and owner.
+- CI screenshots inspected at 390px; no overflow or menu obstruction. Approved Image contract, prompt expansion, compact prompt, first-image and pricing browser workflows passed.
+- Released source: PR #385 merged as 181f3c8fd5c6b0a06365de7e89cf4c3273ae4d64. Hosting verification pending; no actual owner browser sign-in available in this session.
 
 # PV LAB account interface
 
