@@ -23,11 +23,7 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     toggle.hidden=!account;
     if(add)add.hidden=!account;
     if(balance>0)dismissed=false;
-    if(banner){
-      banner.hidden=!account||balance>0||dismissed||!!accountClosed||billingReview;
-      // Once shown, keep this account's desktop Image notice slot stable.
-      if(!banner.hidden)banner.dataset.creditNoticeShown='';
-    }
+    if(banner)banner.hidden=!account||balance>0||dismissed||!!accountClosed||billingReview;
     if(!account){if(dialog?.open)dialog.close();if(referralDialog?.open)referralDialog.close();list.replaceChildren();amount.textContent='0 credits';state.textContent='';return;}
     onBalance(balance);
     toggle.textContent=balance.toLocaleString()+' credits';
@@ -167,7 +163,6 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     })();return refreshing;
   }
   function connect(data){
-    if(banner)delete banner.dataset.creditNoticeShown;
     const next=!!data.customer;accountEpoch++;dismissed=false;purchasing=false;refreshAgain=false;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;trialGenerationPaused=!!data.trialGenerationPaused;
     if($('lab-close-confirm'))$('lab-close-confirm').value='';
     if($('lab-close-account'))$('lab-close-account').disabled=true;

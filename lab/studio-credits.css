@@ -10,13 +10,14 @@
 .lab-credit-banner #lab-credit-banner-dismiss{display:grid;place-items:center;flex:none;width:32px;height:32px;min-height:32px;padding:0;border:0;border-radius:50%;background:transparent;color:#494844;font:300 24px/1 'DM Sans',Arial,sans-serif;cursor:pointer}
 .lab-credit-banner #lab-credit-banner-dismiss:hover{background:#d7d4ce;color:#111}
 .lab-credit-banner #lab-credit-banner-dismiss:focus-visible{outline:2px solid #151515;outline-offset:2px}
-/* Dismissing a notice must not resize the desktop Image stage. Preserve its
-   measured row after it has appeared; hidden content stays unfocusable and
-   unpainted. Accounts that never saw a notice get no empty placeholder. */
+/* The zero-credit notice is presentation, not Image workspace geometry.
+   Float it below the canonical Owner entrance so every account keeps the same
+   cards and prompt position before and after dismissal. */
 @media(min-width:1180px) and (min-height:680px){
-  html:not(.pv-native-lab) body:has(#app.image-studio-active:not([hidden]))
-    #lab-credit-banner[data-credit-notice-shown][hidden]{
-    display:flex!important;visibility:hidden;pointer-events:none;
+  html:not(.pv-native-lab) body:has(#app.image-studio-active:not([hidden]) #image-composer.pv-welcome-deck)
+    #lab-credit-banner{
+    position:fixed;inset:auto 0 0;z-index:79;box-sizing:border-box;
+    box-shadow:0 -12px 34px rgba(0,0,0,.22);
   }
 }
 .lab-credit-deck{max-width:760px;width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:30px;border:1px solid #484744;border-radius:12px;background:#151515;color:#eeeae2;box-shadow:0 24px 100px #0009}
