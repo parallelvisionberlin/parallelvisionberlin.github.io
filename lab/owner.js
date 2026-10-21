@@ -1,7 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
-import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261017-finance1';
+import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261021-closed-accounts1';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
 import {createOwnerAuthGuard} from './owner-auth-guard.js?v=20261017-stability1';
 const $=id=>document.getElementById(id);
@@ -370,7 +370,7 @@ function render(data){
   const customerCount=(data.customers||[]).length,query=$('owner-search').value.trim();
   // The directory search must not replace the account-wide latest-signups feed.
   if(!query){
-    recentCustomers=Array.isArray(data.customers)?data.customers:[];
+    recentCustomers=Array.isArray(data.customers)?data.customers.filter(c=>!c.accountClosed):[];
     recentPayments=Array.isArray(data.payments)?data.payments:[];
   }
   paintRecentActivity();
@@ -379,11 +379,11 @@ function render(data){
     :formatNumber(customerCount)+(customerCount>=80?' most recent accounts shown (limit 80).':' customer accounts shown. Verified emails come directly from Clerk.');
   $('owner-search-clear').hidden=!query;
   rowInto($('owner-customers'),data.customers||[],[
-    c=>({primary:c.email||'Email not synced',secondary:c.id}),
+    c=>({primary:c.accountClosed?'Closed account':c.email||'Email not synced',secondary:c.id}),
     c=>formatDate(c.joinedAt),
     c=>formatNumber(c.balanceCredits),
     c=>formatNumber(c.verifiedPayments),
-    c=>c.subscription&&c.subscription!=='none'?({primary:c.subscription,secondary:c.plan||''}):'—',
+    c=>c.accountClosed?'Closed':c.subscription&&c.subscription!=='none'?({primary:c.subscription,secondary:c.plan||''}):'—',
     c=>formatDate(c.lastPaidAt)
   ],query?'No matching accounts. Try a different email or account ID.':'No customer accounts have joined yet.');
   customerActivityButtons(data.customers||[]);
@@ -437,12 +437,13 @@ function render(data){
       Date.now()-data.clerkSyncDiagnostic.checkedAt<7*86400000)
     syncNotice=syncFeedback(data.clerkSyncDiagnostic);
   emailSyncReady=!!data.emailSyncConfigured;
-  const shownEmails=(data.customers||[]).filter(customer=>customer.email).length;
+  const activeCustomers=(data.customers||[]).filter(customer=>!customer.accountClosed);
+  const shownEmails=activeCustomers.filter(customer=>customer.email).length;
   const directoryText=query
     ?formatNumber(shownEmails)+' verified emails in these search results.'
-    :formatNumber(shownEmails)+' verified emails visible across '+formatNumber(customerCount)+' listed accounts.';
+    :formatNumber(shownEmails)+' verified emails visible across '+formatNumber(activeCustomers.length)+' listed active accounts.';
   // A secret binding alone does not prove that the Clerk API accepts the key.
-  const clerkSyncFailed=/^(Clerk rejected|Clerk could not|The Cloudflare Clerk secret is missing|Unable to sync Clerk emails)/.test(syncNotice);
+  const clerkSyncFailed=/^(Clerk rejected|Clerk could not|Clerk sync could not|The Cloudflare Clerk secret is missing|Unable to sync Clerk emails|The Lab could not)/.test(syncNotice);
   $('owner-sync-state').textContent=!emailSyncReady?'Clerk email sync needs setup'
     :clerkSyncFailed?'Clerk sync needs attention'
     :syncing?'Checking Clerk connection'
@@ -473,7 +474,7 @@ async function refreshDashboard(){
     render(data);status('');
     if(!search){void refreshTraffic();void acquisitionUI.refresh();}
     if(!autoClerkSyncAttempted&&!syncing&&!search&&data.emailSyncConfigured&&
-        Array.isArray(data.customers)&&data.customers.some(c=>!c.email)){
+        Array.isArray(data.customers)&&data.customers.some(c=>!c.accountClosed&&!c.email)){
       autoClerkSyncAttempted=true;
       void synchronizeClerkEmails(true);
     }
@@ -536,14 +537,15 @@ $('owner-setup-toggle').addEventListener('click',()=>{
 });
 function syncFeedback(result){
   const issues=result.issues||{},requested=Number(result.requested)||0,verified=Number(result.verified)||0,unverified=Number(result.unverified)||0;
-  if(issues.invalidKey)return 'Clerk rejected the secret key. Check that LAB_CLERK_SECRET_KEY contains the sk_live_ key from Parallel Vision → Production, then save and deploy.';
-  if(issues.missingUser)return 'Clerk could not find '+issues.missingUser+' customer record(s). Verify LAB_CLERK_SECRET_KEY belongs to the same Production Clerk application used for PV LAB sign-in.';
+  if(issues.storageError)return 'Clerk sync could not save a contact update. Check the Worker database error before retrying. Previously synchronized contacts are preserved.';
+  if(issues.invalidKey)return 'Clerk rejected a backend key. Check the production key for the affected instance: LAB_CLERK_V2_SECRET_KEY for pvlab.studio, or LAB_CLERK_SECRET_KEY for legacy accounts.';
+  if(issues.missingUser)return 'Clerk could not find '+issues.missingUser+' customer record(s). Check the production Clerk instance and identity link for those accounts.';
   if(issues.networkError)return 'Clerk could not be reached from the Cloudflare Worker ('+issues.networkError+' request). Check Worker outbound access and retry.';
   if(issues.upstreamError)return 'Clerk returned an upstream HTTP error ('+issues.upstreamError+' request). Try again or inspect Clerk API status.';
   if(issues.invalidResponse)return 'Clerk returned an unexpected user response ('+issues.invalidResponse+' request). Check the configured Clerk instance.';
   if(issues.rateLimited)return 'Clerk API rate limited '+issues.rateLimited+' request(s). Wait before retrying.';
   if(issues.transient)return 'Clerk could not complete '+issues.transient+' request(s). Check API connectivity and try again.';
-  if(issues.missingKey)return 'The Cloudflare Clerk secret is missing. Check LAB_CLERK_SECRET_KEY.';
+  if(issues.missingKey)return 'The Cloudflare Clerk secret is missing for an account instance. Check LAB_CLERK_V2_SECRET_KEY for pvlab.studio and LAB_CLERK_SECRET_KEY for legacy accounts.';
   if(!requested)return 'All currently eligible customer email records have been checked.';
   if(verified)return verified+' verified email'+(verified===1?'':'s')+' fetched from Clerk.'+(unverified?' '+unverified+' account(s) have no verified primary email.':'');
   if(unverified)return 'Clerk is responding, but '+unverified+' account(s) have no verified primary email. Check email verification in Clerk → Users.';
@@ -565,7 +567,7 @@ async function synchronizeClerkEmails(automatic=false){
     await refreshDashboard();
     if(current!==revision)return;
     $('owner-email-status').textContent=syncNotice;
-    if(result.issues?.invalidKey||result.issues?.missingUser||result.issues?.transient)
+    if(result.issues?.invalidKey||result.issues?.missingUser||result.issues?.transient||result.issues?.missingKey||result.issues?.storageError)
       $('owner-sync-state').textContent='Clerk sync needs attention';
     else if(Number(result.verified)>0)$('owner-sync-state').textContent='Verified emails available';
     else $('owner-sync-state').textContent='Clerk checked, emails unavailable';

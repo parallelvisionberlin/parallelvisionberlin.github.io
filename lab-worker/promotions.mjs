@@ -88,7 +88,7 @@ export async function syncCustomerEmail(env,subject,options={}){
 // A bounded read-only Clerk API lookup with private, aggregate-only D1 diagnostics.
 // The scheduled path never trusts client input and does not read OWNER_DB.
 const CLERK_STATUS_NAMES=['verified','unverified','invalid_key','missing_user','rate_limited',
-  'network_error','upstream_error','invalid_response','missing_key','invalid_subject','cached'];
+  'network_error','upstream_error','invalid_response','missing_key','invalid_subject','cached','storage_error'];
 const CLERK_CRON_GAP_MS=45*60*1000;
 function responseForOutcomes(outcomes,requested,checked){
   return {
@@ -99,7 +99,8 @@ function responseForOutcomes(outcomes,requested,checked){
       transient:outcomes.rate_limited+outcomes.network_error+outcomes.upstream_error+outcomes.invalid_response,
       rateLimited:outcomes.rate_limited,networkError:outcomes.network_error,
       upstreamError:outcomes.upstream_error,invalidResponse:outcomes.invalid_response,
-      missingKey:outcomes.missing_key,invalidSubject:outcomes.invalid_subject
+      missingKey:outcomes.missing_key,invalidSubject:outcomes.invalid_subject,
+      storageError:outcomes.storage_error
     }
   };
 }
@@ -128,16 +129,18 @@ async function syncMissingClerkBatch(env,{source='scheduled',force=false}={}){
     freshness);
   const outcomes=Object.fromEntries(CLERK_STATUS_NAMES.map(name=>[name,0]));
   let checked=0;
-  const missingSecret=!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY);
+  const missingSecret=!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY);
   if(missingSecret){
     outcomes.missing_key=candidates.length?1:0;
   }else{
     for(const {id} of candidates){
-      const {status}=await syncCustomerEmail(env,id,{force:force||source==='scheduled',details:true});
+      let status;
+      try{({status}=await syncCustomerEmail(env,id,{force:force||source==='scheduled',details:true}));}
+      catch{status='storage_error';}
       if(Object.hasOwn(outcomes,status))outcomes[status]++;
       else outcomes.invalid_response++;
       checked++;
-      if(status==='invalid_key'||status==='rate_limited')break;
+      if(status==='invalid_key'||status==='rate_limited'||status==='storage_error')break;
     }
   }
   const report=responseForOutcomes(outcomes,candidates.length,checked);
@@ -227,6 +230,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       one(env,`SELECT COALESCE(SUM(amount_cents),0) AS cents
         FROM lab_revenue_events WHERE created_at>=? AND created_at<?`,start,end),
       all(env,`SELECT c.id,c.created_at AS joinedAt,c.balance_credits AS balanceCredits,p.email,
+        EXISTS(SELECT 1 FROM lab_account_closures x WHERE x.customer_id=c.id) AS accountClosed,
         COALESCE(j.totalJobs,0) AS totalJobs,COALESCE(j.completedJobs,0) AS completedJobs,
         COALESCE(j.failedJobs,0) AS failedJobs,COALESCE(j.providerExposureUsd,0) AS providerExposureUsd,
         COALESCE(j.archivedJobs,0) AS archivedJobs,
@@ -375,13 +379,15 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
   }
   if(path==='/api/admin/overview'&&method==='GET'){
     const search=(url.searchParams.get('search')||'').trim().slice(0,80),match='%'+search.replace(/[\\%_]/g,'\\$&')+'%';
-    const summary=await one(env,`SELECT COUNT(*) AS accounts,
+    const summary=await one(env,`SELECT COUNT(*) AS totalAccounts,
+      COALESCE(SUM(CASE WHEN NOT EXISTS(SELECT 1 FROM lab_account_closures x WHERE x.customer_id=lab_customers.id) THEN 1 ELSE 0 END),0) AS accounts,
       (SELECT COUNT(DISTINCT customer_id) FROM lab_credit_entries WHERE kind IN ('purchase','subscription')) AS payingCustomers,
       (SELECT COUNT(*) FROM lab_subscriptions WHERE status IN ('active','trialing')) AS activeSubscriptions,
       (SELECT COUNT(*) FROM lab_voucher_redemptions) AS voucherClaims,
       (SELECT COUNT(*) FROM lab_referrals WHERE rewarded_at IS NOT NULL) AS rewardedReferrals
       FROM lab_customers`);
     const customers=await all(env,`SELECT c.id,c.balance_credits AS balanceCredits,c.created_at AS joinedAt,
+        EXISTS(SELECT 1 FROM lab_account_closures x WHERE x.customer_id=c.id) AS accountClosed,
         p.email,COALESCE(s.plan_id,'') AS plan,COALESCE(s.status,'none') AS subscription,
         (SELECT COUNT(*) FROM lab_credit_entries e WHERE e.customer_id=c.id AND e.kind IN ('purchase','subscription')) AS verifiedPayments,
         (SELECT MAX(e.created_at) FROM lab_credit_entries e WHERE e.customer_id=c.id AND e.kind IN ('purchase','subscription')) AS lastPaidAt
@@ -405,7 +411,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
     const clerkSyncDiagnostic=await diagnosticSnapshot(env);
     return json({summary,customers,payments,referrals,
       vouchers:vouchers.map(v=>({...v,url:voucherLink(env,v.code,request.headers.get('Origin')||'')})),
-      emailSyncConfigured:!!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY),
+      emailSyncConfigured:!!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY),
       clerkSyncDiagnostic,
       resultLimit:80});
   }

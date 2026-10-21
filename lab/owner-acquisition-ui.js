@@ -39,7 +39,7 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
     }
     for(const customer of customers){
       const row=document.createElement('tr'),identity=document.createElement('td');
-      identity.append(node('strong',customer.email||'Verified email pending','owner-acquisition-identity'));
+      identity.append(node('strong',customer.accountClosed?'Closed account':customer.email||'Verified email pending','owner-acquisition-identity'));
       identity.append(node('small',customer.id||'','owner-acquisition-subid'));
       const button=node('button','View activity ↗','owner-acquisition-open');
       button.type='button';
@@ -66,7 +66,8 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
       }
       cell(row,formatNumber(customer.checkoutStarts));
       cell(row,money(customer.revenueCents,'€',.01));
-      const status=customer.promoHeld?'Free generation paused'
+      const status=customer.accountClosed?'Closed account'
+        :customer.promoHeld?'Free generation paused'
         :customer.reviewFlag==='disposable-email'?'Review temporary email'
         :customer.reviewFlag==='unverified'?'Email not verified'
         :Number(customer.revenueCents)>0?'Purchased'
