@@ -1,5 +1,12 @@
 # Image composer prompt: current state
 
+## Active: swap Chrome Couture and Cloud Spa positions (2026-10-21)
+
+- User requested only exchanging these two Inspiration card positions.
+- Both public and shared customer/Owner markup in `lab/studio.html` now place Chrome Couture fifth and Cloud Spa seventh. All other cards keep their positions; card assets, labels, prompt recipes, layout, controls and providers are unchanged.
+- Existing carousel order expectation is updated to the explicitly approved sequence. Scope is HTML order, that assertion and this checkpoint only.
+- Baseline main: `36a85285dda033b45cd0b7ccc8f8a91d305a310c`. Nine existing Image contract/carousel tests and the mobile Mood/click/arrow browser suite pass. Publication and production order verification are pending.
+
 ## Active: stronger shared Image entrance title (2026-10-21)
 
 - User approved increasing `Start with a feeling.` from Regular 400 to Medium 500 while keeping the established size, spacing, copy and subtitle hierarchy.

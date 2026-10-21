@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL('../lab/'+path,import.meta.url),'utf8');
 
-test('both Image Inspiration entrances include Fisheye fourth and retain existing card order',()=>{
+test('both Image Inspiration entrances share the approved Chrome Couture and Cloud Spa swap',()=>{
   const html=read('studio.html');
   assert.equal((html.match(/class="inspiration-carousel-shell/g)||[]).length,2);
   assert.equal((html.match(/data-guest-mood=/g)||[]).length,8);
@@ -22,7 +22,7 @@ test('both Image Inspiration entrances include Fisheye fourth and retain existin
   assert.match(html,/id="lab-welcome-presets"/);
   const guest=[...html.matchAll(/data-guest-mood="([^"]+)"/g)].map(match=>match[1]);
   const signed=[...html.matchAll(/data-welcome-mood="([^"]+)"/g)].map(match=>match[1]);
-  const expected=['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','dreamcore','hong-kong-nights','chrome-couture','80s-film'];
+  const expected=['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','chrome-couture','hong-kong-nights','dreamcore','80s-film'];
   assert.deepEqual(guest,expected);
   assert.deepEqual(signed,expected);
   const arrows=[...html.matchAll(/<button\b[^>]*class="inspiration-nav [^"]+"[^>]*>[\s\S]*?<\/button>/g)].map(match=>match[0]);
