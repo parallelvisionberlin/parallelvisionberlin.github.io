@@ -47,7 +47,7 @@ try{
   assert.equal(await model.isEnabled(),true,'Account eligibility must not prevent draft model selection');
   await model.click();
   await page.click('#mode-start');
-  const png=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=64;c.height=64;c.getContext('2d').fillRect(0,0,64,64);return c.toDataURL().split(',')[1];});
+  const png=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=512;c.height=512;c.getContext('2d').fillRect(0,0,512,512);return c.toDataURL().split(',')[1];});
   await page.setInputFiles('#image',{name:'synthetic-frame.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
   const prompt='A slow camera move across a sculptural coat.';
   await page.fill('#prompt',prompt);
