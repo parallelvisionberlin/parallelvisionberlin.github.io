@@ -35,7 +35,7 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
   if(path==='/api/moodboards')return send({moodboards:[]});
   if(path==='/api/folders')return send({folders:[]});
   if(path==='/api/uploads'||path==='/api/reference-uploads')return send({id:id(seq++)},201);
-  if(path==='/api/quotes'){const q={id:id(seq++),settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},maxUsd:.2,estimatedUsd:.2,expiresAt:Date.now()+180000};quotes.set(q.id,{q,data});return send(q);}
+  if(path==='/api/quotes'){const q={id:id(seq++),settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},provider:'SpicyAPI',creditCost:25,maxUsd:.2,estimatedUsd:.2,expiresAt:Date.now()+180000};quotes.set(q.id,{q,data});return send(q);}
   if(path==='/api/jobs'&&method==='POST'){const entry=quotes.get(data.quoteId);assert.ok(entry);assert.equal(data.confirm,true);const job={id:id(seq++),sourceId:entry.data.referenceSourceIds[0],settings:entry.q.settings,status:'queued',createdAt:Date.now(),estimatedUsd:.2};jobs.unshift(job);return send({job},202);}
   if(path.startsWith('/api/jobs/'))return send({job:jobs.find(j=>path.endsWith(j.id))});
   return send({error:'Unmocked '+path},404);
@@ -51,7 +51,7 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  const chooser=page.waitForEvent('filechooser');await page.click('#photo-input');
  const photo=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;c.getContext('2d').fillRect(0,0,480,640);return c.toDataURL().split(',')[1];}),'base64');
  await (await chooser).setFiles({name:'source.png',mimeType:'image/png',buffer:photo});
- await page.waitForFunction(()=>document.querySelector('#continue-create').textContent.includes('$0.20'));
+ await page.waitForFunction(()=>document.querySelector('#continue-create').textContent==='Generate · 25 credits');
  assert.equal(requests.filter(r=>r.method==='POST'&&r.path==='/api/jobs').length,0,'Upload and price never submit a job');
  await page.screenshot({path:out+`/mood-photo-${width}.png`,fullPage:true});
  assert.deepEqual(await page.locator('#mood-detail').boundingBox(),initialDialog,'Account initialization must not shrink the open deck');

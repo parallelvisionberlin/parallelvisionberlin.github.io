@@ -233,10 +233,14 @@ try{
       await page.click('#image-lightbox-close');
     }
     await page.evaluate(()=>{window.__viewerTest.customer();document.getElementById('lab-wallet-toggle').click();}); // Mobile hides the header balance; account-browser separately tests its visible entry.
-    // Storage and account closure now live on the account page; lab-account-browser covers both.
-    assert.equal(await page.locator('#lab-credits-dialog a').getAttribute('href'),'./account.html#billing','The compact purchase deck keeps account management reachable');
-    assert.equal(await page.locator('#lab-credits-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Credit controls fit the dialog');
-    await page.click('#lab-credits-close');
+    // Customer pricing now shares the approved full editorial overlay;
+    // generation and viewer state must survive opening and closing it.
+    await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
+    assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6,
+      'The unified customer pricing overlay contains every actual plan');
+    assert.equal(await page.locator('#lab-credits-dialog').isVisible(),false,
+      'The superseded small credit pack panel cannot obscure the viewer');
+    await page.click('#lab-pricing-overlay-close');
     await page.locator('#history .card').nth(1).evaluate(el=>el.click());
     await page.waitForFunction(()=>!document.querySelector('#image-detail-video').disabled);
     await page.evaluate(()=>window.__viewerTest.seedVideo());

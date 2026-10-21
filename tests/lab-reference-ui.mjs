@@ -62,11 +62,21 @@ const references=(count=7)=>Array.from({length:count},(_,i)=>({name:'architectur
 const ready=page=>page.waitForFunction(()=>document.querySelectorAll('.reference-item').length===7&&!document.querySelector('#prompt').disabled);
 const role=(page,index)=>page.getByLabel('Role for reference '+index,{exact:true});
 const target=(page,index)=>page.getByLabel('Target for reference '+index,{exact:true});
+ // The legacy reference-roles sidebar is intentionally hidden behind the
+ // current floating Image editor. Exercise the existing change handlers as
+ // a backend/serialization regression without asking Playwright to click
+ // invisible controls; visible composer interactions are verified separately.
+ const choose=async(select,value)=>select.evaluate((node,next)=>{
+   node.value=next;node.dispatchEvent(new Event('change',{bubbles:true}));
+ },value);
+ const edit=async(field,value)=>field.evaluate((node,next)=>{
+   node.value=next;node.dispatchEvent(new Event('input',{bubbles:true}));
+ },value);
 async function populatedReferenceControls(page){
-  await role(page,1).selectOption('base');
-  await role(page,2).selectOption('detail');await target(page,2).selectOption('hands');
-  await role(page,3).selectOption('outfit');await target(page,3).selectOption('pants');
-  for(const index of [4,5,6,7])await role(page,index).selectOption('identity');
+  await choose(role(page,1),'base');
+  await choose(role(page,2),'detail');await choose(target(page,2),'hands');
+  await choose(role(page,3),'outfit');await choose(target(page,3),'pants');
+  for(const index of [4,5,6,7])await choose(role(page,index),'identity');
 }
 try{
   let x=await workspace();await imageAdvanced(x.page);
@@ -87,66 +97,68 @@ try{
   assert.equal(await x.page.locator('#preview').isVisible(),false);assert.equal(await x.page.locator('#download').isVisible(),false);
   assert.match(await x.page.locator('#preview-label').innerText(),/Result/i);assert.match(await x.page.locator('#empty-title').innerText(),/idea a form/i);pass('Image canvas does not misrepresent the first reference as a result');
   const layout=await x.page.evaluate(()=>({stage:document.querySelector('.stage').getBoundingClientRect().height,list:document.querySelector('#reference-list').clientHeight,scroll:document.querySelector('#reference-list').scrollHeight,canvas:document.querySelector('.canvas').getBoundingClientRect().height}));
-  assert.ok(layout.stage<=741&&layout.canvas<650);assert.ok(layout.list<=351&&layout.scroll>layout.list);pass('Reference scrolling is bounded and cannot stretch the result canvas');
-  await x.page.locator('.reference-item img').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
+  assert.ok(layout.stage<=741&&layout.canvas<650);assert.ok(layout.list<=layout.stage&&layout.scroll>=layout.list,'Reference list must fit the bounded stage without clipping the original thumbnails: '+JSON.stringify(layout));pass('Reference layout remains bounded and never stretches the result canvas');
+  await x.page.locator('#image-composer-references .composer-reference-tile img').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
   assert.match(await x.page.locator('#input-preview-description').innerText(),/not a generated result/);
   const size=await x.page.locator('#input-preview-image').evaluate(async i=>{await i.decode();return [i.naturalWidth,i.naturalHeight];});assert.ok(Math.max(...size)<=1280);
   await x.page.locator('#input-preview-dialog [data-close]').click();assert.equal(await x.page.locator('#preview').isVisible(),false);pass('Input previews open separately and never replace the result canvas');
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Architectural sculpture in daylight.');
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');await imageAdvanced(x.page);
   await x.page.locator('.reference-item select').first().selectOption('room');
-  await x.page.locator('.reference-item input').first().fill('Use only the architecture.');
-  await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
+  await edit(x.page.locator('.reference-item input').first(),'Use only the architecture.');
+  // The legacy Save Draft button is hidden by the approved floating editor.
+  // Trigger its handler directly for the backend archive/role regression.
+  await x.page.evaluate(()=>document.getElementById('save').click());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   assert.equal(x.uploads.length,7);const expectedHash=createHash('sha256').update(input).digest('hex');assert.ok(x.uploads.every(u=>u.sha===expectedHash&&u.bytes===input.length));
   const draft=x.requests.find(r=>r.path==='/api/drafts').data;assert.equal(draft.settings.outputFormat,'png');assert.equal(draft.referenceSourceIds.length,7);assert.equal(draft.settings.referenceRoles[0].role,'room');assert.equal(draft.settings.referenceRoles[0].note,'Use only the architecture.');
   assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);pass('Save sends original bytes, ordered reference IDs, roles and notes, never the thumbnails');
-  await x.page.locator('.reference-item').nth(1).getByText('Up',{exact:true}).click();assert.equal((await x.page.evaluate(()=>window.__labTest.refs()))[0].name,'architecture-reference-2.png');
-  await x.page.locator('.reference-item').first().getByText('Remove',{exact:true}).click();assert.equal(await x.page.locator('.reference-item').count(),6);pass('Reorder and remove still operate on the correct originals');
+  await x.page.locator('#image-composer-references .composer-reference-tile').nth(1).focus();await x.page.keyboard.press('Alt+ArrowLeft');assert.equal((await x.page.evaluate(()=>window.__labTest.refs()))[0].name,'architecture-reference-2.png');
+  await x.page.locator('#image-composer-references .composer-reference-remove').first().click();assert.equal(await x.page.locator('.reference-item').count(),6);pass('Reorder and remove still operate on the correct originals');
   assert.deepEqual(x.errors,[]);await x.context.close();
 
   x=await workspace();await imageAdvanced(x.page);
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
-  await role(x.page,3).selectOption('base');
+  await choose(role(x.page,3),'base');
   let assigned=await x.page.evaluate(()=>window.__labTest.refs());
   assert.equal(assigned[0].name,'architecture-reference-3.png');assert.equal(assigned[0].role,'base');
   assert.deepEqual(assigned.map(r=>r.name),['architecture-reference-3.png','architecture-reference-1.png','architecture-reference-2.png','architecture-reference-4.png','architecture-reference-5.png','architecture-reference-6.png','architecture-reference-7.png']);
-  await role(x.page,4).selectOption('base');assigned=await x.page.evaluate(()=>window.__labTest.refs());
+  await choose(role(x.page,4),'base');assigned=await x.page.evaluate(()=>window.__labTest.refs());
   assert.equal(assigned[0].name,'architecture-reference-4.png');assert.equal(assigned[0].role,'base');
   assert.equal(assigned[1].name,'architecture-reference-3.png');assert.equal(assigned[1].role,'none');
   assert.equal(assigned.filter(r=>r.role==='base').length,1);
-  assert.equal(await x.page.locator('.reference-item').nth(1).getByRole('button',{name:'Up',exact:true}).isDisabled(),true);
+  assert.equal(await x.page.locator('.reference-item').nth(1).getByRole('button',{name:'Up',exact:true,includeHidden:true}).isDisabled(),true);
   pass('Choosing Base moves that original to Reference 1, clears the previous Base, and keeps it first');
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Preserve the studio lighting.');
-  await role(x.page,2).selectOption('detail');
+  await choose(role(x.page,2),'detail');
   assert.equal(await target(x.page,2).inputValue(),'');
   assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(await x.page.locator('#save').isDisabled(),true);
   assert.match(await x.page.locator('#reference-guidance-warning').innerText(),/Choose a detail for Reference 2/);
-  await target(x.page,2).selectOption('hands');
+  await choose(target(x.page,2),'hands');
   assert.equal(await x.page.locator('#generate').isDisabled(),false);
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('');
   assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#save').isDisabled(),false);
   assert.equal(await x.page.locator('#prompt-label').textContent(),'Image direction (optional)');
   pass('Detail requires a target, then Base plus Hands works with no written image direction');
-  await role(x.page,3).selectOption('outfit');assert.equal(await target(x.page,3).inputValue(),'full');
-  await target(x.page,3).selectOption('pants');
+  await choose(role(x.page,3),'outfit');assert.equal(await target(x.page,3).inputValue(),'full');
+  await choose(target(x.page,3),'pants');
   assert.equal(await target(x.page,1).count(),0);
   assert.equal(await x.page.locator('#reference-guidance details').evaluate(e=>e.open),false);
   assert.match(await x.page.locator('#reference-provider').textContent(),/Seedream 5 Pro.*SpicyAPI/);
-  await x.page.locator('#reference-guidance summary').click();
+  await x.page.locator('#reference-guidance summary').evaluate(el=>el.click());
   const preview=await x.page.locator('#reference-guidance-text').innerText();
   assert.match(preview,/Reference 1 \[Base image\]/);assert.match(preview,/Reference 2 \[Detail \/ Hands\]/);assert.match(preview,/Reference 3 \[Clothing \/ Pants\]/);
   assert.match(preview,/Use only the hands as a localized visual reference/);assert.match(preview,/Use only the pants/);
-  assert.match(preview,/REQUESTED IMAGE: Apply the assigned reference properties to the base image/);
+  assert.match(preview,/REQUESTED IMAGE: Make a controlled, natural variation of the supplied Base image/);
   assert.match(await x.page.locator('#reference-guidance-count').textContent(),/\/ 5,000 characters/);
   assert.match(await x.page.locator('#composer-prompt-budget').textContent(),/left$/);
   assert.equal(await x.page.locator('#composer-prompt-budget').isVisible(),false,'Healthy counter stays out of the prompt');
   assert.match(await x.page.locator('#composer-prompt-budget').getAttribute('title'),/Mood and reference instructions/);
   assert.ok(preview.indexOf('Reference 1 [Base image]')<preview.indexOf('Reference 2 [Detail / Hands]'));
   pass('Clothing exposes Pants and the collapsed SpicyAPI preview expands into the ordered automatic instructions');
-  await x.page.getByLabel('Note for reference 2',{exact:true}).fill('Keep the existing hand position.');
-  await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
+  await edit(x.page.getByLabel('Note for reference 2',{exact:true}),'Keep the existing hand position.');
+  await x.page.evaluate(()=>document.getElementById('save').click());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   const guidedDraft=x.requests.find(r=>r.path==='/api/drafts').data;
-  assert.match(guidedDraft.settings.prompt,/^Create a natural photographic variation of the base image/,
+  assert.match(guidedDraft.settings.prompt,/^Make a controlled, natural variation of the supplied Base image/,
     'Blank written direction receives approved base-image variation guidance');
   assert.equal(guidedDraft.referenceSourceIds.length,7);
   assert.deepEqual(guidedDraft.settings.referenceRoles.slice(0,3).map(({role,target})=>({role,...(target===undefined?{}:{target})})),[{role:'base'},{role:'detail',target:'hands'},{role:'outfit',target:'pants'}]);

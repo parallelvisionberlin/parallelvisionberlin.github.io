@@ -11,6 +11,7 @@ on:
       - 'tests/lab-mood-references.test.mjs'
       - 'tests/lab-explore-generation.mjs'
       - 'tests/lab-native-mobile-ui.mjs'
+      - 'tests/lab-app-discovery.mjs'
       - '.github/workflows/pv-lab-explore-generate.yml'
   push:
     branches: [main, codex/mood-generate]
@@ -51,6 +52,7 @@ jobs:
         run: |
           node tests/lab-explore-generation.mjs
           node tests/lab-native-mobile-ui.mjs
+          node tests/lab-app-discovery.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
