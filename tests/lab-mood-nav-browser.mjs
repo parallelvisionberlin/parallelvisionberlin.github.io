@@ -45,6 +45,9 @@ try{
   // In the real studio, Queue and the account control appear after session setup.
   await page.evaluate(()=>{document.getElementById('active').hidden=false;document.getElementById('studio-account-menu').hidden=false;});
   assert.equal(await page.locator('#studio-header .brand').innerText(),'PV LAB');
+  await page.locator('#studio-header .lab-wordmark').evaluate(img=>img.decode());
+  assert.equal(await page.locator('#studio-header .lab-wordmark').getAttribute('src'),
+    './branding/pvlab-wordmark-bold.svg?v=20261022-bold1','Studio reuses the approved homepage logo');
   await page.evaluate(()=>document.fonts.ready);
   assert.deepEqual(await page.locator('#studio-header .tool-group>button').allTextContents(),
     ['Image','Video','Effects','Upscaler','Retouch','Fashion'],
@@ -82,7 +85,7 @@ try{
       const icon=document.querySelector('.studio-assets-icon');
       const style=getComputedStyle(icon);
       return {viewport:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth,
-        header:rect('#studio-header'),brand:rect('#studio-header .brand'),
+        header:rect('#studio-header'),brand:rect('#studio-header .brand'),wordmark:rect('#studio-header .lab-wordmark'),
          firstNav:rect('#tool-image'),firstNavWeight:getComputedStyle(document.getElementById('tool-image')).fontWeight,
         nav:rect('#studio-header .tool-switch'),fashion:rect('#tool-fashion'),
         actions:rect('#studio-header .actions'),
@@ -93,6 +96,8 @@ try{
     });
     studioGeometry.set(width,size);
     assert.ok(size.overflow<=3,'No horizontal document overflow '+width+' '+JSON.stringify(size));
+    assert.ok(size.wordmark.width>40&&size.wordmark.height>15,
+      'The approved logo remains visible on desktop and mobile '+width+' '+JSON.stringify(size));
     assert.ok(size.icon.width>=32&&size.icon.height>=32&&size.border!=='0px',
       'The Assets icon stays a comfortable hit target '+width+' '+JSON.stringify(size));
     assert.ok(size.display==='inline-grid'||size.display==='grid','Icon is visible in signed-in studio at '+width);
