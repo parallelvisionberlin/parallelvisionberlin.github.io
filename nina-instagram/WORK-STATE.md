@@ -1,5 +1,23 @@
 # Nina Instagram: verified owner-continuity work state
-Updated: 2026-10-21
+Updated: 2026-10-22
+
+## Adaptive visitor pacing deployed (2026-10-22)
+- User authorized visitor pacing that follows how quickly the visitor replies, and asked whether Nina can see profile names.
+- Source commit: 895904959c2725ccd53dc617ce128e82b9ca4018.
+- Files: worker.mjs, worker.test.mjs, deploy.mjs, deploy.test.mjs.
+- First-ever public reply remains random 10–120 minutes. Thereafter the delay is chosen from elapsed time since Nina's last confirmed outgoing reply: visitor <=5 minutes → Nina 2–5 minutes; >5–30 → 5–15; >30–120 → 10–45; >120 → 10–120.
+- Removed the six-quick-reply cutoff and hard 30-minute conversation reset. Existing daily/burst caps remain. Each response still needs a new incoming message, with coalescing and no duplicate/uncertain resend.
+- Pending batches keep their original timing band and capped deadline. A stale batch starts a new plan rather than creating an instant reply.
+- Existing session timestamps retain the legacy active_until minus 1800 encoding; no session schema migration is needed. Prior contacts without a recorded session use their latest stored successful outgoing timestamp.
+- Linked-owner pacing is unchanged. Sender ID plus verified owner link, never profile name/handle, controls private context and owner pacing.
+- Existing Instagram User Profile lookup requests username,name; successful data populate the sender's model context. Added instructions to use a plausible visible name naturally without inventing a personal name from a brand or handle.
+- Failed/empty profile lookups now retry after 5 minutes instead of 24 hours. Profiles with known names remain cached for 24 hours.
+- Voice failure pipeline, owner vault and send implementation compared unchanged.
+- Validation: 29 local tests passed, covering all timing band boundaries, an eight-turn fast conversation, coalesced bursts, legacy contacts, failed profile retry and name inclusion/private-memory isolation; CI repeats these checks.
+- Health exposes pacingRevision adaptive-dms-2026-10-22 and activeReplyMinutes [2,5]. Deploy verifier requires the revision and all four delay bands before reporting success.
+- Deployment VERIFIED at 2026-10-22 00:22 Berlin: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39685957950 (29/29 CI tests). Version 4661201d-c73d-4b58-8c81-b92e271f3f8f at 100%, deployment 2a4f2a15-3ce3-4669-a97c-26854ca5587f. Settings, seven bindings and minute cron preserved.
+- Real profile-name availability depends on Meta returning the fields; no live names were exported or claimed verified by this change.
+- Next: observe a new public conversation against the health timing bands. Previously queued jobs are preserved; new incoming messages apply the adaptive plan. Real voice transcription remains unverified; the last audio receipt still shows the earlier Meta URL failure.
 
 ## Voice handling repair (2026-10-21)
 - User explicitly authorized repairing voice-note reception and artificial failure responses.
