@@ -1,5 +1,14 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Approved bold homepage wordmark, 2026-10-22 (Europe/Berlin)
+- User approved the heavy, condensed PV LAB lettering in the homepage mockup and authorized applying it to the website.
+- Both homepage placements use one small outlined SVG, derived from Anton with its SIL OFL notice included. No new font download or font swap is needed.
+- Kept the existing text footprint and accessible names. Preserved the portrait, Fashion. Reimagined. copy, buttons, navigation positions and latest mobile hero lift. No Image deck, account, billing or provider code changed.
+- Local checks: approved Image contract 5/5; homepage assertions from the existing landing-stability suite passed at 1912, 1440, 768, 390 and 320px with delayed and ready fonts, signed-in and guest mocks. These mocks do not verify real customer sessions.
+- Separate before/after browser comparison at 1440, 390 and 320px confirmed unchanged header, navigation, portrait and hero-copy geometry, no horizontal overflow, and both SVG placements decoded from the same asset.
+- The full landing-stability suite also includes unrelated Studio media and guest-deck checks. It did not complete in the sparse checkout because those media fixtures are absent; do not claim a full-suite pass. Its local server now supplies the correct SVG MIME type for the new logo.
+- Publication: pending Cloudflare Pages and actual production homepage verification. Source commit alone is not evidence that the new logo is live.
+
 ## Mobile homepage hero visibility, 2026-10-22 (Europe/Berlin)
 - Source main before this change: `b674dc29ed0981f40f17fcd65b60c68ba67b97e1`.
 - User-approved goal: raise the entire PV LAB / Fashion. Reimagined. hero copy, description and two buttons on mobile so Safari's bottom toolbar does not cut off the actions.

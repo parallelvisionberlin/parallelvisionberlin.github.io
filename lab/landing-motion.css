@@ -89,3 +89,12 @@
 @media(max-width:560px){
   .landing-header-actions{grid-template-columns:auto 64px;min-height:38px}
 }
+/* One outlined wordmark in both homepage placements. Keep the existing text
+   footprint so the navigation and hero copy retain their approved positions. */
+.landing-header--home .lab-brand,.lab-hero #hero-title{position:relative}
+.lab-wordmark-label{opacity:0}
+.landing-header--home .lab-wordmark,.lab-hero #hero-title .lab-wordmark{
+  position:absolute;left:0;display:block;pointer-events:none;max-width:100%;
+}
+.landing-header--home .lab-wordmark{top:50%;width:3.375em;height:auto;transform:translateY(-50%)}
+.lab-hero #hero-title .lab-wordmark{top:0;width:auto;height:.9em}

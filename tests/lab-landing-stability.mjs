@@ -6,7 +6,7 @@ import {resolve,extname} from 'node:path';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
 const root=resolve('.'),artifacts=resolve(process.env.PV_UI_ARTIFACTS||'/tmp/pv-landing-stability');
 await mkdir(artifacts,{recursive:true});
-const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png','.mp4':'video/mp4'};
+const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png','.mp4':'video/mp4','.svg':'image/svg+xml'};
 const server=createServer(async(req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
   const file=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));
