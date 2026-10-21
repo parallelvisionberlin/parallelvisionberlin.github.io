@@ -98,3 +98,9 @@ Next: add future photographs solely in the canonical manifest and compare them a
 - On photography mobile header, replace the blue emoji-style external-link symbol after ARTIST PAGE with a local self-contained copy of the chosen AM07 monogram from personal-site favicon.svg. Both header logo link and Artist Page destination point to https://alejandromolinari.com/; no unrelated site source modified.
 - CSS styles 26px desktop and 24px mobile, no third-party image loading. Add a locally hosted favicon reference. Keep dark colour palette, unchanged gallery layout.
 - Current publish status: pending deployment checks.
+
+## 2026-10-21 / Safari touch interaction fix
+- Removed the non-passive second touchend event handler that called preventDefault on image double taps, leaving one passive swipe recognizer.
+- Replaced photo-stage and image touch-action pan-y with manipulation, allowing scrolling and pinch accessibility while suppressing browser smart double-tap zoom on the photo.
+- No changes to photo files, gallery order, captions, hero, biography or theme. Versioned JS and CSS URLs to invalidate old mobile cache.
+- Requires GitHub Pages deployment and user device confirmation; local source checks do not prove Safari fixed.
