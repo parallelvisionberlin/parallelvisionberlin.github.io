@@ -1,7 +1,7 @@
 ## Signup, checkout and contact-sync repair, 2026-10-21
 - PR #412 merged as `573e76ee2b30f2fdb746fac41742c2849b0b2016`; reviewed head `f8aba62d6b83f559603fd015321c2d8557451dd7`.
 - Worker production deployment `39630590896` and its expected-version health check passed: `pv-lab-2026-10-21.5-account-sync-checkout` is live.
-- GitHub Pages build/deployment `39630589554` succeeded, but the separate customer-facing `https://pvlab.studio/studio?release=573e76ee` still served a script URL WITHOUT `signupResume=20261021-1` in the final browser check. Do not claim the frontend repair is live.
+- Frontend publication is NOW VERIFIED in the live browser: Studio serves `signupResume=20261021-1`, the homepage serves `customer-entry.js?v=20261021-purchase-resume1`, and Owner serves `owner.js?v=20261021-account-sync1`. The earlier pending-publication finding is resolved; no manual Cloudflare deployment was needed in this retry.
 - Existing Cloudflare connector returned internal errors. The existing Pages API credential previously returned HTTP 403/code 10000 (recorded in FISHEYE-2000-WORK-STATE.md). No permission, secret, DNS or project-setting change was made.
 - Studio pricing retains the selected SKU through sign-in/reload for 15 minutes, restores its pricing tab, and requires a fresh customer click before checkout. Homepage optional referral attribution no longer delays purchase continuation.
 - Paused welcome credits no longer prevent background verified-contact sync on authenticated session refresh. The offer remains paused.
@@ -11,7 +11,7 @@
 - Final PR CI passed Lab tests, account interface, Studio pricing overlay, landing, promotions/owner security, owner dashboard, approved Image UI and compact Image prompt checks. Test fixtures now reflect the existing eight Mood identities and wait for billing-refresh completion.
 - The asset-library suite still fails at its legacy Upscaler canvas expectation, tests/lab-assets-ui.cjs:281. The same failure existed on main before this PR (run `39626039656`, job `119311426893`). Preserve the approved Upscaler UI; do not weaken the test without reviewing its current flow.
 - Authenticated production owner sync and a real signed-in checkout remain unverified. Existing traffic storage has no individual location or navigation history; do not invent abandonment causes.
-- Next: publish current main to the existing Cloudflare `pvlab-studio` project when that publishing connection is available, then verify the signup marker and owner/customer UI separately. The backend deployment does not prove frontend publication.
+- Remaining verification: authenticated owner contact-sync outcomes and a real customer checkout. Production HTML/module version markers are verified separately from the already-passing simulated signup, account and checkout tests. Do not request another Cloudflare sign-in just to republish this repair.
 
 ## Verified audit update, 2026-10-21
 - Main account release: PR #377, merge 1abf77e; production Studio source independently confirmed live.
