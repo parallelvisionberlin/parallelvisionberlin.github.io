@@ -1,0 +1,36 @@
+name: PV LAB welcome email image delivery
+
+on:
+  pull_request:
+    paths:
+      - 'lab-worker/signup-welcome-email.mjs'
+      - 'lab/email/**'
+      - '.github/workflows/pv-lab-welcome-email-public-media.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-email-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Confirm selected images load publicly as JPEG before email release
+        shell: bash
+        run: |
+          set -euo pipefail
+          for asset in welcome-hero.jpg welcome-detail-1.jpg welcome-detail-2.jpg welcome-detail-3.jpg; do
+            path="$(mktemp)"
+            curl --fail --location --silent --show-error \
+              --retry 4 --retry-delay 3 --retry-all-errors \
+              --connect-timeout 6 --max-time 20 \
+              --output "$path" "https://pvlab.studio/email/$asset"
+            magic="$(od -An -tx1 -N3 "$path" | tr -d ' \n')"
+            if [ "$magic" != "ffd8ff" ]; then
+              echo "Unexpected image content for $asset: $magic"
+              exit 1
+            fi
+            echo "Verified $asset $(wc -c < "$path") bytes"
+            rm -f "$path"
+          done
