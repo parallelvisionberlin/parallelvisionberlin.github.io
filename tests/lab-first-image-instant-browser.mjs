@@ -11,20 +11,23 @@ const end=source.indexOf('\n',start);
 assert.ok(start>=0&&end>start);
 const mock=source.slice(0,start)+source.slice(end+1)+`
 clerk={isSignedIn:true,user:{id:'welcome-mock'},session:{id:'welcome-session',getToken:async()=> 'synthetic-token'}};
-owner=true;customerMode=true;customerGenerationReady=true;userId='welcome-mock';
+const mockRole=new URL(location.href).searchParams.get('mockRole')||'customer';
+const mockBalance=mockRole==='new'?0:200;
+owner=true;ownerAccount=mockRole==='owner';customerMode=!ownerAccount;customerGenerationReady=true;userId='welcome-mock';
 config={enabled:true,configured:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:false,
   concurrency:{image:4,video:1}};
-wallet.connect({customer:true,balanceCredits:200,billingReady:true,products:[]});
+wallet.connect({customer:customerMode,balanceCredits:mockBalance,billingReady:true,products:[]});
 $('app').hidden=false;$('gate').hidden=true;
 setTool('image');
 await loadHistory();
-showWelcomeStart({customer:true,generationReady:true,balanceCredits:200,accountClosed:false,billingReview:false});
+showWelcomeStart({customer:customerMode,generationReady:true,balanceCredits:mockBalance,accountClosed:false,billingReview:false});
 finishLabBoot();
 update();
 // Test-only trigger for transitioning from an empty customer welcome to
 // one saved image without making any paid request or changing production APIs.
 window.__welcomeMockGalleryChanged=()=>syncImageGalleryEmpty();
 window.__welcomeMockInspiration=open=>setMoodDiscoveryOpen(open);
+window.__welcomeMockSubmissionPending=()=>imageSubmissionPending;
 window.__welcomeMockReady=true;
 `;
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png',
@@ -75,6 +78,57 @@ await context.route('https://**/*',async route=>{
   return send({error:'Unmocked '+path},404);
 });
 try{
+  // All account ages/roles use one real editor, including Inspiration opened
+  // over existing History. Account state may change eligibility, never layout.
+  for(const role of ['new','returning','owner']){
+    const roleContext=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
+    const rolePage=await roleContext.newPage();
+    await roleContext.route('https://**/*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({jobs:[],packs:[],activeJobs:[],products:[]})}));
+    try{
+      await rolePage.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole='+role);
+      await rolePage.waitForFunction(()=>window.__welcomeMockReady===true&&document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
+      const roleDeck=rolePage.locator('#image-composer'),roleField=rolePage.locator('#image-composer-prompt');
+      for(const viewport of role==='new'?[{width:1440,height:900},{width:1280,height:720},{width:1280,height:680}]:[{width:1440,height:900}]){
+        await rolePage.setViewportSize(viewport);
+        for(const banner of role==='new'?[true,false]:[false]){
+          await rolePage.evaluate(show=>{document.getElementById('lab-credit-banner').hidden=!show;},banner);
+          await rolePage.waitForTimeout(80);
+          const before=await roleDeck.boundingBox(),photos=await rolePage.locator('#lab-welcome-presets').boundingBox();
+          assert.ok(before.height>=70&&before.height<=78,role+' gets the same thin entrance');
+          assert.ok(before.y-photos.y-photos.height>=20&&before.y-photos.y-photos.height<=28,
+            role+' bar follows the cards, including banner changes: '+JSON.stringify({viewport,banner,before,photos}));
+          await roleField.click();
+          const opened=await roleDeck.boundingBox();
+          assert.ok(opened.height>before.height+40&&Math.abs(opened.y-before.y)<2,
+            role+' opens down, never toward the cards: '+JSON.stringify({before,opened}));
+          assert.ok(opened.y+opened.height<=viewport.height-8,
+            role+' Generate and tools fit the viewport: '+JSON.stringify({viewport,banner,opened}));
+          await rolePage.locator('#lab-welcome-start h2').click();
+          await rolePage.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
+          assert.ok(Math.abs((await roleDeck.boundingBox()).height-before.height)<3,role+' closes on outside click');
+        }
+      }
+      await rolePage.setViewportSize({width:1440,height:900});
+      await rolePage.evaluate(()=>{
+        const card=document.createElement('article');card.className='card';card.dataset.kind='image';
+        document.getElementById('history').append(card);
+        document.getElementById('lab-welcome-start').hidden=true;
+        window.__welcomeMockGalleryChanged();
+      });
+      await rolePage.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
+      const historyDeck=await roleDeck.boundingBox();
+      await roleField.click();
+      assert.ok(Math.abs((await roleDeck.boundingBox()).height-historyDeck.height)<3,
+        role+' History retains its locked two-row deck on focus');
+      assert.ok(Math.abs(900-historyDeck.y-historyDeck.height-30)<3,role+' History keeps its bottom anchor');
+      await rolePage.locator('#history-moods-toggle').click();
+      await rolePage.waitForFunction(()=>document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
+      assert.ok((await roleDeck.boundingBox()).height<=78,role+' Inspiration reopens the same thin entrance');
+      assert.equal(await rolePage.locator('#image-composer:visible,#pv-guest-composer:visible').count(),1,
+        role+' exposes exactly one Image bar');
+    }finally{await roleContext.close();}
+  }
+  console.log('PASS shared new/returning/owner card bar, downward focus/blur, credit banner and locked History');
   await page.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.__welcomeMockReady===true,undefined,{timeout:20000});
   assert.equal(await page.locator('#lab-welcome-start').isVisible(),true);
@@ -113,9 +167,12 @@ try{
   assert.ok(centerError<18,
     'The restored Image deck must stay horizontally centered: '+
       JSON.stringify({initialDeck,availableWidth,centerError}));
-  assert.ok(Math.abs(864-initialDeck.y-initialDeck.height)<32,
-    'The first-image deck must be fixed at the bottom, never floated above the Moods: '+
-      JSON.stringify(initialDeck));
+  const initialCards=await page.locator('#lab-welcome-presets').boundingBox();
+  assert.ok(initialDeck.y-initialCards.y-initialCards.height>=20&&
+    initialDeck.y-initialCards.y-initialCards.height<=28,
+    'The entrance bar belongs just below the cards: '+JSON.stringify({initialDeck,initialCards}));
+  assert.ok(864-initialDeck.y-initialDeck.height>80,
+    'The compact entrance reserves downward writing room instead of touching the bottom');
   assert.equal(await page.locator('#app').evaluate(el=>el.classList.contains('pv-welcome-deck-resting')),false,
     'No welcome floating state may move the cards or hide image controls');
   assert.equal(await page.locator('#image-composer-resolution-wrap').isVisible(),true,
@@ -262,13 +319,20 @@ try{
   await page.keyboard.press('ArrowRight');
   assert.ok(await page.locator('#lab-welcome-presets').evaluate(track=>track.scrollLeft)<4,
     'Keyboard arrows must edit the prompt caret, not move the gallery, while a text field is focused');
-  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
-    'Clicking an empty signed-in prompt must NOT open a multi-line deck');
-  assert.ok(Math.abs(await deck.evaluate(el=>el.getBoundingClientRect().height)-idleLayout.height)<5,
-    'Simple cursor focus must keep the approved 74px first-image deck');
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+    'Clicking the empty card-view prompt opens the same two-row deck');
+  const focusedDeck=await deck.boundingBox();
+  assert.ok(focusedDeck.height>idleLayout.height+40&&Math.abs(focusedDeck.y-initialDeck.y)<2,
+    'The card-view deck expands downward from a stable top: '+JSON.stringify({initialDeck,focusedDeck}));
+  await page.locator('#lab-welcome-start h2').click();
+  await page.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
+  const blurredDeck=await deck.boundingBox();
+  assert.ok(Math.abs(blurredDeck.height-idleLayout.height)<3&&Math.abs(blurredDeck.y-initialDeck.y)<2,
+    'Clicking outside restores the same small bar');
+  await field.click();
   await field.fill('A quiet editorial portrait.');
-  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
-    'A short written prompt must stay within the compact one-row deck');
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+    'The card-view input remains open while deliberately editing a short prompt');
   await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(18));
   await page.waitForFunction(()=>document.querySelector('#image-composer').getBoundingClientRect().height>105);
   assert.ok(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),
@@ -299,8 +363,8 @@ try{
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Choosing a Mood keeps the opened deck permanently expanded after blur');
   const bottomAfterMood=await deck.boundingBox();
-  assert.ok(Math.abs(864-bottomAfterMood.y-bottomAfterMood.height)<32,
-    'The engaged deck remains fixed at the same bottom edge after Mood selection');
+  assert.ok(Math.abs(bottomAfterMood.y-initialDeck.y)<2&&bottomAfterMood.y+bottomAfterMood.height<=864,
+    'The engaged card-view deck retains its top and stays within the viewport');
   const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   assert.ok(Math.abs(newCardY-cardY)<8,
     'Opening the docked deck must keep the six Mood cards stable in document coordinates: '+
@@ -329,6 +393,9 @@ try{
   while(submissions<1&&Date.now()<timeout)await new Promise(done=>setTimeout(done,60));
   assert.equal(submissions,1,'One click must create exactly one paid job');
   assert.equal(requests.filter(x=>x.path==='/api/jobs'&&x.method==='POST').length,1);
+  // Counting the mock request is earlier than its delayed 202 response. Do
+  // not reopen Inspiration until the real completion handler has finished.
+  await page.waitForFunction(()=>window.__welcomeMockSubmissionPending()===false);
   const submission=requests.find(x=>x.path==='/api/jobs'&&x.method==='POST');
   assert.equal(quotes.get(submission.data.quoteId)?.settings.resolution,'1k',
     'Paid submission must reuse the exact customer resolution from its bound quote');

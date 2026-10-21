@@ -72,7 +72,9 @@ test('the long-to-empty prompt shrink and reference-aware presentation remain in
   assert.match(presentation,/const realNeedsSpace=kind==='real'&&!isSoul&&!hasRefs&&\s*realPromptNeedsSpace\(surface,field\)/,
     'Standard Image deck expands only when content needs the extra writing area');
   assert.doesNotMatch(presentation,/\(kind==='real'&&active&&/,
-    'Clicking into the standard Image editor must not expand it');
+    'History focus alone must not expand the standard Image editor');
+  assert.match(presentation,/const welcomeFocus=kind==='real'&&surface\.classList\.contains\('pv-welcome-deck'\)&&welcomeEditing;/,
+    'Owner-approved focus expansion is limited to the desktop card entrance');
   assert.match(presentation,/field\.scrollHeight>field\.clientHeight\+3\|\|\s*field\.scrollWidth>field\.clientWidth\+3/,
     'Prompt growth must use actual text overflow, including long unbroken lines');
   assert.match(presentation,/if\(kind==='real'&&!isSoul&&!expanded\)field\.style\.removeProperty\('height'\)/,

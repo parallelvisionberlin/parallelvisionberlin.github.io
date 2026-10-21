@@ -1,5 +1,21 @@
 # Image composer prompt: current state
 
+## Shared account bar and downward card entrance (2026-10-21)
+
+- Latest owner instruction supersedes the October 20 focus-only restriction for the desktop card entrance: one Image bar across new customers, returning customers and owner; compact initially, close to the cards, opens downward on click, returns to compact on outside click. Populated History keeps the locked two-row deck from the owner's image 3.
+- References: image(20261021-111950).png and 111957 show the new zero-credit customer entrance with/without the credit banner; 112150 is owner History; 112210 is reopened Inspiration. image(20261021-112849).png shows the signed-out public view with Sign in, not a verified signed-in account.
+- Baseline main e51ebfeaf50f4e5ca709d6271a3d023df87e3470; branch fix/image-welcome-deck-20261021. Only presentation, cache versions, relevant existing browser/contract tests and this checkpoint change.
+- Exact causes: focus-only expansion was explicitly disabled by PR #372; the welcome one-row CSS excluded reopened Inspiration; compact and expanded decks used bottom anchors, so expansion grew upward. The signed-out compact form also hid Library, Base image and resolution and used a smaller expanded writing grid.
+- One card-view marker now derives from the visible welcome/Inspiration state, independent of account age, owner or balance. It places the same real editor 24px below the cards and reserves room for downward expansion before focus. A bounded textarea retains internal long-prompt scrolling.
+- Empty outside-click collapse does not erase text or selected Moods. Reference photos and real long directions continue to retain required writing space. History focus alone retains its existing dimensions and 30px bottom anchor; PV Soul, native/mobile and other tools keep their existing layout.
+- Public desktop entry exposes the same principal tools and expanded deck dimensions. Add/Base select local photos; Moods stays on the seven Inspiration cards; protected model/library/Retouch/ratio/resolution/count actions and Generate invoke the existing real sign-in entry. No anonymous upload, provider call or generation permission is added.
+- All account roles are exercised in the existing first-image browser suite, including new-customer credit banner show/hide, 1440x900, 1280x720 and 1280x680, downward focus, outside collapse, History and reopened Inspiration. Exactly one Image bar is visible in each role.
+- Existing first-image, long-prompt paste/History, guest/mobile Mood, Studio layout and reference/PV Soul prompt-dock browser suites passed locally; approved Image UI contract passed (4 tests). The added role checks exposed a test race: request-count increment preceded its delayed 202 response. The test now waits for the actual submission completion before reopening Inspiration; production generation code is untouched.
+- No model/provider, account deletion, billing/credit safeguards, approved prompt copy, Hong Kong Nights, Upscaler, gallery data or backdrop artwork changes.
+- Publication pending; verify merged source and actual custom-domain JS/CSS/HTML separately. Browser fixtures use synthetic accounts, not the user's real Google session.
+
+## Earlier implementation history
+
 ## Standard signed-in Image prompt expands only when needed (2026-10-20)
 - The owner's October 20 History screenshots showed the same empty Seedream 5 Pro Image deck growing immediately on focus. Source cause: `image-editorial-deck.js` sets `emptyRealFocus` and includes active focus as an expansion trigger, irrespective of content.
 - Targeted correction: for standard signed-in Image, focus alone never expands. Compact state persists while typed text fits, and long, wrapped or multiline directions expand based on the input's measured overflow against the compact textarea. Clearing or shortening restores the compact deck while the caret stays focused. Attached reference photos continue to expand the deck.

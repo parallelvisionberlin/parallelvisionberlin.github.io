@@ -112,6 +112,8 @@ try{
     const field=page.locator('#pv-guest-prompt');
     assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
       'Signed-out first paint keeps the small approved prompt');
+    for(const id of ['pv-guest-library','pv-guest-base','pv-guest-resolution'])
+      assert.equal(await page.locator('#'+id).isVisible(),true,'Desktop guest exposes '+id);
     await field.click();
     assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
       'Clicking a guest prompt opens the full two-row editor without an inner frame');
@@ -187,6 +189,14 @@ try{
       'Guest image preview is visible above the composer tools');
     assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
       'A chosen photograph opens the expanded composer without hiding its toolbar');
+    for(const id of ['pv-guest-library','pv-guest-model','pv-guest-retouch','pv-guest-ratio','pv-guest-resolution','pv-guest-count']){
+      const before=await page.evaluate(()=>window.__guestSignInClicks);
+      await page.locator('#'+id).click();
+      assert.equal(await page.evaluate(()=>window.__guestSignInClicks),before+1,
+        id+' must invoke the shared real sign-in entry');
+      assert.equal(page.url(),beforeMoodUrl,'Account tools must not redirect into unrelated pages');
+    }
+    await page.evaluate(()=>window.__guestSignInClicks=0);
     await page.locator('#pv-guest-generate').click();
     assert.equal(await page.evaluate(()=>window.__guestSignInClicks),1,
       'Only Generate from the guest deck requests sign-in; no paid request');

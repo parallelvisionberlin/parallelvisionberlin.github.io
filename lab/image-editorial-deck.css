@@ -437,14 +437,10 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
 /* One real editor, two presentations. At rest, the Image welcome shows the
    compact one-row instrument from proposal 01. On real textarea focus or Mood
    selection, the existing pv-deck-expanded state reveals the unchanged
-   full two-row workdeck. Bottom anchoring, quote, models and inputs are shared. */
+   full two-row workdeck. Quote, models and inputs are shared with History. */
 @media(min-width:1180px) and (min-height:680px){
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded):not(:has(#image-composer-references:not([hidden]) .composer-reference-tile)){
-    position:fixed!important;
-    bottom:max(17px,env(safe-area-inset-bottom))!important;
-    top:auto!important;
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded):not(:has(#image-composer-references:not([hidden]) .composer-reference-tile)){
     left:50%!important;
     transform:translateX(-50%)!important;
     display:grid!important;
@@ -461,8 +457,7 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
     border-radius:17px!important;
   }
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-top{
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-top{
     grid-column:1!important;
     grid-row:1!important;
     width:100%!important;
@@ -474,8 +469,7 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
     margin:0!important;
   }
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded) #image-composer-prompt{
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) #image-composer-prompt{
     flex:1 1 auto!important;
     height:44px!important;
     min-height:44px!important;
@@ -487,13 +481,11 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
     resize:none!important;
   }
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-toolbar{
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-toolbar{
     display:contents!important;
   }
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded) .composer-controls{
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .composer-controls{
     grid-column:2!important;
     grid-row:1!important;
     display:flex!important;
@@ -509,8 +501,7 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
     padding:0!important;
   }
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded) .composer-generate{
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .composer-generate{
     grid-column:3!important;
     grid-row:1!important;
     align-self:center!important;
@@ -687,5 +678,28 @@ html:not(.pv-native-lab) #app.image-studio-active
     #image-composer.pv-editorial-deck:not(.is-pv-soul){
     position:fixed!important;top:auto!important;
     bottom:max(30px,env(safe-area-inset-bottom))!important;
+  }
+}
+
+/* The desktop card entrance opens downward from the cards. Populated History,
+   attached-photo editing, PV Soul and native/mobile keep their existing dock. */
+@media(min-width:1180px) and (min-height:680px){
+  html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck)
+    #image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    bottom:260px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck)
+    #lab-welcome-start .lab-welcome-preset{
+    height:var(--pv-welcome-card-height,39dvh)!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul){
+    position:fixed!important;
+    top:var(--pv-welcome-deck-top,calc(100dvh - 240px))!important;
+    bottom:auto!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck.pv-welcome-deck.pv-deck-expanded:not(.is-pv-soul) #image-composer-prompt{
+    max-height:max(78px,min(176px,calc(100dvh - var(--pv-welcome-deck-top) - 98px)))!important;
   }
 }
