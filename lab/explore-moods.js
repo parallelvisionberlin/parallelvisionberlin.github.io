@@ -313,10 +313,21 @@ function initialize(){
     $('mc-look-title').textContent=selected.name;
     $('mc-look-description').textContent=selected.id==='berlin-rave'?selected.description+'. Transforms wardrobe and lighting into a night-flash editorial while keeping your identity, pose and framing.':selected.id==='synthetic-romance'?selected.description+'. This mood reconstructs visible body parts into engineered chrome, cables and synthetic anatomy.':selected.description+'. Keep your own subject and scene.';
     if(!dialog.open)dialog.showModal();
-    // Freeze the natural empty editor height before any dropped/selected photo
-    // changes DOM nodes. Subsequent photo changes never resize the Mood card.
+    // Freeze the compact *content* height, not the modal viewport limit.
+    // On iPhone the former boundingRect measurement captured 90dvh, which
+    // stranded Generate and the other controls above a large empty footer.
+    // Keep the original desktop height and never resize on photo/quote updates.
     if(!dialog.style.getPropertyValue('--mc-editor-height')){
-      const height=dialog.getBoundingClientRect().height;
+      let height=dialog.getBoundingClientRect().height;
+      if(window.matchMedia('(max-width:600px)').matches){
+        const photo=dialog.querySelector('.mc-look-dialog-media');
+        const body=dialog.querySelector('.mc-look-dialog-body');
+        const border=getComputedStyle(dialog);
+        const natural=photo.getBoundingClientRect().height+body.scrollHeight+
+          (parseFloat(border.borderTopWidth)||0)+(parseFloat(border.borderBottomWidth)||0);
+        const viewport=window.visualViewport?.height||window.innerHeight;
+        height=Math.min(natural,Math.max(0,viewport-22));
+      }
       dialog.style.setProperty('--mc-editor-height',Math.ceil(height)+'px');
     }
     if(photo)attachPhoto(photo);

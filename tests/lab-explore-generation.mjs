@@ -85,6 +85,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
        title:box('#mc-look-title'),drop:box('#mc-look-dropzone'),
        direction:box('#mc-look-direction'),
        generate:box('#mc-look-continue'),make:box('#mc-look-make'),
+       footer:box('.mc-look-footer'),
        overflow:document.documentElement.scrollWidth-innerWidth,
        dialogScroll:dlg.scrollHeight-dlg.clientHeight};
    });
@@ -96,6 +97,10 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    assert.ok(compact.generate.bottom<=compact.dialog.bottom+2,scenario+': Generate appears without scrolling the Mood dialog');
    assert.ok(compact.make.bottom<=compact.dialog.bottom+2,scenario+': secondary action appears without scrolling the Mood dialog');
    assert.ok(compact.dialog.bottom<=compact.screenHeight+2,scenario+': dialog stays within iPhone web viewport');
+   assert.ok(compact.dialog.bottom-compact.footer.bottom<55,
+     scenario+': modal fits compact body without a large blank area below the buttons '+JSON.stringify(compact));
+   assert.ok(compact.dialog.height<compact.screenHeight-70,
+     scenario+': compact dialog does not monopolize the whole phone screen '+JSON.stringify(compact));
    assert.ok(compact.overflow<=2,scenario+': modal creates no horizontal overflow');
    await page.screenshot({path:out+'/fisheye-mobile-compact-'+scenario+'.png',fullPage:false});
    console.log('FISHEYE_COMPACT '+scenario+' '+JSON.stringify(compact));
