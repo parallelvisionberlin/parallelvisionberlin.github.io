@@ -128,7 +128,7 @@ try{
   // Direct visual comparison, rather than independently allowing each skin.
   // Both surfaces must share slot geometry, control sizing, type and color.
   const parity=[];
-  for(const role of ['new','guest']){
+  for(const role of ['new','returning','owner','guest']){
     const context=await browser.newContext({viewport:{width:1920,height:1000},reducedMotion:'reduce'});
     const p=await context.newPage();
     await context.route('https://**/*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({jobs:[],packs:[],activeJobs:[],products:[]})}));
@@ -137,6 +137,10 @@ try{
       await p.waitForFunction(()=>window.__welcomeMockReady===true);
       const prefix=role==='guest'?'pv-guest':'image-composer';
       const field=p.locator('#'+prefix+'-prompt'),bar=p.locator(role==='guest'?'#pv-guest-composer':'#image-composer');
+      assert.equal(await p.locator('#image-composer:visible,#pv-guest-composer:visible').count(),1,
+        role+' has one visible Image editor, not a separate role-specific copy');
+      if(role!=='guest')assert.equal(await p.locator('#tool-retouch').isVisible(),true,
+        role+' retains Retouch in the shared tool navigation');
       const states={};
       async function capture(state){
         states[state]=await bar.evaluate(el=>{
@@ -164,22 +168,25 @@ try{
     }finally{await context.close();}
   }
   for(const state of ['idle','focus','short','cleared']){
-    const a=parity[0].states[state],b=parity[1].states[state];
-    for(const key of ['w','h'])assert.ok(Math.abs(a[key]-b[key])<2,state+' same deck '+key+': '+JSON.stringify({a,b}));
-    assert.equal(a.background,b.background,state+' same graphite surface');assert.equal(a.radius,b.radius);
-    assert.match(a.backdrop.image,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,state+' uses approved entrance art');
-    assert.deepEqual(a.backdrop,b.backdrop,state+' public/customer entrance artwork and treatment match');
-    assert.equal(a.modelIcon,'./branding/bytedance.svg',state+' uses the real model asset');
-    assert.equal(a.modelIcon,b.modelIcon,state+' public uses the same model icon');
-    for(const name of ['prompt','generate','generateLabel',...Object.keys(a.controls)]){
-      const one=a[name]||a.controls[name],two=b[name]||b.controls[name];
-      assert.ok(two,state+' guest also exposes '+name);
-      for(const key of ['x','y','w','h'])assert.ok(Math.abs(one[key]-two[key])<2,state+' '+name+' same '+key+': '+JSON.stringify({one,two}));
-      for(const key of ['font','weight','line','radius'])assert.equal(one[key],two[key],state+' '+name+' same '+key);
-      if(!name.startsWith('generate'))for(const key of ['color','background'])assert.equal(one[key],two[key],state+' '+name+' same '+key);
+    for(const entry of parity.slice(1)){
+      const a=parity[0].states[state],b=entry.states[state],label=state+' new/'+entry.role;
+      assert.deepEqual(Object.keys(a.controls).sort(),Object.keys(b.controls).sort(),label+' same visible controls');
+      for(const key of ['w','h'])assert.ok(Math.abs(a[key]-b[key])<2,label+' same deck '+key+': '+JSON.stringify({a,b}));
+      assert.equal(a.background,b.background,label+' same graphite surface');assert.equal(a.radius,b.radius);
+      assert.match(a.backdrop.image,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,label+' uses approved entrance art');
+      assert.deepEqual(a.backdrop,b.backdrop,label+' entrance artwork and treatment match');
+      assert.equal(a.modelIcon,'./branding/bytedance.svg',label+' uses the real model asset');
+      assert.equal(a.modelIcon,b.modelIcon,label+' same model icon');
+      for(const name of ['prompt','generate','generateLabel',...Object.keys(a.controls)]){
+        const one=a[name]||a.controls[name],two=b[name]||b.controls[name];
+        assert.ok(two,label+' also exposes '+name);
+        for(const key of ['x','y','w','h'])assert.ok(Math.abs(one[key]-two[key])<2,label+' '+name+' same '+key+': '+JSON.stringify({one,two}));
+        for(const key of ['font','weight','line','radius'])assert.equal(one[key],two[key],label+' '+name+' same '+key);
+        if(!name.startsWith('generate'))for(const key of ['color','background'])assert.equal(one[key],two[key],label+' '+name+' same '+key);
+      }
     }
   }
-  console.log('PASS direct public/customer visual parity: empty, focus, short text and clear');
+  console.log('PASS direct new/returning/owner/public parity: same controls, slots, typography and backdrop in all four writing states');
   // All account ages/roles use one real editor, including Inspiration opened
   // over existing History. Account state may change eligibility, never layout.
   for(const role of ['new','returning','owner']){
@@ -223,6 +230,8 @@ try{
         window.__welcomeMockGalleryChanged();
       });
       await rolePage.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
+      if(role==='owner')assert.equal(await rolePage.locator('#image-composer-edit-area').isVisible(),true,
+        'Owner History retains its existing Retouch shortcut');
       const historyDeck=await roleDeck.boundingBox();
       await roleField.click();
       assert.ok(Math.abs((await roleDeck.boundingBox()).height-historyDeck.height)<3,

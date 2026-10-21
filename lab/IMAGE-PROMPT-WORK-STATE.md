@@ -1,5 +1,20 @@
 # Image composer prompt: current state
 
+## Active: identical entrance controls across account roles (2026-10-21)
+
+- Latest references: image(20261021-140209).png and 140220 are Neon Riviera compact/open; 140309 is the owner in reopened Inspiration. User explicitly wants one cohesive shared entrance rather than account-specific copies.
+- Baseline main 6a4c5537ddc00b546a50e498ac4a821ef156e60e; branch fix/image-role-control-parity-20261021. Later photography changes are unrelated and must be preserved.
+- The authenticated editor is already one shared #image-composer DOM instance for customers and owner. Both use the same image-deck-surface.css card-entry rules. The remaining visible role divergence is the legacy #image-composer-edit-area Retouch shortcut: syncImageComposer hides it for customers but shows it to owner, adding a tool and moving every neighboring control/prompt edge.
+- The earlier direct geometry/type comparison covered new customer versus public only. New/returning/owner were separately checked for outer dimensions, direction and History, which did not assert identical control sets or positions. This left the owner's additional shortcut untested.
+- Expanded direct comparison now covers new customer, returning customer, owner and public in idle, focused, short-text and cleared states. It requires identical visible control sets, control/prompt/Generate geometry, typography, borders, colors, model asset and backdrop, plus one visible editor per role. Original-source run reproduces idle new/owner failure specifically on the additional Retouch control.
+- Small presentation-only correction in the existing shared stylesheet: omit the redundant inline Retouch shortcut from the desktop card entrance for all authenticated roles. Retouch stays in the existing top tool navigation for owner and customers; the established owner photo/History shortcut remains. The controller already removes pv-welcome-deck when real photos are attached. No new bar, new role markup or permission change is introduced.
+- Cache key: image-deck-surface.css?v=20261021-role-parity1. Files: lab/image-deck-surface.css, lab/studio.html, tests/lab-first-image-instant-browser.mjs and this record.
+- No production JavaScript, provider/billing/credit/auth/deletion changes, no approved prompt copy, bar dimensions, background, Inspiration cards, Hong Kong Nights, Upscaler, History, PV Soul, native or mobile redesign.
+- Image UI contract (4) passed before and after the scoped change. Direct four-role first-image comparison, prompt paste/History and Studio layout (including mobile) passed locally. Owner History Retouch and the shared Retouch navigation are explicitly asserted. Diff whitespace check passed. Publication and custom-domain verification remain pending.
+- Verify the actual custom-domain CSS and public interaction after deployment. Signed-in role comparisons remain repository simulations, not production Google sign-ins.
+
+## Previous verified backdrop release
+
 ## Active: approved public backdrop and focus stability (2026-10-21)
 
 - Latest references: image(20261021-131922).png is the signed-out compact bar; 131933 is focused; 132032 and 132112 show the owner reopening Inspiration, with short and empty prompts. User approves the current bar and requests the same final backdrop without a focus jump.

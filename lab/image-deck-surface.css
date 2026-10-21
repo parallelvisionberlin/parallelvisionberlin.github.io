@@ -44,6 +44,9 @@
       box-shadow:none!important;margin:0!important;
     }
     & [data-deck-control][hidden]{display:none!important}
+    /* The card entrance has the same tools for every account. Retouch remains
+       in navigation and in the established photo/History editor. */
+    &.pv-welcome-deck [data-deck-control="retouch"]{display:none!important}
     & .composer-add-wrap{display:flex!important;flex:0 0 68px!important;width:68px!important;min-width:68px!important;height:40px!important}
     & [data-deck-control="add"]{
       display:grid!important;place-items:center!important;flex:0 0 40px!important;
