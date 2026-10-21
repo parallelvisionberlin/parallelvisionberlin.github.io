@@ -11,7 +11,10 @@
 - Account page clears private state and navigates home whether server-side deletion or local sign-out ended the session. Only its script/import cache revisions change.
 - Relevant backend/auth/closure/billing/welcome and approved Image contract checks: 173 passed locally. Includes immediate repeated delete/signup without cron or time advance, old-media isolation, no repeated welcome credits, authoritative Stripe rejection, 503 retry and response/session ordering.
 - Existing account browser suite additionally checks deletion at 1440/390px with normal sign-out and Clerk revocation before response. Real Google interaction remains separate from synthetic tests.
-- Publish and verify Worker revision pv-lab-2026-10-21.4-immediate-account-delete plus live account.html/account.js/session-request.js. Do not declare a real Google delete/recreate interaction verified by unit tests or aggregate cleanup alone.
+- Published: PR #393 merged as 9078a65b7016e5add16ff45241573a064378ba1e. All nine PR workflows passed, including account interface 39587322034 and video 39587321875. Worker deploy 39587567201 succeeded.
+- Confirmed production /health revision pv-lab-2026-10-21.4-immediate-account-delete. Custom-domain account.js exactly matches Git blob 40bb5f8326187c70f90ad26c38ca6b3d3f29fb1f; session-request.js matches 6361aa6966a46a3e584d474a7cc5ca70b6813d36. /account serves closure=20261021-immediate1.
+- Latest read-only production audit 39585320624/job 119181832014 at 10:55:27 UTC: all five closures and identity tasks complete, zero pending, five successful identity cleanup outcomes. The audit's separate stale contact-sync check still fails, as previously recorded.
+- Remaining verification: Alejandro's actual Google signup after sign-out. Automated immediate delete/signup and client session-order tests passed, but the agent has not performed a real Google cycle. Do not equate the five-complete aggregate with verification of a future immediate cycle.
 - Prompt deck, gallery layout, Hong Kong Nights, Upscaler, provider routes, pricing and money ledgers are unchanged.
 - Earlier rollout details follow. A separate contact-sync freshness check remains outside this repair.
 
