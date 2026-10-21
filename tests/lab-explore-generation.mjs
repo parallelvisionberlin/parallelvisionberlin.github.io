@@ -88,9 +88,15 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
        generate:box('#mc-look-continue'),make:box('#mc-look-make'),
        footer:box('.mc-look-footer'),
        overflow:document.documentElement.scrollWidth-innerWidth,
-       dialogScroll:dlg.scrollHeight-dlg.clientHeight};
+       dialogScroll:dlg.scrollHeight-dlg.clientHeight,
+       inputSize:getComputedStyle(document.querySelector('#mc-look-direction')).fontSize,
+       placeholderSize:getComputedStyle(document.querySelector('#mc-look-direction'),'::placeholder').fontSize};
    });
    assert.equal(await page.locator('#mc-look-title').innerText(),'Fisheye 2000');
+   assert.equal(compact.drop.height,scenario==='small'?89:114,scenario+': slightly roomier photo dropzone');
+   assert.equal(compact.direction.height,50,scenario+': compact direction field');
+   assert.equal(compact.placeholderSize,'15px',scenario+': smaller prompt hint');
+   assert.equal(compact.inputSize,'16px',scenario+': iPhone input text stays focus-zoom-safe');
    assert.ok(compact.photo.height<=156,scenario+': inset photo remains compact on mobile '+JSON.stringify(compact));
    assert.ok(compact.title.bottom<compact.drop.top,scenario+': Mood heading is above compact upload field');
    assert.ok(compact.drop.bottom<compact.direction.top,scenario+': upload and optional direction do not overlap');
