@@ -18,7 +18,7 @@ window.__viewerTest={lock,emptyVideo:()=>{clearVideoHistorySelection();clearMedi
     type:'video',engine:'seedance15',mode:'start',prompt:'A slow handheld move',
     duration:8,resolution:'720p',aspectRatio:'16:9'}};
   videoJobCache.set(job.id,job);showVideoHistoryRecord(job,{play:false});
-},createVideoGallery:()=>{
+},openAssets:()=>assetLibrary.open(),selectHistory:setHistorySelectMode,createVideoGallery:()=>{
   const jobs=Array.from({length:4},(_,i)=>({
     id:'archive-video-'+i,status:'completed',favorite:false,createdAt:Date.now()-i,
     outputId:'video-out-'+i,sourceId:'ref-0',settings:{type:'video',
@@ -320,6 +320,31 @@ try{
     assert.equal(await page.locator('#video-feed-center>.stage').isVisible(),width>820,
       'The decorative empty stage remains on desktop and disappears only on phones');
     if(shape==='landscape')await page.screenshot({path:`test-results/video-mobile-quiet-${width}.png`,fullPage:false});
+    // Native gallery skin used by the production Assets route.
+    await page.addStyleTag({path:'lab/native-create-gallery.css'});
+    await page.evaluate(()=>document.documentElement.classList.add('pv-native-lab'));
+    await page.evaluate(()=>window.__viewerTest.openAssets());
+    await page.evaluate(()=>window.__viewerTest.createVideoGallery());
+    const assetDownload=page.locator('#assets-gallery #history .card[data-kind="video"] .history-video-download').first();
+    assert.equal(await assetDownload.isVisible(),true,'Assets video download survives hidden metadata on desktop and phone');
+    const assetControls=await assetDownload.evaluate(el=>{
+      const r=el.getBoundingClientRect(),heart=el.closest('.card').querySelector('.asset-heart').getBoundingClientRect();
+      return {width:r.width,height:r.height,top:r.top,heartBottom:heart.bottom,opacity:getComputedStyle(el).opacity};
+    });
+    assert.equal(assetControls.opacity,'1','Assets downloads are visible without hover');
+    assert.equal(assetControls.width,width<=640?30:34,'Only phone downloads shrink');
+    assert.ok(assetControls.top>=assetControls.heartBottom,'Download does not overlap Favorite');
+    const readsBeforeAssetDownload=reads.get('video-out-0');
+    await assetDownload.scrollIntoViewIfNeeded();
+    if(shape==='landscape')await page.screenshot({path:`test-results/assets-video-download-${width}.png`,fullPage:false});
+    const readsBeforeAssetPlayback=await page.locator('#video').getAttribute('src');
+    const assetSaved=page.waitForEvent('download');
+    await assetDownload.click();
+    assert.match((await assetSaved).suggestedFilename(),/video-out-0\.mp4$/,'Assets downloads the original video, not its source image');
+    assert.equal(reads.get('video-out-0'),readsBeforeAssetDownload+1,'One authenticated original request per Assets download');
+    assert.equal(await page.locator('#video').getAttribute('src'),readsBeforeAssetPlayback,'Download does not open playback');
+    await page.evaluate(()=>window.__viewerTest.selectHistory(true));
+    assert.equal(await assetDownload.isVisible(),false,'Selection mode hides the download overlay');
     await page.evaluate(()=>window.__viewerTest.lock());
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).cache,0,'Sign out clears private original cache');
     assert.equal(await page.locator('.image-detail-reference-item').count(),0,'Sign out clears all private reference thumbnails');
