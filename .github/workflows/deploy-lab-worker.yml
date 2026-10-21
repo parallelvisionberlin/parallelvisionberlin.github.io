@@ -61,6 +61,18 @@ jobs:
           node --test tests/lab-gallery-thumbnails.test.mjs tests/lab-moodboards.test.mjs tests/lab-mood-creator-service.test.mjs tests/lab-mood-creator-flow.test.mjs
           node --test tests/lab-element-profiles.test.mjs tests/lab-element-profile-recovery.test.mjs
 
+      - name: Verify first-party welcome email images before sending
+        shell: bash
+        run: |
+          set -euo pipefail
+          for asset in welcome-hero.jpg welcome-detail-1.jpg welcome-detail-2.jpg welcome-detail-3.jpg; do
+            echo "Verifying https://pvlab.studio/email/$asset"
+            curl --fail --location --silent --show-error \
+              --retry 5 --retry-delay 3 --retry-all-errors \
+              --connect-timeout 6 --max-time 20 --output /dev/null \
+              "https://pvlab.studio/email/$asset"
+          done
+
       - name: Deploy parallel-vision-lab
         uses: cloudflare/wrangler-action@v4
         env:
