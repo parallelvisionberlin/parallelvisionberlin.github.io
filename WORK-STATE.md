@@ -41,4 +41,7 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Confirmed new headings and order on public domain; Play replaces poster with correct embedded player.
 - Desktop viewport has no horizontal overflow. Mobile CSS reviewed, actual phone viewport not tested.
 - Public screenshot captured; full video playback was buffering in this browser.
-- No further implementation pending for this scope.
+- Mobile follow-up: user screenshot showed a large empty gap below the opening film caption.
+- Cause: #berlin-beyond inherited min-height:100svh on phones.
+- Fix: mobile-only min-height:0 in css/berlin-projects.css, retaining 32px bottom spacing and desktop behavior.
+- Verify CSS publication and computed mobile height after the follow-up commit.
