@@ -9,7 +9,7 @@ import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1';
-import {createPricingOverlay} from './pricing-overlay.js?v=20261018-reference2';
+import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261018-reference2';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1&imageRatio=20261016-inherit1';
@@ -4681,6 +4681,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     restoreGuestImageDraft();
     window.__pvLabBootStage?.('Workspace ready');
     finishLabBoot();
+    void pricingOverlay.resumeAfterSignIn().catch(()=>{});
     if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){
   const stillSignedIn=!!clerk?.isSignedIn;
   // A new V2 Clerk identity is not yet a funded PV LAB wallet. Only redirect

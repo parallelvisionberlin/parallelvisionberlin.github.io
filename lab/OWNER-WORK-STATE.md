@@ -1,3 +1,16 @@
+## Signup, checkout and contact-sync repair, 2026-10-21
+- Implementation branch: `fix/signup-checkout-sync-20261021`, baseline `4177ba0a`; deployment not yet verified.
+- Studio pricing now retains the selected SKU through sign-in and reload for 15 minutes. It restores the relevant pricing tab and requires an explicit customer click to start checkout.
+- Homepage optional referral attribution no longer delays purchase continuation.
+- Paused welcome credits no longer prevent background contact sync on authenticated session refresh. The paused offer remains paused.
+- Clerk backfill and owner configuration checks recognize the V2 key; unexpected storage failures produce sanitized diagnostic counters.
+- Owner overview reports active accounts separately from retained historical records. Closed rows are marked closed and do not trigger missing-email sync.
+- Affected source: `lab-worker/{promotions,worker}.mjs`, `lab/{pricing-overlay,customer-entry,lab,owner,owner-acquisition-ui}.js` and their HTML cache versions.
+- Verification: 33 focused promotion/billing/trial/UI-contract tests and all 102 Worker tests passed; pricing modal browser regression passed at 320, 390, 1440 and 1648 pixels, including sign-in/reload recovery and no automatic checkout.
+- Broader account browser suite passed homepage purchase/sign-in guards and Studio wallet flows at four widths, then stopped at an unrelated account-cover image decode error. Do not call the whole suite passing.
+- Live owner sync and authenticated conversion behavior remain unverified. Existing traffic storage has no per-user location or navigation history; do not invent abandonment causes.
+- Next: publish reviewed production fixes, confirm Worker and Pages deployments separately, then verify owner-only sync through an existing authorized session when available.
+
 ## Verified audit update, 2026-10-21
 - Main account release: PR #377, merge 1abf77e; production Studio source independently confirmed live.
 - Read-only D1 diagnostic 39574838449 verifies active customer contacts are populated/verified, all wallets reconcile to their immutable ledger, and definitely failed jobs have matching credit refunds.

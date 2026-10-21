@@ -291,6 +291,62 @@ test('missing Clerk secret is recorded as aggregate-only diagnostics, not a fabr
   assert.equal(f.get('SELECT source FROM lab_clerk_sync_diagnostics WHERE id=1').source,'scheduled');
 });
 
+test('V2-only deployments sync the mapped Studio identity while welcome credits remain paused',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.env.LAB_CLERK_V2_SECRET_KEY='sk_test_v2_only';
+  f.env.LAB_WELCOME_CREDITS_ENABLED='false';
+  f.insert('INSERT INTO lab_account_closures(customer_id,requested_at) SELECT id,? FROM lab_customers',Date.now());
+  f.signup('user_PvLabV2NEW');
+  f.insert("INSERT INTO lab_clerk_identity_links(new_subject,canonical_id,kind,created_at) VALUES('user_NEW','user_PvLabV2NEW','customer',?)",Date.now());
+  const previous=globalThis.fetch;
+  globalThis.fetch=async(url,options)=>{
+    assert.equal(String(url),'https://api.clerk.com/v1/users/user_NEW');
+    assert.equal(options.headers.Authorization,'Bearer sk_test_v2_only');
+    return Response.json({id:'user_NEW',primary_email_address_id:'primary',email_addresses:[
+      {id:'primary',email_address:'new@example.com',verification:{status:'verified'}}]});
+  };
+  try{
+    const report=await scheduledClerkBackfill(f.env);
+    assert.equal(report.requested,1);assert.equal(report.verified,1);assert.equal(report.issues.missingKey,0);
+    assert.equal(f.get("SELECT email FROM lab_customer_contacts WHERE customer_id='user_PvLabV2NEW'").email,'new@example.com');
+    assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_credit_entries').n,0);
+    const overview=await (await f.admin('/api/admin/overview',null,'GET')).json();
+    assert.equal(overview.emailSyncConfigured,true);
+  }finally{globalThis.fetch=previous;}
+});
+
+test('closed accounts remain in history but do not inflate active accounts or appear pending sync',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.insert("INSERT INTO lab_account_closures(customer_id,requested_at) VALUES('user_ALICE',?)",Date.now());
+  const overview=await (await f.admin('/api/admin/overview',null,'GET')).json();
+  assert.equal(overview.summary.accounts,2);assert.equal(overview.summary.totalAccounts,3);
+  assert.equal(overview.customers.find(c=>c.id==='user_ALICE').accountClosed,1);
+  assert.equal(overview.customers.find(c=>c.id==='user_BOB').accountClosed,0);
+  const acquisition=await (await f.admin('/api/admin/acquisition?days=7',null,'GET')).json();
+  assert.equal(acquisition.customers.find(c=>c.id==='user_ALICE').accountClosed,1);
+  assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_customers').n,3);
+});
+
+test('a contact storage failure records a safe failure outcome instead of leaving stale success',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.env.LAB_CLERK_SECRET_KEY='sk_test_mockonly';
+  const binding=f.env.LAB_DB;
+  f.env.LAB_DB={prepare(sql){
+    if(sql.includes('INSERT INTO lab_customer_contacts'))throw new Error('private database detail');
+    return binding.prepare(sql);
+  }};
+  const previous=globalThis.fetch;
+  globalThis.fetch=async url=>Response.json({id:new URL(url).pathname.split('/').pop(),
+    primary_email_address_id:'primary',email_addresses:[{id:'primary',email_address:'safe@example.com',verification:{status:'verified'}}]});
+  try{
+    const report=await scheduledClerkBackfill(f.env);
+    assert.equal(report.checked,1);assert.equal(report.verified,0);assert.equal(report.issues.storageError,1);
+    const stored=f.get('SELECT result_json FROM lab_clerk_sync_diagnostics WHERE id=1').result_json;
+    assert.equal(JSON.parse(stored).issues.storageError,1);
+    assert.ok(!stored.includes('private database'));assert.ok(!stored.includes('safe@example.com'));
+  }finally{globalThis.fetch=previous;}
+});
+
 test('owner acquisition counts new users, activation, credit debits, checkout starts and true euro receipts',async t=>{
   const f=await setup(t);if(!f)return;
   await assert.rejects(()=>f.admin('/api/admin/acquisition?days=7',null,'GET','user_ALICE'),/owner access required/);

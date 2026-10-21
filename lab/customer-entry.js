@@ -59,7 +59,8 @@ async function refresh(){
     const data=await call('/api/session');if(current!==revision)return;
     profile=data;profileSessionId=clerk.session?.id;profileLoading=false;show();
     if(profile.customer)trackLabRegistration(profile.ownerId,profile.createdAt);
-    if(profile.customer)await claimReferral(code=>call('/api/customer/referrals/claim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})}));
+    // Optional referral attribution must not delay a selected purchase.
+    if(profile.customer)void claimReferral(code=>call('/api/customer/referrals/claim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})}));
   }catch(e){if(current===revision){profile=null;profileLoading=false;status(e.message);show();}}
 }
 function show(){

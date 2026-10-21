@@ -27,6 +27,13 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
   const status=document.getElementById('lab-pricing-overlay-status');
   if(!dialog||!surface||!closeButton)throw new Error('PV LAB pricing overlay is unavailable.');
   let loaded=null,previousFocus=null,submitting=false;
+  const pendingKey='pv-lab-studio-plan-intent';
+  const availablePlans=['starter','creator','studio','topup10','topup29','topup75'];
+  let pendingPlan=null;
+  function rememberPlan(sku){
+    pendingPlan={sku,at:Date.now(),path:location.pathname};
+    try{sessionStorage.setItem(pendingKey,JSON.stringify(pendingPlan));}catch{}
+  }
   const note=(message='')=>{
     if(!status)return;
     status.hidden=!message;status.textContent=message;
@@ -117,9 +124,10 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
   async function purchase(button){
     if(submitting||!dialog.open)return;
     const sku=button.dataset.labBuy;
-    if(!['starter','creator','studio','topup10','topup29','topup75'].includes(sku))return;
+    if(!availablePlans.includes(sku))return;
     const account=getAccount?.()||{};
     if(!account.signedIn){
+      rememberPlan(sku);
       note('Sign in to select a PV LAB plan.');
       close();
       onSignIn?.();
@@ -159,6 +167,24 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
       note(error?.message||'Pricing is unavailable. Please try again.');
     }
   }
+  async function resumeAfterSignIn(){
+    const account=getAccount?.()||{};
+    if(!account.signedIn)return false;
+    let intent=pendingPlan;
+    try{intent=intent||JSON.parse(sessionStorage.getItem(pendingKey));sessionStorage.removeItem(pendingKey);}catch{}
+    pendingPlan=null;
+    const age=Date.now()-Number(intent?.at);
+    if(!account.customer||!intent||intent.path!==location.pathname||
+      !availablePlans.includes(intent.sku)||!Number.isFinite(age)||age<0||age>15*60*1000)return false;
+    // Restore the selected plan, but require a fresh explicit click before
+    // creating Checkout. Reloads and later account switches cannot replay it.
+    await open({oneTime:intent.sku.startsWith('topup')});
+    const selected=surface.querySelector('[data-lab-buy="'+intent.sku+'"]');
+    if(!selected||!dialog.open)return false;
+    note('Your selection is ready. Continue to secure checkout when you are ready.');
+    selected.focus({preventScroll:true});
+    return true;
+  }
   // Keep existing Studio Pricing links on this page; no homepage hero jump.
   document.addEventListener('click',event=>{
     const anchor=event.target.closest?.('a[href]');
@@ -169,5 +195,5 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
     event.preventDefault();
     void open();
   });
-  return {open,close};
+  return {open,close,resumeAfterSignIn};
 }

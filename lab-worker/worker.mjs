@@ -51,7 +51,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-21.4-immediate-account-delete';
+export const VERSION = 'pv-lab-2026-10-21.5-account-sync-checkout';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1361,14 +1361,16 @@ async function route(request,env,ctx) {
   if(customer&&path==='/api/session'&&ctx?.waitUntil&&
     await first(env,'SELECT 1 AS closed FROM lab_account_closures WHERE customer_id=?',owner))
     ctx.waitUntil(finishClosedStudioIdentity(env,owner).catch(()=>{}));
-  if(customer&&path==='/api/session'&&env.LAB_WELCOME_CREDITS_ENABLED==='true'&&
+  if(customer&&path==='/api/session'&&
      (env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY)){
     // Only an enabled welcome campaign needs Clerk email verification before
-    // returning /api/session. While free gifts are paused, the existing
-    // scheduled contact backfill maintains records without blocking login.
-    const granted=await first(env,"SELECT 1 AS ok FROM lab_credit_entries WHERE customer_id=? AND reference=?",owner,'welcome:'+owner);
-    if(!granted)await syncCustomerEmail(env,owner).catch(()=>false);
-    else if(ctx?.waitUntil)ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
+    // returning /api/session. Contact sync remains independent of free gifts:
+    // paused campaigns still refresh verified emails without delaying login.
+    if(env.LAB_WELCOME_CREDITS_ENABLED==='true'){
+      const granted=await first(env,"SELECT 1 AS ok FROM lab_credit_entries WHERE customer_id=? AND reference=?",owner,'welcome:'+owner);
+      if(!granted)await syncCustomerEmail(env,owner).catch(()=>false);
+      else if(ctx?.waitUntil)ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
+    }else if(ctx?.waitUntil)ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
   }
   if(customer&&!['/api/session','/api/customer/wallet','/api/customer/account','/api/billing/portal'].includes(path)){
     const creativePost=method==='POST'&&!path.startsWith('/api/customer/')&&!path.startsWith('/api/billing/');

@@ -133,6 +133,27 @@ try{
   assert.equal(await page.evaluate(()=>window.__signins),1,'Guest sign-in is requested only on purchase');
   assert.equal(await page.locator('#lab-pricing-overlay').evaluate(el=>el.open),false);
   assert.deepEqual(await page.evaluate(()=>window.__purchases),[],'No checkout without sign-in');
+  assert.equal(await page.evaluate(async()=>{window.__signed=true;return window.__modal.resumeAfterSignIn();}),true);
+  assert.equal(await page.evaluate(()=>document.activeElement.dataset.labBuy),'starter');
+  assert.deepEqual(await page.evaluate(()=>window.__purchases),[],'Sign-in restores selection without initiating payment');
+  assert.equal(await page.evaluate(()=>window.__modal.resumeAfterSignIn()),false,'Selection is consumed exactly once');
+  await page.click('#lab-pricing-overlay-close');
+  await page.evaluate(()=>{window.__signed=false;});
+  await page.click('#open-onetime');
+  await page.locator('#lab-pricing-overlay button[data-lab-buy="topup29"]').click();
+  await page.reload();await page.waitForFunction(()=>window.__ready===true);
+  assert.equal(await page.evaluate(()=>window.__modal.resumeAfterSignIn()),true,'Selection survives the sign-in page reload');
+  assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-onetime').getAttribute('aria-selected'),'true');
+  assert.equal(await page.evaluate(()=>document.activeElement.dataset.labBuy),'topup29');
+  assert.deepEqual(await page.evaluate(()=>window.__purchases),[]);
+  await page.locator('#lab-pricing-overlay button[data-lab-buy="topup29"]').click();
+  assert.deepEqual(await page.evaluate(()=>window.__purchases),['topup29'],'Explicit customer confirmation purchases the original pack once');
+  await page.click('#lab-pricing-overlay-close');
+  assert.equal(await page.evaluate(async()=>{
+    sessionStorage.setItem('pv-lab-studio-plan-intent',JSON.stringify({sku:'starter',path:location.pathname,at:Date.now()-16*60*1000}));
+    return window.__modal.resumeAfterSignIn();
+  }),false,'Expired sign-in intent does not reopen pricing');
+  console.log('PASS guest selection survives sign-in and reload, no automatic purchase, stale intent expires');
   await page.close();
 }finally{
   await browser.close();await new Promise(resolve=>server.close(resolve));

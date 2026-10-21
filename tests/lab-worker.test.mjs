@@ -172,6 +172,30 @@ test('PV Soul training ZIP preflight allows its photo-count header',async()=>{
   assert.match(allowed,/X-Photo-Count/i);
   assert.equal(response.headers.get('access-control-allow-origin'),ORIGIN);
 });
+test('paused welcome credits still sync contact in background without blocking authenticated session',async()=>{
+  const {env}=fixture();
+  for(const migration of ['0006-customers-billing','0011-customer-lifecycle','0015-lab-promotional-credits','0023-welcome-guard'])
+    env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/'+migration+'.sql',import.meta.url),'utf8'));
+  Object.assign(env,{LAB_CUSTOMER_SIGNUPS_ENABLED:'true',LAB_WELCOME_CREDITS_ENABLED:'false',LAB_CLERK_SECRET_KEY:'sk_test_background'});
+  const previous=globalThis.fetch;let finishLookup,started=false;
+  const delayed=new Promise(resolve=>{finishLookup=resolve;});
+  globalThis.fetch=async(url,options)=>{
+    if(new URL(url).hostname!=='api.clerk.com')return previous(url,options);
+    started=true;await delayed;
+    return Response.json({id:'user_Guest',primary_email_address_id:'primary',email_addresses:[
+      {id:'primary',email_address:'guest@example.com',verification:{status:'verified'}}]});
+  };
+  const background=[];
+  try{
+    const response=await worker.fetch(new Request(BASE+'/api/session',{headers:{Origin:ORIGIN,Authorization:'Bearer '+guest}}),env,{waitUntil(p){background.push(p);}});
+    assert.equal(response.status,200);assert.equal((await response.json()).balanceCredits,0);
+    assert.equal(background.length,1);assert.equal(started,true,'Email lookup started but is still waiting for Clerk');
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM lab_customer_contacts').get().n,0);
+    finishLookup();await Promise.all(background);
+    assert.equal(env.LAB_DB.db.prepare("SELECT email FROM lab_customer_contacts WHERE customer_id='user_Guest'").get().email,'guest@example.com');
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM lab_credit_entries').get().n,0,'Sync never re-enables paused gifts');
+  }finally{finishLookup();await Promise.allSettled(background);globalThis.fetch=previous;}
+});
 test('Independent Clerk domain authenticates only after signed-in account choice and keeps original credits',async()=>{
   const {env}=fixture(),studio='https://pvlab.studio',issuer='https://clerk.pvlab.studio';
   const newToken=await token('user_New',{iss:issuer,azp:studio});
