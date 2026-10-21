@@ -1,7 +1,17 @@
 # Nina Instagram: verified owner-continuity work state
 Updated: 2026-10-22
 
-## Soft Argentine Spanish and casual dialogue (2026-10-22)
+## Corrected Spanish preference: neutral Latin American tuteo (2026-10-22)
+- Supersedes the prior Argentine-voseo preference. User explicitly clarified tú/tienes/quieres/cuéntame, with a light Mexican influence from Nina's time living in Mexico.
+- Source commit 6014407d76d549b222eaf87e5c376187be7551fb; files worker.mjs, worker.test.mjs, voice-transcription-runtime.js.
+- Revision latam-tuteo-casual-2026-10-22. Prompt and rewrite instructions use casual neutral Latin American tuteo and explicitly exclude voseo; no invented dates/cities/anecdotes about Mexico.
+- Deterministic greeting, name clarification and audio-failure responses also use tuteo. Opening ¡ and ¿ remain stripped; existing casual continuity guidance remains.
+- Added a bounded rewrite check/test for voseo. Local 29 Worker tests passed; CI also runs deployment guard tests.
+- Adaptive pacing, private owner authentication and audio media processing are unchanged.
+- Production verified 2026-10-22 01:15 Berlin: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39692155335; CI 33/33 tests. Version cb89d8ba-d49b-4cac-a092-2135801cca89 at 100%, deployment 61579088-d0f3-403f-8e03-7b11beb959de. Health confirms the new tuteo revision and unchanged adaptive pacing.
+- Next: observe a fresh real Spanish DM. Actual model tone and real voice transcription are not proven by unit tests.
+
+## Soft Argentine Spanish and casual dialogue (superseded dialect preference) (2026-10-22)
 - User requested a broadly neutral Argentine Spanish voice, more casual DMs, and no opening exclamation marks.
 - Source commit: 6be72fa7415639960ea31a6b51357b5318d81269. Files: worker.mjs, worker.test.mjs, voice-transcription-runtime.js.
 - Dialogue revision: rioplatense-casual-2026-10-22. Spanish instructions use light voseo (vos, sos, tenés, querés, contame, decime) without stereotyped slang or inventing an Argentine biography. English/German remain available.
