@@ -16,7 +16,8 @@ Verify: optimized actual-photo assets, new catalog and Worker allowlists, My Moo
 - Inspiration selects the existing Fisheye recipe at 75%, with the two approved Style-only references on supported engines. The original seven looks retain their existing reference-free Inspiration behavior. The public sign-in draft preserves the same Fisheye settings.
 - Reuses one subject-neutral Fisheye application direction instead of inventing new scenes. Custom text and uploaded Base remain authoritative. Recipe, reference-photo files, identity protections and Worker are unchanged.
 - Local checks: 22 focused tests passed, including approved Image UI contract, Fisheye/reference tests and Inspiration order/rotation checks. Real-browser mocked checks passed at 1440 and 390 pixels for guest card, signed-in card, full Mood selector and guest sign-in handoff; photo loads and no horizontal overflow. No paid generation or upload was sent.
-- Source baseline: `fb88540e49394dbf9a55eb785b97dbfec09762c5`. Release pending commit and live verification of `fisheyeCover=20261021v1`.
+- Integrated in main as `926e8c290c3267cb6ac7d639f9d06a3e6255376c`; arrow-navigation test updated for eight cards in `66fcb3f214c586786d8cc2b7f02e1061e87c1b75`. Approved Image UI and static validation CI passed. Full first-image browser workflow 39623379470 passed after the scoped arrow expectation correction; it also passed locally.
+- At 15:11 UTC the public /studio and the existing pvlab-studio.pages.dev origin still served the prior seven-card version. Awaiting live verification of `fisheyeCover=20261021v1`; do not conflate these source commits with publication. No repeat of the blocked Cloudflare/Google authentication flow was attempted.
 
 ## Original implementation validation
 - New Fashion-category seventeenth curated Mood `fisheye-2000`, 75% default.
