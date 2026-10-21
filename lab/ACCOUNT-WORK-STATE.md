@@ -1,3 +1,12 @@
+## Mobile account menu correction (2026-10-21)
+- User screenshot: account dropdown hidden behind the Image composer in an iPhone in-app browser.
+- Scope: shared menu stylesheet, Studio stylesheet revision and existing account browser coverage.
+- Cause: the menu is inside the header stacking context (35), below the fixed composer (82); the panel's own 1000 cannot escape its parent.
+- Fix: lift the Studio header only while the account menu is open, and remove its backdrop-filter containing block so the fixed menu positions against the viewport.
+- Preserve menu design, prompt deck, account permissions and all billing behavior.
+- Browser regression: customer and owner at 390/320px, 660px height; scroll to Sign out and verify actual tap target plus no horizontal overflow.
+- Local approved Image contract and account unit checks: 7 passed; browser validation and deployment pending.
+
 # PV LAB account interface
 
 ## Current objective
