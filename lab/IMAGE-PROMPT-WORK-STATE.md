@@ -1,5 +1,14 @@
 # Image composer prompt: current state
 
+## Active: fixed frame for compact and expanded Inspiration deck (2026-10-21)
+
+- User approved the existing expanded deck and requested its exact width for the closed bar, with left/right/top edges fixed and only downward growth, for public, customer and Owner entrances.
+- Baseline: `956361cf16f06dd4361db1d6aa3bdaa33943c67e`. Cause: the shared compact rule overrode the expanded 1120px width with 1200px and changed the outer radius from 19px to 17px.
+- Removed the compact width/radius overrides from `lab/image-deck-surface.css` and the legacy authenticated compact rule in `lab/image-editorial-deck.css`. Both states now inherit the existing shared expanded 1120px/19px frame. Existing compact height, expanded controls, writing area, card position and downward anchor stay intact. Both CSS caches: `20261021-fixed-width1` in `lab/studio.html`.
+- Existing first-image browser coverage now asserts fixed x/y/width/corners while focusing, typing, clearing and collapsing in public/new/returning/Owner states, plus side stability at the existing desktop viewport matrix. History, mobile and reference behavior keep their existing checks.
+- Passed locally: approved Image UI contract 5/5; complete first-image role/geometry/backdrop/quoted-generation suite; long-prompt paste at desktop/mobile; Studio layout including desktop/mobile, Video and Fashion. Tests specifically caught the higher-specificity legacy authenticated width/radius override before it was removed. Publication pending.
+- Scope is deck frame, asset cache, existing browser assertions and this record. Cloud Spa images, prompts, Moods, Hong Kong Nights, Upscaler, account/auth, credits, billing and provider behavior are unchanged in this request.
+
 ## Active: swap Chrome Couture and Cloud Spa positions (2026-10-21)
 
 - User requested only exchanging these two Inspiration card positions.

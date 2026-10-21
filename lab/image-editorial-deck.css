@@ -442,12 +442,10 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
     align-items:center!important;
     column-gap:11px!important;
     row-gap:0!important;
-    width:min(1200px,calc(100vw - 48px))!important;
     height:74px!important;
     min-height:74px!important;
     max-height:74px!important;
     padding:10px 13px!important;
-    border-radius:17px!important;
   }
   html:not(.pv-native-lab)
     #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-top{

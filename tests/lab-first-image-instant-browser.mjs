@@ -115,12 +115,19 @@ try{
         assert.ok(difference.max<=4&&difference.mean<=.25,label+' at '+viewport.width+': '+JSON.stringify(difference));
       }
       const field=p.locator('#pv-guest-prompt');
+      const frame=()=>p.locator('#pv-guest-composer').evaluate(el=>{
+        const r=el.getBoundingClientRect();
+        return {x:r.x,y:r.y,width:r.width,radius:getComputedStyle(el).borderRadius};
+      });
+      const closedFrame=await frame();
       await field.evaluate(el=>el.focus({preventScroll:true}));
       await p.waitForFunction(()=>document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
+      assert.deepEqual(await frame(),closedFrame,'Public bar keeps its left, right, top and corner shape while opening at '+viewport.width+'px');
       assert.equal(await p.evaluate(()=>scrollY),0,'Focus comparison excludes browser scrolling');
       await assertBackdropStill('Opening the public bar leaves the backdrop fixed');
       await field.evaluate(el=>el.blur());
       await p.waitForFunction(()=>!document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
+      assert.deepEqual(await frame(),closedFrame,'Public bar keeps its frame when closing at '+viewport.width+'px');
       await assertBackdropStill('Closing the public bar leaves the backdrop fixed');
     }finally{await c.close();}
   }
@@ -147,7 +154,7 @@ try{
           const outer=el.getBoundingClientRect(),css=getComputedStyle(el);
           const stage=el.closest('#gate')||document.querySelector('#app .image-gallery-shell'),art=getComputedStyle(stage,'::before');
           const rect=node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {x:r.x-outer.x,y:r.y-outer.y,w:r.width,h:r.height,font:s.fontSize,weight:s.fontWeight,line:s.lineHeight,color:s.color,background:s.backgroundColor,radius:s.borderRadius};};
-          return {w:outer.width,h:outer.height,background:css.backgroundImage,radius:css.borderRadius,
+          return {x:outer.x,y:outer.y,w:outer.width,h:outer.height,background:css.backgroundImage,radius:css.borderRadius,
             backdrop:{image:art.backgroundImage,filter:art.filter,opacity:art.opacity,shade:getComputedStyle(stage,'::after').backgroundImage},
             prompt:rect(el.querySelector('textarea')),
             controls:Object.fromEntries([...el.querySelectorAll('[data-deck-control]')].filter(n=>getComputedStyle(n).display!=='none'&&n.getBoundingClientRect().width>0).map(n=>[n.dataset.deckControl,rect(n)])),
@@ -164,6 +171,11 @@ try{
       await p.getByRole('heading',{name:'Start with a feeling.',exact:true}).filter({visible:true}).click();
       await p.waitForFunction(id=>!document.getElementById(id).classList.contains('pv-deck-expanded'),role==='guest'?'pv-guest-composer':'image-composer');
       await capture('cleared');
+      for(const state of ['focus','short','cleared']){
+        for(const key of ['x','y','w'])assert.ok(Math.abs(states[state][key]-states.idle[key])<2,
+          role+' keeps the same outer '+key+' when '+state+': '+JSON.stringify({idle:states.idle,state:states[state]}));
+        assert.equal(states[state].radius,states.idle.radius,role+' keeps the same outer corner shape when '+state);
+      }
       parity.push({role,states});
     }finally{await context.close();}
   }
@@ -245,6 +257,8 @@ try{
             role+' bar follows the cards, including banner changes: '+JSON.stringify({viewport,banner,before,photos}));
           await roleField.click();
           const opened=await roleDeck.boundingBox();
+          for(const key of ['x','width'])assert.ok(Math.abs(opened[key]-before[key])<2,
+            role+' keeps its side borders while opening at '+viewport.width+'px: '+JSON.stringify({before,opened}));
           assert.ok(opened.height>before.height+40&&Math.abs(opened.y-before.y)<2,
             role+' opens down, never toward the cards: '+JSON.stringify({before,opened}));
           assert.ok(opened.y+opened.height<=viewport.height-8,
