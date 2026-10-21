@@ -6,7 +6,8 @@
 - One shared rule in `lab/image-editorial-deck.css` applies the weight to signed-out public, new/returning customers and Owner, including reopened Inspiration. `lab/studio.html` refreshes only that stylesheet cache key.
 - No card, deck, background, prompt, account, credit, pricing, provider, Hong Kong Nights, Fisheye or Upscaler behavior changed.
 - Approved Image UI contract passes. The complete first-image browser suite passes direct public/new/returning/owner typography and geometry parity, notice dismissal, downward expansion, History reopen, backdrop stability and the quoted-generation mock.
-- Source baseline: main `c1c542ea6be7a8f69734f7e0024ac676a45183d4`. Publication and the actual production computed weight remain to be verified after merge.
+- Published through PR #415, squash-merged as d5c70dc9a6970a1f02131f1f8fe0ee26d2e6c365. All 18 PR workflows passed after correcting a test-only double escape; production CSS was unchanged by that follow-up. The later main commit f12c180fda07e5d78a3f52bb9ae8ec5d539a077e contains the merge and its Cloudflare Pages check completed successfully with deployment b6f427a0.
+- Actual https://pvlab.studio/studio verification after deployment: image-editorial-deck.css?v=20261021-title-medium1 is loaded and the rendered public `Start with a feeling.` computes to font-weight 500 at the unchanged 40.44px viewport size. Signed-in customer/Owner parity is verified by repository browser tests, not a production account session.
 
 ## Active: exact Owner geometry for every Image account (2026-10-21)
 
