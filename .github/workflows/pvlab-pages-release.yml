@@ -1,0 +1,59 @@
+name: Release existing PV LAB Pages project
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/pvlab-pages-release.yml']
+permissions:
+  contents: read
+concurrency:
+  group: pvlab-pages-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Deploy the existing production Git branch and verify its commit
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const token=(process.env.CLOUDFLARE_API_TOKEN||'').replace(/\s/g,'');
+          if(!token)throw Error('Existing Cloudflare credential is unavailable.');
+          const root='https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/pages/projects/pvlab-studio';
+          async function api(path,options={}){
+            const response=await fetch(root+path,{...options,headers:{Authorization:'Bearer '+token}});
+            const json=await response.json();
+            if(!response.ok||!json.success){
+              const codes=(json.errors||[]).map(e=>e.code).join(',');
+              throw Error('Pages API denied or failed: HTTP '+response.status+'; codes '+codes+'. No permissions or project settings changed.');
+            }
+            return json.result;
+          }
+          const project=await api('');
+          if(project.name!=='pvlab-studio'||project.production_branch!=='main'||project.source?.type!=='github')
+            throw Error('Unexpected Pages project, production branch or source. No deployment requested.');
+          const expected=process.env.GITHUB_SHA;
+          const deployments=await api('/deployments?env=production&per_page=10');
+          let deployment=deployments.find(d=>d.deployment_trigger?.metadata?.commit_hash===expected&&
+            !['failure','canceled'].includes(d.latest_stage?.status));
+          if(!deployment){
+            const body=new FormData();body.set('branch','main');body.set('commit_hash',expected);
+            body.set('commit_message','Publish verified PV LAB Fisheye 2000 integration');
+            deployment=await api('/deployments',{method:'POST',body});
+          }
+          console.log('Deployment',deployment.id,'commit',deployment.deployment_trigger?.metadata?.commit_hash);
+          for(let i=0;i<36;i++){
+            const d=await api('/deployments/'+deployment.id);
+            if(d.latest_stage?.status==='success'&&d.latest_stage?.name==='deploy'){
+              if(d.environment!=='production'||d.deployment_trigger?.metadata?.commit_hash!==expected)
+                throw Error('Deployment did not match the expected production commit.');
+              console.log('Production Pages deployment verified:',d.id,expected);process.exit(0);
+            }
+            if(['failure','canceled'].includes(d.latest_stage?.status))throw Error('Pages deployment '+d.latest_stage.status);
+            await new Promise(r=>setTimeout(r,10000));
+          }
+          throw Error('Pages deployment still pending after six minutes; inspect before retrying.');
+          NODE
