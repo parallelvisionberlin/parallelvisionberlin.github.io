@@ -37,3 +37,6 @@ Verify: optimized actual-photo assets, new catalog and Worker allowlists, My Moo
 - Follow-up source commit: b48329a70e570188f1275b4f5e0f1dde1fd7e846. Its approved Image UI contract and static site validation CI passed; the full Studio Fisheye browser regression passed locally at desktop/mobile sizes.
 - Follow-up public-byte verification is still pending. The original Fisheye deployment remains confirmed live. Authenticated production provider generation was not run; visual output quality is not claimed.
 - Seven introductory Inspiration cards remain the approved separate catalog. Fisheye belongs to Explore Moods and the full Studio Mood selector, as specified in the original PR.
+
+### Reproduce the focused Studio verification
+Run `PV_PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs PV_CHROMIUM_EXECUTABLE=/path/to/chromium node tests/lab-fisheye-2000-browser.mjs` from the repository root. It uses synthetic authentication, mock API responses and a local synthetic Base image. No production account or provider call is made.
