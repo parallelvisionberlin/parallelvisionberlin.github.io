@@ -7,7 +7,11 @@
 - Local checks: approved Image contract 5/5; homepage assertions from the existing landing-stability suite passed at 1912, 1440, 768, 390 and 320px with delayed and ready fonts, signed-in and guest mocks. These mocks do not verify real customer sessions.
 - Separate before/after browser comparison at 1440, 390 and 320px confirmed unchanged header, navigation, portrait and hero-copy geometry, no horizontal overflow, and both SVG placements decoded from the same asset.
 - The full landing-stability suite also includes unrelated Studio media and guest-deck checks. It did not complete in the sparse checkout because those media fixtures are absent; do not claim a full-suite pass. Its local server now supplies the correct SVG MIME type for the new logo.
-- Publication: pending Cloudflare Pages and actual production homepage verification. Source commit alone is not evidence that the new logo is live.
+- Published source: `d3763cd4447f1770ed119f8d6fdb10ec2573841a`. Cloudflare Pages `pvlab-studio` succeeded, check `119551817721`, deployment `e33d66db-3430-408e-8c35-7d55af54f88e`.
+- Production verification returned LIVE_VERIFIED using the existing read-only verifier with its HTML request explicitly scoped to the homepage. CSS SHA-256: `3f1a49531ef01e658be257e35c78344a6b069c13f2cb239b50dbcdc13eb87030`; outlined SVG SHA-256: `d18b296987adca0e46c70fa0dac332a72d3568576e3dd4c2e69a57d944a43db0`. SVG returned HTTP 200 and image/svg+xml, exactly matching reviewed source bytes.
+- Actual production browser, signed out at 1363x936: both vector logos decoded, correct stylesheet version, no horizontal overflow and the Fashion. Reimagined. headline preserved. Real signed-in production sessions and mobile devices were not inspected for this logo change.
+- CI's full landing test reached its unrelated guest-deck assertion and found an outdated expected order. Updated only that assertion to the previously approved card swap (chrome-couture fifth, hong-kong-nights sixth, dreamcore seventh); no deck implementation changed. Full-suite rerun remains pending.
+- Other CI failures were the existing Assets Upscaler import assertion at tests/lab-assets-ui.cjs:281 and a live Generate/Exact freshness check that ran before Cloudflare completed. These are not a full green CI result, and no paid/account flow was tested here.
 
 ## Mobile homepage hero visibility, 2026-10-22 (Europe/Berlin)
 - Source main before this change: `b674dc29ed0981f40f17fcd65b60c68ba67b97e1`.
