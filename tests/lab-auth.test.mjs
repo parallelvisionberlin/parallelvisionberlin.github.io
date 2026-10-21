@@ -67,3 +67,19 @@ test('sign-in tokens are never sent to another origin or forwarded by redirects'
  const f=fixture();for(const path of ['https://other.example/api/jobs','//other.example/api/jobs','/input/test'])await assert.rejects(f.request(path),/Invalid private API destination/);
  assert.equal(f.calls.length,0);await f.request('/api/session');assert.equal(f.calls[0].init.redirect,'error');
 });
+
+test('successful account deletion may end its own Clerk session before the API response arrives',async()=>{
+ const f=fixture({fetchImpl:()=>{f.setSession(null);return Response.json({accepted:true,identityDeleted:true},{status:202});}});
+ const response=await f.request('/api/customer/account',{method:'DELETE'});
+ assert.equal(response.status,202);assert.equal((await response.json()).identityDeleted,true);assert.equal(f.calls.length,1);
+});
+test('account-deletion response cannot cross into a replacement signed-in account',async()=>{
+ const f=fixture({fetchImpl:()=>{f.setSession({id:'new-account',getToken:async()=>fresh});return Response.json({accepted:true},{status:202});}});
+ await assert.rejects(f.request('/api/customer/account',{method:'DELETE'}),/Session changed/);
+});
+test('signed-out deletion errors and all other signed-out responses still fail the session guard',async()=>{
+ for(const [path,method,status] of [['/api/customer/account','DELETE',503],['/api/jobs','POST',202],['/api/customer/account','GET',202]]){
+  const f=fixture({fetchImpl:()=>{f.setSession(null);return Response.json({error:'not confirmed'},{status});}});
+  await assert.rejects(f.request(path,{method}),/Session changed/);
+ }
+});

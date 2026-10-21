@@ -103,7 +103,13 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
       headers.set('Authorization', 'Bearer ' + currentToken);
       if(session.labNative===true)headers.set('X-PV-Lab-Client','mobile-v1');
       const response = await fetchImpl(url.href, { ...init, headers, redirect: 'error' });
-      checkSession();
+      // Deleting the dedicated Clerk user can end this session before its
+      // successful response arrives. Accept only that response while signed out;
+      // every account switch and every other request still fails closed.
+      const completedClosure=url.pathname==='/api/customer/account'&&
+        (init.method||'GET').toUpperCase()==='DELETE'&&response.status===202&&!getSession();
+      if(completedClosure){init.signal?.throwIfAborted();assertCurrent();}
+      else checkSession();
       return response;
     };
     async function finishOnboarding(response) {

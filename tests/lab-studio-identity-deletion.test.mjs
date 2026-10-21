@@ -5,7 +5,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {ensureCustomer} from '../lab-worker/customer-billing.mjs';
 import {requestAccountClosure,processAccountClosures,assertCustomerOpen} from '../lab-worker/customer-lifecycle.mjs';
 import {banClosedStudioIdentity,processStudioIdentityDeletions,
-  rejectDeletedStudioSubject,finishClosedStudioIdentity} from '../lab-worker/studio-identity-deletion.mjs';
+  rejectDeletedStudioSubject,finishClosedStudioIdentity,deleteClosedStudioIdentity} from '../lab-worker/studio-identity-deletion.mjs';
 import {syncCustomerEmail} from '../lab-worker/promotions.mjs';
 import {migrationRoute} from '../lab-worker/clerk-migration.mjs';
 import {STUDIO_ISSUER} from '../lab-worker/clerk-issuer-policy.mjs';
@@ -210,4 +210,51 @@ test('Clerk paid ban HTTP 402 cannot block ordinary deletion after verified bill
   assert.equal(f.db.prepare('SELECT state FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).state,'complete');
   assert.equal(f.db.prepare('SELECT banned_at FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).banned_at,null);
   assert.equal(f.calls.filter(x=>x.method==='DELETE').length,1,'Ordinary Clerk deletion does not require the ban feature');
+});
+
+test('confirmed deletion immediately releases Google identity while old media cleanup stays durably queued',async t=>{
+  const f=fixture(t),{env,db,objects}=f;await account(f,{makeWelcome:true});
+  const email=db.prepare('SELECT email FROM lab_customer_contacts WHERE customer_id=?').get(internal).email;
+  objects.set(internal+'/results/photo.png','old private photo');
+  await requestAccountClosure(env,internal,'DELETE MY PV LAB ACCOUNT');
+  assert.equal(await deleteClosedStudioIdentity(env,internal),true);
+  assert.equal(db.prepare('SELECT state FROM lab_account_closures WHERE customer_id=?').get(internal).state,'requested','No cron or artificial clock advance');
+  assert.equal(db.prepare('SELECT state FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).state,'complete');
+  assert.equal(objects.size,1,'Media cleanup remains queued with the inaccessible old namespace');
+  assert.ok(f.calls.every(x=>x.method==='DELETE'),'No paid ban prerequisite');
+  await assert.rejects(()=>rejectDeletedStudioSubject(env,subject),/deleted/);
+  let current;
+  for(let cycle=0;cycle<3;cycle++){
+    const clerk='user_Immediate'+cycle,id='user_PvLabV2Immediate'+cycle;
+    const response=await migrationRoute(new Request('https://test/api/migration/new',{method:'POST'}),env,
+      {id:null,kind:null,issuer:STUDIO_ISSUER,subject:clerk});
+    assert.equal(response.status,201);
+    const now=Date.now();
+    db.prepare('INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at) VALUES(?,?,?,?)').run(id,email,now,now);
+    env.LAB_WELCOME_CREDITS_ENABLED='true';await grantVerifiedWelcome(env,id);
+    await assertCustomerOpen(env,id);
+    assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(id).balance_credits,0);
+    if(cycle<2){
+      await requestAccountClosure(env,id,'DELETE MY PV LAB ACCOUNT');
+      assert.equal(await deleteClosedStudioIdentity(env,id),true);
+    }
+    current=id;
+  }
+  assert.notEqual(current,internal);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_welcome_claims WHERE customer_id=?').get(internal).n,1);
+  assert.equal(objects.get(internal+'/results/photo.png'),'old private photo');
+});
+test('immediate identity deletion requires authoritative Stripe clearance and preserves retryable failures',async t=>{
+  const f=fixture(t);await account(f);await requestAccountClosure(f.env,internal,'DELETE MY PV LAB ACCOUNT');
+  f.db.prepare('UPDATE lab_customers SET stripe_customer_id=? WHERE id=?').run('cus_Protected',internal);
+  for(const verify of [undefined,async()=>false]){
+    await assert.rejects(()=>deleteClosedStudioIdentity(f.env,internal,verify),/Billing clearance/);
+    assert.equal(f.calls.length,0,'No Clerk deletion before billing is verified');
+  }
+  f.deleteError(503);
+  const verify=async(_env,id)=>{assert.equal(id,'cus_Protected');return true;};
+  await assert.rejects(()=>deleteClosedStudioIdentity(f.env,internal,verify),/HTTP 503/);
+  assert.equal(f.db.prepare('SELECT state FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).state,'pending');
+  f.deleteError(0);
+  assert.equal(await deleteClosedStudioIdentity(f.env,internal,verify),true);
 });
