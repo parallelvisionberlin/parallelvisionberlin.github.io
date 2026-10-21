@@ -9,7 +9,12 @@
 - Product files: lab/video-refresh.css and lab/studio.html cache revision 20261021-mobile-controls1.
 - Existing gallery browser coverage checks non-overlap, the exact thumbnail boundary, one visible play affordance and unchanged desktop placement; CI retains two synthetic screenshots.
 - Local approved Image and scoped Video unit checks: 16 passed; whitespace check passed.
-- Release pending: verify browser CI, merge, and confirm Cloudflare and the live stylesheet bytes.
+- All 18 PR workflows passed at 777c2699a0d50867ebb2c3b4d33aaea47ff740e9. The Image prompt-paste runner initially stalled in checkout, then completed successfully without a retry or source change.
+- Gallery checks passed at 1440/390px for landscape, portrait and square media; synthetic screenshots inspected from artifact 12383659645 in run 39681709074.
+- PR #425 merged as d49b111632196256b6500e7b59085e9125da3530; merged CSS blob matches tested source e5ac64fb652d81541d8fdbb0fa91fae4e5659dd4.
+- Cloudflare Pages check 119509409001 succeeded for pvlab-studio, deployment e3bdf4d1-a0c5-4e9e-8bce-1f8e5e3249b3.
+- Release verifier returned LIVE_VERIFIED for video-refresh.css?v=20261021-mobile-controls1, SHA-256 3cff0c23e0bd700cf17c1130ca631ccd1494b14c46eb0bfd07566dc8da89b5d8.
+- Complete and live. Verification used synthetic History and the production stylesheet; no private user media, paid job or account mutation was needed.
 
 ## Current: monochrome controls and quieter phone screen (2026-10-21)
 - User references: IMG_7911.png and IMG_7912.jpeg, attached in this conversation.
