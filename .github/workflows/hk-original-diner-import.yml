@@ -1,0 +1,35 @@
+name: Verify original Hong Kong diner asset
+on:
+  push:
+    branches: ['codex/hk-three-original-refs-20261022']
+    paths: ['.github/workflows/hk-original-diner-import.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Retrieve matching original, never generate a replacement
+        run: |
+          mkdir -p /tmp/hk-diner
+          python3 - <<'PY'
+          import urllib.request,hashlib,json,pathlib
+          base='/wp-content/uploads/2018/12/Lessons-on-colour-Wong-Kar-Wai-6-1800x1199.jpg'
+          urls=['https://cdn.independent-photo.com'+base+'?format=webp&quality=85&width=1800','https://independent-photo.com'+base+'.webp','https://independent-photo.com'+base,'https://cdn.independent-photo.com'+base+'?format=webp&quality=85&width=1050']
+          out=pathlib.Path('/tmp/hk-diner');results=[]
+          for i,url in enumerate(urls):
+            try:
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Accept':'image/webp,image/*;q=0.9'})
+              with urllib.request.urlopen(req,timeout=25) as r: data=r.read(2000000)
+              digest=hashlib.sha256(data).hexdigest();(out/('candidate-'+str(i)+'.image')).write_bytes(data)
+              results.append({'i':i,'url':url,'bytes':len(data),'sha256':digest,'exactOwnerMatch':digest=='4f28528b626414aa74bb904fc484c160bce624b914f0da20d0609fb116b99adf'})
+              if results[-1]['exactOwnerMatch']: break
+            except Exception as e:results.append({'i':i,'error':str(e)})
+          (out/'results.json').write_text(json.dumps(results,indent=2));print(json.dumps(results,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hk-original-diner-check
+          path: /tmp/hk-diner/
+          retention-days: 3
