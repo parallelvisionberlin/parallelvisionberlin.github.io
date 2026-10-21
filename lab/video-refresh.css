@@ -308,3 +308,10 @@
 @media(max-width:820px){
   #app.video-studio-active .video-feed-center>.stage:has(#empty:not([hidden])):not(:has(#pv-video-reference-preview[data-illustrative="false"]:not([hidden]))):not(:has(#video-job-stage:not([hidden]))){display:none!important}
 }
+
+/* Phone History: one play affordance, with favorite and download in separate corners. */
+@media(max-width:640px){
+  #app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardbody{position:relative}
+  #app.video-studio-active .video-feed-center #history:not(.is-selecting) .card[data-kind="video"] .cardbody .cardactions:has(>.result-download){top:-44px;right:4px}
+  #app.video-studio-active .video-feed-center #history .card[data-kind="video"]>.asset-video-badge{display:none!important}
+}

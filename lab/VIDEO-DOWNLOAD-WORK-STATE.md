@@ -1,5 +1,16 @@
 # Video History card downloads: work state
 
+## Current: separate phone card controls (2026-10-21)
+- User reference: IMG_7915.png. Scope explicitly limited to phone cards, <=640px.
+- Source baseline: 8a5be639a5b6ddf50f7622880fc0d1a9b1c4e605.
+- Keep Favorite in the upper-right corner. Anchor Download at the lower-right of the thumbnail, immediately above the image/text boundary.
+- Hide the redundant lower Video badge on phones; retain the existing PLAY VIDEO affordance on the thumbnail.
+- Desktop positions, playback/download handlers, 44px download target and selection behavior remain unchanged.
+- Product files: lab/video-refresh.css and lab/studio.html cache revision 20261021-mobile-controls1.
+- Existing gallery browser coverage checks non-overlap, the exact thumbnail boundary, one visible play affordance and unchanged desktop placement; CI retains two synthetic screenshots.
+- Local approved Image and scoped Video unit checks: 16 passed; whitespace check passed.
+- Release pending: verify browser CI, merge, and confirm Cloudflare and the live stylesheet bytes.
+
 ## Current: monochrome controls and quieter phone screen (2026-10-21)
 - User references: IMG_7911.png and IMG_7912.jpeg, attached in this conversation.
 - Source baseline: a3bfda1ca9afd67bbdc3b868c005132d614f80dc.

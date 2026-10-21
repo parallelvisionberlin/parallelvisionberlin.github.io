@@ -281,6 +281,22 @@ try{
       'Completed video source thumbnails display a clear Play Video affordance');
     assert.equal(await page.locator('.history-video-play svg').count(),4,'Play affordances use monochrome SVG icons');
     assert.equal(await page.locator('.asset-video-badge svg').count(),4,'Video labels use the same monochrome icon treatment');
+    const cardControls=await tiles.first().evaluate(card=>{
+      const rect=selector=>{const r=card.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};};
+      return {media:rect('.history-media'),heart:rect('.asset-heart'),download:rect('.result-download')};
+    });
+    assert.equal(await tiles.first().locator('.history-video-play').isVisible(),true,'The thumbnail retains one clear Play Video affordance');
+    assert.equal(await tiles.first().locator('.asset-video-badge').isVisible(),width>640,'Only phone cards hide the redundant Video badge');
+    if(width<=640){
+      assert.ok(cardControls.heart.bottom<cardControls.download.top,'Favorite and Download do not overlap');
+      assert.ok(Math.abs(cardControls.download.bottom-cardControls.media.bottom)<3,'Download sits at the image/text boundary, not the bottom of the whole card');
+    }else{
+      assert.ok(cardControls.download.top-cardControls.media.top<10,'Desktop keeps its existing Download position');
+    }
+    if(shape==='landscape'){
+      await tiles.first().scrollIntoViewIfNeeded();
+      await page.screenshot({path:`test-results/video-card-controls-${width}.png`,fullPage:false});
+    }
     // This saved file is held: selecting a thumbnail must reveal Loading and
     // return to the top of the player before any result bytes arrive.
     await tiles.first().scrollIntoViewIfNeeded();
