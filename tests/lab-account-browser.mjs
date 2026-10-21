@@ -372,6 +372,22 @@ try{
             assert.ok(metrics.fontSize>=12.5&&metrics.fontSize<=13.5,'Studio uses landing-page typography');
             assert.ok(Math.abs(metrics.logoWidth-157)<1,'Studio uses full-sized editorial wordmark');
             assert.equal(metrics.background,'rgb(17, 17, 17)','Studio uses approved deep-black surface');
+            if(width<=390){
+              // Match a short in-app phone browser, with the composer retained.
+              await page.setViewportSize({width,height:660});
+              const signout=page.locator('[data-account-signout]');
+              await signout.scrollIntoViewIfNeeded();
+              const hit=await signout.evaluate(el=>{
+                const r=el.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;
+                return {inside:y>0&&y<innerHeight,
+                  reachable:el.contains(document.elementFromPoint(x,y)),
+                  overflow:document.documentElement.scrollWidth>innerWidth};
+              });
+              assert.equal(hit.inside,true,'Menu scrolls its last action into the phone viewport');
+              assert.equal(hit.reachable,true,'Sign out receives taps above the retained Image deck');
+              assert.equal(hit.overflow,false,'Open menu introduces no mobile horizontal overflow');
+              await page.setViewportSize({width,height:950});
+            }
           }else if(path==='/lab/index.html'&&width===1440){
             assert.equal(Math.round(panel.width),288,'Homepage uses the approved compact editorial menu width');
             assert.equal(await page.locator('link[href*="studio-account-menu.css"]').count(),0,'Studio-specific styling stays out of the homepage');
