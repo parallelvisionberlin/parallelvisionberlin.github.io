@@ -14,13 +14,13 @@ test('Dream Blur is a curated Mood with actual user reference photography and a 
   assert.match(mood.direction,/Source-adaptive color/);
   assert.match(mood.direction,/1980s\/1990s pushed 35mm/);
   assert.match(mood.direction,/full-body image remains full-body/i);
-  assert.equal(MOODS.length,16);
+  assert.equal(MOODS.length,17);
   const photo=statSync(new URL('..'+mood.preview,import.meta.url));
   assert.ok(photo.size>100000);
   const html=readFileSync(new URL('../lab/moods.html',import.meta.url),'utf8');
   assert.equal((html.match(/data-mood-id="dream-blur"/g)||[]).length,1);
   assert.match(html,/LIGHT LEAKS\. MOTION\. FEELINGS\./);
-  assert.match(html,/All 16 curated visual Moods/);
+  assert.match(html,/All 17 curated visual Moods/);
 });
 test('Dream Blur stays physically photographic and retains identity across intensity',()=>{
   for(const engine of ['seedream','seedreamlite','gemini','gemini21']){

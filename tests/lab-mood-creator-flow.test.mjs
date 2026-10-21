@@ -88,7 +88,7 @@ test('The editor is a distinct page, preserves Image prices and has two entry po
  assert.match(page,/class="mc-hero mc-hero--creator"/);
  assert.doesNotMatch(page,/id="mc-look-dialog"/);
  const explore=readFileSync(new URL('../lab/moods.html',import.meta.url),'utf8');
- assert.equal((explore.match(/data-mood-id=/g)||[]).length,16);
+ assert.equal((explore.match(/data-mood-id=/g)||[]).length,17);
  assert.match(style,/\.mc-workspace-body/);
  assert.match(style,/\.mc-library-grid/);
 });

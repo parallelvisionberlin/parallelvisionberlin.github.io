@@ -166,9 +166,9 @@ test('Moods category filters have readable touch targets and preserve thumbnail 
   assert.match(html,/moods\.css\?v=20261011-header-align2/);
 });
 
-test('sixteen unique curated moods with imagery',()=>{
-  assert.equal(MOODS.length,16);
-  assert.equal(new Set(MOODS.map(m=>m.id)).size,16);
+test('seventeen unique curated moods with imagery',()=>{
+  assert.equal(MOODS.length,17);
+  assert.equal(new Set(MOODS.map(m=>m.id)).size,17);
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
 test('only explicitly compatible image engines receive moods',()=>{
@@ -365,18 +365,18 @@ test('Dreamcore V7 compact direction fits ten references',()=>{
   assert.equal(r.error,'');
   assert.ok(compileImagePrompt(r.prompt,refs,{...r.metadata,referenceMode:'base'}).length<=5000);
 });
-test('Sixteen moods are available, ten initially visible and Sumi-e last',()=>{
+test('Seventeen moods are available, ten initially visible and Sumi-e last',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.equal(MOODS.length,16);
+  assert.equal(MOODS.length,17);
   assert.equal(MOODS.at(-1).id,'sumi-ink');
   assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(css,/scrollbar-gutter:stable/);
   assert.match(js,/function fitGridViewport\(\)/);
   assert.match(js,/const last=visible\[desktopGridColumns\*initiallyVisibleRows-1\]/);
   assert.match(js,/grid\.style\.maxHeight=firstTwoRows\+'px'/);
-  assert.match(html,/Sixteen curated looks/);
+  assert.match(html,/Seventeen curated looks/);
 });
 test('Moods preserves its gallery height as the image deck grows and stays in the viewport',()=>{
   for(const [width,height,composerTop] of [
@@ -498,7 +498,7 @@ test('Preview-first Moods deck enlarges photos while keeping original slider and
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/max-height:min\(720px,var\(--moods-available-height/);
   assert.match(html,/moods\.css\?v=20261011-header-align2/);
-  assert.equal(MOODS.length,16);
+  assert.equal(MOODS.length,17);
 });
 
 

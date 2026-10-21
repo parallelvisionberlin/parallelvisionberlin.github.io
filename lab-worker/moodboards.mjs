@@ -1,7 +1,7 @@
 // Private, authenticated My Moods boards. Images stay in the existing R2 archive.
 // Boards are reusable prompt recipes, not trained style models or public galleries.
 // Curated base IDs include Berlin Rave, whose wardrobe replacement is compiled in the Image client.
-export const MOODBOARD_BUILTINS=new Set(['hong-kong-nights','90s-cinema','night-flash','fashion-editorial','berlin-rave','80s-film','kodak-gold','soft-pastel-film','frutiger-aero','dreamcore','sumi-ink','hyper-pop','polaroid-600','synthetic-romance','midnight-reverie','dream-blur']);
+export const MOODBOARD_BUILTINS=new Set(['hong-kong-nights','90s-cinema','night-flash','fashion-editorial','berlin-rave','80s-film','kodak-gold','soft-pastel-film','frutiger-aero','dreamcore','sumi-ink','hyper-pop','polaroid-600','synthetic-romance','midnight-reverie','dream-blur','fisheye-2000']);
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 export function validateMoodboard(value,fail){
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid moodboard.');

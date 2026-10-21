@@ -82,6 +82,25 @@ const ALL_MOODS=Object.freeze([
     "avoid": "smoothing filters, paparazzi text, hard fake glow"
   },
   {
+    "id": "fisheye-2000",
+    "name": "Fisheye 2000",
+    "category": "Fashion",
+    "preview": "/lab/mood-previews/fisheye-2000-20261020.avif",
+    "previewFull": "/lab/mood-references/fisheye-2000/02-fisheye-flash.webp",
+    "description": "True fisheye perspective, raw Y2K street fashion and direct flash",
+    "defaultIntensity": 75,
+    "direction": "FISHEYE 2000 / ORIGINAL STREET-FASHION BRIEF. Face: use the uploaded identity photograph as main visual reference if provided. Keep exactly the same face, bone structure, expression and natural skin tone, with sharply illuminated but real skin, no personality changes. Pose: two young city-dwellers in a close-range editorial frame when no Base specifies otherwise; one dominates near the camera, extending an arm toward the lens so the real fisheye exaggerates its foreground scale, while a second stands behind, clearly separated by near/far perspective. Clothing: oversized grey hoodie, black wide-leg trousers, massive silver chain necklace, stacked rings and a small leopard-print accent unless another outfit is explicitly requested. Background: a narrow lived-in Tokyo alley, densely layered Japanese storefront signs, overhead power lines, utility poles covered in stickers, imperfect walls and credible urban clutter. Lighting: bare direct on-camera flash is the key, frontal and hard, with rapid falloff from brilliantly illuminated foreground skin and fabric into naturally underexposed ambient background. Camera: actual Canon EOS 5D Mark IV documentary photograph, true 15mm fisheye lens with curved edges and natural central facial geometry; f/4, ISO 400, 1/200s flash sync. Color: Kodak Portra-like 35mm negative color, gently crushed black levels, saturated signs with restrained natural skin, fine INTEGRATED silver-grain texture, a glossy underground magazine scan. Atmosphere: immediate, candid, bold Y2K street-fashion energy and cinematic street reality. Real proportions, believable joints, true optical barrel distortion and physical depth, not digital warping. User-authored subject, location, wardrobe and person count always take priority over these defaults.",
+    "baseDirection": "FISHEYE 2000 / USER PHOTO FIRST. Re-photograph IMAGE 1's exact recognizable people with the same facial identity, hair, natural skin color and expression; preserve the people count, body proportions, wardrobe, skin coverage, primary gesture, relative subject positions and original street/interior/room. Only reinterpret physical camera optics and exposure to look like a real Canon EOS 5D Mark IV 15mm fisheye street-fashion snapshot: foreground objects ALREADY near the lens gain believable near/far scale, building edges curve optically, deep peripheral vignette appears when plausible, central faces stay anatomically truthful. Bare direct on-camera flash, crisp bright fabric and silver speculars, authentic rapid falloff into darker ambient surroundings, muted Kodak Portra-like negative-film color, subtle irregular film texture embedded in actual surfaces and shadows, lived-in 2000s editorial confidence. The original example's Tokyo signage, reaching arm, second person, grey hoodie, massive chain, rings and leopard bag are optional original-brief details, NOT permission to invent them on the Base. User's own instruction may change scene, pose or styling; otherwise keep image identity and narrative.",
+    "compact": "FISHEYE 2000 / real early-2000s Japanese alley street-fashion snapshot: dominant near-camera subject with arm towards the true 15mm fisheye lens, second figure in depth when requested, hoodies/baggy trousers/large silver chain and leopard accent as original styling, layered shop signs/powerlines/stickers as scene cues. Real Canon EOS 5D IV on-camera bare flash at f/4 ISO400 1/200s: hard frontal illumination and natural dark falloff. Muted Kodak Portra-like color, tactile shadow grain, strong optical edges and real skin. The user's subject, clothing and setting override these example details.",
+    "compactBase": "FISHEYE 2000 / BASE PHOTO FIRST: same recognizable people, facial features, skin, number of subjects, wardrobe, pose, original place and composition. Change only physically believable 15mm fisheye optics, near/far scale and direct-camera flash with fast ambient falloff. Y2K streetwear documentary finish, restrained Kodak negative color, natural skin, integrated fine grain. Do not copy the two Style reference people, Tokyo alley, reaching pose or clothes. User directions override.",
+    "subtle": "At 1–34%: visible but modest wide-angle barrel perspective and modest flash punch; preserve recognizable framing, skin and natural location.",
+    "moderate": "At 35–74%: convincing documentary wide-angle, hard frontal flash, mildly curved edges and ambient falloff; never add unrelated subjects, wardrobe or signage.",
+    "intense": "At 75–89%: strong real 15mm fisheye near/far hierarchy, pronounced optical peripheral curve and black border only where lens coverage warrants, raw sharp flash over credible background exposure.",
+    "climax": "At 90–100%: extreme true fisheye viewpoint and near-camera scale ONLY for existing or explicitly requested close objects; protect face geometry, anatomy, outfit, scene, and person count. Not an AI swirl or fisheye overlay.",
+    "avoid": "AI-plastic skin, synthetic beauty retouch, symmetry correction, duplicate fingers, exaggerated faces, warped teeth, invented arm, invented second person, fake Japanese text pasted on the customer's environment, generic cyberpunk neon, fake wet streets, blanket grime, pasted grain noise, HDR edge outlines, CGI material, melting architecture",
+    "liteAvoid": "plastic skin, reshaped face, cloned subject, invented outfits or streets, paste-on grain, CGI lens and anatomy errors"
+  },
+  {
     "id": "dreamcore",
     "name": "Dreamcore",
     "category": "Experimental",
@@ -319,6 +338,24 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
+  // Fisheye 2000 uses the owner's original Y2K flash/fisheye brief and the
+  // two photographic Style sources. Never replace an uploaded Base with the
+  // brief's example models, wardrobe or Tokyo location.
+  if(mood.id==='fisheye-2000'){
+    const editingBase=referenceCount>0&&referenceMode!=='references';
+    const lite=engine==='seedreamlite';
+    const style=lite?(editingBase?mood.compactBase:mood.compact):(editingBase?mood.baseDirection:mood.direction);
+    const level=intensity<=34?mood.subtle:intensity<=74?mood.moderate:intensity<=89?mood.intense:mood.climax;
+    const guidance=editingBase
+      ?'BASE LOCK: original face, expression, subject count, pose, outfit and background remain. References marked Style provide optics only. Preserve user-assigned reference roles.'
+      :referenceCount>0
+        ?'REFERENCES ONLY: assigned Identity photographs determine the face, never the two built-in Style people. Compose the requested scene with original-brief defaults only where not superseded.'
+        :'NO BASE: compose the user-requested subject and space. The two built-in photos provide photographic optics only, never their actual faces or outfits.';
+    const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+level+' '+guidance+' Avoid: '+(lite?mood.liteAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
+    const budget=lite?3000:5000,over=prompt.length-budget;
+    return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original},
+      error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
+  }
   // Hong Kong Nights: restore the approved October 10 photographic recipe.
   // One short art direction and the user's own photograph; no scene rebuilding
   // instructions, automatic cinematography reference map, or extra AI pass.
@@ -581,6 +618,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     'midnight-reverie':'Flash-frozen, cobalt afterglow',
     'hong-kong-nights':'Emerald haze, night romance',
     'night-flash':'After-dark flash',
+    'fisheye-2000':'Raw fisheye, hard flash, Y2K',
     'dreamcore':'Pearl light, liminal spaces',
     '90s-cinema':'35mm warmth and texture',
     'polaroid-600':'Instant film, imperfect flash',
