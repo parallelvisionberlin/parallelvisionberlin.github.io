@@ -4462,12 +4462,6 @@ function renderCards(jobs,{upsert=false}={}){
       });
       figure.addEventListener('dragend',()=>imageComposer.classList.remove('is-dragging'));
       img.onclick=e=>{e.stopPropagation();openCard();};img.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();img.click();}};
-      // Full-resolution download exists only on completed images, never on failed records.
-      const quickDownload=document.createElement('button');quickDownload.type='button';quickDownload.className='history-hover-download';
-      quickDownload.title='Download full-resolution image';quickDownload.setAttribute('aria-label','Download full-resolution image');
-      quickDownload.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg>';
-      quickDownload.onclick=event=>{event.preventDefault();event.stopPropagation();if(!historySelectMode)void viewMedia(()=>downloadJob(j));};
-      card.append(quickDownload);
     }else if(ready&&j.sourceId){
       const {figure,img}=historyImage(j.sourceId,'Original start frame thumbnail, not the video');previews.push(img);
       figure.classList.add('history-video-thumb');
@@ -4494,6 +4488,14 @@ function renderCards(jobs,{upsert=false}={}){
         empty.append(title,detail);
       }
       card.append(empty);
+    }
+    if(ready){
+      // Overlay controls remain accessible when the Assets grid hides card metadata.
+      const quickDownload=document.createElement('button');quickDownload.type='button';quickDownload.className='history-hover-download'+(image?'':' history-video-download');
+      quickDownload.title=image?'Download full-resolution image':'Download video';quickDownload.setAttribute('aria-label',quickDownload.title);
+      quickDownload.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg>';
+      quickDownload.onclick=event=>{event.preventDefault();event.stopPropagation();if(!historySelectMode)void viewMedia(()=>downloadJob(j));};
+      card.append(quickDownload);
     }
     const body=document.createElement('div');body.className='cardbody';
     const meta=document.createElement('div');meta.className='cardmeta';

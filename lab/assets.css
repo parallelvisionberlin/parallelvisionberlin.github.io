@@ -1596,3 +1596,17 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
 /* Monochrome video affordances never depend on platform emoji rendering. */
 #history .history-video-play svg,#history .asset-video-badge svg{width:12px;height:12px;flex-shrink:0;vertical-align:-2px}
 #history .asset-video-badge svg{margin-right:4px}
+
+/* Assets hides metadata rows, so video downloads use the same overlay as images. */
+#app:not(.assets-active) #history .history-video-download{display:none!important}
+#app.assets-active #history .history-video-download{opacity:1;transform:none;pointer-events:auto}
+@media(max-width:640px){
+  #app #history:not(.is-selecting) .history-hover-download,
+  html.pv-native-lab #app.assets-active #assets-gallery #history:not(.is-selecting)>.card .history-hover-download{
+    width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;padding:0!important;
+  }
+  #app #history:not(.is-selecting) .history-hover-download svg,
+  html.pv-native-lab #app.assets-active #assets-gallery #history:not(.is-selecting)>.card .history-hover-download svg{
+    width:15px!important;height:15px!important;
+  }
+}

@@ -1,5 +1,23 @@
 # Video History card downloads: work state
 
+## Active: Assets video downloads and compact phone controls (2026-10-22)
+- User reference: image(20261021-230818).png, Library libfile_950076d97c788191be4bd834b88f5751.
+- Baseline main: 94dc61aac070ac4a0633c30c6e06eda042e297ef.
+- Cause: native Assets grid hides .cardbody, including Video's result-download; only images had an overlay.
+- lab/lab.js now adds the existing authenticated original-download overlay to every completed output.
+- Video overlay is visible only in Assets; Video Studio retains its existing download control.
+- lab/assets.css keeps Assets video downloads visible without hover; phone overlays are 30px with 15px glyphs, desktop sizing unchanged.
+- lab/video-refresh.css shrinks phone Video History's visible icon to 26px, retaining its transparent 44px target.
+- lab/studio.html refreshes affected JS and stylesheet cache markers.
+- Pending/failed/outputless jobs have no overlay. Selection mode hides it. No payment, generation, provider or account changes.
+- Existing tests/lab-image-viewer-browser.mjs extended for production native Assets skin, 1440/390px, visibility, phone sizing, Favorite separation, original MP4 download, no playback, selection mode.
+- Local approved Image contract: 5 passed. Scoped Video unit tests: 20 passed. Syntax and whitespace pass.
+- Local browser checks passed for all six combinations: 1440/390px × landscape/portrait/square, including the Assets original-MP4 download regression.
+- Implementation commit: 03b4a6d0. No source published and no deployment started.
+- Push to fix/assets-video-download-compact-mobile was rejected by automatic approval review: external publication requires explicit destination/payload authorization.
+- Next: obtain explicit authorization to push these six scoped files to parallelvisionberlin/parallelvisionberlin.github.io, then PR, required checks, merge and Cloudflare verification. Do not claim live.
+
+
 ## Current: separate phone card controls (2026-10-21)
 - User reference: IMG_7915.png. Scope explicitly limited to phone cards, <=640px.
 - Source baseline: 8a5be639a5b6ddf50f7622880fc0d1a9b1c4e605.

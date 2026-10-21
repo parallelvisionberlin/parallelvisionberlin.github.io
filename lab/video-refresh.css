@@ -315,3 +315,10 @@
   #app.video-studio-active .video-feed-center #history:not(.is-selecting) .card[data-kind="video"] .cardbody .cardactions:has(>.result-download){top:-44px;right:4px}
   #app.video-studio-active .video-feed-center #history .card[data-kind="video"]>.asset-video-badge{display:none!important}
 }
+
+@media(max-width:640px){
+  /* Smaller visible control; retain the existing transparent tap area. */
+  #app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardactions>.result-download:before{
+    width:26px;height:26px;background-size:14px 14px;
+  }
+}
