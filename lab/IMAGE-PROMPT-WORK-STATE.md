@@ -5,7 +5,8 @@
 - User requested only exchanging these two Inspiration card positions.
 - Both public and shared customer/Owner markup in `lab/studio.html` now place Chrome Couture fifth and Cloud Spa seventh. All other cards keep their positions; card assets, labels, prompt recipes, layout, controls and providers are unchanged.
 - Existing carousel order expectation is updated to the explicitly approved sequence. Scope is HTML order, that assertion and this checkpoint only.
-- Baseline main: `36a85285dda033b45cd0b7ccc8f8a91d305a310c`. Nine existing Image contract/carousel tests and the mobile Mood/click/arrow browser suite pass. Publication and production order verification are pending.
+- Baseline main: `36a85285dda033b45cd0b7ccc8f8a91d305a310c`. Nine existing Image contract/carousel tests and the mobile Mood/click/arrow browser suite pass.
+- Published source: `906fd42ca9cf9042d56042d7434c2345790645dc`. The Cloudflare Pages check completed successfully (check 119367790908); the required approved Image UI check also passed. Actual pvlab.studio/studio browser DOM confirms Chrome Couture fifth and Cloud Spa seventh in both public and shared account card lists. The public view was observed; the account list was verified in delivered DOM without logging into a real customer session. No implementation or publication step remains for this swap.
 
 ## Active: stronger shared Image entrance title (2026-10-21)
 
