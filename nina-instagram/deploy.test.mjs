@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { deploy } from './deploy.mjs';
 
-const source = "const PUBLIC_RELEASE_ID = 'public-paced-2026-10-21'; const NINA_DIALOGUE_REVISION = 'natural-dms-2026-10-21'; export default {};";
+const source = "const PUBLIC_RELEASE_ID = 'public-paced-2026-10-21'; const NINA_DIALOGUE_REVISION = 'natural-dms-2026-10-21'; const NINA_PACING_REVISION = 'adaptive-dms-2026-10-22'; export default {};";
 const required = [
   { name: 'AI', type: 'ai' }, { name: 'IG_MEMORY_DB', type: 'd1', id: 'test-database' },
   { name: 'OWNER_VAULT', type: 'service', service: 'nina-instagram-owner-vault' },
@@ -10,9 +10,10 @@ const required = [
     .map(name => ({ name, type: 'secret_text' }))
 ];
 const status = { release: 'public-paced-2026-10-21', mode: 'public',
-  dialogueRevision: 'natural-dms-2026-10-21',
+  dialogueRevision: 'natural-dms-2026-10-21', pacingRevision:'adaptive-dms-2026-10-22',
   publicRepliesEnabled: true, publicVoiceEnabled: true, firstReplyMinutes: [10, 120],
-  activeReplySeconds: 120, quickReplyLimit: 6, idleResetMinutes: 30 };
+  activeReplySeconds: 120, activeReplyMinutes:[2,5], quickReplyLimit:null, idleResetMinutes:null,
+  pacingBandsMinutes:[{ninaWait:[2,5]},{ninaWait:[5,15]},{ninaWait:[10,45]},{ninaWait:[10,120]}] };
 
 function fixture(bindings = required, mutateAfter = false) {
   const calls = []; let uploaded = false;
@@ -64,3 +65,4 @@ test('version annotations can change while runtime configuration remains identic
   const result = await deploy({ token: 'test-token', source, fetchImpl: f.fetchImpl, log() {} });
   assert.deepEqual(result, status);
 });
+

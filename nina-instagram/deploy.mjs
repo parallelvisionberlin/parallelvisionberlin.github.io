@@ -39,6 +39,8 @@ export async function deploy({ token, source, fetchImpl = fetch,
   assert(source?.includes(`const PUBLIC_RELEASE_ID = '${RELEASE}'`), 'Unexpected Worker source');
   const dialogueRevision = source.match(/const NINA_DIALOGUE_REVISION = '([^']+)'/)?.[1];
   assert(dialogueRevision, 'Worker dialogue revision is missing');
+  const pacingRevision = source.match(/const NINA_PACING_REVISION = '([^']+)'/)?.[1];
+  assert(pacingRevision, 'Worker pacing revision is missing');
   const headers = { Authorization: 'Bearer ' + token };
   async function api(path, options = {}) {
     const response = await fetchImpl(ROOT + path, {
@@ -87,12 +89,14 @@ export async function deploy({ token, source, fetchImpl = fetch,
   for (let attempt = 0; attempt < 30; attempt++) {
     const response = await fetchImpl(HEALTH, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     const status = await response.json().catch(() => null);
-    if (response.ok && status?.release === RELEASE && status.dialogueRevision === dialogueRevision && status.mode === 'public' &&
+    if (response.ok && status?.release === RELEASE && status.dialogueRevision === dialogueRevision && status.pacingRevision === pacingRevision && status.mode === 'public' &&
         status.publicRepliesEnabled === true && status.publicVoiceEnabled === true) {
       assert.deepEqual(status.firstReplyMinutes, [10, 120]);
       assert.equal(status.activeReplySeconds, 120);
-      assert.equal(status.quickReplyLimit, 6);
-      assert.equal(status.idleResetMinutes, 30);
+      assert.deepEqual(status.activeReplyMinutes, [2, 5]);
+      assert.equal(status.quickReplyLimit, null);
+      assert.equal(status.idleResetMinutes, null);
+      assert.deepEqual(status.pacingBandsMinutes.map(b => b.ninaWait), [[2,5],[5,15],[10,45],[10,120]]);
       log('PUBLIC_RELEASE_VERIFIED', JSON.stringify(status));
       const result = await api('/deployments');
       const deployments = Array.isArray(result) ? result : (result.deployments || []);
@@ -116,3 +120,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exitCode = 1;
   }
 }
+

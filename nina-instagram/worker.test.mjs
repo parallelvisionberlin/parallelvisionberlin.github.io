@@ -5,6 +5,53 @@ import { webcrypto } from 'node:crypto';
 import vm from 'node:vm';
 import test from 'node:test';
 
+test('reply timing follows the time taken by the visitor, including old contacts', async () => {
+  for (const [elapsed,min,max] of [[20,120,300],[300,120,300],[301,300,900],[1800,300,900],[1801,600,2700],[7200,600,2700],[7201,600,7200]]) {
+    const h=harness();
+    await h.hooks.initializePublicRelease(h.env);
+    const sentAt=h.now();
+    h.sql.prepare("INSERT INTO ig_reply_sessions(instagram_user_id,active_until,last_outgoing_message_id) VALUES('123456',?,'previous')").run(sentAt+1800);
+    h.advance(elapsed);
+    await h.incoming('123456','Ya volví');
+    const delay=h.job('123456').due_at-h.now();
+    assert(delay>=min && delay<=max, `${elapsed}s visitor delay gave ${delay}s wait`);
+  }
+  const h=harness();
+  h.sql.exec("INSERT INTO ig_messages(message_id,instagram_user_id,direction,body) VALUES('legacy-sent','123456','outgoing','Hola')");
+  await h.incoming();
+  assert(h.job('123456').due_at-h.now()>=120 && h.job('123456').due_at-h.now()<=300);
+});
+
+test('fast message bursts keep a fixed deadline within five minutes', async () => {
+  const h=harness(); await h.incoming();
+  h.setTime(h.job('123456').due_at);await h.cron();
+  await h.incoming('123456','Primera parte');
+  const start=h.now(), due=h.job('123456').due_at;
+  h.advance(20);await h.incoming('123456','Segunda parte');
+  assert.equal(h.job('123456').due_at,due);
+  h.setTime(start+290);await h.incoming('123456','Última parte');
+  assert(h.job('123456').due_at<=start+300);
+});
+
+test('profile lookup failure retries after five minutes and successful names reach the prompt', async () => {
+  const h=harness();await h.incoming();
+  let lookups=0;
+  h.env.fetchImpl=async()=>{lookups++;return Response.json({error:{code:100}},{status:400});};
+  await h.hooks.refreshInstagramProfile(h.env,'123456');
+  h.advance(60);await h.hooks.refreshInstagramProfile(h.env,'123456');
+  assert.equal(lookups,1);
+  h.advance(241);
+  h.env.fetchImpl=async()=>{lookups++;return Response.json({username:'lena_music',name:'Lena'});};
+  await h.hooks.refreshInstagramProfile(h.env,'123456');
+  assert.equal(lookups,2);
+  assert.equal(h.one('SELECT ig_display_name FROM ig_contacts').ig_display_name,'Lena');
+  h.env.fetchImpl=undefined;
+  h.setTime(h.job('123456').due_at);await h.cron();
+  const prompt=h.effects.models[0].input.messages[0].content;
+  assert(prompt.includes('Lena') && prompt.includes('lena_music'));
+  assert(!prompt.includes('PRIVATE_OWNER_TEST_MARKER'));
+});
+
 test('failed audio gets one paced, short acknowledgment without a model call', async () => {
   const h = harness({fetchImpl: async () => Response.json({error:{code:100}},{status:400})});
   await h.hooks.ninaHandleVoice(h.env,{senderId:'123456',messageId:'bad-audio',audio:{url:''}});
@@ -173,7 +220,7 @@ function harness(overrides = {}, existingDb) {
     }
   });
   vm.runInContext(source.replace('export default {', 'const worker = {') +
-    '\nglobalThis.hooks={worker,initializePublicRelease,queueHumanPacedReply,storeAndDraft,ninaHandleVoice,visitorReplyPlan,ownerContinuity,ninaTurnGuidance,needsNinaRewrite,ninaTranscribeVoice,ninaRecoverFailedVoice,ninaDownloadVoice,ninaSafeVoiceUrl};', context);
+    '\nglobalThis.hooks={worker,initializePublicRelease,queueHumanPacedReply,storeAndDraft,ninaHandleVoice,visitorReplyPlan,ownerContinuity,ninaTurnGuidance,needsNinaRewrite,ninaTranscribeVoice,ninaRecoverFailedVoice,ninaDownloadVoice,ninaSafeVoiceUrl,refreshInstagramProfile};', context);
   const hooks = context.hooks;
   const one = (q, ...args) => sql.prepare(q).get(...args);
   const job = sender => one('SELECT * FROM ig_reply_jobs WHERE instagram_user_id=?', sender);
@@ -204,7 +251,7 @@ function harness(overrides = {}, existingDb) {
     advance: seconds => { clock += seconds * 1000; } };
 }
 
-test('signed public conversation waits, delivers once, then allows six quick replies', async () => {
+test('signed public conversation waits, delivers once, then keeps a fast conversation at two to five minutes', async () => {
   const h = harness();
   const start = h.now();
   const id = await h.incoming();
@@ -220,19 +267,21 @@ test('signed public conversation waits, delivers once, then allows six quick rep
   h.advance(1); await h.cron(); await h.cron();
   assert.equal(h.effects.sends.length, 1);
   assert.equal(h.session('123456').quick_replies_used, 0);
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 8; i++) {
+    // SQLite uses real time while the harness advances by minutes.
+    h.sql.exec("UPDATE ig_send_attempts SET created_at=datetime('now','-2 minutes')");
     h.advance(15); const received = h.now();
     await h.incoming('123456', 'Seguimos hablando ' + i);
     job = h.job('123456');
     assert.equal(h.session('123456').pending_phase, 'active');
-    assert(job.due_at - received >= 90 && job.due_at - received <= 150);
+    assert(job.due_at - received >= 120 && job.due_at - received <= 300);
     h.setTime(job.due_at); await h.cron();
     assert.equal(h.session('123456').quick_replies_used, i);
     assert.equal(h.effects.sends.length, i + 1);
   }
   await h.incoming('123456', 'Otro tema');
-  assert.equal(h.session('123456').pending_phase, 'initial');
-  assert(h.job('123456').due_at - h.now() >= 600);
+  assert.equal(h.session('123456').pending_phase, 'active');
+  assert(h.job('123456').due_at - h.now() >= 120);
   assert.equal(h.effects.vault.length, 0);
   const health = await h.hooks.worker.fetch(new Request('https://worker.test/health'), h.env, {});
   const status = await health.json();
@@ -259,7 +308,7 @@ test('message bursts coalesce without extending the initial wait indefinitely', 
   assert(turns.some(x => x.content === 'Segunda parte'));
 });
 
-test('inactivity resets pacing and stale pending active jobs do not answer instantly', async () => {
+test('slower users get longer waits and stale pending jobs do not answer instantly', async () => {
   const h = harness(); await h.incoming();
   h.setTime(h.job('123456').due_at); await h.cron();
   await h.incoming('123456', 'Todavía aquí');
@@ -417,4 +466,5 @@ test('a correct Workroom correction is accepted without another model call', asy
   assert.equal(calls, 1);
   assert.match(h.effects.sends[0].message.text, /no es mi estudio/);
 });
+
 
