@@ -27,16 +27,14 @@ window.AM_ARCHIVE = {
       subtitle: 'Interior studies',
       images: [
         { src: 'assets/after-hours-01.jpeg', caption: 'Interior study no. 01', alt: 'Soft-focus study of a figure in a dim room' },
-        { src: 'assets/after-hours-02.jpeg', caption: 'Interior study no. 02', alt: 'Portrait near a pale wall in warm light' },
-        { src: 'assets/after-hours-03.jpeg', caption: 'Interior study no. 03', alt: 'Reclining figure photographed in cool interior light' },
-        { src: 'assets/after-hours-04.jpeg', caption: 'Interior study no. 04', alt: 'Double portrait near a pale wall' },
-        { src: 'assets/after-hours/88527B82-2E4D-4C5F-9ECA-797D8812928A.JPG', caption: 'Interior study no. 05', alt: 'Soft-focus double portrait against a pale wall' },
-        { src: 'assets/after-hours/8009CDF7-A7F7-4BED-A072-42FD16494B3C.JPG', caption: 'Interior study no. 06', alt: 'Close double portrait beside a white radiator' },
-        { src: 'assets/after-hours/E0E4E219-9BC0-47A3-8D90-1F37359AE1BA.JPG', caption: 'Interior study no. 07', alt: 'Blurred portrait of a figure turning beside a window and white door' },
-        { src: 'assets/after-hours/IMG_27231.jpg', caption: 'Interior study no. 08', alt: 'Figure seen from behind with pale and blue flowers in a candlelit room' },
-        { src: 'assets/after-hours/IMG_2687.jpg', caption: 'Interior study no. 09', alt: 'Warmly lit reflection of a figure in an interior mirror' },
-        { src: 'assets/after-hours/IMG_1246.JPG', caption: 'Interior study no. 10', alt: 'Portrait of a figure turning beside a mirror in a softly lit room' },
-        { src: 'assets/after-hours/IMG_7981.jpg', caption: 'Interior study no. 11', alt: 'Figure seen from behind beside a bright vertical doorway light' }
+        { src: 'assets/after-hours-03.jpeg', caption: 'Interior study no. 02', alt: 'Reclining figure photographed in cool interior light' },
+        { src: 'assets/after-hours/88527B82-2E4D-4C5F-9ECA-797D8812928A.JPG', caption: 'Interior study no. 03', alt: 'Soft-focus double portrait against a pale wall' },
+        { src: 'assets/after-hours/8009CDF7-A7F7-4BED-A072-42FD16494B3C.JPG', caption: 'Interior study no. 04', alt: 'Close double portrait beside a white radiator' },
+        { src: 'assets/after-hours/E0E4E219-9BC0-47A3-8D90-1F37359AE1BA.JPG', caption: 'Interior study no. 05', alt: 'Blurred portrait of a figure turning beside a window and white door' },
+        { src: 'assets/after-hours/IMG_27231.jpg', caption: 'Interior study no. 06', alt: 'Figure seen from behind with pale and blue flowers in a candlelit room' },
+        { src: 'assets/after-hours/IMG_2687.jpg', caption: 'Interior study no. 07', alt: 'Warmly lit reflection of a figure in an interior mirror' },
+        { src: 'assets/after-hours/IMG_1246.JPG', caption: 'Interior study no. 08', alt: 'Portrait of a figure turning beside a mirror in a softly lit room' },
+        { src: 'assets/after-hours/IMG_7981.jpg', caption: 'Interior study no. 09', alt: 'Figure seen from behind beside a bright vertical doorway light' }
       ]
     },
     {
