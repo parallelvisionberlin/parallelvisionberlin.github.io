@@ -36,6 +36,7 @@ async function setup(width,customer=true,overrides={}){
     if(url.pathname==='/api/migration/new'&&request.method()==='POST'){
       initialized=true;return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({linked:true,kind:'customer'})});
     }
+    if(url.pathname==='/api/quotes'&&overrides.previewFundingError)return route.fulfill({status:402,contentType:'application/json',body:JSON.stringify({error:'Insufficient credits.'})});
     if(url.pathname==='/api/customer/wallet'){
       if(heldWallet)await heldWallet;
       return send({...session,activity:[{delta_credits:-42,kind:'generation',created_at:1720000000000},{delta_credits:1000,kind:'purchase',created_at:1719000000000}]});
@@ -168,24 +169,52 @@ try{
   // A newly verified customer has no free generation privilege while trials
   // are paused. They may still prepare an image, then explicitly open pricing
   // through Generate without any provider or Stripe request.
-  {
-    const rig=await setup(1440,true,{balanceCredits:0,generationReady:false,trialGenerationPaused:true,billingReady:true});
+  for(const width of [1440,390])for(const generationReady of [false,true]){
+    const rig=await setup(width,true,{balanceCredits:0,generationReady,trialGenerationPaused:!generationReady,billingReady:true});
     const {page,writes,errors}=rig;
     try{
       await page.goto(origin+'/lab/studio.html?tool=image');
       await page.locator('#app').waitFor({state:'visible'});
+      assert.doesNotMatch(await page.locator('#lab-welcome-start').innerText(),/complimentary generation is paused/i);
+      const card=page.locator('[data-welcome-mood="dream-blur"]');
+      await card.click();
+      await page.waitForTimeout(1000);
+      assert.equal(await card.getAttribute('aria-pressed'),'true','A zero-credit account can select its Mood');
+      assert.ok(await page.locator('#image-composer-prompt').inputValue(),'Mood fills the editable draft');
+      assert.equal(await page.locator('#lab-pricing-overlay').evaluate(el=>el.open),false,'Mood selection never opens pricing');
+      assert.equal(writes.some(x=>['/api/quotes','/api/uploads','/api/jobs','/api/billing/checkout'].includes(x.path)),false,'Preparing a zero-credit Mood does not call a paid route');
       const direction='An editorial portrait with natural film grain, quiet shadows and real fabric texture.';
       await page.locator('#image-composer-prompt').fill(direction);
       await page.waitForFunction(()=>!document.getElementById('image-composer-generate').disabled);
       await page.locator('#image-composer-generate').click();
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
       assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6);
+      assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-monthly').getAttribute('aria-selected'),'true','Generate starts with the compact monthly comparison');
       assert.equal(await page.locator('#image-composer-prompt').inputValue(),direction,
         "Pricing must preserve the customer's drafted creative direction");
       assert.equal(writes.some(x=>['/api/billing/checkout','/api/jobs','/api/quotes','/api/uploads'].includes(x.path)),false,
         'Paused trial Generate previews plans without a payment, generation, or upload');
       await page.locator('#lab-pricing-overlay-close').click();
       assert.equal(await page.locator('#image-composer-prompt').inputValue(),direction);
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
+  }
+  // A stale funded session can receive a funding error on its background
+  // price preview. Only the later explicit Generate action may open plans.
+  {
+    const rig=await setup(1440,true,{previewFundingError:true}),{page,writes,errors}=rig;
+    try{
+      await page.goto(origin+'/lab/studio.html?tool=image');
+      await page.locator('#app').waitFor({state:'visible'});
+      await page.locator('[data-welcome-mood="dream-blur"]').click();
+      await page.waitForFunction(()=>document.getElementById('generate').title.includes('Choose credits'),{},{timeout:15000});
+      assert.ok(writes.some(x=>x.path==='/api/quotes'),'A background quote received the simulated funding error');
+      assert.equal(await page.locator('#lab-pricing-overlay').evaluate(el=>el.open),false,'A failed background quote never interrupts Mood exploration');
+      const draft=await page.locator('#image-composer-prompt').inputValue();
+      await page.locator('#image-composer-generate').click();
+      await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
+      assert.equal(await page.locator('#image-composer-prompt').inputValue(),draft);
+      assert.equal(writes.some(x=>['/api/jobs','/api/billing/checkout'].includes(x.path)),false,'No unpaid job or automatic checkout');
       assert.deepEqual(errors,[]);
     }finally{await rig.context.close();}
   }
