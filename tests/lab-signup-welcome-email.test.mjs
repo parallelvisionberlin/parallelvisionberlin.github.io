@@ -63,7 +63,7 @@ test('selected welcome email is an accessible HTML message with first-party edit
   assert.match(m.html,/<a href="https:\/\/pvlab\.studio\/"[^>]*>Enter the studio<\/a>/);
   assert.match(m.html,/<a href="https:\/\/pvlab\.studio\/"[^>]*><img/);
   assert.doesNotMatch(m.html+m.text,/https:\/\/pvlab\.studio\/studio\.html/);
-  assert.match(m.html,/Your creative space/);
+  assert.match(m.html,/Your creative<br>space is ready\./);
   assert.match(m.html,/Begin with a feeling/);
   assert.match(m.html,/background:#080808/);
   assert.match(m.text,/because you created a PV LAB account/);
