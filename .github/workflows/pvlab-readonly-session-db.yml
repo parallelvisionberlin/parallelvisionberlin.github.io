@@ -12,6 +12,8 @@ jobs:
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: lab-worker
       - name: Check authenticated-session table dependencies (read-only)
         working-directory: lab-worker
         env:
@@ -29,6 +31,19 @@ jobs:
           echo 'SAMPLE_SESSION_JOIN (SELECT constant only; no IDs, emails, balances)'
           npx --yes wrangler@4 d1 execute parallel-vision-lab --remote --json --command "SELECT 1 AS session_join_valid FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id LEFT JOIN lab_promo_generation_holds h ON h.customer_id=c.id WHERE c.id=(SELECT id FROM lab_customers LIMIT 1) LIMIT 1;"
 
+      - name: Inspect scheduled sync configuration (read-only)
+        env:
+          RAW_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          const token=process.env.RAW_CLOUDFLARE_API_TOKEN.replace(/\\s/g,'');
+          const response=await fetch('https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/workers/scripts/parallel-vision-lab/schedules',{headers:{Authorization:'Bearer '+token}});
+          const body=await response.json();
+          if(!response.ok||!body.success)throw new Error('Unable to read Worker schedules: HTTP '+response.status);
+          const schedules=body.result?.schedules||[];
+          console.log('Production Worker five-minute schedule present:',schedules.some(x=>x.cron==='*/5 * * * *'));
+          JS
       - name: Verify live wallet, refund and Control Room sync invariants without exposing customer data
         working-directory: lab-worker
         env:
