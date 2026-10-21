@@ -66,7 +66,8 @@
     // Keep the public entrance compact at rest, then open the same unframed
     // writing instrument on focus, when typing, or when photos are selected.
     const guestNeedsSpace=kind==='guest'&&
-      (hasPrompt||(active&&emptyGuestFocus));
+      (welcomeWidth.matches?(active||realPromptNeedsSpace(surface,field)):
+        (hasPrompt||(active&&emptyGuestFocus)));
     const isSoul=kind==='real'&&surface.classList.contains('is-pv-soul');
     const realNeedsSpace=kind==='real'&&!isSoul&&!hasRefs&&
       realPromptNeedsSpace(surface,field);
@@ -89,7 +90,7 @@
       guestField.style.height='';
       return;
     }
-    const minimum=small.matches?104:50,maximum=small.matches?132:150;
+    const minimum=small.matches?104:50,maximum=small.matches?132:176;
     // Measure from a known minimum, never the previous long height.
     guestField.style.height=minimum+'px';
     guestField.style.height=Math.min(maximum,Math.max(minimum,guestField.scrollHeight))+'px';

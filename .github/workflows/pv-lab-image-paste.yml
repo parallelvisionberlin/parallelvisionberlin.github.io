@@ -5,6 +5,7 @@ on:
     paths:
       - 'lab/image-composer-stable.css'
       - 'lab/image-editorial-deck.css'
+      - 'lab/image-deck-surface.css'
       - 'lab/image-editorial-deck.js'
       - 'lab/lab.js'
       - 'lab/studio.html'
@@ -14,6 +15,7 @@ on:
     paths:
       - 'lab/image-composer-stable.css'
       - 'lab/image-editorial-deck.css'
+      - 'lab/image-deck-surface.css'
       - 'lab/image-editorial-deck.js'
       - 'lab/lab.js'
       - 'lab/studio.html'
