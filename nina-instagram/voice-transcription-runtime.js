@@ -122,14 +122,14 @@ async function ninaTranscribeVoice(env, item) {
 async function ninaHandleVoice(env, item) {
   const db = env.IG_MEMORY_DB;
   if (!db || !env.AI) return;
+  await initializePublicRelease(env);
   const config = await db.prepare('SELECT mode FROM ig_autoreply_config WHERE id=1').first();
   // No audio is fetched from strangers during the controlled tester phase.
   if (config?.mode === 'tester') {
     const tester = await db.prepare('SELECT 1 AS ok FROM ig_autoreply_testers WHERE instagram_user_id=?')
       .bind(item.senderId).first();
     if (!tester?.ok) return;
-  } else if (!(config?.mode === 'public' && env.NINA_PUBLIC_DM_ENABLED === 'true' &&
-               env.NINA_PUBLIC_VOICE_ENABLED === 'true')) return;
+  } else if (!(config?.mode === 'public' && publicVoiceEnabled(env))) return;
   if (await db.prepare('SELECT 1 FROM ig_optouts WHERE instagram_user_id=?').bind(item.senderId).first()) return;
   await db.prepare('INSERT INTO ig_contacts (instagram_user_id) VALUES (?) ON CONFLICT(instagram_user_id) DO UPDATE SET last_seen_at=CURRENT_TIMESTAMP')
     .bind(item.senderId).run();
