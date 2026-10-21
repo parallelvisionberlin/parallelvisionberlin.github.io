@@ -151,18 +151,67 @@ composer?.addEventListener('submit',event=>{
   event.preventDefault();
   requestSignIn();
 });
-// Other tool tabs require an account. Keep the public Image preview visible
-// when the visitor cancels sign-in; their selected tool opens after login.
+// Keep a requested public tool on its own route. The signed-out gate used to
+// render Image for ALL destinations, including Video and Upscaler, obscuring
+// what the visitor actually chose. Image's approved guest deck is unchanged.
+const guestToolPages=Object.freeze({
+  image:{name:'Image',title:'Start with a feeling.',description:'Choose a mood or imagine your own.'},
+  video:{name:'Video',title:'Video Studio',description:'Create motion from a prompt, starting frame, or reference media.'},
+  upscale:{name:'Upscaler',title:'Upscaler',description:'Enlarge and restore photographic detail in your own images.'},
+  retouch:{name:'Retouch',title:'Retouch',description:'Make selected changes to a photograph while keeping the original.'},
+  fashion:{name:'Fashion',title:'Fashion Studio',description:'Open your fashion-focused creative workspace.'},
+  assets:{name:'Assets',title:'Your Assets',description:'Find your private photographs, generated images, and videos.'}
+});
+const guestContent=gate?.querySelector('.pv-guest-content');
+const guestTitle=document.getElementById('pv-guest-title');
+const guestKicker=guestContent?.querySelector('.pv-guest-kicker');
+const guestSubtitle=guestContent?.querySelector('.pv-guest-subtitle');
+const guestToolPanel=document.createElement('section');
+guestToolPanel.id='pv-guest-selected-tool';
+guestToolPanel.className='pv-guest-selected-tool';
+guestToolPanel.hidden=true;
+const guestToolNote=document.createElement('p');
+const guestToolAction=document.createElement('button');
+guestToolAction.type='button';
+guestToolAction.addEventListener('click',requestSignIn);
+guestToolPanel.append(guestToolNote,guestToolAction);
+guestSubtitle?.after(guestToolPanel);
+function syncGuestToolRoute(){
+  if(!gate||gate.hidden)return;
+  const requested=new URLSearchParams(location.search).get('tool')||'image';
+  const route=Object.hasOwn(guestToolPages,requested)?requested:'image';
+  const entry=guestToolPages[route];
+  gate.dataset.guestTool=route;
+  guestKicker.textContent='PV LAB / '+entry.name.toUpperCase();
+  guestTitle.textContent=entry.title;
+  guestSubtitle.textContent=entry.description;
+  guestToolPanel.hidden=route==='image';
+  if(route!=='image'){
+    guestToolNote.textContent='Sign in to open '+entry.name+'. Your account and saved work remain private.';
+    guestToolAction.textContent='Sign in to '+entry.name;
+  }
+  for(const button of document.querySelectorAll('#studio-header .tool-tab')){
+    const current=button.id==='tool-'+route;
+    button.classList.toggle('active',current);
+    button.setAttribute('aria-pressed',String(current));
+  }
+}
+// A guest may examine another tool before deciding to sign in. Do not force
+// the sign-in modal or navigate them back to Image on every toolbar click.
 document.querySelectorAll('#studio-header .tool-tab').forEach(button=>{
-  if(button.id==='tool-image')return;
   button.addEventListener('click',event=>{
     if(!gate||gate.hidden)return;
+    const selected=button.id.replace(/^tool-/,'');
+    if(!Object.hasOwn(guestToolPages,selected))return;
     event.preventDefault();event.stopImmediatePropagation();
-    const tool=button.id.replace(/^tool-/,'');
     const url=new URL(location.href);
-    url.searchParams.set('tool',tool);
-    history.replaceState(history.state,'',url);
-    const signIn=document.getElementById('signin');
-    if(signIn&&!signIn.disabled)signIn.click();
+    if(url.searchParams.get('tool')!==selected){
+      url.searchParams.set('tool',selected);
+      history.pushState(history.state,'',url);
+    }
+    syncGuestToolRoute();
   },true);
 });
+if(gate)new MutationObserver(syncGuestToolRoute).observe(gate,{attributes:true,attributeFilter:['hidden']});
+window.addEventListener('popstate',syncGuestToolRoute);
+syncGuestToolRoute();
