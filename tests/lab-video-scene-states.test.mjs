@@ -74,7 +74,9 @@ test('live Scene details and empty-state illustration are not fake generated res
   assert.match(js,/if\(!visible\)return/,'example visuals disappear when viewing History or uploads');
   assert.match(js,/referenceList\.querySelectorAll\('\.reference-item'\)/);
   assert.match(js,/img\.src=item\.src/,'current references use the already attached real images');
-  assert.match(app,/const sceneFoot=\$\('pv-video-sidebar-footnote'\)/,
+  assert.doesNotMatch(app,/\$\('video-inspector-empty'\)\.textContent\s*=/,
+    'sending status must preserve the current-scene child controls');
+  assert.match(app,/const sceneFoot=\$\('video-inspector-empty'\)\.querySelector\('\.pv-video-sidebar-footnote'\)/,
     'the actual live scene inspector is not wiped on null selection');
   assert.doesNotMatch(js,/fetch\s*\(|\/api\/jobs|\/api\/quotes|confirm:|creditCost|apiKey/,
     'presentation never initiates generation, billing or private API access');
