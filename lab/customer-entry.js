@@ -2,7 +2,7 @@ import {createAccountMenu} from './account-menu.js?v=20261018-agency-preview1&cl
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261015-standalone1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
-import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
+import {createSessionRequest} from './session-request.js?v=20261021-home-signin1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 const $=id=>document.getElementById(id);

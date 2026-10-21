@@ -21,18 +21,21 @@ const clerkMock=`export class Clerk {
 }`;
 async function setup(width,customer=true,overrides={}){
   const context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage();
-  const errors=[],writes=[];let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)';
+  const errors=[],writes=[];let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',initialized=!overrides.newCustomer;
   page.on('pageerror',e=>errors.push(e.message));
   const session={customer,ownerId:'user_Test',balanceCredits:1234,billingReady:true,generationReady:true,products,subscription:{plan_id:null,status:'none'},config:{enabled:true,configured:true,concurrency:{image:4,video:1},videoEngines:['wan']},...overrides};
   await page.route('https://**/*',async route=>{
     const request=route.request(),url=new URL(request.url());
     if(url.hostname==='esm.sh'&&url.pathname.includes('clerk-js'))return route.fulfill({contentType:'text/javascript',body:clerkMock});
-    if(url.hostname==='clerk.parallelvisionlabel.com')return route.fulfill({contentType:'text/javascript',body:''});
+    if(url.hostname==='clerk.parallelvisionlabel.com'||url.hostname==='clerk.pvlab.studio')return route.fulfill({contentType:'text/javascript',body:''});
     if(url.hostname==='checkout.stripe.com')return route.fulfill({contentType:'text/html',body:'<h1>Intercepted checkout test</h1>'});
     if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
     if(request.method()!=='GET')writes.push({path:url.pathname,body:request.postData()});
     const send=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
-    if(url.pathname==='/api/session')return send(session);
+    if(url.pathname==='/api/session')return initialized?send(session):route.fulfill({status:409,headers:{'X-PV-Lab-Onboarding':'required','Access-Control-Expose-Headers':'X-PV-Lab-Onboarding'},contentType:'application/json',body:JSON.stringify({error:'Setup required.'})});
+    if(url.pathname==='/api/migration/new'&&request.method()==='POST'){
+      initialized=true;return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({linked:true,kind:'customer'})});
+    }
     if(url.pathname==='/api/customer/wallet'){
       if(heldWallet)await heldWallet;
       return send({...session,activity:[{delta_credits:-42,kind:'generation',created_at:1720000000000},{delta_credits:1000,kind:'purchase',created_at:1719000000000}]});
@@ -59,6 +62,25 @@ async function fits(page,label){
     label+' must not scroll horizontally: '+JSON.stringify(metrics));
 }
 try{
+  // Real homepage URL, local source and synthetic Clerk/API only. Fresh setup
+  // must not navigate to Studio or discard an existing pricing anchor.
+  for(const width of [1440,390]){
+    const rig=await setup(width,true,{newCustomer:true,balanceCredits:0}),{page,writes,errors}=rig;
+    try{
+      await page.route('https://pvlab.studio/**',async route=>{
+        const url=new URL(route.request().url());
+        const path=url.pathname.startsWith('/lab/')?url.pathname:'/lab'+url.pathname;
+        return route.fulfill({response:await route.fetch({url:origin+path+url.search})});
+      });
+      await page.goto('https://pvlab.studio/?source=google#pricing');
+      await page.locator('[data-account-phase="ready"]').waitFor();
+      await page.waitForFunction(()=>document.getElementById('lab-home-credit-copy').textContent==='0');
+      assert.equal(page.url(),'https://pvlab.studio/?source=google#pricing','Fresh login stays on homepage');
+      assert.equal(writes.filter(x=>x.path==='/api/migration/new').length,1,'Wallet is initialized once');
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
+  }
+  console.log('PASS fresh homepage sign-in stays in place at desktop/mobile widths');
   // Homepage purchases: every arrow responds next to its product, with no real payment.
   for(const width of [1440,390]){
     for(const customer of [false,true]){
