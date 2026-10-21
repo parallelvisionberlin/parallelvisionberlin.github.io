@@ -1,0 +1,23 @@
+name: Diagnose Nina Instagram
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'nina-instagram/diagnose.mjs'
+      - '.github/workflows/diagnose-nina-instagram.yml'
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Read operational status without transcripts
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node nina-instagram/diagnose.mjs
