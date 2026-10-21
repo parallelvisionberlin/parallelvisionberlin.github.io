@@ -207,3 +207,18 @@
 - Current code has 19 successful PR workflows, including account 39576002029 and Explore Generate 39576002192; first-image run 39576002281 is still in actions/checkout, not a test failure. Earlier same-production-code first-image run passed.
 - Deployment: PR remains open and unmerged. No authenticated deployed-site behavior, payment or paid generation was verified in this investigation.
 - Next action: finish the pending checkout/test run, review PR, then separately verify hosting and real customer identities before claiming customer issues fixed live.
+
+## Published verification, 2026-10-21 (Europe/Berlin)
+- PR #377 merged at 09:26:32 UTC / 11:26:32 Berlin into main as 1abf77edd3330f18adbda8abad073867adcb39eb.
+- Supersedes the earlier OPEN/unmerged status above. No further merge was needed in this verification turn.
+- Verified current main 632fe303199031ce5f5a30c0dc69910ed4e48a2b.
+- Direct HTTPS GET https://pvlab.studio/lab.js returned the exact Git blob efb44a89faff520c9baaabbab0df2f98a242341a served by current main.
+- Published code includes explicit closed-account sign-out recovery and preservation/reset of the structured Video inspector.
+- Real cloud-browser visit https://pvlab.studio/studio loaded the seven-look guest Image view and Add photographs locally control.
+- Typed a harmless test direction and selected Green Haze; the exact direction remained intact and no authentication or generation was triggered.
+- Real Sign in click opened Clerk's working Google/email-password modal; this browser has no authenticated PV LAB customer session.
+- Merged-source account 39576985629, mobile 39576985711, first-image 39576985451, pricing 39576985606 and Video 39576985449 workflows passed.
+- Live-domain checks 39576985542 and deployed Studio recovery check 39576985570 passed.
+- Separate asset-library workflow 39576985538 fails its legacy Upscaler canvas-import visibility assertion (tests/lab-assets-ui.cjs:281); dedicated Upscaler browser checks passed before merge. Not changed under this account-release scope.
+- No real customer login/recreated identity, purchase/refund, private Gallery, or paid generation was exercised. These require an authenticated session and remain explicitly unverified.
+- Publication itself is verified on the production custom domain. Next: authenticated customer acceptance test; do not describe a synthetic or public check as a real customer test.
