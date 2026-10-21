@@ -48,6 +48,8 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       const archive=document.querySelector('.archive');
       const card=document.createElement('article');card.className='card';card.dataset.kind='image';card.dataset.job='mock-upscale';
       card.textContent='Completed upscale result';document.getElementById('history').append(card);
+      // A real finished job hides the empty-gallery placeholder.
+      document.getElementById('emptyarchive').hidden=true;
       app.classList.add('upscale-studio-active');
       // Match the authenticated Upscaler view for the isolated mock page.
       document.getElementById('empty-title').textContent='Upscaler';
@@ -99,6 +101,19 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       assert.ok(geometry.results.top>=geometry.canvas.bottom,'Upscaled results follow the preview');
       assert.ok(geometry.results.left>=geometry.canvas.left-5,'Results align with the image stage, not the sidebar');
       assert.ok(geometry.options.left>=geometry.deck.left&&geometry.options.right<=geometry.deck.right,'More options stays inside the left deck');
+      const galleryPeek=await page.evaluate(()=>{
+        const archive=document.querySelector('#app>.archive').getBoundingClientRect();
+        const card=document.querySelector('#history .card').getBoundingClientRect();
+        const preview=document.getElementById('upscale-canvas').getBoundingClientRect();
+        const benefits=document.querySelector('.pv-upscale-benefits').getBoundingClientRect();
+        const center=document.querySelector('.pv-upscale-empty-center').getBoundingClientRect();
+        return {archiveTop:archive.top,cardTop:card.top,previewHeight:preview.height,
+          centerBottom:center.bottom,benefitsTop:benefits.top,viewportHeight:innerHeight};
+      });
+      assert.ok(galleryPeek.archiveTop<galleryPeek.viewportHeight-90,'Real Upscaler gallery heading appears above the fold');
+      assert.ok(galleryPeek.cardTop<galleryPeek.viewportHeight-10,'Top edge of existing result cards peeks into the first desktop viewport');
+      assert.ok(galleryPeek.centerBottom<galleryPeek.benefitsTop,'Drop photo CTA and small benefits never overlap');
+      assert.ok(galleryPeek.previewHeight>=540&&galleryPeek.previewHeight<=700,'Preview retains usable photographic canvas height');
     }else{
       assert.ok(geometry.deck.top>=geometry.canvas.bottom+7,'Mobile shows the image before the settings deck');
       assert.ok(geometry.canvas.height>=415&&geometry.canvas.height<=425,'Narrow mobile preview remains a usable 420px stage');
