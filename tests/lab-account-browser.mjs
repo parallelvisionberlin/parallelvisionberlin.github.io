@@ -37,7 +37,10 @@ async function setup(width,customer=true,overrides={}){
       if(heldWallet)await heldWallet;
       return send({...session,activity:[{delta_credits:-42,kind:'generation',created_at:1720000000000},{delta_credits:1000,kind:'purchase',created_at:1719000000000}]});
     }
-    if(url.pathname==='/api/customer/account'&&request.method()==='DELETE')return route.fulfill({status:202,contentType:'application/json',body:JSON.stringify({accepted:true})});
+    if(url.pathname==='/api/customer/account'&&request.method()==='DELETE'){
+      if(overrides.closureRevokesSession)await page.evaluate(()=>window.mockClerk.signOut());
+      return route.fulfill({status:202,contentType:'application/json',body:JSON.stringify({accepted:true,identityDeleted:true})});
+    }
     if(url.pathname==='/api/customer/account')return send({storage:{bytes:1024**3,limitBytes:20*1024**3,files:15}});
     if(url.pathname==='/api/billing/portal')return send({url:'https://evil.example/stripe.com'});
     if(url.pathname==='/api/billing/checkout'){if(heldCheckout)await heldCheckout;return send({url:checkoutUrl});}
@@ -258,8 +261,8 @@ try{
   }
   // A successful deletion request signs out the same Clerk session and clears
   // the deleted customer's identity and credit balance from the homepage.
-  for(const width of [1440,390]){
-    const rig=await setup(width,true),{page,writes,errors}=rig;
+  for(const [width,closureRevokesSession] of [[1440,false],[390,false],[1440,true],[390,true]]){
+    const rig=await setup(width,true,{closureRevokesSession}),{page,writes,errors}=rig;
     try{
       await page.goto(origin+'/lab/account.html#settings');
       await page.locator('#settings-close-account').waitFor({state:'visible'});

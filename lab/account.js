@@ -1,6 +1,6 @@
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
-import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
+import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1&closure=20261021-immediate1';
 import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261018-agency-preview1&closure=20261017-logout1';
 
 const $=id=>document.getElementById(id);
@@ -236,7 +236,7 @@ $('account-close-confirm').oninput=()=>{$('account-close-submit').disabled=$('ac
 // account UI and end the Clerk session instead of refreshing a closed wallet.
 async function finishAccountClosureSignOut(){
   try{
-    await clerk.signOut();
+    if(clerk.isSignedIn)await clerk.signOut();
     location.replace('./');
   }catch{
     status('Your PV Lab account is closed, but sign-out could not finish.');
@@ -250,18 +250,18 @@ async function finishAccountClosureSignOut(){
 $('account-close-submit').onclick=async()=>{
   const sessionId=clerk?.session?.id;
   $('account-close-submit').disabled=true;
-  $('account-close-status').textContent='Submitting your closure request…';
+  $('account-close-status').textContent='Deleting your account…';
   try{
     const result=await api('/api/customer/account',{method:'DELETE',body:{confirmation:$('account-close-confirm').value}});
     if(result.accepted!==true)throw Error('Account closure was not confirmed. Please try again.');
     // A different user must never be signed out by a stale deletion response.
-    if(!clerk?.isSignedIn||clerk.session?.id!==sessionId)return;
+    if(clerk?.session&&clerk.session.id!==sessionId)return;
     closingAccount=true;
     ++revision;
     clearPrivateView();
     $('account-signin').hidden=true;
     $('account-gate').hidden=true;
-    status('Your PV Lab account is closed. Creative data deletion is queued. Signing you out…');
+    status('Account deletion confirmed. Signing you out…');
     await finishAccountClosureSignOut();
   }catch(error){
     if(clerk?.session?.id===sessionId){

@@ -1,3 +1,4 @@
+import {preserveClosedWelcomeClaim} from './welcome-guard.mjs';
 // PV LAB-only Clerk account termination. Never use the shared/legacy Clerk key.
 // The verified D1 closure is authoritative immediately, even if Clerk or R2
 // experiences an outage. Cron retries ban and final deletion independently.
@@ -122,18 +123,38 @@ export async function finishClosedStudioIdentity(env,id){
   return true;
 }
 
-async function finalizeTask(env,task){
+// An explicitly confirmed deletion must finish the dedicated login before the
+// API reports success. Private media keeps its durable, isolated cleanup task;
+// a new Google subject cannot access that old wallet or storage prefix.
+export async function deleteClosedStudioIdentity(env,id,verifyBilling){
+  const task=await taskForCustomer(env,id);
+  if(task?.state==='complete')return true;
+  if(!task||task.state!=='pending')return false; // Never delete a shared/owner login.
+  try{
+    await verifyLinkedTask(env,task);
+    const customer=await one(env,'SELECT stripe_customer_id FROM lab_customers WHERE id=?',id);
+    if(task.closure_state!=='deleted'&&customer?.stripe_customer_id&&
+      (!verifyBilling||!await verifyBilling(env,customer.stripe_customer_id)))
+      throw Error('Billing clearance is required before account deletion.');
+    await preserveClosedWelcomeClaim(env,id);
+    await finalizeTask(env,task,{confirmedRequest:true});
+    await recordAttempt(env,id);
+    return true;
+  }catch(error){await recordAttempt(env,id,error);throw error;}
+}
+
+async function finalizeTask(env,task,{confirmedRequest=false}={}){
   await verifyLinkedTask(env,task);
   const closure=await one(env,'SELECT state FROM lab_account_closures WHERE customer_id=?',task.customer_id);
-  if(closure?.state!=='deleted')return;
-  // R2 is the private media authority. Never delete the login if an orphan
-  // object survives database cleanup, including an old thumbnail derivative.
-  const leftovers=await env.LAB_MEDIA.list({prefix:task.customer_id+'/',limit:1});
-  if(leftovers.objects?.length||leftovers.truncated)
-    throw Error('PV LAB creative media cleanup is incomplete.');
+  if(!closure||(!confirmedRequest&&closure.state!=='deleted'))return;
+  if(!confirmedRequest){
+    // Scheduled retries retain the existing verified storage-empty guard.
+    const leftovers=await env.LAB_MEDIA.list({prefix:task.customer_id+'/',limit:1});
+    if(leftovers.objects?.length||leftovers.truncated)
+      throw Error('PV LAB creative media cleanup is incomplete.');
+  }
   const key=await studioDeletedSubjectKey(env,task.new_subject);
-  // Ensure a verified legal/billing clearance was recorded by the creative
-  // cleanup process. This task cannot bypass that process.
+  // Billing was verified by creative cleanup or the confirmed deletion path.
   await studioRequest(env,task.new_subject,'DELETE');
   const t=NOW();
   await env.LAB_DB.batch([

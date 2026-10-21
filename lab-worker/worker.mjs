@@ -3,7 +3,7 @@ import {checkCustomerPromptSafety} from './prompt-safety.mjs';
 import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook.mjs';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
-import {banClosedStudioIdentity,finishClosedStudioIdentity,processStudioIdentityDeletions} from './studio-identity-deletion.mjs';
+import {deleteClosedStudioIdentity,finishClosedStudioIdentity,processStudioIdentityDeletions} from './studio-identity-deletion.mjs';
 import {processSignupWelcomeEmails} from './signup-welcome-email.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
@@ -51,7 +51,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-21.3-account-delete-no-ban';
+export const VERSION = 'pv-lab-2026-10-21.4-immediate-account-delete';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1393,11 +1393,17 @@ async function route(request,env,ctx) {
     }
     if(path==='/api/customer/account'&&method==='DELETE'){
       const result=await customerRoute(request,env,owner);
-      // D1 has already closed the account. Revoke PV LAB sessions without
-      // touching the shared Clerk application. Cron retries failures.
-      if(result.status===202&&ctx?.waitUntil)
-        ctx.waitUntil(banClosedStudioIdentity(env,owner).catch(()=>{}));
-      return result;
+      if(result.status!==202)return result;
+      // Do not report success and sign out while Google still resolves to the
+      // closed identity. The dedicated login must be deleted in this request.
+      // Creative cleanup stays queued under the inaccessible old customer ID.
+      try{
+        const identityDeleted=await deleteClosedStudioIdentity(env,owner,verifyClosureBilling);
+        if(identity.issuer===STUDIO_ISSUER&&!identityDeleted)throw Error('Dedicated identity deletion is not confirmed.');
+        return json({accepted:true,identityDeleted},202);
+      }catch{
+        fail(503,'Account deletion has not finished. Please retry the deletion. Your account remains closed and cannot spend credits.');
+      }
     }
     return customerRoute(request,env,owner);
   }

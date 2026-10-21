@@ -2162,3 +2162,45 @@ test('existing LAB_SECRET activates a private Mood callback without a new Spicy 
     assert.equal((await deliver()).status,204,'Repeated provider callbacks are harmless');
   }finally{providerState=originalProviderState;}
 });
+
+test('confirmed customer DELETE waits for Clerk deletion before immediate new-account onboarding and never reports a failed deletion as success',async()=>{
+ const {env}=fixture(),db=env.LAB_DB.db,origin='https://pvlab.studio';
+ env.LAB_STUDIO_AUTH_ENABLED='true';env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';
+ env.LAB_CLERK_V2_SECRET_KEY='sk_test_studio_delete_not_real';
+ for(const name of ['0006-customers-billing','0011-customer-lifecycle','0015-lab-promotional-credits','0017-clerk-domain-links','0023-welcome-guard','0030-studio-account-identity-deletion','0035-studio-identity-cleanup-attempts'])
+  db.exec(readFileSync(new URL('../lab-worker/migrations/'+name+'.sql',import.meta.url),'utf8'));
+ const originalFetch=globalThis.fetch;let failDelete=false,deleted=0;
+ globalThis.fetch=async(url,init)=>{
+  if(String(url).startsWith('https://api.clerk.com/v1/users/')){
+   assert.equal(init.method,'DELETE','No ban prerequisite on confirmed deletion');
+   if(failDelete)return new Response('{}',{status:503});
+   deleted++;return Response.json({id:String(url).split('/').at(-1),deleted:true});
+  }
+  return originalFetch(url,init);
+ };
+ try{
+  let previousId;
+  for(let cycle=0;cycle<2;cycle++){
+   const authToken=await token('user_RecreateNow'+cycle,{iss:'https://clerk.pvlab.studio',azp:origin});
+   const call=(path,options={})=>req(env,path,{authToken,headers:{Origin:origin},...options});
+   assert.equal((await call('/api/migration/new',{method:'POST'})).status,201);
+   const session=await(await call('/api/session')).json();
+   assert.equal(session.accountClosed,null);assert.equal(session.balanceCredits,0);
+   assert.notEqual(session.ownerId,previousId);
+   if(cycle===1){
+    failDelete=true;
+    const failed=await call('/api/customer/account',{method:'DELETE',data:{confirmation:'DELETE MY PV LAB ACCOUNT'}});
+    assert.equal(failed.status,503,'An accepted closure is not successful login deletion');
+    assert.match((await failed.json()).error,/not finished/);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_clerk_identity_links WHERE canonical_id=?').get(session.ownerId).n,1);
+    failDelete=false;
+   }
+   const response=await call('/api/customer/account',{method:'DELETE',data:{confirmation:'DELETE MY PV LAB ACCOUNT'}});
+   assert.equal(response.status,202);assert.deepEqual(await response.json(),{accepted:true,identityDeleted:true});
+   assert.equal(deleted,cycle+1,'Clerk deletion completed before API confirmation');
+   assert.equal(db.prepare('SELECT state FROM lab_account_closures WHERE customer_id=?').get(session.ownerId).state,'requested','Media cleanup did not require cron before the next signup');
+   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_clerk_identity_links WHERE canonical_id=?').get(session.ownerId).n,0);
+   previousId=session.ownerId;
+  }
+ }finally{globalThis.fetch=originalFetch;}
+});
