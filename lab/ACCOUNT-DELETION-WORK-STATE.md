@@ -8,7 +8,11 @@
 - customer-entry.js refreshes only its session-request import cache; index.html refreshes only customer-entry's cache.
 - Verification: 29 targeted account-link/auth/approved Image UI contract tests passed. New browser cases use the real homepage URL with local source and mocked Clerk/API at 1440/390px. The mock exposes the onboarding response header exactly as production does.
 - Browser suite retains owner/customer menus, private-state, billing/checkout and deletion timing checks. Do not equate the mocked fresh-login cases with independently controlling the user's Google session.
-- Publication/live source verification pending. No backend, billing, credits, deletion implementation, prompt deck, Mood, gallery or Upscaler changes.
+- Published: PR #394 merged as 80b27a61fee97706bcf0cf7bdec19054706d24e9 after all nine PR workflows passed, including account interface 39589726223, video 39589726180 and approved Image contract 39589726146.
+- Confirmed actual pvlab.studio serving the new homepage customer-entry.js?v=20261021-home-signin1 marker. Versioned session-request.js bytes exactly match Git blob d8fe3071e878125d0eb919df7c8153cbe35167b8; customer-entry.js matches 1300be19f0599c1e3fdb766afd04f188a1320ede. A merge alone was not treated as deployment proof.
+- Existing account browser suite passed, including fresh homepage setup at desktop/mobile widths. Homepage destination behavior is verified with mocked Clerk/API; no independent real Google login after this routing release. Earlier successful account recreation remains user-observed as stated above.
+- Changed files: lab/session-request.js, lab/customer-entry.js, lab/index.html, tests/lab-account-link-ui.test.mjs, tests/lab-account-browser.mjs and this checkpoint. No backend, billing, credits, deletion implementation, prompt deck, Mood, gallery or Upscaler changes.
+- No implementation or publication blocker remains for this request. Next real sign-in from the homepage can confirm the destination without another account deletion.
 
 ## Earlier deletion/recreation implementation and verification
 
