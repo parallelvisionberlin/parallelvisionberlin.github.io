@@ -13,6 +13,7 @@ const css=readFileSync('lab/assets.css','utf8');
 const lib=readFileSync('lab-worker/asset-library.mjs','utf8');
 assert.ok(main.includes("app').classList.toggle('upscale-studio-active',upscale)"),'Upscaler mode must flag the root app');
 assert.ok(main.includes('historyJobVisible'),'Live results respect the Upscaler-only history filter');
+assert.ok(main.includes("bindDrop('upscale-canvas'"),'Drop requests retain the existing signed-in upload handler');
 assert.ok(main.includes("diagnostic.hidden=!ownerAccount"),'Upscaler provider diagnostics require the verified owner session');
 assert.equal((html.match(/data-upscale-owner-only hidden/g)||[]).length,5,'All five provider diagnostic elements are hidden before authentication');
 assert.ok(main.includes("Upscaled images below and Assets"),'Upscaler completion points to its results and Assets');
@@ -97,40 +98,39 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       assert.ok(geometry.results.top>=geometry.deck.bottom,'Mobile result gallery follows settings');
     }
     assert.equal(await page.locator('.pv-upscale-workspace-intro').isVisible(),true,'Upscale has the editorial settings header');
-    assert.equal(await page.locator('.pv-upscale-editorial-blank').isVisible(),true,'PV LAB editorial macro replaces generic model photo');
-    assert.equal(await page.locator('.pv-upscale-example-note').isVisible(),false,'Old generic illustration copy is hidden');
-    const material=page.locator('.pv-upscale-material-photo img');
-    assert.equal(await material.getAttribute('src'),'./visuals/reptare-detail.webp','Uses a clean PV LAB archive image without a model portrait or embedded heading');
-    await material.evaluate(image=>image.decode());
-    assert.ok(await material.evaluate(image=>image.naturalWidth)>300,'Editorial material photograph loads');
-    assert.equal(await page.locator('.pv-upscale-blank-footer').isVisible(),true,'Editorial original is labeled as not upscaled');
+    assert.equal(await page.locator('.pv-upscale-empty-drop').isVisible(),true,'Approved upload-first empty state is visible');
+    assert.equal(await page.locator('.pv-upscale-editorial-blank').count(),0,'Old editorial gallery layout is removed');
+    assert.equal(await page.locator('.pv-upscale-empty-center h2').innerText(),'Drop a photo','Exact approved headline');
+    assert.equal(await page.locator('#pv-upscale-hero-upload').innerText(),'Upload image','Exact approved CTA');
+    assert.deepEqual(await page.locator('.pv-upscale-benefit span').allInnerTexts(),['Bigger resolution','Richer textures','More clarity'],'Approved three benefits are present');
+    const dropGeometry=await page.evaluate(()=>{
+      const zone=document.getElementById('pv-upscale-dropzone'),r=zone.getBoundingClientRect();
+      return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,
+        border:getComputedStyle(zone).borderStyle,
+        background:getComputedStyle(zone,'::before').backgroundImage};
+    });
+    assert.equal(dropGeometry.border,'dashed','Dashed inset border makes the upload area obvious');
+    assert.ok(dropGeometry.background.includes('reptare-detail.webp'),'Existing PV LAB material image appears only as atmospheric background');
+    assert.ok(dropGeometry.left>geometry.canvas.left+7&&dropGeometry.right<geometry.canvas.right-7,'Drop area is inset within the preview');
     if(profile==='mobile'){
-      const mobileEditorial=await page.evaluate(()=>{
-        const bounds=selector=>{
-          const x=document.querySelector(selector).getBoundingClientRect();
-          return {top:x.top,bottom:x.bottom,left:x.left,right:x.right,width:x.width};
-        };
-        return {
-          columns:getComputedStyle(document.querySelector('.pv-upscale-editorial-blank')).gridTemplateColumns,
-          canvas:bounds('#upscale-canvas'),
-          title:bounds('.pv-upscale-blank-copy h2'),
-          photo:bounds('.pv-upscale-material-photo'),
-          button:bounds('#pv-upscale-hero-upload'),
-          footer:bounds('.pv-upscale-blank-footer'),
-          settingsTitleSize:parseFloat(getComputedStyle(document.querySelector('.pv-upscale-workspace-intro h2')).fontSize)
-        };
+      assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),false,'Mobile emphasizes upload without cramped feature icons');
+      const mobile=await page.evaluate(()=>{
+        const bounds=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};};
+        return {title:bounds('.pv-upscale-empty-center h2'),
+          button:bounds('#pv-upscale-hero-upload'),canvas:bounds('#upscale-canvas')};
       });
-      assert.equal(mobileEditorial.columns.trim().split(/\s+/).length,1,'Mobile editorial has one real grid column');
-      assert.ok(mobileEditorial.photo.width>=mobileEditorial.canvas.width*.78,'Mobile shows a wide material photograph');
-      assert.ok(mobileEditorial.title.bottom<=mobileEditorial.photo.top,'Mobile title sits fully above photograph');
-      assert.ok(mobileEditorial.photo.bottom<=mobileEditorial.button.top,'Photo and upload action do not overlap');
-      assert.ok(mobileEditorial.button.bottom<=mobileEditorial.footer.top+2,'Editorial source label follows upload action');
-      assert.ok(mobileEditorial.title.right<=mobileEditorial.canvas.right-10,'Mobile headline fits within preview');
-      assert.ok(mobileEditorial.settingsTitleSize<=22,'Mobile settings heading stays compact');
+      assert.ok(mobile.title.bottom<mobile.button.top,'Mobile title and CTA do not overlap');
+      assert.ok(mobile.button.bottom<mobile.canvas.bottom-8,'Mobile upload CTA stays inside preview');
+      assert.ok(mobile.button.left>=mobile.canvas.left&&mobile.button.right<=mobile.canvas.right,'Mobile upload CTA fits screen');
+    }else{
+      assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),true,'Desktop shows three restrained benefit icons');
     }
     const heroChooser=page.waitForEvent('filechooser');
     await page.locator('#pv-upscale-hero-upload').click();
-    assert.equal((await heroChooser).isMultiple(),false,'Editorial button opens original single-image input');
+    assert.equal((await heroChooser).isMultiple(),false,'Primary CTA uses the original one-image upload input');
+    const areaChooser=page.waitForEvent('filechooser');
+    await page.locator('#pv-upscale-dropzone').click({position:{x:12,y:12}});
+    assert.equal((await areaChooser).isMultiple(),false,'Clicking inside the large drop area opens the same upload input');
     const emptyCanvasHeight=geometry.canvas.height;
     await page.evaluate(()=>{
       const preview=document.getElementById('preview'),empty=document.getElementById('empty');
