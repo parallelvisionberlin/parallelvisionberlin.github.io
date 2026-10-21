@@ -1,22 +1,32 @@
 # Video History card downloads: work state
 
-## Active: Assets video downloads and compact phone controls (2026-10-22)
+## Current: Assets video downloads and compact phone controls (2026-10-22)
 - User reference: image(20261021-230818).png, Library libfile_950076d97c788191be4bd834b88f5751.
-- Baseline main: 94dc61aac070ac4a0633c30c6e06eda042e297ef.
-- Cause: native Assets grid hides .cardbody, including Video's result-download; only images had an overlay.
-- lab/lab.js now adds the existing authenticated original-download overlay to every completed output.
-- Video overlay is visible only in Assets; Video Studio retains its existing download control.
-- lab/assets.css keeps Assets video downloads visible without hover; phone overlays are 30px with 15px glyphs, desktop sizing unchanged.
-- lab/video-refresh.css shrinks phone Video History's visible icon to 26px, retaining its transparent 44px target.
-- lab/studio.html refreshes affected JS and stylesheet cache markers.
-- Pending/failed/outputless jobs have no overlay. Selection mode hides it. No payment, generation, provider or account changes.
-- Existing tests/lab-image-viewer-browser.mjs extended for production native Assets skin, 1440/390px, visibility, phone sizing, Favorite separation, original MP4 download, no playback, selection mode.
-- Local approved Image contract: 5 passed. Scoped Video unit tests: 20 passed. Syntax and whitespace pass.
-- Local browser checks passed for all six combinations: 1440/390px × landscape/portrait/square, including the Assets original-MP4 download regression.
-- Implementation commit: 03b4a6d0. No source published and no deployment started.
-- Push to fix/assets-video-download-compact-mobile was rejected by automatic approval review: external publication requires explicit destination/payload authorization.
-- Next: obtain explicit authorization to push these six scoped files to parallelvisionberlin/parallelvisionberlin.github.io, then PR, required checks, merge and Cloudflare verification. Do not claim live.
-
+- Published PR #428: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/428
+- Reviewed source bfac1bc8ce5cce15ac9845d2eb9beaf12aefdef1; main release d4d72a9930f7e60681f1d4135b9d33dcfd4d4513.
+- Cause: native Assets hides .cardbody and its Video result-download; only images previously had an overlay.
+- lab/lab.js now adds the existing authenticated original-file overlay to every completed output.
+- Video overlay is visible in Assets only. Video Studio keeps its existing single download action.
+- lab/assets.css: Assets video overlays visible without hover; phone controls 30px with 15px glyphs.
+- lab/video-refresh.css: phone Video History visible icon 26px, retaining its transparent 44px target.
+- Desktop button sizes unchanged. Pending/failed/outputless jobs have no overlay; selection mode hides overlays.
+- lab/studio.html refreshes the JS and both affected CSS cache markers.
+- No paid generation, provider, billing, account, storage or backend change.
+- Local verification: approved Image contract 5 passed; scoped Video tests 20 passed; syntax and diff checks passed.
+- Extended tests/lab-image-viewer-browser.mjs passed all 1440/390px × landscape/portrait/square cases.
+- Coverage includes production native Assets skin, visible overlays, phone sizing, Favorite separation, original MP4 download, no playback, and selection mode.
+- PR CI gallery-browser, video, private-lab, approved-image-ui and other relevant UI checks passed.
+- Full CI was 25 success / 4 failure, not all green. Remaining failures: queue-smoke Chromium CDN TLS/download installation; generate harness timeout at tests/lab-explore-generation.mjs:344; separate production verify; existing Upscaler #canvas-import assertion tests/lab-assets-ui.cjs:281.
+- The same Upscaler assertion predates this patch, recorded in IMAGE-PROMPT-WORK-STATE.md. No unrelated tests or gates were weakened.
+- Automatic review initially rejected publication; user explicitly authorized it on 2026-10-22. Published via GitHub connection because terminal push had no credential.
+- Cloudflare Pages check 119546114411 succeeded for pvlab-studio, deployment 6ce865a3-6d8c-4674-a0dd-9781fd42745e.
+- Read-only verifier returned LIVE_VERIFIED for all three affected assets against the exact main release.
+- assets.css?v=20261022-video-download1 SHA-256 731ed078447dbc4e19728085f17fa9cab01eb58c764ed78eb967e65b40864722.
+- video-refresh.css?v=20261022-compact-download1 SHA-256 32499c92c9ee96d17b3d80ac8b8540fb3bfbb1e0c6ea7ec9e0c6e183712e30c1.
+- lab.js SHA-256 ae78ee36c7c09784408ce55161b4d4556315732ea68b059378418c42e963a36b.
+- Production browser CSSOM independently confirms the new asset versions, Assets video visibility rule, 30px phone overlay and 26px phone Video icon.
+- Production browser is signed out. Real private owner History was not inspected; browser download tests used synthetic media.
+- Complete and published. No additional deployment or paid test needed for this correction.
 
 ## Current: separate phone card controls (2026-10-21)
 - User reference: IMG_7915.png. Scope explicitly limited to phone cards, <=640px.
