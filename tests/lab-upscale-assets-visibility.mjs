@@ -112,7 +112,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       });
       assert.ok(galleryPeek.archiveTop>galleryPeek.viewportHeight-70,'Approved fullscreen preview prioritizes the workspace');
       assert.ok(galleryPeek.cardTop>galleryPeek.archiveTop,'The real result gallery remains below the editor');
-      assert.ok(galleryPeek.centerBottom<galleryPeek.benefitsTop,'Drop photo CTA and small benefits never overlap');
+      assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),false,'Approved fullscreen mockup hides extra feature icons');
       assert.ok(galleryPeek.previewHeight>=650&&galleryPeek.previewHeight<=850,'Approved full-screen photographic canvas height');
     }else{
       assert.ok(geometry.deck.top>=geometry.canvas.bottom+7,'Mobile shows the image before the settings deck');
