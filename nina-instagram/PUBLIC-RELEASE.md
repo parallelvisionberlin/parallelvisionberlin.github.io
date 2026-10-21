@@ -1,6 +1,6 @@
 # Nina Instagram public reply release
 
-Prepared on 2026-10-21 from the complete production Worker supplied by Alejandro in `Pasted markdown(20261021-122346).md`. This repository commit is source preparation, not a Cloudflare deployment.
+Prepared on 2026-10-21 from the complete production Worker supplied by Alejandro in `Pasted markdown(20261021-122346).md`. Deployment status is recorded in `WORK-STATE.md`; a source commit alone is not evidence of a successful Cloudflare deployment.
 
 ## Behavior
 
@@ -14,11 +14,15 @@ Prepared on 2026-10-21 from the complete production Worker supplied by Alejandro
 
 ## Deploy into the existing Worker
 
-1. Open `https://dash.cloudflare.com/a40ce1725295563a7b7db9fc3160480a/workers/services/view/nina-instagram/production` and select **Edit code**.
-2. Replace the current main JavaScript module with the complete contents of `worker.mjs`, then select **Deploy**. Keep the existing bindings, secrets and once-minute cron.
-3. The next cron invocation or signed incoming message initializes the release. It creates two small Instagram-only runtime tables and atomically upgrades the verified `tester` configuration to `public`, once. The owner vault and original Nina database are not changed.
-4. Open `https://nina-instagram.parallelvision.workers.dev/health`. Expected values: `release: public-paced-2026-10-21`, `mode: public`, `publicRepliesEnabled: true`; timing fields show `[10,120]`, `120`, `6`, and `30`.
-5. Send a fresh DM from a non-tester Instagram account. Confirm the delayed first reply and then a follow-up reply. This is the remaining end-to-end public-access check, including any Meta permissions outside the Worker.
+The dedicated `.github/workflows/deploy-nina-instagram.yml` workflow deploys on main pushes that change the Instagram source or deployment files. It uses the repository's existing authorized `CLOUDFLARE_API_TOKEN` secret, already used by the Nina and PV LAB workflows. It does not require a new token or a user browser sign-in.
+
+The deployer verifies the seven existing bindings and private-vault target, then calls Cloudflare's content-only update endpoint for `nina-instagram`. It compares settings and cron after the upload and waits for the public release health check. Existing explicit disabled public overrides stop the deployer before upload.
+
+The next cron invocation or signed incoming message initializes the release, creates two small Instagram-only runtime tables and atomically upgrades the verified `tester` configuration to `public` once.
+
+Verify `https://nina-instagram.parallelvision.workers.dev/health`: expected release `public-paced-2026-10-21`, mode `public`, public text and voice flags true; timing values `[10,120]`, `120`, `6`, and `30`.
+
+A fresh DM from a non-tester Instagram account remains the end-to-end check for Meta public delivery and the delayed first/follow-up replies. Do not equate configuration verification with that actual conversation test.
 
 This explicitly authorized release defaults public DM and voice flags to enabled when the corresponding environment variable is absent. An existing explicit override still applies: `NINA_PUBLIC_DM_ENABLED=false` blocks public sending and automatic activation; `NINA_PUBLIC_VOICE_ENABLED=false` blocks public audio processing. Set an existing override to the exact string `true` only when enabling that feature. Other unexpected values fail closed.
 

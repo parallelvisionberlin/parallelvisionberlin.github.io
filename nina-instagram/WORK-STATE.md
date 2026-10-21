@@ -25,12 +25,14 @@ Updated: 2026-10-21
 - Tests cover real queue/send flow, six quick replies, idle reset, coalescing/race ordering, stop/resume, disabled flags, one-time activation, owner/public context separation, invalid signatures, expiry, uncertain sends and voice deduplication/gating.
 - D1 batch transaction semantics were verified against official Cloudflare documentation. These local tests do not prove a real Cloudflare or Meta deployment.
 - Deployment status: PREPARED ONLY. Last observed production version remains `91d04d2e-783f-4730-b368-fc2020a76885`; current mode was last observed as `tester` in the user's D1 screenshot.
-- Direct Cloudflare connector tools return MCP `-32603 Internal error`; the remote browser is unauthenticated. Do not repeat the failed login loop.
+- Direct Cloudflare connector tools still return MCP `-32603 Internal error`. An existing repository deployment route was subsequently found: the GitHub Actions workflows already use the authorized `CLOUDFLARE_API_TOKEN` secret. No secret value was requested, read or exported.
+- Added dedicated `.github/workflows/deploy-nina-instagram.yml` and `nina-instagram/deploy.mjs`, separate from the original Nina and PV LAB deployments. This uses Cloudflare's content-only update endpoint to retain existing bindings, secrets and cron, then verifies production public health.
+- Deployment guards check all seven required binding types, the private vault service, explicit public overrides, unchanged settings/schedules, and the effective release/timing values. All 15 local reply/deployment tests pass.
 - No production source, bindings, secret values, mode or flags were mutated by this preparation. GitHub publication alone does not deploy the Instagram Worker.
 - Recovered text replies already worked after the user reactivated the Meta account. The exact original account-block trigger and real audio-note end-to-end delivery remain unverified.
 
 ### Exact next action
-1. In the existing Nina Worker dashboard's Edit code view, replace the main module with `worker.mjs` and Deploy, retaining all existing bindings/secrets/cron. Detailed instructions are in `PUBLIC-RELEASE.md`.
+1. Publish the dedicated Instagram deployment workflow on main; its path trigger runs the prepared deployment automatically using the existing authorized Cloudflare CI connection. Monitor that run through GitHub Actions instead of asking the user to copy code or log in again.
 2. After the next cron, verify `/health` reports release `public-paced-2026-10-21`, mode `public`, and effective public flags true. An existing explicit false environment override must be changed to exact string true to enable that feature.
 3. Confirm one fresh non-tester DM receives the initial delayed reply and one follow-up receives a quick reply. Do not claim public availability until this real Meta access path is verified.
 4. Reuse this complete source and the passing tests; no need to ask the user to recover the Worker again.
