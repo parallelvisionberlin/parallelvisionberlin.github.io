@@ -8,6 +8,16 @@ Protect: existing sixteen Mood recipes, seven Image Inspiration cards, prompt de
 
 Verify: optimized actual-photo assets, new catalog and Worker allowlists, My Moods support, 5,000/3,000 final provider prompt limits, user text preservation, hidden Style reference filtering, browser/native entry and CI.
 
+## Cover and Inspiration update, 2026-10-21
+
+- User explicitly requested photo 1 as the cover and Fisheye in the Studio Inspiration carousel shown in their screenshot. This supersedes the earlier seven-card-only scope.
+- Reused the existing optimized original `lab/mood-references/fisheye-2000/01-analog-daylight.webp`, visually matched to uploaded `hf_20261019_221911_ba63d845-cb9a-4f5e-936e-b0e7c30c9c50 (1).png` (Library ID `libfile_5a2e548866908191bd3809c83cdde9ce`). No new image generation or asset replacement.
+- The shared catalog uses photo 1 for card/full previews, including native app previews. Explore Moods static card and both guest/signed-in Inspiration carousels use it too. Fisheye is fourth, after Flash Leather; all seven previous cards retain their relative order.
+- Inspiration selects the existing Fisheye recipe at 75%, with the two approved Style-only references on supported engines. The original seven looks retain their existing reference-free Inspiration behavior. The public sign-in draft preserves the same Fisheye settings.
+- Reuses one subject-neutral Fisheye application direction instead of inventing new scenes. Custom text and uploaded Base remain authoritative. Recipe, reference-photo files, identity protections and Worker are unchanged.
+- Local checks: 22 focused tests passed, including approved Image UI contract, Fisheye/reference tests and Inspiration order/rotation checks. Real-browser mocked checks passed at 1440 and 390 pixels for guest card, signed-in card, full Mood selector and guest sign-in handoff; photo loads and no horizontal overflow. No paid generation or upload was sent.
+- Source baseline: `fb88540e49394dbf9a55eb785b97dbfec09762c5`. Release pending commit and live verification of `fisheyeCover=20261021v1`.
+
 ## Original implementation validation
 - New Fashion-category seventeenth curated Mood `fisheye-2000`, 75% default.
 - Original uploaded images only, with optimized non-generative JPEG/AVIF/WebP derivatives. No assistant-generated content.
@@ -39,7 +49,7 @@ Verify: optimized actual-photo assets, new catalog and Worker allowlists, My Moo
 - Manual Pages API release run 39618936024 failed on GET of the existing pvlab-studio project with HTTP 403 / Cloudflare code 10000. It never reached the deployment POST. Existing Worker deployment access remains successful. No permissions, secrets, bindings or project settings were changed.
 - Fallback workflow .github/workflows/pvlab-pages-release.yml is manual-only. Cloudflare dashboard authentication is no longer needed for this Fisheye release: subsequent public verification confirmed the follow-ups deployed. The failed manual API attempt did not deploy them; the exact later deployment trigger was not established. Do not retry authentication or trigger a duplicate Fisheye release.
 - Authenticated production provider generation was not run; visual output quality is not claimed.
-- Seven introductory Inspiration cards remain the approved separate catalog. Fisheye belongs to Explore Moods and the full Studio Mood selector, as specified in the original PR.
+- At the original release, the seven introductory Inspiration cards remained separate. The later explicit user request above now adds Fisheye to that carousel too.
 
 ### Reproduce the focused Studio verification
 Run `PV_PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs PV_CHROMIUM_EXECUTABLE=/path/to/chromium node tests/lab-fisheye-2000-browser.mjs` from the repository root. It uses synthetic authentication, mock API responses and a local synthetic Base image. No production account or provider call is made.

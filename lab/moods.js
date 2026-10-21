@@ -85,8 +85,8 @@ const ALL_MOODS=Object.freeze([
     "id": "fisheye-2000",
     "name": "Fisheye 2000",
     "category": "Fashion",
-    "preview": "/lab/mood-previews/fisheye-2000-20261020.avif",
-    "previewFull": "/lab/mood-references/fisheye-2000/02-fisheye-flash.webp",
+    "preview": "/lab/mood-references/fisheye-2000/01-analog-daylight.webp",
+    "previewFull": "/lab/mood-references/fisheye-2000/01-analog-daylight.webp",
     "description": "True fisheye perspective, raw Y2K street fashion and direct flash",
     "defaultIntensity": 75,
     "direction": "FISHEYE 2000 / ORIGINAL STREET-FASHION BRIEF. Face: use the uploaded identity photograph as main visual reference if provided. Keep exactly the same face, bone structure, expression and natural skin tone, with sharply illuminated but real skin, no personality changes. Pose: two young city-dwellers in a close-range editorial frame when no Base specifies otherwise; one dominates near the camera, extending an arm toward the lens so the real fisheye exaggerates its foreground scale, while a second stands behind, clearly separated by near/far perspective. Clothing: oversized grey hoodie, black wide-leg trousers, massive silver chain necklace, stacked rings and a small leopard-print accent unless another outfit is explicitly requested. Background: a narrow lived-in Tokyo alley, densely layered Japanese storefront signs, overhead power lines, utility poles covered in stickers, imperfect walls and credible urban clutter. Lighting: bare direct on-camera flash is the key, frontal and hard, with rapid falloff from brilliantly illuminated foreground skin and fabric into naturally underexposed ambient background. Camera: actual Canon EOS 5D Mark IV documentary photograph, true 15mm fisheye lens with curved edges and natural central facial geometry; f/4, ISO 400, 1/200s flash sync. Color: Kodak Portra-like 35mm negative color, gently crushed black levels, saturated signs with restrained natural skin, fine INTEGRATED silver-grain texture, a glossy underground magazine scan. Atmosphere: immediate, candid, bold Y2K street-fashion energy and cinematic street reality. Real proportions, believable joints, true optical barrel distortion and physical depth, not digital warping. User-authored subject, location, wardrobe and person count always take priority over these defaults.",
@@ -300,7 +300,7 @@ const ALL_MOODS=Object.freeze([
 // Keep the public catalogue shared by Studio, My Moods and Mood Creator.
 export const MOODS=ALL_MOODS;
 export function moodPreviewURL(mood,{detail=false}={}){
-  if(typeof window!=='undefined'&&window.__PV_LAB_NATIVE__===1)
+  if(typeof window!=='undefined'&&window.__PV_LAB_NATIVE__===1&&mood.id!=='fisheye-2000')
     return '/lab/mood-previews/mobile/v1/'+mood.id+(detail?'-detail':'')+'.jpg';
   return detail?(mood.previewFull||mood.preview):mood.preview;
 }

@@ -15,20 +15,20 @@ function memoryStorage(){
   };
 }
 
-test('seven Inspiration cards have eight distinct photographic examples each',()=>{
-  const names=['dream-blur','90s-cinema','fashion-editorial','chrome-couture','dreamcore','hong-kong-nights','80s-film'];
+test('the original seven looks retain eight examples and Fisheye reuses its approved recipe',()=>{
+  const names=['fisheye-2000','dream-blur','90s-cinema','fashion-editorial','chrome-couture','dreamcore','hong-kong-nights','80s-film'];
   assert.deepEqual(Object.keys(INSPIRATION_VARIATIONS).sort(),names.sort());
   const all=[];
   for(const [id,scenes] of Object.entries(INSPIRATION_VARIATIONS)){
-    assert.equal(scenes.length,8,id+' needs eight editorial variations');
-    assert.equal(new Set(scenes).size,8,id+' includes duplicate scenarios');
+    assert.equal(scenes.length,id==='fisheye-2000'?1:8,id+' has the expected example count');
+    assert.equal(new Set(scenes).size,scenes.length,id+' includes duplicate scenarios');
     for(const scene of scenes){
       assert.ok(scene.length>85&&scene.length<1100,id+' scene is implausibly short/long');
       assert.ok(isInspirationExample(scene));
       all.push(scene);
     }
   }
-  assert.equal(new Set(all).size,56,'No repeated scenes across different Moods');
+  assert.equal(new Set(all).size,57,'No repeated scenes across different Moods');
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/older woman/i.test(scene)));
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/male fashion model/i.test(scene)));
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/two adult models/i.test(scene)));
@@ -105,8 +105,8 @@ test('authenticated requests skip invisible Mood photos but retain explicit user
   assert.match(lab,/imageInputReferences\(\)\.map\(ref=>\(\{file:ref\.file/);
   assert.match(guest,/createInspirationRotation\(sessionStorage\)/);
   assert.match(html,/inspiration=rotation1/);
-  assert.equal([...html.matchAll(/data-welcome-mood=/g)].length,7,'Keep the six original signed-in photographs and add Chrome Couture');
-  assert.equal([...html.matchAll(/data-guest-mood=/g)].length,7,'Keep the six original public photographs and add Chrome Couture');
+  assert.equal([...html.matchAll(/data-welcome-mood=/g)].length,8,'Keep the six original signed-in photographs and include Chrome Couture and Fisheye');
+  assert.equal([...html.matchAll(/data-guest-mood=/g)].length,8,'Keep the six original public photographs and include Chrome Couture and Fisheye');
 });
 
 

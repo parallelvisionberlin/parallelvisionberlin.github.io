@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,statSync} from 'node:fs';
-import {MOODS,moodById,prepareMoodPrompt,userFacingImagePrompt,imageHistoryCaption} from '../lab/moods.js';
+import {MOODS,moodById,moodPreviewURL,prepareMoodPrompt,userFacingImagePrompt,imageHistoryCaption} from '../lab/moods.js';
 import {moodReferencePlan,createMoodReferenceLoader,isMoodStyleReference} from '../lab/mood-references.js';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
 
@@ -20,6 +20,11 @@ test('Fisheye 2000 is the seventeenth curated Mood with only the owner-supplied 
   assert.equal(MOODS.filter(m=>m.id===id).length,1);
   assert.equal(mood.category,'Fashion');
   assert.equal(mood.defaultIntensity,75);
+  assert.equal(mood.preview,'/lab/mood-references/fisheye-2000/01-analog-daylight.webp');
+  assert.equal(mood.previewFull,mood.preview);
+  const oldWindow=globalThis.window;
+  try{globalThis.window={__PV_LAB_NATIVE__:1};assert.equal(moodPreviewURL(mood),mood.preview);assert.equal(moodPreviewURL(mood,{detail:true}),mood.previewFull);}
+  finally{if(oldWindow===undefined)delete globalThis.window;else globalThis.window=oldWindow;}
   assert.match(mood.direction,/Canon EOS 5D Mark IV/);
   assert.match(mood.direction,/15mm fisheye/);
   assert.match(mood.direction,/grey hoodie/);

@@ -4,12 +4,12 @@ import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL('../lab/'+path,import.meta.url),'utf8');
 
-test('both Image Inspiration entrances show Chrome Couture sixth, with Sun Fade behind the arrow',()=>{
+test('both Image Inspiration entrances include Fisheye fourth and retain existing card order',()=>{
   const html=read('studio.html');
   assert.equal((html.match(/class="inspiration-carousel-shell/g)||[]).length,2);
-  assert.equal((html.match(/data-guest-mood=/g)||[]).length,7);
-  assert.equal((html.match(/data-welcome-mood=/g)||[]).length,7);
-  for(const id of ['dream-blur','90s-cinema','fashion-editorial','dreamcore','hong-kong-nights','80s-film']){
+  assert.equal((html.match(/data-guest-mood=/g)||[]).length,8);
+  assert.equal((html.match(/data-welcome-mood=/g)||[]).length,8);
+  for(const id of ['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','dreamcore','hong-kong-nights','80s-film']){
     assert.match(html,new RegExp('data-guest-mood="'+id+'"'));
     assert.match(html,new RegExp('data-welcome-mood="'+id+'"'));
   }
@@ -22,7 +22,7 @@ test('both Image Inspiration entrances show Chrome Couture sixth, with Sun Fade 
   assert.match(html,/id="lab-welcome-presets"/);
   const guest=[...html.matchAll(/data-guest-mood="([^"]+)"/g)].map(match=>match[1]);
   const signed=[...html.matchAll(/data-welcome-mood="([^"]+)"/g)].map(match=>match[1]);
-  const expected=['dream-blur','90s-cinema','fashion-editorial','dreamcore','hong-kong-nights','chrome-couture','80s-film'];
+  const expected=['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','dreamcore','hong-kong-nights','chrome-couture','80s-film'];
   assert.deepEqual(guest,expected);
   assert.deepEqual(signed,expected);
   const arrows=[...html.matchAll(/<button\b[^>]*class="inspiration-nav [^"]+"[^>]*>[\s\S]*?<\/button>/g)].map(match=>match[0]);

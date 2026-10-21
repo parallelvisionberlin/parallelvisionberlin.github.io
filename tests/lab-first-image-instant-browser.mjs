@@ -384,7 +384,7 @@ try{
   assert.ok(!hovered.boxShadow.includes('0.87')&&!hovered.boxShadow.includes('0.33'),
     'The earlier overbright halo must be removed: '+hovered.boxShadow);
   await page.mouse.move(2,2);
-  assert.equal(await page.locator('.lab-welcome-preset').count(),7,
+  assert.equal(await page.locator('.lab-welcome-preset').count(),8,
     'All six original welcome cards and Chrome Couture remain mounted');
   // Navigate the real gallery before submitting a job, so queue callbacks
   // cannot close the Inspiration view during the click regression.
@@ -449,7 +449,7 @@ try{
   assert.equal(await page.locator('#history-selection').isVisible(),false);
   await eye.click();
   assert.equal(await eye.getAttribute('aria-pressed'),'false',
-    'Customer can return to the same seven-look welcome');
+    'Customer can return to the same eight-look welcome');
   assert.equal(await page.locator('#history-select').isVisible(),false);
   const cardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   await field.click();

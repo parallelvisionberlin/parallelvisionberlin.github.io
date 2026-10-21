@@ -1,4 +1,4 @@
-import {INSPIRATION_VARIATIONS,createInspirationRotation} from './inspiration-looks.js?v=20261019-chrome1';
+import {INSPIRATION_VARIATIONS,createInspirationRotation} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1';
 // Public-only Image Studio preview. No authentication, wallet or generation API calls.
 const gate=document.getElementById('gate');
 const composer=document.getElementById('pv-guest-composer');

@@ -2,6 +2,11 @@
 // The selected curated Mood supplies the aesthetic. Existing user text and uploaded images are authoritative.
 const ROTATION_KEY='pv-lab-inspiration-rotation-v1';
 export const INSPIRATION_VARIATIONS=Object.freeze({
+  // Reuse the approved Fisheye recipe. This direction also works on a Base
+  // without inserting the cover's people, wardrobe or location into it.
+  "fisheye-2000": [
+    "Apply the Fisheye 2000 photographic look: true 15mm fisheye perspective, direct on-camera flash, muted early-2000s film color and fine grain. Preserve the people, identity, clothing and setting of any uploaded Base photograph."
+  ],
   "dream-blur": [
     "A documentary 35mm photograph of a middle-aged woman seen through a moving tram window at blue hour, city lights streaking beyond her reflection, restrained cobalt shadows, real motion blur, imperfect film exposure.",
     "A young Black man crosses a Berlin intersection after rain, photographed handheld at 1/15 second with a brief flash catching his face; passing headlights smear blue across the street, grain visible.",

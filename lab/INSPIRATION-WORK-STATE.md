@@ -63,3 +63,8 @@ Wait for updated PR checks, investigate relevant failures, merge when sound, the
 - Rounded glyph overlays were replaced by thin SVG editorial chevrons, in the outside gutters on wide desktop; both remain present with the unavailable direction subdued. Tablet/phone controls remain at the carousel edges, preserving the original six/three/two card sizing, no browser-wide scrolling, and touch/swipe browsing.
 - Keydown acts only while the carousel is visible, never when editing inputs, with modifiers, or in open dialogs. One card advances per arrow. No paid calls or prompt modifications.
 - Scope: lab/studio.html, lab/inspiration-carousel.css, lab/inspiration-carousel.js, targeted tests, and this handoff. No other image tools, footer, credits, Worker or provider change. Verification/production deployment to be confirmed by CI and GitHub Pages.
+
+
+## 2026-10-21 Fisheye cover and eighth Inspiration card
+- User explicitly requested Fisheye 2000 in this carousel, using photo 1. Added fourth after Flash Leather in both public and signed-in Studio. Other cards retain their relative order and the existing responsive carousel geometry.
+- Reuses the approved Fisheye Mood at 75% with its two Style references; original seven Inspiration looks keep their existing behavior. Details and release status: `lab/FISHEYE-2000-WORK-STATE.md`.
