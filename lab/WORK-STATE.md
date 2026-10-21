@@ -1,5 +1,12 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Mobile homepage hero visibility, 2026-10-22 (Europe/Berlin)
+- Source main before this change: `b674dc29ed0981f40f17fcd65b60c68ba67b97e1`.
+- User-approved goal: raise the entire PV LAB / Fashion. Reimagined. hero copy, description and two buttons on mobile so Safari's bottom toolbar does not cut off the actions.
+- Changed only mobile `lab/landing-motion.css` copy anchoring, from fixed 84px to responsive `clamp(148px, calc(820px - 100svh), 220px)`; preserved the photograph, wording, sizes, desktop geometry and navigation.
+- Bumped only the `landing-motion.css` cache key in `lab/index.html` to `20261022-mobile-hero-lift1`.
+- Publishing: PR and checks required; verify Cloudflare Pages `pvlab-studio` against the deployed commit and production stylesheet before claiming live.
+
 ## Current objective and release
 - User authorized finishing and releasing PR #377, then verifying the recreated-account flow.
 - PR #377 merged to main as 1abf77edd3330f18adbda8abad073867adcb39eb.
