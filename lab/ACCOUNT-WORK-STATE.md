@@ -7,7 +7,10 @@
 - Browser regression: customer and owner at 390/320px, 660px height; scroll to Sign out and verify actual tap target plus no horizontal overflow.
 - Local approved Image contract and account unit checks: 7 passed. Account browser workflow 39580042516 passed, including short-screen tap reachability for customer and owner.
 - CI screenshots inspected at 390px; no overflow or menu obstruction. Approved Image contract, prompt expansion, compact prompt, first-image and pricing browser workflows passed.
-- Released source: PR #385 merged as 181f3c8fd5c6b0a06365de7e89cf4c3273ae4d64. Hosting verification pending; no actual owner browser sign-in available in this session.
+- Released source: PR #385 merged as 181f3c8fd5c6b0a06365de7e89cf4c3273ae4d64. Cloudflare deployment 8c8542b2-4c34-49d3-9cbd-6eea731d12a5 succeeded.
+- Confirmed live DOM on pvlab.studio/studio?tool=image: account-menu.css?v=20261021-menu-above-deck1 and the open-header z-index 1300/backdrop-filter:none rule loaded. Actual signed-in owner UI was covered by synthetic browser tests, not a live owner session.
+- PR checks: 18/19 passed. Separate video workflow 39580042703 failed in lab-reference-ui.mjs:187 with EncodingError (source image cannot be decoded); no video/reference source changed in this patch. Preserve as pending investigation; do not claim all CI green.
+- Next: user can reload phone Studio and open the account menu; real recreated-account and stale Control Room sync verification remain separate pending work.
 
 # PV LAB account interface
 
