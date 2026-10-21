@@ -266,3 +266,10 @@ body {
   .archive { padding-top: 0; }
   .gallery-section:first-child { padding-top: 12px; }
 }
+
+/* Keep larger photograph selections within the mobile gallery width. */
+@media (max-width: 680px) {
+  .gallery-navigation { min-width: 0; flex: 1 1 auto; justify-content: flex-end; }
+  .film-marks { min-width: 0; flex-wrap: wrap; justify-content: flex-end; }
+  .film-marks button { flex: 0 0 17px; }
+}
