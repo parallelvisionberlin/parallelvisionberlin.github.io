@@ -244,3 +244,13 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .series-index-row { transition:none; }
 }
+
+/* iOS: photographs are swipe navigation surfaces, not zoom targets.
+   Scope touch policy to image and frame so browser accessibility zoom outside
+   the gallery remains available. */
+.photograph, .photograph img {
+  touch-action: pan-y;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
