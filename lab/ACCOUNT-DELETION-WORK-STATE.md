@@ -1,3 +1,17 @@
+# Homepage after Google signup, 2026-10-21
+
+- Alejandro reports deleting Neon Riviera again, logging in through Google and reaching active Image Studio with 0 credits and no Account closed notice. Screenshot image(20261021-110159).png, Library libfile_fa0c43d92cfc8191be038dcfd3ac43b2. This is user-observed successful recreation, not an agent-performed login.
+- New request: signing in from the main page must leave the user on the main page. Studio opens through its normal links.
+- Source baseline main a3c72d0c737ba5257af4dbec9b6219b88e1b39d8; branch fix/home-signin-stay-20261021.
+- Exact cause: session-request.js redirected all verified unlinked homepage sessions to /studio?tool=image so setup could finish there.
+- Minimal fix: permit the existing authenticated /api/session -> /api/migration/new -> /api/session handshake in place on / and /index.html. Current query/hash stay intact. Other protected pages retain their existing setup destination; account transfer and host/API/session guards remain unchanged.
+- customer-entry.js refreshes only its session-request import cache; index.html refreshes only customer-entry's cache.
+- Verification: 29 targeted account-link/auth/approved Image UI contract tests passed. New browser cases use the real homepage URL with local source and mocked Clerk/API at 1440/390px. The mock exposes the onboarding response header exactly as production does.
+- Browser suite retains owner/customer menus, private-state, billing/checkout and deletion timing checks. Do not equate the mocked fresh-login cases with independently controlling the user's Google session.
+- Publication/live source verification pending. No backend, billing, credits, deletion implementation, prompt deck, Mood, gallery or Upscaler changes.
+
+## Earlier deletion/recreation implementation and verification
+
 # Immediate account deletion and recreation, 2026-10-21
 
 - Active report: after the earlier backlog repair, Alejandro deleted Neon Riviera again and immediately returned through Google. Screenshot image(20261021-103950).png, Library libfile_88b6ee29bffc8191aac18169a98b5137.
@@ -14,7 +28,7 @@
 - Published: PR #393 merged as 9078a65b7016e5add16ff45241573a064378ba1e. All nine PR workflows passed, including account interface 39587322034 and video 39587321875. Worker deploy 39587567201 succeeded.
 - Confirmed production /health revision pv-lab-2026-10-21.4-immediate-account-delete. Custom-domain account.js exactly matches Git blob 40bb5f8326187c70f90ad26c38ca6b3d3f29fb1f; session-request.js matches 6361aa6966a46a3e584d474a7cc5ca70b6813d36. /account serves closure=20261021-immediate1.
 - Latest read-only production audit 39585320624/job 119181832014 at 10:55:27 UTC: all five closures and identity tasks complete, zero pending, five successful identity cleanup outcomes. The audit's separate stale contact-sync check still fails, as previously recorded.
-- Remaining verification: Alejandro's actual Google signup after sign-out. Automated immediate delete/signup and client session-order tests passed, but the agent has not performed a real Google cycle. Do not equate the five-complete aggregate with verification of a future immediate cycle.
+- Follow-up user evidence: the 11:01:59 screenshot/report above shows successful Google recreation with an active 0-credit Studio and no closed-account status. The user requested a homepage destination correction. The agent has not independently performed the real Google interaction.
 - Prompt deck, gallery layout, Hong Kong Nights, Upscaler, provider routes, pricing and money ledgers are unchanged.
 - Earlier rollout details follow. A separate contact-sync freshness check remains outside this repair.
 

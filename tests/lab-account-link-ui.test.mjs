@@ -15,22 +15,34 @@ async function inBrowser(hostname,pathname,run){
  try{globalThis.window=current;return await run(current);}
  finally{if(previous===undefined)delete globalThis.window;else globalThis.window=previous;}
 }
-test('Only pvlab.studio enters Studio on a verified unlinked login; no second signup page',async()=>{
+test('Fresh homepage sign-ins finish setup in place and preserve the current URL',async()=>{
  for(const host of ['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev']){
-  await inBrowser(host,'/',async current=>{
-   const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>needsSetup()});
-   assert.equal((await request('/api/session')).status,409);
-   assert.equal(current.replaced.length,1);
-   assert.equal(new URL(current.replaced[0]).pathname,'/studio');
-  });
- }
- for(const host of ['parallelvisionlabel.com','www.parallelvisionlabel.com','evil.pvlab.studio']){
-  await inBrowser(host,'/',async current=>{
-   const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>needsSetup()});
-   assert.equal((await request('/api/session')).status,409);
+  for(const pathname of ['/','/index.html'])await inBrowser(host,pathname,async current=>{
+   current.location.search='?source=google';current.location.hash='#pricing';
+   let initialized=false;const calls=[];
+   const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async(url,init)=>{
+    const path=new URL(url).pathname;calls.push(path);
+    if(path==='/api/migration/new'){assert.equal(init.method,'POST');initialized=true;return Response.json({linked:true},{status:201});}
+    return initialized?Response.json({customer:true,owner:false,balanceCredits:0,accountClosed:null}):needsSetup();
+   }});
+   const response=await request('/api/session');assert.equal(response.status,200);
+   assert.deepEqual(await response.json(),{customer:true,owner:false,balanceCredits:0,accountClosed:null});
+   assert.deepEqual(calls,['/api/session','/api/migration/new','/api/session']);
    assert.deepEqual(current.replaced,[]);
+   assert.equal(current.location.pathname,pathname);assert.equal(current.location.search,'?source=google');assert.equal(current.location.hash,'#pricing');
   });
  }
+});
+test('Other account pages retain Studio setup routing, while unrelated hosts cannot auto-provision',async()=>{
+ for(const pathname of ['/account','/account.html'])await inBrowser('pvlab.studio',pathname,async current=>{
+  const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>needsSetup()});
+  assert.equal((await request('/api/session')).status,409);assert.equal(new URL(current.replaced[0]).pathname,'/studio');
+ });
+ for(const host of ['parallelvisionlabel.com','www.parallelvisionlabel.com','evil.pvlab.studio'])await inBrowser(host,'/',async current=>{
+  let calls=0;
+  const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>{calls++;return needsSetup();}});
+  assert.equal((await request('/api/session')).status,409);assert.equal(calls,1);assert.deepEqual(current.replaced,[]);
+ });
 });
 test('Both /studio and /studio.html initialize a verified new account in place, without navigation',async()=>{
  for(const pathname of ['/studio','/studio.html']){
@@ -89,7 +101,7 @@ test('Legacy account transfer does not auto-provision a second customer wallet',
  }
 });
 test('Do not create a wallet for paid endpoints or from unmarked 409s',async()=>{
- await inBrowser('pvlab.studio','/studio',async()=>{
+ for(const pathname of ['/','/studio'])await inBrowser('pvlab.studio',pathname,async()=>{
   let count=0;
   const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>{
    count++;return needsSetup();

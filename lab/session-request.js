@@ -38,8 +38,8 @@ async function waitWithAbort(promise, signal) {
   finally { signal.removeEventListener('abort', cancel); }
 }
 
-// The studio is the destination, not a second signup page. A verified 409
-// from the authenticated Worker is the only signal for new-account setup.
+// A verified 409 from the authenticated Worker is the only signal for new
+// account setup. Homepage sign-ins stay on the homepage while it completes.
 const STUDIO_HOSTS=new Set(['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev']);
 function onboardingRequired(response){
   return response.status===409&&response.headers.get('X-PV-Lab-Onboarding')==='required';
@@ -120,8 +120,9 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
       // Cloudflare Pages serves studio.html at the canonical extensionless
       // /studio URL. Both forms represent the same authenticated workspace.
       // Never redirect /studio back to /studio.html on a 409.
-      if(browser.pathname!=='/studio'&&browser.pathname!=='/studio.html') {
-        // A customer arriving from another page goes straight into Studio.
+      const homepage=browser.pathname==='/'||browser.pathname==='/index.html';
+      if(!homepage&&browser.pathname!=='/studio'&&browser.pathname!=='/studio.html') {
+        // Preserve the existing setup destination for other account pages.
         window.location.replace(new URL('/studio?tool=image',browser.origin).href);
         return response;
       }
