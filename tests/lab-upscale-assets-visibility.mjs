@@ -110,10 +110,10 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
         return {archiveTop:archive.top,cardTop:card.top,previewHeight:preview.height,
           centerBottom:center.bottom,benefitsTop:benefits.top,viewportHeight:innerHeight};
       });
-      assert.ok(galleryPeek.archiveTop<galleryPeek.viewportHeight-90,'Real Upscaler gallery heading appears above the fold');
-      assert.ok(galleryPeek.cardTop<galleryPeek.viewportHeight-10,'Top edge of existing result cards peeks into the first desktop viewport');
-      assert.ok(galleryPeek.centerBottom<galleryPeek.benefitsTop,'Drop photo CTA and small benefits never overlap');
-      assert.ok(galleryPeek.previewHeight>=540&&galleryPeek.previewHeight<=700,'Preview retains usable photographic canvas height');
+      assert.ok(galleryPeek.archiveTop>galleryPeek.viewportHeight-70,'Approved fullscreen preview prioritizes the workspace');
+      assert.ok(galleryPeek.cardTop>galleryPeek.archiveTop,'The real result gallery remains below the editor');
+      assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),false,'Approved fullscreen mockup hides extra feature icons');
+      assert.ok(galleryPeek.previewHeight>=650&&galleryPeek.previewHeight<=850,'Approved full-screen photographic canvas height');
     }else{
       assert.ok(geometry.deck.top>=geometry.canvas.bottom+7,'Mobile shows the image before the settings deck');
       assert.ok(geometry.canvas.height>=415&&geometry.canvas.height<=425,'Narrow mobile preview remains a usable 420px stage');
@@ -124,16 +124,16 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     assert.equal(await page.locator('.pv-upscale-editorial-blank').count(),0,'Old editorial gallery layout is removed');
     assert.equal(await page.locator('.pv-upscale-empty-center h2').innerText(),'Drop a photo','Exact approved headline');
     assert.equal(await page.locator('#pv-upscale-hero-upload').innerText(),'Upload image','Exact approved CTA');
-    assert.deepEqual(await page.locator('.pv-upscale-benefit span').allInnerTexts(),['Bigger resolution','Richer textures','More clarity'],'Approved three benefits are present');
+    assert.deepEqual(await page.locator('.pv-upscale-benefit span').allInnerTexts(),['Bigger resolution','Richer textures','More clarity'],'Existing benefit markup is retained without showing decorative icons');
     const dropGeometry=await page.evaluate(()=>{
       const zone=document.getElementById('pv-upscale-dropzone'),r=zone.getBoundingClientRect();
       return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,
         border:getComputedStyle(zone).borderStyle,
         background:getComputedStyle(zone,'::before').backgroundImage};
     });
-    assert.equal(dropGeometry.border,'dashed','Dashed inset border makes the upload area obvious');
+    assert.equal(dropGeometry.border,'none','Approved full-screen backdrop has a floating dashed upload card');
     assert.ok(dropGeometry.background.includes('reptare-detail.webp'),'Existing PV LAB material image appears only as atmospheric background');
-    assert.ok(dropGeometry.left>geometry.canvas.left+7&&dropGeometry.right<geometry.canvas.right-7,'Drop area is inset within the preview');
+    assert.ok(dropGeometry.left>=geometry.canvas.left&&dropGeometry.right<=geometry.canvas.right+1,'Full-screen backdrop fills the preview');
     if(profile==='mobile'){
       assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),false,'Mobile emphasizes upload without cramped feature icons');
       const mobile=await page.evaluate(()=>{
@@ -145,7 +145,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       assert.ok(mobile.button.bottom<mobile.canvas.bottom-8,'Mobile upload CTA stays inside preview');
       assert.ok(mobile.button.left>=mobile.canvas.left&&mobile.button.right<=mobile.canvas.right,'Mobile upload CTA fits screen');
     }else{
-      assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),true,'Desktop shows three restrained benefit icons');
+      assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),false,'Fullscreen design hides extra feature icons');
     }
     const heroChooser=page.waitForEvent('filechooser');
     await page.locator('#pv-upscale-hero-upload').click();
