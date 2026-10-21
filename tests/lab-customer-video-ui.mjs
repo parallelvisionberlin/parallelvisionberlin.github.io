@@ -63,6 +63,7 @@ try{
    if(scenario==='trial')await page.screenshot({path:`test-results/video-customer-pricing-${width}.png`});
   }else{
    assert.equal(await page.locator('#generate').isEnabled(),false);
+   assert.equal(await page.locator('#generation-help').isVisible(),true);
    const message=await page.locator('#generation-help').textContent();
    assert.match(message,scenario==='review'?/refund or dispute/:scenario==='closed'?/account is closed/:scenario==='promo'?/support for a review/:/currently unavailable/);
    assert.deepEqual(posts,[]);
