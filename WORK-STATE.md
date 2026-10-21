@@ -24,3 +24,21 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 
 ## Next
 - Verify deployment and visually assess the refined lettering without changing anything else.
+
+## Berlin 2063 journey, 2026-10-21
+- User approved applying the reviewed journey to the page.
+- Source commit: 5512fb3fb2603187a7ffd0f05e9e06c586bc3351.
+- Changed only berlin-2063.html for the implementation.
+- Hero and 44-second opening film preserved.
+- Added bilingual Explore the worlds introduction; hero exploration link targets it.
+- Preserved the complete original markup of all four world galleries and Fashion After Fabric.
+- Added A transmission from Berlin 2063 after Organic Futures and before Fashion After Fabric.
+- Official clip: https://www.youtube.com/watch?v=T4bKnLgdLjQ.
+- Existing poster: assets/optimized/2063/lived-city/rave-a-private-second.webp.
+- Responsive 16:9 player; YouTube privacy-enhanced iframe loads only on click, direct link fallback retained.
+- Local npm run build passed; GitHub static validation succeeded (run 39637183464).
+- GitHub Pages build and deployment succeeded (run 39637183033).
+- Confirmed new headings and order on public domain; Play replaces poster with correct embedded player.
+- Desktop viewport has no horizontal overflow. Mobile CSS reviewed, actual phone viewport not tested.
+- Public screenshot captured; full video playback was buffering in this browser.
+- No further implementation pending for this scope.
