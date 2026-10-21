@@ -1,0 +1,7 @@
+# HTML entry points must revalidate after deployment. In-app iOS browsers can
+# otherwise retain an obsolete Studio UI even when the hashed assets change.
+# Keep immutable images, CSS, JS and authenticated API responses untouched.
+/studio
+  Cache-Control: no-store, max-age=0, must-revalidate
+/studio.html
+  Cache-Control: no-store, max-age=0, must-revalidate
