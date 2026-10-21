@@ -90,3 +90,11 @@ Next: add future photographs solely in the canonical manifest and compare them a
 - Reordered only the 13 `images` entries in `photography/archive.js`: featured landscape image first, then all other landscapes in previous relative order, then the four portrait photographs in previous relative order.
 - No file, caption, image path, gallery name, other series, gallery script or page style was modified. All seven galleries still contain 47 photographs.
 - Source edit branch: `fix/nocturne-feature-first-landscapes-20261021`; publication requires green validation and the site-specific GitHub Pages deployment.
+
+## 2026-10-21 / Oscar bio and artist link identity
+- Scope: photography index, CSS and a copy of the already approved AM07 monogram. No changes to photographic works, image manifest, gallery engine or unrelated sites.
+- A concise extended biography now identifies Oscar Molinari Herrera as an Italian-Venezuelan pioneer in experimental film/photography/video art; mentions Ojo de agua (1972), the Independent Film Workshop (1973), Salvador Dali friendship/mentorship, and Polaroid/video work with Alejandro Jodorowsky.
+- Public sources: https://elarchivo.org/oscar-molinari-herrera/ ; https://en.everybodywiki.com/Oscar_Molinari_Herrera . Lifelong Dali friendship is documented publicly; the mentor detail is family testimony supplied by the photographer. Do not claim that Oscar lived with Dali.
+- On photography mobile header, replace the blue emoji-style external-link symbol after ARTIST PAGE with a local self-contained copy of the chosen AM07 monogram from personal-site favicon.svg. Both header logo link and Artist Page destination point to https://alejandromolinari.com/; no unrelated site source modified.
+- CSS styles 26px desktop and 24px mobile, no third-party image loading. Add a locally hosted favicon reference. Keep dark colour palette, unchanged gallery layout.
+- Current publish status: pending deployment checks.

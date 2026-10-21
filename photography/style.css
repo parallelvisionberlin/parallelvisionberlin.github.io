@@ -98,3 +98,8 @@ button,a{-webkit-tap-highlight-color:transparent}
 }
 @media(max-width:360px){.opening h1{font-size:clamp(24px,7.25vw,27px)}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
+
+/* The exact AM07 monogram from alejandromolinari.com, not an emoji arrow. */
+.masthead-back{display:inline-flex;align-items:center;justify-content:flex-end;gap:9px;white-space:nowrap}
+.masthead-monogram{display:block;width:26px;height:26px;flex:0 0 26px;object-fit:contain;border-radius:2px}
+@media(max-width:700px){.masthead-back{gap:7px}.masthead-monogram{width:24px;height:24px;flex-basis:24px}}
