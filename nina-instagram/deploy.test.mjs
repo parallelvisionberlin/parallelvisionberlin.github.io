@@ -20,7 +20,7 @@ function fixture(bindings = required, mutateAfter = false) {
     if (String(url).endsWith('/health')) return Response.json(status);
     if (String(url).endsWith('/settings')) return Response.json({ success: true,
       result: { compatibility_date: '2026-10-01', bindings: mutateAfter && uploaded ? bindings.slice(1) : bindings } });
-    if (String(url).endsWith('/schedules')) return Response.json({ success: true, result: { crons: [{ cron: '* * * * *' }] } });
+    if (String(url).endsWith('/schedules')) return Response.json({ success: true, result: { schedules: [{ cron: '* * * * *' }] } });
     if (String(url).endsWith('/content')) { uploaded = true; return Response.json({ success: true, result: { id: 'nina-instagram' } }); }
     if (String(url).endsWith('/deployments')) return Response.json({ success: true, result: { deployments: [] } });
     throw new Error('Unexpected request');

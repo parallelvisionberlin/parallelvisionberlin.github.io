@@ -56,7 +56,7 @@ export async function deploy({ token, source, fetchImpl = fetch,
       'Explicit public feature override needs activation: ' + name);
   }
   const schedulesBefore = await api('/schedules');
-  const crons = Array.isArray(schedulesBefore) ? schedulesBefore : schedulesBefore.crons;
+  const crons = Array.isArray(schedulesBefore) ? schedulesBefore : schedulesBefore.schedules;
   assert(crons?.some(c => c.cron === '* * * * *'), 'Expected once-minute cron is missing');
   log('Verified existing Nina Instagram bindings and once-minute cron.');
 
