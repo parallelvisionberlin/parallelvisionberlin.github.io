@@ -45,6 +45,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    if(url.pathname==='/api/quotes'){quotes++;if(scenario==='slowquote')await new Promise(resolve=>setTimeout(resolve,1100));const data=req.postDataJSON();assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'1k','Photobooth quotes the fast 1K resolution for web and mobile');assert.equal(data.settings.aspectRatio,scenario==='text'?'16:9':'3:4','The first customer photo, not four internal mood photos, determines the output ratio');assert.equal(data.referenceSourceIds.length,scenario==='text'?0:1);assert.equal(new Set(data.referenceSourceIds).size,data.referenceSourceIds.length);assert.deepEqual(data.transferSourceIds,data.referenceSourceIds);assert.deepEqual(data.settings.referenceRoles.map(r=>r.role),[...(scenario==='text'?[]:['base'])]);return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
    if(url.pathname==='/api/jobs'&&req.method()==='POST'){
      paid++;assert.deepEqual(req.postDataJSON(),{quoteId:'quote-'+quotes,confirm:true});
+     if(scenario==='phone')await new Promise(resolve=>setTimeout(resolve,1150));
      if(scenario==='failure')return send({error:'Not enough credits.'},402);
      return send({job:{id:'job-test',status:'queued'}});
    }
@@ -116,6 +117,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      scenario+': close control is over the photographic image');
    assert.equal(matte.outline,'none',
      scenario+': container has no Safari-blue programmatic focus ring');
+   assert.equal(await page.locator('.mc-look-footer').evaluate(el=>getComputedStyle(el).fontSize),'0px',
+     scenario+': explanatory paragraph is removed from compact mobile editor');
    assert.ok(matte.top>=12&&matte.bottom>=12,
      scenario+': compact modal has air above and below');
    assert.ok(compact.dialog.height<=compact.screenHeight-(scenario==='small'?44:70)+1,
@@ -189,6 +192,9 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    await page.waitForFunction(()=>document.querySelector('#mc-look-credit-note').hidden===false);
    assert.equal(await button.textContent(),'Generate','The button never displays a credit cost');
    assert.match(await page.locator('#mc-look-credit-note').textContent(),/credits per image/);
+   if(['phone','small'].includes(scenario))assert.equal(
+     await page.locator('#mc-look-credit-note').evaluate(el=>getComputedStyle(el).fontSize),
+     '10px','Real credit quote remains readable in the photo-matte');
    assert.equal(paid,0);assert.equal(quotes,1);
  }
  if(scenario==='desktop'){
@@ -227,6 +233,11 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
  }else{
    await button.evaluate(el=>{el.click();el.click();});
    await page.waitForFunction(()=>document.querySelector('#mc-look-result')?.hidden===false);
+   if(scenario==='phone'){
+     assert.equal(await page.locator('#mc-look-result-loading').isVisible(),true,
+       'Photo-matte displays genuine Silver Darkroom processing before mock backend responds');
+     await page.screenshot({path:out+'/preparing-photo-matte-phone.png',fullPage:false});
+   }
    assert.equal(await page.locator('#mc-look-dialog').getAttribute('class'), 'mc-look-dialog is-result-view',
      'Generation should switch to a compact result view, not append underneath the full form');
    assert.equal(await page.locator('#mc-look-dropzone').isVisible(),false);
