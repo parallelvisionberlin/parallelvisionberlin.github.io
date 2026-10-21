@@ -70,6 +70,37 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
   if(url.hostname!=='127.0.0.1')return route.abort();return route.continue();
  });
  await page.goto(base+'/lab/explore-moods.html');
+ if(['phone','small'].includes(scenario)){
+   // Regression: opening the newest Fisheye card on an in-app-sized screen
+   // must expose the actual actions without scrolling through a tall hero.
+   await page.locator('[data-mood-id="fisheye-2000"]').click();
+   const compact=await page.evaluate(()=>{
+     const box=selector=>{
+       const r=document.querySelector(selector).getBoundingClientRect();
+       return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,width:r.width};
+     };
+     const dlg=document.getElementById('mc-look-dialog');
+     return {screenHeight:innerHeight,screenWidth:innerWidth,
+       dialog:box('#mc-look-dialog'),photo:box('.mc-look-dialog-media'),
+       title:box('#mc-look-title'),drop:box('#mc-look-dropzone'),
+       direction:box('#mc-look-direction'),
+       generate:box('#mc-look-continue'),make:box('#mc-look-make'),
+       overflow:document.documentElement.scrollWidth-innerWidth,
+       dialogScroll:dlg.scrollHeight-dlg.clientHeight};
+   });
+   assert.equal(await page.locator('#mc-look-title').innerText(),'Fisheye 2000');
+   assert.ok(compact.photo.height<=145,scenario+': Mood hero no longer consumes a third of the mobile viewport '+JSON.stringify(compact));
+   assert.ok(compact.title.bottom<compact.drop.top,scenario+': Mood heading is above compact upload field');
+   assert.ok(compact.drop.bottom<compact.direction.top,scenario+': upload and optional direction do not overlap');
+   assert.ok(compact.generate.top<compact.make.bottom,scenario+': both actions occupy the compact row');
+   assert.ok(compact.generate.bottom<=compact.dialog.bottom+2,scenario+': Generate appears without scrolling the Mood dialog');
+   assert.ok(compact.make.bottom<=compact.dialog.bottom+2,scenario+': secondary action appears without scrolling the Mood dialog');
+   assert.ok(compact.dialog.bottom<=compact.screenHeight+2,scenario+': dialog stays within iPhone web viewport');
+   assert.ok(compact.overflow<=2,scenario+': modal creates no horizontal overflow');
+   await page.screenshot({path:out+'/fisheye-mobile-compact-'+scenario+'.png',fullPage:false});
+   console.log('FISHEYE_COMPACT '+scenario+' '+JSON.stringify(compact));
+   await page.locator('#mc-look-close').click();
+ }
  if(scenario==='card-oversize'){
    const card=page.locator('[data-mood-id="hong-kong-nights"]');
    await card.click();

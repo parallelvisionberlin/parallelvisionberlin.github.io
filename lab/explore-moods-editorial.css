@@ -619,3 +619,161 @@
 .mc-explore-page .mc-look-dialog.is-generation-blocked #mc-look-continue{
   opacity:.47;filter:saturate(.36);cursor:not-allowed;
 }
+
+/* PV LAB / Explore Moods: restore the compact, upload-ready iPhone preview.
+   Presentation-only. Keep original Mood photos, submitted prompts, selected
+   references, quote, Generate and authenticated result view unchanged. */
+@media(max-width:600px){
+  .mc-explore-page .mc-look-dialog:not(.is-result-view)[open]{
+    width:calc(100vw - 20px)!important;
+    max-height:calc(100dvh - 22px)!important;
+    border-radius:14px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    overscroll-behavior:contain;
+    scrollbar-width:none;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view)::-webkit-scrollbar{display:none}
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-media{
+    height:clamp(105px,20dvh,142px)!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-media img{
+    object-fit:cover!important;
+    object-position:50% 42%!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-body{
+    box-sizing:border-box!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:8px!important;
+    padding:12px 15px 14px!important;
+    min-height:0!important;
+    overflow:visible!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-eyebrow{
+    font-size:8px!important;
+    letter-spacing:.12em!important;
+    line-height:1.4!important;
+    padding-right:45px!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-close{
+    width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+    top:6px!important;right:8px!important;
+    font-size:22px!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-body h2{
+    margin:0!important;
+    font-size:clamp(27px,7.6vw,33px)!important;
+    letter-spacing:-.05em!important;
+    line-height:1.05!important;
+    max-width:calc(100% - 9px)!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-body>p{
+    margin:0!important;
+    color:#afbcb0!important;
+    font-size:11px!important;
+    line-height:1.43!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dropzone{
+    height:82px!important;
+    min-height:82px!important;
+    flex:0 0 82px!important;
+    margin:1px 0 0!important;
+    padding:6px 10px!important;
+    border-radius:9px!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dropzone>label{
+    gap:3px!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dropzone>label span{
+    font-size:24px!important;
+    line-height:1!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dropzone>label strong{
+    font-size:11px!important;
+    line-height:1.35!important;
+    font-weight:550!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dropzone>label small{
+    font-size:9px!important;
+    line-height:1.35!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-prompt{
+    gap:5px!important;
+    margin:1px 0 0!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-prompt label{
+    font-size:11px!important;
+    line-height:1.4!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-prompt textarea{
+    box-sizing:border-box!important;
+    height:54px!important;
+    min-height:54px!important;
+    max-height:100px!important;
+    resize:vertical!important;
+    padding:8px 10px!important;
+    font-size:16px!important;
+    line-height:1.35!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-actions{
+    display:grid!important;
+    grid-template-columns:minmax(0,1.13fr) minmax(0,.87fr)!important;
+    align-items:center!important;
+    gap:8px!important;
+    margin:1px 0 0!important;
+    padding:4px 0 0!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-actions>.mc-look-continue{
+    min-width:0!important;width:100%!important;
+    min-height:43px!important;
+    padding:9px 8px!important;
+    font-size:13px!important;
+    border-radius:9px!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-actions>.mc-look-make{
+    min-width:0!important;width:100%!important;
+    min-height:43px!important;
+    padding:9px 3px!important;
+    font-size:11px!important;
+    text-align:center!important;
+    text-wrap:balance;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-footer{
+    min-height:0!important;
+    margin:0!important;
+    font-size:9px!important;
+    line-height:1.3!important;
+    text-align:center!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dropzone.has-image .mc-look-file-preview{
+    width:56px!important;
+    height:62px!important;
+    flex-basis:56px!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) #mc-look-file-clear{
+    top:4px!important;left:52px!important;
+    width:30px!important;height:30px!important;min-height:30px!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-upload-error{
+    gap:4px!important;padding:5px 8px!important;
+  }
+}
+@media(max-width:600px) and (max-height:650px){
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-media{
+    height:100px!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dialog-body{
+    gap:6px!important;padding:10px 13px 10px!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dropzone{
+    min-height:75px!important;height:75px!important;flex-basis:75px!important;
+  }
+  .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-prompt textarea{
+    height:48px!important;min-height:48px!important;
+  }
+}
