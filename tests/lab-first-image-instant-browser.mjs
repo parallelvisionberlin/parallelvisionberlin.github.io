@@ -197,11 +197,32 @@ try{
       await rolePage.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole='+role);
       await rolePage.waitForFunction(()=>window.__welcomeMockReady===true&&document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
       const roleDeck=rolePage.locator('#image-composer'),roleField=rolePage.locator('#image-composer-prompt');
-      for(const viewport of role==='new'?[{width:1440,height:900},{width:1280,height:720},{width:1280,height:680}]:role==='owner'?[{width:1440,height:900},{width:1180,height:800}]:[{width:1440,height:900}]){
+      for(const viewport of role==='new'?[{width:1920,height:911},{width:1440,height:900},{width:1280,height:720},{width:1280,height:680}]:role==='owner'?[{width:1440,height:900},{width:1180,height:800}]:[{width:1440,height:900}]){
         await rolePage.setViewportSize(viewport);
+        let noticeGeometry;
         for(const banner of role==='new'?[true,false]:[false]){
-          await rolePage.evaluate(show=>{document.getElementById('lab-credit-banner').hidden=!show;},banner);
+          if(role==='new'&&!banner)await rolePage.getByRole('button',{name:'Dismiss credit notice',exact:true}).click();
+          else await rolePage.evaluate(show=>{document.getElementById('lab-credit-banner').hidden=!show;},banner);
           await rolePage.waitForTimeout(80);
+          if(role==='new'){
+            const geometry=await rolePage.evaluate(()=>{
+              const selectors=['#studio-header','#main','.image-gallery-shell','.archivehead','#lab-welcome-start','#lab-welcome-presets','#lab-welcome-presets .lab-welcome-preset','#image-composer','#refresh','#history-preview-toggle'];
+              return Object.fromEntries(selectors.map(selector=>{
+                const r=document.querySelector(selector).getBoundingClientRect();
+                return [selector,{x:r.x,y:r.y,w:r.width,h:r.height}];
+              }));
+            });
+            if(banner)noticeGeometry=geometry;
+            else{
+              assert.deepEqual(geometry,noticeGeometry,'Closing the credit notice keeps the page, cards, deck, backdrop frame and History controls fixed at '+viewport.width+'x'+viewport.height);
+              assert.equal(await rolePage.locator('#lab-credit-banner').isVisible(),false,'Dismissed notice is not painted');
+              assert.equal(await rolePage.getByRole('button',{name:'Dismiss credit notice',exact:true}).count(),0,'Dismissed notice leaves the accessibility tree');
+            }
+            assert.ok(await rolePage.evaluate(()=>['refresh','history-preview-toggle'].every(id=>{
+              const el=document.getElementById(id),r=el.getBoundingClientRect();
+              return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+            })),'The credit notice never covers Refresh or the eye');
+          }
           const before=await roleDeck.boundingBox(),photos=await rolePage.locator('#lab-welcome-presets').boundingBox();
           assert.ok(before.height>=70&&before.height<=78,role+' gets the same thin entrance');
           const contained=await roleDeck.evaluate(el=>{

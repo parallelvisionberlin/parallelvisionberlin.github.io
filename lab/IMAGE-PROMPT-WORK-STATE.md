@@ -1,5 +1,21 @@
 # Image composer prompt: current state
 
+## Active: credit notice dismissal without moving the Image page (2026-10-21)
+
+- Latest references: image(20261021-142742).png and 142750 show Neon Riviera before/after closing the white zero-credit notice. User likes the notice; cards, prompt deck and page should stay fixed and controls must remain usable.
+- Baseline main b48329a70e570188f1275b4f5e0f1dde1fd7e846; branch fix/image-credit-banner-stability-20261021. Includes the concurrent Fisheye/public Mood-count work without changing it.
+- Cause: the 59px banner was a normal-flow sibling before main. Its hidden attribute removed the whole row, moving the stage and causing fitWelcomeDeck() to remeasure and grow cards. At 1920x911, closing moved the copy/cards up 88.5px, enlarged cards by 59px and moved the deck up 30px. The prior checks checked card/deck gap independently in each state, so did not detect the page shift.
+- Small correction: the wallet records when a notice has actually appeared in the current account session. Desktop Image retains that row's intrinsic responsive height after dismissal, using visibility:hidden plus pointer-events:none. The white notice disappears from paint, focus and accessibility while the stage frame and all controls remain stationary. The marker resets on connect/account change, so owner, public and customers who never saw a notice get no unused placeholder.
+- Scope: web Image at >=1180px width and >=680px height, matching the fixed desktop card entrance. Other tools, native and mobile retain existing flow. No hardcoded banner height, copied deck, overlay over controls or new layout controller.
+- Production files: lab/customer-wallet.js (presentation marker/reset only), lab/studio-credits.css (scoped hidden-row rule), lab/lab.js (wallet import cache only), lab/studio.html (JS/CSS cache only). Verification: tests/lab-first-image-instant-browser.mjs plus this work state.
+- Cache keys: studio-credits.css?v=20261021-stable-notice1; lab.js creditNotice=20261021-stable1; customer-wallet.js creditNotice=20261021-stable1.
+- Regression uses the real X handler and exact before/after coordinates for main, backdrop frame, copy, cards, first card, deck, Refresh and eye at 1920x911, 1440x900, 1280x720 and 1280x680. It asserts the closed notice is absent from the accessibility tree and that the live notice never intercepts Refresh/eye hit targets. Original-source run fails on the reported shift; the fixed run passes.
+- Local checks passed: approved Image UI contract (4); complete first-image browser (four account roles, expansion down, locked History, public backdrop pixels, mobile and quoted-generation mock); prompt paste/History; Studio layout including mobile, Video and Fashion; complete account/browser suite including actual UI dismissal, balance changes, checkout refusal and sign-out at 1440/768/390/320px. No real payment, provider generation or Google login.
+- Preserved approved prompt copy, shared deck/tool styling, approved backdrop, Inspiration/Moods content including concurrent Fisheye, Hong Kong Nights, Upscaler, account recovery/deletion, credit eligibility and all backend/billing safeguards.
+- Publication pending: create PR, wait for relevant CI, merge without rewriting history, verify Cloudflare and exact files on pvlab.studio. Signed-in notice behavior above is verified by repository browser fixtures; no real customer Google session has been controlled.
+
+## Previous verified shared-control release
+
 ## Active: identical entrance controls across account roles (2026-10-21)
 
 - Latest references: image(20261021-140209).png and 140220 are Neon Riviera compact/open; 140309 is the owner in reopened Inspiration. User explicitly wants one cohesive shared entrance rather than account-specific copies.
