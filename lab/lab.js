@@ -9,7 +9,7 @@ import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1';
-import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261018-reference2';
+import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261022-editorial-rows1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1&imageRatio=20261016-inherit1';
@@ -755,7 +755,7 @@ function currentImageSubmissionKey(selected=null,count=null){
   return JSON.stringify([frozen,imageSources,count??(Number($('image-count').value)||1)]);
 }
 function imageCreditQuoteSnapshot(){
-  if(!customerMode||!owner||tool!=='image'||fashionActive||busy||imageSubmissionPending||!hasInput())return null;
+  if(!customerMode||!owner||!customerGenerationReady||customerCreditBalance<=0||tool!=='image'||fashionActive||busy||imageSubmissionPending||!hasInput())return null;
   const selected=structuredClone(settings());
   const count=Math.max(1,Math.min(imageEngine==='gemini'&&imageProcessing==='batch'?20:4,Number($('image-count').value)||1));
   const sourceMode=imageEngine==='soulpro'||isReinterpret();
@@ -844,7 +844,7 @@ function applyCustomerImagePriceToGenerate(){
     button.textContent='Generate';
     button.title=showPlans
       ?'Choose credits to start creating. Your prompt and photographs will be preserved.'
-      :customerTrialGenerationPaused?'Complimentary generations are paused. Choose a credit pack to start creating.'
+      :customerTrialGenerationPaused?'Choose credits when you are ready to create.'
       :'Customer generation and checkout are not enabled yet.';
     return;
   }
@@ -1491,9 +1491,7 @@ function showWelcomeStart(session){
   const balance=Number.isSafeInteger(session.balanceCredits)?session.balanceCredits:null;
   if(amount)amount.textContent=balance===null?'Your credits':balance.toLocaleString('en-GB')+' credits';
   const creditStatus=$('lab-welcome-credit-status');
-  if(creditStatus)creditStatus.textContent=session.customer===true&&session.trialGenerationPaused
-    ?'on your account. Complimentary generation is paused.'
-    :balance===0?'on your account. Choose a plan when you are ready.':'available to create.';
+  if(creditStatus)creditStatus.textContent=balance===0?'on your account. Choose a plan when you are ready.':'available to create.';
   panel.hidden=false;
   $('lab-image-empty-intro').hidden=true;
   syncImageGalleryEmpty();
@@ -2103,9 +2101,9 @@ $('image-composer-generate').onclick=()=>{
   if(busy||tool!=='image')return;
   // Show prices only after the customer's explicit Generate click, keeping
   // the editor and references intact. Never attempt unpaid provider work.
-  if(customerMode&&customerTrialGenerationPaused&&customerBillingReady&&
-     !customerGenerationReady&&window.__PV_LAB_NATIVE__!==1){
-    void pricingOverlay.open({oneTime:true});
+  if(customerMode&&customerBillingReady&&window.__PV_LAB_NATIVE__!==1&&
+     (customerCreditBalance<=0||customerTrialGenerationPaused&&!customerGenerationReady)){
+    void pricingOverlay.open();
     return;
   }
   $('generate').click();
@@ -2796,13 +2794,14 @@ async function api(path,options={}) {
         (r.status===403&&/complimentary generation is paused/i.test(String(d.error||''))));
       if(fundingError){
         void wallet.refresh();
-        // The customer asked to generate but lacks usable credits. Keep the
-        // existing prompt and files in place; open the same full Pricing section
-        // as the Upgrade button, never navigate through the homepage hero.
-        if(options.method==='POST'&&!path.startsWith('/api/billing/')&&!path.startsWith('/api/customer/'))
-          void pricingOverlay.open({oneTime:true});
+        // A background preview quote is preparation, not a request to buy.
+        // Open plans only inside an explicit Generate action, preserving drafts.
+        const generating=imageSubmissionPending||customerPriceIntentPending||
+          busy&&(tool==='video'||tool==='upscale');
+        if(generating&&options.method==='POST'&&!path.startsWith('/api/billing/')&&!path.startsWith('/api/customer/'))
+          void pricingOverlay.open();
       }
-      throw new Error(d.error||`Request failed (${r.status}).`);
+      throw new Error(fundingError?'Choose credits when you are ready to generate. Your prompt and photographs stay in place.':d.error||`Request failed (${r.status}).`);
     }
     const value=options.blob?await r.blob():await r.json();assertCurrent();
     // Refresh the real wallet after a reserved job or a confirmed failed job. Never infer a debit locally.
@@ -4829,6 +4828,10 @@ window.visualViewport?.addEventListener('resize',()=>{if(!imageComposer.hidden)f
 // The editor stays interactive: a paid submission only reads this captured request.
 async function submitImageSnapshot(){
   if(busy||imageSubmissionPending||customerPriceIntentPending||!owner||!hasInput()||submissionBlocked()||fastImageHandoff.has(currentImageSubmissionKey()))return;
+  if(customerMode&&customerBillingReady&&window.__PV_LAB_NATIVE__!==1&&
+     (customerCreditBalance<=0||customerTrialGenerationPaused&&!customerGenerationReady)){
+    void pricingOverlay.open();return;
+  }
   if(usesReferenceGuidance()){
     const advisories=referenceRoleAdvisories(referenceRoles());
     if(advisories.length&&!confirm('Check these reference roles before spending credits:\n\n'+advisories.join('\n\n')+'\n\nGenerate anyway?'))return;

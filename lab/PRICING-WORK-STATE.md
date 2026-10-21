@@ -1,3 +1,25 @@
+# Studio pricing and zero-credit exploration, 2026-10-22
+
+- Objective approved by Alejandro: use the compact plan rows from the homepage reference; allow Mood preparation without a pricing interruption; remove the paused complimentary-generation notice.
+- Reference: `image(20261021-233609).png`, Library ID `libfile_d58e2a00e0088191b7d34225d632c7cd`.
+- Source base: `392fbb40748bb5f57f77c0c1527e54f18f1869ff` on main.
+- Branch: `fix/remove-paused-creation-copy-20261022`.
+- `lab/lab.js`: zero-credit or unavailable-generation customers do not request background provider quotes; background funding errors cannot open pricing.
+- Only an explicit Generate action opens the plan comparison for insufficient funds. Upgrade and the balance retain access to the same catalog.
+- Welcome balance copy no longer says complimentary generation is paused. Funding errors use a neutral credit-selection message.
+- `lab/pricing-overlay.css`: centered 814px maximum desktop panel, three compact rows, subtle existing Creator photo, monthly/one-time tabs; mobile uses the same content with full-width actions.
+- `lab/pricing-overlay.js`: reuse the homepage headline, intro, plan content, estimates and billing disclosure without the former card decorations.
+- All six SKU IDs, euro prices, credit quantities, Stripe callbacks and backend entitlement checks remain unchanged.
+- `lab/studio.html`: cache versions `20261022-creation-flow1` and `20261022-editorial-rows1`.
+- Tests: approved Image contract, trial pause and price/debit integrity all pass (19 checks).
+- Overlay browser passes 320/390/1440/1648px, checkout SKU handoff, guest sign-in continuation, no automatic payment, draft/focus retention and renewal disclosure.
+- Existing first-image browser passes new/returning/owner/public parity and quoted one-click Generate with intercepted requests.
+- Account browser adds zero-credit Mood selection for both generation-ready and paused accounts at 1440/390px, plus a failed background quote regression.
+- Desktop and mobile panel screenshots visually reviewed using local synthetic sessions.
+- Publication: not yet merged or confirmed live. Verify PR checks, Cloudflare Pages exact commit and production JS/CSS bytes before reporting live.
+- No real payment, account mutation or paid generation was used for testing.
+- Next action: finish account browser check, publish the validated PR and verify production release.
+
 # Homepage pricing: current state
 
 - Date: 2026-10-12.

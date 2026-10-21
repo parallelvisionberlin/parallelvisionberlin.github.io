@@ -3,7 +3,7 @@
 // Clerk, Stripe or API requests and no customer wallet mutations.
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {readFileSync,existsSync,statSync} from 'node:fs';
+import {readFileSync,existsSync,statSync,mkdirSync} from 'node:fs';
 import {join,extname,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
@@ -52,35 +52,26 @@ try{
     await page.click('#upgrade');
     await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
     assert.equal(await page.locator('#lab-pricing-overlay #pricing button[data-lab-buy]').count(),6,'Live homepage SKUs are shown without duplicate markup');
-    assert.equal(await page.locator('#lab-pricing-overlay .lab-overlay-brand').textContent(),'PV LAB','Compact Studio-only brand is present');
-    assert.equal((await page.locator('#lab-pricing-overlay #lab-plans-title').innerText()).replace(/\s+/g,' ').trim(),'More room to create.','Approved headline is shown in the Studio only');
+    assert.equal((await page.locator('#lab-pricing-overlay #lab-plans-title').innerText()).trim(),'Create without interruption.','Studio uses the approved homepage headline');
     assert.equal(await page.locator('#lab-pricing-overlay .lab-pricing-deck').isVisible(),false,'Homepage image fan is not duplicated into the Studio modal');
-    assert.equal(await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-overlay-plan-note').count(),3,'Each monthly card has its short capability note');
-    assert.equal(await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-overlay-icon').count(),12,'All usage and capability icons appear');
-    assert.equal(await page.locator('#lab-pricing-overlay .lab-overlay-footer').count(),1,'Benefits and billing use one bottom row');
-    assert.equal(await page.locator('#lab-pricing-overlay .lab-overlay-card-fineprint').count(),0,'No duplicate billing notes');
-    const background=await page.locator('#lab-pricing-overlay').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
-    assert.equal(background.includes('url('),false,'Modal does not use a portrait photo');
+    assert.equal(await page.locator('#lab-pricing-overlay .lab-overlay-plan-note').count(),0,'No repeated capability sections inside each plan');
+    const creatorArt=await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-plan--recommended').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
+    assert.match(creatorArt,/leather-editorial\/hero-desktop\.webp/,'Creator retains the subtle approved photograph');
+    const g=await page.locator('#lab-pricing-overlay').evaluate(el=>{
+      const r=el.getBoundingClientRect();
+      const plans=[...el.querySelectorAll('#lab-monthly-plans .lab-plan')].map(x=>x.getBoundingClientRect());
+      return {width:r.width,height:r.height,plans:plans.map(n=>({x:n.x,y:n.y,width:n.width,height:n.height}))};
+    });
+    assert.ok(g.plans[0].y<g.plans[1].y&&g.plans[1].y<g.plans[2].y,'Plans appear in three stacked rows');
+    assert.ok(g.plans.every(p=>Math.abs(p.x-g.plans[0].x)<2),'All plan rows share one left edge');
     if(width>=1440){
-      const g=await page.locator('#lab-pricing-overlay').evaluate(el=>{
-        const r=el.getBoundingClientRect();
-        const p=[...el.querySelectorAll('#lab-monthly-plans .lab-plan')].map(x=>x.getBoundingClientRect());
-        const d=el.querySelector('#lab-monthly-plans .lab-plan-description').getBoundingClientRect();
-        const c=el.querySelector('#lab-monthly-plans .lab-plan-credits').getBoundingClientRect();
-        return {width:r.width,height:r.height,viewport:innerWidth,plans:p.map(n=>({x:n.x,y:n.y,height:n.height})),descriptionY:d.y,creditsY:c.y};
-      });
-      assert.ok(g.width>g.viewport*.72,'Wide reference modal, not the narrow old one: '+JSON.stringify(g));
-      assert.ok(g.height>=680,'Reference modal retains generous vertical rhythm: '+JSON.stringify(g));
-      assert.ok(g.plans.every(x=>x.height>=400),'Three taller plan cards: '+JSON.stringify(g));
-      assert.ok(g.descriptionY<g.creditsY,'Description is above credit details');
-      console.log('REFERENCE MODAL',width,JSON.stringify(g));
+      assert.ok(g.width<=814&&g.height<820,'Compact centered panel: '+JSON.stringify(g));
+      assert.ok(g.plans.every(x=>x.height>=139&&x.height<=155),'Compact readable plan rows: '+JSON.stringify(g));
     }
-
-    if(width===1440){
-      const positions=await page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-plan').evaluateAll(nodes=>nodes.map(node=>({x:node.getBoundingClientRect().x,y:node.getBoundingClientRect().y,width:node.getBoundingClientRect().width})));
-      assert.ok(positions[0].x<positions[1].x&&positions[1].x<positions[2].x,'Desktop modal uses three pricing columns');
-      assert.ok(Math.abs(positions[0].y-positions[1].y)<3&&Math.abs(positions[1].y-positions[2].y)<3,'All three cards align along the same row');
-    }
+    assert.equal(await page.locator('#lab-pricing-billing-copy').innerText(),'Renews monthly until cancelled.');
+    assert.equal(await page.locator('#lab-pricing-billing-copy').isVisible(),true,'Monthly renewal disclosure is visible');
+    mkdirSync('/tmp/pvlab-editorial-pricing',{recursive:true});
+    await page.screenshot({path:'/tmp/pvlab-editorial-pricing/monthly-'+width+'.png'});
 
     assert.equal(await page.locator('#lab-pricing-overlay #pricing button[data-lab-buy][disabled]').count(),0,'Paid actions are available');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-monthly').getAttribute('aria-selected'),'true');
