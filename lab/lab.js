@@ -2435,7 +2435,7 @@ function updateVideoInspector(job){
   updateVideoInspectorReferences(job);
   if(!job){
     $('video-detail-status').textContent=videoStartFrameHandoff&&file?'Start frame':'';
-    const sceneFoot=$('pv-video-sidebar-footnote');
+    const sceneFoot=$('video-inspector-empty').querySelector('.pv-video-sidebar-footnote');
     if(sceneFoot)sceneFoot.textContent=tool==='video'&&mode==='start'&&!!file?'Start frame ready. Describe its motion to generate a video.':'Settings for your next video. Nothing has been generated.';
     for(const card of $('history').querySelectorAll('.is-current-video'))card.classList.remove('is-current-video');
     return;
