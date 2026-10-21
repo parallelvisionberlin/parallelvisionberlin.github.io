@@ -499,6 +499,30 @@ test('Gemini batches remain available beyond 500 history entries for owners and 
     if(customer)assert.equal(env.LAB_DB.db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='generation'").get(owner).n,2);
   }}finally{globalThis.fetch=previous;}
 });
+test('paused customer can discover draft video models without receiving spending permission',async()=>{
+  const {env}=fixture(),db=env.LAB_DB.db;
+  for(const migration of ['0006-customers-billing','0011-customer-lifecycle','0015-lab-promotional-credits','0023-welcome-guard','0025-promo-generation-holds','0029-pause-welcome-promotion','0033-owner-voucher-generation'])
+    db.exec(readFileSync(new URL('../lab-worker/migrations/'+migration+'.sql',import.meta.url),'utf8'));
+  Object.assign(env,{LAB_CUSTOMER_SIGNUPS_ENABLED:'true',LAB_WELCOME_CREDITS_ENABLED:'false',LAB_FREE_TRIAL_PAUSED:'true',LAB_CHECKOUT_ENABLED:'true',LAB_PUBLIC_GENERATION_ENABLED:'true',LAB_CUSTOMER_SPICY_API_KEY:KEY,LAB_STRIPE_SECRET_KEY:'sk_test_synthetic',LAB_STRIPE_WEBHOOK_SECRET:'whsec_synthetic'});
+  const authToken=await token('user_VideoPreparation');
+  const response=await req(env,'/api/session',{authToken});
+  assert.equal(response.status,200);
+  const session=await response.json();
+  assert.equal(session.generationReady,false);
+  assert.equal(session.trialGenerationPaused,true);
+  assert.equal(session.billingReady,true);
+  assert.equal(session.config.enabled,false);
+  assert.deepEqual(session.config.videoEngines,[]);
+  assert.ok(session.config.videoPreparationEngines.includes('wan'));
+  assert.ok(session.config.videoPreparationEngines.includes('seedance'));
+  assert.ok(!session.config.videoPreparationEngines.includes('klinghf'),'Owner-only model stays private');
+  const count=createCount;
+  const quote=await req(env,'/api/quotes',{method:'POST',authToken,data:{settings:{type:'video',engine:'seedance',mode:'text',prompt:'A slow camera move.'}}});
+  assert.equal(quote.status,403);
+  assert.match((await quote.json()).error,/Complimentary generation is paused/);
+  assert.equal(createCount,count);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,0);
+});
 test('new customer: signed signup, paid credits once, generation, private download, return gallery and failed-job refund',async()=>{
   const {env}=fixture(),db=env.LAB_DB.db,customer='user_LaunchQA',other='user_LaunchOther';
   for(const file of ['0006-customers-billing.sql','0007-lab-referrals.sql','0008-soul-id-launch-credits.sql','0011-customer-lifecycle.sql','0024-owner-acquisition.sql'])db.exec(readFileSync(new URL('../lab-worker/migrations/'+file,import.meta.url),'utf8'));
