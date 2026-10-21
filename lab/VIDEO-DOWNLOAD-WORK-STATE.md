@@ -10,7 +10,12 @@
 - Existing tests/lab-image-viewer-browser.mjs checks SVG controls, source/queued/saved playback visibility, and desktop/mobile empty-stage behavior.
 - Local approved Image contract and scoped Video unit checks: 16 passed; JS syntax and diff whitespace pass.
 - No paid generation, billing change, account change or unrelated redesign.
-- Release pending: run relevant CI, merge and verify Cloudflare plus the actual production asset revisions before claiming live.
+- All 20 PR workflows passed at 313c5b046fc7486f213bef81ce54e3eb6bcc5735. Gallery browser coverage passed 1440/390px with landscape, portrait and square media.
+- PR #423 merged as 2bcf82de16b027ab2dee883e0dabf1843b953b8c. Tested video-refresh.css and assets.js blobs exactly match merged source.
+- Cloudflare Pages check 119498191095 succeeded for pvlab-studio, deployment 671717b2-4e70-42ff-8e9a-1d6ea68dc5c8.
+- Release verifier returned LIVE_VERIFIED for video-refresh.css?v=20261021-mobile-quiet1; SHA-256 9b952f6902f74b8e94a1aea44e072226f787cd2a4d3ac4faf50c0f42a5b3b760.
+- Live browser confirmed assets.css?v=20261021-svg-play1, lab.js videoMobileQuiet=20261021-1 and the <=820px empty-only rule in the production CSSOM.
+- Complete and published. Real private owner History was covered by mocked browser tests, not inspected in the signed-out production browser; no paid generation needed.
 - The earlier compact Download control and its release evidence below remain intact.
 
 Updated: 2026-10-21
