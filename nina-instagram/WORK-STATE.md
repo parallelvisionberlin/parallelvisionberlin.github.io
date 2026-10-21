@@ -1,6 +1,23 @@
 # Nina Instagram: verified owner-continuity work state
 Updated: 2026-10-21
 
+## Voice handling repair (2026-10-21)
+- User explicitly authorized repairing voice-note reception and artificial failure responses.
+- Source commit: 94d07121c7820b52947d5b68f334590b19685dca.
+- Files: worker.mjs, voice-transcription-runtime.js, worker.test.mjs, diagnose.mjs, and the existing deploy workflow.
+- Revision: voice-repair-2026-10-21. Public mode, approved pacing, private-vault isolation, at-most-once sends and existing limits remain unchanged.
+- Audio URL selection now tries each trusted candidate rather than discarding a valid audio_data/file_url because a preceding URL is unusable. Exact lookaside.facebook.com is accepted alongside the existing trusted Meta media hosts. Redirects stay validated; bearer credentials are never forwarded to media hosts.
+- Download redirects share one 8-second deadline and allow up to five hops. Media HTTP, Graph API rejection, redirect/content and transcription failures retain distinct nonprivate error codes.
+- New Instagram-only ig_voice_receipts stores message ID, stage, status and error code, without media URLs, audio or transcript content.
+- Internal pending/failed audio placeholders are excluded from model conversation turns. A failed current audio queues a brief deterministic acknowledgment using the existing timing and send protection, with no dialogue-model inference or owner-vault recall.
+- A one-time, per-message guarded recovery attempts the previously failed VOICE_URL_UNAVAILABLE audio from the last day through Meta. It cannot overwrite a newer queued text; a failed historical recovery does not generate another unsolicited acknowledgment.
+- Generic topic-menu/reassurance patterns from the user-reported reply are now caught by the rewrite guard.
+- Validation: 26 local tests passed, including 6 new voice failure/refresh/privacy/race tests; deployment CI repeats the tests.
+- Deployment VERIFIED: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39673100944, CI 26/26 tests passed, 20:46:40 UTC. Version 95c230f1-4321-4d3b-84d2-f2fac865b4eb at 100%; deployment b5d75420-b2cb-4f2a-b6e4-40ddc5887369. Existing seven bindings, settings and cron preserved.
+- Follow-up read-only diagnosis at 20:48:50 UTC (run 39673101111, job 119476654069) verified recovery ran at 20:47:29 UTC. Meta request succeeded but supplied no usable accepted audio URL: VOICE_META_NO_AUDIO_URL, stage resolve. The old audio remains failed; no duplicate reply or replacement of the newer owner text job occurred.
+- The user was asked to send one fresh 5–10 second Instagram voice note after deployment. No fresh note was visible at the last diagnosis. Real Instagram download/transcription remains UNVERIFIED; do not claim end-to-end voice is repaired from synthetic tests or feature flags.
+- Exact next action: inspect ig_voice_receipts and processing after the fresh note. If media resolution fails, distinguish missing attachment metadata from rejected URL/download before further code changes. Public visitor job remained pending for 21:57 UTC; owner latest reply remained confirmed sent at 20:32:08 UTC.
+
 ## Live silence report diagnosed (2026-10-21 20:34 UTC)
 - Read-only diagnostic source commit: f034982e4426ff84390df0950c85a71f1cd31fb1.
 - Verified run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39671441569 (success).
