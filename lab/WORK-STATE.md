@@ -1,5 +1,14 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Quiet Video History empty state, 2026-10-22 (Europe/Berlin)
+- Source main: `01663853cdbc07c37dde56c719130e4a56f92686`.
+- User approved “Your videos will appear here.” below History, 12px, normal weight and muted grey.
+- `lab/studio.html`: moved the existing `video-feed-empty` into the archive beneath its header; refreshed only the Video stylesheet marker.
+- `lab/video-refresh.css`: scoped note styling and non-Video suppression. Existing loading/visibility and saved-video behavior retained.
+- Verification: 17 approved Image/Video interface checks passed; existing gallery browser suite passed all six desktop/mobile image-shape cases.
+- Targeted real-browser checks at 1440, 390 and 320px confirm copy, archive placement, 12px/400 muted styling, no horizontal overflow, hidden with saved videos and outside Video.
+- Deployment: source ready for PR/checks and Cloudflare Pages verification; no paid generation or real account mutation.
+
 ## Approved bold homepage wordmark, 2026-10-22 (Europe/Berlin)
 - User approved the heavy, condensed PV LAB lettering in the homepage mockup and authorized applying it to the website.
 - Both homepage placements use one small outlined SVG, derived from Anton with its SIL OFL notice included. No new font download or font swap is needed.
