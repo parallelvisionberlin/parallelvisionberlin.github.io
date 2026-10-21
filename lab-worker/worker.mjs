@@ -3,7 +3,7 @@ import {checkCustomerPromptSafety} from './prompt-safety.mjs';
 import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook.mjs';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
-import {banClosedStudioIdentity,processStudioIdentityDeletions} from './studio-identity-deletion.mjs';
+import {banClosedStudioIdentity,finishClosedStudioIdentity,processStudioIdentityDeletions} from './studio-identity-deletion.mjs';
 import {processSignupWelcomeEmails} from './signup-welcome-email.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
@@ -51,7 +51,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-21.1-elements-gemini3';
+export const VERSION = 'pv-lab-2026-10-21.2-account-recreation';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1358,6 +1358,9 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
+  if(customer&&path==='/api/session'&&ctx?.waitUntil&&
+    await first(env,'SELECT 1 AS closed FROM lab_account_closures WHERE customer_id=?',owner))
+    ctx.waitUntil(finishClosedStudioIdentity(env,owner).catch(()=>{}));
   if(customer&&path==='/api/session'&&env.LAB_WELCOME_CREDITS_ENABLED==='true'&&
      (env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY)){
     // Only an enabled welcome campaign needs Clerk email verification before
@@ -2138,6 +2141,8 @@ async function maintenance(env) {
   await run(env,'DELETE FROM quotes WHERE expires_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.quote_id=quotes.id)',now());
   const unused=await rows(env,"SELECT * FROM assets WHERE kind='source' AND created_at<? ORDER BY created_at LIMIT 30",now()-86400000);
   for(const a of unused)await pruneSource(env,a.owner_id,a.id);
+}
+async function accountMaintenance(env){
   try{await processAccountClosures(env,verifyClosureBilling);}
   finally{await processStudioIdentityDeletions(env);}
 }
@@ -2150,6 +2155,9 @@ export default {
     // Customer-email repair is isolated from potentially failing generation maintenance.
     ctx.waitUntil(scheduledClerkBackfill(env));
     ctx.waitUntil(processSignupWelcomeEmails(env).catch(()=>{}));
+    // Account erasure must not wait for a provider poll, training recovery or
+    // an unrelated source-file cleanup to succeed.
+    ctx.waitUntil(accountMaintenance(env));
     ctx.waitUntil(maintenance(env));
     // Discard aggregate counts older than 90 days, once per UTC day.
     const clock=Number(event?.scheduledTime)||Date.now();

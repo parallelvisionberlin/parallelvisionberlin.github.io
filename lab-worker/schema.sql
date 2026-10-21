@@ -229,6 +229,12 @@ CREATE TABLE IF NOT EXISTS lab_studio_identity_deletions (
 );
 CREATE INDEX IF NOT EXISTS lab_studio_identity_deletions_pending
   ON lab_studio_identity_deletions(state,requested_at);
+-- Bounded deletion retry diagnostics. Never store Clerk responses, secrets or email.
+CREATE TABLE IF NOT EXISTS lab_studio_identity_cleanup_attempts (
+  customer_id TEXT PRIMARY KEY REFERENCES lab_customers(id),
+  attempted_at INTEGER NOT NULL,
+  issue TEXT
+);
 -- One-time PV LAB account onboarding email; no recipient address in this table.
 CREATE TABLE IF NOT EXISTS lab_signup_welcome_emails (
   customer_id TEXT PRIMARY KEY REFERENCES lab_customers(id),

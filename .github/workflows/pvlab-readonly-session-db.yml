@@ -117,4 +117,9 @@ jobs:
             LEFT JOIN lab_studio_identity_deletions t ON t.customer_id=x.customer_id
             LEFT JOIN lab_clerk_identity_links l ON l.canonical_id=x.customer_id AND l.kind='customer'`});
           console.log('Account deletion aggregate state:',JSON.stringify(result[0].results[0]));
+          const tables=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{sql:"SELECT COUNT(*) AS present FROM sqlite_master WHERE type='table' AND name='lab_studio_identity_cleanup_attempts'"});
+          if(tables[0].results[0].present){
+            const attempts=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{sql:`SELECT COALESCE(a.issue,'success') AS outcome,COUNT(*) AS attempts FROM lab_studio_identity_cleanup_attempts a JOIN lab_studio_identity_deletions t ON t.customer_id=a.customer_id GROUP BY a.issue`});
+            console.log('Identity cleanup outcomes:',JSON.stringify(attempts[0].results));
+          }
           JS
