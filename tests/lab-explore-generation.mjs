@@ -236,6 +236,10 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    if(scenario==='phone'){
      assert.equal(await page.locator('#mc-look-result-loading').isVisible(),true,
        'Photo-matte displays genuine Silver Darkroom processing before mock backend responds');
+     await page.waitForFunction(()=>document.querySelector('#mc-look-result')?.classList.contains('is-visible'));
+     await page.waitForTimeout(410);
+     assert.ok(await page.locator('#mc-look-result').evaluate(el=>Number(getComputedStyle(el).opacity))>.95,
+       'The Silver Darkroom transition is settled and readable');
      await page.screenshot({path:out+'/preparing-photo-matte-phone.png',fullPage:false});
    }
    assert.equal(await page.locator('#mc-look-dialog').getAttribute('class'), 'mc-look-dialog is-result-view',
