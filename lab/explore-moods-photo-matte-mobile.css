@@ -151,7 +151,7 @@
  .mc-explore-page .mc-look-dialog[open] .mc-look-dialog-body{
   gap:6px!important;padding:10px 13px 11px!important;
  }
- .mc-explore-page .mc-look-dialog:not(.is-result-view) .mc-look-dropzone{
+ .mc-explore-page .mc-look-dialog:not(.is-result-view)[open] .mc-look-dropzone{
   height:89px!important;min-height:89px!important;flex-basis:89px!important;margin-top:2px!important;
  }
  .mc-explore-page .mc-look-dialog.is-result-view .mc-look-result-frame{height:172px!important}
