@@ -22,7 +22,8 @@
   let emptyGuestFocus=false;
   function fitWelcomeDeck(){
     const hasRefs=refs&&!refs.hidden&&refs.children.length>0;
-    const visible=welcomeWidth.matches&&app&&!app.hidden&&app.classList.contains('image-studio-active')&&
+    const visible=welcomeWidth.matches&&!document.documentElement.classList.contains('pv-image-previews-hidden')&&
+      app&&!app.hidden&&app.classList.contains('image-studio-active')&&
       welcome&&!welcome.hidden&&empty&&!empty.hidden&&cards&&!hasRefs&&!real.classList.contains('is-pv-soul');
     real.classList.toggle('pv-welcome-deck',!!visible);
     if(!visible){
@@ -157,7 +158,7 @@
   if(refs){
     new MutationObserver(sync).observe(refs,{attributes:true,attributeFilter:['hidden'],childList:true});
   }
-  for(const node of [app,welcome,empty,document.getElementById('lab-credit-banner')]){
+  for(const node of [document.documentElement,app,welcome,empty,document.getElementById('lab-credit-banner')]){
     if(node)new MutationObserver(deferSync).observe(node,{attributes:true,attributeFilter:['hidden','class']});
   }
   if(welcome&&empty&&typeof ResizeObserver!=='undefined'){
