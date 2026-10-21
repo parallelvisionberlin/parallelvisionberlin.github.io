@@ -461,8 +461,8 @@
 #app.upscale-studio-active .pv-upscale-dropzone::before{
   content:"";position:absolute;inset:-12px;z-index:-2;pointer-events:none;
   background:url('./visuals/reptare-detail.webp') 65% 48%/cover no-repeat;
-  filter:grayscale(1) brightness(.27) contrast(1.38) blur(2px);
-  opacity:.84;transform:scale(1.04);
+  filter:grayscale(1) brightness(.38) contrast(1.25) blur(1.6px);
+  opacity:.92;transform:scale(1.04);
 }
 #app.upscale-studio-active .pv-upscale-dropzone::after{
   content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
@@ -547,4 +547,18 @@
 @media(prefers-reduced-motion:reduce){
   #app.upscale-studio-active .pv-upscale-dropzone,
   #app.upscale-studio-active #pv-upscale-hero-upload{transition:none}
+}
+
+/* The approved mockup uses a quiet disclosure, not a filled pill. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info>summary{
+  width:max-content!important;min-height:22px!important;
+  padding:0!important;margin:0!important;
+  border:0!important;border-radius:0!important;
+  background:none!important;box-shadow:none!important;
+  color:#a4acb6!important;
+  font:500 11px/1.5 'DM Sans',Arial,sans-serif!important;
+  letter-spacing:0!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info>summary:hover{
+  color:#e9ecef!important;
 }
