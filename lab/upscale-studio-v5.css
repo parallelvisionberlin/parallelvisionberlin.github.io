@@ -430,186 +430,121 @@
   display:none!important;
 }
 
-/* PV LAB MATERIAL STUDY 001
-   Uses a clean, already-present PV LAB studio photograph of reflective chrome
-   and white fibrous material. No additional generation or retouching.
-   The source image is illustrative, never a fabricated Upscale result. */
-#app .pv-upscale-editorial-blank{display:none}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty{position:relative!important;padding:0!important;overflow:hidden}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty::before{display:none!important;content:none!important}
-#app.upscale-studio-active #empty>.upscale-empty-kicker,
-#app.upscale-studio-active #empty>#empty-title,
-#app.upscale-studio-active #empty>#empty-description,
-#app.upscale-studio-active #empty>.empty-actions,
-#app.upscale-studio-active #empty>.upscale-drop-hint,
-#app.upscale-studio-active #empty>.pv-upscale-example-note{display:none!important}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{
- display:grid!important;position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;
- grid-template-columns:minmax(0,44%) minmax(0,56%);overflow:hidden;text-align:left;
- background:radial-gradient(ellipse 70% 85% at 73% 50%,rgba(56,62,71,.13),transparent 78%),#0c1014;
- color:#eeece7;font-family:'DM Sans',Arial,sans-serif;
+
+/* PV LAB Upscaler V7. Empty-state styling only, preserving all real provider and result UI. */
+#app .pv-upscale-empty-drop{display:none}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty{
+  box-sizing:border-box!important;display:block!important;position:relative!important;
+  width:100%;height:100%;min-height:0!important;margin:0!important;padding:0!important;
+  background:#0c1015!important;overflow:hidden!important;
 }
-#app.upscale-studio-active .pv-upscale-editorial-blank::before{content:"";position:absolute;left:44%;top:9%;bottom:9%;width:1px;background:linear-gradient(transparent,#ffffff18 25%,#ffffff18 75%,transparent);pointer-events:none}
-#app.upscale-studio-active .pv-upscale-blank-copy{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;align-self:center;min-width:0;padding:25px clamp(24px,4vw,72px)}
-#app.upscale-studio-active .pv-upscale-blank-index{display:flex;gap:9px;align-items:center;margin:0 0 clamp(25px,5vh,48px);font:600 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.15em;color:#a3a3a0;white-space:nowrap}
-#app.upscale-studio-active .pv-upscale-blank-index i{display:block;width:5px;height:5px;flex:none;border-radius:50%;background:#aeb6bf}
-#app.upscale-studio-active .pv-upscale-blank-copy h2{display:flex;flex-direction:column;margin:0 0 22px;font:500 clamp(46px,4.8vw,79px)/.99 'DM Sans',Arial,sans-serif;letter-spacing:-.065em;color:#f1eee9}
-#app.upscale-studio-active .pv-upscale-blank-copy p{max-width:282px;margin:0 0 37px;color:#9ca3a8;font:400 13px/1.8 'DM Sans',Arial,sans-serif}
-#app.upscale-studio-active #pv-upscale-hero-upload{display:flex;align-items:center;gap:16px;min-height:39px;padding:0 0 6px;border:0;border-bottom:1px solid #9c9e9d;border-radius:0;background:transparent;color:#ecebe7;font:600 12px 'DM Sans',Arial,sans-serif;cursor:pointer;transition:color .18s,border-color .18s}
-#app.upscale-studio-active #pv-upscale-hero-upload svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s}
-#app.upscale-studio-active #pv-upscale-hero-upload:hover{color:#fff;border-color:#fff}
-#app.upscale-studio-active #pv-upscale-hero-upload:hover svg{transform:translateX(4px)}
-#app.upscale-studio-active #pv-upscale-hero-upload:focus-visible{outline:2px solid #f0ebe6;outline-offset:5px}
-#app.upscale-studio-active .pv-upscale-blank-copy>small{margin-top:15px;color:#717a80;font:600 9px 'DM Sans',Arial,sans-serif;letter-spacing:.11em}
-#app.upscale-studio-active .pv-upscale-material-figure{display:flex;flex-direction:column;gap:13px;align-self:center;justify-self:center;width:clamp(205px,28vw,372px);max-width:80%;min-width:0;margin:0 0 12px}
-#app.upscale-studio-active .pv-upscale-material-photo{position:relative;width:100%;aspect-ratio:530/724;overflow:hidden;border:1px solid #ffffff30;border-radius:2px;background:#181816;box-shadow:0 22px 75px #0006}
-#app.upscale-studio-active .pv-upscale-material-photo img{position:absolute;display:block;inset:0;max-width:none!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:50% 50%!important}
-#app.upscale-studio-active .pv-upscale-material-photo::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent 65%,#0a0b0c18)}
-#app.upscale-studio-active .pv-upscale-material-figure figcaption{display:flex;justify-content:space-between;gap:12px;color:#97999a;font:600 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.11em;white-space:nowrap}
-#app.upscale-studio-active .pv-upscale-blank-footer{position:absolute;bottom:21px;left:clamp(24px,4vw,72px);right:29px;padding-top:14px;border-top:1px solid #ffffff20;color:#797e80;font:600 8px 'DM Sans',Arial,sans-serif;letter-spacing:.1em}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty[hidden]{display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty::before{content:none!important;display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.upscale-empty-kicker,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>#empty-title,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>#empty-description,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.empty-actions,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.upscale-drop-hint,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-example-note{display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-empty-drop{
+  display:block!important;position:absolute;inset:0;box-sizing:border-box;
+  width:100%;height:100%;background:#0b0e13;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-dropzone{
+  position:absolute;inset:25px 23px;box-sizing:border-box;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;
+  min-width:0;padding:35px 24px 106px;overflow:hidden;
+  border:1px dashed rgba(180,192,207,.37);border-radius:14px;
+  background:#0a0e13;color:#f3f3f4;cursor:pointer;isolation:isolate;
+  transition:border-color .18s ease;font-family:'DM Sans',Arial,sans-serif;
+}
+#app.upscale-studio-active .pv-upscale-dropzone::before{
+  content:"";position:absolute;inset:-12px;z-index:-2;pointer-events:none;
+  background:url('./visuals/reptare-detail.webp') 65% 48%/cover no-repeat;
+  filter:grayscale(1) brightness(.27) contrast(1.38) blur(2px);
+  opacity:.84;transform:scale(1.04);
+}
+#app.upscale-studio-active .pv-upscale-dropzone::after{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse 62% 60% at 49% 46%,rgba(3,6,10,.78),rgba(4,7,11,.46) 60%,transparent),
+             linear-gradient(90deg,rgba(4,7,11,.63),rgba(7,10,14,.35) 58%,rgba(4,7,11,.18)),
+             linear-gradient(0deg,rgba(5,8,12,.73),transparent 33%);
+}
+#app.upscale-studio-active .pv-upscale-dropzone:hover,
+#app.upscale-studio-active #upscale-canvas.drag .pv-upscale-dropzone{border-color:rgba(225,232,239,.72)}
+#app.upscale-studio-active .pv-upscale-empty-center{
+  position:relative;z-index:2;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;flex:none;
+  max-width:100%;text-align:center;pointer-events:none;transform:translateY(-12px);
+}
+#app.upscale-studio-active .pv-upscale-empty-icon{
+  display:grid;place-items:center;width:82px;height:82px;margin:0 0 18px;
+  color:#f4f5f5;filter:drop-shadow(0 2px 9px rgba(0,0,0,.5));
+}
+#app.upscale-studio-active .pv-upscale-empty-icon svg{width:74px;height:74px}
+#app.upscale-studio-active .pv-upscale-empty-center h2{
+  margin:0 0 15px!important;color:#f7f7f7!important;
+  font:650 clamp(37px,3.8vw,60px)/1.05 'DM Sans',Arial,sans-serif!important;
+  letter-spacing:-.057em!important;
+}
+#app.upscale-studio-active .pv-upscale-empty-center p{
+  max-width:405px;margin:0 0 28px!important;color:#c7cbd1!important;
+  font:400 clamp(13px,1.12vw,17px)/1.55 'DM Sans',Arial,sans-serif!important;
+}
+#app.upscale-studio-active .pv-upscale-empty-center p span{display:block}
+#app.upscale-studio-active #pv-upscale-hero-upload{
+  pointer-events:auto;display:flex;align-items:center;justify-content:center;
+  min-width:216px;min-height:51px;gap:11px;margin:0 0 18px!important;padding:12px 19px!important;
+  border:1px solid #e8e9ea!important;border-radius:9px!important;
+  color:#111317!important;background:#fbfbfb!important;
+  box-shadow:0 3px 15px rgba(0,0,0,.24);
+  font:650 15px/1.3 'DM Sans',Arial,sans-serif!important;letter-spacing:-.01em;
+  cursor:pointer;transition:background .15s ease,transform .15s ease;
+}
+#app.upscale-studio-active #pv-upscale-hero-upload:hover{background:#e5e8eb!important;transform:translateY(-1px)}
+#app.upscale-studio-active #pv-upscale-hero-upload:focus-visible{outline:2px solid #fff;outline-offset:4px}
+#app.upscale-studio-active #pv-upscale-hero-upload svg{width:19px;height:19px;display:block}
+#app.upscale-studio-active .pv-upscale-drop-hint{
+  color:#989fa8;font:400 13px/1.5 'DM Sans',Arial,sans-serif;
+}
+#app.upscale-studio-active .pv-upscale-benefits{
+  position:absolute;z-index:2;bottom:47px;left:50%;transform:translateX(-50%);
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  width:min(485px,78%);margin:0;padding:27px 0 0;
+  border-top:1px solid rgba(200,211,224,.15);cursor:default;
+}
+#app.upscale-studio-active .pv-upscale-benefit{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:65px;gap:10px;padding:0 10px;color:#f5f6f7;
+  font:600 12px/1.35 'DM Sans',Arial,sans-serif;text-align:center;
+}
+#app.upscale-studio-active .pv-upscale-benefit+.pv-upscale-benefit{border-left:1px solid rgba(200,211,224,.10)}
+#app.upscale-studio-active .pv-upscale-benefit svg{width:23px;height:23px;flex:none}
 @media(max-width:1050px){
- #app.upscale-studio-active .pv-upscale-blank-copy{padding:20px 26px}
- #app.upscale-studio-active .pv-upscale-blank-copy h2{font-size:clamp(41px,5vw,65px)}
- #app.upscale-studio-active .pv-upscale-blank-index{margin-bottom:24px}
- #app.upscale-studio-active .pv-upscale-blank-copy p{font-size:12px;margin-bottom:25px}
- #app.upscale-studio-active .pv-upscale-material-figure{width:clamp(195px,29vw,305px)}
- #app.upscale-studio-active .pv-upscale-blank-footer{left:26px}
+  #app.upscale-studio-active .pv-upscale-dropzone{inset:19px 16px;padding-bottom:93px}
+  #app.upscale-studio-active .pv-upscale-empty-center h2{font-size:clamp(34px,4.7vw,51px)!important}
+  #app.upscale-studio-active .pv-upscale-empty-center p{max-width:310px;font-size:13px!important}
+  #app.upscale-studio-active .pv-upscale-benefits{bottom:33px;width:min(415px,87%)}
+  #app.upscale-studio-active .pv-upscale-benefit{font-size:11px;gap:7px}
 }
-@media(max-width:600px){
- #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{grid-template-columns:minmax(0,49%) minmax(0,51%)}
- #app.upscale-studio-active .pv-upscale-editorial-blank::before{left:49%}
- #app.upscale-studio-active .pv-upscale-blank-copy{padding:12px 0 30px 21px}
- #app.upscale-studio-active .pv-upscale-blank-index{font-size:7px;letter-spacing:.07em;white-space:normal;max-width:150px;margin-bottom:23px}
- #app.upscale-studio-active .pv-upscale-blank-copy h2{font-size:clamp(32px,9.4vw,48px);margin-bottom:15px}
- #app.upscale-studio-active .pv-upscale-blank-copy p{max-width:148px;font-size:10px;line-height:1.6;margin-bottom:20px}
- #app.upscale-studio-active #pv-upscale-hero-upload{font-size:10px;gap:7px;min-height:32px;white-space:nowrap}
- #app.upscale-studio-active #pv-upscale-hero-upload svg{width:12px;height:12px}
- #app.upscale-studio-active .pv-upscale-blank-copy>small{font-size:7px;letter-spacing:0;margin-top:12px}
- #app.upscale-studio-active .pv-upscale-material-figure{width:clamp(127px,43vw,190px);max-width:91%;margin-bottom:12px;gap:9px;transform:translateX(3px)}
- #app.upscale-studio-active .pv-upscale-material-figure figcaption{font-size:7px;letter-spacing:0;gap:4px}
- #app.upscale-studio-active .pv-upscale-blank-footer{left:21px;right:20px;bottom:17px;font-size:7px}
+@media(max-width:780px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-dropzone{
+    inset:13px 12px;padding:25px 16px 19px;
+  }
+  #app.upscale-studio-active .pv-upscale-empty-center{transform:none}
+  #app.upscale-studio-active .pv-upscale-empty-icon{width:62px;height:62px;margin-bottom:13px}
+  #app.upscale-studio-active .pv-upscale-empty-icon svg{width:58px;height:58px}
+  #app.upscale-studio-active .pv-upscale-empty-center h2{font-size:clamp(29px,7.4vw,39px)!important;margin-bottom:12px!important}
+  #app.upscale-studio-active .pv-upscale-empty-center p{max-width:305px;margin-bottom:20px!important;font-size:12px!important}
+  #app.upscale-studio-active #pv-upscale-hero-upload{min-width:190px;min-height:46px;margin-bottom:12px!important;font-size:13px!important}
+  #app.upscale-studio-active .pv-upscale-drop-hint{font-size:11px}
+  #app.upscale-studio-active .pv-upscale-benefits{display:none}
 }
-@media(max-width:355px){
- #app.upscale-studio-active .pv-upscale-blank-copy{padding-left:14px}
- #app.upscale-studio-active .pv-upscale-blank-copy h2{font-size:31px}
- #app.upscale-studio-active #pv-upscale-hero-upload{font-size:9px}
- #app.upscale-studio-active .pv-upscale-blank-footer{left:14px}
+@media(max-width:360px){
+  #app.upscale-studio-active .pv-upscale-dropzone{inset:11px 10px}
+  #app.upscale-studio-active .pv-upscale-empty-center p{font-size:11px!important;max-width:255px}
 }
 @media(prefers-reduced-motion:reduce){
- #app.upscale-studio-active #pv-upscale-hero-upload,
- #app.upscale-studio-active #pv-upscale-hero-upload svg{transition:none}
-}
-
-/* 2026-10-21 Upscaler material-study refinement.
-   Desktop workbench structure and all provider/billing behavior stay unchanged.
-   Use the clean PV LAB archive source without embedded typography. */
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-figure{
-  width:clamp(280px,34vw,490px)!important;
-  max-width:83%!important;
-}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-photo{
-  aspect-ratio:8/5!important;
-  height:auto!important;
-}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-photo img{
-  width:100%!important;
-  height:100%!important;
-  left:0!important;
-  top:0!important;
-  object-fit:cover!important;
-  object-position:50% 50%!important;
-}
-@media(max-width:600px){
-  /* Mobile is a distinct single-column editorial composition, not a tiny desktop split. */
-  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr)!important;
-    grid-template-rows:16px 42px 30px minmax(0,1fr) 40px 13px!important;
-    row-gap:6px!important;
-    padding:16px 18px 12px!important;
-    align-items:stretch!important;
-  }
-  #app.upscale-studio-active .pv-upscale-editorial-blank::before{display:none!important;content:none!important}
-  #app.upscale-studio-active .pv-upscale-blank-copy{display:contents!important}
-  #app.upscale-studio-active .pv-upscale-blank-index{
-    grid-column:1!important;grid-row:1!important;
-    align-self:center!important;justify-self:start;
-    margin:0!important;white-space:nowrap!important;
-    max-width:100%!important;font-size:8px!important;letter-spacing:.12em!important;
-  }
-  #app.upscale-studio-active .pv-upscale-blank-copy h2{
-    display:block!important;grid-column:1!important;grid-row:2!important;
-    align-self:center!important;justify-self:start;
-    margin:0!important;padding:0!important;
-    font-size:clamp(31px,8.8vw,38px)!important;line-height:1.1!important;
-    letter-spacing:-.06em!important;white-space:nowrap;
-  }
-  #app.upscale-studio-active .pv-upscale-blank-copy h2 span{display:inline!important}
-  #app.upscale-studio-active .pv-upscale-blank-copy h2 span:first-child::after{content:" "}
-  #app.upscale-studio-active .pv-upscale-blank-copy p{
-    grid-column:1!important;grid-row:3!important;
-    align-self:start!important;justify-self:start;
-    margin:0!important;padding:0!important;
-    max-width:100%!important;
-    font-size:11px!important;line-height:1.5!important;
-    color:#a6a8a7!important;
-  }
-  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-figure{
-    grid-column:1!important;grid-row:4!important;
-    align-self:center!important;justify-self:stretch!important;
-    display:block!important;width:100%!important;max-width:none!important;
-    height:auto!important;margin:0!important;padding:0!important;
-    transform:none!important;
-  }
-  #app.upscale-studio-active .pv-upscale-material-photo{
-    box-sizing:border-box;width:100%!important;height:auto!important;
-    aspect-ratio:8/5!important;overflow:hidden;
-    border:1px solid rgba(223,232,240,.23)!important;
-    border-radius:3px!important;
-    box-shadow:0 12px 42px rgba(0,0,0,.22)!important;
-  }
-  /* The clean editorial photograph fills mobile and desktop without text cropping. */
-  #app.upscale-studio-active .pv-upscale-material-figure figcaption{display:none!important}
-  #app.upscale-studio-active #pv-upscale-hero-upload{
-    grid-column:1!important;grid-row:5!important;
-    align-self:center!important;justify-self:start!important;
-    margin:0!important;padding:0 0 4px!important;
-    min-height:34px!important;
-    font-size:12px!important;line-height:1.2!important;
-    gap:13px!important;
-  }
-  #app.upscale-studio-active #pv-upscale-hero-upload svg{width:15px!important;height:15px!important}
-  #app.upscale-studio-active .pv-upscale-blank-copy>small{display:none!important}
-  #app.upscale-studio-active .pv-upscale-blank-footer{
-    position:static!important;
-    grid-column:1!important;grid-row:6!important;
-    align-self:end!important;
-    padding:0!important;margin:0!important;
-    border:0!important;
-    font-size:7px!important;line-height:1.25!important;letter-spacing:.085em!important;
-    white-space:nowrap;
-  }
-  /* Shorter, cleaner settings panel below the preview. Full-size tap targets remain. */
-  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
-    padding:16px 16px 11px!important;
-    gap:13px 10px!important;
-  }
-  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
-    margin:0!important;padding:0 0 12px!important;gap:0!important;
-  }
-  #app.upscale-studio-active .pv-upscale-workspace-intro .pv-upscale-kicker,
-  #app.upscale-studio-active .pv-upscale-workspace-intro p{display:none!important}
-  #app.upscale-studio-active .pv-upscale-workspace-intro h2{
-    font-size:20px!important;line-height:1.25!important;letter-spacing:-.035em!important;
-  }
-  #app.upscale-studio-active #pv-upscale-source-upload{
-    min-height:78px!important;padding:12px 13px!important;gap:12px!important;
-  }
-  #app.upscale-studio-active #pv-upscale-source-upload .pv-upscale-source-icon{
-    width:36px!important;height:36px!important;
-  }
-  #app.upscale-studio-active #pv-upscale-source-upload svg{width:20px!important;height:20px!important}
-  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
-    padding:12px 16px 15px!important;
-  }
+  #app.upscale-studio-active .pv-upscale-dropzone,
+  #app.upscale-studio-active #pv-upscale-hero-upload{transition:none}
 }
