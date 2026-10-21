@@ -7,7 +7,7 @@ import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from '
 import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-hidden-preset1&fisheye=20261020v1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
-import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
+import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261018-reference2';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1';
@@ -4467,7 +4467,7 @@ function renderCards(jobs,{upsert=false}={}){
       const {figure,img}=historyImage(j.sourceId,'Original start frame thumbnail, not the video');previews.push(img);
       figure.classList.add('history-video-thumb');
       const playLabel=document.createElement('span');playLabel.className='history-video-play';playLabel.setAttribute('aria-hidden','true');
-      playLabel.textContent='▶  PLAY VIDEO';figure.append(playLabel);card.append(figure);
+      playLabel.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 5 10 7-10 7Z"/></svg><span>PLAY VIDEO</span>';figure.append(playLabel);card.append(figure);
     }else{
       const empty=document.createElement('div');empty.className='history-no-result';
       if(contentRestricted){

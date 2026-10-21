@@ -1,5 +1,18 @@
 # Video History card downloads: work state
 
+## Current: monochrome controls and quieter phone screen (2026-10-21)
+- User references: IMG_7911.png and IMG_7912.jpeg, attached in this conversation.
+- Source baseline: a3bfda1ca9afd67bbdc3b868c005132d614f80dc.
+- Replace the platform-colored play glyph in both PLAY VIDEO and the Video badge with thin currentColor SVG triangles.
+- At <=820px hide only the decorative empty stage, including its example image, introductory copy, header and footer.
+- Desktop keeps the existing introductory panel. User source frames, attached-reference montages, active job states and saved video playback stay visible on every screen.
+- Files: lab/lab.js, lab/assets.js, lab/assets.css, lab/video-refresh.css, lab/studio.html.
+- Existing tests/lab-image-viewer-browser.mjs checks SVG controls, source/queued/saved playback visibility, and desktop/mobile empty-stage behavior.
+- Local approved Image contract and scoped Video unit checks: 16 passed; JS syntax and diff whitespace pass.
+- No paid generation, billing change, account change or unrelated redesign.
+- Release pending: run relevant CI, merge and verify Cloudflare plus the actual production asset revisions before claiming live.
+- The earlier compact Download control and its release evidence below remain intact.
+
 Updated: 2026-10-21
 Scope: A visible Download video button on completed Video Studio History cards.
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
