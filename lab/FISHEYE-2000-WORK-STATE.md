@@ -43,3 +43,8 @@ Verify: optimized actual-photo assets, new catalog and Worker allowlists, My Moo
 
 ### Reproduce the focused Studio verification
 Run `PV_PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs PV_CHROMIUM_EXECUTABLE=/path/to/chromium node tests/lab-fisheye-2000-browser.mjs` from the repository root. It uses synthetic authentication, mock API responses and a local synthetic Base image. No production account or provider call is made.
+
+### Secure sign-in continuation
+- User selected GitHub in Cloudflare secure browserAuth, then Google on the GitHub sign-in page. The tool reported both method selections submitted, not authenticated success.
+- Automatic approval review rejected observing the next screen, citing an unapproved Google sign-in path and risk of exposing private Google account content outside this task. Do not bypass the rejection. User approval is required before continuing the Google sign-in path specifically to finish Cloudflare access.
+- Public Fisheye release and the successful Worker deployment remain unaffected. The two b48329a UI follow-ups remain unverified in production until their deployed source matches.
