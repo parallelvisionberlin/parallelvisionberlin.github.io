@@ -82,6 +82,49 @@ await context.route('https://**/*',async route=>{
   return send({error:'Unmocked '+path},404);
 });
 try{
+  // A flow-height change must not reframe the public artwork on editor focus.
+  // Compare actual painted pixels away from text/cards at two desktop sizes.
+  for(const viewport of [{width:1920,height:900},{width:1280,height:720}]){
+    const c=await browser.newContext({viewport,reducedMotion:'reduce'}),p=await c.newPage();
+    await c.route('https://**/*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({jobs:[],packs:[],activeJobs:[],products:[]})}));
+    try{
+      await p.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole=guest');
+      await p.waitForFunction(()=>window.__welcomeMockReady===true);
+      await p.evaluate(async()=>{
+        await document.fonts.ready;
+        const src=getComputedStyle(document.getElementById('gate'),'::before').backgroundImage.match(/url\("?([^"\)]+)"?\)/)?.[1];
+        const image=new Image();image.src=src;await image.decode();
+      });
+      const art=await p.locator('#gate').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
+      assert.match(art,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,'Public entrance uses the approved cobalt/copper artwork');
+      const clip={x:16,y:110,width:Math.floor(viewport.width/4),height:120},options={clip,animations:'disabled',caret:'hide'};
+      const before=await p.screenshot(options);
+      async function assertBackdropStill(label){
+        const after=await p.screenshot(options);
+        const difference=await p.evaluate(async({before,after})=>{
+          async function pixels(bytes){
+            const image=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/png'}));
+            const canvas=new OffscreenCanvas(image.width,image.height),ctx=canvas.getContext('2d');
+            ctx.drawImage(image,0,0);const data=ctx.getImageData(0,0,image.width,image.height).data;image.close();return data;
+          }
+          const a=await pixels(before),b=await pixels(after);let max=0,total=0;
+          for(let i=0;i<a.length;i++){const d=Math.abs(a[i]-b[i]);max=Math.max(max,d);total+=d;}
+          return {max,mean:total/a.length};
+        },{before:[...before],after:[...after]});
+        // Small raster/compositing rounding is allowed, not a shifted image.
+        assert.ok(difference.max<=4&&difference.mean<=.25,label+' at '+viewport.width+': '+JSON.stringify(difference));
+      }
+      const field=p.locator('#pv-guest-prompt');
+      await field.evaluate(el=>el.focus({preventScroll:true}));
+      await p.waitForFunction(()=>document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
+      assert.equal(await p.evaluate(()=>scrollY),0,'Focus comparison excludes browser scrolling');
+      await assertBackdropStill('Opening the public bar leaves the backdrop fixed');
+      await field.evaluate(el=>el.blur());
+      await p.waitForFunction(()=>!document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
+      await assertBackdropStill('Closing the public bar leaves the backdrop fixed');
+    }finally{await c.close();}
+  }
+  console.log('PASS approved public backdrop and unchanged pixels on focus/blur at 1920px and 1280px');
   // Direct visual comparison, rather than independently allowing each skin.
   // Both surfaces must share slot geometry, control sizing, type and color.
   const parity=[];
@@ -98,8 +141,10 @@ try{
       async function capture(state){
         states[state]=await bar.evaluate(el=>{
           const outer=el.getBoundingClientRect(),css=getComputedStyle(el);
+          const stage=el.closest('#gate')||document.querySelector('#app .image-gallery-shell'),art=getComputedStyle(stage,'::before');
           const rect=node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {x:r.x-outer.x,y:r.y-outer.y,w:r.width,h:r.height,font:s.fontSize,weight:s.fontWeight,line:s.lineHeight,color:s.color,background:s.backgroundColor,radius:s.borderRadius};};
           return {w:outer.width,h:outer.height,background:css.backgroundImage,radius:css.borderRadius,
+            backdrop:{image:art.backgroundImage,filter:art.filter,opacity:art.opacity,shade:getComputedStyle(stage,'::after').backgroundImage},
             prompt:rect(el.querySelector('textarea')),
             controls:Object.fromEntries([...el.querySelectorAll('[data-deck-control]')].filter(n=>getComputedStyle(n).display!=='none'&&n.getBoundingClientRect().width>0).map(n=>[n.dataset.deckControl,rect(n)])),
             generate:rect(el.querySelector('[data-deck-slot="generate"]')),
@@ -122,6 +167,8 @@ try{
     const a=parity[0].states[state],b=parity[1].states[state];
     for(const key of ['w','h'])assert.ok(Math.abs(a[key]-b[key])<2,state+' same deck '+key+': '+JSON.stringify({a,b}));
     assert.equal(a.background,b.background,state+' same graphite surface');assert.equal(a.radius,b.radius);
+    assert.match(a.backdrop.image,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,state+' uses approved entrance art');
+    assert.deepEqual(a.backdrop,b.backdrop,state+' public/customer entrance artwork and treatment match');
     assert.equal(a.modelIcon,'./branding/bytedance.svg',state+' uses the real model asset');
     assert.equal(a.modelIcon,b.modelIcon,state+' public uses the same model icon');
     for(const name of ['prompt','generate','generateLabel',...Object.keys(a.controls)]){

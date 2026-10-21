@@ -8,17 +8,22 @@
   min-height:calc(100dvh - var(--lab-header-height,75px));margin:0!important;
   padding:0!important;border:0;border-radius:0;background:#0c0e13;overflow:hidden;
 }
-/* Same ambient background for signed-out Image previews. */
+/* Reuse the approved cobalt/copper plate from signed-in welcome/Inspiration. */
 #gate.pv-guest-image:before{
   content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
-  background:url("./mood-previews/dream-blur-20261015.jpg") center 37%/cover no-repeat;
-  opacity:.82;filter:blur(9px) saturate(1.42) contrast(1.1);
+  background:url("./visuals/pvlab-subtle-cinematic-background-20261017.webp") center center/cover no-repeat;
+  opacity:1;filter:none;
 }
 #gate.pv-guest-image:after{
   content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
-  background:radial-gradient(ellipse 38% 36% at 22% 18%,rgba(16,101,235,.21),transparent 82%),
-    radial-gradient(ellipse 42% 37% at 81% 16%,rgba(149,78,61,.30),transparent 84%),
-    linear-gradient(180deg,rgba(6,8,15,.28),rgba(5,7,13,.42) 31%,#101011 100%);
+  background:linear-gradient(180deg,rgba(2,4,8,.16) 0%,rgba(2,4,8,.035) 38%,rgba(2,4,8,.08) 74%,rgba(3,4,7,.25) 100%);
+}
+@media(min-width:681px){
+  /* The writing deck changes section height. Frame both layers against the
+     viewport so opening/closing it cannot rescale the artwork or its shade. */
+  html:not(.pv-native-lab) #gate.pv-guest-image:before,
+  html:not(.pv-native-lab) #gate.pv-guest-image:after{background-attachment:fixed}
+  html:not(.pv-native-lab) #gate.pv-guest-image:after{background-size:100vw 100dvh}
 }
 #gate.pv-guest-image .pv-guest-content{
   position:relative;z-index:1;max-width:1720px;margin:0 auto;padding:
