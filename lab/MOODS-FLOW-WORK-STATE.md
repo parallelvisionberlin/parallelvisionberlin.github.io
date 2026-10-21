@@ -1,5 +1,5 @@
 # PV LAB / Explore Moods generation and Image return
-Updated: 2026-10-19
+Updated: 2026-10-22
 
 ## Approved experience
 - Explore Moods is an independent, photographic discovery page.
@@ -225,3 +225,11 @@ Updated: 2026-10-19
 - Hide the three Photo direction pills in Studio and Explore Moods, preserving existing original/deep-green/slow-shutter IDs and past jobs. New and reused generations start with canonical original. No changes to the film renderer, 35mm slider defaults (0), Seedream/SpicyAPI, quote or debit logic.
 - Derive the one primary optical recipe from user supplied reference frames #4 green city/taxi (humid lights), #5 wet street (pavement and tungsten), #6 green-gold smoker in restaurant (skin/light), #7 tunnel (fluorescent spatial falloff). Remaining uploaded imagery secondary for black intervals, ruby accents and texture. These are interpreted as lighting descriptions only, not invisible photos that could overwrite the source image; prior auto staging was a known cause of loss of scene fidelity.
 - A Base source must preserve identity and geometry but may shift credible exterior ambient exposure, introduce plausible outdoor dampness, and disperse existing practical light to produce more sensual humid night atmosphere. Interior floors stay dry; 35mm grain stays embedded in the model's photographic character, never artificial speckled overlay. User text still has priority. Three portrait/interior/street contexts require validation, and real visual success remains unverified without an actual generation.
+
+
+## 2026-10-22 selected Mood mobile micro-spacing
+- User's iPhone screenshot: reduce the oversized optional prompt hint and field, enlarge the photograph drop target only a little. Preserve the existing photo-matte, title, Generate action and overall aesthetic.
+- Branch `fix/mobile-mood-fields-20261022`, baseline main `392fbb40748bb5f57f77c0c1527e54f18f1869ff`.
+- In `lab/explore-moods-photo-matte-mobile.css` (600px and under), standard dropzone increases 106 to 114px, short-display exception 85 to 89px, textarea height 53 to 50px with compact internal padding and line spacing. Hint only goes 16 to 15px; entered text stays 16px to avoid iOS Safari input focus zoom.
+- `lab/moods.html` busts the modal stylesheet URL. `tests/lab-explore-generation.mjs` asserts the phone/small dimensions, hint size, entered text size and existing fit/no-overlap requirements. No desktop, artwork, copy, Mood logic, prices, authentication, payments, models or Worker changes.
+- Verify the Explore Generation browser check, PR checks and Cloudflare Pages commit/check + actual `pvlab.studio/moods` stylesheet before calling the result live.
