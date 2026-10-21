@@ -1,30 +1,40 @@
 # Nina Instagram: verified owner-continuity work state
 Updated: 2026-10-21
 
-## Current recovery status (2026-10-21)
-- Objective: restore Instagram DM replies after the user reported that Nina stopped responding.
-- Latest observed production voice deployment remains `91d04d2e-783f-4730-b368-fc2020a76885`; no Worker code was changed during this recovery.
+## Current public-activation task (2026-10-21)
+- Objective: enable public Instagram replies with conversation-dependent delays, following the user's explicit request after text recovery.
+- Authorization: the user explicitly requested public activation on 2026-10-21. The earlier question-only boundary is superseded by this request.
+- Approved timing: the first reply should arrive after a random 10 minutes to 2 hours.
+- Approved ongoing behavior: after the first reply, allow several replies at approximately 2-minute intervals while the conversation continues.
+- Do not silently retain the previous stranger distribution of 5 minutes to 22.5 hours.
+- The exact burst length and inactivity reset can be routine implementation choices after inspecting the actual queue and send code.
+- Latest verified production version: `91d04d2e-783f-4730-b368-fc2020a76885`.
 - Source baseline: voice runtime commit `ac6620cce0d3730c7ff7e92f60007dd5ada4774d`.
-- Relevant source: `nina-instagram/voice-transcription-runtime.js`; existing deployment details and history are retained below.
-- Initial user-provided Cloudflare screenshots showed the scheduled `* * * * *` invocations without a visible incoming webhook request after the tester sent a new text.
-- The user subsequently restored access on the Meta side. The original account notice was not inspected, so the exact trigger is unverified.
-- Later Cloudflare screenshots showed incoming `POST /webhook` requests at 13:47:00 and 13:48:37 Europe/Berlin.
-- The user explicitly confirmed that Nina then replied to the fresh text DM.
-- Verification limit: receiving requests was observed in screenshots; successful outgoing text was confirmed by the user, without reading their private conversation.
-- This supports recovery of the tested text conversation. It does not establish the exact failure cause or prove that voice-note support caused the interruption.
-- A real incoming audio-note transcription and resulting reply remain unverified after recovery.
-- Current D1 reply mode is verified as `tester` in the user's 2026-10-21 Cloudflare console screenshot: `SELECT mode FROM ig_autoreply_config WHERE id = 1;` returned `tester`. General-public automatic replies are therefore not enabled. The last verified allowlist contained the single authorized sender `@molinarimusic`.
-- Public voice additionally requires both `NINA_PUBLIC_DM_ENABLED=true` and `NINA_PUBLIC_VOICE_ENABLED=true`; neither was enabled in that verified configuration.
-- Direct connected Cloudflare administration remains unavailable because the tool returns an internal error before supplying account data; the current mode was verified from the user's D1 console screenshot instead.
-- Browser administration also remains unauthenticated in the assistant's separate remote browser. Do not ask the user to repeat the same failed sign-in loop.
-- A Meta app marked Live and Cloudflare Live log streaming do not establish that the Worker answers the general public.
-- No secrets, bindings, private-vault access, account links, reply modes, or public-send flags were changed in this recovery.
+- Relevant repository source: `nina-instagram/voice-transcription-runtime.js`, embedded into the deployed Worker.
+- The complete production Worker and the definition of `queueHumanPacedReply` are not present in the retrieved source. A scoped GitHub search found only the voice handler's call site.
+- Current D1 mode remains last verified as `tester`: the user's Cloudflare console screenshot returned `tester` for `SELECT mode FROM ig_autoreply_config WHERE id = 1;`.
+- Last verified tester allowlist contained `@molinarimusic`.
+- Public voice additionally requires both `NINA_PUBLIC_DM_ENABLED=true` and `NINA_PUBLIC_VOICE_ENABLED=true`; neither was enabled in the previously verified configuration.
+- Preserve existing owner-vault identity checks, opt-outs, webhook verification, message deduplication and send controls when making the requested public change.
+- Preserve the once-minute cron and pending-message coalescing unless the actual source requires a narrowly scoped timing adjustment.
+- Direct Cloudflare access is blocked: both `nina_database.search` and `nina_database.execute` returned MCP `-32603 Internal error` on this task.
+- The failed execute was a read-only request for the existing production Worker content. It did not mutate production.
+- Browser inventory still shows the Nina dashboard tab at Cloudflare login and the earlier Google flow expired; no authenticated Cloudflare session is available in the remote browser.
+- Do not repeat the failed sign-in loop or claim the user's local signed-in browser session is shared.
+- No Worker source, D1 mode, secrets, bindings or public flags have been changed for this new activation request.
+- No deployment or timing tests can be claimed before obtaining and inspecting the production Worker source.
 
-### Exact next checks
-1. Public availability is resolved: current mode is `tester`. Do not repeat the same query. If the user requests public activation, inspect the existing public-send flag and relevant Meta settings before making that change.
-2. Preserve the current access boundary. The user's question about public availability does not itself request enabling public auto-replies.
-3. If needed, test one new voice note from the already authorized sender and verify transcription plus the actual reply.
-4. Reuse the successful text result and existing code; do not roll back or redeploy merely because voice notes preceded the incident.
+### Recovered behavior already verified
+- Earlier Cloudflare screenshots showed incoming `POST /webhook` at 13:47:00 and 13:48:37 Europe/Berlin after the user restored Meta account access.
+- The user explicitly confirmed Nina replied to a fresh text DM.
+- The original suspicious-activity notice was not inspected, so its exact trigger and any causal connection to voice support remain unverified.
+- A real audio-note transcription and reply remain unverified after recovery.
+
+### Exact next action
+1. Obtain the complete currently deployed Worker through the existing Cloudflare dashboard's Edit code view, using the user's signed-in browser if the connector remains unavailable. Do not request secret values.
+2. Implement the approved first-reply and active-conversation timing against the actual queue/send code; test message coalescing, renewed conversations, opt-outs and owner/public separation.
+3. Deploy the narrow source change with inherited bindings, enable the existing public DM gate and D1 mode, and verify the saved production state.
+4. Confirm public behavior with a fresh message from a non-tester account. Do not claim public activation until production settings and delivery are verified.
 
 ## Historical implementation record
 The sections below preserve the earlier chronological deployment and verification notes.
