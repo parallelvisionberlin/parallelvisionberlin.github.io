@@ -87,6 +87,7 @@ Do not repeatedly ask for confirmation for normal implementation decisions.
 - Prefer one coherent commit per task.
 
 ## Active feature handoffs
+- PV LAB publishing: follow `lab/RELEASE-PROTOCOL.md`. Production is Cloudflare Pages `pvlab-studio` at `pvlab.studio`; GitHub Pages success is not production evidence. Use the scoped, read-only release verifier before claiming an asset is live.
 - PV LAB Control Room: `lab/OWNER-WORK-STATE.md`.
 - PV LAB staged prompt safety: `lab-worker/SAFETY-WORK-STATE.md`.
 - Parallel Vision homepage hero: `WORK-STATE.md`.

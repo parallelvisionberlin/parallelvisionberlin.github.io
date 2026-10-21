@@ -2,6 +2,10 @@
 
 These instructions apply to all changes under `lab/`, in addition to the repository-level `AGENTS.md`.
 
+## Publishing without duplicate work
+- Follow `RELEASE-PROTOCOL.md`: select checks for the actual change, inspect the Cloudflare Pages app check, then verify production bytes and affected behavior. Do not use GitHub Pages workflow success as proof that pvlab.studio updated.
+- Do not start login or a second deploy while the normal Cloudflare deployment is pending. Keep automated role tests separate from real signed-in production observation.
+
 ## Scope first
 - Change only what the user requested. Do not "improve" copy, UI labels, Mood content, models, buttons, defaults, CSS, pricing or imagery as a side effect of an unrelated fix.
 - Treat previously approved interface decisions as locked. If a requested fix truly requires changing one, explain the conflict and ask before changing it.
