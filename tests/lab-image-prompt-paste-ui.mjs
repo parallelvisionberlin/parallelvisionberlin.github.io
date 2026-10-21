@@ -76,7 +76,8 @@ try{
       const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
       assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
         'The empty Image deck must start compact');
-      // Same behavior in welcome and History: focus is not a resize action.
+      // This fixture has no visible welcome panel, so it is the locked
+      // History presentation, independent of the card-view focus behavior.
       await editor.focus();
       assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
         'An empty signed-in prompt stays compact when focused');

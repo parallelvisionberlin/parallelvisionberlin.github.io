@@ -139,6 +139,13 @@
     min-width:132px;min-height:51px;
   }
 }
+/* Show the same principal tools on a full desktop entrance. Their existing
+   actions remain local photo selection, Inspiration, or real sign-in. */
+@media(min-width:1180px){
+  #gate.pv-guest-image .pv-guest-composer:not(.pv-deck-expanded){width:min(1200px,100%)}
+  #gate.pv-guest-image .pv-guest-composer:not(.pv-deck-expanded)
+    :is(#pv-guest-library,#pv-guest-base,#pv-guest-resolution){display:inline-flex}
+}
 /* Multi-line state uses the signed-in two-row composition: one unframed
    writing surface, instruments below and Generate spanning both rows. */
 @media(min-width:681px){
@@ -166,6 +173,17 @@
     grid-area:1 / 2 / 3 / 3;align-self:stretch;
     min-width:0;width:100%;min-height:68px;
   }
+}
+@media(min-width:1180px){
+  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded{
+    width:min(1120px,100%);padding:14px 20px;
+    grid-template-columns:minmax(0,1fr) 144px;
+    grid-template-rows:minmax(82px,auto) 41px;
+  }
+  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded>textarea{
+    min-height:78px;font-size:15.5px;line-height:1.48;
+  }
+  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded .pv-guest-setting{min-height:40px}
 }
 /* Mid-size screens keep every visible tool readable, without a fake clipped menu. */
 @media(min-width:681px) and (max-width:1099px){
