@@ -2,7 +2,7 @@ name: PV LAB read-only session DB diagnosis
 on:
   workflow_dispatch:
   push:
-    branches: [main, fix/account-recreation-20261021]
+    branches: [main]
     paths: ['.github/workflows/pvlab-readonly-session-db.yml']
 permissions:
   contents: read

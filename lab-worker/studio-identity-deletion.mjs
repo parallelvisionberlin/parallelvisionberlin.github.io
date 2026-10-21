@@ -149,8 +149,11 @@ async function finalizeTask(env,task){
 
 async function processTask(env,task){
   try{
-    if(!task.banned_at)await banTask(env,task);
+    // Deletion is independent of Clerk's optional paid ban feature. D1 already
+    // blocks this closed wallet. Once billing/content cleanup is verified,
+    // delete the identity directly even when a prior ban returned HTTP 402.
     if(task.closure_state==='deleted')await finalizeTask(env,task);
+    else if(!task.banned_at)await banTask(env,task);
     await recordAttempt(env,task.customer_id);
   }catch(error){await recordAttempt(env,task.customer_id,error);throw error;}
 }
