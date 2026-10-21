@@ -90,7 +90,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
        dialogScroll:dlg.scrollHeight-dlg.clientHeight};
    });
    assert.equal(await page.locator('#mc-look-title').innerText(),'Fisheye 2000');
-   assert.ok(compact.photo.height<=145,scenario+': Mood hero no longer consumes a third of the mobile viewport '+JSON.stringify(compact));
+   assert.ok(compact.photo.height<=156,scenario+': inset photo remains compact on mobile '+JSON.stringify(compact));
    assert.ok(compact.title.bottom<compact.drop.top,scenario+': Mood heading is above compact upload field');
    assert.ok(compact.drop.bottom<compact.direction.top,scenario+': upload and optional direction do not overlap');
    assert.ok(compact.generate.top<compact.make.bottom,scenario+': both actions occupy the compact row');
@@ -99,8 +99,27 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    assert.ok(compact.dialog.bottom<=compact.screenHeight+2,scenario+': dialog stays within iPhone web viewport');
    assert.ok(compact.dialog.bottom-compact.footer.bottom<55,
      scenario+': modal fits compact body without a large blank area below the buttons '+JSON.stringify(compact));
-   assert.ok(compact.dialog.height<compact.screenHeight-70,
-     scenario+': compact dialog does not monopolize the whole phone screen '+JSON.stringify(compact));
+   const matte=await page.evaluate(()=>{
+     const d=document.getElementById('mc-look-dialog'),p=d.querySelector('.mc-look-dialog-media'),
+       x=d.querySelector('.mc-look-close'),
+       a=d.getBoundingClientRect(),b=p.getBoundingClientRect(),c=x.getBoundingClientRect();
+     return {left:a.left,right:innerWidth-a.right,top:a.top,bottom:innerHeight-a.bottom,
+       photoInset:b.left-a.left,photoTop:b.top,photoBottom:b.bottom,photoHeight:b.height,
+       closeTop:c.top,closeBottom:c.bottom,
+       outline:getComputedStyle(d).outlineStyle,width:a.width};
+   });
+   assert.ok(matte.left>=15&&matte.right>=15,
+     scenario+': selected Mood floats with room on both sides '+JSON.stringify(matte));
+   assert.ok(matte.photoInset>=10,
+     scenario+': original Mood artwork is inset inside photo-matte card');
+   assert.ok(matte.closeTop>=matte.photoTop&&matte.closeBottom<=matte.photoBottom+2,
+     scenario+': close control is over the photographic image');
+   assert.equal(matte.outline,'none',
+     scenario+': container has no Safari-blue programmatic focus ring');
+   assert.ok(matte.top>=12&&matte.bottom>=12,
+     scenario+': compact modal has air above and below');
+   assert.ok(compact.dialog.height<=compact.screenHeight-(scenario==='small'?44:70)+1,
+     scenario+': photo-matte leaves a comfortable perimeter '+JSON.stringify(compact));
    assert.ok(compact.overflow<=2,scenario+': modal creates no horizontal overflow');
    await page.screenshot({path:out+'/fisheye-mobile-compact-'+scenario+'.png',fullPage:false});
    console.log('FISHEYE_COMPACT '+scenario+' '+JSON.stringify(compact));
@@ -236,7 +255,29 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
        assert.ok(layout.frame.bottom<=layout.dialog.bottom+2,
          'Result loading/preview is not clipped beneath modal '+JSON.stringify(layout));
      }
-     await page.screenshot({path:out+'/generating-'+scenario+'.png'});
+     if(['phone','small'].includes(scenario)){
+        const state=await page.evaluate(()=>{
+          const d=document.getElementById('mc-look-dialog'),p=d.querySelector('.mc-look-dialog-media'),
+            x=d.querySelector('.mc-look-close'),frame=d.querySelector('.mc-look-result-frame');
+          const a=d.getBoundingClientRect(),b=p.getBoundingClientRect(),c=x.getBoundingClientRect(),
+            f=frame.getBoundingClientRect();
+          return {left:a.left,right:innerWidth-a.right,photoInset:b.left-a.left,
+            photoHeight:b.height,photoTop:b.top,photoBottom:b.bottom,closeTop:c.top,
+            closeBottom:c.bottom,resultBottom:f.bottom,dialogBottom:a.bottom,
+            outline:getComputedStyle(d).outlineStyle};
+        });
+        assert.ok(state.left>=15&&state.right>=15,
+          scenario+': processing card keeps same horizontal framing '+JSON.stringify(state));
+        assert.ok(state.photoInset>=10&&state.photoHeight<=156,
+          scenario+': processing has matching inset Mood artwork');
+        assert.ok(state.closeTop>=state.photoTop&&state.closeBottom<=state.photoBottom+2,
+          scenario+': processing close control overlays its photograph');
+        assert.ok(state.resultBottom<=state.dialogBottom+2,
+          scenario+': processing animation never extends outside the card');
+        assert.equal(state.outline,'none',
+          scenario+': processing has no Safari-blue focus outline');
+      }
+      await page.screenshot({path:out+'/generating-'+scenario+'.png'});
    }
    if(scenario==='slowquote'){
      const stage=await page.locator('#mc-look-result-frame').boundingBox();
