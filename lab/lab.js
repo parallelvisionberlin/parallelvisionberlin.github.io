@@ -221,8 +221,8 @@ function syncStudioRoute(value,{push=false,retouchFrom=null}={}){
   if(push)history.pushState(state,'',url);
   else history.replaceState(state,'',url);
 }
-async function restoreStudioEntry(){
-  const route=studioRoute(),query=new URLSearchParams(location.search);
+async function restoreStudioEntry(requestedRoute=studioRoute()){
+  const route=requestedRoute,query=new URLSearchParams(location.search);
   if(query.get('returnToDraft')==='1'){
     // This is navigation only; never auto-generate or submit a quote.
     await restoreStudioFromMoods();
@@ -295,7 +295,12 @@ async function restoreStudioEntry(){
       if(generation){await submitMoodGeneration(generation,moodId);return;}
       notify(title+' is selected. '+(hadPhoto?'Your photograph is ready. ':'')+'Press Generate when you are ready. No generation was submitted.');
     }catch(error){notify('Could not prepare your Mood. '+error.message,true);}
-  }else syncStudioRoute(tool);
+  }else if(['image','video','upscale'].includes(route)){
+    // Direct tool links must win over any stale editor selection from boot or config.
+    // Never silently convert a Video/Upscaler URL into an Image URL.
+    if(tool!==route)setTool(route);
+    else syncStudioRoute(route);
+  }
 }
 async function submitMoodGeneration(generation,moodId){
   const q=moodGenerationQuote(generation,{userId,moodId});
@@ -3065,7 +3070,7 @@ async function ensureReferences(){
   return references.map(r=>r.id);
 }
 async function ensureInputs(){if(tool==='video'&&mode==='extend'){const inputs=await mediaRefs.inputs();if(inputs.referenceVideoIds.length!==1)throw new Error('Choose exactly one video to extend.');return {sourceId:inputs.referenceVideoIds[0],lastSourceId:null,referenceSourceIds:[],referenceVideoIds:inputs.referenceVideoIds,referenceAudioIds:[]};}if(imageEngine==='soulpro'&&tool==='image')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(isReinterpret())return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&imageEngine==='soul'){if(references.length)throw new Error('This LoRA mode cannot edit an input photo. Nothing was submitted.');return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};}if(tool==='video'&&engine==='klinghf'&&mode==='text')return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='video'&&['seedance','seedance15','h3','h3max','h3maxfal','omni'].includes(engine)){if(mode==='text')return {sourceId:null,lastSourceId:null,referenceSourceIds:[],referenceVideoIds:[],referenceAudioIds:[]};if(mode==='reference'){const ids=references.length?await ensureReferences():[];return {sourceId:ids[0]||null,lastSourceId:null,referenceSourceIds:ids,...(engine==='seedance'?await mediaRefs.inputs():{referenceVideoIds:[],referenceAudioIds:[]})};}}if(tool==='upscale')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&!imageInputReferences().length)return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='image'||mode==='reference'){const ids=await ensureReferences();return {sourceId:ids[0],lastSourceId:null,referenceSourceIds:ids};}return {sourceId:await ensureSource(),lastSourceId:await ensureLast(),referenceSourceIds:[]};}
-function applyConfig(c){c={...config,...c};config=c;hf.configure(c.higgsfieldEnabled);updateSoulProModelUi();soul.configure(c);$('soul-launch-note').textContent=c.soulTrainingEnabled?'FAL training is ready. Train from 20–80 photos, then use the character in Image.':'FAL training is not available on this Worker.';$('soul-launch-manage').disabled=!c.soulTrainingEnabled;const soulOption=$('image-engine').querySelector('[value=soul]'),soulProOption=$('image-engine').querySelector('[value=soulpro]'),falOption=$('image-engine').querySelector('[value=fal]');if(soulOption){soulOption.hidden=!!c.customer||!owner;soulOption.disabled=!c.soulTrainingEnabled||!!c.customer;}if(soulProOption)soulProOption.disabled=false;if(falOption)falOption.disabled=!c.falEnabled;if((imageEngine==='soul'&&!c.soulTrainingEnabled)||((imageEngine==='fal'||imageEngine==='soulpro'&&!isSoul2())&&!c.falEnabled)){imageEngine='seedream';$('image-engine').value='seedream';setTool('image');}for(const option of $('video-engine').options){option.disabled=!videoSelectionEngines().includes(option.value);if(option.value==='klinghf')option.hidden=!owner||!!c.customer||!c.higgsfieldEnabled;}$('connection-status').textContent=(c.enabled?'SpicyAPI connected':'SpicyAPI disconnected')+(c.geminiEnabled?' · Gemini connected':'')+(c.openrouterEnabled?' · OpenRouter connected':'')+(c.soulTrainingEnabled?' · FAL training ready':'')+(c.falEnabled?' · FAL controls ready':'')+' / Private archive ready';update();}
+function applyConfig(c){c={...config,...c};config=c;hf.configure(c.higgsfieldEnabled);updateSoulProModelUi();soul.configure(c);$('soul-launch-note').textContent=c.soulTrainingEnabled?'FAL training is ready. Train from 20–80 photos, then use the character in Image.':'FAL training is not available on this Worker.';$('soul-launch-manage').disabled=!c.soulTrainingEnabled;const soulOption=$('image-engine').querySelector('[value=soul]'),soulProOption=$('image-engine').querySelector('[value=soulpro]'),falOption=$('image-engine').querySelector('[value=fal]');if(soulOption){soulOption.hidden=!!c.customer||!owner;soulOption.disabled=!c.soulTrainingEnabled||!!c.customer;}if(soulProOption)soulProOption.disabled=false;if(falOption)falOption.disabled=!c.falEnabled;if((imageEngine==='soul'&&!c.soulTrainingEnabled)||((imageEngine==='fal'||imageEngine==='soulpro'&&!isSoul2())&&!c.falEnabled)){imageEngine='seedream';$('image-engine').value='seedream';setTool(tool);}for(const option of $('video-engine').options){option.disabled=!videoSelectionEngines().includes(option.value);if(option.value==='klinghf')option.hidden=!owner||!!c.customer||!c.higgsfieldEnabled;}$('connection-status').textContent=(c.enabled?'SpicyAPI connected':'SpicyAPI disconnected')+(c.geminiEnabled?' · Gemini connected':'')+(c.openrouterEnabled?' · OpenRouter connected':'')+(c.soulTrainingEnabled?' · FAL training ready':'')+(c.falEnabled?' · FAL controls ready':'')+' / Private archive ready';update();}
 function connection(){if(!owner||customerMode)return;$('api-key').value='';$('daily-limit').value=config.dailyLimitUsd||10;$('terms').checked=false;$('disconnect').hidden=!config.configured;$('key-note').textContent=config.configured?'A key is stored encrypted. Leave blank to keep it, or paste a replacement.':'Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.';$('connect-notice').textContent='';$('connect-dialog').showModal();}
 $('connect-form').addEventListener('submit',async e=>{e.preventDefault();$('connect-save').disabled=true;try{const data=await api('/api/settings',{method:'POST',body:{apiKey:$('api-key').value,dailyLimitUsd:Number($('daily-limit').value),enabled:true,termsConfirmed:$('terms').checked}});$('api-key').value='';applyConfig(data.config);$('connect-dialog').close();notify('Provider key connected. Images and Upscale start on click; Video keeps price review.');}catch(error){$('connect-notice').textContent=error.message;}finally{$('connect-save').disabled=false;}});
 $('disconnect').onclick=async()=>{if(!confirm('Remove the stored provider key? Your private history stays.'))return;try{applyConfig((await api('/api/settings',{method:'DELETE'})).config);$('api-key').value='';$('connect-dialog').close();notify('Generation disconnected.');}catch(e){$('connect-notice').textContent=e.message;}};
@@ -4660,7 +4665,10 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
   document.documentElement.classList.add('pv-studio-route-pending');
   document.body.classList.remove('lab-ready');
   window.__pvLabBootStage?.('Verifying your account');
-  const data=await api('/api/session');window.__pvLabBootStage?.('Preparing your workspace');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerVideoProfile=customerMode?data:{};customerGenerationReady=!!data.generationReady;customerTrialGenerationPaused=!!data.trialGenerationPaused;customerBillingReady=!!data.billingReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)void claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('signin').hidden=true;$('signin').disabled=true;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
+  const data=await api('/api/session');
+  // Preserve the user's requested destination before any config reconciliation.
+  const requestedRoute=studioRoute();
+  window.__pvLabBootStage?.('Preparing your workspace');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerVideoProfile=customerMode?data:{};customerGenerationReady=!!data.generationReady;customerTrialGenerationPaused=!!data.trialGenerationPaused;customerBillingReady=!!data.billingReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)void claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('signin').hidden=true;$('signin').disabled=true;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
     if(data.accountClosed){
       // The old Clerk identity can remain signed in while deletion is queued.
       // Never show a purchasable wallet or a fake "sign-in is loading" state.
@@ -4680,9 +4688,10 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     // Resolve direct Fashion, Retouch, Assets, or Mood entries before revealing
     // the application. Never flash the Image editor in place of another tool.
     const restoreEffects=new URLSearchParams(location.search).get('effects')==='1';
-    try{await restoreStudioEntry();}catch(error){
-      notify('Requested Studio view could not open. Your workspace is still available. '+error.message,true);
-      if(owner)setTool('image');
+    try{await restoreStudioEntry(requestedRoute);}catch(error){
+      notify('Requested '+requestedRoute+' workspace could not open. Your work is still available. '+error.message,true);
+      // A loading error is not permission to send the visitor to Image.
+      if(owner&&['image','video','upscale'].includes(requestedRoute))setTool(requestedRoute);
     }
     if(restoreEffects&&ownerAccount&&tool==='video')openEffectsView({scroll:false});
     if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();
