@@ -38,6 +38,15 @@
   scrollbar-color:#444444 transparent;
 }
 
+/* The fixed composer lives above the normal Studio header. Lift the header
+   only while its account menu is open. Remove its filter containing block so
+   the fixed panel uses the visible viewport, including short mobile windows. */
+#studio-header:has(.pv-account-menu[open]){
+  z-index:1300;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+
 /* Preserve the EXISTING wordmark, not a typed or substitute PV LAB logo. */
 .pv-account-menu .pv-account-details{
   position:relative;display:flex;flex-direction:column;align-items:flex-start;
