@@ -177,11 +177,11 @@ test('returning closed customer completes only its own pending identity and can 
 });
 test('retry diagnostics retain only a bounded error category and never erase an unverified identity',async t=>{
   const f=fixture(t);await account(f);await close(f);await cleanup(f);
-  f.remoteError(401);
+  f.deleteError(401);
   await assert.rejects(()=>finishClosedStudioIdentity(f.env,internal),/HTTP 401/);
   assert.equal(f.db.prepare('SELECT issue FROM lab_studio_identity_cleanup_attempts WHERE customer_id=?').get(internal).issue,'clerk_http_401');
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM lab_clerk_identity_links WHERE canonical_id=?').get(internal).n,1);
-  f.remoteError(0);
+  f.deleteError(0);
   await finishClosedStudioIdentity(f.env,internal);
   assert.equal(f.db.prepare('SELECT issue FROM lab_studio_identity_cleanup_attempts WHERE customer_id=?').get(internal).issue,null);
 });
@@ -198,4 +198,16 @@ test('scheduled account erasure completes even when unrelated generation mainten
   assert.ok(outcomes.some(x=>x.status==='rejected'&&x.reason.message==='Synthetic generation-maintenance outage'));
   assert.equal(f.db.prepare('SELECT state FROM lab_account_closures WHERE customer_id=?').get(internal).state,'deleted');
   assert.equal(f.db.prepare('SELECT state FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).state,'complete');
+});
+
+test('Clerk paid ban HTTP 402 cannot block ordinary deletion after verified billing and media cleanup',async t=>{
+  const f=fixture(t);await account(f);await close(f);
+  f.remoteError(402);
+  await assert.rejects(()=>banClosedStudioIdentity(f.env,internal),/HTTP 402/);
+  await assert.rejects(()=>assertCustomerOpen(f.env,internal),/closed/);
+  await cleanup(f);
+  await finishClosedStudioIdentity(f.env,internal);
+  assert.equal(f.db.prepare('SELECT state FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).state,'complete');
+  assert.equal(f.db.prepare('SELECT banned_at FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).banned_at,null);
+  assert.equal(f.calls.filter(x=>x.method==='DELETE').length,1,'Ordinary Clerk deletion does not require the ban feature');
 });
