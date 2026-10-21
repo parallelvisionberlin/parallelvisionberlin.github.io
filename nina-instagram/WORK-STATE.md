@@ -1,5 +1,33 @@
 # Nina Instagram: verified owner-continuity work state
-Updated: 2026-10-15
+Updated: 2026-10-21
+
+## Current recovery status (2026-10-21)
+- Objective: restore Instagram DM replies after the user reported that Nina stopped responding.
+- Latest observed production voice deployment remains `91d04d2e-783f-4730-b368-fc2020a76885`; no Worker code was changed during this recovery.
+- Source baseline: voice runtime commit `ac6620cce0d3730c7ff7e92f60007dd5ada4774d`.
+- Relevant source: `nina-instagram/voice-transcription-runtime.js`; existing deployment details and history are retained below.
+- Initial user-provided Cloudflare screenshots showed the scheduled `* * * * *` invocations without a visible incoming webhook request after the tester sent a new text.
+- The user subsequently restored access on the Meta side. The original account notice was not inspected, so the exact trigger is unverified.
+- Later Cloudflare screenshots showed incoming `POST /webhook` requests at 13:47:00 and 13:48:37 Europe/Berlin.
+- The user explicitly confirmed that Nina then replied to the fresh text DM.
+- Verification limit: receiving requests was observed in screenshots; successful outgoing text was confirmed by the user, without reading their private conversation.
+- This supports recovery of the tested text conversation. It does not establish the exact failure cause or prove that voice-note support caused the interruption.
+- A real incoming audio-note transcription and resulting reply remain unverified after recovery.
+- Latest recorded server-side reply mode is still `tester`, with the single authorized sender `@molinarimusic`; public automatic replies were not enabled in the last verified configuration.
+- Public voice additionally requires both `NINA_PUBLIC_DM_ENABLED=true` and `NINA_PUBLIC_VOICE_ENABLED=true`; neither was enabled in that verified configuration.
+- The current D1 mode could not be reread: the connected Cloudflare administration tool returns an internal error before supplying account data.
+- Browser administration also remains unauthenticated in the assistant's separate remote browser. Do not ask the user to repeat the same failed sign-in loop.
+- A Meta app marked Live and Cloudflare Live log streaming do not establish that the Worker answers the general public.
+- No secrets, bindings, private-vault access, account links, reply modes, or public-send flags were changed in this recovery.
+
+### Exact next checks
+1. Read `SELECT mode FROM ig_autoreply_config WHERE id=1` in the existing `nina-instagram-memory` D1 and inspect the existing public-send flag before claiming public availability.
+2. Preserve the current access boundary. The user's question about public availability does not itself request enabling public auto-replies.
+3. If needed, test one new voice note from the already authorized sender and verify transcription plus the actual reply.
+4. Reuse the successful text result and existing code; do not roll back or redeploy merely because voice notes preceded the incident.
+
+## Historical implementation record
+The sections below preserve the earlier chronological deployment and verification notes.
 
 ## Deployment verified
 - Meta / Instagram: signed webhook and normal DM auto-send remain enabled only for the authorized tester, not the public.
