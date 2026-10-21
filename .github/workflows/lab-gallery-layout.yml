@@ -1,0 +1,29 @@
+name: PV LAB gallery row fit
+on:
+  pull_request:
+    paths: ['lab/gallery-layout.js', 'lab/assets.css', 'lab/image-studio.css', 'tests/lab-gallery-layout-ui.mjs', '.github/workflows/lab-gallery-layout.yml']
+  push:
+    branches: [main]
+    paths: ['lab/gallery-layout.js', 'lab/assets.css', 'lab/image-studio.css', 'tests/lab-gallery-layout-ui.mjs', '.github/workflows/lab-gallery-layout.yml']
+permissions:
+  contents: read
+jobs:
+  gallery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: node --test tests/lab-approved-image-ui-contract.test.mjs
+      - run: npm install --prefix /tmp/pv-gallery-browser --no-audit --no-fund playwright@1.57.0
+      - run: node /tmp/pv-gallery-browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify integer and zoom-fractional gallery widths
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-gallery-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-gallery-layout-ui.mjs

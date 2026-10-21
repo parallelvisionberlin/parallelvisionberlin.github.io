@@ -1,5 +1,47 @@
 # Nina Instagram: verified owner-continuity work state
-Updated: 2026-10-15
+Updated: 2026-10-21
+
+## Current public release deployed (2026-10-21)
+- Objective completed: deploy public Instagram replies with the requested initial wait and fluid follow-up conversations.
+- Authorization: Alejandro explicitly requested public activation and instructed the assistant to perform the deployment.
+- Complete source recovered from `Pasted markdown(20261021-122346).md`, Library ID `libfile_f688716a1ea881919e68ce17c9c71789`.
+- Full deployable source: `nina-instagram/worker.mjs`; original prepared-source commit `b11868a799f175e64db9884acdb2284bbfa2b497`.
+- Deployment workflow and final verification fix committed as `a29e5a360dd6af48087970dd91bc251cae3e03c1`.
+- Production deployment VERIFIED on 2026-10-21 at 16:15 Europe/Berlin.
+- Active Cloudflare version: `8ed22136-ae82-4af0-9962-77ee4c171164`, 100% traffic.
+- Active deployment ID: `5497e37f-714a-43c4-a3d8-26baf9d4a3b0`.
+- Successful GitHub Actions run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39615126399 (job `119274003712`).
+- Real production `/health` was read by the deployer and returned release `public-paced-2026-10-21`, mode `public`, public text enabled true, and public voice enabled true.
+- Verified timing fields: firstReplyMinutes `[10,120]`, activeReplySeconds `120`, quickReplyLimit `6`, idleResetMinutes `30`.
+- First public reply: random cron-aligned minute 10 minutes to 2 hours after the initial incoming message; generation/network time is additional.
+- Ongoing conversation: up to six further confirmed replies with deadlines 90 to 150 seconds after the incoming message, targeting approximately 2 minutes.
+- Reset after 30 minutes from the latest successful reply or after six quick replies. The next incoming message gets the initial wait again.
+- Messages received while waiting coalesce into one reply to the newest message. A write-time latest-message guard protects against older handlers overwriting newer jobs.
+- Continuous incoming messages cannot extend the original initial deadline indefinitely; active bursts also have a bounded coalescing delay.
+- Only Meta-confirmed successful sends open/advance active conversations. Failed or uncertain sends do not consume quick replies.
+- Existing linked-owner pacing, owner-vault identity checks, opt-outs, signed webhooks, reply window and send deduplication are retained.
+- Existing configuration, seven required binding names/types, private vault target and once-minute cron were verified before/after the content-only Cloudflare upload.
+- Version/source annotations are excluded from runtime configuration comparison; runtime settings and bindings remain checked.
+- Instagram-only tables `ig_reply_sessions` and `ig_runtime_migrations` initialize automatically, with a one-time tester-to-public upgrade.
+- The marker prevents later restarts/redeploys from reopening a subsequently disabled/tester mode. Explicit public environment overrides remain respected.
+- No old stored messages were backfilled. Original Nina memory, private vault data, secret values and other Workers were not modified.
+- Existing limits remain: 120 send attempts globally per rolling day, 80 per sender, 8 per minute per sender; 120 stored drafts per rolling day.
+- Verification passed: 12 reply tests plus 4 deployment tests locally; all 16 passed again in the successful CI run.
+- Coverage: timing, six quick replies, idle reset, burst/race coalescing, stop/resume, overrides, one-time activation, owner/public context separation, invalid signatures, expiry, uncertain sends, voice deduplication and deployment preservation guards.
+- Relevant files: `worker.mjs`, `worker.test.mjs`, `voice-transcription-runtime.js`, `deploy.mjs`, `deploy.test.mjs`, `PUBLIC-RELEASE.md`; workflow `.github/workflows/deploy-nina-instagram.yml`.
+- Cloudflare access RESOLVED through the repository's existing authorized `CLOUDFLARE_API_TOKEN` CI connection. No secret value was requested, read or exported.
+- Direct `nina_database` connector tools still return MCP internal errors; that is not a deployment blocker. Do not ask the user to copy code or repeat browser login.
+- User's tested text conversation recovered after Meta account reactivation. The exact suspicious-activity trigger and any causal connection to voice support remain unverified.
+- Public Worker configuration is now verified. Actual non-tester Instagram delivery, Meta permissions for that path and real audio-note end-to-end delivery remain unverified.
+
+### Exact next action
+1. Ask for one fresh DM from a non-tester Instagram account to confirm the real public Meta path; allow the configured 10-minute to 2-hour first wait.
+2. After that reply, verify one follow-up receives the quick response. Test one real voice note separately.
+3. Future Instagram source changes deploy via the dedicated workflow using the existing CI connection. Preserve all unrelated Workers and owner-memory boundaries.
+4. Reuse this source, passing tests, successful run and verified production state; do not reconstruct access or request the Worker code again.
+
+## Historical implementation record
+The sections below preserve the earlier chronological deployment and verification notes.
 
 ## Deployment verified
 - Meta / Instagram: signed webhook and normal DM auto-send remain enabled only for the authorized tester, not the public.

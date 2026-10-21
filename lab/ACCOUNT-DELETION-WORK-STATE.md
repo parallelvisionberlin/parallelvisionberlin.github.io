@@ -1,11 +1,71 @@
+# Homepage after Google signup, 2026-10-21
+
+- Alejandro reports deleting Neon Riviera again, logging in through Google and reaching active Image Studio with 0 credits and no Account closed notice. Screenshot image(20261021-110159).png, Library libfile_fa0c43d92cfc8191be038dcfd3ac43b2. This is user-observed successful recreation, not an agent-performed login.
+- New request: signing in from the main page must leave the user on the main page. Studio opens through its normal links.
+- Source baseline main a3c72d0c737ba5257af4dbec9b6219b88e1b39d8; branch fix/home-signin-stay-20261021.
+- Exact cause: session-request.js redirected all verified unlinked homepage sessions to /studio?tool=image so setup could finish there.
+- Minimal fix: permit the existing authenticated /api/session -> /api/migration/new -> /api/session handshake in place on / and /index.html. Current query/hash stay intact. Other protected pages retain their existing setup destination; account transfer and host/API/session guards remain unchanged.
+- customer-entry.js refreshes only its session-request import cache; index.html refreshes only customer-entry's cache.
+- Verification: 29 targeted account-link/auth/approved Image UI contract tests passed. New browser cases use the real homepage URL with local source and mocked Clerk/API at 1440/390px. The mock exposes the onboarding response header exactly as production does.
+- Browser suite retains owner/customer menus, private-state, billing/checkout and deletion timing checks. Do not equate the mocked fresh-login cases with independently controlling the user's Google session.
+- Published: PR #394 merged as 80b27a61fee97706bcf0cf7bdec19054706d24e9 after all nine PR workflows passed, including account interface 39589726223, video 39589726180 and approved Image contract 39589726146.
+- Confirmed actual pvlab.studio serving the new homepage customer-entry.js?v=20261021-home-signin1 marker. Versioned session-request.js bytes exactly match Git blob d8fe3071e878125d0eb919df7c8153cbe35167b8; customer-entry.js matches 1300be19f0599c1e3fdb766afd04f188a1320ede. A merge alone was not treated as deployment proof.
+- Existing account browser suite passed, including fresh homepage setup at desktop/mobile widths. Homepage destination behavior is verified with mocked Clerk/API; no independent real Google login after this routing release. Earlier successful account recreation remains user-observed as stated above.
+- Changed files: lab/session-request.js, lab/customer-entry.js, lab/index.html, tests/lab-account-link-ui.test.mjs, tests/lab-account-browser.mjs and this checkpoint. No backend, billing, credits, deletion implementation, prompt deck, Mood, gallery or Upscaler changes.
+- No implementation or publication blocker remains for this request. Next real sign-in from the homepage can confirm the destination without another account deletion.
+
+## Earlier deletion/recreation implementation and verification
+
+# Immediate account deletion and recreation, 2026-10-21
+
+- Active report: after the earlier backlog repair, Alejandro deleted Neon Riviera again and immediately returned through Google. Screenshot image(20261021-103950).png, Library libfile_88b6ee29bffc8191aac18169a98b5137.
+- Baseline main 4d9ccd69cc7568d11afd8448291d12e062fb2e6b; branch fix/account-delete-immediate-20261021.
+- Production audit 39585320624/job 119176348377 at 10:41:56 UTC: five closures, four complete, one newly requested creative/identity deletion pending for two minutes. The prior four-complete result did not verify immediate repeat deletion/recreation.
+- Remaining root cause: DELETE returned accepted and signed out before Clerk identity deletion; that deletion still waited for the media grace period and five-minute cron. Google could therefore reuse the just-closed identity.
+- New contract: a confirmed dedicated-Studio DELETE waits for authoritative billing clearance, preservation of the one-time welcome claim and verified Clerk user deletion before returning 202 identityDeleted=true. A Clerk failure returns 503 for retry, without reporting successful deletion.
+- The old account remains durably closed. Private media cleanup retains its existing grace period and independent retry record under the old customer/storage namespace. A new Google subject cannot reopen it or inherit its data/balance.
+- Legacy/shared Clerk users and owners remain outside identity deletion. Scheduled cleanup retains its existing storage-empty verification.
+- Client handles Clerk ending the deleted session before the successful response arrives. Other requests, failures and switches into a different signed-in account retain strict session guards.
+- Account page clears private state and navigates home whether server-side deletion or local sign-out ended the session. Only its script/import cache revisions change.
+- Relevant backend/auth/closure/billing/welcome and approved Image contract checks: 173 passed locally. Includes immediate repeated delete/signup without cron or time advance, old-media isolation, no repeated welcome credits, authoritative Stripe rejection, 503 retry and response/session ordering.
+- Existing account browser suite additionally checks deletion at 1440/390px with normal sign-out and Clerk revocation before response. Real Google interaction remains separate from synthetic tests.
+- Published: PR #393 merged as 9078a65b7016e5add16ff45241573a064378ba1e. All nine PR workflows passed, including account interface 39587322034 and video 39587321875. Worker deploy 39587567201 succeeded.
+- Confirmed production /health revision pv-lab-2026-10-21.4-immediate-account-delete. Custom-domain account.js exactly matches Git blob 40bb5f8326187c70f90ad26c38ca6b3d3f29fb1f; session-request.js matches 6361aa6966a46a3e584d474a7cc5ca70b6813d36. /account serves closure=20261021-immediate1.
+- Latest read-only production audit 39585320624/job 119181832014 at 10:55:27 UTC: all five closures and identity tasks complete, zero pending, five successful identity cleanup outcomes. The audit's separate stale contact-sync check still fails, as previously recorded.
+- Follow-up user evidence: the 11:01:59 screenshot/report above shows successful Google recreation with an active 0-credit Studio and no closed-account status. The user requested a homepage destination correction. The agent has not independently performed the real Google interaction.
+- Prompt deck, gallery layout, Hong Kong Nights, Upscaler, provider routes, pricing and money ledgers are unchanged.
+- Earlier rollout details follow. A separate contact-sync freshness check remains outside this repair.
+
+## Earlier same-day rollout record
+
+- User deleted Neon Riviera, returned through Google and saw Account closed on the homepage. Reference image(20261021-100259).png, Library libfile_6baf9c98052881919f4a3f87e61adeb2.
+- Baseline: main 8b44762ba8cf41f485eecdb0799fed1c0461e5dd. Work branch fix/account-recreation-20261021.
+- Production read-only audit 39583438685: four creative closures deleted, all four identity tasks pending, none banned/completed; oldest pending 5,083 minutes. Dedicated PV LAB Clerk secret and five-minute schedule are present. Wallet ledger and failed-job refunds reconcile. Contact-sync report is 90 hours old, a separate live warning.
+- Thus deletion of creative content succeeded while the login identities stayed linked to closed wallets. No real replacement Google identity has been verified.
+- Source fault reproduced: identity erasure was behind generation maintenance; an earlier provider/training/source-cleanup failure prevents it from running.
+- Fix separates account maintenance into its own scheduled task. Returning closed sessions can also finish only their own pending identity task, independently of cron.
+- New private bounded attempt diagnostics record a fixed issue category, not emails, secrets or remote response bodies. Migration 0035 is applied before Worker deployment.
+- Financial/credit ledgers, stale-token tombstones, no repeated free gift, storage-empty and Stripe verification, owner/legacy identity isolation remain enforced.
+- Existing deletion/lifecycle plus same-email fresh-subject, stale-token, retry-category, provider-failure isolation and paid-ban regressions: 12 passed locally; final relevant backend suite: 163 passed.
+- PR #390 merged as f7e00d8e33609e9aa3660da7bbb21fa0314c7eee. Deploy 39584417299 succeeded; production /health confirmed revision .2-account-recreation. All eight PR workflows passed.
+- Live retry audit 39584417178 attempt 2 exposed the exact blocking error: clerk_http_402 before any ban was confirmed. The previous task processor required the paid ban operation before normal user deletion, even after creative cleanup was complete.
+- Follow-up: verified completed closures now use ordinary Clerk DELETE directly, independently of the optional ban feature. D1 closure still immediately rejects spending and creative access. Regression reproduces ban HTTP 402 and confirms normal deletion completes.
+- Follow-up PR #391 merged as d8aea1f7e7099a0b5772ef01ee2671a3cb3bf8bc. Deploy 39585320649 passed; live /health confirms pv-lab-2026-10-21.3-account-delete-no-ban. All eight PR CI workflows passed.
+- Production audit 39585320624 attempt 3, job 119174265450, at 2026-10-21 10:36:46 UTC: four creative closures deleted, all four identity tasks complete, zero pending tasks, all four cleanup outcomes success. No raw subject, customer email or secret was logged.
+- The audit workflow still fails its separate contact-sync freshness invariant (90-hour-old sync report). Wallet ledger, failed-job refund and active-contact checks passed. This is not an identity-deletion failure and was left outside this repair.
+- Remaining user verification: sign out/reload pvlab.studio and sign up again with Google using Neon Riviera. A real fresh Google subject/account creation has not been exercised by the agent. Same-email recreation and no inherited balance/free-credit duplication passed synthetic tests.
+- Earlier gallery change PR #387 is independent: floors the fractional measured row width, avoiding card wrapping at 90% browser zoom. No gallery/deck redesign was done in this account repair.
+- Prompt deck, Hong Kong Nights, galleries, Upscaler, models and billing implementation remain outside this repair.
+
+
 # PV LAB complete account deletion | October 18, 2026
 
 ## Customer contract
 
 - Settings > Delete account requires the existing exact typed confirmation. The API immediately creates a durable closure record and disables creative access and spending. The browser clears personal state and signs out.
-- The Worker asynchronously bans the matched customer in **PV LAB's independent Clerk application** to revoke all of that application's sessions. Clerk failure leaves a retryable task; it does not reopen creative access.
+- The Worker attempts an early ban in **PV LAB's independent Clerk application** as a best-effort session revocation while cleanup is pending. Clerk ban failure leaves creative access blocked by D1; final user deletion does not depend on the paid ban feature.
 - Existing closure cleanup verifies Stripe's cancellation status before deleting the customer's private R2 prefix and creative D1 records. Storage and temporary external failures are retried.
-- **Only after state = deleted and the private R2 prefix is empty**, the Worker deletes the dedicated PV LAB Clerk user via its verified Backend API response. It never deletes a user in the legacy Parallel Vision/Nina Clerk application.
+- A confirmed dedicated-Studio deletion verifies billing and deletes the Clerk user before reporting success, while durable creative cleanup continues independently. Scheduled retries delete only after state = deleted and private R2 is empty. Neither path deletes users in the legacy Parallel Vision/Nina Clerk application.
 - A short-lived HMAC subject key blocks stale bearer tokens from re-onboarding while JWTs expire. The raw PV LAB Clerk subject is erased from the identity mapping and pending-task record on success.
 - Verified customer email snapshots are erased. Existing welcome reward entitlements retain their one-way keyed claim; legally necessary cash, credit, tax/dispute and limited abuse-prevention records remain, not prompts or media.
 - New signups receive a different Clerk subject. The existing verified-email welcome-claim guard prevents new free credits for a previously claimed normalized email, without storing the email itself.
@@ -20,6 +80,6 @@
 
 ## Verification
 
-- Synthetic tests cover: immediate closure, ban-before-delete, no delete before verified R2/D1 cleanup, no legacy Clerk mutation, missing secret fails closed, remote 503 retried, 404 idempotence, keyed stale-token rejection, no resurrection of closed email contacts and preservation of welcome/financial ledgers.
+- Synthetic tests cover: immediate closure, best-effort early ban, paid-ban failure independent of final deletion, no delete before verified R2/D1 cleanup, no legacy Clerk mutation, missing secret fails closed, remote 503 retried, 404 idempotence, keyed stale-token rejection, no resurrection of closed email contacts and preservation of welcome/financial ledgers.
 - Live deployment is not established by a merged commit alone. Check the Worker /health revision and the Cloudflare deployment run, and privately verify the presence of `LAB_CLERK_V2_SECRET_KEY` without exposing its value.
 - To check one closed account privately, use the customer closure state, the studio identity deletion task (pending vs complete), and Clerk application user presence in their respective authorized admin consoles. Do not display other customers' data publicly.

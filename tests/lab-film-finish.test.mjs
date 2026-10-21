@@ -56,14 +56,14 @@ test('source-aware grain preserves black and white, favors midtones and does not
   assert.equal(energy[0],0);assert.equal(energy[5],0);
   assert.ok(energy[3]>energy[1]*3);assert.ok(energy[3]>energy[4]*3);
   for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
-  assert.equal(FILM_RENDER_REVISION,8,'new V8 processing must not reuse previous film derivatives');
+  assert.equal(FILM_RENDER_REVISION,10,'new V8 processing must not reuse previous film derivatives');
 });
 test('Restored Hong Kong look preserves subject and does not require invented scene relighting at any strength',()=>{
   for(const intensity of [21,70,100]){
     const {prompt,error}=prepareMoodPrompt('Portrait','hong-kong-nights',intensity,{referenceCount:1});
     assert.equal(error,'');
     assert.match(prompt,/Keep identical face, expression, age, hair, body, pose, outfit/);
-    assert.match(prompt,/Avoid: all-green tint/);
+    assert.match(prompt,/Avoid: flat teal LUT/);
     assert.doesNotMatch(prompt,/Relight whole Base|reconstruct cinematic scene lighting|off-axis light modeling/);
   }
 });
@@ -165,7 +165,7 @@ test('v6 analog maximum visibly changes dim midtones and preserves pure black',(
 });
 
 test('V3 promotion invalidates old derivatives and retains V6 as a reversible internal renderer',async()=>{
-  assert.equal(FILM_RENDER_REVISION,8);
+  assert.equal(FILM_RENDER_REVISION,10);
   const original=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAIAAAB2XpiaAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAFUlEQVQImWNgYGBoaGj4////s/U9AB+aBp+Ia7giAAAAAElFTkSuQmCC','base64');
   const v6=await printGradePng(original,1,'v6');
   const v3=await printGradePng(original,1,'v3');

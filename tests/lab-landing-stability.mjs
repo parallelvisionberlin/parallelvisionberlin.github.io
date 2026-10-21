@@ -225,7 +225,8 @@ try{
       assert.equal(await page.locator('#app').isVisible(),false,'Private workspace remains closed');
       assert.match(await page.locator('#pv-guest-title').innerText(),/Start with a feeling/i);
       await page.locator('[data-guest-mood="dream-blur"]').click();
-      assert.match(await page.locator('#pv-guest-prompt').inputValue(),/photographic blue motion blur/i);
+      assert.match(await page.locator('#pv-guest-prompt').inputValue(),/motion blur/i,
+        'Dream Blur should provide a real motion-blur photographic direction even when its curated wording rotates');
       assert.equal(await page.locator('[data-guest-mood="dream-blur"]').getAttribute('aria-pressed'),'true');
       await page.locator('#pv-guest-generate').click();
       assert.equal(await page.evaluate(()=>window.testSignInOpened),true,

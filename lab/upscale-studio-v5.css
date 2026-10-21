@@ -1,0 +1,615 @@
+/* PV LAB / Upscaler editorial workspace V5. Presentation only.
+   Keep image upload, paid quotes, model dispatch and before/after flow unchanged.
+   The Video / Image / Retouch / Assets workspaces are deliberately untouched. */
+#app .pv-upscale-workspace-intro,
+#app .pv-upscale-source-control,
+#app .pv-upscale-example-note{display:none}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active){
+  --pv-upscale-sidebar:344px;
+  --pv-upscale-gap:12px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(300px,var(--pv-upscale-sidebar)) minmax(0,1fr)!important;
+  grid-template-rows:auto!important;
+  gap:var(--pv-upscale-gap)!important;
+  align-items:start!important;
+  max-width:1740px!important;
+  min-height:0!important;
+  margin:12px auto 12px!important;
+  padding:0!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  grid-column:1!important;
+  grid-row:1!important;
+  order:0!important;
+  position:relative!important;
+  top:auto!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  min-height:640px!important;
+  height:auto!important;
+  align-self:stretch!important;
+  margin:0!important;
+  padding:0!important;
+  border:1px solid #343943!important;
+  border-radius:13px!important;
+  background:linear-gradient(160deg,#15191f 0%,#12161b 100%)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.035)!important;
+  overflow:visible!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-auto-rows:min-content;
+  align-items:start!important;
+  align-content:start!important;
+  flex:1 0 auto!important;
+  gap:19px 11px!important;
+  width:100%!important;
+  max-height:none!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:22px 18px 12px!important;
+  overflow:visible!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+  grid-column:1/-1;
+  display:flex;flex-direction:column;gap:6px;
+  margin:0 0 4px;padding:0 0 19px;
+  border-bottom:1px solid #2d3239;
+  font-family:'DM Sans',Arial,sans-serif;
+}
+#app.upscale-studio-active .pv-upscale-workspace-intro .pv-upscale-kicker{
+  color:#979da6;font-size:9px;font-weight:700;line-height:1.5;
+  text-transform:uppercase;letter-spacing:.145em;
+}
+#app.upscale-studio-active .pv-upscale-workspace-intro h2{
+  margin:0;color:#f3f3f0;
+  font:600 27px/1.1 'DM Sans',Arial,sans-serif;letter-spacing:-.045em;
+}
+#app.upscale-studio-active .pv-upscale-workspace-intro p{
+  margin:3px 0 0;color:#9ea5ae;
+  font:400 11px/1.55 'DM Sans',Arial,sans-serif;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-display{
+  display:flex!important;
+  grid-column:1/-1!important;
+  order:0!important;
+  min-width:0;
+  gap:8px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
+  grid-column:1/-1;
+  display:flex!important;
+  flex-direction:column;
+  gap:8px;
+  min-width:0;
+}
+#app.upscale-studio-active .pv-upscale-source-control>.pv-upscale-field-label{
+  color:#b8bdc6;font:600 11px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.01em;
+}
+#app.upscale-studio-active #pv-upscale-source-upload{
+  box-sizing:border-box;
+  display:flex;align-items:center;justify-content:flex-start;gap:13px;
+  width:100%;min-height:106px;padding:16px;
+  border:1px dashed #505863;border-radius:10px;
+  background:radial-gradient(circle at 80% 20%,#232832 0%,#1c2129 60%,#1b2027 100%);
+  color:#f4f5f5;
+  text-align:left;font-family:'DM Sans',Arial,sans-serif;
+  box-shadow:inset 0 1px rgba(255,255,255,.04);
+  cursor:pointer;
+  transition:border-color .15s ease,background .15s ease;
+}
+#app.upscale-studio-active #pv-upscale-source-upload:hover{
+  border-color:#89929e;background:#292f39;
+}
+#app.upscale-studio-active #pv-upscale-source-upload:focus-visible{
+  outline:2px solid #ecedef;outline-offset:3px;
+}
+#app.upscale-studio-active #pv-upscale-source-upload .pv-upscale-source-icon{
+  display:grid;place-items:center;flex:none;
+  width:43px;height:43px;border:1px solid #5d6672;border-radius:10px;
+  background:#252b34;color:#e2e8ef;
+}
+#app.upscale-studio-active #pv-upscale-source-upload svg{
+  display:block;width:23px;height:23px;fill:none;stroke:currentColor;
+  stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round;
+}
+#app.upscale-studio-active #pv-upscale-source-upload .pv-upscale-source-copy{
+  display:flex;flex-direction:column;gap:6px;min-width:0;
+}
+#app.upscale-studio-active #pv-upscale-source-upload strong{
+  font-size:13px;line-height:1.25;font-weight:650;letter-spacing:-.015em;
+}
+#app.upscale-studio-active #pv-upscale-source-upload small{
+  font-size:10px;line-height:1.4;font-weight:450;color:#9da6b1;
+}
+#app.upscale-studio-active #pv-upscale-source-state{
+  min-height:15px;margin:0;color:#878f9b;
+  font:450 10px/1.45 'DM Sans',Arial,sans-serif;
+  overflow-wrap:anywhere;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid{
+  order:0!important;
+  grid-column:1!important;
+  display:flex!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  gap:0!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid>label:not([hidden]){
+  box-sizing:border-box;display:flex;flex-direction:column;flex:1 1 auto;min-width:0;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>#format-control{
+  order:0!important;
+  grid-column:2!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>#upscale-info{
+  order:1!important;
+  grid-column:1/-1!important;
+  width:100%!important;
+  min-height:32px!important;
+  padding:1px 0 0!important;
+  margin:0!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info summary{
+  justify-content:flex-start!important;
+  margin:0!important;
+  padding:8px 0!important;
+  width:max-content!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body .label{
+  margin:0 0 7px!important;
+  font:600 10px/1.4 'DM Sans',Arial,sans-serif!important;
+  color:#aab2bc!important;letter-spacing:.025em!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body select,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body .upscale-model-readout{
+  box-sizing:border-box;
+  height:44px!important;min-height:44px!important;
+  border:1px solid #404651!important;border-radius:9px!important;
+  background:#212630!important;
+  color:#f0f1f4;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body .upscale-model-readout{
+  gap:8px;padding:0 12px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-brand{font-size:12px}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-id{font-size:10px}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-menu{
+  top:calc(100% + 5px)!important;
+  min-width:0!important;max-width:100%!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+  box-sizing:border-box;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-end;
+  flex-wrap:nowrap!important;
+  gap:9px!important;
+  width:100%!important;
+  margin:auto 0 0!important;
+  padding:17px 18px 18px!important;
+  border-top:1px solid #303741!important;
+  border-radius:0 0 13px 13px!important;
+  background:#151a21!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate{
+  order:0!important;
+  display:block;
+  box-sizing:border-box;
+  grid-column:auto!important;
+  flex:none!important;
+  width:100%!important;
+  min-height:47px!important;height:47px!important;max-height:47px!important;
+  border-radius:9px!important;font-size:13px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate:disabled{
+  background:#3b414a!important;border-color:#484e57!important;
+  color:#9fa7b1!important;opacity:1!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #upscale-notice-slot{
+  order:2!important;
+  grid-column:auto!important;
+  width:100%!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #upscale-price,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #save{grid-column:auto!important;max-width:100%}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{
+  box-sizing:border-box;
+  display:flex!important;
+  flex-direction:column!important;
+  grid-column:2!important;
+  grid-row:1!important;
+  order:0!important;
+  position:relative!important;
+  top:auto!important;
+  align-self:start!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  border:1px solid #303741!important;
+  border-radius:13px!important;
+  background:#0e1218!important;
+  overflow:visible!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagehead{
+  box-sizing:border-box;height:42px!important;min-height:42px!important;
+  flex:0 0 42px!important;
+  padding:0 16px!important;
+  border-bottom:1px solid #262e38!important;
+  background:#12161c!important;
+  border-radius:12px 12px 0 0;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagehead .eyebrow{
+  color:#adb5bf!important;font-size:11px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas{
+  box-sizing:border-box;
+  width:100%;height:clamp(540px,calc(100dvh - 188px),820px)!important;
+  min-height:540px!important;
+  border:0!important;border-radius:0 0 12px 12px!important;
+  background:radial-gradient(ellipse 70% 80% at 50% 45%,#192028 0%,#0f131a 76%)!important;
+  box-shadow:none!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:hover{
+  border:0!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas.drag{
+  outline:2px dashed #d3dce7;outline-offset:-8px;
+  background:#19212a!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty{
+  box-sizing:border-box;
+  display:flex;justify-content:center;
+  min-height:0!important;height:100%;
+  padding:24px 22px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty::before{
+  content:"";display:block!important;
+  box-sizing:border-box;
+  flex:none;
+  width:min(430px,72%)!important;
+  height:clamp(190px,30dvh,265px)!important;
+  min-height:0;
+  margin:0 0 25px!important;
+  border:1px solid rgba(212,220,230,.18)!important;
+  border-radius:10px!important;
+  background:none!important;
+  box-shadow:0 10px 50px rgba(0,0,0,.28);
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .upscale-empty-kicker{
+  margin:0 0 10px!important;
+  color:#9fa8b4!important;
+  font-size:9px!important;
+  letter-spacing:.17em!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .empty-title{
+  font-size:32px!important;letter-spacing:-.047em!important;
+  margin:0 0 9px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .empty-description{
+  max-width:320px!important;line-height:1.55!important;
+  color:#acb4bd!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #canvas-import{
+  min-height:43px!important;padding:10px 22px!important;
+  border:1px solid #f0f0ec!important;border-radius:8px!important;
+  background:#f0f0ed!important;color:#17191a!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #canvas-import:hover{
+  background:#fff!important;border-color:#fff!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .upscale-drop-hint{
+  margin-top:11px!important;color:#7d8590!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .pv-upscale-example-note{
+  display:block;
+  margin:8px 0 0;color:#727b87;
+  font:400 9px/1.5 'DM Sans',Arial,sans-serif;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.archive{
+  box-sizing:border-box;
+  width:calc(100% - var(--pv-upscale-sidebar) - var(--pv-upscale-gap));
+  max-width:none!important;
+  margin:14px 0 40px auto!important;
+  padding:0!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.archive .archivehead{
+  padding:3px 2px 9px;
+  border-bottom:1px solid #262c35;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.archive .archivehead h2{
+  font-size:17px!important;font-weight:640;letter-spacing:-.025em;
+}
+@media(min-width:1051px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+    position:sticky!important;top:84px!important;
+  }
+}
+@media(max-width:1050px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active){
+    --pv-upscale-sidebar:300px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+    grid-template-columns:minmax(270px,var(--pv-upscale-sidebar)) minmax(0,1fr)!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas{
+    height:clamp(500px,calc(100dvh - 196px),780px)!important;
+    min-height:500px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+    padding:20px 15px 12px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+    padding:15px!important;
+  }
+}
+@media(max-width:780px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:12px!important;
+    margin:10px auto 14px!important;
+    width:100%!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{
+    order:0!important;width:100%!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+    order:1!important;width:100%!important;
+    min-height:0!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+    gap:15px 10px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas{
+    height:clamp(390px,55dvh,590px)!important;
+    min-height:390px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty::before{
+    width:min(310px,77%)!important;
+    height:clamp(140px,22dvh,205px)!important;
+    margin-bottom:14px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .empty-title{
+    font-size:27px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.archive{
+    width:100%!important;margin:14px auto 36px!important;
+  }
+}
+@media(max-width:420px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas{
+    height:420px!important;min-height:420px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty{
+    padding:14px 12px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty::before{
+    height:148px!important;width:min(264px,80%)!important;margin-bottom:13px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .empty-title{
+    font-size:25px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .empty-description{
+    font-size:11px!important;line-height:1.4!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .empty-actions{
+    margin-top:12px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas .pv-upscale-example-note{
+    font-size:8px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #app.upscale-studio-active #pv-upscale-source-upload{transition:none}
+}
+
+/* Hide Video-only pills that can otherwise bleed into Upscaler after switching tools.
+   The actual Upscale engine picker, scale, format and paid action remain untouched. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #pv-video-model-pill,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #pv-video-audio-pill,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #pv-video-output-toggle,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #video-utilities{
+  display:none!important;
+}
+
+/* PV LAB MATERIAL STUDY 001
+   Uses a clean, already-present PV LAB studio photograph of reflective chrome
+   and white fibrous material. No additional generation or retouching.
+   The source image is illustrative, never a fabricated Upscale result. */
+#app .pv-upscale-editorial-blank{display:none}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty{position:relative!important;padding:0!important;overflow:hidden}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty::before{display:none!important;content:none!important}
+#app.upscale-studio-active #empty>.upscale-empty-kicker,
+#app.upscale-studio-active #empty>#empty-title,
+#app.upscale-studio-active #empty>#empty-description,
+#app.upscale-studio-active #empty>.empty-actions,
+#app.upscale-studio-active #empty>.upscale-drop-hint,
+#app.upscale-studio-active #empty>.pv-upscale-example-note{display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{
+ display:grid!important;position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;
+ grid-template-columns:minmax(0,44%) minmax(0,56%);overflow:hidden;text-align:left;
+ background:radial-gradient(ellipse 70% 85% at 73% 50%,rgba(56,62,71,.13),transparent 78%),#0c1014;
+ color:#eeece7;font-family:'DM Sans',Arial,sans-serif;
+}
+#app.upscale-studio-active .pv-upscale-editorial-blank::before{content:"";position:absolute;left:44%;top:9%;bottom:9%;width:1px;background:linear-gradient(transparent,#ffffff18 25%,#ffffff18 75%,transparent);pointer-events:none}
+#app.upscale-studio-active .pv-upscale-blank-copy{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;align-self:center;min-width:0;padding:25px clamp(24px,4vw,72px)}
+#app.upscale-studio-active .pv-upscale-blank-index{display:flex;gap:9px;align-items:center;margin:0 0 clamp(25px,5vh,48px);font:600 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.15em;color:#a3a3a0;white-space:nowrap}
+#app.upscale-studio-active .pv-upscale-blank-index i{display:block;width:5px;height:5px;flex:none;border-radius:50%;background:#aeb6bf}
+#app.upscale-studio-active .pv-upscale-blank-copy h2{display:flex;flex-direction:column;margin:0 0 22px;font:500 clamp(46px,4.8vw,79px)/.99 'DM Sans',Arial,sans-serif;letter-spacing:-.065em;color:#f1eee9}
+#app.upscale-studio-active .pv-upscale-blank-copy p{max-width:282px;margin:0 0 37px;color:#9ca3a8;font:400 13px/1.8 'DM Sans',Arial,sans-serif}
+#app.upscale-studio-active #pv-upscale-hero-upload{display:flex;align-items:center;gap:16px;min-height:39px;padding:0 0 6px;border:0;border-bottom:1px solid #9c9e9d;border-radius:0;background:transparent;color:#ecebe7;font:600 12px 'DM Sans',Arial,sans-serif;cursor:pointer;transition:color .18s,border-color .18s}
+#app.upscale-studio-active #pv-upscale-hero-upload svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s}
+#app.upscale-studio-active #pv-upscale-hero-upload:hover{color:#fff;border-color:#fff}
+#app.upscale-studio-active #pv-upscale-hero-upload:hover svg{transform:translateX(4px)}
+#app.upscale-studio-active #pv-upscale-hero-upload:focus-visible{outline:2px solid #f0ebe6;outline-offset:5px}
+#app.upscale-studio-active .pv-upscale-blank-copy>small{margin-top:15px;color:#717a80;font:600 9px 'DM Sans',Arial,sans-serif;letter-spacing:.11em}
+#app.upscale-studio-active .pv-upscale-material-figure{display:flex;flex-direction:column;gap:13px;align-self:center;justify-self:center;width:clamp(205px,28vw,372px);max-width:80%;min-width:0;margin:0 0 12px}
+#app.upscale-studio-active .pv-upscale-material-photo{position:relative;width:100%;aspect-ratio:530/724;overflow:hidden;border:1px solid #ffffff30;border-radius:2px;background:#181816;box-shadow:0 22px 75px #0006}
+#app.upscale-studio-active .pv-upscale-material-photo img{position:absolute;display:block;inset:0;max-width:none!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:50% 50%!important}
+#app.upscale-studio-active .pv-upscale-material-photo::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent 65%,#0a0b0c18)}
+#app.upscale-studio-active .pv-upscale-material-figure figcaption{display:flex;justify-content:space-between;gap:12px;color:#97999a;font:600 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.11em;white-space:nowrap}
+#app.upscale-studio-active .pv-upscale-blank-footer{position:absolute;bottom:21px;left:clamp(24px,4vw,72px);right:29px;padding-top:14px;border-top:1px solid #ffffff20;color:#797e80;font:600 8px 'DM Sans',Arial,sans-serif;letter-spacing:.1em}
+@media(max-width:1050px){
+ #app.upscale-studio-active .pv-upscale-blank-copy{padding:20px 26px}
+ #app.upscale-studio-active .pv-upscale-blank-copy h2{font-size:clamp(41px,5vw,65px)}
+ #app.upscale-studio-active .pv-upscale-blank-index{margin-bottom:24px}
+ #app.upscale-studio-active .pv-upscale-blank-copy p{font-size:12px;margin-bottom:25px}
+ #app.upscale-studio-active .pv-upscale-material-figure{width:clamp(195px,29vw,305px)}
+ #app.upscale-studio-active .pv-upscale-blank-footer{left:26px}
+}
+@media(max-width:600px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{grid-template-columns:minmax(0,49%) minmax(0,51%)}
+ #app.upscale-studio-active .pv-upscale-editorial-blank::before{left:49%}
+ #app.upscale-studio-active .pv-upscale-blank-copy{padding:12px 0 30px 21px}
+ #app.upscale-studio-active .pv-upscale-blank-index{font-size:7px;letter-spacing:.07em;white-space:normal;max-width:150px;margin-bottom:23px}
+ #app.upscale-studio-active .pv-upscale-blank-copy h2{font-size:clamp(32px,9.4vw,48px);margin-bottom:15px}
+ #app.upscale-studio-active .pv-upscale-blank-copy p{max-width:148px;font-size:10px;line-height:1.6;margin-bottom:20px}
+ #app.upscale-studio-active #pv-upscale-hero-upload{font-size:10px;gap:7px;min-height:32px;white-space:nowrap}
+ #app.upscale-studio-active #pv-upscale-hero-upload svg{width:12px;height:12px}
+ #app.upscale-studio-active .pv-upscale-blank-copy>small{font-size:7px;letter-spacing:0;margin-top:12px}
+ #app.upscale-studio-active .pv-upscale-material-figure{width:clamp(127px,43vw,190px);max-width:91%;margin-bottom:12px;gap:9px;transform:translateX(3px)}
+ #app.upscale-studio-active .pv-upscale-material-figure figcaption{font-size:7px;letter-spacing:0;gap:4px}
+ #app.upscale-studio-active .pv-upscale-blank-footer{left:21px;right:20px;bottom:17px;font-size:7px}
+}
+@media(max-width:355px){
+ #app.upscale-studio-active .pv-upscale-blank-copy{padding-left:14px}
+ #app.upscale-studio-active .pv-upscale-blank-copy h2{font-size:31px}
+ #app.upscale-studio-active #pv-upscale-hero-upload{font-size:9px}
+ #app.upscale-studio-active .pv-upscale-blank-footer{left:14px}
+}
+@media(prefers-reduced-motion:reduce){
+ #app.upscale-studio-active #pv-upscale-hero-upload,
+ #app.upscale-studio-active #pv-upscale-hero-upload svg{transition:none}
+}
+
+/* 2026-10-21 Upscaler material-study refinement.
+   Desktop workbench structure and all provider/billing behavior stay unchanged.
+   Use the clean PV LAB archive source without embedded typography. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-figure{
+  width:clamp(280px,34vw,490px)!important;
+  max-width:83%!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-photo{
+  aspect-ratio:8/5!important;
+  height:auto!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-photo img{
+  width:100%!important;
+  height:100%!important;
+  left:0!important;
+  top:0!important;
+  object-fit:cover!important;
+  object-position:50% 50%!important;
+}
+@media(max-width:600px){
+  /* Mobile is a distinct single-column editorial composition, not a tiny desktop split. */
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-editorial-blank{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:16px 42px 30px minmax(0,1fr) 40px 13px!important;
+    row-gap:6px!important;
+    padding:16px 18px 12px!important;
+    align-items:stretch!important;
+  }
+  #app.upscale-studio-active .pv-upscale-editorial-blank::before{display:none!important;content:none!important}
+  #app.upscale-studio-active .pv-upscale-blank-copy{display:contents!important}
+  #app.upscale-studio-active .pv-upscale-blank-index{
+    grid-column:1!important;grid-row:1!important;
+    align-self:center!important;justify-self:start;
+    margin:0!important;white-space:nowrap!important;
+    max-width:100%!important;font-size:8px!important;letter-spacing:.12em!important;
+  }
+  #app.upscale-studio-active .pv-upscale-blank-copy h2{
+    display:block!important;grid-column:1!important;grid-row:2!important;
+    align-self:center!important;justify-self:start;
+    margin:0!important;padding:0!important;
+    font-size:clamp(31px,8.8vw,38px)!important;line-height:1.1!important;
+    letter-spacing:-.06em!important;white-space:nowrap;
+  }
+  #app.upscale-studio-active .pv-upscale-blank-copy h2 span{display:inline!important}
+  #app.upscale-studio-active .pv-upscale-blank-copy h2 span:first-child::after{content:" "}
+  #app.upscale-studio-active .pv-upscale-blank-copy p{
+    grid-column:1!important;grid-row:3!important;
+    align-self:start!important;justify-self:start;
+    margin:0!important;padding:0!important;
+    max-width:100%!important;
+    font-size:11px!important;line-height:1.5!important;
+    color:#a6a8a7!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-material-figure{
+    grid-column:1!important;grid-row:4!important;
+    align-self:center!important;justify-self:stretch!important;
+    display:block!important;width:100%!important;max-width:none!important;
+    height:auto!important;margin:0!important;padding:0!important;
+    transform:none!important;
+  }
+  #app.upscale-studio-active .pv-upscale-material-photo{
+    box-sizing:border-box;width:100%!important;height:auto!important;
+    aspect-ratio:8/5!important;overflow:hidden;
+    border:1px solid rgba(223,232,240,.23)!important;
+    border-radius:3px!important;
+    box-shadow:0 12px 42px rgba(0,0,0,.22)!important;
+  }
+  /* The clean editorial photograph fills mobile and desktop without text cropping. */
+  #app.upscale-studio-active .pv-upscale-material-figure figcaption{display:none!important}
+  #app.upscale-studio-active #pv-upscale-hero-upload{
+    grid-column:1!important;grid-row:5!important;
+    align-self:center!important;justify-self:start!important;
+    margin:0!important;padding:0 0 4px!important;
+    min-height:34px!important;
+    font-size:12px!important;line-height:1.2!important;
+    gap:13px!important;
+  }
+  #app.upscale-studio-active #pv-upscale-hero-upload svg{width:15px!important;height:15px!important}
+  #app.upscale-studio-active .pv-upscale-blank-copy>small{display:none!important}
+  #app.upscale-studio-active .pv-upscale-blank-footer{
+    position:static!important;
+    grid-column:1!important;grid-row:6!important;
+    align-self:end!important;
+    padding:0!important;margin:0!important;
+    border:0!important;
+    font-size:7px!important;line-height:1.25!important;letter-spacing:.085em!important;
+    white-space:nowrap;
+  }
+  /* Shorter, cleaner settings panel below the preview. Full-size tap targets remain. */
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+    padding:16px 16px 11px!important;
+    gap:13px 10px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+    margin:0!important;padding:0 0 12px!important;gap:0!important;
+  }
+  #app.upscale-studio-active .pv-upscale-workspace-intro .pv-upscale-kicker,
+  #app.upscale-studio-active .pv-upscale-workspace-intro p{display:none!important}
+  #app.upscale-studio-active .pv-upscale-workspace-intro h2{
+    font-size:20px!important;line-height:1.25!important;letter-spacing:-.035em!important;
+  }
+  #app.upscale-studio-active #pv-upscale-source-upload{
+    min-height:78px!important;padding:12px 13px!important;gap:12px!important;
+  }
+  #app.upscale-studio-active #pv-upscale-source-upload .pv-upscale-source-icon{
+    width:36px!important;height:36px!important;
+  }
+  #app.upscale-studio-active #pv-upscale-source-upload svg{width:20px!important;height:20px!important}
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+    padding:12px 16px 15px!important;
+  }
+}

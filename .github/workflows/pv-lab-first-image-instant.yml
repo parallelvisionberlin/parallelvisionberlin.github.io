@@ -11,6 +11,7 @@ on:
       - 'lab/studio-guest-image.js'
       - 'lab/image-editorial-deck.js'
       - 'lab/image-editorial-deck.css'
+      - 'lab/image-deck-surface.css'
       - 'lab/image-welcome-editorial.css'
       - 'lab/studio-finish-v2.css'
       - 'lab/image-welcome-editorial.css'
@@ -18,6 +19,7 @@ on:
       - 'lab/studio-guest-image.js'
       - 'lab/image-editorial-deck.js'
       - 'lab/image-editorial-deck.css'
+      - 'lab/image-deck-surface.css'
       - 'tests/lab-customer-image-quotes.test.mjs'
       - 'tests/lab-first-image-instant-browser.mjs'
       - 'tests/lab-mobile-mood-entry.mjs'
@@ -27,8 +29,11 @@ on:
     branches: [main]
     paths:
       - 'lab/lab.js'
+      - 'lab/studio-guest-image.css'
+      - 'lab/studio-guest-image.js'
       - 'lab/image-editorial-deck.js'
       - 'lab/image-editorial-deck.css'
+      - 'lab/image-deck-surface.css'
       - 'lab/customer-image-pricing.js'
       - 'lab/studio.html'
       - 'lab/studio-finish-v2.css'

@@ -653,6 +653,29 @@
       text-transform: uppercase;
     }
 
+    /* Isolated photographic-work entry in the existing editorial archive. */
+    .editorial .photo-work-link {
+      display: grid;
+      grid-template-columns: minmax(130px, .24fr) minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 22px;
+      padding: 25px 0;
+      border-top: 1px solid var(--line-dark);
+      border-bottom: 1px solid var(--line-dark);
+      margin-top: 20px;
+      color: #fff;
+      text-decoration: none;
+    }
+    .photo-work-link-index { font-size: 10px; letter-spacing: .14em; color: var(--muted-dark); }
+    .photo-work-link-title { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(22px, 2.7vw, 38px); letter-spacing: -.045em; line-height: 1.1; }
+    .photo-work-link-arrow { font-size: 25px; transition: transform .2s ease; }
+    .photo-work-link:hover .photo-work-link-arrow { transform: translate(3px, -3px); }
+    @media(max-width:620px) {
+      .editorial .photo-work-link { grid-template-columns: 1fr auto; gap: 9px; }
+      .photo-work-link-index { grid-column: 1 / -1; }
+      .photo-work-link-title { font-size: 28px; }
+    }
+
     .history {
       background: var(--paper);
       color: var(--ink);
@@ -1009,13 +1032,14 @@
         </figure>
         <p class="reveal">He is the founder of Parallel Vision, an independent platform connecting electronic music, visual world-building and material research. His practice moves between the dancefloor and the imagined city: from hypnotic club records and live performance to Berlin 2063, a cinematic universe examining identity, technology and life after the present.</p>
         <p class="reveal">For Molinari, music is not an isolated product. It is the structural core of a larger system—one in which records, bodies, garments, architecture and fictional realities can occupy the same world.</p>
+
       </div>
     </section>
 
     <section class="architecture section-shell" id="architecture" aria-labelledby="architecture-title">
       <header class="section-head reveal">
         <h2 class="section-title" id="architecture-title">The Architecture</h2>
-        <p class="section-kicker">System Index / 04 Fields</p>
+        <p class="section-kicker">System Index / 05 Fields</p>
       </header>
       <nav class="architecture-list" aria-label="Alejandro Molinari practice index">
         <a class="architecture-row reveal" href="#releases">
@@ -1040,6 +1064,12 @@
           <span class="architecture-index">04</span>
           <span class="architecture-name">Material Futures</span>
           <span class="architecture-description">Fashion after fabric, synthetic biology and speculative matter.</span>
+          <span class="architecture-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="architecture-row reveal" href="./photography/">
+          <span class="architecture-index">05</span>
+          <span class="architecture-name">Photography</span>
+          <span class="architecture-description">Analog atmosphere, intimate interiors and after-dark studies.</span>
           <span class="architecture-arrow" aria-hidden="true">→</span>
         </a>
       </nav>
@@ -1175,6 +1205,11 @@
           <p class="editorial-label">01 — Artist / Founder / Night Archive</p>
         </div>
       </div>
+      <a class="photo-work-link reveal" href="./photography/" aria-label="View Alejandro Molinari's photographic work">
+        <span class="photo-work-link-index">02 / PHOTOGRAPHIC WORK</span>
+        <span class="photo-work-link-title">Selected photographs</span>
+        <span class="photo-work-link-arrow" aria-hidden="true">↗</span>
+      </a>
     </section>
 
     <section class="history section-shell" id="history" aria-labelledby="history-title">

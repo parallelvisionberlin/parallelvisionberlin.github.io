@@ -1,8 +1,9 @@
 import {filmFinishSettings} from '../lab/film-finish.js';
+import {checkCustomerPromptSafety} from './prompt-safety.mjs';
 import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook.mjs';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
-import {banClosedStudioIdentity,processStudioIdentityDeletions} from './studio-identity-deletion.mjs';
+import {deleteClosedStudioIdentity,finishClosedStudioIdentity,processStudioIdentityDeletions} from './studio-identity-deletion.mjs';
 import {processSignupWelcomeEmails} from './signup-welcome-email.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
@@ -50,7 +51,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-19.2-hk-atmosphere-film-v8';
+export const VERSION = 'pv-lab-2026-10-21.4-immediate-account-delete';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1357,6 +1358,9 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
+  if(customer&&path==='/api/session'&&ctx?.waitUntil&&
+    await first(env,'SELECT 1 AS closed FROM lab_account_closures WHERE customer_id=?',owner))
+    ctx.waitUntil(finishClosedStudioIdentity(env,owner).catch(()=>{}));
   if(customer&&path==='/api/session'&&env.LAB_WELCOME_CREDITS_ENABLED==='true'&&
      (env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY)){
     // Only an enabled welcome campaign needs Clerk email verification before
@@ -1389,11 +1393,17 @@ async function route(request,env,ctx) {
     }
     if(path==='/api/customer/account'&&method==='DELETE'){
       const result=await customerRoute(request,env,owner);
-      // D1 has already closed the account. Revoke PV LAB sessions without
-      // touching the shared Clerk application. Cron retries failures.
-      if(result.status===202&&ctx?.waitUntil)
-        ctx.waitUntil(banClosedStudioIdentity(env,owner).catch(()=>{}));
-      return result;
+      if(result.status!==202)return result;
+      // Do not report success and sign out while Google still resolves to the
+      // closed identity. The dedicated login must be deleted in this request.
+      // Creative cleanup stays queued under the inaccessible old customer ID.
+      try{
+        const identityDeleted=await deleteClosedStudioIdentity(env,owner,verifyClosureBilling);
+        if(identity.issuer===STUDIO_ISSUER&&!identityDeleted)throw Error('Dedicated identity deletion is not confirmed.');
+        return json({accepted:true,identityDeleted},202);
+      }catch{
+        fail(503,'Account deletion has not finished. Please retry the deletion. Your account remains closed and cannot spend credits.');
+      }
     }
     return customerRoute(request,env,owner);
   }
@@ -1408,6 +1418,28 @@ async function route(request,env,ctx) {
   );
   if(customer&&billable&&!canCustomerGenerate(env,owner))
     fail(503,'Customer generation is not yet available for this account. No job submitted.');
+  // Screen creative text when a customer actually submits a generation.
+  // Price checks never consume AI moderation calls; Image UI remains untouched.
+  const safetyDirectSubmit=method==='POST'&&(
+    ['/api/gemini/jobs','/api/image-models/generate','/api/precision/submit','/api/fashion/submit'].includes(path)||
+    (path.startsWith('/api/fal/')&&path!=='/api/fal/pose-preview')
+  );
+  if(customer&&safetyDirectSubmit&&env.LAB_MINOR_PROMPT_SAFETY_ENABLED==='true')
+    await checkCustomerPromptSafety(env,request);
+  // Higgsfield submits only a quote ID, so screen its stored bound prompt once.
+  if(customer&&method==='POST'&&path==='/api/higgsfield/generate'&&env.LAB_MINOR_PROMPT_SAFETY_ENABLED==='true'){
+    const submission=await body(request);
+    if(submission.confirm===true&&UUID.test(submission.quoteId||'')){
+      const already=await first(env,'SELECT id FROM jobs WHERE quote_id=? AND owner_id=?',submission.quoteId,owner);
+      if(!already){
+        const bound=await first(env,'SELECT params FROM quotes WHERE id=? AND owner_id=?',submission.quoteId,owner);
+        if(bound){
+          const checkRequest=new Request(request.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:JSON.parse(bound.params||'{}')})});
+          await checkCustomerPromptSafety(env,checkRequest);
+        }
+      }
+    }
+  }
   // Dataset training and the metered pose-preview route have no job-wallet charge yet.
   if(customer&&method==='POST'&&(
     path==='/api/soul/datasets'||path==='/api/soul/characters'||
@@ -1911,6 +1943,11 @@ async function route(request,env,ctx) {
     const q=await first(env,'SELECT * FROM quotes WHERE id=? AND owner_id=? AND expires_at>?',quoteId,owner,now());
     if(!q)fail(409,'Quote expired. Review the cost again.');
     const params=JSON.parse(q.params||'{}'),savedPayload=JSON.parse(q.payload);
+    // Recheck bound quotes at submission, including quotes made before rollout.
+    if(customer&&env.LAB_MINOR_PROMPT_SAFETY_ENABLED==='true'){
+      const checkRequest=new Request(request.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:params})});
+      await checkCustomerPromptSafety(env,checkRequest);
+    }
     if(params.provider==='higgsfield'&&params.mode==='extend')return json({job:jobView(await submitVideoExtension(env,owner,q,params,savedPayload,hfDeps()))},202);
     if(params.provider==='higgsfield'&&params.engine==='klinghf'){
       if(customer)fail(403,'Higgsfield Kling Pro is currently owner-only. No video submitted.');
@@ -2110,6 +2147,8 @@ async function maintenance(env) {
   await run(env,'DELETE FROM quotes WHERE expires_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.quote_id=quotes.id)',now());
   const unused=await rows(env,"SELECT * FROM assets WHERE kind='source' AND created_at<? ORDER BY created_at LIMIT 30",now()-86400000);
   for(const a of unused)await pruneSource(env,a.owner_id,a.id);
+}
+async function accountMaintenance(env){
   try{await processAccountClosures(env,verifyClosureBilling);}
   finally{await processStudioIdentityDeletions(env);}
 }
@@ -2122,6 +2161,9 @@ export default {
     // Customer-email repair is isolated from potentially failing generation maintenance.
     ctx.waitUntil(scheduledClerkBackfill(env));
     ctx.waitUntil(processSignupWelcomeEmails(env).catch(()=>{}));
+    // Account erasure must not wait for a provider poll, training recovery or
+    // an unrelated source-file cleanup to succeed.
+    ctx.waitUntil(accountMaintenance(env));
     ctx.waitUntil(maintenance(env));
     // Discard aggregate counts older than 90 days, once per UTC day.
     const clock=Number(event?.scheduledTime)||Date.now();

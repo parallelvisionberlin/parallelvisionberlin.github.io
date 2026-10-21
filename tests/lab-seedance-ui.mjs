@@ -22,7 +22,7 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
  const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true}),page=await context.newPage();
  const requests=[],errors=[],dialogs=[],jobs=[...initial],quotes=new Map(),assets=new Map();let sequence=100,accepted=0,renewed=false;
  for(const entry of initial)if(entry.outputId&&entry.settings?.type==='video')assets.set(entry.outputId,{mime:'video/mp4',bytes:motion});
- page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept();});
+ page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack);});page.on('dialog',async d=>{dialogs.push(d.message());await d.accept();});
  await context.route('https://**/*',async route=>{
   const req=route.request(),url=new URL(req.url());if(!url.href.startsWith(API)){await route.abort();return;}
   const path=url.pathname,method=req.method(),data=req.headers()['content-type']?.startsWith('application/json')?req.postDataJSON():{};
@@ -71,13 +71,15 @@ try{
  assert.equal(await x.page.locator('#resolution').inputValue(),'720p');assert.equal(await x.page.locator('#duration').inputValue(),'5');assert.equal(await x.page.locator('#ratio').isVisible(),false);await still(x);await still(x,'last-image');
  await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(count(x,'/api/jobs'),0);assert.match(await x.page.locator('#quote-settings').innerText(),/Seedance 2.5/);
  const quote=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(quote.settings.engine,'seedance');assert.equal(quote.settings.mode,'start');assert.ok(quote.sourceId);assert.ok(quote.lastSourceId);
- await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/jobs'),1);ok('Seedance start/end frames, defaults and separate paid confirmation');
+ await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#pv-video-current-model').count(),1,'Submitting preserves the Current scene inspector fields');ok('Seedance start/end frames, defaults and separate paid confirmation');
  await x.page.locator('.card').first().click();await x.page.click('#video-detail-reuse');await ready(x.page);assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');assert.match(await x.page.locator('#filemeta').innerText(),/320/);assert.match(await x.page.locator('#last-filemeta').innerText(),/320/);assert.equal(count(x,'/api/jobs'),1);ok('Reuse restores model, first/last images and exact settings without generating');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace();await choose(x,'text');assert.equal(await x.page.locator('#start-mode').isVisible(),false);assert.equal(await x.page.locator('#reference-mode').isVisible(),false);await x.page.selectOption('#ratio','21:9');await x.page.selectOption('#duration','12');await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(count(x,'/api/uploads'),0);assert.equal(x.requests.find(r=>r.path==='/api/quotes').data.sourceId,null);assert.match(await x.page.locator('#quote-settings').innerText(),/Text to Video/);assert.equal(x.accepted(),0);ok('Text-to-video sends no hidden image and supports 21:9 and whole seconds');await x.context.close();
  x=await workspace();await choose(x,'reference');await still(x,'reference-images');
  await x.page.locator('#video-references').setInputFiles({name:'motion.mp4',mimeType:'video/mp4',buffer:motion});await x.page.waitForFunction(()=>document.querySelector('#video-ref-count').textContent.startsWith('1 / 10'));assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);
  await x.page.locator('#audio-references').setInputFiles({name:'score.wav',mimeType:'audio/wav',buffer:sound});await x.page.waitForFunction(()=>document.querySelector('#audio-ref-count').textContent.startsWith('1 / 10'));assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);
- await x.page.locator('#video-reference-list input').fill('Camera movement only.');await x.page.locator('#audio-reference-list input').fill('Rhythm.');
+ // Retained media-note handlers are hidden in the approved compact Video deck.
+ for(const [selector,value] of [['#video-reference-list input','Camera movement only.'],['#audio-reference-list input','Rhythm.']])
+  await x.page.locator(selector).evaluate((input,note)=>{input.value=note;input.dispatchEvent(new Event('input',{bubbles:true}));},value);
  await x.page.click('#save');await ready(x.page);assert.equal(count(x,'/api/jobs'),0);assert.equal(count(x,'/api/reference-uploads'),2);
  await x.page.click('#clear');await x.page.locator('.card[data-state="draft"]').click();await x.page.click('#video-detail-reuse');await ready(x.page);
  assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);assert.equal(await x.page.locator('#video-reference-list input').inputValue(),'Camera movement only.');assert.equal(await x.page.locator('#audio-reference-list input').inputValue(),'Rhythm.');assert.equal(count(x,'/api/jobs'),0);ok('Mixed references retain media, durations and notes through draft, clear and Reuse');
@@ -99,20 +101,23 @@ try{
     settings:{type:'video',engine:'seedance',mode:'start',prompt:'A sculptural object slowly turning in natural light.',
       duration:5,resolution:'720p',aspectRatio:'16:9',referenceSourceIds:[]}};
   x=await workspace({initial:[completedVideo]});await x.page.click('#tool-video');
-  await x.page.waitForFunction(()=>document.querySelector('#video-detail-prompt').textContent.includes('sculptural object'));
+  const savedVideo=x.page.locator('#history .card[data-job="'+completedVideo.id+'"]');
+  await savedVideo.waitFor({state:'visible'});
   assert.equal(count(x,'/api/assets/'+completedVideo.outputId,'GET'),0,'Opening Video does not automatically download the MP4');
-  assert.equal(await x.page.locator('#video-feed-center').isVisible(),true,'Completed Video uses center preview');
-  assert.equal(await x.page.locator('#video-inspector').isVisible(),true,'Video metadata inspector stays visible');
+  assert.equal(await x.page.locator('#video-inspector-selected').isVisible(),false,
+    'Opening Video preserves the current creation scene until a History card is selected');
+  await savedVideo.click();
+  await x.page.waitForFunction(()=>document.querySelector('#video-detail-prompt').textContent.includes('sculptural object'));
+  assert.equal(await x.page.locator('#video-inspector').isVisible(),true,'Selected Video metadata inspector stays visible');
   assert.match(await x.page.locator('#video-detail-prompt').innerText(),/sculptural object/i);
   assert.equal(await x.page.locator('#video-detail-model').innerText(),'Seedance 2.5');
   assert.equal(await x.page.locator('#video-detail-watch').isEnabled(),true);
-  await x.page.locator('#history .card[data-job="'+completedVideo.id+'"]').click();
   await x.page.waitForFunction(()=>document.querySelector('#video')?.src.startsWith('blob:')&&!document.querySelector('#video').hidden);
   assert.equal(count(x,'/api/assets/'+completedVideo.outputId,'GET'),1);
   assert.equal(x.accepted(),0);
   await x.page.screenshot({path:'test-results/lab-video-selected-result.png',fullPage:false});
   assert.deepEqual(x.errors,[]);
-  ok('Latest video shows its inspector first, loads on request and submits no paid job');
+  ok('Video preserves the create scene, then loads explicit History selection without a paid job');
   await x.context.close();
 
  // Motion Effects: mock-only integration. Do not confirm or buy a generation.
@@ -120,7 +125,8 @@ try{
    settings:{type:'image',engine:'seedream',mode:'image',prompt:'Fashion editorial photograph.',
      resolution:'2k',aspectRatio:'1:1',referenceSourceIds:[]}};
  x=await workspace({initial:[completedStill]});
- await x.page.click('#tool-effects');
+ // Effects remains a retained route handler; the approved header hides its legacy tab.
+ await x.page.locator('#tool-effects').evaluate(button=>button.click());
  await x.page.locator('#video-effects-grid .video-effect-card').first().waitFor();
  assert.equal(await x.page.locator('#video-effects-grid .video-effect-card').count(),3);
  assert.equal(await x.page.locator('#video-effects-explore').isVisible(),true);

@@ -3,7 +3,10 @@
 // Raw originals remain in R2; only private 480px WebP previews are analyzed.
 import {serveGalleryThumbnail} from './gallery-thumbnails.mjs';
 
-export const ELEMENT_PROFILE_MODEL='gemini-2.5-flash';
+// Google restricts 2.5 models to existing users. Both previous routes returned
+// 404 for this project; use the current generally available vision models.
+export const ELEMENT_PROFILE_MODEL='gemini-3.8-flash';
+export const ELEMENT_PROFILE_FALLBACK_MODEL='gemini-3.5-flash-lite';
 export const ELEMENT_PROFILE_VERSION=1;
 export const ELEMENT_ANALYSIS_USER_DAILY=6;
 export const ELEMENT_ANALYSIS_GLOBAL_DAILY=80;
@@ -115,23 +118,71 @@ export async function analyzeElementProfile(env,owner,packId,ctx,{first,run,now,
     parts.push({text:'Element photo '+(i+1)+' of '+shots.length+' (index '+i+').'});
     parts.push(shot);
   });
-  let response;
-  try{
-    response=await fetchImpl('https://generativelanguage.googleapis.com/v1beta/models/'+ELEMENT_PROFILE_MODEL+':generateContent',{
-      method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},
-      body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:{
-        temperature:0.15,responseMimeType:'application/json',maxOutputTokens:1600
-      }}),
-      signal:AbortSignal.timeout(45000)
-    });
-  }catch{fail(503,'Element visual analysis could not connect. Your saved photos were not changed.');}
-  if(!response.ok)fail(503,'Element visual analysis is temporarily unavailable. Saved photos remain usable.');
-  let profile;
-  try{
-    const payload=await response.json();
-    const result=(payload.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();
-    profile=normalizeElementProfile(JSON.parse(result),entry.category,shots.length);
-  }catch{fail(502,'Element visual analysis could not describe this set. Photos remain usable.');}
+  // The original photos stay private in R2. Only short-lived 480px previews
+  // reach Gemini. Flash remains primary; Flash-Lite is a bounded fallback for
+  // provider quota/outages, retired models, or unusable JSON output.
+  // Gemini 3 uses thinkingLevel, not the previous 2.5 thinkingBudget:0.
+  // 3.8 supports low but not minimal; Flash-Lite supports minimal. Keep the
+  // recommended default temperature and allow room for all eight shot records.
+  const models=[ELEMENT_PROFILE_MODEL,ELEMENT_PROFILE_FALLBACK_MODEL];
+  const failures=[];
+  let profile=null;
+  for(let index=0;index<models.length;index++){
+    const model=models[index];
+    const requestBody=JSON.stringify({contents:[{role:'user',parts}],generationConfig:{
+      temperature:1,responseMimeType:'application/json',maxOutputTokens:4096,
+      thinkingConfig:{thinkingLevel:model===ELEMENT_PROFILE_MODEL?'low':'minimal'}
+    }});
+    let response;
+    try{
+      response=await fetchImpl('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
+        method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},
+        body:requestBody,signal:AbortSignal.timeout(45000)
+      });
+    }catch{
+      // Never log request bodies, provider error bodies, keys or image bytes.
+      failures.push({status:503,kind:'connect'});
+      continue;
+    }
+    if(!response.ok){
+      failures.push({status:response.status,kind:'http'});
+      console.warn('PV LAB Elements Gemini request failed',model,'HTTP',response.status);
+      // Invalid payload and credentials/billing cannot be fixed by retrying
+      // the same request against another model.
+      if([400,401,402,403].includes(response.status))break;
+      // Google's initial recommended delay for transient rate/server errors.
+      if(index===0&&[408,429,500,502,503,504].includes(response.status))
+        await new Promise(resolve=>setTimeout(resolve,1000));
+      continue;
+    }
+    try{
+      const payload=await response.json();
+      const result=(payload.candidates?.[0]?.content?.parts||[]).filter(p=>!p.thought).map(p=>p.text||'').join('').trim();
+      profile=normalizeElementProfile(JSON.parse(result),entry.category,shots.length);
+      break;
+    }catch{
+      failures.push({status:502,kind:'payload'});
+    }
+  }
+  if(!profile){
+    // Explain the provider failure without passing through untrusted Google
+    // error strings, which may contain private project details or text.
+    const failure=failures.find(f=>[400,401,402,403].includes(f.status))
+      ||failures.find(f=>f.status===429)||failures.at(-1)||{status:503,kind:'connect'};
+    if(failure.status===429)
+      fail(503,'Google Gemini rate limit or quota reached (HTTP 429). Try again later. Saved photos remain usable.');
+    if([401,402,403].includes(failure.status))
+      fail(503,'Google Gemini API access or billing was rejected (HTTP '+failure.status+'). Check the Google project and key. Saved photos remain usable.');
+    if(failure.status===400)
+      fail(503,'Google Gemini rejected the visual analysis request (HTTP 400). Saved photos remain usable.');
+    if(failure.status===404)
+      fail(503,'Google Gemini analysis models are unavailable (HTTP 404). Saved photos remain usable.');
+    if(failure.kind==='payload')
+      fail(502,'Google Gemini returned incomplete analysis data. Retry later. Saved photos remain usable.');
+    if(failure.kind==='connect')
+      fail(503,'Google Gemini analysis could not connect. Retry later. Saved photos remain usable.');
+    fail(503,'Google Gemini service is temporarily unavailable (HTTP '+failure.status+'). Saved photos remain usable.');
+  }
   await run(env,'INSERT OR IGNORE INTO element_visual_profiles(pack_id,owner_id,profile_json,created_at) VALUES(?,?,?,?)',
     packId,owner,JSON.stringify(profile),now());
   return {profile,cached:false};

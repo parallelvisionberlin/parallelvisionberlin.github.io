@@ -108,22 +108,100 @@ try{
     await page.waitForFunction(()=>document.getElementById('pv-guest-cards').scrollLeft>30);
     await page.keyboard.press('ArrowLeft');
     await page.waitForFunction(()=>document.getElementById('pv-guest-cards').scrollLeft<4);
+    const guest=page.locator('#pv-guest-composer');
+    const field=page.locator('#pv-guest-prompt');
+    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
+      'Signed-out first paint keeps the small approved prompt');
+    for(const id of ['pv-guest-library','pv-guest-base','pv-guest-resolution'])
+      assert.equal(await page.locator('#'+id).isVisible(),true,'Desktop guest exposes '+id);
+    await field.click();
+    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'Clicking a guest prompt opens the full two-row editor without an inner frame');
+    const emptyFocus=await field.evaluate(el=>{
+      const input=getComputedStyle(el),box=el.getBoundingClientRect();
+      return {outline:input.outlineStyle,border:input.borderTopWidth,
+        shadow:input.boxShadow,height:box.height};
+    });
+    assert.equal(emptyFocus.outline,'none','Guest caret needs no nested focus rectangle');
+    assert.equal(emptyFocus.border,'0px','Guest textarea must not draw an interior border');
+    assert.equal(emptyFocus.shadow,'none');
+    assert.ok(emptyFocus.height>=50&&emptyFocus.height<=150,
+      'Expanded empty input is useful, never an oversized empty inner box: '+JSON.stringify(emptyFocus));
+    await field.fill('A quiet portrait in Berlin');
+    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'An edited brief prompt retains the genuine two-row instrument');
+    await field.fill('');
+    const beforeMoodUrl=page.url();
+    await page.locator('#pv-guest-moods').click();
+    assert.equal(page.url(),beforeMoodUrl,'Moods must stay on the guest page, not navigate away');
+    assert.equal(await page.evaluate(()=>document.activeElement?.dataset.guestMood),'dream-blur',
+      'The Moods control should point to the existing Inspiration cards');
     await page.locator('[data-guest-mood="dream-blur"]').click();
     assert.notEqual(await page.evaluate(()=>document.activeElement?.id),'pv-guest-prompt',
-      'Desktop Mood selection loads the prompt without forcing the expanded editor');
-    assert.equal(await page.locator('#pv-guest-composer').evaluate(el=>getComputedStyle(el).flexDirection),'row',
-      'Desktop guest deck keeps the single-row compact mockup until editing begins');
-    await page.locator('#pv-guest-prompt').click();
+      'Picking a guest Mood must not force text focus or the virtual keyboard');
+    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'Real multi-line Mood content opens the matching two-row editor');
+    const grid=await page.evaluate(()=>{
+      const get=id=>document.getElementById(id).getBoundingClientRect();
+      const deck=get('pv-guest-composer'),editor=get('pv-guest-prompt'),
+        settings=document.querySelector('.pv-guest-settings').getBoundingClientRect(),
+        generate=get('pv-guest-generate');
+      return {display:getComputedStyle(document.getElementById('pv-guest-composer')).display,
+        height:deck.height,promptRight:editor.right,generateLeft:generate.left,
+        settingsTop:settings.top,editorBottom:editor.bottom,settingsRight:settings.right,
+        generateBottom:generate.bottom,deckBottom:deck.bottom,
+        maxScroll:document.documentElement.scrollWidth-innerWidth};
+    });
+    assert.equal(grid.display,'grid','The public long prompt uses the real two-row deck layout');
+    assert.ok(grid.height>=105&&grid.height<260,
+      'Expanded guest deck must fit its prompt, not create an oversized blank box: '+JSON.stringify(grid));
+    assert.ok(grid.promptRight<grid.generateLeft&&
+      grid.editorBottom<=grid.settingsTop+3&&
+      grid.settingsRight<grid.generateLeft&&grid.generateBottom<=grid.deckBottom+2,
+      'Guest prompt, toolbar and Generate must occupy real nonoverlapping rows: '+JSON.stringify(grid));
+    assert.ok(grid.maxScroll<=3,'Expanded guest dock must not introduce horizontal overflow');
+    await field.click();
     await page.keyboard.press('ArrowRight');
     assert.ok(await page.locator('#pv-guest-cards').evaluate(el=>el.scrollLeft)<4,
-      'Arrow keys keep their text-editing behavior inside the guest prompt');
-    assert.equal(await page.evaluate(()=>document.activeElement?.id),'pv-guest-prompt',
-      'Intentional prompt click opens the actual editor');
-    assert.equal(await page.locator('#pv-guest-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
-      'Desktop guest prompt expands on intentional click');
-    await page.locator('#pv-guest-prompt').fill('Visual poetry in an everyday street. '.repeat(45));
-    assert.equal(await page.locator('#pv-guest-prompt').evaluate(el=>el.scrollHeight>el.clientHeight),true,
-      'Long guest prompts scroll inside the editor');
+      'Arrow keys edit guest text without moving the photo carousel');
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'pv-guest-prompt');
+    await field.fill('Visual poetry in an everyday street. '.repeat(45));
+    assert.equal(await field.evaluate(el=>el.scrollHeight>el.clientHeight),true,
+      'Long guest prompts scroll inside the writing area, not an extra nested box');
+    await field.fill('');
+    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'Desktop public editor follows the same focused-empty state as the real editor');
+    await page.locator('#pv-guest-title').click();
+    await page.waitForFunction(()=>!document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
+    await field.fill('A long portrait instruction. '.repeat(12));
+    await page.evaluate(()=>{
+      const signIn=document.getElementById('signin');
+      signIn.disabled=false;
+      window.__guestSignInClicks=0;
+      signIn.addEventListener('click',()=>window.__guestSignInClicks++);
+    });
+    const photoInput=page.locator('#pv-guest-image-file');
+    await photoInput.setInputFiles({
+      name:'guest-preview.png',mimeType:'image/png',
+      buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/mAAAAABJRU5ErkJggg==','base64')
+    });
+    assert.equal(await page.evaluate(()=>window.__guestSignInClicks),0,
+      'Selecting a local photo never triggers sign in or upload');
+    assert.equal(await page.locator('#pv-guest-attachments .pv-guest-photo').count(),1,
+      'Guest image preview is visible above the composer tools');
+    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'A chosen photograph opens the expanded composer without hiding its toolbar');
+    for(const id of ['pv-guest-library','pv-guest-model','pv-guest-retouch','pv-guest-ratio','pv-guest-resolution','pv-guest-count','pv-guest-exact']){
+      const before=await page.evaluate(()=>window.__guestSignInClicks);
+      await page.locator('#'+id).click();
+      assert.equal(await page.evaluate(()=>window.__guestSignInClicks),before+1,
+        id+' must invoke the shared real sign-in entry');
+      assert.equal(page.url(),beforeMoodUrl,'Account tools must not redirect into unrelated pages');
+    }
+    await page.evaluate(()=>window.__guestSignInClicks=0);
+    await page.locator('#pv-guest-generate').click();
+    assert.equal(await page.evaluate(()=>window.__guestSignInClicks),1,
+      'Only Generate from the guest deck requests sign-in; no paid request');
     assert.equal(await page.locator('#studio-header').evaluate(e=>e.classList.contains('pv-mobile-entry-condensed')),false);
     assert.deepEqual(errors,[]);
     console.log('DESKTOP_WELCOME_UNCHANGED=1');

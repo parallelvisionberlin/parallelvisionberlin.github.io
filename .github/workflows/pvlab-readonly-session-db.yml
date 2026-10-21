@@ -12,6 +12,8 @@ jobs:
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: lab-worker
       - name: Check authenticated-session table dependencies (read-only)
         working-directory: lab-worker
         env:
@@ -28,3 +30,96 @@ jobs:
           npx --yes wrangler@4 d1 execute parallel-vision-lab --remote --json --command "SELECT id,welcome_enabled,free_generation_enabled FROM lab_trial_program_controls WHERE id=1;"
           echo 'SAMPLE_SESSION_JOIN (SELECT constant only; no IDs, emails, balances)'
           npx --yes wrangler@4 d1 execute parallel-vision-lab --remote --json --command "SELECT 1 AS session_join_valid FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id LEFT JOIN lab_promo_generation_holds h ON h.customer_id=c.id WHERE c.id=(SELECT id FROM lab_customers LIMIT 1) LIMIT 1;"
+
+      - name: Inspect scheduled sync configuration (read-only)
+        env:
+          RAW_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          const token=process.env.RAW_CLOUDFLARE_API_TOKEN.replace(/\s/g,'');
+          const response=await fetch('https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/workers/scripts/parallel-vision-lab/schedules',{headers:{Authorization:'Bearer '+token}});
+          const body=await response.json();
+          if(!response.ok||!body.success)throw new Error('Unable to read Worker schedules: HTTP '+response.status);
+          const schedules=body.result?.schedules||[];
+          console.log('Production Worker five-minute schedule present:',schedules.some(x=>x.cron==='*/5 * * * *'));
+          const script=await fetch('https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/workers/scripts/parallel-vision-lab',{headers:{Authorization:'Bearer '+token}});
+          if(!script.ok)throw new Error('Unable to inspect deployed sync implementation: HTTP '+script.status);
+          const source=await script.text();
+          console.log('Deployed Worker includes scheduled Clerk backfill:',source.includes('scheduledClerkBackfill'));
+          console.log('Deployed Worker includes sync diagnostic persistence:',source.includes('lab_clerk_sync_diagnostics'));
+
+          JS
+      - name: Verify live wallet, refund and Control Room sync invariants without exposing customer data
+        working-directory: lab-worker
+        env:
+          RAW_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export CLOUDFLARE_API_TOKEN="$(printf '%s' "$RAW_CLOUDFLARE_API_TOKEN" | tr -d '\r\n\t ')"
+          test -n "$CLOUDFLARE_API_TOKEN"
+          echo "::add-mask::$CLOUDFLARE_API_TOKEN"
+          # SELECT only. Keep query results local; publish pass/fail labels, never
+          # identities, emails, wallet amounts, payment details or private media.
+          npx --yes wrangler@4 d1 execute parallel-vision-lab --remote --json --command "
+            SELECT
+              NOT EXISTS(SELECT 1 FROM lab_customers c WHERE c.balance_credits != COALESCE((SELECT SUM(e.delta_credits) FROM lab_credit_entries e WHERE e.customer_id=c.id),0)) AS wallet_ledger_reconciles,
+              NOT EXISTS(SELECT 1 FROM jobs j JOIN lab_credit_entries d ON d.reference='job:'||j.id AND d.kind='generation' WHERE j.state='failed' AND NOT EXISTS(SELECT 1 FROM lab_credit_entries r WHERE r.reference='refund:job:'||j.id AND r.kind='refund' AND r.customer_id=d.customer_id AND r.delta_credits=-d.delta_credits)) AS failed_jobs_refunded,
+              NOT EXISTS(SELECT 1 FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id WHERE NOT EXISTS(SELECT 1 FROM lab_account_closures a WHERE a.customer_id=c.id) AND (p.email IS NULL OR trim(p.email)='' OR p.verified_at IS NULL)) AS active_contacts_synced,
+              EXISTS(SELECT 1 FROM lab_clerk_sync_diagnostics WHERE id=1 AND checked_at > (CAST(strftime('%s','now') AS INTEGER)*1000)-7200000) AS clerk_sync_recent,
+              (SELECT (CAST(strftime('%s','now') AS INTEGER)*1000-checked_at)/3600000 FROM lab_clerk_sync_diagnostics WHERE id=1) AS clerk_sync_age_hours,
+              (SELECT COUNT(*) FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id WHERE (p.synced_at IS NULL OR p.synced_at<(CAST(strftime('%s','now') AS INTEGER)*1000)-86400000) AND NOT EXISTS(SELECT 1 FROM lab_account_closures x WHERE x.customer_id=c.id))=0 AS scheduled_backfill_nothing_due,
+              EXISTS(SELECT 1 FROM lab_clerk_sync_diagnostics WHERE id=1 AND COALESCE(json_extract(result_json,'$.issues.invalidKey'),0)=0 AND COALESCE(json_extract(result_json,'$.issues.missingKey'),0)=0 AND COALESCE(json_extract(result_json,'$.issues.transient'),0)=0) AS clerk_sync_no_key_or_transient_error;
+          " > /tmp/pvlab-release-invariants.json
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          const output=JSON.parse(readFileSync('/tmp/pvlab-release-invariants.json','utf8'));
+          const row=output.flatMap(item=>item.results||[])[0];
+          if(!row)throw new Error('Live read-only diagnostics returned no result.');
+          let failed=false;
+          for(const key of ['wallet_ledger_reconciles','failed_jobs_refunded','active_contacts_synced','clerk_sync_recent','clerk_sync_no_key_or_transient_error']){
+            const ok=row[key]===1;
+            console.log((ok?'PASS: ':'NEEDS ATTENTION: ')+key);
+            if(!ok)failed=true;
+          }
+          console.log('Clerk sync report age (hours):',row.clerk_sync_age_hours);
+          console.log('No scheduled contact refresh is due:',row.scheduled_backfill_nothing_due===1);
+          if(failed)process.exitCode=1;
+          JS
+
+      - name: Inspect account recreation blockers without customer data (read-only)
+        if: always()
+        env:
+          RAW_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          const token=process.env.RAW_CLOUDFLARE_API_TOKEN.replace(/\s/g,'');
+          const root='https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a';
+          async function api(path,body){
+            const response=await fetch(root+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+            const result=await response.json();
+            if(!response.ok||!result.success)throw Error('Read-only account audit failed: HTTP '+response.status);
+            return result.result;
+          }
+          const settings=await api('/workers/scripts/parallel-vision-lab/settings');
+          console.log('Dedicated PV LAB Clerk secret present:',settings.bindings.some(x=>x.name==='LAB_CLERK_V2_SECRET_KEY'&&x.type==='secret_text'));
+          const result=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{sql:`SELECT
+            COUNT(*) AS closures,
+            SUM(x.state='requested') AS creative_cleanup_pending,
+            SUM(t.state='pending') AS identity_cleanup_pending,
+            SUM(t.banned_at IS NOT NULL AND t.state='pending') AS identity_banned_pending,
+            SUM(t.state='complete') AS identity_cleanup_complete,
+            SUM(t.customer_id IS NULL AND l.new_subject IS NOT NULL) AS missing_identity_tasks,
+            MAX(CASE WHEN t.state='pending' THEN (CAST(strftime('%s','now') AS INTEGER)*1000-t.requested_at)/60000 END) AS oldest_pending_minutes
+            FROM lab_account_closures x
+            LEFT JOIN lab_studio_identity_deletions t ON t.customer_id=x.customer_id
+            LEFT JOIN lab_clerk_identity_links l ON l.canonical_id=x.customer_id AND l.kind='customer'`});
+          console.log('Account deletion aggregate state:',JSON.stringify(result[0].results[0]));
+          const tables=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{sql:"SELECT COUNT(*) AS present FROM sqlite_master WHERE type='table' AND name='lab_studio_identity_cleanup_attempts'"});
+          if(tables[0].results[0].present){
+            const attempts=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',{sql:`SELECT COALESCE(a.issue,'success') AS outcome,COUNT(*) AS attempts FROM lab_studio_identity_cleanup_attempts a JOIN lab_studio_identity_deletions t ON t.customer_id=a.customer_id GROUP BY a.issue`});
+            console.log('Identity cleanup outcomes:',JSON.stringify(attempts[0].results));
+          }
+          JS

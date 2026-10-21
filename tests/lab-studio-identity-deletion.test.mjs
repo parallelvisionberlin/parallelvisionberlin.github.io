@@ -5,13 +5,17 @@ import {DatabaseSync} from 'node:sqlite';
 import {ensureCustomer} from '../lab-worker/customer-billing.mjs';
 import {requestAccountClosure,processAccountClosures,assertCustomerOpen} from '../lab-worker/customer-lifecycle.mjs';
 import {banClosedStudioIdentity,processStudioIdentityDeletions,
-  rejectDeletedStudioSubject} from '../lab-worker/studio-identity-deletion.mjs';
+  rejectDeletedStudioSubject,finishClosedStudioIdentity,deleteClosedStudioIdentity} from '../lab-worker/studio-identity-deletion.mjs';
 import {syncCustomerEmail} from '../lab-worker/promotions.mjs';
+import {migrationRoute} from '../lab-worker/clerk-migration.mjs';
+import {STUDIO_ISSUER} from '../lab-worker/clerk-issuer-policy.mjs';
+import {grantVerifiedWelcome} from '../lab-worker/welcome-guard.mjs';
+import worker from '../lab-worker/worker.mjs';
 
 const migrations=['schema.sql','migrations/0006-customers-billing.sql',
   'migrations/0007-lab-referrals.sql','migrations/0011-customer-lifecycle.sql',
   'migrations/0015-lab-promotional-credits.sql','migrations/0017-clerk-domain-links.sql',
-  'migrations/0023-welcome-guard.sql','migrations/0030-studio-account-identity-deletion.sql'];
+  'migrations/0023-welcome-guard.sql','migrations/0030-studio-account-identity-deletion.sql','migrations/0035-studio-identity-cleanup-attempts.sql'];
 function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   for(const file of migrations)
@@ -146,4 +150,111 @@ test('closing a customer prevents asynchronous email-sync from restoring its PII
   const f=fixture(t);await account(f);await close(f);await cleanup(f);
   assert.equal(await syncCustomerEmail(f.env,internal),false);
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM lab_customer_contacts WHERE customer_id=?').get(internal).n,0);
+});
+
+test('returning closed customer completes only its own pending identity and can onboard a fresh subject with the same verified email',async t=>{
+  const f=fixture(t),{env,db}=f;
+  await account(f,{makeWelcome:true});
+  const email=db.prepare('SELECT email FROM lab_customer_contacts WHERE customer_id=?').get(internal).email;
+  await account(f,{id:'user_KeepCustomer',clerk:'user_KeepStudio'});
+  await close(f);await cleanup(f);
+  assert.equal(await finishClosedStudioIdentity(env,internal),true);
+  assert.equal(db.prepare('SELECT state FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).state,'complete');
+  assert.ok(f.calls.every(x=>x.url.includes(subject)),'No other customer or legacy identity is touched');
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_clerk_identity_links WHERE canonical_id=?').get('user_KeepCustomer').n,1);
+  const request=new Request('https://test/api/migration/new',{method:'POST'});
+  await assert.rejects(()=>migrationRoute(request,env,{id:null,kind:null,issuer:STUDIO_ISSUER,subject}),/deleted/);
+  const freshSubject='user_StudioRecreated02',freshId='user_PvLabV2StudioRecreated02';
+  assert.equal((await migrationRoute(request,env,{id:null,kind:null,issuer:STUDIO_ISSUER,subject:freshSubject})).status,201);
+  const now=Date.now();
+  db.prepare('INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at) VALUES(?,?,?,?)').run(freshId,email,now,now);
+  env.LAB_WELCOME_CREDITS_ENABLED='true';
+  await grantVerifiedWelcome(env,freshId);
+  assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(freshId).balance_credits,0,'No old balance or repeated free grant');
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_account_closures WHERE customer_id=?').get(freshId).n,0,'Fresh account is open');
+  await assertCustomerOpen(env,freshId);
+  await assert.rejects(()=>assertCustomerOpen(env,internal),/closed/);
+});
+test('retry diagnostics retain only a bounded error category and never erase an unverified identity',async t=>{
+  const f=fixture(t);await account(f);await close(f);await cleanup(f);
+  f.deleteError(401);
+  await assert.rejects(()=>finishClosedStudioIdentity(f.env,internal),/HTTP 401/);
+  assert.equal(f.db.prepare('SELECT issue FROM lab_studio_identity_cleanup_attempts WHERE customer_id=?').get(internal).issue,'clerk_http_401');
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM lab_clerk_identity_links WHERE canonical_id=?').get(internal).n,1);
+  f.deleteError(0);
+  await finishClosedStudioIdentity(f.env,internal);
+  assert.equal(f.db.prepare('SELECT issue FROM lab_studio_identity_cleanup_attempts WHERE customer_id=?').get(internal).issue,null);
+});
+test('scheduled account erasure completes even when unrelated generation maintenance fails first',async t=>{
+  const f=fixture(t);await account(f);await close(f);
+  const prepare=f.env.LAB_DB.prepare;
+  f.env.LAB_DB.prepare=sql=>{
+    if(sql.includes("state='failed' AND provider_id"))throw Error('Synthetic generation-maintenance outage');
+    return prepare(sql);
+  };
+  const tasks=[];
+  await worker.scheduled({},f.env,{waitUntil(p){tasks.push(p);}});
+  const outcomes=await Promise.allSettled(tasks);
+  assert.ok(outcomes.some(x=>x.status==='rejected'&&x.reason.message==='Synthetic generation-maintenance outage'));
+  assert.equal(f.db.prepare('SELECT state FROM lab_account_closures WHERE customer_id=?').get(internal).state,'deleted');
+  assert.equal(f.db.prepare('SELECT state FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).state,'complete');
+});
+
+test('Clerk paid ban HTTP 402 cannot block ordinary deletion after verified billing and media cleanup',async t=>{
+  const f=fixture(t);await account(f);await close(f);
+  f.remoteError(402);
+  await assert.rejects(()=>banClosedStudioIdentity(f.env,internal),/HTTP 402/);
+  await assert.rejects(()=>assertCustomerOpen(f.env,internal),/closed/);
+  await cleanup(f);
+  await finishClosedStudioIdentity(f.env,internal);
+  assert.equal(f.db.prepare('SELECT state FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).state,'complete');
+  assert.equal(f.db.prepare('SELECT banned_at FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).banned_at,null);
+  assert.equal(f.calls.filter(x=>x.method==='DELETE').length,1,'Ordinary Clerk deletion does not require the ban feature');
+});
+
+test('confirmed deletion immediately releases Google identity while old media cleanup stays durably queued',async t=>{
+  const f=fixture(t),{env,db,objects}=f;await account(f,{makeWelcome:true});
+  const email=db.prepare('SELECT email FROM lab_customer_contacts WHERE customer_id=?').get(internal).email;
+  objects.set(internal+'/results/photo.png','old private photo');
+  await requestAccountClosure(env,internal,'DELETE MY PV LAB ACCOUNT');
+  assert.equal(await deleteClosedStudioIdentity(env,internal),true);
+  assert.equal(db.prepare('SELECT state FROM lab_account_closures WHERE customer_id=?').get(internal).state,'requested','No cron or artificial clock advance');
+  assert.equal(db.prepare('SELECT state FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).state,'complete');
+  assert.equal(objects.size,1,'Media cleanup remains queued with the inaccessible old namespace');
+  assert.ok(f.calls.every(x=>x.method==='DELETE'),'No paid ban prerequisite');
+  await assert.rejects(()=>rejectDeletedStudioSubject(env,subject),/deleted/);
+  let current;
+  for(let cycle=0;cycle<3;cycle++){
+    const clerk='user_Immediate'+cycle,id='user_PvLabV2Immediate'+cycle;
+    const response=await migrationRoute(new Request('https://test/api/migration/new',{method:'POST'}),env,
+      {id:null,kind:null,issuer:STUDIO_ISSUER,subject:clerk});
+    assert.equal(response.status,201);
+    const now=Date.now();
+    db.prepare('INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at) VALUES(?,?,?,?)').run(id,email,now,now);
+    env.LAB_WELCOME_CREDITS_ENABLED='true';await grantVerifiedWelcome(env,id);
+    await assertCustomerOpen(env,id);
+    assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(id).balance_credits,0);
+    if(cycle<2){
+      await requestAccountClosure(env,id,'DELETE MY PV LAB ACCOUNT');
+      assert.equal(await deleteClosedStudioIdentity(env,id),true);
+    }
+    current=id;
+  }
+  assert.notEqual(current,internal);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_welcome_claims WHERE customer_id=?').get(internal).n,1);
+  assert.equal(objects.get(internal+'/results/photo.png'),'old private photo');
+});
+test('immediate identity deletion requires authoritative Stripe clearance and preserves retryable failures',async t=>{
+  const f=fixture(t);await account(f);await requestAccountClosure(f.env,internal,'DELETE MY PV LAB ACCOUNT');
+  f.db.prepare('UPDATE lab_customers SET stripe_customer_id=? WHERE id=?').run('cus_Protected',internal);
+  for(const verify of [undefined,async()=>false]){
+    await assert.rejects(()=>deleteClosedStudioIdentity(f.env,internal,verify),/Billing clearance/);
+    assert.equal(f.calls.length,0,'No Clerk deletion before billing is verified');
+  }
+  f.deleteError(503);
+  const verify=async(_env,id)=>{assert.equal(id,'cus_Protected');return true;};
+  await assert.rejects(()=>deleteClosedStudioIdentity(f.env,internal,verify),/HTTP 503/);
+  assert.equal(f.db.prepare('SELECT state FROM lab_studio_identity_deletions WHERE customer_id=?').get(internal).state,'pending');
+  f.deleteError(0);
+  assert.equal(await deleteClosedStudioIdentity(f.env,internal,verify),true);
 });

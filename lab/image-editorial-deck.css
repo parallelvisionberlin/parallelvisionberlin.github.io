@@ -12,13 +12,6 @@
     radial-gradient(ellipse 43% 38% at 77% 18%,rgba(148,85,68,.125),transparent 82%),
     linear-gradient(180deg,rgba(5,7,13,.38),rgba(7,8,12,.48) 30%,rgba(8,9,12,.69) 65%,#101011 100%);
 }
-#gate.pv-guest-image:before{opacity:.57;filter:blur(9px) saturate(1.14) contrast(1.06)}
-#gate.pv-guest-image:after{
-  background:
-    radial-gradient(ellipse 38% 36% at 22% 18%,rgba(16,101,235,.115),transparent 82%),
-    radial-gradient(ellipse 42% 37% at 81% 16%,rgba(149,78,61,.14),transparent 84%),
-    linear-gradient(180deg,rgba(6,8,15,.38),rgba(5,7,13,.50) 33%,rgba(8,9,13,.68) 63%,#101011 100%);
-}
 
 /* Signed-in first-image visual field.
    Preserve the same photographic Dream Blur backdrop, with the richer cobalt,
@@ -86,7 +79,8 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   background:linear-gradient(90deg,transparent,rgba(234,238,236,.29) 26%,rgba(234,238,236,.13) 69%,transparent);
   pointer-events:none;
 }
-#gate.pv-guest-image .pv-guest-composer:focus-within,
+/* Keep the guest composer finish constant while writing; authenticated controls
+   retain their previously approved focus treatment. */
 html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul):focus-within{
   border-color:rgba(238,238,233,.40)!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 24px 72px rgba(0,0,0,.51)!important;
@@ -101,42 +95,7 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
 
 #gate.pv-guest-image .pv-guest-composer{position:relative}
 
-/* Public preview compact row. The selections are informative, not fake model buttons.
-   On touch viewports the existing legible stacked composer is retained. */
-@media(min-width:1220px){
-  #gate.pv-guest-image .pv-guest-composer:not(.pv-deck-expanded){
-    display:flex;align-items:center;gap:13px;
-    width:min(1220px,100%);min-height:82px;
-    padding:11px 15px;
-  }
-  #gate.pv-guest-image .pv-guest-composer:not(.pv-deck-expanded)>textarea{
-    flex:1 1 220px;min-width:165px;
-    height:46px;min-height:46px;max-height:46px;resize:none;
-    margin:0;padding:11px 9px;
-    white-space:nowrap;overflow:hidden;
-  }
-  #gate.pv-guest-image .pv-guest-composer:not(.pv-deck-expanded) .pv-guest-composer-footer{
-    flex:0 1 auto;min-width:0;display:flex;align-items:center;gap:11px;
-  }
-  #gate.pv-guest-image .pv-guest-composer:not(.pv-deck-expanded) #pv-guest-generate{
-    min-height:51px;min-width:134px;
-  }
-}
-@media(min-width:681px){
-  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded{
-    display:flex;flex-direction:column;align-items:stretch;gap:12px;
-    width:min(1120px,100%);padding:15px 19px 17px;
-  }
-  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded textarea{
-    height:112px;min-height:112px;max-height:152px;
-    padding:10px 8px;resize:none;white-space:pre-wrap;
-    overflow-x:hidden;overflow-y:auto;margin:0;
-  }
-  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded .pv-guest-composer-footer{
-    width:100%;align-items:center;
-  }
-}
-#gate.pv-guest-image .pv-guest-composer textarea{transition:height .22s ease,min-height .22s ease}
+/* Signed-out composer geometry belongs exclusively to studio-guest-image.css. */
 
 /* The authenticated editor keeps the existing functional controls and server quote.
    Height is measured synchronously by fitImageComposerPrompt(): do not animate
@@ -312,14 +271,6 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
 /* Mobile: never turn the prompt into a full-screen keyboard-triggering sheet.
    It previews the chosen Mood without focus, and expands only on intentional tap. */
 @media(max-width:680px){
-  #gate.pv-guest-image .pv-guest-composer textarea{
-    transition:height .20s ease;white-space:nowrap;overflow:hidden;
-  }
-  #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded textarea{
-    height:104px;min-height:104px;max-height:132px;
-    white-space:pre-wrap;overflow-y:auto;overflow-x:hidden;
-    resize:none;
-  }
   #app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul).pv-deck-expanded .image-composer-top{
     min-height:107px!important;height:107px!important;max-height:128px!important;
   }
@@ -479,14 +430,10 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
 /* One real editor, two presentations. At rest, the Image welcome shows the
    compact one-row instrument from proposal 01. On real textarea focus or Mood
    selection, the existing pv-deck-expanded state reveals the unchanged
-   full two-row workdeck. Bottom anchoring, quote, models and inputs are shared. */
+   full two-row workdeck. Quote, models and inputs are shared with History. */
 @media(min-width:1180px) and (min-height:680px){
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded):not(:has(#image-composer-references:not([hidden]) .composer-reference-tile)){
-    position:fixed!important;
-    bottom:max(17px,env(safe-area-inset-bottom))!important;
-    top:auto!important;
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded):not(:has(#image-composer-references:not([hidden]) .composer-reference-tile)){
     left:50%!important;
     transform:translateX(-50%)!important;
     display:grid!important;
@@ -503,8 +450,7 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
     border-radius:17px!important;
   }
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-top{
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-top{
     grid-column:1!important;
     grid-row:1!important;
     width:100%!important;
@@ -516,8 +462,7 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
     margin:0!important;
   }
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded) #image-composer-prompt{
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) #image-composer-prompt{
     flex:1 1 auto!important;
     height:44px!important;
     min-height:44px!important;
@@ -529,13 +474,11 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
     resize:none!important;
   }
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-toolbar{
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-toolbar{
     display:contents!important;
   }
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded) .composer-controls{
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .composer-controls{
     grid-column:2!important;
     grid-row:1!important;
     display:flex!important;
@@ -551,8 +494,7 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
     padding:0!important;
   }
   html:not(.pv-native-lab)
-    #app.image-studio-active:not(.pv-moods-discovery-open):has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))
-    #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.pv-deck-expanded) .composer-generate{
+    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .composer-generate{
     grid-column:3!important;
     grid-row:1!important;
     align-self:center!important;
@@ -678,4 +620,79 @@ html:not(.pv-native-lab) #app.image-studio-active
   content:none!important;
   display:none!important;
   min-height:0!important;
+}
+
+/* PV Soul 2 only: the separate Soul ID + IMAGE cards used to leave too little
+   horizontal space for both output selectors. Keep the toolbar on one line on
+   wide desktops, without touching the standard Image models or native app.
+   The existing bounded, internally-scrollable prompt remains unchanged. */
+@media(min-width:1200px){
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul:not(.has-soul-source){
+    grid-template-columns:minmax(0,1fr) 80px 108px 144px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul:not(.has-soul-source) #composer-character{
+    width:80px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-controls{
+    display:flex;flex-wrap:nowrap;align-items:center;gap:5px;min-width:0;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-model-wrap{
+    flex:0 1 124px;min-width:104px;max-width:124px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-model-pill{
+    box-sizing:border-box;width:100%;min-width:0;padding-inline:7px;gap:4px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul #image-composer-model-label{
+    min-width:0;max-width:82px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-mood-control{
+    flex:0 1 99px;min-width:77px;max-width:99px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-mood-control #image-composer-moods{
+    padding-inline:8px;gap:4px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul #image-composer-edit-area{
+    padding-inline:9px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .composer-controls>.hf-bar-control{
+    min-width:0;padding-inline:3px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul .hf-bar-control select{
+    min-width:0;max-width:100px;padding:6px 14px 6px 28px;font-size:12px;
+  }
+}
+
+
+/* Resting and expanded desktop Image decks share one fixed baseline.
+   More lines/photos grow the writing surface upward, not toward the
+   browser bottom edge. Does not affect native, mobile, or other tools. */
+@media(min-width:900px) and (min-height:680px){
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck:not(.is-pv-soul){
+    position:fixed!important;top:auto!important;
+    bottom:max(30px,env(safe-area-inset-bottom))!important;
+  }
+}
+
+/* The desktop card entrance opens downward from the cards. Populated History,
+   attached-photo editing, PV Soul and native/mobile keep their existing dock. */
+@media(min-width:1180px) and (min-height:680px){
+  html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck)
+    #image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    bottom:260px!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck)
+    #lab-welcome-start .lab-welcome-preset{
+    height:var(--pv-welcome-card-height,39dvh)!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul){
+    position:fixed!important;
+    top:var(--pv-welcome-deck-top,calc(100dvh - 240px))!important;
+    bottom:auto!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active
+    #image-composer.pv-editorial-deck.pv-welcome-deck.pv-deck-expanded:not(.is-pv-soul) #image-composer-prompt{
+    max-height:max(78px,min(176px,calc(100dvh - var(--pv-welcome-deck-top) - 98px)))!important;
+  }
 }

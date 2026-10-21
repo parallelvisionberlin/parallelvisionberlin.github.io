@@ -7,7 +7,7 @@ import {HONG_KONG_VARIANTS,hongKongVariant} from '../lab/hong-kong-variants.js';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
 
 const ids=['original','deep-green','slow-shutter'];
-test('single curated Hong Kong Mood exposes exactly three stable variations',()=>{
+test('three historical Hong Kong variant identifiers remain readable without new UI choices',()=>{
   assert.deepEqual(Object.keys(HONG_KONG_VARIANTS),ids);
   assert.equal(hongKongVariant('bad'),'original');
   assert.equal(imageHistoryCaption({moodId:'hong-kong-nights',moodVariant:'slow-shutter',moodIntensity:85,moodOriginalPrompt:'Portrait'}),'Hong Kong Nights · Slow Shutter · 85% · Portrait');
@@ -64,12 +64,16 @@ test('old Hong Kong photos remain readable in reused History without adding extr
   assert.equal(plan.references.length,0);
   assert.equal(plan.settings.referenceRoles.length,2);
 });
-test('three variation pills live only inside the existing Mood overlay, not the main deck',()=>{
+test('Studio and Explore expose one canonical Hong Kong direction and preserve historic look IDs',()=>{
   const mood=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const css=readFileSync(new URL('../lab/hong-kong-variations.css',import.meta.url),'utf8');
   const app=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.match(mood,/hk-variation-bar/);
-  assert.match(mood,/variationBar\.hidden=finishPanel\.hidden/);
+  assert.match(mood,/variationBar\.hidden=true/);
+  assert.match(mood,/hkVariation='original'; \/\/ Historic look IDs remain in History/);
+  assert.match(readFileSync(new URL('../lab/explore-moods.js',import.meta.url),'utf8'),/variationRow\.hidden=true/);
+  assert.match(readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8'),/params\.moodVariant!=='original'/);
   assert.match(css,/\.moods-controls\.has-film-finish>\.hk-variation-bar/);
   assert.match(app,/hong-kong-variations\.css/);
+  assert.match(css,/\.film-finish-compact\{grid-row:2\}/);
 });

@@ -396,7 +396,18 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
       attach.textContent=attached?'Already in deck ✓':'Use in scene →';
       attach.disabled=attached||working;attach.dataset.sceneUse='';
       attach.onclick=()=>{void useItem(item);};
-      details.append(shots,attach);host.append(details);
+      const actionRow=document.createElement('div');actionRow.className='scene-feature-action-row';
+      if(!item.profile){
+        const retry=document.createElement('button');retry.type='button';
+        retry.className='scene-feature-details scene-feature-analyze';
+        retry.textContent=pendingProfiles.has(item.id)?'Analyzing…':'Analyze photos';
+        retry.title='Retry Google Gemini visual indexing of the existing saved images';
+        retry.disabled=working||pendingProfiles.has(item.id);
+        retry.onclick=()=>{setStatus('Analyzing @'+item.title+'…');void analyzeSavedElement(item,true);};
+        actionRow.append(retry);
+      }
+      actionRow.append(attach);
+      details.append(shots,actionRow);host.append(details);
     }
   }
   function render(){
@@ -512,6 +523,34 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
       host.append(chip);
     }
   }
+  // An Element that was saved while Gemini was down must be re-indexable.
+  // Share in-flight requests, never cache failed promises, and keep originals intact.
+  function analyzeSavedElement(item,showFailure=false){
+    if(item.profile)return Promise.resolve(item.profile);
+    const existing=pendingProfiles.get(item.id);
+    if(existing)return existing;
+    const pending=api('/api/elements/'+encodeURIComponent(item.id)+'/analyze',{method:'POST'})
+      .then(async result=>{
+        if(!result?.profile)throw Error('No visual profile was returned.');
+        item.profile=result.profile;
+        await loadPacks();
+        if(dialog.open&&view==='browse'&&current===item.category)
+          setStatus('@'+item.title+' visual analysis ready. Saved photos are unchanged.');
+        return result.profile;
+      })
+      .catch(error=>{
+        if(showFailure&&dialog.open&&view==='browse'&&current===item.category)
+          setStatus('@'+item.title+' analysis unavailable: '+(error?.message||'Google Gemini failed.') ,true);
+        return null;
+      })
+      .finally(()=>{
+        if(pendingProfiles.get(item.id)===pending)pendingProfiles.delete(item.id);
+        if(dialog.open&&view==='browse')render();
+      });
+    pendingProfiles.set(item.id,pending);
+    if(dialog.open&&view==='browse')render();
+    return pending;
+  }
   async function useItem(item){
     if(working)return;
     const context=getContext();
@@ -530,13 +569,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
         // Build the visual profile once, then reuse it on later insertions.
         // An unavailable analysis never destroys or changes the saved pack.
         if(context.tool==='image'&&!item.profile){
-          let pending=pendingProfiles.get(item.id);
-          if(!pending){
-            pending=api('/api/elements/'+encodeURIComponent(item.id)+'/analyze',{method:'POST'})
-              .then(result=>result?.profile||null).catch(()=>null);
-            pendingProfiles.set(item.id,pending);
-          }
-          const profile=await pending;
+          const profile=await analyzeSavedElement(item);
           if(profile)item.profile=profile;
         }
         // Two relevant views at most: one Element, not an uncontrolled stack.
@@ -625,21 +658,10 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
         current=cat.id;browse();setStatus(title+' saved to '+cat.label+'. No generation was started.');
         if($('scene-smart-analyze')?.checked&&created?.id){
           setStatus('@'+title+' saved. Preparing its reusable visual profile…');
-          const pending=api('/api/elements/'+encodeURIComponent(created.id)+'/analyze',{method:'POST'})
-            .then(async result=>{
-              await loadPacks();
-              if(view==='browse'&&current===cat.id)
-                setStatus('@'+title+' ready. Its visual profile is saved for future generations.');
-              return result?.profile||null;
-            })
-            .catch(error=>{
-              if(view==='browse'&&current===cat.id)
-                setStatus('@'+title+' saved. Visual analysis unavailable: '+error.message+'. You can still use it.');
-              return null;
-            });
-          pendingProfiles.set(created.id,pending);
-          // Never hold the Save modal while Gemini indexes already-saved photos.
-          void pending;
+          const savedElement=entries.find(item=>item.id===created.id);
+          // Don't lock the Save modal or hold a failed Gemini promise in memory.
+          // The same saved Element can be reanalyzed later without uploading again.
+          if(savedElement)void analyzeSavedElement(savedElement,true);
         }
       });
     }finally{

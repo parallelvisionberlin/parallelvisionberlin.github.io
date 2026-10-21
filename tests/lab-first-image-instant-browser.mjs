@@ -11,20 +11,27 @@ const end=source.indexOf('\n',start);
 assert.ok(start>=0&&end>start);
 const mock=source.slice(0,start)+source.slice(end+1)+`
 clerk={isSignedIn:true,user:{id:'welcome-mock'},session:{id:'welcome-session',getToken:async()=> 'synthetic-token'}};
-owner=true;customerMode=true;customerGenerationReady=true;userId='welcome-mock';
+const mockRole=new URL(location.href).searchParams.get('mockRole')||'customer';
+const mockBalance=mockRole==='new'?0:200;
+owner=true;ownerAccount=mockRole==='owner';customerMode=!ownerAccount;customerGenerationReady=true;userId='welcome-mock';
 config={enabled:true,configured:true,geminiEnabled:true,falEnabled:true,higgsfieldEnabled:false,
   concurrency:{image:4,video:1}};
-wallet.connect({customer:true,balanceCredits:200,billingReady:true,products:[]});
+wallet.connect({customer:customerMode,balanceCredits:mockBalance,billingReady:true,products:[]});
 $('app').hidden=false;$('gate').hidden=true;
 setTool('image');
 await loadHistory();
-showWelcomeStart({customer:true,generationReady:true,balanceCredits:200,accountClosed:false,billingReview:false});
+showWelcomeStart({customer:customerMode,generationReady:true,balanceCredits:mockBalance,accountClosed:false,billingReview:false});
 finishLabBoot();
 update();
+if(mockRole==='guest'){
+  owner=false;customerMode=false;
+  $('app').hidden=true;$('gate').hidden=false;
+}
 // Test-only trigger for transitioning from an empty customer welcome to
 // one saved image without making any paid request or changing production APIs.
 window.__welcomeMockGalleryChanged=()=>syncImageGalleryEmpty();
 window.__welcomeMockInspiration=open=>setMoodDiscoveryOpen(open);
+window.__welcomeMockSubmissionPending=()=>imageSubmissionPending;
 window.__welcomeMockReady=true;
 `;
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png',
@@ -75,6 +82,169 @@ await context.route('https://**/*',async route=>{
   return send({error:'Unmocked '+path},404);
 });
 try{
+  // A flow-height change must not reframe the public artwork on editor focus.
+  // Compare actual painted pixels away from text/cards at two desktop sizes.
+  for(const viewport of [{width:1920,height:900},{width:1280,height:720}]){
+    const c=await browser.newContext({viewport,reducedMotion:'reduce'}),p=await c.newPage();
+    await c.route('https://**/*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({jobs:[],packs:[],activeJobs:[],products:[]})}));
+    try{
+      await p.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole=guest');
+      await p.waitForFunction(()=>window.__welcomeMockReady===true);
+      await p.evaluate(async()=>{
+        await document.fonts.ready;
+        const src=getComputedStyle(document.getElementById('gate'),'::before').backgroundImage.match(/url\("?([^"\)]+)"?\)/)?.[1];
+        const image=new Image();image.src=src;await image.decode();
+      });
+      const art=await p.locator('#gate').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
+      assert.match(art,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,'Public entrance uses the approved cobalt/copper artwork');
+      const clip={x:16,y:110,width:Math.floor(viewport.width/4),height:120},options={clip,animations:'disabled',caret:'hide'};
+      const before=await p.screenshot(options);
+      async function assertBackdropStill(label){
+        const after=await p.screenshot(options);
+        const difference=await p.evaluate(async({before,after})=>{
+          async function pixels(bytes){
+            const image=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/png'}));
+            const canvas=new OffscreenCanvas(image.width,image.height),ctx=canvas.getContext('2d');
+            ctx.drawImage(image,0,0);const data=ctx.getImageData(0,0,image.width,image.height).data;image.close();return data;
+          }
+          const a=await pixels(before),b=await pixels(after);let max=0,total=0;
+          for(let i=0;i<a.length;i++){const d=Math.abs(a[i]-b[i]);max=Math.max(max,d);total+=d;}
+          return {max,mean:total/a.length};
+        },{before:[...before],after:[...after]});
+        // Small raster/compositing rounding is allowed, not a shifted image.
+        assert.ok(difference.max<=4&&difference.mean<=.25,label+' at '+viewport.width+': '+JSON.stringify(difference));
+      }
+      const field=p.locator('#pv-guest-prompt');
+      await field.evaluate(el=>el.focus({preventScroll:true}));
+      await p.waitForFunction(()=>document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
+      assert.equal(await p.evaluate(()=>scrollY),0,'Focus comparison excludes browser scrolling');
+      await assertBackdropStill('Opening the public bar leaves the backdrop fixed');
+      await field.evaluate(el=>el.blur());
+      await p.waitForFunction(()=>!document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
+      await assertBackdropStill('Closing the public bar leaves the backdrop fixed');
+    }finally{await c.close();}
+  }
+  console.log('PASS approved public backdrop and unchanged pixels on focus/blur at 1920px and 1280px');
+  // Direct visual comparison, rather than independently allowing each skin.
+  // Both surfaces must share slot geometry, control sizing, type and color.
+  const parity=[];
+  for(const role of ['new','returning','owner','guest']){
+    const context=await browser.newContext({viewport:{width:1920,height:1000},reducedMotion:'reduce'});
+    const p=await context.newPage();
+    await context.route('https://**/*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({jobs:[],packs:[],activeJobs:[],products:[]})}));
+    try{
+      await p.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole='+role);
+      await p.waitForFunction(()=>window.__welcomeMockReady===true);
+      const prefix=role==='guest'?'pv-guest':'image-composer';
+      const field=p.locator('#'+prefix+'-prompt'),bar=p.locator(role==='guest'?'#pv-guest-composer':'#image-composer');
+      assert.equal(await p.locator('#image-composer:visible,#pv-guest-composer:visible').count(),1,
+        role+' has one visible Image editor, not a separate role-specific copy');
+      if(role!=='guest')assert.equal(await p.locator('#tool-retouch').isVisible(),true,
+        role+' retains Retouch in the shared tool navigation');
+      const states={};
+      async function capture(state){
+        states[state]=await bar.evaluate(el=>{
+          const outer=el.getBoundingClientRect(),css=getComputedStyle(el);
+          const stage=el.closest('#gate')||document.querySelector('#app .image-gallery-shell'),art=getComputedStyle(stage,'::before');
+          const rect=node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {x:r.x-outer.x,y:r.y-outer.y,w:r.width,h:r.height,font:s.fontSize,weight:s.fontWeight,line:s.lineHeight,color:s.color,background:s.backgroundColor,radius:s.borderRadius};};
+          return {w:outer.width,h:outer.height,background:css.backgroundImage,radius:css.borderRadius,
+            backdrop:{image:art.backgroundImage,filter:art.filter,opacity:art.opacity,shade:getComputedStyle(stage,'::after').backgroundImage},
+            prompt:rect(el.querySelector('textarea')),
+            controls:Object.fromEntries([...el.querySelectorAll('[data-deck-control]')].filter(n=>getComputedStyle(n).display!=='none'&&n.getBoundingClientRect().width>0).map(n=>[n.dataset.deckControl,rect(n)])),
+            generate:rect(el.querySelector('[data-deck-slot="generate"]')),
+            generateLabel:rect(el.querySelector('[data-deck-slot="generate"]').querySelector('.composer-generate-label,strong')),
+            modelIcon:el.querySelector('[data-deck-control="model"] img')?.getAttribute('src')};
+        });
+      }
+      await capture('idle');
+      await field.click();await capture('focus');
+      await field.fill('hola como esta?');await capture('short');
+      await field.fill('');
+      assert.equal(await bar.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,role+' stays open while clearing focused text');
+      await p.getByRole('heading',{name:'Start with a feeling.',exact:true}).filter({visible:true}).click();
+      await p.waitForFunction(id=>!document.getElementById(id).classList.contains('pv-deck-expanded'),role==='guest'?'pv-guest-composer':'image-composer');
+      await capture('cleared');
+      parity.push({role,states});
+    }finally{await context.close();}
+  }
+  for(const state of ['idle','focus','short','cleared']){
+    for(const entry of parity.slice(1)){
+      const a=parity[0].states[state],b=entry.states[state],label=state+' new/'+entry.role;
+      assert.deepEqual(Object.keys(a.controls).sort(),Object.keys(b.controls).sort(),label+' same visible controls');
+      for(const key of ['w','h'])assert.ok(Math.abs(a[key]-b[key])<2,label+' same deck '+key+': '+JSON.stringify({a,b}));
+      assert.equal(a.background,b.background,label+' same graphite surface');assert.equal(a.radius,b.radius);
+      assert.match(a.backdrop.image,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,label+' uses approved entrance art');
+      assert.deepEqual(a.backdrop,b.backdrop,label+' entrance artwork and treatment match');
+      assert.equal(a.modelIcon,'./branding/bytedance.svg',label+' uses the real model asset');
+      assert.equal(a.modelIcon,b.modelIcon,label+' same model icon');
+      for(const name of ['prompt','generate','generateLabel',...Object.keys(a.controls)]){
+        const one=a[name]||a.controls[name],two=b[name]||b.controls[name];
+        assert.ok(two,label+' also exposes '+name);
+        for(const key of ['x','y','w','h'])assert.ok(Math.abs(one[key]-two[key])<2,label+' '+name+' same '+key+': '+JSON.stringify({one,two}));
+        for(const key of ['font','weight','line','radius'])assert.equal(one[key],two[key],label+' '+name+' same '+key);
+        if(!name.startsWith('generate'))for(const key of ['color','background'])assert.equal(one[key],two[key],label+' '+name+' same '+key);
+      }
+    }
+  }
+  console.log('PASS direct new/returning/owner/public parity: same controls, slots, typography and backdrop in all four writing states');
+  // All account ages/roles use one real editor, including Inspiration opened
+  // over existing History. Account state may change eligibility, never layout.
+  for(const role of ['new','returning','owner']){
+    const roleContext=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
+    const rolePage=await roleContext.newPage();
+    await roleContext.route('https://**/*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({jobs:[],packs:[],activeJobs:[],products:[]})}));
+    try{
+      await rolePage.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole='+role);
+      await rolePage.waitForFunction(()=>window.__welcomeMockReady===true&&document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
+      const roleDeck=rolePage.locator('#image-composer'),roleField=rolePage.locator('#image-composer-prompt');
+      for(const viewport of role==='new'?[{width:1440,height:900},{width:1280,height:720},{width:1280,height:680}]:role==='owner'?[{width:1440,height:900},{width:1180,height:800}]:[{width:1440,height:900}]){
+        await rolePage.setViewportSize(viewport);
+        for(const banner of role==='new'?[true,false]:[false]){
+          await rolePage.evaluate(show=>{document.getElementById('lab-credit-banner').hidden=!show;},banner);
+          await rolePage.waitForTimeout(80);
+          const before=await roleDeck.boundingBox(),photos=await rolePage.locator('#lab-welcome-presets').boundingBox();
+          assert.ok(before.height>=70&&before.height<=78,role+' gets the same thin entrance');
+          const contained=await roleDeck.evaluate(el=>{
+            const bar=el.getBoundingClientRect(),tools=el.querySelector('[data-deck-slot="controls"]').getBoundingClientRect(),generate=el.querySelector('[data-deck-slot="generate"]').getBoundingClientRect();
+            return bar.left>=0&&bar.right<=innerWidth&&tools.right<=generate.left+2;
+          });
+          assert.ok(contained,role+' controls remain contained at '+viewport.width+'px');
+          assert.ok(before.y-photos.y-photos.height>=20&&before.y-photos.y-photos.height<=28,
+            role+' bar follows the cards, including banner changes: '+JSON.stringify({viewport,banner,before,photos}));
+          await roleField.click();
+          const opened=await roleDeck.boundingBox();
+          assert.ok(opened.height>before.height+40&&Math.abs(opened.y-before.y)<2,
+            role+' opens down, never toward the cards: '+JSON.stringify({before,opened}));
+          assert.ok(opened.y+opened.height<=viewport.height-8,
+            role+' Generate and tools fit the viewport: '+JSON.stringify({viewport,banner,opened}));
+          await rolePage.locator('#lab-welcome-start h2').click();
+          await rolePage.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
+          assert.ok(Math.abs((await roleDeck.boundingBox()).height-before.height)<3,role+' closes on outside click');
+        }
+      }
+      await rolePage.setViewportSize({width:1440,height:900});
+      await rolePage.evaluate(()=>{
+        const card=document.createElement('article');card.className='card';card.dataset.kind='image';
+        document.getElementById('history').append(card);
+        document.getElementById('lab-welcome-start').hidden=true;
+        window.__welcomeMockGalleryChanged();
+      });
+      await rolePage.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
+      if(role==='owner')assert.equal(await rolePage.locator('#image-composer-edit-area').isVisible(),true,
+        'Owner History retains its existing Retouch shortcut');
+      const historyDeck=await roleDeck.boundingBox();
+      await roleField.click();
+      assert.ok(Math.abs((await roleDeck.boundingBox()).height-historyDeck.height)<3,
+        role+' History retains its locked two-row deck on focus');
+      assert.ok(Math.abs(900-historyDeck.y-historyDeck.height-30)<3,role+' History keeps its bottom anchor');
+      await rolePage.locator('#history-moods-toggle').click();
+      await rolePage.waitForFunction(()=>document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
+      assert.ok((await roleDeck.boundingBox()).height<=78,role+' Inspiration reopens the same thin entrance');
+      assert.equal(await rolePage.locator('#image-composer:visible,#pv-guest-composer:visible').count(),1,
+        role+' exposes exactly one Image bar');
+    }finally{await roleContext.close();}
+  }
+  console.log('PASS shared new/returning/owner card bar, downward focus/blur, credit banner and locked History');
   await page.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.__welcomeMockReady===true,undefined,{timeout:20000});
   assert.equal(await page.locator('#lab-welcome-start').isVisible(),true);
@@ -113,9 +283,12 @@ try{
   assert.ok(centerError<18,
     'The restored Image deck must stay horizontally centered: '+
       JSON.stringify({initialDeck,availableWidth,centerError}));
-  assert.ok(Math.abs(864-initialDeck.y-initialDeck.height)<32,
-    'The first-image deck must be fixed at the bottom, never floated above the Moods: '+
-      JSON.stringify(initialDeck));
+  const initialCards=await page.locator('#lab-welcome-presets').boundingBox();
+  assert.ok(initialDeck.y-initialCards.y-initialCards.height>=20&&
+    initialDeck.y-initialCards.y-initialCards.height<=28,
+    'The entrance bar belongs just below the cards: '+JSON.stringify({initialDeck,initialCards}));
+  assert.ok(864-initialDeck.y-initialDeck.height>80,
+    'The compact entrance reserves downward writing room instead of touching the bottom');
   assert.equal(await page.locator('#app').evaluate(el=>el.classList.contains('pv-welcome-deck-resting')),false,
     'No welcome floating state may move the cards or hide image controls');
   assert.equal(await page.locator('#image-composer-resolution-wrap').isVisible(),true,
@@ -263,11 +436,23 @@ try{
   assert.ok(await page.locator('#lab-welcome-presets').evaluate(track=>track.scrollLeft)<4,
     'Keyboard arrows must edit the prompt caret, not move the gallery, while a text field is focused');
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
-    'Clicking the prompt opens its multi-line editor');
-  await page.waitForFunction(()=>document.querySelector('#image-composer').getBoundingClientRect().height>105);
-  assert.ok(await deck.evaluate(el=>el.getBoundingClientRect().height)>idleLayout.height+30,
-    'The same bottom-fixed compact deck must become the full editing deck after first focus');
+    'Clicking the empty card-view prompt opens the same two-row deck');
+  const focusedDeck=await deck.boundingBox();
+  assert.ok(focusedDeck.height>idleLayout.height+40&&Math.abs(focusedDeck.y-initialDeck.y)<2,
+    'The card-view deck expands downward from a stable top: '+JSON.stringify({initialDeck,focusedDeck}));
+  await page.locator('#lab-welcome-start h2').click();
+  await page.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
+  const blurredDeck=await deck.boundingBox();
+  assert.ok(Math.abs(blurredDeck.height-idleLayout.height)<3&&Math.abs(blurredDeck.y-initialDeck.y)<2,
+    'Clicking outside restores the same small bar');
+  await field.click();
+  await field.fill('A quiet editorial portrait.');
+  assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+    'The card-view input remains open while deliberately editing a short prompt');
   await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(18));
+  await page.waitForFunction(()=>document.querySelector('#image-composer').getBoundingClientRect().height>105);
+  assert.ok(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),
+    'Long writing expands the same working Image deck only when space is required');
   // The editorial deck intentionally animates its height over 230ms.
   // Wait for that expansion before asserting the final readable geometry.
   await page.waitForFunction(()=>document.getElementById('image-composer-prompt')
@@ -294,8 +479,8 @@ try{
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Choosing a Mood keeps the opened deck permanently expanded after blur');
   const bottomAfterMood=await deck.boundingBox();
-  assert.ok(Math.abs(864-bottomAfterMood.y-bottomAfterMood.height)<32,
-    'The engaged deck remains fixed at the same bottom edge after Mood selection');
+  assert.ok(Math.abs(bottomAfterMood.y-initialDeck.y)<2&&bottomAfterMood.y+bottomAfterMood.height<=864,
+    'The engaged card-view deck retains its top and stays within the viewport');
   const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   assert.ok(Math.abs(newCardY-cardY)<8,
     'Opening the docked deck must keep the six Mood cards stable in document coordinates: '+
@@ -324,6 +509,9 @@ try{
   while(submissions<1&&Date.now()<timeout)await new Promise(done=>setTimeout(done,60));
   assert.equal(submissions,1,'One click must create exactly one paid job');
   assert.equal(requests.filter(x=>x.path==='/api/jobs'&&x.method==='POST').length,1);
+  // Counting the mock request is earlier than its delayed 202 response. Do
+  // not reopen Inspiration until the real completion handler has finished.
+  await page.waitForFunction(()=>window.__welcomeMockSubmissionPending()===false);
   const submission=requests.find(x=>x.path==='/api/jobs'&&x.method==='POST');
   assert.equal(quotes.get(submission.data.quoteId)?.settings.resolution,'1k',
     'Paid submission must reuse the exact customer resolution from its bound quote');

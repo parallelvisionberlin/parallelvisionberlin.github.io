@@ -23,8 +23,13 @@ LAB_PUBLIC_GENERATION_ENABLED = "true"
 LAB_EARLY_PREVIEW_ENABLED = "true"
 LAB_CHECKOUT_ENABLED = "true"
 LAB_PUBLIC_APP_URL = "https://pvlab.studio/studio.html"
+# Phase 1 text screening enabled for customer generation only. Owner tools unaffected.
+LAB_MINOR_PROMPT_SAFETY_ENABLED = "true"
 # Customer Higgsfield endpoints still use provider authentication and safeguards.
 LAB_CUSTOMER_HIGGSFIELD_ENABLED = "true"
+
+[ai]
+binding = "AI"
 
 [triggers]
 crons = ["*/5 * * * *"]

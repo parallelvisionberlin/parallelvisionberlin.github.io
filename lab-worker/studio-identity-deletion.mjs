@@ -1,3 +1,4 @@
+import {preserveClosedWelcomeClaim} from './welcome-guard.mjs';
 // PV LAB-only Clerk account termination. Never use the shared/legacy Clerk key.
 // The verified D1 closure is authoritative immediately, even if Clerk or R2
 // experiences an outage. Cron retries ban and final deletion independently.
@@ -89,25 +90,71 @@ async function banTask(env,task){
     NOW(),task.customer_id,task.new_subject);
 }
 
+function cleanupIssue(error){
+  const message=String(error?.message||'');
+  const status=message.match(/HTTP (\d{3})/);
+  if(status)return 'clerk_http_'+status[1];
+  if(message.includes('key unavailable'))return 'missing_studio_key';
+  if(message.includes('response could not be verified'))return 'clerk_invalid_response';
+  if(message.includes('link changed'))return 'identity_link_mismatch';
+  if(message.includes('media cleanup'))return 'media_cleanup_pending';
+  if(error?.name==='TimeoutError')return 'clerk_timeout';
+  return 'cleanup_failed';
+}
+async function recordAttempt(env,id,error=null){
+  await run(env,`INSERT INTO lab_studio_identity_cleanup_attempts(customer_id,attempted_at,issue)
+    VALUES(?,?,?) ON CONFLICT(customer_id) DO UPDATE SET attempted_at=excluded.attempted_at,issue=excluded.issue`,
+    id,NOW(),error?cleanupIssue(error):null);
+}
 export async function banClosedStudioIdentity(env,id){
   const task=await taskForCustomer(env,id);
   if(!task||task.state!=='pending')return false; // Legacy-only: never touch shared Clerk.
-  await banTask(env,task);
+  try{await banTask(env,task);await recordAttempt(env,id);}
+  catch(error){await recordAttempt(env,id,error);throw error;}
+  return true;
+}
+// A returning closed-account session can finish its own queued identity cleanup
+// without waiting for cron or unrelated provider maintenance. It never reopens
+// a wallet and cannot touch an owner or a different customer's Clerk account.
+export async function finishClosedStudioIdentity(env,id){
+  const task=await taskForCustomer(env,id);
+  if(!task||task.state!=='pending')return false;
+  await processTask(env,task);
   return true;
 }
 
-async function finalizeTask(env,task){
+// An explicitly confirmed deletion must finish the dedicated login before the
+// API reports success. Private media keeps its durable, isolated cleanup task;
+// a new Google subject cannot access that old wallet or storage prefix.
+export async function deleteClosedStudioIdentity(env,id,verifyBilling){
+  const task=await taskForCustomer(env,id);
+  if(task?.state==='complete')return true;
+  if(!task||task.state!=='pending')return false; // Never delete a shared/owner login.
+  try{
+    await verifyLinkedTask(env,task);
+    const customer=await one(env,'SELECT stripe_customer_id FROM lab_customers WHERE id=?',id);
+    if(task.closure_state!=='deleted'&&customer?.stripe_customer_id&&
+      (!verifyBilling||!await verifyBilling(env,customer.stripe_customer_id)))
+      throw Error('Billing clearance is required before account deletion.');
+    await preserveClosedWelcomeClaim(env,id);
+    await finalizeTask(env,task,{confirmedRequest:true});
+    await recordAttempt(env,id);
+    return true;
+  }catch(error){await recordAttempt(env,id,error);throw error;}
+}
+
+async function finalizeTask(env,task,{confirmedRequest=false}={}){
   await verifyLinkedTask(env,task);
   const closure=await one(env,'SELECT state FROM lab_account_closures WHERE customer_id=?',task.customer_id);
-  if(closure?.state!=='deleted')return;
-  // R2 is the private media authority. Never delete the login if an orphan
-  // object survives database cleanup, including an old thumbnail derivative.
-  const leftovers=await env.LAB_MEDIA.list({prefix:task.customer_id+'/',limit:1});
-  if(leftovers.objects?.length||leftovers.truncated)
-    throw Error('PV LAB creative media cleanup is incomplete.');
+  if(!closure||(!confirmedRequest&&closure.state!=='deleted'))return;
+  if(!confirmedRequest){
+    // Scheduled retries retain the existing verified storage-empty guard.
+    const leftovers=await env.LAB_MEDIA.list({prefix:task.customer_id+'/',limit:1});
+    if(leftovers.objects?.length||leftovers.truncated)
+      throw Error('PV LAB creative media cleanup is incomplete.');
+  }
   const key=await studioDeletedSubjectKey(env,task.new_subject);
-  // Ensure a verified legal/billing clearance was recorded by the creative
-  // cleanup process. This task cannot bypass that process.
+  // Billing was verified by creative cleanup or the confirmed deletion path.
   await studioRequest(env,task.new_subject,'DELETE');
   const t=NOW();
   await env.LAB_DB.batch([
@@ -119,6 +166,17 @@ async function finalizeTask(env,task){
     env.LAB_DB.prepare(`DELETE FROM lab_clerk_identity_links
       WHERE canonical_id=? AND new_subject=? AND kind='customer'`).bind(task.customer_id,task.new_subject)
   ]);
+}
+
+async function processTask(env,task){
+  try{
+    // Deletion is independent of Clerk's optional paid ban feature. D1 already
+    // blocks this closed wallet. Once billing/content cleanup is verified,
+    // delete the identity directly even when a prior ban returned HTTP 402.
+    if(task.closure_state==='deleted')await finalizeTask(env,task);
+    else if(!task.banned_at)await banTask(env,task);
+    await recordAttempt(env,task.customer_id);
+  }catch(error){await recordAttempt(env,task.customer_id,error);throw error;}
 }
 
 export async function processStudioIdentityDeletions(env){
@@ -136,10 +194,7 @@ export async function processStudioIdentityDeletions(env){
     WHERE t.state='pending' ORDER BY t.requested_at LIMIT 8`).bind().all();
   let failed=false;
   for(const task of found.results){
-    try{
-      if(!task.banned_at)await banTask(env,task);
-      if(task.closure_state==='deleted')await finalizeTask(env,task);
-    }catch{failed=true;}
+    try{await processTask(env,task);}catch{failed=true;}
   }
   if(failed)throw Error('PV LAB identity cleanup is pending; Clerk or storage verification will be retried.');
 }

@@ -1,3 +1,12 @@
+## Verified audit update, 2026-10-21
+- Main account release: PR #377, merge 1abf77e; production Studio source independently confirmed live.
+- Read-only D1 diagnostic 39574838449 verifies active customer contacts are populated/verified, all wallets reconcile to their immutable ledger, and definitely failed jobs have matching credit refunds.
+- Last stored Clerk sync result contains no invalid-key/missing-key/transient error counters.
+- Sync freshness remains OPEN: report age 89 hours; refresh candidates are due. Five-minute schedule and deployed backfill code are present.
+- Real owner Control Room rendering and manual sync still require an authenticated browser session.
+- Do not claim the historical zero-contact problem below remains current, or claim scheduled sync is healthy.
+- Next: sign in as owner, inspect actual Control Room sync state, and diagnose the stale scheduled report without changing billing or deleting/reopening accounts.
+
 # PV LAB owner Control Room: active state
 
 Date: 2026-10-14

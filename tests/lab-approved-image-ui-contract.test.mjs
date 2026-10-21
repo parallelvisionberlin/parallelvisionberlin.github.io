@@ -10,6 +10,7 @@ const studio=readFileSync('lab/studio.html','utf8');
 const lab=readFileSync('lab/lab.js','utf8');
 const presentation=readFileSync('lab/image-editorial-deck.js','utf8');
 const style=readFileSync('lab/image-editorial-deck.css','utf8');
+const guestStyle=readFileSync('lab/studio-guest-image.css','utf8');
 
 function section(source,start,end){
   const first=source.indexOf(start);
@@ -68,8 +69,16 @@ test('the long-to-empty prompt shrink and reference-aware presentation remain in
     'Long prompts stay bounded instead of growing indefinitely');
   assert.match(presentation,/const hasPrompt=!!field\.value\.trim\(\);/,
     'The deck must react to an actually nonempty prompt');
-  assert.match(presentation,/realEditingStarted&&!isSmall&&hasPrompt/,
-    'An earlier editing session must not keep an empty desktop deck expanded');
+  assert.match(presentation,/const realNeedsSpace=kind==='real'&&!isSoul&&!hasRefs&&\s*realPromptNeedsSpace\(surface,field\)/,
+    'Standard Image deck expands only when content needs the extra writing area');
+  assert.doesNotMatch(presentation,/\(kind==='real'&&active&&/,
+    'History focus alone must not expand the standard Image editor');
+  assert.match(presentation,/const welcomeFocus=kind==='real'&&surface\.classList\.contains\('pv-welcome-deck'\)&&welcomeEditing;/,
+    'Owner-approved focus expansion is limited to the desktop card entrance');
+  assert.match(presentation,/field\.scrollHeight>field\.clientHeight\+3\|\|\s*field\.scrollWidth>field\.clientWidth\+3/,
+    'Prompt growth must use actual text overflow, including long unbroken lines');
+  assert.match(presentation,/if\(kind==='real'&&!isSoul&&!expanded\)field\.style\.removeProperty\('height'\)/,
+    'Shortening the prompt must clear stale inline height immediately');
   assert.match(presentation,/const expanded=hasRefs\|\|/,
     'References can keep their separate photo strip when needed');
   const emptyRule=style.match(/:not\(\.pv-deck-expanded\):not\(\.pv-deck-has-prompt\)\s*#image-composer-prompt\s*\{([^}]*)\}/);
@@ -80,4 +89,39 @@ test('the long-to-empty prompt shrink and reference-aware presentation remain in
   const editorialEditor=section(style,'/* The authenticated editor keeps','/* Preserve the original functional two-row Image grid.');
   assert.match(editorialEditor,/transition:none!important;/,
     'Do not animate the textarea measurement and trap the previous tall height');
+});
+
+test('guest focus stays borderless and the desktop Sign in pill matches the header scale',()=>{
+  assert.match(guestStyle,/#gate \.pv-guest-composer textarea:focus-visible\s*\{[^}]*outline:none!important;/,
+    'Guest writing area has an unfenced focus state with a visible text caret');
+  assert.doesNotMatch(guestStyle,/textarea:focus-visible\s*\{[^}]*outline:(?:1|2|3)px/,
+    'No bright focus rectangle is allowed inside the public deck');
+  assert.doesNotMatch(style,/#gate\.pv-guest-image \.pv-guest-composer:focus-within/,
+    'Guest editor focus must not brighten the outer frame');
+  assert.match(guestStyle,/#studio-header #signin\.pv-guest-signin:not\(\[hidden\]\)\s*\{[^}]*min-height:42px;[^}]*font:600 13px\/1 /,
+    'Desktop guest Sign in must use the approved more legible scale');
+  assert.match(guestStyle,/@media\(max-width:680px\)\{[\s\S]*?#studio-header #signin\.pv-guest-signin:not\(\[hidden\]\)\{padding:8px 13px;min-height:33px;font-size:11px\}/,
+    'Existing small-screen Sign in proportions stay untouched');
+  assert.match(presentation,/const expanded=hasRefs\|\|/,
+    'Authenticated composer keeps its approved sizing expression');
+  assert.match(presentation,/const guestNeedsSpace=kind==='guest'&&/,
+    'Guest editor expansion must remain distinct from the standard signed-in editor');
+  assert.match(presentation,/active&&emptyGuestFocus/,
+    'Guest click reveals an unframed two-row input without submitting to a provider');
+  assert.match(presentation,/if\(kind==='guest'\)emptyGuestFocus=false;/,
+    'Clearing the guest prompt must return it to compact size');
+  assert.match(guestStyle,/\.pv-guest-composer\.pv-deck-expanded\s*\{\s*display:grid;/,
+    'Long guest directions use a genuine two-row instrument');
+  assert.match(studio,/id="pv-guest-moods"[^>]*aria-controls="pv-guest-cards"/,
+    'Guest Moods stays tied to the public Inspiration carousel');
+  assert.doesNotMatch(studio,/pv-guest-moods-link" href="\.\/moods"/,
+    'Guest toolbar must never send visitors to a different Mood page');
+  assert.match(studio,/id="pv-guest-add"[^>]*title="Add photographs locally"/,
+    'Public Image permits local photo selection before sign-in');
+  assert.match(studio,/id="pv-guest-image-file"[^>]*type="file"[^>]*accept="image\/jpeg,image\/png,image\/webp"/,
+    'Public photo references must come from a local file picker');
+  assert.match(studio,/id="pv-guest-library"[^>]*data-guest-signin/,
+    'Saving personal elements and using private libraries requires authentication');
+  assert.match(studio,/id="pv-guest-closed-signout"/,
+    'Closed-identity recovery must provide an explicit sign-out option');
 });

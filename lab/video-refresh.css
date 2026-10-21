@@ -263,6 +263,31 @@
   display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
   overflow:hidden;max-height:none;min-height:2.6em;font-size:11px;line-height:1.3;
 }
+/* Keep the existing saved-output download directly available on ready cards. */
+#app.video-studio-active .video-feed-center #history:not(.is-selecting) .card[data-kind="video"] .cardbody .cardactions:has(>.result-download){
+  position:absolute;top:4px;right:4px;z-index:3;
+  display:flex;margin:0;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardactions>button:not(.result-download){
+  display:none;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardactions>.result-download{
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 44px;width:44px;height:44px;min-height:44px;max-width:44px;padding:0;
+  background:transparent!important;border:0!important;color:#fff!important;
+  border-radius:9px;font-size:0;line-height:1;letter-spacing:0;box-shadow:none;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardactions>.result-download:before{
+  content:"";display:block;width:30px;height:30px;box-sizing:border-box;
+  border:1px solid #ffffff45;border-radius:7px;
+  background:#111418dc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4'/%3E%3C/svg%3E") center/16px 16px no-repeat;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardactions>.result-download:hover:before{
+  background-color:#272c33;border-color:#ffffff80;
+}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardactions>.result-download:focus-visible{
+  outline:2px solid #eef0f4;outline-offset:2px;
+}
 #app.video-studio-active .video-feed-center .stage{scroll-margin-top:90px}
 #app.video-studio-active .video-job-stage[data-phase="load-error"] .video-job-stage-indicator,
 #app.video-studio-active .video-job-stage[data-phase="missing"] .video-job-stage-indicator{

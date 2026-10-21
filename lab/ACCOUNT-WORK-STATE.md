@@ -1,3 +1,17 @@
+## Mobile account menu correction (2026-10-21)
+- User screenshot: account dropdown hidden behind the Image composer in an iPhone in-app browser.
+- Scope: shared menu stylesheet, Studio stylesheet revision and existing account browser coverage.
+- Cause: the menu is inside the header stacking context (35), below the fixed composer (82); the panel's own 1000 cannot escape its parent.
+- Fix: lift the Studio header only while the account menu is open, and remove its backdrop-filter containing block so the fixed menu positions against the viewport.
+- Preserve menu design, prompt deck, account permissions and all billing behavior.
+- Browser regression: customer and owner at 390/320px, 660px height; scroll to Sign out and verify actual tap target plus no horizontal overflow.
+- Local approved Image contract and account unit checks: 7 passed. Account browser workflow 39580042516 passed, including short-screen tap reachability for customer and owner.
+- CI screenshots inspected at 390px; no overflow or menu obstruction. Approved Image contract, prompt expansion, compact prompt, first-image and pricing browser workflows passed.
+- Released source: PR #385 merged as 181f3c8fd5c6b0a06365de7e89cf4c3273ae4d64. Cloudflare deployment 8c8542b2-4c34-49d3-9cbd-6eea731d12a5 succeeded.
+- Confirmed live DOM on pvlab.studio/studio?tool=image: account-menu.css?v=20261021-menu-above-deck1 and the open-header z-index 1300/backdrop-filter:none rule loaded. Actual signed-in owner UI was covered by synthetic browser tests, not a live owner session.
+- PR checks: 18/19 passed. Separate video workflow 39580042703 failed in lab-reference-ui.mjs:187 with EncodingError (source image cannot be decoded); no video/reference source changed in this patch. Preserve as pending investigation; do not claim all CI green.
+- Next: user can reload phone Studio and open the account menu; real recreated-account and stale Control Room sync verification remain separate pending work.
+
 # PV LAB account interface
 
 ## Current objective
@@ -164,3 +178,61 @@
 - Baseline: main 1faafac43c4abceb49ca98d83fcbb39b0f12b733. Changes: `lab/account-menu.css`, five shared CSS cache tags, and this state checkpoint only.
 - No authenticated session logic, billing or API changes.
 - Verify account/landing CI and GitHub Pages deployment separately; do not assume the new revision is live until its Pages run completes.
+
+## PR #377 CI diagnosis and account repair, 2026-10-21
+- Source under review: 9a9e15c2dd55432091d8755c4b35fe99c959c261; PR remains open.
+- Scope: investigate account/guest/pricing repairs, reference regression and main mobile failures.
+- CI repair commits: bf0e670, 0920a39, b3d3941 on the existing PR branch.
+- No prompt deck, Mood recipe, Upscaler, Worker, Stripe or credit-ledger edits in this follow-up.
+- Original failed video run 39515040917/job 118945050220 actually stopped in lab-reference-ui.mjs:129.
+- Its backend and preceding video browser checks passed; the failing locator addressed a hidden legacy Up control.
+- getByRole excludes hidden controls by default; includeHidden retains the disabled Base-order assertion.
+- The next run reached reference prompt checks and exposed old fallback wording; tests now assert the existing controlled Base variation text while retaining role/target/order checks.
+- Main account run 39518038947 passed scrollbar stability and failed its hard-coded 16px header inset at 768px.
+- Responsive header CSS overrides that inset; the test now compares actual bounding boxes to computed padding and border within 1px, retaining viewport containment checks.
+- Account workflow 39572766964 passed with this stricter assertion, replacing the PR's loose 0–40px tolerance.
+- Main mobile run 39518038968 passed native login/upload/Mood/single-submit at 390/320/768px.
+- Failure was Discovery lab-app-discovery.mjs:54, after upload, not native startup or Mood selection.
+- Discovery fixture omitted required SpicyAPI provider/creditCost and expected USD text after UI adopted credits.
+- Fixture now supplies provider SpicyAPI/creditCost 25 and waits for Generate · 25 credits.
+- Discovery is now included in the existing Explore Generate PR workflow; no catalogue changes.
+- Account repair source shows active zero-credit accounts retain credits controls and can draft before Generate opens pricing.
+- Funded/zero-credit customer wallets share editorial pricing; session renewal, duplicate-submit, billing readiness and untrusted URL guards remain tested.
+- Closed Clerk identities get explicit closed-account sign-out recovery, never reopening a tombstoned wallet.
+- Guest photos remain local until authenticated handoff; guest Generate requests sign-in; private Elements stay protected.
+- Initial local required contract/account suite: 14 passed; additional relevant billing/quote/account tests: 24 passed.
+- Broad local Node 24 run: 659/660 passed; existing mood-preflight-speed test expects Blob decoding/uploads after one setImmediate and observed zero, including in an isolated rerun. No production change made for that unrelated timing assertion.
+- Browser binaries unavailable locally; download returned truncated archives. Browser verification uses repository GitHub Actions.
+- Final browser CI results and deployment status must be recorded below after completion.
+- Production customer recovery, real Clerk identity recreation, real payments and paid generation have NOT been exercised.
+- Prior Cloudflare preview success does not prove authenticated production behavior; no merge or release in this task.
+
+- Follow-on full video run 39573205471 passed reference tests, then exposed a real inspector DOM destruction bug in Seedance submission.
+- renderVideoJobStage assigned textContent to video-inspector-empty, deleting the structured Current scene fields; video-scene-states then wrote to missing nodes.
+- Minimal implementation fix writes submission text to the existing pv-video-sidebar-footnote only. Seedance test retains its no-page-errors assertion and explicitly checks the model field survives submission.
+- Discovery workflow 39573117858 passed native login/upload/Mood/single-submit and Discovery at 390/320/768px with corrected bound-credit fixture.
+- The existing reset path addressed a nonexistent footnote ID; it now uses the same existing class selector as submission status. No layout changes.
+- Concurrent branch commit 966f279 strengthens the static inspector contract against destructive container writes and updates its selector expectation. Preserved it without overwriting the branch. All payment, quote and submission logic remains unchanged.
+- Later Seedance coverage reached hidden legacy media-note inputs; 16002a1 tests their retained input handlers directly, keeping draft/reuse/order and no-charge assertions.
+- Concurrent d97c2dc updates the completed-video test to explicit History selection, preserving Create until selection and still asserting exactly one MP4 fetch and zero generation.
+- Later Effects coverage clicked hidden legacy tool-effects; 30ac309 exercises the retained handler while the separate Motion Effects browser workflow verifies its current UI.
+
+- Validated code: 30ac309d4f58727c09ffece0cc49a72596cc3097. Video run 39576002620 passed: 669 backend tests, 13 Soul, 53 one-click, 8 Upscaler, 22 reference and 19 Seedance browser checks.
+- Current code has 19 successful PR workflows, including account 39576002029 and Explore Generate 39576002192; first-image run 39576002281 is still in actions/checkout, not a test failure. Earlier same-production-code first-image run passed.
+- Deployment: PR remains open and unmerged. No authenticated deployed-site behavior, payment or paid generation was verified in this investigation.
+- Next action: finish the pending checkout/test run, review PR, then separately verify hosting and real customer identities before claiming customer issues fixed live.
+
+## Published verification, 2026-10-21 (Europe/Berlin)
+- PR #377 merged at 09:26:32 UTC / 11:26:32 Berlin into main as 1abf77edd3330f18adbda8abad073867adcb39eb.
+- Supersedes the earlier OPEN/unmerged status above. No further merge was needed in this verification turn.
+- Verified current main 632fe303199031ce5f5a30c0dc69910ed4e48a2b.
+- Direct HTTPS GET https://pvlab.studio/lab.js returned the exact Git blob efb44a89faff520c9baaabbab0df2f98a242341a served by current main.
+- Published code includes explicit closed-account sign-out recovery and preservation/reset of the structured Video inspector.
+- Real cloud-browser visit https://pvlab.studio/studio loaded the seven-look guest Image view and Add photographs locally control.
+- Typed a harmless test direction and selected Green Haze; the exact direction remained intact and no authentication or generation was triggered.
+- Real Sign in click opened Clerk's working Google/email-password modal; this browser has no authenticated PV LAB customer session.
+- Merged-source account 39576985629, mobile 39576985711, first-image 39576985451, pricing 39576985606 and Video 39576985449 workflows passed.
+- Live-domain checks 39576985542 and deployed Studio recovery check 39576985570 passed.
+- Separate asset-library workflow 39576985538 fails its legacy Upscaler canvas-import visibility assertion (tests/lab-assets-ui.cjs:281); dedicated Upscaler browser checks passed before merge. Not changed under this account-release scope.
+- No real customer login/recreated identity, purchase/refund, private Gallery, or paid generation was exercised. These require an authenticated session and remain explicitly unverified.
+- Publication itself is verified on the production custom domain. Next: authenticated customer acceptance test; do not describe a synthetic or public check as a real customer test.

@@ -76,6 +76,15 @@ try{
       const empty=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
       assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
         'The empty Image deck must start compact');
+      // This fixture has no visible welcome panel, so it is the locked
+      // History presentation, independent of the card-view focus behavior.
+      await editor.focus();
+      assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
+        'An empty signed-in prompt stays compact when focused');
+      await editor.fill('A quiet Berlin street portrait.');
+      assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
+        'A one-line prompt should not expand an editor that already fits it');
+      await editor.fill('');
       await editor.evaluate((el,text)=>{
         el.focus({preventScroll:true});
         el.value=text;
@@ -156,12 +165,23 @@ try{
           document.getElementById('image-gallery-empty').hidden=true;
           return document.getElementById('image-composer').getBoundingClientRect().height;
         });
+        await editor.blur();
+        await editor.focus();
+        assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
+          'History must not expand an empty prompt just because it was clicked');
+        assert.ok(Math.abs(await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height)-historyBaseline)<4,
+          'History deck keeps its original dimensions on focus');
         await editor.fill(longPrompt);
         await page.waitForFunction(()=>document.getElementById('image-composer-prompt')
           .getBoundingClientRect().height>=150,null,{timeout:2500});
         const historyTall=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
         assert.ok(historyTall>historyBaseline+55,
           'Typing in History must expand the two-row deck: '+JSON.stringify({historyTall,historyBaseline}));
+        await editor.fill('A quiet Berlin street portrait.');
+        assert.equal(await page.locator('#image-composer').evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
+          'Shortening a long History prompt should collapse before it is empty');
+        assert.ok(Math.abs(await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height)-historyBaseline)<4,
+          'The old tall inline editor height cannot keep History expanded');
         await editor.fill('');
         await page.waitForTimeout(75);
         const historyRestored=await page.evaluate(()=>({

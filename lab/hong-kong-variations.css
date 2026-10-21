@@ -18,12 +18,12 @@
   border-color:#d6ff00;color:#d6ff00;background:#272e20
 }
 #image-composer .hk-variation-choice:focus-visible{outline:2px solid #d6ff00;outline-offset:2px}
-#image-composer .moods-controls.has-film-finish>.film-finish-compact{grid-row:3}
-#image-composer .moods-controls.has-film-finish>.moods-actions{grid-row:1/4;align-self:center}
+#image-composer .moods-controls.has-film-finish>.film-finish-compact{grid-row:2}
+#image-composer .moods-controls.has-film-finish>.moods-actions{grid-row:1/3;align-self:center}
 @media(max-width:740px){
   #image-composer .moods-controls.has-film-finish>.hk-variation-bar{grid-column:1;grid-row:2;gap:9px}
-  #image-composer .moods-controls.has-film-finish>.film-finish-compact{grid-column:1;grid-row:3}
-  #image-composer .moods-controls.has-film-finish>.moods-actions{grid-column:1;grid-row:4}
+  #image-composer .moods-controls.has-film-finish>.film-finish-compact{grid-column:1;grid-row:2}
+  #image-composer .moods-controls.has-film-finish>.moods-actions{grid-column:1;grid-row:3}
 }
 @media(max-width:420px){
   #image-composer .hk-variation-caption{font-size:10px}
