@@ -58,4 +58,8 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Explore the worlds becomes a compact section label before the gallery title.
 - Desktop music player, heading and credits share a centered width capped at 94% and viewport-height budget (230px for surrounding text).
 - Mobile music player retains full available width; existing galleries remain intact.
-- Verify final build publication and public desktop geometry after implementation commit.
+- Implementation commit a93b9e6d425e4d38de843ff66bbb08a823130692; Pages run 39640446925 succeeded.
+- Public browser verified: opening section reduced from 936px to ~691px; no horizontal overflow.
+- At 1363x936, music player reduced from ~722px to ~679px height; whole heading/player/credits group is ~828px.
+- Screenshot confirms heading at y64 and caption bottom at y892 in a 936px viewport.
+- Local npm run build passed. Public desktop refinement verified.
