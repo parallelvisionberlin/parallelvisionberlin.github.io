@@ -72,7 +72,8 @@
   .lab-hero .hero-shade,.lab-hero.motion-active .hero-shade{
     background:linear-gradient(0deg,#100e13 0%,#100e13e8 20%,#100e1380 43%,transparent 70%);
   }
-  .lab-hero .hero-copy{left:24px;right:24px;bottom:84px;max-width:none}
+  /* Lift the complete copy as Safari's usable height shrinks, keeping both actions in view. */
+  .lab-hero .hero-copy{left:24px;right:24px;bottom:clamp(148px,calc(820px - 100svh),220px);max-width:none}
   .lab-hero .hero-copy h1{font-size:40px;margin-bottom:12px}
   .lab-hero .hero-copy h2{font-size:clamp(36px,10.8vw,46px);line-height:1.04;margin-bottom:18px}
   .lab-hero .hero-description{max-width:290px;font-size:13px;margin-bottom:20px}
