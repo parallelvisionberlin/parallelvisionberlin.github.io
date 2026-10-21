@@ -5,8 +5,8 @@ Goal: maintain one canonical photography archive, classify all supplied photogra
 Canonical route: `/photography/`.
 Old route `/photo-work/` now has an HTML/JavaScript redirect preserving `#nocturne`, `#after-hours`, `#negative-space` hashes. There is no second active portfolio page.
 
-Editorial direction: compact nocturnal forest-charcoal page with subtle analog texture and a small old-style serif title. Direct entry into Nocturne; the series index is below the galleries. Each series has an independent fixed, uncropped carousel. Latest layout source: b26efcd2.
-Current series order: Nocturne (13), After Hours (11), Negative Space (2), Day (3), Night (5), Amber Room (4), Silver Room (9), totaling 47 unique public photographs.
+Editorial direction: neutral near-black photographic archive. Original Untouched by Time photograph appears as a soft, CSS-darkened shadow behind the serif artist title. Practice and abbreviated lineage appear below; native disclosure reveals the full lineage. Nocturne follows directly; the series index remains below the seven uncropped carousels.
+Current series order verified from main 926e8c29: Nocturne (13), After Hours (9), Negative Space (2), Day (3), Night (5), Amber Room (4), Silver Room (9), totaling 45 public photographs. This hero change does not edit the catalogue.
 Photo carousel frame never changes its size while paging. All photographs use `object-fit:contain`, so there is no crop. Original image files are self-hosted at `photography/assets/`.
 Photo references `nocturne-02.jpeg` through `nocturne-05.jpeg` reuse exact GitHub Git blob SHAs of the originals previously hosted in `photo-work/images/nocturne/`; all 10 hashes checked against original Drive-mounted files.
 Files: `photography/index.html`, `photography/style.css`, `photography/archive.js`, `photography/gallery.js`, `photo-work/index.html`, `alejandro-molinari.html`; readmes updated.
@@ -104,3 +104,15 @@ Next: add future photographs solely in the canonical manifest and compare them a
 - Replaced photo-stage and image touch-action pan-y with manipulation, allowing scrolling and pinch accessibility while suppressing browser smart double-tap zoom on the photo.
 - No changes to photo files, gallery order, captions, hero, biography or theme. Versioned JS and CSS URLs to invalidate old mobile cache.
 - Requires GitHub Pages deployment and user device confirmation; local source checks do not prove Safari fixed.
+
+
+## 2026-10-21 / Shadow photograph hero and expandable lineage
+- User approved an original forest photograph fading behind the artist title and a collapsible Artistic Lineage story.
+- Source base: main 926e8c290c3267cb6ac7d639f9d06a3e6255376c. Branch: feature/photography-shadow-hero-20261021.
+- Changed only photography/index.html, photography/style.css and this handoff. Reuse assets/nocturne-05.jpeg (Untouched by Time, 5184x3456) with CSS opacity/gradients; no new media or edits to photo bytes. The hero is decorative and hidden from assistive technology; the complete original is still visible uncropped in Nocturne.
+- Preserve both photographic-practice paragraphs. Lineage introductory sentence remains visible; native details/summary reveals the entire existing remainder without rewriting facts. Labels Read the story / Close the story, plus/minus marker, 44px touch target; works without JavaScript.
+- No modifications to archive.js, gallery.js, series ordering, original assets, artist-site links or unrelated pages. Current base contains 45 photographs across seven series; respect the owner's concurrent catalogue changes.
+- Source QA: lineage text preserved exactly after whitespace normalization; every local HTML asset reference exists; JS syntax and git diff --check passed; archive.js/gallery.js remain byte-identical to the base.
+- Browser QA through the supported Sites preview: hero original loads at naturalWidth 5184, native disclosure opens by click and closes by Enter; seven galleries render; desktop 1363px has equal scrollWidth/clientWidth 1348px. Responsive CSS adjusted at 700/480/360px; no mobile browser emulation was available, so a mobile rendering pass is not claimed.
+- Owner separately requested DSCF0813.tif deletion: original moved to trash and its 239,756,586-byte scratch copy removed; existing DSCF0813 web JPEG remains. This supersedes the historical master-retention notes above.
+- Publication: pending feature PR checks/merge and GitHub Pages deployment. Use the real parallelvisionlabel.com/photography/ route; PV LAB preview is unrelated.

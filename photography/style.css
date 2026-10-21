@@ -24,6 +24,26 @@ button,a{-webkit-tap-highlight-color:transparent}
 .opening-text p{margin:0;max-width:560px;color:#d6d1c8;font:400 clamp(14px,1.12vw,18px)/1.58 var(--sans)}
 .opening-text a{text-decoration:underline;text-underline-offset:4px;text-decoration-color:#878077;color:var(--ink)}
 .opening-text a:hover{color:#fff}
+/* Original forest photograph, softly revealed behind the title only. */
+.opening{--opening-gutter:clamp(20px,3.5vw,70px);padding-top:0}
+.opening-hero{position:relative;isolation:isolate;overflow:hidden;margin:0 calc(-1 * var(--opening-gutter));padding:clamp(24px,2.5vw,38px) var(--opening-gutter) clamp(42px,4.5vw,72px);min-height:clamp(260px,25vw,380px);display:flex;flex-direction:column;justify-content:space-between;background:var(--paper)}
+.opening-shadow{position:absolute;z-index:-2;inset:0 0 0 18%;width:82%;height:100%;object-fit:cover;object-position:50% 46%;opacity:.52;pointer-events:none;user-select:none}
+.opening-hero::after{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,var(--paper) 3%,rgba(8,8,8,.7) 30%,rgba(8,8,8,.12) 70%,rgba(8,8,8,.32)),linear-gradient(0deg,var(--paper),rgba(8,8,8,.15) 48%,rgba(8,8,8,.12));pointer-events:none}
+.opening-hero h1{margin:clamp(42px,4.5vw,72px) 0 0}
+.opening-texts{position:relative;padding-top:clamp(12px,1.5vw,22px)}
+.lineage-details{margin-top:14px;max-width:560px}
+.lineage-details summary{display:flex;align-items:center;gap:13px;min-height:44px;width:fit-content;padding:6px 0;list-style:none;cursor:pointer;color:var(--ink);font:500 10px/1.4 var(--sans);letter-spacing:.1em;text-transform:uppercase;-webkit-tap-highlight-color:transparent}
+.lineage-details summary::-webkit-details-marker{display:none}
+.lineage-details summary:hover{color:#fff}
+.lineage-toggle{position:relative;width:11px;height:11px;flex:0 0 11px}
+.lineage-toggle::before,.lineage-toggle::after{content:"";position:absolute;background:currentColor}
+.lineage-toggle::before{left:0;top:5px;width:11px;height:1px}
+.lineage-toggle::after{left:5px;top:0;width:1px;height:11px}
+.lineage-close,.lineage-details[open] .lineage-read{display:none}
+.lineage-details[open] .lineage-close{display:inline}
+.lineage-details[open] .lineage-toggle::after{display:none}
+.lineage-story{padding-top:10px}
+.lineage-story p+p{margin-top:16px}
 /* Original seven independent photo series, unchanged source assets or JS. */
 .archive{max-width:1800px;padding:0 clamp(22px,3.3vw,70px) 44px;margin:auto}
 .series-list{margin:0}
@@ -67,10 +87,13 @@ button,a{-webkit-tap-highlight-color:transparent}
  .masthead-brand{font-size:21px}
  .masthead-center{display:none}
  .masthead-back{font-size:9px}
- .opening{padding:19px 16px 0}
+ .opening{--opening-gutter:16px;padding:0 16px}
+ .opening-hero{min-height:230px;padding-top:19px;padding-bottom:36px}
+ .opening-shadow{left:0;width:100%;object-position:61% 45%;opacity:.46}
  .opening-meta{font-size:8px;gap:10px}
  .opening-meta span:last-child{display:none}
  .opening h1{margin:22px 0 19px;font-size:clamp(28px,7.6vw,53px);letter-spacing:-.075em}
+ .opening-hero h1{margin:44px 0 0}
  .opening-texts{display:grid;grid-template-columns:1fr 1fr;gap:17px;padding-bottom:25px}
  .opening-label{font-size:8px;line-height:1.3;margin-bottom:8px}
  .opening-text p{font-size:11.5px;line-height:1.5}
