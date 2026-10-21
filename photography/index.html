@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#141414">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#151515">
   <meta name="robots" content="noindex,follow">
-  <title>Alejandro Molinari | Photography</title>
+  <title>Alejandro Molinari | Photographic Archive</title>
   <meta name="description" content="Selected photographic work by Alejandro Molinari. Seven independent series: Nocturne, After Hours, Negative Space, Day, Night, Amber Room and Silver Room.">
   <link rel="canonical" href="https://parallelvisionlabel.com/photography/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Alejandro Molinari | Photography">
   <meta property="og:description" content="An archive of original photographic work by Alejandro Molinari.">
   <meta property="og:url" content="https://parallelvisionlabel.com/photography/">
-  <link rel="preload" as="image" href="./assets/nocturne-01.jpeg" fetchpriority="high">
-  <link rel="stylesheet" href="./style.css?v=20261021-museum-dark2">
+  <link rel="preload" as="image" href="./assets/silver-room/DSC02058.jpg" fetchpriority="high">
+  <link rel="stylesheet" href="./style.css?v=20261021-split-hero01">
   <script src="./archive.js?v=20261021-catalogue1" defer></script>
   <script src="./gallery.js?v=20261021-nozoom1" defer></script>
 </head>
@@ -26,16 +26,34 @@
     <a class="masthead-back" href="../alejandro-molinari.html">Artist page <span aria-hidden="true">↗︎</span></a>
   </header>
   <main>
-    <section class="introduction" aria-labelledby="page-title">
-      <div class="intro-topline">
-        <span>Photographic work / Archive 001</span>
-        <span>Berlin · Fujifilm / Canon</span>
-      </div>
-      <div class="intro-grid">
-        <h1 id="page-title">Alejandro Molinari.</h1>
-        <div class="intro-biography">
-          <p>Berlin-based photographer, artist and music producer. Working with Fujifilm and Canon, his photographic practice explores night flash, nocturnal figures, forest encounters and intimate interiors.</p>
-          <p>Son of <a href="https://elarchivo.org/oscar-molinari-herrera/" target="_blank" rel="noopener noreferrer">Oscar Molinari Herrera</a> (1941–2017), the Italian-Venezuelan experimental filmmaker and photographer who visited Salvador Dalí in Cadaqués in 1972 and helped establish the Taller de Cine Independiente in Caracas in 1973.</p>
+    
+    <section class="hero" aria-labelledby="page-title">
+      <figure class="hero-plate">
+        <img src="./assets/silver-room/DSC02058.jpg" width="2048" height="1362" fetchpriority="high" decoding="async" alt="Black-and-white photograph of a woman with a vintage film camera beside her reflection in a mirror">
+        <figcaption>
+          <span>FROM THE ARCHIVE</span>
+          <a href="#series-silver-room">SILVER ROOM / PLATE 01 <span aria-hidden="true">↗</span></a>
+        </figcaption>
+      </figure>
+      <div class="hero-copy">
+        <div class="hero-topline"><span>INDEPENDENT PHOTOGRAPHIC WORK</span><span>BERLIN · ARCHIVE 001</span></div>
+        <div class="hero-identity">
+          <h1 id="page-title">Alejandro Molinari.</h1>
+          <p>FUJIFILM / CANON <span aria-hidden="true">·</span> SELECTED PHOTOGRAPHS</p>
+        </div>
+        <div class="hero-biographies">
+          <div class="hero-bio-col">
+            <span class="bio-label">01 / PRACTICE</span>
+            <p>Berlin-based photographer, artist and music producer. His photographs move between night flash, forest studies, the human figure and intimate interiors.</p>
+          </div>
+          <div class="hero-bio-col">
+            <span class="bio-label">02 / LINEAGE</span>
+            <p>Son of <a href="https://elarchivo.org/oscar-molinari-herrera/" target="_blank" rel="noopener noreferrer">Oscar Molinari Herrera</a> (1941–2017), an experimental filmmaker and photographer who visited Salvador Dalí in Cadaqués in 1972 and helped establish the Taller de Cine Independiente in Caracas in 1973.</p>
+          </div>
+        </div>
+        <div class="hero-bottomline">
+          <a href="#series-nocturne">EXPLORE PHOTOGRAPHS <span aria-hidden="true">↓</span></a>
+          <span id="archive-stat">07 SERIES / 47 PHOTOGRAPHS</span>
         </div>
       </div>
     </section>
@@ -45,18 +63,23 @@
       <div id="series-list" class="series-list" aria-label="Photographs"></div>
       <nav class="series-index" id="series-index" aria-label="Other photographic series"></nav>
     </section>
-    <section class="about" id="about" aria-labelledby="about-heading">
-      <div class="about-label">ABOUT THE PHOTOGRAPHER</div>
-      <div>
-        <h2 id="about-heading">Alejandro Molinari</h2>
-        <p>Berlin-based artist, music producer and photographer. This archive presents selected photographs made with Fujifilm and Canon cameras.</p>
-      </div>
-    </section>
+    
   </main>
   <footer class="footer">
     <span>© <span id="copyright-year">2026</span> Alejandro Molinari</span>
     <span>Original photographs. Includes artistic nudity (18+).</span>
     <a href="../alejandro-molinari.html">Back to artist page <span aria-hidden="true">↗︎</span></a>
   </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const galleries = window.AM_ARCHIVE && window.AM_ARCHIVE.galleries;
+      const stat = document.getElementById('archive-stat');
+      if (stat && Array.isArray(galleries)) {
+        const total = galleries.reduce(function (n, g) { return n + (g.images || []).length; }, 0);
+        stat.textContent = String(galleries.length).padStart(2, '0') + ' SERIES / ' + String(total).padStart(2, '0') + ' PHOTOGRAPHS';
+      }
+    });
+  </script>
 </body>
 </html>
