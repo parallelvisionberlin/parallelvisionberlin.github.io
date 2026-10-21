@@ -28,3 +28,37 @@ jobs:
           npx --yes wrangler@4 d1 execute parallel-vision-lab --remote --json --command "SELECT id,welcome_enabled,free_generation_enabled FROM lab_trial_program_controls WHERE id=1;"
           echo 'SAMPLE_SESSION_JOIN (SELECT constant only; no IDs, emails, balances)'
           npx --yes wrangler@4 d1 execute parallel-vision-lab --remote --json --command "SELECT 1 AS session_join_valid FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id LEFT JOIN lab_promo_generation_holds h ON h.customer_id=c.id WHERE c.id=(SELECT id FROM lab_customers LIMIT 1) LIMIT 1;"
+
+      - name: Verify live wallet, refund and Control Room sync invariants without exposing customer data
+        working-directory: lab-worker
+        env:
+          RAW_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export CLOUDFLARE_API_TOKEN="$(printf '%s' "$RAW_CLOUDFLARE_API_TOKEN" | tr -d '\r\n\t ')"
+          test -n "$CLOUDFLARE_API_TOKEN"
+          echo "::add-mask::$CLOUDFLARE_API_TOKEN"
+          # SELECT only. Keep query results local; publish pass/fail labels, never
+          # identities, emails, wallet amounts, payment details or private media.
+          npx --yes wrangler@4 d1 execute parallel-vision-lab --remote --json --command "
+            SELECT
+              NOT EXISTS(SELECT 1 FROM lab_customers c WHERE c.balance_credits != COALESCE((SELECT SUM(e.delta_credits) FROM lab_credit_entries e WHERE e.customer_id=c.id),0)) AS wallet_ledger_reconciles,
+              NOT EXISTS(SELECT 1 FROM jobs j JOIN lab_credit_entries d ON d.reference='job:'||j.id AND d.kind='generation' WHERE j.state='failed' AND NOT EXISTS(SELECT 1 FROM lab_credit_entries r WHERE r.reference='refund:job:'||j.id AND r.kind='refund' AND r.customer_id=d.customer_id AND r.delta_credits=-d.delta_credits)) AS failed_jobs_refunded,
+              NOT EXISTS(SELECT 1 FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id WHERE NOT EXISTS(SELECT 1 FROM lab_account_closures a WHERE a.customer_id=c.id) AND (p.email IS NULL OR trim(p.email)='' OR p.verified_at IS NULL)) AS active_contacts_synced,
+              EXISTS(SELECT 1 FROM lab_clerk_sync_diagnostics WHERE id=1 AND checked_at > (CAST(strftime('%s','now') AS INTEGER)*1000)-7200000) AS clerk_sync_recent,
+              EXISTS(SELECT 1 FROM lab_clerk_sync_diagnostics WHERE id=1 AND COALESCE(json_extract(result_json,'$.issues.invalidKey'),0)=0 AND COALESCE(json_extract(result_json,'$.issues.missingKey'),0)=0 AND COALESCE(json_extract(result_json,'$.issues.transient'),0)=0) AS clerk_sync_no_key_or_transient_error;
+          " > /tmp/pvlab-release-invariants.json
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          const output=JSON.parse(readFileSync('/tmp/pvlab-release-invariants.json','utf8'));
+          const row=output.flatMap(item=>item.results||[])[0];
+          if(!row)throw new Error('Live read-only diagnostics returned no result.');
+          let failed=false;
+          for(const key of ['wallet_ledger_reconciles','failed_jobs_refunded','active_contacts_synced','clerk_sync_recent','clerk_sync_no_key_or_transient_error']){
+            const ok=row[key]===1;
+            console.log((ok?'PASS: ':'NEEDS ATTENTION: ')+key);
+            if(!ok)failed=true;
+          }
+          if(failed)process.exitCode=1;
+          JS
