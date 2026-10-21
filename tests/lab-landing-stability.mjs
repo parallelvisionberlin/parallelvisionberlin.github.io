@@ -220,8 +220,9 @@ try{
       await page.evaluate(()=>window.releaseTestGuest());
       await page.locator('#gate.pv-guest-image').waitFor({state:'visible'});
       await page.locator('#signin').waitFor({state:'visible'});
-      assert.equal(await page.locator('#pv-guest-cards .pv-guest-card').count(),7,
-        'Guest Image Studio retains six photographic looks and adds Chrome Couture');
+      assert.deepEqual(await page.locator('#pv-guest-cards .pv-guest-card').evaluateAll(cards=>cards.map(card=>card.dataset.guestMood)),
+        ['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','dreamcore','hong-kong-nights','chrome-couture','80s-film'],
+        'Guest Image Studio retains the eight approved looks, including Fisheye 2000');
       assert.equal(await page.locator('#app').isVisible(),false,'Private workspace remains closed');
       assert.match(await page.locator('#pv-guest-title').innerText(),/Start with a feeling/i);
       await page.locator('[data-guest-mood="dream-blur"]').click();
