@@ -189,6 +189,7 @@ try{
   console.log('PASS direct new/returning/owner/public parity: same controls, slots, typography and backdrop in all four writing states');
   // All account ages/roles use one real editor, including Inspiration opened
   // over existing History. Account state may change eligibility, never layout.
+  const roleGeometry=new Map();
   for(const role of ['new','returning','owner']){
     const roleContext=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
     const rolePage=await roleContext.newPage();
@@ -204,19 +205,29 @@ try{
           if(role==='new'&&!banner)await rolePage.getByRole('button',{name:'Dismiss credit notice',exact:true}).click();
           else await rolePage.evaluate(show=>{document.getElementById('lab-credit-banner').hidden=!show;},banner);
           await rolePage.waitForTimeout(80);
+          const geometry=await rolePage.evaluate(()=>{
+            const selectors=['#studio-header','#main','.image-gallery-shell','.archivehead','#lab-welcome-start','#lab-welcome-presets','#lab-welcome-presets .lab-welcome-preset','#image-composer','#refresh','#history-preview-toggle'];
+            return Object.fromEntries(selectors.map(selector=>{
+              const r=document.querySelector(selector).getBoundingClientRect();
+              return [selector,{x:r.x,y:r.y,w:r.width,h:r.height}];
+            }));
+          });
+          roleGeometry.set(role+'-'+viewport.width+'x'+viewport.height+'-'+(banner?'notice':'plain'),geometry);
           if(role==='new'){
-            const geometry=await rolePage.evaluate(()=>{
-              const selectors=['#studio-header','#main','.image-gallery-shell','.archivehead','#lab-welcome-start','#lab-welcome-presets','#lab-welcome-presets .lab-welcome-preset','#image-composer','#refresh','#history-preview-toggle'];
-              return Object.fromEntries(selectors.map(selector=>{
-                const r=document.querySelector(selector).getBoundingClientRect();
-                return [selector,{x:r.x,y:r.y,w:r.width,h:r.height}];
-              }));
-            });
             if(banner)noticeGeometry=geometry;
             else{
               assert.deepEqual(geometry,noticeGeometry,'Closing the credit notice keeps the page, cards, deck, backdrop frame and History controls fixed at '+viewport.width+'x'+viewport.height);
               assert.equal(await rolePage.locator('#lab-credit-banner').isVisible(),false,'Dismissed notice is not painted');
               assert.equal(await rolePage.getByRole('button',{name:'Dismiss credit notice',exact:true}).count(),0,'Dismissed notice leaves the accessibility tree');
+            }
+            if(banner){
+              const notice=await rolePage.locator('#lab-credit-banner').evaluate(el=>{
+                const r=el.getBoundingClientRect(),style=getComputedStyle(el),deck=document.getElementById('image-composer').getBoundingClientRect();
+                return {position:style.position,top:r.top,bottom:r.bottom,height:r.height,viewport:innerHeight,deckBottom:deck.bottom};
+              });
+              assert.equal(notice.position,'fixed','The zero-credit notice floats outside the canonical Owner layout');
+              assert.ok(Math.abs(notice.bottom-notice.viewport)<2,'The notice sits at the viewport edge');
+              assert.ok(notice.top>notice.deckBottom,'The notice does not cover the prompt deck');
             }
             assert.ok(await rolePage.evaluate(()=>['refresh','history-preview-toggle'].every(id=>{
               const el=document.getElementById(id),r=el.getBoundingClientRect();
@@ -265,6 +276,9 @@ try{
         role+' exposes exactly one Image bar');
     }finally{await roleContext.close();}
   }
+  const ownerCanonical=roleGeometry.get('owner-1440x900-plain');
+  for(const key of ['new-1440x900-notice','new-1440x900-plain','returning-1440x900-plain'])
+    assert.deepEqual(roleGeometry.get(key),ownerCanonical,key+' uses the exact Owner Inspiration geometry');
   console.log('PASS shared new/returning/owner card bar, downward focus/blur, credit banner and locked History');
   await page.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.__welcomeMockReady===true,undefined,{timeout:20000});
