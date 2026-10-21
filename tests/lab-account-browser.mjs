@@ -323,11 +323,14 @@ try{
           await page.goto(origin+path);const summary=page.locator('.pv-account-menu>summary');await summary.waitFor({state:'visible'});
           if(path==='/lab/studio.html'){
             const actions=await page.locator('#studio-header .actions').boundingBox();
-            const contentRight=await page.locator('#studio-header .wrap.top').evaluate(el=>el.getBoundingClientRect().right);
-            const rightGap=contentRight-actions.x-actions.width;
-            assert.ok(rightGap>=-2&&rightGap<=40&&actions.x>=0&&actions.x+actions.width<=width+1,
-              'Studio actions remain within the header and near its right edge: '+
-              JSON.stringify({width,rightGap,actions,contentRight}));
+            const header=await page.locator('#studio-header .wrap.top').evaluate(el=>({
+              right:el.getBoundingClientRect().right,padding:parseFloat(getComputedStyle(el).paddingRight),
+              border:parseFloat(getComputedStyle(el).borderRightWidth)
+            }));
+            const rightGap=header.right-actions.x-actions.width;
+            assert.ok(Math.abs(rightGap-header.padding-header.border)<1&&actions.x>=0&&actions.x+actions.width<=width+1,
+              'Studio actions align with the actual header content edge, including responsive padding: '+
+              JSON.stringify({width,rightGap,actions,header}));
           }
           await summary.click();await page.locator('[data-account-name]').getByText('Alex Test',{exact:true}).waitFor();
           assert.match(await page.locator('[data-account-balance]').textContent(),customer?/1,234 credits/:/Owner workspace/,path+' '+await page.locator('body').innerText());

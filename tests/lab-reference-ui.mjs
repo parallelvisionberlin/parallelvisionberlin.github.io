@@ -126,7 +126,7 @@ try{
   assert.equal(assigned[0].name,'architecture-reference-4.png');assert.equal(assigned[0].role,'base');
   assert.equal(assigned[1].name,'architecture-reference-3.png');assert.equal(assigned[1].role,'none');
   assert.equal(assigned.filter(r=>r.role==='base').length,1);
-  assert.equal(await x.page.locator('.reference-item').nth(1).getByRole('button',{name:'Up',exact:true}).isDisabled(),true);
+  assert.equal(await x.page.locator('.reference-item').nth(1).getByRole('button',{name:'Up',exact:true,includeHidden:true}).isDisabled(),true);
   pass('Choosing Base moves that original to Reference 1, clears the previous Base, and keeps it first');
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Preserve the studio lighting.');
   await choose(role(x.page,2),'detail');
