@@ -4,9 +4,16 @@
 
 Only successful new PV LAB account onboarding can queue an email, not every login, refresh, purchase, or legacy transfer. The email is sent to the verified primary address retrieved from Clerk through the existing backend contact synchronization, never from browser input.
 
-The design is monochrome PV LAB with the subject "Welcome to PV LAB. Your creative space is ready." It links to Studio and Explore Moods, with no 200-credit promise, marketing language, tracking pixels, or third-party remote images.
+The design is monochrome PV LAB with the subject "Welcome to PV LAB. Your creative space is ready." The owner-selected 22 October 2026 editorial design uses one first-party hero photograph and three first-party detail images stored in `lab/email/`, with selectable HTML copy and a real full-width button. **Enter the studio points to the PV LAB homepage hero (`https://pvlab.studio/`)**, not to the editor or a checkout screen. **Explore Moods** points to `https://pvlab.studio/moods`. No emoji arrow, no welcome-credit promise, tracking pixels or third-party remote assets.
 
 Cloudflare D1 stores one delivery row per customer. Resend Idempotency-Key prevents duplicate submissions within its documented 24-hour window. Network-ambiguous attempts are marked uncertain and are not automatically retried. New signups are never blocked if the email provider fails. Only recent verified signups receive an email. The existing five-minute cron handles pending sends, with a conservative daily cap.
+
+## Release order for the approved editorial version
+
+1. Publish the four `lab/email/welcome-*.jpg` assets to the PV LAB Pages project. They must be retrievable at `https://pvlab.studio/email/` *before* the updated Worker sends emails that reference them.
+2. Deploy the updated `lab-worker/signup-welcome-email.mjs` via the existing protected Cloudflare Worker deployment workflow. Leave D1 welcome-queue state, Resend secrets and deduplication logic untouched.
+3. For a **new** verified test customer only, inspect Resend's acceptance record and inbox rendering on mobile; verify the full-width button opens `https://pvlab.studio/`, Explore Moods opens `/moods`, the four images load, and login again sends no duplicate. Do not re-send to existing customers for this test.
+4. Image blocking must still leave readable copy, an accessible primary action and a plain-text fallback. Hosting images is not image tracking.
 
 ## To activate after deployment
 

@@ -50,18 +50,41 @@ function fixture(t,{enabled='true',key='re_fake_private_unit_test_key'}={}){
 }
 const sendResponse=()=>Response.json({id:'49a3999c-0ce1-4ea6-ab68-afcd6dc2e794'});
 
-test('design is PV LAB editorial, transactional, text accessible and has no paused free-credit promise',()=>{
+test('selected welcome email is an accessible HTML message with first-party editorial images and a working homepage CTA',()=>{
   const m=signupWelcomeMessage();
   assert.equal(m.from,'PV LAB <hello@pvlab.studio>');
   assert.equal(m.reply_to,'contact@parallelvisionlabel.com');
-  for(const url of ['https://pvlab.studio/studio.html','https://pvlab.studio/moods']){
+  assert.equal(m.subject,'Welcome to PV LAB. Your creative space is ready.');
+  for(const url of ['https://pvlab.studio/','https://pvlab.studio/moods']){
     assert.ok(m.html.includes(url));assert.ok(m.text.includes(url));
   }
-  assert.match(m.html,/Your creative space/);
-  assert.match(m.html,/background:#111/);
+  // User-approved action opens the homepage hero, not a direct route to the
+  // editor or its paywall. Entire hero photo has the same click destination.
+  assert.match(m.html,/<a href="https:\/\/pvlab\.studio\/"[^>]*>Enter the studio<\/a>/);
+  assert.match(m.html,/<a href="https:\/\/pvlab\.studio\/"[^>]*><img/);
+  assert.doesNotMatch(m.html+m.text,/https:\/\/pvlab\.studio\/studio\.html/);
+  assert.match(m.html,/Your creative<br>space is ready\./);
+  assert.match(m.html,/Begin with a feeling/);
+  assert.match(m.html,/background:#080808/);
   assert.match(m.text,/because you created a PV LAB account/);
   assert.doesNotMatch(m.html+m.text,/200 free credits|200 credits|free trial|sale|discount/i);
-  assert.doesNotMatch(m.html,/tracking-pixel|utm_source|<img/i);
+  assert.doesNotMatch(m.html,/tracking-pixel|utm_source|&#8599;|↗|<script/i);
+  assert.equal((m.html.match(/<img\b/g)||[]).length,4,
+    'One selected hero photograph and three editorial thumbnails, not a flat screenshot');
+  const assets=[
+    'welcome-hero.jpg','welcome-detail-1.jpg',
+    'welcome-detail-2.jpg','welcome-detail-3.jpg'
+  ];
+  for(const filename of assets){
+    const url='https://pvlab.studio/email/'+filename;
+    assert.ok(m.html.includes('src="'+url+'"'),filename+' must load from PV LAB');
+    const data=readFileSync(new URL('../lab/email/'+filename,import.meta.url));
+    assert.ok(data.length>2000&&data.length<200000,'Email images stay lightweight');
+    assert.equal(data[0],0xff);assert.equal(data[1],0xd8);
+    assert.equal(data[2],0xff,'Hosted asset must be an actual JPEG');
+  }
+  assert.match(m.html,/<img[^>]+alt=/);
+  assert.match(m.text,/ENTER THE STUDIO\nhttps:\/\/pvlab\.studio\//);
 });
 
 test('registration queue is one-time, new studio customer only; never on sign-in or backfill',async t=>{
