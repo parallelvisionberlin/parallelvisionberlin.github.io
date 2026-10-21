@@ -5,20 +5,28 @@ import { webcrypto } from 'node:crypto';
 import vm from 'node:vm';
 import test from 'node:test';
 
-test('Spanish uses soft Argentine instructions and strips opening punctuation before sending', async () => {
-  let prompt;
-  const h=harness({AI:{async run(model,input){prompt=input.messages[0].content;return {response:'¡Bien! ¿Vos cómo andás?'};}}});
-  await h.incoming('123456','Hola');h.setTime(h.job('123456').due_at);await h.cron();
-  assert.match(prompt,/Argentine Rioplatense Spanish with natural voseo/);
-  assert.equal(h.effects.sends[0].message.text,'Bien! Vos cómo andás?');
+test('voseo draft is rewritten into tuteo without changing casual style', async () => {
+  let calls=0;
+  const h=harness({AI:{async run(){return {response:++calls===1?'Vos qué querés hacer? Contame.':'Tú qué quieres hacer? Cuéntame.'};}}});
+  await h.incoming('123456','No sé qué hacer hoy');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(calls,2);
+  assert.equal(h.effects.sends[0].message.text,'Tú qué quieres hacer? Cuéntame.');
 });
 
-test('Spain-specific phrasing is rewritten once into neutral voseo', async () => {
+test('Spanish uses neutral Latin American tuteo instructions and strips opening punctuation before sending', async () => {
+  let prompt;
+  const h=harness({AI:{async run(model,input){prompt=input.messages[0].content;return {response:'¡Bien! ¿Tú cómo estás?'};}}});
+  await h.incoming('123456','Hola');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.match(prompt,/neutral Latin American Spanish with tuteo/);
+  assert.equal(h.effects.sends[0].message.text,'Bien! Tú cómo estás?');
+});
+
+test('Spain-specific phrasing is rewritten once into neutral tuteo', async () => {
   let calls=0;
-  const h=harness({AI:{async run(){return {response:++calls===1?'Vale, tío, eso mola.':'Sí, contame. Qué tenés en mente?'};}}});
+  const h=harness({AI:{async run(){return {response:++calls===1?'Vale, tío, eso mola.':'Sí, cuéntame. Qué tienes en mente?'};}}});
   await h.incoming('123456','Te quiero contar una idea');h.setTime(h.job('123456').due_at);await h.cron();
   assert.equal(calls,2);
-  assert.match(h.effects.sends[0].message.text,/contame.*tenés/);
+  assert.match(h.effects.sends[0].message.text,/cuéntame.*tienes/);
 });
 
 test('short-gap reminder avoids a reunion speech and generic topic menu', async () => {
@@ -85,7 +93,7 @@ test('failed audio gets one paced, short acknowledgment without a model call', a
   h.setTime(h.job('123456').due_at); await h.cron(); await h.cron();
   assert.equal(h.effects.models.length,0);
   assert.equal(h.effects.sends.length,1);
-  assert.equal(h.effects.sends[0].message.text,'No pude escuchar el audio. Me lo mandás otra vez o me lo escribís?');
+  assert.equal(h.effects.sends[0].message.text,'No pude escuchar el audio. Me lo mandas otra vez o me lo escribes?');
   assert.equal(h.one('SELECT status FROM ig_voice_receipts').status,'failed');
 });
 
@@ -490,6 +498,7 @@ test('a correct Workroom correction is accepted without another model call', asy
   assert.equal(calls, 1);
   assert.match(h.effects.sends[0].message.text, /no es mi estudio/);
 });
+
 
 
 
