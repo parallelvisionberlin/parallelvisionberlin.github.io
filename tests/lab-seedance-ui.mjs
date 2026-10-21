@@ -101,20 +101,23 @@ try{
     settings:{type:'video',engine:'seedance',mode:'start',prompt:'A sculptural object slowly turning in natural light.',
       duration:5,resolution:'720p',aspectRatio:'16:9',referenceSourceIds:[]}};
   x=await workspace({initial:[completedVideo]});await x.page.click('#tool-video');
-  await x.page.waitForFunction(()=>document.querySelector('#video-detail-prompt').textContent.includes('sculptural object'));
+  const savedVideo=x.page.locator('#history .card[data-job="'+completedVideo.id+'"]');
+  await savedVideo.waitFor({state:'visible'});
   assert.equal(count(x,'/api/assets/'+completedVideo.outputId,'GET'),0,'Opening Video does not automatically download the MP4');
-  assert.equal(await x.page.locator('#video-feed-center').isVisible(),true,'Completed Video uses center preview');
-  assert.equal(await x.page.locator('#video-inspector').isVisible(),true,'Video metadata inspector stays visible');
+  assert.equal(await x.page.locator('#video-inspector-selected').isVisible(),false,
+    'Opening Video preserves the current creation scene until a History card is selected');
+  await savedVideo.click();
+  await x.page.waitForFunction(()=>document.querySelector('#video-detail-prompt').textContent.includes('sculptural object'));
+  assert.equal(await x.page.locator('#video-inspector').isVisible(),true,'Selected Video metadata inspector stays visible');
   assert.match(await x.page.locator('#video-detail-prompt').innerText(),/sculptural object/i);
   assert.equal(await x.page.locator('#video-detail-model').innerText(),'Seedance 2.5');
   assert.equal(await x.page.locator('#video-detail-watch').isEnabled(),true);
-  await x.page.locator('#history .card[data-job="'+completedVideo.id+'"]').click();
   await x.page.waitForFunction(()=>document.querySelector('#video')?.src.startsWith('blob:')&&!document.querySelector('#video').hidden);
   assert.equal(count(x,'/api/assets/'+completedVideo.outputId,'GET'),1);
   assert.equal(x.accepted(),0);
   await x.page.screenshot({path:'test-results/lab-video-selected-result.png',fullPage:false});
   assert.deepEqual(x.errors,[]);
-  ok('Latest video shows its inspector first, loads on request and submits no paid job');
+  ok('Video preserves the create scene, then loads explicit History selection without a paid job');
   await x.context.close();
 
  // Motion Effects: mock-only integration. Do not confirm or buy a generation.
