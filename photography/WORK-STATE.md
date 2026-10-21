@@ -51,3 +51,10 @@ Next: add future photographs solely in the canonical manifest and compare them a
 - Drive Amber Room folder: 1mrwtdkKPwnB82_NJhbAPfSufKa8VxXJK. Silver Room: 1EnqkYqtNvH-0-6LATefN4uQqnxEg8NVf. All 39 distinct newly supplied JPEG source files are saved; the exact alias IMG_1345(1) reuses IMG_1345. TIFF master exception remains documented above.
 
 - Hosting note: the pvlab-studio.pages.dev preview belongs to PV LAB and serves its landing page at /photography/. It does not verify this photography route. Use the real parallelvisionlabel.com photography URL and GitHub Pages deployment for this project.
+
+## 2026-10-21 / Editorial split hero (branch feature/alejandro-photo-hero-editorial-20261021)
+- Consolidated /photography/ hero: existing original Silver Room DSC02058.jpg on left, one-line artist name and two compact biography columns on right; preserves factual Dalí visit and links to Oscar's archive.
+- Dark neutral museum palette retained. Image uses its native 2048x1362 ratio, full frame; no AI imagery, no new media assets and no retouching.
+- Short direct transition into first Nocturne gallery. One count automatically reflects the live archive manifest. Existing gallery.js, archive.js, 47 originals, captions, arrow/swipe/keyboard and photo sizing unchanged.
+- Local Chromium layout tests: 12 viewports (320 through 1650 px), no horizontal overflow, seven gallery sections, portrait/landscape layout, no JS page errors.
+- Only /photography/index.html and /photography/style.css are modified; production deployment remains pending until PR merge and GitHub Pages checks confirm success.
