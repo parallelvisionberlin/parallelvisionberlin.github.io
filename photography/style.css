@@ -273,3 +273,61 @@ body {
   .film-marks { min-width: 0; flex-wrap: wrap; justify-content: flex-end; }
   .film-marks button { flex: 0 0 17px; }
 }
+
+/* Museum catalogue: mineral paper and black type, without forest-green tint.
+   Image originals, gallery geometry, interactions and other routes unchanged. */
+:root {
+  --paper:#ecebe6;
+  --ink:#171715;
+  --subtle:#65645e;
+  --hairline:#c2c0b9;
+  --deep:#101010;
+}
+html, body { background-color:var(--paper); }
+body { background-image:none; color:var(--ink); }
+.masthead { border-bottom-color:var(--hairline); }
+.masthead-back { color:var(--ink); }
+.introduction { padding-top:clamp(26px,3vw,48px); }
+.intro-topline { color:var(--subtle); }
+.intro-grid {
+  display:block;
+  padding:clamp(25px,3vw,46px) 0 18px;
+}
+.intro-grid h1, .intro-grid h1 em {
+  display:block;
+  font:400 clamp(38px,6.2vw,102px)/1.06 Georgia,'Times New Roman',serif;
+  letter-spacing:-.065em;
+  white-space:nowrap;
+}
+.intro-biography {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:clamp(18px,4vw,70px);
+  max-width:1110px;
+  margin:clamp(19px,2.3vw,31px) 0 0;
+}
+.intro-biography p {
+  margin:0;
+  color:#55544f;
+  font:400 clamp(12px,1.05vw,15px)/1.65 'Helvetica Neue',Arial,sans-serif;
+}
+.intro-biography a { color:var(--ink); text-decoration:underline; text-underline-offset:2px; }
+.archive { padding-top:0; }
+.gallery-section:first-child { padding-top:clamp(18px,2vw,28px); }
+.gallery-heading h3 { font-family:Georgia,'Times New Roman',serif; }
+.photograph { background:#101010; }
+.gallery-arrow { color:var(--ink); }
+.gallery-under { color:var(--subtle); }
+.film-marks button { background:#c2c0b9; }
+.film-marks button[aria-current='true'] { background:var(--ink); }
+.footer { border-top-color:var(--hairline); color:var(--subtle); }
+@media(max-width:680px) {
+  .introduction { padding:22px 18px 0; }
+  .intro-grid { padding:22px 0 13px; }
+  .intro-grid h1 { font-size:clamp(27px,7.7vw,47px); letter-spacing:-.065em; white-space:nowrap; }
+  .intro-biography { grid-template-columns:1fr; gap:10px; margin-top:16px; }
+  .intro-biography p { font-size:12px; line-height:1.55; }
+  .archive { padding-top:0; }
+  .gallery-section:first-child { padding-top:14px; }
+  .gallery-arrow { color:#ecebe6; border-color:rgba(236,235,230,.4); background:rgba(20,20,20,.82); }
+}
