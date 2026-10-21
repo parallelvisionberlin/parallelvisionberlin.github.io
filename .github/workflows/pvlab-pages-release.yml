@@ -1,9 +1,8 @@
 name: Release existing PV LAB Pages project
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: ['.github/workflows/pvlab-pages-release.yml']
+# Manual fallback. The existing GitHub credential returned 403 for Pages on 2026-10-21.
+# Use only after Pages access is available; do not retry automatically on ordinary pushes.
 permissions:
   contents: read
 concurrency:
