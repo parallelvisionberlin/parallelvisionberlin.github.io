@@ -1,7 +1,7 @@
 # Nina Instagram: verified owner-continuity work state
 Updated: 2026-10-21
 
-## Current dialogue repair prepared (2026-10-21)
+## Current dialogue repair deployed (2026-10-21)
 - Objective: fix contradictory Workroom definitions, recurring studio/coffee anecdotes, coaching-style questions and repetitive affectionate openings.
 - User supplied two conversation excerpts and asked for a more natural, dynamic Nina. Do not save the private transcripts in the repository.
 - User-reported conversation from `parallelvision.label` shows text replies from a separate account after public activation. This is user-supplied conversation evidence, not a new API audit.
@@ -16,13 +16,15 @@ Updated: 2026-10-21
 - Earlier fabricated favorites, vague romantic summaries and improvised assistant claims are not evidence for new canon or specific memories.
 - New deploy verification marker: dialogueRevision `natural-dms-2026-10-21`. The original public release/migration ID is retained so this update cannot rerun public activation.
 - Changed code: `nina-instagram/worker.mjs`, `worker.test.mjs`, `deploy.mjs`, `deploy.test.mjs`, `dialogue-eval.mjs`, and `.github/workflows/deploy-nina-instagram.yml`.
-- Local verification passed: syntax, 16 reply tests and 4 deployment tests.
+- Verification passed: syntax, 16 reply tests and 4 deployment tests locally and in CI. Source commit `a5b0967025c191b6fcf6f644fd11447e433226c0`.
 - Exact comparisons confirmed webhook verification, owner link/vault access, send controls, voice handling and scheduling functions are unchanged.
-- CI will run four synthetic conversations through the same production generation/rewrite function and Workers AI model before uploading. No live conversations, account records or private memory are loaded for that evaluation.
-- If the CI deployment token lacks direct model permission, the evaluation records that limit and the local behavioral tests still run. Do not claim real-model evaluation unless it succeeds.
-- Current repair deployment status: pending the dedicated workflow. The code has not yet been confirmed live with the new dialogue marker.
+- Synthetic direct-model evaluation could not run: the existing deployment token lacks direct Workers AI model permission. The workflow recorded `DIALOGUE_MODEL_UNAVAILABLE`; do not claim generated sample replies or real-model quality validation.
+- Deployment VERIFIED 2026-10-21 at 19:53 Europe/Berlin. Active version `58e2eb5c-4957-4b32-9797-05456e4168b9` at 100%; deployment `4fd36acb-2d35-4fc1-9680-0a7e9de7718a`.
+- Successful run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39647666750 (job `119387421558`).
+- Actual production health returned dialogueRevision `natural-dms-2026-10-21`, public mode and both public flags true. Pacing remained `[10,120]` first minutes, `120` active seconds, `6` quick replies and `30` idle minutes.
+- Cloudflare bindings/runtime configuration and once-minute cron were verified around the content-only upload. A real Instagram response with this new dialogue revision remains to be observed.
 
-### Existing verified public deployment
+### Prior verified public deployment
 - Production version `8ed22136-ae82-4af0-9962-77ee4c171164` at 100%; deployment `5497e37f-714a-43c4-a3d8-26baf9d4a3b0`, verified 2026-10-21 at 16:15 Europe/Berlin.
 - Prior successful CI run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39615126399 (source/deployer commit `a29e5a360dd6af48087970dd91bc251cae3e03c1`).
 - Production health returned release `public-paced-2026-10-21`, mode public, public text true and public voice true.
@@ -36,9 +38,9 @@ Updated: 2026-10-21
 - Real public voice-note transcription and delivery remain unverified end-to-end.
 
 ### Exact next action
-1. Publish this scoped repair, inspect actual synthetic model replies, and confirm the dedicated CI deploy succeeds with the exact new dialogueRevision in production health.
-2. Record the new version, CI run and verification limits here.
-3. Ask the user to continue the existing Instagram conversation to assess naturalness; don't promise model quality from unit tests alone.
+1. Have the user continue an existing Instagram conversation with an ordinary message; inspect the actual new response for naturalness, repetition and canon consistency.
+2. Do not retry the direct Workers AI evaluation using the same deployment token; its model permission is absent. The deployment path itself works.
+3. Preserve the public mode, approved pacing and owner-private continuity. Do not erase conversation history to repair style, and do not promise model quality from unit tests alone.
 
 ## Historical implementation record
 The sections below preserve the earlier chronological deployment and verification notes.
