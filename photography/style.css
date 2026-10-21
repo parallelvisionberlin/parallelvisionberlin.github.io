@@ -346,3 +346,10 @@ body{background-image:none}
 .film-marks button[aria-current='true']{background:var(--ink)}
 .footer{border-top-color:var(--hairline)}
 @media(max-width:680px){.gallery-arrow{color:#ebe7df;background:rgba(17,17,17,.84);border-color:rgba(235,231,223,.38)}}
+
+/* The common portrait/landscape stage previously painted visible solid-black
+   pillars beside contained originals. Remove that artificial picture frame,
+   retaining constant stage dimensions and the full uncropped photographs. */
+.photograph{background:transparent}
+.gallery-wrap{background:transparent}
+@media(max-width:680px){.photograph{background:transparent}}
