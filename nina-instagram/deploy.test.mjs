@@ -19,7 +19,9 @@ function fixture(bindings = required, mutateAfter = false) {
     calls.push({ url, options });
     if (String(url).endsWith('/health')) return Response.json(status);
     if (String(url).endsWith('/settings')) return Response.json({ success: true,
-      result: { compatibility_date: '2026-10-01', bindings: mutateAfter && uploaded ? bindings.slice(1) : bindings } });
+      result: { compatibility_date: '2026-10-01', bindings: mutateAfter === true && uploaded ? bindings.slice(1) : bindings,
+        ...(mutateAfter === 'annotations' ? { annotations: { 'workers/message': uploaded ? 'New version' : 'Previous version' },
+          last_deployed_from: uploaded ? 'api' : 'dash' } : {}) } });
     if (String(url).endsWith('/schedules')) return Response.json({ success: true, result: { schedules: [{ cron: '* * * * *' }] } });
     if (String(url).endsWith('/content')) { uploaded = true; return Response.json({ success: true, result: { id: 'nina-instagram' } }); }
     if (String(url).endsWith('/deployments')) return Response.json({ success: true, result: { deployments: [] } });
@@ -54,4 +56,10 @@ test('an unexpected binding or a disabled public override fails before any uploa
 test('deployment never reports success if configuration changes', async () => {
   const f = fixture(required, true);
   await assert.rejects(deploy({ token: 'test-token', source, fetchImpl: f.fetchImpl, log() {} }), /configuration changed/);
+});
+
+test('version annotations can change while runtime configuration remains identical', async () => {
+  const f = fixture(required, 'annotations');
+  const result = await deploy({ token: 'test-token', source, fetchImpl: f.fetchImpl, log() {} });
+  assert.deepEqual(result, status);
 });

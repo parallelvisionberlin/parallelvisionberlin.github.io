@@ -22,6 +22,10 @@ function canonical(value) {
 }
 function configurationFingerprint(settings) {
   const copy = structuredClone(settings);
+  // These identify the uploaded source/version, rather than runtime settings.
+  // A content deployment legitimately changes them; bindings and all runtime
+  // configuration below must still match exactly.
+  for (const key of ['annotations', 'main_module', 'body_part', 'etag', 'last_deployed_from']) delete copy[key];
   copy.bindings = (copy.bindings || []).map(binding =>
     binding.type.startsWith('secret_') ? { name: binding.name, type: binding.type } : binding
   ).sort((a, b) => a.name.localeCompare(b.name));
@@ -69,6 +73,10 @@ export async function deploy({ token, source, fetchImpl = fetch,
   log('Nina Instagram source uploaded.', JSON.stringify({ id: uploaded?.id || null }));
 
   const after = await api('/settings');
+  if (configurationFingerprint(after) !== configurationFingerprint(before)) {
+    log('Changed settings fields:', Object.keys({ ...before, ...after })
+      .filter(key => JSON.stringify(canonical(before[key])) !== JSON.stringify(canonical(after[key]))).join(','));
+  }
   assert.equal(configurationFingerprint(after), configurationFingerprint(before), 'Worker configuration changed unexpectedly');
   const schedulesAfter = await api('/schedules');
   assert.deepEqual(canonical(schedulesAfter), canonical(schedulesBefore), 'Cron schedules changed unexpectedly');
