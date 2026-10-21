@@ -394,6 +394,8 @@ try{
   assert.equal(await welcomePrev.isVisible(),true,'Both gallery arrows remain in place');
   assert.equal(await welcomePrev.isDisabled(),true,'At the first look, previous is dimmed');
   await welcomeNext.click();
+  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft>30);
+  await welcomeNext.click();
   await page.waitForFunction(()=>{
     const track=document.getElementById('lab-welcome-presets');
     return track.scrollWidth-track.clientWidth>30&&
@@ -408,6 +410,8 @@ try{
       within:target===prev||prev.contains(target)};
   });
   assert.ok(welcomeHit.within,'Carousel back arrow must receive pointer events: '+JSON.stringify(welcomeHit));
+  await welcomePrev.click();
+  await page.waitForFunction(()=>{const track=document.getElementById('lab-welcome-presets');return track.scrollLeft<track.scrollWidth-track.clientWidth-30;});
   await welcomePrev.click();
   await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<4);
   await page.keyboard.press('ArrowRight');
