@@ -249,6 +249,7 @@ try{
       // Checkout safety is identical from the shared editorial panel.
       session.billingReady=false;
       await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+      await page.waitForFunction(()=>document.querySelector('#lab-wallet-state').textContent.includes('Payments are not being accepted yet.'));
       await page.locator('#lab-pricing-overlay [data-lab-buy="topup10"]').click();
       await page.locator('#lab-pricing-overlay-status').getByText('Checkout is not available for this account. No payment was attempted.',{exact:true}).waitFor();
       assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,0);
