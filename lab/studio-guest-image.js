@@ -182,6 +182,15 @@ function syncGuestToolRoute(){
   const route=Object.hasOwn(guestToolPages,requested)?requested:'image';
   const entry=guestToolPages[route];
   gate.dataset.guestTool=route;
+  // The Image composer has force-display rules for its editorial desktop/mobile
+  // deck. Suppress those at the element level for every non-Image guest route.
+  // Remove the override entirely when returning to Image.
+  for(const element of [gate.querySelector('.pv-guest-carousel'),composer]){
+    if(!element)continue;
+    element.hidden=route!=='image';
+    if(route==='image')element.style.removeProperty('display');
+    else element.style.setProperty('display','none','important');
+  }
   guestKicker.textContent='PV LAB / '+entry.name.toUpperCase();
   guestTitle.textContent=entry.title;
   guestSubtitle.textContent=entry.description;
