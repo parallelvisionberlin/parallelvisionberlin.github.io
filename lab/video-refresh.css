@@ -322,3 +322,13 @@
     width:26px;height:26px;background-size:14px 14px;
   }
 }
+
+/* Quiet empty History note, scoped to Video on every screen size. */
+#app:not(.video-studio-active) #video-feed-empty{display:none}
+#app.video-studio-active #video-feed-empty{
+  margin:18px 0 0;
+  padding:0;
+  font:400 12px/1.5 'DM Sans',Arial,sans-serif;
+  color:#969ba5;
+  overflow-wrap:anywhere;
+}
