@@ -134,9 +134,19 @@
     let previousTapTime = 0;
     let previousTapX = 0;
     let previousTapY = 0;
+    let tapStartX = null;
+    let tapStartY = null;
+    state.stage.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) { tapStartX = null; return; }
+      tapStartX = e.touches[0].clientX;
+      tapStartY = e.touches[0].clientY;
+    }, { passive: true });
     state.stage.addEventListener('touchend', e => {
-      if (e.changedTouches.length !== 1 || e.touches.length) return;
+      if (e.changedTouches.length !== 1 || e.touches.length || tapStartX === null) return;
       const t = e.changedTouches[0];
+      const wasTap = Math.hypot(t.clientX - tapStartX, t.clientY - tapStartY) < 12;
+      tapStartX = null;
+      if (!wasTap) { previousTapTime = 0; return; }
       const now = e.timeStamp;
       const isDoubleTap = now - previousTapTime > 0 &&
         now - previousTapTime < 340 &&
