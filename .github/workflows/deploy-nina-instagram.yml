@@ -9,6 +9,7 @@ on:
       - 'nina-instagram/worker.test.mjs'
       - 'nina-instagram/deploy.mjs'
       - 'nina-instagram/deploy.test.mjs'
+      - 'nina-instagram/dialogue-eval.mjs'
       - '.github/workflows/deploy-nina-instagram.yml'
 
 permissions:
@@ -37,4 +38,6 @@ jobs:
       - name: Deploy existing Nina Instagram and verify public mode
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: node nina-instagram/deploy.mjs
+        run: |
+          node nina-instagram/dialogue-eval.mjs
+          node nina-instagram/deploy.mjs

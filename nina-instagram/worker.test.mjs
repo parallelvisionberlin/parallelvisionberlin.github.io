@@ -99,7 +99,7 @@ function harness(overrides = {}, existingDb) {
     }
   });
   vm.runInContext(source.replace('export default {', 'const worker = {') +
-    '\nglobalThis.hooks={worker,initializePublicRelease,queueHumanPacedReply,storeAndDraft,ninaHandleVoice,visitorReplyPlan,ownerContinuity};', context);
+    '\nglobalThis.hooks={worker,initializePublicRelease,queueHumanPacedReply,storeAndDraft,ninaHandleVoice,visitorReplyPlan,ownerContinuity,ninaTurnGuidance,needsNinaRewrite};', context);
   const hooks = context.hooks;
   const one = (q, ...args) => sql.prepare(q).get(...args);
   const job = sender => one('SELECT * FROM ig_reply_jobs WHERE instagram_user_id=?', sender);
@@ -290,4 +290,56 @@ test('public voice transcribes once, enters the same delay queue and honors its 
   await disabled.hooks.ninaHandleVoice(disabled.env, item);
   assert.equal(disabled.effects.media.length, 0);
   assert.equal(disabled.effects.models.length, 0);
+});
+
+test('a studio claim for the Workroom is rewritten to the canonical attention group', async () => {
+  const calls = [];
+  const h = harness({ AI: { async run(model, input) {
+    calls.push(input);
+    return { response: calls.length === 1 ? 'El Workroom es mi estudio, donde produzco música.' :
+      'Es un pequeño grupo con el que practico atención, silencio y movimiento.' };
+  } } });
+  await h.incoming('123456', 'Qué es el Workroom?');
+  h.setTime(h.job('123456').due_at); await h.cron();
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].messages[0].content, /Workroom means the small attention-practice group/);
+  assert.match(h.effects.sends[0].message.text, /grupo.*atención/);
+  assert(!h.effects.sends[0].message.text.includes('mi estudio'));
+});
+
+test('a simple greeting does not deliver the recurring coffee and Workroom anecdote', async () => {
+  let calls = 0;
+  const h = harness({ AI: { async run() {
+    return { response: ++calls === 1 ? 'Estoy cansada después del Workroom, pero el café me salva. Y tú?' :
+      'Bien. Me alegra leerte. Cómo vas?' };
+  } } });
+  await h.incoming('123456', 'Hola Nina cómo estás?');
+  h.setTime(h.job('123456').due_at); await h.cron();
+  assert.equal(calls, 2);
+  assert(!/workroom|caf[eé]|cansad/i.test(h.effects.sends[0].message.text));
+});
+
+test('coaching feedback never receives a topic menu or another probing question', async () => {
+  let calls = 0;
+  const h = harness({ AI: { async run() {
+    calls++;
+    return { response: 'Solo quiero conversar de manera auténtica. Quieres que cambiemos de tema?' };
+  } } });
+  await h.incoming('123456', 'Se siente como una sesión de coaching.');
+  h.setTime(h.job('123456').due_at); await h.cron();
+  assert.equal(calls, 2);
+  assert(!/[?？]|quieres|explorar|auténtica/i.test(h.effects.sends[0].message.text));
+  assert(h.effects.sends[0].message.text.length < 100);
+});
+
+test('a correct Workroom correction is accepted without another model call', async () => {
+  let calls = 0;
+  const h = harness({ AI: { async run() {
+    calls++;
+    return { response: 'El Workroom no es mi estudio. Es el grupo con el que practico atención.' };
+  } } });
+  await h.incoming('123456', 'El Workroom es tu estudio?');
+  h.setTime(h.job('123456').due_at); await h.cron();
+  assert.equal(calls, 1);
+  assert.match(h.effects.sends[0].message.text, /no es mi estudio/);
 });

@@ -30,11 +30,13 @@ The activation marker is one-time. Changing D1 mode back to `tester` or a disabl
 
 ## Verification
 
+Dialogue revision `natural-dms-2026-10-21` restores the established attention-group meaning of the Workroom and changes Instagram conversation guidance to avoid repeated lore, stock coffee/studio greetings and coaching-style repairs. The public activation marker and pacing remain the same. CI tests four synthetic conversations through the actual generation/rewrite function and the existing Workers AI model, when the deployment token has direct model permission; no private conversation is loaded for that check.
+
 Run with Node 24 or later:
 
 ```sh
 node --check nina-instagram/worker.mjs
-node --test nina-instagram/worker.test.mjs
+node --test nina-instagram/worker.test.mjs nina-instagram/deploy.test.mjs
 ```
 
 The tests use real in-memory SQLite with a D1-compatible prepared-statement adapter and simulated Meta/model requests. They verify first-delay bounds, six quick replies, idle reset, coalescing and concurrent ordering, opt-out/resume, explicit disable overrides, one-time activation, owner-context separation, invalid signatures, expired jobs, uncertain-send deduplication, and voice gating/transcription deduplication. They do not prove a Cloudflare deployment or Meta public delivery.

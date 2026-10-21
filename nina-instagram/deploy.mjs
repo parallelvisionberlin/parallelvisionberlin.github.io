@@ -37,6 +37,8 @@ export async function deploy({ token, source, fetchImpl = fetch,
   token = String(token || '').replace(/\s+/g, '');
   assert(token, 'CLOUDFLARE_API_TOKEN is empty');
   assert(source?.includes(`const PUBLIC_RELEASE_ID = '${RELEASE}'`), 'Unexpected Worker source');
+  const dialogueRevision = source.match(/const NINA_DIALOGUE_REVISION = '([^']+)'/)?.[1];
+  assert(dialogueRevision, 'Worker dialogue revision is missing');
   const headers = { Authorization: 'Bearer ' + token };
   async function api(path, options = {}) {
     const response = await fetchImpl(ROOT + path, {
@@ -85,7 +87,7 @@ export async function deploy({ token, source, fetchImpl = fetch,
   for (let attempt = 0; attempt < 30; attempt++) {
     const response = await fetchImpl(HEALTH, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     const status = await response.json().catch(() => null);
-    if (response.ok && status?.release === RELEASE && status.mode === 'public' &&
+    if (response.ok && status?.release === RELEASE && status.dialogueRevision === dialogueRevision && status.mode === 'public' &&
         status.publicRepliesEnabled === true && status.publicVoiceEnabled === true) {
       assert.deepEqual(status.firstReplyMinutes, [10, 120]);
       assert.equal(status.activeReplySeconds, 120);

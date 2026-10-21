@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { deploy } from './deploy.mjs';
 
-const source = "const PUBLIC_RELEASE_ID = 'public-paced-2026-10-21'; export default {};";
+const source = "const PUBLIC_RELEASE_ID = 'public-paced-2026-10-21'; const NINA_DIALOGUE_REVISION = 'natural-dms-2026-10-21'; export default {};";
 const required = [
   { name: 'AI', type: 'ai' }, { name: 'IG_MEMORY_DB', type: 'd1', id: 'test-database' },
   { name: 'OWNER_VAULT', type: 'service', service: 'nina-instagram-owner-vault' },
@@ -10,6 +10,7 @@ const required = [
     .map(name => ({ name, type: 'secret_text' }))
 ];
 const status = { release: 'public-paced-2026-10-21', mode: 'public',
+  dialogueRevision: 'natural-dms-2026-10-21',
   publicRepliesEnabled: true, publicVoiceEnabled: true, firstReplyMinutes: [10, 120],
   activeReplySeconds: 120, quickReplyLimit: 6, idleResetMinutes: 30 };
 
