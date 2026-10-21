@@ -44,4 +44,8 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Mobile follow-up: user screenshot showed a large empty gap below the opening film caption.
 - Cause: #berlin-beyond inherited min-height:100svh on phones.
 - Fix: mobile-only min-height:0 in css/berlin-projects.css, retaining 32px bottom spacing and desktop behavior.
-- Verify CSS publication and computed mobile height after the follow-up commit.
+- Follow-up commits: c43ad3f (CSS fix), f12c180 (stylesheet cache version).
+- Publication confirmed in successful Pages run 39638982082, including subsequent main changes.
+- Public HTML uses berlin-projects.css?v=20261021-mobile-film-gap.
+- Browser CSSOM confirms mobile rule min-height:0px and padding:0px 0px 32px.
+- User phone screenshot supplied the original reproduction; a fresh phone screenshot remains unverified.
