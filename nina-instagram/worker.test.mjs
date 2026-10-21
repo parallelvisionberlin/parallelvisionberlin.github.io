@@ -5,6 +5,79 @@ import { webcrypto } from 'node:crypto';
 import vm from 'node:vm';
 import test from 'node:test';
 
+test('failed audio gets one paced, short acknowledgment without a model call', async () => {
+  const h = harness({fetchImpl: async () => Response.json({error:{code:100}},{status:400})});
+  await h.hooks.ninaHandleVoice(h.env,{senderId:'123456',messageId:'bad-audio',audio:{url:''}});
+  assert.equal(h.one('SELECT error_code FROM ig_voice_receipts').error_code,'VOICE_META_REJECTED_100');
+  assert.equal(h.job('123456').status,'pending');
+  h.env.fetchImpl=undefined;
+  h.setTime(h.job('123456').due_at); await h.cron(); await h.cron();
+  assert.equal(h.effects.models.length,0);
+  assert.equal(h.effects.sends.length,1);
+  assert.equal(h.effects.sends[0].message.text,'No pude escuchar el audio. Me lo mandas otra vez o me lo escribes?');
+  assert.equal(h.one('SELECT status FROM ig_voice_receipts').status,'failed');
+});
+
+test('later text excludes internal audio placeholders from the model conversation', async () => {
+  const h=harness({fetchImpl:async()=>Response.json({error:{code:100}},{status:400})});
+  await h.hooks.ninaHandleVoice(h.env,{senderId:'123456',messageId:'bad-audio',audio:{}});
+  h.env.fetchImpl=undefined;
+  await h.incoming('123456','Bueno, seguimos con la música');
+  h.setTime(h.job('123456').due_at); await h.cron();
+  const turns=h.effects.models[0].input.messages;
+  assert(!turns.some(m=>m.content.includes('[Voice note')));
+  assert.equal(h.effects.sends.length,1);
+});
+
+test('original download error survives an unavailable Graph fallback', async () => {
+  const h=harness({fetchImpl:async url=>url.includes('graph.instagram.com')
+    ?Response.json({error:{code:100}},{status:400}):new Response('denied',{status:403})});
+  await h.hooks.ninaHandleVoice(h.env,{senderId:'123456',messageId:'download-fail',audio:{url:'https://audio.fbcdn.net/test.ogg'}});
+  assert.equal(h.one('SELECT error_code FROM ig_voice_receipts').error_code,'VOICE_MEDIA_HTTP_403');
+  assert.equal(h.effects.models.length,0);
+});
+
+test('Graph can refresh a failed signed URL and transcribe its audio_data URL', async () => {
+  const h=harness({fetchImpl:async url=>{
+    if(url.includes('graph.instagram.com'))return Response.json({attachments:{data:[{url:'https://invalid.example/no',audio_data:{url:'https://audio.fbcdn.net/fresh.ogg'}}]}});
+    if(url.endsWith('expired.ogg'))return new Response('',{status:403});
+    return new Response(new Uint8Array(256),{headers:{'Content-Type':'audio/mp4'}});
+  }});
+  await h.hooks.ninaHandleVoice(h.env,{senderId:'123456',messageId:'refresh-audio',audio:{url:'https://audio.fbcdn.net/expired.ogg'}});
+  assert.equal(h.effects.models.length,1);
+  assert(h.effects.models[0].model.includes('whisper'));
+  assert.equal(h.one('SELECT status FROM ig_voice_receipts').status,'transcribed');
+  assert.equal(h.one('SELECT body FROM ig_messages').body,'Hola desde una nota de voz');
+});
+
+test('audio redirects cannot leave the Meta CDN allowlist or send credentials', async () => {
+  const calls=[];
+  const h=harness({fetchImpl:async(url,opts)=>{
+    calls.push({url,opts});
+    return new Response(null,{status:302,headers:{Location:'https://attacker.example/audio'}});
+  }});
+  await assert.rejects(h.hooks.ninaDownloadVoice('https://audio.fbcdn.net/start'),/VOICE_REDIRECT_BLOCKED/);
+  assert.equal(calls.length,1);
+  assert.equal(calls[0].opts.headers,undefined);
+  assert.equal(h.hooks.ninaSafeVoiceUrl('https://fbcdn.net.attacker.example/file'),null);
+  assert.equal(h.hooks.ninaSafeVoiceUrl('http://audio.fbcdn.net/file'),null);
+});
+
+test('old failed voice recovery runs once and cannot replace a newer text job', async () => {
+  const h=harness({fetchImpl:async url=>url.includes('graph.instagram.com')
+    ?Response.json({attachments:{data:[{file_url:'https://audio.fbcdn.net/fresh.ogg'}]}})
+    :new Response(new Uint8Array(256),{headers:{'Content-Type':'audio/ogg'}})});
+  await h.hooks.initializePublicRelease(h.env);
+  h.sql.exec("INSERT INTO ig_messages(message_id,instagram_user_id,direction,body) VALUES('old-voice','123456','incoming','[Voice note could not be transcribed]'); INSERT INTO ig_processing(incoming_message_id,status,last_error_code) VALUES('old-voice','failed','VOICE_URL_UNAVAILABLE')");
+  await h.incoming('123456','Texto más reciente');
+  const due=h.job('123456').due_at;
+  await h.hooks.ninaRecoverFailedVoice(h.env); await h.hooks.ninaRecoverFailedVoice(h.env);
+  assert.equal(h.effects.models.length,1);
+  assert.notEqual(h.job('123456').latest_incoming_message_id,'old-voice');
+  assert.equal(h.job('123456').due_at,due);
+  assert.equal(h.effects.sends.length,0);
+});
+
 const source = readFileSync(new URL('./worker.mjs', import.meta.url), 'utf8');
 const schema = `
 CREATE TABLE ig_autoreply_config(id INTEGER PRIMARY KEY,mode TEXT);
@@ -86,6 +159,7 @@ function harness(overrides = {}, existingDb) {
     Date: class extends Date { static now() { return clock; } },
     console: { error(...args) { effects.errors.push(args); } },
     fetch: async (url, options = {}) => {
+      if (env.fetchImpl) return env.fetchImpl(String(url), options);
       if (String(url).includes('.fbcdn.net/')) {
         effects.media.push(String(url));
         return new Response(new Uint8Array(256), { headers: { 'Content-Type': 'audio/ogg' } });
@@ -99,7 +173,7 @@ function harness(overrides = {}, existingDb) {
     }
   });
   vm.runInContext(source.replace('export default {', 'const worker = {') +
-    '\nglobalThis.hooks={worker,initializePublicRelease,queueHumanPacedReply,storeAndDraft,ninaHandleVoice,visitorReplyPlan,ownerContinuity,ninaTurnGuidance,needsNinaRewrite};', context);
+    '\nglobalThis.hooks={worker,initializePublicRelease,queueHumanPacedReply,storeAndDraft,ninaHandleVoice,visitorReplyPlan,ownerContinuity,ninaTurnGuidance,needsNinaRewrite,ninaTranscribeVoice,ninaRecoverFailedVoice,ninaDownloadVoice,ninaSafeVoiceUrl};', context);
   const hooks = context.hooks;
   const one = (q, ...args) => sql.prepare(q).get(...args);
   const job = sender => one('SELECT * FROM ig_reply_jobs WHERE instagram_user_id=?', sender);
@@ -343,3 +417,4 @@ test('a correct Workroom correction is accepted without another model call', asy
   assert.equal(calls, 1);
   assert.match(h.effects.sends[0].message.text, /no es mi estudio/);
 });
+

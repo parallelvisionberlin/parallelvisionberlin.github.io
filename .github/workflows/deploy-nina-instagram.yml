@@ -41,3 +41,5 @@ jobs:
         run: |
           node nina-instagram/dialogue-eval.mjs
           node nina-instagram/deploy.mjs
+          node nina-instagram/diagnose.mjs
+

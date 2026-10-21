@@ -4,6 +4,29 @@ const NINA_VOICE_PENDING = '[Voice note awaiting transcription]';
 const NINA_VOICE_FAILED = '[Voice note could not be transcribed]';
 const NINA_VOICE_MAX_BYTES = 8 * 1024 * 1024;
 
+function ninaVoicePlaceholder(body) {
+  return body === NINA_VOICE_PENDING || body === NINA_VOICE_FAILED;
+}
+function ninaVoiceFailureReply(history = []) {
+  const text = history.filter(m => m.direction === 'incoming' && !ninaVoicePlaceholder(m.body))
+    .slice(0, 3).map(m => String(m.body)).join(' ');
+  if (/\b(?:hello|hey|how|what|your|you|please|voice|message)\b/i.test(text))
+    return "I couldn't hear that audio. Can you send it again or write it?";
+  if (/\b(?:hallo|wie|was|ich|du|bitte|Sprachnachricht)\b/i.test(text))
+    return 'Ich konnte die Sprachnachricht nicht hören. Schickst du sie nochmal oder schreibst es?';
+  return 'No pude escuchar el audio. Me lo mandas otra vez o me lo escribes?';
+}
+async function ninaVoiceStage(env, id, stage) {
+  await env.IG_MEMORY_DB.prepare("UPDATE ig_voice_receipts SET stage=?,updated_at=CURRENT_TIMESTAMP WHERE incoming_message_id=?")
+    .bind(stage, id).run();
+}
+function ninaAudioUrl(entry) {
+  for (const value of [entry?.payload?.url, entry?.url, entry?.file_url, entry?.audio_data?.url]) {
+    if (typeof value === 'string' && value.length <= 8192 && ninaSafeVoiceUrl(value)) return value;
+  }
+  return '';
+}
+
 function ninaVoiceAttachment(message) {
   const list = Array.isArray(message?.attachments) ? message.attachments : (message?.attachment ? [message.attachment] : []);
   const a = list.find(item => {
@@ -14,8 +37,7 @@ function ninaVoiceAttachment(message) {
       (type === 'file' && (mime.startsWith('audio/') || /\.(?:m4a|mp3|ogg|opus|wav|aac)(?:\?|$)/i.test(name)));
   });
   if (!a) return null;
-  const url = String(a?.payload?.url || a?.url || '');
-  return { url: url.length <= 8192 ? url : '' };
+  return { url: ninaAudioUrl(a) };
 }
 
 function ninaSafeVoiceUrl(value) {
@@ -27,7 +49,7 @@ function ninaSafeVoiceUrl(value) {
       h.endsWith('.fbcdn.net') || h === 'fbcdn.net' ||
       h.endsWith('.fbsbx.com') || h === 'fbsbx.com' ||
       h.endsWith('.cdninstagram.com') || h === 'cdninstagram.com' ||
-      h === 'lookaside.instagram.com'
+      h === 'lookaside.instagram.com' || h === 'lookaside.facebook.com'
     )) return null;
     return u.toString();
   } catch { return null; }
@@ -39,12 +61,14 @@ async function ninaVoiceUrlFromMeta(env, messageId) {
     'https://graph.instagram.com/v26.0/' + encodeURIComponent(messageId) + '?fields=attachments',
     { headers: { Authorization: 'Bearer ' + env.INSTAGRAM_ACCESS_TOKEN }, signal: AbortSignal.timeout(9000) }
   );
-  if (!response.ok) return null;
   const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const code = Number(data?.error?.code);
+    throw new Error('VOICE_META_REJECTED_' + (Number.isInteger(code) && code > 0 ? code : response.status));
+  }
   const entries = Array.isArray(data?.attachments?.data) ? data.attachments.data : [];
   for (const entry of entries) {
-    const address = entry?.file_url || entry?.url || entry?.payload?.url || entry?.audio_data?.url;
-    const allowed = ninaSafeVoiceUrl(address);
+    const allowed = ninaAudioUrl(entry);
     if (allowed) return allowed;
   }
   return null;
@@ -53,14 +77,16 @@ async function ninaVoiceUrlFromMeta(env, messageId) {
 async function ninaDownloadVoice(url) {
   let current = ninaSafeVoiceUrl(url);
   if (!current) throw new Error('VOICE_URL_UNAVAILABLE');
-  for (let redirect = 0; redirect < 3; redirect++) {
-    const response = await fetch(current, { redirect: 'manual', signal: AbortSignal.timeout(12000) });
+  const signal = AbortSignal.timeout(8000);
+  for (let redirect = 0; redirect < 5; redirect++) {
+    const response = await fetch(current, { redirect: 'manual', signal });
     if ([301, 302, 303, 307, 308].includes(response.status)) {
-      current = ninaSafeVoiceUrl(new URL(response.headers.get('location') || '', current).toString());
+      const location = response.headers.get('location');
+      current = location ? ninaSafeVoiceUrl(new URL(location, current).toString()) : null;
       if (!current) throw new Error('VOICE_REDIRECT_BLOCKED');
       continue;
     }
-    if (!response.ok) throw new Error('VOICE_MEDIA_UNAVAILABLE');
+    if (!response.ok) throw new Error('VOICE_MEDIA_HTTP_' + response.status);
     const mime = String(response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
     if (mime && !mime.startsWith('audio/') && mime !== 'application/octet-stream' && mime !== 'video/mp4')
       throw new Error('VOICE_NOT_AUDIO');
@@ -98,16 +124,20 @@ function ninaVoiceBase64(bytes) {
 
 async function ninaTranscribeVoice(env, item) {
   let mediaUrl = ninaSafeVoiceUrl(item.audio?.url);
-  let bytes;
+  let bytes, downloadError;
+  await ninaVoiceStage(env, item.messageId, 'download');
   if (mediaUrl) {
     try { bytes = await ninaDownloadVoice(mediaUrl); }
-    catch { /* A Meta-hosted URL may have expired; retry through the Graph message endpoint. */ }
+    catch (error) { downloadError = error; }
   }
   if (!bytes) {
-    mediaUrl = await ninaVoiceUrlFromMeta(env, item.messageId);
-    if (!mediaUrl) throw new Error('VOICE_URL_UNAVAILABLE');
+    await ninaVoiceStage(env, item.messageId, 'resolve');
+    try { mediaUrl = await ninaVoiceUrlFromMeta(env, item.messageId); }
+    catch (error) { throw downloadError || error; }
+    if (!mediaUrl) throw downloadError || new Error('VOICE_META_NO_AUDIO_URL');
     bytes = await ninaDownloadVoice(mediaUrl);
   }
+  await ninaVoiceStage(env, item.messageId, 'transcribe');
   const result = await env.AI.run('@cf/openai/whisper-large-v3-turbo', {
     audio: ninaVoiceBase64(bytes),
     task: 'transcribe',
@@ -119,7 +149,7 @@ async function ninaTranscribeVoice(env, item) {
   return transcript.slice(0, 3900);
 }
 
-async function ninaHandleVoice(env, item) {
+async function ninaHandleVoice(env, item, recovering = false) {
   const db = env.IG_MEMORY_DB;
   if (!db || !env.AI) return;
   await initializePublicRelease(env);
@@ -135,9 +165,10 @@ async function ninaHandleVoice(env, item) {
     .bind(item.senderId).run();
   // The placeholder reserves the original Meta message ID and its ordering, so redeliveries
   // cannot incur another speech-to-text charge or produce a second response.
-  const claim = await db.prepare("INSERT OR IGNORE INTO ig_messages (message_id,instagram_user_id,direction,body) VALUES (?,?,'incoming',?)")
+  const claim = recovering ? { meta: { changes: 1 } } : await db.prepare("INSERT OR IGNORE INTO ig_messages (message_id,instagram_user_id,direction,body) VALUES (?,?,'incoming',?)")
     .bind(item.messageId, item.senderId, NINA_VOICE_PENDING).run();
   if (Number(claim?.meta?.changes || 0) !== 1) return;
+  await db.prepare("INSERT OR IGNORE INTO ig_voice_receipts (incoming_message_id,status,stage) VALUES (?,'processing','received')").bind(item.messageId).run();
   await db.prepare("INSERT OR IGNORE INTO ig_processing (incoming_message_id,status) VALUES (?,'processing')")
     .bind(item.messageId).run();
   try {
@@ -146,14 +177,31 @@ async function ninaHandleVoice(env, item) {
       .bind(transcript, item.messageId, item.senderId).run();
     await db.prepare("UPDATE ig_processing SET status='received',last_error_code=NULL,updated_at=CURRENT_TIMESTAMP WHERE incoming_message_id=?")
       .bind(item.messageId).run();
+    await db.prepare("UPDATE ig_voice_receipts SET status='transcribed',stage='complete',error_code=NULL,updated_at=CURRENT_TIMESTAMP WHERE incoming_message_id=?").bind(item.messageId).run();
     // Uses Nina's existing delay, memory, rate limits, and text DM sending code.
     await queueHumanPacedReply(env, item.senderId, item.messageId, transcript);
   } catch (error) {
-    const code = /^VOICE_[A-Z_]+$/.test(String(error?.message)) ? error.message : 'VOICE_TRANSCRIPTION_FAILED';
+    const code = /^VOICE_[A-Z0-9_]+$/.test(String(error?.message)) ? error.message : 'VOICE_TRANSCRIPTION_FAILED';
+    await db.prepare("UPDATE ig_voice_receipts SET status='failed',error_code=?,updated_at=CURRENT_TIMESTAMP WHERE incoming_message_id=?").bind(code,item.messageId).run();
     console.error('NINA_IG_VOICE_ERROR', code); // Never log audio, URLs or transcripts.
     await db.prepare('UPDATE ig_messages SET body=? WHERE message_id=? AND instagram_user_id=?')
       .bind(NINA_VOICE_FAILED, item.messageId, item.senderId).run();
     await db.prepare("UPDATE ig_processing SET status='failed',last_error_code=?,updated_at=CURRENT_TIMESTAMP WHERE incoming_message_id=?")
       .bind(code, item.messageId).run();
+    // A failed audio gets a brief paced acknowledgment, never an invented transcript.
+    // During recovery do not revive an old audio after later messages.
+    if (!recovering) await queueHumanPacedReply(env,item.senderId,item.messageId,NINA_VOICE_FAILED);
   }
 }
+
+async function ninaRecoverFailedVoice(env) {
+  await initializePublicRelease(env);
+  const db=env.IG_MEMORY_DB;
+  const rows=await db.prepare("SELECT m.message_id,m.instagram_user_id FROM ig_messages m JOIN ig_processing p ON p.incoming_message_id=m.message_id WHERE m.body=? AND p.last_error_code='VOICE_URL_UNAVAILABLE' AND m.created_at>=datetime('now','-1 day') AND NOT EXISTS (SELECT 1 FROM ig_voice_receipts v WHERE v.incoming_message_id=m.message_id) ORDER BY m.rowid DESC LIMIT 1").bind(NINA_VOICE_FAILED).all();
+  for (const row of rows.results||[]) {
+    const claim=await db.prepare("INSERT OR IGNORE INTO ig_voice_receipts (incoming_message_id,status,stage) VALUES (?,'processing','recovery')").bind(row.message_id).run();
+    if (Number(claim.meta?.changes)!==1) continue;
+    await ninaHandleVoice(env,{senderId:row.instagram_user_id,messageId:row.message_id,audio:{}},true);
+  }
+}
+
