@@ -43,6 +43,12 @@ jobs:
           if(!response.ok||!body.success)throw new Error('Unable to read Worker schedules: HTTP '+response.status);
           const schedules=body.result?.schedules||[];
           console.log('Production Worker five-minute schedule present:',schedules.some(x=>x.cron==='*/5 * * * *'));
+          const script=await fetch('https://api.cloudflare.com/client/v4/accounts/a40ce1725295563a7b7db9fc3160480a/workers/scripts/parallel-vision-lab',{headers:{Authorization:'Bearer '+token}});
+          if(!script.ok)throw new Error('Unable to inspect deployed sync implementation: HTTP '+script.status);
+          const source=await script.text();
+          console.log('Deployed Worker includes scheduled Clerk backfill:',source.includes('scheduledClerkBackfill'));
+          console.log('Deployed Worker includes sync diagnostic persistence:',source.includes('lab_clerk_sync_diagnostics'));
+
           JS
       - name: Verify live wallet, refund and Control Room sync invariants without exposing customer data
         working-directory: lab-worker
