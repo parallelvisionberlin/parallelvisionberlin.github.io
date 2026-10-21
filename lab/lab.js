@@ -2398,7 +2398,8 @@ function showVideoJobStage(job){
     $('video-inspector-selected').hidden=true;
     $('video-inspector-empty').hidden=false;
     $('video-detail-status').textContent=words[0];
-    $('video-inspector-empty').textContent=words[2];
+    // Preserve Current scene fields used by the live inspector renderer.
+    $('video-inspector-empty').querySelector('.pv-video-sidebar-footnote').textContent=words[2];
   }
 }
 // The Video inspector only previews the real media bound to the selected job.
