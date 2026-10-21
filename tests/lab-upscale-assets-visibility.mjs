@@ -76,17 +76,17 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     assert.ok(deck.model.top<deck.size.top&&deck.format.top>=deck.size.top-2,profile+': model is above the output controls');
     assert.ok(Math.abs(deck.size.top-deck.format.top)<5,profile+': enlargement and format share one readable row');
     assert.ok(deck.generate.top>deck.size.top,profile+': paid Upscale action is distinct from settings');
-    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Empty source control is hidden so the main dropzone is the only initial upload entry');
-    assert.equal(await page.locator('.pv-upscale-output-heading').isVisible(),true,'Output settings have a clear hierarchy');
-    assert.equal(await page.locator('.pv-upscale-workspace-intro h2').innerText(),'Image settings','Left panel uses tool settings, not a second landing hero');
+    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Approved source upload remains visible in the left settings deck');
+    assert.equal(await page.locator('.pv-upscale-output-heading').isVisible(),false,'Unwanted OUTPUT section heading is hidden');
+    assert.equal(await page.locator('.pv-upscale-workspace-intro h2').innerText(),'Refine every detail.','Approved heading restored');
     const initialLayout=await page.evaluate(()=>{
       const controls=document.querySelector('#app.upscale-studio-active>.workspace>.controls').getBoundingClientRect();
       const model=document.querySelector('#upscale-model-display').getBoundingClientRect();
       const output=document.querySelector('.pv-upscale-output-heading').getBoundingClientRect();
       return {height:controls.height,modelBottom:model.bottom,outputTop:output.top};
     });
-    assert.ok(initialLayout.outputTop>initialLayout.modelBottom,'Model and Output are distinct settings sections');
-    assert.ok(initialLayout.height<535,'Inspector does not waste a tall empty sidebar');
+    if(profile==='desktop')assert.ok(initialLayout.height>=630,'Approved desktop settings deck matches the full reference');
+    else assert.ok(initialLayout.height>=300,'Mobile settings remain comfortably usable');
     const geometry=await page.evaluate(()=>{
       const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
       return {
@@ -162,13 +162,13 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     const filledCanvasHeight=await page.locator('#upscale-canvas').evaluate(el=>el.getBoundingClientRect().height);
     assert.ok(Math.abs(filledCanvasHeight-emptyCanvasHeight)<=2,'Source preview remains equally spacious before and after upload');
     await page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-upscale-source-ready'));
-    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Replace source appears after a valid source preview is loaded');
+    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Source image remains available after upload');
     const secondaryChooser=page.waitForEvent('filechooser');
     await page.locator('#pv-upscale-source-upload').click();
     assert.equal((await secondaryChooser).isMultiple(),false,'Replace source uses the original single-image chooser');
     await page.evaluate(()=>{document.getElementById('preview').hidden=true;document.getElementById('empty').hidden=false;});
     await page.waitForFunction(()=>!document.getElementById('app').classList.contains('pv-upscale-source-ready'));
-    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Replace source disappears after clearing the image');
+    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Source selector remains visible when image is cleared');
     assert.equal(await page.locator('.stagefoot').isVisible(),false,'Empty Upscaler does not show a technical footer');
     assert.equal(await page.locator('#settings-summary').isVisible(),false,'Redundant technical text is hidden on Upscaler');
     await page.evaluate(()=>{document.querySelector('#download').hidden=false;});

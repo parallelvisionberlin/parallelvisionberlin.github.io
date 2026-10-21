@@ -30,10 +30,10 @@ function installUpscaleSidebar(){
     // The main stage owns uploading before a source exists. Show a compact
     // Replace photo control only after a validated source/result is visible.
     app.classList.toggle('pv-upscale-source-ready',visiblePreview);
-    copy.textContent='Replace photo';
+    copy.textContent=visiblePreview?'Choose another image':'Choose image';
     status.textContent=visiblePreview
       ?(selectedFile?.name||'Original ready for comparison')
-      :'Original preserved for comparison.';
+      :'Your original will remain available for comparison.';
   };
   input.addEventListener('change',sync);
   new MutationObserver(sync).observe(preview,{attributes:true,attributeFilter:['hidden','src']});
