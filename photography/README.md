@@ -1,14 +1,18 @@
 # Alejandro Molinari / Photography
 
-Static photography archive within the Parallel Vision website.
+The only active photography portfolio is `https://parallelvisionlabel.com/photography/`.
 
-Public route: `https://parallelvisionlabel.com/photography/`
+- The older `/photo-work/` URL redirects to `/photography/` and preserves gallery deep links.
+- `index.html` holds the unified editorial page with a table of contents and three separately scrollable gallery sections.
+- `style.css` keeps a fixed-size, uncropped image stage across changes, including mixed orientations.
+- `archive.js` is the single source of truth for gallery ordering, photograph metadata and paths.
+- `gallery.js` builds sections from the manifest and handles arrows, swipe, keyboard, counters, film marks and hash navigation.
+- The original 10 JPEGs live under `assets/` and have not been retouched, filtered or AI-generated.
 
-- `index.html`: independent editorial design and arrow / keyboard / swipe gallery.
-- `archive.js`: gallery names, captions, order and paths. Change this file to adjust the public galleries.
-- `assets/`: six photographs, indexed by series, as provided for the portfolio.
-- The private browser-based editor is kept in Alejandro's private Google Drive backup, not in this public repository.
-- To publish additions, update `archive.js` and add or replace images in `assets/`, then deploy as part of the normal website workflow.
-- Do not upload private editable backups or the full original-photo archive into the public repository.
+Current order: **Nocturne (5 photographs), After Hours (4), Negative Space (1)**.
 
-See `WORK-STATE.md` for verified installation status.
+The user's original JPEGs and private editing materials remain in the personal Google Drive photographic archive. The editor is not publicly hosted. When publishing another photograph, add the original file to `assets/` and a matching item to `archive.js`.
+
+The gallery is intentionally marked `noindex`, with an artistic nudity notice. Publication permission was confirmed by the photographer in the chat on 2026-10-21. There is no claim of formal legal review.
+
+See `WORK-STATE.md` for the most recent deployment verification.
