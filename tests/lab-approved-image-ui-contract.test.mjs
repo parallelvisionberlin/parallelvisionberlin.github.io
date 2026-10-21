@@ -128,6 +128,6 @@ test('guest focus stays borderless and the desktop Sign in pill matches the head
 
 
 test('the shared Image entrance title keeps its approved medium emphasis',()=>{
-  assert.match(style,/#gate\\.pv-guest-image h1,\\s*#app\\.image-studio-active #lab-welcome-start h2\\s*\\{[^}]*font-weight:500!important;/,
+  assert.match(style,/#gate\.pv-guest-image h1,\s*#app\.image-studio-active #lab-welcome-start h2\s*\{[^}]*font-weight:500!important;/,
     'Public, customer and Owner entrances use one medium-weight Start with a feeling title');
 });
