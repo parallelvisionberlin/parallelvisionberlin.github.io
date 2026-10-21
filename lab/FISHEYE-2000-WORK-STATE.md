@@ -34,5 +34,6 @@ Verify: optimized actual-photo assets, new catalog and Worker allowlists, My Moo
 - Mocked Explore browser tests passed desktop, mobile and text-only Fisheye selection: quote uses fisheye-2000, 15mm recipe, user Base first and exactly two Style references, preserving 1K photobooth pricing.
 - Mocked full Studio browser test passed at 1440px and 390px: visible Fisheye card selection, preserved source, correct recipe, no horizontal overflow, no upload/paid request on selection.
 - Follow-up fixes: reserve two reference slots in Studio's counter (8 customer photos for supported engines), and update the hero from sixteen to seventeen. Cache revision fisheye=20261021v2. Browser regression: tests/lab-fisheye-2000-browser.mjs.
-- Follow-up deployment still needs public-byte verification after this commit. Authenticated production provider generation was not run; visual output quality is not claimed.
+- Follow-up source commit: b48329a70e570188f1275b4f5e0f1dde1fd7e846. Its approved Image UI contract and static site validation CI passed; the full Studio Fisheye browser regression passed locally at desktop/mobile sizes.
+- Follow-up public-byte verification is still pending. The original Fisheye deployment remains confirmed live. Authenticated production provider generation was not run; visual output quality is not claimed.
 - Seven introductory Inspiration cards remain the approved separate catalog. Fisheye belongs to Explore Moods and the full Studio Mood selector, as specified in the original PR.
