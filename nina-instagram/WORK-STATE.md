@@ -1,41 +1,44 @@
 # Nina Instagram: verified owner-continuity work state
 Updated: 2026-10-21
 
-## Current public release prepared (2026-10-21)
-- Objective: enable public Instagram replies with a 10-minute to 2-hour initial wait and approximately 2-minute follow-ups.
-- Authorization: Alejandro explicitly requested public activation and these timing changes in this conversation.
-- Complete source recovered from user attachment `Pasted markdown(20261021-122346).md`, Library ID `libfile_f688716a1ea881919e68ce17c9c71789`.
-- Markdown emphasis and escaping were decoded into valid JavaScript. The recovered embedded voice code matched the previously verified repository helper apart from whitespace before the intentional public-gate changes.
-- Full deployable source now lives at `nina-instagram/worker.mjs`.
-- Related files: `voice-transcription-runtime.js`, `worker.test.mjs`, `PUBLIC-RELEASE.md` in the same directory.
-- Initial public deadline: uniformly selected cron-aligned minute between 10 minutes and 2 hours after the incoming message; generation/network time is additional.
-- Ongoing public conversation: up to six further confirmed replies, with cron-aligned deadlines 90 to 150 seconds after the incoming message, targeting approximately 2 minutes.
-- Reset after 30 minutes from the latest confirmed reply or after six quick replies. The next incoming message gets the initial wait again.
-- Coalesced messages keep one latest pending reply. A write-time latest-message guard prevents slower older handlers overwriting newer jobs.
+## Current public release deployed (2026-10-21)
+- Objective completed: deploy public Instagram replies with the requested initial wait and fluid follow-up conversations.
+- Authorization: Alejandro explicitly requested public activation and instructed the assistant to perform the deployment.
+- Complete source recovered from `Pasted markdown(20261021-122346).md`, Library ID `libfile_f688716a1ea881919e68ce17c9c71789`.
+- Full deployable source: `nina-instagram/worker.mjs`; original prepared-source commit `b11868a799f175e64db9884acdb2284bbfa2b497`.
+- Deployment workflow and final verification fix committed as `a29e5a360dd6af48087970dd91bc251cae3e03c1`.
+- Production deployment VERIFIED on 2026-10-21 at 16:15 Europe/Berlin.
+- Active Cloudflare version: `8ed22136-ae82-4af0-9962-77ee4c171164`, 100% traffic.
+- Active deployment ID: `5497e37f-714a-43c4-a3d8-26baf9d4a3b0`.
+- Successful GitHub Actions run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39615126399 (job `119274003712`).
+- Real production `/health` was read by the deployer and returned release `public-paced-2026-10-21`, mode `public`, public text enabled true, and public voice enabled true.
+- Verified timing fields: firstReplyMinutes `[10,120]`, activeReplySeconds `120`, quickReplyLimit `6`, idleResetMinutes `30`.
+- First public reply: random cron-aligned minute 10 minutes to 2 hours after the initial incoming message; generation/network time is additional.
+- Ongoing conversation: up to six further confirmed replies with deadlines 90 to 150 seconds after the incoming message, targeting approximately 2 minutes.
+- Reset after 30 minutes from the latest successful reply or after six quick replies. The next incoming message gets the initial wait again.
+- Messages received while waiting coalesce into one reply to the newest message. A write-time latest-message guard protects against older handlers overwriting newer jobs.
 - Continuous incoming messages cannot extend the original initial deadline indefinitely; active bursts also have a bounded coalescing delay.
-- Only a Meta-confirmed successful send opens/advances the active conversation. Failed or uncertain sends do not consume quick replies.
-- Existing linked-owner pacing, signed webhook verification, opt-outs, send deduplication, reply window and private-vault identity checks are retained.
-- Public text and voice default enabled in this explicitly authorized release when their environment overrides are absent. Explicit false or unexpected override values still disable the corresponding public feature.
-- The next cron or signed webhook after deployment creates Instagram-only `ig_reply_sessions` and `ig_runtime_migrations`, then atomically upgrades the verified `tester` mode to `public` once.
-- The activation marker prevents later restarts/redeploys from reopening a subsequently disabled/tester mode.
-- No old stored messages are backfilled; original Nina memory and owner-vault data are not copied or modified.
-- Added a read-only `/health` response with release, effective public flags and timing values; no credentials, sender IDs or private transcripts are returned.
-- Existing operation limits remain: 120 send attempts globally per rolling day, 80 per sender, 8 per minute per sender; 120 stored drafts per rolling day.
-- Local verification passed: JavaScript syntax and all 12 Node tests using real in-memory SQLite and simulated Meta/AI responses.
-- Tests cover real queue/send flow, six quick replies, idle reset, coalescing/race ordering, stop/resume, disabled flags, one-time activation, owner/public context separation, invalid signatures, expiry, uncertain sends and voice deduplication/gating.
-- D1 batch transaction semantics were verified against official Cloudflare documentation. These local tests do not prove a real Cloudflare or Meta deployment.
-- Deployment status: PREPARED ONLY. Last observed production version remains `91d04d2e-783f-4730-b368-fc2020a76885`; current mode was last observed as `tester` in the user's D1 screenshot.
-- Direct Cloudflare connector tools still return MCP `-32603 Internal error`. An existing repository deployment route was subsequently found: the GitHub Actions workflows already use the authorized `CLOUDFLARE_API_TOKEN` secret. No secret value was requested, read or exported.
-- Added dedicated `.github/workflows/deploy-nina-instagram.yml` and `nina-instagram/deploy.mjs`, separate from the original Nina and PV LAB deployments. This uses Cloudflare's content-only update endpoint to retain existing bindings, secrets and cron, then verifies production public health.
-- Deployment guards check all seven required binding types, the private vault service, explicit public overrides, unchanged settings/schedules, and the effective release/timing values. All 15 local reply/deployment tests pass.
-- No production source, bindings, secret values, mode or flags were mutated by this preparation. GitHub publication alone does not deploy the Instagram Worker.
-- Recovered text replies already worked after the user reactivated the Meta account. The exact original account-block trigger and real audio-note end-to-end delivery remain unverified.
+- Only Meta-confirmed successful sends open/advance active conversations. Failed or uncertain sends do not consume quick replies.
+- Existing linked-owner pacing, owner-vault identity checks, opt-outs, signed webhooks, reply window and send deduplication are retained.
+- Existing configuration, seven required binding names/types, private vault target and once-minute cron were verified before/after the content-only Cloudflare upload.
+- Version/source annotations are excluded from runtime configuration comparison; runtime settings and bindings remain checked.
+- Instagram-only tables `ig_reply_sessions` and `ig_runtime_migrations` initialize automatically, with a one-time tester-to-public upgrade.
+- The marker prevents later restarts/redeploys from reopening a subsequently disabled/tester mode. Explicit public environment overrides remain respected.
+- No old stored messages were backfilled. Original Nina memory, private vault data, secret values and other Workers were not modified.
+- Existing limits remain: 120 send attempts globally per rolling day, 80 per sender, 8 per minute per sender; 120 stored drafts per rolling day.
+- Verification passed: 12 reply tests plus 4 deployment tests locally; all 16 passed again in the successful CI run.
+- Coverage: timing, six quick replies, idle reset, burst/race coalescing, stop/resume, overrides, one-time activation, owner/public context separation, invalid signatures, expiry, uncertain sends, voice deduplication and deployment preservation guards.
+- Relevant files: `worker.mjs`, `worker.test.mjs`, `voice-transcription-runtime.js`, `deploy.mjs`, `deploy.test.mjs`, `PUBLIC-RELEASE.md`; workflow `.github/workflows/deploy-nina-instagram.yml`.
+- Cloudflare access RESOLVED through the repository's existing authorized `CLOUDFLARE_API_TOKEN` CI connection. No secret value was requested, read or exported.
+- Direct `nina_database` connector tools still return MCP internal errors; that is not a deployment blocker. Do not ask the user to copy code or repeat browser login.
+- User's tested text conversation recovered after Meta account reactivation. The exact suspicious-activity trigger and any causal connection to voice support remain unverified.
+- Public Worker configuration is now verified. Actual non-tester Instagram delivery, Meta permissions for that path and real audio-note end-to-end delivery remain unverified.
 
 ### Exact next action
-1. Publish the dedicated Instagram deployment workflow on main; its path trigger runs the prepared deployment automatically using the existing authorized Cloudflare CI connection. Monitor that run through GitHub Actions instead of asking the user to copy code or log in again.
-2. After the next cron, verify `/health` reports release `public-paced-2026-10-21`, mode `public`, and effective public flags true. An existing explicit false environment override must be changed to exact string true to enable that feature.
-3. Confirm one fresh non-tester DM receives the initial delayed reply and one follow-up receives a quick reply. Do not claim public availability until this real Meta access path is verified.
-4. Reuse this complete source and the passing tests; no need to ask the user to recover the Worker again.
+1. Ask for one fresh DM from a non-tester Instagram account to confirm the real public Meta path; allow the configured 10-minute to 2-hour first wait.
+2. After that reply, verify one follow-up receives the quick response. Test one real voice note separately.
+3. Future Instagram source changes deploy via the dedicated workflow using the existing CI connection. Preserve all unrelated Workers and owner-memory boundaries.
+4. Reuse this source, passing tests, successful run and verified production state; do not reconstruct access or request the Worker code again.
 
 ## Historical implementation record
 The sections below preserve the earlier chronological deployment and verification notes.
