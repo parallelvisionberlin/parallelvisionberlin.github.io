@@ -12,7 +12,11 @@
 - PR #390 merged as f7e00d8e33609e9aa3660da7bbb21fa0314c7eee. Deploy 39584417299 succeeded; production /health confirmed revision .2-account-recreation. All eight PR workflows passed.
 - Live retry audit 39584417178 attempt 2 exposed the exact blocking error: clerk_http_402 before any ban was confirmed. The previous task processor required the paid ban operation before normal user deletion, even after creative cleanup was complete.
 - Follow-up: verified completed closures now use ordinary Clerk DELETE directly, independently of the optional ban feature. D1 closure still immediately rejects spending and creative access. Regression reproduces ban HTTP 402 and confirms normal deletion completes.
-- Follow-up publication and production task completion pending. Finish with deployed health revision and live aggregate state; do not equate synthetic same-email fixtures with a real Google login.
+- Follow-up PR #391 merged as d8aea1f7e7099a0b5772ef01ee2671a3cb3bf8bc. Deploy 39585320649 passed; live /health confirms pv-lab-2026-10-21.3-account-delete-no-ban. All eight PR CI workflows passed.
+- Production audit 39585320624 attempt 3, job 119174265450, at 2026-10-21 10:36:46 UTC: four creative closures deleted, all four identity tasks complete, zero pending tasks, all four cleanup outcomes success. No raw subject, customer email or secret was logged.
+- The audit workflow still fails its separate contact-sync freshness invariant (90-hour-old sync report). Wallet ledger, failed-job refund and active-contact checks passed. This is not an identity-deletion failure and was left outside this repair.
+- Remaining user verification: sign out/reload pvlab.studio and sign up again with Google using Neon Riviera. A real fresh Google subject/account creation has not been exercised by the agent. Same-email recreation and no inherited balance/free-credit duplication passed synthetic tests.
+- Earlier gallery change PR #387 is independent: floors the fractional measured row width, avoiding card wrapping at 90% browser zoom. No gallery/deck redesign was done in this account repair.
 - Prompt deck, Hong Kong Nights, galleries, Upscaler, models and billing implementation remain outside this repair.
 
 # PV LAB complete account deletion | October 18, 2026
