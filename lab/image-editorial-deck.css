@@ -12,13 +12,6 @@
     radial-gradient(ellipse 43% 38% at 77% 18%,rgba(148,85,68,.125),transparent 82%),
     linear-gradient(180deg,rgba(5,7,13,.38),rgba(7,8,12,.48) 30%,rgba(8,9,12,.69) 65%,#101011 100%);
 }
-#gate.pv-guest-image:before{opacity:.57;filter:blur(9px) saturate(1.14) contrast(1.06)}
-#gate.pv-guest-image:after{
-  background:
-    radial-gradient(ellipse 38% 36% at 22% 18%,rgba(16,101,235,.115),transparent 82%),
-    radial-gradient(ellipse 42% 37% at 81% 16%,rgba(149,78,61,.14),transparent 84%),
-    linear-gradient(180deg,rgba(6,8,15,.38),rgba(5,7,13,.50) 33%,rgba(8,9,13,.68) 63%,#101011 100%);
-}
 
 /* Signed-in first-image visual field.
    Preserve the same photographic Dream Blur backdrop, with the richer cobalt,

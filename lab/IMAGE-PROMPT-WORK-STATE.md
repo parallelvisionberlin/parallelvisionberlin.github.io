@@ -1,5 +1,20 @@
 # Image composer prompt: current state
 
+## Active: approved public backdrop and focus stability (2026-10-21)
+
+- Latest references: image(20261021-131922).png is the signed-out compact bar; 131933 is focused; 132032 and 132112 show the owner reopening Inspiration, with short and empty prompts. User approves the current bar and requests the same final backdrop without a focus jump.
+- Baseline main a672ebfc46eed7ce650d07e2ecc353c9388de076; branch fix/image-approved-backdrop-20261021. Preserve concurrent Nina, photography and other work.
+- The final artwork already exists: lab/visuals/pvlab-subtle-cinematic-background-20261017.webp, 2080x1136, Git blob 71e535a06ab40bdebfd6877f1dc9a112639d9ffd. Reuse it exactly; do not generate or replace artwork, card images or prompts.
+- Exact causes: public studio-guest-image.css still loaded the original Dream Blur card as wallpaper; later guest rules in image-editorial-deck.css applied another 9px blur and dark overlay. Authenticated welcome/reopened Inspiration already used the approved cobalt/copper plate without blur.
+- Production diagnosis confirmed the public section/pseudo-element height changes from 854px to 867.296875px on focus at 1363x936. Its scroll-attached, centered cover wallpaper therefore reframed, even with scrollY staying zero.
+- Public styling now reuses the approved plate and the same legibility gradient at full opacity, without the obsolete guest blur/overlay override. Desktop artwork and gradient are framed against the viewport so changes in editor/section height cannot reframe them. Mobile/native keep their existing scrolling mechanics.
+- Scope: lab/studio-guest-image.css, lab/image-editorial-deck.css, two CSS cache keys in lab/studio.html, the existing first-image browser suite and this checkpoint. No production JavaScript, deck/card sizing, prompts, models, accounts, credits, billing, providers, History, Hong Kong Nights, Upscaler or owner background changes.
+- New browser coverage compares actual painted backdrop pixels on public focus/blur at 1920x900 and 1280x720, allowing only small raster rounding (maximum 4 channel levels, mean <=0.25/255). A controlled reversal to scroll attachment produces maximum RGB deltas 183/144/157 and means 8.54/10.54/12.97; the fixed version has maximum 3 and means below 0.08. Public/customer parity also checks the actual artwork, opacity, filter and overlay in empty/focused/short/cleared states. Existing tests already compare first welcome with reopened Inspiration.
+- Original-source regression confirmed: the new first-image check fails because the public CSS still serves the Dream Blur card. Local Image UI contract (4), first-image/focus-pixel/direct public-customer comparison, prompt paste/History, Studio layout and guest/mobile Mood checks all passed. Diff whitespace check passed. Publication and real custom-domain verification remain pending.
+- After release, verify the actual Cloudflare custom-domain CSS bytes/cache markers and public interaction separately. Synthetic new/returning/owner checks do not constitute real Google-account login verification.
+
+## Previous verified bar release
+
 ## Direct public/customer visual parity (2026-10-21)
 
 - Latest references: image(20261021-115534).png is Neon Riviera with short text; 115541 is its empty bar; 115559 is signed-out compact; 115612 is signed-out focused. These screenshots demonstrate that PR #396 still left a distinct public skin despite its passing behavior checks.
