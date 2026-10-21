@@ -14,11 +14,15 @@
 - Tests: approved Image contract, trial pause and price/debit integrity all pass (19 checks).
 - Overlay browser passes 320/390/1440/1648px, checkout SKU handoff, guest sign-in continuation, no automatic payment, draft/focus retention and renewal disclosure.
 - Existing first-image browser passes new/returning/owner/public parity and quoted one-click Generate with intercepted requests.
-- Account browser adds zero-credit Mood selection for both generation-ready and paused accounts at 1440/390px, plus a failed background quote regression.
+- Full account/checkout browser passes, including zero-credit Mood selection for both generation-ready and paused accounts at 1440/390px, plus a failed background quote regression.
 - Desktop and mobile panel screenshots visually reviewed using local synthetic sessions.
-- Publication: not yet merged or confirmed live. Verify PR checks, Cloudflare Pages exact commit and production JS/CSS bytes before reporting live.
+- Published: PR #431 merged as `a5b2b595f7997f7c335bfd3d0f8e36e25c38514a`; production descendant `8f451471f26975052a388753978b14f08a0b8b59` retains the exact reviewed JS/CSS.
+- Cloudflare Pages check `119555615037` succeeded. Release verifier returned LIVE_VERIFIED for both `lab/lab.js` and `lab/pricing-overlay.css` on pvlab.studio.
+- Public live panel rendered and visually checked at 1440/390px: compact rows, Creator photograph, no horizontal overflow, monthly/one-time tabs and billing disclosure. This used public GET responses only; no signed-in production account was created.
+- Relevant PR gates passed: approved Image, pricing overlay, account/checkout, first-image, input paste, compact prompt, units and static validation.
+- Unchanged baseline CI failures are documented in PR #431: Upscaler assertion `lab-assets-ui.cjs:281`, obsolete Explore harness signature, and a production poll before PR deployment. No gates were disabled or weakened.
 - No real payment, account mutation or paid generation was used for testing.
-- Next action: finish account browser check, publish the validated PR and verify production release.
+- Next action: none for this request. Real-account actions and any unrelated baseline test repairs remain separate from these verified changes.
 
 # Homepage pricing: current state
 
