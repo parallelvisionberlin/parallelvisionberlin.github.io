@@ -1,6 +1,18 @@
 # Nina Instagram: verified owner-continuity work state
 Updated: 2026-10-21
 
+## Live silence report diagnosed (2026-10-21 20:34 UTC)
+- Read-only diagnostic source commit: f034982e4426ff84390df0950c85a71f1cd31fb1.
+- Verified run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39671441569 (success).
+- Health confirms public text/voice flags, dialogue revision natural-dms-2026-10-21 and once-minute schedule. No production source was changed by this investigation.
+- The linked owner sent new text at 20:30:48 UTC; Meta confirmed its reply HTTP 200 at 20:32:08 UTC. Owner job is sent, attempts=1.
+- The separate visitor account sent text at 20:16:32 and 20:16:40 UTC; its coalesced job is pending, attempts=0, due 21:57 UTC, within the approved initial 10–120 minute interval. This is not a failed send.
+- The owner's earlier voice note at 18:01:51 UTC failed with VOICE_URL_UNAVAILABLE at 18:01:53 UTC. The handler could not obtain downloadable media; the available status does not distinguish missing/unsupported attachment URL, rejected download or expired media.
+- All 13 send attempts in the preceding rolling day were sent with HTTP 200. Draft count=13; daily limits were not exhausted.
+- No message bodies, usernames, raw sender/message IDs, media URLs or credentials were emitted in diagnostic output. Contacts are hashed in logs.
+- Reusable read-only diagnostic: nina-instagram/diagnose.mjs and .github/workflows/diagnose-nina-instagram.yml. Existing CI Cloudflare connection can query the bound Instagram D1.
+- Remaining issue: real voice-note download/transcription is still not repaired or verified end-to-end. Do not claim that audio caused a global text outage or that voice works. Next voice investigation needs fresh media evidence and stage-specific safe failure diagnostics; do not erase/retry uncertain sends.
+
 ## Current dialogue repair deployed (2026-10-21)
 - Objective: fix contradictory Workroom definitions, recurring studio/coffee anecdotes, coaching-style questions and repetitive affectionate openings.
 - User supplied two conversation excerpts and asked for a more natural, dynamic Nina. Do not save the private transcripts in the repository.
