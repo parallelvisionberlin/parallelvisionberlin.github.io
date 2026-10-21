@@ -49,3 +49,13 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Public HTML uses berlin-projects.css?v=20261021-mobile-film-gap.
 - Browser CSSOM confirms mobile rule min-height:0px and padding:0px 0px 32px.
 - User phone screenshot supplied the original reproduction; a fresh phone screenshot remains unverified.
+
+## Desktop refinement, 2026-10-21
+- User requested removing desktop blank space and competing headings, and slightly reducing the music film to fit its heading and credits in one screen.
+- Verified desktop opening panel was forced to 936px (100svh).
+- Scoped overrides in berlin-2063.html remove forced minimum height at all widths.
+- Repeated opening-film title remains accessible but is visually hidden; hero retains the project title.
+- Explore the worlds becomes a compact section label before the gallery title.
+- Desktop music player, heading and credits share a centered width capped at 94% and viewport-height budget (230px for surrounding text).
+- Mobile music player retains full available width; existing galleries remain intact.
+- Verify final build publication and public desktop geometry after implementation commit.
