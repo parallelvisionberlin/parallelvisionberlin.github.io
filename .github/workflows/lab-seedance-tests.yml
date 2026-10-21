@@ -36,6 +36,10 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
         run: node tests/lab-customer-video-ui.mjs
+      - name: Guest and signed-in Studio tool routing
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
+        run: node tests/lab-tool-routing-ui.mjs
       - name: Mock-only browser regression tests
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs

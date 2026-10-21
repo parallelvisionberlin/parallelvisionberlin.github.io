@@ -30,7 +30,8 @@ test('authenticated Studio uses a bounded private History wait and does not bloc
   assert.match(boot,/loadPacks\(\)\.catch/);
   assert.match(boot,/soul\.load\(\)\.catch/);
   assert.match(boot,/loadSoulProIdentity\(\)\.catch/);
-  assert.match(boot,/try\{await restoreStudioEntry\(\);\}catch/);
+  assert.match(boot,/const requestedRoute=studioRoute\(\)/,'capture the tool before config reconciliation');
+  assert.match(boot,/try\{await restoreStudioEntry\(requestedRoute\);\}catch/,'restore the originally requested tool');
   assert.match(boot,/Studio setup could not finish/);
   assert.match(boot,/\$\('signin'\)\.hidden=stillSignedIn/);
   assert.match(boot,/\$\('auth-retry'\)\.hidden=!stillSignedIn/);

@@ -346,3 +346,30 @@ body:has(#gate.pv-guest-image:not([hidden])) #tool-assets{display:none!important
 #gate .pv-guest-composer>.pv-guest-prompt-row{display:contents}
 #gate .pv-guest-settings>:is(.composer-add-wrap,.scene-image-library-wrap,.composer-model-wrap,.composer-mood-control){display:contents}
 #gate #pv-guest-exact{display:none}
+
+/* A direct guest Video/Upscaler/Retouch/Fashion visit must not display the
+   Image deck. Keep the approved Image entrance completely unchanged. */
+#gate.pv-guest-image[data-guest-tool]:not([data-guest-tool="image"]) .pv-guest-carousel,
+#gate.pv-guest-image[data-guest-tool]:not([data-guest-tool="image"]) #pv-guest-composer{
+  display:none!important;
+}
+#gate.pv-guest-image .pv-guest-selected-tool[hidden]{display:none!important}
+#gate.pv-guest-image .pv-guest-selected-tool{
+  box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:20px;
+  width:min(590px,100%);margin:42px auto 0;padding:30px 24px;
+  border:1px solid rgba(255,255,255,.20);border-radius:14px;
+  background:rgba(17,19,22,.88);box-shadow:0 20px 65px rgba(0,0,0,.45);
+}
+#gate.pv-guest-image .pv-guest-selected-tool p{
+  margin:0;max-width:43ch;text-align:center;
+  color:#d4d0d1;font:400 14px/1.6 'DM Sans',Arial,sans-serif;
+}
+#gate.pv-guest-image .pv-guest-selected-tool button{
+  appearance:none;min-height:45px;padding:11px 21px;border:1px solid #f5f2ee;
+  border-radius:9px;background:#eeebe7;color:#151618;
+  font:600 13px/1.3 'DM Sans',Arial,sans-serif;cursor:pointer;
+}
+#gate.pv-guest-image .pv-guest-selected-tool button:hover{background:#fff}
+#gate.pv-guest-image .pv-guest-selected-tool button:focus-visible{
+  outline:2px solid #fff;outline-offset:3px;
+}

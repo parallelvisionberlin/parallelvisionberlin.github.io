@@ -12,7 +12,7 @@ const boot=source.indexOf("try{clerk=await loadLabAccount();");
 const bootEnd=source.indexOf("\n// Soul composer:",boot);
 assert.ok(boot>0&&bootEnd>boot,'Expected distinct auth bootstrap and Soul composer tail');
 const authSync=source.slice(source.indexOf('async function sync(){'),source.indexOf("$('studio-invite-friends').onclick"));
-const requestedAt=authSync.indexOf('await restoreStudioEntry()');
+const requestedAt=authSync.indexOf('await restoreStudioEntry(requestedRoute)');
 const revealedAt=authSync.indexOf('finishLabBoot();');
 const historyAt=authSync.indexOf('const historyReady=loadHistory()',requestedAt);
 const historyGrace=authSync.indexOf('await Promise.race([historyReady,',historyAt);
