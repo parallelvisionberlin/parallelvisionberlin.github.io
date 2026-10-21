@@ -1,106 +1,14 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#eae6dd">
-  <meta name="robots" content="noindex,follow">
-  <title>Photo Work | Alejandro Molinari</title>
-  <meta name="description" content="Photographic work by Alejandro Molinari. An evolving archive of photographs from three series: After Hours, Nocturne and Negative Space.">
-  <link rel="canonical" href="https://parallelvisionlabel.com/photo-work/">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Alejandro Molinari / Photo Work">
-  <meta property="og:description" content="Selected photographic series. After Hours, Nocturne, Negative Space.">
-  <meta property="og:url" content="https://parallelvisionlabel.com/photo-work/">
-  <link rel="preload" as="image" href="./images/after-hours/01.jpeg" fetchpriority="high">
-  <link rel="stylesheet" href="./style.css?v=20261021-01">
-  <script src="./series.js?v=20261021-01" defer></script>
-  <script src="./gallery.js?v=20261021-01" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,follow">
+<meta name="referrer" content="same-origin">
+<meta http-equiv="refresh" content="0;url=../photography/">
+<link rel="canonical" href="https://parallelvisionlabel.com/photography/">
+<title>Alejandro Molinari | Photography</title>
+<script>const hash = window.location.hash; const gallery = /^#(?:series-)?(nocturne|after-hours|negative-space)$/i.exec(hash); window.location.replace('../photography/' + window.location.search + (gallery ? '#series-' + gallery[1].toLowerCase() : hash));</script>
 </head>
-<body>
-  <a class="skip-link" href="#the-gallery">Skip to photographs</a>
-  <header class="masthead">
-    <a class="masthead-brand" href="../alejandro-molinari.html" aria-label="Return to Alejandro Molinari's artist page">AM<span class="masthead-star" aria-hidden="true">✳</span></a>
-    <span class="masthead-center">Alejandro Molinari / Photographic Work</span>
-    <a class="masthead-back" href="../alejandro-molinari.html">Artist page <span aria-hidden="true">↗</span></a>
-  </header>
-
-  <main>
-    <section class="introduction" aria-labelledby="page-title">
-      <div class="intro-topline">
-        <span>Selected works / An ongoing archive</span>
-        <span>Independent photography</span>
-      </div>
-      <div class="intro-grid">
-        <h1 id="page-title">Alejandro<br><em>Molinari.</em></h1>
-        <div class="intro-aside">
-          <span class="index-stamp">PHOTO WORK <sup>01/03</sup></span>
-          <p>Private rooms. After dark.<br>And everything the light leaves behind.</p>
-          <span class="intro-asterisk" aria-hidden="true">✳</span>
-        </div>
-      </div>
-      <div class="intro-bottomline">
-        <span>Three photographic series</span>
-        <span>Scroll to explore <span aria-hidden="true">↓</span></span>
-      </div>
-    </section>
-
-    <section class="archive" id="the-gallery" aria-labelledby="archive-heading">
-      <header class="section-head">
-        <h2 id="archive-heading">Selected series</h2>
-        <p>INDEX / 001—003</p>
-      </header>
-      <div class="series-switch" role="group" aria-label="Choose a photographic series">
-        <button class="series-tab is-active" type="button" data-series="after-hours" aria-pressed="true">
-          <span class="tab-number">01</span><span class="tab-name">After Hours</span><span class="tab-count">04 photographs</span>
-        </button>
-        <button class="series-tab" type="button" data-series="nocturne" aria-pressed="false">
-          <span class="tab-number">02</span><span class="tab-name">Nocturne</span><span class="tab-count">05 photographs</span>
-        </button>
-        <button class="series-tab" type="button" data-series="negative-space" aria-pressed="false">
-          <span class="tab-number">03</span><span class="tab-name">Negative Space</span><span class="tab-count">01 photograph</span>
-        </button>
-      </div>
-
-      <div class="gallery-heading">
-        <div class="gallery-title-stack">
-          <p class="eyebrow" id="series-overline">SERIES 01 / INTERIORS</p>
-          <h3 id="series-title">After Hours</h3>
-        </div>
-        <p class="gallery-description" id="series-description">Rooms after dark. Bodies, the curtain of a window, and the light that remains.</p>
-      </div>
-
-      <div class="gallery-wrap" aria-label="Photograph viewer">
-        <button class="gallery-arrow arrow-previous" id="previous" type="button" aria-label="Previous photograph"><span aria-hidden="true">←</span></button>
-        <figure class="photograph" id="photo-touch-area">
-          <img id="active-photo" src="./images/after-hours/01.jpeg" alt="Figure in a dim room, photographed from behind in warm low light" width="1536" height="1024" fetchpriority="high" decoding="async">
-          <figcaption class="sr-only" id="image-description">Photograph one of four in After Hours.</figcaption>
-        </figure>
-        <button class="gallery-arrow arrow-next" id="next" type="button" aria-label="Next photograph"><span aria-hidden="true">→</span></button>
-      </div>
-
-      <div class="gallery-under">
-        <p class="series-footer-label">ALEJANDRO MOLINARI <span class="separator">/</span> PHOTO WORK</p>
-        <div class="gallery-navigation">
-          <span class="counter" id="photo-counter" aria-live="polite" aria-atomic="true">01 <span>/</span> 04</span>
-          <div class="film-marks" id="film-marks" aria-label="Photograph positions"></div>
-          <span class="navigation-hint">Use ← → or swipe</span>
-        </div>
-      </div>
-
-      <div class="gallery-separator"></div>
-      <div class="archive-note">
-        <span>ABOUT THE ARCHIVE</span>
-        <p>Photographs by Alejandro Molinari, presented as individual series. This selection will continue to grow.</p>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <span>© 2026 Alejandro Molinari</span>
-    <span>Selected photographic work. Some series contain artistic nudity.</span>
-    <a href="../alejandro-molinari.html">Back to artist page <span aria-hidden="true">↗</span></a>
-  </footer>
-</body>
+<body><p><a href="../photography/">Open Alejandro Molinari Photography</a></p></body>
 </html>
