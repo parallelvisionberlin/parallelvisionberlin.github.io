@@ -35,7 +35,10 @@ Verify: optimized actual-photo assets, new catalog and Worker allowlists, My Moo
 - Mocked full Studio browser test passed at 1440px and 390px: visible Fisheye card selection, preserved source, correct recipe, no horizontal overflow, no upload/paid request on selection.
 - Follow-up fixes: reserve two reference slots in Studio's counter (8 customer photos for supported engines), and update the hero from sixteen to seventeen. Cache revision fisheye=20261021v2. Browser regression: tests/lab-fisheye-2000-browser.mjs.
 - Follow-up source commit: b48329a70e570188f1275b4f5e0f1dde1fd7e846. Its approved Image UI contract and static site validation CI passed; the full Studio Fisheye browser regression passed locally at desktop/mobile sizes.
-- Follow-up public-byte verification is still pending. The original Fisheye deployment remains confirmed live. Authenticated production provider generation was not run; visual output quality is not claimed.
+- Follow-up public-byte verification is still pending. Main contains b48329a, but live Moods still showed the old sixteen intro and Studio the old capacity at 16:40 Berlin. The original Fisheye deployment remains confirmed live.
+- Manual Pages API release run 39618936024 failed on GET of the existing pvlab-studio project with HTTP 403 / Cloudflare code 10000. It never reached the deployment POST. Existing Worker deployment access remains successful. No permissions, secrets, bindings or project settings were changed.
+- Fallback workflow .github/workflows/pvlab-pages-release.yml is now manual-only. Cloudflare dashboard in this browser is signed out. Next: authenticate through secure browserAuth, publish current main in the existing Pages project, verify b48329a source bytes and Seventeen intro, then update this checkpoint. Do not claim the two follow-up fixes are live before that check.
+- Authenticated production provider generation was not run; visual output quality is not claimed.
 - Seven introductory Inspiration cards remain the approved separate catalog. Fisheye belongs to Explore Moods and the full Studio Mood selector, as specified in the original PR.
 
 ### Reproduce the focused Studio verification
