@@ -127,6 +127,39 @@
       state.touchY = null;
       if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy) * 1.3) move(state, dx < 0 ? 1 : -1);
     }, { passive: true });
+    // On iOS Safari a quick second tap can trigger browser smart-zoom on
+    // the image even though the gallery does not implement any zoom.
+    // Only cancel the second tap inside a photograph; preserve page zoom,
+    // vertical scrolling, and ordinary taps everywhere else.
+    let previousTapTime = 0;
+    let previousTapX = 0;
+    let previousTapY = 0;
+    let tapStartX = null;
+    let tapStartY = null;
+    state.stage.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) { tapStartX = null; return; }
+      tapStartX = e.touches[0].clientX;
+      tapStartY = e.touches[0].clientY;
+    }, { passive: true });
+    state.stage.addEventListener('touchend', e => {
+      if (e.changedTouches.length !== 1 || e.touches.length || tapStartX === null) return;
+      const t = e.changedTouches[0];
+      const wasTap = Math.hypot(t.clientX - tapStartX, t.clientY - tapStartY) < 12;
+      tapStartX = null;
+      if (!wasTap) { previousTapTime = 0; return; }
+      const now = e.timeStamp;
+      const isDoubleTap = now - previousTapTime > 0 &&
+        now - previousTapTime < 340 &&
+        Math.hypot(t.clientX - previousTapX, t.clientY - previousTapY) < 32;
+      previousTapTime = now;
+      previousTapX = t.clientX;
+      previousTapY = t.clientY;
+      if (isDoubleTap && e.cancelable) {
+        e.preventDefault();
+        previousTapTime = 0;
+      }
+    }, { passive: false });
+    state.stage.addEventListener('dblclick', e => e.preventDefault());
     photos.forEach((photo, i) => {
       const mark = document.createElement('button');
       mark.type = 'button';
