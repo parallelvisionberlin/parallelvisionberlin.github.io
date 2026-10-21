@@ -331,3 +331,25 @@ body { background-image:none; color:var(--ink); }
   .gallery-section:first-child { padding-top:14px; }
   .gallery-arrow { color:#ecebe6; border-color:rgba(236,235,230,.4); background:rgba(20,20,20,.82); }
 }
+
+/* Restore the requested dark museum archive. Preserve editorial structure and images. */
+:root{--paper:#141414;--ink:#ebe7df;--subtle:#aaa69e;--hairline:#474640;--deep:#080808}
+html,body{background-color:#141414;color:var(--ink)}
+body{background-image:none}
+.masthead{border-bottom-color:var(--hairline)}
+.masthead-back,.intro-biography a,.gallery-arrow{color:var(--ink)}
+.intro-biography p{color:#c5c0b5}
+.intro-topline,.gallery-meta,.gallery-overline{color:var(--subtle)}
+.photograph{background:#080808}
+.gallery-under,.about p,.footer{color:var(--subtle)}
+.film-marks button{background:#55534d}
+.film-marks button[aria-current='true']{background:var(--ink)}
+.footer{border-top-color:var(--hairline)}
+@media(max-width:680px){.gallery-arrow{color:#ebe7df;background:rgba(17,17,17,.84);border-color:rgba(235,231,223,.38)}}
+
+/* The common portrait/landscape stage previously painted visible solid-black
+   pillars beside contained originals. Remove that artificial picture frame,
+   retaining constant stage dimensions and the full uncropped photographs. */
+.photograph{background:transparent}
+.gallery-wrap{background:transparent}
+@media(max-width:680px){.photograph{background:transparent}}
