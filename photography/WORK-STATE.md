@@ -75,3 +75,11 @@ Next: add future photographs solely in the canonical manifest and compare them a
 - Local Chromium source preview tested across 13 viewport widths (320, 360, 375, 390, 428, 600, 700, 768, 800, 1024, 1280, 1440, 1650 px), no document horizontal overflow, both cover originals fully loaded, all seven sections built, no JS runtime errors. Fixed photo stage height confirmed before/after navigation at 390 and 1440 px.
 - Working source and backups: user's private Google Drive / Alejandro Molinari - Photography Archive / 04 - Website Drafts / museum-diptych-hero-20261021-{index.html,style.css}. Local previews: /mnt/data/photography_monograph_v4/v4-{390,1440}.png. Branch `feature/alejandro-photographic-diptych-20261021` based on `e51ebfeaf50f4e5ca709d6271a3d023df87e3470`.
 - Deployment status: pending checks and merge. Authoritative photo archive is GitHub Pages / parallelvisionlabel.com, NOT PV LAB's Cloudflare Pages preview. After release check GitHub Pages build and deploy, then use a query-busted URL for owner review.
+
+## 2026-10-21 / Direct-to-photo museum layout
+- Following user review of diptych cover, removed both redundant hero photos. Approved flow: one-line large artist name; two coherent factual blocks left/right on desktop; directly into first Nocturne photograph.
+- Background now pure neutral near-black #080808, not charcoal gray/green. Text warm ivory. No hero figure borders, no template-style bio cards.
+- Preserved live seven galleries (47 unique images), all original images and captions, gallery.js, user controls, links and accessibility. No new images added.
+- Only photography/index.html and photography/style.css changed. The previous diptych remains in Git history for rollback.
+- Desktop and iPhone layouts defined via responsive CSS. GitHub build and live visual tests are tracked by the PR; no claim of full Safari test before owner verification.
+- Branch: fix/photography-direct-hero-20261021. Deployment status: pending merge and GitHub Pages check.
