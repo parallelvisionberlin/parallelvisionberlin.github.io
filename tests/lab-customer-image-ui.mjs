@@ -134,7 +134,7 @@ assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 cre
  assert.equal(await welcome.locator('#lab-welcome-start').isVisible(),true);
  assert.equal(await welcome.locator('#lab-welcome-balance').textContent(),'200 credits');
  assert.deepEqual(await welcome.locator('[data-welcome-mood]').evaluateAll(cards=>cards.map(card=>card.dataset.welcomeMood)),
-   ['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','dreamcore','hong-kong-nights','chrome-couture','80s-film'],
+   ['dream-blur','90s-cinema','fashion-editorial','fisheye-2000','chrome-couture','hong-kong-nights','dreamcore','80s-film'],
    'The current editorial onboarding retains all eight approved looks');
  const beforeWelcomeSubmit=paidJobs;
  await welcome.click('[data-welcome-mood="dream-blur"]');
