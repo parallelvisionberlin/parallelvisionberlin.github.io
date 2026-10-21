@@ -254,3 +254,15 @@ body {
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* The title now leads directly into Nocturne; keep the index as a small
+   navigation strip after the photographic series, not before it. */
+.intro-grid { padding-bottom: clamp(12px, 1.8vw, 24px); }
+.archive { padding-top: 0; }
+.gallery-section:first-child { padding-top: clamp(12px, 1.8vw, 24px); }
+.series-index { margin-top: clamp(20px, 3vw, 44px); }
+@media (max-width: 680px) {
+  .intro-grid { padding-bottom: 8px; }
+  .archive { padding-top: 0; }
+  .gallery-section:first-child { padding-top: 12px; }
+}
