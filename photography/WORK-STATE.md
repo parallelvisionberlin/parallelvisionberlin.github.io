@@ -83,3 +83,10 @@ Next: add future photographs solely in the canonical manifest and compare them a
 - Only photography/index.html and photography/style.css changed. The previous diptych remains in Git history for rollback.
 - Desktop and iPhone layouts defined via responsive CSS. GitHub build and live visual tests are tracked by the PR; no claim of full Safari test before owner verification.
 - Branch: fix/photography-direct-hero-20261021. Deployment status: pending merge and GitHub Pages check.
+
+## 2026-10-21 / Nocturne sequence
+- User selected “Untouched by Time” (`assets/nocturne-05.jpeg`) as the opening photograph in Nocturne.
+- Checked actual pixel dimensions and EXIF orientation of all 13 Nocturne originals in the user's Google Drive source folder. Nine are landscape, four are portrait.
+- Reordered only the 13 `images` entries in `photography/archive.js`: featured landscape image first, then all other landscapes in previous relative order, then the four portrait photographs in previous relative order.
+- No file, caption, image path, gallery name, other series, gallery script or page style was modified. All seven galleries still contain 47 photographs.
+- Source edit branch: `fix/nocturne-feature-first-landscapes-20261021`; publication requires green validation and the site-specific GitHub Pages deployment.
