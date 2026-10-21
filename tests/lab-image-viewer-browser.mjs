@@ -13,14 +13,14 @@ clerk={session:{id:'test-session',getToken:async()=> 'synthetic-token'}};
 owner=true;userId='test';await deviceMediaCache.select(userId);config={enabled:true,concurrency:{image:4,video:1}};
 $('app').hidden=false;$('gate').hidden=true;
 await loadHistory();await restoreStudioEntry();update();finishLabBoot();
-window.__viewerTest={lock,seedVideo:()=>{const job={id:'older-video',status:'completed',outputId:'older-output',settings:{type:'video',engine:'seedance',prompt:'OLDER VIDEO PROMPT'}};videoJobCache.set(job.id,job);selectedVideoJob=job;},refreshVideo:restoreLatestVideoSelection,showVideoState:status=>{
+window.__viewerTest={lock,emptyVideo:()=>{clearVideoHistorySelection();clearMedia();setMode('reference');update();},seedVideo:()=>{const job={id:'older-video',status:'completed',outputId:'older-output',settings:{type:'video',engine:'seedance',prompt:'OLDER VIDEO PROMPT'}};videoJobCache.set(job.id,job);selectedVideoJob=job;},refreshVideo:restoreLatestVideoSelection,showVideoState:status=>{
   const job={id:'synthetic-video',status,createdAt:Date.now(),settings:{
     type:'video',engine:'seedance15',mode:'start',prompt:'A slow handheld move',
     duration:8,resolution:'720p',aspectRatio:'16:9'}};
   videoJobCache.set(job.id,job);showVideoHistoryRecord(job,{play:false});
 },createVideoGallery:()=>{
   const jobs=Array.from({length:4},(_,i)=>({
-    id:'archive-video-'+i,status:'completed',createdAt:Date.now()-i,
+    id:'archive-video-'+i,status:'completed',favorite:false,createdAt:Date.now()-i,
     outputId:'video-out-'+i,sourceId:'ref-0',settings:{type:'video',
       engine:'seedance15',mode:'start',prompt:'Synthetic video '+i,
       duration:8,resolution:'720p',aspectRatio:'16:9'}
@@ -279,6 +279,8 @@ try{
       'Small screens use one video per row, desktop shows a compact multi-column grid');
     assert.equal(await page.locator('.history-video-play').count(),4,
       'Completed video source thumbnails display a clear Play Video affordance');
+    assert.equal(await page.locator('.history-video-play svg').count(),4,'Play affordances use monochrome SVG icons');
+    assert.equal(await page.locator('.asset-video-badge svg').count(),4,'Video labels use the same monochrome icon treatment');
     // This saved file is held: selecting a thumbnail must reveal Loading and
     // return to the top of the player before any result bytes arrive.
     await tiles.first().scrollIntoViewIfNeeded();
@@ -296,6 +298,12 @@ try{
     await page.waitForFunction(()=>!!document.querySelector('#video').getAttribute('src')&&!document.querySelector('#video').hidden);
     assert.equal(reads.get('video-out-0'),1,'One video download for one click, no paid generation');
     assert.equal(await page.locator('#video-job-stage').isVisible(),false,'Loaded video replaces the processing card');
+    assert.equal(await page.locator('#video').isVisible(),true,'A real video remains visible on desktop and phone');
+    await page.evaluate(()=>window.__viewerTest.emptyVideo());
+    await page.waitForFunction(()=>document.querySelector('#pv-video-reference-preview')?.dataset.illustrative==='true');
+    assert.equal(await page.locator('#video-feed-center>.stage').isVisible(),width>820,
+      'The decorative empty stage remains on desktop and disappears only on phones');
+    if(shape==='landscape')await page.screenshot({path:`test-results/video-mobile-quiet-${width}.png`,fullPage:false});
     await page.evaluate(()=>window.__viewerTest.lock());
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).cache,0,'Sign out clears private original cache');
     assert.equal(await page.locator('.image-detail-reference-item').count(),0,'Sign out clears all private reference thumbnails');

@@ -24,7 +24,7 @@ export function createAssetLibrary({api,notify,archive,app,selected,selectMode,r
     let favorite=job.favorite;
     const paint=()=>{heart.textContent=favorite?'♥':'♡';heart.classList.toggle('is-favorite',favorite);heart.setAttribute('aria-pressed',String(favorite));heart.setAttribute('aria-label',favorite?'Remove from favorites':'Add to favorites');};paint();
     heart.onclick=async e=>{e.stopPropagation();heart.disabled=true;try{await api('/api/library/members',{method:'POST',body:{ids:[job.id],favorite:!favorite}});favorite=!favorite;job.favorite=favorite;paint();if(active&&filter==='favorites')await reload();}catch(error){notify(error.message,true);}finally{heart.disabled=false;}};card.append(heart);
-    if(job.settings.type==='video'){const badge=document.createElement('span');badge.className='asset-video-badge';badge.textContent='▶ Video';card.append(badge);}
+    if(job.settings.type==='video'){const badge=document.createElement('span');badge.className='asset-video-badge';badge.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 5 10 7-10 7Z"/></svg><span>Video</span>';card.append(badge);}
   }
   $('tool-assets').onclick=safe(open);$('assets-all').onclick=safe(()=>navigate('all'));$('assets-favorites').onclick=safe(()=>navigate('favorites'));
   $('assets-kind').onchange=safe(async()=>{media=$('assets-kind').value;selectMode(false);await reload();});

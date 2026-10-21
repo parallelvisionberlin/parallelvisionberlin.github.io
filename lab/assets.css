@@ -1592,3 +1592,7 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
   #image-composer .composer-controls #composer-exact-prompt-option input:before,
   #image-composer .composer-controls #composer-exact-prompt-option .composer-exact-tooltip{transition:none}
 }
+
+/* Monochrome video affordances never depend on platform emoji rendering. */
+#history .history-video-play svg,#history .asset-video-badge svg{width:12px;height:12px;flex-shrink:0;vertical-align:-2px}
+#history .asset-video-badge svg{margin-right:4px}
