@@ -353,3 +353,67 @@ body{background-image:none}
 .photograph{background:transparent}
 .gallery-wrap{background:transparent}
 @media(max-width:680px){.photograph{background:transparent}}
+
+
+/* 2026-10-21 Editorial split-hero: uses an existing original photograph.
+   Scoped to /photography/. Existing gallery mechanics and original files are untouched. */
+.masthead{height:62px}
+.masthead-center{letter-spacing:.10em}
+.hero{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,1fr);gap:clamp(26px,3.2vw,56px);align-items:stretch;padding:clamp(22px,2.5vw,38px) clamp(20px,3.6vw,72px) clamp(36px,3.2vw,54px);max-width:1880px;margin:auto}
+.hero-plate{margin:0;min-width:0;align-self:start}
+.hero-plate img{display:block;width:100%;height:auto;aspect-ratio:2048/1362;object-fit:contain;object-position:center}
+.hero-plate figcaption{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:11px;color:var(--subtle);font:500 9px/1.4 'Helvetica Neue',Arial,sans-serif;letter-spacing:.12em}
+.hero-plate figcaption a{color:var(--ink)}
+.hero-plate figcaption a:hover{text-decoration:underline;text-underline-offset:4px}
+.hero-copy{min-width:0;display:flex;flex-direction:column;justify-content:space-between;border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);padding:12px 0 13px}
+.hero-topline,.hero-bottomline{display:flex;align-items:center;justify-content:space-between;gap:18px;color:var(--subtle);font:500 9px/1.35 'Helvetica Neue',Arial,sans-serif;letter-spacing:.12em;white-space:nowrap}
+.hero-identity{padding-top:clamp(23px,3vw,55px)}
+.hero-identity h1{font:400 clamp(38px,3.75vw,68px)/1.05 'Iowan Old Style',Baskerville,Georgia,'Times New Roman',serif;letter-spacing:-.085em;white-space:nowrap;margin:0;color:var(--ink)}
+.hero-identity p{font:500 10px/1.45 'Helvetica Neue',Arial,sans-serif;letter-spacing:.12em;margin:19px 0 0;color:var(--subtle)}
+.hero-identity p span{margin:0 7px}
+.hero-biographies{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(15px,2vw,36px);margin:26px 0 22px;padding-top:18px;border-top:1px solid var(--hairline)}
+.bio-label{display:block;margin:0 0 13px;color:var(--subtle);font:500 9px/1 'Helvetica Neue',Arial,sans-serif;letter-spacing:.14em}
+.hero-bio-col p{margin:0;color:#cac7c0;font:400 clamp(12px,.87vw,14px)/1.55 'Helvetica Neue',Arial,sans-serif}
+.hero-bio-col a{color:var(--ink);text-decoration:underline;text-decoration-color:#8b887f;text-underline-offset:3px}
+.hero-bottomline{color:var(--subtle);border-top:1px solid var(--hairline);padding-top:13px}
+.hero-bottomline a{color:var(--ink)}
+.hero-bottomline a span{margin-left:6px;font-size:16px;vertical-align:-1px}
+.hero-bottomline a:hover{opacity:.7}
+.archive{max-width:1880px;margin:auto}
+.gallery-section:first-child{border-top:1px solid var(--hairline);padding-top:clamp(31px,3.4vw,56px)}
+.gallery-heading h3{font-family:'Iowan Old Style',Baskerville,Georgia,'Times New Roman',serif}
+@media(max-width:1250px){
+  .hero{gap:28px}
+  .hero-identity h1{font-size:clamp(38px,3.6vw,58px)}
+  .hero-bio-col p{font-size:12px}
+}
+@media(max-width:1050px){
+  .hero{grid-template-columns:1fr;gap:24px}
+  .hero-copy{order:-1;padding:12px 0 20px}
+  .hero-identity{padding-top:26px}
+  .hero-identity h1{font-size:clamp(42px,6.4vw,70px)}
+  .hero-biographies{margin:20px 0}
+  .hero-plate img{max-height:430px}
+}
+@media(max-width:680px){
+  .masthead{height:54px}
+  .hero{padding:20px 18px 26px;gap:17px}
+  .hero-topline{font-size:8px;white-space:normal}
+  .hero-topline span:last-child{display:none}
+  .hero-identity{padding-top:24px}
+  .hero-identity h1{font-size:clamp(29px,7.75vw,46px);letter-spacing:-.078em;white-space:nowrap}
+  .hero-identity p{font-size:9px;margin-top:13px}
+  .hero-biographies{grid-template-columns:1fr;gap:12px;margin:18px 0 14px;padding-top:14px}
+  .bio-label{margin-bottom:7px;font-size:8px}
+  .hero-bio-col p{font-size:12px;line-height:1.48}
+  .hero-bottomline{font-size:8px}
+  .hero-copy{padding-bottom:10px}
+  .hero-plate img{max-height:none;aspect-ratio:2048/1362}
+  .hero-plate figcaption{font-size:8px}
+  .archive{padding:0 18px 26px}
+  .gallery-section:first-child{padding-top:32px}
+}
+@media(max-width:370px){
+  .hero-identity h1{font-size:clamp(27px,7.35vw,35px)}
+  .hero-bottomline span:last-child{display:none}
+}
