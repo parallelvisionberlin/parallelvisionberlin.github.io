@@ -58,3 +58,12 @@ Next: add future photographs solely in the canonical manifest and compare them a
 - Short direct transition into first Nocturne gallery. One count automatically reflects the live archive manifest. Existing gallery.js, archive.js, 47 originals, captions, arrow/swipe/keyboard and photo sizing unchanged.
 - Local Chromium layout tests: 12 viewports (320 through 1650 px), no horizontal overflow, seven gallery sections, portrait/landscape layout, no JS page errors.
 - Only /photography/index.html and /photography/style.css are modified; production deployment remains pending until PR merge and GitHub Pages checks confirm success.
+
+## 2026-10-21 / Photographic monograph redesign
+- Objective: replace template-like 50/50 framed hero with an institutional photographic monograph composition, keeping the requested dark archive palette.
+- New hero is an oversized single-line Helvetica Neue artist name over a 38/62 image-led spread: one readable practice/lineage note on the left, original camera-and-mirror Silver Room image on the right.
+- Source image: `photography/assets/silver-room/DSC02058.jpg`, original unedited; links to Silver Room. No new images generated, no cropping. Oscar Molinari’s historical details remain source-linked, without making an unsupported cohabitation claim.
+- Only `photography/index.html` and `photography/style.css` are changed. Stylesheet is rewritten to remove conflicting cascades while preserving gallery dimensions, controls and accessibility. `gallery.js`, `archive.js` and all 47 image assets remain untouched.
+- Local real Chromium rendering used inline assets because external browser navigation was blocked in this environment. Verified 12 viewport widths (320–1650px), no horizontal overflow or JavaScript errors, all seven galleries rendered, hero image loaded, and image carousel remains constant-height after changing photos at 320, 390, 1024 and 1650px.
+- Source versions and draft files preserved in the owner’s private Google Drive Photography Archive / 04 - Website Drafts. Source parent commit for this branch: `e895212e70e421d3827c4a117a51376477440ee8`.
+- Deployment status: pending PR merge and authoritative GitHub Pages build/deploy. Do not infer live domain behavior from Cloudflare PV LAB preview.
