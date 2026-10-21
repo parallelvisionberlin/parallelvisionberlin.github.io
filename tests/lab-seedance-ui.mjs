@@ -125,7 +125,8 @@ try{
    settings:{type:'image',engine:'seedream',mode:'image',prompt:'Fashion editorial photograph.',
      resolution:'2k',aspectRatio:'1:1',referenceSourceIds:[]}};
  x=await workspace({initial:[completedStill]});
- await x.page.click('#tool-effects');
+ // Effects remains a retained route handler; the approved header hides its legacy tab.
+ await x.page.locator('#tool-effects').evaluate(button=>button.click());
  await x.page.locator('#video-effects-grid .video-effect-card').first().waitFor();
  assert.equal(await x.page.locator('#video-effects-grid .video-effect-card').count(),3);
  assert.equal(await x.page.locator('#video-effects-explore').isVisible(),true);
