@@ -1,6 +1,19 @@
 # Nina Instagram: verified owner-continuity work state
 Updated: 2026-10-22
 
+## Soft Argentine Spanish and casual dialogue (2026-10-22)
+- User requested a broadly neutral Argentine Spanish voice, more casual DMs, and no opening exclamation marks.
+- Source commit: 6be72fa7415639960ea31a6b51357b5318d81269. Files: worker.mjs, worker.test.mjs, voice-transcription-runtime.js.
+- Dialogue revision: rioplatense-casual-2026-10-22. Spanish instructions use light voseo (vos, sos, tenés, querés, contame, decime) without stereotyped slang or inventing an Argentine biography. English/German remain available.
+- Final outgoing formatting strips both ¿ and ¡. Spain-specific phrasing receives one bounded rewrite. Spanish deterministic greetings, profile-name replies, apology and failed-audio acknowledgment also use the new register.
+- Prompt now treats Nina's Parallel Vision association as established public canon, avoids grand reunions after a short gap and discourages generic topic menus/life-update questions.
+- A claimed name/relationship can be addressed conversationally but does not become a verified recollection or grant private access. No new cross-account owner link or shared memory was created by this change.
+- Added short-gap-reminder guidance and a short non-probing repair fallback; tests cover opening punctuation, Spain-specific rewriting and the user's reported generic reunion/menu pattern.
+- Validation: 28 Worker tests passed locally. Existing adaptive pacing, private-vault bridge and send implementation compared unchanged; embedded voice runtime matches its source file.
+- No real dialogue-model quality evaluation was possible through the CI token (known missing direct model permission). Unit tests validate the pipeline and instructions, not every future model response.
+- Deployment VERIFIED 2026-10-22 01:06 Berlin: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39691169474, CI 32/32 tests passed. Version 5d6b5afc-340e-4eea-9c1f-4e7f57886f9d at 100%, deployment d6094656-bfe9-4fa1-a14c-9ef911f65b1f. Settings, bindings and cron preserved; health confirms both the new dialogue revision and the existing adaptive pacing.
+- Next: inspect an actual fresh Spanish DM for natural voseo and continuity. Real voice-note transcription remains a separate unverified issue; this release changes its brief failure wording, not the media retrieval result.
+
 ## Adaptive visitor pacing deployed (2026-10-22)
 - User authorized visitor pacing that follows how quickly the visitor replies, and asked whether Nina can see profile names.
 - Source commit: 895904959c2725ccd53dc617ce128e82b9ca4018.
