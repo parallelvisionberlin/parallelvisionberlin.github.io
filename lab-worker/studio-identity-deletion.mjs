@@ -89,10 +89,36 @@ async function banTask(env,task){
     NOW(),task.customer_id,task.new_subject);
 }
 
+function cleanupIssue(error){
+  const message=String(error?.message||'');
+  const status=message.match(/HTTP (\d{3})/);
+  if(status)return 'clerk_http_'+status[1];
+  if(message.includes('key unavailable'))return 'missing_studio_key';
+  if(message.includes('response could not be verified'))return 'clerk_invalid_response';
+  if(message.includes('link changed'))return 'identity_link_mismatch';
+  if(message.includes('media cleanup'))return 'media_cleanup_pending';
+  if(error?.name==='TimeoutError')return 'clerk_timeout';
+  return 'cleanup_failed';
+}
+async function recordAttempt(env,id,error=null){
+  await run(env,`INSERT INTO lab_studio_identity_cleanup_attempts(customer_id,attempted_at,issue)
+    VALUES(?,?,?) ON CONFLICT(customer_id) DO UPDATE SET attempted_at=excluded.attempted_at,issue=excluded.issue`,
+    id,NOW(),error?cleanupIssue(error):null);
+}
 export async function banClosedStudioIdentity(env,id){
   const task=await taskForCustomer(env,id);
   if(!task||task.state!=='pending')return false; // Legacy-only: never touch shared Clerk.
-  await banTask(env,task);
+  try{await banTask(env,task);await recordAttempt(env,id);}
+  catch(error){await recordAttempt(env,id,error);throw error;}
+  return true;
+}
+// A returning closed-account session can finish its own queued identity cleanup
+// without waiting for cron or unrelated provider maintenance. It never reopens
+// a wallet and cannot touch an owner or a different customer's Clerk account.
+export async function finishClosedStudioIdentity(env,id){
+  const task=await taskForCustomer(env,id);
+  if(!task||task.state!=='pending')return false;
+  await processTask(env,task);
   return true;
 }
 
@@ -121,6 +147,14 @@ async function finalizeTask(env,task){
   ]);
 }
 
+async function processTask(env,task){
+  try{
+    if(!task.banned_at)await banTask(env,task);
+    if(task.closure_state==='deleted')await finalizeTask(env,task);
+    await recordAttempt(env,task.customer_id);
+  }catch(error){await recordAttempt(env,task.customer_id,error);throw error;}
+}
+
 export async function processStudioIdentityDeletions(env){
   // Owner-only historical test/development databases need not contain any
   // customer schema. A real customer deployment must provide the task tables.
@@ -136,10 +170,7 @@ export async function processStudioIdentityDeletions(env){
     WHERE t.state='pending' ORDER BY t.requested_at LIMIT 8`).bind().all();
   let failed=false;
   for(const task of found.results){
-    try{
-      if(!task.banned_at)await banTask(env,task);
-      if(task.closure_state==='deleted')await finalizeTask(env,task);
-    }catch{failed=true;}
+    try{await processTask(env,task);}catch{failed=true;}
   }
   if(failed)throw Error('PV LAB identity cleanup is pending; Clerk or storage verification will be retried.');
 }

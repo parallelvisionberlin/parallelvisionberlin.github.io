@@ -1,3 +1,17 @@
+# Active account recreation repair, 2026-10-21
+
+- User deleted Neon Riviera, returned through Google and saw Account closed on the homepage. Reference image(20261021-100259).png, Library libfile_6baf9c98052881919f4a3f87e61adeb2.
+- Baseline: main 8b44762ba8cf41f485eecdb0799fed1c0461e5dd. Work branch fix/account-recreation-20261021.
+- Production read-only audit 39583438685: four creative closures deleted, all four identity tasks pending, none banned/completed; oldest pending 5,083 minutes. Dedicated PV LAB Clerk secret and five-minute schedule are present. Wallet ledger and failed-job refunds reconcile. Contact-sync report is 90 hours old, a separate live warning.
+- Thus deletion of creative content succeeded while the login identities stayed linked to closed wallets. No real replacement Google identity has been verified.
+- Source fault reproduced: identity erasure was behind generation maintenance; an earlier provider/training/source-cleanup failure prevents it from running.
+- Fix separates account maintenance into its own scheduled task. Returning closed sessions can also finish only their own pending identity task, independently of cron.
+- New private bounded attempt diagnostics record a fixed issue category, not emails, secrets or remote response bodies. Migration 0035 is applied before Worker deployment.
+- Financial/credit ledgers, stale-token tombstones, no repeated free gift, storage-empty and Stripe verification, owner/legacy identity isolation remain enforced.
+- Existing deletion/lifecycle plus new same-email fresh-subject, stale-token, retry-category and provider-failure isolation regressions: 11 passed locally.
+- Publication and production task completion pending. Finish with deployed health revision and live aggregate state; do not equate synthetic same-email fixtures with a real Google login.
+- Prompt deck, Hong Kong Nights, galleries, Upscaler, models and billing implementation remain outside this repair.
+
 # PV LAB complete account deletion | October 18, 2026
 
 ## Customer contract
