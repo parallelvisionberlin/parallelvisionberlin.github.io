@@ -83,3 +83,21 @@
 - `lab/detail-video-studio.css` hides the now-empty Video notice element; `lab/studio.html` refreshes only these assets' cache versions.
 - No model, billing, video submission, provider, backend, or stored job behavior changed. No paid job was started for validation.
 - Source-level checks completed; repository publication and independent live verification are separate.
+
+## Image gallery right-side gaps at browser zoom, 2026-10-21
+- Owner screenshot: image(20261021-095646).png, Library libfile_76d84e6908f08191a6a9c817691c7505.
+- User isolated the symptom to browser zoom 90%; 100% looks correct.
+- Baseline: main a48aee5a7587c463ae04cd3ae50ccebc7ad41639.
+- Reproduced with synthetic cards, real Lab CSS and fractional gallery widths in Chromium.
+- Root cause: gallery-layout.js uses integer-rounded clientWidth as its flex row budget. It can exceed the actual fractional width, wrapping a final card and producing large right-side holes.
+- Example before: actual width 1905.5px, clientWidth 1906px, completed row gap 635.5px. At width 2116.65625px, gaps reached 529.406px.
+- Minimal fix: floor the measured getBoundingClientRect width before calculating rows. Only the shared gallery module changes; no account-role branch or gallery redesign.
+- Existing integer-width 1905px layout is unchanged. Corrected fractional completed rows leave less than 1px tolerance instead of dropping a card.
+- The intentionally incomplete final row remains unstretched, preserving original image proportions.
+- Applies to shared web Image, Assets and Upscaler galleries for owner/customer accounts. Native gallery grid branch remains unchanged.
+- studio.html increments only the gallery-layout.js cache revision to 20261021-zoom-row-fit1.
+- New browser regression tests/lab-gallery-layout-ui.mjs covers 21 mode/width combinations plus native grid isolation, using synthetic cards with actual CSS and no account/provider calls.
+- Local verification: 21 gallery cases and all four approved Image UI contract tests passed. Existing owner/customer account browser suite also passed, including private-state, billing guards and 1440/390/320px shared menus.
+- Dedicated CI: .github/workflows/lab-gallery-layout.yml. No prompt deck, Mood recipe, auth, billing, provider or saved-photo changes.
+- Publication and real signed-in owner/customer browser zoom remain to be verified separately; synthetic fractional-width tests are not a live account check.
+- After these requested fixes are complete, remind Alejandro to test recreation/login using alejandro.molinari.c@gmail.com, which he reported deleting. Do not assume same-email recreation succeeds before testing.

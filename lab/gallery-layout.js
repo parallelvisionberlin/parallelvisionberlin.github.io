@@ -23,7 +23,9 @@ function layout(){
   }
   gallery.classList.remove('native-gallery-grid');
   if(!enabled){for(const card of cards){card.style.removeProperty('width');card.style.removeProperty('height');}return;}
-  const width=gallery.clientWidth;if(!width)return;
+  // Browser zoom can make the real row fractional; clientWidth rounds up and
+  // forces the final card onto another flex line. Stay inside the measured row.
+  const width=Math.floor(gallery.getBoundingClientRect().width);if(!width)return;
   const gap=2,target=width<640?160:Math.min(320,width/5.8);
   let row=[],sum=0;
   const place=(full)=>{
