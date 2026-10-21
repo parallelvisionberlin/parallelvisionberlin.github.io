@@ -1,18 +1,39 @@
-## Cross-project audit, 2026-10-21 (Europe/Berlin)
-- Audited main at f3eb54d114b17de1dee7fe50d84ee9c4a8769088 using current commits, open PRs, feature handoffs, CI and the public Studio.
-- Main includes compact Video downloads f021f28, Elements Gemini repair 0c4dbf1, feedback spacing 558dc85, mobile Upscaler ccbd7f8, Hong Kong atmosphere/optics cef509f, Image focus 1b2a39c and PV Soul toolbar bf1b2e3.
-- Video downloads handoff records successful Cloudflare deployment and live CSS verification. Private owner download was not exercised.
-- Elements handoff records successful Worker deployment and live health version. Actual NINA FULL BODY eight-photo analysis remains unverified.
-- Hong Kong generation/optics source is merged; this audit did not verify production renderer or a paid generated result.
-- Main public homepage and signed-out Image Studio loaded in cloud browser. Prompt accepts typing, seven Inspiration looks are present, and desktop has no horizontal overflow.
-- Guest Image currently has no visible photo attachment control. PR #377 contains guest local-photo preparation plus closed-account recovery and unified pricing fixes, but remains OPEN and unmerged.
-- #377 latest head 9a9e15c2dd55432091d8755c4b35fe99c959c261 has 19 successful returned PR workflows and one failed Lab video integration workflow.
-- Failed run 39515040917/job 118945050220 passed backend/syntax. Mock browser suite times out in tests/lab-reference-ui.mjs:129 waiting for reference-item second Up button; do not describe this as a confirmed production video-generation failure.
-- Next priority: repair that regression check after inspecting current reference controls, recheck #377 against latest main and locked Image contract, then release and verify real account recovery/pricing.
-- Other open work: #362 Fisheye 2000, #328 saved Elements editing, #277 Synthetic Romance face preservation. Other older open PRs may be superseded; an open PR alone is not proof its feature is absent.
-- Signed-in owner/customer sessions, live purchase/refund, actual generated output quality, and Control Room Clerk sync were not verified in this audit.
-- No paid generations, account mutations, merges or production UI changes made during audit.
-- Existing feature records below are historical; do not interpret their old pending status as current without checking commits.
+# PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
+
+## Current objective and release
+- User authorized finishing and releasing PR #377, then verifying the recreated-account flow.
+- PR #377 merged to main as 1abf77edd3330f18adbda8abad073867adcb39eb.
+- Final PR head 0ea6d77c1cb77fea8b5ede986e1235a25424e61b has all 20 PR workflows successful.
+- Cloudflare Pages check for 1abf77e completed successfully.
+- Live browser verified https://pvlab.studio/studio?tool=image after reload: new guest Add photographs locally control, accountFlow=20261020v6 script marker and closed-account recovery markup. Desktop width 1363, document width 1348.
+- Live signed-out entry loads normally; no paid generation or checkout was submitted.
+
+## Resulting behavior and safeguards
+- Closed identities get explicit sign-out/re-registration recovery; no tombstoned wallet is reopened.
+- Active customers, including zero-credit/paused-trial accounts, can prepare direction and photos before Generate opens pricing.
+- Funded and zero-credit wallets use the same editorial pricing panel.
+- Guest photos stay local until authenticated handoff; private Elements remain gated.
+- Approved Image layout, prompts, Moods, model routing and credit rules are preserved.
+- Video submission updates only the Current scene footnote; it no longer destroys fields used by the renderer.
+- Current Video tests retain explicit History selection, no duplicate generation, no paid retry and original-media assertions.
+- Candidate browser actually staged a synthetic local photo and edited a prompt without starting a generation.
+
+## Live billing and Control Room evidence
+- Stripe PV Lab live account read-only verification: one successful EUR 10 payment; no refunds to inspect.
+- D1 read-only diagnostic 39574838449 passed wallet-ledger reconciliation, failed-job refunds, active verified contacts and absence of reported Clerk key/transient errors.
+- That diagnostic FAILED freshness: last stored Clerk sync report was 89 hours old, and contact refreshes were due.
+- Production five-minute cron schedule exists; deployed Worker contains scheduledClerkBackfill and diagnostic persistence. These facts do not prove scheduled execution is healthy.
+- Do not disable this alert or describe all Control Room sync as verified.
+- Diagnostic implementation: .github/workflows/pvlab-readonly-session-db.yml. It runs SELECT only and prints safe pass/fail labels rather than IDs, emails, balances or private media.
+
+## Remaining verification and exact next actions
+- This audit browser is signed out. Secure browserAuth rejected the password locator as not_user_visible; no credentials were entered.
+- Offer the supported browser handoff for the owner/test customer to sign in.
+- After sign-in: test the actual recreated account, real displayed credits, private History/Gallery and pricing handoff. Do not create purchases or delete accounts merely for testing.
+- Owner session: inspect Control Room sync and run its explicit safe sync action if needed; resolve the stale scheduled report separately.
+- Backend/sandbox payment, webhook idempotency and refund paths are covered by passing CI; no real refund or paid generation was performed.
+- Full CI/account diagnosis history is in ACCOUNT-WORK-STATE.md. Preserve unrelated feature work.
+- Earlier Flash-specific notes below are historical; current source and verified deployment take precedence.
 
 # PV LAB active work state
 
