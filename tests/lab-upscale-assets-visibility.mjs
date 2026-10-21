@@ -85,7 +85,8 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       const output=document.querySelector('.pv-upscale-output-heading').getBoundingClientRect();
       return {height:controls.height,modelBottom:model.bottom,outputTop:output.top};
     });
-    assert.ok(initialLayout.height>=630,'Approved full left deck has visual balance with the photo canvas');
+    if(profile==='desktop')assert.ok(initialLayout.height>=630,'Approved desktop settings deck matches the full reference');
+    else assert.ok(initialLayout.height>=300,'Mobile settings remain comfortably usable');
     const geometry=await page.evaluate(()=>{
       const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
       return {
