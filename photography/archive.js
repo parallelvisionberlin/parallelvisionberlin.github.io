@@ -6,18 +6,18 @@ window.AM_ARCHIVE = {
       title: 'Nocturne',
       subtitle: 'Night flash / Outdoor studies',
       images: [
-        { src: 'assets/nocturne-01.jpeg', caption: 'Night study no. 01', alt: 'Figure stretched along the fork of a tree at night' },
-        { src: 'assets/nocturne-02.jpeg', caption: 'Night study no. 02', alt: 'Figure near a tree trunk illuminated by direct flash' },
-        { src: 'assets/nocturne-03.jpeg', caption: 'Night study no. 03', alt: 'Close-up of a figure in deep shadow and purple light' },
-        { src: 'assets/nocturne-04.jpeg', caption: 'Night study no. 04', alt: 'Figure leaning into leaves at night' },
         { src: 'assets/nocturne-05.jpeg', caption: 'Untouched by Time', alt: 'Soft black-and-white image of a figure holding a tree trunk' },
+        { src: 'assets/nocturne-01.jpeg', caption: 'Night study no. 01', alt: 'Figure stretched along the fork of a tree at night' },
+        { src: 'assets/nocturne-03.jpeg', caption: 'Night study no. 03', alt: 'Close-up of a figure in deep shadow and purple light' },
         { src: 'assets/nocturne/PRINT.jpg', caption: 'Night study no. 06', alt: 'Black-and-white flash photograph of a figure leaning across a wooden bench in the forest' },
         { src: 'assets/nocturne/The Embrace.jpg', caption: 'The Embrace', alt: 'Black-and-white flash photograph of a figure folded across a tree branch' },
         { src: 'assets/nocturne/IMG_1345.jpg', caption: 'Night study no. 08', alt: 'Blurred black-and-white study of a figure partly hidden behind a tree trunk' },
         { src: 'assets/nocturne/Lost Highway.jpg', caption: 'Lost Highway', alt: 'Black-and-white photograph of a figure on an empty road beneath distant streetlights' },
-        { src: 'assets/nocturne/4647EC53-CDD5-47EE-924A-552CF3C4285F.JPG', caption: 'Night study no. 10', alt: 'Monochrome flash photograph of a figure reaching up into ivy with crossed hands' },
         { src: 'assets/nocturne/IMBWG_1132.jpg', caption: 'Night study no. 11', alt: 'Black-and-white photograph of a figure walking along an empty road at night' },
         { src: 'assets/nocturne/IMG_7946.jpg', caption: 'Night study no. 12', alt: 'Flash photograph of a figure leaning across a green car in a dark street' },
+        { src: 'assets/nocturne-02.jpeg', caption: 'Night study no. 02', alt: 'Figure near a tree trunk illuminated by direct flash' },
+        { src: 'assets/nocturne-04.jpeg', caption: 'Night study no. 04', alt: 'Figure leaning into leaves at night' },
+        { src: 'assets/nocturne/4647EC53-CDD5-47EE-924A-552CF3C4285F.JPG', caption: 'Night study no. 10', alt: 'Monochrome flash photograph of a figure reaching up into ivy with crossed hands' },
         { src: 'assets/nocturne/DSC02122 (2).jpg', caption: 'Night study no. 13', alt: 'Monochrome photograph of a figure on a rooftop ledge against the night sky' }
       ]
     },
