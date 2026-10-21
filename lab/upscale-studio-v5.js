@@ -8,13 +8,20 @@ function installUpscaleSidebar(){
   const input=document.getElementById('image');
   const preview=document.getElementById('preview');
   if(!app||!upload||!copy||!status||!input||!preview)return;
-  // Both Upscaler CTAs use the same original file input and upload path.
+  // Upload actions and the dashed drop area all use the same original file input.
+  // File validation, drag/drop, jobs and credit quoting remain in lab.js.
   for(const button of [upload,document.getElementById('pv-upscale-hero-upload')].filter(Boolean)){
     button.addEventListener('click',()=>{
       if(!app.classList.contains('upscale-studio-active'))return;
       input.click();
     });
   }
+  const zone=document.getElementById('pv-upscale-dropzone');
+  zone?.addEventListener('click',event=>{
+    if(!app.classList.contains('upscale-studio-active')||
+      event.target.closest('button,.pv-upscale-benefits'))return;
+    input.click();
+  });
   const sync=()=>{
     const active=app.classList.contains('upscale-studio-active');
     if(!active)return;
