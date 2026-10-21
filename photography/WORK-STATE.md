@@ -18,3 +18,12 @@ The old personal/private browser editor is stored in the user's Google Drive, no
 Consent: the photographer confirmed original authorship and that the models approved publication. The portfolio contains artistic nudity (18+), maintains a discreet noindex directive.
 Status (2026-10-21): PR #381 merged into main as commit 080466a797b945cc0db139f159314861bb84e232. All six reported checks completed successfully for that commit: GitHub Pages build/deploy/report, Validate, Approved Image UI, and Cloudflare Pages. The canonical route is /photography/; /photo-work/ redirects. Direct HTTP access to parallelvisionlabel.com could not be verified from this runtime due to network/DNS restrictions. The owner can visually review the canonical URL on iPhone. 
 Next: verify deploy checks and public route after merge; add any new photographs solely in the canonical manifest.
+
+## 2026-10-21 / Nocturnal editorial redesign
+
+- Based on the verified canonical `/photography/` site only; no second website, no changes to other pages.
+- User requested smaller Alejandro Molinari title, much shorter hero, immediate gallery entry and atmospheric near-black forest-charcoal background with subtle analog texture.
+- Changed `photography/index.html` title presentation, short factual intro, non-emoji AM wordmark, jump to Nocturne, reduced intro and navigation. Changed `photography/style.css` with scoped nighttime styles. Added procedurally generated neutral noise tile `photography/assets/film-grain.png` applied to page background, not images.
+- Preserved existing 10 original JPEGs, all 3 separate galleries, Nocturne first, keyboard/swipe/arrows/counters, fixed photo-stage geometry and uncropped images. `archive.js` and `gallery.js` unchanged.
+- Chromium local tests at 320/360/375/390/430/680/768/1024/1440px passed: no horizontal overflow or runtime errors, anchor navigation works, stage height unchanged when advancing, photo counts 5/4/1. SHA/byte-identical check for all 10 originals.
+- Production deployment: pending verification of pull-request merge and GitHub Pages/Cloudflare checks. Direct live domain HTTP from this runtime not yet verified.
