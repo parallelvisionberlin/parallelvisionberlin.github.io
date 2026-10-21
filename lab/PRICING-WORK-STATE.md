@@ -10,7 +10,7 @@
 - `lab/pricing-overlay.css`: centered 814px maximum desktop panel, three compact rows, subtle existing Creator photo, monthly/one-time tabs; mobile uses the same content with full-width actions.
 - `lab/pricing-overlay.js`: reuse the homepage headline, intro, plan content, estimates and billing disclosure without the former card decorations.
 - All six SKU IDs, euro prices, credit quantities, Stripe callbacks and backend entitlement checks remain unchanged.
-- `lab/studio.html`: cache versions `20261022-creation-flow1` and `20261022-editorial-rows1`.
+- `lab/studio.html`: new `creationFlow=20261022-editorial-rows1` query and overlay cache version `20261022-editorial-rows1`.
 - Tests: approved Image contract, trial pause and price/debit integrity all pass (19 checks).
 - Overlay browser passes 320/390/1440/1648px, checkout SKU handoff, guest sign-in continuation, no automatic payment, draft/focus retention and renewal disclosure.
 - Existing first-image browser passes new/returning/owner/public parity and quoted one-click Generate with intercepted requests.
