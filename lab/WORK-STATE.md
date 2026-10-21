@@ -7,7 +7,11 @@
 - `lab/video-refresh.css`: scoped note styling and non-Video suppression. Existing loading/visibility and saved-video behavior retained.
 - Verification: 17 approved Image/Video interface checks passed; existing gallery browser suite passed all six desktop/mobile image-shape cases.
 - Targeted real-browser checks at 1440, 390 and 320px confirm copy, archive placement, 12px/400 muted styling, no horizontal overflow, hidden with saved videos and outside Video.
-- Deployment: source ready for PR/checks and Cloudflare Pages verification; no paid generation or real account mutation.
+- Release: PR #432 merged as `8f451471f26975052a388753978b14f08a0b8b59`.
+- Cloudflare Pages check `119555615037` succeeded. Production verifier returned LIVE_VERIFIED; reviewed CSS bytes match SHA-256 `617c90fa9510241b351967a21c35bee48c07c92e7127e73f4b7a0f14817f0bc8`.
+- Live Studio HTML confirms the short copy appears after History and the old sentence is absent. Real signed-in production behavior was not inspected; synthetic browser checks covered visibility at all three widths.
+- At final check, 17/18 PR workflows passed; instant first-image flow remained in progress. Required approved Image contract and static validation passed. No paid generation or real account mutation.
+- Completed and live. No further implementation action.
 
 ## Approved bold homepage wordmark, 2026-10-22 (Europe/Berlin)
 - User approved the heavy, condensed PV LAB lettering in the homepage mockup and authorized applying it to the website.
