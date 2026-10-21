@@ -1,5 +1,13 @@
 # Image composer prompt: current state
 
+## Active: stronger shared Image entrance title (2026-10-21)
+
+- User approved increasing `Start with a feeling.` from Regular 400 to Medium 500 while keeping the established size, spacing, copy and subtitle hierarchy.
+- One shared rule in `lab/image-editorial-deck.css` applies the weight to signed-out public, new/returning customers and Owner, including reopened Inspiration. `lab/studio.html` refreshes only that stylesheet cache key.
+- No card, deck, background, prompt, account, credit, pricing, provider, Hong Kong Nights, Fisheye or Upscaler behavior changed.
+- Approved Image UI contract passes. The complete first-image browser suite passes direct public/new/returning/owner typography and geometry parity, notice dismissal, downward expansion, History reopen, backdrop stability and the quoted-generation mock.
+- Source baseline: main `c1c542ea6be7a8f69734f7e0024ac676a45183d4`. Publication and the actual production computed weight remain to be verified after merge.
+
 ## Active: exact Owner geometry for every Image account (2026-10-21)
 
 - User confirmed the Owner Image entrance is canonical: long Inspiration cards, compact prompt deck directly below them, and the same surface when Inspiration is reopened after History exists.
