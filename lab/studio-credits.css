@@ -10,6 +10,15 @@
 .lab-credit-banner #lab-credit-banner-dismiss{display:grid;place-items:center;flex:none;width:32px;height:32px;min-height:32px;padding:0;border:0;border-radius:50%;background:transparent;color:#494844;font:300 24px/1 'DM Sans',Arial,sans-serif;cursor:pointer}
 .lab-credit-banner #lab-credit-banner-dismiss:hover{background:#d7d4ce;color:#111}
 .lab-credit-banner #lab-credit-banner-dismiss:focus-visible{outline:2px solid #151515;outline-offset:2px}
+/* Dismissing a notice must not resize the desktop Image stage. Preserve its
+   measured row after it has appeared; hidden content stays unfocusable and
+   unpainted. Accounts that never saw a notice get no empty placeholder. */
+@media(min-width:1180px) and (min-height:680px){
+  html:not(.pv-native-lab) body:has(#app.image-studio-active:not([hidden]))
+    #lab-credit-banner[data-credit-notice-shown][hidden]{
+    display:flex!important;visibility:hidden;pointer-events:none;
+  }
+}
 .lab-credit-deck{max-width:760px;width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:30px;border:1px solid #484744;border-radius:12px;background:#151515;color:#eeeae2;box-shadow:0 24px 100px #0009}
 .lab-credit-deck::backdrop{background:#0009;backdrop-filter:blur(5px)}
 .lab-credit-deck header{position:static;display:flex;align-items:flex-start;justify-content:space-between;padding:0 0 24px;background:none;backdrop-filter:none;border:0;border-bottom:1px solid #383735}
