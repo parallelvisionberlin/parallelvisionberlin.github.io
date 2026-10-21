@@ -169,8 +169,10 @@ try{
     assert.equal(await field.evaluate(el=>el.scrollHeight>el.clientHeight),true,
       'Long guest prompts scroll inside the writing area, not an extra nested box');
     await field.fill('');
-    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
-      'Clearing a long prompt immediately restores the compact first-visit strip');
+    assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
+      'Desktop public editor follows the same focused-empty state as the real editor');
+    await page.locator('#pv-guest-title').click();
+    await page.waitForFunction(()=>!document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
     await field.fill('A long portrait instruction. '.repeat(12));
     await page.evaluate(()=>{
       const signIn=document.getElementById('signin');
@@ -189,7 +191,7 @@ try{
       'Guest image preview is visible above the composer tools');
     assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
       'A chosen photograph opens the expanded composer without hiding its toolbar');
-    for(const id of ['pv-guest-library','pv-guest-model','pv-guest-retouch','pv-guest-ratio','pv-guest-resolution','pv-guest-count']){
+    for(const id of ['pv-guest-library','pv-guest-model','pv-guest-retouch','pv-guest-ratio','pv-guest-resolution','pv-guest-count','pv-guest-exact']){
       const before=await page.evaluate(()=>window.__guestSignInClicks);
       await page.locator('#'+id).click();
       assert.equal(await page.evaluate(()=>window.__guestSignInClicks),before+1,

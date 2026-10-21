@@ -23,6 +23,10 @@ await loadHistory();
 showWelcomeStart({customer:customerMode,generationReady:true,balanceCredits:mockBalance,accountClosed:false,billingReview:false});
 finishLabBoot();
 update();
+if(mockRole==='guest'){
+  owner=false;customerMode=false;
+  $('app').hidden=true;$('gate').hidden=false;
+}
 // Test-only trigger for transitioning from an empty customer welcome to
 // one saved image without making any paid request or changing production APIs.
 window.__welcomeMockGalleryChanged=()=>syncImageGalleryEmpty();
@@ -78,6 +82,57 @@ await context.route('https://**/*',async route=>{
   return send({error:'Unmocked '+path},404);
 });
 try{
+  // Direct visual comparison, rather than independently allowing each skin.
+  // Both surfaces must share slot geometry, control sizing, type and color.
+  const parity=[];
+  for(const role of ['new','guest']){
+    const context=await browser.newContext({viewport:{width:1920,height:1000},reducedMotion:'reduce'});
+    const p=await context.newPage();
+    await context.route('https://**/*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({jobs:[],packs:[],activeJobs:[],products:[]})}));
+    try{
+      await p.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole='+role);
+      await p.waitForFunction(()=>window.__welcomeMockReady===true);
+      const prefix=role==='guest'?'pv-guest':'image-composer';
+      const field=p.locator('#'+prefix+'-prompt'),bar=p.locator(role==='guest'?'#pv-guest-composer':'#image-composer');
+      const states={};
+      async function capture(state){
+        states[state]=await bar.evaluate(el=>{
+          const outer=el.getBoundingClientRect(),css=getComputedStyle(el);
+          const rect=node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {x:r.x-outer.x,y:r.y-outer.y,w:r.width,h:r.height,font:s.fontSize,weight:s.fontWeight,line:s.lineHeight,color:s.color,background:s.backgroundColor,radius:s.borderRadius};};
+          return {w:outer.width,h:outer.height,background:css.backgroundImage,radius:css.borderRadius,
+            prompt:rect(el.querySelector('textarea')),
+            controls:Object.fromEntries([...el.querySelectorAll('[data-deck-control]')].filter(n=>getComputedStyle(n).display!=='none'&&n.getBoundingClientRect().width>0).map(n=>[n.dataset.deckControl,rect(n)])),
+            generate:rect(el.querySelector('[data-deck-slot="generate"]')),
+            generateLabel:rect(el.querySelector('[data-deck-slot="generate"]').querySelector('.composer-generate-label,strong')),
+            modelIcon:el.querySelector('[data-deck-control="model"] img')?.getAttribute('src')};
+        });
+      }
+      await capture('idle');
+      await field.click();await capture('focus');
+      await field.fill('hola como esta?');await capture('short');
+      await field.fill('');
+      assert.equal(await bar.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,role+' stays open while clearing focused text');
+      await p.getByRole('heading',{name:'Start with a feeling.',exact:true}).filter({visible:true}).click();
+      await p.waitForFunction(id=>!document.getElementById(id).classList.contains('pv-deck-expanded'),role==='guest'?'pv-guest-composer':'image-composer');
+      await capture('cleared');
+      parity.push({role,states});
+    }finally{await context.close();}
+  }
+  for(const state of ['idle','focus','short','cleared']){
+    const a=parity[0].states[state],b=parity[1].states[state];
+    for(const key of ['w','h'])assert.ok(Math.abs(a[key]-b[key])<2,state+' same deck '+key+': '+JSON.stringify({a,b}));
+    assert.equal(a.background,b.background,state+' same graphite surface');assert.equal(a.radius,b.radius);
+    assert.equal(a.modelIcon,'./branding/bytedance.svg',state+' uses the real model asset');
+    assert.equal(a.modelIcon,b.modelIcon,state+' public uses the same model icon');
+    for(const name of ['prompt','generate','generateLabel',...Object.keys(a.controls)]){
+      const one=a[name]||a.controls[name],two=b[name]||b.controls[name];
+      assert.ok(two,state+' guest also exposes '+name);
+      for(const key of ['x','y','w','h'])assert.ok(Math.abs(one[key]-two[key])<2,state+' '+name+' same '+key+': '+JSON.stringify({one,two}));
+      for(const key of ['font','weight','line','radius'])assert.equal(one[key],two[key],state+' '+name+' same '+key);
+      if(!name.startsWith('generate'))for(const key of ['color','background'])assert.equal(one[key],two[key],state+' '+name+' same '+key);
+    }
+  }
+  console.log('PASS direct public/customer visual parity: empty, focus, short text and clear');
   // All account ages/roles use one real editor, including Inspiration opened
   // over existing History. Account state may change eligibility, never layout.
   for(const role of ['new','returning','owner']){
@@ -88,13 +143,18 @@ try{
       await rolePage.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole='+role);
       await rolePage.waitForFunction(()=>window.__welcomeMockReady===true&&document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
       const roleDeck=rolePage.locator('#image-composer'),roleField=rolePage.locator('#image-composer-prompt');
-      for(const viewport of role==='new'?[{width:1440,height:900},{width:1280,height:720},{width:1280,height:680}]:[{width:1440,height:900}]){
+      for(const viewport of role==='new'?[{width:1440,height:900},{width:1280,height:720},{width:1280,height:680}]:role==='owner'?[{width:1440,height:900},{width:1180,height:800}]:[{width:1440,height:900}]){
         await rolePage.setViewportSize(viewport);
         for(const banner of role==='new'?[true,false]:[false]){
           await rolePage.evaluate(show=>{document.getElementById('lab-credit-banner').hidden=!show;},banner);
           await rolePage.waitForTimeout(80);
           const before=await roleDeck.boundingBox(),photos=await rolePage.locator('#lab-welcome-presets').boundingBox();
           assert.ok(before.height>=70&&before.height<=78,role+' gets the same thin entrance');
+          const contained=await roleDeck.evaluate(el=>{
+            const bar=el.getBoundingClientRect(),tools=el.querySelector('[data-deck-slot="controls"]').getBoundingClientRect(),generate=el.querySelector('[data-deck-slot="generate"]').getBoundingClientRect();
+            return bar.left>=0&&bar.right<=innerWidth&&tools.right<=generate.left+2;
+          });
+          assert.ok(contained,role+' controls remain contained at '+viewport.width+'px');
           assert.ok(before.y-photos.y-photos.height>=20&&before.y-photos.y-photos.height<=28,
             role+' bar follows the cards, including banner changes: '+JSON.stringify({viewport,banner,before,photos}));
           await roleField.click();

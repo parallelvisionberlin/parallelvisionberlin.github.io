@@ -180,11 +180,11 @@ document.addEventListener('click',event=>{
 <script defer src="./image-discreet.js?v=20261017-transient-message1"></script>
 <link rel="stylesheet" href="./video-effects.css?v=20261016-owner-only1">
 <link rel="stylesheet" href="./image-welcome-editorial.css?v=20261017-mobile-mood1&firstImageSelection=2">
-<link rel="stylesheet" href="./studio-guest-image.css?v=20261021-card-flow1">
+<link rel="stylesheet" href="./studio-guest-image.css?v=20261021-surface1">
 <link rel="stylesheet" href="./inspiration-carousel.css?v=20261019-editorial-chevrons2">
 <link rel="stylesheet" href="./image-editorial-deck.css?v=20261021-card-flow1">
 <link rel="stylesheet" href="./image-moods-return.css?v=20261017-hidden-inspiration1&inspirationGlow=20261017-halo2&mobileInspire=20261018-1&phoneBackdrop=20261019-1">
-<script defer src="./image-editorial-deck.js?v=20261021-card-flow1"></script>
+<script defer src="./image-editorial-deck.js?v=20261021-surface1"></script>
 <script type="module" src="./studio-guest-image.js?v=20261020-guest-local-photos3&inspiration=rotation1&chrome=1&greenHaze=2"></script>
 <script type="module" src="./inspiration-carousel.js?v=20261019-keyboard2"></script>
 <script defer src="./studio-mobile-entry.js?v=20261019-stable-welcome1"></script>
@@ -197,6 +197,7 @@ document.addEventListener('click',event=>{
 <script type="module" src="./video-scene-states.js?v=20261018-compact-flow1"></script>
 <link rel="stylesheet" href="./video-restored-editorial.css?v=20261018-reference-wheel1">
 <link rel="stylesheet" href="./mobile-image-compact-welcome.css?v=20261019-shared-history2">
+<link rel="stylesheet" href="./image-deck-surface.css?v=20261021-surface1">
 </head>
 <body class="lab-booting">
 <div id="pv-credit-toast" class="pv-credit-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
@@ -301,22 +302,23 @@ document.addEventListener('click',event=>{
     </div>
     <form id="pv-guest-composer" class="pv-guest-composer">
       <label class="pv-guest-sr-only" for="pv-guest-prompt">Describe the image you want to create</label>
-      <textarea id="pv-guest-prompt" rows="2" maxlength="5000" placeholder="What do you imagine?" aria-label="What do you imagine?"></textarea>
+      <div class="pv-guest-prompt-row" data-deck-slot="prompt"><textarea id="pv-guest-prompt" rows="2" maxlength="5000" placeholder="What do you imagine?" aria-label="What do you imagine?"></textarea></div>
       <input id="pv-guest-image-file" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden aria-label="Select photographs to add to the prompt">
       <div id="pv-guest-attachments" class="pv-guest-attachments" aria-label="Selected photographs" hidden></div>
       <div class="pv-guest-composer-footer">
-        <div class="pv-guest-settings" role="group" aria-label="Image creation tools">
-          <button id="pv-guest-add" class="pv-guest-setting pv-guest-icon" type="button" title="Add photographs locally" aria-label="Add photographs locally">+</button>
-          <button id="pv-guest-library" class="pv-guest-setting pv-guest-icon pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to open your library" aria-label="Sign in to open your library"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg></button>
-          <button id="pv-guest-model" class="pv-guest-setting pv-guest-model" type="button" data-guest-signin title="Sign in to choose a model"><span aria-hidden="true">◈</span> Seedream 5 Pro <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
-          <button id="pv-guest-retouch" class="pv-guest-setting pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to use Retouch">◈ Retouch</button>
-          <button id="pv-guest-moods" class="pv-guest-setting pv-guest-moods-link" type="button" aria-controls="pv-guest-cards" title="Choose an Inspiration mood above"><span aria-hidden="true">✦</span> Moods</button>
-          <button id="pv-guest-base" class="pv-guest-setting pv-guest-expanded-only" type="button" data-guest-pick title="Add a base photograph locally">Base image <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
-          <button id="pv-guest-ratio" class="pv-guest-setting" type="button" data-guest-signin title="Sign in to choose an aspect ratio">16:9 <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
-          <button id="pv-guest-resolution" class="pv-guest-setting pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to choose resolution">1K <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
-          <button id="pv-guest-count" class="pv-guest-setting" type="button" data-guest-signin title="Sign in to choose image count">1 image <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
+        <div class="pv-guest-settings" data-deck-slot="controls" role="group" aria-label="Image creation tools">
+          <div class="composer-add-wrap"><button id="pv-guest-add" data-deck-control="add" class="pv-guest-setting pv-guest-icon" type="button" title="Add photographs locally" aria-label="Add photographs locally"><span class="composer-add-plus" aria-hidden="true">+</span></button></div>
+          <div class="scene-image-library-wrap"><button id="pv-guest-library" data-deck-control="library" class="pv-guest-setting pv-guest-icon pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to open your library" aria-label="Sign in to open your library"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg></button></div>
+          <div class="composer-model-wrap"><button id="pv-guest-model" data-deck-control="model" class="pv-guest-setting pv-guest-model" type="button" data-guest-signin title="Sign in to choose a model"><span class="pv-guest-model-symbol" aria-hidden="true"><img src="./branding/bytedance.svg" alt="" width="20" height="20"></span><span class="pv-guest-model-label">Seedream 5 Pro</span><span class="composer-chevron" aria-hidden="true">⌄</span></button></div>
+          <button id="pv-guest-retouch" data-deck-control="retouch" class="pv-guest-setting pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to use Retouch">◈ Retouch</button>
+          <div class="composer-mood-control"><button id="pv-guest-moods" data-deck-control="moods" class="pv-guest-setting pv-guest-moods-link" type="button" aria-controls="pv-guest-cards" title="Choose an Inspiration mood above"><span aria-hidden="true">✦</span> Moods</button></div>
+          <button id="pv-guest-base" data-deck-control="base" class="pv-guest-setting pv-guest-expanded-only" type="button" data-guest-pick title="Add a base photograph locally">Base image <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
+          <button id="pv-guest-ratio" data-deck-control="ratio" class="pv-guest-setting" type="button" data-guest-signin title="Sign in to choose an aspect ratio">16:9 <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
+          <button id="pv-guest-resolution" data-deck-control="resolution" class="pv-guest-setting pv-guest-expanded-only" type="button" data-guest-signin title="Sign in to choose resolution">1K <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
+          <button id="pv-guest-count" data-deck-control="count" class="pv-guest-setting" type="button" data-guest-signin title="Sign in to choose image count">1 image <span class="pv-guest-chevron" aria-hidden="true">⌄</span></button>
+          <button id="pv-guest-exact" data-deck-control="exact" type="button" data-guest-signin aria-label="Sign in to use Exact Prompt" title="Sign in to use Exact Prompt"><span class="pv-guest-exact-switch" aria-hidden="true"></span></button>
         </div>
-        <button id="pv-guest-generate" type="submit"><strong>Generate</strong><small>Sign in to create</small></button>
+        <button id="pv-guest-generate" data-deck-slot="generate" class="composer-generate" type="submit"><strong>Generate</strong><small>Sign in to create</small></button>
       </div>
     </form>
     <p id="auth-status" class="pv-guest-auth-status" role="status" aria-live="polite">Explore first. Sign in when you're ready to create.</p>
@@ -560,19 +562,19 @@ document.addEventListener('click',event=>{
       </div>
       <p class="reference-intent-footnote">You can switch modes anytime.</p>
     </section>
-    <div class="image-composer-top">
+    <div class="image-composer-top" data-deck-slot="prompt">
       <div id="image-composer-references" class="image-composer-references" hidden aria-label="Attached reference images"></div>
       <textarea id="image-composer-prompt" rows="1" placeholder="What do you imagine?" aria-label="Describe the image"></textarea>
        <div id="scene-element-suggestions" class="scene-element-suggestions" role="listbox" aria-label="Insert saved Element" hidden></div>
       <span id="composer-prompt-budget" class="composer-prompt-budget" hidden></span>
     </div>
-    <div class="image-composer-toolbar"><div class="composer-controls">
+    <div class="image-composer-toolbar"><div class="composer-controls" data-deck-slot="controls">
       <div id="composer-add-wrap" class="composer-add-wrap">
-        <button id="image-composer-add" type="button" class="composer-add" aria-label="Upload images" title="Upload images directly"><span class="composer-add-plus" aria-hidden="true">+</span></button>
+        <button id="image-composer-add" data-deck-control="add" type="button" class="composer-add" aria-label="Upload images" title="Upload images directly"><span class="composer-add-plus" aria-hidden="true">+</span></button>
         <button id="composer-add-saved-toggle" type="button" class="composer-add-saved-toggle" aria-label="Open saved photo packs" title="Saved photo packs" aria-expanded="false" aria-controls="composer-library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button>
       </div>
         <div id="scene-image-library-wrap" class="scene-image-library-wrap">
-  <button id="scene-image-open" class="composer-settings-pill scene-image-launch" type="button" aria-label="Open your library" title="Your library" aria-expanded="false" aria-haspopup="menu" aria-controls="scene-image-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg></button>
+  <button id="scene-image-open" data-deck-control="library" class="composer-settings-pill scene-image-launch" type="button" aria-label="Open your library" title="Your library" aria-expanded="false" aria-haspopup="menu" aria-controls="scene-image-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg></button>
   <div id="scene-image-menu" class="scene-image-menu" role="menu" aria-label="Your library" hidden>
    <div id="scene-image-menu-home">
     <button id="scene-menu-packs" class="scene-menu-option" type="button" role="menuitem"><span class="scene-menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m4 16 5-5 4 3 3-3 4 4"/></svg></span><span class="scene-menu-text"><strong>Photo packs</strong><small>Your saved references</small></span><span class="scene-menu-chevron" aria-hidden="true">›</span></button>
@@ -588,7 +590,7 @@ document.addEventListener('click',event=>{
   </div>
  </div>
       <div class="composer-model-wrap">
-        <button id="image-composer-model" class="composer-model-pill" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="image-composer-model-menu">
+        <button id="image-composer-model" data-deck-control="model" class="composer-model-pill" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="image-composer-model-menu">
           <span class="composer-model-symbol" aria-hidden="true">◈</span>
           <span id="image-composer-model-label">Seedream 5 Pro</span>
           <span class="composer-chevron" aria-hidden="true">⌄</span>
@@ -599,14 +601,14 @@ document.addEventListener('click',event=>{
           <div class="composer-model-footer"><button id="image-composer-train" type="button">Create / manage characters </button></div>
         </div>
       </div>
-      <button id="image-composer-edit-area" type="button" class="composer-settings-pill" title="Edit just one selected area" aria-label="Open Retouch and edit a selected area">◈ Retouch</button>
-      <span class="composer-mood-control"><button id="image-composer-moods" type="button" class="composer-settings-pill" aria-controls="composer-moods" aria-expanded="false" aria-label="Choose an image mood"><span class="composer-mood-copy"><span class="composer-mood-icon" aria-hidden="true">✦</span> <span class="composer-mood-label">Moods</span></span></button><button id="image-composer-moods-clear" type="button" aria-label="Remove selected mood" title="Remove selected mood" hidden>×</button></span>
-      <button id="composer-reference-intent-toggle" type="button" class="composer-settings-pill reference-intent-toggle" aria-controls="composer-reference-intent" aria-expanded="false" hidden>Base image ⌄</button>
+      <button id="image-composer-edit-area" data-deck-control="retouch" type="button" class="composer-settings-pill" title="Edit just one selected area" aria-label="Open Retouch and edit a selected area">◈ Retouch</button>
+      <span class="composer-mood-control"><button id="image-composer-moods" data-deck-control="moods" type="button" class="composer-settings-pill" aria-controls="composer-moods" aria-expanded="false" aria-label="Choose an image mood"><span class="composer-mood-copy"><span class="composer-mood-icon" aria-hidden="true">✦</span> <span class="composer-mood-label">Moods</span></span></button><button id="image-composer-moods-clear" type="button" aria-label="Remove selected mood" title="Remove selected mood" hidden>×</button></span>
+      <button id="composer-reference-intent-toggle" data-deck-control="base" type="button" class="composer-settings-pill reference-intent-toggle" aria-controls="composer-reference-intent" aria-expanded="false" hidden>Base image ⌄</button>
        <label id="image-reference-mode-wrap" class="composer-select-pill" hidden title="How to use reference images"><span class="visually-hidden">Reference mode</span><select id="image-reference-mode" aria-label="Reference mode"><option value="base">Base image</option><option value="references">References only</option></select></label>
-      <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" aria-label="Aspect ratio"></select></label>
-      <label id="image-composer-resolution-wrap" class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
-      <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" aria-label="Number of images"></select></label>
-      <label id="composer-exact-prompt-option" class="composer-exact-prompt"><input id="composer-exact-prompt" type="checkbox" role="switch" aria-label="Exact Prompt" aria-describedby="composer-exact-prompt-help"><span id="composer-exact-prompt-help" class="composer-exact-tooltip" role="tooltip"><strong>Exact Prompt</strong><small>No automatic prompt improvements. Moods and references still apply.</small></span></label>
+      <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" data-deck-control="ratio" aria-label="Aspect ratio"></select></label>
+      <label id="image-composer-resolution-wrap" class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" data-deck-control="resolution" aria-label="Resolution"></select></label>
+      <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" data-deck-control="count" aria-label="Number of images"></select></label>
+      <label id="composer-exact-prompt-option" data-deck-control="exact" class="composer-exact-prompt"><input id="composer-exact-prompt" type="checkbox" role="switch" aria-label="Exact Prompt" aria-describedby="composer-exact-prompt-help"><span id="composer-exact-prompt-help" class="composer-exact-tooltip" role="tooltip"><strong>Exact Prompt</strong><small>No automatic prompt improvements. Moods and references still apply.</small></span></label>
       <div id="composer-more-anchor" class="composer-more-anchor">
       <button id="image-composer-more" type="button" class="composer-settings-pill composer-more-compact" aria-label="Advanced image settings" aria-expanded="false" aria-controls="composer-options" title="Image options"><svg class="composer-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="#242625"/><circle cx="15" cy="17" r="2.5" fill="#242625"/></svg><span class="composer-more-label">Options</span></button>
         <section id="composer-options" class="composer-options" aria-label="Image settings" hidden>
@@ -621,7 +623,7 @@ document.addEventListener('click',event=>{
       </div><span class="composer-flex"></span>
       <button id="composer-character" class="composer-character" type="button" aria-expanded="false" aria-controls="composer-library"><span id="composer-character-photo">+</span><span id="composer-character-name">References</span></button>
       <button id="hf-bar-source" class="hf-source-card" type="button" aria-label="Upload or change source photograph" hidden><img id="hf-bar-source-photo" alt="Source photograph" hidden><span class="hf-source-plus">+</span><span class="hf-source-label">IMAGE</span><span class="hf-source-change">Change</span></button>
-      <button id="image-composer-generate" class="composer-generate" type="button" aria-describedby="composer-generation-reason" disabled><span class="composer-generate-label">Generate</span><svg class="composer-generate-sparkle" aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.25" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.7 13.05 10.95 16.3 12 13.05 13.05 12 16.3 10.95 13.05 7.7 12 10.95 10.95Z" fill="currentColor"/></svg></button>
+      <button id="image-composer-generate" data-deck-slot="generate" class="composer-generate" type="button" aria-describedby="composer-generation-reason" disabled><span class="composer-generate-label">Generate</span><svg class="composer-generate-sparkle" aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.25" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.7 13.05 10.95 16.3 12 13.05 13.05 12 16.3 10.95 13.05 7.7 12 10.95 10.95Z" fill="currentColor"/></svg></button>
     </div>
     <div id="composer-generation-block" class="fine" role="status" hidden><span id="composer-generation-reason"></span> <button id="composer-review-queue" type="button" hidden>Review queue</button></div>
     <p id="image-composer-status" class="composer-status" role="status" hidden></p>

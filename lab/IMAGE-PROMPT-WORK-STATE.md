@@ -1,5 +1,21 @@
 # Image composer prompt: current state
 
+## Direct public/customer visual parity (2026-10-21)
+
+- Latest references: image(20261021-115534).png is Neon Riviera with short text; 115541 is its empty bar; 115559 is signed-out compact; 115612 is signed-out focused. These screenshots demonstrate that PR #396 still left a distinct public skin despite its passing behavior checks.
+- Baseline main c84d179822e4cf0d4702699d7bd1f80f5580d3d1; branch fix/image-deck-visual-parity-20261021. Later main photography/Nina changes are unrelated and must be preserved.
+- Exact remaining source differences: guest-only 11px tools, fallback model diamond, hidden Exact Prompt, an extra empty Retouch action and Generate stretching over both writing rows. Public focus/clear/short-text sizing also used a separate policy.
+- Canonical desktop presentation now lives in lab/image-deck-surface.css and styles both forms through the same semantic slots/control attributes. Shared dimensions, graphite surface, typography, library circle, Seedream branding asset, Mood color, input and Generate positioning apply to empty/focused/short/cleared states.
+- Public Generate uses the same 144x84px bottom-aligned action in the open deck instead of stretching. Its sign-in instruction stays outside the writing instrument. Exact Prompt uses the existing protected sign-in action; no anonymous setting entitlement or generation is introduced.
+- Public input uses the same compact-overflow measurement and focus/blur policy as desktop welcome. Clearing while focused leaves editing open; outside focus collapses empty/short input without erasing it. Long writing and local photographs remain supported.
+- Existing authenticated model handlers retain their own selectors; public model icon is separately named while reusing branding/bytedance.svg. No duplicate IDs or anonymous handlers can steal private model updates.
+- A direct browser comparison now checks actual rendered slot/control geometry, typography, weight, colors, model icon and Generate label for empty, focus, "hola como esta?" and cleared states. Earlier tests checked the two surfaces independently and therefore missed their difference.
+- Existing new/returning/owner, banner, History, privacy, pricing, references, Soul and mobile checks remain in place. Workflow path filters include the shared CSS so future changes run the comparison.
+- No production lab.js, account/deletion/auth, pricing/credit/provider logic, approved prompt copy, Hong Kong Nights, Upscaler or backdrop/card art changes. Native, mobile and populated History keep their existing layout rules.
+- Local verification passed: approved Image UI contract (4 tests), first-image/direct parity, guest/mobile Mood, long-prompt paste/History, Studio layout and references/PV Soul prompt-dock browser suites. Publication and actual custom-domain verification remain pending; signed-in account simulations are not real production Google logins.
+
+## Prior release, partially unified before the latest screenshots
+
 ## Shared account bar and downward card entrance (2026-10-21)
 
 - Latest owner instruction supersedes the October 20 focus-only restriction for the desktop card entrance: one Image bar across new customers, returning customers and owner; compact initially, close to the cards, opens downward on click, returns to compact on outside click. Populated History keeps the locked two-row deck from the owner's image 3.
