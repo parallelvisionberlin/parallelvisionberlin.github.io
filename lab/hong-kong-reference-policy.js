@@ -1,8 +1,8 @@
 // Owner-selected original photographic references. Never substitute generated imagery.
-export const HONG_KONG_REFERENCE_VERSION='hk-three-originals-20261022-v1';
+export const HONG_KONG_REFERENCE_VERSION='hk-three-originals-20261022-v2-diner-png';
 export const HONG_KONG_REFERENCE_MANIFEST=Object.freeze([
   {name:'supervalu',file:'supervalu.jpg',mime:'image/jpeg',sha256:'04b05a9d14a03fc2a3c82e980a235e98d35e715d21a29cacdd2f67fdf559f643'},
-  {name:'diner-green-yellow',file:'diner-green-yellow.webp',mime:'image/webp',sha256:'4f28528b626414aa74bb904fc484c160bce624b914f0da20d0609fb116b99adf'},
+  {name:'diner-green-yellow',file:'diner-green-yellow.png',mime:'image/png',sha256:'71e423e7bac896a033778cf361dac17430ae2cfdf8a72ac8b64f3dc30f903d74'},
   {name:'foggy-wet-street',file:'03-shop-reflections.jpg',mime:'image/jpeg',sha256:'da4a5fb19618f206cf79b3a750928bfb5e5d421f3125298a00ce761130d50efb'}
 ].map(Object.freeze));
 const limits=Object.freeze({seedream:10,seedreamlite:10,gemini:10,gemini21:10,krea3:4,qwen3:3});

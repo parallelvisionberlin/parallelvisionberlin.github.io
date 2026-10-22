@@ -14,7 +14,7 @@ import {krea3EstimateMicros} from '../lab-worker/krea3.mjs';
 
 const sha=b=>createHash('sha256').update(b).digest('hex');
 test('The three approved originals reach Worker bytes in A/B/C order, never generated substitutes',()=>{
- assert.equal(HONG_KONG_REFERENCE_VERSION,'hk-three-originals-20261022-v1');
+ assert.equal(HONG_KONG_REFERENCE_VERSION,'hk-three-originals-20261022-v2-diner-png');
  assert.deepEqual(HONG_KONG_REFERENCES.map(x=>x.name),['supervalu','diner-green-yellow','foggy-wet-street']);
  for(let i=0;i<3;i++){
   const r=HONG_KONG_REFERENCES[i],spec=HONG_KONG_REFERENCE_MANIFEST[i];
