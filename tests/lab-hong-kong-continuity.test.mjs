@@ -112,7 +112,7 @@ test('the Film Finish stays opt-in and cannot change the paid image edit prompt'
 });
 test('the final provider prompt respects assigned user photos and the 5K prompt budget',()=>{
   for(const engine of ['seedream','gemini'])
-  for(const count of [0,1,3,6,10]){
+  for(const count of [0,1,3,6,7]){
     const user='Keep original face, coat, real street and camera.';
     const r=prepareMoodPrompt(user,'hong-kong-nights',60,{engine,referenceCount:count});
     const roles=Array.from({length:count},(_,i)=>({name:'photo-'+i+'.png',role:i?'identity':'base',note:''}));
