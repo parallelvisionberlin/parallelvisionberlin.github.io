@@ -18,14 +18,10 @@ export function hongKongReferenceError(p={},count=0){
 }
 export function hongKongReferenceGuidance(userCount=0,compact=false){
  const a=userCount+1,b=userCount+2,c=userCount+3;
- if(compact)return 'HONG KONG NIGHTS BUILT-IN REFERENCES '+a+', '+b+', '+c+
- '. Reference '+a+' [Supervalu / DOMINANT LOOK]: dark green haze.'+
- ' Reference '+b+' [Diner green-yellow / SECONDARY COLOR]: tungsten-green light.'+
- ' Reference '+c+' [Foggy wet street / SECONDARY DEPTH]: fog, wet outdoors.'+
- ' Keep Base; photo optics only. No neon spectacle, CGI or green wash.';
+ if(compact)return 'HK STYLE REFERENCES '+a+'=Supervalu (dominant sparse dark green-black), '+b+'=Diner (secondary green/tungsten color), '+c+'=Foggy street (secondary humid depth). Preserve user Base. Real low-light film, no neon spectacle, CGI or green wash.';
  return 'HONG KONG NIGHTS BUILT-IN REFERENCES '+a+', '+b+', '+c+
  '. Reference '+a+' [Supervalu / DOMINANT LOOK]: sparse petrol-black night and distant green haze, rare red.'+
  ' Reference '+b+' [Diner green-yellow / SECONDARY COLOR]: warm-green tungsten and deep blacks.'+
  ' Reference '+c+' [Foggy wet street / SECONDARY DEPTH]: humid distance and wet outdoor reflections.'+
- ' User Base wins; borrow light only. Real low-light film, not neon spectacle, CGI gloss or green wash.';
+ ' User Base wins; borrow light only. Real low-light film, no neon spectacle, CGI gloss or green wash.';
 }
