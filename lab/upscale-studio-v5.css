@@ -1418,3 +1418,46 @@
    margin-top:20px!important;
  }
 }
+
+/* V25: restrained photographic drag-over affordance. No upload logic changes. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-dropzone{
+ transition:background-color .18s ease!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-center{
+ transition:border-color .18s ease,box-shadow .18s ease!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-icon{
+ transition:border-color .18s ease,background-color .18s ease,box-shadow .18s ease!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas.pv-upscale-drag-hover .pv-upscale-empty-center{
+ border-color:rgba(255,255,255,.94)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 0 35px rgba(255,255,255,.09)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas.pv-upscale-drag-hover .pv-upscale-empty-icon{
+ border-color:#fff!important;background:rgba(255,255,255,.13)!important;
+ box-shadow:0 0 24px rgba(255,255,255,.22)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas.pv-upscale-drag-hover .pv-upscale-empty-icon::before,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas.pv-upscale-drag-hover .pv-upscale-empty-icon::after{
+ background:#fff!important;
+}
+@media(prefers-reduced-motion:reduce){
+ #app.upscale-studio-active .pv-upscale-empty-center,
+ #app.upscale-studio-active .pv-upscale-empty-icon{transition:none!important}
+}
+
+
+/* V26: use the existing verified lab.js drop state on #upscale-canvas.
+   The existing handler adds .drag on dragenter/dragover and removes on drop/leave. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas.drag #empty .pv-upscale-empty-center{
+ border-color:rgba(255,255,255,.98)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.19),0 0 35px rgba(255,255,255,.10)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas.drag #empty .pv-upscale-empty-icon{
+ border-color:#fff!important;background:rgba(255,255,255,.15)!important;
+ box-shadow:0 0 24px rgba(255,255,255,.24)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas.drag #empty .pv-upscale-empty-icon::before,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas.drag #empty .pv-upscale-empty-icon::after{
+ background:#fff!important;
+}

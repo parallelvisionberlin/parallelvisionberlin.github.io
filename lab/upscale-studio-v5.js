@@ -22,6 +22,26 @@ function installUpscaleSidebar(){
       event.target.closest('button,.pv-upscale-benefits'))return;
     input.click();
   });
+  // Visual feedback only. Existing drop/upload validation remains in lab.js.
+  const canvas=document.getElementById('upscale-canvas');
+  if(zone&&canvas){
+    const isPhotoDrag=event=>Array.from(event.dataTransfer?.types||[]).includes('Files');
+    zone.addEventListener('dragenter',event=>{
+      if(app.classList.contains('upscale-studio-active')&&isPhotoDrag(event))
+        canvas.classList.add('pv-upscale-drag-hover');
+    });
+    zone.addEventListener('dragover',event=>{
+      if(app.classList.contains('upscale-studio-active')&&isPhotoDrag(event))
+        canvas.classList.add('pv-upscale-drag-hover');
+    });
+    zone.addEventListener('dragleave',event=>{
+      if(!zone.contains(event.relatedTarget))
+        canvas.classList.remove('pv-upscale-drag-hover');
+    });
+    zone.addEventListener('drop',()=>canvas.classList.remove('pv-upscale-drag-hover'));
+    document.addEventListener('dragend',()=>canvas.classList.remove('pv-upscale-drag-hover'));
+    window.addEventListener('blur',()=>canvas.classList.remove('pv-upscale-drag-hover'));
+  }
   const sync=()=>{
     const active=app.classList.contains('upscale-studio-active');
     if(!active)return;
