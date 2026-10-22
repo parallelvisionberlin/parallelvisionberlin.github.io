@@ -1,5 +1,13 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Lower the approved Image entrance, 2026-10-22 (validated, publication pending)
+- User asked only to lower the entire title/cards/bar group a little, retaining the current compact controls and Owner expanded design. References image(20261022-080815).png and image(20261022-080848).png.
+- Baseline main ca2502cad1a1d4941ab5df6231e54f4e03bbff8a, with app 48b1a99637deb9cd141273b2edb527b83a6f504f already live.
+- image-editorial-deck.css moves the desktop entrance content down 24px at the existing standard breakpoint, min-width1180/min-height680. The real deck already follows the measured card edge, so no JavaScript or deck-layout change is needed. Guest, customer and Owner Inspiration use the same offset. Mobile/native/Soul and populated History keep their existing position.
+- Only application changes: the position rule and its studio.html CSS cache marker, 20261022-entrance-lower1. Artwork, card sizes, title, controls, widths, expansion, auth, credits, pricing and providers are untouched.
+- Passed: approved Image contract 5/5, full first-image suite, full Studio layout and prompt-paste. Synthetic role coverage includes new/returning/Owner/guest, desktop widths1180 through1920, banner, mobile/native/Soul/reference behavior. Exact before/after comparison confirmed title/cards/bar move24px with unchanged sizes and expanded controls; populated Owner History is identical.
+- Deployment pending. Next: confirm complete suites and exact before/after displacement, publish selected bytes, verify Cloudflare/production bytes and guest compact/open/close behavior. Real account sessions are separate from synthetic role checks.
+
 ## Restore approved compact Image controls, 2026-10-22 (corrected and live)
 - Correction: the prior prompt-only 94px minimized bar was an implementation mistake, not an approved reference. The supplied compact reference includes tools and Generate inline. Preserve the existing Owner expanded design and fixed outside width/top/sides; opening reveals downward space.
 - References: 9d434cea-3ce4-44c3-affb-c45aebab9d93.png (compact), 5cbb6f1f-3395-47a2-ad9e-6f37aefd6f67.png (expanded). No new artwork, copy, controls or layout redesign.

@@ -618,3 +618,13 @@ html:not(.pv-native-lab) #app.image-studio-active
     max-height:max(78px,min(176px,calc(100dvh - var(--pv-welcome-deck-top) - 98px)))!important;
   }
 }
+
+/* Move the approved desktop entrance as one group. The authenticated deck
+   already follows the measured card edge; its expansion stays downward. */
+@media(min-width:1180px) and (min-height:680px){
+  html:not(.pv-native-lab) #gate.pv-guest-image .pv-guest-content,
+  html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck)
+    #lab-welcome-start:not([hidden]){
+    position:relative;top:24px;
+  }
+}
