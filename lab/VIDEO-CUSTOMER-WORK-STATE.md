@@ -41,3 +41,10 @@ Scope: customer models disabled and Generate incorrectly saying Connect generati
 - Read-only release verifier was invoked while deployment was pending (CLOUDFLARE_UNKNOWN). Direct HTTP asset access returned 403; terminal transport later disconnected. Use the documented connector + browser DOM fallback evidence above, not an invented byte-level live-verifier pass.
 - Real screenshot-account session flags and paid production generation remain unverified; audit browser is signed out. Do not infer them from the displayed balance.
 - Next: customer can reload Video and prepare a model/photo/prompt; explicit Generate should open pricing for a paused unpaid trial. Verify any remaining real-account restriction using its actual authenticated session.
+
+## Mobile Video Create polish, 2026-10-22
+- Source base: `b77a7402161455e162dbd837c3c1c7aa89bd9908`.
+- User requested only a slight slimming of the Video sequence on phone, preserving Start frame as the default.
+- Existing `lab/lab.js` initializes `mode='start'`; no mode or provider logic needs changing.
+- CSS at 440px or below: model card 125 to 119px; two upload blocks 156 to 148px; frame wells 104 to 98px; prompt 132 to 124px. Desktop/tablet unchanged.
+- CSS cache key: `20261022-mobile-slim1`. Verify mobile layout, role flows and Cloudflare Pages deployment separately.

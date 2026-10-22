@@ -449,3 +449,22 @@
   max-height:none!important;
   overflow:visible!important;
 }
+
+/* 22 Oct 2026: subtle iPhone-only vertical refinement of the approved Video Create deck.
+   Start frame stays the default; no mode logic, desktop, provider or billing changes. */
+@media(max-width:440px){
+ #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready #video-model-control{
+  height:119px!important;min-height:119px!important;
+ }
+ #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-ergonomic.pv-video-mode-start #start-mode .upload-block:first-child,
+ #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-ergonomic.pv-video-mode-start #last-upload:not([hidden]){
+  min-height:148px!important;
+ }
+ #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-ergonomic.pv-video-mode-start #drop,
+ #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-ergonomic.pv-video-mode-start #last-drop{
+  height:98px!important;min-height:98px!important;
+ }
+ #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .workspace.video-layout .controls textarea#prompt{
+  height:124px!important;min-height:124px!important;
+ }
+}
