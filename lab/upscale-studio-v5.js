@@ -35,6 +35,17 @@ function installUpscaleSidebar(){
       ?(selectedFile?.name||'Original ready for comparison')
       :'Your original will remain available for comparison.';
   };
+  // Keep the actual accessible action label consistent with the approved UI.
+  // Only runs for the Upscaler; the existing click handler and disabled state stay intact.
+  const generate=document.getElementById('generate');
+  if(generate){
+    const syncActionLabel=()=>{
+      if(!app.classList.contains('upscale-studio-active'))return;
+      if(generate.getAttribute('aria-label')!=='Upscale')generate.setAttribute('aria-label','Upscale');
+    };
+    new MutationObserver(syncActionLabel).observe(app,{attributes:true,attributeFilter:['class']});
+    syncActionLabel();
+  }
   input.addEventListener('change',sync);
   new MutationObserver(sync).observe(preview,{attributes:true,attributeFilter:['hidden','src']});
   new MutationObserver(sync).observe(app,{attributes:true,attributeFilter:['class']});

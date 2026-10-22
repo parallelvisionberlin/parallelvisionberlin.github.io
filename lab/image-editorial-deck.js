@@ -13,6 +13,9 @@
   const welcome=document.getElementById('lab-welcome-start');
   const empty=document.getElementById('image-gallery-empty');
   const cards=document.getElementById('lab-welcome-presets');
+  const gate=document.getElementById('gate');
+  const guestContent=gate.querySelector('.pv-guest-content');
+  const guestCards=document.getElementById('pv-guest-cards');
   let welcomeEditing=false;
   let guestEditing=false;
   const preview={guest:false,real:false};
@@ -21,6 +24,11 @@
   let realEditingStarted=false;
   let emptyRealFocus=false;
   let emptyGuestFocus=false;
+  function fitWelcomeCards(surface,grid,available){
+    const copy=grid.getBoundingClientRect().top-surface.firstElementChild.getBoundingClientRect().top;
+    const height=Math.max(140,Math.min(379,innerHeight*.39,available-copy));
+    surface.style.setProperty('--pv-welcome-card-height',Math.floor(height)+'px');
+  }
   function fitWelcomeDeck(){
     const visible=welcomeWidth.matches&&!document.documentElement.classList.contains('pv-image-previews-hidden')&&
       app&&!app.hidden&&app.classList.contains('image-studio-active')&&
@@ -28,14 +36,14 @@
     real.classList.toggle('pv-welcome-deck',!!visible);
     if(!visible){
       welcome?.style.removeProperty('--pv-welcome-card-height');
-      return;
+    }else{
+      // The approved signed-in frame remains authoritative for both entries.
+      fitWelcomeCards(welcome,cards,innerHeight-empty.getBoundingClientRect().top-260);
     }
-    // Keep the existing card sizes. Deck placement uses the original History
-    // origin, independently of the cards and the collapsed/expanded state.
-    const copy=cards.getBoundingClientRect().top-welcome.getBoundingClientRect().top;
-    const room=innerHeight-empty.getBoundingClientRect().top-260-copy;
-    const height=Math.max(140,Math.min(379,innerHeight*.39,room));
-    welcome.style.setProperty('--pv-welcome-card-height',Math.floor(height)+'px');
+    const guestVisible=welcomeWidth.matches&&!gate.hidden&&gate.dataset.guestTool==='image'&&
+      !gate.querySelector('#pv-guest-closed-state:not([hidden])');
+    if(guestVisible)fitWelcomeCards(guestContent,guestCards,guestContent.getBoundingClientRect().height);
+    else guestContent.style.removeProperty('--pv-welcome-card-height');
   }
   function fitDeckOrigin(surface,visible){
     if(!welcomeWidth.matches||!visible){surface.style.removeProperty('--pv-image-deck-top');return;}
@@ -178,8 +186,8 @@
   if(refs){
     new MutationObserver(sync).observe(refs,{attributes:true,attributeFilter:['hidden'],childList:true});
   }
-  for(const node of [document.documentElement,app,welcome,empty,document.getElementById('lab-credit-banner')]){
-    if(node)new MutationObserver(deferSync).observe(node,{attributes:true,attributeFilter:['hidden','class']});
+  for(const node of [document.documentElement,app,welcome,empty,gate,document.getElementById('pv-guest-closed-state'),document.getElementById('lab-credit-banner')]){
+    if(node)new MutationObserver(deferSync).observe(node,{attributes:true,attributeFilter:['hidden','class','data-guest-tool']});
   }
   if(welcome&&empty&&typeof ResizeObserver!=='undefined'){
     const layout=new ResizeObserver(deferSync);

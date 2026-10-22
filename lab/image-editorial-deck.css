@@ -633,3 +633,67 @@ html:not(.pv-native-lab) #app.image-studio-active
     position:relative;top:24px;
   }
 }
+
+/* Signed-in Image is the approved reference. The public Image entrance uses
+   its exact desktop content frame and photo crop, independent of session.
+   Other public tools and account-closure notices retain their natural flow. */
+@media(min-width:1180px) and (min-height:680px){
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))){
+    overflow-y:hidden!important;overscroll-behavior-y:none;
+  }
+  html:not(.pv-native-lab) #main:has(>#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))){
+    height:calc(100dvh - var(--lab-header-height,82px))!important;
+    min-height:0!important;overflow:hidden!important;
+  }
+  html:not(.pv-native-lab) body:has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden])))>footer.pv-lab-footer{
+    display:none!important;
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:not(:has(#pv-guest-closed-state:not([hidden]))){
+    height:100%;min-height:0;
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:not(:has(#pv-guest-closed-state:not([hidden]))) .pv-guest-content{
+    position:absolute;inset:calc(clamp(25px,5.6dvh,53px) + 24px) 0 236px;
+    width:auto;max-width:none;margin:0;padding:0 clamp(20px,2.55vw,48px);
+    justify-content:center;
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-content>*{flex-shrink:0}
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-kicker{line-height:1.6}
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] h1{
+    margin:14px 0 0!important;font-size:clamp(31px,2.7vw,43px)!important;
+    line-height:1.1;color:#f6f5f4;
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-subtitle{
+    font-size:clamp(12px,.88vw,14px);line-height:1.5;
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-carousel{
+    max-width:1610px;margin:53px auto 0;
+    /* Same 21px gap plus the signed-in, visually hidden 32px balance row. */
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-card{
+    box-sizing:border-box;height:var(--pv-welcome-card-height,39dvh);
+    color:#f6f4f0;border-color:rgba(235,232,229,.25);background:#171819;
+    box-shadow:0 12px 36px rgba(0,0,0,.28);
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-card:nth-child(2) img{object-position:51% center}
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-card:after{
+    inset:38% 0 0;background:linear-gradient(180deg,transparent 24%,rgba(0,0,0,.12) 53%,rgba(0,0,0,.63));
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-card span{
+    left:clamp(13px,1.2vw,20px);right:10px;bottom:20px;
+    color:#fbf9f5;font-family:inherit;font-size:clamp(15px,1.25vw,21px);letter-spacing:-.035em;
+    text-shadow:0 2px 16px rgba(0,0,0,.7);
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-card small{display:none}
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .inspiration-nav-prev{left:-34px}
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .inspiration-nav-next{right:-34px}
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:before{
+    background-attachment:scroll;transform:scale(1.008);
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:after{
+    background-attachment:scroll;background-size:auto;
+  }
+}
+@media(min-width:1180px) and (max-width:1349px) and (min-height:680px){
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .inspiration-nav-prev{left:-20px}
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .inspiration-nav-next{right:-20px}
+}
