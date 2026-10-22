@@ -136,11 +136,8 @@ try{
   assert.equal(await x.page.locator('#generate').isEnabled(),true);
   await x.page.waitForFunction(()=>{
     const style=getComputedStyle(document.querySelector('#generate'));
-    // Owner-approved satin-white gradient replaces the old flat cream finish.
-    return style.backgroundColor==='rgb(237, 236, 229)'||
-      (style.backgroundImage.includes('linear-gradient')&&
-       style.backgroundImage.includes('252, 252, 253')&&
-       style.backgroundImage.includes('230, 232, 235'));
+    // Owner-approved flat white Video Generate, including its ready-state override.
+    return style.backgroundColor==='rgb(255, 255, 255)'&&style.backgroundImage==='none';
   },{},{timeout:3000});
   await x.page.screenshot({path:'test-results/lab-video-white-generate.png',fullPage:false});
   await x.page.locator('#prompt').fill('');
