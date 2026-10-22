@@ -1235,3 +1235,32 @@
   font:500 13px/1.2 'DM Sans',Arial,sans-serif;
   letter-spacing:-.015em;
 }
+
+
+/* V16: match the reference's floating Upscaler button, left-aligned and detached. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+  position:relative!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+  position:absolute!important;left:34px!important;bottom:35px!important;
+  width:calc(100% - 68px)!important;
+  margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;
+  background:transparent!important;z-index:5!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate{
+  width:100%!important;min-height:50px!important;height:50px!important;
+  border-radius:9px!important;
+  background:linear-gradient(110deg,#343436,#3d3c3e)!important;
+  border:1px solid rgba(255,255,255,.07)!important;
+  box-shadow:0 8px 25px rgba(0,0,0,.22)!important;
+  color:#b6b3b5!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate:not(:disabled){
+  background:#f2efeb!important;color:#151515!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+  padding-bottom:120px!important;
+ }
+}
