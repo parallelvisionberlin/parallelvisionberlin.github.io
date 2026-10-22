@@ -402,10 +402,10 @@ try{
             }
           }
           const identity=page.locator('.pv-account-identity');
-          assert.equal(await identity.isVisible(),true,'Authenticated identity appears beneath the original wordmark');
+          assert.equal(await identity.isVisible(),true,'Authenticated identity appears beneath the approved wordmark');
           assert.equal(await identity.locator('strong').textContent(),'Alex Test');
           assert.equal(await identity.locator('.pv-account-identity-avatar').textContent(),'AT');
-          assert.match(await page.locator('.pv-account-details').evaluate(el=>getComputedStyle(el,'::before').backgroundImage),/pvlab-wordmark\.svg/,'Existing PV LAB logo asset is retained');
+          assert.match(await page.locator('.pv-account-details').evaluate(el=>getComputedStyle(el,'::before').backgroundImage),/pvlab-wordmark-bold\.svg/,'Approved bold PV LAB logo is shared across account menus');
           assert.ok(await page.locator('.pv-account-panel > a .pv-account-menu-icon').count()>0,'Links retain subtle visible icons');
           const avatar=await page.locator('[data-account-avatar]').boundingBox();assert.equal(Math.round(avatar.width),32);assert.equal(Math.round(avatar.height),32);
           const panel=await page.locator('.pv-account-panel').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=width+1,'menu fits viewport');
