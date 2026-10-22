@@ -97,6 +97,15 @@ try{
       });
       const art=await p.locator('#gate').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
       assert.match(art,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,'Public entrance uses the approved cobalt/copper artwork');
+      async function entranceGeometry(guest){
+        return p.evaluate(guest=>{
+          const rect=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};};
+          return {title:rect(document.querySelector(guest?'#gate h1':'#lab-welcome-start h2')),
+            cards:[...document.querySelectorAll(guest?'.pv-guest-card':'.lab-welcome-preset')].map(rect),
+            scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight};
+        },guest);
+      }
+      const publicGeometry=await entranceGeometry(true);
       const clip={x:16,y:110,width:Math.floor(viewport.width/4),height:120},options={clip,animations:'disabled',caret:'hide'};
       const before=await p.screenshot(options);
       async function assertBackdropStill(label){
@@ -129,6 +138,12 @@ try{
       await p.waitForFunction(()=>!document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
       assert.deepEqual(await frame(),closedFrame,'Public bar keeps its frame when closing at '+viewport.width+'px');
       await assertBackdropStill('Closing the public bar leaves the backdrop fixed');
+      await p.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole=new');
+      await p.waitForFunction(()=>window.__welcomeMockReady===true);
+      await p.evaluate(()=>document.fonts.ready);
+      await assertBackdropStill('Public and signed-in entrances paint the same approved backdrop');
+      assert.deepEqual(await entranceGeometry(false),publicGeometry,
+        'Public title, every card and page bounds match the approved signed-in entrance at '+viewport.width);
     }finally{await c.close();}
   }
   console.log('PASS approved public backdrop and unchanged pixels on focus/blur at 1920px and 1280px');
@@ -142,6 +157,7 @@ try{
     try{
       await p.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole='+role);
       await p.waitForFunction(()=>window.__welcomeMockReady===true);
+      await p.evaluate(()=>document.fonts.ready);
       const prefix=role==='guest'?'pv-guest':'image-composer';
       const field=p.locator('#'+prefix+'-prompt'),bar=p.locator(role==='guest'?'#pv-guest-composer':'#image-composer');
       assert.equal(await p.locator('#image-composer:visible,#pv-guest-composer:visible').count(),1,
@@ -154,8 +170,14 @@ try{
           const outer=el.getBoundingClientRect(),css=getComputedStyle(el);
           const stage=el.closest('#gate')||document.querySelector('#app .image-gallery-shell'),art=getComputedStyle(stage,'::before');
           const rect=node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node),visible=r.width>0&&r.height>0;return {x:visible?r.x-outer.x:0,y:visible?r.y-outer.y:0,w:r.width,h:r.height,font:s.fontSize,weight:s.fontWeight,line:s.lineHeight,color:s.color,background:s.backgroundColor,radius:s.borderRadius};};
+          const guest=el.id==='pv-guest-composer';
+          const cardNodes=[...document.querySelectorAll(guest?'#pv-guest-cards .pv-guest-card':'#lab-welcome-presets .lab-welcome-preset')];
           return {x:outer.x,y:outer.y,w:outer.width,h:outer.height,background:css.backgroundImage,radius:css.borderRadius,
             backdrop:{image:art.backgroundImage,filter:art.filter,opacity:art.opacity,shade:getComputedStyle(stage,'::after').backgroundImage},
+            entrance:{stage:rect(stage),title:rect(document.querySelector(guest?'#gate h1':'#lab-welcome-start h2')),
+              cards:cardNodes.map(card=>({frame:rect(card),label:rect(card.querySelector(guest?'span':'strong')),
+                crop:getComputedStyle(card.querySelector('img')).objectPosition,shade:getComputedStyle(card,'::after').backgroundImage})),
+              framing:{size:art.backgroundSize,position:art.backgroundPosition,attachment:art.backgroundAttachment,transform:art.transform}},
             prompt:rect(el.querySelector('textarea')),
             controls:Object.fromEntries([...el.querySelectorAll('[data-deck-control]')].filter(n=>getComputedStyle(n).display!=='none'&&n.getBoundingClientRect().width>0).map(n=>[n.dataset.deckControl,rect(n)])),
             generate:rect(el.querySelector('[data-deck-slot="generate"]')),
@@ -202,6 +224,10 @@ try{
       assert.equal(a.background,b.background,label+' same graphite surface');assert.equal(a.radius,b.radius);
       assert.match(a.backdrop.image,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,label+' uses approved entrance art');
       assert.deepEqual(a.backdrop,b.backdrop,label+' entrance artwork and treatment match');
+      for(const name of ['stage','title'])for(const key of ['x','y','w','h','font','weight','line','color','radius'])
+        assert.equal(a.entrance[name][key],b.entrance[name][key],label+' canonical '+name+' '+key);
+      assert.deepEqual(a.entrance.framing,b.entrance.framing,label+' uses the signed-in background crop');
+      assert.deepEqual(a.entrance.cards,b.entrance.cards,label+' uses the signed-in card frames, labels and photograph crops');
       assert.equal(a.modelIcon,'./branding/bytedance.svg',label+' uses the real model asset');
       assert.equal(a.modelIcon,b.modelIcon,label+' same model icon');
       for(const name of ['prompt','generate','generateLabel',...Object.keys(a.controls)]){

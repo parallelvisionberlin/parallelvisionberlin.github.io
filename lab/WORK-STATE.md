@@ -1,5 +1,18 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+
+## Lock the signed-in Image entrance across accounts, 2026-10-22 (validated, publication pending)
+- Reference: image(20261022-090847).png is the signed-in canonical design;090855 is the rejected public variant. Preserve the approved real Image editor, original artwork and card ordering.
+- Verified cause: the public cards used a different container width,40vh height,31px gap,47px title and visible card subtitles. The authenticated reference used a1610px carousel, shared available-room height,21px gap plus a hidden balance row, and43px title. Public background-attachment:fixed framed the same artwork against the whole viewport, whereas the approved reference used the gallery frame and1.008 scale. A guest-only footer also created excess document height.
+- Minimal scope: image-editorial-deck.css maps the existing public desktop Image entrance onto the approved signed-in frame, photo crops, labels and background layers. Its existing responsive/mobile layout, other public tool pages and account-closure notices retain their flow. No replacement component or account-dependent theme was introduced.
+- image-editorial-deck.js reuses one card-height helper for the two existing auth-safe DOM surfaces. It retains the original authenticated card calculation and all compact/expanded deck placement and prompt behavior.
+- Before at1920x945: signed-in first card x147.5/y332.094/253.328x368; public x138.5/y308.594/256.328x378. After: public exactly matches the signed-in reference. Title, carousel, labels, each photograph crop and background frame also match.
+- Extended the existing first-image suite to compare signed-in/public title and every card at1920x900 and1280x720, including real painted background pixels. New/returning/Owner/public fixtures compare all card frames, labels and backdrop framing in four writing states at1920x1000.
+- Passed: approved Image contract5/5; full first-image browser suite; full prompt-paste suite; full Studio layout suite; full guest mobile Mood-entry suite. Mobile preserves78px navigation, no keyboard on Mood selection and no horizontal overflow. No paid jobs or real identity operations.
+- studio.html refreshes only editorial CSS/JS to20261022-canonical-entry1. Baseline6554a471fa9f7ea4c2696f9c21af14a57f4c5182; rebased onto a087b5fa26e48f69154bb77d8fc9e6473d577ee0, preserving its concurrent Upscaler cache marker exactly.
+- Scope remains four app/test files plus this checkpoint. Prompt deck skin/origin, approved Mood art, Hong Kong Nights, Upscaler source, billing and authentication remain unchanged.
+- Deployment and actual public browser verification pending. Automated roles are synthetic; no real production signed-in/recreated account has been inspected for this change.
+
 ## Restore original signed-out navigation, 2026-10-22 (completed and live)
 - User reported missing upper navigation in signed-out Studio and explicitly requested the existing bar, with no replacement system. Also requested removal of "Sign in to your PV Lab workspace" below the deck. References image(20261022-084146).png and084154.
 - Verified cause: assets.css contained body:has(#app[hidden])>#studio-header .tool-switch{display:none}. Both screenshots depict guest access: the homepage's person icon is its Sign in action, and Get credits is its guest label. No evidence of lost authentication or an account deletion regression in these screenshots.
