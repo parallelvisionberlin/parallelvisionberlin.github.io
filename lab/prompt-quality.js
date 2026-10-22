@@ -22,6 +22,13 @@ export function referenceRoleAdvisories(labels=[]){
 export function imageQualityGuidance(direction='',labels=[],settings={},currentLength=0){
  if(settings?.type!=='image'||settings?.mode!=='image'||settings?.exactPrompt===true||!ENGINES.has(settings?.engine))return '';
  const text=String(direction||'').trim(),roles=labels.map(role);
+ // The intentionally creative photo-only fallback must not inherit the normal
+ // portrait constraint that freezes poses, outfits and expressions.
+ if(text.startsWith('Create an intentional reinterpretation of the supplied image,')){
+   const fidelity='REINTERPRETATION FIDELITY: Keep people identifiable if present, with coherent anatomy, believable surfaces and natural-looking detail wherever relevant. Favor purposeful art direction over retouching or generic AI gloss.';
+   const limit=settings.engine==='seedreamlite'?3000:5000;
+   return fidelity.length<=limit-currentLength-(settings.moodId?750:50)?fidelity:'';
+ }
  const identity=roles.includes('identity'),body=roles.includes('body');
  const person=identity||body||human.test(text);
  const isArt=art.test(text),isProduct=!person&&product.test(text),isFashion=!isArt&&fashion.test(text);
