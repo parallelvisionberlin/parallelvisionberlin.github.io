@@ -32,19 +32,32 @@
   function closeEstimates(except=null){
     for(const button of estimateControls){
       if(button!==except){
+        const details=button.closest('.lab-estimate-details');
+        if(button.getAttribute('aria-expanded')==='true')details?.classList.add('is-dismissed');
         button.setAttribute('aria-expanded','false');
-        button.closest('.lab-estimate-details')?.classList.remove('is-open');
+        details?.classList.remove('is-open');
       }
     }
   }
-  estimateControls.forEach(button=>button.addEventListener('click',event=>{
-    event.preventDefault();
-    event.stopPropagation();
-    const willOpen=button.getAttribute('aria-expanded')!=='true';
-    closeEstimates(button);
-    button.setAttribute('aria-expanded',String(willOpen));
-    button.closest('.lab-estimate-details')?.classList.toggle('is-open',willOpen);
-  }));
+  estimateControls.forEach(button=>{
+    const details=button.closest('.lab-estimate-details');
+    button.addEventListener('click',event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      const willOpen=button.getAttribute('aria-expanded')!=='true';
+      closeEstimates(button);
+      button.setAttribute('aria-expanded',String(willOpen));
+      details?.classList.toggle('is-open',willOpen);
+      // On touch browsers, :hover and :focus-within can linger after a tap.
+      // An intentional second tap must hide the explanation nonetheless.
+      details?.classList.toggle('is-dismissed',!willOpen);
+    });
+    // A fresh keyboard focus or desktop pointer entry may reveal the hint again.
+    button.addEventListener('focus',()=>details?.classList.remove('is-dismissed'));
+    details?.addEventListener('pointerleave',event=>{
+      if(event.pointerType==='mouse')details.classList.remove('is-dismissed');
+    });
+  });
   document.addEventListener('pointerdown',event=>{
     if(!event.target.closest('#pricing .lab-estimate-details'))closeEstimates();
   });
