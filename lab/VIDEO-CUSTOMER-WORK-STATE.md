@@ -48,3 +48,13 @@ Scope: customer models disabled and Generate incorrectly saying Connect generati
 - Existing `lab/lab.js` initializes `mode='start'`; no mode or provider logic needs changing.
 - CSS at 440px or below: model card 125 to 119px; two upload blocks 156 to 148px; frame wells 104 to 98px; prompt 132 to 124px. Desktop/tablet unchanged.
 - CSS cache key: `20261022-mobile-slim1`. Verify mobile layout, role flows and Cloudflare Pages deployment separately.
+
+## Start / End frame micro adjustment, 2026-10-22
+
+- Verified source base: `a9afb300ae179b4ed48b1cddf4122eee38e1199f`; isolated branch `codex/video-frame-height`. PR #443 and its branch remain untouched.
+- Edited existing paired height declarations in `video-scene-states.css` and the existing 440px override in `video-restored-editorial.css`; no new selectors or override blocks.
+- Rendered outer cards: 1440px, 183 to 176px; 390px, 153 to 146px. Inner wells: 128 to 121px and 98 to 91px respectively, empty and with both images selected.
+- Both cards/wells shrink exactly 7px at 390, 440, 441, 820, 821, 1160, 1161, 1299, 1300 and 1440px. Widths, gaps, padding, radii, type, icons, model/prompt/button dimensions preserved; no horizontal overflow. Before/after screenshots inspected.
+- `studio.html` adds `frameHeight=20261022-1` to the two affected CSS URLs; `tests/lab-video-ergonomics.test.mjs` updates only the two existing mobile height expectations.
+- Checks passed: 36 Video/Seedance/Kling/Image-contract unit tests; customer Video 12, Seedance 19, references 22; full Studio layout browser suite; static build and whitespace. Browser APIs/accounts are mocked; the external Windows runner corrects static-server path separators only.
+- Draft PR only; no merge or deployment requested. Next: review this scoped height adjustment independently of the existing stabilization draft.

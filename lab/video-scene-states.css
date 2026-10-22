@@ -314,7 +314,7 @@
    Start-to-End imagery. Both editors use the SAME native upload behavior. */
 #app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .upload-block:first-child,
 #app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-upload:not([hidden]){
-  min-height:183px!important;
+  min-height:176px!important;
   padding:11px!important;
   gap:9px!important;
   border-radius:12px!important;
@@ -340,7 +340,7 @@
 }
 #app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop,
 #app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop{
-  min-height:126px!important;height:126px!important;
+  min-height:119px!important;height:119px!important;
   gap:5px!important;padding:10px!important;
   background:#222a34!important;
   border:1px dashed #596777!important;

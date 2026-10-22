@@ -458,11 +458,11 @@
  }
  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-ergonomic.pv-video-mode-start #start-mode .upload-block:first-child,
  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-ergonomic.pv-video-mode-start #last-upload:not([hidden]){
-  min-height:148px!important;
+  min-height:141px!important;
  }
  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-ergonomic.pv-video-mode-start #drop,
  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-ergonomic.pv-video-mode-start #last-drop{
-  height:98px!important;min-height:98px!important;
+  height:91px!important;min-height:91px!important;
  }
  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .workspace.video-layout .controls textarea#prompt{
   height:124px!important;min-height:124px!important;
