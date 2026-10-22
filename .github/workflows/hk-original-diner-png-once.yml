@@ -1,0 +1,80 @@
+name: One-time Hong Kong original diner PNG swap
+on:
+  push:
+    branches: ['fix/hk-original-diner-png-only-20261022']
+    paths: ['.github/workflows/hk-original-diner-png-once.yml']
+permissions:
+  contents: write
+jobs:
+  replace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Fetch exact owner-provided original PNG and verify byte integrity
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 2 --max-time 75 --output lab/mood-references/hong-kong-nights/diner-green-yellow.png 'https://at.adobe.com/lYppuBRkhnC6SgZt'
+          echo '71e423e7bac896a033778cf361dac17430ae2cfdf8a72ac8b64f3dc30f903d74  lab/mood-references/hong-kong-nights/diner-green-yellow.png' | sha256sum --check
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const b=readFileSync('lab/mood-references/hong-kong-nights/diner-green-yellow.png');
+          if(b.length!==3298922||b.subarray(0,8).toString('hex')!=='89504e470d0a1a0a'||b.readUInt32BE(16)!==2048||b.readUInt32BE(20)!==1364)
+            throw Error('Original PNG size/format/resolution does not match owner file');
+          console.log('OWNER_PNG_VERIFIED',b.length,'2048x1364');
+          NODE
+      - name: Change only diner reference asset, MIME and checksum
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const policyPath='lab/hong-kong-reference-policy.js';
+          let policy=readFileSync(policyPath,'utf8');
+          const oldSpec="{name:'diner-green-yellow',file:'diner-green-yellow.webp',mime:'image/webp',sha256:'4f28528b626414aa74bb904fc484c160bce624b914f0da20d0609fb116b99adf'}";
+          const newSpec="{name:'diner-green-yellow',file:'diner-green-yellow.png',mime:'image/png',sha256:'71e423e7bac896a033778cf361dac17430ae2cfdf8a72ac8b64f3dc30f903d74'}";
+          if(policy.split(oldSpec).length!==2)throw Error('Diner manifest anchor changed; refusing broad edits');
+          policy=policy.replace(oldSpec,newSpec);
+          const oldVersion='hk-three-originals-20261022-v1',newVersion='hk-three-originals-20261022-v2-diner-png';
+          if(policy.split(oldVersion).length!==2)throw Error('Version anchor changed');
+          writeFileSync(policyPath,policy.replace(oldVersion,newVersion));
+          let test=readFileSync('tests/lab-hong-kong-three-originals.test.mjs','utf8');
+          if(test.split(oldVersion).length!==2)throw Error('Reference test version anchor changed');
+          writeFileSync('tests/lab-hong-kong-three-originals.test.mjs',test.replace(oldVersion,newVersion));
+          const {HONG_KONG_REFERENCE_MANIFEST,HONG_KONG_REFERENCE_VERSION}=await import('./lab/hong-kong-reference-policy.js?png-original-swap');
+          const images=HONG_KONG_REFERENCE_MANIFEST.map(spec=>{
+            const bytes=readFileSync('lab/mood-references/hong-kong-nights/'+spec.file);
+            const hash=createHash('sha256').update(bytes).digest('hex');
+            if(hash!==spec.sha256)throw Error('Original reference changed: '+spec.name);
+            return {...spec,bytes:bytes.length,data:bytes.toString('base64')};
+          });
+          if(images.length!==3||images[0].name!=='supervalu'||images[1].name!=='diner-green-yellow'||images[2].name!=='foggy-wet-street')
+            throw Error('Reference order changed');
+          const js="// Exact owner-selected photographs, bundled at deploy. Never generated replacements.\n"+
+            "export {HONG_KONG_REFERENCE_VERSION} from '../lab/hong-kong-reference-policy.js';\n"+
+            "export const HONG_KONG_REFERENCES=Object.freeze("+JSON.stringify(images)+".map(Object.freeze));\n";
+          writeFileSync('lab-worker/hong-kong-references.mjs',js);
+          console.log('ASSET_SWAP_ONLY',HONG_KONG_REFERENCE_VERSION,images.map(x=>x.name+':'+x.bytes).join(' | '));
+          NODE
+      - name: Run Lab regression without paid generation
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          node --check lab-worker/worker.mjs
+          node --check lab-worker/hong-kong-references.mjs
+          node --test tests/lab*.test.mjs
+          git diff --check
+      - name: Commit only the exact original PNG and reference manifest
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/hk-original-diner-png-once.yml
+          git add lab/mood-references/hong-kong-nights/diner-green-yellow.png lab-worker/hong-kong-references.mjs lab/hong-kong-reference-policy.js tests/lab-hong-kong-three-originals.test.mjs
+          git diff --cached --check
+          git config user.name 'Parallel Vision'
+          git config user.email 'parallelvision.label@gmail.com'
+          git commit -m 'Hong Kong Nights: use owner original 3.3MB diner PNG as reference B'
+          git push origin HEAD:refs/heads/fix/hk-original-diner-png-only-20261022
+          git rev-parse HEAD
