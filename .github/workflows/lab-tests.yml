@@ -56,7 +56,12 @@ jobs:
             js/pv-auth.js
 
   gallery-browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -68,10 +73,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Install pinned browser test runtime
-        run: |
-          npm install --prefix /tmp/pv-lab-browser --no-audit --no-fund playwright@1.62.1
-          /tmp/pv-lab-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Install pinned Playwright client for bundled browsers
+        run: npm install --prefix /tmp/pv-lab-browser --no-audit --no-fund playwright@1.62.1
       - name: Verify built-in Berlin Rave references on desktop and mobile
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-lab-browser/node_modules/playwright/index.mjs
