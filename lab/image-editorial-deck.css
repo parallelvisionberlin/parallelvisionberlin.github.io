@@ -639,7 +639,7 @@ html:not(.pv-native-lab) #app.image-studio-active
    Other public tools and account-closure notices retain their natural flow. */
 @media(min-width:1180px) and (min-height:680px){
   html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))){
-    overflow-y:hidden!important;overscroll-behavior-y:none;
+    overflow-y:hidden!important;overscroll-behavior-y:none;scrollbar-gutter:stable;
   }
   html:not(.pv-native-lab) #main:has(>#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))){
     height:calc(100dvh - var(--lab-header-height,82px))!important;

@@ -25,6 +25,8 @@ finishLabBoot();
 update();
 if(mockRole==='guest'){
   owner=false;customerMode=false;
+  // A real signed-out boot never activates the private Image workspace.
+  $('app').classList.remove('image-studio-active');
   $('app').hidden=true;$('gate').hidden=false;
 }
 // Test-only trigger for transitioning from an empty customer welcome to
