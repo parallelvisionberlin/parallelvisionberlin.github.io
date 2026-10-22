@@ -25,8 +25,8 @@
   gap:10px;min-width:0;
 }
 .pv-lab-footer__wordmark {
-  display:block;width:180px;height:40px;
-  background:transparent url('/lab/branding/pvlab-wordmark.svg') left center/contain no-repeat;
+  display:block;width:180px;height:57px;
+  background:transparent url('/lab/branding/pvlab-wordmark-bold.svg?v=20261022-bold1') left center/contain no-repeat;
   font-size:0!important;line-height:0!important;
   color:transparent!important;overflow:hidden;
 }
@@ -66,7 +66,7 @@
   .pv-lab-footer {padding:49px 24px 22px!important}
   .pv-lab-footer__grid {grid-template-columns:repeat(2,minmax(0,1fr));column-gap:25px;row-gap:36px}
   .pv-lab-footer__brand {grid-column:1/-1}
-  .pv-lab-footer__wordmark {width:163px;height:37px}
+  .pv-lab-footer__wordmark {width:163px;height:52px}
   .pv-lab-footer__group {gap:13px}
   .pv-lab-footer__group strong {margin-bottom:6px}
   .pv-lab-footer__group a {font-size:13px}
