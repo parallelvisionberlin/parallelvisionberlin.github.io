@@ -655,7 +655,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     const title=document.createElement('strong');title.textContent=mood.name;
     const subtitle=document.createElement('small');subtitle.textContent=captions[mood.id]||mood.description;info.append(title,subtitle);
     card.append(media,info);
-    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected==='hong-kong-nights')hkVariation='original';if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;render();fitPanelViewport();onChange({selectedMood:true});};
+    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected==='hong-kong-nights'){hkVariation='original';finishControls.set({version:2,grain:46,haze:56,halation:83,film:78});}if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;render();fitPanelViewport();onChange({selectedMood:true});};
     grid.append(card);cards.set(mood.id,card);
   }
   function render(){

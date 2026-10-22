@@ -1,4 +1,4 @@
-import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyBudget=20261018v1&fisheye=20261020v1';
+import {compileImagePrompt,normalizeReferenceLabel,referenceGuidanceError} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyBudget=20261018v1&fisheye=20261020v1';
 import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1';
 
 // These are photographic treatment references, never a replacement Base.
@@ -55,12 +55,10 @@ export function moodReferencePlan(settings){
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
   const isHongKong=settings.moodId==='hong-kong-nights';
-  // The original October 10 Hong Kong Nights treatment used its creative
-  // text direction and only user-supplied photographs. Auto-injecting four
-  // unrelated scene photographs changed the input conditioning model.
-  // Restore the original behavior for Base, References-only and text-only.
-  // Preserve saved historical style labels for History and Reuse filtering.
+  // The Worker appends precisely the approved original photographs to the actual provider request.
+  // Do not duplicate the pack in customer uploads or historical image thumbnails.
   if(isHongKong){
+    const error=referenceGuidanceError(labels,settings);if(error)throw Error(error);
     const budget=settings.engine==='seedreamlite'?3000:5000;
     const compiled=compileImagePrompt(settings.prompt,labels,{...settings,referenceRoles:labels});
     const over=compiled.length-budget;

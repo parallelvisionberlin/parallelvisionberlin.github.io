@@ -1,0 +1,87 @@
+name: Verify and bundle exact Hong Kong original photos
+on:
+  push:
+    branches: ['fix/hong-kong-three-photographic-refs-20261022']
+    paths:
+      - '.github/workflows/hk-three-provider-verify.yml'
+      - 'lab/hong-kong-reference-policy.js'
+      - 'lab/moods.js'
+      - 'lab/mood-references.js'
+      - 'lab/reference-guidance.js'
+      - 'tests/lab-hong-kong-three-originals.test.mjs'
+      - 'tests/lab-worker.test.mjs'
+permissions:
+  contents: write
+concurrency:
+  group: hk-three-owner-original-photos
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Retrieve exactly the approved diner photo
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import urllib.request,pathlib,hashlib
+          url='https://cdn.independent-photo.com/wp-content/uploads/2018/12/Lessons-on-colour-Wong-Kar-Wai-6-1800x1199.jpg?format=webp&quality=85&width=1800'
+          req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Accept':'image/webp,image/*;q=0.9'})
+          with urllib.request.urlopen(req,timeout=40) as reply: data=reply.read(2000000)
+          digest=hashlib.sha256(data).hexdigest()
+          assert digest=='4f28528b626414aa74bb904fc484c160bce624b914f0da20d0609fb116b99adf',('Wrong original diner photo',digest)
+          out=pathlib.Path('lab/mood-references/hong-kong-nights/diner-green-yellow.webp')
+          out.write_bytes(data)
+          print('OWNER_DINER_MATCHED',digest,len(data))
+          PY
+      - name: Bundle exact original A/B/C byte streams for Worker
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import {HONG_KONG_REFERENCE_VERSION,HONG_KONG_REFERENCE_MANIFEST} from './lab/hong-kong-reference-policy.js';
+          const out=[];
+          for(const spec of HONG_KONG_REFERENCE_MANIFEST){
+            const raw=readFileSync('lab/mood-references/hong-kong-nights/'+spec.file);
+            const digest=createHash('sha256').update(raw).digest('hex');
+            if(digest!==spec.sha256)throw Error('Original photo mismatch: '+spec.file);
+            out.push({...spec,bytes:raw.length,data:raw.toString('base64')});
+            console.log('OWNER_PHOTO_VERIFIED',spec.name,raw.length,digest);
+          }
+          if(out.length!==3)throw Error('Unexpected Hong Kong reference count');
+          const source='// Exact owner-selected photographs, bundled at deploy. Never generated replacements.\n'+
+            "export {HONG_KONG_REFERENCE_VERSION} from '../lab/hong-kong-reference-policy.js';\n"+
+            'export const HONG_KONG_REFERENCES=Object.freeze('+JSON.stringify(out)+'.map(Object.freeze));\n';
+          writeFileSync('lab-worker/hong-kong-references.mjs',source);
+          console.log('EXACT_REFERENCES_BUNDLED',HONG_KONG_REFERENCE_VERSION);
+          NODE
+      - name: Verify JavaScript and regression tests without AI calls
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          node --check lab-worker/worker.mjs
+          node --check lab-worker/hong-kong-references.mjs
+          node --check lab/reference-guidance.js
+          node --check lab/moods.js
+          node --check lab/lab.js
+          node --test tests/lab*.test.mjs 2>&1 | tee /tmp/hk-three-tests.log
+          git diff --check
+      - name: Commit verified original assets to review branch only
+        run: |
+          set -euo pipefail
+          git add lab/mood-references/hong-kong-nights/diner-green-yellow.webp lab-worker/hong-kong-references.mjs
+          git diff --cached --check
+          git config user.name 'Parallel Vision'
+          git config user.email 'parallelvision.label@gmail.com'
+          if ! git diff --cached --quiet; then
+            git commit -m 'Bundle three exact original Hong Kong photo bytes for provider delivery'
+            git push origin HEAD:refs/heads/fix/hong-kong-three-photographic-refs-20261022
+          fi
+          echo "SOURCE_AND_BINARY_VERIFIED=$(git rev-parse HEAD)"
