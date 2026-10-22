@@ -345,9 +345,17 @@ function initialize(){
     dialog.style.removeProperty('--mc-editor-height');
     clearResult();resetPrice();clearPhoto();mood=null;moodVariant='original';renderVariation();setBusy(false);generate.disabled=true;
     $('mc-look-preview').removeAttribute('src');
-    // A clicked mood card retains :focus-visible after the modal closes in some browsers.
-    // Clear only the stale card focus, never the user's selected mood or its data.
-    if(document.activeElement?.matches?.('.mc-look-card[data-mood-id]'))document.activeElement.blur();
+    // Native dialog focus restoration occurs after the close event for Escape.
+    // Focus the gallery container on the next frame so X and Escape behave alike,
+    // without leaving a keyboard-focus outline on the previously activated card.
+    requestAnimationFrame(()=>{
+      if(dialog.open)return;
+      const grid=$('mc-look-grid');
+      if(grid){
+        grid.setAttribute('tabindex','-1');
+        grid.focus({preventScroll:true});
+      }
+    });
   });
   $('mc-look-close').onclick=close;
   dialog.addEventListener('click',event=>{if(event.target===dialog)close();});
