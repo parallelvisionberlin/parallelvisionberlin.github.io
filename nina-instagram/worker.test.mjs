@@ -5,6 +5,37 @@ import { webcrypto, createHash } from 'node:crypto';
 import vm from 'node:vm';
 import test from 'node:test';
 
+test('unsupported age accusation on gentle affection is rewritten without inventing ages',async()=>{
+  let calls=0,revision;
+  const h=harness({AI:{async run(model,input){calls++;revision=input.messages[0].content;return {response:calls===1?'No puedo crear situaciones íntimas con menores de edad.':'Un abrazo largo con este frío suena bien.'};}}});
+  await h.incoming('123456','Con este frío quiero abrazarte un rato');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(calls,2);
+  assert.match(revision,/Do not invent a visitor age/);
+  assert(!h.effects.sends[0].message.text.includes('menores'));
+});
+
+test('repeated unfounded accusation falls back to nonexplicit affection',async()=>{
+  const h=harness({AI:{async run(){return {response:'No puedo crear contenido íntimo con menores de edad.'};}}});
+  await h.incoming('123456','Un abrazo con este frío');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(h.effects.sends[0].message.text,'Un abrazo largo con este frío suena bien.');
+});
+
+test('actual disclosed minor context does not trigger the unsupported-age rewrite',async()=>{
+  let calls=0;
+  const h=harness({AI:{async run(){calls++;return {response:'No puedo crear contenido íntimo con menores de edad.'};}}});
+  await h.incoming('123456','Tengo 16 años y quiero contenido íntimo');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(calls,1);
+  assert.match(h.effects.sends[0].message.text,/menores de edad/);
+});
+
+test('the requested imagined home visit remains available as playful roleplay',async()=>{
+  let calls=0;
+  const h=harness({AI:{async run(){calls++;return {response:'Voy a tu casa con una manta enorme.'};}}});
+  await h.incoming('123456','Imagínate que vienes a mi casa con una manta');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(calls,1);
+  assert.equal(h.effects.sends[0].message.text,'Voy a tu casa con una manta enorme.');
+});
+
 function setupRequest(body, token='1'.repeat(64)) {
   return new Request('https://worker.test/internal/contact-context',{method:'POST',headers:{Authorization:'Bearer '+token},body:JSON.stringify(body)});
 }
@@ -572,6 +603,7 @@ test('a correct Workroom correction is accepted without another model call', asy
   assert.equal(calls, 1);
   assert.match(h.effects.sends[0].message.text, /no es mi estudio/);
 });
+
 
 
 
