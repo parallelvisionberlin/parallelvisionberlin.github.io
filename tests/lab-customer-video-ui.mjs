@@ -52,6 +52,10 @@ try{
   const prompt='A slow camera move across a sculptural coat.';
   await page.fill('#prompt',prompt);
   assert.doesNotMatch(await page.locator('#generate').textContent(),/connect|API/i);
+  if(scenario==='trial'){
+   assert.equal(await page.locator('#generation-help').isVisible(),false,'No credit-pack note below Generate');
+   assert.equal(await page.locator('#generation-help').textContent(),'');
+  }
   if(['trial','zero'].includes(scenario)){
    assert.equal(await page.locator('#generate').isEnabled(),true);
    await page.click('#generate');

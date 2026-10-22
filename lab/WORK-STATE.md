@@ -1,5 +1,12 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Remove Video Generate credit-pack note, 2026-10-22 (Europe/Berlin)
+- User requested removing the credit-pack sentence beneath Generate, screenshot `libfile_16cd381245908191ad774c2a2d81edd3`.
+- Source base: `b77a740`; `lab/lab.js` clears only the paused-trial pricing helper and hides its empty paragraph. Generate still opens pricing and preserves the draft.
+- `lab/studio.html` refreshes the JS cache marker; existing customer Video browser coverage asserts the helper is empty and hidden.
+- Account-review/closed/unavailable messages and generation eligibility are retained.
+- Verification: 17 approved Image/Video contract checks passed; customer Video browser checks cover desktop/mobile pricing, preserved drafts, no paid requests and existing account restrictions. Publication/live verification pending.
+
 ## Quiet Video History empty state, 2026-10-22 (Europe/Berlin)
 - Source main: `01663853cdbc07c37dde56c719130e4a56f92686`.
 - User approved “Your videos will appear here.” below History, 12px, normal weight and muted grey.
