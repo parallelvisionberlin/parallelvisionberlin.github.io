@@ -5,7 +5,11 @@
 - Source base: `b77a740`; `lab/lab.js` clears only the paused-trial pricing helper and hides its empty paragraph. Generate still opens pricing and preserves the draft.
 - `lab/studio.html` refreshes the JS cache marker; existing customer Video browser coverage asserts the helper is empty and hidden.
 - Account-review/closed/unavailable messages and generation eligibility are retained.
-- Verification: 17 approved Image/Video contract checks passed; customer Video browser checks cover desktop/mobile pricing, preserved drafts, no paid requests and existing account restrictions. Publication/live verification pending.
+- Verification: 17 approved Image/Video checks and all 12 customer Video browser scenarios passed at 1440/390px, including hidden helper, pricing, preserved drafts and restrictions. No paid requests.
+- PR #434 merged as `4ea2f1c118c108bc49266b928c7e117e98bb4109`. CI exposed a pinned existing reference-stability cache marker; retained it and appended `videoQuietGenerate=20261022-1` in follow-up `1a846bc02466bb26c3b5c67523ad5d14724b2fe5`. All 8 reference-stability/Image checks passed locally afterward; no contract assertions were weakened.
+- Cloudflare Pages check `119559399206` succeeded. Production returned LIVE_VERIFIED with the final HTML cache marker and exact reviewed lab.js SHA-256 `94e64a246e346d0f9cdf058a421e23e224c18b30a163f2170e20dd00584a265c`.
+- Required Image contract and static validation passed in final-source CI; full asynchronous CI is not claimed complete. Real signed-in production behavior was not inspected; customer browser scenarios used synthetic sessions.
+- Completed and live.
 
 ## Studio wordmark and Owner deck comparison, 2026-10-22 (Europe/Berlin)
 - User supplied five screenshots (234106, 234114, 234203, 234230 and 235008) and prefers the Owner History composer in image 4. The Higgsfield reference is image 3.
