@@ -8,9 +8,12 @@
 - Retains those DOM elements and their layout space so account-state updates, card positions and deck geometry remain safe; the header credit control remains available.
 - `lab/studio.html` bumps only that stylesheet version to `20261022-title-only1`.
 - No deck styles, dimensions, markup, JavaScript, controls, Moods, prompts, generation, pricing or payment handlers are edited.
-- Approved Image contract passes before the change. Existing role/first-image browser checks will verify the affected entrance.
-- Publication: not yet merged or confirmed live.
-- Next action: run affected checks, publish the scoped PR and verify Cloudflare plus production stylesheet bytes.
+- Verification passed: approved Image contract (5 checks) and the full existing first-image browser suite, including guest/new/returning/owner parity, mobile spacing, focus expansion and quoted one-click generation.
+- The same approved Image, first-image, compact prompt and static checks passed in PR #436. The unrelated existing Upscaler assertion at `tests/lab-assets-ui.cjs:281` remains unchanged.
+- Published: PR #436 merged as `9bcafbb03cea522984f19c5c8e783ab14aed95a3`.
+- Cloudflare Pages check `119569686616` succeeded. Production `image-welcome-editorial.css?v=20261022-title-only1` exactly matches the reviewed source; release verifier returned LIVE_VERIFIED.
+- Hosted stylesheet computed in an isolated browser fixture confirms hidden secondary text, visible headings and retained layout space. No real signed-in production account or paid generation was used.
+- Next action: none for this header-only request. Preserve the deck and its processes.
 
 # PV LAB Inspiration carousel + Chrome Couture
 
