@@ -1435,6 +1435,26 @@ test('Topaz rejects changed source bytes, unsupported engines, invalid dimension
   const fresh=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();env.LAB_DB.db.prepare('UPDATE quotes SET expires_at=? WHERE id=?').run(Date.now()-1,fresh.id);
   assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:fresh.id,confirm:true}})).status,409);assert.equal(falSubmitCount,0);
 });
+test('High Fidelity V3 and Wonder 3.5 keep their exact FAL model payload through one idempotent submission',async()=>{
+  for(const [upscaleEngine,quality,endpoint] of [['topaz-precision','High Fidelity V3','topaz/upscale/image/precision'],['topaz-wonder','Wonder 3.5','topaz/upscale/image/generative']]){
+    const{env}=fixture(),sourceId=await topazSource(env);calls=[];falSubmitCount=0;falUpscaleMode='ok';falState='IN_QUEUE';
+    const quoteResponse=await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:{...topazSettings,upscaleEngine,topazModel:quality}}});
+    assert.equal(quoteResponse.status,200);const q=await quoteResponse.json();
+    assert.equal(q.settings.model,endpoint);assert.equal(q.settings.topazModel,quality);assert.equal(falSubmitCount,0);
+    const payload=JSON.parse(env.LAB_DB.db.prepare('SELECT payload FROM quotes WHERE id=?').get(q.id).payload);
+    assert.equal(payload.input.model,quality);
+    const responses=await Promise.all([req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}}),req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})]);
+    assert.ok(responses.every(r=>[200,202].includes(r.status)));const jobs=await Promise.all(responses.map(r=>r.json()));
+    assert.equal(jobs[0].job.id,jobs[1].job.id);assert.equal(falSubmitCount,1);
+    const posted=calls.filter(c=>c.options.method==='POST'&&new URL(c.url).pathname==='/'+endpoint);
+    assert.equal(posted.length,1);
+    const input=JSON.parse(posted[0].options.body);
+    assert.deepEqual(input,{model:quality,upscale_factor:2,output_format:'png',crop_to_fill:false,face_enhancement:false,image_url:input.image_url});
+    assert.match(input.image_url,/^https:\/\/v3\.fal\.media\/files\/inputs\//);
+    assert.equal(jobs[0].job.settings.topazModel,quality);assert.equal(jobs[0].job.settings.model,endpoint);
+  }
+});
+
 test('Topaz shares FAL upscale interruption, image-capacity and daily-budget gates without affecting SpicyAPI',async()=>{
   for(const mode of ['uncertain','capacity','budget']){
     const{env}=fixture(),sourceId=await topazSource(env),t=Date.now();falSubmitCount=0;

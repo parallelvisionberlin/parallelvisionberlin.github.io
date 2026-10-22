@@ -1,7 +1,7 @@
 ## Active: PV LAB stabilization Phase 1 — review branch only (2026-10-22)
 
 - Objective: repair stale regression checks and restore fresh Video Start frame initialization; stop at draft PR #443 for review. Do not merge or deploy in this task.
-- Branch: `codex/pvlab-stabilization-phase1`; incorporated main `8b110f3f71100d447f9cb9b4aacb8a110dcb0053` through normal branch merges, without history rewriting or force push.
+- Branch: `codex/pvlab-stabilization-phase1`; incorporated main `8ded7bda942c9ac12c9397f8269d0d7943966ec0` through normal branch merges, without history rewriting or force push.
 - Main advances preserved: Image high-resolution validation, Clerk/D1 changes and approved Upscaler V21–V24 styling, its credit-notice overlay and automatic oversized-photo preparation. Main's Upscaler CSS, credits CSS, release handoff and HTML remain exact; only the separate Video module cache parameter differs.
 - Product change: remove the one-time Seedance Start-to-Reference override and initialize the remembered Create mode to Start. Explicit user selections, History and handoff modes remain intact.
 - Only other product file change relative to main: append `videoStartDefault=20261022-1` to the existing Lab module URL, retaining all existing asset revisions.
@@ -13,12 +13,15 @@
 - Video CI separates syntax/backend and eight browser steps. Explicit status conditions allow later suites after unrelated failures; no continue-on-error or disabled gate.
 - Domain smoke requires versioned assets, obtains Generate/Exact CSS URLs from live HTML and retains existing behavior checks.
 - The three edited ESM static-server harnesses use the platform separator. Unchanged Linux-only guards were adapted in memory for local Windows runs.
-- Node 22.16 full Lab/release suite on the final main snapshot: 708/708 passed. Approved Image/reference subset: 8/8 passed. Edited JavaScript syntax, workflow YAML/conditions and whitespace checks passed.
+- Node 22.16 full Lab/release suite after the Upscaler follow-up: 709/709 passed. Approved Image/reference subset: 8/8 passed. Edited JavaScript syntax, workflow YAML/conditions and whitespace checks passed.
 - Final affected checks: customer Video 12/12; Studio desktop/mobile/Fashion layout; full Assets; corrected Upscaler Assets visibility at desktop/mobile all passed after incorporating incoming main changes.
 - Visual visibility test now requires current exact headings/artwork, empty versus loaded source controls, shared desktop edge, full-screen heights and the V22/V23 hidden technical disclosure. Paid-request/price-review coverage in lab-upscale-ui.mjs remains unchanged.
 - Earlier browser runs at main a4ad9c7 passed all eight Video-workflow suites: customer Video, routing, layout, Soul reinterpret (13), Image one-click (53), Upscaler (8), references (22), Seedance (19). First-image four-role parity also passed.
 - CI at a5c6cd8 passed all eight Video browser steps and related workflows. At ab6da25, all eight browser suites executed: seven passed, Upscaler failed on hidden More options, then references (22) and Seedance (19) passed after that failure; screenshot artifact uploaded. This directly verifies independent execution. GitHub reports the overall run cancelled; cause unverified, so it is not a green job. The separate visibility step passed before its unchanged functional step failed. Final merge-head CI must be evaluated separately.
-- Remaining current failure: unchanged lab-upscale-ui.mjs times out clicking More options because incoming main deliberately hides #upscale-info. Its Topaz Precision quality selector is inside that hidden disclosure. Preserve the failure and quote/submission safeguards; do not force clicks or silently restore/change the approved design in Phase 1.
+- Follow-up replaces hidden More options interactions with visible upload/model/size/format/Upscale actions. It retains quote, credit, failure, provider payload and History assertions; no Upscaler UI/provider/default changes.
+- Follow-up local browser result: 22 substantive checks pass, then a precise fresh Precision quality-access contract fails for Owner/customer at 1440/390px. Standard V2 is the fresh default; High Fidelity V3 restores/submits through History but has no fresh visible selector. Full findings and the unimplemented minimal popup proposal are in UPSCALE-WORK-STATE.md.
+- New isolated backend coverage verifies exact High Fidelity V3 and Wonder provider request bodies through one idempotent mocked submission; existing Standard V2/credit safeguards remain.
+- Video CI allowance increases from 8 to 12 minutes: the prior browser installation took 4m43 and an 8m31 run was cancelled despite all browser results/artifacts. Failure gates and all eight independent steps remain unchanged.
 - Earlier corrected desktop visibility test exposed an overlapping action after mocked owner diagnostics. Main subsequently removed the disclosure; this is historical evidence, not the current failure. Current visibility assertions pass.
 - Additional environment result before main refresh: Windows/Node 24 passed 703/704; the pre-existing Dream Blur setImmediate timing check failed. It was not changed or weakened; configured Node 22 passes.
 - Both repaired public domain-smoke blocks passed via GET-only checks of the existing site. This does not publish or verify the candidate Video change in production.
@@ -26,7 +29,7 @@
 - No real purchase, paid generation, account change, database mutation, Worker change or production setting change.
 - Publication: PR #443 is draft and unmerged; no production deployment was initiated. Cloudflare's automatic branch preview is distinct from production.
 - Final incoming-main reruns: 708/708 Node 22 tests, customer Video 12/12 and full Assets passed with the new photo-input normalizer; desktop/mobile visibility passed after the V24 spacing and overlay update. The last main change only publishes its cache marker; preserve it exactly.
-- Next action: review the exact PR file list, passing checks and the remaining Upscaler test/design conflict. Resolve that conflict in separately authorized product scope; do not bypass the failing test or merge/deploy here.
+- Next action: review the exact PR file list, passing checks and the remaining Upscaler test/design conflict. Resolve the fresh Precision quality-access conflict through specific owner approval; do not bypass the failing test or merge/deploy here.
 
 # Customer Video preparation and generation access
 
