@@ -1368,3 +1368,24 @@
   margin-bottom:11px!important;
  }
 }
+
+
+/* V22: declutter Upscaler inspector. Hide technical disclosure, not model or pricing logic.
+   Keep paid action floating at the approved image-2 bottom position. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info{
+  display:none!important;
+}
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+  position:relative!important;top:0!important;align-self:stretch!important;
+  margin:0!important;overflow:hidden!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+  position:absolute!important;left:34px!important;right:34px!important;
+  bottom:40px!important;top:auto!important;width:auto!important;
+  margin:0!important;padding:0!important;border:0!important;background:transparent!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+  padding-bottom:105px!important;
+ }
+}
