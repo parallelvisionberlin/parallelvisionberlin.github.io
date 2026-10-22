@@ -101,8 +101,8 @@ test('mode naming, compact Video rail and mode-specific preview copy are Video-o
 
 test('mobile-only Video sequence is subtly slimmer and Start frame remains the default',()=>{
   assert.match(css,/@media\(max-width:440px\)\{[\s\S]*?height:119px!important;min-height:119px!important/);
-  assert.match(css,/min-height:148px!important/);
-  assert.match(css,/height:98px!important;min-height:98px!important/);
+  assert.match(css,/min-height:141px!important/);
+  assert.match(css,/height:91px!important;min-height:91px!important/);
   assert.match(css,/height:124px!important;min-height:124px!important/);
   assert.match(app,/let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=\[\], mode='start'/);
 });
