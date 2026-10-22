@@ -1,33 +1,32 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
-## Video credit overlay and white Generate, 2026-10-22 (Europe/Berlin)
-- Source base: `17091423e0b7e1fdc0fb36dd1fc8d4d37a652c38`.
-- User approved a credit notice over the workspace below the masthead, with no movement on dismissal, plus a white Video Generate with dark text.
-- References: `libfile_43ebc2e74edc8191aafddf69fbc34c09`, `libfile_cfbc6d89fd008191a94e8636a9003d9c`; Higgsfield comparison `libfile_5de3bb84846c81918fe797deae5591a1` is directional only.
-- `lab/studio-credits.css`: Video-only absolute overlay at the responsive masthead height, outside document flow. Existing Image notice behavior retained.
-- `lab/video-approved-design.css`: white active/disabled surface, dark ready text, muted disabled text, monochrome arrow and subtle hover. Native disabled state, generation/pricing behavior and button size retained.
-- `lab/studio.html`: refreshed the three affected stylesheet keys, preserving the pinned mobile-slim marker. The ready-state override in `lab/video-restored-editorial.css` also uses the white button. Existing customer Video browser coverage checks overlay placement, dismissal geometry, disabled/ready whites, pricing and preserved drafts.
-- Verification: all 18 approved Image/Video checks passed. All 12 customer Video browser journeys passed at 1440/390px; the notice overlays at the masthead edge, dismissal changes no workspace/control/player/button dimensions or positions, and incomplete Generate stays disabled. Screenshots inspected; sparse-checkout media placeholders are not production failures.
-- Published: PR #435 merged as `5016c8da4b058c0331edc97b68533bf0d3a78467`; reviewed PR head `3bc6d08fcc7bcb1c5018e9a1f4f7a38c98eee228`.
-- Cloudflare Pages check `119565199458` succeeded. All three production stylesheets returned LIVE_VERIFIED with exact source bytes and the final cache keys, including `whiteGenerate=20261022-1`.
-- Production SHA-256: studio-credits `06f81e65415c182c46c4b70340c959683b0540c2b8937441d5c5704a1af73a5a`; video-approved-design `4a06a79b30d767f3af0777e5e7b10b17a95c70cbe544c00688031388aa850b00`; video-restored-editorial `0f56dfc1e41bf39b057010f16dd24dcf263e2ea6d2e169e381030b31382c17a4`.
-- Live cloud-browser CSSOM confirms the absolute notice rule and white disabled/ready button rules. Browser is signed out, so real customer-session behavior is not claimed. Synthetic desktop/mobile journeys verify actual rendering and dismissal geometry.
-- Full local Studio layout suite passed, including compact heights, mobile layout and direct Fashion entry. Updated only its former gradient expectation to the user-approved white.
-- Final PR CI: 17/18 workflows passed, including Video integration, Fashion/layout, Lab tests, approved Image contract and static validation. The unrelated instant image queue workflow failed while installing browser dependencies; its tests were skipped.
-- Completed and live. No paid generation, account or billing changes.
+## Owner canonical Image deck, 2026-10-22 (completed and live)
+- Approved requirement: use the Owner History design for every account. Minimize by hiding the lower tools, leaving upper prompt geometry, width, top and side borders fixed; reopen downward.
+- Reference: image(20261022-001803).png (Owner) versus image(20261022-001828).png (new account). Preserve accepted artwork, title-only entrance, prompts, Moods, Hong Kong Nights, native/Soul, pricing, billing and identity behavior.
+- App source: bc8e766e358ffb512416c04751d102f33e8da7ed, following initial shared-deck source feda7d6ce91298bb40026975a10992ca37525afe. Based on current main; concurrent Video, pricing, Nina and title cleanup changes were preserved.
+- Hosting: Cloudflare Pages pvlab-studio check 119575215087 succeeded for bc8e766; deployment cb241463-ea7f-4134-91e9-7c247653b2bf. No manual or duplicate deployment.
+- image-deck-surface.css shares the Owner 1120x142 desktop frame among guest/customer/Owner and photo-free History. The minimized welcome is its 94px upper row; toolbar and Generate appear below without rearranging the prompt. Removed the conflicting older inline-toolbar compact CSS.
+- image-editorial-deck.js keeps tools open across model-menu rebuilding and temporarily disabled input preparation. Adding photographs from the entrance preserves its card anchor; existing reference trays and populated History retain their layout rules.
+- lab.js returns settled empty Image History to the approved cards instead of the obsolete landscape/quick-actions view. Native/privacy/loaded-History guards remain. Retouch reserves the same visual slot and retains its disabled customer eligibility.
+- Cache: image-deck-surface.css?v=20261022-owner-canonical1; image-editorial-deck.css/js?v=20261022-owner-canonical2; lab.js retains its base version plus emptyImage=20261022-canonical1.
+- Existing read-only verifier returned LIVE_VERIFIED for all four changed application assets against bc8e766. Surface SHA-256 7ed12f6b276915c0c2efad6eceae3846356a3227291642d3721a7c45b1eb5fbc; editorial JS 417b1126b4892cd5cb8331262b86651c65d9e0246aff7436bbca98657a024e74.
+- Actual production guest browser: https://pvlab.studio/studio?tool=image, 1363x936, confirmed canonical2 script. Opening 94px to 142px kept frame x114/y675.80/width1120, prompt x135/y695.80/922x54 and card bounds unchanged. Closing restored the same frame; scrollY remained zero. Proof images: pvlab-owner-upper-row-bc8e766.jpg and pvlab-owner-expanded-bc8e766.jpg.
+- Real production customer/Owner sessions and physical mobile devices were not inspected. Automated role fixtures do not prove those real sessions, payments or provider requests.
+- Final local checks passed: approved Image contract 5/5, first-image role matrix, prompt-paste, full Studio layout, mobile Mood entry, full Mood suite, full one-click/generation/Upscale, full account browser, and Photo Packs desktop/mobile. All provider, identity and payment actions in these tests are synthetic.
+- Existing browser checks now open the minimized prompt before using its lower tools. The customer checkout duplicate-click test waits for its CTA to become enabled after profile reload; no payment implementation changed.
+- CI on bc8e766 passed approved-image-ui, image-prompt-paste, private-lab, first-image, queue-smoke, one-click/backend test and account. Photo Packs initially expected its lower library button before opening; the following test-only update retains all assertions and passes locally.
+- Full CI is not green: Assets still fails the previously recorded Upscaler import assertion at tests/lab-assets-ui.cjs:281. Domain smoke checks old hard-coded Generate/Exact cache values; actual reviewed asset byte verification passed. Explore-generation's isolated handoff harness still searches for restoreStudioEntry() although the pre-existing function takes requestedRoute, causing its entryFinished timeout; that production function and Hong Kong Nights implementation were unchanged here.
+- Checkpoint/test follow-up changes only tests/lab-reference-pack-studio-ui.mjs and this record. The reviewed and live application assets remain bc8e766.
+- This UI task is completed. Next real-account review: compare Owner and the recreated customer account on the published Image page. Remaining unrelated CI debt is recorded above; do not claim all workflows pass or that a real account was inspected.
 
 ## Remove Video Generate credit-pack note, 2026-10-22 (Europe/Berlin)
 - User requested removing the credit-pack sentence beneath Generate, screenshot `libfile_16cd381245908191ad774c2a2d81edd3`.
 - Source base: `b77a740`; `lab/lab.js` clears only the paused-trial pricing helper and hides its empty paragraph. Generate still opens pricing and preserves the draft.
 - `lab/studio.html` refreshes the JS cache marker; existing customer Video browser coverage asserts the helper is empty and hidden.
 - Account-review/closed/unavailable messages and generation eligibility are retained.
-- Verification: 17 approved Image/Video checks and all 12 customer Video browser scenarios passed at 1440/390px, including hidden helper, pricing, preserved drafts and restrictions. No paid requests.
-- PR #434 merged as `4ea2f1c118c108bc49266b928c7e117e98bb4109`. CI exposed a pinned existing reference-stability cache marker; retained it and appended `videoQuietGenerate=20261022-1` in follow-up `1a846bc02466bb26c3b5c67523ad5d14724b2fe5`. All 8 reference-stability/Image checks passed locally afterward; no contract assertions were weakened.
-- Cloudflare Pages check `119559399206` succeeded. Production returned LIVE_VERIFIED with the final HTML cache marker and exact reviewed lab.js SHA-256 `94e64a246e346d0f9cdf058a421e23e224c18b30a163f2170e20dd00584a265c`.
-- Required Image contract and static validation passed in final-source CI; full asynchronous CI is not claimed complete. Real signed-in production behavior was not inspected; customer browser scenarios used synthetic sessions.
-- Completed and live.
+- Verification: 17 approved Image/Video contract checks passed; customer Video browser checks cover desktop/mobile pricing, preserved drafts, no paid requests and existing account restrictions. Publication/live verification pending.
 
-## Studio wordmark and Owner deck comparison, 2026-10-22 (Europe/Berlin)
+## Studio wordmark and Owner deck comparison (earlier release), 2026-10-22 (Europe/Berlin)
 - User supplied five screenshots (234106, 234114, 234203, 234230 and 235008) and prefers the Owner History composer in image 4. The Higgsfield reference is image 3.
 - Verified cause of deck difference: image-deck-surface.css applies its shared grid only to the welcome/card state and guest composer; History retains its separate existing layout. Recommendation: use Owner as the canonical expanded design while preserving compact entry, fixed width/top/sides and downward opening. This turn changes the logo only; the deck recommendation is not implemented.
 - Source: `50aa1d40c4ac0378aa0d67b48efe04a4ef5a098f`, based on main `8f451471f26975052a388753978b14f08a0b8b59`. Preserved concurrent editorial pricing and quiet Video History changes exactly.
@@ -36,7 +35,7 @@
 - Published: Cloudflare Pages `pvlab-studio` succeeded for source `50aa1d4`, check `119556802383`, deployment `f6d513b2-2724-4d26-a33c-38545a966b23`. The existing read-only verifier returned LIVE_VERIFIED for public-header.css?v=20261022-studio-wordmark1, SHA-256 `eff4e0af3c395d1690c0bc0191ccc1cf9cc366c69067b04b1ed1b66912acc65f`.
 - Actual production browser at https://pvlab.studio/studio?tool=image, signed out, 1363x936: new shared logo decoded from the approved SVG, displayed 64.02x20.17px, expected stylesheet version and no horizontal overflow. Real customer/Owner sessions and physical mobile devices were not inspected.
 - CI masthead `119555567122` and approved Image contract `119555562963` passed. Full CI is not green: queue-smoke could not install Chromium because its CDN certificate/download failed, and Assets still fails the previously recorded Upscaler import assertion at tests/lab-assets-ui.cjs:281. No deck, billing, account or provider behavior changed by this release.
-- Next deck action: use the Owner History screenshot as the reference for a shared expanded geometry, preserving compact entry and downward-only opening; this remains a recommendation for the user, not a published deck change.
+- Deck follow-up: implemented in the active Owner canonical entry above; this earlier section records only the logo release.
 
 ## Quiet Video History empty state, 2026-10-22 (Europe/Berlin)
 - Source main: `01663853cdbc07c37dde56c719130e4a56f92686`.

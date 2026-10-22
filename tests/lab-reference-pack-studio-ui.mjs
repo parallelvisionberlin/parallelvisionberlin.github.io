@@ -80,13 +80,17 @@ async function workspace(width=1440,height=900){
   }
   return {page,context,errors};
 }
+async function openPackMenu(page){
+  if(!await page.locator('#scene-image-open').isVisible())await page.locator('#image-composer-prompt').click();
+  await page.locator('#scene-image-open').click();
+}
 const noPaid=()=>assert.equal(requests.some(r=>r.method==='POST'&&['/api/quotes','/api/jobs','/api/higgsfield/generate'].includes(r.path)),false,'Pack actions never submit paid inference');
 const refs=async (page,n)=>page.waitForFunction(expected=>document.querySelectorAll('#reference-list .reference-item').length===expected,n);
 mkdirSync('test-results/photo-packs',{recursive:true});
 try{
   let {page,context,errors}=await workspace();
   const before=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
-  await page.locator('#scene-image-open').click();await page.locator('#scene-menu-packs').click();
+  await openPackMenu(page);await page.locator('#scene-menu-packs').click();
   assert.equal(await page.locator('#pack-studio-dialog').isVisible(),true);
   const box=await page.locator('#pack-studio-dialog').evaluate(el=>{
     const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width};
@@ -172,7 +176,7 @@ try{
   const fileChooser=await chooser;
   await fileChooser.setFiles({name:'third-reference.png',mimeType:'image/png',buffer:PNG});
   await refs(page,3);
-  await page.locator('#scene-image-open').click();await page.locator('#scene-menu-packs').click();
+  await openPackMenu(page);await page.locator('#scene-menu-packs').click();
   await page.locator('#pack-studio-new').click();
   assert.equal(await page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'false','A source must be chosen explicitly');
   assert.equal(await page.locator('#pack-studio-previews .pack-studio-preview').count(),0);
@@ -212,7 +216,7 @@ try{
     refs:[{id:uuid(),name:'study.png',role:'none',note:'',target:''}]
   });
   ({page,context,errors}=await workspace(1440,900));
-  await page.locator('#scene-image-open').click();
+  await openPackMenu(page);
   await page.locator('#scene-menu-packs').click();
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card').count(),10);
   assert.equal(await page.locator('#pack-studio-grid .pack-studio-card-new').count(),0,
@@ -254,7 +258,7 @@ try{
   packs.splice(originalPackCount);
 
   ({page,context,errors}=await workspace(390,844));
-  await page.locator('#scene-image-open').click();await page.locator('#scene-menu-packs').click();
+  await openPackMenu(page);await page.locator('#scene-menu-packs').click();
   const mobile=await page.locator('#pack-studio-dialog').evaluate(el=>{
     const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};
   });
