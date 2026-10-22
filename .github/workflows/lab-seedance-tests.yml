@@ -10,7 +10,7 @@ permissions:
 jobs:
   video:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,33 +23,58 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Backend and syntax checks
-        run: |
-          find lab lab-worker -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
-          node --test tests/lab*.test.mjs
+      - name: JavaScript syntax
+        run: find lab lab-worker -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
+      - name: Backend tests
+        if: ${{ !cancelled() }}
+        run: node --test tests/lab*.test.mjs
       - name: Browser dependencies
+        id: browser-deps
+        if: ${{ !cancelled() }}
         run: |
           npm install --prefix /tmp/pv-standard-ui --no-save playwright@1.57.0
           node /tmp/pv-standard-ui/node_modules/playwright/cli.js install --with-deps chromium
           if ! command -v ffmpeg >/dev/null; then sudo apt-get update -qq && sudo apt-get install -y ffmpeg; fi
       - name: Customer Video model selection and pricing handoff
+        if: ${{ !cancelled() && steps.browser-deps.outcome == 'success' }}
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
         run: node tests/lab-customer-video-ui.mjs
       - name: Guest and signed-in Studio tool routing
+        if: ${{ !cancelled() && steps.browser-deps.outcome == 'success' }}
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
         run: node tests/lab-tool-routing-ui.mjs
-      - name: Mock-only browser regression tests
+      - name: Studio desktop and mobile layout
+        if: ${{ !cancelled() && steps.browser-deps.outcome == 'success' }}
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
-        run: |
-          node tests/lab-studio-layout-ui.mjs
-          node tests/lab-soul-reinterpret-ui.mjs
-          node tests/lab-image-oneclick-ui.mjs
-          node tests/lab-upscale-ui.mjs
-          node tests/lab-reference-ui.mjs
-          node tests/lab-seedance-ui.mjs
+        run: node tests/lab-studio-layout-ui.mjs
+      - name: Soul reinterpret regression
+        if: ${{ !cancelled() && steps.browser-deps.outcome == 'success' }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
+        run: node tests/lab-soul-reinterpret-ui.mjs
+      - name: Image one-click regression
+        if: ${{ !cancelled() && steps.browser-deps.outcome == 'success' }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
+        run: node tests/lab-image-oneclick-ui.mjs
+      - name: Upscaler regression
+        if: ${{ !cancelled() && steps.browser-deps.outcome == 'success' }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
+        run: node tests/lab-upscale-ui.mjs
+      - name: Reference regression
+        if: ${{ !cancelled() && steps.browser-deps.outcome == 'success' }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
+        run: node tests/lab-reference-ui.mjs
+      - name: Seedance Video modes and submission
+        if: ${{ !cancelled() && steps.browser-deps.outcome == 'success' }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
+        run: node tests/lab-seedance-ui.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

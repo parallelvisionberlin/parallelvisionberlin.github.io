@@ -85,6 +85,12 @@ test('Discreet concealment and nonblinking disabled header are preserved',()=>{
   assert.match(discreet,/#image-composer-references img/);
   assert.match(discreet,/content:'HIDDEN'/);
   assert.match(css,/#studio-header \.tool-switch \.tool-tab:disabled\{opacity:1/);
-  // Require a cache-versioned Studio module without pinning an obsolete release ID.
-  assert.match(html,/<script type="module" src="\.\/lab\.js\?v=[a-zA-Z0-9_-]+/);
+  // Require the current cache-versioned module without pinning a historical release ID.
+  const modules=[...html.matchAll(/<script\b[^>]*type="module"[^>]*src="([^"]+)"/g)]
+    .map(match=>new URL(match[1].replaceAll('&amp;','&'),'https://pvlab.studio/studio'))
+    .filter(url=>url.pathname==='/lab.js');
+  assert.equal(modules.length,1,'Studio loads the tested Lab module exactly once');
+  assert.ok(modules[0].searchParams.get('v')?.trim(),'The module retains an explicit cache revision');
+  assert.match(source,/composerReferenceRenderKey/,'The loaded module retains stable reference rendering');
+
 });

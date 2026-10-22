@@ -1,3 +1,22 @@
+## Current: PR #443 — approved Precision dropdown qualities (2026-10-22)
+
+- Review branch `codex/pvlab-stabilization-phase1`; current main V28 full-width layout incorporated by normal merge. Keep PR #443 draft, unmerged and undeployed.
+- Owner explicitly approved two discreet quality subchoices beneath the single Topaz Precision row in the existing model popup. The earlier inaccessible-quality conflict is resolved by this scoped UI change; More options remains hidden.
+- Default engine remains ByteDance Premium / SeedVR2. Newly selecting Precision from another engine resets Standard V2. Direct High Fidelity V3 selection updates the visible trigger, accessible name and checked state. Reopening focuses the selected quality.
+- Both qualities reuse the existing native quality state/change handler, quote invalidation and provider routing. Selection alone never uploads, quotes or submits. No provider/pricing/default configuration or database changes.
+- History Reuse restores the saved Standard V2 or High Fidelity V3, scale and original source before any interaction. Its next Upscale submits that exact quality. Subsequently selecting another engine and newly selecting Precision returns to Standard V2 as requested.
+- Three engine rows remain unchanged, with a labeled nested quality group, 44px quality targets, arrow/Home/End navigation, Enter/Space selection, Escape focus return, Tab exit and outside-click dismissal.
+- Only popup-specific CSS added. Main's page dimensions, V28 full-width photograph/deck alignment, typography, source controls and mobile arrangement are preserved. Main's existing 344px + 12px gallery inset is retained; its old browser geometry expectations are updated precisely.
+- ByteDance endpoint: `fal-ai/seedvr/upscale/image`, factor 2/4, noise 0.1, no Topaz model. Precision endpoint: `topaz/upscale/image/precision`, model exactly Standard V2 or High Fidelity V3. Wonder endpoint: `topaz/upscale/image/generative`, model Wonder 3.5. Existing crop/face flags and PNG/JPEG remain unchanged.
+- Credit rules unchanged: exact SeedVR2 route costs 10/18 credits at 2x/4x; Topaz uses the existing server estimate/conversion. Both Precision qualities retain the existing same estimate for equal dimensions (320px fixture: $0.08 / 37 credits); no invented quality surcharge.
+- `tests/lab-upscale-ui.mjs`: visible upload/model/quality/scale/format/Upscale actions only. Retains valid bytes/dimensions, all engines, bound quotes/credits, both quality mismatch directions, expiry, failures, duplicate clicks, downloads and History.
+- Coverage includes Owner/customer at 1440/390px: both fresh quality selections/submissions, eight History combinations, unchanged selection geometry, all engine access and mobile touch; keyboard coverage exercises both qualities. Synthetic API fixtures use real backend parameter/price builders; wallet refresh is intercepted.
+- `tests/lab-worker.test.mjs` retains Standard V2 coverage and adds exact High Fidelity V3/Wonder request-body and idempotency checks against the real Worker with intercepted FAL calls and an in-memory database.
+- Local results: 709/709 Node 22 Lab/release unit tests passed, including mandatory approved Image contract; 34 substantive Upscaler browser checks passed; desktop/mobile Upscaler/Assets visibility passed. Final branch-head CI and fresh Video rerun are recorded in PR #443.
+- Desktop/mobile empty photograph and loaded-source popup screenshots inspected. No horizontal overflow in checked states; no force-clicks, skipped checks, weakened assertions or hidden-select manipulation.
+- Exact feature files: `lab/studio.html`, `lab/lab.js`, `lab/upscale-studio-v5.css`, `tests/lab-upscale-ui.mjs`, `tests/lab-upscale-assets-visibility.mjs`, `tests/lab-assets-ui.cjs` (exact three engines plus two nested qualities), plus this checkpoint and `lab/VIDEO-CUSTOMER-WORK-STATE.md`. Separate JS/CSS cache markers preserve main's existing revisions.
+- No real Clerk session, customer transaction, provider generation or production success was verified. All browser accounts/media/requests are synthetic and all paid submission paths are mocked. No merge, force push, production deployment or production mutation.
+
 # PV LAB Premium Upscale work state
 
 Updated: 2026-10-14 (Berlin), model/visual hierarchy correction.

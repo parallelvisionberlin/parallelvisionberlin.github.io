@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFileSync,existsSync,mkdirSync} from 'node:fs';
-import {resolve,extname} from 'node:path';
+import {resolve,extname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
@@ -22,7 +22,7 @@ setTool('video');await loadHistory();update();window.__videoCustomerTest=true;
 `;
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+pathname);
- if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}
+ if(!path.startsWith(root+sep)||!existsSync(path)){res.writeHead(404).end();return;}
  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'})[extname(path)]||'application/octet-stream');
  res.end(pathname==='/lab/lab.js'?injected:readFileSync(path));
 });
@@ -44,6 +44,14 @@ try{
   await page.waitForFunction(()=>window.__videoCustomerTest);
   await page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-video-approved-ready'));
   await page.waitForFunction(()=>getComputedStyle(document.getElementById('generate')).backgroundColor==='rgb(255, 255, 255)');
+  // Observe the fresh default before dismissing a notice, choosing a model or clicking a mode.
+  assert.equal(await page.locator('#video-engine').inputValue(),'seedance','Fresh Video retains the default Seedance model');
+  assert.equal(await page.locator('#mode-start').getAttribute('aria-selected'),'true','Fresh Video selects Start frame before any interaction');
+  for(const id of ['mode-text','mode-reference'])assert.equal(await page.locator('#'+id).getAttribute('aria-selected'),'false');
+  assert.equal(await page.locator('#start-mode').isVisible(),true,'The initial start-frame uploader is available');
+  assert.equal(await page.locator('#reference-mode').isVisible(),false,'Fresh entry does not silently switch to Reference set');
+  assert.deepEqual(posts,[],'Initialization never submits a request');
+  if(scenario==='trial')await page.screenshot({path:`test-results/video-initial-start-${width}.png`});
   if(['trial','zero'].includes(scenario)){
    const geometry=()=>page.evaluate(()=>Object.fromEntries(['.workspace.video-layout','.controls','.stage','#generate'].map(selector=>{
     const r=document.querySelector(selector).getBoundingClientRect();return [selector,{x:r.x,y:r.y,width:r.width,height:r.height}];
