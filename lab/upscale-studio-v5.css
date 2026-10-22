@@ -1461,3 +1461,48 @@
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas.drag #empty .pv-upscale-empty-icon::after{
  background:#fff!important;
 }
+
+
+/* V27: one flush, edge-to-edge Upscaler workspace. In the empty editor the
+   photograph and controls terminate at precisely the same baseline. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+  box-sizing:border-box!important;
+  position:relative!important;
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  width:calc(100vw - 12px)!important;
+  max-width:none!important;
+  grid-template-columns:minmax(330px,26%) minmax(0,1fr)!important;
+  gap:0!important;
+  margin:0 0 0!important;
+  padding:0!important;
+  align-items:stretch!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls,
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{
+  align-self:stretch!important;
+  margin:0!important;
+  min-width:0!important;
+  border-radius:0!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #empty:not([hidden]))>.controls{
+  height:clamp(680px,calc(100dvh - 104px),980px)!important;
+  min-height:680px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(#empty:not([hidden])){
+  box-sizing:border-box!important;
+  height:clamp(680px,calc(100dvh - 104px),980px)!important;
+  min-height:680px!important;
+  margin:0!important;
+  border:0!important;
+  overflow:hidden!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty,
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-drop{
+  inset:0!important;
+  height:100%!important;
+  width:100%!important;
+  overflow:hidden!important;
+ }
+}
