@@ -8,7 +8,13 @@
 - `lab/video-approved-design.css`: white active/disabled surface, dark ready text, muted disabled text, monochrome arrow and subtle hover. Native disabled state, generation/pricing behavior and button size retained.
 - `lab/studio.html`: refreshed the three affected stylesheet keys, preserving the pinned mobile-slim marker. The ready-state override in `lab/video-restored-editorial.css` also uses the white button. Existing customer Video browser coverage checks overlay placement, dismissal geometry, disabled/ready whites, pricing and preserved drafts.
 - Verification: all 18 approved Image/Video checks passed. All 12 customer Video browser journeys passed at 1440/390px; the notice overlays at the masthead edge, dismissal changes no workspace/control/player/button dimensions or positions, and incomplete Generate stays disabled. Screenshots inspected; sparse-checkout media placeholders are not production failures.
-- Publication/live verification pending. No paid generation, account or billing changes.
+- Published: PR #435 merged as `5016c8da4b058c0331edc97b68533bf0d3a78467`; reviewed PR head `3bc6d08fcc7bcb1c5018e9a1f4f7a38c98eee228`.
+- Cloudflare Pages check `119565199458` succeeded. All three production stylesheets returned LIVE_VERIFIED with exact source bytes and the final cache keys, including `whiteGenerate=20261022-1`.
+- Production SHA-256: studio-credits `06f81e65415c182c46c4b70340c959683b0540c2b8937441d5c5704a1af73a5a`; video-approved-design `4a06a79b30d767f3af0777e5e7b10b17a95c70cbe544c00688031388aa850b00`; video-restored-editorial `0f56dfc1e41bf39b057010f16dd24dcf263e2ea6d2e169e381030b31382c17a4`.
+- Live cloud-browser CSSOM confirms the absolute notice rule and white disabled/ready button rules. Browser is signed out, so real customer-session behavior is not claimed. Synthetic desktop/mobile journeys verify actual rendering and dismissal geometry.
+- Full local Studio layout suite passed, including compact heights, mobile layout and direct Fashion entry. Updated only its former gradient expectation to the user-approved white.
+- Final PR CI: 17/18 workflows passed, including Video integration, Fashion/layout, Lab tests, approved Image contract and static validation. The unrelated instant image queue workflow failed while installing browser dependencies; its tests were skipped.
+- Completed and live. No paid generation, account or billing changes.
 
 ## Remove Video Generate credit-pack note, 2026-10-22 (Europe/Berlin)
 - User requested removing the credit-pack sentence beneath Generate, screenshot `libfile_16cd381245908191ad774c2a2d81edd3`.
