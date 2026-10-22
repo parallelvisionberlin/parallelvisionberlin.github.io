@@ -155,6 +155,8 @@ test('Clerk UPSERT refresh retains existing disposable holds without database co
     const holdsBefore=f.db.prepare('SELECT customer_id,reason,created_at,released_at FROM lab_promo_generation_holds ORDER BY customer_id').all();
     assert.equal(holdsBefore.length,2);
     assert.ok(holdsBefore.every(row=>row.reason==='disposable-email'&&row.released_at===null));
+    // Make the two existing verified contact snapshots due for owner refresh.
+    f.insert("UPDATE lab_customer_contacts SET synced_at=? WHERE customer_id IN ('user_ALICE','user_BOB')",Date.now()-90000000);
     const report=await (await f.admin('/api/admin/customers/sync')).json();
     assert.equal(report.requested,3);
     assert.equal(report.checked,3);
