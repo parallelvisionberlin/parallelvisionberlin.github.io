@@ -8,7 +8,7 @@ const html=source('studio.html'),app=source('lab.js'),
   models=source('video-models.js');
 
 test('the approved editorial deck replaces the superseded compact layer',()=>{
-  assert.match(html,/video-restored-editorial\.css\?v=20261018-reference-wheel1/);
+  assert.match(html,/video-restored-editorial\.css\?v=20261022-mobile-slim1/);
   assert.match(html,/video-editorial-deck\.js\?v=20261018-compact-flow1/);
   assert.match(html,/video-scene-states\.js\?v=20261018-compact-flow1/);
   assert.match(html,/videoFlow=20261018-compact1/);
@@ -97,4 +97,12 @@ test('mode naming, compact Video rail and mode-specific preview copy are Video-o
   assert.match(html,/<span class="label">End frame<\/span><span class="micro">Optional<\/span>/);
   assert.match(html,/id="scene-video-open"/);
   assert.match(html,/id="video-motion-toggle"/);
+});
+
+test('mobile-only Video sequence is subtly slimmer and Start frame remains the default',()=>{
+  assert.match(css,/@media\(max-width:440px\)\{[\s\S]*?height:119px!important;min-height:119px!important/);
+  assert.match(css,/min-height:148px!important/);
+  assert.match(css,/height:98px!important;min-height:98px!important/);
+  assert.match(css,/height:124px!important;min-height:124px!important/);
+  assert.match(app,/let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=\[\], mode='start'/);
 });
