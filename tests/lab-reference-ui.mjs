@@ -148,7 +148,7 @@ try{
   const preview=await x.page.locator('#reference-guidance-text').innerText();
   assert.match(preview,/Reference 1 \[Base image\]/);assert.match(preview,/Reference 2 \[Detail \/ Hands\]/);assert.match(preview,/Reference 3 \[Clothing \/ Pants\]/);
   assert.match(preview,/Use only the hands as a localized visual reference/);assert.match(preview,/Use only the pants/);
-  assert.match(preview,/REQUESTED IMAGE: Create an intentional reinterpretation of the supplied image/);
+  assert.match(preview,/REQUESTED IMAGE: Refine the supplied image conservatively into a cleaner/);
   assert.match(await x.page.locator('#reference-guidance-count').textContent(),/\/ 5,000 characters/);
   assert.match(await x.page.locator('#composer-prompt-budget').textContent(),/left$/);
   assert.equal(await x.page.locator('#composer-prompt-budget').isVisible(),false,'Healthy counter stays out of the prompt');
@@ -158,8 +158,8 @@ try{
   await edit(x.page.getByLabel('Note for reference 2',{exact:true}),'Keep the existing hand position.');
   await x.page.evaluate(()=>document.getElementById('save').click());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   const guidedDraft=x.requests.find(r=>r.path==='/api/drafts').data;
-  assert.match(guidedDraft.settings.prompt,/^Create an intentional reinterpretation of the supplied image/,
-    'Blank written direction receives automatic identity-aware reinterpretation guidance');
+  assert.match(guidedDraft.settings.prompt,/^Refine the supplied image conservatively into a cleaner/,
+    'Blank written direction receives conservative anatomy-preserving guidance');
   assert.equal(guidedDraft.referenceSourceIds.length,7);
   assert.deepEqual(guidedDraft.settings.referenceRoles.slice(0,3).map(({role,target})=>({role,...(target===undefined?{}:{target})})),[{role:'base'},{role:'detail',target:'hands'},{role:'outfit',target:'pants'}]);
   assert.equal(guidedDraft.settings.referenceRoles[0].name,'architecture-reference-4.png');
