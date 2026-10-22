@@ -1846,7 +1846,10 @@ function syncImageComposer(){
   // Do not overwrite a file-validation or generation error while controls
   // refresh. Its dismiss button (or the next valid upload) clears it explicitly.
   if(progressLine&&!progressLine.classList.contains('is-import-error')){
-    progressLine.textContent=progress;progressLine.hidden=!progress;
+    progressLine.textContent=progress;
+    // A price check is automatic for every account. Keep billing validation,
+    // but do not show its transient diagnostic beneath Generate.
+    progressLine.hidden=!progress||/^Checking price(?:\.{3}|…)?$/i.test(progress.trim());
   }
   if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))
     generate.title='This exact request is already preparing. Change the direction or wait for confirmation.';
