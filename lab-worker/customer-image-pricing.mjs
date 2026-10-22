@@ -4,6 +4,7 @@
 import {creditsForJobUsd} from './job-pricing.mjs';
 import {IMAGE_PRICES} from './image-models.mjs';
 import {krea3EstimateMicros} from './krea3.mjs';
+import {hongKongReferenceCount} from '../lab/hong-kong-reference-policy.js';
 import {soulProEstimateMicros} from './soul-pro.mjs';
 import {controlledPoseEstimateMicros} from './fal-controlled-pose.mjs';
 
@@ -13,7 +14,7 @@ export function quoteCustomerImageCredits(p,count,{geminiEstimateMicros}={}){
   let estimatedMicros;
   if(p.engine==='krea3'){
     if(count>4)throw new Error('Krea 3 supports up to four images.');
-    estimatedMicros=krea3EstimateMicros(p,(p.referenceRoles||[]).length);
+    estimatedMicros=krea3EstimateMicros(p,(p.referenceRoles||[]).length+hongKongReferenceCount(p));
   }else if(p.engine==='kling'){
     if(count>4)throw new Error('This model supports up to four images.');
     estimatedMicros=IMAGE_PRICES[p.engine];
