@@ -290,6 +290,7 @@ try{
       await page.locator('#app').waitFor({state:'visible'});
       await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
+      await page.waitForFunction(()=>document.querySelector('#lab-pricing-overlay [data-lab-buy="topup10"]')?.disabled===false);
       rig.holdCheckout();
       await page.locator('#lab-pricing-overlay [data-lab-buy="topup10"]').evaluate(button=>{button.click();button.click();});
       await page.waitForFunction(()=>document.querySelector('#lab-pricing-overlay-status').textContent.includes('Opening secure checkout'));

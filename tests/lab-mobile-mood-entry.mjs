@@ -113,10 +113,12 @@ try{
     assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
       'Signed-out first paint keeps the small approved prompt');
     for(const id of ['pv-guest-library','pv-guest-base','pv-guest-resolution'])
-      assert.equal(await page.locator('#'+id).isVisible(),true,'Desktop guest exposes '+id);
+      assert.equal(await page.locator('#'+id).isVisible(),false,'Minimized guest hides lower tool '+id);
     await field.click();
     assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
       'Clicking a guest prompt opens the full two-row editor without an inner frame');
+    for(const id of ['pv-guest-library','pv-guest-base','pv-guest-resolution'])
+      assert.equal(await page.locator('#'+id).isVisible(),true,'Opening the lower portion exposes '+id);
     const emptyFocus=await field.evaluate(el=>{
       const input=getComputedStyle(el),box=el.getBoundingClientRect();
       return {outline:input.outlineStyle,border:input.borderTopWidth,

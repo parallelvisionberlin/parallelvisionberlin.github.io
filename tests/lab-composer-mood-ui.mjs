@@ -206,6 +206,7 @@ try{
     return {panelTop:panel.top,panelHeight:panel.height,gridHeight:grid.height,gridBottom:grid.bottom,
       lastCardBottom:card.bottom,thumbHeight:photo.height,deckTop:deck.top,deckHeight:deck.height};
   });
+  await stable.page.click('#image-composer-prompt');
   await stable.page.click('#image-composer-moods');
   const emptyGallery=await measureMood();
   await stable.page.locator('.moods-card[aria-label="Select Soft Pastel Film"]').click();

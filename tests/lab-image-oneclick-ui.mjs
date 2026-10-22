@@ -1,6 +1,6 @@
 async function clickAdvanced(page){await page.evaluate(()=>document.querySelector('#image-composer-more').click());}
 // Preserve coverage for saved FAL identities; the public Soul entry now defaults to Higgsfield Soul 2.
-async function chooseImageModel(page,value){await page.click('#image-composer-model');await page.click('.composer-model-option[data-value="'+value+'"]');if(value==='soulpro'){await page.evaluate(()=>{const model=document.querySelector('#soul-pro-model');model.value='ideogram45';model.dispatchEvent(new Event('change',{bubbles:true}));});}await clickAdvanced(page);}
+async function chooseImageModel(page,value){if(!await page.locator('#image-composer-model').isVisible())await page.click('#image-composer-prompt');await page.click('#image-composer-model');await page.click('.composer-model-option[data-value="'+value+'"]');if(value==='soulpro'){await page.evaluate(()=>{const model=document.querySelector('#soul-pro-model');model.value='ideogram45';model.dispatchEvent(new Event('change',{bubbles:true}));});}await clickAdvanced(page);}
 async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open){const control=page.locator('#image-composer-more');if(await control.isVisible())await control.click();else await page.evaluate(()=>document.querySelector('#image-composer-more').click());}}
 // Mock-only browser verification. No real credentials, private media or paid generations.
 import assert from 'node:assert/strict';
@@ -520,6 +520,7 @@ try{
  ];
  x=await workspace({savedPacks:slowPacks,packPreviewGate,brokenPreviewAssets:[badId]});
  const originalDeckHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
+ await x.page.click('#image-composer-prompt');
  await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');
  assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'The Photo Packs menu opens the existing reference library modal');
  assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs');
@@ -546,6 +547,7 @@ try{
  // Non-billable Photo Pack creation mirrors Soul's library → create workflow.
  // It must not touch the generation quote/submit routes or reset the Image deck.
  x=await workspace();
+ await x.page.click('#image-composer-prompt');
  await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');
  await x.page.click('#pack-studio-new');
  assert.equal(await x.page.locator('#pack-studio-create-view').isVisible(),true);
@@ -573,6 +575,7 @@ try{
 
  const packReferencePhotos=[{name:'front.png',mimeType:'image/png',buffer:png},{name:'side.png',mimeType:'image/png',buffer:png},{name:'back.png',mimeType:'image/png',buffer:png}];
  x=await workspace();await x.page.locator('#reference-images').setInputFiles(packReferencePhotos);await waitRefs(x.page,3);
+ await x.page.click('#image-composer-prompt');
  await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');await x.page.click('#pack-studio-new');
  assert.equal(await x.page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'false');
  assert.equal(await x.page.locator('#pack-studio-previews .pack-studio-preview').count(),0);

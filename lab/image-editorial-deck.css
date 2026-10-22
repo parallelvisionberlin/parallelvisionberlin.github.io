@@ -596,8 +596,8 @@ html:not(.pv-native-lab) #app.image-studio-active
   }
 }
 
-/* The desktop card entrance opens downward from the cards. Populated History,
-   attached-photo editing, PV Soul and native/mobile keep their existing dock. */
+/* The desktop card entrance stays anchored when opening or adding photos.
+   Populated History, PV Soul and native/mobile keep their existing dock. */
 @media(min-width:1180px) and (min-height:680px){
   html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck)
     #image-gallery-empty:has(#lab-welcome-start:not([hidden])){
