@@ -2,7 +2,14 @@ name: Verify and bundle exact Hong Kong original photos
 on:
   push:
     branches: ['fix/hong-kong-three-photographic-refs-20261022']
-    paths: ['.github/workflows/hk-three-provider-verify.yml']
+    paths:
+      - '.github/workflows/hk-three-provider-verify.yml'
+      - 'lab/hong-kong-reference-policy.js'
+      - 'lab/moods.js'
+      - 'lab/mood-references.js'
+      - 'lab/reference-guidance.js'
+      - 'tests/lab-hong-kong-three-originals.test.mjs'
+      - 'tests/lab-worker.test.mjs'
 permissions:
   contents: write
 concurrency:
