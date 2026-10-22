@@ -431,10 +431,10 @@ try{
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false,'No prompt and unassigned roles must be allowed');
   assert.equal(await x.page.locator('#image-composer-generate').innerText(),'Generate','Base-image generation uses the universal image button label');
   await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
-  assert.match(x.requests.find(req=>req.path==='/api/quotes').data.settings.prompt,/^Make a controlled, natural variation of the supplied Base image/,
-    'A blank text field uses the default photographic variation direction for the base image');
+  assert.match(x.requests.find(req=>req.path==='/api/quotes').data.settings.prompt,/^Create an intentional reinterpretation of the supplied image/,
+    'A blank text field uses the universal automatic reinterpretation direction for a Base image');
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','none','none']);
-  assert.equal(x.accepted(),1);ok('No prompt + no roles creates a labeled variation without guessing an edit');assert.deepEqual(x.errors,[]);await x.context.close();
+  assert.equal(x.accepted(),1);ok('No prompt + no roles creates a meaningful reinterpretation without assuming the subject');assert.deepEqual(x.errors,[]);await x.context.close();
 
 
   x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
