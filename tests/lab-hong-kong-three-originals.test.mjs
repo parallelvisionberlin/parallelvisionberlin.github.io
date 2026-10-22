@@ -48,13 +48,15 @@ test('Numbered provider prompt always matches actual three reference positions a
 
 test('New Hong Kong Nocturne generation defaults to approved film preset, manual off and history remain possible',()=>{
  const approved={version:2,grain:46,haze:56,halation:83,film:78};
- assert.deepEqual(HONG_KONG_VARIANTS.original.filmFinish,approved);
+ assert.deepEqual(HONG_KONG_VARIANTS.original.filmFinish,HONG_KONG_FILM_FINISH);
  assert.deepEqual(HONG_KONG_FILM_FINISH,{version:2,grain:0,haze:0,halation:0,film:0});
  assert.equal(FILM_FINISH_RENDER_REVISION,10);
  const base=prepareMoodPrompt('Portrait','hong-kong-nights',74,{engine:'seedream',referenceCount:1});
  const custom=prepareMoodPrompt('Portrait','hong-kong-nights',74,{engine:'seedream',referenceCount:1,filmFinish:{...HONG_KONG_FILM_FINISH}});
  assert.equal(base.prompt,custom.prompt);
- assert.deepEqual(base.metadata.filmFinish,approved);
+ assert.deepEqual(base.metadata.filmFinish,HONG_KONG_FILM_FINISH);
+ const ui=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+ assert.ok(ui.includes('finishControls.set({version:2,grain:46,haze:56,halation:83,film:78})'),'owner preset is only selected explicitly');
  assert.deepEqual(custom.metadata.filmFinish,HONG_KONG_FILM_FINISH);
 });
 
