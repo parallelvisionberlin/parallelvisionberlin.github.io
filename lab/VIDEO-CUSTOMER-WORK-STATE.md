@@ -1,8 +1,8 @@
 ## Active: PV LAB stabilization Phase 1 — review branch only (2026-10-22)
 
 - Objective: repair stale regression checks and restore fresh Video Start frame initialization; stop at draft PR #443 for review. Do not merge or deploy in this task.
-- Branch: `codex/pvlab-stabilization-phase1`; incorporated main `87371dc` through normal branch merges, without history rewriting or force push.
-- Main advances preserved: Image high-resolution validation, Clerk/D1 changes and approved Upscaler V21/V22/V23 styling. Main's Upscaler CSS and HTML remain exact; only the separate Video module cache parameter differs.
+- Branch: `codex/pvlab-stabilization-phase1`; incorporated main `18dbd8f1292ccc5551b65884c6ffdeb8de1f80e6` through normal branch merges, without history rewriting or force push.
+- Main advances preserved: Image high-resolution validation, Clerk/D1 changes and approved Upscaler V21–V24 styling and its credit-notice overlay. Main's Upscaler CSS, credits CSS, release handoff and HTML remain exact; only the separate Video module cache parameter differs.
 - Product change: remove the one-time Seedance Start-to-Reference override and initialize the remembered Create mode to Start. Explicit user selections, History and handoff modes remain intact.
 - Only other product file change relative to main: append `videoStartDefault=20261022-1` to the existing Lab module URL, retaining all existing asset revisions.
 - Customer browser assertions verify default Seedance, selected Start frame, visible uploader and zero initial POSTs before any interaction at 1440/390px across six account states.
@@ -17,7 +17,7 @@
 - Final affected checks: customer Video 12/12; Studio desktop/mobile/Fashion layout; full Assets; corrected Upscaler Assets visibility at desktop/mobile all passed after incorporating incoming main changes.
 - Visual visibility test now requires current exact headings/artwork, empty versus loaded source controls, shared desktop edge, full-screen heights and the V22/V23 hidden technical disclosure. Paid-request/price-review coverage in lab-upscale-ui.mjs remains unchanged.
 - Earlier browser runs at main a4ad9c7 passed all eight Video-workflow suites: customer Video, routing, layout, Soul reinterpret (13), Image one-click (53), Upscaler (8), references (22), Seedance (19). First-image four-role parity also passed.
-- CI at a5c6cd8 passed all eight Video browser steps, private Lab, approved Image, references, Explore, Assets, first-image, domain smoke and pricing overlay. New head CI must be evaluated separately.
+- CI at a5c6cd8 passed all eight Video browser steps and related workflows. At ab6da25, all eight browser suites executed: seven passed, Upscaler failed on hidden More options, then references (22) and Seedance (19) passed after that failure; screenshot artifact uploaded. This directly verifies independent execution. GitHub reports the overall run cancelled; cause unverified, so it is not a green job. The separate visibility step passed before its unchanged functional step failed. Final merge-head CI must be evaluated separately.
 - Remaining current failure: unchanged lab-upscale-ui.mjs times out clicking More options because incoming main deliberately hides #upscale-info. Its Topaz Precision quality selector is inside that hidden disclosure. Preserve the failure and quote/submission safeguards; do not force clicks or silently restore/change the approved design in Phase 1.
 - Earlier corrected desktop visibility test exposed an overlapping action after mocked owner diagnostics. Main subsequently removed the disclosure; this is historical evidence, not the current failure. Current visibility assertions pass.
 - Additional environment result before main refresh: Windows/Node 24 passed 703/704; the pre-existing Dream Blur setImmediate timing check failed. It was not changed or weakened; configured Node 22 passes.
@@ -25,6 +25,7 @@
 - Browser evidence uses synthetic accounts/media and intercepted uploads, quotes, checkout and jobs. No real customer authentication or provider success is claimed.
 - No real purchase, paid generation, account change, database mutation, Worker change or production setting change.
 - Publication: PR #443 is draft and unmerged; no production deployment was initiated. Cloudflare's automatic branch preview is distinct from production.
+- Final incoming-main reruns: 708/708 Node 22 tests, full Assets and desktop/mobile visibility passed after the V24 spacing and overlay update.
 - Next action: review the exact PR file list, passing checks and the remaining Upscaler test/design conflict. Resolve that conflict in separately authorized product scope; do not bypass the failing test or merge/deploy here.
 
 # Customer Video preparation and generation access
