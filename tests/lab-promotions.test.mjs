@@ -10,7 +10,7 @@ async function setup(t) {
   t.after(()=>db.close());
   const file=name=>readFileSync(new URL(name,import.meta.url),'utf8');
   db.exec(file('../lab-worker/schema.sql'));
-  for(const migration of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0016-clerk-sync-diagnostics','0023-welcome-guard','0024-owner-acquisition','0025-promo-generation-holds','0028-generation-finance-ledger'])db.exec(file('../lab-worker/migrations/'+migration+'.sql'));
+  for(const migration of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0016-clerk-sync-diagnostics','0023-welcome-guard','0024-owner-acquisition','0025-promo-generation-holds','0036-clerk-contact-hold-upsert','0028-generation-finance-ledger'])db.exec(file('../lab-worker/migrations/'+migration+'.sql'));
   db.exec(file('../lab-worker/migrations/0015-lab-promotional-credits.sql')); // safely applied more than once
   const dbBinding={
     prepare(sql){return {bind(...values){const stmt=db.prepare(sql);return {
@@ -137,6 +137,38 @@ test('invalid administrative voucher values are rejected and do not create credi
   }
   assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_vouchers').n,0);
 });
+test('Clerk UPSERT refresh retains existing disposable holds without database constraints',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.env.LAB_CLERK_SECRET_KEY='sk_test_mockonly';
+  f.env.LAB_WELCOME_CREDITS_ENABLED='false';
+  const previous=globalThis.fetch;
+  globalThis.fetch=async url=>{
+    const id=new URL(url).pathname.split('/').pop();
+    const address=id==='user_ALICE'?'private@yournike.com':
+      id==='user_BOB'?'private@weekprime.com':'ordinary@example.com';
+    return Response.json({id,primary_email_address_id:'primary',
+      email_addresses:[{id:'primary',email_address:address,verification:{status:'verified'}}]});
+  };
+  try{
+    assert.equal(await syncCustomerEmail(f.env,'user_ALICE',{force:true}),true);
+    assert.equal(await syncCustomerEmail(f.env,'user_BOB',{force:true}),true);
+    const holdsBefore=f.db.prepare('SELECT customer_id,reason,created_at,released_at FROM lab_promo_generation_holds ORDER BY customer_id').all();
+    assert.equal(holdsBefore.length,2);
+    assert.ok(holdsBefore.every(row=>row.reason==='disposable-email'&&row.released_at===null));
+    const report=await (await f.admin('/api/admin/customers/sync')).json();
+    assert.equal(report.requested,3);
+    assert.equal(report.checked,3);
+    assert.equal(report.verified,3);
+    assert.equal(report.issues.storageError,0,'Refreshing held accounts must not abort a Clerk batch');
+    assert.deepEqual(f.db.prepare('SELECT customer_id,reason,created_at,released_at FROM lab_promo_generation_holds ORDER BY customer_id').all(),holdsBefore,'Existing holds remain immutable');
+    assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_customer_contacts WHERE email IS NOT NULL').n,3);
+    assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_credit_entries').n,0,'Paused welcome credits remain paused');
+    f.db.exec(readFileSync(new URL('../lab-worker/migrations/0036-clerk-contact-hold-upsert.sql',import.meta.url),'utf8'));
+    assert.equal(await syncCustomerEmail(f.env,'user_ALICE',{force:true}),true,'Migration must remain repeatable');
+    assert.deepEqual(f.db.prepare('SELECT customer_id,reason,created_at,released_at FROM lab_promo_generation_holds ORDER BY customer_id').all(),holdsBefore);
+  }finally{globalThis.fetch=previous;}
+});
+
 test('only verified Clerk primary email can be stored as a customer contact',async t=>{
   const f=await setup(t);if(!f)return;
   assert.equal(await syncCustomerEmail(f.env,'user_ALICE'),false);
