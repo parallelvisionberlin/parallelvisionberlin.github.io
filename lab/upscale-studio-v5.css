@@ -1224,3 +1224,14 @@
   width:72px!important;height:72px!important;
  }
 }
+
+
+/* Approved primary action: retain its states and handlers, show only Upscaler. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate{
+  font-size:0!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate::after{
+  content:"Upscaler";
+  font:500 13px/1.2 'DM Sans',Arial,sans-serif;
+  letter-spacing:-.015em;
+}
