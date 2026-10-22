@@ -12,19 +12,29 @@ const make=(referenceRoles=[],resolution='2k')=>krea3Parameters({
  prompt:'Retain the model and garment',resolution,aspectRatio:'16:9'
 },{fail,referenceRoles});
 
-test('A Base image with no direction gets a universal, identity-aware reinterpretation',()=>{
+test('Photo-only Base preserves scene layout and occluded anatomy across image engines',()=>{
  for(const engine of ['seedream','seedreamlite','flash','qwen3','gemini','gemini21','krea3']){
   const settings={type:'image',engine,mode:'image',referenceMode:'base'};
-  const prompt=compileImagePrompt('',[{role:'base',name:'uploaded-image.png'}],settings);
-  assert.match(prompt,/Create an intentional reinterpretation of the supplied image/);
-  assert.match(prompt,/If people are present, preserve each individual/);
-  assert.match(prompt,/If no people are present, retain the defining characteristics/);
-  assert.match(prompt,/without assuming a location, time of day or specific aesthetic/);
-  assert.match(prompt,/You may change viewpoint, pose, styling, wardrobe, environment and mood/);
-  assert.doesNotMatch(prompt,/Make a subtle, controlled variation/);
-  const actual=compileImagePrompt(AUTO_IMAGE_REINTERPRET_PROMPT,[{role:'base',name:'uploaded-image.png'}],settings);
-  assert.match(actual,/REINTERPRETATION FIDELITY/);
-  assert.doesNotMatch(actual,/Do not change expression, pose, age, outfit or person/);
+  const base=[{role:'base',name:'uploaded-image.png'}];
+  const preview=compileImagePrompt('',base,settings);
+  assert.match(preview,/Refine the supplied image conservatively into a cleaner/);
+  assert.match(preview,/the same number of people and their recognizable identities/);
+  assert.match(preview,/Do not invent, duplicate, merge, remove or relocate people, faces, limbs or body parts/);
+  assert.match(preview,/keep the original occlusion instead of revealing or reconstructing unseen details/);
+  assert.match(preview,/Do not assume or change the depicted time of day/);
+  assert.match(preview,/If no people are present, preserve the main subject, object count/);
+  assert.doesNotMatch(preview,/visibly different result|You may change viewpoint, pose, styling|strong reinterpretation/i);
+  const sent=compileImagePrompt(AUTO_IMAGE_REINTERPRET_PROMPT,base,settings);
+  assert.match(sent,/PHOTO-ONLY FIDELITY:/);
+  assert.match(sent,/Keep overlapping or hidden limbs and faces occluded/);
+  assert.doesNotMatch(sent,/Do not change expression, pose, age, outfit or person/);
+  assert.ok(sent.length<=(engine==='seedreamlite'?3000:5000));
+
+  const authored=compileImagePrompt('Move the camera high above the scene and change the wardrobe.',base,settings);
+  assert.match(authored,/Move the camera high above the scene and change the wardrobe/);
+  assert.doesNotMatch(authored,/Refine the supplied image conservatively|PHOTO-ONLY FIDELITY/);
+  const referencesOnly=compileImagePrompt('',[{role:'none',name:'example.png'}],{...settings,referenceMode:'references'});
+  assert.doesNotMatch(referencesOnly,/Refine the supplied image conservatively/);
  }
 });
 
