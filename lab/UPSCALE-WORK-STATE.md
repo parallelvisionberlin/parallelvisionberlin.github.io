@@ -14,7 +14,7 @@
 - `tests/lab-worker.test.mjs` retains Standard V2 coverage and adds exact High Fidelity V3/Wonder request-body and idempotency checks against the real Worker with intercepted FAL calls and an in-memory database.
 - Local results: 709/709 Node 22 Lab/release unit tests passed, including mandatory approved Image contract; 34 substantive Upscaler browser checks passed; desktop/mobile Upscaler/Assets visibility passed. Final branch-head CI and fresh Video rerun are recorded in PR #443.
 - Desktop/mobile empty photograph and loaded-source popup screenshots inspected. No horizontal overflow in checked states; no force-clicks, skipped checks, weakened assertions or hidden-select manipulation.
-- Exact feature files: `lab/studio.html`, `lab/lab.js`, `lab/upscale-studio-v5.css`, `tests/lab-upscale-ui.mjs`, `tests/lab-upscale-assets-visibility.mjs`, plus this checkpoint and `lab/VIDEO-CUSTOMER-WORK-STATE.md`. Separate JS/CSS cache markers preserve main's existing revisions.
+- Exact feature files: `lab/studio.html`, `lab/lab.js`, `lab/upscale-studio-v5.css`, `tests/lab-upscale-ui.mjs`, `tests/lab-upscale-assets-visibility.mjs`, `tests/lab-assets-ui.cjs` (exact three engines plus two nested qualities), plus this checkpoint and `lab/VIDEO-CUSTOMER-WORK-STATE.md`. Separate JS/CSS cache markers preserve main's existing revisions.
 - No real Clerk session, customer transaction, provider generation or production success was verified. All browser accounts/media/requests are synthetic and all paid submission paths are mocked. No merge, force push, production deployment or production mutation.
 
 # PV LAB Premium Upscale work state
