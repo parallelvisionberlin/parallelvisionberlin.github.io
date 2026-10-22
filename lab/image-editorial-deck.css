@@ -596,8 +596,8 @@ html:not(.pv-native-lab) #app.image-studio-active
   }
 }
 
-/* The desktop card entrance stays anchored when opening or adding photos.
-   Populated History, PV Soul and native/mobile keep their existing dock. */
+/* Entry and Inspiration minimize the existing History deck at its original
+   top, then open downward. They do not derive a different origin from cards. */
 @media(min-width:1180px) and (min-height:680px){
   html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck)
     #image-gallery-empty:has(#lab-welcome-start:not([hidden])){
@@ -610,17 +610,22 @@ html:not(.pv-native-lab) #app.image-studio-active
   html:not(.pv-native-lab) #app.image-studio-active
     #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul){
     position:fixed!important;
-    top:var(--pv-welcome-deck-top,calc(100dvh - 240px))!important;
+    top:var(--pv-image-deck-top,calc(100dvh - 172px))!important;
     bottom:auto!important;
   }
-  html:not(.pv-native-lab) #app.image-studio-active
-    #image-composer.pv-editorial-deck.pv-welcome-deck.pv-deck-expanded:not(.is-pv-soul) #image-composer-prompt{
-    max-height:max(78px,min(176px,calc(100dvh - var(--pv-welcome-deck-top) - 98px)))!important;
+  html:not(.pv-native-lab) #gate.pv-guest-image #pv-guest-composer{
+    position:fixed!important;left:50%!important;
+    transform:translateX(-50%)!important;
+    top:var(--pv-image-deck-top,calc(100dvh - 172px))!important;
+    bottom:auto!important;margin:0!important;
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image #auth-status{
+    position:fixed;left:20px;right:20px;bottom:8px;margin:0;
   }
 }
 
-/* Move the approved desktop entrance as one group. The authenticated deck
-   already follows the measured card edge; its expansion stays downward. */
+/* Preserve the approved 24px title/card adjustment. The deck itself uses
+   the same viewport origin as History, independently of this content. */
 @media(min-width:1180px) and (min-height:680px){
   html:not(.pv-native-lab) #gate.pv-guest-image .pv-guest-content,
   html:not(.pv-native-lab) #app.image-studio-active:has(#image-composer.pv-welcome-deck)

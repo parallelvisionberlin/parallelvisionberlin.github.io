@@ -28,16 +28,22 @@
     real.classList.toggle('pv-welcome-deck',!!visible);
     if(!visible){
       welcome?.style.removeProperty('--pv-welcome-card-height');
-      real.style.removeProperty('--pv-welcome-deck-top');
       return;
     }
-    // Reserve writing room before measuring the card edge. Focus must never
-    // move the cards or the deck's top; only its lower edge grows.
+    // Keep the existing card sizes. Deck placement uses the original History
+    // origin, independently of the cards and the collapsed/expanded state.
     const copy=cards.getBoundingClientRect().top-welcome.getBoundingClientRect().top;
     const room=innerHeight-empty.getBoundingClientRect().top-260-copy;
     const height=Math.max(140,Math.min(379,innerHeight*.39,room));
     welcome.style.setProperty('--pv-welcome-card-height',Math.floor(height)+'px');
-    real.style.setProperty('--pv-welcome-deck-top',Math.ceil(cards.getBoundingClientRect().bottom+24)+'px');
+  }
+  function fitDeckOrigin(surface,visible){
+    if(!welcomeWidth.matches||!visible){surface.style.removeProperty('--pv-image-deck-top');return;}
+    // Original History is 142px tall and 30px above the viewport edge.
+    // Its compact entrance keeps that same top; larger photo/text content
+    // retains History's existing bottom clearance instead of leaving the screen.
+    const height=Math.max(142,surface.getBoundingClientRect().height);
+    surface.style.setProperty('--pv-image-deck-top',(innerHeight-30-height)+'px');
   }
   function realPromptNeedsSpace(surface,field){
     if(!field.value.trim())return false;
@@ -102,6 +108,8 @@
     update(guest,guestField,'guest');
     fitGuestPrompt();
     update(real,realField,'real');
+    fitDeckOrigin(real,real.classList.contains('pv-welcome-deck'));
+    fitDeckOrigin(guest,!document.getElementById('gate').hidden);
   }
   const deferSync=()=>queueMicrotask(sync);
   for(const [field,kind] of [[guestField,'guest'],[realField,'real']]){

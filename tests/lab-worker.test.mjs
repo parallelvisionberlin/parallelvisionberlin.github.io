@@ -11,6 +11,7 @@ import {buildSoulProInput} from '../lab-worker/soul-pro.mjs';
 import {BERLIN_RAVE_REFERENCES} from '../lab-worker/berlin-rave-references.mjs';
 import {DREAMCORE_REFERENCES} from '../lab-worker/dreamcore-references.mjs';
 import {SYNTHETIC_ROMANCE_REFERENCES} from '../lab-worker/synthetic-romance-references.mjs';
+import {HONG_KONG_REFERENCES} from '../lab-worker/hong-kong-references.mjs';
 import {prepareMoodPrompt} from '../lab/moods.js';
 const ORIGIN='https://parallelvisionlabel.com',BASE='https://parallel-vision-lab.parallelvision.workers.dev',KEY='sk-spicy-synthetic-test-only-not-a-real-key',CUSTOMER_KEY='sk-spicy-isolated-customer-test-key-not-real';
 const keypair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
@@ -663,7 +664,7 @@ async function seedreamTestReference(env,name,marker=0,width=512,height=512){
 async function uploadGuidanceReference(env,name,marker){
   return seedreamTestReference(env,name,marker);
 }
-test('Hong Kong 1K editing uses the user Base, original Mood prompt and proven Spicy default',async()=>{
+test('Hong Kong 1K editing retains user Base and sends three exact real Style photos to Spicy provider',async()=>{
   const {env}=fixture();
   await setup(env);
   const source=await seedreamTestReference(env,'original-fashion.png',27,768,512);
@@ -672,22 +673,58 @@ test('Hong Kong 1K editing uses the user Base, original Mood prompt and proven S
   assert.equal(recipe.error,'');
   const settings={...imageSettings,engine:'seedream',mode:'image',resolution:'1k',prompt:recipe.prompt,
     ...recipe.metadata,referenceMode:'base',referenceRoles:[{name:'original-fashion.png',role:'base'}]};
-  const quoteResponse=await req(env,'/api/quotes',{method:'POST',data:{
-    settings,referenceSourceIds:[source]}});
-  assert.equal(quoteResponse.status,200,await quoteResponse.clone().text());
-  const quote=await quoteResponse.json();
-  assert.equal(quote.settings.moodId,'hong-kong-nights');
-  assert.equal(quote.settings.moodVariant,'deep-green');
-  assert.equal(quote.settings.referenceSourceIds.length,1);
-  assert.equal(quote.settings.resolution,'1k','Keep the requested 1K resolution');
-  assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/edit','Keep Seedream Pro Edit');
-  assert.equal(quotedRequest.input.resolution,'1k');
-  assert.equal(quotedRequest.input.image_urls.length,1,'no built-in mood photos sent');
-  assert.equal(Object.hasOwn(quotedRequest.input,'enable_thinking'),false,
-    'Do not force false: production completed this 1K Base edit with the parameter omitted');
-  assert.match(quotedRequest.input.prompt,/EDIT IMAGE 1/);
-  assert.match(quotedRequest.input.prompt,/Hong Kong Nights is a photographic light-and-air treatment/);
-  assert.match(quotedRequest.input.prompt,/softly visible eyes/);
+  const originalFetch=globalThis.fetch,staged=new Map();let sequence=0;
+  globalThis.fetch=async(url,options={})=>{
+    const u=new URL(url);
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/common/upload-url')){
+      const input=JSON.parse(options.body),fileId='fil_hong_kong_reference_'+(++sequence);
+      staged.set(fileId,{input});
+      return Response.json({code:200,data:{fileId,uploadUrl:'https://test.r2.cloudflarestorage.com/'+fileId,method:'PUT',
+        headers:{'Content-Type':input.contentType,'Content-Length':String(input.bytes)},
+        maxBytes:10485760,expiresAt:new Date(Date.now()+1200000).toISOString()}});
+    }
+    if(u.hostname==='test.r2.cloudflarestorage.com'&&options.method==='PUT'){
+      const item=staged.get(u.pathname.slice(1));assert.ok(item,'Expected staged upload');
+      item.bytes=new Uint8Array(options.body);
+      return new Response(null,{status:200});
+    }
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/commit')){
+      const fileId=u.pathname.split('/').at(-2),item=staged.get(fileId);assert.ok(item?.bytes);
+      return Response.json({code:200,data:{fileId,status:'ready',bytes:item.bytes.length,contentType:item.input.contentType,
+        sha256:Buffer.from(await crypto.subtle.digest('SHA-256',item.bytes)).toString('hex'),
+        uri:'spicy://f/'+fileId,expiresAt:new Date(Date.now()+86400000).toISOString()}});
+    }
+    return originalFetch(url,options);
+  };
+  try{
+    const quoteResponse=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[source]}});
+    assert.equal(quoteResponse.status,200,await quoteResponse.clone().text());
+    const quote=await quoteResponse.json();
+    assert.equal(quote.settings.moodId,'hong-kong-nights');
+    assert.equal(quote.settings.moodVariant,'deep-green');
+    assert.equal(quote.settings.referenceSourceIds.length,1);
+    assert.equal(quote.settings.moodReferenceCount,3);
+    assert.equal(quote.settings.resolution,'1k');
+    assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/edit');
+    assert.equal(quotedRequest.input.resolution,'1k');
+    assert.equal(quotedRequest.input.image_urls.length,4,'User Base followed by three actual Style inputs');
+    assert.equal(staged.size,4);
+    for(let i=0;i<4;i++){
+      const fileId=quotedRequest.input.image_urls[i].split('/').at(-1),item=staged.get(fileId);
+      assert.ok(item?.bytes,'Provider upload exists at position '+(i+1));
+      if(i>0)assert.deepEqual(Buffer.from(item.bytes),Buffer.from(HONG_KONG_REFERENCES[i-1].data,'base64'),
+        'Original owner photograph matches provider input '+(i+1));
+    }
+    assert.equal(Object.hasOwn(quotedRequest.input,'enable_thinking'),false);
+    assert.match(quotedRequest.input.prompt,/EDIT IMAGE 1/);
+    assert.match(quotedRequest.input.prompt,/Hong Kong Nights is a photographic light-and-air treatment/);
+    assert.match(quotedRequest.input.prompt,/softly visible eyes/);
+    assert.match(quotedRequest.input.prompt,/Reference 2 \[Supervalu \/ DOMINANT LOOK\]/);
+    assert.match(quotedRequest.input.prompt,/Reference 3 \[Diner green-yellow \/ SECONDARY COLOR\]/);
+    assert.match(quotedRequest.input.prompt,/Reference 4 \[Foggy wet street \/ SECONDARY DEPTH\]/);
+  }finally{
+    globalThis.fetch=originalFetch;
+  }
 });
 
 test('Seedream uses SpicyAPI with ordered images, compiled properties and reusable detail metadata',async()=>{

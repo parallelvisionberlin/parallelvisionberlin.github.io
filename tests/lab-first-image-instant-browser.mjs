@@ -198,7 +198,7 @@ try{
     for(const entry of parity.slice(1)){
       const a=parity[0].states[state],b=entry.states[state],label=state+' new/'+entry.role;
       assert.deepEqual(Object.keys(a.controls).sort(),Object.keys(b.controls).sort(),label+' same visible controls');
-      for(const key of ['w','h'])assert.ok(Math.abs(a[key]-b[key])<2,label+' same deck '+key+': '+JSON.stringify({a,b}));
+      for(const key of ['x','y','w','h'])assert.ok(Math.abs(a[key]-b[key])<2,label+' same deck '+key+': '+JSON.stringify({a,b}));
       assert.equal(a.background,b.background,label+' same graphite surface');assert.equal(a.radius,b.radius);
       assert.match(a.backdrop.image,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,label+' uses approved entrance art');
       assert.deepEqual(a.backdrop,b.backdrop,label+' entrance artwork and treatment match');
@@ -268,8 +268,9 @@ try{
             return bar.left>=0&&bar.right<=innerWidth&&prompt.left>=bar.left&&prompt.right<=bar.right;
           });
           assert.ok(contained,role+' controls remain contained at '+viewport.width+'px');
-          assert.ok(before.y-photos.y-photos.height>=20&&before.y-photos.y-photos.height<=28,
-            role+' bar follows the cards, including banner changes: '+JSON.stringify({viewport,banner,before,photos}));
+          assert.ok(Math.abs(before.y-(viewport.height-172))<2,
+            role+' compact bar keeps the original History top: '+JSON.stringify({viewport,banner,before}));
+          assert.ok(before.y-photos.y-photos.height>=20,role+' cards remain above the shared deck origin');
           await roleField.click();
           const opened=await roleDeck.boundingBox();
           for(const key of ['x','width'])assert.ok(Math.abs(opened[key]-before[key])<2,
@@ -294,6 +295,9 @@ try{
       if(role==='owner')assert.equal(await rolePage.locator('#image-composer-edit-area').isVisible(),true,
         'Owner History retains its existing Retouch shortcut');
       const historyDeck=await roleDeck.boundingBox();
+      const slotGeometry=el=>{const r=el.getBoundingClientRect();return Object.fromEntries([...el.querySelectorAll('[data-deck-slot], [data-deck-control]')].filter(n=>n.getBoundingClientRect().width>0&&n.dataset.deckSlot!=='controls').map(n=>{const b=n.getBoundingClientRect();return [n.dataset.deckControl||n.dataset.deckSlot,{x:b.x-r.x,y:b.y-r.y,w:b.width,h:b.height}];}));};
+      const historySlots=await roleDeck.evaluate(slotGeometry);
+      await roleDeck.evaluate(el=>window.__originalImageDeck=el);
       await roleField.click();
       assert.ok(Math.abs((await roleDeck.boundingBox()).height-historyDeck.height)<3,
         role+' History retains its locked two-row deck on focus');
@@ -301,6 +305,12 @@ try{
       await rolePage.locator('#history-moods-toggle').click();
       await rolePage.waitForFunction(()=>document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
       assert.ok(Math.abs((await roleDeck.boundingBox()).height-74)<2,role+' Inspiration reopens the same compact toolbar');
+      assert.equal(await roleDeck.evaluate(el=>el===window.__originalImageDeck),true,role+' Inspiration retains the original History editor element');
+      assert.ok(Math.abs((await roleDeck.boundingBox()).y-historyDeck.y)<2,role+' compact Inspiration starts at the exact History top');
+      await roleField.click();
+      const inspirationDeck=await roleDeck.boundingBox();
+      assert.deepEqual(inspirationDeck,historyDeck,role+' expanded Inspiration is the original History frame at the same position');
+      assert.deepEqual(await roleDeck.evaluate(slotGeometry),historySlots,role+' expanded Inspiration retains every original History slot');
       assert.equal(await rolePage.locator('#image-composer:visible,#pv-guest-composer:visible').count(),1,
         role+' exposes exactly one Image bar');
     }finally{await roleContext.close();}
@@ -355,8 +365,7 @@ try{
     'The restored Image deck must stay horizontally centered: '+
       JSON.stringify({initialDeck,availableWidth,centerError}));
   const initialCards=await page.locator('#lab-welcome-presets').boundingBox();
-  assert.ok(initialDeck.y-initialCards.y-initialCards.height>=20&&
-    initialDeck.y-initialCards.y-initialCards.height<=28,
+  assert.ok(initialDeck.y-initialCards.y-initialCards.height>=20,
     'The entrance bar belongs just below the cards: '+JSON.stringify({initialDeck,initialCards}));
   assert.ok(864-initialDeck.y-initialDeck.height>80,
     'The compact entrance reserves downward writing room instead of touching the bottom');
@@ -557,8 +566,8 @@ try{
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Choosing a Mood keeps the opened deck permanently expanded after blur');
   const bottomAfterMood=await deck.boundingBox();
-  assert.ok(Math.abs(bottomAfterMood.y-initialDeck.y)<2&&bottomAfterMood.y+bottomAfterMood.height<=864,
-    'The engaged card-view deck retains its top and stays within the viewport');
+  assert.ok(Math.abs(864-bottomAfterMood.y-bottomAfterMood.height-30)<2,
+    'Long text retains the original History bottom clearance while the empty deck opens downward');
   const newCardY=await page.locator('.lab-welcome-preset').first().evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   assert.ok(Math.abs(newCardY-cardY)<8,
     'Opening the docked deck must keep the six Mood cards stable in document coordinates: '+

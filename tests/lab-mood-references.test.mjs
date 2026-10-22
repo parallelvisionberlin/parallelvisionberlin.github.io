@@ -19,7 +19,7 @@ test('restored Hong Kong Nights never automatically inserts Style images in Base
   for(const engine of ['seedream','seedreamlite','gemini','gemini21'])
     for(const variant of ['original','deep-green','slow-shutter'])
     for(const referenceMode of ['base','references'])
-    for(const count of [0,1,6,10]){
+    for(const count of [0,1,6,7]){
       const settings=settingsFor('hong-kong-nights',count,{engine,variant,referenceMode});
       const plan=moodReferencePlan(settings);
       assert.equal(plan.settings,settings,'the unchanged input settings are returned');

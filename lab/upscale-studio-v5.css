@@ -897,3 +897,126 @@
   min-width:185px!important;height:44px!important;
  }
 }
+
+
+/* V11 / approved option 1: editorial chrome/wool, compact settings,
+   transparent rectangular source frame. Scoped to Upscaler only. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+  grid-template-columns:minmax(300px,370px) minmax(0,1fr)!important;gap:0!important;
+  max-width:100%!important;margin:0 auto 12px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+  border:0!important;border-right:1px solid rgba(255,255,255,.12)!important;
+  border-radius:0!important;background:#0d0e10!important;box-shadow:none!important;
+  min-height:clamp(660px,calc(100dvh - 100px),900px)!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{
+  border:0!important;border-radius:0!important;background:#111!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas{
+  min-height:660px!important;height:clamp(660px,calc(100dvh - 100px),900px)!important;
+ }
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+ padding:26px 24px 12px!important;gap:14px 12px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+ padding:0 0 19px!important;margin:0 0 3px!important;gap:8px!important;
+ border-color:rgba(255,255,255,.11)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro .pv-upscale-kicker{
+ font:550 10px/1.4 'DM Sans',Arial,sans-serif!important;letter-spacing:.18em!important;
+ color:#d1d0ce!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro h2{
+ font:400 clamp(37px,3.35vw,54px)/1.07 'DM Sans',Arial,sans-serif!important;
+ letter-spacing:-.058em!important;color:#f7f6f4!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro p{
+ font:400 13px/1.5 'DM Sans',Arial,sans-serif!important;
+ color:#969390!important;max-width:295px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-display{order:-3!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-readout,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body select{
+ background:#151515!important;border:1px solid rgba(255,255,255,.14)!important;
+ color:#efedeb!important;border-radius:6px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
+ display:none!important;
+}
+#app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
+ display:flex!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+ background:#0d0e10!important;border-color:rgba(255,255,255,.12)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#empty>.pv-upscale-empty-drop{
+ background:#101011!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-dropzone{
+ position:absolute!important;inset:0!important;border:none!important;
+ border-radius:0!important;background:#0c0d0e!important;isolation:isolate!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-dropzone::before{
+ background:url('./visuals/reptare-detail.webp') center 48%/cover no-repeat!important;
+ filter:grayscale(1) brightness(.83) contrast(1.04)!important;
+ opacity:1!important;transform:scale(1.015)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-dropzone::after{
+ background:linear-gradient(90deg,rgba(3,3,4,.53),rgba(3,3,4,.20) 52%,rgba(3,3,4,.41)),
+ linear-gradient(0deg,rgba(3,3,4,.49),transparent 30%,rgba(3,3,4,.32))!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-center{
+ position:relative!important;width:min(91%,1060px)!important;
+ min-height: min(76%,660px)!important;max-width:none!important;
+ padding:60px 25px!important;
+ border:1px solid rgba(232,226,219,.28)!important;border-radius:7px!important;
+ background:rgba(0,0,0,.035)!important;box-shadow:none!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ transform:none!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-icon{
+ width:84px!important;height:84px!important;margin:0 0 18px!important;
+ border:1px solid rgba(255,255,255,.48)!important;border-radius:12px!important;
+ background:rgba(0,0,0,.22)!important;filter:none!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-icon svg{
+ width:52px!important;height:52px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-center h2{
+ font:400 clamp(29px,2.7vw,39px)/1.17 'DM Sans',Arial,sans-serif!important;
+ letter-spacing:-.05em!important;margin:0 0 12px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-center p{
+ font:400 clamp(12px,1.1vw,15px)/1.5 'DM Sans',Arial,sans-serif!important;
+ margin:0 0 22px!important;color:#dedbd7!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #pv-upscale-hero-upload{
+ min-width:168px!important;min-height:43px!important;height:43px!important;
+ background:#f6f3ee!important;color:#1a1918!important;
+ border-radius:24px!important;font:600 12px/1.2 'DM Sans',Arial,sans-serif!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-drop-hint{
+ letter-spacing:.12em!important;text-transform:uppercase!important;
+ font-size:10px!important;color:#c9c4bf!important;
+}
+@media(max-width:780px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+ background:#0d0e10!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro h2{
+ font-size:34px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas{
+ height:450px!important;min-height:450px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-center{
+ width:calc(100% - 24px)!important;min-height:350px!important;
+ padding:24px 13px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-center h2{
+ font-size:29px!important;
+ }
+}
