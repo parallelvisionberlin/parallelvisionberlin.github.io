@@ -25,6 +25,8 @@ test('existing disposable trial cannot spend remaining free credits after migrat
   db.prepare("INSERT INTO lab_customer_contacts VALUES(?,?,?,?)").run(id,'alias@yournike.com',1,1);
   db.exec(read('migrations/0025-promo-generation-holds.sql'));
   db.exec(read('migrations/0025-promo-generation-holds.sql'));
+  db.exec(read('migrations/0036-clerk-contact-hold-upsert.sql'));
+  db.exec(read('migrations/0036-clerk-contact-hold-upsert.sql'));
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_promo_generation_holds').get().n,1);
   assert.equal((await customerSession(env,id)).generationReady,false);
   assert.equal((await customerSession(env,id)).billingReady,true);
@@ -38,6 +40,7 @@ test('paid verified credits release promotional generation restriction without d
   const {db,env,read}=setup(t),id='user_TempPay';
   await ensureCustomer(env,id);
   db.exec(read('migrations/0025-promo-generation-holds.sql'));
+  db.exec(read('migrations/0036-clerk-contact-hold-upsert.sql'));
   db.prepare('INSERT INTO lab_customer_contacts VALUES(?,?,?,?)').run(id,'paid@weekprime.com',1,1);
   await assert.rejects(()=>assertCustomerOpen(env,id,{promotion:true}),/Free trial generation/);
   db.prepare("INSERT INTO lab_credit_entries VALUES('paid',?,1000,'purchase','checkout:testpaid',2)").run(id);
