@@ -14,6 +14,7 @@
   const empty=document.getElementById('image-gallery-empty');
   const cards=document.getElementById('lab-welcome-presets');
   let welcomeEditing=false;
+  let guestEditing=false;
   const preview={guest:false,real:false};
   // PV Soul keeps its established editor. Standard Image History remains
   // content-sized; the card entrance has its own focus/blur state below.
@@ -66,7 +67,7 @@
     // Keep the public entrance compact at rest, then open the same unframed
     // writing instrument on focus, when typing, or when photos are selected.
     const guestNeedsSpace=kind==='guest'&&
-      (welcomeWidth.matches?(active||realPromptNeedsSpace(surface,field)):
+      (welcomeWidth.matches?(guestEditing||realPromptNeedsSpace(surface,field)):
         (hasPrompt||(active&&emptyGuestFocus)));
     const isSoul=kind==='real'&&surface.classList.contains('is-pv-soul');
     const realNeedsSpace=kind==='real'&&!isSoul&&!hasRefs&&
@@ -111,7 +112,7 @@
         realEditingStarted=true;
         emptyRealFocus=!field.value.trim();
       }
-      if(kind==='guest')emptyGuestFocus=!field.value.trim();
+      if(kind==='guest'){guestEditing=true;emptyGuestFocus=!field.value.trim();}
       sync();
     });
     field.addEventListener('blur',()=>{
@@ -130,13 +131,23 @@
     });
   }
   real.addEventListener('focusout',event=>{
-    if(!real.contains(event.relatedTarget))welcomeEditing=false;
+    // Model choices rebuild their own focused menu row. Losing that detached
+    // button is not an outside click and must not hide the tools just chosen.
+    if(event.relatedTarget?!real.contains(event.relatedTarget):event.target===realField)welcomeEditing=false;
     requestAnimationFrame(sync);
   });
   real.addEventListener('click',event=>{
     if(real.classList.contains('pv-welcome-deck')&&
       (event.target===real||event.target.classList.contains('image-composer-top')))
       realField.focus({preventScroll:true});
+  });
+  guest.addEventListener('click',event=>{
+    if(event.target===guest||event.target.classList.contains('pv-guest-prompt-row'))
+      guestField.focus({preventScroll:true});
+  });
+  guest.addEventListener('focusout',event=>{
+    if(event.relatedTarget?!guest.contains(event.relatedTarget):event.target===guestField)guestEditing=false;
+    requestAnimationFrame(sync);
   });
   // Mood handlers run first and own their actual prompt data. This only rechecks
   // presentation after they fill the field, avoiding any duplicate state.
@@ -152,6 +163,7 @@
   });
   document.addEventListener('pointerdown',event=>{
     if(!real.contains(event.target)){welcomeEditing=false;requestAnimationFrame(sync);}
+    if(!guest.contains(event.target)){guestEditing=false;requestAnimationFrame(sync);}
     if(!small.matches)return;
     if(!guest.contains(event.target)&&!event.target.closest?.('[data-guest-mood]'))preview.guest=false;
     if(!real.contains(event.target)&&!event.target.closest?.('[data-welcome-mood]'))preview.real=false;

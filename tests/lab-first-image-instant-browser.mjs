@@ -153,7 +153,7 @@ try{
         states[state]=await bar.evaluate(el=>{
           const outer=el.getBoundingClientRect(),css=getComputedStyle(el);
           const stage=el.closest('#gate')||document.querySelector('#app .image-gallery-shell'),art=getComputedStyle(stage,'::before');
-          const rect=node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {x:r.x-outer.x,y:r.y-outer.y,w:r.width,h:r.height,font:s.fontSize,weight:s.fontWeight,line:s.lineHeight,color:s.color,background:s.backgroundColor,radius:s.borderRadius};};
+          const rect=node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node),visible=r.width>0&&r.height>0;return {x:visible?r.x-outer.x:0,y:visible?r.y-outer.y:0,w:r.width,h:r.height,font:s.fontSize,weight:s.fontWeight,line:s.lineHeight,color:s.color,background:s.backgroundColor,radius:s.borderRadius};};
           return {x:outer.x,y:outer.y,w:outer.width,h:outer.height,background:css.backgroundImage,radius:css.borderRadius,
             backdrop:{image:art.backgroundImage,filter:art.filter,opacity:art.opacity,shade:getComputedStyle(stage,'::after').backgroundImage},
             prompt:rect(el.querySelector('textarea')),
@@ -165,6 +165,12 @@ try{
       }
       await capture('idle');
       await field.click();await capture('focus');
+      if(role==='guest'){
+        await p.keyboard.press('Tab');
+        await p.waitForTimeout(30);
+        assert.equal(await bar.evaluate(el=>el.classList.contains('pv-deck-expanded')&&el.contains(document.activeElement)),true,
+          'Public lower tools remain open while tabbing from the prompt');
+      }
       await field.fill('hola como esta?');await capture('short');
       await field.fill('');
       assert.equal(await bar.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,role+' stays open while clearing focused text');
@@ -175,7 +181,15 @@ try{
         for(const key of ['x','y','w'])assert.ok(Math.abs(states[state][key]-states.idle[key])<2,
           role+' keeps the same outer '+key+' when '+state+': '+JSON.stringify({idle:states.idle,state:states[state]}));
         assert.equal(states[state].radius,states.idle.radius,role+' keeps the same outer corner shape when '+state);
+        for(const key of ['x','y','w','h'])assert.ok(Math.abs(states[state].prompt[key]-states.idle.prompt[key])<2,
+          role+' keeps the Owner upper prompt '+key+' unchanged when '+state);
       }
+      assert.deepEqual(Object.keys(states.idle.controls),[],role+' minimizes only to the upper prompt, without moving tools into its row');
+      assert.equal(states.idle.generate.w,0,role+' hides the lower Generate action while minimized');
+      assert.ok(states.focus.h===142&&states.focus.generate.w===144&&states.focus.generate.h===84,
+        role+' opens the approved Owner 142px deck and Generate proportions');
+      if(role!=='guest')assert.equal(await p.locator('#image-composer-edit-area').isDisabled(),role!=='owner',
+        role+' retains the existing Retouch eligibility while sharing its layout');
       parity.push({role,states});
     }finally{await context.close();}
   }
@@ -247,10 +261,10 @@ try{
             })),'The credit notice never covers Refresh or the eye');
           }
           const before=await roleDeck.boundingBox(),photos=await rolePage.locator('#lab-welcome-presets').boundingBox();
-          assert.ok(before.height>=70&&before.height<=78,role+' gets the same thin entrance');
+          assert.ok(before.height>=93&&before.height<=95,role+' gets the unchanged Owner upper prompt row');
           const contained=await roleDeck.evaluate(el=>{
-            const bar=el.getBoundingClientRect(),tools=el.querySelector('[data-deck-slot="controls"]').getBoundingClientRect(),generate=el.querySelector('[data-deck-slot="generate"]').getBoundingClientRect();
-            return bar.left>=0&&bar.right<=innerWidth&&tools.right<=generate.left+2;
+            const bar=el.getBoundingClientRect(),prompt=el.querySelector('textarea').getBoundingClientRect();
+            return bar.left>=0&&bar.right<=innerWidth&&prompt.left>=bar.left&&prompt.right<=bar.right;
           });
           assert.ok(contained,role+' controls remain contained at '+viewport.width+'px');
           assert.ok(before.y-photos.y-photos.height>=20&&before.y-photos.y-photos.height<=28,
@@ -285,7 +299,7 @@ try{
       assert.ok(Math.abs(900-historyDeck.y-historyDeck.height-30)<3,role+' History keeps its bottom anchor');
       await rolePage.locator('#history-moods-toggle').click();
       await rolePage.waitForFunction(()=>document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
-      assert.ok((await roleDeck.boundingBox()).height<=78,role+' Inspiration reopens the same thin entrance');
+      assert.ok(Math.abs((await roleDeck.boundingBox()).height-94)<2,role+' Inspiration reopens the same Owner upper prompt');
       assert.equal(await rolePage.locator('#image-composer:visible,#pv-guest-composer:visible').count(),1,
         role+' exposes exactly one Image bar');
     }finally{await roleContext.close();}
@@ -297,6 +311,11 @@ try{
   await page.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.__welcomeMockReady===true,undefined,{timeout:20000});
   assert.equal(await page.locator('#lab-welcome-start').isVisible(),true);
+  await page.evaluate(()=>{window.__welcomeMockInspiration(true);window.__welcomeMockInspiration(false);});
+  assert.equal(await page.locator('#lab-welcome-start').isVisible(),true,
+    'Returning to empty History keeps the approved card entrance');
+  assert.equal(await page.locator('#lab-image-empty-intro').isVisible(),false,
+    'Returning to empty History cannot revive the obsolete landscape and quick actions');
   assert.equal(await page.locator('.lab-welcome-preset[aria-pressed="true"]').count(),0,
     'No card should claim selection before the user selects it');
   const button=page.locator('#image-composer-generate');
@@ -318,11 +337,11 @@ try{
       rows:getComputedStyle(document.querySelector('#image-composer')).gridTemplateRows,
       viewportWidth:innerWidth,documentWidth:document.documentElement.scrollWidth};
   });
-  assert.ok(idleLayout.height>=70&&idleLayout.height<=78,
-    'Empty Image welcome starts as a restrained single-row, ~74px deck: '+JSON.stringify(idleLayout));
-  assert.ok(idleLayout.promptRight<=idleLayout.controlsLeft+2 &&
-    idleLayout.controlsRight<=idleLayout.generateLeft+2,
-    'Compact prompt, controls and Generate must sit side by side without overlap: '+JSON.stringify(idleLayout));
+  assert.ok(idleLayout.height>=93&&idleLayout.height<=95,
+    'Empty Image welcome is the Owner upper prompt with only the lower part hidden: '+JSON.stringify(idleLayout));
+  assert.equal(await page.locator('#image-composer .composer-controls').isVisible(),false,
+    'Minimizing hides the toolbar instead of redesigning the upper prompt');
+  assert.equal(await button.isVisible(),false,'Generate is revealed with the lower portion');
   assert.ok(idleLayout.generateRight<=idleLayout.viewportWidth-12 &&
     idleLayout.documentWidth<=idleLayout.viewportWidth+3,
     'Compact deck must not introduce horizontal overflow: '+JSON.stringify(idleLayout));
@@ -340,8 +359,9 @@ try{
     'The compact entrance reserves downward writing room instead of touching the bottom');
   assert.equal(await page.locator('#app').evaluate(el=>el.classList.contains('pv-welcome-deck-resting')),false,
     'No welcome floating state may move the cards or hide image controls');
+  await field.click();
   assert.equal(await page.locator('#image-composer-resolution-wrap').isVisible(),true,
-    'Resolution is available on the initial bottom-locked deck');
+    'Opening the lower portion reveals the existing resolution control');
   const emptyPriceButton=await button.evaluate(el=>{
     const rect=el.getBoundingClientRect();
     const label=el.querySelector('.composer-generate-label').getBoundingClientRect();
@@ -355,6 +375,8 @@ try{
     'Generate lettering must be precisely centered when no price is available: '+JSON.stringify(emptyPriceButton));
   assert.ok(emptyPriceButton.pseudoContent==='none'||emptyPriceButton.pseudoDisplay==='none',
     'Empty credit placeholder must not offset the Generate label: '+JSON.stringify(emptyPriceButton));
+  await page.locator('#lab-welcome-start h2').click();
+  await page.waitForFunction(()=>!document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
   const welcomeSurface=await page.evaluate(()=>{
     const shell=document.querySelector('.image-gallery-shell'),footer=document.querySelector('body>footer.pv-lab-footer');
     const backdrop=getComputedStyle(shell,'::before');

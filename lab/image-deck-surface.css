@@ -1,13 +1,13 @@
-/* One desktop card-view instrument. Both public and authenticated markup use
-   these slots and controls; authentication changes actions, never this skin.
-   History, photo trays, PV Soul and native/mobile retain their existing rules. */
+/* One standard desktop Image instrument, based on the Owner History deck.
+   The entrance and photo-free History share these slots and controls.
+   Photo trays, character pickers, PV Soul and native/mobile keep their rules. */
 @media(min-width:1180px) and (min-height:680px){
-  html:not(.pv-native-lab) #main :is(#app.image-studio-active #image-composer.pv-welcome-deck,#gate.pv-guest-image #pv-guest-composer){
+  html:not(.pv-native-lab) #main :is(#app.image-studio-active #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.has-character-picker):not(:has(#image-composer-references:not([hidden]) .composer-reference-tile)),#gate.pv-guest-image #pv-guest-composer){
     display:grid!important;box-sizing:border-box!important;
     width:min(1120px,calc(100vw - 52px))!important;
     grid-template-columns:minmax(0,1fr) 144px!important;
-    grid-template-rows:minmax(82px,max-content) 41px!important;
-    gap:7px 13px!important;padding:14px 20px!important;
+    grid-template-rows:minmax(64px,max-content) 41px!important;
+    gap:7px 12px!important;padding:14px 20px!important;
     height:auto!important;min-height:0!important;max-height:none!important;
     border:1px solid rgba(215,219,218,.24)!important;border-radius:19px!important;
     background:linear-gradient(115deg,rgba(255,255,255,.035),rgba(255,255,255,.009) 24%,transparent 55%),linear-gradient(180deg,rgba(30,32,34,.985),rgba(16,18,21,.99))!important;
@@ -17,18 +17,19 @@
     & :is(.image-composer-toolbar,.pv-guest-composer-footer){display:contents!important}
     & [data-deck-slot="prompt"]{
       grid-area:1 / 1!important;display:flex!important;align-items:center!important;
-      width:100%!important;min-width:0!important;height:auto!important;min-height:82px!important;
+      width:100%!important;min-width:0!important;height:auto!important;min-height:64px!important;
       max-height:none!important;padding:0!important;margin:0!important;
     }
     & :is(#image-composer-prompt,#pv-guest-prompt){
       display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;
-      min-height:78px!important;max-height:176px;align-self:center!important;
+      min-height:54px!important;max-height:176px;align-self:center!important;
       margin:0!important;padding:7px 4px!important;white-space:pre-wrap!important;
       border:0!important;outline:none!important;box-shadow:none!important;background:transparent!important;
       color:#f5f3ef!important;font:420 15.5px/1.48 'DM Sans',Arial,sans-serif!important;
       letter-spacing:-.019em!important;resize:none!important;overflow-x:hidden!important;
     }
     & :is(#image-composer-prompt,#pv-guest-prompt)::placeholder{color:#b9bbb9!important;opacity:1!important}
+    &:not(.pv-deck-has-prompt) :is(#image-composer-prompt,#pv-guest-prompt){height:54px!important}
     & [data-deck-slot="controls"]{
       grid-area:2 / 1!important;display:flex!important;align-items:center!important;
       justify-content:flex-start!important;flex-wrap:nowrap!important;
@@ -44,9 +45,10 @@
       box-shadow:none!important;margin:0!important;
     }
     & [data-deck-control][hidden]{display:none!important}
-    /* The card entrance has the same tools for every account. Retouch remains
-       in navigation and in the established photo/History editor. */
-    &.pv-welcome-deck [data-deck-control="retouch"]{display:none!important}
+    & [data-deck-control="retouch"]:not([hidden]){
+      display:inline-flex!important;align-items:center!important;flex:0 0 auto!important;
+      padding:8px!important;font-size:13px!important;font-weight:700!important;
+    }
     & .composer-add-wrap{display:flex!important;flex:0 0 68px!important;width:68px!important;min-width:68px!important;height:40px!important}
     & [data-deck-control="add"]{
       display:grid!important;place-items:center!important;flex:0 0 40px!important;
@@ -54,14 +56,14 @@
       font:350 26px/1 Arial,sans-serif!important;
     }
     & .composer-add-plus{font:350 26px/1 Arial,sans-serif!important;transform:translateY(-1px)}
-    & .scene-image-library-wrap{display:block!important;flex:0 0 40px!important;width:40px!important}
+    & .scene-image-library-wrap{display:block!important;flex:0 0 38px!important;width:38px!important}
     & [data-deck-control="library"]{
-      display:grid!important;place-items:center!important;width:40px!important;min-width:40px!important;
+      display:grid!important;place-items:center!important;width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;
       padding:0!important;border-radius:50%!important;background:transparent!important;border-color:#626762!important;
     }
     & [data-deck-control="library"] svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.5!important}
     & .composer-model-wrap{display:block!important;flex:0 0 165px!important;width:165px!important;min-width:165px!important;max-width:165px!important}
-    & [data-deck-control="model"]{display:flex!important;align-items:center!important;width:100%!important;min-width:0!important;font-size:14px!important}
+    & [data-deck-control="model"]{display:flex!important;align-items:center!important;width:100%!important;min-width:0!important;font-size:14px!important;font-weight:610!important}
     & :is(.composer-model-symbol,.pv-guest-model-symbol){display:inline-flex!important;flex:0 0 20px!important;width:20px!important;height:20px!important}
     & :is(.composer-model-symbol,.pv-guest-model-symbol) img{width:20px!important;height:20px!important;object-fit:contain!important}
     & :is(#image-composer-model-label,.pv-guest-model-label){min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;font:inherit!important;letter-spacing:inherit!important}
@@ -81,7 +83,7 @@
       display:flex!important;align-items:center!important;justify-content:center!important;
       width:144px!important;min-width:144px!important;height:84px!important;min-height:84px!important;max-height:84px!important;
       padding:10px 12px!important;box-sizing:border-box!important;
-      border-radius:13px!important;font:650 18px/1.17 'DM Sans',Arial,sans-serif!important;letter-spacing:-.015em!important;
+      border-radius:13px!important;font:600 15px/1.17 'DM Sans',Arial,sans-serif!important;letter-spacing:-.015em!important;
     }
     & [data-deck-slot="generate"]:not(.is-submitting){flex-direction:column!important;gap:5px!important}
     & [data-deck-slot="generate"]:not(:disabled):not(.is-submitting){color:#151515!important;background:#f0eee8!important;border:1px solid #f0eee8!important}
@@ -89,22 +91,18 @@
     & [data-deck-slot="generate"] :is(strong,.composer-generate-label){font:inherit!important;letter-spacing:inherit!important}
     & [data-deck-slot="generate"] small{display:none!important}
     &:has(.pv-guest-attachments:not([hidden])){
-      grid-template-rows:minmax(82px,max-content) 62px 41px!important;
+      grid-template-rows:minmax(64px,max-content) 62px 41px!important;
       & .pv-guest-attachments{grid-area:2 / 1!important}
       & [data-deck-slot="controls"]{grid-area:3 / 1!important}
       & [data-deck-slot="generate"]{grid-area:1 / 2 / 4 / 3!important}
     }
 
-    &:not(.pv-deck-expanded){
-      /* Keep the expanded frame's width and corners; only open downward. */
-      grid-template-columns:minmax(100px,1fr) max-content 128px!important;grid-template-rows:52px!important;
-      gap:0 11px!important;padding:10px 13px!important;height:74px!important;min-height:74px!important;max-height:74px!important;
-      & [data-deck-slot="prompt"]{grid-area:1 / 1!important;height:46px!important;min-height:46px!important;max-height:46px!important}
-      & :is(#image-composer-prompt,#pv-guest-prompt){height:44px!important;min-height:44px!important;max-height:44px!important;padding:9px 4px!important;white-space:nowrap!important;overflow:hidden!important}
-      & [data-deck-slot="controls"]{grid-area:1 / 2!important;height:45px!important;min-height:45px!important;gap:5px!important}
-      & [data-deck-slot="generate"]{grid-area:1 / 3!important;align-self:center!important;width:128px!important;min-width:128px!important;height:52px!important;min-height:52px!important;max-height:52px!important;border-radius:11px!important;font-size:16px!important}
+    &:is(.pv-welcome-deck,#pv-guest-composer):not(.pv-deck-expanded){
+      /* The minimized deck is the Owner's upper prompt row. Keep its columns,
+         padding and field untouched; reveal only the lower tools on focus. */
+      grid-template-rows:64px!important;
+      & [data-deck-slot="controls"],& [data-deck-slot="generate"]{display:none!important}
     }
   }
   html:not(.pv-native-lab) #gate #pv-guest-composer{margin-top:24px!important}
-  html:not(.pv-native-lab) #gate #pv-guest-composer:not(:has(.pv-guest-attachments:not([hidden]))) #pv-guest-retouch{display:none!important}
 }

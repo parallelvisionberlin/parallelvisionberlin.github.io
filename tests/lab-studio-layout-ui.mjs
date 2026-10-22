@@ -259,13 +259,17 @@ try{
   assert.equal(await x.page.locator('.tool-tab.active').evaluateAll(els=>els.map(e=>e.id)).then(a=>a.join(',')),'tool-image');
   const composerGeometry=await x.page.locator('#image-composer').evaluate(el=>{
     const r=el.getBoundingClientRect();
-    return {top:r.top,bottom:r.bottom,width:r.width,radius:getComputedStyle(el).borderTopLeftRadius};
+    return {top:r.top,bottom:r.bottom,width:r.width,height:r.height,radius:getComputedStyle(el).borderTopLeftRadius};
   });
-  assert.ok(composerGeometry.bottom>=850 && composerGeometry.width>900,'Composer floats near bottom at desktop width');
+  assert.ok(Math.abs(composerGeometry.height-94)<2&&composerGeometry.width>900,
+    'Empty Image opens with the unchanged Owner upper prompt, hiding its lower tools: '+JSON.stringify(composerGeometry));
   assert.ok(parseFloat(composerGeometry.radius)>=19,'Composer must have generously rounded corners');
   assert.equal(await x.page.locator('#image-gallery-empty').isVisible(),true,'Empty gallery must not invent images');
   assert.equal(await x.page.locator('.empty-wordmark').count(),0,'Do not repeat central PV logo in gallery mode');
 
+  await x.page.click('#image-composer-prompt');
+  assert.equal(await x.page.locator('#image-composer-model').isVisible(),true,
+    'Clicking the upper prompt reveals the Owner toolbar before choosing a model');
   await x.page.click('#image-composer-model');
   assert.equal(await x.page.locator('#image-composer-model-menu').isVisible(),true,'Model popup opens above floating bar');
   const menuGeometry=await x.page.locator('#image-composer-model-menu').evaluate(el=>{
@@ -334,6 +338,8 @@ try{
   assert.ok(filteredMenu.height<menuGeometry.height,'Filtered list should shrink the menu instead of preserving empty space: '+JSON.stringify(filteredMenu));
   await x.page.locator('.composer-model-option[data-value="gemini"]').click();
   assert.equal(await x.page.locator('#image-engine').inputValue(),'gemini','Model menu changes actual provider selection');
+  assert.equal(await x.page.locator('#image-composer-model').isVisible(),true,
+    'Choosing a model keeps the lower tools open even when its menu rebuilds');
   await x.page.click('#image-composer-model');
   await x.page.fill('#image-composer-model-search','seedream');
   await x.page.locator('.composer-model-option[data-value="seedream"]').click();
@@ -475,6 +481,7 @@ try{
   await x.page.click('#scene-back');
   assert.equal(await x.page.locator('#scene-browser').isVisible(),true);
   await x.page.click('#scene-close');
+  await x.page.click('#image-composer-prompt');
   await x.page.click('#scene-image-open');
   await x.page.click('#scene-menu-packs');
   assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs');
@@ -504,6 +511,7 @@ try{
     Math.abs(packLayout.hero.width-sceneLayout.hero.width)<=3,
     'Elements heroes and Photo Packs share the same banner geometry');
   await x.page.click('#pack-studio-close');
+  await x.page.click('#image-composer-prompt');
   const floatingChooser=x.page.waitForEvent('filechooser');
   await x.page.click('#image-composer-add');
   const imageChooser=await floatingChooser;
@@ -574,7 +582,7 @@ try{
   const darkText=generateUi.color.match(/[0-9]+/g)?.map(Number);
   assert.ok(darkText?.length===3&&darkText.every(channel=>channel<60),
     'Available Image Generate retains dark, legible text when its exact RGB token changes');
-  assert.ok(generateUi.labelPx>=17,'Generate has clear primary-action type size: '+generateUi.labelPx);
+  assert.equal(generateUi.labelPx,15,'Generate preserves the approved Owner type size');
   const ratioOptions=await x.page.locator('#image-composer-ratio option').evaluateAll(options=>options.map(o=>({value:o.value,label:o.textContent})));
   assert.match(ratioOptions.find(o=>o.value==='auto').label,/^Auto · /,
     'Automatic framing has a distinct visible label and cannot be confused with fixed 16:9');
@@ -838,8 +846,11 @@ try{
   await bootPage.locator('#lab-boot').waitFor({state:'hidden',timeout:2000});
   await bootPage.waitForFunction(()=>!document.documentElement.classList.contains('pv-studio-boot-lock'),{timeout:2000});
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),false,'Boot overlay finishes its exit on mock auth resolution');
+  assert.equal(await bootPage.locator('#lab-welcome-start').isVisible(),true,
+    'Resolved empty Image uses its intentional fixed card entrance after splash exit');
+  await bootPage.click('#tool-upscale');
   assert.notEqual(await bootPage.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
-    'Document scrolling becomes available after splash exit');
+    'Leaving the fixed Image entrance releases document scrolling without a stale splash lock');
   // A slow Fashion entry cannot expose the default Image workspace even if
   // authentication has already unhidden #app before Fashion's assets arrive.
   const routePage=await bootContext.newPage();
@@ -1004,6 +1015,7 @@ try{
   }];
   const coverTest=await open(1440,900,fixture);
   await coverTest.page.click('#tool-image');
+  await coverTest.page.click('#image-composer-prompt');
   await coverTest.page.click('#scene-image-open');
   await coverTest.page.click('#scene-menu-elements');
   await coverTest.page.click('#scene-image-menu [data-scene-target="locations"]');

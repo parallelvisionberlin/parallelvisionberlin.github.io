@@ -427,84 +427,8 @@ body:has(#app.image-studio-active:not([hidden])){overflow-x:clip!important}
   background:linear-gradient(180deg,rgba(2,4,8,.16) 0%,rgba(2,4,8,.035) 38%,rgba(2,4,8,.08) 74%,rgba(3,4,7,.25) 100%)!important;
 }
 
-/* One real editor, two presentations. At rest, the Image welcome shows the
-   compact one-row instrument from proposal 01. On real textarea focus or Mood
-   selection, the existing pv-deck-expanded state reveals the unchanged
-   full two-row workdeck. Quote, models and inputs are shared with History. */
-@media(min-width:1180px) and (min-height:680px){
-  html:not(.pv-native-lab)
-    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded):not(:has(#image-composer-references:not([hidden]) .composer-reference-tile)){
-    left:50%!important;
-    transform:translateX(-50%)!important;
-    display:grid!important;
-    grid-template-columns:minmax(155px,1fr) max-content 128px!important;
-    grid-template-rows:52px!important;
-    align-items:center!important;
-    column-gap:11px!important;
-    row-gap:0!important;
-    height:74px!important;
-    min-height:74px!important;
-    max-height:74px!important;
-    padding:10px 13px!important;
-  }
-  html:not(.pv-native-lab)
-    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-top{
-    grid-column:1!important;
-    grid-row:1!important;
-    width:100%!important;
-    min-width:0!important;
-    height:46px!important;
-    min-height:46px!important;
-    max-height:46px!important;
-    padding:0!important;
-    margin:0!important;
-  }
-  html:not(.pv-native-lab)
-    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) #image-composer-prompt{
-    flex:1 1 auto!important;
-    height:44px!important;
-    min-height:44px!important;
-    max-height:44px!important;
-    padding:9px 4px!important;
-    line-height:1.5!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    resize:none!important;
-  }
-  html:not(.pv-native-lab)
-    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .image-composer-toolbar{
-    display:contents!important;
-  }
-  html:not(.pv-native-lab)
-    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .composer-controls{
-    grid-column:2!important;
-    grid-row:1!important;
-    display:flex!important;
-    flex-wrap:nowrap!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    width:max-content!important;
-    min-width:0!important;
-    height:45px!important;
-    min-height:45px!important;
-    gap:5px!important;
-    margin:0!important;
-    padding:0!important;
-  }
-  html:not(.pv-native-lab)
-    #app.image-studio-active #image-composer.pv-editorial-deck.pv-welcome-deck:not(.is-pv-soul):not(.pv-deck-expanded) .composer-generate{
-    grid-column:3!important;
-    grid-row:1!important;
-    align-self:center!important;
-    justify-self:stretch!important;
-    width:128px!important;
-    min-width:128px!important;
-    height:52px!important;
-    min-height:52px!important;
-    max-height:52px!important;
-    border-radius:11px!important;
-  }
-}
+/* The standard desktop entrance and its minimized Owner prompt row are
+   defined together in image-deck-surface.css. */
 
 /* Welcome History Select: reserve a real row above the introductory Mood grid.
    The History toolbar already pushes the populated image gallery down.

@@ -1395,6 +1395,15 @@ function syncImageGalleryEmpty(){
   // A cleared gallery is not proof that History is empty while a tab switch is loading.
   // Show the first-image welcome only after the current History page has resolved.
   $('image-gallery-empty').hidden=!historyHasPage||(imageCards>0&&!moodDiscoveryOpen);
+  // Empty History always returns to the approved Inspiration entrance.
+  // Do not revive the older landscape/quick-actions screen after a refresh
+  // or after closing Inspiration before the first image exists.
+  if(historyHasPage&&!imageCards&&owner&&tool==='image'&&!assetLibrary?.active()
+    &&!document.documentElement.classList.contains('pv-native-lab')
+    &&!document.documentElement.classList.contains('pv-image-previews-hidden')){
+    $('lab-welcome-start').hidden=false;
+    $('lab-image-empty-intro').hidden=true;
+  }
   // The customer welcome has no saved image to select. Synchronize History
   // actions when a first result appears (or the empty welcome returns), too.
   if(tool==='image')updateHistorySelectionUi();
@@ -1771,7 +1780,9 @@ function syncImageComposer(){
     $(id).disabled=busy;
   $('image-composer-model').disabled=busy;
   $('image-composer-edit-area').disabled=busy||!owner||customerMode;
-  $('image-composer-edit-area').hidden=customerMode;
+  // Keep the same tool slot for every account; customer eligibility is still
+  // enforced by the disabled state and the existing Retouch route.
+  $('image-composer-edit-area').hidden=false;
   $('image-composer-add').disabled=busy;
   $('composer-add-saved-toggle').disabled=busy;
   // Only genuinely model-specific or reference-detail controls need the menu.
