@@ -324,7 +324,7 @@ async function submitMoodGeneration(generation,moodId){
   }
 }
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
-let lastVideoCreateMode='reference',initialVideoEntryConfigured=false;
+let lastVideoCreateMode='start';
 let engine='seedance', imageEngine='seedream', imageProcessing='normal', soulProModel='soul2', soulProQuality='medium', soulProIdentity={configured:false,count:0,refs:[]}, soulProPackSelection=[], soulProPackUrls=[], poseMapSourceId=null, repairTarget=null, repairImage=null, repairMaskCanvas=null, repairMaskDirty=false;
 let tool='image', packs=[],resultKind='video',resultExt='mp4';
 const videoModelPicker=createVideoModelPicker({select:$('video-engine'),getBusy:()=>busy,isActive:()=>tool==='video'&&owner&&!fashionActive&&!assetLibrary?.active()});
@@ -974,9 +974,8 @@ function setTool(value){
   if(effectViewOpen){effectViewOpen=false;updateEffectUrl(false);}
   if(nextTool!=='video')activeVideoEffect=null;
   tool=nextTool;syncStudioRoute(tool);const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
-  // Seedance Create begins in a reference-friendly editor. Explicit opening-image
-  // handoffs and subsequent choices retain their original provider mode.
-  if(video&&!initialVideoEntryConfigured){initialVideoEntryConfigured=true;if(engine==='seedance'&&mode==='start'&&!file)mode='reference';}
+  // Fresh Video uses the existing Start frame default. Preserve explicit modes
+  // restored by History, handoffs or subsequent user choices.
   $('app').classList.toggle('upscale-studio-active',upscale);
   if(toolChanged){$('notice').textContent='';$('notice').classList.remove('error');}
   syncNoticePlacement();

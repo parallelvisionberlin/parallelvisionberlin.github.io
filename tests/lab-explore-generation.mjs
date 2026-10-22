@@ -3,12 +3,14 @@
 import {pathToFileURL} from 'node:url';
 import http from 'node:http';
 import {readFileSync,existsSync,mkdirSync} from 'node:fs';
-import {resolve,extname} from 'node:path';
+import {resolve,extname,sep} from 'node:path';
 import assert from 'node:assert/strict';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE||resolve('mobile-app/node_modules/@playwright/test/index.mjs')).href);
 const root=resolve('.'),out='/tmp/pv-explore-generation';mkdirSync(out,{recursive:true});
 const lab=readFileSync('lab/lab.js','utf8');
-const entry=lab.slice(lab.indexOf('async function restoreStudioEntry()'),lab.indexOf('let sourceUrl=null'));
+const entryStart=lab.indexOf('async function restoreStudioEntry('),entryEnd=lab.indexOf('let sourceUrl=null',entryStart);
+assert.ok(entryStart>=0&&entryEnd>entryStart,'Extract the current Studio entry function before constructing the handoff harness');
+const entry=lab.slice(entryStart,entryEnd);
 const submit=lab.slice(lab.indexOf('async function submitQuotedGeneration('),lab.indexOf("$('generate').onclick="));
 const harness=`<!doctype html><div id="notice"></div><input id="prompt"><input id="image-engine"><input id="resolution"><input id="image-count"><input id="ratio"><dialog id="quote-dialog"></dialog><script type="module">
 import {takeMoodHandoff as readMoodHandoff,moodGenerationQuote} from './mood-handoff.js';
@@ -22,7 +24,7 @@ const resetPreview=()=>{},setActive=j=>window.job=j,surfaceHistoryJob=()=>{},ref
 const syncDefaultRatio=()=>{$('ratio').value=references[0]?.width===480&&references[0]?.height===640?'3:4':'16:9';};
 async function api(path,{body}){const r=await fetch('https://parallel-vision-lab.parallelvision.workers.dev'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw Error((await r.json()).error);return r.json();}
 ${entry}\n${submit}\nawait restoreStudioEntry();window.entryFinished=true;</script>`;
-const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'http://localhost').pathname;const pathname=requestedPath==='/lab/moods'?'/lab/moods.html':requestedPath;if(pathname==='/lab/studio.html'){res.setHeader('Content-Type','text/html');res.end(harness);return;}const path=resolve(root,'.'+pathname);if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.webp':'image/webp'})[extname(path)]||'application/octet-stream');res.end(readFileSync(path));});
+const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'http://localhost').pathname;const pathname=requestedPath==='/lab/moods'?'/lab/moods.html':requestedPath;if(pathname==='/lab/studio.html'){res.setHeader('Content-Type','text/html');res.end(harness);return;}const path=resolve(root,'.'+pathname);if(!path.startsWith(root+sep)||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.webp':'image/webp'})[extname(path)]||'application/octet-stream');res.end(readFileSync(path));});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;

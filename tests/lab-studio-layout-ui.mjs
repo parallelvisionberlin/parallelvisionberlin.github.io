@@ -647,9 +647,9 @@ try{
   // form while Generate stays fixed and the document does not scroll.
   for(const [width,height] of [[1440,768],[1440,820],[1728,820]]){
     const compact=await open(width,height);
-    assert.equal(await compact.page.locator('#mode-reference').getAttribute('aria-selected'),'true',
-      'Seedance opens Create in Reference set, not an unrequested Start frame');
-    await compact.page.click('#mode-start');
+    assert.equal(await compact.page.locator('#mode-start').getAttribute('aria-selected'),'true',
+      'Fresh Seedance Create starts in Start frame before any interaction');
+    assert.equal(await compact.page.locator('#mode-reference').getAttribute('aria-selected'),'false');
     assert.equal(await compact.page.locator('#ratio-control').isVisible(),false,
       'Explicit Opening frame mode inherits the image source ratio');
     await compact.page.click('#mode-text');
