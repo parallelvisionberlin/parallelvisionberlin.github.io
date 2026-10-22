@@ -1,6 +1,16 @@
 # Nina Instagram: verified owner-continuity work state
 Updated: 2026-10-22
 
+## Grounded affection and live wait diagnosis (2026-10-22)
+- Source commit e0f3769edbc77b46fec263b4f678d29386ba3b89; dialogue revision grounded-affection-2026-10-22. Nina-only worker and behavioral tests changed.
+- Gentle affection is not evidence of minority. Added bounded rewrite detection for unsupported age accusations and a nonexplicit affection fallback; actual disclosed minor context retains safeguards.
+- User explicitly wants playful imagined home visits preserved. No real-meeting restriction was added.
+- CI passed 42/42 tests. Deployment verified 2026-10-22 00:30 UTC: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39700005824. Version cb96e861-5adf-433b-98a2-6399d871cafd at 100%; deployment 327fdb71-bad6-4f97-92a2-dea5e3ae0b14.
+- Settings, seven bindings, minute cron, adaptive pacing and private continuity preserved. Direct model evaluation remains unavailable; tests do not prove every generated reply.
+- User reported silence during deployment. Read-only diagnosis at 00:30 UTC found recent visitor inputs received at 00:26 and 00:27, one pending job due 00:33 UTC, zero attempts and no error. Prior 28 sends were confirmed HTTP 200. This evidence supports scheduled waiting, not a demonstrated global outage. Pending delivery still needs verification.
+- Latest voice diagnostic also records VOICE_REDIRECT_BLOCKED at 22:37 UTC, alongside older VOICE_META_NO_AUDIO_URL. Real voice transcription remains unverified; this release does not repair media retrieval.
+- Exact next action: verify the pending job completes after its deadline if silence persists; do not resend uncertain messages or claim delivery from health alone.
+
 ## Private per-contact continuity (2026-10-22)
 - User explicitly authorized a private briefing and natural warm/reserved conversation style for one exact Instagram handle. Do not save the real handle, name, relationship notes or supplied transcript in GitHub.
 - Source commit 17091423e0b7e1fdc0fb36dd1fc8d4d37a652c38; changed worker.mjs and worker.test.mjs. Revision contact-continuity-2026-10-22.
