@@ -1,5 +1,15 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Video credit overlay and white Generate, 2026-10-22 (Europe/Berlin)
+- Source base: `17091423e0b7e1fdc0fb36dd1fc8d4d37a652c38`.
+- User approved a credit notice over the workspace below the masthead, with no movement on dismissal, plus a white Video Generate with dark text.
+- References: `libfile_43ebc2e74edc8191aafddf69fbc34c09`, `libfile_cfbc6d89fd008191a94e8636a9003d9c`; Higgsfield comparison `libfile_5de3bb84846c81918fe797deae5591a1` is directional only.
+- `lab/studio-credits.css`: Video-only absolute overlay at the responsive masthead height, outside document flow. Existing Image notice behavior retained.
+- `lab/video-approved-design.css`: white active/disabled surface, dark ready text, muted disabled text, monochrome arrow and subtle hover. Native disabled state, generation/pricing behavior and button size retained.
+- `lab/studio.html`: refreshed the three affected stylesheet keys, preserving the pinned mobile-slim marker. The ready-state override in `lab/video-restored-editorial.css` also uses the white button. Existing customer Video browser coverage checks overlay placement, dismissal geometry, disabled/ready whites, pricing and preserved drafts.
+- Verification: all 18 approved Image/Video checks passed. All 12 customer Video browser journeys passed at 1440/390px; the notice overlays at the masthead edge, dismissal changes no workspace/control/player/button dimensions or positions, and incomplete Generate stays disabled. Screenshots inspected; sparse-checkout media placeholders are not production failures.
+- Publication/live verification pending. No paid generation, account or billing changes.
+
 ## Remove Video Generate credit-pack note, 2026-10-22 (Europe/Berlin)
 - User requested removing the credit-pack sentence beneath Generate, screenshot `libfile_16cd381245908191ad774c2a2d81edd3`.
 - Source base: `b77a740`; `lab/lab.js` clears only the paused-trial pricing helper and hides its empty paragraph. Generate still opens pricing and preserves the draft.

@@ -319,8 +319,8 @@
  border-radius:11px!important;
 }
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .workspace.video-layout #generate:not(:disabled){
- background:linear-gradient(180deg,#fcfcfd 0%,#e6e8eb 96%)!important;
- color:#17191d!important;border-color:#f1f2f4!important;
+ background:#fff!important;
+ color:#181b20!important;border-color:#f1f2f4!important;
  box-shadow:inset 0 1px #fff,0 3px 12px #0005!important;
 }
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .video-inspector-body,
