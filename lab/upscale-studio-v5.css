@@ -1389,3 +1389,25 @@
   padding-bottom:105px!important;
  }
 }
+
+
+/* V23: put Upscale directly under the two selector rows, as referenced.
+   The advanced disclosure stays hidden; processing and billing are untouched. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+   display:flex!important;flex-direction:column!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+   flex:0 0 auto!important;padding-bottom:8px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+   position:relative!important;left:auto!important;right:auto!important;
+   top:auto!important;bottom:auto!important;
+   width:calc(100% - 68px)!important;min-height:0!important;
+   margin:8px 34px 0!important;padding:0!important;
+   background:transparent!important;border:0!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate{
+   width:100%!important;
+ }
+}
