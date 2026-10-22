@@ -1231,7 +1231,7 @@
   font-size:0!important;
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate::after{
-  content:"Upscaler";
+  content:"Upscale";
   font:500 13px/1.2 'DM Sans',Arial,sans-serif;
   letter-spacing:-.015em;
 }
