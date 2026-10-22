@@ -331,6 +331,7 @@ function initialize(){
       dialog.style.setProperty('--mc-editor-height',Math.ceil(height)+'px');
     }
     if(photo)attachPhoto(photo);
+    // Dialog receives native modal focus; its container should not have a focus ring.
     dialog.focus({preventScroll:true});
     dialog.scrollTop=0;
     void loadFullPreview(selected,'high').then(src=>{
@@ -344,6 +345,12 @@ function initialize(){
     dialog.style.removeProperty('--mc-editor-height');
     clearResult();resetPrice();clearPhoto();mood=null;moodVariant='original';renderVariation();setBusy(false);generate.disabled=true;
     $('mc-look-preview').removeAttribute('src');
+    // Do not focus the grid: this caused an outline around the entire gallery.
+    // Blur the restored card after native Escape focus restoration.
+    requestAnimationFrame(()=>{
+      if(!dialog.open&&document.activeElement?.matches?.('.mc-look-card[data-mood-id]'))
+        document.activeElement.blur();
+    });
   });
   $('mc-look-close').onclick=close;
   dialog.addEventListener('click',event=>{if(event.target===dialog)close();});
