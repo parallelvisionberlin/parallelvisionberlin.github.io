@@ -1411,3 +1411,10 @@
    width:100%!important;
  }
 }
+
+/* V24: match the vertical rhythm between Model, Enlargement and Upscale. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+   margin-top:20px!important;
+ }
+}
