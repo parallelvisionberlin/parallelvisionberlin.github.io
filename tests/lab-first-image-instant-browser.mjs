@@ -181,11 +181,12 @@ try{
         for(const key of ['x','y','w'])assert.ok(Math.abs(states[state][key]-states.idle[key])<2,
           role+' keeps the same outer '+key+' when '+state+': '+JSON.stringify({idle:states.idle,state:states[state]}));
         assert.equal(states[state].radius,states.idle.radius,role+' keeps the same outer corner shape when '+state);
-        for(const key of ['x','y','w','h'])assert.ok(Math.abs(states[state].prompt[key]-states.idle.prompt[key])<2,
-          role+' keeps the Owner upper prompt '+key+' unchanged when '+state);
       }
-      assert.deepEqual(Object.keys(states.idle.controls),[],role+' minimizes only to the upper prompt, without moving tools into its row');
-      assert.equal(states.idle.generate.w,0,role+' hides the lower Generate action while minimized');
+      assert.equal(states.idle.h,74,role+' starts with the approved compact row');
+      for(const tool of ['add','library','model','moods','base','ratio','resolution','count','exact'])
+        assert.ok(states.idle.controls[tool]?.w>0,role+' keeps '+tool+' visible while compact');
+      assert.equal(states.idle.generate.w,128,role+' keeps Generate visible while compact');
+      assert.equal(states.idle.generate.h,52,role+' retains the compact Generate proportions');
       assert.ok(states.focus.h===142&&states.focus.generate.w===144&&states.focus.generate.h===84,
         role+' opens the approved Owner 142px deck and Generate proportions');
       if(role!=='guest')assert.equal(await p.locator('#image-composer-edit-area').isDisabled(),role!=='owner',
@@ -261,7 +262,7 @@ try{
             })),'The credit notice never covers Refresh or the eye');
           }
           const before=await roleDeck.boundingBox(),photos=await rolePage.locator('#lab-welcome-presets').boundingBox();
-          assert.ok(before.height>=93&&before.height<=95,role+' gets the unchanged Owner upper prompt row');
+          assert.ok(before.height>=73&&before.height<=75,role+' gets the approved compact toolbar row');
           const contained=await roleDeck.evaluate(el=>{
             const bar=el.getBoundingClientRect(),prompt=el.querySelector('textarea').getBoundingClientRect();
             return bar.left>=0&&bar.right<=innerWidth&&prompt.left>=bar.left&&prompt.right<=bar.right;
@@ -299,7 +300,7 @@ try{
       assert.ok(Math.abs(900-historyDeck.y-historyDeck.height-30)<3,role+' History keeps its bottom anchor');
       await rolePage.locator('#history-moods-toggle').click();
       await rolePage.waitForFunction(()=>document.getElementById('image-composer').classList.contains('pv-welcome-deck'));
-      assert.ok(Math.abs((await roleDeck.boundingBox()).height-94)<2,role+' Inspiration reopens the same Owner upper prompt');
+      assert.ok(Math.abs((await roleDeck.boundingBox()).height-74)<2,role+' Inspiration reopens the same compact toolbar');
       assert.equal(await rolePage.locator('#image-composer:visible,#pv-guest-composer:visible').count(),1,
         role+' exposes exactly one Image bar');
     }finally{await roleContext.close();}
@@ -337,11 +338,13 @@ try{
       rows:getComputedStyle(document.querySelector('#image-composer')).gridTemplateRows,
       viewportWidth:innerWidth,documentWidth:document.documentElement.scrollWidth};
   });
-  assert.ok(idleLayout.height>=93&&idleLayout.height<=95,
-    'Empty Image welcome is the Owner upper prompt with only the lower part hidden: '+JSON.stringify(idleLayout));
-  assert.equal(await page.locator('#image-composer .composer-controls').isVisible(),false,
-    'Minimizing hides the toolbar instead of redesigning the upper prompt');
-  assert.equal(await button.isVisible(),false,'Generate is revealed with the lower portion');
+  assert.ok(idleLayout.height>=73&&idleLayout.height<=75,
+    'Empty Image welcome keeps the compact prompt and tools visible: '+JSON.stringify(idleLayout));
+  assert.equal(await page.locator('#image-composer .composer-controls').isVisible(),true,
+    'Compact toolbar remains visible');
+  assert.equal(await button.isVisible(),true,'Generate remains visible in the compact row');
+  assert.ok(idleLayout.promptRight<=idleLayout.controlsLeft+1&&idleLayout.controlsRight<=idleLayout.generateLeft,
+    'Compact prompt, controls and Generate fit without overlap: '+JSON.stringify(idleLayout));
   assert.ok(idleLayout.generateRight<=idleLayout.viewportWidth-12 &&
     idleLayout.documentWidth<=idleLayout.viewportWidth+3,
     'Compact deck must not introduce horizontal overflow: '+JSON.stringify(idleLayout));

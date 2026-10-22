@@ -1,23 +1,15 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
-## Owner canonical Image deck, 2026-10-22 (completed and live)
-- Approved requirement: use the Owner History design for every account. Minimize by hiding the lower tools, leaving upper prompt geometry, width, top and side borders fixed; reopen downward.
-- Reference: image(20261022-001803).png (Owner) versus image(20261022-001828).png (new account). Preserve accepted artwork, title-only entrance, prompts, Moods, Hong Kong Nights, native/Soul, pricing, billing and identity behavior.
-- App source: bc8e766e358ffb512416c04751d102f33e8da7ed, following initial shared-deck source feda7d6ce91298bb40026975a10992ca37525afe. Based on current main; concurrent Video, pricing, Nina and title cleanup changes were preserved.
-- Hosting: Cloudflare Pages pvlab-studio check 119575215087 succeeded for bc8e766; deployment cb241463-ea7f-4134-91e9-7c247653b2bf. No manual or duplicate deployment.
-- image-deck-surface.css shares the Owner 1120x142 desktop frame among guest/customer/Owner and photo-free History. The minimized welcome is its 94px upper row; toolbar and Generate appear below without rearranging the prompt. Removed the conflicting older inline-toolbar compact CSS.
-- image-editorial-deck.js keeps tools open across model-menu rebuilding and temporarily disabled input preparation. Adding photographs from the entrance preserves its card anchor; existing reference trays and populated History retain their layout rules.
-- lab.js returns settled empty Image History to the approved cards instead of the obsolete landscape/quick-actions view. Native/privacy/loaded-History guards remain. Retouch reserves the same visual slot and retains its disabled customer eligibility.
-- Cache: image-deck-surface.css?v=20261022-owner-canonical1; image-editorial-deck.css/js?v=20261022-owner-canonical2; lab.js retains its base version plus emptyImage=20261022-canonical1.
-- Existing read-only verifier returned LIVE_VERIFIED for all four changed application assets against bc8e766. Surface SHA-256 7ed12f6b276915c0c2efad6eceae3846356a3227291642d3721a7c45b1eb5fbc; editorial JS 417b1126b4892cd5cb8331262b86651c65d9e0246aff7436bbca98657a024e74.
-- Actual production guest browser: https://pvlab.studio/studio?tool=image, 1363x936, confirmed canonical2 script. Opening 94px to 142px kept frame x114/y675.80/width1120, prompt x135/y695.80/922x54 and card bounds unchanged. Closing restored the same frame; scrollY remained zero. Proof images: pvlab-owner-upper-row-bc8e766.jpg and pvlab-owner-expanded-bc8e766.jpg.
-- Real production customer/Owner sessions and physical mobile devices were not inspected. Automated role fixtures do not prove those real sessions, payments or provider requests.
-- Final local checks passed: approved Image contract 5/5, first-image role matrix, prompt-paste, full Studio layout, mobile Mood entry, full Mood suite, full one-click/generation/Upscale, full account browser, and Photo Packs desktop/mobile. All provider, identity and payment actions in these tests are synthetic.
-- Existing browser checks now open the minimized prompt before using its lower tools. The customer checkout duplicate-click test waits for its CTA to become enabled after profile reload; no payment implementation changed.
-- CI on bc8e766 passed approved-image-ui, image-prompt-paste, private-lab, first-image, queue-smoke, one-click/backend test and account. Photo Packs initially expected its lower library button before opening; the following test-only update retains all assertions and passes locally.
-- Full CI is not green: Assets still fails the previously recorded Upscaler import assertion at tests/lab-assets-ui.cjs:281. Domain smoke checks old hard-coded Generate/Exact cache values; actual reviewed asset byte verification passed. Explore-generation's isolated handoff harness still searches for restoreStudioEntry() although the pre-existing function takes requestedRoute, causing its entryFinished timeout; that production function and Hong Kong Nights implementation were unchanged here.
-- Checkpoint/test follow-up changes only tests/lab-reference-pack-studio-ui.mjs and this record. The reviewed and live application assets remain bc8e766.
-- This UI task is completed. Next real-account review: compare Owner and the recreated customer account on the published Image page. Remaining unrelated CI debt is recorded above; do not claim all workflows pass or that a real account was inspected.
+## Restore approved compact Image controls, 2026-10-22 (validation complete, publication pending)
+- Correction: the prior prompt-only 94px minimized bar was an implementation mistake, not an approved reference. The supplied compact reference includes tools and Generate inline. Preserve the existing Owner expanded design and fixed outside width/top/sides; opening reveals downward space.
+- References: 9d434cea-3ce4-44c3-affb-c45aebab9d93.png (compact), 5cbb6f1f-3395-47a2-ad9e-6f37aefd6f67.png (expanded). No new artwork, copy, controls or layout redesign.
+- Baseline main dd1f96275759e26ae9b04b8add15d5c189f047b2; previous app source bc8e766e358ffb512416c04751d102f33e8da7ed. Previous prompt-only publication is superseded by this correction.
+- Changed only image-deck-surface.css and its studio.html cache marker, plus existing geometry expectations in first-image, Studio layout and mobile Mood-entry tests.
+- Compact entrance is 1120x74 on standard desktop, with prompt, original tools and 128x52 Generate visible in one row. Retouch remains in the expanded toolbar and retains existing eligibility. Expanded Owner geometry remains 1120x142 with 144x84 Generate; History stays expanded. All roles share one rule.
+- Current main's title-only entrance, new logo, card imagery/order, fixed card anchor, long-prompt sizing, photo trays, native/Soul/mobile, auth, billing and provider behavior are preserved.
+- Checks: approved Image contract 5/5, prompt paste, full Studio layout, mobile Mood entry passed. Full first-image suite passed including role parity, desktop anchors/banner/History, mobile, references and no-paid-request safeguards.
+- Real production account sessions have not been inspected. Automated role fixtures are synthetic and make no paid requests.
+- Publication and Cloudflare/live verification pending. Next: finish first-image suite, publish exact selected bytes, verify Cloudflare and production guest compact/open/close behavior.
 
 ## Remove Video Generate credit-pack note, 2026-10-22 (Europe/Berlin)
 - User requested removing the credit-pack sentence beneath Generate, screenshot `libfile_16cd381245908191ad774c2a2d81edd3`.

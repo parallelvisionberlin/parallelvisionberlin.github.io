@@ -261,8 +261,8 @@ try{
     const r=el.getBoundingClientRect();
     return {top:r.top,bottom:r.bottom,width:r.width,height:r.height,radius:getComputedStyle(el).borderTopLeftRadius};
   });
-  assert.ok(Math.abs(composerGeometry.height-94)<2&&composerGeometry.width>900,
-    'Empty Image opens with the unchanged Owner upper prompt, hiding its lower tools: '+JSON.stringify(composerGeometry));
+  assert.ok(Math.abs(composerGeometry.height-74)<2&&composerGeometry.width>900,
+    'Empty Image opens with the approved compact prompt, tools and Generate: '+JSON.stringify(composerGeometry));
   assert.ok(parseFloat(composerGeometry.radius)>=19,'Composer must have generously rounded corners');
   assert.equal(await x.page.locator('#image-gallery-empty').isVisible(),true,'Empty gallery must not invent images');
   assert.equal(await x.page.locator('.empty-wordmark').count(),0,'Do not repeat central PV logo in gallery mode');
