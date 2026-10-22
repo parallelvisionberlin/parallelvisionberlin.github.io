@@ -1506,3 +1506,42 @@
   overflow:hidden!important;
  }
 }
+
+
+/* V28: fix the actual outer page gutters and synchronize editor heights.
+   The previous workspace-only width could not override #main.wrap padding. */
+@media(min-width:781px){
+ body:has(#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)) #main.wrap{
+  box-sizing:border-box!important;
+  width:100%!important;max-width:none!important;
+  padding-left:0!important;padding-right:0!important;
+  margin-left:0!important;margin-right:0!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active){
+  width:100%!important;max-width:none!important;
+  margin:0!important;padding:0!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+  left:auto!important;transform:none!important;
+  width:100%!important;max-width:none!important;
+  margin:0!important;padding:0!important;
+  grid-template-columns:minmax(330px,26%) minmax(0,1fr)!important;
+  gap:0!important;align-items:stretch!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #empty:not([hidden])){
+  height:clamp(680px,calc(100dvh - 104px),980px)!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #empty:not([hidden]))>.controls,
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #empty:not([hidden]))>.stage{
+  height:100%!important;max-height:100%!important;
+  min-height:0!important;margin:0!important;
+  overflow:hidden!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #empty:not([hidden]))>.stage{
+  display:block!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(#empty:not([hidden])){
+  height:100%!important;min-height:0!important;max-height:100%!important;
+  margin:0!important;padding:0!important;
+ }
+}
