@@ -1,5 +1,6 @@
 // Shared by the image UI and Worker so the preview matches the submitted prompt.
 import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js';
+import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js';
 export {referenceRoleAdvisories};
 export const REFERENCE_ROLES = Object.freeze([
   ['none','General reference'],['base','Base image'],['identity','Identity'],
@@ -57,10 +58,12 @@ export function normalizeReferenceLabel(x){
   return label;
 }
 export function builtInMoodReferenceCount(settings={}){
+  if(settings.moodId==='hong-kong-nights')return hongKongReferenceCount(settings);
   return settings.type==='image'&&settings.mode==='image'&&['berlin-rave','dreamcore','synthetic-romance'].includes(settings.moodId)&&['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine)?3:0;
 }
 export function referenceGuidanceError(labels,settings={}){
-  if(builtInMoodReferenceCount(settings)&&labels.length>7)return ({'dreamcore':'Dreamcore','synthetic-romance':'Synthetic Romance','berlin-rave':'Berlin Rave'}[settings.moodId])+' accepts up to 7 uploaded photos. Remove a photo or choose another mood.';
+  const hkError=hongKongReferenceError(settings,labels.length);if(hkError)return hkError;
+  if(settings.moodId!=='hong-kong-nights'&&builtInMoodReferenceCount(settings)&&labels.length>7)return ({'dreamcore':'Dreamcore','synthetic-romance':'Synthetic Romance','berlin-rave':'Berlin Rave'}[settings.moodId])+' accepts up to 7 uploaded photos. Remove a photo or choose another mood.';
   if(labels.filter(r=>r.role==='base').length>1)return 'Choose one Base image. Assign the other references only the properties to copy.';
   if(labels.findIndex(r=>r.role==='base')>0)return 'Move the Base image to Reference 1. The first image also controls the automatic aspect ratio.';
   // General references are valid without manual labels. Explicit roles remain available for precision.
@@ -136,12 +139,14 @@ export function compileImagePrompt(direction,labels=[],settings={}){
   const curatedFisheyeStyles=settings?.moodId==='fisheye-2000'&&
     roles.some(ref=>ref.role==='style'&&ref.name.startsWith('Fisheye 2000 style - '));
   const compact=Boolean(settings?.moodId&&
-    ((settings.referenceMode!=='references'&&roles.some(ref=>ref.role==='base'))||curatedDreamBlurStyles||curatedFisheyeStyles));
+    (hongKongReferenceCount(settings)||(settings.referenceMode!=='references'&&roles.some(ref=>ref.role==='base'))||curatedDreamBlurStyles||curatedFisheyeStyles));
   const original=compact?compileCompactUserImagePrompt(direction,labels):compileUserImagePrompt(direction,labels);
-  const quality=imageQualityGuidance(direction,labels,settings,original.length);
+  const hkGuidance=hongKongReferenceCount(settings)?hongKongReferenceGuidance(labels.length,settings.engine==='seedreamlite'):'';
+  const quality=imageQualityGuidance(direction,labels,settings,original.length+hkGuidance.length);
   const prompt=quality?[original,quality].filter(Boolean).join('\n\n'):original;
   const count=builtInMoodReferenceCount(settings);
   if(!count)return prompt;
+  if(settings.moodId==='hong-kong-nights')return [prompt,hkGuidance].filter(Boolean).join('\n\n');
   const numbers=Array.from({length:count},(_,i)=>labels.length+i+1).join(', ');
   const source=labels.some(r=>r.role==='base')
     ?'The user Base controls identity, body, pose, subject count, framing and location; honor explicitly requested changes.'
