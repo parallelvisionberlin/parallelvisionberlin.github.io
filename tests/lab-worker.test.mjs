@@ -771,8 +771,9 @@ test('Seedream uses SpicyAPI with ordered images, compiled properties and reusab
     const noDirection={...general,prompt:'',referenceRoles:[{role:'base'},...ids.slice(1).map(()=>({role:'none'}))]};
     const variation=await req(env,'/api/quotes',{method:'POST',data:{settings:noDirection,referenceSourceIds:ids}});
     assert.equal(variation.status,200,await variation.clone().text());
-    assert.match(quotedRequest.input.prompt,/controlled variation of the Base image/);
-    assert.match(quotedRequest.input.prompt,/body proportions.*wardrobe/);
+    assert.match(quotedRequest.input.prompt,/Create an intentional reinterpretation of the supplied image/);
+    assert.match(quotedRequest.input.prompt,/If people are present, preserve each individual/);
+    assert.match(quotedRequest.input.prompt,/without assuming a location, time of day/);
     const freeReferences=await req(env,'/api/quotes',{method:'POST',data:{settings:{...noDirection,referenceMode:'references',referenceRoles:ids.map(()=>({role:'none'}))},referenceSourceIds:ids}});
     assert.equal(freeReferences.status,200,await freeReferences.clone().text());
     assert.match(quotedRequest.input.prompt,/cohesive new image inspired by the supplied photographs/);
