@@ -1,3 +1,17 @@
+# Image entrance title-only cleanup, 2026-10-22
+
+- User approved the cleaner mockup, explicitly restricting this implementation to the header and preserving the deck and its processes.
+- Source base: `a0b27a95ea865a978b35ae20fbd412aa2a44974f` on main.
+- Reference: `image(20261022-002230).png`, Library ID `libfile_24dbb1b8c0e881918065e973839f6843`; approved visual mockup was generated in this conversation.
+- Only visible entrance heading remains: `Start with a feeling.`
+- `lab/image-welcome-editorial.css` hides the public/signed-in overline, subtitle and welcome balance sentence.
+- Retains those DOM elements and their layout space so account-state updates, card positions and deck geometry remain safe; the header credit control remains available.
+- `lab/studio.html` bumps only that stylesheet version to `20261022-title-only1`.
+- No deck styles, dimensions, markup, JavaScript, controls, Moods, prompts, generation, pricing or payment handlers are edited.
+- Approved Image contract passes before the change. Existing role/first-image browser checks will verify the affected entrance.
+- Publication: not yet merged or confirmed live.
+- Next action: run affected checks, publish the scoped PR and verify Cloudflare plus production stylesheet bytes.
+
 # PV LAB Inspiration carousel + Chrome Couture
 
 Updated: 2026-10-19

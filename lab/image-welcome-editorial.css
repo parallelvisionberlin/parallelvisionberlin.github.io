@@ -1,5 +1,14 @@
 /* 2026-10-16: Image Studio first-image editorial layout.
    The existing composer and credit-quote workflow remain authoritative. */
+/* 2026-10-22: title-only entrance approved by Alejandro. Keep the existing
+   elements for account state updates; hide only the secondary header copy. */
+#gate.pv-guest-image .pv-guest-kicker,
+#gate.pv-guest-image .pv-guest-subtitle,
+#app.image-studio-active #lab-welcome-start .lab-welcome-kicker,
+#app.image-studio-active #lab-welcome-start .lab-welcome-subtitle,
+#app.image-studio-active #lab-welcome-start .lab-welcome-balance{
+  visibility:hidden!important;
+}
 #app.image-studio-active .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])){
   isolation:isolate;min-height:max(calc(100dvh - 115px),760px);
   background:#090b11;
