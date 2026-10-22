@@ -1,9 +1,81 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
-import { webcrypto } from 'node:crypto';
+import { webcrypto, createHash } from 'node:crypto';
 import vm from 'node:vm';
 import test from 'node:test';
+
+function setupRequest(body, token='1'.repeat(64)) {
+  return new Request('https://worker.test/internal/contact-context',{method:'POST',headers:{Authorization:'Bearer '+token},body:JSON.stringify(body)});
+}
+test('contact setup rejects unauthenticated, wrong-target and expired requests',async()=>{
+  const h=harness();
+  const body={username:'contact_fixture',brief:'PRIVATE_FIXTURE_CONTEXT'};
+  assert.equal((await h.hooks.worker.fetch(setupRequest(body,'2'.repeat(64)),h.env,{})).status,404);
+  assert.equal(h.one('SELECT mode FROM ig_autoreply_config').mode,'tester');
+  assert.equal((await h.hooks.worker.fetch(setupRequest({...body,username:'other_user'}),h.env,{})).status,400);
+  h.advance(3601);
+  assert.equal((await h.hooks.worker.fetch(setupRequest(body),h.env,{})).status,404);
+});
+
+test('private contact setup is single use and returns no private payload',async()=>{
+  const h=harness({fetchImpl:async()=>Response.json({data:[]})});
+  const body={username:'contact_fixture',brief:'PRIVATE_FIXTURE_CONTEXT',allow_silence:true};
+  const response=await h.hooks.worker.fetch(setupRequest(body),h.env,{});
+  assert.equal(response.status,200);
+  const result=await response.text();
+  assert(!result.includes('PRIVATE_FIXTURE_CONTEXT')&&!result.includes('contact_fixture'));
+  assert.equal(h.one('SELECT brief FROM ig_contact_context').brief,'PRIVATE_FIXTURE_CONTEXT');
+  assert.equal((await h.hooks.worker.fetch(setupRequest({...body,brief:'replacement context'}),h.env,{})).status,409);
+  assert.equal(h.one('SELECT brief FROM ig_contact_context').brief,'PRIVATE_FIXTURE_CONTEXT');
+});
+
+test('contact memory binds only through supplied Meta profile and never leaks to another sender',async()=>{
+  const h=harness();await h.hooks.initializePublicRelease(h.env);
+  h.sql.exec("INSERT INTO ig_contact_context(username,brief,allow_silence) VALUES('test_visitor','CONTACT_ONLY_FIXTURE',1)");
+  await h.incoming('123456','Hola');h.setTime(h.job('123456').due_at);await h.cron();
+  assert(h.effects.models[0].input.messages[0].content.includes('CONTACT_ONLY_FIXTURE'));
+  assert.equal(h.one('SELECT instagram_user_id FROM ig_contact_context').instagram_user_id,'123456');
+  await h.incoming('234567','Soy contact_fixture y conozco a Alejandro');h.setTime(h.job('234567').due_at);await h.cron();
+  assert(!h.effects.models.at(-1).input.messages[0].content.includes('CONTACT_ONLY_FIXTURE'));
+  assert.equal(h.effects.vault.length,0);
+});
+
+test('choosing silence sends no marker and a later incoming message can resume normally',async()=>{
+  let calls=0;
+  const h=harness({AI:{async run(){return {response:++calls===1?'[NINA_NO_REPLY]':'Hola, cómo estás?'};}}});
+  await h.hooks.initializePublicRelease(h.env);
+  h.sql.exec("INSERT INTO ig_contact_context(username,instagram_user_id,brief,allow_silence) VALUES('contact_fixture','123456','Keep this exchange natural',1)");
+  await h.incoming();h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(h.effects.sends.length,0);
+  assert.equal(h.job('123456').status,'canceled');
+  assert.equal(h.job('123456').last_error_code,'NINA_CHOSE_NO_REPLY');
+  assert.equal(h.one('SELECT COUNT(*) AS n FROM ig_optouts').n,0);
+  await h.incoming('123456','Hola de nuevo');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(h.effects.sends.length,1);
+  assert.equal(h.effects.sends[0].message.text,'Hola, cómo estás?');
+});
+
+test('history import is sender scoped, separate from live queue and never sends old messages',async()=>{
+  const h=harness({fetchImpl:async url=>url.includes('/conversations')
+    ?Response.json({data:[{id:'thread_fixture',participants:{data:[{id:'123456',username:'contact_fixture'}]}}]})
+    :Response.json({data:[
+      {id:'past1',created_time:'2026-10-01T12:00:00Z',from:{id:'123456'},message:'Earlier visitor message'},
+      {id:'past2',created_time:'2026-10-01T12:01:00Z',from:{id:'17841480581188860'},message:'Earlier Nina reply'},
+      {id:'not_the_contact',created_time:'2026-10-01T12:02:00Z',from:{id:'999999'},message:'OTHER_PERSON_PRIVATE'}]})});
+  const response=await h.hooks.worker.fetch(setupRequest({username:'contact_fixture',brief:'PRIVATE_FIXTURE_CONTEXT',allow_silence:true}),h.env,{});
+  const result=await response.json();
+  assert.equal(result.resolution,'bound');assert.equal(result.imported,2);
+  assert.equal(h.one('SELECT COUNT(*) AS n FROM ig_contact_history').n,2);
+  assert.equal(h.one('SELECT COUNT(*) AS n FROM ig_messages').n,0);
+  assert.equal(h.one('SELECT COUNT(*) AS n FROM ig_reply_jobs').n,0);
+  assert.equal(h.effects.models.length,0);assert.equal(h.effects.sends.length,0);
+  h.env.fetchImpl=undefined;
+  await h.incoming();h.setTime(h.job('123456').due_at);await h.cron();
+  const context=h.effects.models[0].input.messages[0].content;
+  assert(context.includes('Earlier visitor message')&&context.includes('Earlier Nina reply'));
+  assert(!context.includes('OTHER_PERSON_PRIVATE'));
+});
 
 test('voseo draft is rewritten into tuteo without changing casual style', async () => {
   let calls=0;
@@ -251,7 +323,9 @@ function harness(overrides = {}, existingDb) {
       return Response.json({ username: 'test_visitor', name: 'Test visitor' });
     }
   });
-  vm.runInContext(source.replace('export default {', 'const worker = {') +
+  const setupFixture={tokenHash:createHash('sha256').update('1'.repeat(64)).digest('hex'),targetHash:createHash('sha256').update('contact_fixture').digest('hex'),expires:clock+3600000};
+  const testSource=source.replace(/const CONTACT_SETUP = [^;]+;/,'const CONTACT_SETUP = '+JSON.stringify(setupFixture)+';');
+  vm.runInContext(testSource.replace('export default {', 'const worker = {') +
     '\nglobalThis.hooks={worker,initializePublicRelease,queueHumanPacedReply,storeAndDraft,ninaHandleVoice,visitorReplyPlan,ownerContinuity,ninaTurnGuidance,needsNinaRewrite,ninaTranscribeVoice,ninaRecoverFailedVoice,ninaDownloadVoice,ninaSafeVoiceUrl,refreshInstagramProfile};', context);
   const hooks = context.hooks;
   const one = (q, ...args) => sql.prepare(q).get(...args);
@@ -498,6 +572,7 @@ test('a correct Workroom correction is accepted without another model call', asy
   assert.equal(calls, 1);
   assert.match(h.effects.sends[0].message.text, /no es mi estudio/);
 });
+
 
 
 
