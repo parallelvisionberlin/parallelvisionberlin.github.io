@@ -1,6 +1,6 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
-## Restore approved compact Image controls, 2026-10-22 (validation complete, publication pending)
+## Restore approved compact Image controls, 2026-10-22 (corrected and live)
 - Correction: the prior prompt-only 94px minimized bar was an implementation mistake, not an approved reference. The supplied compact reference includes tools and Generate inline. Preserve the existing Owner expanded design and fixed outside width/top/sides; opening reveals downward space.
 - References: 9d434cea-3ce4-44c3-affb-c45aebab9d93.png (compact), 5cbb6f1f-3395-47a2-ad9e-6f37aefd6f67.png (expanded). No new artwork, copy, controls or layout redesign.
 - Baseline main dd1f96275759e26ae9b04b8add15d5c189f047b2; previous app source bc8e766e358ffb512416c04751d102f33e8da7ed. Previous prompt-only publication is superseded by this correction.
@@ -9,7 +9,11 @@
 - Current main's title-only entrance, new logo, card imagery/order, fixed card anchor, long-prompt sizing, photo trays, native/Soul/mobile, auth, billing and provider behavior are preserved.
 - Checks: approved Image contract 5/5, prompt paste, full Studio layout, mobile Mood entry passed. Full first-image suite passed including role parity, desktop anchors/banner/History, mobile, references and no-paid-request safeguards.
 - Real production account sessions have not been inspected. Automated role fixtures are synthetic and make no paid requests.
-- Publication and Cloudflare/live verification pending. Next: finish first-image suite, publish exact selected bytes, verify Cloudflare and production guest compact/open/close behavior.
+- Published app source: 48b1a99637deb9cd141273b2edb527b83a6f504f. Cloudflare Pages pvlab-studio check 119710988844 succeeded; deployment 6cd83204-b6ce-4ae8-9a25-ff0a7752fe33. Cache marker image-deck-surface.css?v=20261022-compact-controls1.
+- Existing read-only release verifier returned LIVE_VERIFIED, reviewed surface CSS SHA-256 2dbe3c98e168a8d7603ebc42559ea32be89c120a07d09302e297894d6af28500. Production serves the exact tested bytes.
+- Actual production guest browser at https://pvlab.studio/studio?tool=image: compact tools and Generate visible; frame x114/y675.796875/width1120, height74. Opening gives height142 with unchanged x/y/width and card bounds, scrollY0. Closing restores height74 and the same frame. Screenshots pvlab-compact-restored-48b1a99.jpg and pvlab-expanded-preserved-48b1a99.jpg.
+- Relevant CI passed approved-image-ui, image-prompt-paste, first-image and private-lab. Other workflows were still running at final review; do not claim full CI green. Previously recorded unrelated Assets/domain/Explore harness failures are outside this correction.
+- Completed. No further design changes requested; real signed-in customer/Owner review remains separate from synthetic role coverage.
 
 ## Remove Video Generate credit-pack note, 2026-10-22 (Europe/Berlin)
 - User requested removing the credit-pack sentence beneath Generate, screenshot `libfile_16cd381245908191ad774c2a2d81edd3`.
