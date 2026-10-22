@@ -90,16 +90,18 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     const geometry=await page.evaluate(()=>{
       const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
       return {
-        canvas:rect('#upscale-canvas'),deck:rect('#app .workspace>.controls'),results:rect('.archive'),
+        canvas:rect('#upscale-canvas'),deck:rect('#app .workspace>.controls'),results:rect('.archive'),page:rect('body'),
         options:rect('#upscale-info summary'),size:rect('#upscale-scale'),imageLoaded:false
       };
     });
     if(profile==='desktop'){
       assert.ok(Math.abs(geometry.deck.right-geometry.canvas.left)<=1,'Desktop sidebar and photographic stage meet at the approved shared edge');
+      assert.ok(Math.abs(geometry.deck.height-geometry.canvas.height)<=1,'Approved V28 deck and photograph share the same height');
+      assert.ok(Math.abs(geometry.deck.left-geometry.page.left)<=1&&Math.abs(geometry.canvas.right-geometry.page.right)<=1,'Approved V28 workspace reaches both body content edges without outer gutters');
       assert.ok(Math.abs(geometry.deck.top-geometry.canvas.top)<55,'Desktop studio panels share a top baseline');
-      assert.ok(Math.abs(geometry.canvas.height-Math.max(690,Math.min(height-77,1050)))<=2,'Desktop empty preview retains its full-screen viewport height');
+      assert.ok(Math.abs(geometry.canvas.height-Math.max(680,Math.min(height-104,980)))<=2,'Desktop empty preview retains its full-screen viewport height');
       assert.ok(geometry.results.top>=geometry.canvas.bottom,'Upscaled results follow the preview');
-      assert.ok(geometry.results.left>=geometry.canvas.left-5,'Results align with the image stage, not the sidebar');
+      assert.ok(Math.abs(geometry.results.left-geometry.page.left-356)<=1,'Current main retains its 344px sidebar + 12px gallery inset below the 26% workspace');
       assert.equal(await page.locator('#upscale-info').isVisible(),false,'Approved main hides the advanced technical disclosure');
       const galleryPeek=await page.evaluate(()=>{
         const archive=document.querySelector('#app>.archive').getBoundingClientRect();

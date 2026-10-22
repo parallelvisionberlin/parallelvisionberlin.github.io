@@ -1,35 +1,17 @@
-## Active: PV LAB stabilization Phase 1 — review branch only (2026-10-22)
+## Active: PV LAB stabilization Phase 1 — draft PR #443 (2026-10-22)
 
-- Objective: repair stale regression checks and restore fresh Video Start frame initialization; stop at draft PR #443 for review. Do not merge or deploy in this task.
-- Branch: `codex/pvlab-stabilization-phase1`; incorporated main `8ded7bda942c9ac12c9397f8269d0d7943966ec0` through normal branch merges, without history rewriting or force push.
-- Main advances preserved: Image high-resolution validation, Clerk/D1 changes and approved Upscaler V21–V24 styling, its credit-notice overlay and automatic oversized-photo preparation. Main's Upscaler CSS, credits CSS, release handoff and HTML remain exact; only the separate Video module cache parameter differs.
-- Product change: remove the one-time Seedance Start-to-Reference override and initialize the remembered Create mode to Start. Explicit user selections, History and handoff modes remain intact.
-- Only other product file change relative to main: append `videoStartDefault=20261022-1` to the existing Lab module URL, retaining all existing asset revisions.
-- Customer browser assertions verify default Seedance, selected Start frame, visible uploader and zero initial POSTs before any interaction at 1440/390px across six account states.
-- The initial-state assertion failed against the original initialization, then passed after the fix. Desktop/mobile screenshots inspected; no horizontal overflow in checked states.
-- Reference checks require exactly one versioned Lab module and retain all reference-rendering assertions; no historical cache token is pinned.
-- Assets checks preserve public navigation, private Assets gating, actual full-screen upload entry, current sidebar geometry and unobstructed action controls.
-- Explore extracts the current function signature with checked bounds; all 17 mocked generation/handoff scenarios passed, including Studio continuation.
-- Video CI separates syntax/backend and eight browser steps. Explicit status conditions allow later suites after unrelated failures; no continue-on-error or disabled gate.
-- Domain smoke requires versioned assets, obtains Generate/Exact CSS URLs from live HTML and retains existing behavior checks.
-- The three edited ESM static-server harnesses use the platform separator. Unchanged Linux-only guards were adapted in memory for local Windows runs.
-- Node 22.16 full Lab/release suite after the Upscaler follow-up: 709/709 passed. Approved Image/reference subset: 8/8 passed. Edited JavaScript syntax, workflow YAML/conditions and whitespace checks passed.
-- Final affected checks: customer Video 12/12; Studio desktop/mobile/Fashion layout; full Assets; corrected Upscaler Assets visibility at desktop/mobile all passed after incorporating incoming main changes.
-- Visual visibility test now requires current exact headings/artwork, empty versus loaded source controls, shared desktop edge, full-screen heights and the V22/V23 hidden technical disclosure. Paid-request/price-review coverage in lab-upscale-ui.mjs remains unchanged.
-- Earlier browser runs at main a4ad9c7 passed all eight Video-workflow suites: customer Video, routing, layout, Soul reinterpret (13), Image one-click (53), Upscaler (8), references (22), Seedance (19). First-image four-role parity also passed.
-- CI at a5c6cd8 passed all eight Video browser steps and related workflows. At ab6da25, all eight browser suites executed: seven passed, Upscaler failed on hidden More options, then references (22) and Seedance (19) passed after that failure; screenshot artifact uploaded. This directly verifies independent execution. GitHub reports the overall run cancelled; cause unverified, so it is not a green job. The separate visibility step passed before its unchanged functional step failed. Final merge-head CI must be evaluated separately.
-- Follow-up replaces hidden More options interactions with visible upload/model/size/format/Upscale actions. It retains quote, credit, failure, provider payload and History assertions; no Upscaler UI/provider/default changes.
-- Follow-up local browser result: 22 substantive checks pass, then a precise fresh Precision quality-access contract fails for Owner/customer at 1440/390px. Standard V2 is the fresh default; High Fidelity V3 restores/submits through History but has no fresh visible selector. Full findings and the unimplemented minimal popup proposal are in UPSCALE-WORK-STATE.md.
-- New isolated backend coverage verifies exact High Fidelity V3 and Wonder provider request bodies through one idempotent mocked submission; existing Standard V2/credit safeguards remain.
-- Video CI allowance increases from 8 to 12 minutes: the prior browser installation took 4m43 and an 8m31 run was cancelled despite all browser results/artifacts. Failure gates and all eight independent steps remain unchanged.
-- Earlier corrected desktop visibility test exposed an overlapping action after mocked owner diagnostics. Main subsequently removed the disclosure; this is historical evidence, not the current failure. Current visibility assertions pass.
-- Additional environment result before main refresh: Windows/Node 24 passed 703/704; the pre-existing Dream Blur setImmediate timing check failed. It was not changed or weakened; configured Node 22 passes.
-- Both repaired public domain-smoke blocks passed via GET-only checks of the existing site. This does not publish or verify the candidate Video change in production.
-- Browser evidence uses synthetic accounts/media and intercepted uploads, quotes, checkout and jobs. No real customer authentication or provider success is claimed.
-- No real purchase, paid generation, account change, database mutation, Worker change or production setting change.
-- Publication: PR #443 is draft and unmerged; no production deployment was initiated. Cloudflare's automatic branch preview is distinct from production.
-- Final incoming-main reruns: 708/708 Node 22 tests, customer Video 12/12 and full Assets passed with the new photo-input normalizer; desktop/mobile visibility passed after the V24 spacing and overlay update. The last main change only publishes its cache marker; preserve it exactly.
-- Next action: review the exact PR file list, passing checks and the remaining Upscaler test/design conflict. Resolve the fresh Precision quality-access conflict through specific owner approval; do not bypass the failing test or merge/deploy here.
+- Branch `codex/pvlab-stabilization-phase1`; latest main incorporated through normal merges without rewriting history. Review only: no merge or production deployment.
+- Video fix remains scoped: fresh Seedance uses Start frame as its actual selected mode, with remembered Create mode initialized to Start. Explicit user, History and handoff modes remain intact.
+- Fresh initial-state assertions run before interaction at 1440/390px across six synthetic account states (12 cases), checking default Seedance, selected Start, uploader and zero initial POSTs. Final-head rerun and CI recorded in PR.
+- Stale script assertions require the current versioned Lab module; Assets uses current visible navigation/layout; Explore extracts the actual function signature with checked bounds. Domain smoke resolves versioned assets from live HTML.
+- Video workflow retains syntax/backend checks and eight separately gated browser steps. Later independent suites execute after unrelated failure; no continue-on-error. Twelve-minute allowance includes browser installation and the full mandatory matrix.
+- Concurrent main Image, Clerk/D1, billing, legal, mood and approved Upscaler V28 changes are preserved. Product changes in this PR are only Video initialization and the explicitly owner-approved Precision quality choices within the existing Upscaler model dropdown.
+- The prior fresh High Fidelity access conflict is now resolved. Both qualities use existing provider/quote state; newly selecting Precision defaults Standard V2 and History preserves its saved quality. Full scope and evidence: `UPSCALE-WORK-STATE.md`.
+- Local Node 22 unit/release suite: 709/709 passed, including the approved Image safeguards. Upscaler full browser suite: 34 passed; desktop/mobile Upscaler Assets visibility passed. Final exact-head relevant CI and fresh Video results belong in the PR.
+- Current main's V28 empty deck/photo height and retained gallery inset replace obsolete geometry assumptions. No page layout or provider/pricing/database setting was changed to satisfy a test.
+- Earlier CI at `7a4c80b` confirmed seven independent browser suites passed and Reference/Seedance still ran after the now-resolved Upscaler access assertion. This is historical failure evidence, not final-head validation.
+- Earlier Windows Node 24 Dream Blur timing failure was not changed; configured Node 22 suite passes. Browser harnesses use intercepted APIs and synthetic accounts/media; no real authentication, credits, Stripe or paid generation is claimed.
+- Exact cumulative changed files and final passing/failing workflows are listed in draft PR #443. Cloudflare's automatic branch preview is distinct from production; no production publication initiated.
 
 # Customer Video preparation and generation access
 

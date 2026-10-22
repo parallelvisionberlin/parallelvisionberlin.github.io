@@ -688,7 +688,7 @@ function openUpscaleModelMenu(){
   if(tool!=='upscale'||busy||!config.falEnabled)return;
   const menu=$('upscale-model-menu'),trigger=$('upscale-model-trigger');
   menu.hidden=false;trigger.setAttribute('aria-expanded','true');
-  (menu.querySelector('[data-upscale-engine="'+upscaleEngine+'"]')||menu.querySelector('button'))?.focus({preventScroll:true});
+  (menu.querySelector('[data-upscale-quality][aria-checked="true"]')||menu.querySelector('[data-upscale-engine="'+upscaleEngine+'"]')||menu.querySelector('button'))?.focus({preventScroll:true});
 }
 function updateUpscaleModel(){
   // Provider diagnostics are for the verified PV LAB owner, never customer accounts.
@@ -702,6 +702,7 @@ function updateUpscaleModel(){
   $('upscale-model-trigger').setAttribute('aria-label','Choose upscale model, currently '+shown.brand+' '+$('upscale-model-id').textContent);
   $('upscale-model-trigger').disabled=!active||busy||!config.falEnabled;
   for(const item of $('upscale-model-menu').querySelectorAll('[data-upscale-engine]'))item.setAttribute('aria-checked',String(item.dataset.upscaleEngine===upscaleEngine));
+  for(const item of $('upscale-model-menu').querySelectorAll('[data-upscale-quality]'))item.setAttribute('aria-checked',String(upscaleEngine==='topaz-precision'&&item.dataset.upscaleQuality===$('upscale-topaz-model').value));
   for(const option of $('upscale-engine').options)option.disabled=option.value!=='spicy'&&!config.falEnabled;
   if(!active)return;
   $('resolution-control').hidden=fal;$('engine-name').textContent=model.name.toUpperCase()+' · '+model.provider.toUpperCase();
@@ -2713,16 +2714,21 @@ $('upscale-model-trigger').onkeydown=event=>{
   if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();openUpscaleModelMenu();}
 };
 $('upscale-model-menu').addEventListener('click',event=>{
-  const option=event.target.closest('[data-upscale-engine]');
+  const option=event.target.closest('[data-upscale-engine],[data-upscale-quality]');
   if(!option||!$('upscale-model-menu').contains(option)||busy)return;
-  const value=option.dataset.upscaleEngine;
-  if(!UPSCALE_PUBLIC_ENGINES.includes(value))return;
+  const quality=option.dataset.upscaleQuality,value=quality?'topaz-precision':option.dataset.upscaleEngine;
+  if(!UPSCALE_PUBLIC_ENGINES.includes(value)||quality&&!['Standard V2','High Fidelity V3'].includes(quality))return;
   $('upscale-engine').value=value;
   $('upscale-engine').dispatchEvent(new Event('change',{bubbles:true}));
+  if(quality&&$('upscale-topaz-model').value!==quality){
+    $('upscale-topaz-model').value=quality;
+    $('upscale-topaz-model').dispatchEvent(new Event('change',{bubbles:true}));
+  }
   closeUpscaleModelMenu(true);
 });
 $('upscale-model-menu').addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.preventDefault();closeUpscaleModelMenu(true);return;}
+  if(event.key==='Tab'){closeUpscaleModelMenu();return;}
   const choices=[...$('upscale-model-menu').querySelectorAll('button:not(:disabled)')],index=choices.indexOf(document.activeElement);
   if(['ArrowUp','ArrowDown','Home','End'].includes(event.key)){
     event.preventDefault();
@@ -2744,7 +2750,8 @@ $('upscale-engine').onchange=()=>{
   upscaleEngine=value;
   clearUpscalePrice();
   upscalePriceMessage='Model changed. A fresh estimate is checked before upscaling. No job submitted.';
-  if(value==='topaz-precision')$('upscale-info').open=true;
+  // A new engine selection uses Precision's existing default; History restores its saved quality directly.
+  if(value==='topaz-precision')$('upscale-topaz-model').value='Standard V2';
   $('notice').textContent='';$('notice').classList.remove('error');
   update();
 };
