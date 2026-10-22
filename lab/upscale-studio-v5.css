@@ -1099,3 +1099,68 @@
   min-height:350px!important;width:calc(100% - 26px)!important;
  }
 }
+
+
+/* V13: final empty-state polish from the user's second reference image.
+   The real Upload image action and all existing model/credit controls remain active. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-dropzone::before{
+  filter:brightness(.57) contrast(1.19) saturate(.83)!important;
+  background-position:center 53%!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-dropzone::after{
+  background:
+   radial-gradient(ellipse 42% 42% at 49% 51%,rgba(4,3,4,.46),rgba(3,3,4,.12) 80%,transparent),
+   linear-gradient(90deg,rgba(5,4,5,.55),rgba(6,4,5,.24) 56%,rgba(6,4,5,.33)),
+   linear-gradient(0deg,rgba(4,3,4,.43),transparent 42%,rgba(4,3,4,.22))!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-center{
+  border-color:rgba(238,233,230,.59)!important;
+  background:transparent!important;
+  padding:42px 22px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-icon{
+  width:95px!important;height:95px!important;
+  background:rgba(6,5,6,.64)!important;
+  border:1px solid rgba(249,246,244,.64)!important;
+  border-radius:13px!important;
+  margin:0 0 20px!important;
+  display:grid!important;place-items:center!important;
+  color:#faf8f6!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-icon svg{
+  display:none!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-icon::before{
+  content:"+";display:block;color:#f9f6f3;
+  font:200 57px/.95 'DM Sans',Arial,sans-serif;
+  transform:translateY(-3px);
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-center h2{
+  font:400 clamp(32px,2.62vw,45px)/1.15 'DM Sans',Arial,sans-serif!important;
+  letter-spacing:-.046em!important;
+  color:#faf8f6!important;
+  margin-bottom:12px!important;
+  text-shadow:0 2px 12px rgba(0,0,0,.35);
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-center p{
+  color:#e6e0da!important;
+  font:400 clamp(13px,1.08vw,16px)/1.48 'DM Sans',Arial,sans-serif!important;
+  text-shadow:0 1px 10px rgba(0,0,0,.45);
+  margin-bottom:16px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-drop-hint{
+  color:#d3cbc6!important;letter-spacing:.18em!important;
+  font-size:10px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty #pv-upscale-hero-upload{
+  box-shadow:0 2px 14px rgba(0,0,0,.24)!important;
+  border-radius:999px!important;
+}
+@media(max-width:780px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-icon{
+  width:72px!important;height:72px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-icon::before{
+  font-size:45px;
+ }
+}
