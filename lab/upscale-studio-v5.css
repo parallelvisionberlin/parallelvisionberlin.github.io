@@ -1328,3 +1328,43 @@
   linear-gradient(90deg,rgba(4,3,4,.48),rgba(6,4,5,.17) 53%,rgba(5,3,4,.28)),
   linear-gradient(0deg,rgba(4,3,4,.29),transparent 37%,rgba(4,3,4,.18))!important;
 }
+
+
+/* V21: final approved visual mockup refinement, Upscaler presentation only. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+  padding-top:35px!important;gap:18px 12px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+  margin-bottom:10px!important;padding-bottom:23px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+  bottom:40px!important;
+ }
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-dropzone::before{
+ filter:brightness(.62) contrast(1.17) sepia(.11) saturate(1.08)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-dropzone::after{
+ background:
+  radial-gradient(ellipse 36% 42% at 51% 51%,rgba(4,3,4,.36),rgba(5,4,5,.05) 83%,transparent),
+  linear-gradient(90deg,rgba(4,3,4,.45),rgba(6,4,5,.14) 53%,rgba(5,3,4,.29)),
+  linear-gradient(0deg,rgba(4,3,4,.31),transparent 39%,rgba(4,3,4,.23))!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-icon{
+ margin-bottom:23px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-center h2{
+ margin-bottom:17px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-center p{
+ margin-bottom:21px!important;
+}
+@media(max-width:780px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-icon{
+  margin-bottom:14px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-empty-center h2{
+  margin-bottom:11px!important;
+ }
+}
