@@ -75,6 +75,14 @@ try{
 
     assert.equal(await page.locator('#lab-pricing-overlay #pricing button[data-lab-buy][disabled]').count(),0,'Paid actions are available');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-monthly').getAttribute('aria-selected'),'true');
+    const info=page.locator('#lab-pricing-overlay #lab-monthly-plans .lab-estimate-details').first();
+    const hintButton=info.locator('.lab-estimate-toggle');
+    const hint=info.locator('.lab-estimate-popover');
+    await hintButton.click();
+    assert.equal(await hint.isVisible(),true,'First click opens price-estimate explanation');
+    await hintButton.click();
+    assert.equal(await hintButton.getAttribute('aria-expanded'),'false','Second click closes the explanation');
+    assert.equal(await hint.isVisible(),false,'Second click actually hides the popover while pointer remains over it');
     await page.click('#lab-pricing-overlay #lab-tab-onetime');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-onetime').getAttribute('aria-selected'),'true','One-time tab uses original homepage presentation handler');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-one-time-credits').isVisible(),true);
@@ -115,6 +123,28 @@ try{
     await page.close();
   }
   console.log('PASS overlay open/close, monthly and one-time, checkout SKU, focus, draft preservation, desktop and mobile');
+  const touch=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
+  try{
+    const phone=await touch.newPage();
+    await phone.goto('http://127.0.0.1:'+address.port+'/test-overlay.html');
+    await phone.waitForFunction(()=>window.__ready===true);
+    await phone.locator('#upgrade').tap();
+    await phone.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
+    const monthlyHint=phone.locator('#lab-pricing-overlay #lab-monthly-plans .lab-estimate-details').first();
+    const circle=monthlyHint.locator('.lab-estimate-toggle');
+    await circle.tap();
+    assert.equal(await monthlyHint.locator('.lab-estimate-popover').isVisible(),true,'Mobile first tap opens hint');
+    await circle.tap();
+    assert.equal(await circle.getAttribute('aria-expanded'),'false');
+    assert.equal(await monthlyHint.locator('.lab-estimate-popover').isVisible(),false,'Mobile second tap dismisses the hint even with touch hover');
+    await phone.locator('#lab-pricing-overlay #lab-tab-onetime').tap();
+    const packHint=phone.locator('#lab-pricing-overlay #lab-one-time-credits .lab-estimate-details').first();
+    await packHint.locator('.lab-estimate-toggle').tap();
+    assert.equal(await packHint.locator('.lab-estimate-popover').isVisible(),true,'Mobile one-time pack shows its hint');
+    await packHint.locator('.lab-estimate-toggle').tap();
+    assert.equal(await packHint.locator('.lab-estimate-popover').isVisible(),false,'Mobile one-time pack closes on second tap');
+    assert.deepEqual(await phone.evaluate(()=>window.__purchases),[],'Hint taps cannot trigger checkout');
+  }finally{await touch.close();}
   const page=await browser.newPage();
   await page.goto('http://127.0.0.1:'+address.port+'/test-overlay.html');
   await page.waitForFunction(()=>window.__ready===true);

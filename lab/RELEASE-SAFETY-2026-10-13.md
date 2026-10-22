@@ -1,5 +1,12 @@
 # PV LAB release safety audit: 2026-10-13
 
+## Legal identity display change, 2026-10-22
+
+- The owner explicitly requested PV LAB as the sole displayed provider label throughout the public PV LAB Terms, Privacy and Impressum, keeping the already published Berlin postal address and support email. The consumer withdrawal form also uses PV LAB. Other personal and artist site pages are outside scope.
+- IMPORTANT LEGAL GAP: The operator is documented as an individual business, not a registered corporation. § 5 DDG and IHK guidance require a sole proprietor's actual first and last name in Impressum; GDPR Art. 13 requires the controller's name and contact details. **Brand-only disclosures must not be represented as legally compliant.** Have this reviewed with a German lawyer and reinstate required identification or establish a genuinely separate lawful provider structure before relying on this format for paid customer sales.
+- No company registration, new legal entity, or eligibility for anonymity has been verified. Do not alter billing/Stripe identities, tax records, merchant details or other websites on the assumption that PV LAB is a legal entity.
+- This change was owner-directed. Preserve the provider address/email, model withdrawal accessibility, and customer statutory rights. Scope is public legal-page identity display only.
+
 This checkpoint separates **verified configuration**, **source-level checks**, and **external go-live gates**. It is not an unconditional legal or tax certification.
 
 ## Confirmed Stripe settings in the dedicated LIVE PV Lab account

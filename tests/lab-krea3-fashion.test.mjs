@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {compileImagePrompt} from '../lab/reference-guidance.js';
+import {compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT} from '../lab/reference-guidance.js';
 import {imageQualityGuidance} from '../lab/prompt-quality.js';
 import {krea3Parameters,krea3Input,krea3EstimateMicros,krea3Size,KREA3_EDIT,KREA3_TEXT} from '../lab-worker/krea3.mjs';
 import {quoteCustomerImageCredits} from '../lab-worker/customer-image-pricing.mjs';
@@ -12,11 +12,19 @@ const make=(referenceRoles=[],resolution='2k')=>krea3Parameters({
  prompt:'Retain the model and garment',resolution,aspectRatio:'16:9'
 },{fail,referenceRoles});
 
-test('A Base image with an empty direction keeps the person, clothing and pose',()=>{
+test('A Base image with no direction gets a universal, identity-aware reinterpretation',()=>{
  for(const engine of ['seedream','seedreamlite','flash','qwen3','gemini','gemini21','krea3']){
-  const p=compileImagePrompt('',[{role:'base',name:'outfit.png'}],{type:'image',engine,mode:'image',referenceMode:'base'});
-  assert.match(p,/preserv|retain|controlled variation/i);
-  assert.match(p,/wardrobe|clothing|garment/i);
+  const settings={type:'image',engine,mode:'image',referenceMode:'base'};
+  const prompt=compileImagePrompt('',[{role:'base',name:'uploaded-image.png'}],settings);
+  assert.match(prompt,/Create an intentional reinterpretation of the supplied image/);
+  assert.match(prompt,/If people are present, preserve each individual/);
+  assert.match(prompt,/If no people are present, retain the defining characteristics/);
+  assert.match(prompt,/without assuming a location, time of day or specific aesthetic/);
+  assert.match(prompt,/You may change viewpoint, pose, styling, wardrobe, environment and mood/);
+  assert.doesNotMatch(prompt,/Make a subtle, controlled variation/);
+  const actual=compileImagePrompt(AUTO_IMAGE_REINTERPRET_PROMPT,[{role:'base',name:'uploaded-image.png'}],settings);
+  assert.match(actual,/REINTERPRETATION FIDELITY/);
+  assert.doesNotMatch(actual,/Do not change expression, pose, age, outfit or person/);
  }
 });
 
