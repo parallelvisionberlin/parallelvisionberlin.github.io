@@ -2,14 +2,16 @@
 
 
 
-## Upscaler credit notice overlay, 2026-10-22 (validated, publication pending)
+## Upscaler credit notice overlay, 2026-10-22 (completed and live)
 - User reference image(20261022-095442).png: the white zero-credit notice must cover the workspace, without pushing it down or moving it when dismissed. Keep the currently approved Upscaler layout and button position.
 - Verified cause: studio-credits.css scoped its existing top overlay to Video only. Upscaler inherited the generic in-flow banner. Neither current upscale-studio-v5.css nor its JS adds credit-banner spacing.
 - Smallest change: include .upscale-studio-active in that same existing Video overlay selector. Notice remains below the masthead with its existing styling and close action. Image's approved bottom overlay, Video, credits logic, provider calls, auth, Upscaler controls and images are unchanged.
 - Only app files changed: studio-credits.css plus its studio.html cache marker to20261022-upscale-overlay1. No new component or modified business logic.
 - Verified against current main74249f4a535c22b772277fd38f7349a7ce24e7ff assets with a synthetic zero-credit customer,1440x950 and390x950: main/app/workspace/sidebar/stage/Generate rectangles are identical before/after the actual dismiss button. Document height stays1573px desktop and1967px mobile; scroll unchanged. Notice top equals header bottom82px/102px. No POST requests.
 - Existing customer Video browser suite passed all12 scenarios across1440/390px using current main HTML/JS/styles. Approved Image UI contract5/5 passed. Temporary visual measurements retain screenshots; no new permanent test added for this CSS-only change.
-- Source rebased onto829c36e9acfc6fd9ab365e0124880ef57c022c2b, preserving concurrent Upscaler button/cache changes. Deployment and source-byte verification pending.
+- Source18dbd8f1292ccc5551b65884c6ffdeb8de1f80e6, based on829c36e9acfc6fd9ab365e0124880ef57c022c2b, preserves concurrent Upscaler button/cache changes. Cloudflare Pages pvlab-studio check119766957386 succeeded; deployment9b96ed4c-3c9d-46de-a8be-aaad070ccc8a.
+- Existing read-only verifier returned LIVE_VERIFIED for studio-credits.css?v=20261022-upscale-overlay1; SHA-2560f35ce9973736a1a14aef618c58cd8dd3addaa2429c2a185e1bc2ece5b067078. Reviewed CSS bytes are confirmed on the production custom domain.
+- CI approved-image-ui and mobile-review passed. Full Video integration was still installing Browser dependencies at the final check; the unchanged customer Video suite passed all12 local cases. No claim that all CI or real signed-in production behavior was verified.
 - Real signed-in production inspection is not covered by synthetic customer checks.
 
 ## Lock the signed-in Image entrance across accounts, 2026-10-22 (completed and live)
