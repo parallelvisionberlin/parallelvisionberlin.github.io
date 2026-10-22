@@ -218,6 +218,12 @@ const server=http.createServer((req,res)=>{
   await estimateButton.click();
   assert.equal(await estimateButton.getAttribute('aria-expanded'),'true','Click/tap opens estimate popover');
   assert.equal(await estimatePopover.isVisible(),true,'Tapped estimate explanation stays visible');
+  await estimateButton.click();
+  assert.equal(await estimateButton.getAttribute('aria-expanded'),'false','Second click closes the estimate hint');
+  assert.equal(await estimatePopover.isVisible(),false,'Popover stays hidden even while the button remains hovered or focused');
+  await estimateButton.click();
+  assert.equal(await estimateButton.getAttribute('aria-expanded'),'true','Third click opens the estimate hint again');
+  assert.equal(await estimatePopover.isVisible(),true);
   await page.locator('#pricing .lab-plans-kicker').first().click();
   assert.equal(await estimateButton.getAttribute('aria-expanded'),'false','Click outside dismisses estimate popover');
   assert.equal(await estimatePopover.isVisible(),false,'Dismissed explanation stays hidden');

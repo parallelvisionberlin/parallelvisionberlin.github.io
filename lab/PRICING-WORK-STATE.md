@@ -1,3 +1,10 @@
+## Estimate hint toggle, 2026-10-22 (Europe/Berlin)
+- User requested the circled `!` to close its estimate explanation on the second tap on iPhone. Existing outside-tap, Escape, hover, keyboard focus and credit purchases must remain intact.
+- Cause: `pricing-tabs.js` already flips `aria-expanded`, but `pricing.css` kept the tooltip visible through persistent `:hover` / `:focus-within` on touch.
+- Scope: `lab/pricing-tabs.js`, `lab/pricing.css`, the homepage and Studio overlay cache references, and two existing browser tests. Dismissed visual state overrides sticky touch styles, reopens on next tap, and resets on fresh mouse hover or keyboard focus.
+- Browser tests now assert open, second-tap close, and untouched checkout for homepage cards and the Studio modal, including emulated mobile touch for both monthly and one-time credits. No prices, SKUs, layouts, checkout handlers or account code changed.
+- Source/test and Cloudflare publication evidence is tracked in the corresponding scoped pull request; live mobile Safari confirmation remains separate.
+
 # Studio pricing and zero-credit exploration, 2026-10-22
 
 - Objective approved by Alejandro: use the compact plan rows from the homepage reference; allow Mood preparation without a pricing interruption; remove the paused complimentary-generation notice.

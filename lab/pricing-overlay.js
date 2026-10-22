@@ -11,7 +11,7 @@ function addStyle(file){
     .find(link=>link.href.split('?')[0]===href);
   if(existing)return Promise.resolve();
   const link=document.createElement('link');link.rel='stylesheet';
-  link.href=href+(file==='pricing-overlay.css'?'?v=20261022-editorial-rows1':'');
+  link.href=href+(file==='pricing-overlay.css'?'?v=20261022-editorial-rows1':file==='pricing.css'?'?v=20261022-hint-toggle1':'');
   const result=new Promise((resolve,reject)=>{
     link.addEventListener('load',resolve,{once:true});
     link.addEventListener('error',()=>reject(new Error('Pricing design could not load. Try again.')),{once:true});
@@ -66,7 +66,7 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
     surface.replaceChildren(section);
     // The existing homepage pricing tabs implement the same monthly / one-time
     // switch, estimate popovers and keyboard navigation inside this modal.
-    await import('./pricing-tabs.js?v=20261017-editorial-overlay1');
+    await import('./pricing-tabs.js?v=20261022-hint-toggle1');
     for(const button of section.querySelectorAll('button[data-lab-buy]')){
       button.addEventListener('click',()=>void purchase(button));
     }
