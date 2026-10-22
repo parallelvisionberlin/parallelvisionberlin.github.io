@@ -1,6 +1,17 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
 
+
+## Upscaler credit notice overlay, 2026-10-22 (validated, publication pending)
+- User reference image(20261022-095442).png: the white zero-credit notice must cover the workspace, without pushing it down or moving it when dismissed. Keep the currently approved Upscaler layout and button position.
+- Verified cause: studio-credits.css scoped its existing top overlay to Video only. Upscaler inherited the generic in-flow banner. Neither current upscale-studio-v5.css nor its JS adds credit-banner spacing.
+- Smallest change: include .upscale-studio-active in that same existing Video overlay selector. Notice remains below the masthead with its existing styling and close action. Image's approved bottom overlay, Video, credits logic, provider calls, auth, Upscaler controls and images are unchanged.
+- Only app files changed: studio-credits.css plus its studio.html cache marker to20261022-upscale-overlay1. No new component or modified business logic.
+- Verified against current main74249f4a535c22b772277fd38f7349a7ce24e7ff assets with a synthetic zero-credit customer,1440x950 and390x950: main/app/workspace/sidebar/stage/Generate rectangles are identical before/after the actual dismiss button. Document height stays1573px desktop and1967px mobile; scroll unchanged. Notice top equals header bottom82px/102px. No POST requests.
+- Existing customer Video browser suite passed all12 scenarios across1440/390px using current main HTML/JS/styles. Approved Image UI contract5/5 passed. Temporary visual measurements retain screenshots; no new permanent test added for this CSS-only change.
+- Source rebased onto829c36e9acfc6fd9ab365e0124880ef57c022c2b, preserving concurrent Upscaler button/cache changes. Deployment and source-byte verification pending.
+- Real signed-in production inspection is not covered by synthetic customer checks.
+
 ## Lock the signed-in Image entrance across accounts, 2026-10-22 (completed and live)
 - Reference: image(20261022-090847).png is the canonical signed-in design;090855 is the rejected signed-out variant. Keep the approved real Image editor, original artwork and Mood ordering.
 - Cause: public CSS used a different container width,40vh card height,31px carousel gap,47px title and visible card subtitles. The authenticated reference uses a1610px carousel, available-room card sizing,21px gap plus its visually hidden balance row, and43px title. The public background was fixed against the whole viewport rather than the approved gallery frame and1.008 scale.
