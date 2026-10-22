@@ -33,3 +33,43 @@ export async function preparePhotoInput(file,{maxBytes=10*1024*1024}={}){
     throw Error('Could not prepare this photo below '+Math.round(maxBytes/1048576)+' MB. Export a smaller JPEG from Photos.');
   }finally{URL.revokeObjectURL(url);image.removeAttribute('src');if(canvas){canvas.width=0;canvas.height=0;}}
 }
+
+
+/* Upscaler: prepare an oversized camera photo locally, without uploading its
+   oversized original or altering the file in the user's photo library. */
+export async function prepareUpscaleInput(file,{maxBytes=20*1024*1024}={}){
+  if(!file?.size||file.size<=maxBytes)return file;
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type))
+    throw Error('Choose a JPG, PNG or WebP photograph.');
+  const url=URL.createObjectURL(file);
+  const img=new Image();
+  let canvas;
+  try{
+    img.src=url;
+    await img.decode();
+    const width=img.naturalWidth,height=img.naturalHeight;
+    if(!width||!height||width*height>72000000||Math.max(width,height)>16000)
+      throw Error('This photograph exceeds the supported image dimensions.');
+    // Preserve full pixel dimensions whenever possible, reducing JPEG quality
+    // before scaling. Downscale only as a last resort for unusually large input.
+    canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d',{alpha:false});
+    if(!ctx)throw Error('Could not prepare this photograph.');
+    const baseName=(file.name||'photograph').replace(/\.[^.]+$/,'');
+    for(const scale of [1,.9,.8,.7]){
+      canvas.width=Math.max(1,Math.round(width*scale));
+      canvas.height=Math.max(1,Math.round(height*scale));
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      for(const quality of [.94,.88,.82,.74]){
+        const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',quality));
+        if(blob?.size>0&&blob.size<=maxBytes)
+          return new File([blob],baseName+'-upscale-ready.jpg',{type:'image/jpeg',lastModified:file.lastModified});
+      }
+    }
+    throw Error('Could not prepare a working copy under 20 MB. Please export a smaller JPEG.');
+  }finally{
+    URL.revokeObjectURL(url);
+    img.removeAttribute('src');
+    if(canvas){canvas.width=0;canvas.height=0;}
+  }
+}

@@ -1,8 +1,8 @@
 ## Active: PV LAB stabilization Phase 1 — review branch only (2026-10-22)
 
 - Objective: repair stale regression checks and restore fresh Video Start frame initialization; stop at draft PR #443 for review. Do not merge or deploy in this task.
-- Branch: `codex/pvlab-stabilization-phase1`; incorporated main `18dbd8f1292ccc5551b65884c6ffdeb8de1f80e6` through normal branch merges, without history rewriting or force push.
-- Main advances preserved: Image high-resolution validation, Clerk/D1 changes and approved Upscaler V21–V24 styling and its credit-notice overlay. Main's Upscaler CSS, credits CSS, release handoff and HTML remain exact; only the separate Video module cache parameter differs.
+- Branch: `codex/pvlab-stabilization-phase1`; incorporated main `8b110f3f71100d447f9cb9b4aacb8a110dcb0053` through normal branch merges, without history rewriting or force push.
+- Main advances preserved: Image high-resolution validation, Clerk/D1 changes and approved Upscaler V21–V24 styling, its credit-notice overlay and automatic oversized-photo preparation. Main's Upscaler CSS, credits CSS, release handoff and HTML remain exact; only the separate Video module cache parameter differs.
 - Product change: remove the one-time Seedance Start-to-Reference override and initialize the remembered Create mode to Start. Explicit user selections, History and handoff modes remain intact.
 - Only other product file change relative to main: append `videoStartDefault=20261022-1` to the existing Lab module URL, retaining all existing asset revisions.
 - Customer browser assertions verify default Seedance, selected Start frame, visible uploader and zero initial POSTs before any interaction at 1440/390px across six account states.
@@ -25,7 +25,7 @@
 - Browser evidence uses synthetic accounts/media and intercepted uploads, quotes, checkout and jobs. No real customer authentication or provider success is claimed.
 - No real purchase, paid generation, account change, database mutation, Worker change or production setting change.
 - Publication: PR #443 is draft and unmerged; no production deployment was initiated. Cloudflare's automatic branch preview is distinct from production.
-- Final incoming-main reruns: 708/708 Node 22 tests, full Assets and desktop/mobile visibility passed after the V24 spacing and overlay update.
+- Final incoming-main reruns: 708/708 Node 22 tests, customer Video 12/12 and full Assets passed with the new photo-input normalizer; desktop/mobile visibility passed after the V24 spacing and overlay update. The last main change only publishes its cache marker; preserve it exactly.
 - Next action: review the exact PR file list, passing checks and the remaining Upscaler test/design conflict. Resolve that conflict in separately authorized product scope; do not bypass the failing test or merge/deploy here.
 
 # Customer Video preparation and generation access
