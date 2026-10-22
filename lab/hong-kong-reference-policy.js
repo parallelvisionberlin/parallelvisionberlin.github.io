@@ -18,12 +18,14 @@ export function hongKongReferenceError(p={},count=0){
 }
 export function hongKongReferenceGuidance(userCount=0,compact=false){
  const a=userCount+1,b=userCount+2,c=userCount+3;
- const lines=[
-  'HONG KONG NIGHTS BUILT-IN REFERENCES '+a+', '+b+', '+c+': three original photographs, Style only; user Base identity, location, clothing, pose and framing take priority.',
-  'Reference '+a+' [Supervalu / DOMINANT LOOK]: sparse underexposed petrol-green night, deep black space, distant atmospheric haze and rare red lights.',
-  'Reference '+b+' [Diner green-yellow / SECONDARY COLOR]: selective yellow-green and tungsten glow, natural skin, localized halation and deep blacks.',
-  'Reference '+c+' [Foggy wet street / SECONDARY DEPTH]: suspended humidity lit by existing lamps, soft receding distance, wet outdoor reflections only.',
-  'Borrow photographic exposure and air, not people, vehicles, signage, rooms, framing or added neon. Real imperfect 35mm, quiet and restrained; no neon spectacle, CGI gloss, plastic skin, uniform green wash, invented lights or wet interiors.'
- ];
- return compact?lines.join(' ').replace('Real imperfect 35mm, quiet and restrained; ',''):lines.join(' ');
+ if(compact)return 'HONG KONG NIGHTS BUILT-IN REFERENCES '+a+', '+b+', '+c+
+ '. Reference '+a+' [Supervalu / DOMINANT LOOK]: dark green haze.'+
+ ' Reference '+b+' [Diner green-yellow / SECONDARY COLOR]: tungsten-green light.'+
+ ' Reference '+c+' [Foggy wet street / SECONDARY DEPTH]: fog, wet outdoors.'+
+ ' Keep Base; photo optics only. No neon spectacle, CGI or green wash.';
+ return 'HONG KONG NIGHTS BUILT-IN REFERENCES '+a+', '+b+', '+c+
+ '. Reference '+a+' [Supervalu / DOMINANT LOOK]: sparse petrol-black night and distant green haze, rare red.'+
+ ' Reference '+b+' [Diner green-yellow / SECONDARY COLOR]: warm-green tungsten and deep blacks.'+
+ ' Reference '+c+' [Foggy wet street / SECONDARY DEPTH]: humid distance and wet outdoor reflections.'+
+ ' User Base wins; borrow light only. Real low-light film, not neon spectacle, CGI gloss or green wash.';
 }
