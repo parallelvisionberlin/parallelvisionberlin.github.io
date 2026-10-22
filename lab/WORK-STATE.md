@@ -1,5 +1,16 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## One original Image deck and origin, 2026-10-22 (validated, publication pending)
+- Latest explicit requirement: preserve the original Image History deck from image(20261022-081538).png. Only Image entrance and Inspiration minimize it. Compact and expanded states must share the original History top and sides, opening downward. Same presentation for guest/customer/Owner. References also081547 and081649.
+- Baseline main37c8be593893f99edbf56aff69ddae23d977f0cf; publishing on latest248fe4e97d9ed06b53243acb4ebebe947b2161a0, preserving concurrent Upscaler copy/style changes exactly. Expanded History, Inspiration and public entry already shared the same1120x142 surface and tool geometry; Generate eligibility accounts for the enabled/disabled appearance. Authenticated History and Inspiration reuse the same #image-composer element.
+- Actual placement difference: welcome used cards.bottom+24, while History used its bottom30 viewport anchor. Lowering the content24px did not unify those origins. Supersedes the placement recorded below.
+- image-editorial-deck.js now uses one fitDeckOrigin helper for public and authenticated entrances: original empty deck top=viewportHeight-172, reserving142px plus30px bottom clearance even when compact. Expanding74→142 keeps the same top. Long text/photos retain the original History height and bottom clearance.
+- image-editorial-deck.css applies that shared viewport origin and keeps the public auth-status readable beneath it. Existing24px title/card adjustment remains. No surface, controls, copy, billing/auth/provider implementation change.
+- studio.html refreshes only the editorial CSS/JS to20261022-one-origin1.
+- Existing first-image coverage now compares History and expanded Inspiration frame and every control slot directly, verifies the same editor element survives, and checks compact/public/customer/Owner x/y parity. Original long prompt and photo sizing is retained.
+- Passed approved Image contract5/5, prompt-paste and full Studio layout. Full first-image suite passed, including exact shared origin/History assertions, long text, photos and mobile. Local1920x1000 check: History,new entrance and guest all x392.5/y828/width1120. Compact height74; expanded142.
+- Publication pending. Next: complete first-image, publish exact tested bytes, verify Cloudflare and actual production guest compact/open/close. No real production signed-in sessions inspected; role fixtures are synthetic.
+
 ## Lower the approved Image entrance, 2026-10-22 (completed and live)
 - User asked only to lower the entire title/cards/bar group a little, retaining the current compact controls and Owner expanded design. References image(20261022-080815).png and image(20261022-080848).png.
 - Baseline main ca2502cad1a1d4941ab5df6231e54f4e03bbff8a, with app 48b1a99637deb9cd141273b2edb527b83a6f504f already live.
