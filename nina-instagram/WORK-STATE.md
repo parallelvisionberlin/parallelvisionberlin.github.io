@@ -1,6 +1,21 @@
 # Nina Instagram: verified owner-continuity work state
 Updated: 2026-10-22
 
+## Private per-contact continuity (2026-10-22)
+- User explicitly authorized a private briefing and natural warm/reserved conversation style for one exact Instagram handle. Do not save the real handle, name, relationship notes or supplied transcript in GitHub.
+- Source commit 17091423e0b7e1fdc0fb36dd1fc8d4d37a652c38; changed worker.mjs and worker.test.mjs. Revision contact-continuity-2026-10-22.
+- New Instagram-only tables ig_contact_context, ig_contact_history and ig_contact_setup_used keep notes/history out of the public source and isolated by sender ID.
+- Scoped history import uses Meta's accessible recent messages (up to 20), validates sender direction and keeps imported history separate from live ig_messages/reply jobs. Import never queues or sends historical messages.
+- Notes bind to a Meta-returned participant ID or verified API profile username, never a name/identity claim in chat; private owner-vault access is unaffected.
+- Contact-specific optional [NINA_NO_REPLY] output becomes an ignored/canceled turn with no outgoing send or opt-out. A later incoming message can resume normally; the marker is guarded from delivery.
+- Private provisioning uses a temporary single-use 256-bit bearer capability, a public hash, expiry and target-handle hash. Only hashes are in source. Actual briefing and bearer stay outside GitHub and are POSTed directly over HTTPS; response contains operational counts only.
+- Validation: 38 tests passed locally and in CI, including authorization/target/expiry, single-use setup, sender isolation, no private-vault escalation, silence/resumption and history import without old sends.
+- Deployment VERIFIED: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/39698406739, 2026-10-22 02:14 Berlin. Version 358be8f2-8a47-4150-b495-bd54767fc7f0 at 100%; deployment 645c3d0a-1b0c-4ff3-8794-77718b25fc9a. Existing settings/bindings/cron and adaptive pacing retained.
+- Private setup POST returned HTTP 200, saved=true, resolution=pending_meta_lookup, imported=0, historyStatus=not_available. The briefing is stored, but no live target sender-ID binding or historical import has been verified. Do not claim recognition or a real targeted reply is already verified.
+- Pending seed binds on a fresh Meta-provided exact username in the normal profile lookup. It never binds from message text or a claimed name.
+- The plaintext setup payload/bearer file was removed from scratch after confirmed save. No real contact details, briefing or transcript are in this checkpoint or committed source.
+- Exact next action: after a new incoming message from the intended contact, verify ig_contact_context.instagram_user_id becomes populated and a generated reply uses only that contact's briefing. If profile metadata remains unavailable, diagnose Meta lookup permissions/shape before changing identity rules. Prior historical import remains incomplete.
+
 ## Corrected Spanish preference: neutral Latin American tuteo (2026-10-22)
 - Supersedes the prior Argentine-voseo preference. User explicitly clarified tú/tienes/quieres/cuéntame, with a light Mexican influence from Nina's time living in Mexico.
 - Source commit 6014407d76d549b222eaf87e5c376187be7551fb; files worker.mjs, worker.test.mjs, voice-transcription-runtime.js.
