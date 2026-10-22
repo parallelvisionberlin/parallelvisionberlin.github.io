@@ -67,7 +67,20 @@ const sound=Buffer.alloc(44+8000*3*2);sound.write('RIFF');sound.writeUInt32LE(so
 const choose=async(x,mode='start')=>{await x.page.click('#tool-video');await x.page.selectOption('#video-engine','seedance');await x.page.click('#mode-'+mode);await x.page.fill('#prompt','A ceramic sculpture under soft daylight. The camera moves slowly.');};
 const still=async(x,id='image')=>{await x.page.locator('#'+id).setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);};
 try{
- let x=await workspace();await choose(x);
+ let x=await workspace();
+ await x.page.click('#tool-video');
+ assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');
+ assert.equal(await x.page.locator('#mode-start').getAttribute('aria-selected'),'true',
+   'First Video entry must open Seedance Start frame without requiring an uploaded photo');
+ assert.equal(await x.page.locator('#start-mode').isVisible(),true);
+ assert.equal(await x.page.locator('#reference-mode').isVisible(),false);
+ await x.page.click('#mode-reference');
+ await x.page.click('#video-create-task');
+ assert.equal(await x.page.locator('#mode-reference').getAttribute('aria-selected'),'true',
+   'Create remembers a deliberate Reference set selection');
+ await x.page.click('#mode-start');
+ ok('Fresh Video entry defaults to Start frame; explicit Reference set remains available');
+ await choose(x);
  assert.equal(await x.page.locator('#resolution').inputValue(),'720p');assert.equal(await x.page.locator('#duration').inputValue(),'5');assert.equal(await x.page.locator('#ratio').isVisible(),false);await still(x);await still(x,'last-image');
  await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(count(x,'/api/jobs'),0);assert.match(await x.page.locator('#quote-settings').innerText(),/Seedance 2.5/);
  const quote=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(quote.settings.engine,'seedance');assert.equal(quote.settings.mode,'start');assert.ok(quote.sourceId);assert.ok(quote.lastSourceId);
