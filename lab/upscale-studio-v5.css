@@ -1300,3 +1300,31 @@
   letter-spacing:-.02em!important;
  }
 }
+
+
+/* V20: restrained final polish. Upscaler only, preserve active controls. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+   bottom:46px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate:disabled{
+   background:#414043!important;
+   border:1px solid rgba(255,255,255,.12)!important;
+   color:#bcb7b9!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+   padding-bottom:124px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+   margin-bottom:14px!important;
+ }
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-dropzone::before{
+ filter:brightness(.64) contrast(1.24) sepia(.13) saturate(1.13)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas #empty .pv-upscale-dropzone::after{
+ background:
+  radial-gradient(ellipse 37% 46% at 51% 51%,rgba(3,3,4,.36),rgba(5,4,5,.07) 83%,transparent),
+  linear-gradient(90deg,rgba(4,3,4,.48),rgba(6,4,5,.17) 53%,rgba(5,3,4,.28)),
+  linear-gradient(0deg,rgba(4,3,4,.29),transparent 37%,rgba(4,3,4,.18))!important;
+}
