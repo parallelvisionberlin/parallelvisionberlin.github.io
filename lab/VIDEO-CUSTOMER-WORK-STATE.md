@@ -18,10 +18,13 @@
 - Both repaired public domain smoke blocks passed as GET-only checks of the existing site; this does not publish or verify the candidate Video fix in production.
 - Full local Node 24 suite before main refresh: 703/704 passed. The remaining pre-existing Dream Blur `setImmediate` timing test fails on Windows; no implementation or assertion was weakened to hide it.
 - Full Assets browser suite passed after materializing its existing image/video fixtures in the sparse checkout.
-- Main advanced again during branch publication: incorporated high-resolution Image fix `a4ad9c7` with a normal merge, retaining its validator, tests and primary cache token. Added only the separate Video cache parameter. Full unit, customer Video and shared layout reruns passed; final Image upload/role reruns continue before the review handoff.
-- Remaining validation: PR CI. All local independent browser suites completed; do not infer real signed-in production behavior or paid-provider success from these mocks.
+- Main advanced again during branch publication: incorporated high-resolution Image fix `a4ad9c7` with a normal merge, retaining its validator, tests and primary cache token. Added only the separate Video cache parameter. Full unit, customer Video and shared layout reruns passed; final Image one-click (53) and first-image four-role reruns also passed.
+- PR #443 is draft and review-only. CI at `a5c6cd8` passed Video (all eight browser steps), private Lab, approved Image, references, Explore, Assets, first-image and domain smoke. The pricing overlay job also passed.
+- CI also exposed stale `lab-upscale-assets-visibility.mjs` assertions. Updated only that test to the existing empty/loaded source visibility, exact copy/artwork, flush desktop edge and explicit responsive heights; product CSS/JS are unchanged. Mobile passes its full isolated assertion set.
+- Remaining failure: corrected desktop visibility harness reaches a blocked More options collapse after toggling mocked owner diagnostics. Upscale moves from y=761..811 to y=492..542, covering the summary at y=503.5..525.5. Ordinary Playwright click still fails; no force click or skipped assertion. A screenshot is now captured before collapse for the existing CI artifact. This reproduces in a mocked state using unchanged Upscaler HTML/CSS; real-account production impact is unverified and design repair is outside Phase 1.
+- The follow-up changes only the stale visibility test and this checkpoint. Relevant CI must report the remaining failure; do not infer real signed-in production behavior or paid-provider success from mocks.
 - Safety: synthetic accounts/media and intercepted provider/checkout requests only. No real purchase, paid generation, account change, database mutation or production setting change.
-- Publication: PR is not merged; candidate is not deployed to production. Next action: review the scoped PR and outstanding test evidence; do not merge or deploy in this task.
+- Publication: PR is not merged; candidate is not deployed to production. Next action: review draft PR #443, passing Phase 1 checks and the remaining desktop visibility failure; authorize a separate Upscaler layout repair if needed. Do not merge or deploy in this task.
 
 # Customer Video preparation and generation access
 
