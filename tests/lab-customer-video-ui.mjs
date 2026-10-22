@@ -42,6 +42,30 @@ try{
   });
   await page.goto(`http://127.0.0.1:4197/lab/studio.html?tool=video&scenario=${scenario}`);
   await page.waitForFunction(()=>window.__videoCustomerTest);
+  await page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-video-approved-ready'));
+  await page.waitForFunction(()=>getComputedStyle(document.getElementById('generate')).backgroundColor==='rgb(255, 255, 255)');
+  if(['trial','zero'].includes(scenario)){
+   const geometry=()=>page.evaluate(()=>Object.fromEntries(['.workspace.video-layout','.controls','.stage','#generate'].map(selector=>{
+    const r=document.querySelector(selector).getBoundingClientRect();return [selector,{x:r.x,y:r.y,width:r.width,height:r.height}];
+   })));
+   const before=await geometry();
+   const banner=await page.locator('#lab-credit-banner').evaluate(el=>{
+    const r=el.getBoundingClientRect(),h=document.getElementById('studio-header').getBoundingClientRect();
+    return {position:getComputedStyle(el).position,top:r.top,headerBottom:h.bottom};
+   });
+   assert.equal(banner.position,'absolute','Credit notice overlays Video rather than taking layout space');
+   assert.ok(Math.abs(banner.top-banner.headerBottom)<2,'Notice begins immediately below the masthead');
+   const initial=await page.locator('#generate').evaluate(el=>({background:getComputedStyle(el).backgroundColor,opacity:getComputedStyle(el).opacity,disabled:el.disabled}));
+   assert.equal(initial.background,'rgb(255, 255, 255)');assert.equal(initial.opacity,'1');assert.equal(initial.disabled,true,'White does not enable incomplete generation');
+   await page.screenshot({path:`test-results/video-overlay-visible-${width}-${scenario}.png`});
+   await page.click('#lab-credit-banner-dismiss');
+   assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
+   const after=await geometry();
+   for(const selector of Object.keys(before))for(const key of ['x','y','width','height'])
+    assert.ok(Math.abs(before[selector][key]-after[selector][key])<1,selector+' '+key+' must stay fixed when the notice closes');
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'No horizontal overflow');
+  }
+
   await page.click('#video-model-trigger');
   const model=page.locator('.pv-video-model-item[data-model="seedance"]');
   assert.equal(await model.isEnabled(),true,'Account eligibility must not prevent draft model selection');
@@ -58,6 +82,10 @@ try{
   }
   if(['trial','zero'].includes(scenario)){
    assert.equal(await page.locator('#generate').isEnabled(),true);
+   await page.waitForFunction(()=>{const s=getComputedStyle(document.getElementById('generate'));return s.backgroundColor==='rgb(255, 255, 255)'&&s.color==='rgb(24, 27, 32)';});
+   assert.equal(await page.locator('#generate').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)','Ready Generate is white');
+   assert.equal(await page.locator('#generate').evaluate(el=>getComputedStyle(el).color),'rgb(24, 27, 32)','Ready Generate has dark text');
+   await page.screenshot({path:`test-results/video-white-generate-ready-${width}-${scenario}.png`});
    await page.click('#generate');
    await page.waitForFunction(()=>document.querySelector('#lab-pricing-overlay').open);
    assert.equal(await page.locator('#prompt').inputValue(),prompt);

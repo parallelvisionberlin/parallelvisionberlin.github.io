@@ -42,7 +42,7 @@ test('selected references remain editable and previews remain authentic',()=>{
 });
 
 test('white Generate remains priced/disabled by original generation flow',()=>{
-  assert.match(css,/background:linear-gradient\(180deg,#fcfcfd 0%,#e6e8eb 96%\)!important/);
+  assert.match(css,/background:#fff!important/);
   assert.match(css,/generate:disabled/);
   assert.doesNotMatch(editor,/\/api\/jobs|\/api\/quotes|fetch\s*\(|submitQuotedGeneration/);
   assert.doesNotThrow(()=>new Function(editor));
