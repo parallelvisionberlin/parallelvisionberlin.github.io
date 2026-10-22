@@ -100,7 +100,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       assert.ok(Math.abs(geometry.canvas.height-Math.max(690,Math.min(height-77,1050)))<=2,'Desktop empty preview retains its full-screen viewport height');
       assert.ok(geometry.results.top>=geometry.canvas.bottom,'Upscaled results follow the preview');
       assert.ok(geometry.results.left>=geometry.canvas.left-5,'Results align with the image stage, not the sidebar');
-      assert.ok(geometry.options.left>=geometry.deck.left&&geometry.options.right<=geometry.deck.right,'More options stays inside the left deck');
+      assert.equal(await page.locator('#upscale-info').isVisible(),false,'Approved main hides the advanced technical disclosure');
       const galleryPeek=await page.evaluate(()=>{
         const archive=document.querySelector('#app>.archive').getBoundingClientRect();
         const card=document.querySelector('#history .card').getBoundingClientRect();
@@ -191,16 +191,16 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       el.classList.add('has-image');el.setAttribute('aria-busy','false');el.querySelector('img').classList.remove('history-asset-loading');
     });
     assert.equal(await page.locator('#history .history-media').evaluate(el=>getComputedStyle(el,'::before').animationName),'none','Shimmer ends when the image loads');
-    assert.equal(await page.locator('#upscale-price').isVisible(),false,'Optional pricing is initially hidden');
-    await page.locator('#upscale-info summary').click();
-    assert.equal(await page.locator('#upscale-price').isVisible(),true,'More options exposes live price check');
-    assert.equal(await page.locator('#upscale-technical-summary').isVisible(),false,'Customer More options must not show provider diagnostics');
+    // Main's approved V22/V23 presentation hides this disclosure for every role.
+    // Keep price-confirmation and paid-request coverage in lab-upscale-ui.mjs unchanged.
+    assert.equal(await page.locator('#upscale-info').isVisible(),false,'Technical disclosure stays hidden in the current approved inspector');
+    assert.equal(await page.locator('#upscale-price').isVisible(),false,'Hidden disclosure does not expose the standalone price checker');
+    assert.equal(await page.locator('#upscale-technical-summary').isVisible(),false,'Customer view does not expose provider diagnostics');
     await page.evaluate(()=>{for(const diagnostic of document.querySelectorAll('#upscale-info [data-upscale-owner-only]'))diagnostic.hidden=false;});
-    assert.equal(await page.locator('#upscale-technical-summary').isVisible(),true,'Verified owner can inspect provider diagnostics');
+    assert.equal(await page.locator('#upscale-technical-summary').isVisible(),false,'Approved inspector also keeps owner diagnostics visually hidden');
     await page.evaluate(()=>{for(const diagnostic of document.querySelectorAll('#upscale-info [data-upscale-owner-only]'))diagnostic.hidden=true;});
     await page.screenshot({path:'test-results/upscaler-options-'+profile+'.png',fullPage:true});
-    await page.locator('#upscale-info summary').click();
-    assert.equal(await page.locator('#upscale-price').isVisible(),false,'More options can collapse');
+    assert.equal(await page.locator('#upscale-info summary').isVisible(),false,'Removed More options is not an interactive customer control');
     assert.equal(await page.locator('.archive').isVisible(),true,profile+': Upscaler shows its results');
     assert.equal(await page.locator('.card').isVisible(),true,profile+': Upscaled result is visible beneath deck');
     await page.screenshot({path:'test-results/upscaler-results-'+profile+'.png',fullPage:true});
