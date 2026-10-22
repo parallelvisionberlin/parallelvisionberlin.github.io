@@ -2,6 +2,9 @@
 import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js';
 import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js';
 export {referenceRoleAdvisories};
+// Universal fallback for Base photos with no typed prompt and no Mood.
+// This is art direction, not upscaling or a lock on the original composition.
+export const AUTO_IMAGE_REINTERPRET_PROMPT = "Create an intentional reinterpretation of the supplied image, making it more compelling through clear art direction and a visibly different result. Respond to what is actually depicted; choose suitable framing, composition, lighting, color, atmosphere and detail without assuming a location, time of day or specific aesthetic. If people are present, preserve each individual as the same recognizable person, including distinctive facial features, skin tone, apparent age and defining physical traits; do not swap, merge or generically beautify identities. If no people are present, retain the defining characteristics of the main subject or object. You may change viewpoint, pose, styling, wardrobe, environment and mood where that meaningfully improves the result, while keeping the central subject and idea coherent. Honor explicitly assigned reference roles and user directions. Keep anatomy, optics, physical detail and textures convincing wherever relevant. Avoid generic AI gloss, artificial over-sharpening, unrelated subjects and sloppy reconstruction. Deliver a purposeful reinterpretation, not a near-identical copy.";
 export const REFERENCE_ROLES = Object.freeze([
   ['none','General reference'],['base','Base image'],['identity','Identity'],
   ['pose','Pose only'],['body','Body'],['composition','Composition'],['detail','Detail'],
@@ -167,7 +170,7 @@ function compileUserImagePrompt(direction,labels=[]){
   if(!hasBase)return ['REFERENCE MAP (same order as the attached images). Create a new image, not an edit of any one reference. There is no base image. Image order does not assign priority or composition. Honor each explicitly assigned property; treat General references as optional visual guidance only where relevant to the request. Identity defines facial features; Body defines physique and proportions, not pose. Compose the new scene, pose, clothing, framing and lighting according to the prompt unless a reference is explicitly assigned that property. Keep one consistent subject when the references show the same person.',...elementReferenceInstructions(labels),'REQUESTED IMAGE: '+(prompt||'Create one cohesive new image inspired by the supplied photographs. Use their relevant details and aesthetics as visual guidance, preserving any consistently depicted person when applicable. Compose the new scene independently.')].join('\n');
   const rules='REFERENCE MAP (same order as the attached images). Respect explicitly assigned properties. General references supply only cues relevant to the request; the Base supplies everything else; other roles change only their assigned property. A separate Pose role changes posture only. Identity references define the person; detail, clothing and object references do not replace that identity. Match the final lighting consistently. Follow explicit requested changes.';
   const hasExplicitRoles=labels.slice(1).some(ref=>ref.role&&ref.role!=='none'&&ref.role!=='base');
-  const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image, preserving everything else.':'Make a subtle, controlled variation of the Base image. Preserve the recognizable subject, body proportions, facial identity, pose, wardrobe, garment coverage, scene, light direction and camera perspective. Never undress the person or arbitrarily reshape their body or outfit. Match the original visual medium, with natural fabric tension and believable anatomy when photographic. Do not impose a different art style.';
+  const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image, preserving everything else.':AUTO_IMAGE_REINTERPRET_PROMPT;
   return [rules,...elementReferenceInstructions(labels),'REQUESTED IMAGE: '+(prompt||defaultDirection)].join('\n');
 }
 
@@ -181,6 +184,6 @@ function compileCompactUserImagePrompt(direction,labels=[]){
   }
   const rules='REFERENCE MAP (attached image order). Base supplies everything else. Each supporting role changes only its named property: Identity sets the face, Body sets proportions, Pose sets posture. General references are optional cues. Respect explicit user edits and match the final perspective and light.';
   const hasExplicitRoles=labels.slice(1).some(ref=>ref.role&&ref.role!=='none'&&ref.role!=='base');
-  const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image; preserve everything else.':'Make a subtle, controlled variation of the Base image. Retain the subject identity, body, pose, wardrobe, garment coverage, camera and scene. Maintain its original medium and borrow only explicitly relevant reference cues.';
+  const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image; preserve everything else.':AUTO_IMAGE_REINTERPRET_PROMPT;
   return [rules,...elementReferenceInstructions(labels,true),'REQUESTED IMAGE: '+(prompt||defaultDirection)].join('\n');
 }
