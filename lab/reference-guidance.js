@@ -141,12 +141,17 @@ export function compileImagePrompt(direction,labels=[],settings={}){
   const compact=Boolean(settings?.moodId&&
     (hongKongReferenceCount(settings)||(settings.referenceMode!=='references'&&roles.some(ref=>ref.role==='base'))||curatedDreamBlurStyles||curatedFisheyeStyles));
   const original=compact?compileCompactUserImagePrompt(direction,labels):compileUserImagePrompt(direction,labels);
-  const hkGuidance=hongKongReferenceCount(settings)?hongKongReferenceGuidance(labels.length,settings.engine==='seedreamlite'):'';
+  let hkGuidance=hongKongReferenceCount(settings)?hongKongReferenceGuidance(labels.length,settings.engine==='seedreamlite'):'';
   const quality=imageQualityGuidance(direction,labels,settings,original.length+hkGuidance.length);
   const prompt=quality?[original,quality].filter(Boolean).join('\n\n'):original;
   const count=builtInMoodReferenceCount(settings);
   if(!count)return prompt;
-  if(settings.moodId==='hong-kong-nights')return [prompt,hkGuidance].filter(Boolean).join('\n\n');
+  if(settings.moodId==='hong-kong-nights'){
+    const limit=settings.engine==='seedreamlite'?3000:5000;
+    if([prompt,hkGuidance].filter(Boolean).join('\n\n').length>limit)
+      hkGuidance=hongKongReferenceGuidance(labels.length,true);
+    return [prompt,hkGuidance].filter(Boolean).join('\n\n');
+  }
   const numbers=Array.from({length:count},(_,i)=>labels.length+i+1).join(', ');
   const source=labels.some(r=>r.role==='base')
     ?'The user Base controls identity, body, pose, subject count, framing and location; honor explicitly requested changes.'
