@@ -1,13 +1,17 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
-## Restore original signed-out navigation, 2026-10-22 (validated, publication pending)
+## Restore original signed-out navigation, 2026-10-22 (completed and live)
 - User reported missing upper navigation in signed-out Studio and explicitly requested the existing bar, with no replacement system. Also requested removal of "Sign in to your PV Lab workspace" below the deck. References image(20261022-084146).png and084154.
 - Verified cause: assets.css contained body:has(#app[hidden])>#studio-header .tool-switch{display:none}. Both screenshots depict guest access: the homepage's person icon is its Sign in action, and Get credits is its guest label. No evidence of lost authentication or an account deletion regression in these screenshots.
 - Removed only that obsolete menu-hiding rule. Existing header markup, guest tool-route handlers and authentication gates remain. Private Assets and Queue stay gated; no alternative navigation component or account implementation was introduced.
 - studio-guest-image.css keeps both existing navigation rows in its compact mobile header (78px, matching authenticated Image), with enough scroll margin to expose the whole prompt after a Mood selection. Hide only an empty status paragraph; actual error messages still appear.
 - lab.js clears the default signed-out status sentence; studio.html starts the status paragraph empty and refreshes only affected assets to20261022-guest-navigation1. Deck presentation, provider/billing logic, references, Moods and account recovery are unchanged.
 - Passed: approved Image contract5/5; account-link unit checks9/9; full masthead test at twelve widths plus explicit guest1440/390/320 cases; full guest mobile Mood-entry/browser test including existing Video→Image navigation, retained deck frame, no forced login, no private workspace exposure and empty default status.
-- Baseline main e60ad9542cc1c25ca349b29f7864c04c6128420d. Publication pending; next publish exact selected bytes, verify Cloudflare and production signed-out menu/navigation plus no default status. Actual customer/Owner or recreated-account sessions have not been inspected.
+- Baseline main e60ad9542cc1c25ca349b29f7864c04c6128420d, published over1fbb9d7ed609a1aba64032cf8409f5502dfcfd31 while preserving the concurrent footer/account-menu wordmark cache updates.
+- Published source930d55a052269f0c56f5f030cdc82fccc1e90eed. Cloudflare Pages pvlab-studio check119731997472 succeeded; deployment4d81eed9-e340-467b-bc8c-7fd55c344a78. Existing read-only verifier returned LIVE_VERIFIED for assets.css, studio-guest-image.css and lab.js at20261022-guest-navigation1. Their reviewed bytes match production.
+- Actual production guest browser1363x936: original Image/Video/Upscaler/Retouch/Fashion/Explore Moods navigation visible; status empty and displaynone; private app remains hidden. Video opens its existing public Video screen without forcing sign-in, and Image returns to the unchanged compact deck x114/y764/1120x74. No horizontal overflow. Screenshot pvlab-original-menu-restored-930d55a.jpg.
+- CI approved-image-ui, masthead and first-image passed. Mobile review was still running at final check; full local mobile Mood-entry suite passed. No claim of full CI green or actual signed-in customer/Owner/recreated-account sessions inspected.
+- Completed. Existing upper bar restored for signed-out visitors; default status sentence removed. No new navigation system or deck redesign.
 
 ## One original Image deck and origin, 2026-10-22 (completed and live)
 - Latest explicit requirement: preserve the original Image History deck from image(20261022-081538).png. Only Image entrance and Inspiration minimize it. Compact and expanded states must share the original History top and sides, opening downward. Same presentation for guest/customer/Owner. References also081547 and081649.
