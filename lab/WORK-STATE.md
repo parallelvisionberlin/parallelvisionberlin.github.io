@@ -7,6 +7,17 @@
 - Account-review/closed/unavailable messages and generation eligibility are retained.
 - Verification: 17 approved Image/Video contract checks passed; customer Video browser checks cover desktop/mobile pricing, preserved drafts, no paid requests and existing account restrictions. Publication/live verification pending.
 
+## Studio wordmark and Owner deck comparison, 2026-10-22 (Europe/Berlin)
+- User supplied five screenshots (234106, 234114, 234203, 234230 and 235008) and prefers the Owner History composer in image 4. The Higgsfield reference is image 3.
+- Verified cause of deck difference: image-deck-surface.css applies its shared grid only to the welcome/card state and guest composer; History retains its separate existing layout. Recommendation: use Owner as the canonical expanded design while preserving compact entry, fixed width/top/sides and downward opening. This turn changes the logo only; the deck recommendation is not implemented.
+- Source: `50aa1d40c4ac0378aa0d67b48efe04a4ef5a098f`, based on main `8f451471f26975052a388753978b14f08a0b8b59`. Preserved concurrent editorial pricing and quiet Video History changes exactly.
+- Files: lab/studio.html, lab/public-header.css, tests/lab-mood-nav-browser.mjs. Studio now uses the same approved outlined SVG as the homepage for the common guest/customer/Owner header. Reset only the nested logo label's legacy styling to preserve the original footprint and mobile visibility.
+- Verification: approved Image contract 5/5 and full existing shared masthead browser test at twelve breakpoints passed. Owner/customer header controls are local fixtures, not real signed-in production sessions. The SVG decodes and stays visible on mobile.
+- Published: Cloudflare Pages `pvlab-studio` succeeded for source `50aa1d4`, check `119556802383`, deployment `f6d513b2-2724-4d26-a33c-38545a966b23`. The existing read-only verifier returned LIVE_VERIFIED for public-header.css?v=20261022-studio-wordmark1, SHA-256 `eff4e0af3c395d1690c0bc0191ccc1cf9cc366c69067b04b1ed1b66912acc65f`.
+- Actual production browser at https://pvlab.studio/studio?tool=image, signed out, 1363x936: new shared logo decoded from the approved SVG, displayed 64.02x20.17px, expected stylesheet version and no horizontal overflow. Real customer/Owner sessions and physical mobile devices were not inspected.
+- CI masthead `119555567122` and approved Image contract `119555562963` passed. Full CI is not green: queue-smoke could not install Chromium because its CDN certificate/download failed, and Assets still fails the previously recorded Upscaler import assertion at tests/lab-assets-ui.cjs:281. No deck, billing, account or provider behavior changed by this release.
+- Next deck action: use the Owner History screenshot as the reference for a shared expanded geometry, preserving compact entry and downward-only opening; this remains a recommendation for the user, not a published deck change.
+
 ## Quiet Video History empty state, 2026-10-22 (Europe/Berlin)
 - Source main: `01663853cdbc07c37dde56c719130e4a56f92686`.
 - User approved “Your videos will appear here.” below History, 12px, normal weight and muted grey.
@@ -30,7 +41,7 @@
 - Published source: `d3763cd4447f1770ed119f8d6fdb10ec2573841a`. Cloudflare Pages `pvlab-studio` succeeded, check `119551817721`, deployment `e33d66db-3430-408e-8c35-7d55af54f88e`.
 - Production verification returned LIVE_VERIFIED using the existing read-only verifier with its HTML request explicitly scoped to the homepage. CSS SHA-256: `3f1a49531ef01e658be257e35c78344a6b069c13f2cb239b50dbcdc13eb87030`; outlined SVG SHA-256: `d18b296987adca0e46c70fa0dac332a72d3568576e3dd4c2e69a57d944a43db0`. SVG returned HTTP 200 and image/svg+xml, exactly matching reviewed source bytes.
 - Actual production browser, signed out at 1363x936: both vector logos decoded, correct stylesheet version, no horizontal overflow and the Fashion. Reimagined. headline preserved. Real signed-in production sessions and mobile devices were not inspected for this logo change.
-- CI's full landing test reached its unrelated guest-deck assertion and found an outdated expected order. Updated only that assertion to the previously approved card swap (chrome-couture fifth, hong-kong-nights sixth, dreamcore seventh); no deck implementation changed. Full-suite rerun remains pending.
+- CI's full landing test reached its unrelated guest-deck assertion and found an outdated expected order. Updated only that assertion to the previously approved card swap (chrome-couture fifth, hong-kong-nights sixth, dreamcore seventh); no deck implementation changed. Both landing jobs and the approved Image contract passed on follow-up commit `01663853cdbc07c37dde56c719130e4a56f92686`; its Cloudflare deployment also succeeded.
 - Other CI failures were the existing Assets Upscaler import assertion at tests/lab-assets-ui.cjs:281 and a live Generate/Exact freshness check that ran before Cloudflare completed. These are not a full green CI result, and no paid/account flow was tested here.
 
 ## Mobile homepage hero visibility, 2026-10-22 (Europe/Berlin)
