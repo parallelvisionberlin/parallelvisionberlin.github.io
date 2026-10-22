@@ -32,20 +32,51 @@ export function voucherLink(env,code,origin=''){
   return link.href;
 }
 
+// Keep database error reporting private and finite. Never persist D1 error text:
+// it can contain query parameters, identifiers or other customer information.
+const CLERK_STORAGE_STAGES=['closure_read','identity_read','contact_read','contact_write','welcome_grant','unknown'];
+const CLERK_STORAGE_KINDS=['temporary','schema','constraint','unknown'];
+function clerkStorageKind(error){
+  const message=String(error?.message||'');
+  if(/SQLITE_BUSY|SQLITE_LOCKED|database (?:is )?(?:locked|busy)|timed? out|temporar(?:y|ily)|D1_ERROR.*unavailable/i.test(message))
+    return 'temporary';
+  if(/no such (?:table|column)|has no column named|SQLITE_SCHEMA|schema has changed/i.test(message))
+    return 'schema';
+  if(/SQLITE_CONSTRAINT|constraint failed/i.test(message))return 'constraint';
+  return 'unknown';
+}
+async function clerkStorage(stage,action){
+  for(let attempt=0;attempt<2;attempt++){
+    try{return await action();}
+    catch(cause){
+      const kind=clerkStorageKind(cause);
+      // Contact UPSERTs and welcome claims are idempotent. Retry only known
+      // transient D1 errors once; never retry a broken schema or constraint.
+      if(kind==='temporary'&&attempt===0){
+        await new Promise(resolve=>setTimeout(resolve,120));
+        continue;
+      }
+      const error=new Error('Clerk storage operation failed.');
+      error.clerkSyncStage=stage;
+      error.clerkSyncKind=kind;
+      throw error;
+    }
+  }
+}
 // Clerk is authoritative for verified account email. Never accept an email claimed by the browser.
 // Provide safe status information for owner-initiated diagnostics without returning Clerk data.
 async function clerkEmailStatus(env,subject,force=false){
   if(!/^user_[A-Za-z0-9]+$/.test(subject))return 'invalid_subject';
-  if(await one(env,'SELECT 1 AS closed FROM lab_account_closures WHERE customer_id=?',subject))return 'closed';
+  if(await clerkStorage('closure_read',()=>one(env,'SELECT 1 AS closed FROM lab_account_closures WHERE customer_id=?',subject)))return 'closed';
   // Verified new Clerk identity maps to an internal D1 wallet ID; never infer identity by email.
   const link=subject.startsWith('user_PvLabV2')
-    ?await one(env,"SELECT new_subject FROM lab_clerk_identity_links WHERE canonical_id=? AND kind='customer'",subject)
+    ?await clerkStorage('identity_read',()=>one(env,"SELECT new_subject FROM lab_clerk_identity_links WHERE canonical_id=? AND kind='customer'",subject))
     :null;
   const studio=!!link&&subject==='user_PvLabV2'+link.new_subject.slice(5);
   const realSubject=studio?link.new_subject:subject;
   const secret=studio?env.LAB_CLERK_V2_SECRET_KEY:(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY);
   if(!secret)return 'missing_key';
-  const contact=await one(env,'SELECT email,synced_at FROM lab_customer_contacts WHERE customer_id=?',subject);
+  const contact=await clerkStorage('contact_read',()=>one(env,'SELECT email,synced_at FROM lab_customer_contacts WHERE customer_id=?',subject));
   const ttl=contact?.email?86400000:5*60000; // Newly verified users can receive their welcome grant promptly.
   if(!force&&contact?.synced_at&&Date.now()-contact.synced_at<ttl)return 'cached';
   let response;
@@ -70,18 +101,18 @@ async function clerkEmailStatus(env,subject,force=false){
   const t=Date.now();
   // If closure was accepted while the Clerk GET was in flight, never recreate
   // a deleted email or its verified status.
-  await run(env,`INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at)
+  await clerkStorage('contact_write',()=>run(env,`INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at)
     SELECT ?,?,?,? WHERE NOT EXISTS
       (SELECT 1 FROM lab_account_closures WHERE customer_id=?)
     ON CONFLICT(customer_id) DO UPDATE SET
       email=excluded.email,verified_at=excluded.verified_at,synced_at=excluded.synced_at
     WHERE NOT EXISTS(SELECT 1 FROM lab_account_closures WHERE customer_id=excluded.customer_id)`,
-    subject,email,email?t:null,t,subject);
+    subject,email,email?t:null,t,subject));
   return email?'verified':'unverified';
 }
 export async function syncCustomerEmail(env,subject,options={}){
   const status=await clerkEmailStatus(env,subject,!!options.force);
-  if(status==='verified'||status==='cached')await grantVerifiedWelcome(env,subject);
+  if(status==='verified'||status==='cached')await clerkStorage('welcome_grant',()=>grantVerifiedWelcome(env,subject));
   return options.details?{status}:['verified','unverified','cached'].includes(status);
 }
 
@@ -90,7 +121,7 @@ export async function syncCustomerEmail(env,subject,options={}){
 const CLERK_STATUS_NAMES=['verified','unverified','invalid_key','missing_user','rate_limited',
   'network_error','upstream_error','invalid_response','missing_key','invalid_subject','cached','storage_error'];
 const CLERK_CRON_GAP_MS=45*60*1000;
-function responseForOutcomes(outcomes,requested,checked){
+function responseForOutcomes(outcomes,requested,checked,storage){
   return {
     requested,checked,synced:outcomes.verified+outcomes.unverified,
     verified:outcomes.verified,unverified:outcomes.unverified,
@@ -100,7 +131,8 @@ function responseForOutcomes(outcomes,requested,checked){
       rateLimited:outcomes.rate_limited,networkError:outcomes.network_error,
       upstreamError:outcomes.upstream_error,invalidResponse:outcomes.invalid_response,
       missingKey:outcomes.missing_key,invalidSubject:outcomes.invalid_subject,
-      storageError:outcomes.storage_error
+      storageError:outcomes.storage_error,
+      storage:outcomes.storage_error?storage:null
     }
   };
 }
@@ -128,7 +160,11 @@ async function syncMissingClerkBatch(env,{source='scheduled',force=false}={}){
     ORDER BY CASE WHEN p.synced_at IS NULL THEN 0 ELSE 1 END,COALESCE(p.synced_at,0),c.created_at DESC LIMIT 12`,
     freshness);
   const outcomes=Object.fromEntries(CLERK_STATUS_NAMES.map(name=>[name,0]));
-  let checked=0;
+  let checked=0,storageFailures=0;
+  const storage={
+    stages:Object.fromEntries(CLERK_STORAGE_STAGES.map(name=>[name,0])),
+    kinds:Object.fromEntries(CLERK_STORAGE_KINDS.map(name=>[name,0]))
+  };
   const missingSecret=!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY);
   if(missingSecret){
     outcomes.missing_key=candidates.length?1:0;
@@ -136,14 +172,23 @@ async function syncMissingClerkBatch(env,{source='scheduled',force=false}={}){
     for(const {id} of candidates){
       let status;
       try{({status}=await syncCustomerEmail(env,id,{force:force||source==='scheduled',details:true}));}
-      catch{status='storage_error';}
+      catch(error){
+        status='storage_error';
+        const stage=CLERK_STORAGE_STAGES.includes(error?.clerkSyncStage)?error.clerkSyncStage:'unknown';
+        const kind=CLERK_STORAGE_KINDS.includes(error?.clerkSyncKind)?error.clerkSyncKind:'unknown';
+        storage.stages[stage]++;
+        storage.kinds[kind]++;
+      }
       if(Object.hasOwn(outcomes,status))outcomes[status]++;
       else outcomes.invalid_response++;
       checked++;
-      if(status==='invalid_key'||status==='rate_limited'||status==='storage_error')break;
+      // A single bad/stale contact must not block other customers. Stop after
+      // two storage failures to bound load if the database itself is unhealthy.
+      if(status==='storage_error'&&++storageFailures>=2)break;
+      if(status==='invalid_key'||status==='rate_limited')break;
     }
   }
-  const report=responseForOutcomes(outcomes,candidates.length,checked);
+  const report=responseForOutcomes(outcomes,candidates.length,checked,storage);
   // Store only bounded counters. No customer IDs, emails, provider responses or secrets.
   await run(env,`INSERT INTO lab_clerk_sync_diagnostics(id,checked_at,source,result_json)
     VALUES(1,?,?,?) ON CONFLICT(id) DO UPDATE SET checked_at=excluded.checked_at,

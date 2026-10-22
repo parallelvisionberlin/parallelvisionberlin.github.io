@@ -340,10 +340,64 @@ test('a contact storage failure records a safe failure outcome instead of leavin
     primary_email_address_id:'primary',email_addresses:[{id:'primary',email_address:'safe@example.com',verification:{status:'verified'}}]});
   try{
     const report=await scheduledClerkBackfill(f.env);
-    assert.equal(report.checked,1);assert.equal(report.verified,0);assert.equal(report.issues.storageError,1);
+    assert.equal(report.checked,2);assert.equal(report.verified,0);assert.equal(report.issues.storageError,2);
+    assert.equal(report.issues.storage.stages.contact_write,2);
+    assert.equal(report.issues.storage.kinds.unknown,2);
     const stored=f.get('SELECT result_json FROM lab_clerk_sync_diagnostics WHERE id=1').result_json;
-    assert.equal(JSON.parse(stored).issues.storageError,1);
+    assert.equal(JSON.parse(stored).issues.storageError,2);
     assert.ok(!stored.includes('private database'));assert.ok(!stored.includes('safe@example.com'));
+  }finally{globalThis.fetch=previous;}
+});
+
+test('a transient D1 contact write is retried once and preserves verified contacts',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.env.LAB_CLERK_SECRET_KEY='sk_test_mockonly';
+  const binding=f.env.LAB_DB;
+  let failures=0;
+  f.env.LAB_DB={prepare(sql){
+    return {bind(...values){
+      if(sql.includes('INSERT INTO lab_customer_contacts')&&failures++===0)
+        throw new Error('D1_ERROR: SQLITE_BUSY: database is locked');
+      return binding.prepare(sql).bind(...values);
+    }};
+  }};
+  const previous=globalThis.fetch;
+  globalThis.fetch=async url=>Response.json({id:new URL(url).pathname.split('/').pop(),
+    primary_email_address_id:'primary',email_addresses:[
+      {id:'primary',email_address:'safe@example.com',verification:{status:'verified'}}]});
+  try{
+    const report=await scheduledClerkBackfill(f.env);
+    assert.equal(report.checked,3);assert.equal(report.verified,3);
+    assert.equal(report.issues.storageError,0);
+    assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_customer_contacts WHERE email IS NOT NULL').n,3);
+    assert.equal(failures,4,'one bounded D1 retry plus three successful contact writes');
+  }finally{globalThis.fetch=previous;}
+});
+
+test('one contact constraint failure does not starve unrelated customer syncs',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.env.LAB_CLERK_SECRET_KEY='sk_test_mockonly';
+  const binding=f.env.LAB_DB;
+  f.env.LAB_DB={prepare(sql){
+    return {bind(...values){
+      if(sql.includes('INSERT INTO lab_customer_contacts')&&values[0]==='user_ALICE')
+        throw new Error('D1_ERROR: FOREIGN KEY constraint failed, private detail must not escape');
+      return binding.prepare(sql).bind(...values);
+    }};
+  }};
+  const previous=globalThis.fetch;
+  globalThis.fetch=async url=>Response.json({id:new URL(url).pathname.split('/').pop(),
+    primary_email_address_id:'primary',email_addresses:[
+      {id:'primary',email_address:'safe@example.com',verification:{status:'verified'}}]});
+  try{
+    const report=await scheduledClerkBackfill(f.env);
+    assert.equal(report.checked,3);assert.equal(report.verified,2);
+    assert.equal(report.issues.storageError,1);
+    assert.equal(report.issues.storage.stages.contact_write,1);
+    assert.equal(report.issues.storage.kinds.constraint,1);
+    assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_customer_contacts WHERE email IS NOT NULL').n,2);
+    assert.ok(!JSON.stringify(report).includes('private detail'));
+    assert.ok(!JSON.stringify(report).includes('user_ALICE'));
   }finally{globalThis.fetch=previous;}
 });
 

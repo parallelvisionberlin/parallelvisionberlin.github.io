@@ -70,7 +70,9 @@ jobs:
               EXISTS(SELECT 1 FROM lab_clerk_sync_diagnostics WHERE id=1 AND checked_at > (CAST(strftime('%s','now') AS INTEGER)*1000)-7200000) AS clerk_sync_recent,
               (SELECT (CAST(strftime('%s','now') AS INTEGER)*1000-checked_at)/3600000 FROM lab_clerk_sync_diagnostics WHERE id=1) AS clerk_sync_age_hours,
               (SELECT COUNT(*) FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id WHERE (p.synced_at IS NULL OR p.synced_at<(CAST(strftime('%s','now') AS INTEGER)*1000)-86400000) AND NOT EXISTS(SELECT 1 FROM lab_account_closures x WHERE x.customer_id=c.id))=0 AS scheduled_backfill_nothing_due,
-              EXISTS(SELECT 1 FROM lab_clerk_sync_diagnostics WHERE id=1 AND COALESCE(json_extract(result_json,'$.issues.invalidKey'),0)=0 AND COALESCE(json_extract(result_json,'$.issues.missingKey'),0)=0 AND COALESCE(json_extract(result_json,'$.issues.transient'),0)=0) AS clerk_sync_no_key_or_transient_error;
+              EXISTS(SELECT 1 FROM lab_clerk_sync_diagnostics WHERE id=1 AND COALESCE(json_extract(result_json,'$.issues.invalidKey'),0)=0 AND COALESCE(json_extract(result_json,'$.issues.missingKey'),0)=0 AND COALESCE(json_extract(result_json,'$.issues.transient'),0)=0) AS clerk_sync_no_key_or_transient_error,
+              EXISTS(SELECT 1 FROM lab_clerk_sync_diagnostics WHERE id=1 AND COALESCE(json_extract(result_json,'$.issues.storageError'),0)=0) AS clerk_sync_no_storage_error,
+              (SELECT COALESCE(json_extract(result_json,'$.issues.storage.stages.contact_write'),0) FROM lab_clerk_sync_diagnostics WHERE id=1) AS clerk_contact_write_failures;
           " > /tmp/pvlab-release-invariants.json
           node --input-type=module <<'JS'
           import {readFileSync} from 'node:fs';
@@ -78,13 +80,14 @@ jobs:
           const row=output.flatMap(item=>item.results||[])[0];
           if(!row)throw new Error('Live read-only diagnostics returned no result.');
           let failed=false;
-          for(const key of ['wallet_ledger_reconciles','failed_jobs_refunded','active_contacts_synced','clerk_sync_recent','clerk_sync_no_key_or_transient_error']){
+          for(const key of ['wallet_ledger_reconciles','failed_jobs_refunded','active_contacts_synced','clerk_sync_recent','clerk_sync_no_key_or_transient_error','clerk_sync_no_storage_error']){
             const ok=row[key]===1;
             console.log((ok?'PASS: ':'NEEDS ATTENTION: ')+key);
             if(!ok)failed=true;
           }
           console.log('Clerk sync report age (hours):',row.clerk_sync_age_hours);
           console.log('No scheduled contact refresh is due:',row.scheduled_backfill_nothing_due===1);
+          console.log('Latest Clerk contact-write failure count:',Number(row.clerk_contact_write_failures)||0);
           if(failed)process.exitCode=1;
           JS
 

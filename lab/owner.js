@@ -537,7 +537,14 @@ $('owner-setup-toggle').addEventListener('click',()=>{
 });
 function syncFeedback(result){
   const issues=result.issues||{},requested=Number(result.requested)||0,verified=Number(result.verified)||0,unverified=Number(result.unverified)||0;
-  if(issues.storageError)return 'Clerk sync could not save a contact update. Check the Worker database error before retrying. Previously synchronized contacts are preserved.';
+  if(issues.storageError){
+    const stage=issues.storage?.stages||{},kind=issues.storage?.kinds||{};
+    if(kind.schema)return 'Clerk sync found a database schema mismatch. Check the production D1 migration before retrying. Existing contacts are preserved.';
+    if(kind.constraint)return 'Clerk sync hit a database constraint. Check the Worker contact-write path. Existing contacts are preserved.';
+    if(stage.welcome_grant)return 'Clerk verified the contact, but the optional welcome-credit reconciliation failed. Check the Worker database without changing paid balances.';
+    if(kind.temporary)return 'Clerk sync hit a temporary database error after retrying. Existing contacts are preserved; another account can still sync.';
+    return 'Clerk sync encountered a database operation error. Check the Worker database diagnostics before retrying. Existing contacts are preserved.';
+  }
   if(issues.invalidKey)return 'Clerk rejected a backend key. Check the production key for the affected instance: LAB_CLERK_V2_SECRET_KEY for pvlab.studio, or LAB_CLERK_SECRET_KEY for legacy accounts.';
   if(issues.missingUser)return 'Clerk could not find '+issues.missingUser+' customer record(s). Check the production Clerk instance and identity link for those accounts.';
   if(issues.networkError)return 'Clerk could not be reached from the Cloudflare Worker ('+issues.networkError+' request). Check Worker outbound access and retry.';
