@@ -1020,3 +1020,82 @@
  font-size:29px!important;
  }
 }
+
+
+/* V12: bring real page into visual parity with approved option 1.
+   CSS only, scoped to empty Upscaler. Never alter processing/results. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+   grid-template-columns:minmax(350px,26%) minmax(0,1fr)!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+   border-right:1px solid rgba(230,223,212,.13)!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+   padding:40px 36px 18px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+   padding-bottom:28px!important;margin-bottom:8px!important;gap:12px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro h2{
+   font-size:clamp(48px,4.1vw,70px)!important;
+   letter-spacing:-.065em!important;font-weight:380!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro p{
+   font-size:clamp(16px,1.45vw,23px)!important;line-height:1.35!important;
+   max-width:330px!important;color:#97928e!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagehead:has(+ #upscale-canvas #empty:not([hidden])){
+   display:none!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(#empty:not([hidden])){
+   height:clamp(690px,calc(100dvh - 77px),1050px)!important;
+   min-height:690px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+   min-height:clamp(690px,calc(100dvh - 77px),1050px)!important;
+ }
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-dropzone::before{
+ filter:brightness(.82) contrast(1.12) saturate(.79)!important;
+ opacity:1!important;
+ transform:scale(1.015)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-dropzone::after{
+ background:linear-gradient(90deg,rgba(6,5,5,.43),rgba(4,4,5,.10) 51%,rgba(8,6,5,.36)),
+ linear-gradient(0deg,rgba(4,3,3,.26),transparent 34%,rgba(5,4,4,.13))!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-center{
+ width:min(87%,1080px)!important;min-height:82%!important;
+ border:1px solid rgba(246,238,226,.46)!important;border-radius:7px!important;
+ background:rgba(0,0,0,.025)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-icon{
+ background:rgba(4,4,5,.38)!important;
+ width:93px!important;height:93px!important;border-radius:13px!important;
+ border-color:rgba(252,248,242,.60)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-icon svg{
+ width:52px!important;height:52px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-center h2{
+ font-weight:400!important;letter-spacing:-.044em!important;
+ font-size:clamp(31px,2.6vw,44px)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-center p{
+ font-size:clamp(13px,1.1vw,16px)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #pv-upscale-hero-upload{
+ min-height:40px!important;height:40px!important;margin-bottom:15px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-drop-hint{
+ font-size:10px!important;letter-spacing:.12em!important;
+}
+@media(max-width:780px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-dropzone::before{
+  filter:brightness(.75) contrast(1.1) saturate(.8)!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-empty-center{
+  min-height:350px!important;width:calc(100% - 26px)!important;
+ }
+}
