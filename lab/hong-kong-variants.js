@@ -4,7 +4,8 @@ export const HONG_KONG_VARIANTS=Object.freeze({
   original:Object.freeze({
     label:'Nocturne',
     direction:'',
-    filmFinish:Object.freeze({version:2,grain:0,haze:0,halation:0,film:0}),
+    // Owner-approved 35mm treatment for new canonical Hong Kong generations only.
+    filmFinish:Object.freeze({version:2,grain:46,haze:56,halation:83,film:78}),
     files:Object.freeze(['greg-iii.png','plaza-grill.webp','young-woman-tram.webp','greg-reds.png'])
   }),
   'deep-green':Object.freeze({
