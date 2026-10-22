@@ -32,9 +32,9 @@
   function closeEstimates(except=null){
     for(const button of estimateControls){
       if(button!==except){
-        button.setAttribute('aria-expanded','false');
         const details=button.closest('.lab-estimate-details');
         if(button.getAttribute('aria-expanded')==='true')details?.classList.add('is-dismissed');
+        button.setAttribute('aria-expanded','false');
         details?.classList.remove('is-open');
       }
     }
