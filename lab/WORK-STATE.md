@@ -1,6 +1,6 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
-## One original Image deck and origin, 2026-10-22 (validated, publication pending)
+## One original Image deck and origin, 2026-10-22 (completed and live)
 - Latest explicit requirement: preserve the original Image History deck from image(20261022-081538).png. Only Image entrance and Inspiration minimize it. Compact and expanded states must share the original History top and sides, opening downward. Same presentation for guest/customer/Owner. References also081547 and081649.
 - Baseline main37c8be593893f99edbf56aff69ddae23d977f0cf; publishing on latest248fe4e97d9ed06b53243acb4ebebe947b2161a0, preserving concurrent Upscaler copy/style changes exactly. Expanded History, Inspiration and public entry already shared the same1120x142 surface and tool geometry; Generate eligibility accounts for the enabled/disabled appearance. Authenticated History and Inspiration reuse the same #image-composer element.
 - Actual placement difference: welcome used cards.bottom+24, while History used its bottom30 viewport anchor. Lowering the content24px did not unify those origins. Supersedes the placement recorded below.
@@ -9,7 +9,11 @@
 - studio.html refreshes only the editorial CSS/JS to20261022-one-origin1.
 - Existing first-image coverage now compares History and expanded Inspiration frame and every control slot directly, verifies the same editor element survives, and checks compact/public/customer/Owner x/y parity. Original long prompt and photo sizing is retained.
 - Passed approved Image contract5/5, prompt-paste and full Studio layout. Full first-image suite passed, including exact shared origin/History assertions, long text, photos and mobile. Local1920x1000 check: History,new entrance and guest all x392.5/y828/width1120. Compact height74; expanded142.
-- Publication pending. Next: complete first-image, publish exact tested bytes, verify Cloudflare and actual production guest compact/open/close. No real production signed-in sessions inspected; role fixtures are synthetic.
+- Published source cf016ef0c89bc5c589784f30df44cba569b270e6. Cloudflare Pages pvlab-studio check119721957443 succeeded; deploymentaf5fa3e3-e3ec-4ce6-9a97-efc1163ca474.
+- Existing read-only verifier returned LIVE_VERIFIED for both20261022-one-origin1 assets. CSS SHA-2566fa49deb95ba8b761bb82b11173abe8771cfb906558e577724d7f0448786f6d3; JS SHA-256bb18e905aa55386658899782565cf72c3ec3a1b5e4748b38ea73e71496fe3cde. Exact reviewed bytes are live.
+- Actual guest production browser1363x936: compact x114/y764/width1120/height74; open x114/y764/width1120/height142, bottom906 (=viewport minus30). Closing restores74 at the same top. Cards remain y301.40625/bottom675.796875 and scrollY0. Proof pvlab-original-origin-compact-cf016ef.jpg and pvlab-original-origin-expanded-cf016ef.jpg.
+- CI first-image and image-prompt-paste passed. Approved-image-ui passed5/5 locally; its remote check was queued at final review. No claim of full CI green. No real production signed-in sessions inspected; role fixtures are synthetic.
+- Completed: original History design remains open in History; small state exists only in entrance/Inspiration and expands downward into the same original frame. No additional design or account work requested.
 
 ## Lower the approved Image entrance, 2026-10-22 (completed and live)
 - User asked only to lower the entire title/cards/bar group a little, retaining the current compact controls and Owner expanded design. References image(20261022-080815).png and image(20261022-080848).png.
