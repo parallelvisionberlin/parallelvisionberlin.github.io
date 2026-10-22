@@ -468,3 +468,16 @@
   height:124px!important;min-height:124px!important;
  }
 }
+
+/* Desktop Video Start/End frame: reduce the two upload cards by just 8px.
+   Keep their width, spacing, icons, typography, and mobile layout unchanged. */
+@media(min-width:821px){
+  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-mode-start #start-mode .upload-block:first-child,
+  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-mode-start #last-upload:not([hidden]){
+    min-height:175px!important;
+  }
+  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-mode-start #drop,
+  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-mode-start #last-drop{
+    height:118px!important;min-height:118px!important;
+  }
+}
