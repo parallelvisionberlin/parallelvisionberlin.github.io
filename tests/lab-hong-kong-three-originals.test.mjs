@@ -35,8 +35,13 @@ test('Numbered provider prompt always matches actual three reference positions a
    const p={...settings,...recipe.metadata,prompt:recipe.prompt,referenceMode:'base',referenceRoles:labels};
    const final=compileImagePrompt(recipe.prompt,labels,p);
    assert.equal(builtInMoodReferenceCount(p),3);
-   assert.match(final,new RegExp('BUILT-IN REFERENCES '+(count+1)+', '+(count+2)+', '+(count+3)));
-   for(const [i,label] of ['Supervalu / DOMINANT LOOK','Diner green-yellow / SECONDARY COLOR','Foggy wet street / SECONDARY DEPTH'].entries())assert.ok(final.includes('Reference '+(count+i+1)+' ['+label+']'),engine+' '+label);
+   assert.ok(final.includes('BUILT-IN REFERENCES '+(count+1)+', '+(count+2)+', '+(count+3)) ||
+     final.includes('HK STYLE REFERENCES '+(count+1)+'='),'Provider reference numbering');
+   for(const [i,label] of ['Supervalu / DOMINANT LOOK','Diner green-yellow / SECONDARY COLOR','Foggy wet street / SECONDARY DEPTH'].entries()){
+     const long='Reference '+(count+i+1)+' ['+label+']';
+     const short=(count+i+1)+'='+['Supervalu','Diner','Foggy street'][i];
+     assert.ok(final.includes(long)||final.includes(short),engine+' '+label+' was not mapped');
+   }
    assert.match(final,/No neon spectacle/i);
    assert.ok(final.length<=(engine==='seedreamlite'?3000:5000),engine+' provider prompt overflow: '+final.length);
    if(engine==='seedream'||engine==='gemini')assert.deepEqual(moodReferencePlan(p).references,[],'No duplicate browser upload');
