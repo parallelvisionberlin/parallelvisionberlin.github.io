@@ -17,17 +17,13 @@ export function hongKongReferenceError(p={},count=0){
   return '';
 }
 export function hongKongReferenceGuidance(userCount=0,compact=false){
-  const [a,b,c]=[userCount+1,userCount+2,userCount+3];
-  const lead='HONG KONG NIGHTS BUILT-IN REFERENCES '+a+', '+b+', '+c+': three attached original photographs, Style only, with unequal roles. ';
-  if(compact)return lead+
-    'Reference '+a+' [Supervalu / DOMINANT LOOK]: deep petrol-green dark areas, sparse lights, distant haze and red accents. '+
-    'Reference '+b+' [Diner green-yellow / SECONDARY COLOR]: selective yellow-green, warm amber and dark black. '+
-    'Reference '+c+' [Foggy wet street / SECONDARY DEPTH]: illuminated humid depth, soft far lights, wet exterior reflections. '+
-    'Use photographic lighting, never copy objects, people, shops or taxis. Keep user Base identity, clothes, camera, location and instructions. Real imperfect low-light film, no plastic skin, neon spectacle, wet interiors or uniform green wash.';
-  return lead+
-    'Reference '+a+' [Supervalu / DOMINANT LOOK]: controls dark exposure, grey-petrol-green nocturnal air, large shadow areas, very sparse light, distant details dissolving softly in haze and restrained red accents. Preserve black space. '+
-    'Reference '+b+' [Diner green-yellow / SECONDARY COLOR]: controls only green-yellow and restrained warm tungsten separation, deep blacks, localized halation and subtle optical softness. No uniform yellow faces. '+
-    'Reference '+c+' [Foggy wet street / SECONDARY DEPTH]: controls source-lit suspended humidity, depth-dependent diffusion, soft light glow, and uneven wet outdoor reflections; readable foreground, dry interiors. '+
-    'Copy only photographic behavior, NEVER their people, architecture, streets, diner, taxi, neon lettering or framing. User Base and assigned roles control identity, body, clothing, pose, camera, composition and location. Honor explicit user direction. '+
-    'A single convincing real nocturnal 35mm photograph: underexposed, quiet, expressive, uneven exposure, natural skin, fine irregular embedded film texture. Not a glossy CGI illustration. Let some background details disappear. Do not increase spectacle beyond the reference images. No neon spectacle, extra lights, crowds, artificial neon, plastic skin, sharp HDR, heavy gold, green wash, polished rain, new objects or forced wet flooring.';
+ const a=userCount+1,b=userCount+2,c=userCount+3;
+ const lines=[
+  'HONG KONG NIGHTS BUILT-IN REFERENCES '+a+', '+b+', '+c+': three original photographs, Style only; user Base identity, location, clothing, pose and framing take priority.',
+  'Reference '+a+' [Supervalu / DOMINANT LOOK]: sparse underexposed petrol-green night, deep black space, distant atmospheric haze and rare red lights.',
+  'Reference '+b+' [Diner green-yellow / SECONDARY COLOR]: selective yellow-green and tungsten glow, natural skin, localized halation and deep blacks.',
+  'Reference '+c+' [Foggy wet street / SECONDARY DEPTH]: suspended humidity lit by existing lamps, soft receding distance, wet outdoor reflections only.',
+  'Borrow photographic exposure and air, not people, vehicles, signage, rooms, framing or added neon. Real imperfect 35mm, quiet and restrained; no neon spectacle, CGI gloss, plastic skin, uniform green wash, invented lights or wet interiors.'
+ ];
+ return compact?lines.join(' ').replace('Real imperfect 35mm, quiet and restrained; ',''):lines.join(' ');
 }
