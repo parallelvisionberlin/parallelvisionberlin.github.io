@@ -1,5 +1,13 @@
 # Image composer prompt: current state
 
+## Automatic no-prompt Base reinterpretation (2026-10-22, release pending)
+- A user uploaded one photograph with no Mood and no typed prompt. The fallback in `lab/lab.js` explicitly froze pose, clothing, location, camera and lighting, so the model produced a near-duplicate with altered detail. The user requested a universal, visibly improved reinterpretation while preserving identity **if people are present**, not assumed day/night or scene-specific directions.
+- `lab/reference-guidance.js` now exports one shared fallback used by Image Studio and direct empty-Base compilation. It conditionally preserves every person's recognizable identity; without people it protects the defining main subject, while allowing intentional creative changes to framing, lighting, styling, atmosphere and setting. It does not infer time of day or force photography onto other media.
+- `lab/prompt-quality.js` adds a short fidelity instruction for this automatic case, avoiding the former generic portrait rule that froze poses/outfits. User-written directions, other Moods, reference roles, prices, models, auth and credits are unchanged.
+- UI loads the updated modules through a scoped `photoOnlyAuto=20261022v1` cache key. Tests cover each supported Base-image engine, subject-dependent identity logic, nonhuman subjects, unassumed time-of-day, preview, submission and worker compilation.
+- First PR #444 passed Lab, approved Image UI, image references, first-image, prompt-paste and static checks, but conflicted with newer Upscaler additions on main. Current rebased branch `fix/photo-only-auto-reinterpret-rebased-20261022` preserves `prepareUpscaleInput` and the concurrent lab.js/studio.html fixes. Validation and Cloudflare publication of this rebased branch remain to be confirmed. No paid A/B render was made; prompt compliance cannot guarantee subjective image quality.
+
+
 ## Active: fixed frame for compact and expanded Inspiration deck (2026-10-21)
 
 - User approved the existing expanded deck and requested its exact width for the closed bar, with left/right/top edges fixed and only downward growth, for public, customer and Owner entrances.
