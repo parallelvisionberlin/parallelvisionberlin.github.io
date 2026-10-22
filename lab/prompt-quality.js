@@ -22,10 +22,10 @@ export function referenceRoleAdvisories(labels=[]){
 export function imageQualityGuidance(direction='',labels=[],settings={},currentLength=0){
  if(settings?.type!=='image'||settings?.mode!=='image'||settings?.exactPrompt===true||!ENGINES.has(settings?.engine))return '';
  const text=String(direction||'').trim(),roles=labels.map(role);
- // The intentionally creative photo-only fallback must not inherit the normal
- // portrait constraint that freezes poses, outfits and expressions.
- if(text.startsWith('Create an intentional reinterpretation of the supplied image,')){
-   const fidelity='REINTERPRETATION FIDELITY: Keep people identifiable if present, with coherent anatomy, believable surfaces and natural-looking detail wherever relevant. Favor purposeful art direction over retouching or generic AI gloss.';
+ // Blank Base photos need special fidelity instructions to avoid invented
+ // people, reconstructed hidden limbs and changed composition.
+ if(text.startsWith('Refine the supplied image conservatively into a cleaner,')){
+   const fidelity='PHOTO-ONLY FIDELITY: Preserve the existing subject count, recognizable people, placement, visible anatomy and pose. Keep overlapping or hidden limbs and faces occluded; never invent, duplicate or reveal people, limbs, faces or extra body parts. Respect original clothing coverage, contact shadows, scale, texture and scene geometry. Favor restrained photographic coherence, not restaging or AI gloss.';
    const limit=settings.engine==='seedreamlite'?3000:5000;
    return fidelity.length<=limit-currentLength-(settings.moodId?750:50)?fidelity:'';
  }
