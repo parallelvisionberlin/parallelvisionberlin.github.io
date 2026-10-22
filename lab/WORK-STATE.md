@@ -1,5 +1,14 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Restore original signed-out navigation, 2026-10-22 (validated, publication pending)
+- User reported missing upper navigation in signed-out Studio and explicitly requested the existing bar, with no replacement system. Also requested removal of "Sign in to your PV Lab workspace" below the deck. References image(20261022-084146).png and084154.
+- Verified cause: assets.css contained body:has(#app[hidden])>#studio-header .tool-switch{display:none}. Both screenshots depict guest access: the homepage's person icon is its Sign in action, and Get credits is its guest label. No evidence of lost authentication or an account deletion regression in these screenshots.
+- Removed only that obsolete menu-hiding rule. Existing header markup, guest tool-route handlers and authentication gates remain. Private Assets and Queue stay gated; no alternative navigation component or account implementation was introduced.
+- studio-guest-image.css keeps both existing navigation rows in its compact mobile header (78px, matching authenticated Image), with enough scroll margin to expose the whole prompt after a Mood selection. Hide only an empty status paragraph; actual error messages still appear.
+- lab.js clears the default signed-out status sentence; studio.html starts the status paragraph empty and refreshes only affected assets to20261022-guest-navigation1. Deck presentation, provider/billing logic, references, Moods and account recovery are unchanged.
+- Passed: approved Image contract5/5; account-link unit checks9/9; full masthead test at twelve widths plus explicit guest1440/390/320 cases; full guest mobile Mood-entry/browser test including existing Video→Image navigation, retained deck frame, no forced login, no private workspace exposure and empty default status.
+- Baseline main e60ad9542cc1c25ca349b29f7864c04c6128420d. Publication pending; next publish exact selected bytes, verify Cloudflare and production signed-out menu/navigation plus no default status. Actual customer/Owner or recreated-account sessions have not been inspected.
+
 ## One original Image deck and origin, 2026-10-22 (completed and live)
 - Latest explicit requirement: preserve the original Image History deck from image(20261022-081538).png. Only Image entrance and Inspiration minimize it. Compact and expanded states must share the original History top and sides, opening downward. Same presentation for guest/customer/Owner. References also081547 and081649.
 - Baseline main37c8be593893f99edbf56aff69ddae23d977f0cf; publishing on latest248fe4e97d9ed06b53243acb4ebebe947b2161a0, preserving concurrent Upscaler copy/style changes exactly. Expanded History, Inspiration and public entry already shared the same1120x142 surface and tool geometry; Generate eligibility accounts for the enabled/disabled appearance. Authenticated History and Inspiration reuse the same #image-composer element.

@@ -90,12 +90,12 @@ try{
         viewportHeight:innerHeight,documentWidth:document.documentElement.scrollWidth,
         focusedId:document.activeElement?.id};
     });
-    assert.ok(state.composerTop>=42&&state.composerTop<300,
+    assert.ok(state.composerTop>=76&&state.composerTop<300,
       'Selection brings the prompt into view below the compact header: '+JSON.stringify(state));
     assert.ok(state.generateBottom<=state.viewportHeight+2,
       'Generate must also be visible after selecting a Mood: '+JSON.stringify(state));
-    assert.ok(state.headerHeight<=49&&state.headerHeight>=40,
-      'PV LAB header should compact on mobile scroll: '+JSON.stringify(state));
+    assert.ok(state.headerHeight<=80&&state.headerHeight>=76,
+      'The compact mobile header retains its existing tool navigation: '+JSON.stringify(state));
     assert.ok(state.documentWidth<=390+1,'Mobile Image entry must not overflow horizontally');
     assert.deepEqual(errors,[],'Guest preview should not throw script errors');
     console.log('MOBILE_GUEST_MOOD_NO_KEYBOARD=1 '+JSON.stringify(state));
@@ -110,6 +110,21 @@ try{
     await page.waitForFunction(()=>document.getElementById('pv-guest-cards').scrollLeft<4);
     const guest=page.locator('#pv-guest-composer');
     const field=page.locator('#pv-guest-prompt');
+    for(const id of ['tool-image','tool-video','tool-upscale','tool-retouch','tool-fashion','tool-explore-moods'])
+      assert.equal(await page.locator('#'+id).isVisible(),true,'The original public navigation stays visible: '+id);
+    const originalFrame=await guest.boundingBox();
+    await page.evaluate(()=>{window.__navSignIns=0;document.getElementById('signin').addEventListener('click',()=>window.__navSignIns++);});
+    await page.locator('#tool-video').click();
+    assert.equal(new URL(page.url()).searchParams.get('tool'),'video');
+    assert.equal(await page.locator('#pv-guest-title').innerText(),'Video Studio');
+    assert.equal(await page.locator('#pv-guest-selected-tool').isVisible(),true);
+    assert.equal(await page.locator('#app').isVisible(),false,'Anonymous navigation never exposes a private workspace');
+    assert.equal(await page.evaluate(()=>window.__navSignIns),0,'Examining another tool does not force sign in');
+    await page.locator('#tool-image').click();
+    assert.equal(await page.locator('#pv-guest-title').innerText(),'Start with a feeling.');
+    assert.deepEqual(await guest.boundingBox(),originalFrame,'Returning through the original menu preserves the approved Image deck');
+    assert.equal(await page.locator('#auth-status').innerText(),'','Remove the default sign-in sentence, retaining the status element for actual errors');
+
     assert.equal(await guest.evaluate(el=>el.classList.contains('pv-deck-expanded')),false,
       'Signed-out first paint keeps the small approved prompt');
     for(const id of ['pv-guest-library','pv-guest-base','pv-guest-resolution'])

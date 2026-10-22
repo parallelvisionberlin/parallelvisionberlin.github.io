@@ -194,6 +194,7 @@
 @media(min-width:681px) and (max-width:1099px){
   #gate.pv-guest-image .pv-guest-composer.pv-deck-expanded .pv-guest-expanded-only{display:none}
 }
+#gate .pv-guest-auth-status:empty{display:none}
 #gate .pv-guest-auth-status{margin:17px 0 0;color:#c8c4c4;font-size:11px;line-height:1.5}
 #gate .pv-guest-retry{margin:11px auto 0;padding:10px 15px;background:#27292e;color:#fff;border:1px solid #ccc7c3;border-radius:9px;cursor:pointer}
 #studio-header #signin.pv-guest-signin:not([hidden]){
@@ -252,19 +253,19 @@ body:has(#gate.pv-guest-image:not([hidden])) #tool-assets{display:none!important
     height:clamp(178px,53.5vw,264px);
   }
   #gate.pv-guest-image .pv-guest-composer{
-    scroll-margin-top:66px;
+    scroll-margin-top:98px;
     scroll-margin-bottom:24px;
   }
   /* The in-app browser chrome cannot be changed; compact only PV LAB's bar. */
   body:has(#gate.pv-guest-image:not([hidden]))>#studio-header.pv-mobile-entry-condensed{
-    height:46px!important;min-height:46px!important;
+    height:78px!important;min-height:78px!important;
   }
   body:has(#gate.pv-guest-image:not([hidden]))>#studio-header.pv-mobile-entry-condensed .wrap.top{
-    height:46px!important;min-height:0!important;
+    height:78px!important;min-height:0!important;
     grid-template-columns:minmax(0,1fr) auto!important;
-    grid-template-areas:'brand actions'!important;
-    grid-template-rows:46px!important;
-    padding:0 14px!important;row-gap:0!important;
+    grid-template-areas:'brand actions' 'nav nav'!important;
+    grid-template-rows:39px 35px!important;
+    padding:2px 14px!important;row-gap:0!important;
   }
   body:has(#gate.pv-guest-image:not([hidden]))>#studio-header.pv-mobile-entry-condensed .lab-brand{
     font-size:15px;

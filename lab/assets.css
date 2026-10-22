@@ -511,7 +511,7 @@ body>#studio-header .tool-switch{
   top:calc(100% + 12px);border-color:#333438;border-radius:8px;
   background:#17181b;box-shadow:0 12px 35px #0005;
 }
-body:has(#app[hidden])>#studio-header .tool-switch{display:none}
+/* Public tool navigation remains available before authentication. */
 #fashion-studio{min-height:calc(100svh - var(--studio-header-height))}
 @media(min-width:821px){
   body:has(#app.video-studio-active:not([hidden]))>main#main{

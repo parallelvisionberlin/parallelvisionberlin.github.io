@@ -4670,7 +4670,7 @@ const wallet=createCustomerWallet({
   openPricing:options=>pricingOverlay.open(options)
 });
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
-async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').hidden=false;$('signin').disabled=false;$('auth-retry').hidden=true;return;}if(owner&&userId===clerk.user.id)return;if(owner&&userId!==clerk.user.id)lock();
+async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='';$('signin').hidden=false;$('signin').disabled=false;$('auth-retry').hidden=true;return;}if(owner&&userId===clerk.user.id)return;if(owner&&userId!==clerk.user.id)lock();
   // Preserve the loading screen until the requested Studio destination is ready.
   // This also covers a sign-in without a browser reload.
   document.documentElement.classList.add('pv-studio-boot-lock');

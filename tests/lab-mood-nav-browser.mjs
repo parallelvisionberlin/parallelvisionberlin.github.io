@@ -15,7 +15,7 @@ const header=studio.slice(start,end+'</header>'.length);
 const html='<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
   +'<base href="/lab/">'
   +[...studio.matchAll(/<link rel="stylesheet"[^>]+>/g)].map(match=>match[0]).join('')
-  +'</head><body>'+header+'<main id="main" class="wrap"><div id="app" aria-label="Test studio"></div></main></body></html>';
+  +'</head><body>'+header+'<main id="main" class="wrap"><div id="app" aria-label="Test studio"></div><section id="gate" class="pv-guest-image" hidden></section></main></body></html>';
 const mime={'.css':'text/css','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.jpg':'image/jpeg'};
 const root=resolve('.');
 const server=http.createServer((req,res)=>{
@@ -134,6 +134,21 @@ try{
       await page.mouse.move(3,600);
       await page.screenshot({path:'test-results/pv-mood-icon-320.png'});
     }
+  }
+  // The same original masthead is available before account setup. Only private
+  // Assets/Queue controls remain gated; no second navigation is introduced.
+  await page.evaluate(()=>{
+    document.getElementById('app').hidden=true;document.getElementById('gate').hidden=false;
+    document.getElementById('active').hidden=true;document.getElementById('studio-account-menu').hidden=true;
+    document.getElementById('signin').hidden=false;
+  });
+  for(const width of [1440,390,320]){
+    await page.setViewportSize({width,height:900});
+    await page.locator('#studio-header').evaluate((el,small)=>el.classList.toggle('pv-mobile-entry-condensed',small),width<=680);
+    for(const id of ['tool-image','tool-video','tool-upscale','tool-retouch','tool-fashion','tool-explore-moods'])
+      assert.equal(await page.locator('#'+id).isVisible(),true,'Signed-out users retain the original '+id+' at '+width);
+    assert.equal(await page.locator('.studio-assets-icon').isVisible(),false,'Private Assets remains gated');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=3,'Signed-out navigation fits at '+width);
   }
   for(const route of ['landing','moods']){
     await page.goto('http://127.0.0.1:4193/'+route+'-header');
