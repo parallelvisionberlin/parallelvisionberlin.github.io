@@ -99,6 +99,17 @@ test('mode naming, compact Video rail and mode-specific preview copy are Video-o
   assert.match(html,/id="video-motion-toggle"/);
 });
 
+test('Seedance opens in Start frame without a photo and never silently selects Reference set',()=>{
+  assert.match(app,/references=\[\], mode='start'/);
+  assert.match(app,/let lastVideoCreateMode='start';/);
+  assert.doesNotMatch(app,/initialVideoEntryConfigured/);
+  assert.doesNotMatch(app,/engine==='seedance'&&mode==='start'&&!file\)mode='reference'/);
+  assert.doesNotMatch(app,/previousEngine!=='seedance'&&mode==='start'&&!file/);
+  assert.match(app,/\$\('video-create-task'\)\.onclick=\(\)=>\{if\(!busy\)setMode\(VIDEO_MODELS\[engine\]\.modes\.includes\(lastVideoCreateMode\)\?lastVideoCreateMode:'start'\)/);
+  assert.match(app,/if\(!model\.modes\.includes\(mode\)\)mode=model\.modes\[0\]/,
+    'Unsupported modes still use the selected model capability fallback');
+});
+
 test('mobile-only Video sequence is subtly slimmer and Start frame remains the default',()=>{
   assert.match(css,/@media\(max-width:440px\)\{[\s\S]*?height:119px!important;min-height:119px!important/);
   assert.match(css,/min-height:148px!important/);
