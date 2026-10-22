@@ -553,6 +553,7 @@ function showImageComposerError(message){
   const large=reason.match(/^Image too large: (.+) \(([\d.]+) MB\)\./);
   const small=reason.match(/^Image too small: (.+) \((\d+) × (\d+) px\)\./);
   const dimensions=reason.match(/^Image dimensions too large: (.+) \((\d+) × (\d+) px\)\./);
+  const dimensionsLimit=dimensions?reason.match(/Maximum ([\d,]+) pixels per side\./)?.[1]||'8,000':null;
   const proportions=reason.match(/^Unsupported image proportions: (.+) \((\d+) × (\d+) px\)\./);
   const format=reason.match(/^Unsupported image format: (.+)\. Use JPG, PNG or WebP\.$/);
   const fileName=large?.[1]||small?.[1]||dimensions?.[1]||proportions?.[1]||format?.[1]||'';
@@ -564,7 +565,7 @@ function showImageComposerError(message){
   const heading=large?'Image too large':small?'Image too small':dimensions?'Image dimensions too large':proportions?'Unsupported proportions':format?'Unsupported format':reason.startsWith('This image is empty.')?'Empty file':moderation?'Not with this model.':isModelInputError?modelHeading:isFileError?'Image unavailable':message.startsWith('Generation failed:')||imageSubmissionPending?'Generation failed':'Request failed';
   const detail=large?'Maximum file size is 20 MB. Compress this image and try again.':
     small?'Minimum dimensions are 240 × 240 px. Choose a larger image.':
-    dimensions?'Each side must be 8,000 px or smaller. Resize this image.':
+    dimensions?'Each side must be '+dimensionsLimit+' px or smaller. Resize this image.':
     proportions?'Image proportions exceed the supported 8:1 range.':
     format?'Use a JPG, PNG or WebP image.':
     reason.startsWith('This image is empty.')?'Choose an image containing actual picture data.':
@@ -2869,7 +2870,9 @@ async function inspectImage(candidate){
   if(candidate.size>20*1024*1024)throw new Error('Image too large: '+(candidate.name||'photograph')+' ('+(Math.ceil(candidate.size/104857.6)/10).toFixed(1)+' MB). Maximum size is 20 MB per image. Compress it and try again.');
   if(!['image/jpeg','image/png','image/webp'].includes(candidate.type))throw new Error('Unsupported image format: '+(candidate.name||'file')+'. Use JPG, PNG or WebP.');
   if(!candidate.size)throw new Error('This image is empty. Choose another JPG, PNG or WebP photograph.');
-  const seedanceInput=tool==='video'&&engine==='seedance',maxSide=tool==='upscale'?16000:seedanceInput?6000:8000;
+  // Image previews already enforce 72 MP, and Seedream builds a separate <=34 MP provider working copy.
+  // Keep uploaded originals untouched; do not reject a valid 6048 x 8064 (48.8 MP) camera photo by 64 pixels.
+  const seedanceInput=tool==='video'&&engine==='seedance',maxSide=tool==='upscale'?16000:seedanceInput?6000:tool==='image'?12000:8000;
   if(tool==='image'&&imageEngine==='kling'){
     const issue=modelImageInputIssue('kling',[{file:candidate}]);if(issue)throw new Error(issue);
   }

@@ -1,7 +1,7 @@
 ## Active: PV LAB stabilization Phase 1 — review branch only (2026-10-22)
 
 - Objective: repair stale regression checks and restore fresh Video Start frame initialization; stop at a PR. No merge or deployment is authorized.
-- Branch: `codex/pvlab-stabilization-phase1`; current base `5c11ae0db068531fa31d035c3a67a87b2b33cf3e`.
+- Branch: `codex/pvlab-stabilization-phase1`; incorporated main `a4ad9c7e3a3ad01ac76d88e017362250fd93f0ca`.
 - Safely fast-forwarded from initial main `1a1c681`; reapplied only scoped changes. Retained concurrent Image, Upscaler and Clerk/D1 changes exactly.
 - Product change: remove the one-time Seedance Start-to-Reference override and initialize the remembered Create mode to Start. Explicit user selections, History and handoff modes remain intact.
 - Only other product file change: the `lab.js` cache revision in `studio.html`.
@@ -13,14 +13,15 @@
 - Video CI now has separate syntax/backend steps and eight independent browser steps. Explicit status conditions allow later suites after failures; no `continue-on-error` or disabled gates.
 - Domain smoke requires versioned asset links, fetches Generate/Exact CSS from the URLs in live HTML, and preserves all existing behavior checks.
 - Test-only path guards in the two edited ESM browser harnesses now use the platform separator; unchanged Linux-only guards were adapted in memory for local Windows runs.
-- CI-pinned Node 22.16 full Lab/release suite after main incorporation: 705/705 passed. Approved Image contract/reference subset: 8/8 passed. Workflow YAML/conditions and edited JavaScript syntax pass.
+- CI-pinned Node 22.16 full Lab/release suite after final main incorporation: 708/708 passed. Approved Image contract/reference subset: 8/8 passed. Workflow YAML/conditions and edited JavaScript syntax pass.
 - Customer Video: all 12 desktop/mobile scenarios pass. Routing, full Studio layout, Soul reinterpret (13), Image one-click (53), Upscaler (8), references (22), Seedance (19), and full four-role first-image parity passed in intercepted browser tests.
 - Both repaired public domain smoke blocks passed as GET-only checks of the existing site; this does not publish or verify the candidate Video fix in production.
 - Full local Node 24 suite before main refresh: 703/704 passed. The remaining pre-existing Dream Blur `setImmediate` timing test fails on Windows; no implementation or assertion was weakened to hide it.
-- Latest main follow-up `5c11ae0` changed only the shared work-state note; safely incorporated without altering the tested runtime. Full Assets browser suite also passed after materializing its existing image/video fixtures in the sparse checkout.
+- Full Assets browser suite passed after materializing its existing image/video fixtures in the sparse checkout.
+- Main advanced again during branch publication: incorporated high-resolution Image fix `a4ad9c7` with a normal merge, retaining its validator, tests and primary cache token. Added only the separate Video cache parameter. Full unit, customer Video and shared layout reruns passed; final Image upload/role reruns continue before the review handoff.
 - Remaining validation: PR CI. All local independent browser suites completed; do not infer real signed-in production behavior or paid-provider success from these mocks.
 - Safety: synthetic accounts/media and intercepted provider/checkout requests only. No real purchase, paid generation, account change, database mutation or production setting change.
-- Publication: NOT merged and NOT deployed. Next action: review the scoped PR and outstanding test evidence; do not merge or deploy in this task.
+- Publication: PR is not merged; candidate is not deployed to production. Next action: review the scoped PR and outstanding test evidence; do not merge or deploy in this task.
 
 # Customer Video preparation and generation access
 
