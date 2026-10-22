@@ -1,5 +1,14 @@
 # Image composer prompt: current state
 
+## Photo-only source-faithful anatomy correction (2026-10-22)
+- User reported a generated multi-person photograph that introduced an extra leg, changed a person's face/viewpoint and displaced a subject. Explicit request: implement a second correction directly in GitHub.
+- Root cause: the previous blank-Base prompt requested a visibly different scene and permitted new viewpoints, poses, wardrobes and environments without adequately protecting occluded anatomy.
+- Branch `fix/image-photo-only-anatomy-20261022` changes only the shared blank-Base automatic direction and its photo-only fidelity hint. Keep subject count, identity if present, composition, subject placement, visible anatomy, clothing coverage, realistic contact and partial occlusions; do not reveal hidden faces/limbs or invent body parts. Preserve the observed time/setting, never assume a specific time of day or style.
+- Updated only `lab/reference-guidance.js`, `lab/prompt-quality.js`, module cache keys in `lab/lab.js` and `lab/studio.html`, existing tests for Base image submission, reference preview, worker quote and model-specific quality, plus this checkpoint.
+- Written prompts, Moods, references-only, explicit reference roles, prices/credits, authentication, Image UI layout, Video, Upscaler and the provider model list remain unchanged. Zero paid generations in this change.
+- Tests and Cloudflare Worker/Pages deployment must be confirmed independently; model compliance and photographic quality remain unproven without a real consented A/B render.
+
+
 ## Active: fixed frame for compact and expanded Inspiration deck (2026-10-21)
 
 - User approved the existing expanded deck and requested its exact width for the closed bar, with left/right/top edges fixed and only downward growth, for public, customer and Owner entrances.
