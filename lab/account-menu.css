@@ -47,15 +47,15 @@
   backdrop-filter:none;
 }
 
-/* Preserve the EXISTING wordmark, not a typed or substitute PV LAB logo. */
+/* Reuse the same approved bold PV LAB wordmark as the homepage and footer. */
 .pv-account-menu .pv-account-details{
   position:relative;display:flex;flex-direction:column;align-items:flex-start;
   box-sizing:border-box;margin:0 18px;padding:18px 3px 12px;
 }
 .pv-account-menu .pv-account-details::before{
   content:'';display:block;flex:none;
-  width:157px;height:31px;
-  background:url('./branding/pvlab-wordmark.svg') left center/contain no-repeat;
+  width:157px;height:50px;
+  background:url('./branding/pvlab-wordmark-bold.svg?v=20261022-bold1') left center/contain no-repeat;
 }
 .pv-account-menu .pv-account-details::after{
   content:'Fashion. Reimagined.';display:block;
