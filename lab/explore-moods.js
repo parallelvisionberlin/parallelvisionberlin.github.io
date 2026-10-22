@@ -345,16 +345,11 @@ function initialize(){
     dialog.style.removeProperty('--mc-editor-height');
     clearResult();resetPrice();clearPhoto();mood=null;moodVariant='original';renderVariation();setBusy(false);generate.disabled=true;
     $('mc-look-preview').removeAttribute('src');
-    // Native dialog focus restoration occurs after the close event for Escape.
-    // Focus the gallery container on the next frame so X and Escape behave alike,
-    // without leaving a keyboard-focus outline on the previously activated card.
+    // Do not focus the grid: this caused an outline around the entire gallery.
+    // Blur the restored card after native Escape focus restoration.
     requestAnimationFrame(()=>{
-      if(dialog.open)return;
-      const grid=$('mc-look-grid');
-      if(grid){
-        grid.setAttribute('tabindex','-1');
-        grid.focus({preventScroll:true});
-      }
+      if(!dialog.open&&document.activeElement?.matches?.('.mc-look-card[data-mood-id]'))
+        document.activeElement.blur();
     });
   });
   $('mc-look-close').onclick=close;
