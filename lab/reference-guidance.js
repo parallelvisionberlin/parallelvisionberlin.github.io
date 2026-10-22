@@ -1,5 +1,5 @@
 // Shared by the image UI and Worker so the preview matches the submitted prompt.
-import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js';
+import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js?photoOnlyAnatomy=20261022v1';
 import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js';
 export {referenceRoleAdvisories};
 // No-direction Base only: protect identity, pose and visible anatomy before any subtle refinement.
