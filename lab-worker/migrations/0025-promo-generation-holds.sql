@@ -16,16 +16,24 @@ AFTER INSERT ON lab_customer_contacts
 WHEN NEW.verified_at IS NOT NULL AND NEW.email IS NOT NULL
   AND (lower(NEW.email) LIKE '%@yournike.com' OR lower(NEW.email) LIKE '%@weekprime.com')
 BEGIN
-  INSERT OR IGNORE INTO lab_promo_generation_holds(customer_id,reason,created_at)
-  VALUES(NEW.customer_id,'disposable-email',CAST(strftime('%s','now') AS INTEGER)*1000);
+  -- The outer Clerk contact UPSERT overrides a trigger's OR IGNORE policy.
+  -- A conditional insert preserves existing holds without a duplicate-key abort.
+  INSERT INTO lab_promo_generation_holds(customer_id,reason,created_at)
+  SELECT NEW.customer_id,'disposable-email',CAST(strftime('%s','now') AS INTEGER)*1000
+  WHERE NOT EXISTS (SELECT 1 FROM lab_promo_generation_holds
+                    WHERE customer_id=NEW.customer_id);
 END;
 CREATE TRIGGER IF NOT EXISTS lab_promo_hold_contact_update
 AFTER UPDATE OF email,verified_at ON lab_customer_contacts
 WHEN NEW.verified_at IS NOT NULL AND NEW.email IS NOT NULL
   AND (lower(NEW.email) LIKE '%@yournike.com' OR lower(NEW.email) LIKE '%@weekprime.com')
 BEGIN
-  INSERT OR IGNORE INTO lab_promo_generation_holds(customer_id,reason,created_at)
-  VALUES(NEW.customer_id,'disposable-email',CAST(strftime('%s','now') AS INTEGER)*1000);
+  -- The outer Clerk contact UPSERT overrides a trigger's OR IGNORE policy.
+  -- A conditional insert preserves existing holds without a duplicate-key abort.
+  INSERT INTO lab_promo_generation_holds(customer_id,reason,created_at)
+  SELECT NEW.customer_id,'disposable-email',CAST(strftime('%s','now') AS INTEGER)*1000
+  WHERE NOT EXISTS (SELECT 1 FROM lab_promo_generation_holds
+                    WHERE customer_id=NEW.customer_id);
 END;
 
 -- Backfill existing October 16 accounts. Historical credit balances unchanged.
