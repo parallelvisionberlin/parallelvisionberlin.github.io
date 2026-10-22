@@ -777,3 +777,6 @@
     height:48px!important;min-height:48px!important;
   }
 }
+
+/* Gallery is the focus return target after closing a Mood; never draw an outline on its wrapper. */
+.mc-explore-page #mc-look-grid[tabindex="-1"]:focus{outline:none!important}
