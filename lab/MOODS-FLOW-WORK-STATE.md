@@ -1,6 +1,18 @@
 # PV LAB / Explore Moods generation and Image return
 Updated: 2026-10-23
 
+## Active checkpoint / 2026-10-23 Explore page background only
+- Request: replace the green page background with neutral charcoal `#0D0D0F`.
+- Baseline main: `7417ac9f2d1081b5150b339fe68528f5b4d0d852`.
+- Neutralize page/discovery/collection backgrounds and hero veil RGB values.
+- Preserve hero gradient positions and alpha values, photographic sources and carousel.
+- Neutralize the lower Creator section background; preserve its photographs and controls.
+- Keep lime buttons, accents, text, typography, layout, header and modal styles unchanged.
+- No JavaScript, model, price, payment, provider, upload or account changes.
+- Refresh only the two affected stylesheet URLs in `lab/moods.html`.
+- Approved Image UI contract and unchanged non-color declarations checked locally.
+- Production publication and rendered CSS verification remain pending until release checks pass.
+
 
 ## Active checkpoint / 2026-10-23 approved responsive photobooth
 - Owner explicitly approved screenshot 1 for desktop and screenshots 2/3 for phone.
