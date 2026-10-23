@@ -22,19 +22,22 @@ jobs:
         with:
           node-version: '24'
       - name: Install mocked Chromium browser
+        timeout-minutes: 3
         run: |
-          npm install --prefix /tmp/pv-upscale-visibility --no-save playwright@1.57.0
+          npm install --prefix /tmp/pv-upscale-visibility --no-save playwright@1.62.1
           node /tmp/pv-upscale-visibility/node_modules/playwright/cli.js install --with-deps chromium
       - name: Verify Upscaler UI, Assets visibility and no paid calls
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
         run: node tests/lab-upscale-assets-visibility.mjs
       - name: Verify inline Upscaler status and one paid submission with mocked provider
+        if: ${{ !cancelled() }}
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
           PV_UPSCALE_NOTICE_SMOKE: '1'
         run: node tests/lab-upscale-ui.mjs
       - name: Verify full ByteDance and Topaz model selection, quote integrity and history reuse
+        if: ${{ !cancelled() }}
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
         run: node tests/lab-upscale-ui.mjs
@@ -45,3 +48,4 @@ jobs:
           name: upscaler-assets-visibility-previews
           path: test-results/upscaler-*.png
           retention-days: 2
+

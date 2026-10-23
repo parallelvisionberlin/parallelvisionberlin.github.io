@@ -2,9 +2,10 @@
 
 - Objective: implement only P1/P2/P3 from the purchase audit at `69d7d02`.
 - Branch: `codex/pvlab-checkout-return-recovery`; [PR #462](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/462), draft and unmerged.
-- Latest incorporated main: `aafe94081226745c28318671b80a1fb983707232`; normal merges `be9efc4` / `e76f4b5` preserve later Explore and homepage banner changes.
-- Implementation commit: `7558a13`; no force push. Exact-head remote checks are pending review in the PR.
-- Preserve the later homepage credit banner, responsive welcome email, Explore photobooth and subsequent shared banner style changes.
+- Main incorporated for this continuation: `b99fec4d6714335bbcf95c5dd88ec365548d263c`; previous PR head `936de096af564a802d670e1c191e11527402a33d`.
+- Implementation commit `7558a13` is preserved through a normal merge, without force push or history rewriting.
+- The single conflict was the `lab.js` URL in `studio.html`: retain main's `hkRefs=20261023two1`, `upscalePrecision=20261023-flat2`, `upscaleQuietSelection=20261023v1` and the PR's `checkoutRecovery=20261023-1`.
+- Preserve main's two-photo Hong Kong policy, continuous intensity, flat four-choice Upscaler picker, welcome email, bold boot wordmark, domain readiness and legacy Fashion redirects.
 - P1: `customer-wallet.js` refreshes `/api/session`, including authorization and provider configuration.
 - `lab.js` applies that profile without replaying account initialization or resetting the draft.
 - Positive balance never sets `generationReady`; review/closure/promotion restrictions remain enforced.
@@ -18,26 +19,29 @@
 - Homepage, Studio and account-page purchase entries record context only after validating the Stripe destination.
 - Existing private Image draft storage preserves prompt/settings/photos through outgoing Studio Checkout.
 - Focus and persisted pageshow refresh the complete profile; browser Back restores selection with or without a cached document.
-- No CSS, photographs, design, prices, billing address, Worker, database or commercial settings changed.
+- The PR diff against the incorporated main changes no CSS, photographs, design, prices, billing address, Worker, database or commercial settings.
 - New deterministic tests cover bounded/late webhook, rejected context, account switches and the BFCache purchase lock.
 - Extended account browser tests cover 1440/390px late webhook, denied positive balances, first usable click, cancel, focus and Back.
 - Actual Back navigations passed; Chromium reported `pageshow.persisted=false` in all four cases.
 - Persisted BFCache lifecycle is explicitly simulated in browser and unit tests; native cache eviction/restore remains unverified.
-- Local relevant unit checks: 110 passed, 0 skipped (including approved Image contract and billing/credit/webhook guards).
-- Account browser passed full existing matrix plus the new regressions; pricing overlay browser passed 320/390/1440/1648px.
-- Homepage banner browser passed all five sizes on `df04848`; after latest main, both main `aafe940` and PR fail line 82 (expected absolute, actual fixed). No assertion/design repair is included.
-- Existing one-click mock-generation browser: 53/53 passed; Windows path adapter used in memory only.
-- Screenshots inspected for funded desktop/mobile and cancelled pack/subscription selection; no horizontal overflow.
-- Known unrelated failure retained: `lab-first-image-instant-browser.mjs:126` backdrop comparison at 1920px.
-- Audit baseline: max=234 / mean=40.745716145833335. After the later main banner CSS, both exact main `43db51b` and PR `df04848` fail with max=234 / mean=32.85790798611111; no assertion changed.
-- Payment, credit allocation and first generation are tested locally with synthetic identities/intercepted APIs only.
-- No real purchase, paid generation, production account mutation, PR merge or production deployment performed.
-- Final account/pricing/110-unit validation: `e76f4b5`, Node 24; only the handoff changes afterward.
-- The 53 one-click checks passed on `df04848`; affected Studio JS/test bytes remain identical after the later homepage-only main changes.
-- GitHub Actions were queued on `df04848`; exact final-head remote checks remain pending in the PR, not reported as passing.
-- Cloudflare automatically built a branch preview (`c410bf21`), not production; no manual deployment was initiated.
-- Remaining acceptance: normal-customer test payment -> webhook credits -> first generation in a confirmed test environment, plus real Safari BFCache.
-- Next: review draft PR and its exact-head CI; retain failures/limitations explicitly before any release approval.
+- Integration checks on Node 24: account browser passes its full matrix and 17 reported groups; pricing overlay passes 320/390/1440/1648px.
+- Full Lab unit suite: 710/711 pass, zero skipped. The only local failure is `lab-mood-preflight-speed.test.mjs:23`, uploads=0 versus 4 after one setImmediate.
+- That preflight failure also reproduces in isolation with all eight imported source/test files extracted from exact main `ac33d20` (same relevant bytes as `b99fec4`); no PR module appears in that import graph. Do not alter its assertion.
+- All payment, permission, credit, authorization and approved Image contract tests in that full run pass.
+- Existing one-click mock-generation browser: 53/53; independent customer Video: 12/12 at 1440/390px.
+- Updated main Upscaler browser: 34/34, including visible choices, both Precision qualities, provider/quote integrity, customer/Owner permissions, errors and History.
+- One-click/Video use only an in-memory Windows static-server path separator adapter. No tracked assertion, timeout or gate is changed.
+- Funded Studio 1440/390px and cancelled Studio 390px screenshots inspected: prompt retained, correct plan tab/focus, no horizontal overflow.
+- Main advanced during validation from `ac33d20` to `b99fec4`; the pending merge was restarted normally before committing. Application and test bytes are identical to the tested tree `6447248`; only domain workflow, redirects and main handoffs were added.
+- Previous CI baseline: masthead fixture missing body class, empty Upscaler source-control expectation, landing fixed/absolute and first-image backdrop failures. Prior hidden-disclosure Video failure is historical; main now has the visible Upscaler tests and local 34/34 passes.
+- See the PR description for exact new-commit CI results and links; do not turn previous-head results into new-head passes.
+- Billing evidence is separately verified in the isolated sandbox: one +1,000 pack and one +1,600 subscription movement, same customer, ledger and wallet both 2,600, no duplicate.
+- The user reports F5 retains 2,600. Private Stripe Sandbox screenshot records first invoice Paid and cancellation on 2026-11-23 with No further invoice / Ends: At period end.
+- Do not copy private screenshots, email, customer IDs or transaction IDs into this public handoff/PR. No test purchase was repeated in this continuation.
+- Stripe test API access remains unavailable; D1 does not store cancel_at_period_end. The cancellation screenshot is separate evidence, not a D1 verification of that field or an independently inspected webhook delivery.
+- The billing sandbox has no Studio generation routes. Real customer return to Studio, complete authorized profile/draft recovery and first generation remain unverified remotely; browser coverage of those paths uses mocked APIs.
+- No production mutation, paid generation, merge to main or manual deployment. A normal branch push may trigger the existing automatic preview check; it is not production publication.
+- Next: review the normal merge commit and its CI, retain inherited failures explicitly, and close only the remaining real Studio acceptance in a separately authorized isolated environment. Keep draft.
 
 ## Homepage zero-credit banner (2026-10-23, completed and live)
 

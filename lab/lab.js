@@ -3,8 +3,8 @@ import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=202610
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10';
 import {preparePhotoInput,prepareUpscaleInput} from './photo-input.js?v=2';
-import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?hkPhotoOriginals=20261018v2&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&fisheye=20261020v1&hkRefs=20261022three1';
-import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-hidden-preset1&fisheye=20261020v1&hkRefs=20261022three1';
+import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?hkPhotoOriginals=20261018v2&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&fisheye=20261020v1&hkRefs=20261023two1';
+import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-hidden-preset1&fisheye=20261020v1&hkRefs=20261023two1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
@@ -22,10 +22,10 @@ import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=
 import {createVideoModelPicker} from './video-model-picker.js?v=20261016-wan-mini-priority1';
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261022three1&photoOnlyAuto=20261022v3';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3';
 import {createInspirationRotation,INSPIRATION_VARIATIONS} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261018-girard-originals2&20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&kreaMoods=20261020v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261022three1';
-import {HONG_KONG_VARIANTS} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2&hkRefs=20261022three1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261018-girard-originals2&20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&kreaMoods=20261020v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1';
+import {HONG_KONG_VARIANTS} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2&hkRefs=20261023two1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&fisheye=20261020v1&fisheyeCover=20261021v1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
 import {saveStudioReturnDraft,readStudioReturnDraft,clearStudioReturnDraft,storedImageFile} from './studio-return-draft.js?v=20261016-moods-return1';
@@ -689,7 +689,7 @@ function openUpscaleModelMenu(){
   if(tool!=='upscale'||busy||!config.falEnabled)return;
   const menu=$('upscale-model-menu'),trigger=$('upscale-model-trigger');
   menu.hidden=false;trigger.setAttribute('aria-expanded','true');
-  (menu.querySelector('[data-upscale-engine="'+upscaleEngine+'"]')||menu.querySelector('button'))?.focus({preventScroll:true});
+  (menu.querySelector('[data-upscale-quality][aria-checked="true"]')||menu.querySelector('[data-upscale-engine="'+upscaleEngine+'"]')||menu.querySelector('button'))?.focus({preventScroll:true});
 }
 function updateUpscaleModel(){
   // Provider diagnostics are for the verified PV LAB owner, never customer accounts.
@@ -703,6 +703,7 @@ function updateUpscaleModel(){
   $('upscale-model-trigger').setAttribute('aria-label','Choose upscale model, currently '+shown.brand+' '+$('upscale-model-id').textContent);
   $('upscale-model-trigger').disabled=!active||busy||!config.falEnabled;
   for(const item of $('upscale-model-menu').querySelectorAll('[data-upscale-engine]'))item.setAttribute('aria-checked',String(item.dataset.upscaleEngine===upscaleEngine));
+  for(const item of $('upscale-model-menu').querySelectorAll('[data-upscale-quality]'))item.setAttribute('aria-checked',String(upscaleEngine==='topaz-precision'&&item.dataset.upscaleQuality===$('upscale-topaz-model').value));
   for(const option of $('upscale-engine').options)option.disabled=option.value!=='spicy'&&!config.falEnabled;
   if(!active)return;
   $('resolution-control').hidden=fal;$('engine-name').textContent=model.name.toUpperCase()+' · '+model.provider.toUpperCase();
@@ -734,7 +735,8 @@ function updateUpscalePrice(){
   $('upscale-check-price').disabled=!active||!owner||!file||busy||!(fal?config.falEnabled:config.enabled);
   $('upscale-check-price').textContent=fal?(upscaleQuoteNeedsCheck?'Check price & size again':'Check price & size'):(upscaleQuoteNeedsCheck?'Check live price again':'Check live price');
   const q=upscaleQuote?.quote;
-  $('upscale-price-status').textContent=customerMode&&q?('Estimated credit charge: '+(Number.isSafeInteger(q.creditCost)?q.creditCost+' credits':wallet.describe(q.maxUsd))+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):q?(q.priceIsEstimate?('Estimated charge: '+money(q.estimatedUsd)+' USD. '+q.settings.sourceWidth+' × '+q.settings.sourceHeight+' to '+q.settings.targetWidth+' × '+q.settings.targetHeight+' output. Not a guaranteed maximum. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):('Live price: '+money(q.estimatedUsd)+' USD'+(q.maxUsd!==q.estimatedUsd?' · maximum '+money(q.maxUsd)+' USD':'')+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.')):upscalePriceMessage||(fal?'Check the estimated charge and output dimensions before upscaling.':'Check the price for this image before upscaling, or use Upscale directly.');
+  $('upscale-price-status').textContent=customerMode&&q?('Estimated credit charge: '+(Number.isSafeInteger(q.creditCost)?q.creditCost+' credits':wallet.describe(q.maxUsd))+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):q?(q.priceIsEstimate?('Estimated charge: '+money(q.estimatedUsd)+' USD. '+q.settings.sourceWidth+' × '+q.settings.sourceHeight+' to '+q.settings.targetWidth+' × '+q.settings.targetHeight+' output. Not a guaranteed maximum. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):('Live price: '+money(q.estimatedUsd)+' USD'+(q.maxUsd!==q.estimatedUsd?' · maximum '+money(q.maxUsd)+' USD':'')+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.')):upscalePriceMessage;
+  $('upscale-price-status').hidden=!$('upscale-price-status').textContent;
   if(active&&(fal&&!config.falEnabled||(!fal&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired))$('generate').disabled=true;
   if(active&&q)$('generate').textContent=customerMode?'Upscale · '+(Number.isSafeInteger(q.creditCost)?q.creditCost+' credits':wallet.describe(q.maxUsd)):'Upscale · '+(q.priceIsEstimate?'est. ':q.maxUsd!==q.estimatedUsd?'max ':'')+money(q.priceIsEstimate?q.estimatedUsd:q.maxUsd);
   else if(active&&customerMode)$('generate').textContent=upscaleEngine==='seedvr2'?'Upscale · '+(Number($('upscale-scale').value)===4?18:10)+' credits':'Upscale';
@@ -2718,16 +2720,21 @@ $('upscale-model-trigger').onkeydown=event=>{
   if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();openUpscaleModelMenu();}
 };
 $('upscale-model-menu').addEventListener('click',event=>{
-  const option=event.target.closest('[data-upscale-engine]');
+  const option=event.target.closest('[data-upscale-engine],[data-upscale-quality]');
   if(!option||!$('upscale-model-menu').contains(option)||busy)return;
-  const value=option.dataset.upscaleEngine;
-  if(!UPSCALE_PUBLIC_ENGINES.includes(value))return;
+  const quality=option.dataset.upscaleQuality,value=quality?'topaz-precision':option.dataset.upscaleEngine;
+  if(!UPSCALE_PUBLIC_ENGINES.includes(value)||quality&&!['Standard V2','High Fidelity V3'].includes(quality))return;
   $('upscale-engine').value=value;
   $('upscale-engine').dispatchEvent(new Event('change',{bubbles:true}));
+  if(quality&&$('upscale-topaz-model').value!==quality){
+    $('upscale-topaz-model').value=quality;
+    $('upscale-topaz-model').dispatchEvent(new Event('change',{bubbles:true}));
+  }
   closeUpscaleModelMenu(true);
 });
 $('upscale-model-menu').addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.preventDefault();closeUpscaleModelMenu(true);return;}
+  if(event.key==='Tab'){closeUpscaleModelMenu();return;}
   const choices=[...$('upscale-model-menu').querySelectorAll('button:not(:disabled)')],index=choices.indexOf(document.activeElement);
   if(['ArrowUp','ArrowDown','Home','End'].includes(event.key)){
     event.preventDefault();
@@ -2748,12 +2755,12 @@ $('upscale-engine').onchange=()=>{
   if(value===upscaleEngine){updateUpscaleModel();return;}
   upscaleEngine=value;
   clearUpscalePrice();
-  upscalePriceMessage='Model changed. A fresh estimate is checked before upscaling. No job submitted.';
-  if(value==='topaz-precision')$('upscale-info').open=true;
+  // A new engine selection uses Precision's existing default; History restores its saved quality directly.
+  if(value==='topaz-precision')$('upscale-topaz-model').value='Standard V2';
   $('notice').textContent='';$('notice').classList.remove('error');
   update();
 };
-for(const id of ['upscale-topaz-model','upscale-scale'])$(id).onchange=()=>{if(busy)return;invalidateUpscalePrice('Upscale settings changed. Check the price and output size again.');update();};
+for(const id of ['upscale-topaz-model','upscale-scale'])$(id).onchange=()=>{if(busy)return;invalidateUpscalePrice(id==='upscale-topaz-model'?'':'Upscale settings changed. Check the price and output size again.');update();};
 $('tool-fashion').onclick=()=>void openFashionStudio();
 $('tool-retouch').onclick=()=>{if(!busy)void openRetouch({autofill:true});};
 $('tool-image').onclick=()=>{if(!busy)setTool('image');};
@@ -5079,6 +5086,7 @@ async function submitImageSnapshot(){
     }
   }
 }
+
 
 
 

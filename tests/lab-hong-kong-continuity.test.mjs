@@ -22,7 +22,7 @@ test('the October 10 cinematic inspiration stays available for compositions, whi
   assert.match(edit.prompt,/SCENE ADAPTATION, only what IMAGE 1 visibly supports/);
   for(const route of ['FASHION PORTRAIT','STREET OR TRANSIT','BEDROOM OR INTERIOR'])
     assert.ok(edit.prompt.includes(route),'Missing scene pathway: '+route);
-  for(const primary of ['green taxi city','rain-polished exterior ground','lime-gold restaurant','fluorescent tunnel'])
+  for(const primary of ['city taxi at night','wet night street','black intervals'])
     assert.ok(edit.prompt.includes(primary),'Primary reference DNA must shape the light: '+primary);
   assert.match(edit.prompt,/no new scene|not a new scene/);
   assert.equal(edit.metadata.moodIntensity,60);
@@ -58,16 +58,16 @@ test('increasing the strength changes existing light only, never scene identity 
   const medium=prepareMoodPrompt('Portrait','hong-kong-nights',60,{referenceCount:1}).prompt;
   const high=prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1}).prompt;
   assert.match(low,/Subtle: quiet warm\/cool film response/);
-  assert.match(medium,/Editorial: luminous flattering skin/);
+  assert.match(medium,/Editorial: luminous natural skin/);
   const approved=prepareMoodPrompt('Portrait','hong-kong-nights',90,{referenceCount:1}).prompt;
-  assert.match(approved,/Expressive: richer emerald night ambience/);
+  assert.match(approved,/Expressive: deeper natural night blacks/);
   assert.doesNotMatch(approved,/Make atmospheric diffusion clearly visible/);
-  assert.ok(high.includes('Keep existing emerald/petrol shadows, warm tungsten light, natural skin and contrast'));
-  assert.match(high,/Make atmospheric diffusion clearly visible/);
-  assert.match(high,/localized halation/);
-  assert.match(high,/subtle veiling flare/);
-  assert.match(high,/No extra grain, muddy blacks, blanket blur or new lamps/);
-  assert.match(high,/Wet reflections only outdoors; dry interiors/);
+  assert.match(high,/MOOD STRENGTH 100\/100/);
+  assert.match(high,/atmospheric depth and bloom around existing practical lights/);
+  assert.match(high,/localized luminous falloff/);
+  assert.match(high,/receding humid depth/);
+  assert.match(high,/No fog overlays, added lamps, digital noise or restaged locations/);
+  assert.match(high,/unaffected dry interiors/);
   assert.doesNotMatch(high,/automatically import style photos|replace background buildings/);
   assert.notEqual(low,medium);
   assert.notEqual(medium,high);

@@ -21,6 +21,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: lab/studio.html
+          sparse-checkout-cone-mode: false
+      - name: Read current Studio asset versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE' >> "$GITHUB_ENV"
+          import {readFileSync} from 'node:fs';
+          const html=readFileSync('lab/studio.html','utf8');
+          for(const [key,file] of [['STUDIO_MODULE_REF','lab.js'],['STUDIO_ASSETS_REF','assets.css']]){
+            const ref=html.match(new RegExp('(?:src|href)="\\./('+file.replaceAll('.','\\.')+'\\?v=[^&"\\s]+)'))?.[1];
+            if(!ref)throw new Error('Missing versioned Studio asset: '+file);
+            console.log(key+'='+ref);
+          }
+          NODE
       - name: Check public new and legacy site
         shell: bash
         run: |
@@ -58,7 +75,8 @@ jobs:
               && ! grep -Fq 'lab-boot-fluid' /tmp/live-studio.html \
               && grep -Fq '#lab-boot{position:fixed;inset:0;width:100vw;' /tmp/live-studio.html \
               && grep -Fq 'pv-boot-dismiss .24s ease-out both' /tmp/live-studio.html \
-              && grep -Fq '.lab-boot-wordmark::before{content:attr(data-text);position:absolute;inset:0;padding-left:inherit;box-sizing:border-box;pointer-events:none;white-space:nowrap;color:#ededee;opacity:0}' /tmp/live-studio.html \
+              && grep -Fq '<span class="lab-boot-wordmark" id="lab-boot-name" role="img" aria-label="PV LAB"><svg' /tmp/live-studio.html \
+              && grep -Fq '.lab-boot-wordmark::before{content:"";position:absolute;inset:0;box-sizing:border-box;pointer-events:none;background:url("./branding/pvlab-wordmark-bold.svg?v=20261022-bold1") center/100% 100% no-repeat;opacity:0}' /tmp/live-studio.html \
               && grep -Fq '@keyframes pv-boot-out{0%,12%{opacity:1;filter:blur(0);transform:none}55%{opacity:.82;filter:blur(3px);transform:none}100%{opacity:0;filter:blur(9px);transform:none}}' /tmp/live-studio.html \
               && grep -Fq '@keyframes pv-boot-trail-out{0%,17%{opacity:0;filter:blur(0);transform:none}56%{opacity:.46;filter:blur(5px);transform:none}100%{opacity:0;filter:blur(12px);transform:none}}' /tmp/live-studio.html \
               && grep -Fq 'id="history-preview-toggle"' /tmp/live-studio.html \
@@ -66,7 +84,7 @@ jobs:
               && grep -Fq 'image-discreet.js?v=20261017-transient-message1' /tmp/live-studio.html \
               && grep -Fq 'image-studio.css?v=20261018-preview-fallback1' /tmp/live-studio.html \
               && grep -Fq 'studio.css?v=20261018-owner-effects-nav1&reference-nav=1' /tmp/live-studio.html \
-              && grep -Fq 'lab.js?v=20261018-ref-stable1' /tmp/live-studio.html \
+              && grep -Fq "$STUDIO_MODULE_REF" /tmp/live-studio.html \
               && grep -Fq 'image-moods-return.css?v=20261017-hidden-inspiration1' /tmp/live-studio.html \
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.js?verify=20261017-transient-message1" -o /tmp/live-image-discreet.js \
               && grep -Fq 'pv-lab-image-previews-hidden-v1' /tmp/live-image-discreet.js \
@@ -124,14 +142,14 @@ jobs:
             curl -fsSL --connect-timeout 6 --max-time 20 \
               "https://pvlab.studio/studio?tool=image&verify=20261016-f02906" \
               -o /tmp/live-pv-studio-exact.html || true
-            if grep -Fq 'assets.css?v=20261016-exact-tooltip4' /tmp/live-pv-studio-exact.html \
+            if grep -Fq "$STUDIO_ASSETS_REF" /tmp/live-pv-studio-exact.html \
               && grep -Fq 'studio-finish-v2.css?v=20261016-generate-always3' /tmp/live-pv-studio-exact.html \
               && grep -Fq 'id="composer-exact-prompt-option"' /tmp/live-pv-studio-exact.html; then
               curl -fsSL --connect-timeout 6 --max-time 20 \
                 "https://pvlab.studio/studio-finish-v2.css?v=20261016-generate-always3" \
                 -o /tmp/live-pv-generate-style.css || true
               curl -fsSL --connect-timeout 6 --max-time 20 \
-                "https://pvlab.studio/assets.css?v=20261016-exact-tooltip4" \
+                "https://pvlab.studio/$STUDIO_ASSETS_REF" \
                 -o /tmp/live-pv-toolbar-style.css || true
               if grep -Fq 'visibility:visible;' /tmp/live-pv-generate-style.css \
                 && ! grep -Fq 'visibility:hidden}' /tmp/live-pv-generate-style.css \
@@ -176,7 +194,7 @@ jobs:
           set -euo pipefail
           curl -fsSL --retry 2 --retry-delay 2 --max-time 20 \
             "https://parallel-vision-lab.parallelvision.workers.dev/health" -o /tmp/health.json
-          node -e "const x=require('/tmp/health.json');const v=String(x.version||'');const m=v.match(/^pv-lab-(\d{4}-\d{2}-\d{2})\.(\d+)-/);if(!x.ok||!m||m[1]<'2026-10-15'||(m[1]==='2026-10-15'&&Number(m[2])<1)){console.error('FAIL: incompatible backend health version',v);process.exit(1)}console.log('PASS backend version',v)"
+          node -e "const x=require('/tmp/health.json');const v=String(x.version||'');const m=v.match(/^pv-lab-(\d{4}-\d{2}-\d{2})(?:\.(\d+))?-/);if(!x.ok||!m||m[1]<'2026-10-15'||(m[1]==='2026-10-15'&&Number(m[2]||0)<1)){console.error('FAIL: incompatible backend health version',v);process.exit(1)}console.log('PASS backend version',v)"
           curl -fsSL --retry 2 --max-time 20 -X OPTIONS \
             -H 'Origin: https://pvlab.studio' \
             -H 'Access-Control-Request-Method: GET' \

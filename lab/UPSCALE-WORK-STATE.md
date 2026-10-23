@@ -1,5 +1,37 @@
 # PV LAB Premium Upscale work state
 
+## Active checkpoint / 2026-10-23
+- Objective: simplify the confusing nested Upscaler model menu after owner feedback.
+- Base: main a10eb030babb66bb1dc79cd944c945d137926db7.
+- Four flat choices: ByteDance Premium, Topaz Standard V2, Topaz High Fidelity V3, Topaz Wonder 3.5.
+- Remove the clickable Precision parent, indentation and separate quality grouping.
+- Each Precision row retains the actual Standard V2 / High Fidelity V3 backend value.
+- Reuse the existing quality click handler; no provider, billing, auth or default change.
+- One checked row, keyboard focus, History reuse, quiet selection and quote invalidation remain.
+- Preserve page geometry and hidden More options.
+- Files: lab/studio.html, lab/upscale-studio-v5.css and existing menu test assertions.
+- Cache keys: upscalePrecision=20261023-flat2 and precisionQuality=20261023-flat2.
+- Existing 34 browser checks retain model/quality, role/viewport, quote and submission coverage.
+- Existing independent visibility fixture baseline failure remains unchanged.
+- Prior release: PR #466 / 503bbc1, deployed successfully.
+- Simplification merged in PR #469 as 14d3eafcab25bc3cbbaccae02d384676d3b1a470.
+- Cloudflare Pages pvlab-studio check 120424694540: success for that exact SHA.
+- Custom domain /studio?tool=upscale DOM confirms all four labels and no nested group.
+- Production JS/CSS version keys confirmed as 20261023-flat2.
+- Browser suite passed BROWSER_CHECKS_PASSED=34 in job 120421941455.
+- Desktop 1728px and phone 390px menu screenshots inspected from artifact 12503360371.
+- Screenshots: upscaler-precision-empty-1728.png and upscaler-precision-empty-390.png.
+- Mocked role tests retain both qualities, History, keyboard, touch, quote binding and no duplicate submission.
+- Production browser signed out; real authenticated paid generation not exercised.
+- Shell production byte verification unavailable; exact CF check plus browser DOM/version fallback used.
+- Unrelated CI failures inspected: guest tool visibility, Image entrance backdrop, Mood nav viewport,
+  old-domain redirect verification and reference image decode. Their tested behavior/files were untouched.
+- Mandatory approved Image contract passed 5/5 before and after this edit.
+- No paid jobs submitted.
+- Publication and scoped verification complete; no further product change pending.
+
+## Previous implementation record
+
 Updated: 2026-10-14 (Berlin), model/visual hierarchy correction.
 Scope: curated SeedVR2 default replacing the public economical method.
 Branch: feat/pv-lab-premium-seedvr2-20261014
@@ -56,3 +88,4 @@ Base main commit: 4f41522ee91c2861ae3b6d8f18957b5575f5313e
 - Files: lab/studio.html, lab/lab.js, lab/assets.css, tests/lab-upscale-ui.mjs, tests/lab-assets-ui.cjs.
 - Work branch: fix/upscaler-real-model-menu-20261014. Base: b4c8dbc6ca4c5c618085cc9d28ddec89cfeb1dce.
 - Merge, browser test and production Pages deployment must be verified.
+
