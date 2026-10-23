@@ -35,6 +35,8 @@ html.pv-studio-boot-lock{scroll-behavior:auto!important}
    Mobile stays centered without reserving unused scrollbar space. */
 @media(min-width:761px){html:has(#app.image-studio-active){scrollbar-gutter:stable}}
 @media(min-width:761px){html:has(#app.video-studio-active){scrollbar-gutter:stable}}
+/* Match Image/Video header width in authenticated Retouch without forcing overflow. */
+@media(min-width:761px){html:has(#app.retouch-studio-active:not([data-guest-preview])){scrollbar-gutter:stable}}
 /* Visible before the external scripts and stylesheets load. No remote imagery or icon fonts. */
 body.lab-booting{margin:0;background:#101114}
 /* Fixed overlays using inset:0 alone shrink when the root reserves a classic
