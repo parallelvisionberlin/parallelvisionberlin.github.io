@@ -68,6 +68,7 @@ jobs:
             'id="fashion-gallery"','id="fashion-history"','id="fashion-more"'
           ])assert.ok(html.includes(marker),'Published Fashion contract missing: '+marker);
           assert.ok(!html.includes('class="recent-work"'),'Old nested archive must remain absent');
+          assert.ok(!html.includes('editorial-reference'),'Decorative reference must not replace the actual result panel');
           const css=html.match(/<link[^>]+href="([^"]*fashion\.css\?[^"]+)"[^>]*>/);
           const js=html.match(/<script[^>]+src="([^"]*fashion\.js\?[^"]+)"[^>]*>/);
           assert.ok(css&&js,'Published template declares both versioned assets');
@@ -84,6 +85,7 @@ jobs:
           assert.ok(stylesheet.includes('.fashion-gallery{grid-column:1 / -1;grid-row:3'),'Full-width gallery contract');
           assert.ok(stylesheet.includes('max-height:none;overflow:visible'),'History must not regain its tiny scrollbar');
           const module=await asset(js[1],'fashion.js');
+          assert.ok(module.includes('loadGalleryThumbnails'),'Published gallery retains thumbnail loading');
           assert.ok(module.includes('export function createFashionStudio'),'Published module exposes the canonical controller');
           assert.ok(module.includes('/api/fashion/quote'),'Price review retains its real quote endpoint');
           console.log('Canonical Fashion template and declared CSS/module are healthy; this is not a release check for the PR.');
