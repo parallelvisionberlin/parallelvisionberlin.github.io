@@ -87,7 +87,7 @@ try{
       const request=route.request(),url=new URL(request.url());
       if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
       requests.push(url.pathname);
-      if(request.method()!=='GET')writes.push(url.pathname);
+      if(request.method()!=='GET')writes.push({path:url.pathname,signed:request.headers().authorization==='Bearer synthetic-token'});
       const owner=await page.evaluate(()=>window.__publicAccount?.role==='owner');
       const payload=url.pathname==='/api/session'?{
         owner,customer:!owner,generationReady:true,billingReady:true,balanceCredits:500,
@@ -215,13 +215,19 @@ try{
           await page.getByRole('heading',{name:/Explore Moods/}).waitFor({state:'visible'});
           await page.goBack();await settled(page,route,true);
         }
+        const privateField={video:'#prompt',retouch:'#precision-prompt',fashion:'#fashion-studio #direction'}[route];
+        const privateText='PRIVATE SESSION '+role+' '+route+' '+width;
+        if(route==='retouch')await page.locator('#precision-try-sample').click();
+        if(privateField)await page.locator(privateField).fill(privateText);
         await page.evaluate(()=>window.__publicAccount.account.signOut());
         await settled(page,route);
+        if(privateField)assert.equal(await page.locator(privateField).inputValue(),'','logout clears private direction before public preview');
+        assert.equal(await page.getByText(privateText,{exact:true}).isVisible(),false,'No private direction remains visible in the public inspector');
         assert.equal(await page.locator('.archive').isVisible(),false,'logout hides History');
         assert.equal(await page.locator('#history').textContent(),'','logout clears History');
       }
     }
-    assert.deepEqual(writes,[],'no upload, quote, generation, billing or provider mutations');
+    assert.ok(writes.every(write=>write.signed&&write.path==='/api/quotes'),'Only existing authenticated automatic quote previews are permitted; no guest writes, uploads, generation, billing or provider mutations: '+JSON.stringify(writes));
     assert.deepEqual(errors,[]);
     console.log(`PASS public/signed-in Studio ${width}px: five approved decks, auth returns, tabs, Back/Forward, logout, API isolation`);
     await context.close();

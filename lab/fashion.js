@@ -337,6 +337,7 @@ function lock(){
   for(const [fileId,imgId,hintId] of [['person-file','person-preview','person-hint'],['garment-file','garment-preview','garment-hint']]){
     $(fileId).value='';$(imgId).hidden=true;$(imgId).removeAttribute('src');$(hintId).hidden=false;
   }
+  if(publicPreview()){$('direction').value='';status('');}
   $('fashn-api-state').textContent='Sign in to check API credits';$('check-fashn').disabled=true;
   $('gate').hidden=publicPreview();$('workspace').hidden=!publicPreview();$('fashion-gallery').hidden=publicPreview();$('signin').disabled=!clerk;
   update();
