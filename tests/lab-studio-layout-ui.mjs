@@ -124,7 +124,8 @@ try{
   assert.ok(d.navigation.top>=d.header.top&&d.navigation.bottom<=d.header.bottom,'Tool tabs stay inside the shared header');
   assert.ok(Math.abs(d.workspace.top-d.header.bottom)<=3,'Workspace starts directly below the shared header');
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
-  assert.ok(d.dock.height>=64&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
+  assert.equal(d.dock.height,56,'Approved compact Generate dock retains its fixed 56px track');
+  assert.ok(d.dock.bottom<=d.panel.bottom+2,'Generation controls remain inside their panel');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
   assert.ok(Math.abs(d.stage.top-d.inspector.top)<2&&Math.abs(d.stage.bottom-d.inspector.bottom)<2,'Video preview and right inspector share their top and bottom edges');
   await x.page.waitForFunction(()=>document.querySelector('#app').classList.contains('pv-video-state-ready'));
@@ -258,9 +259,10 @@ try{
     const style=getComputedStyle(el);
     return {size:parseFloat(style.fontSize),family:style.fontFamily,color:style.color};
   });
-  assert.ok(videoTypography.size>=14,'Video motion prompt is readable at desktop size');
+  assert.equal(videoTypography.size,12,'Approved compact Video motion prompt uses 12px type');
   assert.match(videoTypography.family,/DM Sans/,'PV Lab uses its own editorial UI typography');
-  assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
+  assert.equal(d.stage.height,682,'Approved desktop stage leaves room for real History');
+  assert.equal(d.canvas.height,d.stage.height-2,'Empty artwork fills the bordered preview');
   assert.ok(d.modes.top-d.model.bottom<110,'Start/reference buttons remain near model info');
   assert.equal(d.explanationCollapsed,true);
   assert.equal(await x.page.locator('#studio-header .lab-brand').innerText(),'PV LAB','Studio uses the same PV LAB identity as the public pages');
@@ -658,8 +660,11 @@ try{
   assert.equal(await x.page.locator('#pv-mode-reference-label').innerText(),'Reference set');
   assert.equal(await x.page.locator('#reference-drop>span').innerText(),'Upload images');
   assert.equal(await x.page.locator('#video-inspector-empty .pv-video-sidebar-section:nth-of-type(2) h3').innerText(),'Attached images');
-  await x.page.locator('#canvas-secondary').click();
-  assert.equal(await x.page.evaluate(()=>document.activeElement.id),'prompt','Reference secondary action focuses motion direction');
+  await x.page.locator('#pv-video-browse-library').click();
+  assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true,'Approved central action opens the real Scene library');
+  await x.page.keyboard.press('Escape');
+  await x.page.locator('#prompt').click();
+  assert.equal(await x.page.evaluate(()=>document.activeElement.id),'prompt','Motion direction remains directly editable');
   const outputFit=await x.page.evaluate(()=>{
     const ids=['pv-video-model-pill','duration-control','ratio-control','resolution-control','pv-video-audio-pill'];
     const nodes=ids.map(id=>document.getElementById(id));
@@ -670,11 +675,12 @@ try{
       railRight:rail.right,widths:rects.map(r=>r.width)};
   });
   assert.equal(outputFit.ready,true,'Reference mode has the five actual output settings');
-  assert.ok(Math.max(...outputFit.tops)-Math.min(...outputFit.tops)<3,
-    'Approved desktop Video settings stay on a single row: '+JSON.stringify(outputFit));
+  assert.ok(Math.max(...outputFit.tops.slice(0,4))-Math.min(...outputFit.tops.slice(0,4))<3,
+    'Approved model, duration, ratio and resolution stay on one row: '+JSON.stringify(outputFit));
+  assert.equal(outputFit.tops[4]-outputFit.tops[0],36,'Audio occupies the approved second row');
   assert.ok(outputFit.right<=outputFit.railRight-8,
     'Video settings cannot overflow the right edge of the editor: '+JSON.stringify(outputFit));
-  assert.ok(outputFit.widths.every(w=>w>48),
+  assert.ok(outputFit.widths.every(w=>w>=48),
     'Model, duration, ratio, resolution and audio remain usable');
   await x.page.screenshot({path:'test-results/lab-workspace-reference.png',fullPage:false});
   assert.deepEqual(x.errors,[]);
@@ -684,7 +690,7 @@ try{
   // Start-frame modes follow their source ratio. Text mode exposes an explicit
   // ratio; its controls must be reachable inside the independently scrolling
   // form while Generate stays fixed and the document does not scroll.
-  for(const [width,height] of [[1440,768],[1440,820],[1728,820]]){
+  for(const [width,height] of [[1440,600],[1440,768],[1440,820],[1728,820]]){
     const compact=await open(width,height);
     assert.equal(await compact.page.locator('#mode-reference').getAttribute('aria-selected'),'true',
       'Seedance opens Create in Reference set, not an unrequested Start frame');
