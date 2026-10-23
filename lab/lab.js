@@ -948,7 +948,7 @@ async function openFashionStudio({preview=false}={}){
   try{
     if(!fashionMount){
       host.setAttribute('aria-busy','true');
-      fashionMount=import('./fashion-studio.js?v=20261023-fashion-gutter2&publicPreview=20261023-1&firstReady=20261015-1&singleFooter=20261015-1')
+      fashionMount=import('./fashion-studio.js?v=20261023-fashion-gutter2&publicPreview=20261023-1&firstReady=20261015-1&singleFooter=20261015-1&sourceContainment=20261023-6')
         .then(({mountFashionStudio})=>mountFashionStudio(host,{sessionClient,onNavigate:navigateStudioTool,publicPreview:()=>!owner&&$('app').hasAttribute('data-guest-preview')}))
         .then(controller=>{fashionController=controller;return controller;})
         .catch(error=>{fashionMount=null;throw error;});

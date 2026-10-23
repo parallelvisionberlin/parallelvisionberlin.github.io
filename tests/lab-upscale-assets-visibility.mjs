@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFileSync,existsSync,mkdirSync} from 'node:fs';
-import {resolve,extname} from 'node:path';
+import {resolve,extname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
@@ -24,7 +24,7 @@ assert.ok(lib.includes("if(url.searchParams.get('unfiled')==='1'"),'Assets retai
 const server=http.createServer((req,res)=>{
   const u=new URL(req.url,'http://localhost');
   const file=resolve(root,'.'+u.pathname+(u.pathname.endsWith('/')?'index.html':''));
-  if(!file.startsWith(root+'/')||!existsSync(file)){res.writeHead(404).end();return;}
+  if(!file.startsWith(root+sep)||!existsSync(file)){res.writeHead(404).end();return;}
   const extension=extname(file);
   res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webp':'image/webp'})[extension]||'text/plain');
   // We test the production HTML+CSS with mock DOM states to avoid a real owner session.
@@ -96,15 +96,16 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
       return {
         canvas:rect('#upscale-canvas'),deck:rect('#app .workspace>.controls'),results:rect('.archive'),
-        options:rect('#upscale-info summary'),size:rect('#upscale-scale'),imageLoaded:false
+        model:rect('#upscale-model-display'),size:rect('#upscale-scale'),imageLoaded:false
       };
     });
     if(profile==='desktop'){
-      assert.ok(Math.abs(geometry.deck.right-geometry.canvas.left)<=5,'Approved flush Upscaler sidebar meets the photographic stage without overlap');
+      assert.ok(Math.abs(geometry.deck.right-geometry.canvas.left)<=1,'Approved fullscreen controls meet the photographic stage without a gap');
       assert.ok(Math.abs(geometry.deck.top-geometry.canvas.top)<55,'Desktop studio panels share a top baseline');
       assert.ok(geometry.canvas.height>=540&&geometry.canvas.height<=821,'Desktop preview is a full photographic stage');
       assert.ok(geometry.results.top>=geometry.canvas.bottom,'Upscaled results follow the preview');
-      assert.ok(geometry.results.right>geometry.canvas.left&&geometry.results.left>=geometry.deck.left,'Results remain beneath the working stage and within the editor');
+      assert.ok(geometry.results.left>=geometry.deck.left&&geometry.results.left<geometry.canvas.left&&geometry.results.right<=geometry.canvas.right+1&&(geometry.results.right-geometry.results.left)>=(geometry.canvas.right-geometry.canvas.left),'Results use the approved page gutters below both workspace panels');
+      assert.ok(geometry.model.left>=geometry.deck.left&&geometry.model.right<=geometry.deck.right,'The visible model selector stays inside the left deck');
       assert.equal(await page.locator('#upscale-info').isVisible(),false,'Hidden technical options do not enter the working layout');
       const galleryPeek=await page.evaluate(()=>{
         const archive=document.querySelector('#app>.archive').getBoundingClientRect();
@@ -121,8 +122,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       assert.ok(galleryPeek.previewHeight>=650&&galleryPeek.previewHeight<=850,'Approved full-screen photographic canvas height');
     }else{
       assert.ok(geometry.deck.top>=geometry.canvas.bottom+7,'Mobile shows the image before the settings deck');
-      assert.ok(geometry.canvas.height>=445&&geometry.canvas.height<=455,
-        'Narrow mobile keeps the approved 450px photographic stage: '+JSON.stringify({canvas:geometry.canvas,deck:geometry.deck}));
+      assert.ok(geometry.canvas.height===450,'Narrow mobile retains the approved 450px photographic stage');
       assert.ok(geometry.results.top>=geometry.deck.bottom,'Mobile result gallery follows settings');
     }
     assert.equal(await page.locator('.pv-upscale-workspace-intro').isVisible(),true,'Upscale has the editorial settings header');
@@ -160,21 +160,25 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     await page.locator('#pv-upscale-dropzone').click({position:{x:12,y:12}});
     assert.equal((await areaChooser).isMultiple(),false,'Clicking inside the large drop area opens the same upload input');
     const emptyCanvasHeight=geometry.canvas.height;
+    const expectedEmptyHeight=profile==='desktop'?Math.min(980,Math.max(680,height-104)):450;
+    assert.equal(emptyCanvasHeight,expectedEmptyHeight,'Empty source retains its exact approved fullscreen height');
     await page.evaluate(()=>{
       const preview=document.getElementById('preview'),empty=document.getElementById('empty');
       preview.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="140"><rect width="100" height="140" fill="#4c5360"/></svg>');
       preview.hidden=false;empty.hidden=true;
     });
-    const filledCanvasHeight=await page.locator('#upscale-canvas').evaluate(el=>el.getBoundingClientRect().height);
-    assert.ok(Math.abs(filledCanvasHeight-emptyCanvasHeight)<=2,'Source preview remains equally spacious before and after upload');
     await page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-upscale-source-ready'));
+    const filledCanvasHeight=await page.locator('#upscale-canvas').evaluate(el=>el.getBoundingClientRect().height);
+    assert.equal(filledCanvasHeight,expectedEmptyHeight,'The approved model-card update keeps the photographic viewport exactly unchanged after upload');
     assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Source image remains available after upload');
     const secondaryChooser=page.waitForEvent('filechooser');
     await page.locator('#pv-upscale-source-upload').click();
     assert.equal((await secondaryChooser).isMultiple(),false,'Replace source uses the original single-image chooser');
     await page.evaluate(()=>{document.getElementById('preview').hidden=true;document.getElementById('empty').hidden=false;});
     await page.waitForFunction(()=>!document.getElementById('app').classList.contains('pv-upscale-source-ready'));
-    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Clearing a source restores the original upload-first page');
+    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Clearing the source returns to the single empty-state upload CTA');
+    assert.equal(await page.locator('#pv-upscale-hero-upload').isVisible(),true,'Upload remains accessible after clearing the source');
+    assert.equal(await page.locator('#upscale-info summary').isVisible(),false,'The retired More options disclosure remains hidden');
     assert.equal(await page.locator('.stagefoot').isVisible(),false,'Empty Upscaler does not show a technical footer');
     assert.equal(await page.locator('#settings-summary').isVisible(),false,'Redundant technical text is hidden on Upscaler');
     await page.evaluate(()=>{document.querySelector('#download').hidden=false;});
@@ -196,9 +200,18 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       el.classList.add('has-image');el.setAttribute('aria-busy','false');el.querySelector('img').classList.remove('history-asset-loading');
     });
     assert.equal(await page.locator('#history .history-media').evaluate(el=>getComputedStyle(el,'::before').animationName),'none','Shimmer ends when the image loads');
-    assert.equal(await page.locator('#upscale-price').isVisible(),false,'Optional pricing remains quiet');
-    assert.equal(await page.locator('#upscale-info').isVisible(),false,'The approved compact Upscaler never exposes the legacy More options drawer');
-    assert.equal(await page.locator('#upscale-technical-summary').isVisible(),false,'Provider diagnostics are not exposed in the model cards');
+    assert.equal(await page.locator('#upscale-price').isVisible(),false,'Optional pricing is initially hidden');
+    assert.equal(await page.locator('#upscale-model-trigger').isVisible(),true,'ByteDance model card remains directly visible');
+    assert.equal(await page.locator('#upscale-model-menu').isVisible(),true,'The approved model cards remain inline');
+    assert.equal(await page.locator('#upscale-precision-trigger').getAttribute('aria-controls'),'upscale-precision-options','The Precision card controls its nested versions');
+    assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(nodes=>nodes.map(n=>n.dataset.upscaleEngine)),['seedvr2','topaz-precision','topaz-wonder'],'All three engines remain in the inline model cards');
+    assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-quality]').evaluateAll(nodes=>nodes.map(n=>n.dataset.upscaleQuality)),['Standard V2','High Fidelity V3'],'Both Precision qualities remain available without More options');
+    assert.equal(await page.locator('#upscale-info').isVisible(),false,'The compact Upscaler hides the legacy drawer');
+    assert.equal(await page.locator('#upscale-technical-summary').isVisible(),false,'Customer presentation never exposes provider diagnostics');
+    await page.evaluate(()=>{for(const diagnostic of document.querySelectorAll('#upscale-info [data-upscale-owner-only]'))diagnostic.hidden=false;});
+    assert.equal(await page.locator('#upscale-technical-summary').isVisible(),false,'Even Owner diagnostics do not restore the retired disclosure');
+    await page.evaluate(()=>{for(const diagnostic of document.querySelectorAll('#upscale-info [data-upscale-owner-only]'))diagnostic.hidden=true;});
+    assert.equal(await page.locator('#upscale-price').isVisible(),false,'Legacy optional pricing stays hidden; bound quotes are covered by the full Upscaler integration');
     assert.equal(await page.locator('.archive').isVisible(),true,profile+': Upscaler shows its results');
     assert.equal(await page.locator('.card').isVisible(),true,profile+': Upscaled result is visible beneath deck');
     await page.screenshot({path:'test-results/upscaler-results-'+profile+'.png',fullPage:true});

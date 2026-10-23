@@ -54,3 +54,5 @@ jobs:
             test-results/pv-fashion-editorial-desktop.png
             test-results/pv-fashion-editorial-mobile.png
             test-results/pv-fashion-ghost-mobile.png
+            test-results/pv-fashion-empty-*.png
+            test-results/pv-fashion-loaded-desktop.png

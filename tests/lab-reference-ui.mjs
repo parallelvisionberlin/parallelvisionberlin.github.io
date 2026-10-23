@@ -1,21 +1,22 @@
-// Legacy model integration uses the retained options handler; the visible customer composer is covered separately.
-async function clickAdvanced(page){const control=page.locator('#image-composer-more');if(await control.isVisible())await control.click();else await page.evaluate(()=>document.querySelector('#image-composer-more').click());}
-async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await clickAdvanced(page);}
+// Visible interactions use the current Image composer. Retained sidebar role
+// serialization is exercised through its change handlers, never hidden clicks.
+async function imageAdvanced(page){await page.click('#tool-image');}
+async function clickAdvanced(page){await page.locator('#image-composer-prompt').click();}
 // Synthetic media and mock authentication/API only. Does not purchase generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { readFileSync, existsSync, mkdirSync } from 'node:fs';
-import { resolve, extname } from 'node:path';
+import { resolve, extname, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 const { chromium } = await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const source = readFileSync('lab/lab.js', 'utf8'), boot = source.indexOf("try{clerk=await loadLabAccount();");
 assert.ok(boot > 0);
-const injected = source.slice(0, boot) + source.slice(source.indexOf("\n// Soul composer:",boot)) + `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,refs:()=>references.map(r=>({name:r.file.name,size:r.file.size,type:r.file.type,width:r.width,height:r.height,role:r.role,note:r.note,target:r.target})),file:()=>file};`;
+const injected = source.slice(0, boot) + source.slice(source.indexOf("\n// Soul composer:",boot)) + `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,saveDraft:()=> $('save').onclick(),refs:()=>references.map(r=>({name:r.file.name,size:r.file.size,type:r.file.type,width:r.width,height:r.height,role:r.role,note:r.note,target:r.target})),file:()=>file};`;
 const server = http.createServer((req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
   const file = resolve('.', '.' + path + (path.endsWith('/') ? 'index.html' : ''));
-  if (!file.startsWith(resolve('.') + '/') || !existsSync(file)) { res.writeHead(404).end(); return; }
+  if (!file.startsWith(resolve('.') + sep) || !existsSync(file)) { res.writeHead(404).end(); return; }
   res.setHeader('Content-Type', ({ '.html':'text/html', '.js':'text/javascript', '.css':'text/css' })[extname(file)] || 'text/plain');
   res.end(path === '/lab/lab.js' ? injected : readFileSync(file));
 });
@@ -104,11 +105,11 @@ try{
   await x.page.locator('#input-preview-dialog [data-close]').click();assert.equal(await x.page.locator('#preview').isVisible(),false);pass('Input previews open separately and never replace the result canvas');
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Architectural sculpture in daylight.');
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');await imageAdvanced(x.page);
-  await x.page.locator('.reference-item select').first().selectOption('room');
+  await x.page.locator('[aria-label="Role for image 1"]').selectOption('room');
   await edit(x.page.locator('.reference-item input').first(),'Use only the architecture.');
   // The legacy Save Draft button is hidden by the approved floating editor.
   // Trigger its handler directly for the backend archive/role regression.
-  await x.page.evaluate(()=>document.getElementById('save').click());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
+  await x.page.evaluate(()=>window.__labTest.saveDraft());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   assert.equal(x.uploads.length,7);const expectedHash=createHash('sha256').update(input).digest('hex');assert.ok(x.uploads.every(u=>u.sha===expectedHash&&u.bytes===input.length));
   const draft=x.requests.find(r=>r.path==='/api/drafts').data;assert.equal(draft.settings.outputFormat,'png');assert.equal(draft.referenceSourceIds.length,7);assert.equal(draft.settings.referenceRoles[0].role,'room');assert.equal(draft.settings.referenceRoles[0].note,'Use only the architecture.');
   assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);pass('Save sends original bytes, ordered reference IDs, roles and notes, never the thumbnails');
@@ -144,7 +145,7 @@ try{
   assert.equal(await target(x.page,1).count(),0);
   assert.equal(await x.page.locator('#reference-guidance details').evaluate(e=>e.open),false);
   assert.match(await x.page.locator('#reference-provider').textContent(),/Seedream 5 Pro.*SpicyAPI/);
-  await x.page.locator('#reference-guidance summary').evaluate(el=>el.click());
+  assert.equal(await x.page.locator('#reference-guidance summary').isVisible(),false,'Retained guidance is serialized without reopening a hidden sidebar');
   const preview=await x.page.locator('#reference-guidance-text').innerText();
   assert.match(preview,/Reference 1 \[Base image\]/);assert.match(preview,/Reference 2 \[Detail \/ Hands\]/);assert.match(preview,/Reference 3 \[Clothing \/ Pants\]/);
   assert.match(preview,/Use only the hands as a localized visual reference/);assert.match(preview,/Use only the pants/);
@@ -156,7 +157,7 @@ try{
   assert.ok(preview.indexOf('Reference 1 [Base image]')<preview.indexOf('Reference 2 [Detail / Hands]'));
   pass('Clothing exposes Pants and the collapsed SpicyAPI preview expands into the ordered automatic instructions');
   await edit(x.page.getByLabel('Note for reference 2',{exact:true}),'Keep the existing hand position.');
-  await x.page.evaluate(()=>document.getElementById('save').click());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
+  await x.page.evaluate(()=>window.__labTest.saveDraft());await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   const guidedDraft=x.requests.find(r=>r.path==='/api/drafts').data;
   assert.match(guidedDraft.settings.prompt,/^Refine the supplied image conservatively into a cleaner/,
     'Blank written direction receives conservative anatomy-preserving guidance');

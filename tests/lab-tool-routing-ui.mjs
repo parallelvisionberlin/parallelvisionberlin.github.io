@@ -37,7 +37,10 @@ const server=http.createServer((req,res)=>{
    res.writeHead(404).end();return;
  }
  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2'})[extname(path)]||'application/octet-stream');
- res.end(pathname==='/lab/lab.js'?injected:readFileSync(path));
+ const response=pathname==='/lab/lab.js'?injected:readFileSync(path);
+ // Keep the asynchronous Fashion mount observable instead of relying on a fast module response.
+ if(pathname==='/lab/fashion-studio.js'){setTimeout(()=>res.end(response),250);return;}
+ res.end(response);
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const port=server.address().port;
@@ -57,6 +60,8 @@ try{
    for(const [route,heading] of guestRoutes){
      await page.goto('http://127.0.0.1:'+port+'/lab/studio.html?tool='+route);
      await page.waitForFunction(expected=>document.querySelector('#gate')?.dataset.guestTool===expected&&!!window.__routingTest,route);
+     // The route marker precedes dynamic imports; wait for the actual expected surface.
+     await page.locator('#app').waitFor({state:route==='image'?'hidden':'visible'});
      assert.equal(await page.locator('#pv-guest-title').textContent(),heading);
      assert.equal(new URL(page.url()).searchParams.get('tool'),route);
      assert.equal(await page.locator('#pv-guest-composer').isVisible(),route==='image');

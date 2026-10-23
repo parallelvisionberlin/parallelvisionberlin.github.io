@@ -257,3 +257,7 @@ select,textarea{border-radius:8px;background-color:#1f2024;min-height:44px;heigh
  .slot-invite small{font-size:9px}
  .engine-section{padding:12px}
 }
+
+/* Keep a real History result inside the approved row without altering the empty composition. */
+.fashion-workspace:has(#result-image:not([hidden])) .source-section{display:flex;flex-direction:column;min-height:0}
+.fashion-workspace:has(#result-image:not([hidden])) .image-pair{height:auto;flex:1;min-height:0}
