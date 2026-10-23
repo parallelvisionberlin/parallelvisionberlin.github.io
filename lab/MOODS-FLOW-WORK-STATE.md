@@ -36,7 +36,17 @@ Updated: 2026-10-23
 - Its unchanged failure is outside Explore Moods; see baseline job 120351198402.
 - Cloudflare exact merged-SHA success required before claiming production deployment.
 - Verify the actual production dialog and stylesheet version after hosting succeeds.
-- Release status will be recorded below when verified.
+- Initial release merged in PR #454 as d7b116245d25b00f93c59501f90291918525e612.
+- Exact-SHA Cloudflare Pages check 120368659505 succeeded for pvlab-studio.
+- Custom domain /moods inspected: new photobooth class, white Generate and hidden prompt.
+- Production stylesheet version observed: explore-moods-photobooth.css?v=20261023-photobooth1.
+- Official wordmark loaded on the custom domain; original Mood artwork retained.
+- All 19 Explore browser scenarios, native widths and discovery handoffs passed on 898590e.
+- Full source, approved Image UI, Creator browser, account and gallery checks passed there.
+- Browser final review found an inherited mobile 24px Browse files rule; follow-up makes it 10px.
+- Follow-up also crops Night Flash closer on phones, matching the approved reference.
+- Browser checks use fixtures only; no live paid or signed-in customer generation performed.
+- Direct shell custom-domain byte fetch is unavailable; publication uses CF plus browser DOM/CSS evidence.
 
 ## Approved experience
 - Explore Moods is an independent, photographic discovery page.
