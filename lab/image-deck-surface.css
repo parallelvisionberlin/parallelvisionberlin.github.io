@@ -116,20 +116,20 @@
 /* Image Generate only. Neutral ivory from the approved design, with a soft,
    non-yellow halo. Geometry, quoting, submission and disabled behavior stay untouched.
    Shared by signed-in web Image and the signed-out Image preview, never other tools. */
-html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #image-composer-generate:not(.is-submitting),
+html:not(.pv-native-lab) #app.image-studio-active #image-composer #image-composer-generate:not(.is-submitting),
 html:not(.pv-native-lab) #gate.pv-guest-image #pv-guest-generate {
   color:#252525!important;
   background:linear-gradient(155deg,#f8f7f4 0%,#ecebe8 100%)!important;
   border-color:#f1efec!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 0 18px rgba(243,241,235,.26),0 5px 18px rgba(0,0,0,.17)!important;
 }
-html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #image-composer-generate:hover:not(:disabled):not(.is-submitting),
+html:not(.pv-native-lab) #app.image-studio-active #image-composer #image-composer-generate:hover:not(:disabled):not(.is-submitting),
 html:not(.pv-native-lab) #gate.pv-guest-image #pv-guest-generate:hover {
   background:linear-gradient(155deg,#fffdfa 0%,#f3f2ef 100%)!important;
   border-color:#faf9f6!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 23px rgba(246,244,240,.33),0 6px 20px rgba(0,0,0,.19)!important;
 }
-html:not(.pv-native-lab) #app.image-studio-active #image-composer:not(.is-pv-soul) #image-composer-generate:disabled:not(.is-submitting) {
+html:not(.pv-native-lab) #app.image-studio-active #image-composer #image-composer-generate:disabled:not(.is-submitting) {
   color:#686965!important;
   background:#e9e8e5!important;
   border-color:#e8e7e3!important;
