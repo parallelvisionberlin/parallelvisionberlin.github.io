@@ -7,8 +7,12 @@
 - Mobile and result-view selectors unchanged. No generation, upload, auth, credit or provider code changed.
 - Files: explore-moods-photobooth.css and its cache marker in moods.html.
 - Base: 7f44c63feb55eb567872c8b6fed6d29f2b91119e. Approved Image contract passed 5/5 locally.
-- Local browser verification blocked: installed Playwright browser absent and browser download returned an invalid archive. No production visual verification claimed.
-- Await PR checks and Cloudflare publication verification before claiming live.
+- Local Chromium download unavailable; used the existing cloud browser for actual preview and production visual verification.
+- Preview comparison at the same viewport: modal, photo, Mood title, outer upload surface and Generate x/y/width/height exactly unchanged.
+- PR #490 merged as 6dbb1cab7bce522af64f4be82d07f23c5b5a1d2f. Approved Image contract passed locally and in CI.
+- General public-studio suite fails Fashion Sign in alignment (46px versus31px), outside the modified Moods-only styles. No gate weakened or retry started.
+- Exact merged SHA Cloudflare check120535048562 succeeded. Production CSS bytes match reviewed source exactly.
+- Production /moods DOM uses20261023-upload-polish1; actual computed symbol font32px and heading35.928px confirmed, screenshot inspected. Signed-out production only; no account or generation actions.
 
 ## Authenticated Retouch header gutter alignment, 2026-10-23
 - Owner references image(20261023-144627).png, 144841, 145038 and 145106.
