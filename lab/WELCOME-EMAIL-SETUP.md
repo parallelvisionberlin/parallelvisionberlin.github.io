@@ -1,5 +1,17 @@
 # PV LAB | One-time welcome email activation
 
+## Gmail desktop and phone redesign (2026-10-23)
+
+- User screenshot of the first October 23 email showed an excessive full-width beige backdrop surrounding a narrow black single-column card, even though that card was responsive. This was a composition problem, not a flattened image or missing CSS.
+- Replacement: no tinted full-width background; max-width **820px** dark editorial email on a white Gmail-compatible exterior.
+- On desktop, one true two-column editorial spread shows the approved landscape portrait on the left and the existing welcome headline + copy on the right, so the headline appears in the first screen. The three selected thumbnail photographs remain together in one strip beneath the spread, followed by side-by-side primary button and Explore Moods text link.
+- On phones, the **same markup** stacks portrait, headline/copy and actions vertically. Fluid inline-block widths allow wrapping even without media-query support; the media query refines phone padding and type sizes.
+- Primary button and linked hero still open `https://pvlab.studio/`; Explore Moods opens `https://pvlab.studio/moods`. No changes to photography, welcome subject/copy, transactional sender, verification, Resend idempotency, D1, account rules or credit balances.
+- Files: `lab-worker/signup-welcome-email.mjs`; `tests/lab-signup-welcome-email.test.mjs`; new `tests/lab-welcome-email-browser.mjs` and focused `.github/workflows/pvlab-welcome-email-responsive.yml`.
+- New browser check renders the actual email HTML at 1440, 1100, 768, 430, 390 and 320px with the real local first-party image bytes and verifies two-column desktop, stacked phone and zero horizontal overflow. This is local mock-Gmail rendering, not confirmation of a delivered mobile Gmail message.
+- **Release evidence:** PR #463 contains the implementation; validations and Worker release must be verified separately before claiming the new design is live. Existing one-email-per-new-verified-account logic is unchanged.
+
+
 ## Verified desktop/mobile editorial email release (2026-10-23)
 
 - Owner-selected photograph retained, recropped into an actual landscape image `lab/email/welcome-hero-horizontal.jpg`. Max-width 680px HTML message, live-text wordmark, three original photographic detail tiles, narrow-screen CSS, and a neutral exterior background. The current Gmail desktop screenshot's enormous black outer block and long phone-poster hero are replaced.
