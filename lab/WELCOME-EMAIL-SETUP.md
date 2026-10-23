@@ -9,7 +9,7 @@
 - Primary button and linked hero still open `https://pvlab.studio/`; Explore Moods opens `https://pvlab.studio/moods`. No changes to photography, welcome subject/copy, transactional sender, verification, Resend idempotency, D1, account rules or credit balances.
 - Files: `lab-worker/signup-welcome-email.mjs`; `tests/lab-signup-welcome-email.test.mjs`; new `tests/lab-welcome-email-browser.mjs` and focused `.github/workflows/pvlab-welcome-email-responsive.yml`.
 - New browser check renders the actual email HTML at 1440, 1100, 768, 430, 390 and 320px with the real local first-party image bytes and verifies two-column desktop, stacked phone and zero horizontal overflow. This is local mock-Gmail rendering, not confirmation of a delivered mobile Gmail message.
-- **Release evidence:** PR #463 contains the implementation; validations and Worker release must be verified separately before claiming the new design is live. Existing one-email-per-new-verified-account logic is unchanged.
+- **Source status:** PR #463 merged into `main` as `602cf94df2859ef55a3a1725e3744844eb21a241`. The merged Worker source was read back and contains the 820px editorial markup, the single portrait-and-copy spread and unchanged idempotent send queue. The generated HTML was executed in an isolated read-only JS check: four images, both link destinations, two copy/action columns, phone stacking fallback, no free credit offer and balanced HTML tags passed. GitHub Actions browser/workflow jobs remained **queued** at the last check; not marked passed. The actual Cloudflare Worker deployment of this exact revision and a newly delivered Gmail/phone render remain **unverified** and must not be claimed live.
 
 
 ## Verified desktop/mobile editorial email release (2026-10-23)
