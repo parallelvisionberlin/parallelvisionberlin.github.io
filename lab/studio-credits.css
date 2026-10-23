@@ -90,3 +90,16 @@ body:has(#app.upscale-studio-active:not([hidden])) #lab-credit-banner{
 @media(min-width:901px) and (max-width:1270px){#studio-header .actions .lab-add-credits{padding-inline:17px}}
 @media(max-width:900px){#studio-header .actions .lab-add-credits{min-height:38px;padding:8px 13px;font-size:12px}}
 @media(max-width:560px){#studio-header .actions .lab-add-credits{min-height:36px;padding:8px 10px;font-size:11px;gap:4px}}
+
+
+/* Image Studio credit notice: overlay under the masthead across all accounts
+   and viewport sizes. Never participate in hero/composer document layout. */
+body:has(#app.image-studio-active:not([hidden])) #lab-credit-banner:not([hidden]){
+  position:fixed!important;
+  top:var(--lab-header-height,82px)!important;
+  left:0!important;right:0!important;bottom:auto!important;
+  width:100%!important;margin:0!important;
+  z-index:79!important;
+  box-sizing:border-box!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.20)!important;
+}
