@@ -1595,15 +1595,16 @@
 #app.upscale-studio-active .pv-upscale-model-art::before,
 #app.upscale-studio-active .pv-upscale-model-art::after{content:"";position:absolute;pointer-events:none}
 #app.upscale-studio-active .pv-upscale-model-art-bytedance{
-  background:radial-gradient(ellipse at 43% 51%,#b1aba4 0%,#4d5154 16%,#13161a 38%,transparent 42%),
-             conic-gradient(from 30deg at 50% 50%,#111417,#85827e,#22262a,#93918d,#14181c,#666a6d,#111417);
+  background:linear-gradient(140deg,rgba(10,12,14,.16),rgba(0,0,0,.18)),
+             url('./visuals/upscaler-chrome-wool-option-1.jpg') 26% 38%/190px auto no-repeat,#1e2022;
 }
 #app.upscale-studio-active .pv-upscale-model-art-precision{
-  background:radial-gradient(ellipse at 70% 25%,#d2cec8 0%,transparent 25%),
-             repeating-linear-gradient(129deg,#373a3f 0 3px,#8d8d89 5px,#15171a 9px,#4b4a48 12px);
+  background:linear-gradient(140deg,rgba(255,255,255,.03),rgba(0,0,0,.24)),
+             url('./visuals/upscaler-chrome-wool-option-1.jpg') 57% 57%/230px auto no-repeat,#1e2022;
 }
 #app.upscale-studio-active .pv-upscale-model-art-wonder{
-  background:repeating-radial-gradient(ellipse at 54% 35%,#bcb8af 0 2px,#414247 5px,#17181b 8px,#7b7d7e 12px);
+  background:linear-gradient(140deg,rgba(10,11,12,.1),rgba(0,0,0,.3)),
+             url('./visuals/upscaler-chrome-wool-option-1.jpg') 82% 68%/210px auto no-repeat,#1e2022;
 }
 #app.upscale-studio-active .pv-upscale-model-art::after{
   inset:0;border-radius:inherit;
