@@ -30,7 +30,10 @@ Updated: 2026-10-23
 - Browser regression uses mocked accounts/providers; no paid live generations.
 - Local approved Image UI and Mood flow source contracts: 13/13 passed.
 - Local JavaScript syntax checks passed.
-- Full repository CI and browser screenshots required before merge.
+- Full source suite passed on branch 8397088; browser checks still required before merge.
+- Desktop Night Flash preview inspected in the browser against approved screenshot 1.
+- Upscaler browser timeout at openUpscaleOptions already exists on baseline 69d7d02.
+- Its unchanged failure is outside Explore Moods; see baseline job 120351198402.
 - Cloudflare exact merged-SHA success required before claiming production deployment.
 - Verify the actual production dialog and stylesheet version after hosting succeeds.
 - Release status will be recorded below when verified.

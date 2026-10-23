@@ -193,7 +193,7 @@ try{
 
   await page.goto(origin+'/lab/explore-moods.html',{waitUntil:'domcontentloaded'});
   await page.locator('.mc-look-card[data-mood-id="hong-kong-nights"]').click();
-  await page.locator('#mc-look-direction').fill('Portrait with deep cinematic shadows');
+  assert.equal(await page.locator('#mc-look-direction').isVisible(),false,'Explore Moods is photo-only');
   await page.locator('#mc-look-file').setInputFiles({name:'source.png',mimeType:'image/png',buffer:png});
   assert.equal(await page.locator('#mc-look-file-clear').isVisible(),true);
   await page.route('**/lab/mood-creator.html?*',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><h1>Mood Creator handoff</h1>'}));
@@ -211,7 +211,7 @@ try{
   },handoff);
   assert.equal(transfer.name,'source.png');
   assert.ok(transfer.size>0);
-  assert.equal(transfer.prompt,'Portrait with deep cinematic shadows');
+  assert.equal(transfer.prompt,'','Photo-only Explore entry does not transfer hidden directions');
   assert.equal(transfer.replay,true);
   assert.ok(!requests.some(x=>/\/api\/(?:jobs|quotes|billing|customer\/image-price)/.test(x.path)),
     'Browsing, composing and saving a Mood must not trigger paid generation');
@@ -303,4 +303,5 @@ try{
   await new Promise(resolve=>server.close(resolve));
 }
 console.log('PV Lab Explore / Mood Creator browser checks: '+successes+' passed (synthetic API).');
+
 
