@@ -121,8 +121,8 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       assert.ok(galleryPeek.previewHeight>=650&&galleryPeek.previewHeight<=850,'Approved full-screen photographic canvas height');
     }else{
       assert.ok(geometry.deck.top>=geometry.canvas.bottom+7,'Mobile shows the image before the settings deck');
-      assert.ok(geometry.canvas.height>=415&&geometry.canvas.height<=425,
-        'Narrow mobile preview remains a usable 420px stage: '+JSON.stringify({canvas:geometry.canvas,deck:geometry.deck}));
+      assert.ok(geometry.canvas.height>=445&&geometry.canvas.height<=455,
+        'Narrow mobile keeps the approved 450px photographic stage: '+JSON.stringify({canvas:geometry.canvas,deck:geometry.deck}));
       assert.ok(geometry.results.top>=geometry.deck.bottom,'Mobile result gallery follows settings');
     }
     assert.equal(await page.locator('.pv-upscale-workspace-intro').isVisible(),true,'Upscale has the editorial settings header');
