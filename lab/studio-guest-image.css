@@ -372,3 +372,16 @@ body:has(#gate.pv-guest-image:not([hidden])) #tool-assets{display:none!important
 /* Public views reuse the approved tool decks. Private regions stay absent. */
 #app[data-guest-preview] :is(.archive,#video-inspector-selected,#connection,#logout){display:none!important}
 body:has(#app[data-guest-preview]) #studio-header #identity{display:none!important}
+/* Keep one Sign in in the public masthead and no private Assets icon.
+   The signed-in account header retains its existing Assets shortcut. */
+body:has(#app[data-guest-preview]) #studio-header #tool-assets{display:none!important}
+/* Image's editorial desktop entrance reserves a classic 15px scrollbar gutter.
+   The shorter guest Upscaler, Retouch and Fashion previews do not. Match only
+   their public header right inset, without shifting any editor or page scroll. */
+@media(min-width:1180px) and (min-height:680px){
+  body:has(#app[data-guest-preview="upscale"]) > #studio-header .wrap.top,
+  body:has(#app[data-guest-preview="retouch"]) > #studio-header .wrap.top,
+  body:has(#app[data-guest-preview="fashion"]) > #studio-header .wrap.top{
+    padding-right:31px;
+  }
+}
