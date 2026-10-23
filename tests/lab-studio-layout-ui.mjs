@@ -50,13 +50,18 @@ assert.match(studioHtml, /@keyframes pv-boot-out\{0%,12%\{opacity:1;filter:blur\
   'The PV LAB logo fades and blurs on exit, without horizontal translation or scaling');
 assert.match(studioHtml, /@keyframes pv-boot-trail-out\{0%,17%\{opacity:0;filter:blur\(0\);transform:none\}56%\{opacity:\.46;filter:blur\(5px\);transform:none\}100%\{opacity:0;filter:blur\(12px\);transform:none\}\}/,
   'The duplicate blur trail also stays at fixed coordinates during fade-out');
-assert.match(studioHtml, /\.lab-boot-wordmark::before\{[^}]*padding-left:inherit;box-sizing:border-box;/,
-  'Blur duplicate inherits the exact wordmark inset instead of shifting 0.24em left');
+assert.match(studioHtml, /\.lab-boot-wordmark::before\{[^}]*background:url\("\.\/branding\/pvlab-wordmark-bold\.svg\?v=20261022-bold1"\) center\/100% 100% no-repeat;/,
+  'Blur trail uses the exact approved logo asset rather than the outdated thin text');
+const loaderSvg=studioHtml.match(/<span class="lab-boot-wordmark" id="lab-boot-name" role="img" aria-label="PV LAB">(<svg[\s\S]*?<\/svg>)<\/span>/)?.[1]||'';
+const canonicalSvg=readFileSync('lab/branding/pvlab-wordmark-bold.svg','utf8');
+assert.ok(loaderSvg.includes('viewBox="0 0 5588 1761"'),'Inline SVG uses the approved bold wordmark dimensions');
+assert.equal(loaderSvg.match(/<path d="([^"]+)"/)?.[1],canonicalSvg.match(/<path d="([^"]+)"/)?.[1],
+  'Loader displays the exact same outlined logo path as the live Studio header');
 assert.match(studioHtml,/history\.scrollRestoration='manual';/,'All direct routes opt out of stale Chrome scroll restoration');
 assert.match(studioHtml,/new MutationObserver\(scheduleBootUnlock\)/,'Native route completion can release the boot scroll lock');
 const splashWordmark=studioHtml.match(/\.lab-boot-wordmark\{([^}]*)\}/)?.[1]||'';
-assert.match(splashWordmark,/font-family:"Helvetica Neue",Arial,sans-serif/,'Splash wordmark uses immediately available system typography');
-assert.doesNotMatch(splashWordmark,/Space Grotesk|DM Sans/,'Splash typography cannot shift when web fonts load');
+assert.match(splashWordmark,/aspect-ratio:5588\/1761;/,'Loader reserves the new vector logo aspect ratio on first paint');
+assert.doesNotMatch(splashWordmark,/font-family|letter-spacing|padding-left/,'No legacy thin-text styling remains on the wordmark');
 
 // Replace only remote Clerk bootstrap. Preserve all remaining local Studio helpers.
 const testSource=source.slice(0,boot)+source.slice(bootEnd)+
@@ -697,24 +702,25 @@ try{
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),true,'Brand loading appears before external JS');
   assert.equal(await bootPage.locator('#gate').isVisible(),false,'No half-loaded sign-in page');
   const loaderLogo=bootPage.locator('#lab-boot-name');
-  assert.equal(await loaderLogo.innerText(),'PV LAB','Loader uses the PV LAB wordmark');
+  assert.equal(await loaderLogo.getAttribute('aria-label'),'PV LAB','Loader names the approved PV LAB wordmark accessibly');
+  assert.equal(await loaderLogo.locator('svg path').count(),1,'The actual approved SVG is present in the first HTML response');
   assert.equal(await bootPage.locator('.lab-boot-sub').innerText(),'BY PARALLEL VISION','Brand attribution is understated');
   assert.equal(await loaderLogo.isVisible(),true,'Brand is present without downloading an image');
   assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).animationName),'none','PV LAB appears crisp at first paint');
   assert.equal(await loaderLogo.evaluate(el=>getComputedStyle(el).filter),'none','Brand is not blurred during loading');
   const duplicateAlignment=await loaderLogo.evaluate(el=>{
-    const a=getComputedStyle(el);
-    const b=getComputedStyle(el,'::before');
-    return {wordmarkPadding:parseFloat(a.paddingLeft),ghostPadding:parseFloat(b.paddingLeft),
-      ghostSizing:b.boxSizing,wordmarkTracking:a.letterSpacing,ghostTracking:b.letterSpacing};
+    const mark=el.getBoundingClientRect();
+    const vector=el.querySelector('svg').getBoundingClientRect();
+    const ghost=getComputedStyle(el,'::before');
+    return {dx:Math.abs(vector.x-mark.x),dy:Math.abs(vector.y-mark.y),
+      dw:Math.abs(vector.width-mark.width),dh:Math.abs(vector.height-mark.height),
+      ghostSizing:ghost.boxSizing,ghostImage:ghost.backgroundImage,ghostSize:ghost.backgroundSize};
   });
-  assert.ok(duplicateAlignment.wordmarkPadding>0,'Original logo uses optical tracking inset');
-  assert.ok(Math.abs(duplicateAlignment.wordmarkPadding-duplicateAlignment.ghostPadding)<.1,
-    'Ghost text starts at the exact same left inset as the real wordmark');
-  assert.equal(duplicateAlignment.ghostSizing,'border-box',
-    'Aligned ghost fits the same box and does not cause a width shift');
-  assert.equal(duplicateAlignment.wordmarkTracking,duplicateAlignment.ghostTracking,
-    'Ghost text matches the wordmark letter spacing');
+  assert.ok(Math.max(duplicateAlignment.dx,duplicateAlignment.dy,duplicateAlignment.dw,duplicateAlignment.dh)<.2,
+    'Approved SVG exactly fills the motion-stable loading wordmark box');
+  assert.equal(duplicateAlignment.ghostSizing,'border-box','Ghost fills the exact same box');
+  assert.match(duplicateAlignment.ghostImage,/pvlab-wordmark-bold\.svg/,'Ghost uses the same bold logo asset');
+  assert.equal(duplicateAlignment.ghostSize,'100% 100%','Blur ghost has the same vector dimensions');
   const splashAtStart=await bootPage.evaluate(()=>{
     const root=document.documentElement;
     return {overflow:getComputedStyle(root).overflowY,scrollY:window.scrollY,
@@ -811,7 +817,7 @@ try{
   assert.ok(mobileBootGeometry&&mobileBootGeometry.x>=0&&mobileBootGeometry.x+mobileBootGeometry.width<=390,'Brand stays inside the mobile viewport');
   assert.equal(await bootPage.evaluate(()=>getComputedStyle(document.documentElement).scrollbarGutter),'auto',
     'Narrow mobile view does not reserve a desktop scrollbar gutter');
-  assert.equal(await bootPage.locator('#lab-boot-wordmark').count(),0,'Loader no longer waits for the old brand image');
+  assert.equal(await loaderLogo.locator('svg').count(),1,'Mobile keeps the exact same embedded brand vector');
   const loadingCdp=await bootContext.newCDPSession(bootPage);
   const loadingCapture=await loadingCdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
   writeFileSync('test-results/lab-branded-loading.png',Buffer.from(loadingCapture.data,'base64'));
