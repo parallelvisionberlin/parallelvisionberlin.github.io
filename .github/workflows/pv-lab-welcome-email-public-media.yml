@@ -20,7 +20,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for asset in welcome-hero.jpg welcome-detail-1.jpg welcome-detail-2.jpg welcome-detail-3.jpg; do
+          for asset in welcome-hero-horizontal.jpg welcome-detail-1.jpg welcome-detail-2.jpg welcome-detail-3.jpg; do
             path="$(mktemp)"
             curl --fail --location --silent --show-error \
               --retry 4 --retry-delay 3 --retry-all-errors \

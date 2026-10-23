@@ -65,7 +65,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for asset in welcome-hero.jpg welcome-detail-1.jpg welcome-detail-2.jpg welcome-detail-3.jpg; do
+          for asset in welcome-hero-horizontal.jpg welcome-detail-1.jpg welcome-detail-2.jpg welcome-detail-3.jpg; do
             echo "Verifying https://pvlab.studio/email/$asset"
             curl --fail --location --silent --show-error \
               --retry 5 --retry-delay 3 --retry-all-errors \
