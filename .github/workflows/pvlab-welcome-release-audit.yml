@@ -1,0 +1,43 @@
+name: PV LAB read-only Worker release verification
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pvlab-welcome-release-audit.yml'
+
+permissions:
+  contents: read
+  actions: read
+  checks: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read GitHub record of production Worker release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TARGET_SHA: 1c13e4463c3b97f6c48adb24dbb12a607a2531f7
+          ASSET_SHA: 3cbc3955ea6d9ec41a9a8b057549cfaae185e6cf
+        run: |
+          node --input-type=module <<'NODE'
+          const headers={Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+          async function get(url){
+            const r=await fetch(url,{headers});
+            if(!r.ok)throw Error('GitHub read-only API error HTTP '+r.status);
+            return r.json();
+          }
+          const prefix='https://api.github.com/repos/'+process.env.REPO;
+          const {workflow_runs:runs=[]}=await get(prefix+'/actions/workflows/deploy-lab-worker.yml/runs?branch=main&per_page=50');
+          const matches=runs.filter(x=>x.head_sha===process.env.TARGET_SHA);
+          console.log('TARGET_WORKER_COMMIT='+process.env.TARGET_SHA);
+          console.log('WORKER_RUNS='+JSON.stringify(matches.map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,html_url:x.html_url,created_at:x.created_at}))));
+          const checks=await get(prefix+'/commits/'+process.env.ASSET_SHA+'/check-runs?per_page=100');
+          console.log('ASSET_DEPLOY_CHECKS='+JSON.stringify((checks.check_runs||[]).filter(x=>x.name.includes('Cloudflare')).map(x=>({name:x.name,status:x.status,conclusion:x.conclusion,details_url:x.details_url,app:x.app?.slug}))));
+          if(!matches.some(x=>x.status==='completed'&&x.conclusion==='success')){
+            throw Error(matches.length?'Worker release is not successful yet':'No Worker deployment workflow run for merged welcome-email commit');
+          }
+          console.log('WORKER_DEPLOY_VERIFIED=1');
+          NODE
