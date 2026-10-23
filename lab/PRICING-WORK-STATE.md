@@ -1,3 +1,11 @@
+## Purchase recovery review (2026-10-23)
+- P1/P2/P3 implementation, test evidence and limitations: [current account handoff](ACCOUNT-WORK-STATE.md#checkout-recovery-review-pending-2026-10-23).
+- Pricing cards remain inert/disabled until their handlers and requested tab are ready; the first usable click is tested at 1440/390px.
+- Cancellation restores the selected SKU/tab/focus without reopening Checkout automatically.
+- Main integration now includes `73cd74f` (public previews, Fashion loader and Video wheel); Checkout recovery and current Hong Kong/Upscaler versions are preserved. Account passes again; pricing component bytes retain their passing result. Exact-head CI is recorded in the PR.
+- Isolated billing evidence: one +1,000 pack and one +1,600 subscription entry, same customer, reconciled 2,600. Private Stripe screenshot records cancellation on 2026-11-23; D1 does not store cancel_at_period_end. Real Studio return / first generation remain pending.
+- Approved layout, prices, SKUs, billing address and commercial configuration are unchanged; draft PR only, no deployment.
+
 ## Estimate hint toggle, 2026-10-22 (Europe/Berlin)
 - User requested the circled `!` to close its estimate explanation on the second tap on iPhone. Existing outside-tap, Escape, hover, keyboard focus and credit purchases must remain intact.
 - Cause: `pricing-tabs.js` already flips `aria-expanded`, but `pricing.css` kept the tooltip visible through persistent `:hover` / `:focus-within` on touch.

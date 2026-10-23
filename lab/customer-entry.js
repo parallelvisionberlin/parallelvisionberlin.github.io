@@ -1,3 +1,4 @@
+import {rememberCheckout,takeCheckoutReturn} from './checkout-return.js?v=20261023-recovery1';
 import {createAccountMenu} from './account-menu.js?v=20261018-agency-preview1&closure=20261017-logout1';
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261015-standalone1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
@@ -36,6 +37,14 @@ function purchaseStatus(button,message){
 }
 function purchaseBusy(button,busy){
   for(const item of buyButtons){item.disabled=busy;item.setAttribute('aria-busy',String(busy&&item===button));}
+}
+function restoreCheckoutSelection({back=false}={}){
+  const intent=takeCheckoutReturn(profile,{back});
+  if(!intent)return false;
+  document.getElementById(intent.sku.startsWith('topup')?'lab-tab-onetime':'lab-tab-monthly')?.click();
+  const selected=buyButtons.find(button=>button.dataset.labBuy===intent.sku);
+  if(selected){purchaseStatus(selected,'Your selection is ready. Continue to secure checkout when you are ready.');selected.focus({preventScroll:true});}
+  return !!selected;
 }
 function clearPurchaseIntent(){try{sessionStorage.removeItem(purchaseKey);}catch{}}
 // Only a same-tab, short-lived intent created by a click can resume after sign-in.
@@ -188,6 +197,7 @@ async function purchase(button){
     if(trackLabEvent('InitiateCheckout',{currency:'EUR',content_name:sku}))
       await new Promise(resolve=>setTimeout(resolve,240));
     if(!clerk.isSignedIn||clerk.session?.id!==sessionId)throw new Error('Your account changed. Select a plan again.');
+    rememberCheckout({sku,ownerId:profile.ownerId});
     location.assign(url.href);
     leaving=true;
   }catch(e){purchaseStatus(button,sessionId&&clerk?.session?.id!==sessionId?'Your account changed. Select a plan again.':e.message||'Checkout could not be opened. Please try again.');}
@@ -212,13 +222,14 @@ window.addEventListener('pageshow',event=>{
   purchasing=false;
   purchaseBusy(null,false);
   for(const note of new Set(feedbackNodes.values())){note.hidden=true;note.textContent='';}
-  void refresh();
+  void refresh().then(()=>restoreCheckoutSelection({back:true}));
 });
 
 try{
   clerk=await loadLabAccount();
   clerk.addListener(()=>void refresh());
   await refresh();
+  restoreCheckoutSelection({back:performance.getEntriesByType('navigation')[0]?.type==='back_forward'});
   if(resumePurchase){
     if(clerk.isSignedIn)await purchase(resumePurchase);
     else purchaseStatus(resumePurchase,'Sign in to continue with this selection.');

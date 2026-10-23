@@ -1,3 +1,4 @@
+import {rememberCheckout} from './checkout-return.js?v=20261023-recovery1';
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1&closure=20261021-immediate1';
@@ -174,6 +175,7 @@ async function openPayment(path,body){
     if(checkout&&trackLabEvent('InitiateCheckout',{currency:'EUR',content_name:String(body?.sku||'')}))
       await new Promise(resolve=>setTimeout(resolve,240));
     if(current!==revision)return;
+    if(checkout)rememberCheckout({sku:body.sku,ownerId:profile.ownerId});
     location.assign(destination);
   }
   catch(error){if(current===revision)status(error.message==='No Stripe customer record yet.'?'Your billing history becomes available after your first checkout.':error.message);}

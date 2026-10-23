@@ -1,9 +1,9 @@
 name: PV Lab account interface
 on:
   pull_request:
-    paths: ['lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
+    paths: ['lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/checkout-return.js', 'lab/pricing-overlay.js', 'tests/lab-checkout-recovery.test.mjs', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
   push:
-    paths: ['lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
+    paths: ['lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/checkout-return.js', 'lab/pricing-overlay.js', 'tests/lab-checkout-recovery.test.mjs', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs tests/lab-owner-auth-guard.test.mjs
+      - run: node --test tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs tests/lab-owner-auth-guard.test.mjs tests/lab-checkout-recovery.test.mjs
       - run: node --check lab/account.js && node --check lab/owner.js
       - run: npm install --prefix /tmp/pv-account-browser --no-audit --no-fund playwright@1.62.1
       - run: /tmp/pv-account-browser/node_modules/.bin/playwright install --with-deps chromium

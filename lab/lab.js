@@ -10,8 +10,9 @@ import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1&publicPreview=20261023-1';
-import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261022-editorial-rows1';
-import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1';
+import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261022-editorial-rows1&checkoutRecovery=20261023-1';
+import {takeCheckoutReturn} from './checkout-return.js?v=20261023-recovery1';
+import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1&checkoutRecovery=20261023-1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1&imageRatio=20261016-inherit1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
@@ -4686,6 +4687,21 @@ const pricingOverlay=createPricingOverlay({
 });
 const wallet=createCustomerWallet({
   api,notify,onBalance:value=>{customerCreditBalance=Number(value)||0;studioAccount.updateBalance(value);},
+  onProfile:data=>{
+    // Apply authorization without re-running sign-in, route initialization or draft restoration.
+    customerVideoProfile=data;
+    customerGenerationReady=data.customer===true&&data.generationReady===true&&!data.accountClosed&&!data.billingReview&&!data.promotionReview;
+    customerTrialGenerationPaused=!!data.trialGenerationPaused;
+    customerBillingReady=data.customer===true&&!!data.billingReady;
+    studioAccount.update({signed:true,user:clerk.user,profile:data});
+    hf.setCustomerPricing({trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits});
+    applyConfig(data.config);refreshEffectsView();
+  },
+  prepareCheckout:async()=>({tool:studioRoute(),imageDraft:await saveImageForMoods()}),
+  onReturn:profile=>{
+    const intent=takeCheckoutReturn(profile,{back:true});
+    if(intent)void pricingOverlay.restoreSelection(intent.sku);
+  },
   onClosed:async()=>{lock();await clerk.signOut();},
   openPricing:options=>pricingOverlay.open(options)
 });
@@ -4699,6 +4715,11 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
   window.__pvLabBootStage?.('Verifying your account');
   const data=await api('/api/session');
   // Preserve the user's requested destination before any config reconciliation.
+  const billingReturn=new URLSearchParams(location.search).get('billing');
+  const checkoutReturn=takeCheckoutReturn(data,{back:performance.getEntriesByType('navigation')[0]?.type==='back_forward'});
+  if(checkoutReturn){
+    const url=new URL(location.href);url.searchParams.set('tool',checkoutReturn.tool);history.replaceState(history.state,'',url);
+  }
   const requestedRoute=studioRoute();
   $('app').removeAttribute('data-guest-preview');window.__pvLabBootStage?.('Preparing your workspace');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerVideoProfile=customerMode?data:{};customerGenerationReady=!!data.generationReady;customerTrialGenerationPaused=!!data.trialGenerationPaused;customerBillingReady=!!data.billingReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)void claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('signin').hidden=true;$('signin').disabled=true;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
     if(data.accountClosed){
@@ -4756,10 +4777,14 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     syncVideoStudioMode();
     if(historyResolved)showWelcomeStart(data);
     restoreGuestImageDraft();
+    if(checkoutReturn?.imageDraft&&requestedRoute==='image'){
+      try{await restoreStudioFromMoods();}catch(error){notify('Your saved Image draft could not be restored. No generation was started. '+error.message,true);}
+    }
     window.__pvLabBootStage?.('Workspace ready');
     finishLabBoot();
     void pricingOverlay.resumeAfterSignIn().catch(()=>{});
-    if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){
+    if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&billingReturn==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');wallet.recoverCheckout();}
+    if(checkoutReturn?.billing==='cancel')void pricingOverlay.restoreSelection(checkoutReturn.sku);}catch(e){
   const stillSignedIn=!!clerk?.isSignedIn;
   // A new V2 Clerk identity is not yet a funded PV LAB wallet. Only redirect
   // after the authenticated migration endpoint confirms the identity is unlinked.

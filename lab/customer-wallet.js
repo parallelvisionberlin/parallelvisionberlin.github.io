@@ -1,10 +1,11 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
+import {rememberCheckout} from './checkout-return.js?v=20261023-recovery1';
 import {referralsAvailable} from './account-menu.js?v=20261012-account2';
 import {metaConsentGranted,trackLabEvent} from './meta-pixel.js?v=20261013-a1';
-export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{},openPricing=()=>{window.location.assign('./#pricing');}}){
+export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{},onProfile=()=>{},prepareCheckout=async()=>({}),onReturn=()=>{},openPricing=()=>{window.location.assign('./#pricing');}}){
   const $=id=>document.getElementById(id);
   let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0,trialGenerationPaused=false;
-  let dismissed=false,purchasing=false,refreshing=null,refreshAgain=false;
+  let dismissed=false,purchasing=false,refreshing=null,refreshAgain=false,profile=null,recoveryTimer=null,recoveryDeadline=0,recoveryAttempts=0;
   const add=$('lab-add-credits'),banner=$('lab-credit-banner');
   const toggle=$('lab-wallet-toggle'),dialog=$('lab-credits-dialog'),referralDialog=$('lab-referrals-dialog'),amount=$('lab-credit-balance'),
         list=$('lab-credit-products'),state=$('lab-wallet-state'),
@@ -53,6 +54,8 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     const current=accountEpoch;purchasing=true;update();
     try{
       // Only forward voluntary analytics consent; Stripe remains the payment authority.
+      const context=await prepareCheckout();
+      if(!account||current!==accountEpoch)return false;
       const consent=metaConsentGranted();
       const data=await api('/api/billing/checkout',{method:'POST',body:consent?{sku,metaConsent:true}:{sku}});
       if(!account||current!==accountEpoch)return false;
@@ -63,6 +66,7 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
         await new Promise(resolve=>setTimeout(resolve,240));
       if(!account||current!==accountEpoch)return false;
       report('Opening secure checkout…');
+      rememberCheckout({sku,ownerId:profile?.ownerId,...context});
       location.assign(uri.href);
       return true;
     }catch(e){
@@ -150,20 +154,42 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     }catch(e){if(epoch===referralEpoch)referralState.textContent=e.message||'Your referral link is temporarily unavailable.';}
     finally{if(epoch===referralEpoch)referralLoading=false;}
   }
+  function stopRecovery(){clearTimeout(recoveryTimer);recoveryTimer=null;recoveryDeadline=0;}
+  function recoverCheckout(){
+    stopRecovery();recoveryDeadline=Date.now()+30000;recoveryAttempts=0;
+    void refresh();
+  }
   async function refresh(){
     if(!account)return;const current=accountEpoch;
     if(refreshing){refreshAgain=true;return refreshing;}
-    refreshing=(async()=>{
+    const pending=Promise.resolve().then(async()=>{
     try{
-      const data=await api('/api/customer/wallet');
-      if(!account||current!==accountEpoch)return;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;trialGenerationPaused=!!data.trialGenerationPaused;balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;
-      products=Array.isArray(data.products)?data.products:products;$('lab-credit-invite').hidden=!referralsAvailable(data);update();
+      // The session contains the full server-authorized profile and provider config.
+      // A larger wallet balance alone must never unlock Studio generation.
+      const data=await api('/api/session');
+      if(!account||current!==accountEpoch)return;
+      profile=data;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;trialGenerationPaused=!!data.trialGenerationPaused;balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;
+      products=Array.isArray(data.products)?data.products:products;
+      soulIdTrainingCredits=Number.isSafeInteger(data.soulIdTrainingCredits)?data.soulIdTrainingCredits:null;
+      $('lab-credit-invite').hidden=!referralsAvailable(data);update();onProfile(data);
+      if(data.accountClosed||data.billingReview||data.generationReady===true&&balance>0)stopRecovery();
     }catch(e){if(account&&current===accountEpoch)notify(e.message,true);}
-    finally{refreshing=null;if(refreshAgain){refreshAgain=false;if(account)void refresh();}}
-    })();return refreshing;
+    finally{
+      if(current===accountEpoch&&refreshing===pending){
+        refreshing=null;
+        if(refreshAgain){refreshAgain=false;void refresh();}
+        else if(recoveryDeadline){
+          clearTimeout(recoveryTimer);
+          if(++recoveryAttempts<12&&Date.now()+2000<recoveryDeadline)
+            recoveryTimer=setTimeout(()=>void refresh(),2000);
+          else stopRecovery();
+        }
+      }
+    }
+    });refreshing=pending;return pending;
   }
   function connect(data){
-    const next=!!data.customer;accountEpoch++;dismissed=false;purchasing=false;refreshAgain=false;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;trialGenerationPaused=!!data.trialGenerationPaused;
+    const next=!!data.customer;accountEpoch++;stopRecovery();refreshing=null;profile=data;dismissed=false;purchasing=false;refreshAgain=false;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;trialGenerationPaused=!!data.trialGenerationPaused;
     if($('lab-close-confirm'))$('lab-close-confirm').value='';
     if($('lab-close-account'))$('lab-close-account').disabled=true;
     referralEpoch++;referralLoading=false;
@@ -175,5 +201,10 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     update();
   }
   window.addEventListener('focus',()=>{if(account&&document.visibilityState==='visible')void refresh();});
-  return {connect,refresh,open,openReferrals,cost,describe,jobCharge,buyPlan:purchase,isCustomer:()=>account};
+  window.addEventListener('pageshow',event=>{
+    if(!event.persisted||!account)return;
+    // Only a restored document can reset the outgoing purchase lock.
+    purchasing=false;update();onReturn(profile);void refresh();
+  });
+  return {connect,refresh,recoverCheckout,open,openReferrals,cost,describe,jobCharge,buyPlan:purchase,isCustomer:()=>account};
 }

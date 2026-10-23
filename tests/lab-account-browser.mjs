@@ -2,16 +2,16 @@
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
-import {resolve,extname} from 'node:path';
+import {resolve,extname,sep} from 'node:path';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
-const root=resolve('.'),artifacts='/tmp/pv-lab-account-review';await mkdir(artifacts,{recursive:true});
+const root=resolve('.'),artifacts=process.env.PV_ACCOUNT_ARTIFACTS||'/tmp/pv-lab-account-review';await mkdir(artifacts,{recursive:true});
 const server=createServer(async(req,res)=>{
   let pathname=new URL(req.url,'http://localhost').pathname;if(pathname.endsWith('/'))pathname+='index.html';if(pathname==='/lab/moods')pathname+='.html';
-  const file=resolve(root,'.'+pathname);if(!file.startsWith(root+'/'))return res.writeHead(403).end();
+  const file=resolve(root,'.'+pathname);if(!file.startsWith(root+sep))return res.writeHead(403).end();
   try{res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(await readFile(file));}catch{res.writeHead(404).end();}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true});
+const browser=await chromium.launch({headless:true,ignoreDefaultArgs:['--disable-back-forward-cache']});
 const products=[{id:'topup10',type:'payment',credits:1000,priceEur:10},{id:'topup29',type:'payment',credits:3000,priceEur:29},{id:'topup75',type:'payment',credits:8000,priceEur:75},{id:'starter',type:'subscription',credits:1600,priceEur:15}];
 for(const product of products)product.title='PV Lab '+product.id;
 const clerkMock=`export class Clerk {
@@ -21,7 +21,7 @@ const clerkMock=`export class Clerk {
 }`;
 async function setup(width,customer=true,overrides={}){
   const context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage();
-  const errors=[],writes=[];let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',initialized=!overrides.newCustomer;
+  const errors=[],writes=[],reads=[];let heldSession=null,releaseSession=null,quoteId=0;let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',initialized=!overrides.newCustomer;
   page.on('pageerror',e=>errors.push(e.message));
   const session={customer,ownerId:'user_Test',balanceCredits:1234,billingReady:true,generationReady:true,products,subscription:{plan_id:null,status:'none'},config:{enabled:true,configured:true,concurrency:{image:4,video:1},videoEngines:['wan']},...overrides};
   await page.route('https://**/*',async route=>{
@@ -30,13 +30,21 @@ async function setup(width,customer=true,overrides={}){
     if(url.hostname==='clerk.parallelvisionlabel.com'||url.hostname==='clerk.pvlab.studio')return route.fulfill({contentType:'text/javascript',body:''});
     if(url.hostname==='checkout.stripe.com')return route.fulfill({contentType:'text/html',body:'<h1>Intercepted checkout test</h1>'});
     if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
+    if(request.method()==='GET')reads.push(url.pathname);
     if(request.method()!=='GET')writes.push({path:url.pathname,body:request.postData()});
     const send=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
-    if(url.pathname==='/api/session')return initialized?send(session):route.fulfill({status:409,headers:{'X-PV-Lab-Onboarding':'required','Access-Control-Expose-Headers':'X-PV-Lab-Onboarding'},contentType:'application/json',body:JSON.stringify({error:'Setup required.'})});
+    if(url.pathname==='/api/session'){const snapshot=structuredClone(session);if(heldSession)await heldSession;return initialized?send(snapshot):route.fulfill({status:409,headers:{'X-PV-Lab-Onboarding':'required','Access-Control-Expose-Headers':'X-PV-Lab-Onboarding'},contentType:'application/json',body:JSON.stringify({error:'Setup required.'})});}
     if(url.pathname==='/api/migration/new'&&request.method()==='POST'){
       initialized=true;return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({linked:true,kind:'customer'})});
     }
     if(url.pathname==='/api/quotes'&&overrides.previewFundingError)return route.fulfill({status:402,contentType:'application/json',body:JSON.stringify({error:'Insufficient credits.'})});
+    if(url.pathname==='/api/quotes'){
+      const data=request.postDataJSON();return send({id:'mock-quote-'+(++quoteId),provider:'SpicyAPI',creditCost:35,estimatedUsd:.036,maxUsd:.036,expiresAt:Date.now()+180000,settings:data.settings});
+    }
+    if(url.pathname==='/api/jobs'&&request.method()==='POST'){
+      const data=request.postDataJSON();assert.equal(data.confirm,true);assert.match(data.quoteId,/^mock-quote-/);
+      return send({job:{id:'mock-job',status:'queued',settings:{type:'image',mode:'image',model:'seedream'},createdAt:Date.now(),creditCost:35}});
+    }
     if(url.pathname==='/api/customer/wallet'){
       if(heldWallet)await heldWallet;
       return send({...session,activity:[{delta_credits:-42,kind:'generation',created_at:1720000000000},{delta_credits:1000,kind:'purchase',created_at:1719000000000}]});
@@ -51,7 +59,7 @@ async function setup(width,customer=true,overrides={}){
     if(url.pathname==='/api/customer/referrals')return send({rewardsAvailable:false});
     return send({jobs:[],activeJobs:[],next:null,packs:[],characters:[],moods:[],boards:[],folders:[],models:[],configured:false});
   });
-  return {context,page,errors,writes,session,setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
+  return {context,page,errors,writes,reads,session,holdSession(){heldSession=new Promise(r=>releaseSession=r);},releaseSession(){heldSession=null;releaseSession?.();},setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
 }
 async function fits(page,label){
   const metrics=await page.evaluate(()=>({
@@ -63,6 +71,162 @@ async function fits(page,label){
     label+' must not scroll horizontally: '+JSON.stringify(metrics));
 }
 try{
+  // Purchase recovery regressions run against real local modules; Clerk, Stripe,
+  // webhooks, quotes and job submissions are intercepted, never production.
+  for(const width of [1440,390]){
+    const rig=await setup(width,true,{balanceCredits:0,generationReady:false,trialGenerationPaused:true}),{page,session,writes,reads}=rig;
+    try{
+      await page.goto(origin+'/lab/studio.html?billing=success');
+      await page.locator('body.lab-ready').waitFor();
+      await page.fill('#image-composer-prompt','Keep my payment-return draft.');
+      assert.equal(await page.locator('#lab-wallet-toggle').textContent(),'0 credits');
+      // The signed webhook is late: no focus/reload/user interaction delivers it.
+      session.balanceCredits=1000;session.generationReady=true;session.trialGenerationPaused=false;
+      await page.waitForFunction(()=>document.getElementById('lab-wallet-toggle').textContent==='1,000 credits');
+      await page.waitForFunction(()=>document.getElementById('image-composer-generate').dataset.credits==='35 credits');
+      assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep my payment-return draft.');
+      assert.ok(reads.filter(x=>x==='/api/session').length>=3,'Return polls the complete authorized profile for a late webhook');
+      assert.equal(writes.filter(x=>x.path==='/api/jobs').length,0,'Polling never submits a generation');
+      await page.screenshot({path:artifacts+'/checkout-funded-'+width+'.png'});
+      await fits(page,'funded checkout return '+width);
+      const jobRequest=page.waitForRequest(r=>r.url().endsWith('/api/jobs')&&r.method()==='POST');
+      await page.click('#image-composer-generate');await jobRequest;
+      assert.equal(writes.filter(x=>x.path==='/api/jobs').length,1,'One explicit click submits exactly one mocked job');
+      assert.equal(await page.locator('#lab-pricing-overlay').isVisible(),false,'The refreshed permission is applied without reloading Studio');
+      assert.deepEqual(rig.errors,[]);
+    }finally{await rig.context.close();}
+
+    const guarded=await setup(width,true,{balanceCredits:0,generationReady:false,trialGenerationPaused:true});
+    try{
+      const {page,session,writes}=guarded;
+      await page.goto(origin+'/lab/studio.html');await page.locator('body.lab-ready').waitFor();
+      await page.fill('#image-composer-prompt','Keep this restricted draft.');
+      for(const restriction of [{},{billingReview:true},{promotionReview:true},{accountClosed:{state:'requested'}}]){
+        Object.assign(session,{balanceCredits:1000,generationReady:false,trialGenerationPaused:false,billingReview:false,promotionReview:false,accountClosed:false},restriction);
+        const refreshed=page.waitForResponse(r=>r.url().endsWith('/api/session'));
+        await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await refreshed;
+        await page.waitForFunction(()=>document.getElementById('lab-wallet-toggle').textContent==='1,000 credits');
+        await page.locator('#image-composer-generate').evaluate(button=>button.click());
+        await page.waitForTimeout(150);
+        assert.equal(writes.filter(x=>['/api/quotes','/api/jobs'].includes(x.path)).length,0,'Positive balance cannot override denied/reviewed/closed generation permission');
+        assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this restricted draft.');
+      }
+      // Exercise the same handler used by a persisted pageshow, separately from
+      // any claim that this browser actually restored its BFCache.
+      Object.assign(session,{generationReady:true,balanceCredits:2000,accountClosed:false});
+      await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
+      await page.waitForFunction(()=>document.getElementById('lab-wallet-toggle').textContent==='2,000 credits');
+      await page.waitForFunction(()=>/35/.test(document.getElementById('image-composer-generate').dataset.credits));
+      assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this restricted draft.');
+      assert.equal(writes.filter(x=>x.path==='/api/jobs').length,0,'BFCache lifecycle refresh cannot generate');
+      assert.deepEqual(guarded.errors,[]);
+    }finally{await guarded.context.close();}
+
+    // Hold the tabs module after the cards are painted: they must not advertise
+    // a usable purchase until handlers AND the requested tab are installed.
+    const loading=await setup(width),{page:loadPage}=loading;let releaseTabs;
+    try{
+      const held=new Promise(r=>releaseTabs=r);
+      await loadPage.route('**/lab/pricing-tabs.js*',async route=>{await held;await route.continue();});
+      await loadPage.goto(origin+'/lab/studio.html');await loadPage.locator('body.lab-ready').waitFor();
+      await loadPage.locator('#lab-wallet-toggle').evaluate(b=>b.click());
+      await loadPage.locator('#lab-pricing-overlay #lab-plans-title').waitFor();
+      assert.equal(await loadPage.locator('#lab-pricing-overlay [data-lab-buy]:disabled').count(),6,'No enabled purchase before module readiness');
+      assert.equal(await loadPage.locator('#lab-pricing-overlay #pricing').evaluate(e=>e.inert),true);
+      assert.equal(loading.writes.filter(x=>x.path==='/api/billing/checkout').length,0);
+      releaseTabs();
+      await loadPage.waitForFunction(()=>document.getElementById('lab-pricing-overlay-body').getAttribute('aria-busy')==='false');
+      assert.equal(await loadPage.locator('#lab-pricing-overlay #lab-tab-onetime').getAttribute('aria-selected'),'true');
+      await loadPage.locator('#lab-pricing-overlay [data-lab-buy="topup10"]').click();
+      await loadPage.getByText('Unverified checkout link.',{exact:true}).first().waitFor();
+      assert.deepEqual(loading.writes.filter(x=>x.path==='/api/billing/checkout').map(x=>JSON.parse(x.body)),[{sku:'topup10'}],'First enabled click creates exactly the selected checkout');
+      assert.deepEqual(loading.errors,[]);
+    }finally{releaseTabs?.();await loading.context.close();}
+
+    for(const [entry,sku] of [['studio','topup29'],['home','creator'],['account','topup75']]){
+      const returning=await setup(width),{page,writes}=returning;
+      try{
+        returning.setCheckoutUrl('https://checkout.stripe.com/c/pay/mock-return');
+        await page.goto(origin+(entry==='studio'?'/lab/studio.html':entry==='home'?'/lab/#pricing':'/lab/account.html#balance'));
+        if(entry==='studio'){
+          await page.locator('body.lab-ready').waitFor();
+          await page.fill('#image-composer-prompt','Preserve this exact Checkout draft.');
+          await page.locator('#lab-wallet-toggle').evaluate(b=>b.click());
+          await page.waitForFunction(()=>document.getElementById('lab-pricing-overlay-body').getAttribute('aria-busy')==='false');
+        }else if(entry==='home')await page.locator('[data-account-phase="ready"]').waitFor();
+        else await page.locator('#account-products button').first().waitFor();
+        const button=page.locator('[data-lab-buy="'+sku+'"]');
+        // Account products use the existing server catalog and label.
+        if(entry==='account')await page.locator('#account-products button').last().click();
+        else await button.click();
+        await page.waitForURL('https://checkout.stripe.com/**');
+        assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1);
+        const sent=JSON.parse(writes.find(x=>x.path==='/api/billing/checkout').body).sku;
+        assert.equal(sent,sku);
+        await page.goto(origin+'/lab/studio.html?billing=cancel');
+        await page.waitForFunction(sku=>document.activeElement?.dataset.labBuy===sku,sku);
+        assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-'+(sku.startsWith('topup')?'onetime':'monthly')).getAttribute('aria-selected'),'true');
+        assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'Cancel restores selection and focus without creating another Checkout');
+        if(entry==='studio')assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Preserve this exact Checkout draft.');
+        await fits(page,'cancel restored '+entry+' '+width);
+        await page.screenshot({path:artifacts+'/checkout-cancel-'+entry+'-'+width+'.png'});
+        await page.click('#lab-pricing-overlay-close');await page.reload();await page.locator('body.lab-ready').waitFor();
+        assert.equal(await page.locator('#lab-pricing-overlay').isVisible(),false,'Consumed cancellation cannot replay after reload');
+        assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1);
+        assert.deepEqual(returning.errors,[]);
+      }finally{await returning.context.close();}
+    }
+    console.log('PASS late webhook, denied positive balance, focus, persisted lifecycle, first ready click and Checkout cancellation at '+width+'px (mock APIs only)');
+  }
+  for(const width of [1440,390])for(const entry of ['home','studio']){
+    const rig=await setup(width),{page,writes}=rig;
+    try{
+      await page.addInitScript(()=>window.addEventListener('pageshow',event=>{window.__checkoutPageshowPersisted=event.persisted;}));
+      rig.setCheckoutUrl('https://checkout.stripe.com/c/pay/mock-back');
+      await page.goto(origin+(entry==='home'?'/lab/#pricing':'/lab/studio.html'));
+      if(entry==='home'){
+        await page.locator('[data-account-phase="ready"]').waitFor();
+        await page.getByRole('tab',{name:'One-time credits',exact:true}).click();
+      }else{
+        await page.locator('body.lab-ready').waitFor();await page.fill('#image-composer-prompt','Preserve my browser Back draft.');
+        await page.locator('#lab-wallet-toggle').evaluate(b=>b.click());
+        await page.waitForFunction(()=>document.getElementById('lab-pricing-overlay-body').getAttribute('aria-busy')==='false');
+      }
+      await page.locator('[data-lab-buy="topup29"]').click();await page.waitForURL('https://checkout.stripe.com/**');
+      await page.goBack();
+      await page.waitForFunction(()=>document.activeElement?.dataset.labBuy==='topup29');
+      const persisted=await page.evaluate(()=>window.__checkoutPageshowPersisted);
+      assert.equal(await page.locator('#lab-tab-onetime').getAttribute('aria-selected'),'true');
+      assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'Browser Back never replays Checkout');
+      if(entry==='studio')assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Preserve my browser Back draft.');
+      await page.locator('[data-lab-buy="topup29"]').click();await page.waitForURL('https://checkout.stripe.com/**');
+      assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,2,'A fresh explicit click works after browser Back');
+      assert.deepEqual(rig.errors,[]);
+      console.log('PASS real browser Back '+entry+' '+width+'px; pageshow.persisted='+persisted+' (persisted lifecycle also tested explicitly)');
+    }finally{await rig.context.close();}
+  }
+  for(const change of ['logout','switch']){
+    const rig=await setup(390,true,{balanceCredits:0,generationReady:false}),{page,session}=rig;
+    try{
+      await page.goto(origin+'/lab/studio.html');await page.locator('body.lab-ready').waitFor();
+      session.balanceCredits=9000;session.generationReady=true;rig.holdSession();
+      const requested=page.waitForRequest(r=>r.url().endsWith('/api/session'));
+      await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await requested;
+      await page.evaluate(()=>window.mockClerk.signOut());
+      if(change==='switch'){
+        Object.assign(session,{ownerId:'user_Other',balanceCredits:0,generationReady:false});
+        await page.evaluate(()=>{
+          const c=window.mockClerk;c.user={id:'user_Other',fullName:'Other customer'};c.session={id:'sess_Other',getToken:async()=> 'synthetic-other-token'};c.isSignedIn=true;c.listeners.forEach(fn=>fn());
+        });
+      }
+      rig.releaseSession();
+      if(change==='switch'){await page.locator('body.lab-ready').waitFor();await page.waitForFunction(()=>document.getElementById('lab-wallet-toggle').textContent==='0 credits');}
+      else await page.locator('#signin').waitFor({state:'visible'});
+      assert.doesNotMatch(await page.locator('#lab-wallet-toggle').textContent(),/9,000/,'An old authorized response cannot populate another account or a signed-out document');
+      assert.equal(rig.writes.filter(x=>x.path==='/api/jobs').length,0);assert.deepEqual(rig.errors,[]);
+    }finally{rig.releaseSession();await rig.context.close();}
+  }
+  console.log('PASS delayed profile responses are discarded after logout and account switch');
   // Real homepage URL, local source and synthetic Clerk/API only. Fresh setup
   // must not navigate to Studio or discard an existing pricing anchor.
   for(const width of [1440,390]){
@@ -188,6 +352,7 @@ try{
       await page.waitForFunction(()=>!document.getElementById('image-composer-generate').disabled);
       await page.locator('#image-composer-generate').click();
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
+      await page.waitForFunction(()=>document.querySelector('#lab-pricing-overlay-body').getAttribute('aria-busy')==='false');
       assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6);
       assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-monthly').getAttribute('aria-selected'),'true','Generate starts with the compact monthly comparison');
       assert.equal(await page.locator('#image-composer-prompt').inputValue(),direction,
@@ -292,7 +457,9 @@ try{
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
       await page.waitForFunction(()=>document.querySelector('#lab-pricing-overlay [data-lab-buy="topup10"]')?.disabled===false);
       rig.holdCheckout();
+      const checkoutStarted=page.waitForRequest(r=>r.url().endsWith('/api/billing/checkout'));
       await page.locator('#lab-pricing-overlay [data-lab-buy="topup10"]').evaluate(button=>{button.click();button.click();});
+      await checkoutStarted;
       await page.waitForFunction(()=>document.querySelector('#lab-pricing-overlay-status').textContent.includes('Opening secure checkout'));
       assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'Shared checkout prevents duplicate clicks');
       assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'topup10'});
