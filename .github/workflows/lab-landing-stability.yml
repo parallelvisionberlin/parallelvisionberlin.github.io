@@ -1,10 +1,10 @@
 name: PV Lab landing load stability
 on:
   pull_request:
-    paths: ['lab/index.html', 'lab/landing*.css', 'lab/homepage-unified.css', 'lab/credits.css', 'lab/customer-entry.js', 'lab/fonts/**', 'tests/lab-landing-stability.mjs', '.github/workflows/lab-landing-stability.yml']
+    paths: ['lab/index.html', 'lab/landing*.css', 'lab/homepage-unified.css', 'lab/credits.css', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/fonts/**', 'tests/lab-landing-stability.mjs', 'tests/lab-home-credit-banner-browser.mjs', '.github/workflows/lab-landing-stability.yml']
   push:
     branches: [main]
-    paths: ['lab/index.html', 'lab/landing*.css', 'lab/homepage-unified.css', 'lab/credits.css', 'lab/customer-entry.js', 'lab/fonts/**', 'tests/lab-landing-stability.mjs', '.github/workflows/lab-landing-stability.yml']
+    paths: ['lab/index.html', 'lab/landing*.css', 'lab/homepage-unified.css', 'lab/credits.css', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/fonts/**', 'tests/lab-landing-stability.mjs', 'tests/lab-home-credit-banner-browser.mjs', '.github/workflows/lab-landing-stability.yml']
 permissions:
   contents: read
 jobs:
@@ -23,6 +23,10 @@ jobs:
       - run: npm install --prefix /tmp/pv-landing --no-audit --no-fund playwright@1.62.1
       - run: /tmp/pv-landing/node_modules/.bin/playwright install --with-deps chromium
       - run: node tests/lab-landing-stability.mjs
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-landing/node_modules/playwright/index.mjs
+          PV_UI_ARTIFACTS: /tmp/pv-landing-screenshots
+      - run: node tests/lab-home-credit-banner-browser.mjs
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-landing/node_modules/playwright/index.mjs
           PV_UI_ARTIFACTS: /tmp/pv-landing-screenshots
