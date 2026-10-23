@@ -171,7 +171,7 @@ try{
  for(const icon of artwork){
    assert.match(icon.url,new RegExp('upscaler-model-'+icon.name+'\\.webp'),'Correct approved model thumbnail is used');
    assert.equal(icon.decoded,true,icon.name+' model artwork decodes from the actual page');
-   assert.ok(icon.width>=35&&icon.width<=37,icon.name+' artwork retains the approved square size');
+   assert.ok(icon.width>=37.5&&icon.width<=38.5,icon.name+' artwork retains the approved 38px square size');
  }
  assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),false,'ByteDance default keeps versions collapsed');
  await selectModel(x.page,/Topaz Standard V2/);
