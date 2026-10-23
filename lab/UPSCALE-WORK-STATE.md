@@ -13,10 +13,22 @@
 - Cache keys: upscalePrecision=20261023-flat2 and precisionQuality=20261023-flat2.
 - Existing 34 browser checks retain model/quality, role/viewport, quote and submission coverage.
 - Existing independent visibility fixture baseline failure remains unchanged.
-- Prior release: PR #466 / 503bbc1, deployed successfully; current simplification pending checks/publication.
-- Mandatory approved Image contract passed 5/5 before this edit.
+- Prior release: PR #466 / 503bbc1, deployed successfully.
+- Simplification merged in PR #469 as 14d3eafcab25bc3cbbaccae02d384676d3b1a470.
+- Cloudflare Pages pvlab-studio check 120424694540: success for that exact SHA.
+- Custom domain /studio?tool=upscale DOM confirms all four labels and no nested group.
+- Production JS/CSS version keys confirmed as 20261023-flat2.
+- Browser suite passed BROWSER_CHECKS_PASSED=34 in job 120421941455.
+- Desktop 1728px and phone 390px menu screenshots inspected from artifact 12503360371.
+- Screenshots: upscaler-precision-empty-1728.png and upscaler-precision-empty-390.png.
+- Mocked role tests retain both qualities, History, keyboard, touch, quote binding and no duplicate submission.
+- Production browser signed out; real authenticated paid generation not exercised.
+- Shell production byte verification unavailable; exact CF check plus browser DOM/version fallback used.
+- Unrelated CI failures inspected: guest tool visibility, Image entrance backdrop, Mood nav viewport,
+  old-domain redirect verification and reference image decode. Their tested behavior/files were untouched.
+- Mandatory approved Image contract passed 5/5 before and after this edit.
 - No paid jobs submitted.
-- Next: verify updated browser suite, merge, confirm exact Cloudflare deployment and production menu.
+- Publication and scoped verification complete; no further product change pending.
 
 ## Previous implementation record
 
