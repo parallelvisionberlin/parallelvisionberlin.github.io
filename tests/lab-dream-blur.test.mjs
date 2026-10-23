@@ -8,7 +8,7 @@ import {compileImagePrompt} from '../lab/reference-guidance.js';
 test('Dream Blur is a curated Mood with actual user reference photography and a card',()=>{
   const mood=moodById('dream-blur');
   assert.ok(mood);
-  assert.equal(mood.defaultIntensity,78);
+  assert.equal(mood.defaultIntensity,80);
   assert.equal(mood.category,'Analog');
   assert.match(mood.direction,/shutter|exposure/i);
   assert.match(mood.direction,/Source-adaptive color/);
@@ -22,6 +22,14 @@ test('Dream Blur is a curated Mood with actual user reference photography and a 
   assert.match(html,/LIGHT LEAKS\. MOTION\. FEELINGS\./);
   assert.match(html,/All 17 curated visual Moods/);
 });
+test('both Studio Inspiration entry points inherit Dream Blur 80% without changing other presets',()=>{
+  const studio=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  assert.match(studio,/function inspirationMoodDefaultIntensity\(id\)\{return id==='dream-blur'\?moodById\(id\)\.defaultIntensity:id==='fisheye-2000'\?75:60;\}/);
+  assert.match(studio,/moodIntensity:inspirationMoodDefaultIntensity\(draftMood\)/);
+  assert.match(studio,/moodIntensity:inspirationMoodDefaultIntensity\(underlyingMood\)/);
+  assert.equal(moodById('dream-blur').defaultIntensity,80);
+});
+
 test('Dream Blur stays physically photographic and retains identity across intensity',()=>{
   for(const engine of ['seedream','seedreamlite','gemini','gemini21']){
     for(const intensity of [10,45,78,98,100]){
