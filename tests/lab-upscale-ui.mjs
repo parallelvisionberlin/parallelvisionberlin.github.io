@@ -345,6 +345,47 @@ try{
    assert.deepEqual(x.errors,[]);ok((customer?'Customer':'Owner')+' selects and submits both fresh qualities with bound credits and unchanged geometry at '+width+'px');await x.context.close();
   }
 
+  // Use a real PV LAB photographic JPG, not just the synthetic pixel fixture.
+  // These read-only screenshots prove both Precision variants have a loaded
+  // source and their action stays BELOW the last output selector at both sizes.
+  const photographicFixture='lab/visuals/upscaler-chrome-wool-option-1.jpg';
+  assert.ok(existsSync(photographicFixture),'Approved Upscaler photographic fixture exists');
+  for(const width of [1440,390]){
+   x=await workspace([],width);await x.page.click('#tool-upscale');
+   const chooser=x.page.waitForEvent('filechooser');
+   await x.page.getByRole('button',{name:'Upload an image to upscale',exact:true}).click();
+   await (await chooser).setFiles({
+     name:'pv-lab-editorial-photo.jpg',mimeType:'image/jpeg',buffer:readFileSync(photographicFixture)
+   });
+   await x.page.waitForFunction(()=>{
+     const img=document.getElementById('preview');
+     return img&&!img.hidden&&img.naturalWidth>0&&document.getElementById('app').classList.contains('pv-upscale-source-ready');
+   });
+   await selectModel(x.page,/Topaz Standard V2/);
+   for(const quality of ['Standard V2','High Fidelity V3']){
+    await selectQuality(x.page,quality,{touch:width===390});
+    const g=await x.page.evaluate(()=>{
+      const format=document.getElementById('format-control').getBoundingClientRect();
+      const generate=document.getElementById('generate').getBoundingClientRect();
+      const photo=document.getElementById('preview');
+      return {formatBottom:format.bottom,generateTop:generate.top,photoWidth:photo.naturalWidth,
+        photoHeight:photo.naturalHeight,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth};
+    });
+    assert.ok(g.generateTop>=g.formatBottom-1,
+      'REAL photographic source and '+quality+' keep Upscale below Image format at '+width+'px: '+JSON.stringify(g));
+    assert.ok(g.photoWidth>0&&g.photoHeight>0,'Original photographic media stays visible');
+    assert.ok(g.documentWidth<=g.viewportWidth,'No horizontal overflow with a loaded photograph');
+    assert.equal(quoteRequests(x).length,0,'Model preview never creates a billable quote');
+    assert.equal(countPaid(x),0,'Model preview never submits generation');
+    mkdirSync('test-results',{recursive:true});
+    const version=quality==='Standard V2'?'standard-v2':'high-fidelity-v3';
+    await x.page.screenshot({path:'test-results/upscaler-photo-loaded-'+width+'-'+version+'.png',fullPage:true});
+    ok('Loaded real photograph '+quality+' at '+width+'px: no overlap and no billable calls');
+   }
+   assert.deepEqual(x.errors,[]);
+   await x.context.close();
+  }
+
   x=await workspace();await x.page.click('#tool-upscale');
   const trigger=x.page.locator('#upscale-model-trigger'),precision=x.page.locator('#upscale-precision-trigger');
   const focused=()=>x.page.evaluate(()=>document.activeElement.dataset.upscaleQuality||document.activeElement.dataset.upscaleEngine||document.activeElement.id);
