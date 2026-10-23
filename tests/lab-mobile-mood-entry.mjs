@@ -50,6 +50,7 @@ async function openViewport(width,height){
   await page.route('https://**/*',route=>route.abort());
   await page.goto(url,{waitUntil:'load'});
   await page.evaluate(()=>{
+    document.body.classList.remove('lab-booting');
     document.body.classList.add('lab-ready');
     document.documentElement.classList.remove('pv-studio-boot-lock','pv-studio-route-pending');
     document.getElementById('lab-boot').style.display='none';
@@ -80,8 +81,14 @@ try{
       'On phones the selected Mood displays its multi-line prompt without keyboard focus');
     assert.ok(await page.locator('#pv-guest-prompt').evaluate(el=>el.getBoundingClientRect().height)>=99,
       'The loaded prompt should be readable on mobile');
-    await page.waitForFunction(()=>window.scrollY>250,null,{timeout:4000});
-    await page.waitForFunction(()=>document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed'),null,{timeout:3000});
+    // The current shorter entrance can already fit the expanded composer.
+    // Require the actual outcome, whether scrollIntoView needs to scroll or not.
+    await page.waitForFunction(()=>{
+      const composer=document.getElementById('pv-guest-composer').getBoundingClientRect();
+      const header=document.getElementById('studio-header').getBoundingClientRect();
+      return composer.top>=header.bottom-2&&composer.bottom<=innerHeight+2;
+    },null,{timeout:4000});
+    await page.waitForFunction(()=>document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed')===(scrollY>110),null,{timeout:3000});
     const state=await page.evaluate(()=>{
       const composer=document.getElementById('pv-guest-composer').getBoundingClientRect();
       const header=document.getElementById('studio-header').getBoundingClientRect();
@@ -90,7 +97,7 @@ try{
         viewportHeight:innerHeight,documentWidth:document.documentElement.scrollWidth,
         focusedId:document.activeElement?.id};
     });
-    assert.ok(state.composerTop>=76&&state.composerTop<300,
+    assert.ok(state.composerTop>=state.headerHeight-2&&state.generateBottom<=state.viewportHeight+2,
       'Selection brings the prompt into view below the compact header: '+JSON.stringify(state));
     assert.ok(state.generateBottom<=state.viewportHeight+2,
       'Generate must also be visible after selecting a Mood: '+JSON.stringify(state));

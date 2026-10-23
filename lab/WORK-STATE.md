@@ -1,5 +1,44 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## CI fixture maintenance, 2026-10-23 (review pending)
+- Objective: repair the seven inherited CI controls identified during PR #462 validation.
+- Separate branch: codex/pvlab-ci-maintenance-20261023; PR #462 remains untouched and draft.
+- Verified main source: 8e45938503d89a15a713f0792e89a309a12b2d64.
+- Main was incorporated again after the approved Fashion rollback (#480), public header/privacy repair and homepage focus stability (#478).
+- Product application, CSS, assets, Worker, billing and configuration bytes are unchanged by this maintenance diff.
+- Masthead: preserve the real Explore body attributes so page-scoped wordmark rules apply; retain twelve widths and guest checks.
+- Landing: retain main's absolute hero overlay, scroll-away and delayed focus/visibility checks; only make the runtime import portable.
+- Assets/verify: public tool navigation remains visible while private History stays hidden; retain cache clearing, folders, downloads, quotes and submission checks.
+- Assets Upscaler checks now use the real upload CTA, visible four-choice menu and flush desktop geometry.
+- Upscale Assets: separate empty/filled source states; exact 450px phone stage and approved desktop height formulas.
+- Keep upload/replace chooser checks, decoded-result shimmer, History-to-Assets sharing and overflow checks.
+- The retired More options disclosure and provider diagnostics remain hidden, including Owner presentation.
+- All three engines and both Precision qualities retain the independent full quote/credit/History integration coverage.
+- Video/Seedance: use the actual signed-out sync path; retain the public editor while clearing private prompts, references and History.
+- Guest Generate must request authentication and send no upload, quote or job POST; check both phone and desktop.
+- Effects enters its retained URL route instead of clicking the hidden legacy tab.
+- References: expand the visible composer instead of hidden advanced controls; preserve every original byte, dimension, role, note, budget and viewer check.
+- Retained draft/role serialization is explicitly a controller contract with mocked APIs, not a claim of a visible legacy sidebar workflow.
+- First-image: compare backdrop-only pixels with a funded customer; zero-credit overlay remains tested separately with exact masthead anchor and layout invariance.
+- Its approved dismiss control must be reachable; dismissal exposes Refresh and the eye without moving the deck.
+- Mobile Mood: require the full expanded prompt and Generate in view without keyboard focus, whether scrolling is needed or not.
+- Fashion: use the real legacy-document redirect, canonical Studio loader, shared session and Shadow DOM; preserve the approved rollback design.
+- Retain model defaults, three model options, valid photo uploads, bound quote without submission, private gallery paging and responsive layout.
+- Add verified-session headers, single-footer, decoded SVG wordmark, logout media cleanup and guest no-write assertions.
+- No test skipped, assertion removed, timeout increased, forced hidden click, or workflow gate disabled.
+- Local affected checks pass: Masthead, Landing (five sizes), Assets, Upscale Assets (two sizes), Seedance 19, References 22, mobile Mood, first-image and Fashion.
+- Full main Lab units pass 706/706, zero skipped; approved Image contract passes 5/5.
+- Full Upscaler integration passes 34/34; public Studio passes 1440/390/320px with visual comparisons and private API isolation.
+- A separate uncommitted compatibility candidate combines PR #462 a33ca05 with this main and these tests; full units pass 714/714.
+- Compatibility browser checks already pass P1/P2/P3 late webhook, denied positive balances, first click, cancel, focus, Back, stale responses and account switches at 1440/390px.
+- Exact commit, remaining full-account result and CI receipts belong in the maintenance PR description; do not substitute local runs for CI outcomes.
+- Local missing media came from sparse checkout, not product failures; materialize only the exact tracked blobs required by existing fixtures.
+- Existing POSIX-only suites use a path-only local Windows adapter where necessary; CI runs the unchanged Linux entrypoints.
+- Desktop and phone captures inspected; no design or production behavior is asserted from synthetic roles.
+- No sandbox purchase repeated, paid generation, credit grant, settings change, merge to main or manual deployment.
+- Actual customer return to Studio and first generation remain pending from #462; this test maintenance does not approve that production journey.
+- Next: review the maintenance PR and exact-head CI. Any automatic branch preview is separate from production publication.
+
 ## Homepage notice focus stability and matching Studio style, 2026-10-23
 - Owner references image(20261023-141333).png and image(20261023-141347).png; prefer Studio notice styling in image 2.
 - Cause: focus/visibility refresh sets profileLoading=true and banner eligibility hides it until the same zero response returns.

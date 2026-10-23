@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {readFile,mkdir} from 'node:fs/promises';
 import {createServer} from 'node:http';
 import {resolve,extname,sep} from 'node:path';
-const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
+import {pathToFileURL} from 'node:url';
+const playwrightModule=process.env.PV_PLAYWRIGHT_MODULE;
+const {chromium}=await import(playwrightModule?(playwrightModule.startsWith('file:')?playwrightModule:pathToFileURL(playwrightModule).href):'playwright');
 const root=resolve('.'),artifacts=resolve(process.env.PV_UI_ARTIFACTS||'test-results/home-credit-banner');
 await mkdir(artifacts,{recursive:true});
 const server=createServer(async(req,res)=>{
