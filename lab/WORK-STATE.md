@@ -10,7 +10,13 @@
 - Existing public/signed-in browser suite gains Customer/Owner assertions for header control x/width/right and clientWidth during Image→Retouch→Image.
 - Test widths remain 1440/390/320; existing screenshots and visual comparisons retained.
 - Approved Image contract passed 5/5 locally before editing.
-- Base 8e45938503d89a15a713f0792e89a309a12b2d64; candidate verification and publication pending.
+- Base 8e45938503d89a15a713f0792e89a309a12b2d64; PR #483.
+- Source HTML unchanged after first candidate; independent job 120491450035 passed Customer/Owner desktop header geometry at 1440px.
+- The newly added equality assertion also ran on mobile and found a pre-existing phone difference; the product rule is desktop-only and cannot affect 390px.
+- Scope that new coordinate assertion to the same 761px desktop breakpoint. Retain all existing mobile navigation/privacy checks and full visual gate.
+- Separate header step runs even if the existing Fashion .result-panel baseline fails earlier. No existing visual assertions removed.
+- Approved Image CI passed; routing checks passed at 1440/390.
+- Publication pending.
 
 
 ## Homepage notice focus stability and matching Studio style, 2026-10-23

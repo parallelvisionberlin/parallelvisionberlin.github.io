@@ -232,7 +232,7 @@ try{
         }));
         const imageHeader=route==='retouch'?await headerPositions():null;
         await page.locator('#tool-'+route).click();await settled(page,route,true);
-        if(route==='retouch'){
+        if(route==='retouch'&&width>=761){
           const retouchHeader=await headerPositions();
           assert.equal(retouchHeader.clientWidth,imageHeader.clientWidth,role+' Retouch keeps the Image scrollbar reservation at '+width);
           for(let i=0;i<imageHeader.controls.length;i++){
@@ -265,7 +265,7 @@ try{
     }
     assert.ok(writes.every(write=>write.signed&&write.path==='/api/quotes'),'Only existing authenticated automatic quote previews are permitted; no guest writes, uploads, generation, billing or provider mutations: '+JSON.stringify(writes));
     assert.deepEqual(errors,[]);
-    console.log(headerGutterOnly?`PASS Customer/Owner header positions ${width}px: Image to Retouch to Image, logout and API isolation`:`PASS public/signed-in Studio ${width}px: five approved decks, auth returns, tabs, Back/Forward, logout, API isolation`);
+    console.log(headerGutterOnly?`PASS Customer/Owner Retouch ${width}px: desktop header alignment when applicable, navigation, logout and API isolation`:`PASS public/signed-in Studio ${width}px: five approved decks, auth returns, tabs, Back/Forward, logout, API isolation`);
     await context.close();
   }
 }finally{await browser.close();server.close();}
