@@ -1,5 +1,17 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Homepage notice focus stability and matching Studio style, 2026-10-23
+- Owner references image(20261023-141333).png and image(20261023-141347).png; prefer Studio notice styling in image 2.
+- Cause: focus/visibility refresh sets profileLoading=true and banner eligibility hides it until the same zero response returns.
+- Keep the confirmed same-session notice while refreshing; initial unknown session, changed session, failed response, positive balance and sign-out still hide it.
+- Preserve dismissal and plan navigation; no credit, billing or generation writes changed.
+- Homepage notice keeps bold first sentence and plain secondary link appearance matching Studio. Header controls and artwork untouched.
+- Previous homepage scroll-away rule remains absolute; Studio anchors unchanged.
+- Add delayed focus/visibility refresh observation and positive-balance transition to existing five-viewport browser suite.
+- Product files: customer-entry.js, studio-credits.css, index.html cache keys. Test: lab-home-credit-banner-browser.mjs.
+- Base 243ac8c65ec78de1dd628ee1bb567b50e7b515f5; candidate tests and publication pending.
+
+
 ## Homepage credit notice scroll repair, 2026-10-23
 - Owner screenshot image(20261023-135844).png: credit banner follows scroll over Mood Creator after header leaves view.
 - Cause: commit 90d30b9 changed the homepage-only overlay to position:fixed!important.
