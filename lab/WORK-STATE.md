@@ -9,7 +9,7 @@
 - Masthead: preserve the real Explore body attributes so page-scoped wordmark rules apply; retain twelve widths and guest checks.
 - Landing: retain main's absolute hero overlay, scroll-away and delayed focus/visibility checks; only make the runtime import portable.
 - Assets/verify: public tool navigation remains visible while private History stays hidden; retain cache clearing, folders, downloads, quotes and submission checks.
-- Assets Upscaler checks now use the real upload CTA, visible four-choice menu and flush desktop geometry.
+- Assets Upscaler checks use the real upload CTA, visible four-choice menu and flush desktop geometry. Embedded Fashion checks its approved hidden empty output and visible header return; stored-output geometry remains in the full Fashion suite.
 - Upscale Assets: separate empty/filled source states; exact 450px phone stage and approved desktop height formulas.
 - Keep upload/replace chooser checks, decoded-result shimmer, History-to-Assets sharing and overflow checks.
 - The retired More options disclosure and provider diagnostics remain hidden, including Owner presentation.
@@ -32,11 +32,14 @@
 - No test skipped, assertion removed, timeout increased, forced hidden click, or workflow gate disabled.
 - Local affected checks pass: Masthead, Landing (five sizes), Assets, Upscale Assets (two sizes), Seedance 19, References 22, mobile Mood, first-image and Fashion.
 - Public visual fixture compares visible Direction, checks the empty output stays hidden, and returns by the visible header. Loaded Fashion retains its real internal return-link/navigation check; pixel thresholds and comparison count are unchanged.
-- Full main Lab units pass 706/706, zero skipped; approved Image contract passes 5/5.
+- Full main Lab units pass 707/707, zero skipped (including the real workflow health-gate regression); approved Image contract passes 5/5.
 - Full Upscaler integration passes 34/34; public Studio passes 1440/390/320px with visual comparisons and private API isolation.
 - A separate uncommitted compatibility candidate combines PR #462 a33ca05 with this main and these tests; full units pass 714/714.
 - Compatibility browser checks already pass P1/P2/P3 late webhook, denied positive balances, first click, cancel, focus, Back, stale responses and account switches at 1440/390px.
 - Full Account compatibility passes all 17 groups. Exact commit and CI receipts belong in the maintenance PR description; do not substitute local runs for CI outcomes.
+- CI exposed a separate stale public smoke: Worker versions now use a hyphen, and October-only asset URLs targeted GitHub Pages.
+- Preserve ok:true and strict dated build/revision validation, with negative tests of the actual workflow command. Canonical pvlab.studio template and its declared versioned CSS/module retain all HTML/gallery assertions and anonymous 401 checks.
+- Read-only production health confirms ok:true/current build; canonical HTML and declared CSS/module contract passed locally. This is not proof of PR deployment or a paid customer journey.
 - Local missing media came from sparse checkout, not product failures; materialize only the exact tracked blobs required by existing fixtures.
 - Existing POSIX-only suites use a path-only local Windows adapter where necessary; CI runs the unchanged Linux entrypoints.
 - Desktop and phone captures inspected; no design or production behavior is asserted from synthetic roles.

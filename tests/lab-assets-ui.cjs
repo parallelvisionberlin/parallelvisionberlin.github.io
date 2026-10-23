@@ -448,7 +448,9 @@ assert.equal(await fashion.locator('#person-preview').getAttribute('src'),person
 await fashion.locator('#quote').click();await fashion.locator('#quote-box').waitFor({state:'visible'});
 assert.equal(fashionQuotes,1);assert.equal(fashionSubmits,0,'Price review requires a separate paid confirmation');
 assert.equal(quotedFashion.model,'fashnmax');assert.equal(quotedFashion.modelSourceId,'fashion-input-1');assert.equal(quotedFashion.garmentSourceId,'fashion-input-2');
-assert.ok((await fashion.locator('#result-stage').boundingBox()).x>(await fashion.locator('#person-slot').boundingBox()).x,'Result remains beside source images');
+assert.equal(await fashion.locator('#result-stage').isVisible(),false,'A price review must not expose an invented output in the approved empty composition');
+const sourcePair=await fashion.locator('#person-slot,#garment-slot').evaluateAll(nodes=>nodes.map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};}));
+assert.ok(sourcePair.every(r=>r.width>0)&&sourcePair[0].right<sourcePair[1].left,'Both uploaded sources remain visible side by side; real History output geometry is covered by lab-fashion-ui');
 console.log('FASHION_IN_STUDIO_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
 for(const width of [768,390,320]){
   await page.setViewportSize({width,height:844});
@@ -469,7 +471,7 @@ console.log('FASHION_IN_STUDIO_MOBILE='+Buffer.from(await page.screenshot({type:
 await page.setViewportSize({width:1440,height:1000});
 await page.click('#tool-assets');
 assert.equal(await fashion.isVisible(),false);assert.equal(await page.locator('#tool-assets').getAttribute('aria-pressed'),'true');
-await page.click('#tool-fashion');await fashion.locator('.result-actions a').click();
+await page.click('#tool-fashion');assert.equal(await fashion.locator('.result-actions a').isVisible(),false,'The approved empty output has no visible internal result action');await page.click('#tool-image');
 assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this image direction when visiting Fashion.');
 assert.equal(await fashion.isVisible(),false);assert.equal(page.url(),studioUrl,'Image Studio return stays in the same document');
 assert.equal(fashionSubmits,0);assert.deepEqual(errors,[]);
