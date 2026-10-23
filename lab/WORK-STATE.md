@@ -1,5 +1,18 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Authenticated Retouch header gutter alignment, 2026-10-23
+- Owner references image(20261023-144627).png, 144841, 145038 and 145106.
+- Image/Video reserve desktop root scrollbar space; Retouch without document overflow did not, shifting all right-side controls.
+- Add the same scrollbar-gutter:stable only for desktop authenticated Retouch, at the existing 761px threshold.
+- Keep existing Image/Video geometry and root overflow unchanged; do not force a fake scrollbar.
+- Guest Retouch and mobile rules remain unchanged. No icon offsets, auth, credits, editor controls or provider changes.
+- Product file: lab/studio.html, inline initial viewport stylesheet.
+- Existing public/signed-in browser suite gains Customer/Owner assertions for header control x/width/right and clientWidth during Image→Retouch→Image.
+- Test widths remain 1440/390/320; existing screenshots and visual comparisons retained.
+- Approved Image contract passed 5/5 locally before editing.
+- Base 8e45938503d89a15a713f0792e89a309a12b2d64; candidate verification and publication pending.
+
+
 ## Homepage notice focus stability and matching Studio style, 2026-10-23
 - Owner references image(20261023-141333).png and image(20261023-141347).png; prefer Studio notice styling in image 2.
 - Cause: focus/visibility refresh sets profileLoading=true and banner eligibility hides it until the same zero response returns.

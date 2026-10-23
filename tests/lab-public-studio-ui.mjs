@@ -220,7 +220,28 @@ try{
         assert.equal(await page.locator('#tool-'+route).getAttribute('aria-pressed'),'true');
         await page.locator('#tool-image').click();
         await page.locator('#image-composer').waitFor({state:'visible'});
+        const headerPositions=()=>page.evaluate(()=>({
+          clientWidth:document.documentElement.clientWidth,
+          controls:['tool-assets','lab-wallet-toggle','lab-add-credits','studio-account-menu'].map(id=>{
+            const el=document.getElementById(id);if(!el.getClientRects().length)return null;
+            const r=el.getBoundingClientRect();return {id,x:r.x,width:r.width,right:r.right};
+          })
+        }));
+        const imageHeader=route==='retouch'?await headerPositions():null;
         await page.locator('#tool-'+route).click();await settled(page,route,true);
+        if(route==='retouch'){
+          const retouchHeader=await headerPositions();
+          assert.equal(retouchHeader.clientWidth,imageHeader.clientWidth,role+' Retouch keeps the Image scrollbar reservation at '+width);
+          for(let i=0;i<imageHeader.controls.length;i++){
+            const before=imageHeader.controls[i],after=retouchHeader.controls[i];
+            assert.equal(!!after,!!before,'Header control visibility stays unchanged');
+            if(before)for(const key of ['x','width','right'])
+              assert.ok(Math.abs(before[key]-after[key])<0.5,role+' '+before.id+' '+key+' remains static entering Retouch at '+width);
+          }
+          await page.locator('#tool-image').click();await page.locator('#image-composer').waitFor({state:'visible'});
+          assert.deepEqual(await headerPositions(),imageHeader,'Returning to Image restores the same header positions');
+          await page.locator('#tool-retouch').click();await settled(page,'retouch',true);
+        }
         await fullPage(page,`test-results/studio-${role}-${route}-${width}.png`);
         if(route==='upscale'){
           await page.locator('#tool-explore-moods').click();await page.waitForURL('**/lab/moods');
