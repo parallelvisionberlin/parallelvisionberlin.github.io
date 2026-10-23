@@ -6,7 +6,13 @@
 - Preserve the main fashion portrait hero, collage photographs, text, lime accents, upload, navigation, layout and all behavior.
 - App diff: one CSS color literal in lab/mood-home.css; cache marker in lab/index.html.
 - Baseline main: 21237eac3895a8ae4247188d84bf2b8fbc3c4544. Image contract 5/5 locally; all non-color CSS bytes identical.
-- Normal preview/release and production rendered-color verification pending. No payment, upload or generation executed.
+- Released via PR #493, merge 1045821697696abcfdd9733a666c4d49a9320b7b.
+- Exact-commit Cloudflare pvlab-studio check 120567033678 succeeded.
+- Production https://pvlab.studio/#mood-creator inspected: computed background rgb(9,9,11), stylesheet URL includes background=20261023-charcoal1; screenshot reviewed.
+- Preview section/title/collage/actions/upload rectangles exactly matched production baseline at the same viewport; original three photograph paths retained.
+- CI approved Image contract, Landing, pricing browser, Account, static validation and Lab tests passed. Overall CI not all green: inherited Fashion Sign in inset and Assets guest visibility assertions remain outside this one-color change.
+- No payment, upload, generation or real signed-in customer operation executed. Mobile background uses the same rule; actual phone rendering not independently inspected.
+- Background request complete; no further styling changes included.
 
 ## Explore Moods upload symbol and typography polish, 2026-10-23
 - Approved reference: image(20261023-163106).png, Library libfile_705b5d680e7c81918f8239f01e682ed6.
