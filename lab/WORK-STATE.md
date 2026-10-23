@@ -9,7 +9,14 @@
 - Previous homepage scroll-away rule remains absolute; Studio anchors unchanged.
 - Add delayed focus/visibility refresh observation and positive-balance transition to existing five-viewport browser suite.
 - Product files: customer-entry.js, studio-credits.css, index.html cache keys. Test: lab-home-credit-banner-browser.mjs.
-- Base 243ac8c65ec78de1dd628ee1bb567b50e7b515f5; candidate tests and publication pending.
+- Base 243ac8c65ec78de1dd628ee1bb567b50e7b515f5; PR #478 merged as 24d89b91e9817852089261c657da743cb168710f.
+- Landing CI 120464884540 passed all five viewports, delayed focus/visibility refresh, hidden-attribute observation, positive balance, failed request, changed session, dismissal and logout.
+- Approved Image contract passed 5/5 locally. Desktop and phone screenshot review: artifact 12507544761.
+- Original Cloudflare checks remained pending after newer main deploys superseded the commit.
+- Descendant ae5305f28451fbf1111618468039ea4911397a72 Cloudflare check 120472819199 succeeded; ancestry confirmed by GitHub compare.
+- Production homepage includes both v6 cache keys. Downloaded CSS and customer-entry.js exactly match reviewed candidate bytes.
+- Role tests used synthetic customers and intercepted APIs; no paid generation, billing write or real signed-in production claim.
+- Correction published and verified. Header controls, layouts and other tools remain outside this change.
 
 
 ## Homepage credit notice scroll repair, 2026-10-23
