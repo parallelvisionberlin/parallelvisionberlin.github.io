@@ -1,48 +1,22 @@
 # PV LAB Premium Upscale work state
 
 ## Active checkpoint / 2026-10-23
-- Objective: publish visible Precision quality choices and remove the model-change notice.
-- Owner explicitly authorized this repair and normal publication in the current conversation.
-- Start from main 4e591596faea9d1d7d6cee1a9e18a2766e1e4262.
-- Prepared implementation was in draft PR #443, head 95d6c67.
-- Port only its Upscaler menu/quality behavior; leave the broader draft unmerged.
-- Preserve current Video defaults, Hong Kong references, new loader logo and other concurrent work.
-- Existing engines remain ByteDance Premium, Topaz Precision and Topaz Wonder 3.5.
-- Standard V2 and High Fidelity V3 are nested visible actions under Precision.
-- New Precision selection defaults to Standard V2; History keeps its saved quality.
-- Keyboard arrows/Home/End, Enter/Space, Escape, Tab and touch remain supported.
-- Keep More options hidden and preserve the approved desktop/mobile page geometry.
-- Model changes no longer emit the Model changed / fresh estimate / No job submitted notice.
-- Precision quality changes are also quiet; empty price status stays hidden.
-- Explicit price checks, returned estimates and real errors remain available.
-- Quote invalidation still runs before any subsequent submission.
-- Selecting a model/quality performs no upload, quote or paid submission.
-- Actual Upscale still checks a fresh bound quote and submits it once.
-- No backend, provider endpoint, price, credits, authentication or database changes.
-- Product files: lab/lab.js, lab/studio.html, lab/upscale-studio-v5.css.
-- Both JS and CSS references receive new cache keys for this repair.
-- Reuse the prepared 34-check browser suite from #443 on current main.
-- Add assertions for empty/hidden status after engine and quality changes.
-- Coverage retains both qualities, role/viewport matrix, History, quote validation and failures.
-- Assets menu contract now asserts exactly three engines plus two nested qualities.
-- Existing unrelated Assets visibility expectations remain unchanged.
-- Existing Upscaler workflow retains its visibility gate and runs the paid-flow tests independently.
-- Use the shared pinned Playwright 1.62.1 runtime with a bounded installation step.
-- Local approved Image UI contract: 5/5 passed before and after editing.
-- Local syntax checks passed; no live paid requests performed.
-- PR #466 merged as 503bbc10ed5a65695e88a8b99dfcfb22d730d501.
-- Full source suite, approved Image UI and Video integration passed on candidate b0140f4.
-- Upscaler submission smoke 2/2 and full browser checks 34/34 passed; screenshots inspected.
-- Separate visibility fixture still fails at line 79 on the existing empty-source expectation.
-- That fixture suppresses lab.js; unchanged source-control CSS explains the baseline mismatch.
-- Cloudflare pvlab-studio check 120416689032 succeeded for exact merged SHA 503bbc1.
-- Custom-domain /studio?tool=upscale DOM verified both quality options and empty/hidden status.
-- JS URL includes upscalePrecision=20261023-visible1 and upscaleQuietSelection=20261023v1.
-- CSS URL includes precisionQuality=20261023-visible1, avoiding stale cached resources.
-- Role/viewport generation behavior was verified using intercepted APIs, not live paid jobs.
-- Browser was signed out in production; actual signed-in provider acceptance remains untested.
-- Direct shell production byte verification is unavailable; CF plus browser DOM/version evidence used.
-- Repair is published. No further product change is pending for this request.
+- Objective: simplify the confusing nested Upscaler model menu after owner feedback.
+- Base: main a10eb030babb66bb1dc79cd944c945d137926db7.
+- Four flat choices: ByteDance Premium, Topaz Standard V2, Topaz High Fidelity V3, Topaz Wonder 3.5.
+- Remove the clickable Precision parent, indentation and separate quality grouping.
+- Each Precision row retains the actual Standard V2 / High Fidelity V3 backend value.
+- Reuse the existing quality click handler; no provider, billing, auth or default change.
+- One checked row, keyboard focus, History reuse, quiet selection and quote invalidation remain.
+- Preserve page geometry and hidden More options.
+- Files: lab/studio.html, lab/upscale-studio-v5.css and existing menu test assertions.
+- Cache keys: upscalePrecision=20261023-flat2 and precisionQuality=20261023-flat2.
+- Existing 34 browser checks retain model/quality, role/viewport, quote and submission coverage.
+- Existing independent visibility fixture baseline failure remains unchanged.
+- Prior release: PR #466 / 503bbc1, deployed successfully; current simplification pending checks/publication.
+- Mandatory approved Image contract passed 5/5 before this edit.
+- No paid jobs submitted.
+- Next: verify updated browser suite, merge, confirm exact Cloudflare deployment and production menu.
 
 ## Previous implementation record
 
