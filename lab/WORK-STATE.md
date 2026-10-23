@@ -251,3 +251,17 @@ Implementation branch: fix/flash-spicyapi-20261014.
 - Review CI results, correct failures, merge validated branch to main.
 - Confirm automatic Cloudflare Worker deploy and GitHub Pages update separately.
 - Confirm no Flash request reaches OpenRouter after rollout.
+
+
+## Video wheel scrolling / 2026-10-23
+- User reports desktop Video only scrolls when the pointer is over generated results. Baseline `b99fec4d6714335bbcf95c5dd88ec365548d263c`.
+- Cause: desktop CSS locks body/main while History scrolls independently in the center. Outside scrollable panels, wheel input has nowhere to go.
+- Preserve the approved fixed three-column layout, dimensions, native form scrolling, Generate dock and mobile document scrolling.
+- `video-editorial-deck.js` routes otherwise-unused vertical wheel input from active desktop workspace/header to the existing center feed. Native settings/textareas keep priority. Zoom/horizontal gestures, dialogs, selects/ranges, Assets, Fashion, Retouch and other tools are excluded.
+- `studio.html` changes only this module cache key. Existing layout browser suite now tests real downward/upward wheel over dock, inspector, header and preview, plus native settings priority.
+- Validation completed locally: 703/703 tests on exact CI Node 22.16.0; full existing layout browser suite passed on Playwright 1.62/Chromium headless shell 153 after obtaining an isolated test binary through npm. Desktop real wheel routing and native settings priority passed at 1920/1440px; normal 390px mobile document scroll passed.
+- No CSS, design, imagery, models, prices, credits, providers, purchase or authentication changes. No paid calls.
+- Baseline before-module reproduction confirmed: wheel over the fixed dock leaves History at scrollTop=0; the corrected module scrolls it in the same browser fixture. Full layout checks retain editor/Generate geometry, Video modes at 768/820px heights, Image, Fashion boot, mobile and Elements.
+- CI first attempt stopped at the existing obsolete module-cache assertion; updated it to the new cache key. Final CI remains queued over ten minutes and is not counted as passed. All corresponding local checks passed; no CI workflow or gate was removed, changed or disabled.
+- Integrate the locally verified correction under the unprotected existing PR workflow; verify exact Cloudflare production deployment and live JS/HTML separately. No real signed-in production interaction or paid generation is claimed.
+
