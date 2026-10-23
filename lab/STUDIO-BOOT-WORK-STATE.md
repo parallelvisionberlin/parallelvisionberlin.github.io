@@ -1,4 +1,20 @@
 # PV LAB Studio boot active state
+## Domain readiness audit / 2026-10-23
+- Verified source: main `14d3eafcab25bc3cbbaccae02d384676d3b1a470`.
+- Original runs `39863051784` and `39863051721` remain failed, with no successful latest retry.
+- Upscaler failure was an obsolete test clicking deliberately hidden More options. Current source uses the visible popup and asserts the disclosure stays hidden; later main Video run `39954671897` passed every step. No further Upscaler application change needed.
+- Domain main run `39954331628` still failed. Confirmed obsolete `lab.js?v=20261018-ref-stable1` requirement; current source/live HTML use `20261022-guest-navigation1`. The later Generate/Exact step also required obsolete `assets.css?v=20261016-exact-tooltip4`.
+- Only workflow correction: derive those two version references from checked-out Studio HTML. Preserve all routing, loader, toast, Generate/Exact, backend and CORS assertions. Application source is unchanged.
+- Local validation: YAML parse, extracted bash syntax, current-reference resolution and 23 account-link/trial-pause/approved-Image tests passed.
+- Public browser observation: old `parallelvisionlabel.com/lab/` opens `https://pvlab.studio/`; `/welcome` opens `/studio?tool=image`; direct Image loads public controls. Anonymous credit toast is hidden. No real login, purchase, credit grant or generation performed.
+- Source checks retain authenticated grant/session/owner binding and trial-pause behavior. Anonymous markup is not proof of an authenticated toast or a paid provider result.
+- Cloudflare Pages app check succeeded for main `14d3eaf`; workflow correction still awaits its own CI/merge verification. Local full HTTP smoke hit a proxy CONNECT timeout, so do not count it as passed.
+- First corrected CI run `39957436807` passed public sites, direct Studio/loader/toast markup, Generate/Exact assets and query-preserving legacy Studio redirects. It then exposed an obsolete health-version regex requiring a numeric dot suffix; actual healthy version is `pv-lab-2026-10-23-hk-two-optical-refs-balanced1`, matching Worker source.
+- Accept either dated version format while retaining the minimum 2026-10-15.1 requirement and mandatory health `ok`. Seven positive/negative compatibility cases and every shell step syntax passed locally. No Worker code changed.
+- Corrected head `78d51a80a9247d542e515106b05f034534095b6e`: domain run `39957711666` passed every stage, including actual production health and pvlab.studio CORS preflight. Cloudflare Pages app check also succeeded for that head. This proves the checked public HTTP contracts, not a real authenticated purchase/generation.
+- Latest main Video run `39956667732` also passed all steps; main contains #453 (37 commits ahead, zero behind at `ac33d20`). Public Studio HTML differs from raw Git only through observed Cloudflare email obfuscation; do not claim byte equality of the whole HTML.
+- PR #470 contains only the workflow and this checkpoint. No UI/application source changed. Next: complete integration and confirm the merge's domain run. Exact test head above is unchanged except for this evidence-only checkpoint update.
+
 Updated: 2026-10-17
 Scope: Studio initial loading overlay only.
 
