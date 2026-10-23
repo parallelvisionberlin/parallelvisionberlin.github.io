@@ -1,5 +1,15 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Explore Moods upload symbol and typography polish, 2026-10-23
+- Approved reference: image(20261023-163106).png, Library libfile_705b5d680e7c81918f8239f01e682ed6.
+- Owner authorizes only the plus and upload typography. Preserve modal, photo, Mood title, outer upload surface, Generate, navigation and all behavior.
+- Desktop-only CSS: neutral transparent 8.4cqw symbol tile, restrained border/radius, larger white plus; upload heading 3.6cqw/36px with -.05em spacing, neutral subtitle and regular Browse files.
+- Mobile and result-view selectors unchanged. No generation, upload, auth, credit or provider code changed.
+- Files: explore-moods-photobooth.css and its cache marker in moods.html.
+- Base: 7f44c63feb55eb567872c8b6fed6d29f2b91119e. Approved Image contract passed 5/5 locally.
+- Local browser verification blocked: installed Playwright browser absent and browser download returned an invalid archive. No production visual verification claimed.
+- Await PR checks and Cloudflare publication verification before claiming live.
+
 ## Authenticated Retouch header gutter alignment, 2026-10-23
 - Owner references image(20261023-144627).png, 144841, 145038 and 145106.
 - Image/Video reserve desktop root scrollbar space; Retouch without document overflow did not, shifting all right-side controls.

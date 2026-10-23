@@ -160,6 +160,23 @@
  top:10px!important;right:10px!important;left:auto!important;width:36px!important;height:36px!important;min-height:36px!important;
 }
 #mc-look-dialog.mc-photobooth :is(button,a):focus-visible{outline:2px solid #f2f2ed!important;outline-offset:3px!important}
+/* Desktop upload polish only: approved reference image(20261023-163106).png. */
+@media(min-width:601px){
+ #mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-upload-symbol{
+  width:8.4cqw!important;height:8.4cqw!important;margin-bottom:4cqw!important;
+  border-color:rgba(190,193,193,.48)!important;border-radius:12%!important;background:transparent!important;
+  color:#f4f5f4!important;font:300 32px/1 'DM Sans',Arial,sans-serif!important;
+ }
+ #mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-file-label-text{
+  font-size:clamp(18px,3.6cqw,36px)!important;letter-spacing:-.05em!important;
+ }
+ #mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-mood-note{
+  font-size:clamp(10px,1.35cqw,13px);color:#d0d0ce;
+ }
+ #mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-photobooth-browse{
+  font-weight:400;
+ }
+}
 @media(max-width:600px){
  #mc-look-dialog.mc-photobooth:not(.is-result-view)[open]{
   width:min(360px,calc(100vw - 40px))!important;max-width:none!important;
@@ -236,3 +253,4 @@
  #mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-dropzone{height:150px!important}
  #mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-continue{height:46px!important}
 }
+
