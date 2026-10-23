@@ -136,12 +136,13 @@ async function requestSignIn(){
       document.getElementById('auth-retry').hidden=false;
       return;
     }
-    await account.openSignIn();
+    await account.openSignIn({forceRedirectUrl:location.href,signUpForceRedirectUrl:location.href});
   }catch{
     notice.textContent='Sign-in could not load. Reload this page and try again.';
     document.getElementById('auth-retry').hidden=false;
   }
 }
+window.addEventListener('pv-studio-auth-required',requestSignIn);
 // Account-only tools share the real Clerk entry point; none navigate to an
 // arbitrary public page or advertise unsupported anonymous generation.
 composer?.querySelectorAll('[data-guest-signin]').forEach(button=>
@@ -162,6 +163,8 @@ const guestToolPages=Object.freeze({
   fashion:{name:'Fashion',title:'Fashion Studio',description:'Open your fashion-focused creative workspace.'},
   assets:{name:'Assets',title:'Your Assets',description:'Find your private photographs, generated images, and videos.'}
 });
+const app=document.getElementById('app');
+const guestBrowsing=()=>!gate.hidden||app.hasAttribute('data-guest-preview');
 const guestContent=gate?.querySelector('.pv-guest-content');
 const guestTitle=document.getElementById('pv-guest-title');
 const guestKicker=guestContent?.querySelector('.pv-guest-kicker');
@@ -177,7 +180,7 @@ guestToolAction.addEventListener('click',requestSignIn);
 guestToolPanel.append(guestToolNote,guestToolAction);
 guestSubtitle?.after(guestToolPanel);
 function syncGuestToolRoute(){
-  if(!gate||gate.hidden)return;
+  if(!gate||!guestBrowsing())return;
   const requested=new URLSearchParams(location.search).get('tool')||'image';
   const route=Object.hasOwn(guestToolPages,requested)?requested:'image';
   const entry=guestToolPages[route];
@@ -194,8 +197,12 @@ function syncGuestToolRoute(){
   guestKicker.textContent='PV LAB / '+entry.name.toUpperCase();
   guestTitle.textContent=entry.title;
   guestSubtitle.textContent=entry.description;
-  guestToolPanel.hidden=route==='image';
-  if(route!=='image'){
+  guestToolPanel.hidden=route!=='assets';
+  window.dispatchEvent(new CustomEvent('pv-studio-public-route',{detail:route}));
+  if(route==='image'||route==='assets'){
+    if(gate.hidden)gate.hidden=false;
+  }
+  if(route==='assets'){
     guestToolNote.textContent='Sign in to open '+entry.name+'. Your account and saved work remain private.';
     guestToolAction.textContent='Sign in to '+entry.name;
   }
@@ -209,7 +216,7 @@ function syncGuestToolRoute(){
 // the sign-in modal or navigate them back to Image on every toolbar click.
 document.querySelectorAll('#studio-header .tool-tab').forEach(button=>{
   button.addEventListener('click',event=>{
-    if(!gate||gate.hidden)return;
+    if(!gate||!guestBrowsing())return;
     const selected=button.id.replace(/^tool-/,'');
     if(!Object.hasOwn(guestToolPages,selected))return;
     event.preventDefault();event.stopImmediatePropagation();
@@ -224,3 +231,11 @@ document.querySelectorAll('#studio-header .tool-tab').forEach(button=>{
 if(gate)new MutationObserver(syncGuestToolRoute).observe(gate,{attributes:true,attributeFilter:['hidden']});
 window.addEventListener('popstate',syncGuestToolRoute);
 syncGuestToolRoute();
+
+window.addEventListener('pv-studio-public-ready',syncGuestToolRoute);
+
+window.addEventListener('pv-studio-public-navigate',event=>{
+  if(!guestBrowsing()||!Object.hasOwn(guestToolPages,event.detail))return;
+  const url=new URL(location.href);url.searchParams.set('tool',event.detail);
+  history.pushState(history.state,'',url);syncGuestToolRoute();
+});

@@ -1,6 +1,6 @@
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {loadLabAccount} from './native-account.js?v=20261014-custom-domain1&studioAuth=20261015-1';
-export function createFashionStudio(root=document,{sessionClient=null,onNavigate=null}={}){
+export function createFashionStudio(root=document,{sessionClient=null,onNavigate=null,publicPreview=()=>false}={}){
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>root.getElementById(id);
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(n);
@@ -46,7 +46,7 @@ function update(){
   $('model-note').textContent=d.note+(providerModel&&!providerModel.available?' This model is not connected yet.':'');
   $('direction-required').textContent=selected==='fluxvto'?'REQUIRED':'OPTIONAL';
   $('direction').placeholder=selected==='fluxvto'?'Describe how the garment should be worn…':'Keep the silhouette. Open the jacket, soften the folds…';
-  $('quote').disabled=!authenticated||busy||!$('person-file').files.length||!$('garment-file').files.length||!providerModel?.available||(selected==='fluxvto'&&!$('direction').value.trim());
+  $('quote').disabled=!publicPreview()&&(!authenticated||busy||!$('person-file').files.length||!$('garment-file').files.length||!providerModel?.available||(selected==='fluxvto'&&!$('direction').value.trim()));
   const title=busy?'Preparing…':'Review price';
   if($('quote').dataset.caption!==title){
     $('quote').dataset.caption=title;
@@ -337,8 +337,9 @@ function lock(){
   for(const [fileId,imgId,hintId] of [['person-file','person-preview','person-hint'],['garment-file','garment-preview','garment-hint']]){
     $(fileId).value='';$(imgId).hidden=true;$(imgId).removeAttribute('src');$(hintId).hidden=false;
   }
+  if(publicPreview()){$('direction').value='';status('');}
   $('fashn-api-state').textContent='Sign in to check API credits';$('check-fashn').disabled=true;
-  $('gate').hidden=false;$('workspace').hidden=true;$('signin').disabled=!clerk;
+  $('gate').hidden=publicPreview();$('workspace').hidden=!publicPreview();$('fashion-gallery').hidden=publicPreview();$('signin').disabled=!clerk;
   update();
 }
 async function sync(){
@@ -349,7 +350,7 @@ async function sync(){
     if(authenticated&&sessionId===clerk.session?.id)return;
     const session=await api('/api/session');isCustomer=!!session.customer;const info=await api('/api/fashion/models');
     models=info.models||[];authenticated=true;sessionId=clerk.session?.id||'';
-    $('gate').hidden=true;$('workspace').hidden=false;update();
+    $('gate').hidden=true;$('workspace').hidden=false;$('fashion-gallery').hidden=false;update();
     // Secondary gallery and provider-balance reads must never delay the editor.
     void loadHistory();
     void checkFashnBalance();
@@ -361,6 +362,13 @@ if(onNavigate)root.addEventListener('click',event=>{
   if(!link||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
   event.preventDefault();onNavigate(new URL(link.href,location.href).searchParams.get('tool')||'image');
 });
+// Guest settings and local photo previews use the approved form. Account
+// operations still go through the real session client after authentication.
+for(const type of ['click','submit'])root.addEventListener(type,event=>{
+  if(!publicPreview())return;
+  if(type==='click'&&!event.target.closest('#quote,#confirm,#check-fashn,#refresh-history,#fashion-more'))return;
+  event.preventDefault();event.stopImmediatePropagation();clerk?.openSignIn();
+},true);
 update();
 const ready=(async()=>{
 if(sessionClient){clerk=sessionClient;await sync();return;}

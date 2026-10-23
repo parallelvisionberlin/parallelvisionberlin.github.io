@@ -1,0 +1,41 @@
+name: PV LAB public Studio visual regression
+on:
+  pull_request:
+    paths: ['lab/**', 'tests/lab-public-studio-ui.mjs', 'tests/lab-tool-routing-ui.mjs', '.github/workflows/lab-public-studio-tests.yml']
+  push:
+    branches: [main]
+    paths: ['lab/**', 'tests/lab-public-studio-ui.mjs', 'tests/lab-tool-routing-ui.mjs', '.github/workflows/lab-public-studio-tests.yml']
+permissions:
+  contents: read
+jobs:
+  public-studio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Recover approved source for visual comparison
+        run: git fetch --depth=1 origin ac33d20c50bdd88e71547e96a70781efae4b5a11
+      - name: Approved Image contract
+        run: node --test tests/lab-approved-image-ui-contract.test.mjs
+      - name: Install pinned browser runtime
+        run: |
+          npm install --prefix /tmp/pv-public-studio --no-audit --no-fund playwright@1.57.0 pngjs@7.0.0
+          node /tmp/pv-public-studio/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Guest and signed-in visual, navigation and privacy regressions
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-public-studio/node_modules/playwright/index.mjs
+        run: node tests/lab-public-studio-ui.mjs
+      - name: Existing route and config fallback regression
+        if: ${{ !cancelled() }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-public-studio/node_modules/playwright/index.mjs
+        run: node tests/lab-tool-routing-ui.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-studio-visual-comparisons
+          path: test-results/*.png
+          retention-days: 7

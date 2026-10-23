@@ -1,3 +1,4 @@
+import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1';
 import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
 import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-elements-visual-profiles1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
@@ -8,7 +9,7 @@ import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1&publicPreview=20261023-1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261022-editorial-rows1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1';
@@ -211,6 +212,10 @@ let assetLibrary=null;
 let sceneLibrary=null;
 let retouchActive=false;
 let fashionActive=false,fashionController=null,fashionMount=null;
+function navigateStudioTool(value){
+  if(owner)setTool(value);
+  else window.dispatchEvent(new CustomEvent('pv-studio-public-navigate',{detail:value}));
+}
 function studioRoute(){const value=new URLSearchParams(location.search).get('tool');return ['image','retouch','video','upscale','assets','fashion'].includes(value)?value:'image';}
 function syncStudioRoute(value,{push=false,retouchFrom=null}={}){
   if(!owner)return;
@@ -925,8 +930,8 @@ function setFashionActive(active){
   }
   syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
 }
-async function openFashionStudio(){
-  if(!owner)return;
+async function openFashionStudio({preview=false}={}){
+  if(!owner&&!preview)return;
   if(busy)return;
   if(retouchActive)leaveRetouch();
   ++previewRevision;syncStudioRoute('fashion');
@@ -938,13 +943,13 @@ async function openFashionStudio(){
   const sessionClient={
     get session(){return owner?clerk?.session:null;},
     get isSignedIn(){return owner&&!!clerk?.session;},
-    openSignIn:()=>clerk?.openSignIn()
+    openSignIn:()=>window.dispatchEvent(new Event('pv-studio-auth-required'))
   };
   try{
     if(!fashionMount){
       host.setAttribute('aria-busy','true');
-      fashionMount=import('./fashion-studio.js?v=20261010-deck01&firstReady=20261015-1&singleFooter=20261015-1')
-        .then(({mountFashionStudio})=>mountFashionStudio(host,{sessionClient,onNavigate:setTool}))
+      fashionMount=import('./fashion-studio.js?v=20261010-deck01&publicPreview=20261023-1&firstReady=20261015-1&singleFooter=20261015-1')
+        .then(({mountFashionStudio})=>mountFashionStudio(host,{sessionClient,onNavigate:navigateStudioTool,publicPreview:()=>!owner&&$('app').hasAttribute('data-guest-preview')}))
         .then(controller=>{fashionController=controller;return controller;})
         .catch(error=>{fashionMount=null;throw error;});
     }
@@ -1082,6 +1087,7 @@ async function openRetouch({file:chosenFile=null,id=null,autofill=false,push=tru
 }
 function returnToImageFromRetouch(){
   if(!retouchActive)return;
+  if(!owner){navigateStudioTool('image');return;}
   // A Retouch shortcut opened from Image has a genuine Image history entry.
   if(history.state?.pvLabRetouchEntry&&history.state.pvLabRetouchFrom==='image'){
     history.back();return;
@@ -4672,7 +4678,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();document.documentElement.classList.remove('pv-studio-route-pending');}
-function lock(){const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
+function lock(){$('app').removeAttribute('data-guest-preview');const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
 const pricingOverlay=createPricingOverlay({
   buy:(sku,report)=>wallet.buyPlan(sku,report),
   getAccount:()=>({signedIn:owner,customer:customerMode}),
@@ -4694,7 +4700,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
   const data=await api('/api/session');
   // Preserve the user's requested destination before any config reconciliation.
   const requestedRoute=studioRoute();
-  window.__pvLabBootStage?.('Preparing your workspace');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerVideoProfile=customerMode?data:{};customerGenerationReady=!!data.generationReady;customerTrialGenerationPaused=!!data.trialGenerationPaused;customerBillingReady=!!data.billingReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)void claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('signin').hidden=true;$('signin').disabled=true;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
+  $('app').removeAttribute('data-guest-preview');window.__pvLabBootStage?.('Preparing your workspace');owner=true;ownerAccount=data.owner===true&&data.customer!==true;customerMode=!!data.customer;customerVideoProfile=customerMode?data:{};customerGenerationReady=!!data.generationReady;customerTrialGenerationPaused=!!data.trialGenerationPaused;customerBillingReady=!!data.billingReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)void claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);refreshEffectsView();$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('signin').hidden=true;$('signin').disabled=true;showFirstCreditToast(data);$('connection').hidden=customerMode;$('logout').hidden=false;
     if(data.accountClosed){
       // The old Clerk identity can remain signed in while deletion is queued.
       // Never show a purchasable wallet or a fake "sign-in is loading" state.
@@ -4785,10 +4791,16 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
       setTimeout(()=>document.documentElement.classList.remove('pv-native-route-pending'),12000);
     }}}
 $('studio-invite-friends').onclick=()=>location.assign('./account.html#referrals');
-$('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
+$('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn({forceRedirectUrl:location.href,signUpForceRedirectUrl:location.href});$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 $('pv-guest-closed-signout').onclick=()=>$('logout').click();
 assetLibrary=createAssetLibrary({api,notify,archive,app:$('app'),selected:()=>historySelected,selectMode:setHistorySelectMode,reload:()=>loadHistory(),restoreStudio:()=>{syncImageStudioMode();syncVideoStudioMode();syncStudioNav();},beforeOpen:()=>{++previewRevision;$('video').pause();if(retouchActive)leaveRetouch();setFashionActive(false);syncStudioRoute('assets');},kind:()=>tool==='upscale'?'upscale':tool==='video'?'video':'image',ready:()=>owner});
 setTool(['fashion','assets','retouch'].includes(studioRoute())?'image':studioRoute());
+const publicPreview=createStudioPublicPreview({app:$('app'),gate:$('gate'),authorized:()=>owner,
+  setTool,retouch:{close:leaveRetouch,preview:()=>{
+    retouchActive=true;syncImageStudioMode();syncVideoStudioMode();syncStudioNav();precisionEditor.preview();
+  }},fashion:openFashionStudio,closeFashion:()=>setFashionActive(false)});
+window.addEventListener('pv-studio-public-route',event=>void publicPreview.show(event.detail));
+window.dispatchEvent(new Event('pv-studio-public-ready'));
 // Commands from the trusted app shell reuse the same editor and never submit jobs.
 if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
   window.__PV_LAB_COMMAND__=async command=>{
