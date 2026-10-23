@@ -21,6 +21,7 @@
 - Browser validation: full Studio layout including 1440x600/768/820, 1728x820 and 390/320px; customer permission matrix 18/18 at 1440/390/320; Reference 22/22; guest/signed-in routing passed.
 - Seedance 23/23 passed, including four added real-upload/all-mode matrices at 1440x900, 1440x600, 390x844 and 320x730, output disclosure, model changes, no invented History and no preparation submissions.
 - Existing sign-out assertion was aligned with current main's public-preview behavior, retaining stronger explicit checks for cleared private History, prompt, file input and reference media.
+- Public visual coverage freezes the new Video baseline at `c3f1a73e` and retains the original baselines/tolerances for every other tool. Desktop Video canvas/banner pixel comparisons passed. The full local public suite then stops on unchanged Fashion Sign in alignment (46px versus Image 31px right inset on Windows); no Fashion change or assertion bypass was made.
 - Only approved visual expectations were changed in existing layout/artwork tests. No assertion bypasses, force clicks or weakened generation/account checks were introduced.
 - Browser media, accounts and APIs are synthetic/intercepted. No real customer session, wallet transaction or paid provider acceptance is claimed.
 - Review screenshots are in `docs/previews/video-studio-20261023/`; desktop and both phone widths plus short-height desktop.
