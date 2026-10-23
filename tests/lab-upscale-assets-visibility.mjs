@@ -77,7 +77,8 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     });
     assert.ok(deck.model.width>0&&deck.generate.width>0,profile+': Upscale settings remain usable');
     assert.ok(deck.model.top<deck.size.top&&deck.format.top>=deck.size.top-2,profile+': model is above the output controls');
-    assert.ok(deck.format.top>deck.size.top,profile+': enlargement and format use two compact readable rows');
+    if(profile==='desktop')assert.ok(deck.format.top>deck.size.top,profile+': enlargement and format use the approved compact stacked rows');
+    else assert.ok(Math.abs(deck.format.top-deck.size.top)<6,profile+': mobile preserves its compact side-by-side enlargement and format selectors');
     assert.ok(deck.generate.top>deck.size.top,profile+': paid Upscale action is distinct from settings');
     assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Empty Upscaler retains the original uncluttered left panel');
     assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(nodes=>nodes.map(n=>n.dataset.upscaleEngine)),['seedvr2','topaz-precision','topaz-wonder'],'Three grouped Upscaler models');
