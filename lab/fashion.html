@@ -2,6 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>
+// Browser navigation uses Studio. DOMParser fetches keep this document as an inert template.
+const fashionStudioUrl=new URL("./studio",location.href);
+fashionStudioUrl.search=location.search;
+fashionStudioUrl.searchParams.set("tool","fashion");
+location.replace(fashionStudioUrl.href);
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#101114">
@@ -12,7 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./fashion.css?v=20261010-deck01">
 <script type="module" src="./fashion.js?v=20261011-no-emoji1&studioAuth=20261015-1&optionalFastReady=20261015-1"></script>
-<link rel="stylesheet" href="/lab/site-footer.css?v=20261022-bold-consistent1">
+<link rel="stylesheet" href="/lab/site-footer.css?v=20261023-focused-tools1">
 </head>
 <body>
 <a class="skip" href="#content">Skip to studio</a>

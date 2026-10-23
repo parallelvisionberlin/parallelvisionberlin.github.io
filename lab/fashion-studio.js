@@ -1,4 +1,4 @@
-import {createFashionStudio} from './fashion.js?v=20261010-gallery1&optionalFastReady=20261015-1';
+import {createFashionStudio} from './fashion.js?v=20261010-gallery1&optionalFastReady=20261015-1&publicPreview=20261023-1';
 
 // Shadow DOM preserves the Fashion layout without leaking its styles or field IDs into the studio.
 export async function mountFashionStudio(host,options){

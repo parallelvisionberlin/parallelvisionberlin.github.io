@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFileSync,existsSync} from 'node:fs';
-import {resolve,extname} from 'node:path';
+import {resolve,extname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
@@ -23,7 +23,7 @@ const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css',
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://127.0.0.1').pathname;
   const path=resolve(root,'.'+pathname);
-  if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}
+  if(!path.startsWith(root+sep)||!existsSync(path)){res.writeHead(404).end();return;}
   res.setHeader('Content-Type',mime[extname(path)]||'application/octet-stream');
   res.end(readFileSync(path));
 });
@@ -117,8 +117,9 @@ try{
     await page.locator('#tool-video').click();
     assert.equal(new URL(page.url()).searchParams.get('tool'),'video');
     assert.equal(await page.locator('#pv-guest-title').innerText(),'Video Studio');
-    assert.equal(await page.locator('#pv-guest-selected-tool').isVisible(),true);
-    assert.equal(await page.locator('#app').isVisible(),false,'Anonymous navigation never exposes a private workspace');
+    assert.equal(await page.locator('#pv-guest-selected-tool').isVisible(),false,
+      'The Image-only fixture must never reintroduce the generic gate; full tool decks are covered in lab-public-studio-ui');
+    assert.equal(await page.locator('#pv-guest-composer').isVisible(),false,'Video must never reuse the Image deck');
     assert.equal(await page.evaluate(()=>window.__navSignIns),0,'Examining another tool does not force sign in');
     await page.locator('#tool-image').click();
     assert.equal(await page.locator('#pv-guest-title').innerText(),'Start with a feeling.');

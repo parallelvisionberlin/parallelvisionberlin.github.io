@@ -1,6 +1,25 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
-## Fashion legacy header routing, 2026-10-23
+## Fashion internal-template loading repair, 2026-10-23
+- Owner screenshot image(20261023-130857).png proves signed-in Fashion failed with Retry loading Fashion.
+- Cause: PR #471 server redirects also intercepted mountFashionStudio's fetch of fashion.html.
+- Prior signed-out header verification did not exercise the authenticated template loader; completion claim was too broad.
+- Remove all six Fashion server redirects. Return the original HTML body to internal fetch/DOMParser.
+- Add an early document-navigation redirect in fashion.html to the shared Studio, preserving query parameters and setting tool=fashion.
+- DOMParser does not execute that script, so the existing authenticated loader can find #content and mount the original editor.
+- No editor, auth, credits, model, provider, or shared masthead change.
+- Base b99fec4d6714335bbcf95c5dd88ec365548d263c; approved Image contract passed 5/5 before editing.
+- PR #472 merged as ee04b5374d0d7470af57dea6a14484f0793d3258.
+- Exact SHA Cloudflare Pages check 120434350673 succeeded.
+- Actual production GET /fashion.html?v=20261010-gallery1 now contains #content, #fashion-form, #person-file and #garment-file.
+- Downloaded live HTML confirms the reviewed editor/form structure; internal fetch no longer returns Studio HTML.
+- Raw HTML is transformed by Cloudflare email obfuscation in the footer, so whole-file byte equality was not confirmed.
+- Production browser /fashion reaches /studio?tool=fashion with the shared header.
+- Signed-out browser cannot prove real authenticated editor startup. No paid generation or login performed.
+- Existing standalone localhost Fashion fixture assumes document navigation stays on fashion.html; its navigation expectations require a separate canonical-loader fixture update.
+- Repair published; no additional user-facing changes authorized or applied.
+
+## Fashion legacy header routing, 2026-10-23 (superseded; see repair above)
 - Owner screenshot image(20261023-125725).png shows /fashion with the old standalone masthead.
 - Verified lab/fashion.html has only Image, Video, Upscaler and Fashion; Retouch/Explore Moods are absent.
 - Canonical /studio?tool=fashion was checked in production and has all six shared destinations.
@@ -232,3 +251,19 @@ Implementation branch: fix/flash-spicyapi-20261014.
 - Review CI results, correct failures, merge validated branch to main.
 - Confirm automatic Cloudflare Worker deploy and GitHub Pages update separately.
 - Confirm no Flash request reaches OpenRouter after rollout.
+
+
+## Video wheel scrolling / 2026-10-23
+- User reports desktop Video only scrolls when the pointer is over generated results. Baseline `b99fec4d6714335bbcf95c5dd88ec365548d263c`.
+- Cause: desktop CSS locks body/main while History scrolls independently in the center. Outside scrollable panels, wheel input has nowhere to go.
+- Preserve the approved fixed three-column layout, dimensions, native form scrolling, Generate dock and mobile document scrolling.
+- `video-editorial-deck.js` routes otherwise-unused vertical wheel input from active desktop workspace/header to the existing center feed. Native settings/textareas keep priority. Zoom/horizontal gestures, dialogs, selects/ranges, Assets, Fashion, Retouch and other tools are excluded.
+- `studio.html` changes only this module cache key. Existing layout browser suite now tests real downward/upward wheel over dock, inspector, header and preview, plus native settings priority.
+- Validation completed locally: 703/703 tests on exact CI Node 22.16.0; full existing layout browser suite passed on Playwright 1.62/Chromium headless shell 153 after obtaining an isolated test binary through npm. Desktop real wheel routing and native settings priority passed at 1920/1440px; normal 390px mobile document scroll passed.
+- No CSS, design, imagery, models, prices, credits, providers, purchase or authentication changes. No paid calls.
+- Baseline before-module reproduction confirmed: wheel over the fixed dock leaves History at scrollTop=0; the corrected module scrolls it in the same browser fixture. Full layout checks retain editor/Generate geometry, Video modes at 768/820px heights, Image, Fashion boot, mobile and Elements.
+- CI first attempt stopped at the existing obsolete module-cache assertion; updated it to the new cache key. Final CI remains queued over ten minutes and is not counted as passed. All corresponding local checks passed; no CI workflow or gate was removed, changed or disabled.
+- PR #473 merged as `c55e828d8d6af1514a3833ffc282930c5ffd1bae`. Cloudflare Pages pvlab-studio deployment `df62adfe-1231-44bd-ab16-2f5032294de0` succeeded for that exact SHA.
+- Confirmed production HTML and browser DOM on `/studio?tool=video` load `video-editorial-deck.js?v=20261023-wheel-history1`. Custom-domain JS SHA-256 exactly matches reviewed source: `2c60d5d6a595b41d6c16ea392a41109e98a529facf45fc0271e41ee01adf4261`.
+- Final CI was queued at integration and is not declared passed. Browser wheel behavior is proven with local mocked accounts; live module publication is proven separately. No real signed-in production History/gesture or paid generation is claimed. User should hard-refresh their existing Video session.
+

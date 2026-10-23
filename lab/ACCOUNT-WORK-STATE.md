@@ -2,10 +2,10 @@
 
 - Objective: implement only P1/P2/P3 from the purchase audit at `69d7d02`.
 - Branch: `codex/pvlab-checkout-return-recovery`; [PR #462](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/462), draft and unmerged.
-- Main incorporated for this continuation: `b99fec4d6714335bbcf95c5dd88ec365548d263c`; previous PR head `936de096af564a802d670e1c191e11527402a33d`.
-- Implementation commit `7558a13` is preserved through a normal merge, without force push or history rewriting.
-- The single conflict was the `lab.js` URL in `studio.html`: retain main's `hkRefs=20261023two1`, `upscalePrecision=20261023-flat2`, `upscaleQuietSelection=20261023v1` and the PR's `checkoutRecovery=20261023-1`.
-- Preserve main's two-photo Hong Kong policy, continuous intensity, flat four-choice Upscaler picker, welcome email, bold boot wordmark, domain readiness and legacy Fashion redirects.
+- Current integration main: `73cd74f18b0fda24739c730436936ccd4c4350d3`; previous PR head `8c5f4363a1a5c7fbd8465db96b95c265a871de6d`.
+- Implementation `7558a13` is preserved through normal merges; `8c5f436` first incorporated `b99fec4`. No force push or history rewriting.
+- Main advanced again during CI. Latest scoped conflicts are `lab.js` imports and the module URL in `studio.html`: retain publicPreview/publicTools, Precision's import, checkout-return and checkoutRecovery together.
+- Preserve the two-photo Hong Kong policy, flat four-choice Upscaler, welcome email, boot wordmark, restored Fashion template loader, isolated public tool pages, private History boundary and desktop Video wheel fix.
 - P1: `customer-wallet.js` refreshes `/api/session`, including authorization and provider configuration.
 - `lab.js` applies that profile without replaying account initialization or resetting the draft.
 - Positive balance never sets `generationReady`; review/closure/promotion restrictions remain enforced.
@@ -24,16 +24,19 @@
 - Extended account browser tests cover 1440/390px late webhook, denied positive balances, first usable click, cancel, focus and Back.
 - Actual Back navigations passed; Chromium reported `pageshow.persisted=false` in all four cases.
 - Persisted BFCache lifecycle is explicitly simulated in browser and unit tests; native cache eviction/restore remains unverified.
-- Integration checks on Node 24: account browser passes its full matrix and 17 reported groups; pricing overlay passes 320/390/1440/1648px.
-- Full Lab unit suite: 710/711 pass, zero skipped. The only local failure is `lab-mood-preflight-speed.test.mjs:23`, uploads=0 versus 4 after one setImmediate.
-- That preflight failure also reproduces in isolation with all eight imported source/test files extracted from exact main `ac33d20` (same relevant bytes as `b99fec4`); no PR module appears in that import graph. Do not alter its assertion.
-- All payment, permission, credit, authorization and approved Image contract tests in that full run pass.
+- After public-preview integration: full account matrix and 17 groups pass again. Pricing component remains byte-identical to its passing `8c5f436` local/CI result (320/390/1440/1648px).
+- Node 22.16 full Lab suite: 714/714 pass, zero skipped. The final Video-wheel delta separately passes its nine affected unit checks. Node 24 approved Image contract passes.
+- Historical Node 24.19 run on the first merge: 710/711; preflight-speed :23 observes zero versus four uploads after one setImmediate. Reproduced with main's eight imported files; CI Node 22 passed 711/711. Preserve the assertion and distinguish runtime/source evidence.
+- New public Studio suite passes 1440/390/320px: all five approved decks, pixel comparisons, auth returns, Back/Forward, logout and zero guest private API requests.
+- The sparse checkout initially omitted tracked assets/fashion-hero.png; materializing its exact blob 6431bd9bd02009381bf7c48685814dd0880d4ee6 fixed that test-environment failure. No product bytes or assertions changed.
 - Existing one-click mock-generation browser: 53/53; independent customer Video: 12/12 at 1440/390px.
 - Updated main Upscaler browser: 34/34, including visible choices, both Precision qualities, provider/quote integrity, customer/Owner permissions, errors and History.
 - One-click/Video use only an in-memory Windows static-server path separator adapter. No tracked assertion, timeout or gate is changed.
 - Funded Studio 1440/390px and cancelled Studio 390px screenshots inspected: prompt retained, correct plan tab/focus, no horizontal overflow.
-- Main advanced during validation from `ac33d20` to `b99fec4`; the pending merge was restarted normally before committing. Application and test bytes are identical to the tested tree `6447248`; only domain workflow, redirects and main handoffs were added.
-- Previous CI baseline: masthead fixture missing body class, empty Upscaler source-control expectation, landing fixed/absolute and first-image backdrop failures. Prior hidden-disclosure Video failure is historical; main now has the visible Upscaler tests and local 34/34 passes.
+- Main advanced during validation through `b99fec4`, public-preview `affab42` and Video-wheel `c55e828`. Only affected checks are repeated; no purchases or approved unrelated tests are repeated manually.
+- The public-preview/account/Upscaler/one-click/Video suites passed on tree `bc83c17`; final wheel delta changes only its module, cache URL, scoped main handoff and two tests. PR application modules/public/account/Upscaler tests are byte-identical; final layout/wheel browser passes all seven reported groups, including native settings scroll and fixed outer boundaries. Main 73cd74f adds only a release note after that tested tree.
+- `8c5f436` CI confirms inherited landing fixed/absolute, first-image, Assets guest-tool expectation, Upscaler empty-source expectation and References image decode failures. References decode also fails in merged #469 at the same :187; local main and PR pass 22/22 with Playwright 1.62.
+- First-image main b99fec4 and PR local comparisons are identical: max=234 / mean=32.85790798611111. Assets :140 likewise fails identically in main and PR. Historical masthead fixture failure remains classified separately from new-head CI.
 - See the PR description for exact new-commit CI results and links; do not turn previous-head results into new-head passes.
 - Billing evidence is separately verified in the isolated sandbox: one +1,000 pack and one +1,600 subscription movement, same customer, ledger and wallet both 2,600, no duplicate.
 - The user reports F5 retains 2,600. Private Stripe Sandbox screenshot records first invoice Paid and cancellation on 2026-11-23 with No further invoice / Ends: At period end.

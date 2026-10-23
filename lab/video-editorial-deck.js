@@ -2,6 +2,28 @@
 function installVideoEditorialDeck(){
   const doc=document;
   const app=doc.getElementById('app');
+  // Desktop keeps the editor fixed and History inside the center feed. Route
+  // otherwise-unused wheel input there instead of dropping it on the locked page.
+  doc.addEventListener('wheel',event=>{
+    if(event.defaultPrevented||event.ctrlKey||event.shiftKey||!matchMedia('(min-width:821px)').matches||
+      app?.hidden||!app?.classList.contains('video-studio-active')||
+      app.matches('.assets-active,.fashion-studio-active,.is-precision-active')||
+      !event.deltaY||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
+    const target=event.target instanceof Element?event.target:null;
+    if(!target||!target.closest('#app,#studio-header')||
+      target.closest('dialog,[role="dialog"],[role="menu"],select,input[type="number"],input[type="range"]')||
+      doc.querySelector('dialog[open]'))return;
+    const feed=doc.getElementById('video-feed-center');
+    const canScroll=el=>event.deltaY>0?el.scrollTop+el.clientHeight<el.scrollHeight-1:el.scrollTop>1;
+    if(!feed||!canScroll(feed))return;
+    // Let textareas, settings, menus and the feed consume their own native scroll.
+    for(let el=target;el&&el!==doc.body;el=el.parentElement){
+      if(/^(auto|scroll)$/.test(getComputedStyle(el).overflowY)&&canScroll(el))return;
+    }
+    const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?feed.clientHeight:1);
+    feed.scrollBy({top:delta,behavior:'instant'});
+    event.preventDefault();
+  },{passive:false});
   const controls=app?.querySelector('.workspace>.controls .controls-body');
   const referenceMode=doc.getElementById('reference-mode');
   const media=doc.getElementById('reference-media');
