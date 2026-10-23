@@ -163,7 +163,7 @@
 @media(max-width:600px){
  #mc-look-dialog.mc-photobooth:not(.is-result-view)[open]{
   width:min(360px,calc(100vw - 40px))!important;max-width:none!important;
-  height:auto!important;min-height:0!important;max-height:calc(100dvh - 80px)!important;
+  height:max-content!important;min-height:0!important;max-height:calc(100dvh - 80px)!important;
   aspect-ratio:auto;margin:auto!important;overflow-y:auto!important;
   border:1px solid #555653!important;border-radius:17px!important;background:#171816!important;
  }
