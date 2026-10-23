@@ -10,7 +10,14 @@
 - Preserve notice eligibility, dismissal, pricing links, hero geometry and all Studio rules.
 - Product files: lab/studio-credits.css and lab/index.html. Regression: tests/lab-home-credit-banner-browser.mjs.
 - Approved Image contract passed 5/5 locally before editing.
-- Candidate browser verification and publication pending.
+- PR #475 merged as 0b3de8a36881a427e8aa34776fe797f0f343ecc4.
+- Landing CI job 120456447822 passed: load stability plus notice checks at 1920/1440/768/390/320px, including new scroll-away assertion.
+- Approved Image CI 120456451014 passed; desktop and phone screenshots inspected from artifact 12508050255.
+- Exact merged SHA Cloudflare Pages check 120458142069 succeeded.
+- Custom-domain homepage uses studio-credits.css?v=20261023-home-scroll-overlay-v5.
+- Downloaded production CSS exactly equals reviewed stylesheet bytes.
+- Synthetic customer/browser coverage is separate from real signed-in account observation; no paid requests.
+- Completed and live; no further product changes pending.
 
 
 ## Fashion internal-template loading repair, 2026-10-23
