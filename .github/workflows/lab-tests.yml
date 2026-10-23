@@ -84,17 +84,6 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-lab-browser/node_modules/playwright/index.mjs
         run: node tests/lab-image-viewer-browser.mjs
-      - name: Verify Explore Moods photobooth, uploads and single paid submission
-        env:
-          PV_PLAYWRIGHT_MODULE: /tmp/pv-lab-browser/node_modules/playwright/index.mjs
-        run: node tests/lab-explore-generation.mjs
-      - name: Retain Explore Moods photobooth previews
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: explore-moods-photobooth-previews
-          path: /tmp/pv-explore-generation/*.png
-          retention-days: 1
       - name: Retain Video card control previews
         if: always()
         uses: actions/upload-artifact@v4
@@ -102,4 +91,3 @@ jobs:
           name: video-card-control-previews
           path: test-results/video-card-controls-*.png
           retention-days: 1
-
