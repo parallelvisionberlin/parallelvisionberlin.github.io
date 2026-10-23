@@ -8,6 +8,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const {PNG}=(await import(pathToFileURL(resolve(dirname(process.env.PV_PLAYWRIGHT_MODULE),'../pngjs/lib/png.js')).href)).default;
 const root=resolve('.');
+const headerGutterOnly=process.env.PV_HEADER_GUTTER_ONLY==='1';
 // Approved source before this fix, including the later locked Image and V28 Upscaler.
 const approvedRef='ac33d20c50bdd88e71547e96a70781efae4b5a11';
 const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
@@ -100,6 +101,7 @@ try{
     // All public tools have one shared Sign in and no private Assets shortcut.
     let imageSignInRightInset=null;
     // Every public direct URL must expose its own approved deck, never a gate or Image stand-in.
+    if(!headerGutterOnly){
     for(const route of Object.keys(surfaces)){
       await page.goto(base+'/lab/studio.html?tool='+route);
       await settled(page,route);
@@ -208,9 +210,10 @@ try{
     await page.locator('#pv-upscale-hero-upload').click();
     await page.waitForFunction(()=>window.__publicAccount.signins.length===1);
     assert.deepEqual(requests,[]);
+    }
     // Actual sync() restores the requested destination for customers and owners.
     for(const role of ['customer','owner']){
-      for(const route of ['video','upscale','retouch','fashion']){
+      for(const route of (headerGutterOnly?['retouch']:['video','upscale','retouch','fashion'])){
         await page.goto(base+'/lab/studio.html?tool='+route);await settled(page,route);
         await page.evaluate(role=>window.__publicAccount.authorize(role),role);
         await settled(page,route,true);
@@ -262,7 +265,7 @@ try{
     }
     assert.ok(writes.every(write=>write.signed&&write.path==='/api/quotes'),'Only existing authenticated automatic quote previews are permitted; no guest writes, uploads, generation, billing or provider mutations: '+JSON.stringify(writes));
     assert.deepEqual(errors,[]);
-    console.log(`PASS public/signed-in Studio ${width}px: five approved decks, auth returns, tabs, Back/Forward, logout, API isolation`);
+    console.log(headerGutterOnly?`PASS Customer/Owner header positions ${width}px: Image to Retouch to Image, logout and API isolation`:`PASS public/signed-in Studio ${width}px: five approved decks, auth returns, tabs, Back/Forward, logout, API isolation`);
     await context.close();
   }
 }finally{await browser.close();server.close();}

@@ -28,6 +28,12 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-public-studio/node_modules/playwright/index.mjs
         run: node tests/lab-public-studio-ui.mjs
+      - name: Authenticated Retouch header gutter geometry
+        if: ${{ !cancelled() }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-public-studio/node_modules/playwright/index.mjs
+          PV_HEADER_GUTTER_ONLY: '1'
+        run: node tests/lab-public-studio-ui.mjs
       - name: Existing route and config fallback regression
         if: ${{ !cancelled() }}
         env:
