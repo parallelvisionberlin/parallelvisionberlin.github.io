@@ -27,7 +27,7 @@ jobs:
           set -euo pipefail
           curl --fail --silent --show-error --retry 2 --max-time 18 \
             https://parallel-vision-lab.parallelvision.workers.dev/health -o /tmp/pv-lab-health.json
-          node -e "const x=require('/tmp/pv-lab-health.json');if(x.ok!==true||!/^pv-lab-20\\d{2}-\\d{2}-\\d{2}[.]/.test(x.version)){console.error('Worker health is not valid:',x.version);process.exit(1)}console.log('Worker healthy:',x.version)"
+          node -e "const x=require('/tmp/pv-lab-health.json');if(x.ok!==true||!/^pv-lab-20\\d{2}-\\d{2}-\\d{2}[.-]/.test(x.version)){console.error('Worker health is not valid:',x.version);process.exit(1)}console.log('Worker healthy:',x.version)"
       - name: Verify owner-only API rejects anonymous calls
         shell: bash
         run: |
@@ -38,47 +38,58 @@ jobs:
             test "$code" = '401' || { echo "Owner-only route $path returned HTTP $code, expected 401"; exit 1; }
           done
           echo "Fashion API correctly rejects anonymous requests."
-      - name: Verify Fashion page HTML is published
+      # This PR is deliberately unmerged. Validate the currently published
+      # Fashion contract; the approved candidate is checked by mock browsers.
+      # Never require an unmerged PR version to be present on production.
+      - name: Verify canonical production Fashion route and published component
         shell: bash
         run: |
           set -euo pipefail
-          published=0
-          for attempt in $(seq 1 12); do
-            curl --fail --silent --show-error --max-time 18 \
-              -H 'Cache-Control: no-cache' \
-              "https://parallelvisionlabel.com/lab/fashion.html?pv-check=gallery-20261010-${attempt}" -o /tmp/pv-fashion.html
-            if grep -Fq 'fashion.css?v=20261010-gallery01' /tmp/pv-fashion.html; then
-              published=1; break
-            fi
-            echo "Waiting for GitHub Pages to publish Fashion gallery (attempt ${attempt}/12)"
-            sleep 5
-          done
-          if [ "$published" != 1 ]; then echo "The live HTML remains the prior version."; exit 1; fi
-          echo "Live page metadata:"
-          grep -o '<title>[^<]*' /tmp/pv-fashion.html | head -1 || true
-          grep -o 'fashion.css?v=[^"]*' /tmp/pv-fashion.html | head -1 || true
-          grep -Fq 'Replace <em>outfit.</em>' /tmp/pv-fashion.html
-          grep -Fq '<option value="fashnmax" selected>' /tmp/pv-fashion.html
-          grep -Fq 'fashion.css?v=20261010-gallery01' /tmp/pv-fashion.html
-          grep -Fq '<meta name="theme-color" content="#101114">' /tmp/pv-fashion.html
-          grep -Fq 'class="empty-art empty-art-person"' /tmp/pv-fashion.html
-          grep -Fq 'class="empty-art empty-art-garment"' /tmp/pv-fashion.html
-          grep -Fq 'class="empty-art empty-art-result"' /tmp/pv-fashion.html
-          grep -Fq '<path d="M25 24h55v72H25Z"/>' /tmp/pv-fashion.html
-          grep -Fq 'id="person-slot"' /tmp/pv-fashion.html
-          grep -Fq 'id="garment-slot"' /tmp/pv-fashion.html
-          grep -Fq 'id="result-stage"' /tmp/pv-fashion.html
-          grep -Fq 'id="fashion-gallery"' /tmp/pv-fashion.html
-          grep -Fq 'id="fashion-history"' /tmp/pv-fashion.html
-          grep -Fq 'id="fashion-more"' /tmp/pv-fashion.html
-          grep -Fq 'fashion.js?v=20261010-gallery01' /tmp/pv-fashion.html
-          if grep -Fq 'class="recent-work"' /tmp/pv-fashion.html; then echo 'Old nested archive remains'; exit 1; fi
-          curl -fsS --max-time 18 'https://parallelvisionlabel.com/lab/fashion.css?v=20261010-gallery01' -o /tmp/pv-fashion.css
-          grep -Fq '.fashion-gallery{grid-column:1 / -1;grid-row:3' /tmp/pv-fashion.css
-          grep -Fq 'max-height:none;overflow:visible' /tmp/pv-fashion.css
-          curl -fsS --max-time 18 'https://parallelvisionlabel.com/lab/fashion.js?v=20261010-gallery01' -o /tmp/pv-fashion.js
-          grep -Fq 'loadGalleryThumbnails' /tmp/pv-fashion.js
-          if grep -Fq 'editorial-reference' /tmp/pv-fashion.html; then
-            echo "Unexpected decorative image in actual result panel"; exit 1
-          fi
-          echo "Published full-width Fashion generation gallery verified. No paid provider calls."
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const origin='https://pvlab.studio';
+          async function publicText(path){
+            const url=new URL(path,origin);
+            assert.equal(url.origin,origin,'Only public PV LAB static assets are inspected');
+            const response=await fetch(url,{method:'GET',cache:'no-store',signal:AbortSignal.timeout(18000)});
+            assert.equal(response.status,200,'Published route is available: '+url.pathname);
+            assert.equal(new URL(response.url).origin,origin,'Static asset stays on the production origin');
+            return response.text();
+          }
+          const studio=await publicText('/studio?tool=fashion');
+          assert.ok(studio.includes('id="tool-fashion"'),'Canonical Studio retains Fashion navigation');
+          const html=await publicText('/fashion.html');
+          assert.ok(html.includes('Replace <em>outfit.</em>'),'Published Fashion title is present');
+          assert.ok(html.includes('<meta name="theme-color" content="#101114">'),'Fashion keeps the dark theme');
+          for(const id of ['fashion-form','person-slot','person-file','garment-slot','garment-file',
+            'model-select','max-resolution','max-mode','direction','quote','confirm','result-stage',
+            'fashion-gallery','fashion-history','fashion-more']){
+            assert.ok(html.includes('id="'+id+'"'),'Published Fashion retains '+id);
+          }
+          for(const model of ['fashnmax','fashn16','fluxvto']){
+            assert.ok(html.includes('value="'+model+'"'),'Published Fashion retains model '+model);
+          }
+          assert.ok(html.includes('<option value="fashnmax" selected>'),'Default model is preserved');
+          assert.ok(!html.includes('class="recent-work"'),'No obsolete nested archive');
+          assert.ok(!html.includes('id="editorial-reference"'),'No decorative photo masquerades as an output');
+          // Production may still have the prior ghost cards until this PR is
+          // authorized and merged. Both versions retain real person/garment inputs.
+          for(const kind of ['person','garment']){
+            assert.ok(html.includes('empty-art empty-art-'+kind)||html.includes('slot-example '+kind+'-example'),
+              'Published '+kind+' card retains its intended artwork');
+          }
+          assert.ok(html.includes('class="empty-art empty-art-result"'),'Result artwork remains distinct');
+          function asset(expression,label){
+            const matched=html.match(expression);
+            assert.ok(matched,'Published '+label+' reference is present');
+            return new URL(matched[1],origin+'/fashion.html').href;
+          }
+          const css=await publicText(asset(/href="([^" ]*fashion\.css\?[^" ]+)"/,'Fashion stylesheet'));
+          assert.ok(css.includes('.fashion-gallery{grid-column:1 / -1;grid-row:3'),'Full-width private gallery retained');
+          assert.ok(css.includes('max-height:none;overflow:visible'),'Gallery has no miniature scrolling limit');
+          const js=await publicText(asset(/src="([^" ]*fashion\.js\?[^" ]+)"/,'Fashion controller'));
+          for(const marker of ['createFashionStudio','loadGalleryThumbnails','/api/fashion/quote','/api/fashion/submit']){
+            assert.ok(js.includes(marker),'Published controller retains '+marker);
+          }
+          console.log('PASS canonical production Fashion route, inputs, models, private gallery and published asset references. GET only; no paid calls.');
+          NODE

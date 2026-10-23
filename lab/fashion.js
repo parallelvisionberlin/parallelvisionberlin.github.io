@@ -47,7 +47,7 @@ function update(){
   $('direction-required').textContent=selected==='fluxvto'?'REQUIRED':'OPTIONAL';
   $('direction').placeholder=selected==='fluxvto'?'Describe how the garment should be worn…':'Keep the silhouette. Open the jacket, soften the folds…';
   $('quote').disabled=!publicPreview()&&(!authenticated||busy||!$('person-file').files.length||!$('garment-file').files.length||!providerModel?.available||(selected==='fluxvto'&&!$('direction').value.trim()));
-  const title=busy?'Preparing…':'Review price';
+  const title=busy?'Preparing…':'Generate';
   if($('quote').dataset.caption!==title){
     $('quote').dataset.caption=title;
     const arrow=document.createElement('span');arrow.textContent='';arrow.setAttribute('aria-hidden','true');

@@ -1,5 +1,26 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Approved Fashion #494 — reconcile after Video merge, 2026-10-24
+- Work only on existing PR #494: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/494 ; branch `codex/fashion-approved-release`. No new PR, production publication or PR merge by this task.
+- Owner reports Video #496 merged into main as `ca638143092a386a0652fdbf3480982c619f8a7f`; fetched and verified that it contains Video head `06ecaf5d`.
+- Fashion starting head: `274c428afaee329c68e077621961590b9af28714`; its approved six component/controller/photo files remain identical to `a84f9ec2`, including Generate and bound confirmation.
+- Incorporated main ca638143 by normal merge in the existing isolated Fashion worktree. Main and the owner's original working copy remain untouched.
+- Exactly two conflicts: `tests/lab-public-studio-ui.mjs` and `.github/workflows/lab-public-studio-tests.yml`.
+- Used the exact two files already prepared/tested in external `approved-pair-resolution`. Rechecked both source heads before applying them.
+- Preserve independently frozen Fashion `a84f9ec2` and Video `c3f1a73e` references, both workflow fetches, the full desktop Video canvas and Fashion upload/control/empty-result assertions. Original pixel thresholds and all functional/account assertions remain unchanged.
+- Studio HTML merged automatically, retaining Fashion's import/cache markers and Video's approved stylesheet/state modules. The only lab.js difference from main remains the existing Fashion import cache marker.
+- Blob verification: all six Fashion HTML/CSS/mount/controller/photo files equal approved Fashion; Video CSS/state/deck/original artwork/model-banner equal main. Original subway PNG SHA-256 remains `7ed8131e8432c5182a2751a6d353a5fff87fd271d07fa0163dcc74fd74fc6ad7`.
+- PASS 25/25 approved Image/Video/Fashion provider/price/balance contracts, Node 22.16.0. Image's mandatory contract also passed before reconciliation.
+- PASS Fashion approved-layout suite, owner/customer/guest at seven sizes including 1672x900, 390x844 and 320x740, chooser/drop, three models, FLUX direction, exact quotes, one bound synthetic submission, download/History/result and return to Image.
+- PASS legacy Fashion fixture, preserving gallery/balance/error/pagination/quote and standalone/embedded footer checks.
+- PASS Seedance suite and customer Video permissions at 1440/390/320px; sign-out clears private state and restores the current public preview.
+- PASS full Studio layout and routing suites, including #473 real History wheel, native settings priority, short desktop heights, all Video modes, phone overflow and Elements.
+- PASS full Public Studio strict pixel/navigation/privacy matrix at 1440/390/320px, with both approved independent source maps. Final exact-head CI status is recorded in the PR description.
+- Browser tests use synthetic accounts and intercepted APIs, not paid generation or production customer operations. External adapter only handles Windows static paths/relative import URLs.
+- No Mood, Image, Upscaler, Retouch, provider, pricing, wallet, auth or generation implementation is changed by this reconciliation. Existing unrelated failures stay documented separately.
+- Scope history: [release audit](../docs/ci/pr-494-496-release-audit-20261024.md), including the post-Video reconciliation section. All permanent tests, gates and GitHub protections are retained.
+- Next action: inspect exact-head CI and GitHub mergeability on #494; report any new failure without publishing or merging the PR. Final SHA/check URLs are maintained in its description to avoid documentation-only CI churn.
+
 ## Homepage Mood Creator section background only, 2026-10-23
 - Owner reference: image(20261023-174301).png, libfile_eefbf7cf35e48191abbcc1764fae3931.
 - Change only the homepage `.mc-home.mc-home--collection` background from #080F0D to #09090B, slightly darker than Explore Moods #0D0D0F.

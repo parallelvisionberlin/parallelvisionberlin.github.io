@@ -375,13 +375,11 @@ body:has(#app[data-guest-preview]) #studio-header #identity{display:none!importa
 /* Keep one Sign in in the public masthead and no private Assets icon.
    The signed-in account header retains its existing Assets shortcut. */
 body:has(#app[data-guest-preview]) #studio-header #tool-assets{display:none!important}
-/* Image's editorial desktop entrance reserves a classic 15px scrollbar gutter.
-   The shorter guest Upscaler, Retouch and Fashion previews do not. Match only
-   their public header right inset, without shifting any editor or page scroll. */
+/* Image and Fashion reserve a classic 15px root scrollbar gutter. Only the
+   shorter guest Upscaler/Retouch previews need a compensating right inset. */
 @media(min-width:1180px) and (min-height:680px){
   body:has(#app[data-guest-preview="upscale"]) > #studio-header .wrap.top,
-  body:has(#app[data-guest-preview="retouch"]) > #studio-header .wrap.top,
-  body:has(#app[data-guest-preview="fashion"]) > #studio-header .wrap.top{
+  body:has(#app[data-guest-preview="retouch"]) > #studio-header .wrap.top{
     padding-right:31px;
   }
 }

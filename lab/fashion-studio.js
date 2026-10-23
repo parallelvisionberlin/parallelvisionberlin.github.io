@@ -3,8 +3,8 @@ import {createFashionStudio} from './fashion.js?v=20261010-gallery1&optionalFast
 // Shadow DOM preserves the Fashion layout without leaking its styles or field IDs into the studio.
 export async function mountFashionStudio(host,options){
   const [htmlResponse,cssResponse]=await Promise.all([
-    fetch('./fashion.html?v=20261010-gallery1'),
-    fetch('./fashion.css?v=20261023-fashion-gutter2')
+    fetch('./fashion.html?v=20261023-fashion-approved1'),
+    fetch('./fashion.css?v=20261023-fashion-approved1')
   ]);
   if(!htmlResponse.ok||!cssResponse.ok)throw new Error('Fashion could not load. Try again.');
   const [html,css]=await Promise.all([htmlResponse.text(),cssResponse.text()]);
@@ -21,7 +21,7 @@ export async function mountFashionStudio(host,options){
   const root=host.shadowRoot||host.attachShadow({mode:'open'});
   const style=document.createElement('style');
   style.textContent=css.replace(/:root\b/g,':host').replace(/\bhtml\s*\{/g,':host{').replace(/\bbody\s*\{/g,':host{display:block;')+
-    '\n:host{display:block}#content{max-width:none;padding-inline:clamp(16px,2.3vw,42px)}.result-stage{width:100%;min-width:0;max-width:100%}';
+    '\n:host{display:block}#content{max-width:none}.result-stage{width:100%;min-width:0;max-width:100%}';
   root.replaceChildren(style,document.importNode(content,true));
   const controller=createFashionStudio(root,options);
   await controller.ready;

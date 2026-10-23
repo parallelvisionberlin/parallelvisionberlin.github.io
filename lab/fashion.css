@@ -194,66 +194,139 @@ footer{display:flex;justify-content:space-between;gap:20px;border-top:1px solid 
 
 
 
-/* Fashion layout based on approved reference. No decorative reference photo is used.
-   Only Fashion's own scoped UI; provider logic and user images remain unchanged. */
-#content{width:100%;max-width:none;padding:0 clamp(16px,2.2vw,36px);overflow:visible;background:linear-gradient(105deg,#0b0b0d 0%,#111114 52%,#151416 100%)}
+/* Replace outfit: photographic reference layout, isolated in Fashion's shadow root.
+   Example photographs are decorative; only the original file inputs supply uploads. */
+#content{--fashion-field-height:clamp(48px,3.5vw,60px);position:relative;isolation:isolate;width:100%;max-width:none;padding:0 clamp(20px,2.25vw,42px);background:#090a0b}
 #content:before,#content:after{content:none!important}
-.page-intro{display:block;padding:clamp(30px,5vh,58px) 0 16px}
+.fashion-backdrop{position:absolute;inset:0 0 auto;height:calc(100svh - 76px);min-height:660px;overflow:hidden;z-index:-1;pointer-events:none}
+.fashion-backdrop img{width:100%;height:100%;object-fit:cover;object-position:center;transform:scale(1.2);transform-origin:72% 12%}
+.fashion-backdrop:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#08090be8 0%,#08090b82 30%,transparent 60%),linear-gradient(0deg,#090a0b 0%,transparent 22%)}
+.page-intro{display:block;padding:clamp(48px,10vh,108px) 0 24px}
 .page-intro .eyebrow{display:none}
-.page-intro h1{margin:0;font-size:clamp(48px,4.7vw,79px);line-height:1.08;letter-spacing:-.065em}
-.page-intro h1 em{font-size:1.08em}
-.intro-description{display:block;text-align:left;margin:11px 0 0;color:#c5c5c9;font-size:clamp(12px,1.1vw,17px)}
-.fashion-workspace{display:grid;grid-template-columns:minmax(0,43%) minmax(0,1fr);grid-template-rows:clamp(290px,39vh,375px) auto auto;gap:14px 18px;padding:0 0 42px;align-items:stretch}
+.page-intro h1{margin:0;font-size:clamp(62px,5.8vw,110px);line-height:1.08;letter-spacing:-.04em;white-space:nowrap}
+.page-intro h1 em{font-size:1.08em;letter-spacing:-.035em}
+.intro-description{display:block;text-align:left;margin:18px 0 0;color:#c5c5c9;font-size:clamp(14px,1.4vw,24px);line-height:1.4}
+.fashion-workspace{display:grid;grid-template-columns:minmax(0,41.6%) minmax(0,1fr);grid-template-rows:clamp(250px,39vh,360px) auto auto;gap:28px 24px;padding:0 0 42px;align-items:stretch}
 #fashion-form{display:contents}
 .source-section{grid-column:1;grid-row:1;min-width:0;min-height:0}
-.source-section .section-header{display:none}
-.image-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;height:100%;min-height:0}
-.image-slot{position:relative;width:100%;height:100%;min-height:0;max-height:none;aspect-ratio:auto;overflow:hidden;border-radius:13px;border:1px solid #ffffff35;background:linear-gradient(140deg,#242428,#101013 72%);backdrop-filter:none}
-.image-slot:before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#0009,transparent 45%);pointer-events:none}
-#person-slot:not(:has(img:not([hidden]))){background:linear-gradient(140deg,#29292d,#111114 72%)}
+.source-section .section-header,.source-note{display:none}
+.image-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(12px,1.2vw,22px);height:100%;min-height:0}
+.image-slot{position:relative;display:block;width:100%;height:100%;min-height:0;max-height:none;aspect-ratio:auto;padding:14px;border-radius:18px;border:1px solid #ffffff26;background:#0b0c0dcc;backdrop-filter:blur(8px);box-shadow:none}
+.image-slot:before{inset:14px;border:1px solid #ffffff36;border-radius:11px;background:none;z-index:3}
+.image-slot:after{content:none!important}
+.image-slot:hover,.image-slot.drag-over,.image-slot:focus-within{border-color:#ffffffb3;box-shadow:0 0 0 1px #ffffff30}
 .slot-number,.slot-caption{display:none}
-.slot-invite{gap:9px;transform:none}
-.slot-invite>.empty-art{width:75px;height:90px;margin:0;opacity:.25;stroke-width:1.1}
-.slot-invite strong{font-size:15px;color:#fff}
-.slot-invite small{font-size:11px;color:#b4b4b9;text-align:center;padding:0 4px}
-.source-note{margin-top:5px}
+.slot-invite{position:relative;display:flex;width:100%;height:100%;align-items:center;justify-content:flex-end;gap:7px;padding:0 8px 28px;border-radius:11px;overflow:hidden;transform:none;isolation:isolate}
+.slot-invite:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#08090beb 0%,#08090b55 35%,transparent 65%);z-index:-1}
+.image-slot .slot-example{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+.image-slot .person-example{object-position:73% center}
+.image-slot .garment-example{object-position:center}
+.slot-plus{position:relative;display:block;flex:none;width:58px;height:58px;border:1px solid #ffffff58;border-radius:50%;background:#0b0d0fde;margin-bottom:16px}
+.slot-plus:before,.slot-plus:after{content:"";position:absolute;left:50%;top:50%;width:26px;height:1px;background:#fff;transform:translate(-50%,-50%)}
+.slot-plus:after{transform:translate(-50%,-50%) rotate(90deg)}
+.slot-invite strong{font-size:clamp(16px,1.38vw,24px);line-height:1.25;font-weight:500;color:#fff;text-align:center}
+.slot-invite small{font-size:clamp(11px,1vw,17px);line-height:1.4;color:#bdbdbf;text-align:center;padding:0}
+#garment-hint small{font-size:clamp(10px,.92vw,16px);max-width:100%;padding-inline:6px}
+.image-slot>img[id$="-preview"]{inset:14px;width:calc(100% - 28px);height:calc(100% - 28px);border-radius:11px;object-fit:contain;background:#141517}
+.image-slot:has(>img[id$="-preview"]:not([hidden])):after{content:none}
 .result-panel{grid-column:2;grid-row:1;display:none}
-.engine-section{grid-column:1/-1;grid-row:2;margin:0;padding:13px 16px;background:#101012d9;border:1px solid #ffffff29;border-radius:12px;min-width:0}
+.engine-section{position:relative;grid-column:1/-1;grid-row:2;margin:0 -12px 0 0;padding:20px 78px 16px 19px;min-width:0;background:#0b0c0eef;border:1px solid #ffffff26;border-radius:18px}
 .engine-section .section-header{display:none}
-.engine-grid{grid-template-columns:minmax(160px,1.1fr) minmax(190px,1.15fr) minmax(250px,1.7fr) minmax(160px,.85fr);gap:12px;align-items:end}
-.field-title{font-size:11px;font-weight:400;margin-bottom:6px}
-select,textarea{border-radius:8px;background-color:#1f2024;min-height:44px;height:44px}
-.action-primary{border-radius:8px;justify-content:center;min-height:44px;height:44px;font-weight:600}
-.engine-footer{margin-top:7px;padding-top:8px;min-height:0}
-.fashion-gallery{grid-column:1/-1;grid-row:3;margin-top:15px}
-.fashion-workspace:has(#result-image:not([hidden])){grid-template-columns:minmax(0,43%) minmax(0,1fr)}
+.engine-grid{display:grid;grid-template-columns:minmax(155px,248fr) minmax(240px,402fr) minmax(180px,627fr) minmax(155px,185fr);gap:16px;align-items:end}
+.field-title{font-size:clamp(11px,.96vw,16px);font-weight:400;line-height:1;margin-bottom:7px;gap:4px;justify-content:flex-start}
+.field-title span{font:inherit;letter-spacing:0;color:inherit;text-transform:lowercase}
+.field-title span:before{content:"("}.field-title span:after{content:")"}
+.model-fields{grid-template-columns:minmax(0,167fr) minmax(0,219fr);gap:16px}
+select,textarea{border-radius:11px;border-color:#ffffff29;background-color:#17191b;font-size:clamp(12px,.96vw,16px);height:var(--fashion-field-height);min-height:var(--fashion-field-height)}
+select{padding-left:14px}
+textarea{resize:vertical;padding:16px;line-height:1.4;max-height:150px}
+textarea::placeholder{white-space:nowrap}
+.action-block{position:relative;min-height:var(--fashion-field-height)}
+.action-block>.field-title{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.action-primary{border-radius:11px;justify-content:center;gap:10px;min-height:var(--fashion-field-height);height:var(--fashion-field-height);font-size:clamp(13px,1.05vw,18px);font-weight:500}
+#quote:after{content:"\2192";font-size:25px;line-height:1}
+.action-primary:disabled{background:#eeece7;color:#656565;border-color:#eeece7;cursor:not-allowed}
+.quote-box{position:absolute;right:-12px;bottom:-12px;width:calc(100% + 24px);min-width:230px;padding:12px;background:#17191b;border:1px solid #ffffff45;border-radius:15px;box-shadow:0 12px 40px #0008;z-index:6}
+.quote-box strong{font-size:18px}
+.quote-box .action-primary{font-size:12px}
+.fashion-details{position:relative}
+.fashion-details>summary{position:absolute;right:-64px;top:calc(-1 * var(--fashion-field-height));display:grid;place-items:center;width:53px;height:var(--fashion-field-height);list-style:none;cursor:pointer;border:1px solid #ffffff29;border-radius:11px;background:#121416;color:#dadbde}
+.fashion-details>summary::-webkit-details-marker{display:none}
+.fashion-details>summary:hover,.fashion-details[open]>summary{border-color:#b5b8bd}
+.fashion-details>summary:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.fashion-details>summary svg{width:23px;height:23px}
+.fashion-details>summary circle{fill:#121416}
+.engine-footer{margin-top:16px;padding-top:14px;min-height:0;gap:12px}
+.action-hint{width:100%;margin:0}
+.model-description,.model-note{max-width:none;margin:0}
+#status:not(:empty){padding:10px 0 0}
+.fashion-gallery{grid-column:1/-1;grid-row:3;margin-top:24px}
 .fashion-workspace:has(#result-image:not([hidden])) .result-panel{display:flex;flex-direction:column;min-height:0}
-.fashion-workspace:has(#result-image:not([hidden])) .result-stage{flex:1;height:auto;min-height:0;border-radius:12px}
-.fashion-workspace:has(#result-image:not([hidden])) .source-section .section-header{display:flex}
-@media(max-width:800px){
- .page-intro{padding:40px 0 18px}
- .fashion-workspace{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;gap:16px}
- .source-section{grid-column:1;grid-row:1}
- .image-pair{height:auto}
- .image-slot{height:auto;aspect-ratio:4/5;max-height:none}
- .engine-section{grid-column:1;grid-row:2}
- .engine-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
- .model-block,.detail-block,.direction-block,.action-block{grid-column:1/-1}
- .fashion-gallery{grid-column:1;grid-row:3}
- .fashion-workspace:has(#result-image:not([hidden])){grid-template-columns:1fr}
- .fashion-workspace:has(#result-image:not([hidden])) .result-panel{grid-column:1;grid-row:2}
- .fashion-workspace:has(#result-image:not([hidden])) .engine-section{grid-row:3}
- .fashion-workspace:has(#result-image:not([hidden])) .fashion-gallery{grid-row:4}
+.fashion-workspace:has(#result-image:not([hidden])) .result-stage{flex:1;height:auto;min-height:0;border-radius:14px;background:#101114e6}
+.fashion-workspace:has(#result-image:not([hidden])) .result-header{display:none}
+@media(min-width:801px) and (max-height:800px){
+ .page-intro{padding-top:42px;padding-bottom:24px}
+ .page-intro h1{font-size:clamp(58px,5.3vw,88px)}
+ .intro-description{margin-top:12px}
+ .fashion-workspace{grid-template-rows:clamp(230px,36vh,300px) auto auto;row-gap:22px}
 }
-@media(max-width:560px){
- #content{padding:0 14px}
- .page-intro{padding:35px 0 18px}
- .page-intro h1{font-size:clamp(45px,11vw,61px)}
- .intro-description{display:block;font-size:12px}
+@media(max-width:1100px) and (min-width:801px){
+ .engine-grid{grid-template-columns:minmax(135px,1.1fr) minmax(185px,1.5fr) minmax(130px,1.3fr) minmax(125px,.9fr);gap:10px}
+ .model-fields{gap:10px}
+ .engine-section{padding-left:14px;padding-right:68px}
+ .fashion-details>summary{right:-56px;width:44px}
+ select{padding-left:10px;font-size:11px}
+ .field-title{font-size:11px}
+ .slot-invite{padding-bottom:22px}
+}
+@media(max-width:800px){
+ #content{padding-inline:18px}
+ .fashion-backdrop{height:650px;min-height:0}
+ .fashion-backdrop img{object-position:68% center;transform:none}
+ .fashion-backdrop:after{background:linear-gradient(90deg,#08090bbf,transparent 90%),linear-gradient(0deg,#090a0b,transparent 65%)}
+ .page-intro{padding:48px 0 28px}
+ .page-intro h1{font-size:clamp(42px,8.3vw,64px)}
+ .intro-description{display:block;font-size:13px;line-height:1.5;margin-top:14px;max-width:320px}
+ .fashion-workspace{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;gap:22px}
+ .source-section{grid-column:1;grid-row:1;max-width:560px}
+ .image-pair{height:auto;gap:12px}
+ .image-slot{height:auto;aspect-ratio:7/8;padding:9px;border-radius:14px}
+ .image-slot:before{inset:9px;border-radius:8px}
+ .image-slot>img[id$="-preview"]{inset:9px;width:calc(100% - 18px);height:calc(100% - 18px);border-radius:8px}
+ .slot-invite{position:absolute;inset:9px;width:auto;height:auto;padding:0 3px 17px;gap:6px;border-radius:8px}
+ .slot-invite strong{font-size:15px}
+ .slot-invite small{font-size:10px;line-height:1.4}
+ .slot-plus{width:42px;height:42px;margin-bottom:8px}
+ .slot-plus:before,.slot-plus:after{width:20px}
+ .engine-section{grid-column:1;grid-row:2;margin:0;padding:16px;border-radius:14px}
+ .engine-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 12px}
+ .model-block,.detail-block,.direction-block,.action-block{grid-column:1/-1}
+ .detail-block:not(:has(.model-fields:not([hidden]))){display:none}
+ .model-fields{gap:12px}
+ .field-title{font-size:12px;margin-bottom:7px}
+ select,textarea{font-size:16px;height:48px;min-height:48px}
+ textarea{padding:12px}
+ .action-block{padding-right:54px;min-height:48px}
+ .action-primary{height:48px;min-height:48px;font-size:15px}
+ .fashion-details>summary{top:-48px;right:0;width:42px;height:48px}
+ .fashion-details[open]{padding-top:18px}
+ .engine-footer{margin-top:0;padding-top:0;border-top:0}
+ .quote-box{position:relative;right:auto;bottom:auto;width:100%;min-width:0}
+ .fashion-gallery{grid-column:1;grid-row:3;margin-top:12px}
+ .fashion-workspace:has(#result-image:not([hidden])) .result-panel{grid-column:1;grid-row:3;min-height:380px}
+ .fashion-workspace:has(#result-image:not([hidden])) .fashion-gallery{grid-row:4}
+ .fashion-workspace:has(#result-image:not([hidden])) .result-stage{min-height:320px}
+}
+@media(max-width:360px){
+ #content{padding-inline:14px}
+ .page-intro{padding-top:38px}
+ .page-intro h1{font-size:38px}
+ .intro-description{font-size:12px}
  .image-pair{gap:9px}
  .image-slot{aspect-ratio:4/5}
- .slot-invite>.empty-art{width:55px;height:68px}
+ .slot-invite{padding-bottom:12px}
  .slot-invite strong{font-size:13px}
  .slot-invite small{font-size:9px}
- .engine-section{padding:12px}
+ #garment-hint small{font-size:9px}
+ .slot-plus{width:36px;height:36px;margin-bottom:4px}
 }
