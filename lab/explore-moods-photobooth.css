@@ -183,6 +183,7 @@
   min-height:0!important;margin:0!important;border-radius:0!important;
  }
  #mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-dialog-media img{object-position:50% 32%;transform:none!important}
+ #mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-preview[data-mood-id="night-flash"]{transform:scale(1.65)!important;transform-origin:50% 0%}
  #mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-dialog-media::after{
   background:linear-gradient(0deg,#171816 0%,#17181633 45%,transparent 75%);
  }
@@ -217,7 +218,7 @@
   font:400 clamp(18px,6.7cqw,24px)/1.15 'DM Sans',Arial,sans-serif!important;letter-spacing:-.055em!important;
  }
  #mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-mood-note{display:none}
- #mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-photobooth-browse{margin:9px 0 12px;font-size:10px;color:#c6cbbf}
+ #mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-photobooth-browse{margin:9px 0 12px;font:400 10px/1.2 'DM Sans',Arial,sans-serif!important;color:#c6cbbf!important}
  #mc-look-dialog.mc-photobooth:not(.is-result-view) #mc-look-file-label small{
   font:400 7px/1.3 'DM Sans',Arial,sans-serif!important;color:#9da594!important;letter-spacing:.08em!important;
  }

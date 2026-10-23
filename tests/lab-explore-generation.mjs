@@ -81,6 +81,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
   for(const id of ids){
    await page.locator('[data-mood-id="'+id+'"]').click();
    assert.equal(await page.locator('#mc-look-direction').isVisible(),false);
+   if(scenario==='catalogue-phone')assert.equal(await page.locator('.mc-photobooth-browse').evaluate(el=>getComputedStyle(el).fontSize),'10px','Mobile browse caption stays secondary');
    assert.equal(await page.locator('#mc-look-continue').isDisabled(),true);
    const layout=await page.evaluate(()=>{
     const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
