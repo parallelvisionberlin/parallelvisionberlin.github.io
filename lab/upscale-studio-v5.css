@@ -1546,3 +1546,250 @@
  }
 }
 
+/* Editorial model cards, approved Upscaler mockup (23 Oct 2026).
+   Only the model picker and settings within the LEFT inspector change.
+   Keep the original photographic stage, provider controls and History intact. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-display{
+  order:-3!important;display:flex!important;flex-direction:column!important;
+  gap:9px!important;min-width:0!important;margin:0!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-heading{
+  display:flex;align-items:center;justify-content:space-between;min-height:18px;
+}
+#app.upscale-studio-active .pv-upscale-model-live{
+  position:absolute!important;width:1px!important;height:1px!important;
+  overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-menu{
+  box-sizing:border-box!important;position:static!important;inset:auto!important;
+  z-index:auto!important;display:flex;flex-direction:column;gap:6px!important;
+  width:100%!important;min-width:0!important;max-width:none!important;
+  margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+#app.upscale-studio-active #upscale-model-menu[hidden],
+#app.upscale-studio-active #upscale-precision-options[hidden]{display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card{
+  box-sizing:border-box;display:grid!important;grid-template-columns:36px minmax(0,1fr) 16px!important;
+  align-items:center;column-gap:10px!important;width:100%!important;
+  min-height:57px!important;margin:0!important;padding:8px 10px!important;
+  border:1px solid #393b40!important;border-radius:9px!important;
+  background:linear-gradient(140deg,#1e2024,#17181b)!important;
+  color:#f0efed!important;text-align:left!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.035)!important;
+  cursor:pointer;
+  transition:border-color .16s ease,background .16s ease;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card:hover:not(:disabled){
+  border-color:#6b6b6c!important;background:#25272b!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card[aria-checked="true"]{
+  border-color:#85817c!important;background:linear-gradient(145deg,#252529,#1b1c20)!important;
+  box-shadow:inset 0 0 0 1px rgba(224,219,210,.07)!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card>.pv-upscale-model-art{
+  box-sizing:border-box!important;display:block!important;position:relative;overflow:hidden;flex:none!important;
+  width:36px!important;height:36px!important;border-radius:7px;border:1px solid #53545a;
+  background:#25272a;isolation:isolate;
+}
+#app.upscale-studio-active .pv-upscale-model-art::before,
+#app.upscale-studio-active .pv-upscale-model-art::after{content:"";position:absolute;pointer-events:none}
+#app.upscale-studio-active .pv-upscale-model-art-bytedance{
+  background:linear-gradient(140deg,rgba(10,12,14,.16),rgba(0,0,0,.18)),
+             url('./visuals/upscaler-chrome-wool-option-1.jpg') 26% 38%/190px auto no-repeat,#1e2022;
+}
+#app.upscale-studio-active .pv-upscale-model-art-precision{
+  background:linear-gradient(140deg,rgba(255,255,255,.03),rgba(0,0,0,.24)),
+             url('./visuals/upscaler-chrome-wool-option-1.jpg') 57% 57%/230px auto no-repeat,#1e2022;
+}
+#app.upscale-studio-active .pv-upscale-model-art-wonder{
+  background:linear-gradient(140deg,rgba(10,11,12,.1),rgba(0,0,0,.3)),
+             url('./visuals/upscaler-chrome-wool-option-1.jpg') 82% 68%/210px auto no-repeat,#1e2022;
+}
+#app.upscale-studio-active .pv-upscale-model-art::after{
+  inset:0;border-radius:inherit;
+  background:linear-gradient(145deg,rgba(255,255,255,.30),transparent 45%,rgba(0,0,0,.26));
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card>.pv-upscale-model-copy{
+  display:flex!important;flex-direction:column;justify-content:center;align-items:flex-start;
+  gap:4px!important;min-width:0;overflow:hidden;
+}
+#app.upscale-studio-active .pv-upscale-model-card .pv-upscale-model-copy strong{
+  color:#f2f0ed;font:600 12px/1.2 'DM Sans',Arial,sans-serif!important;white-space:nowrap;
+}
+#app.upscale-studio-active .pv-upscale-model-card .pv-upscale-model-copy small{
+  font:400 10px/1.3 'DM Sans',Arial,sans-serif!important;
+  color:#a4a3a3;white-space:normal;
+}
+#app.upscale-studio-active .pv-upscale-model-card .upscale-model-selected{
+  justify-self:end;color:#f5f2ec;font-size:15px;line-height:1;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-precision-card{
+  display:flex;flex-direction:column;overflow:hidden;
+  border:1px solid #3a3c40;border-radius:9px;background:#1c1e22;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-precision-card:has(>#upscale-precision-trigger[aria-checked="true"]){
+  border-color:#92908c;box-shadow:inset 0 0 0 1px rgba(232,228,219,.06),0 0 12px rgba(236,233,226,.035);
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-precision-card>.pv-upscale-model-card{
+  border:0!important;border-radius:8px!important;box-shadow:none!important;background:transparent!important;
+}
+#app.upscale-studio-active .pv-upscale-precision-chevron{
+  justify-self:end;width:15px;height:15px;color:#b8b6b3;transition:transform .14s ease;
+}
+#app.upscale-studio-active #upscale-precision-trigger[aria-expanded="true"] .pv-upscale-precision-chevron{transform:rotate(180deg)}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-precision-options{
+  box-sizing:border-box;display:flex;flex-direction:column;gap:7px;
+  padding:1px 10px 11px 10px;
+}
+#app.upscale-studio-active .pv-upscale-version-label{
+  font:450 10px/1.3 'DM Sans',Arial,sans-serif;color:#b9b8b6;
+}
+#app.upscale-studio-active .pv-upscale-version-pills{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:7px;
+}
+#app.upscale-studio-active .pv-upscale-version-pill{
+  box-sizing:border-box;min-width:0;min-height:38px;
+  padding:8px 6px;margin:0;border:1px solid #46474d;border-radius:18px;
+  background:#202126;color:#cdccca;font:500 10px/1.25 'DM Sans',Arial,sans-serif;
+  text-align:center;cursor:pointer;transition:border-color .14s ease,background .14s ease;
+}
+#app.upscale-studio-active .pv-upscale-version-pill:hover:not(:disabled){background:#2b2d30;border-color:#858585}
+#app.upscale-studio-active .pv-upscale-version-pill[aria-checked="true"]{
+  border-color:#e8e5df;background:#343439;color:#fff;
+  box-shadow:inset 0 0 0 1px rgba(239,236,228,.13),0 0 9px rgba(244,240,233,.10);
+}
+#app.upscale-studio-active #upscale-model-menu button:disabled{opacity:.55;cursor:default}
+#app.upscale-studio-active #upscale-model-menu button:focus-visible{
+  outline:2px solid #f3f0e8;outline-offset:2px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-output-heading{
+  display:none!important;
+}
+@media(min-width:781px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+    row-gap:11px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid,
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>#format-control{
+    grid-column:1/-1!important;display:flex!important;
+    align-items:center!important;justify-content:space-between!important;
+    gap:12px!important;min-width:0!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid>label:not([hidden]){
+    flex:1 1 auto;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;
+    gap:10px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid .label,
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>#format-control>.label{
+    flex:0 0 104px;margin:0!important;color:#d1cecb!important;font-size:11px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>#format-control>select,
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid select{
+    flex:1 1 auto;max-width:70%!important;min-width:0!important;
+    height:41px!important;min-height:41px!important;
+    border-radius:7px!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+    margin-top:13px!important;
+  }
+}
+@media(max-width:780px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card{
+    min-height:56px!important;
+  }
+  #app.upscale-studio-active .pv-upscale-version-pill{min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){
+ #app.upscale-studio-active .pv-upscale-model-card,
+ #app.upscale-studio-active .pv-upscale-version-pill,
+ #app.upscale-studio-active .pv-upscale-precision-chevron{transition:none!important}
+}
+
+/* Loaded-photo inspector: the additional model cards must never put the Upscale
+   action on top of the Enlargement / Image format settings. This does not
+   modify the photographic stage or the upload/generation logic. */
+@media(min-width:781px){
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+   row-gap:8px!important;padding-top:18px!important;
+ }
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+   margin:0!important;padding-bottom:13px!important;gap:5px!important;
+ }
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
+   gap:4px!important;
+ }
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload{
+   min-height:61px!important;max-height:61px!important;padding:8px 11px!important;gap:9px!important;
+ }
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload .pv-upscale-source-icon{
+   width:35px!important;height:35px!important;
+ }
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+   margin-top:11px!important;
+ }
+}
+
+/* PR #486: loaded-photo controls must size from their content.
+   This is scoped ONLY to Upscaler with a visible source. The empty approved
+   hero, model-card design, source image, navigation and pricing are untouched.
+   The older fixed-height sidebar put its action above the format selector. */
+@media(min-width:781px){
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+    height:auto!important;
+    min-height:clamp(680px,calc(100dvh - 104px),980px)!important;
+    max-height:none!important;
+    overflow:visible!important;
+    justify-content:flex-start!important;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+    box-sizing:border-box!important;
+    flex:0 0 auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    padding-bottom:0!important;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+    box-sizing:border-box!important;
+    position:relative!important;
+    top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+    justify-content:flex-start!important;
+    align-items:stretch!important;
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
+    width:calc(100% - 68px)!important;
+    min-height:0!important;height:auto!important;
+    flex:0 0 auto!important;
+    margin:16px 34px 24px!important;
+    padding:0!important;
+    z-index:1!important;
+  }
+  /* The approved empty drop area is kept unchanged. A real loaded photo
+     uses that same photographic viewport instead of shrinking on upload. */
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(#preview:not([hidden])){
+    box-sizing:border-box!important;
+    height:clamp(680px,calc(100dvh - 104px),980px)!important;
+    min-height:680px!important;
+    max-height:none!important;
+  }
+}
+
+/* Keep secondary paid-status and Save Draft surfaces compact whenever they
+   become available. Retain their native visibility and click handlers. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #upscale-price{
+  flex:0 0 auto!important;
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #save{
+  flex:0 0 auto!important;
+  min-height:40px!important;
+  height:40px!important;
+  max-height:40px!important;
+  border-radius:8px!important;
+  margin:0!important;
+  padding:8px 10px!important;
+}
