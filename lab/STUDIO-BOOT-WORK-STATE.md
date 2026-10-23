@@ -9,7 +9,9 @@
 - Public browser observation: old `parallelvisionlabel.com/lab/` opens `https://pvlab.studio/`; `/welcome` opens `/studio?tool=image`; direct Image loads public controls. Anonymous credit toast is hidden. No real login, purchase, credit grant or generation performed.
 - Source checks retain authenticated grant/session/owner binding and trial-pause behavior. Anonymous markup is not proof of an authenticated toast or a paid provider result.
 - Cloudflare Pages app check succeeded for main `14d3eaf`; workflow correction still awaits its own CI/merge verification. Local full HTTP smoke hit a proxy CONNECT timeout, so do not count it as passed.
-- Next: run the corrected domain workflow, inspect every stage, merge only after relevant checks pass, then record the main run separately.
+- First corrected CI run `39957436807` passed public sites, direct Studio/loader/toast markup, Generate/Exact assets and query-preserving legacy Studio redirects. It then exposed an obsolete health-version regex requiring a numeric dot suffix; actual healthy version is `pv-lab-2026-10-23-hk-two-optical-refs-balanced1`, matching Worker source.
+- Accept either dated version format while retaining the minimum 2026-10-15.1 requirement and mandatory health `ok`. Seven positive/negative compatibility cases and every shell step syntax passed locally. No Worker code changed.
+- Next: rerun corrected workflow for this new head, inspect backend/CORS and every stage, merge only after relevant checks pass, then record the main run separately.
 
 Updated: 2026-10-17
 Scope: Studio initial loading overlay only.

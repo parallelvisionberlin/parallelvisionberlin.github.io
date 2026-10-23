@@ -194,7 +194,7 @@ jobs:
           set -euo pipefail
           curl -fsSL --retry 2 --retry-delay 2 --max-time 20 \
             "https://parallel-vision-lab.parallelvision.workers.dev/health" -o /tmp/health.json
-          node -e "const x=require('/tmp/health.json');const v=String(x.version||'');const m=v.match(/^pv-lab-(\d{4}-\d{2}-\d{2})\.(\d+)-/);if(!x.ok||!m||m[1]<'2026-10-15'||(m[1]==='2026-10-15'&&Number(m[2])<1)){console.error('FAIL: incompatible backend health version',v);process.exit(1)}console.log('PASS backend version',v)"
+          node -e "const x=require('/tmp/health.json');const v=String(x.version||'');const m=v.match(/^pv-lab-(\d{4}-\d{2}-\d{2})(?:\.(\d+))?-/);if(!x.ok||!m||m[1]<'2026-10-15'||(m[1]==='2026-10-15'&&Number(m[2]||0)<1)){console.error('FAIL: incompatible backend health version',v);process.exit(1)}console.log('PASS backend version',v)"
           curl -fsSL --retry 2 --max-time 20 -X OPTIONS \
             -H 'Origin: https://pvlab.studio' \
             -H 'Access-Control-Request-Method: GET' \
