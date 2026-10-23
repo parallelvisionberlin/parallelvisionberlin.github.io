@@ -1,5 +1,14 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Moods mobile photo and iOS arrows, 2026-10-23
+- Owner reference IMG_7959.png, libfile_0668c516ebc88191836881f36071d62a.
+- Mobile only: overlay existing logo/close header onto the image, remove Night Flash 1.65 zoom, preserve floating centered card and desktop styling.
+- Mobile photo gets190–235px height (180px on short viewports), with existing bottom gradient/title overlap retained.
+- Both mobile arrow glyphs use CSS SVG masks to avoid iOS emoji substitution; no provider/upload/billing changes.
+- Base 7417ac9f2d1081b5150b339fe68528f5b4d0d852. Local approved Image contract passed5/5.
+- Browser assertions added to existing public Studio workflow for390/844,320/640,430/932 and desktop1440/1000 isolation.
+- Deployment and visual verification pending.
+
 ## Explore Moods upload symbol and typography polish, 2026-10-23
 - Approved reference: image(20261023-163106).png, Library libfile_705b5d680e7c81918f8239f01e682ed6.
 - Owner authorizes only the plus and upload typography. Preserve modal, photo, Mood title, outer upload surface, Generate, navigation and all behavior.

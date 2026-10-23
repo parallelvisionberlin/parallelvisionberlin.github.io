@@ -39,6 +39,13 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-public-studio/node_modules/playwright/index.mjs
         run: node tests/lab-tool-routing-ui.mjs
+      - name: Moods mobile photo framing and vector arrows
+        if: ${{ !cancelled() }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-public-studio/node_modules/playwright/index.mjs
+        run: |
+          git fetch --depth=1 origin 7417ac9f2d1081b5150b339fe68528f5b4d0d852
+          node tests/lab-moods-mobile-layout.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
