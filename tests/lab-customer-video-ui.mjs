@@ -30,7 +30,7 @@ await new Promise(r=>server.listen(4197,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
 mkdirSync('test-results',{recursive:true});
 try{
- for(const width of [1440,390])for(const scenario of ['trial','zero','review','unavailable','closed','promo']){
+ for(const width of [1440,390,320])for(const scenario of ['trial','zero','review','unavailable','closed','promo']){
   const context=await browser.newContext({viewport:{width,height:950}}),page=await context.newPage(),posts=[],errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await context.route('https://**/*',async route=>{

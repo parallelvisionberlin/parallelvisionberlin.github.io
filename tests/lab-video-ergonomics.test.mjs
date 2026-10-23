@@ -47,21 +47,18 @@ test('the model capability matrix and credit/generation controls are unchanged',
   assert.match(css,/#reference-mode #start-frame-maker:not\(\[hidden\]\)/,
     'Wan opening-frame creation remains compact and separate from video pricing');
 });
-test('the empty video invitation uses one approved Fashion After Fabric still, not train imagery',()=>{
+test('the approved original subway artwork stays separate from actual attachments',()=>{
   const start=html.slice(html.indexOf('id="pv-video-start-visual"'),
     html.indexOf('id="pv-video-text-visual"'));
-  assert.match(start,/class="pv-video-start-editorial"/);
+  assert.match(start,/class="pv-video-add-frame"/);
   assert.doesNotMatch(start,/<img[^>]*src=/,
     'the Start invitation does not contain fake beginning/ending photographs');
-  assert.match(css,/\.pv-video-start-editorial/);
-  assert.match(css,/visuals\/invite-after-fabric-user-approved-20261014\.webp/);
-  assert.match(editor,/const examples=\['\.\/visuals\/invite-after-fabric-user-approved-20261014\.webp'\]/,
-    'the same single PV LAB still is shown before references are added');
-  assert.doesNotMatch(editor,/dreamcore-train-20261010\.webp/);
-  assert.match(editor,/const visuals=showingExample\?examples:thumbnails/,
-    'real attached photographs replace the illustrative still');
-  assert.match(editor,/collage\.dataset\.illustrative=String\(showingExample\)/,
-    'the UI distinguishes saved reference images from the illustration');
+  const compact=source('video-compact-studio.css');
+  assert.match(compact,/visuals\/video-android-trio-original\.png/);
+  assert.match(compact,/:not\(\.pv-video-has-input\).*:has\(>#empty:not\(\[hidden\]\)\):before/);
+  assert.match(compact,/\.pv-video-has-input .*\.canvas:has\(>#empty:not\(\[hidden\]\)\):before\{display:none!important/);
+  assert.match(editor,/const visuals=thumbnails/,'real attached photographs own the preview');
+  assert.doesNotMatch(editor,/const examples=|showingExample/);
   assert.doesNotMatch(editor,/fetch\s*\(|\/api\/jobs|\/api\/quotes|creditCost/);
   assert.doesNotThrow(()=>new Function(editor));
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);

@@ -66,6 +66,9 @@ function mountVideoSceneStates(){
     if(!inspector||inspector.hidden)return;
     const name=model?.textContent?.trim()||engine?.selectedOptions?.[0]?.textContent?.trim()||'Video model';
     byId('pv-video-current-model').textContent=name;
+    const sceneModel=byId('pv-video-scene-model');
+    if(sceneModel)sceneModel.disabled=!!byId('video-model-trigger')?.disabled;
+    byId('pv-video-current-model-description').textContent=byId('pv-video-model-hero')?.querySelector('small')?.textContent||'';
     const p=prompt?.value.trim();
     byId('pv-video-current-prompt').textContent=p||(
       mode==='extend'?'Describe what happens after the original clip.':
@@ -86,6 +89,12 @@ function mountVideoSceneStates(){
     const video=app.classList.contains('video-studio-active');
     const history=app.classList.contains('pv-video-history-selected');
     const visible=video&&!history&&!stage.hidden;
+    // Source media always takes precedence over the decorative empty canvas,
+    // including Reference/Extend states where the empty invitation stays mounted.
+    const hasInput=!!referenceList.querySelector('.reference-item')||
+      ['video-start-thumb','video-end-thumb'].some(id=>{const img=byId(id);return img&&!img.hidden;})||
+      !!byId('video-reference-list')?.children.length||!!byId('audio-reference-list')?.children.length;
+    setModeClass('pv-video-has-input',hasInput);
     startArt.hidden=!(visible&&mode==='start');
     textArt.hidden=!(visible&&mode==='text');
     if(!visible)return;
@@ -100,10 +109,12 @@ function mountVideoSceneStates(){
     const [heading,description]=values[mode]||values.start;
     if(title.textContent!==heading)title.textContent=heading;
     if(subtitle.textContent!==description)subtitle.textContent=description;
+    const library=byId('pv-video-browse-library');
+    if(library)library.hidden=mode!=='reference'||!!byId('scene-video-open')?.disabled;
   }
   function refresh(){
     const video=app.classList.contains('video-studio-active');
-    if(!video){startArt.hidden=true;textArt.hidden=true;return;}
+    if(!video){startArt.hidden=true;textArt.hidden=true;byId('pv-video-browse-library').hidden=true;return;}
     const mode=currentMode();
     for(const m of ['text','start','reference','extend'])setModeClass('pv-video-mode-'+m,mode===m);
     const label=byId('prompt-label');
@@ -119,6 +130,8 @@ function mountVideoSceneStates(){
   app.addEventListener('click',event=>{
     if(event.target.closest('#video-modes,#video-task-switch,#video-model-trigger,#pv-video-history-back'))schedule();
   });
+  byId('pv-video-browse-library')?.addEventListener('click',()=>byId('scene-video-open')?.click());
+  byId('pv-video-scene-model')?.addEventListener('click',()=>byId('video-model-trigger')?.click());
   doc.addEventListener('input',event=>{
     if(event.target===prompt||fields.includes(event.target?.id))schedule();
   },true);
@@ -129,10 +142,14 @@ function mountVideoSceneStates(){
   new MutationObserver(schedule).observe(modes,{subtree:true,attributes:true,attributeFilter:['aria-selected','hidden']});
   new MutationObserver(schedule).observe(stage,{attributes:true,attributeFilter:['hidden']});
   new MutationObserver(schedule).observe(referenceList,{childList:true,subtree:true});
+  for(const id of ['video-reference-list','audio-reference-list']){
+    const list=byId(id);
+    if(list)new MutationObserver(schedule).observe(list,{childList:true,subtree:true});
+  }
   new MutationObserver(schedule).observe(inspector,{attributes:true,attributeFilter:['hidden']});
   const thumbs=byId('start-mode');
   if(thumbs)new MutationObserver(schedule).observe(thumbs,{attributes:true,attributeFilter:['hidden'],subtree:true});
-  app.classList.add('pv-video-state-ready');
+  app.classList.add('pv-video-state-ready','pv-video-compact');
   refresh();
 }
 if(document.readyState==='loading')

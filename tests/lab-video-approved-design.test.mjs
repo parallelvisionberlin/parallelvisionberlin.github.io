@@ -30,10 +30,10 @@ test('selected references remain editable and previews remain authentic',()=>{
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
   }
   assert.match(editor,/referenceList\.querySelectorAll\('\.reference-item>img'\)/);
-  assert.match(editor,/collage\.dataset\.illustrative=String\(showingExample\)/,
-    'a single editorial still is explicitly marked as illustrative');
-  assert.match(editor,/Fashion After Fabric editorial image, not a video or uploaded reference/,
-    'the fallback never claims to be a generated result or actual user reference');
+  assert.match(editor,/const visuals=thumbnails/,'preview uses actual attachments only');
+  assert.match(editor,/collage\.dataset\.illustrative='false'/);
+  assert.doesNotMatch(editor,/const examples=|showingExample/,
+    'decorative artwork never enters the attachment preview');
   assert.match(editor,/modelPill\?\.addEventListener\('click'/);
   assert.match(editor,/audioPill\?\.addEventListener\('click'/);
   assert.match(app,/updateVideoInspectorReferences\(job\)/);
