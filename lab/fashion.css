@@ -269,3 +269,26 @@ select,textarea{border:1px solid #46464c;border-radius:8px;height:45px;min-heigh
  #content:before{height:clamp(660px,60vw,860px);background-size:cover}
  .fashion-workspace:has(#result-image:not([hidden])){grid-template-rows:clamp(300px,27vw,440px) auto auto}
 }
+
+/* Constrain approved mockup to one above-the-fold composition on desktop.
+   Supersedes older fixed card heights and prevents crop from stretching with the viewport. */
+@media(min-width:801px){
+  #content{overflow:visible}
+  #content:before{height:calc(min(720px,100vh - 100px));background-size:auto 100%;background-position:right top;background-color:#09090b}
+  #content:after{top:440px;height:340px}
+  .page-intro{padding:clamp(28px,4vh,50px) 0 13px!important}
+  .page-intro h1{font-size:clamp(45px,4.3vw,72px)}
+  .fashion-workspace,.fashion-workspace:not(:has(#result-image:not([hidden]))){
+    grid-template-columns:minmax(0,42%) minmax(0,1fr)!important;
+    grid-template-rows:clamp(228px,26vh,310px) auto auto!important;
+    row-gap:10px!important;
+  }
+  .source-section,.image-pair{height:100%!important;max-height:310px!important;min-height:0!important}
+  .image-slot{height:100%!important;min-height:0!important;max-height:310px!important}
+  .engine-section{grid-row:2!important;margin-top:0!important}
+  .fashion-gallery{grid-row:3!important}
+  .fashion-workspace:has(#result-image:not([hidden])) .result-panel{grid-row:1!important}
+}
+@media(max-width:800px){
+  #content:before{background-size:auto 570px;background-position:58% top}
+}
