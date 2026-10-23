@@ -52,7 +52,7 @@ try{
       });
       return {body:rect('body'),card:rect('.pv-card'),hero:rect('img[src*="welcome-hero-horizontal"]'),
         title:rect('.pv-title'),text:rect('.pv-description'),columns:cols,
-        actionColumns:actions,button:rect('a[href="https://pvlab.studio/"]:last-child'),
+        actionColumns:actions,button:rect('.pv-action-col a[href="https://pvlab.studio/"]'),
         viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,
         imageCount:document.images.length};
     });
@@ -63,13 +63,19 @@ try{
     assert.ok(boxes.columns.length===2&&boxes.actionColumns.length===2);
     if(width>=1100){
       assert.ok(boxes.columns[1].x>boxes.columns[0].x+200,
-        'Desktop must show real side-by-side copy, not a phone poster: '+JSON.stringify(boxes.columns));
+        'Desktop must show an image alongside live title and copy: '+JSON.stringify(boxes.columns));
+      assert.ok(boxes.title.x>=boxes.hero.right-10,
+        'Desktop headline belongs next to the portrait, not under a full-width poster');
+      assert.ok(Math.abs(boxes.title.y-boxes.hero.y)<100,
+        'Desktop title must appear within the same editorial first screen as the image');
       assert.ok(Math.abs(boxes.actionColumns[1].y-boxes.actionColumns[0].y)<30,
         'Desktop actions must align horizontally');
     }
     if(width<=430){
       assert.ok(boxes.columns[1].y>=boxes.columns[0].bottom-1,
-        'Mobile title and body must stack: '+JSON.stringify(boxes.columns));
+        'Mobile image and copy must stack: '+JSON.stringify(boxes.columns));
+      assert.ok(boxes.title.y>=boxes.hero.bottom-1,
+        'On phones the headline follows the image, never beside a squeezed portrait');
       assert.ok(boxes.actionColumns[1].y>=boxes.actionColumns[0].bottom-1,
         'Mobile CTA and secondary link must stack');
     }
