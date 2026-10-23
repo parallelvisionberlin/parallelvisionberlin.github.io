@@ -106,3 +106,27 @@ body:has(#app.image-studio-active:not([hidden])) #lab-credit-banner:not([hidden]
   box-sizing:border-box!important;
   box-shadow:0 8px 24px rgba(0,0,0,.20)!important;
 }
+
+
+/* Unified zero-credit banner visuals across Homepage and Studio tools.
+   Preserve existing overlay anchors, eligibility, dismissal and pricing flow. */
+.lab-credit-banner{
+  min-height:52px!important;
+  box-sizing:border-box!important;
+  padding:10px 32px!important;
+  gap:12px!important;
+  font:400 13px/1.4 'DM Sans',Arial,sans-serif!important;
+}
+.lab-credit-banner .lab-credit-banner-icon{
+  width:24px!important;height:24px!important;
+  font-size:15px!important;
+}
+.lab-credit-banner p{font:inherit!important}
+.lab-credit-banner strong{font-weight:700!important;margin-right:6px!important}
+.lab-credit-banner #lab-credit-banner-dismiss{
+  width:30px!important;height:30px!important;min-height:30px!important;
+}
+@media(max-width:700px){
+ .lab-credit-banner{padding:10px 16px!important;gap:10px!important;min-height:52px!important}
+ .lab-credit-banner p{font-size:12px!important}
+}
