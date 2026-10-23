@@ -12,9 +12,9 @@ const headerGutterOnly=process.env.PV_HEADER_GUTTER_ONLY==='1';
 // Approved source before this fix, including the later locked Image and V28 Upscaler.
 const approvedRef='ac33d20c50bdd88e71547e96a70781efae4b5a11';
 const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
-// Owner-approved Fashion #494, including the final garment-caption spacing.
+// Owner-approved Fashion #494, including caption spacing and the Generate label.
 // Keep the independent Image/Video/Upscaler/Retouch baseline unchanged.
-const fashionApprovedRef='b0677e7ebd00dfbcca9dca297e90b58523ff7ad4';
+const fashionApprovedRef='a84f9ec2ead1c57288e91fec18cd7e06bb3bf2e1';
 const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
 const account=`
 const state=window.__publicAccount||=(()=>{
@@ -182,9 +182,16 @@ try{
         assert.equal(await page.locator('#scene-library-dialog').isVisible(),false,'Private Scene Library stays closed');
       }
       if(route==='upscale'){
+        assert.equal(await page.locator('#upscale-model-menu').isVisible(),true,'Guests can see the real model cards');
+        const originalEngine=await page.locator('#upscale-engine').inputValue();
         await page.locator('#upscale-model-trigger').click();
         await page.waitForFunction(()=>window.__publicAccount.signins.length===2);
-        assert.equal(await page.locator('#upscale-model-menu').isVisible(),false,'Model operations require an account');
+        await page.locator('#upscale-precision-trigger').click();
+        await page.waitForFunction(()=>window.__publicAccount.signins.length===3);
+        await page.locator('[data-upscale-engine="topaz-wonder"]').click();
+        await page.waitForFunction(()=>window.__publicAccount.signins.length===4);
+        assert.equal(await page.locator('#upscale-engine').inputValue(),originalEngine,'Public cards cannot silently change provider selection');
+        assert.equal(await page.locator('#upscale-precision-options').isVisible(),false,'Guest cannot open paid Precision settings');
       }
       assert.deepEqual(requests,[],'private controls cannot upload, quote or fetch files');
     }

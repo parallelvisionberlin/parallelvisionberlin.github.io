@@ -11,13 +11,18 @@ export function createStudioPublicPreview({app,gate,authorized,setTool,retouch,f
     // original action handler from running, including programmatic clicks.
     if(action.disabled)action.disabled=false;
     if(action.textContent!==caption)action.textContent=caption;
-    if($('upscale-model-trigger').disabled)$('upscale-model-trigger').disabled=false;
+    // Model cards are visual previews for guests, never free provider controls.
+    // Any model/version choice opens the real sign-in flow before the selection
+    // reaches the authenticated change handler.
+    for(const button of app.querySelectorAll('#upscale-model-menu [data-upscale-engine],#upscale-model-menu [data-upscale-quality]'))
+      if(button.disabled)button.disabled=false;
     if($('precision-generate').disabled)$('precision-generate').disabled=false;
   }
   const accountAction='#generate,#save,#upscale-check-price,#precision-generate,'+
     '#precision-review-confirm,#precision-select-approve,#precision-tool-magic,'+
     '#pack-open,#pack-save,#pack-select,#last-upload,#scene-video-open,'+
-    '#scene-image-open,#upscale-model-trigger,#video-model-trigger,input[type="file"]';
+    '#scene-image-open,#upscale-model-menu [data-upscale-engine],'+
+    '#upscale-model-menu [data-upscale-quality],#video-model-trigger,input[type="file"]';
   app.addEventListener('click',event=>{
     if(!active()||!event.target.closest(accountAction))return;
     event.preventDefault();event.stopImmediatePropagation();signIn();
