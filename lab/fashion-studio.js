@@ -4,7 +4,7 @@ import {createFashionStudio} from './fashion.js?v=20261010-gallery1&optionalFast
 export async function mountFashionStudio(host,options){
   const [htmlResponse,cssResponse]=await Promise.all([
     fetch('./fashion.html?v=20261010-gallery1'),
-    fetch('./fashion.css?v=20261023-proportions02&sourceContainment=20261023-3')
+    fetch('./fashion.css?v=20261023-explicit300&sourceContainment=20261023-4')
   ]);
   if(!htmlResponse.ok||!cssResponse.ok)throw new Error('Fashion could not load. Try again.');
   const [html,css]=await Promise.all([htmlResponse.text(),cssResponse.text()]);

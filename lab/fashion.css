@@ -293,6 +293,30 @@ select,textarea{border:1px solid #46464c;border-radius:8px;height:45px;min-heigh
   #content:before{background-size:auto 570px;background-position:58% top}
 }
 
+/* 2026-10-23 approved desktop screenshot: no tall upload cards.
+   Explicit pixel-based row height avoids cyclic percentage sizing in CSS grid. */
+@media(min-width:801px){
+ #content .fashion-workspace:not(:has(#result-image:not([hidden]))){
+  display:grid!important;
+  grid-template-rows:300px auto auto!important;
+  grid-template-columns:minmax(0,42%) minmax(0,1fr)!important;
+  align-items:start!important;
+ }
+ #content .fashion-workspace:not(:has(#result-image:not([hidden]))) .source-section,
+ #content .fashion-workspace:not(:has(#result-image:not([hidden]))) .image-pair,
+ #content .fashion-workspace:not(:has(#result-image:not([hidden]))) .image-slot{
+  height:300px!important;
+  min-height:0!important;
+  max-height:300px!important;
+  aspect-ratio:auto!important;
+ }
+ #content .fashion-workspace:not(:has(#result-image:not([hidden]))) .engine-section{
+  grid-column:1/-1!important;grid-row:2!important;margin:8px 0 0!important
+ }
+ #content .page-intro{padding-top:32px!important;padding-bottom:16px!important}
+ #content:before{background-size:auto 640px!important;background-position:right top!important}
+}
+
 /* Keep a real History result inside the approved row without altering the empty composition. */
 .fashion-workspace:has(#result-image:not([hidden])) .source-section{display:flex;flex-direction:column;min-height:0}
 .fashion-workspace:has(#result-image:not([hidden])) .image-pair{height:auto;flex:1;min-height:0}

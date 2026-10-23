@@ -3,7 +3,7 @@
 ## CI fixture maintenance, 2026-10-23 (review pending)
 - Objective: repair the seven inherited CI controls identified during PR #462 validation.
 - Separate branch: codex/pvlab-ci-maintenance-20261023; maintenance PR #482 is draft. PR #462 remains untouched and draft.
-- Verified main source: 30f91dacccb76b2c394f17fc0c83499bc9244207; normal merges preserve approved Fashion #481/#484/#485 and Retouch header #483.
+- Verified main source: 32a0b516e45041be52b30c84d9c195cabf263a39; normal merges preserve approved Fashion #481/#484/#485/#487 and Retouch header #483.
 - Main was incorporated again after the approved Fashion rollback (#480), public header/privacy repair and homepage focus stability (#478).
 - Product repair limited to loaded Fashion source/result containment; Worker, billing, prices, auth and configuration are unchanged.
 - Masthead: preserve the real Explore body attributes so page-scoped wordmark rules apply; retain twelve widths and guest checks.
@@ -27,7 +27,7 @@
 - Add verified-session headers, single-footer, decoded SVG wordmark, logout media cleanup and guest no-write assertions.
 - History exposed a real #481 CSS defect: loaded result height collapsed to 2px and sources overlapped Direction by 21px at 1440px.
 - Three loaded-state selectors give sources a bounded flex row and stretch the output panel; add a noncollapsed-height and no-overlap regression.
-- Cache-only propagation: fashion.css, fashion-studio.js, fashion.html, lab.js and studio.html (sourceContainment/fashionSourceContainment=20261023-3); no generation/provider/auth handler change.
+- Cache-only propagation: fashion.css, fashion-studio.js, fashion.html, lab.js and studio.html (sourceContainment/fashionSourceContainment=20261023-4); no generation/provider/auth handler change.
 - An automated pixel comparison with/without the three loaded-state selectors proves the current approved empty screenshot is byte-identical; loaded desktop and mobile captures inspected.
 - No test skipped, assertion removed, timeout increased, forced hidden click, or workflow gate disabled.
 - Local affected checks pass: Masthead, Landing (five sizes), Assets, Upscale Assets (two sizes), Seedance 19, References 22, mobile Mood, first-image and Fashion.

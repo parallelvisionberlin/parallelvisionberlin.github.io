@@ -243,7 +243,7 @@ try{
   assert.equal(desktop.dropdownBackground,'rgba(32, 33, 38, 0.867)','No white form fields remain.');
   assert.deepEqual(desktop.boxStyles,Array.from({length:3},()=>({radius:12,overflow:'hidden'})),
     'The actual Person, Garment and Result image boxes should have matching approved 12px rounded corners and clip media');
-  assert.ok(Math.abs(desktop.title.top-desktop.headerBottom-Math.min(50,Math.max(28,900*.04)))<=1,'Fashion intro follows the single shared Studio header.');
+  assert.ok(Math.abs(desktop.title.top-desktop.headerBottom-32)<=1,'Fashion intro follows the single shared Studio header.');
   assert.ok(Math.abs(desktop.preview.bottom-desktop.preview.top-(Math.min(310,Math.max(228,900*.26))-68))<=1,'Stored output fills the approved result row after its unchanged 31px header and 37px actions');
   assert.ok(desktop.preview.width>500,'Result window is large enough for examining details.');
   assert.ok(desktop.person.width>=250&&desktop.garment.width>=250,'Both drop zones are large.');
