@@ -1,5 +1,15 @@
 # PV LAB | One-time welcome email activation
 
+## Verified desktop/mobile editorial email release (2026-10-23)
+
+- Owner-selected photograph retained, recropped into an actual landscape image `lab/email/welcome-hero-horizontal.jpg`. Max-width 680px HTML message, live-text wordmark, three original photographic detail tiles, narrow-screen CSS, and a neutral exterior background. The current Gmail desktop screenshot's enormous black outer block and long phone-poster hero are replaced.
+- Primary **Enter the studio** button and linked photo still go to `https://pvlab.studio/`; **Explore Moods** goes to `https://pvlab.studio/moods`.
+- Media PR #457 merged to `main` at `3cbc3955ea6d9ec41a9a8b057549cfaae185e6cf`. GitHub Cloudflare Pages app check for that commit reported `completed / success`. The public delivery workflow run `39937944497` later passed and verified the new first-party hero and three detail images as actual JPEG bytes on `pvlab.studio`.
+- Template PR #456 merged at `1c13e4463c3b97f6c48adb24dbb12a607a2531f7`. Targeted static, transactional/one-time email tests and public-media checks passed. The broad Video integration browser suite separately failed on an unrelated hidden Upscaler control, with no corresponding Video source edits in this release.
+- Read-only GitHub API audit `39939359614` verified the **exact** merge-commit Cloudflare Worker deploy run `39939066107` finished `completed / success`. The asset Cloudflare Pages check was independently `success`; temporary audit PR #459 was closed, unmerged.
+- Existing Resend keys, sender, verified-primary-email check, deduplication, five-minute queue processing and first-account-only trigger were not changed. No promotional credit offers were introduced.
+- **Remaining real-inbox evidence:** no new verified signup account was created and no additional production email was sent as part of this visual revision. The production code and deploy succeeded; an actual Gmail/phone rendering check on the next newly registered eligible account is a separate confirmation.
+
 ## Implemented behavior
 
 Only successful new PV LAB account onboarding can queue an email, not every login, refresh, purchase, or legacy transfer. The email is sent to the verified primary address retrieved from Clerk through the existing backend contact synchronization, never from browser input.
