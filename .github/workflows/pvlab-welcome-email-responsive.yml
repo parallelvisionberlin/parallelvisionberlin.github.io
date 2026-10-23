@@ -1,0 +1,49 @@
+name: PV LAB welcome email responsive browser
+
+on:
+  pull_request:
+    paths:
+      - 'lab-worker/signup-welcome-email.mjs'
+      - 'tests/lab-signup-welcome-email.test.mjs'
+      - 'tests/lab-welcome-email-browser.mjs'
+      - 'lab/email/welcome-*.jpg'
+      - '.github/workflows/pvlab-welcome-email-responsive.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'lab-worker/signup-welcome-email.mjs'
+      - 'tests/lab-signup-welcome-email.test.mjs'
+      - 'tests/lab-welcome-email-browser.mjs'
+      - '.github/workflows/pvlab-welcome-email-responsive.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify live-template syntax and one-time email rules
+        run: |
+          node --check lab-worker/signup-welcome-email.mjs
+          node --test tests/lab-signup-welcome-email.test.mjs
+      - name: Install isolated browser
+        run: |
+          npm install --prefix /tmp/pvlab-welcome --no-audit --no-fund playwright@1.62.1
+          /tmp/pvlab-welcome/node_modules/.bin/playwright install --with-deps chromium
+      - name: Render desktop Gmail and phones
+        run: node tests/lab-welcome-email-browser.mjs
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pvlab-welcome/node_modules/playwright/index.mjs
+          PV_UI_ARTIFACTS: /tmp/pvlab-welcome-render
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pv-lab-welcome-email-desktop-mobile
+          path: /tmp/pvlab-welcome-render
+          retention-days: 3
