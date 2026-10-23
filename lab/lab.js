@@ -355,6 +355,8 @@ function prewarmSeedreamDeck(){
 }
 let upscaleQuote=null,upscaleQuoteNeedsCheck=false,upscaleQuoteTimer=null,upscalePriceMessage='',upscaleManualReviewRequired=false,upscaleManualReviewKey='';
 let upscaleEngine='seedvr2';
+// UI-only: collapsed Precision retains its selected engine and version.
+let upscalePrecisionExpanded=false;
 const UPSCALE_MODELS=Object.freeze({
   seedvr2:{name:'SeedVR2',provider:'ByteDance · fal.ai',model:'fal-ai/seedvr/upscale/image',pricing:'https://fal.ai/models/fal-ai/seedvr/upscale/image',price:'Provider estimate: $0.001 per output megapixel.',description:'Restore photographic detail in hair, skin and fabric. Choose 2× or 4× enlargement, up to 32 megapixels. Generative restoration can subtly alter details.'},
   spicy:{name:'Image Upscaler v1',provider:'SpicyAPI',model:'spicyapi/image-upscaler-v1/upscale',pricing:'https://spicyapi.ai/models/image-upscaler-v1',price:'Published price: $0.012 per image, the same for every size and file format.',description:'Enlarge one finished image, keeping its framing and aspect ratio. Size tiers are approximately 4, 17 and 67 megapixels. Choose a tier above your source size. No prompt, creativity or face controls.'},
@@ -693,9 +695,10 @@ function updateUpscaleModel(){
   for(const diagnostic of $('upscale-info').querySelectorAll('[data-upscale-owner-only]'))diagnostic.hidden=!ownerAccount;
   const active=tool==='upscale',fal=isFalUpscale(),model=UPSCALE_MODELS[upscaleEngine];$('upscale-model-control').hidden=true;$('upscale-model-display').hidden=!active;$('upscale-topaz-control').hidden=!active||upscaleEngine!=='topaz-precision';$('upscale-scale-control').hidden=!fal;$('mode-heading').parentElement.classList.toggle('upscale-mode',active);
   const picker=$('upscale-model-menu'),precisionSelected=active&&upscaleEngine==='topaz-precision';
+  const precisionOpen=precisionSelected&&upscalePrecisionExpanded;
   picker.hidden=!active;
-  $('upscale-precision-options').hidden=!precisionSelected;
-  $('upscale-precision-trigger').setAttribute('aria-expanded',String(precisionSelected));
+  $('upscale-precision-options').hidden=!precisionOpen;
+  $('upscale-precision-trigger').setAttribute('aria-expanded',String(precisionOpen));
   const shown=UPSCALE_MODEL_UI[upscaleEngine]||UPSCALE_MODEL_UI.seedvr2;
   $('upscale-engine').value=upscaleEngine;
   $('upscale-model-brand').textContent=shown.brand;
@@ -2721,6 +2724,14 @@ $('upscale-model-menu').addEventListener('click',event=>{
   if(!option||!$('upscale-model-menu').contains(option)||option.disabled||busy)return;
   const quality=option.dataset.upscaleQuality,value=quality?'topaz-precision':option.dataset.upscaleEngine;
   if(!UPSCALE_PUBLIC_ENGINES.includes(value)||quality&&!['Standard V2','High Fidelity V3'].includes(quality))return;
+  // A second click on the selected Precision card closes its versions without
+  // changing the engine, saved quality, quote, credits, or uploaded photo.
+  if(!quality&&value==='topaz-precision'&&upscaleEngine==='topaz-precision'){
+    upscalePrecisionExpanded=!upscalePrecisionExpanded;
+    updateUpscaleModel();
+    return;
+  }
+  if(!quality)upscalePrecisionExpanded=value==='topaz-precision';
   $('upscale-engine').value=value;
   $('upscale-engine').dispatchEvent(new Event('change',{bubbles:true}));
   if(quality&&$('upscale-topaz-model').value!==quality){
@@ -2744,6 +2755,7 @@ $('upscale-engine').onchange=()=>{
   if(!UPSCALE_PUBLIC_ENGINES.includes(value)){$('upscale-engine').value=upscaleEngine;return;}
   if(value===upscaleEngine){updateUpscaleModel();return;}
   upscaleEngine=value;
+  upscalePrecisionExpanded=value==='topaz-precision';
   clearUpscalePrice();
   // A new engine selection uses Precision's existing default; History restores its saved quality directly.
   if(value==='topaz-precision')$('upscale-topaz-model').value='Standard V2';
@@ -3395,6 +3407,7 @@ async function restore(job){
   clearMedia();const p=job.settings||{};engine=engineFor(p);imageReferenceMode=p.referenceMode==='references'?'references':'base';$('composer-exact-prompt').checked=p.exactPrompt===true;
   if(p.mode==='upscale'){
     upscaleEngine=UPSCALE_PUBLIC_ENGINES.includes(p.upscaleEngine)?p.upscaleEngine:'seedvr2';$('upscale-engine').value=upscaleEngine;
+    upscalePrecisionExpanded=upscaleEngine==='topaz-precision';
     $('upscale-scale').value=String(p.scale===4?4:2);
     $('upscale-topaz-model').value=p.topazModel==='High Fidelity V3'?'High Fidelity V3':'Standard V2';
   }else if(p.type==='image'){

@@ -1793,3 +1793,21 @@
   margin:0!important;
   padding:8px 10px!important;
 }
+
+/* Approved compact model polish. No new controls, no sidebar or photo changes. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-menu{
+  gap:7px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card{
+  grid-template-columns:38px minmax(0,1fr) 16px!important;
+  min-height:60px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card>.pv-upscale-model-art{
+  width:38px!important;height:38px!important;filter:brightness(1.06) contrast(1.03);
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card .pv-upscale-model-copy strong{
+  font-size:12.5px!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card .pv-upscale-model-copy small{
+  font-size:10.5px!important;
+}

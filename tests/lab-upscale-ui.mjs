@@ -171,7 +171,7 @@ try{
  for(const icon of artwork){
    assert.match(icon.url,new RegExp('upscaler-model-'+icon.name+'\\.webp'),'Correct approved model thumbnail is used');
    assert.equal(icon.decoded,true,icon.name+' model artwork decodes from the actual page');
-   assert.ok(icon.width>=35&&icon.width<=37,icon.name+' artwork retains the approved square size');
+   assert.ok(icon.width>=37.5&&icon.width<=38.5,icon.name+' artwork retains the approved 38px square size');
  }
  assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),false,'ByteDance default keeps versions collapsed');
  await selectModel(x.page,/Topaz Standard V2/);
@@ -405,6 +405,22 @@ try{
     await x.page.screenshot({path:'test-results/upscaler-photo-loaded-'+width+'-'+version+'.png',fullPage:true});
     ok('Loaded real photograph '+quality+' at '+width+'px: no overlap and no billable calls');
    }
+   // Same-row toggle closes and reopens the existing version selector on
+   // both mouse and touch without losing High Fidelity or making a paid call.
+   const precisionRow=x.page.locator('#upscale-precision-trigger');
+   assert.equal(await precisionRow.getAttribute('aria-checked'),'true');
+   const beforeToggleQuality=await x.page.locator('#upscale-topaz-model').inputValue();
+   if(width===390)await precisionRow.tap();else await precisionRow.click();
+   assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),false,'Second click collapses Precision at '+width+'px');
+   assert.equal(await precisionRow.getAttribute('aria-expanded'),'false');
+   assert.equal(await x.page.locator('#upscale-engine').inputValue(),'topaz-precision','Collapse preserves active model');
+   assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),beforeToggleQuality,'Collapse preserves selected quality');
+   if(width===390)await precisionRow.tap();else await precisionRow.click();
+   assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),true,'Click again expands Precision at '+width+'px');
+   assert.equal(await precisionRow.getAttribute('aria-expanded'),'true');
+   assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),beforeToggleQuality,'Reopen restores the selected quality');
+   assert.equal(quoteRequests(x).length,0,'Opening and closing never fetches a paid quote');
+   assert.equal(countPaid(x),0,'Opening and closing never submits generation');
    assert.deepEqual(x.errors,[]);
    await x.context.close();
   }
