@@ -99,11 +99,11 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       };
     });
     if(profile==='desktop'){
-      assert.ok(geometry.deck.right+7<=geometry.canvas.left,'Desktop controls sit to the left of the photographic stage');
+      assert.ok(Math.abs(geometry.deck.right-geometry.canvas.left)<=5,'Approved flush Upscaler sidebar meets the photographic stage without overlap');
       assert.ok(Math.abs(geometry.deck.top-geometry.canvas.top)<55,'Desktop studio panels share a top baseline');
       assert.ok(geometry.canvas.height>=540&&geometry.canvas.height<=821,'Desktop preview is a full photographic stage');
       assert.ok(geometry.results.top>=geometry.canvas.bottom,'Upscaled results follow the preview');
-      assert.ok(geometry.results.left>=geometry.canvas.left-5,'Results align with the image stage, not the sidebar');
+      assert.ok(geometry.results.right>geometry.canvas.left&&geometry.results.left>=geometry.deck.left,'Results remain beneath the working stage and within the editor');
       assert.equal(await page.locator('#upscale-info').isVisible(),false,'Hidden technical options do not enter the working layout');
       const galleryPeek=await page.evaluate(()=>{
         const archive=document.querySelector('#app>.archive').getBoundingClientRect();
@@ -114,7 +114,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
         return {archiveTop:archive.top,cardTop:card.top,previewHeight:preview.height,
           centerBottom:center.bottom,benefitsTop:benefits.top,viewportHeight:innerHeight};
       });
-      assert.ok(galleryPeek.archiveTop>galleryPeek.viewportHeight-70,'Approved fullscreen preview prioritizes the workspace');
+      assert.ok(galleryPeek.archiveTop>=galleryPeek.previewHeight-1,'Upscaled results follow the large photographic preview');
       assert.ok(galleryPeek.cardTop>galleryPeek.archiveTop,'The real result gallery remains below the editor');
       assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),false,'Approved fullscreen mockup hides extra feature icons');
       assert.ok(galleryPeek.previewHeight>=650&&galleryPeek.previewHeight<=850,'Approved full-screen photographic canvas height');
@@ -136,7 +136,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
         background:getComputedStyle(zone,'::before').backgroundImage};
     });
     assert.equal(dropGeometry.border,'none','Approved full-screen backdrop has a floating dashed upload card');
-    assert.ok(dropGeometry.background.includes('reptare-detail.webp'),'Existing PV LAB material image appears only as atmospheric background');
+    assert.ok(dropGeometry.background.includes('upscaler-chrome-wool-option-1.jpg'),'The original approved chrome-and-wool photograph remains the hero');
     assert.ok(dropGeometry.left>=geometry.canvas.left&&dropGeometry.right<=geometry.canvas.right+1,'Full-screen backdrop fills the preview');
     if(profile==='mobile'){
       assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),false,'Mobile emphasizes upload without cramped feature icons');
