@@ -1,5 +1,15 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Video wheel scrolling / 2026-10-23
+- User reports desktop Video only scrolls when the pointer is over generated results. Baseline `b99fec4d6714335bbcf95c5dd88ec365548d263c`.
+- Cause: desktop CSS locks body/main while History scrolls independently in the center. Outside scrollable panels, wheel input has nowhere to go.
+- Preserve the approved fixed three-column layout, dimensions, native form scrolling, Generate dock and mobile document scrolling.
+- `video-editorial-deck.js` routes otherwise-unused vertical wheel input from active desktop workspace/header to the existing center feed. Native settings/textareas keep priority. Zoom/horizontal gestures, dialogs, selects/ranges, Assets, Fashion, Retouch and other tools are excluded.
+- `studio.html` changes only this module cache key. Existing layout browser suite now tests real downward/upward wheel over dock, inspector, header and preview, plus native settings priority.
+- Seven Image/Video source tests and module syntax passed locally. Local Chromium download returned invalid archives; browser checks must pass in CI before publication.
+- No CSS, design, imagery, models, prices, credits, providers, purchase or authentication changes. No paid calls.
+- Next: verify browser behavior and Video regressions, merge, confirm Cloudflare and live module separately.
+
 ## Fashion legacy header routing, 2026-10-23
 - Owner screenshot image(20261023-125725).png shows /fashion with the old standalone masthead.
 - Verified lab/fashion.html has only Image, Video, Upscaler and Fashion; Retouch/Explore Moods are absent.

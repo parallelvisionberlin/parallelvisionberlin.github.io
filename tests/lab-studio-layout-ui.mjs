@@ -179,6 +179,40 @@ try{
   assert.equal(videoLayout.historyParent,'video-feed-center','Existing private History lives inside results feed');
   assert.ok(videoLayout.feedScroll>100,'Results feed scrolls independently of left creation panel');
   assert.equal(videoLayout.panelVisible,true,'Right video details panel is visible');
+  // Real wheel input must reach History from the fixed side panels as well as
+  // the center, without changing the approved three-column geometry.
+  await x.page.evaluate(()=>{
+    const filler=document.createElement('div');filler.id='video-wheel-test';
+    filler.style.cssText='height:1800px;flex:0 0 1800px';
+    document.getElementById('video-feed-center').append(filler);
+    document.querySelector('.controls-body').scrollTop=10000;
+  });
+  for(const selector of ['.generate-zone','#video-inspector','#studio-header','.stage']){
+    await x.page.evaluate(()=>document.getElementById('video-feed-center').scrollTop=0);
+    const box=await x.page.locator(selector).boundingBox();
+    await x.page.mouse.move(box.x+box.width/2,box.y+Math.min(24,box.height/2));
+    await x.page.mouse.wheel(0,350);
+    await x.page.waitForFunction(()=>document.getElementById('video-feed-center').scrollTop>100);
+    await x.page.mouse.wheel(0,-350);
+    await x.page.waitForFunction(()=>document.getElementById('video-feed-center').scrollTop<2);
+  }
+  await x.page.evaluate(()=>{
+    const filler=document.createElement('div');filler.id='video-controls-wheel-test';
+    filler.style.cssText='height:1800px;flex:0 0 1800px';
+    const controls=document.querySelector('.controls-body');controls.append(filler);controls.scrollTop=0;
+  });
+  const controlsBox=await x.page.locator('.controls-body').boundingBox();
+  await x.page.mouse.move(controlsBox.x+12,controlsBox.y+12);
+  await x.page.mouse.wheel(0,250);
+  await x.page.waitForFunction(()=>document.querySelector('.controls-body').scrollTop>100);
+  assert.equal(await x.page.locator('#video-feed-center').evaluate(el=>el.scrollTop),0,
+    'Scrollable settings retain native wheel priority over History');
+  await x.page.evaluate(()=>{
+    document.getElementById('video-wheel-test').remove();
+    document.getElementById('video-controls-wheel-test').remove();
+    document.querySelector('.controls-body').scrollTop=0;
+  });
+  console.log('PASS Video wheel reaches History from side panels, header and preview; settings keep native scrolling');
   await x.page.screenshot({path:'test-results/lab-video-feed-desktop.png',fullPage:false});
 
   // The old Live Queue was a full-width slab *below* Video, introducing unwanted
