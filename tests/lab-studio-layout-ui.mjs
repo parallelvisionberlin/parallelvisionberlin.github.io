@@ -187,7 +187,7 @@ try{
     document.getElementById('video-feed-center').append(filler);
     document.querySelector('.controls-body').scrollTop=10000;
   });
-  for(const selector of ['.generate-zone','#video-inspector','#studio-header','.stage']){
+  for(const selector of ['.controls>.generate-zone','#video-inspector','#studio-header','.stage']){
     await x.page.evaluate(()=>document.getElementById('video-feed-center').scrollTop=0);
     const box=await x.page.locator(selector).boundingBox();
     await x.page.mouse.move(box.x+box.width/2,box.y+Math.min(24,box.height/2));
