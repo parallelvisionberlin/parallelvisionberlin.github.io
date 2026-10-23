@@ -1,3 +1,4 @@
+import {prepareDreamBlurBasePrompt} from './dream-blur-base.js?v=20261024v1';
 import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10';
 import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
@@ -338,6 +339,14 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Krea 3, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
+  // Maximum optical reinterpretation is isolated to an actual Base photograph.
+  // All lower strengths and text/References Only recipes remain unchanged.
+  if(mood.id==='dream-blur'&&intensity===100&&referenceCount>0&&referenceMode!=='references'){
+    const prompt=prepareDreamBlurBasePrompt(original,{engine});
+    const budget=engine==='seedreamlite'?3000:5000,over=prompt.length-budget;
+    return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original},
+      error:over>0?'Your direction and this Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':''};
+  }
   // Fisheye 2000 uses the owner's original Y2K flash/fisheye brief and the
   // two photographic Style sources. Never replace an uploaded Base with the
   // brief's example models, wardrobe or Tokyo location.
