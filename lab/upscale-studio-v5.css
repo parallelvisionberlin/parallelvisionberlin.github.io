@@ -1755,6 +1755,10 @@
     box-sizing:border-box!important;
     position:relative!important;
     top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+    justify-content:flex-start!important;
+    align-items:stretch!important;
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
     width:calc(100% - 68px)!important;
     min-height:0!important;height:auto!important;
     flex:0 0 auto!important;
