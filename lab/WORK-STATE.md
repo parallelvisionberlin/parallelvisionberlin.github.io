@@ -1,5 +1,28 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Approved Fashion integration — release blocked, 2026-10-23
+- Owner approved visual source: `5d28fed8`. Integrated its exact Fashion template, CSS, mount and photographs in the same worktree.
+- Clean release branch: `codex/fashion-approved-release`, based on current main `59f61562c02633902564c59166135496be025e36`.
+- Only additional aesthetic change: garment helper caption has 6px horizontal padding and a slightly smaller responsive font; the 320px font is preserved. All other approved CSS is identical after removing these two caption declarations.
+- Hero and garment WebP bytes match approved source exactly. Fashion HTML/mount differ from approval only in cache markers.
+- Existing models, defaults, uploads, quote/confirmation, generation, private History, backend, credit and pricing code remain unchanged.
+- `lab/lab.js` and `lab/studio.html` have only Fashion cache-marker substitutions, checked against base main after normalizing those markers. Shared header markup/styles and Image, Video, Upscaler and Retouch are unchanged.
+- Version chain: `20261023-fashion-approved1` in Studio entry, Fashion module import, template and CSS fetches. Needed for existing browsers to load the reviewed component after release.
+- New approved-layout browser suite is added to the existing Fashion CI workflow without deleting, bypassing or weakening any existing check.
+- PASS: actual Studio/Fashion bootstrap with synthetic owner, customer and guest, seven viewports including 1672x900 and 390x844; real chooser and drag/drop, local upload previews, all three models, required FLUX prompt, resolution/quality payload, bound price, no submit before confirmation, exactly one submit, output/download and History.
+- PASS: 5 approved Image UI contracts and 12 Fashion model/provider/price/balance safeguards (17/17 total).
+- PASS: Image prompt paste/scroll/Generate stability at four viewports; shared Studio desktop/mobile layout, direct Fashion entry, Video modes and Elements.
+- PASS: real local preview captures after loader/fonts/image decoding at 1672x900 and 390x844, no JavaScript errors or horizontal overflow; inspected the garment caption spacing.
+- Release screenshots: uncommitted `test-results/fashion-release-1672x900.png` and `fashion-release-390x844.png`; logs are uncommitted `test-results/release-*.log`.
+- BLOCK: `lab-first-image-instant-browser.mjs`, backdrop parity at 1920px, max channel delta 234 / mean 32.85790798611111. Exact same failure independently reproduced using unmodified main bytes.
+- BLOCK: legacy `lab-fashion-ui.mjs` cannot initialize its injected standalone mock session after the existing Fashion-to-Studio redirect; `htmlLoaded:false`, 15000ms timeout. Same failure on unmodified main.
+- BLOCK: `lab-public-studio-ui.mjs` at 1440px expects matching Sign in right inset; Fashion reports 46px versus Image 31px. Same failure on unmodified main, whose existing Fashion scrollbar-gutter rule is preserved.
+- Baselines use Git-served main bytes via an uncommitted test loader, Node 22.16.0 and the same Chromium; they do not create or change a second implementation. Original assertions remain unchanged.
+- Approved suite's Quality field tolerance includes the existing 15px Windows scrollbar gutter on main; the user-approved CSS field ratios are unchanged.
+- Decision: do not merge or publish while these checks fail. This task does not alter the protected Image/header design to hide baseline failures.
+- Local preview: `http://127.0.0.1:8888/lab/studio.html?tool=fashion`. Production target remains `https://pvlab.studio/studio?tool=fashion`, not deployed by this branch.
+- Next action: review the PR and resolve the documented existing CI failures before release. No paid Fashion request, production change or deployment was initiated.
+
 ## Homepage Mood Creator section background only, 2026-10-23
 - Owner reference: image(20261023-174301).png, libfile_eefbf7cf35e48191abbcc1764fae3931.
 - Change only the homepage `.mc-home.mc-home--collection` background from #080F0D to #09090B, slightly darker than Explore Moods #0D0D0F.

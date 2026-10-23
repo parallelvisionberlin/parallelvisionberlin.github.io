@@ -17,7 +17,7 @@ location.replace(fashionStudioUrl.href);
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./fashion.css?v=20261023-layout-only1">
+<link rel="stylesheet" href="./fashion.css?v=20261023-fashion-approved1">
 <script type="module" src="./fashion.js?v=20261011-no-emoji1&studioAuth=20261015-1&optionalFastReady=20261015-1"></script>
 <link rel="stylesheet" href="/lab/site-footer.css?v=20261023-focused-tools1">
 </head>
@@ -34,6 +34,7 @@ location.replace(fashionStudioUrl.href);
  <a class="back-studio" href="./studio.html?tool=image">Enter studio </a>
 </header>
 <main id="content">
+ <div class="fashion-backdrop" aria-hidden="true"><img src="./visuals/fashion-replace/hero.webp" alt="" width="1672" height="941" fetchpriority="high" decoding="async"></div>
  <section class="page-intro" aria-labelledby="fashion-title">
   <div class="intro-copy">
    <p class="eyebrow">PV LAB <span aria-hidden="true">/</span> FASHION STUDIO</p>
@@ -58,11 +59,8 @@ location.replace(fashionStudioUrl.href);
       <span class="slot-number" aria-hidden="true">01</span>
       <img id="person-preview" alt="Person photograph preview" hidden>
       <span class="slot-invite" id="person-hint">
-       <svg class="empty-art empty-art-person" viewBox="0 0 96 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-        <path d="M48 16.5c-10.8 0-18.5 9.4-18.5 21.1S37.2 59 48 59s18.5-9.7 18.5-21.4S58.8 16.5 48 16.5Z"/>
-        <path d="M37 56.5v8c0 3.3-2.1 5.6-6.3 6.9l-8.1 3.2C12.2 79 9 88 9 100h78c0-12-3.2-21-13.6-25.4l-8.1-3.2c-4.2-1.3-6.3-3.6-6.3-6.9v-8"/>
-        <path d="m31 71 17 20 17-20"/>
-       </svg>
+       <img class="slot-example person-example" src="./visuals/fashion-replace/hero.webp" alt="" width="1672" height="941" decoding="async">
+       <span class="slot-plus" aria-hidden="true"></span>
        <strong>Add person</strong><small>Portrait or full-body photo</small>
       </span>
       <span class="slot-caption">PERSON </span>
@@ -72,11 +70,8 @@ location.replace(fashionStudioUrl.href);
       <span class="slot-number" aria-hidden="true">02</span>
       <img id="garment-preview" alt="Garment reference preview" hidden>
       <span class="slot-invite" id="garment-hint">
-       <svg class="empty-art empty-art-garment" viewBox="0 0 96 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-        <path d="m35 17-16 9-10 33 13 5 5-19 1 54h40l1-54 5 19 13-5-10-33-16-9-8 12H43Z"/>
-        <path d="m35 17 8 12 5 27 5-27 8-12M48 56v43"/>
-        <path d="M32 72h9m14 0h9"/>
-       </svg>
+       <img class="slot-example garment-example" src="./visuals/fashion-replace/garment.webp" alt="" width="1122" height="1402" decoding="async">
+       <span class="slot-plus" aria-hidden="true"></span>
        <strong>Add garment</strong><small>Flat garment or outfit reference</small>
       </span>
       <span class="slot-caption">GARMENT </span>
@@ -117,18 +112,21 @@ location.replace(fashionStudioUrl.href);
        <button class="action-primary" id="confirm" type="button">Confirm generation </button>
       </div>
       <button class="action-primary" id="quote" type="submit" disabled>Review price </button>
-      <p id="action-hint" class="action-hint">Add a person and garment.</p>
      </div>
     </div>
+    <details class="fashion-details">
+     <summary aria-label="Model information and API status" title="Model information and API status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="10" cy="18" r="2"/></svg></summary>
     <div class="engine-footer">
+     <p id="action-hint" class="action-hint">Add a person and garment.</p>
      <div class="api-status-strip" aria-label="FASHN API connection">
       <span class="api-name">FASHN API</span><span id="fashn-api-state" role="status" aria-live="polite">Sign in to check credits</span>
       <button type="button" id="check-fashn" disabled aria-label="Refresh FASHN API credit balance">↻</button>
      </div>
      <p id="model-description" class="model-description"></p>
      <p id="model-note" class="model-note"></p>
-     <p id="status" class="status" role="status" aria-live="polite"></p>
     </div>
+    </details>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
    </section>
   </form>
   <aside class="result-panel" aria-label="Generation result">
