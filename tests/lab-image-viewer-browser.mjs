@@ -316,7 +316,15 @@ try{
     assert.equal(await page.locator('#video-job-stage').isVisible(),false,'Loaded video replaces the processing card');
     assert.equal(await page.locator('#video').isVisible(),true,'A real video remains visible on desktop and phone');
     await page.evaluate(()=>window.__viewerTest.emptyVideo());
-    await page.waitForFunction(()=>document.querySelector('#pv-video-reference-preview')?.dataset.illustrative==='true');
+    await page.waitForFunction(()=>{
+      const app=document.querySelector('#app'),preview=document.querySelector('#pv-video-reference-preview');
+      return app.classList.contains('pv-video-mode-reference')&&!app.classList.contains('pv-video-has-input')&&
+        !document.querySelector('#empty').hidden&&preview?.hidden&&preview.dataset.illustrative==='false';
+    });
+    assert.equal(await page.locator('#pv-video-reference-preview img').count(),0,
+      'An empty Video canvas never invents attached reference thumbnails');
+    assert.match(await page.locator('.canvas').evaluate(el=>getComputedStyle(el,'::before').backgroundImage),
+      /video-android-trio-original\.png/,'The approved original is empty-canvas decoration only');
     assert.equal(await page.locator('#video-feed-center>.stage').isVisible(),width>820,
       'The decorative empty stage remains on desktop and disappears only on phones');
     if(shape==='landscape')await page.screenshot({path:`test-results/video-mobile-quiet-${width}.png`,fullPage:false});

@@ -20,6 +20,7 @@ jobs:
         run: |
           git fetch --depth=1 origin ac33d20c50bdd88e71547e96a70781efae4b5a11
           git fetch --depth=1 origin a84f9ec2ead1c57288e91fec18cd7e06bb3bf2e1
+          git fetch --depth=1 origin c3f1a73e7d66e95f917d905ab197cfd194b6da95
       - name: Approved Image contract
         run: node --test tests/lab-approved-image-ui-contract.test.mjs
       - name: Install pinned browser runtime

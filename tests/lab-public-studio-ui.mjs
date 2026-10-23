@@ -16,6 +16,10 @@ const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-im
 // Keep the independent Image/Video/Upscaler/Retouch baseline unchanged.
 const fashionApprovedRef='a84f9ec2ead1c57288e91fec18cd7e06bb3bf2e1';
 const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
+// The owner approved a new Video-only design in #496. Freeze that implemented
+// reference while retaining the original pixel baselines for every other tool.
+const approvedVideoRef='c3f1a73e7d66e95f917d905ab197cfd194b6da95';
+const approvedVideoFiles=new Map(['lab/lab.js','lab/studio.html','lab/video-compact-studio.css','lab/video-editorial-deck.js','lab/video-scene-states.js'].map(path=>[path,execFileSync('git',['show',approvedVideoRef+':'+path])]));
 const account=`
 const state=window.__publicAccount||=(()=>{
   const listeners=[];
@@ -41,6 +45,7 @@ const server=http.createServer((req,res)=>{
   res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.avif':'image/avif'})[extname(path)]||'application/octet-stream');
   res.end(pathname==='/lab/native-account.js'?account:
     req.headers['x-pv-approved-fashion']==='1'&&fashionApprovedFiles.has(requestedPath.slice(1))?fashionApprovedFiles.get(requestedPath.slice(1)):
+    req.headers['x-pv-approved-video']==='1'&&approvedVideoFiles.has(requestedPath.slice(1))?approvedVideoFiles.get(requestedPath.slice(1)):
     req.headers['x-pv-approved-baseline']==='1'&&approvedFiles.has(requestedPath.slice(1))?approvedFiles.get(requestedPath.slice(1)):readFileSync(path));
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
@@ -128,7 +133,7 @@ try{
       assert.deepEqual(requests,[],'guests must make no private API requests');
       // Compare the actual editorial regions with the approved implementation
       // recovered from Git, independently booted through its original auth path.
-      const baseline=await browser.newContext({viewport:{width,height:950},isMobile:width<700,hasTouch:width<700,reducedMotion:'reduce',extraHTTPHeaders:{'x-pv-approved-baseline':'1',...(route==='fashion'?{'x-pv-approved-fashion':'1'}:{})}});
+      const baseline=await browser.newContext({viewport:{width,height:950},isMobile:width<700,hasTouch:width<700,reducedMotion:'reduce',extraHTTPHeaders:route==='video'?{'x-pv-approved-video':'1'}:{'x-pv-approved-baseline':'1',...(route==='fashion'?{'x-pv-approved-fashion':'1'}:{})}});
       if(route!=='image'&&route!=='fashion')await baseline.addInitScript(()=>{window.__publicInitialRole='owner';});
       const reference=await baseline.newPage();
       await baseline.route('https://**/*',async intercepted=>{
@@ -146,12 +151,12 @@ try{
         // Both approved modes are independent of PR #443's fresh Start default.
         await page.locator('#mode-start').click();await reference.locator('#mode-start').click();
         if(width>=700){
-          const actual=await capture(page,'.pv-video-start-editorial',`test-results/visual-video-start-${width}-actual.png`);
-          const expected=await capture(reference,'.pv-video-start-editorial',`test-results/visual-video-start-${width}-approved.png`);
-          compareVisual(actual,expected,'Approved Video Start frame photograph');
+          const actual=await capture(page,'.canvas',`test-results/visual-video-start-${width}-actual.png`);
+          const expected=await capture(reference,'.canvas',`test-results/visual-video-start-${width}-approved.png`);
+          compareVisual(actual,expected,'Approved original subway Video Start canvas');
         }else{
-          assert.equal(await page.locator('.pv-video-start-editorial').isVisible(),false,'Approved compact phone Video omits the empty stage');
-          assert.equal(await reference.locator('.pv-video-start-editorial').isVisible(),false);
+          assert.equal(await page.locator('#pv-video-start-visual').isVisible(),false,'Approved compact phone Video omits the empty stage');
+          assert.equal(await reference.locator('#pv-video-start-visual').isVisible(),false);
         }
         await page.locator('#mode-reference').click();await reference.locator('#mode-reference').click();
       }
@@ -161,7 +166,7 @@ try{
           assert.equal(await inspected.locator('#fashion-studio .slot-example').count(),2,'Both approved upload photographs remain');
         }
       }
-      const regions={image:['#gate'],video:width>=700?['#video-model-control','#pv-video-reference-preview']:['#video-model-control','#video-modes','#reference-drop','#prompt'],upscale:['.pv-upscale-workspace-intro','#pv-upscale-dropzone'],retouch:['.precision-board'],fashion:['#fashion-studio .page-intro','#fashion-studio .image-pair','#fashion-studio .engine-section']};
+      const regions={image:['#gate'],video:width>=700?['#video-model-control','.canvas']:['#video-model-control','#video-modes','#reference-drop','#prompt'],upscale:['.pv-upscale-workspace-intro','#pv-upscale-dropzone'],retouch:['.precision-board'],fashion:['#fashion-studio .page-intro','#fashion-studio .image-pair','#fashion-studio .engine-section']};
       for(const [index,selector] of regions[route].entries()){
         const actual=await capture(page,selector,`test-results/visual-${route}-${width}-${index}-actual.png`);
         const expected=await capture(reference,selector,`test-results/visual-${route}-${width}-${index}-approved.png`);

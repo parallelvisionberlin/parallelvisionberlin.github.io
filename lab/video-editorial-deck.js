@@ -71,24 +71,20 @@ function installVideoEditorialDeck(){
   function refreshCollage(enabled){
     const thumbnails=enabled?Array.from(referenceList.querySelectorAll('.reference-item>img'))
       .slice(0,3).map(img=>img.currentSrc||img.src).filter(Boolean):[];
-    // One approved Fashion After Fabric still creates the atmosphere.
-    // Actual uploads replace it immediately; do not invent a fake reference set.
-    const examples=['./visuals/invite-after-fabric-user-approved-20261014.webp'];
-    const showingExample=enabled&&!thumbnails.length;
-    const visuals=showingExample?examples:thumbnails;
-    const nextKey=(showingExample?'examples:':'photos:')+visuals.join('|');
+    // Only actual attachments belong in this preview. Empty-canvas artwork is
+    // a separate presentation background and never enters reference or History data.
+    const visuals=thumbnails;
+    const nextKey='photos:'+visuals.join('|');
     collage.hidden=!visuals.length;
-    collage.dataset.illustrative=String(showingExample);
-    collage.setAttribute('aria-label',showingExample
-      ? 'PV LAB Fashion After Fabric editorial image, not a video or uploaded reference'
-      : 'Your attached reference images, not a generated video');
+    collage.dataset.illustrative='false';
+    collage.setAttribute('aria-label','Your attached reference images, not a generated video');
     if(nextKey===lastVisualKey)return;
     lastVisualKey=nextKey;
     const fragment=doc.createDocumentFragment();
     visuals.forEach((src,i)=>{
       const image=doc.createElement('img');
       image.src=src;
-      image.loading=showingExample?'eager':'lazy';
+      image.loading='lazy';
       image.decoding='async';
       image.alt='';
       image.setAttribute('aria-hidden','true');

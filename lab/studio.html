@@ -198,9 +198,10 @@ document.addEventListener('click',event=>{
 <link rel="stylesheet" href="./video-approved-design.css?v=20261022-white-generate1">
 <link rel="stylesheet" href="./mobile-library-polish.css?v=20261017-mobile-two-row1">
 <link rel="stylesheet" href="./video-scene-states.css?v=20261017-frame-coherence2">
-<script type="module" src="./video-editorial-deck.js?v=20261023-wheel-history1"></script>
-<script type="module" src="./video-scene-states.js?v=20261018-compact-flow1"></script>
+<script type="module" src="./video-editorial-deck.js?v=20261023-wheel-history1&compact=20261023-approved1"></script>
+<script type="module" src="./video-scene-states.js?v=20261018-compact-flow1&compact=20261023-approved1"></script>
 <link rel="stylesheet" href="./video-restored-editorial.css?v=20261022-mobile-slim1&whiteGenerate=20261022-1">
+<link rel="stylesheet" href="./video-compact-studio.css?v=20261023-approved1">
 <link rel="stylesheet" href="./mobile-image-compact-welcome.css?v=20261019-shared-history2">
 <link rel="stylesheet" href="./image-deck-surface.css?v=20261022-compact-controls1&generatePearl=20261023-neutral1">
 </head>
@@ -1045,8 +1046,8 @@ document.addEventListener('click',event=>{
     </div>
   </div>
 </section>
-  <div id="pv-video-start-visual" class="pv-video-scene-visual pv-video-start-visual" hidden aria-label="PV LAB Fashion After Fabric editorial atmosphere">
-    <div class="pv-video-start-editorial" role="img" aria-label="Dark photographic PV LAB fashion editorial with sculptural black fabric"></div>
+  <div id="pv-video-start-visual" class="pv-video-scene-visual pv-video-start-visual" hidden aria-label="Add your first frame">
+    <span class="pv-video-add-frame" aria-hidden="true">+</span>
   </div>
   <div id="pv-video-text-visual" class="pv-video-scene-visual pv-video-text-visual" hidden aria-label="Illustrative text to video concept">
     <img class="pv-text-preview-a" src="./mood-previews/berlin-rave-grid-20261015.webp" alt="" loading="lazy">
@@ -1060,6 +1061,7 @@ document.addEventListener('click',event=>{
    <div class="empty-actions">
     <button id="canvas-import" type="button" class="canvas-import">Choose start frame </button>
     <button id="canvas-secondary" type="button" class="canvas-secondary">Create an image first </button>
+    <button id="pv-video-browse-library" type="button" class="canvas-secondary" hidden>Browse scene library</button>
   </div>
   <span class="upscale-drop-hint">OR DROP A PNG, JPG OR WEBP · MAX 20 MB</span>
   <p class="pv-upscale-example-note">Illustrative PV LAB photograph. No upscale has been generated.</p>
@@ -1080,7 +1082,7 @@ document.addEventListener('click',event=>{
   <div class="video-inspector-heading"><span>Scene details</span><span id="video-detail-status" class="video-detail-status">Ready</span></div>
   <div id="video-inspector-empty" class="video-inspector-empty pv-video-create-inspector">
   <span class="pv-video-sidebar-kicker">CURRENT SCENE</span>
-  <strong id="pv-video-current-model" class="pv-video-current-model">Video model</strong>
+  <button id="pv-video-scene-model" class="pv-video-scene-model" type="button" aria-label="Change current scene video model"><img src="./visuals/leather-editorial/hero-desktop.webp" alt="" width="58" height="58" loading="lazy"><span class="pv-video-scene-model-copy"><strong id="pv-video-current-model" class="pv-video-current-model">Video model</strong><small id="pv-video-current-model-description"></small></span><span aria-hidden="true">›</span></button>
   <section class="pv-video-sidebar-section">
     <h3>Prompt</h3>
     <p id="pv-video-current-prompt">Describe the movement, camera and sound to begin.</p>

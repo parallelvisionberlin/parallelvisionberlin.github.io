@@ -11,7 +11,7 @@ const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).hr
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");assert.ok(boot>0);
 const testSource=source.slice(0,boot)+source.slice(source.indexOf("\n// Soul composer:",boot))+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock};`;
-const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
+const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg'})[extname(path)]||'application/octet-stream');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4183,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
 const ORIGIN='http://127.0.0.1:4183',API='https://parallel-vision-lab.parallelvision.workers.dev';
@@ -67,6 +67,68 @@ const sound=Buffer.alloc(44+8000*3*2);sound.write('RIFF');sound.writeUInt32LE(so
 const choose=async(x,mode='start')=>{await x.page.click('#tool-video');await x.page.selectOption('#video-engine','seedance');await x.page.click('#mode-'+mode);await x.page.fill('#prompt','A ceramic sculpture under soft daylight. The camera moves slowly.');};
 const still=async(x,id='image')=>{await x.page.locator('#'+id).setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);};
 try{
+ for(const [width,height] of [[1440,900],[1440,600],[390,844],[320,730]]){
+  const preview=await workspace({width});
+  await preview.page.setViewportSize({width,height});
+  await choose(preview,'reference');
+  await preview.page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-video-compact'));
+  const art=()=>preview.page.locator('.canvas').evaluate(el=>({
+   image:getComputedStyle(el,'::before').backgroundImage,
+   visible:getComputedStyle(el,'::before').display,
+   attached:document.getElementById('app').classList.contains('pv-video-has-input')
+  }));
+  assert.match((await art()).image,/video-android-trio-original\.png/);
+  assert.equal(await preview.page.locator('#pv-video-reference-preview img').count(),0,
+   'Decorative artwork never becomes a reference or History item');
+  assert.equal(await preview.page.locator('#history .card').count(),0);
+  assert.equal(await preview.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await preview.page.click('#pv-video-output-toggle');
+  assert.equal(await preview.page.locator('#duration-control').isVisible(),false,'Output disclosure still collapses the real settings');
+  await preview.page.click('#pv-video-output-toggle');
+  assert.equal(await preview.page.locator('#duration-control').isVisible(),true);
+  // Finish the native settings scroll before opening the picker; its existing
+  // scroll-dismiss behavior must remain intact at short desktop heights.
+  await preview.page.locator('#video-model-control').scrollIntoViewIfNeeded();
+  await preview.page.waitForTimeout(100);
+  await preview.page.click('#video-model-trigger');
+  await preview.page.locator('.pv-video-model-item[data-model="wan"]').click();
+  assert.equal(await preview.page.locator('#video-engine').inputValue(),'wan');
+  await preview.page.click('#video-model-trigger');
+  await preview.page.locator('.pv-video-model-item[data-model="seedance"]').click();
+  assert.equal(await preview.page.locator('#video-engine').inputValue(),'seedance');
+  await preview.page.fill('#prompt','');
+  await preview.page.evaluate(()=>Promise.all([...document.querySelectorAll('#studio-header img')].map(img=>img.decode())));
+  assert.equal(await preview.page.locator('#pv-video-browse-library').isVisible(),width>=821,'Decorative mobile stage retains the existing responsive visibility policy');
+  await preview.page.screenshot({path:`test-results/video-approved-${width}-${height}.png`,fullPage:width<821});
+  await preview.page.click('#mode-start');
+  await still(preview);
+  await preview.page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-video-has-input'));
+  assert.equal((await art()).visible,'none','Real first frame removes the background');
+  await still(preview,'last-image');
+  assert.equal(await preview.page.locator('#video-end-thumb').isVisible(),true);
+  await preview.page.click('#mode-reference');
+  await still(preview,'reference-images');
+  await preview.page.waitForFunction(()=>document.querySelector('#reference-list .reference-item')&&document.getElementById('app').classList.contains('pv-video-has-input'));
+  assert.equal((await art()).visible,'none','Real references remove the background');
+  assert.equal(await preview.page.locator('#pv-video-reference-preview').getAttribute('data-illustrative'),'false');
+  await preview.page.click('#mode-extend');
+  await preview.page.locator('#video-references').setInputFiles({name:'original-motion.mp4',mimeType:'video/mp4',buffer:motion});
+  await preview.page.waitForFunction(()=>document.querySelector('#video-reference-list').children.length===1);
+  await preview.page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-video-has-input'));
+  assert.equal((await art()).visible,'none','Real Extend clips remove decoration');
+  await preview.page.screenshot({path:`test-results/video-approved-extend-${width}-${height}.png`,fullPage:width<821});
+  await preview.page.click('#video-create-task');
+  await preview.page.click('#mode-text');
+  await preview.page.fill('#prompt','One slow camera movement through a concrete station.');
+  assert.equal(await preview.page.locator('#generate').isEnabled(),true);
+  await preview.page.locator('#generate').scrollIntoViewIfNeeded();
+  const button=await preview.page.locator('#generate').boundingBox();
+  assert.ok(button.y>=0&&button.y+button.height<=height,'Generate stays reachable in the viewport');
+  assert.equal(count(preview,'/api/jobs'),0,'Preparing every mode never submits a job');
+  assert.deepEqual(preview.errors,[]);
+  ok(`Approved original artwork, real uploads and all modes at ${width}x${height}`);
+  await preview.context.close();
+ }
  let x=await workspace();await choose(x);
  assert.equal(await x.page.locator('#resolution').inputValue(),'720p');assert.equal(await x.page.locator('#duration').inputValue(),'5');assert.equal(await x.page.locator('#ratio').isVisible(),false);await still(x);await still(x,'last-image');
  await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(count(x,'/api/jobs'),0);assert.match(await x.page.locator('#quote-settings').innerText(),/Seedance 2.5/);
@@ -94,7 +156,14 @@ try{
  for(const width of [390,1728]){
   x=await workspace({width});await choose(x,'reference');await still(x,'reference-images');await x.page.locator('#video-references').setInputFiles({name:'motion.mp4',mimeType:'video/mp4',buffer:motion});await ready(x.page);
   assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));mkdirSync('test-results',{recursive:true});await x.page.screenshot({path:'test-results/seedance-standard-'+width+'.png',fullPage:true});assert.deepEqual(x.errors,[]);ok('Seedance responsive reference workspace at '+width+'px');
-  await x.page.evaluate(()=>window.__labTest.lock());assert.equal(await x.page.locator('#app').isVisible(),false);assert.equal(await x.page.locator('#video-reference-list').locator('video').count(),0);ok('Sign-out clears reference media from browser');await x.context.close();
+  await x.page.evaluate(()=>window.__labTest.lock());
+  await x.page.waitForFunction(()=>document.getElementById('app').dataset.guestPreview==='video');
+  assert.equal(await x.page.locator('#history .card').count(),0,'Public preview contains no private History');
+  assert.equal(await x.page.locator('#reference-list .reference-item').count(),0);
+  assert.equal(await x.page.locator('#video-reference-list').locator('video').count(),0);
+  assert.equal(await x.page.locator('#prompt').inputValue(),'');
+  assert.equal(await x.page.locator('#image').evaluate(el=>el.files.length),0);
+  ok('Sign-out returns to public Video preview and clears private History, input and reference media');await x.context.close();
  }
 
   const completedVideo={id:id(80),outputId:id(82),sourceId:null,status:'completed',createdAt:Date.now(),
