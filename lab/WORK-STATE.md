@@ -263,5 +263,7 @@ Implementation branch: fix/flash-spicyapi-20261014.
 - No CSS, design, imagery, models, prices, credits, providers, purchase or authentication changes. No paid calls.
 - Baseline before-module reproduction confirmed: wheel over the fixed dock leaves History at scrollTop=0; the corrected module scrolls it in the same browser fixture. Full layout checks retain editor/Generate geometry, Video modes at 768/820px heights, Image, Fashion boot, mobile and Elements.
 - CI first attempt stopped at the existing obsolete module-cache assertion; updated it to the new cache key. Final CI remains queued over ten minutes and is not counted as passed. All corresponding local checks passed; no CI workflow or gate was removed, changed or disabled.
-- Integrate the locally verified correction under the unprotected existing PR workflow; verify exact Cloudflare production deployment and live JS/HTML separately. No real signed-in production interaction or paid generation is claimed.
+- PR #473 merged as `c55e828d8d6af1514a3833ffc282930c5ffd1bae`. Cloudflare Pages pvlab-studio deployment `df62adfe-1231-44bd-ab16-2f5032294de0` succeeded for that exact SHA.
+- Confirmed production HTML and browser DOM on `/studio?tool=video` load `video-editorial-deck.js?v=20261023-wheel-history1`. Custom-domain JS SHA-256 exactly matches reviewed source: `2c60d5d6a595b41d6c16ea392a41109e98a529facf45fc0271e41ee01adf4261`.
+- Final CI was queued at integration and is not declared passed. Browser wheel behavior is proven with local mocked accounts; live module publication is proven separately. No real signed-in production History/gesture or paid generation is claimed. User should hard-refresh their existing Video session.
 
