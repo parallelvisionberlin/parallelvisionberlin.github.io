@@ -191,3 +191,124 @@ footer{display:flex;justify-content:space-between;gap:20px;border-top:1px solid 
  footer>span:last-child{display:none}
 }
 @media(prefers-reduced-motion:reduce){.image-slot,.action-primary,.site-header nav a{transition:none}}
+
+
+/* Fashion editorial refresh, 2026-10-23.
+   Visual layer only. All existing inputs, IDs, quote and submission flows preserved. */
+#content{max-width:none;padding-inline:clamp(18px,2vw,38px)}
+.page-intro{position:relative;z-index:2;display:block;padding:30px 0 17px}
+.page-intro h1{font-size:clamp(46px,4.6vw,84px);line-height:1.06;letter-spacing:-.066em}
+.page-intro h1 em{font-size:1.05em}
+.intro-description{text-align:left;margin:9px 0 0;font-size:13px;color:#dad5d0}
+.fashion-workspace{
+ position:relative;isolation:isolate;
+ grid-template-columns:minmax(330px,.88fr) minmax(0,1.12fr);
+ grid-template-rows:minmax(380px, min(57vh,650px)) auto auto;
+ gap:0 22px;
+ padding:20px 22px 35px;
+ border:1px solid #ffffff21;border-radius:14px;
+ background:#101013;
+ overflow:hidden;
+}
+.fashion-workspace:before{
+ content:"";position:absolute;inset:0 0 auto;height:min(71vh,760px);
+ background:linear-gradient(90deg,#09090beF 0%,#0a0a0bcc 24%,#11111470 55%,#11111445 100%),
+ url("../assets/fashion-hero.png") center 40%/cover no-repeat;
+ opacity:.8;z-index:-2;pointer-events:none
+}
+.fashion-workspace:after{
+ content:"";position:absolute;inset:0 0 auto;height:min(71vh,760px);
+ background:linear-gradient(0deg,#101013 0%,transparent 34%);
+ z-index:-1;pointer-events:none
+}
+.source-section{grid-column:1;grid-row:1;align-self:center;z-index:1}
+.source-section .section-header{margin-bottom:16px}
+.section-header h2{font-size:10px;letter-spacing:.13em}
+.image-pair{gap:12px}
+.image-slot{
+ height:clamp(210px,28vw,375px);
+ border:1px solid #ffffff4a;background:#101114a8;
+ border-radius:11px;backdrop-filter:blur(17px)
+}
+.image-slot:before{background:linear-gradient(165deg,#ffffff0b,transparent 50%,#0009)}
+.image-slot:hover,.image-slot:focus-within{border-color:#eee;box-shadow:0 0 0 2px #eee4}
+.slot-invite>.empty-art{width:64px;height:78px;opacity:.5}
+.slot-invite strong{font-size:15px}
+.slot-invite small{font-size:10px}
+.slot-number{color:#d8d8d9}
+.result-panel{grid-column:2;grid-row:1;min-width:0;align-self:stretch;display:flex;flex-direction:column}
+.result-header{margin-bottom:15px}
+.result-stage{
+ flex:1;height:auto;min-height:0;border:1px solid #ffffff35;
+ background:linear-gradient(135deg,#0d0c0db9,#16131683);
+ border-radius:11px;backdrop-filter:blur(5px)
+}
+.result-placeholder{padding:24px 28px;background:#1010138c;backdrop-filter:blur(5px);border-radius:10px}
+.result-placeholder svg.empty-art-result{width:55px;height:68px;opacity:.3}
+.result-placeholder strong{font-size:11px}
+.result-actions{min-height:32px}
+.engine-section{
+ grid-column:1/-1;grid-row:2;
+ margin-top:12px;padding:18px 0 12px;
+ border-top:1px solid #ffffff30;
+ background:#111115;
+ border-radius:10px;
+}
+.engine-grid{grid-template-columns:minmax(170px,1.1fr) minmax(200px,1fr) minmax(240px,1.4fr) minmax(165px,.9fr);gap:14px}
+select,textarea{border-radius:7px;background-color:#222329;border-color:#4a4b52}
+.action-primary{border-radius:8px;justify-content:center;font-weight:600}
+.action-primary:disabled{background:#3b3c41;color:#bbb}
+.quote-box{border-radius:8px}
+.fashion-gallery{grid-column:1/-1;grid-row:3}
+.fashion-workspace:has(#result-image:not([hidden])):before{opacity:.12}
+.fashion-workspace:has(#result-image:not([hidden])) .result-stage{background:#151619;backdrop-filter:none}
+@media(max-width:1000px){
+ .engine-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .fashion-workspace{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+@media(max-width:800px){
+ .page-intro{padding-top:20px}
+ .fashion-workspace{display:grid;grid-template-columns:1fr;grid-template-rows:auto auto auto auto;gap:14px;padding:18px}
+ .fashion-workspace:before,.fashion-workspace:after{height:620px}
+ .source-section{grid-column:1;grid-row:1;align-self:auto}
+ .result-panel{grid-column:1;grid-row:2}
+ .engine-section{grid-column:1;grid-row:3;margin:0}
+ .fashion-gallery{grid-column:1;grid-row:4}
+ .image-slot{height:auto;aspect-ratio:4/5;min-height:200px}
+ .result-stage{min-height:310px;aspect-ratio:1.45/1}
+}
+@media(max-width:560px){
+ #content{padding:0 12px}
+ .page-intro{padding:19px 5px 20px}
+ .page-intro h1{font-size:clamp(41px,12vw,58px)}
+ .intro-description{display:block;font-size:11px;margin-top:7px}
+ .fashion-workspace{padding:12px;gap:13px;border-radius:13px}
+ .fashion-workspace:before{
+  height:650px;opacity:.85;
+  background:linear-gradient(180deg,#0d0c0d75 0%,#08080965 28%,#0e0e10e8 85%),url("../assets/fashion-hero.png") center top/auto 540px no-repeat
+ }
+ .fashion-workspace:after{height:670px}
+ .source-section{padding-top:clamp(85px,28vw,140px)}
+ .section-header>span{font-size:8px}
+ .image-pair{gap:9px}
+ .image-slot{aspect-ratio:4/5;min-height:0;background:#111114b8;backdrop-filter:blur(15px);border-color:#ffffff55}
+ .slot-invite>.empty-art{width:45px;height:57px}
+ .slot-invite strong{font-size:12px}
+ .slot-invite small{font-size:9px;text-align:center;padding:0 5px}
+ .result-stage{aspect-ratio:4/5;min-height:260px}
+ .engine-section{margin-top:0;padding:13px 0}
+ .engine-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 9px}
+ .model-block,.direction-block,.action-block{grid-column:1/-1}
+ .detail-block{grid-column:1/-1}
+ .action-primary{min-height:48px}
+ .fashion-gallery{padding-top:14px}
+}
+
+/* Keep the private gallery full-bleed within the new padded editorial frame. */
+@media(min-width:801px){.fashion-workspace>.fashion-gallery{margin-inline:-22px;width:calc(100% + 44px);padding-inline:22px}}
+@media(max-width:800px){.fashion-workspace>.fashion-gallery{margin-inline:-18px;width:calc(100% + 36px);padding-inline:18px}}
+@media(max-width:560px){.fashion-workspace>.fashion-gallery{margin-inline:-12px;width:calc(100% + 24px);padding-inline:12px}}
+
+/* Restore the verified thin-line fashion ghost icon language at all breakpoints. */
+.slot-invite>.empty-art,.slot-invite>.empty-art-garment{width:78px;height:92px;opacity:.24;stroke-width:1.1}
+@media(max-width:560px){.slot-invite>.empty-art,.slot-invite>.empty-art-garment{width:72px;height:85px;opacity:.24}}
