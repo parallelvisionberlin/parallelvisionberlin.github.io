@@ -284,7 +284,9 @@ assert.equal(await page.locator('#upscale-model-display').isVisible(),true);
 assert.match(await page.locator('#upscale-model-display').innerText(),/ByteDance Premium.*SeedVR2/s);
 await page.locator('#upscale-model-trigger').click();
 assert.equal(await page.locator('#upscale-model-menu').isVisible(),true);
-assert.equal(await page.getByRole('menuitemradio').count(),3);
+assert.equal(await page.getByRole('menuitemradio').count(),5,'Three engine rows plus two nested Precision qualities');
+assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(items=>items.map(item=>item.dataset.upscaleEngine)),['seedvr2','topaz-precision','topaz-wonder']);
+assert.deepEqual(await page.getByRole('group',{name:'Topaz Precision quality',exact:true}).getByRole('menuitemradio').allTextContents(),['Standard V2✓','High Fidelity V3✓']);
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#upscale-model-menu').isVisible(),false);
 assert.equal(await page.locator('#upscale-info').getAttribute('open'),null);
@@ -697,3 +699,4 @@ page.off('dialog',noPopup);assert.deepEqual(errors,[]);
 console.log('PASS immediate submission cards, bounded parallel uploads, immutable snapshots, automatic cached working copies, provider handoff, failures and no duplicate paid requests');
 
 await browser.close();server.close();})().catch(e=>{console.error(e);server.close();process.exit(1)});
+

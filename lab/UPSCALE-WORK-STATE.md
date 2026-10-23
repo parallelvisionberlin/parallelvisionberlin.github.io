@@ -1,5 +1,40 @@
 # PV LAB Premium Upscale work state
 
+## Active checkpoint / 2026-10-23
+- Objective: publish visible Precision quality choices and remove the model-change notice.
+- Owner explicitly authorized this repair and normal publication in the current conversation.
+- Start from main 4e591596faea9d1d7d6cee1a9e18a2766e1e4262.
+- Prepared implementation was in draft PR #443, head 95d6c67.
+- Port only its Upscaler menu/quality behavior; leave the broader draft unmerged.
+- Preserve current Video defaults, Hong Kong references, new loader logo and other concurrent work.
+- Existing engines remain ByteDance Premium, Topaz Precision and Topaz Wonder 3.5.
+- Standard V2 and High Fidelity V3 are nested visible actions under Precision.
+- New Precision selection defaults to Standard V2; History keeps its saved quality.
+- Keyboard arrows/Home/End, Enter/Space, Escape, Tab and touch remain supported.
+- Keep More options hidden and preserve the approved desktop/mobile page geometry.
+- Model changes no longer emit the Model changed / fresh estimate / No job submitted notice.
+- Precision quality changes are also quiet; empty price status stays hidden.
+- Explicit price checks, returned estimates and real errors remain available.
+- Quote invalidation still runs before any subsequent submission.
+- Selecting a model/quality performs no upload, quote or paid submission.
+- Actual Upscale still checks a fresh bound quote and submits it once.
+- No backend, provider endpoint, price, credits, authentication or database changes.
+- Product files: lab/lab.js, lab/studio.html, lab/upscale-studio-v5.css.
+- Both JS and CSS references receive new cache keys for this repair.
+- Reuse the prepared 34-check browser suite from #443 on current main.
+- Add assertions for empty/hidden status after engine and quality changes.
+- Coverage retains both qualities, role/viewport matrix, History, quote validation and failures.
+- Assets menu contract now asserts exactly three engines plus two nested qualities.
+- Existing unrelated Assets visibility expectations remain unchanged.
+- Existing Upscaler workflow retains its visibility gate and runs the paid-flow tests independently.
+- Use the shared pinned Playwright 1.62.1 runtime with a bounded installation step.
+- Local approved Image UI contract: 5/5 passed before and after editing.
+- Local syntax checks passed; no live paid requests performed.
+- CI browser/provider-fixture checks and Cloudflare publication are pending.
+- Verify the exact deployed SHA and the visible menu/status on pvlab.studio before claiming live.
+
+## Previous implementation record
+
 Updated: 2026-10-14 (Berlin), model/visual hierarchy correction.
 Scope: curated SeedVR2 default replacing the public economical method.
 Branch: feat/pv-lab-premium-seedvr2-20261014
@@ -56,3 +91,4 @@ Base main commit: 4f41522ee91c2861ae3b6d8f18957b5575f5313e
 - Files: lab/studio.html, lab/lab.js, lab/assets.css, tests/lab-upscale-ui.mjs, tests/lab-assets-ui.cjs.
 - Work branch: fix/upscaler-real-model-menu-20261014. Base: b4c8dbc6ca4c5c618085cc9d28ddec89cfeb1dce.
 - Merge, browser test and production Pages deployment must be verified.
+

@@ -191,6 +191,13 @@
   top:calc(100% + 5px)!important;
   min-width:0!important;max-width:100%!important;
 }
+/* Precision qualities stay within the existing model popup and its typography. */
+#app.upscale-studio-active .upscale-precision-qualities{
+ margin-left:12px;padding-left:8px;border-left:1px solid #454850;
+}
+#app.upscale-studio-active .upscale-quality-option{
+ min-height:44px;padding:8px 12px;font-size:11px;
+}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
   box-sizing:border-box;
   display:flex!important;
@@ -1545,3 +1552,4 @@
   margin:0!important;padding:0!important;
  }
 }
+
