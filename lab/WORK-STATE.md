@@ -16,7 +16,12 @@
 - Scope that new coordinate assertion to the same 761px desktop breakpoint. Retain all existing mobile navigation/privacy checks and full visual gate.
 - Separate header step runs even if the existing Fashion .result-panel baseline fails earlier. No existing visual assertions removed.
 - Approved Image CI passed; routing checks passed at 1440/390.
-- Publication pending.
+- PR #483 merged as f41e3a2f80371d52f21b22a834b6ef74dc99e54d; exact SHA Cloudflare Pages check 120496432400 succeeded.
+- Live /studio?tool=retouch HTML includes the new rule; inline lab-boot-style exactly matches reviewed bytes.
+- Customer desktop screenshot inspected: artifact 12511811974 / studio-customer-retouch-1440.png.
+- Authenticated desktop geometry passed for synthetic Customer and Owner, Image→Retouch→Image. Production session here is signed out.
+- Existing full visual gate retains its unrelated hidden Fashion .result-panel failure; routing passed at 1440/390.
+- Source HTML stayed unchanged through test-only follow-ups. Desktop repair published and verified; mobile layout untouched.
 
 
 ## Homepage notice focus stability and matching Studio style, 2026-10-23
