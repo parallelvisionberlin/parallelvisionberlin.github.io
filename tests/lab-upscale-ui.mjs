@@ -327,6 +327,10 @@ try{
     assert.deepEqual(await workspaceGeometry(x.page),geometry,'Quality choices preserve the approved page, photo and control dimensions');
     assert.equal(await x.page.locator('#upscale-info').isVisible(),false,'No More options or extra panel');
     assertQuoted(await upscale(x),{...precisionModel,quality});
+    if(await x.page.locator('#save').isVisible()){
+      const saveBounds=await x.page.locator('#save').boundingBox();
+      assert.ok(saveBounds.height<=44,'Available Save Draft stays compact below Upscale: '+JSON.stringify(saveBounds));
+    }
     assert.equal(x.quotes.at(-1).estimatedUsd,.08,'Both modes retain the existing authoritative estimate for this source size');
     assert.equal(quoteRequests(x).at(-1).data.settings.topazModel,quality);
    }
