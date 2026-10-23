@@ -9,7 +9,14 @@
 - DOMParser does not execute that script, so the existing authenticated loader can find #content and mount the original editor.
 - No editor, auth, credits, model, provider, or shared masthead change.
 - Base b99fec4d6714335bbcf95c5dd88ec365548d263c; approved Image contract passed 5/5 before editing.
-- Verify real served template retains #content and direct navigation retains the shared header after deployment.
+- PR #472 merged as ee04b5374d0d7470af57dea6a14484f0793d3258.
+- Exact SHA Cloudflare Pages check 120434350673 succeeded.
+- Actual production GET /fashion.html?v=20261010-gallery1 now contains #content, #fashion-form, #person-file and #garment-file.
+- Downloaded live template exactly matches the reviewed repair HTML; internal fetch no longer returns Studio HTML.
+- Production browser /fashion reaches /studio?tool=fashion with the shared header.
+- Signed-out browser cannot prove real authenticated editor startup. No paid generation or login performed.
+- Existing standalone localhost Fashion fixture assumes document navigation stays on fashion.html; its navigation expectations require a separate canonical-loader fixture update.
+- Repair published; no additional user-facing changes authorized or applied.
 
 ## Fashion legacy header routing, 2026-10-23 (superseded; see repair above)
 - Owner screenshot image(20261023-125725).png shows /fashion with the old standalone masthead.
