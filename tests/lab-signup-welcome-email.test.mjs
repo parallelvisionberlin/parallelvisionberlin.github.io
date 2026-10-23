@@ -65,8 +65,21 @@ test('selected welcome email is an accessible HTML message with first-party edit
   assert.doesNotMatch(m.html+m.text,/https:\/\/pvlab\.studio\/studio\.html/);
   assert.match(m.html,/Your creative<br>space is ready\./);
   assert.match(m.html,/Begin with a feeling/);
-  assert.match(m.html,/background:#eeedea/);
-  assert.match(m.html,/max-width:680px/,'Desktop email must be a 680px editorial message');
+  assert.match(m.html,/background:#ffffff/,'The email background must blend with white Gmail instead of a giant beige panel');
+  assert.doesNotMatch(m.html,/background:#eeedea|bgcolor="#eeedea"/);
+  assert.match(m.html,/max-width:820px/,'Desktop Gmail must use the approved wider editorial layout');
+  assert.match(m.html,/font-size:0;text-align:left/,'Hybrid sections must not get Gmail whitespace gaps');
+  assert.equal((m.html.match(/class="pv-col"/g)||[]).length,2,
+    'Title and body are genuine side-by-side desktop sections');
+  assert.equal((m.html.match(/class="pv-action-col"/g)||[]).length,2,
+    'Button and secondary link are balanced on desktop');
+  assert.match(m.html,/\.pv-col\{display:block!important;width:100%!important;max-width:100%!important\}/,
+    'Mobile stacks the editorial text columns');
+  assert.match(m.html,/\.pv-action-col\{display:block!important;width:100%!important;max-width:100%!important\}/,
+    'Mobile stacks the action/link columns');
+  assert.match(m.html,/max-width:355px/);
+  assert.match(m.html,/max-width:375px/);
+  assert.doesNotMatch(m.html,/max-width:680px|width="678"/,'Do not regress to the older narrow email');
   assert.match(m.html,/@media only screen and \(max-width:600px\)/,'Mobile design stays responsive');
   assert.match(m.html,/<span class="pv-wordmark"[^>]*>PV LAB<\/span>/,
     'PV LAB wordmark stays real selectable text, not a pasted graphic');
