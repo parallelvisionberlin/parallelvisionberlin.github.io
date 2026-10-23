@@ -2,7 +2,7 @@
 .mc-photobooth-header{display:none}
 #mc-look-dialog.mc-photobooth .mc-look-prompt[hidden]{display:none!important}
 #mc-look-dialog.mc-photobooth.is-result-view .mc-photobooth-heading{display:contents}
-#mc-look-dialog.mc-photobooth.is-result-view .mc-look-close{top:18px!important;right:18px!important}
+#mc-look-dialog.mc-photobooth.is-result-view .mc-look-close{position:absolute!important;z-index:10!important;top:18px!important;right:18px!important}
 #mc-look-dialog.mc-photobooth:not(.is-result-view)[open]{
  container-type:inline-size;box-sizing:border-box!important;
  display:block!important;position:fixed!important;inset:0!important;
