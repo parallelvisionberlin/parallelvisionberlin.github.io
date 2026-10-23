@@ -18,7 +18,7 @@
 - Existing mobile policy hides the decorative empty stage, preserving fast access to controls and real History. Real uploads and results still appear normally.
 - Local validation: 708/708 Lab Node tests on configured Node 22.16.0, including mandatory approved Image contract; static build, syntax and whitespace passed.
 - Browser validation: full Studio layout including 1440x600/768/820, 1728x820 and 390/320px; customer permission matrix 18/18 at 1440/390/320; Reference 22/22; guest/signed-in routing passed.
-- Seedance suite includes four added real-upload/all-mode matrices at 1440x900, 1440x600, 390x844 and 320x730, output disclosure, model changes, no invented History and no preparation submissions.
+- Seedance 23/23 passed, including four added real-upload/all-mode matrices at 1440x900, 1440x600, 390x844 and 320x730, output disclosure, model changes, no invented History and no preparation submissions.
 - Existing sign-out assertion was aligned with current main's public-preview behavior, retaining stronger explicit checks for cleared private History, prompt, file input and reference media.
 - Only approved visual expectations were changed in existing layout/artwork tests. No assertion bypasses, force clicks or weakened generation/account checks were introduced.
 - Browser media, accounts and APIs are synthetic/intercepted. No real customer session, wallet transaction or paid provider acceptance is claimed.
