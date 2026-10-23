@@ -303,6 +303,13 @@ try{
    for(const quality of ['High Fidelity V3','Standard V2']){
     const beforePaid=countPaid(x),beforeQuotes=quoteRequests(x).length,geometry=await workspaceGeometry(x.page);
     await selectQuality(x.page,quality,{touch:width===390});
+    const placement=await x.page.evaluate(()=>{
+      const format=document.getElementById('format-control').getBoundingClientRect();
+      const action=document.getElementById('generate').getBoundingClientRect();
+      return {formatBottom:format.bottom,actionTop:action.top};
+    });
+    assert.ok(placement.actionTop>=placement.formatBottom-1,
+      'Expanded Precision variants never overlap the format selector and Upscale action: '+JSON.stringify(placement));
     assert.equal(countPaid(x),beforePaid);assert.equal(quoteRequests(x).length,beforeQuotes,'Quality selection alone cannot upload, quote or submit');
     assert.deepEqual(await workspaceGeometry(x.page),geometry,'Quality choices preserve the approved page, photo and control dimensions');
     assert.equal(await x.page.locator('#upscale-info').isVisible(),false,'No More options or extra panel');
