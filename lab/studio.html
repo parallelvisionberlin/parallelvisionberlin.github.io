@@ -175,7 +175,7 @@ document.addEventListener('click',event=>{
 <link rel="stylesheet" href="./studio-credit-toast.css?v=20261015-direct-studio1">
 <link rel="stylesheet" href="./open-atmosphere.css?v=20261015-hd-landscape1">
 <link rel="stylesheet" href="./upscale-result-ui.css?v=20261015-flow2">
-<link rel="stylesheet" href="./upscale-studio-v5.css?v=20261022-main-wrap-alignment-v28&precisionQuality=20261023-flat2">
+<link rel="stylesheet" href="./upscale-studio-v5.css?v=20261023-editorial-model-cards1">
 <script type="module" src="./upscale-studio-v5.js?v=20261022-drag-hover-v25"></script>
 <link rel="stylesheet" href="./image-composer-stable.css?v=20261018-ref-flow-safe1">
 <link rel="stylesheet" href="./reference-pack-studio.css?v=20261018-unified-elements2">
@@ -844,17 +844,34 @@ document.addEventListener('click',event=>{
 <button id="mode-reference" class="mode-tab" type="button" role="tab" aria-selected="false"><svg class="pv-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5 17 5-5 3.2 3 2.6-2.5 3.4 3.5"/></svg><span id="pv-mode-reference-label">Reference set</span></button>
 </div>
 <div id="upscale-model-display" class="upscale-model-display" hidden>
-  <span class="label">Model</span>
-  <button id="upscale-model-trigger" class="upscale-model-readout" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="upscale-model-menu" aria-label="Choose upscale model, currently ByteDance Premium SeedVR2">
-    <span id="upscale-model-brand" class="upscale-model-brand">ByteDance Premium</span>
-    <strong id="upscale-model-id" class="upscale-model-id">SeedVR2</strong>
-    <svg class="upscale-model-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-  </button>
-  <div id="upscale-model-menu" class="upscale-model-menu" role="menu" aria-label="Upscale models" hidden>
-    <button type="button" class="upscale-model-option" role="menuitemradio" aria-checked="true" data-upscale-engine="seedvr2" tabindex="-1"><span><strong>ByteDance Premium</strong><small>SeedVR2 · Natural detail restoration</small></span><span class="upscale-model-selected" aria-hidden="true">✓</span></button>
-    <button type="button" class="upscale-model-option" role="menuitemradio" aria-checked="false" data-upscale-quality="Standard V2" tabindex="-1"><span><strong>Topaz Standard V2</strong><small>Precision</small></span><span class="upscale-model-selected" aria-hidden="true">✓</span></button>
-    <button type="button" class="upscale-model-option" role="menuitemradio" aria-checked="false" data-upscale-quality="High Fidelity V3" tabindex="-1"><span><strong>Topaz High Fidelity V3</strong><small>Precision</small></span><span class="upscale-model-selected" aria-hidden="true">✓</span></button>
-    <button type="button" class="upscale-model-option" role="menuitemradio" aria-checked="false" data-upscale-engine="topaz-wonder" tabindex="-1"><span><strong>Topaz Wonder 3.5</strong><small>Generative restoration for soft images</small></span><span class="upscale-model-selected" aria-hidden="true">✓</span></button>
+  <div class="pv-upscale-model-heading"><span class="label">Model</span>
+    <span class="pv-upscale-model-live" role="status" aria-live="polite">Selected <span id="upscale-model-brand">ByteDance Premium</span> <strong id="upscale-model-id">SeedVR2</strong></span>
+  </div>
+  <div id="upscale-model-menu" class="upscale-model-menu pv-upscale-model-cards" role="radiogroup" aria-label="Upscaler model" hidden>
+    <button id="upscale-model-trigger" class="upscale-model-option pv-upscale-model-card" type="button" role="radio" aria-checked="true" data-upscale-engine="seedvr2" aria-label="ByteDance Premium · SeedVR2">
+      <span class="pv-upscale-model-art pv-upscale-model-art-bytedance" aria-hidden="true"></span>
+      <span class="pv-upscale-model-copy"><strong>ByteDance Premium</strong><small>SeedVR2 · Natural detail restoration</small></span>
+      <span class="upscale-model-selected" aria-hidden="true">✓</span>
+    </button>
+    <div class="pv-upscale-precision-card">
+      <button id="upscale-precision-trigger" class="upscale-model-option pv-upscale-model-card" type="button" role="radio" aria-checked="false" data-upscale-engine="topaz-precision" aria-controls="upscale-precision-options" aria-expanded="false" aria-label="Topaz Precision">
+        <span class="pv-upscale-model-art pv-upscale-model-art-precision" aria-hidden="true"></span>
+        <span class="pv-upscale-model-copy"><strong>Topaz Precision</strong><small>Detail-focused enhancement</small></span>
+        <svg class="pv-upscale-precision-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div id="upscale-precision-options" class="pv-upscale-precision-options" hidden>
+        <span class="pv-upscale-version-label">Version</span>
+        <div class="pv-upscale-version-pills" role="radiogroup" aria-label="Topaz Precision version">
+          <button class="pv-upscale-version-pill" type="button" role="radio" aria-checked="false" data-upscale-quality="Standard V2">Standard V2</button>
+          <button class="pv-upscale-version-pill" type="button" role="radio" aria-checked="false" data-upscale-quality="High Fidelity V3">High Fidelity V3</button>
+        </div>
+      </div>
+    </div>
+    <button class="upscale-model-option pv-upscale-model-card" type="button" role="radio" aria-checked="false" data-upscale-engine="topaz-wonder" aria-label="Topaz Wonder 3.5">
+      <span class="pv-upscale-model-art pv-upscale-model-art-wonder" aria-hidden="true"></span>
+      <span class="pv-upscale-model-copy"><strong>Topaz Wonder 3.5</strong><small>Generative restoration for soft images</small></span>
+      <span class="upscale-model-selected" aria-hidden="true">✓</span>
+    </button>
   </div>
 </div>
 <div id="upscale-model-control" hidden><select id="upscale-engine" aria-label="Upscale engine" hidden>
