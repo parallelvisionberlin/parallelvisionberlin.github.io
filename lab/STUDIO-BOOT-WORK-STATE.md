@@ -11,7 +11,9 @@
 - Cloudflare Pages app check succeeded for main `14d3eaf`; workflow correction still awaits its own CI/merge verification. Local full HTTP smoke hit a proxy CONNECT timeout, so do not count it as passed.
 - First corrected CI run `39957436807` passed public sites, direct Studio/loader/toast markup, Generate/Exact assets and query-preserving legacy Studio redirects. It then exposed an obsolete health-version regex requiring a numeric dot suffix; actual healthy version is `pv-lab-2026-10-23-hk-two-optical-refs-balanced1`, matching Worker source.
 - Accept either dated version format while retaining the minimum 2026-10-15.1 requirement and mandatory health `ok`. Seven positive/negative compatibility cases and every shell step syntax passed locally. No Worker code changed.
-- Next: rerun corrected workflow for this new head, inspect backend/CORS and every stage, merge only after relevant checks pass, then record the main run separately.
+- Corrected head `78d51a80a9247d542e515106b05f034534095b6e`: domain run `39957711666` passed every stage, including actual production health and pvlab.studio CORS preflight. Cloudflare Pages app check also succeeded for that head. This proves the checked public HTTP contracts, not a real authenticated purchase/generation.
+- Latest main Video run `39956667732` also passed all steps; main contains #453 (37 commits ahead, zero behind at `ac33d20`). Public Studio HTML differs from raw Git only through observed Cloudflare email obfuscation; do not claim byte equality of the whole HTML.
+- PR #470 contains only the workflow and this checkpoint. No UI/application source changed. Next: complete integration and confirm the merge's domain run. Exact test head above is unchanged except for this evidence-only checkpoint update.
 
 Updated: 2026-10-17
 Scope: Studio initial loading overlay only.
