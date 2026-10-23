@@ -1,5 +1,14 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Fashion legacy header routing, 2026-10-23
+- Owner screenshot image(20261023-125725).png shows /fashion with the old standalone masthead.
+- Verified lab/fashion.html has only Image, Video, Upscaler and Fashion; Retouch/Explore Moods are absent.
+- Canonical /studio?tool=fashion was checked in production and has all six shared destinations.
+- Retire /fashion, /fashion/, /fashion.html and their /lab aliases using temporary 302 redirects to the canonical Fashion Studio.
+- Product scope: lab/_redirects only. No editor, shared masthead, logo, auth, credits or generation code changed.
+- Base ac33d20c50bdd88e71547e96a70781efae4b5a11; mandatory approved Image contract 5/5 passed.
+- Prior Upscaler PR #469 changed only its picker HTML/CSS, tests and checkpoint; it did not edit standalone Fashion.
+- Source and hosting confirmation pending; verify /fashion navigation after exact Cloudflare check succeeds.
 
 
 ## Upscaler credit notice overlay, 2026-10-22 (completed and live)
