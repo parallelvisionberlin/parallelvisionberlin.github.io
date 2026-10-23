@@ -130,3 +130,15 @@ body:has(#app.image-studio-active:not([hidden])) #lab-credit-banner:not([hidden]
  .lab-credit-banner{padding:10px 16px!important;gap:10px!important;min-height:52px!important}
  .lab-credit-banner p{font-size:12px!important}
 }
+
+
+/* Homepage banner uses the same independent overlay as Studio, not header layout. */
+body:has(.landing-header--home) > #lab-credit-banner:not([hidden]){
+ position:fixed!important;
+ top:var(--lab-header-height,82px)!important;
+ inset-inline:0!important;bottom:auto!important;
+ width:100%!important;margin:0!important;
+ z-index:79!important;
+ box-sizing:border-box!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.20)!important;
+}
