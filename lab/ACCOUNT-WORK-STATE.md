@@ -1,8 +1,9 @@
 ## Checkout recovery: review pending (2026-10-23)
 
 - Objective: implement only P1/P2/P3 from the purchase audit at `69d7d02`.
-- Branch: `codex/pvlab-checkout-return-recovery`; target main, draft PR only.
-- Latest incorporated main: `8d175979ae1ca341b8c5331bcc738f9b815ea7eb`.
+- Branch: `codex/pvlab-checkout-return-recovery`; [PR #462](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/462), draft and unmerged.
+- Latest incorporated main: `43db51b9bfa53483e9fdb709bc568b6c37c151aa`; normal merge `be9efc4` preserves its final Explore CSS reference.
+- Implementation commit: `7558a13`; no force push. Exact-head remote checks are pending review in the PR.
 - Preserve the later homepage credit banner, responsive welcome email, Explore photobooth and subsequent shared banner style changes.
 - P1: `customer-wallet.js` refreshes `/api/session`, including authorization and provider configuration.
 - `lab.js` applies that profile without replaying account initialization or resetting the draft.
