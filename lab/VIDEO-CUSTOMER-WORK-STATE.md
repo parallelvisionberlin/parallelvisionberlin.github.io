@@ -2,6 +2,7 @@
 
 - Objective: compact owner-approved Video inspector, original subway empty canvas and refined Scene details; draft PR only. No merge or production deployment authorized.
 - Isolated branch: `codex/video-studio-approved-redesign`, based on fetched main `59f61562c02633902564c59166135496be025e36`.
+- Draft PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/496. Concurrent main `ad9e97f4f2dc20fa1ffcaae93857467e2508e333` was incorporated by normal merge; its Upscaler product files match main exactly. Post-merge Node 708/708, Seedance 23/23, customer 18/18 and full Studio layout passed again.
 - PR #473 merge `c55e828d8d6af1514a3833ffc282930c5ffd1bae` is an ancestor. Its wheel handler is byte-for-byte unchanged; existing browser gestures still pass.
 - Inspected outstanding #443, #448 and #452 metadata and diffs. No cherry-picks, model/default changes or duplicate frame-height edits. Those PRs remain untouched.
 - `lab/lab.js`, model picker/capability modules and all Worker/provider/pricing/wallet/authentication code remain unchanged.
