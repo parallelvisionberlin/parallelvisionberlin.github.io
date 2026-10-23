@@ -1,6 +1,37 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Authenticated Retouch header gutter alignment, 2026-10-23
+- Owner references image(20261023-144627).png, 144841, 145038 and 145106.
+- Image/Video reserve desktop root scrollbar space; Retouch without document overflow did not, shifting all right-side controls.
+- Add the same scrollbar-gutter:stable only for desktop authenticated Retouch, at the existing 761px threshold.
+- Keep existing Image/Video geometry and root overflow unchanged; do not force a fake scrollbar.
+- Guest Retouch and mobile rules remain unchanged. No icon offsets, auth, credits, editor controls or provider changes.
+- Product file: lab/studio.html, inline initial viewport stylesheet.
+- Existing public/signed-in browser suite gains Customer/Owner assertions for header control x/width/right and clientWidth during Image→Retouch→Image.
+- Test widths remain 1440/390/320; existing screenshots and visual comparisons retained.
+- Approved Image contract passed 5/5 locally before editing.
+- Base 8e45938503d89a15a713f0792e89a309a12b2d64; PR #483.
+- Source HTML unchanged after first candidate; independent job 120491450035 passed Customer/Owner desktop header geometry at 1440px.
+- The newly added equality assertion also ran on mobile and found a pre-existing phone difference; the product rule is desktop-only and cannot affect 390px.
+- Scope that new coordinate assertion to the same 761px desktop breakpoint. Retain all existing mobile navigation/privacy checks and full visual gate.
+- Separate header step runs even if the existing Fashion .result-panel baseline fails earlier. No existing visual assertions removed.
+- Approved Image CI passed; routing checks passed at 1440/390.
+- PR #483 merged as f41e3a2f80371d52f21b22a834b6ef74dc99e54d; exact SHA Cloudflare Pages check 120496432400 succeeded.
+- Live /studio?tool=retouch HTML includes the new rule; inline lab-boot-style exactly matches reviewed bytes.
+- Customer desktop screenshot inspected: artifact 12511811974 / studio-customer-retouch-1440.png.
+- Authenticated desktop geometry passed for synthetic Customer and Owner, Image→Retouch→Image. Production session here is signed out.
+- Existing full visual gate retains its unrelated hidden Fashion .result-panel failure; routing passed at 1440/390.
+- Source HTML stayed unchanged through test-only follow-ups. Desktop repair published and verified; mobile layout untouched.
+
+
 ## CI fixture maintenance, 2026-10-23 (review pending)
+- Source checkpoint: ae6827c4c599960447fbbd2130aabe33c49fbcf9. Final-head CI must finish after the closing commit; no merge or publication is authorized.
+- Frozen-head CI completed: 21 workflows passed; smoke and both full-suite jobs exposed the redirect/fixture defects below. Explore timed out installing Chromium; Fashion and gallery also hit installation cancellations. Closing source passes 708/708 Node 22 units and the exact anonymous live smoke gates, including both 401 checks. Final CI receipts belong in PR #482.
+- Reconcile only this handoff with main 6dbb1cab by moving the CI note below Retouch, leaving its Moods insertion untouched in the merge. No main implementation is imported.
+- Closing CI corrections: follow the canonical Fashion HTML 308 redirect in the read-only curl gate; preserve every HTML/asset/401 assertion and all timeouts.
+- The new health gate fixture must be included in both full-suite sparse checkouts (.github/workflows); otherwise Video/private-lab fail with ENOENT before exercising the gate.
+- The actual-curl redirect regression fails without --location and passes with it. Prepared source passes 708/708 Lab units on exact CI Node 22.16.0 under the Video sparse layout, plus both health/redirect tests under the private-lab layout. No test is skipped or weakened; product code, Worker, auth, credits, providers and approved designs are unchanged.
+
 - Objective: repair the seven inherited CI controls identified during PR #462 validation.
 - Separate branch: codex/pvlab-ci-maintenance-20261023; maintenance PR #482 is draft. PR #462 remains untouched and draft.
 - Verified main source: 7f44c63feb55eb567872c8b6fed6d29f2b91119e; normal merges preserve approved Fashion #488/#489 and Retouch header #483.
@@ -46,30 +77,6 @@
 - No sandbox purchase repeated, paid generation, credit grant, settings change, merge to main or manual deployment.
 - Actual customer return to Studio and first generation remain pending from #462; this test maintenance does not approve that production journey.
 - Next: review the maintenance PR and exact-head CI. Any automatic branch preview is separate from production publication.
-
-## Authenticated Retouch header gutter alignment, 2026-10-23
-- Owner references image(20261023-144627).png, 144841, 145038 and 145106.
-- Image/Video reserve desktop root scrollbar space; Retouch without document overflow did not, shifting all right-side controls.
-- Add the same scrollbar-gutter:stable only for desktop authenticated Retouch, at the existing 761px threshold.
-- Keep existing Image/Video geometry and root overflow unchanged; do not force a fake scrollbar.
-- Guest Retouch and mobile rules remain unchanged. No icon offsets, auth, credits, editor controls or provider changes.
-- Product file: lab/studio.html, inline initial viewport stylesheet.
-- Existing public/signed-in browser suite gains Customer/Owner assertions for header control x/width/right and clientWidth during Image→Retouch→Image.
-- Test widths remain 1440/390/320; existing screenshots and visual comparisons retained.
-- Approved Image contract passed 5/5 locally before editing.
-- Base 8e45938503d89a15a713f0792e89a309a12b2d64; PR #483.
-- Source HTML unchanged after first candidate; independent job 120491450035 passed Customer/Owner desktop header geometry at 1440px.
-- The newly added equality assertion also ran on mobile and found a pre-existing phone difference; the product rule is desktop-only and cannot affect 390px.
-- Scope that new coordinate assertion to the same 761px desktop breakpoint. Retain all existing mobile navigation/privacy checks and full visual gate.
-- Separate header step runs even if the existing Fashion .result-panel baseline fails earlier. No existing visual assertions removed.
-- Approved Image CI passed; routing checks passed at 1440/390.
-- PR #483 merged as f41e3a2f80371d52f21b22a834b6ef74dc99e54d; exact SHA Cloudflare Pages check 120496432400 succeeded.
-- Live /studio?tool=retouch HTML includes the new rule; inline lab-boot-style exactly matches reviewed bytes.
-- Customer desktop screenshot inspected: artifact 12511811974 / studio-customer-retouch-1440.png.
-- Authenticated desktop geometry passed for synthetic Customer and Owner, Image→Retouch→Image. Production session here is signed out.
-- Existing full visual gate retains its unrelated hidden Fashion .result-panel failure; routing passed at 1440/390.
-- Source HTML stayed unchanged through test-only follow-ups. Desktop repair published and verified; mobile layout untouched.
-
 
 ## Homepage notice focus stability and matching Studio style, 2026-10-23
 - Owner references image(20261023-141333).png and image(20261023-141347).png; prefer Studio notice styling in image 2.
