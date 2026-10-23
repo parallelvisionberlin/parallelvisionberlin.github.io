@@ -312,7 +312,7 @@ function initialize(){
     preview.alt=selected.name+' aesthetic';
     $('mc-look-title').textContent=selected.name;
     $('mc-look-mood-note').textContent='See it in '+selected.name+'.';
-    $('mc-look-description').textContent=selected.id==='berlin-rave'?selected.description+'. Transforms wardrobe and lighting into a night-flash editorial while keeping your identity, pose and framing.':selected.id==='synthetic-romance'?selected.description+'. This mood reconstructs visible body parts into engineered chrome, cables and synthetic anatomy.':selected.description+'. Keep your own subject and scene.';
+    $('mc-look-description').textContent=selected.description.replace(/\.?$/,'.');
     if(!dialog.open)dialog.showModal();
     // The responsive photobooth defines a stable editor size in CSS.
     if(photo)attachPhoto(photo);
