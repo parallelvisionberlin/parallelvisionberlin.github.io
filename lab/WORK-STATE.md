@@ -2,10 +2,10 @@
 
 ## CI fixture maintenance, 2026-10-23 (review pending)
 - Objective: repair the seven inherited CI controls identified during PR #462 validation.
-- Separate branch: codex/pvlab-ci-maintenance-20261023; PR #462 remains untouched and draft.
-- Verified main source: 8e45938503d89a15a713f0792e89a309a12b2d64.
+- Separate branch: codex/pvlab-ci-maintenance-20261023; maintenance PR #482 is draft. PR #462 remains untouched and draft.
+- Verified main source: 48c7598f3cea0296219adea7b052c8efaab7f75c; normal merge preserves its approved Fashion composition (#481).
 - Main was incorporated again after the approved Fashion rollback (#480), public header/privacy repair and homepage focus stability (#478).
-- Product application, CSS, assets, Worker, billing and configuration bytes are unchanged by this maintenance diff.
+- Product repair limited to loaded Fashion source/result containment; Worker, billing, prices, auth and configuration are unchanged.
 - Masthead: preserve the real Explore body attributes so page-scoped wordmark rules apply; retain twelve widths and guest checks.
 - Landing: retain main's absolute hero overlay, scroll-away and delayed focus/visibility checks; only make the runtime import portable.
 - Assets/verify: public tool navigation remains visible while private History stays hidden; retain cache clearing, folders, downloads, quotes and submission checks.
@@ -22,16 +22,21 @@
 - First-image: compare backdrop-only pixels with a funded customer; zero-credit overlay remains tested separately with exact masthead anchor and layout invariance.
 - Its approved dismiss control must be reachable; dismissal exposes Refresh and the eye without moving the deck.
 - Mobile Mood: require the full expanded prompt and Generate in view without keyboard focus, whether scrolling is needed or not.
-- Fashion: use the real legacy-document redirect, canonical Studio loader, shared session and Shadow DOM; preserve the approved rollback design.
+- Fashion: use the real legacy-document redirect, canonical Studio loader, shared session and Shadow DOM; preserve the current owner-approved #481 composition and hide the empty result panel.
 - Retain model defaults, three model options, valid photo uploads, bound quote without submission, private gallery paging and responsive layout.
 - Add verified-session headers, single-footer, decoded SVG wordmark, logout media cleanup and guest no-write assertions.
+- History exposed a real #481 CSS defect: loaded result height collapsed to 2px and sources overlapped Direction by 21px at 1440px.
+- Three loaded-state selectors give sources a bounded flex row and stretch the output panel; add a noncollapsed-height and no-overlap regression.
+- Cache-only propagation: fashion.css, fashion-studio.js, fashion.html, lab.js and studio.html; no generation/provider/auth handler change.
+- Empty approved screenshot is byte-identical before/after; loaded desktop and mobile captures inspected.
 - No test skipped, assertion removed, timeout increased, forced hidden click, or workflow gate disabled.
 - Local affected checks pass: Masthead, Landing (five sizes), Assets, Upscale Assets (two sizes), Seedance 19, References 22, mobile Mood, first-image and Fashion.
+- Public visual fixture compares visible Direction, checks the empty output stays hidden, and returns by the visible header. Loaded Fashion retains its real internal return-link/navigation check; pixel thresholds and comparison count are unchanged.
 - Full main Lab units pass 706/706, zero skipped; approved Image contract passes 5/5.
 - Full Upscaler integration passes 34/34; public Studio passes 1440/390/320px with visual comparisons and private API isolation.
 - A separate uncommitted compatibility candidate combines PR #462 a33ca05 with this main and these tests; full units pass 714/714.
 - Compatibility browser checks already pass P1/P2/P3 late webhook, denied positive balances, first click, cancel, focus, Back, stale responses and account switches at 1440/390px.
-- Exact commit, remaining full-account result and CI receipts belong in the maintenance PR description; do not substitute local runs for CI outcomes.
+- Full Account compatibility passes all 17 groups. Exact commit and CI receipts belong in the maintenance PR description; do not substitute local runs for CI outcomes.
 - Local missing media came from sparse checkout, not product failures; materialize only the exact tracked blobs required by existing fixtures.
 - Existing POSIX-only suites use a path-only local Windows adapter where necessary; CI runs the unchanged Linux entrypoints.
 - Desktop and phone captures inspected; no design or production behavior is asserted from synthetic roles.

@@ -9,6 +9,7 @@ const playwrightPath=process.env.PV_PLAYWRIGHT_MODULE;
 assert.ok(playwrightPath,'Install Playwright and set PV_PLAYWRIGHT_MODULE.');
 const {chromium}=await import(pathToFileURL(playwrightPath).href);
 const root=resolve('.');
+mkdirSync('test-results',{recursive:true});
 // Instrument only readiness; use the production canonical loader and session path.
 const source=readFileSync('lab/fashion.js','utf8');
 const readyMarker='return {ready,sync,lock};';
@@ -160,8 +161,8 @@ try{
       const svg=document.querySelector('#'+id+' svg.empty-art');
       if(!svg)return null;
       const style=getComputedStyle(svg);
-      return {role:svg.getAttribute('aria-hidden'),width:svg.getBoundingClientRect().width,
-        height:svg.getBoundingClientRect().height,opacity:parseFloat(style.opacity),
+      return {role:svg.getAttribute('aria-hidden'),width:parseFloat(style.width),
+        height:parseFloat(style.height),opacity:parseFloat(style.opacity),
         strokeWidth:parseFloat(style.strokeWidth),radius:parseFloat(style.borderTopLeftRadius),
         paths:[...svg.querySelectorAll('path')].map(path=>path.getAttribute('d'))};
     };
@@ -170,10 +171,10 @@ try{
   for(const [kind,spec] of Object.entries(icons)){
     assert.ok(spec,'Missing ghost icon for '+kind);
     assert.equal(spec.role,'true',kind+' artwork must remain decorative for screen readers');
-    assert.equal(spec.width,kind==='result'?100:96,kind+' retains its approved editorial icon width');
-    assert.equal(spec.height,kind==='result'?118:112,kind+' retains its approved editorial icon height');
+    assert.equal(spec.width,kind==='result'?100:62,kind+' retains its approved editorial icon width');
+    assert.equal(spec.height,kind==='result'?118:72,kind+' retains its approved editorial icon height');
     assert.equal(spec.radius,0,kind+' icon should not have a circular medallion; only the large image boxes should be rounded');
-    assert.ok(spec.opacity>=.18&&spec.opacity<=.32,kind+' icon must remain a low-opacity outline');
+    assert.equal(spec.opacity,kind==='result'?.24:.62,kind+' preserves the approved outline opacity in its current state');
     assert.ok(spec.strokeWidth<=1.4,kind+' icon must use a delicate stroke');
     assert.ok(spec.paths.length>=2,kind+' icon needs recognizable vector geometry');
   }
@@ -184,7 +185,15 @@ try{
   assert.equal(await editor.locator('.upload-icon').count(),0,'Generic oversized plus glyphs must be replaced');
   assert.match(await editor.locator('#person-hint').innerText(),/Portrait or full-body photo/);
   assert.match(await editor.locator('#garment-hint').innerText(),/Flat garment or outfit reference/);
-  assert.equal(await editor.locator('#result-placeholder').isVisible(),true,'Empty result prompt stays visible before rendering');
+  assert.equal(await editor.locator('#result-placeholder').isVisible(),false,'The approved empty composition hides the output placeholder');
+  assert.equal(await editor.locator('.result-panel').isVisible(),false,'No output panel is shown before a real stored result is selected');
+  assert.equal(await editor.locator('#result-image').getAttribute('src'),null,'The approved atmospheric photograph is never used as a generated result');
+  await page.screenshot({path:'test-results/pv-fashion-empty-desktop.png',fullPage:true});
+  await editor.locator('#fashion-history .history-item').first().click();
+  await page.waitForFunction(()=>!window.__fashionRoot.getElementById('result-image').hidden);
+  assert.equal(await editor.locator('#result-stage').isVisible(),true,'Selecting History reveals the actual stored output');
+  assert.equal(calls.some(c=>c.path==='/api/fashion/submit'),false,'Opening the stored output never generates');
+  await page.evaluate(()=>window.scrollTo(0,0));
   const desktop=await page.evaluate(()=>{
     const document=window.__fashionRoot;
     const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width}};
@@ -194,6 +203,7 @@ try{
       foreground:getComputedStyle(document.host).color,
       headerBackground:getComputedStyle(window.document.getElementById('studio-header')).backgroundColor,
       photoBackground:getComputedStyle(document.querySelector('#person-slot')).backgroundColor,
+      photoImage:getComputedStyle(document.querySelector('#person-slot')).backgroundImage,
       resultBackground:getComputedStyle(document.querySelector('#result-stage')).backgroundColor,
       dropdownBackground:getComputedStyle(document.querySelector('#model-select')).backgroundColor,
       markFilter:getComputedStyle(window.document.querySelector('#studio-header .brand')).filter,
@@ -216,20 +226,23 @@ try{
   assert.equal(desktop.colorScheme,'dark','Dark native inputs and scrollbar match the Studio.');
   assert.equal(desktop.themeColor,'#101114','Browser chrome matches PV Lab Video.');
   assert.equal(desktop.markFilter,'none','PV Lab logo uses the same source colors as Video.');
-  assert.equal(desktop.photoBackground,'rgb(25, 26, 27)','Upload image wells remain graphite.');
+  assert.equal(desktop.photoBackground,'rgba(0, 0, 0, 0)','The approved source well uses its photographic CSS layer.');
+  assert.match(desktop.photoImage,/fashion-editorial-reference\.svg/,'The approved reference photograph remains in the source area only');
   assert.equal(desktop.resultBackground,'rgb(25, 26, 27)','Result well remains graphite.');
-  assert.equal(desktop.dropdownBackground,'rgb(26, 28, 33)','No white form fields remain.');
-  assert.deepEqual(desktop.boxStyles,Array.from({length:3},()=>({radius:14,overflow:'hidden'})),
-    'The actual Person, Garment and Result image boxes should have matching approved 14px rounded corners and clip media');
-  assert.ok(desktop.title.top>=desktop.headerBottom&&desktop.title.top<=desktop.headerBottom+60,'Fashion intro follows the single shared Studio header.');
+  assert.equal(desktop.dropdownBackground,'rgba(32, 33, 38, 0.867)','No white form fields remain.');
+  assert.deepEqual(desktop.boxStyles,Array.from({length:3},()=>({radius:12,overflow:'hidden'})),
+    'The actual Person, Garment and Result image boxes should have matching approved 12px rounded corners and clip media');
+  assert.ok(Math.abs(desktop.title.top-desktop.headerBottom-Math.min(75,Math.max(38,1440*.05)))<=1,'Fashion intro follows the single shared Studio header.');
+  assert.ok(desktop.preview.bottom-desktop.preview.top>=360,'A selected stored output must not collapse to a border-only stage');
   assert.ok(desktop.preview.width>500,'Result window is large enough for examining details.');
   assert.ok(desktop.person.width>=250&&desktop.garment.width>=250,'Both drop zones are large.');
   assert.ok(Math.abs(desktop.person.top-desktop.garment.top)<3,'Uploads are side by side.');
   assert.ok(desktop.preview.left>desktop.garment.right,'Result sits to the right of both upload zones.');
   assert.ok(desktop.person.top>desktop.title.bottom&&desktop.preview.top>desktop.title.bottom,'The editorial source and result follow the approved intro.');
-  assert.ok(desktop.controls.top>desktop.person.bottom,'Advanced controls stay below the work imagery.');
-  assert.ok(Math.abs(desktop.preview.bottom-desktop.person.bottom)<2&&Math.abs(desktop.preview.bottom-desktop.garment.bottom)<2,
-    'The approved Person, Garment and Result wells finish on the same horizontal line.');
+  await page.screenshot({path:'test-results/pv-fashion-loaded-desktop.png',fullPage:true});
+  assert.ok(desktop.controls.top>desktop.person.bottom,'Advanced controls stay below the work imagery: '+JSON.stringify(desktop));
+  assert.ok(Math.abs(desktop.person.bottom-desktop.garment.bottom)<2&&Math.max(desktop.person.bottom,desktop.garment.bottom,desktop.preview.bottom)<desktop.controls.top,
+    'The paired source wells and stored output must not overlap Direction controls: '+JSON.stringify(desktop));
   await editor.locator('#quote').scrollIntoViewIfNeeded();
   const action=await editor.locator('#quote').boundingBox();
   assert.ok(action.y>=0&&action.y+action.height<=900,'Normal page scrolling exposes the full Create action');
@@ -241,8 +254,8 @@ try{
     return {person:rect('#person-slot'),garment:rect('#garment-slot'),result:rect('#result-stage'),
       direction:rect('.engine-section'),create:rect('#quote'),viewport:innerHeight};
   });
-  assert.ok(Math.abs(compactDeck.person.bottom-compactDeck.garment.bottom)<2&&Math.abs(compactDeck.person.bottom-compactDeck.result.bottom)<2,
-    'Wide monitors retain the approved aligned working images.');
+  assert.ok(Math.abs(compactDeck.person.bottom-compactDeck.garment.bottom)<2&&Math.max(compactDeck.person.bottom,compactDeck.result.bottom)<compactDeck.direction.top,
+    'Wide monitors retain paired sources and a stored output without overlapping Direction: '+JSON.stringify(compactDeck));
   assert.ok(compactDeck.direction.top>compactDeck.result.bottom &&
     compactDeck.create.bottom<=compactDeck.direction.bottom,
     '03 / Direction and Create stay together below the imagery at 1759 × 832 without moving the top bar.');
@@ -252,12 +265,13 @@ try{
   await page.setViewportSize({width:390,height:844});
   assert.equal(await editor.locator('#person-hint svg.empty-art').isVisible(),true,'Person ghost image remains visible on mobile');
   assert.equal(await editor.locator('#garment-hint svg.empty-art').isVisible(),true,'Garment ghost image remains visible on mobile');
-  assert.equal(await editor.locator('#result-placeholder svg.empty-art').isVisible(),true,'Result icon remains visible on mobile');
+  assert.equal(await editor.locator('#result-placeholder svg.empty-art').isVisible(),false,'A selected real result replaces its decorative mobile placeholder');
+  assert.equal(await editor.locator('#result-image').isVisible(),true,'The real stored output remains visible on mobile');
   const mobileBoxes=await editor.locator('#person-slot, #garment-slot, #result-stage').evaluateAll(items=>items.map(el=>({
     radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),
     overflow:getComputedStyle(el).overflow
   })));
-  assert.deepEqual(mobileBoxes,Array.from({length:3},()=>({radius:14,overflow:'hidden'})),
+  assert.deepEqual(mobileBoxes,Array.from({length:3},()=>({radius:12,overflow:'hidden'})),
     'All three large image boxes keep their rounded corners and image clipping on mobile');
   const mobileIcons=await editor.locator('svg.empty-art').evaluateAll(items=>items.map(el=>
     parseFloat(getComputedStyle(el).borderTopLeftRadius)));
@@ -290,7 +304,7 @@ try{
   });
   assert.ok(mobile.bodyWidth<=mobile.viewportWidth,'Mobile Fashion has no horizontal overflow.');
   assert.ok(Math.abs(mobile.person.top-mobile.garment.top)<3,'Mobile retains paired upload tiles.');
-  assert.ok(mobile.preview.top>mobile.controls.top&&mobile.controls.top>mobile.person.top,'Approved mobile flow keeps paired sources, Direction controls, then the result.');
+  assert.ok(mobile.preview.top<mobile.controls.top&&mobile.preview.top>mobile.person.top,'With a stored output, the approved mobile order is sources, result, Direction.');
   const mobileGallery=await page.evaluate(()=>{
     const document=window.__fashionRoot;
     const g=document.getElementById('fashion-gallery').getBoundingClientRect(), 
@@ -330,6 +344,13 @@ try{
   });
   assert.deepEqual(embedded,{templateFooters:1,nestedFooters:0,globalFooters:1,hasEditor:true,hasGallery:true},
     'The complete Fashion template mounts its editor and gallery while Studio owns the only footer');
+  const retainedForm=await editor.locator('#fashion-form').elementHandle();
+  await editor.locator('a[href*="studio.html?tool=image"]').click();
+  await page.waitForFunction(()=>document.getElementById('tool-image').getAttribute('aria-pressed')==='true');
+  await page.locator('#tool-fashion').click();
+  await editor.locator('#workspace').waitFor({state:'visible'});
+  assert.equal(await retainedForm.evaluate(el=>el.isConnected),true,'Returning through the real result link retains the original Fashion form');
+  assert.equal(await editor.locator('#person-preview').isVisible(),true,'Private source survives tool navigation within the verified session');
   const writesBeforeLogout=calls.filter(c=>c.method!=='GET').length;
   await page.locator('.pv-account-menu>summary').click();
   await page.locator('#logout').click();

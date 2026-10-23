@@ -148,7 +148,11 @@ try{
         }
         await page.locator('#mode-reference').click();await reference.locator('#mode-reference').click();
       }
-      const regions={image:['#gate'],video:width>=700?['#video-model-control','#pv-video-reference-preview']:['#video-model-control','#video-modes','#reference-drop','#prompt'],upscale:['.pv-upscale-workspace-intro','#pv-upscale-dropzone'],retouch:['.precision-board'],fashion:['#fashion-studio .page-intro','#fashion-studio .image-pair','#fashion-studio .result-panel']};
+      if(route==='fashion'){
+        assert.equal(await page.locator('#fashion-studio .result-panel').isVisible(),false,'The approved public Fashion empty state has no invented output panel');
+        assert.equal(await reference.locator('#fashion-studio .result-panel').isVisible(),false,'The independently booted approved source also hides an empty result');
+      }
+      const regions={image:['#gate'],video:width>=700?['#video-model-control','#pv-video-reference-preview']:['#video-model-control','#video-modes','#reference-drop','#prompt'],upscale:['.pv-upscale-workspace-intro','#pv-upscale-dropzone'],retouch:['.precision-board'],fashion:['#fashion-studio .page-intro','#fashion-studio .image-pair','#fashion-studio .direction-block']};
       for(const [index,selector] of regions[route].entries()){
         const actual=await capture(page,selector,`test-results/visual-${route}-${width}-${index}-actual.png`);
         const expected=await capture(reference,selector,`test-results/visual-${route}-${width}-${index}-approved.png`);
@@ -198,7 +202,9 @@ try{
     await page.locator('#tool-retouch').click();await settled(page,'retouch');
     await page.locator('#precision-return').click();await settled(page,'image');
     await page.locator('#tool-fashion').click();await settled(page,'fashion');
-    await page.locator('#fashion-studio a[href*="studio.html?tool=image"]').click();await settled(page,'image');
+    assert.equal(await page.locator('#fashion-studio a[href*="studio.html?tool=image"]').isVisible(),false,'The empty Fashion output and its internal return stay hidden');
+    await page.locator('#tool-image').click();await settled(page,'image');
+    assert.equal(await page.locator('#pv-guest-prompt').inputValue(),'Keep my public Image draft.','The visible header return preserves the public Image draft');
     await page.locator('#tool-explore-moods').click();
     await page.waitForURL('**/lab/moods');
     await page.getByRole('heading',{name:/Explore Moods/}).waitFor({state:'visible'});
