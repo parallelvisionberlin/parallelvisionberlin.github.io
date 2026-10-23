@@ -664,7 +664,7 @@ async function seedreamTestReference(env,name,marker=0,width=512,height=512){
 async function uploadGuidanceReference(env,name,marker){
   return seedreamTestReference(env,name,marker);
 }
-test('Hong Kong 1K editing retains user Base and sends three exact real Style photos to Spicy provider',async()=>{
+test('Hong Kong 1K editing retains user Base and sends two exact photographic Style references to Spicy provider',async()=>{
   const {env}=fixture();
   await setup(env);
   const source=await seedreamTestReference(env,'original-fashion.png',27,768,512);
@@ -703,13 +703,13 @@ test('Hong Kong 1K editing retains user Base and sends three exact real Style ph
     assert.equal(quote.settings.moodId,'hong-kong-nights');
     assert.equal(quote.settings.moodVariant,'deep-green');
     assert.equal(quote.settings.referenceSourceIds.length,1);
-    assert.equal(quote.settings.moodReferenceCount,3);
+    assert.equal(quote.settings.moodReferenceCount,2);
     assert.equal(quote.settings.resolution,'1k');
     assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/edit');
     assert.equal(quotedRequest.input.resolution,'1k');
-    assert.equal(quotedRequest.input.image_urls.length,4,'User Base followed by three actual Style inputs');
-    assert.equal(staged.size,4);
-    for(let i=0;i<4;i++){
+    assert.equal(quotedRequest.input.image_urls.length,3,'User Base followed by two actual Style inputs');
+    assert.equal(staged.size,3);
+    for(let i=0;i<3;i++){
       const fileId=quotedRequest.input.image_urls[i].split('/').at(-1),item=staged.get(fileId);
       assert.ok(item?.bytes,'Provider upload exists at position '+(i+1));
       if(i>0)assert.deepEqual(Buffer.from(item.bytes),Buffer.from(HONG_KONG_REFERENCES[i-1].data,'base64'),
@@ -719,9 +719,8 @@ test('Hong Kong 1K editing retains user Base and sends three exact real Style ph
     assert.match(quotedRequest.input.prompt,/EDIT IMAGE 1/);
     assert.match(quotedRequest.input.prompt,/Hong Kong Nights is a photographic light-and-air treatment/);
     assert.match(quotedRequest.input.prompt,/softly visible eyes/);
-    assert.match(quotedRequest.input.prompt,/Reference 2 \[Supervalu \/ DOMINANT LOOK\]/);
-    assert.match(quotedRequest.input.prompt,/Reference 3 \[Diner green-yellow \/ SECONDARY COLOR\]/);
-    assert.match(quotedRequest.input.prompt,/Reference 4 \[Foggy wet street \/ SECONDARY DEPTH\]/);
+    assert.match(quotedRequest.input.prompt,/Reference 2 \[City taxi \/ PRIMARY NIGHT DEPTH\]/);
+    assert.match(quotedRequest.input.prompt,/Reference 3 \[Wet street \/ SECONDARY ATMOSPHERE\]/);
   }finally{
     globalThis.fetch=originalFetch;
   }

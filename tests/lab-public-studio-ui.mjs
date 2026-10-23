@@ -2,14 +2,14 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {execFileSync} from 'node:child_process';
-import {createHash} from 'node:crypto';
 import {readFileSync,existsSync,statSync,mkdirSync} from 'node:fs';
-import {resolve,relative,extname} from 'node:path';
+import {resolve,relative,extname,dirname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
+const {PNG}=(await import(pathToFileURL(resolve(dirname(process.env.PV_PLAYWRIGHT_MODULE),'../pngjs/lib/png.js')).href)).default;
 const root=resolve('.');
 // Approved source before this fix, including the later locked Image and V28 Upscaler.
-const approvedRef='453e18a4f598184dd1980efd72a27aa9120a711d';
+const approvedRef='a10eb030babb66bb1dc79cd944c945d137926db7';
 const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
 const account=`
 const state=window.__publicAccount||=(()=>{
@@ -52,7 +52,19 @@ async function settled(page,route,signed=false){
   await page.locator(surfaces[route]).waitFor({state:'visible'});
   await page.evaluate(()=>document.fonts.ready);
 }
-const hash=buffer=>createHash('sha256').update(buffer).digest('hex');
+function compareVisual(actual,expected,label){
+  const a=PNG.sync.read(actual),b=PNG.sync.read(expected);
+  assert.deepEqual([a.width,a.height],[b.width,b.height],label+' dimensions');
+  let changed=0,maxDelta=0;
+  for(let offset=0;offset<a.data.length;offset+=4){
+    let delta=0;
+    for(let channel=0;channel<4;channel++)delta=Math.max(delta,Math.abs(a.data[offset+channel]-b.data[offset+channel]));
+    if(delta)changed++;maxDelta=Math.max(maxDelta,delta);
+  }
+  // Chromium may round a fractional crop border by one channel level. This
+  // permits only that measured edge noise, never changed text, imagery or size.
+  assert.ok(maxDelta<=1&&changed<=Math.max(1,a.width*a.height*.001),label+': '+JSON.stringify({changed,maxDelta,pixels:a.width*a.height}));
+}
 async function fullPage(page,path){
   await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
   await page.screenshot({path,fullPage:true,animations:'disabled'});
@@ -119,7 +131,7 @@ try{
         if(width>=700){
           const actual=await capture(page,'.pv-video-start-editorial',`test-results/visual-video-start-${width}-actual.png`);
           const expected=await capture(reference,'.pv-video-start-editorial',`test-results/visual-video-start-${width}-approved.png`);
-          assert.equal(hash(actual),hash(expected),'Approved Video Start frame photograph');
+          compareVisual(actual,expected,'Approved Video Start frame photograph');
         }else{
           assert.equal(await page.locator('.pv-video-start-editorial').isVisible(),false,'Approved compact phone Video omits the empty stage');
           assert.equal(await reference.locator('.pv-video-start-editorial').isVisible(),false);
@@ -130,7 +142,7 @@ try{
       for(const [index,selector] of regions[route].entries()){
         const actual=await capture(page,selector,`test-results/visual-${route}-${width}-${index}-actual.png`);
         const expected=await capture(reference,selector,`test-results/visual-${route}-${width}-${index}-approved.png`);
-        assert.equal(hash(actual),hash(expected),`Approved ${route} visual at ${width}px: ${selector}`);
+        compareVisual(actual,expected,`Approved ${route} visual at ${width}px: ${selector}`);
       }
       await baseline.close();
       await fullPage(page,`test-results/studio-public-${route}-${width}.png`);

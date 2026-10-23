@@ -1,16 +1,63 @@
 # PV LAB / Explore Moods generation and Image return
-Updated: 2026-10-22
+Updated: 2026-10-23
+
+
+## Active checkpoint / 2026-10-23 approved responsive photobooth
+- Owner explicitly approved screenshot 1 for desktop and screenshots 2/3 for phone.
+- Apply the design now, including normal release; no further design approval pending.
+- Desktop: original selected-Mood artwork across the left, fading into charcoal.
+- Desktop: Selected Mood/title on the left, large upload box on the right.
+- Desktop: centered plus, light upload typography and white Generate with arrow.
+- Phone: compact floating card with visible page perimeter, not a full-screen page.
+- Phone: official outlined bold PV LAB wordmark in a separate dark header strip.
+- Phone: original Mood image/title above a separate, generously sized plus upload box.
+- Phone: white Generate, then Make it your own beneath.
+- Use existing catalogue assets; do not generate or replace any Mood artwork.
+- Explore Moods now requires a photo and sends an empty additional direction.
+- Hidden compatibility textarea must never enable generation or leak stale instructions.
+- Mood Creator, Image/Video editors and native app presentation are outside this change.
+- Existing quote, account restrictions, one confirmed submission and result flow retained.
+- Existing invalid-file overlay and valid-photo retention retained.
+- Upload/remove/quote updates must not resize the editor card.
+- Responsive geometry now comes from CSS rather than a captured inline editor height.
+- Old mobile prompt/row dimensions are deliberately superseded by this approval.
+- Result mode continues to use the existing result CSS and controls.
+- New visual rules: lab/explore-moods-photobooth.css, loaded last in moods.html.
+- HTML and controller preserve existing IDs and business logic entry points.
+- Browser regression includes all 17 Moods at desktop and phone viewport widths.
+- Browser regression retains guest sign-in, quote, blocked accounts and upload errors.
+- Browser regression retains double-click protection, download and Studio handoff.
+- Browser regression uses mocked accounts/providers; no paid live generations.
+- Local approved Image UI and Mood flow source contracts: 13/13 passed.
+- Local JavaScript syntax checks passed.
+- Full source suite passed on branch 8397088; browser checks still required before merge.
+- Desktop Night Flash preview inspected in the browser against approved screenshot 1.
+- Upscaler browser timeout at openUpscaleOptions already exists on baseline 69d7d02.
+- Its unchanged failure is outside Explore Moods; see baseline job 120351198402.
+- Cloudflare exact merged-SHA success required before claiming production deployment.
+- Verify the actual production dialog and stylesheet version after hosting succeeds.
+- Initial release merged in PR #454 as d7b116245d25b00f93c59501f90291918525e612.
+- Exact-SHA Cloudflare Pages check 120368659505 succeeded for pvlab-studio.
+- Custom domain /moods inspected: new photobooth class, white Generate and hidden prompt.
+- Production stylesheet version observed: explore-moods-photobooth.css?v=20261023-photobooth1.
+- Official wordmark loaded on the custom domain; original Mood artwork retained.
+- All 19 Explore browser scenarios, native widths and discovery handoffs passed on 898590e.
+- Full source, approved Image UI, Creator browser, account and gallery checks passed there.
+- Browser final review found an inherited mobile 24px Browse files rule; follow-up makes it 10px.
+- Follow-up also crops Night Flash closer on phones, matching the approved reference.
+- Browser checks use fixtures only; no live paid or signed-in customer generation performed.
+- Direct shell custom-domain byte fetch is unavailable; publication uses CF plus browser DOM/CSS evidence.
 
 ## Approved experience
 - Explore Moods is an independent, photographic discovery page.
 - Its shared header links to Image, Video, Upscaler, Retouch and Fashion.
 - My Moods retains its existing `mood-creator.html#my-moods` scroll.
-- The sixteen gallery cards, original imagery, hero and presets are unchanged.
+- The seventeen gallery cards, original imagery, hero and presets are unchanged.
 - The Image Studio draft (prompt, references, model and settings) is preserved
   across Explore Moods / My Moods navigation using same-tab private IndexedDB.
 
 ## Existing generation (live and tested)
-- After a valid photo or direction, Generate is immediately clickable.
+- After a valid photo, Generate is immediately clickable.
 - Credit price remains the exact server-bound quote, quietly outside the button.
 - A single click asynchronously prepares photo, references and quote, then makes
   only one confirmed paid submission. Do not auto-retry an uncertain POST.
@@ -233,3 +280,4 @@ Updated: 2026-10-22
 - In `lab/explore-moods-photo-matte-mobile.css` (600px and under), standard dropzone increases 106 to 114px, short-display exception 85 to 89px, textarea height 53 to 50px with compact internal padding and line spacing. Hint only goes 16 to 15px; entered text stays 16px to avoid iOS Safari input focus zoom.
 - `lab/moods.html` busts the modal stylesheet URL. `tests/lab-explore-generation.mjs` asserts the phone/small dimensions, hint size, entered text size and existing fit/no-overlap requirements. No desktop, artwork, copy, Mood logic, prices, authentication, payments, models or Worker changes.
 - Verify the Explore Generation browser check, PR checks and Cloudflare Pages commit/check + actual `pvlab.studio/moods` stylesheet before calling the result live.
+

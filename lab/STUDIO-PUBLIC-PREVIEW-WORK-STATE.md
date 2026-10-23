@@ -1,6 +1,6 @@
 # PV LAB public Studio preview restoration
 
-Date: 2026-10-23 (Berlin). Base: `453e18a4f598184dd1980efd72a27aa9120a711d`.
+Date: 2026-10-23 (Berlin). Initial base: `453e18a4f598184dd1980efd72a27aa9120a711d`. Current main `a10eb030babb66bb1dc79cd944c945d137926db7` incorporated by normal merge, preserving the concurrent loading wordmark, Image credit overlay, Moods and released Precision changes.
 Scope: public Studio browsing and its authentication boundary. Keep this PR draft, unmerged and undeployed pending CI/review.
 
 ## Root cause and recovered designs
@@ -13,7 +13,7 @@ The approved interfaces remain in the shared components. Recover and reuse those
 - Upscaler: current approved V28 layout, last CSS change `6c7a98cd`, retaining the real chrome/wool photograph and existing sidebar.
 - Retouch: existing Precision workspace and honest selection demonstration; `e9b4e557c87a6a36b9c5b47612abdf05b10abab2`.
 - Fashion: existing outfit replacement form and shadow-root styles; `af52557090a6bff44694b9c22ed1140da89e6b9a`.
-- Image: current approved entrance, Inspiration imagery, prompt code and styles are preserved. The visual baseline uses the complete pre-fix source at `453e18a4` rather than reverting later approved Image changes.
+- Image: current approved entrance, Inspiration imagery, prompt code and styles are preserved. The visual baseline uses the complete approved main source at `a10eb030` rather than reverting later approved Image changes.
 
 ## Implementation and security boundary
 
@@ -43,7 +43,7 @@ Explore Moods is unchanged and browser-tested for guests, customers and owners, 
 
 - Node **22.16.0**: **703/703** `tests/lab*.test.mjs` passed, including backend authorization, private media, billing/credits, provider behavior and all five locked Image UI contracts.
 - New full-bootstrap suite: passed at **1440, 390 and 320px**, across guests, synthetic customers and synthetic owners. All five tool previews, direct URLs, tab navigation, Back/Forward, internal return links, preserved Image draft, canceled sign-in, exact auth return URLs, logout cleanup and Explore Moods passed. No horizontal overflow in the checked tool states.
-- **32 exact screenshot comparisons** passed against independently booted approved Git source. Image compares the whole public entrance. Video compares desktop Start/Reference imagery and model deck plus the approved compact phone controls; phone empty stages remain hidden exactly as in the approved source. Upscaler compares intro/drop photograph; Retouch compares its board; Fashion compares intro/source/result regions. Component captures exclude sticky-header occlusion; full-page captures retain the header.
+- **32 pixel screenshot comparisons** passed against independently booted approved Git source. Image compares the whole public entrance. Video compares desktop Start/Reference imagery and model deck plus the approved compact phone controls; phone empty stages remain hidden exactly as in the approved source. Upscaler compares intro/drop photograph; Retouch compares its board; Fashion compares intro/source/result regions. Comparisons require identical dimensions and allow at most one channel level on 0.1% of pixels for measured fractional-border antialiasing. Component captures exclude sticky-header occlusion; full-page captures retain the header.
 - Guest runs made **zero private API requests**. Assets and Scene Library stayed private; Generate, model operations, upload entry and private actions requested authentication without uploads, quotes, generation or billing mutations.
 - Existing browser suites passed: tool routing/config fallback, mobile Mood entry, prompt paste/scroll, first-image instant/parity and Studio desktop/mobile layout. Existing POSIX-only test-server path checks were adapted locally with an uncommitted Windows loader for unchanged suites; the checked-in routing/Mood fixtures are now portable. CI executes the normal scripts on Linux.
 - Syntax and whitespace checks passed.

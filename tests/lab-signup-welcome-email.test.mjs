@@ -65,14 +65,38 @@ test('selected welcome email is an accessible HTML message with first-party edit
   assert.doesNotMatch(m.html+m.text,/https:\/\/pvlab\.studio\/studio\.html/);
   assert.match(m.html,/Your creative<br>space is ready\./);
   assert.match(m.html,/Begin with a feeling/);
-  assert.match(m.html,/background:#080808/);
+  assert.match(m.html,/background:#ffffff/,'The email background must blend with white Gmail instead of a giant beige panel');
+  assert.doesNotMatch(m.html,/background:#eeedea|bgcolor="#eeedea"/);
+  assert.match(m.html,/max-width:820px/,'Desktop Gmail must use the approved wider editorial layout');
+  assert.match(m.html,/font-size:0;text-align:left/,'Hybrid sections must not get Gmail whitespace gaps');
+  assert.equal((m.html.match(/class="pv-col"/g)||[]).length,2,
+    'Portrait and welcome text form real desktop editorial columns');
+  assert.equal((m.html.match(/class="pv-action-col"/g)||[]).length,2,
+    'Button and secondary link are balanced on desktop');
+  assert.match(m.html,/\.pv-col\{display:block!important;width:100%!important;max-width:100%!important\}/,
+    'Mobile stacks the editorial text columns');
+  assert.match(m.html,/\.pv-action-col\{display:block!important;width:100%!important;max-width:100%!important\}/,
+    'Mobile stacks the action/link columns');
+  assert.match(m.html,/max-width:355px/);
+  assert.match(m.html,/max-width:341px/,'The portrait is compact within its editorial column');
+  assert.match(m.html,/max-width:375px/);
+  assert.doesNotMatch(m.html,/max-width:818px/,'Do not show a full-width poster above the welcome copy');
+  assert.doesNotMatch(m.html,/max-width:680px|width="678"/,'Do not regress to the older narrow email');
+  assert.match(m.html,/@media only screen and \(max-width:600px\)/,'Mobile design stays responsive');
+  assert.match(m.html,/<span class="pv-wordmark"[^>]*>PV LAB<\/span>/,
+    'PV LAB wordmark stays real selectable text, not a pasted graphic');
+  assert.match(m.html,/welcome-hero-horizontal\.jpg/);
+  assert.doesNotMatch(m.html,/max-width:560px|width="558"/,
+    'The old narrow phone poster proportions must never return');
+  assert.doesNotMatch(m.html,/\.pv-thumbs td\{display:block/,
+    'Mobile thumbnails should stay one editorial row, not stack vertically');
   assert.match(m.text,/because you created a PV LAB account/);
   assert.doesNotMatch(m.html+m.text,/200 free credits|200 credits|free trial|sale|discount/i);
   assert.doesNotMatch(m.html,/tracking-pixel|utm_source|&#8599;|↗|<script/i);
   assert.equal((m.html.match(/<img\b/g)||[]).length,4,
-    'One selected hero photograph and three editorial thumbnails, not a flat screenshot');
+    'One horizontal hero photograph and three editorial thumbnails, not a flat screenshot');
   const assets=[
-    'welcome-hero.jpg','welcome-detail-1.jpg',
+    'welcome-hero-horizontal.jpg','welcome-detail-1.jpg',
     'welcome-detail-2.jpg','welcome-detail-3.jpg'
   ];
   for(const filename of assets){
@@ -84,6 +108,24 @@ test('selected welcome email is an accessible HTML message with first-party edit
     assert.equal(data[2],0xff,'Hosted asset must be an actual JPEG');
   }
   assert.match(m.html,/<img[^>]+alt=/);
+  const hero=readFileSync(new URL('../lab/email/welcome-hero-horizontal.jpg',import.meta.url));
+  // JPEG SOF height/width: ensure this is a LANDSCAPE header, not another
+  // tall poster asset embedded in a centered desktop email.
+  const size=(()=>{
+    for(let i=2;i<hero.length-10;){
+      if(hero[i]!==0xff){i++;continue;}
+      const marker=hero[i+1];
+      if([0xc0,0xc1,0xc2,0xc3,0xc5,0xc6,0xc7,0xc9,0xca,0xcb].includes(marker))
+        return {height:hero.readUInt16BE(i+5),width:hero.readUInt16BE(i+7)};
+      if(marker===0xd8||marker===0xd9||marker===0x01){i+=2;continue;}
+      const length=hero.readUInt16BE(i+2);
+      if(length<2)break;
+      i+=2+length;
+    }
+    throw Error('No JPEG dimensions found for email hero');
+  })();
+  assert.ok(size.width/size.height>=1.55,
+    'Welcome hero must be editorial landscape rather than a phone poster: '+JSON.stringify(size));
   assert.match(m.text,/ENTER THE STUDIO\nhttps:\/\/pvlab\.studio\//);
 });
 

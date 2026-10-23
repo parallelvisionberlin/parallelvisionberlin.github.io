@@ -43,8 +43,9 @@ jobs:
       - name: Verify one-shot generation handoffs
         run: node --test tests/lab-mood-handoff.test.mjs tests/lab-mood-references.test.mjs
       - name: Install browser
+        timeout-minutes: 3
         run: |
-          npm install --prefix /tmp/pv-mood-generate --no-save playwright@1.57.0
+          npm install --prefix /tmp/pv-mood-generate --no-save playwright@1.62.1
           node /tmp/pv-mood-generate/node_modules/playwright/cli.js install --with-deps chromium
       - name: Check desktop, mobile, sign-in, pricing and single submission
         env:

@@ -1,28 +1,24 @@
-# Hong Kong Nights: photographic source and treatment plan
+# Hong Kong Nights photographic references and historic look archive
 
-Eight exact original photo uploads were imported to this directory on 2026-10-18. File bytes were checked against their SHA-256 hashes during import, with no AI regeneration or screenshot crop. The source names below describe the owner's uploaded reference files. They do not certify photo rights.
+## Current automatic optical sources (2026-10-23)
 
-**One Mood, three optional looks.** The original eight photo assets remain available for the visual presentation of Original, Deep Green and Slow Shutter and for continuity with historical results. As of the October 18 restoration, new Hong Kong Nights generations do **not** automatically send these images to the provider. Only photographs selected by the user are passed as image references. Existing saved results and the original source files remain unchanged.
+Only two exact original owner-provided photographs are attached to supported image-model jobs, after user references and in this order:
 
-| Treatment | Preserved original photographs (visual reference archive) | Intent |
+1. `02-city-haze.jpg` (city taxi, primary: small lights receding into deep blacks). SHA-256 `f8d6373d71efd77128cf8a6b81b2ed604f55b5a7f91f539fa6c8648d31adbf0c`.
+2. `03-shop-reflections.jpg` (humid street, secondary: localized reflections and nighttime depth). SHA-256 `da4a5fb19618f206cf79b3a750928bfb5e5d421f3125298a00ce761130d50efb`.
+
+`supervalu.jpg` is the public Hong Kong Nights artwork, not a style image injected into provider requests. The previous October 22 three-photo pack (Supervalu, diner, wet street) was superseded. The restaurant and stairwell references remain available for historical study, not as current automatic style inputs. Prompt strength now uses one smooth optical recipe from 1% to 100%, with no separate 91% atmosphere override.
+
+## Historical October 18 original-photo archive
+
+Eight exact original photo uploads were imported to this directory on 2026-10-18, matched to SHA-256 hashes without AI regeneration or screenshot crops. These assets remain unchanged and available for historical looks and saved results. The archived variants below are not new selectable Moods and do not determine current provider inputs.
+
+| Historical look | Original photos retained | Historical aesthetic |
 | --- | --- | --- |
-| Original | `greg-iii.png`, `plaza-grill.webp`, `young-woman-tram.webp`, `greg-reds.png` | Analog nighttime streets, tungsten/emerald separation, natural human presence, red neon |
-| Deep Green | `greg22.png`, `supervalu.jpg`, `silver-grill-cafe.jpg`, `plaza-grill.webp` | Stronger source-lit green, humid air, grain, darker real shadows, warm practicals |
-| Slow Shutter | `sheung-wan-street.webp`, `greg-iii.png`, `young-woman-tram.webp`, `silver-grill-cafe.jpg` | Photographic motion cues, natural soft-focus and ambient lights, without importing locations |
+| Original | `greg-iii.png`, `plaza-grill.webp`, `young-woman-tram.webp`, `greg-reds.png` | Analog night streets and amber/red accents |
+| Deep Green | `greg22.png`, `supervalu.jpg`, `silver-grill-cafe.jpg`, `plaza-grill.webp` | Dense photographic blacks, colored practicals |
+| Slow Shutter | `sheung-wan-street.webp`, `greg-iii.png`, `young-woman-tram.webp`, `silver-grill-cafe.jpg` | Handheld optics and light trails |
 
-## Exact source-file fingerprints
+The original source photographs and past results remain intact. No new image is generated, deleted or reprocessed by this reference manifest update.
 
-```text
-f374494e03656eb0431c5c79e02412cf146405ba01bba19360bd7d2b0fa1b9d8 plaza-grill.webp
-5a71e513a03809d3e79ebfe0e323a25f49b81387186eb3933c40ad839d3b2c04 greg-iii.png
-3b5a605336163c0cf3e5384af7caa5951156b011029185cf2987dc0932b6ac58 greg-reds.png
-daf3222f20123167736a8527a69572636179363b6ef3e24080e9af1cd8142cb4 young-woman-tram.webp
-f6347d2143a501645cc92ac31a78244d9afc9dea7c33528fca49aa5ce9d1a52c silver-grill-cafe.jpg
-04b05a9d14a03fc2a3c82e980a235e98d35e715d21a29cacdd2f67fdf559f643 supervalu.jpg
-312f30940550a782743a0bea74f4b1b86cb6259392b99cb2f58b3c541b4fb7ef greg22.png
-3cd80f74fe4f1fec29ecad173513d7537b1841cd3a7ab74ea119ad93d6fd4f86 sheung-wan-street.webp
-```
-
-Older Hong Kong reference files remain in the repository solely for backward-compatible saved jobs and media asset history. Newly created jobs only attach the selected set of four.
-
-**Publication/license note:** The owner supplied these photographs for photographic treatment references; the photographic copyrights remain with their respective rightsholders. Obtain any required license/permission for commercial hosting and public presentation.
+Copyrights to source photographs remain with their respective rightsholders. Permission must be confirmed separately for public/commercial presentation.

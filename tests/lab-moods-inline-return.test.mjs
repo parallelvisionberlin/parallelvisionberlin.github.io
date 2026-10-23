@@ -73,7 +73,9 @@ test('Oversized Mood uploads show an in-card error and keep the editor fixed',()
   assert.match(js,/input\.size>20\*1024\*1024/);
   assert.match(js,/Maximum 20 MB/);
   assert.match(js,/fileInput\.value=''/);
-  assert.match(js,/Math\.ceil\(height\)\+'px'/);
+  const booth=read('lab/explore-moods-photobooth.css');
+  assert.match(booth,/aspect-ratio:1\.19/);
+  assert.match(booth,/height:clamp\(150px,23dvh,190px\)!important/);
   assert.match(js,/dialog\.style\.removeProperty\('--mc-editor-height'\)/);
   assert.match(page,/id="mc-look-upload-error"[^>]+role="alert"/);
   assert.match(page,/id="mc-look-upload-error-dismiss"/);
@@ -117,3 +119,4 @@ test('Mood loading uses an accessible full-frame exposure and honest job states'
   assert.match(js,/resultLoading\.classList\.remove\('is-stopped','is-finishing'\)/);
   assert.equal((js.match(/currentPrice\.submit\(\)/g)||[]).length,1);
 });
+

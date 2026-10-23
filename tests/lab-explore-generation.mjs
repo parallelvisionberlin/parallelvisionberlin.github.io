@@ -8,7 +8,8 @@ import assert from 'node:assert/strict';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE||resolve('mobile-app/node_modules/@playwright/test/index.mjs')).href);
 const root=resolve('.'),out='/tmp/pv-explore-generation';mkdirSync(out,{recursive:true});
 const lab=readFileSync('lab/lab.js','utf8');
-const entry=lab.slice(lab.indexOf('async function restoreStudioEntry()'),lab.indexOf('let sourceUrl=null'));
+const entry=lab.slice(lab.indexOf('async function restoreStudioEntry('),lab.indexOf('let sourceUrl=null'));
+assert.ok(entry.startsWith('async function restoreStudioEntry('),'Extract the current Studio entry function for the handoff regression');
 const submit=lab.slice(lab.indexOf('async function submitQuotedGeneration('),lab.indexOf("$('generate').onclick="));
 const harness=`<!doctype html><div id="notice"></div><input id="prompt"><input id="image-engine"><input id="resolution"><input id="image-count"><input id="ratio"><dialog id="quote-dialog"></dialog><script type="module">
 import {takeMoodHandoff as readMoodHandoff,moodGenerationQuote} from './mood-handoff.js';
@@ -22,15 +23,17 @@ const resetPreview=()=>{},setActive=j=>window.job=j,surfaceHistoryJob=()=>{},ref
 const syncDefaultRatio=()=>{$('ratio').value=references[0]?.width===480&&references[0]?.height===640?'3:4':'16:9';};
 async function api(path,{body}){const r=await fetch('https://parallel-vision-lab.parallelvision.workers.dev'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw Error((await r.json()).error);return r.json();}
 ${entry}\n${submit}\nawait restoreStudioEntry();window.entryFinished=true;</script>`;
-const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'http://localhost').pathname;const pathname=requestedPath==='/lab/moods'?'/lab/moods.html':requestedPath;if(pathname==='/lab/studio.html'){res.setHeader('Content-Type','text/html');res.end(harness);return;}const path=resolve(root,'.'+pathname);if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.webp':'image/webp'})[extname(path)]||'application/octet-stream');res.end(readFileSync(path));});
+const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'http://localhost').pathname;const pathname=requestedPath==='/lab/moods'?'/lab/moods.html':requestedPath;if(pathname==='/lab/studio.html'){res.setHeader('Content-Type','text/html');res.end(harness);return;}const path=resolve(root,'.'+pathname);if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2'})[extname(path)]||'application/octet-stream');res.end(readFileSync(path));});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
-try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize','variant-swap','paused','review']){
+const scenarioFailures=[];
+try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize','variant-swap','paused','review','catalogue-phone','catalogue-desktop']){
  const page=await browser.newPage({viewport:{
-  width:scenario==='small'?320:['mobile','phone'].includes(scenario)?390:scenario==='compact'?1280:1440,
+  width:scenario==='small'?320:['mobile','phone','catalogue-phone'].includes(scenario)?390:scenario==='compact'?1280:1440,
   height:scenario==='small'?640:scenario==='compact'?720:scenario==='phone'?700:900
  }});
+ try{
  let paid=0,quotes=0,uploads=0,jobStatusChecks=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{const req=route.request(),url=new URL(req.url());
   if(url.pathname==='/lab/native-account.js')return route.fulfill({contentType:'text/javascript',body:accountSource(scenario==='guest')});
@@ -42,7 +45,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
        ?{customer:true,generationReady:false,promotionReview:true,billingReady:true,config:{enabled:false}}
        :{customer:scenario!=='desktop',generationReady:true,config:{enabled:true}});
    if(url.pathname==='/api/uploads')return send({id:'20000000-0000-4000-8000-'+String(++uploads).padStart(12,'0')});
-   if(url.pathname==='/api/quotes'){quotes++;if(scenario==='slowquote')await new Promise(resolve=>setTimeout(resolve,1100));const data=req.postDataJSON();assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'1k','Photobooth quotes the fast 1K resolution for web and mobile');assert.equal(data.settings.aspectRatio,scenario==='text'?'16:9':'3:4','The first customer photo, not four internal mood photos, determines the output ratio');assert.equal(data.referenceSourceIds.length,scenario==='text'?0:1);assert.equal(new Set(data.referenceSourceIds).size,data.referenceSourceIds.length);assert.deepEqual(data.transferSourceIds,data.referenceSourceIds);assert.deepEqual(data.settings.referenceRoles.map(r=>r.role),[...(scenario==='text'?[]:['base'])]);return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
+   if(url.pathname==='/api/quotes'){quotes++;if(scenario==='slowquote')await new Promise(resolve=>setTimeout(resolve,1100));const data=req.postDataJSON();assert.doesNotMatch(JSON.stringify(data),/Stale direction must not reach generation/);assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'1k','Photobooth quotes the fast 1K resolution for web and mobile');assert.equal(data.settings.aspectRatio,'3:4','The first customer photo, not four internal mood photos, determines the output ratio');assert.equal(data.referenceSourceIds.length,1);assert.equal(new Set(data.referenceSourceIds).size,data.referenceSourceIds.length);assert.deepEqual(data.transferSourceIds,data.referenceSourceIds);assert.deepEqual(data.settings.referenceRoles.map(r=>r.role),['base']);return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
    if(url.pathname==='/api/jobs'&&req.method()==='POST'){
      paid++;assert.deepEqual(req.postDataJSON(),{quoteId:'quote-'+quotes,confirm:true});
      if(scenario==='phone')await new Promise(resolve=>setTimeout(resolve,1150));
@@ -70,7 +73,30 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
   }
   if(url.hostname!=='127.0.0.1')return route.abort();return route.continue();
  });
- await page.goto(base+'/lab/explore-moods.html');
+ await page.goto(base+'/lab/moods');
+ if(scenario.startsWith('catalogue-')){
+  const ids=await page.locator('#mc-look-grid [data-mood-id]').evaluateAll(els=>els.map(el=>el.dataset.moodId));
+  assert.equal(ids.length,17);
+  assert.ok(await page.locator('.mc-photobooth-header img').evaluate(el=>el.complete&&el.naturalWidth>0),'Official PV LAB wordmark loads');
+  for(const id of ids){
+   await page.locator('[data-mood-id="'+id+'"]').click();
+   assert.equal(await page.locator('#mc-look-direction').isVisible(),false);
+   if(scenario==='catalogue-phone')assert.equal(await page.locator('.mc-photobooth-browse').evaluate(el=>getComputedStyle(el).fontSize),'10px','Mobile browse caption stays secondary');
+   assert.equal(await page.locator('#mc-look-continue').isDisabled(),true);
+   const layout=await page.evaluate(()=>{
+    const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+    return {dialog:rect('#mc-look-dialog'),drop:rect('#mc-look-dropzone'),plus:rect('#mc-look-upload-symbol'),generate:rect('#mc-look-continue'),vw:innerWidth,vh:innerHeight};
+   });
+   assert.ok(layout.dialog.left>=19&&layout.dialog.right<=layout.vw-19,id+': floating side margins');
+   assert.ok(layout.dialog.top>=39&&layout.dialog.bottom<=layout.vh-39,id+': visible surrounding page');
+   assert.ok(layout.generate.bottom<=layout.dialog.bottom,id+': Generate remains visible');
+   assert.ok(layout.drop.height>=150,id+': large separate upload box');
+   assert.ok(Math.abs((layout.plus.left+layout.plus.width/2)-(layout.drop.left+layout.drop.width/2))<2,id+': centered plus');
+   if(id==='night-flash')await page.screenshot({path:out+'/'+scenario+'.png'});
+   await page.locator('#mc-look-close').click();
+  }
+  assert.equal(quotes,0);assert.equal(paid,0);assert.deepEqual(errors,[]);await page.close();console.log('PASS',scenario);continue;
+ }
  if(['phone','small'].includes(scenario)){
    // Regression: opening the newest Fisheye card on an in-app-sized screen
    // must expose the actual actions without scrolling through a tall hero.
@@ -93,14 +119,11 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
        placeholderSize:getComputedStyle(document.querySelector('#mc-look-direction'),'::placeholder').fontSize};
    });
    assert.equal(await page.locator('#mc-look-title').innerText(),'Fisheye 2000');
-   assert.equal(compact.drop.height,scenario==='small'?89:114,scenario+': slightly roomier photo dropzone');
-   assert.equal(compact.direction.height,50,scenario+': compact direction field');
-   assert.equal(compact.placeholderSize,'15px',scenario+': smaller prompt hint');
-   assert.equal(compact.inputSize,'16px',scenario+': iPhone input text stays focus-zoom-safe');
-   assert.ok(compact.photo.height<=156,scenario+': inset photo remains compact on mobile '+JSON.stringify(compact));
-   assert.ok(compact.title.bottom<compact.drop.top,scenario+': Mood heading is above compact upload field');
-   assert.ok(compact.drop.bottom<compact.direction.top,scenario+': upload and optional direction do not overlap');
-   assert.ok(compact.generate.top<compact.make.bottom,scenario+': both actions occupy the compact row');
+   assert.ok(compact.drop.height>=150,scenario+': separate photobooth upload box');
+   assert.equal(compact.direction.height,0,scenario+': no prompt field');
+   assert.ok(compact.photo.height<=185,scenario+': compact photographic header');
+   assert.ok(compact.title.bottom<compact.drop.top,scenario+': title is above upload box');
+   assert.ok(compact.generate.bottom<=compact.make.top+1,scenario+': secondary action sits below Generate');
    assert.ok(compact.generate.bottom<=compact.dialog.bottom+2,scenario+': Generate appears without scrolling the Mood dialog');
    assert.ok(compact.make.bottom<=compact.dialog.bottom+2,scenario+': secondary action appears without scrolling the Mood dialog');
    assert.ok(compact.dialog.bottom<=compact.screenHeight+2,scenario+': dialog stays within iPhone web viewport');
@@ -117,10 +140,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    });
    assert.ok(matte.left>=15&&matte.right>=15,
      scenario+': selected Mood floats with room on both sides '+JSON.stringify(matte));
-   assert.ok(matte.photoInset>=10,
-     scenario+': original Mood artwork is inset inside photo-matte card');
-   assert.ok(matte.closeTop>=matte.photoTop&&matte.closeBottom<=matte.photoBottom+2,
-     scenario+': close control is over the photographic image');
+   assert.ok(matte.photoInset<=2,scenario+': photographic header spans the floating card');
+   assert.ok(matte.closeBottom<=matte.photoTop+2,scenario+': close control stays in the brand strip');
    assert.equal(matte.outline,'none',
      scenario+': container has no Safari-blue programmatic focus ring');
    assert.equal(await page.locator('.mc-look-footer').evaluate(el=>getComputedStyle(el).fontSize),'0px',
@@ -165,8 +186,13 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
  await page.locator('[data-mood-id="hong-kong-nights"]').click();
  const editorHeight=await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height);
  const button=page.locator('#mc-look-continue');assert.equal(await button.textContent(),'Generate');assert.equal(await button.isDisabled(),true);assert.equal(paid,0);assert.equal(quotes,0);
- if(scenario==='text')await page.locator('#mc-look-direction').fill('A red car in rain');
- else{const photo=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;return c.toDataURL().split(',')[1];}),'base64');await page.locator('#mc-look-file').setInputFiles({name:'source.png',mimeType:'image/png',buffer:photo});}
+ if(scenario==='text'){
+  assert.equal(await page.locator('#mc-look-direction').isVisible(),false);
+  await page.locator('#mc-look-direction').evaluate(el=>{el.value='Stale direction must not reach generation';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  assert.equal(await button.isDisabled(),true,'Hidden directions cannot enable photo-only generation');
+  assert.equal(quotes,0);assert.equal(paid,0);
+ }
+ {const photo=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;return c.toDataURL().split(',')[1];}),'base64');await page.locator('#mc-look-file').setInputFiles({name:'source.png',mimeType:'image/png',buffer:photo});}
  // Uploading and pricing must never keep Generate disabled.
  const uploadedHeight=await page.locator('#mc-look-dialog').evaluate(el=>el.getBoundingClientRect().height);
  assert.ok(Math.abs(uploadedHeight-editorHeight)<2,
@@ -223,8 +249,9 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    assert.equal(await button.isDisabled(),false,'Dismissing restores the previous valid photo');
  }
  if(scenario==='changed'){
-   await page.locator('#mc-look-direction').fill('Sharper flash');
-   assert.equal(await button.isDisabled(),false,'Editing the direction also keeps Generate clickable');
+   const replacement=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;return c.toDataURL().split(',')[1];}),'base64');
+   await page.locator('#mc-look-file').setInputFiles({name:'replacement.png',mimeType:'image/png',buffer:replacement});
+   assert.equal(await button.isDisabled(),false,'Replacing the photo keeps Generate clickable');
    assert.equal(await button.textContent(),'Generate');
    await page.waitForFunction(()=>document.querySelector('#mc-look-credit-note').hidden===false);
    assert.equal(quotes,2);
@@ -248,7 +275,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
        'The Silver Darkroom transition is settled and readable');
      await page.screenshot({path:out+'/preparing-photo-matte-phone.png',fullPage:false});
    }
-   assert.equal(await page.locator('#mc-look-dialog').getAttribute('class'), 'mc-look-dialog is-result-view',
+   assert.equal(await page.locator('#mc-look-dialog').getAttribute('class'), 'mc-look-dialog mc-photobooth is-result-view',
      'Generation should switch to a compact result view, not append underneath the full form');
    assert.equal(await page.locator('#mc-look-dropzone').isVisible(),false);
    assert.equal(await page.locator('.mc-look-prompt').isVisible(),false);
@@ -357,7 +384,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
          assert.equal(await page.locator('#mc-look-result').isVisible(),false,
            'Make another returns to the editor with no extra paid job');
          assert.equal(await page.locator('#mc-look-dropzone').isVisible(),true);
-         assert.equal(await page.locator('#mc-look-dialog').getAttribute('class'),'mc-look-dialog');
+         assert.equal(await page.locator('#mc-look-dialog').getAttribute('class'),'mc-look-dialog mc-photobooth');
          assert.equal(paid,1,'Make another must not submit a new job automatically');
          const remove=page.locator('#mc-look-file-clear');
          assert.equal(await remove.isVisible(),true);
@@ -388,4 +415,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    }
  }
  assert.deepEqual(errors,[]);await page.close();console.log('PASS',scenario);
-}}finally{await browser.close();server.close();}
+ }catch(error){scenarioFailures.push(scenario+': '+error.message);console.error('FAIL',scenario,error);await page.close();}
+}
+assert.deepEqual(scenarioFailures,[],'Every Explore Moods scenario must pass');
+}finally{await browser.close();server.close();}
+

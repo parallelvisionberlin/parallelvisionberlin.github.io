@@ -21,11 +21,14 @@
   }
 }
 /* Video and Upscaler notices overlay the workspace without changing geometry. */
+.landing-header--home #lab-credit-banner,
 body:has(#app.video-studio-active:not([hidden])) #lab-credit-banner,
 body:has(#app.upscale-studio-active:not([hidden])) #lab-credit-banner{
   position:absolute;inset:var(--lab-header-height,82px) 0 auto;z-index:79;
   box-sizing:border-box;box-shadow:0 8px 24px rgba(0,0,0,.2);
 }
+.lab-credit-banner a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.lab-credit-banner a:focus-visible{outline:2px solid #151515;outline-offset:3px}
 .lab-credit-deck{max-width:760px;width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:30px;border:1px solid #484744;border-radius:12px;background:#151515;color:#eeeae2;box-shadow:0 24px 100px #0009}
 .lab-credit-deck::backdrop{background:#0009;backdrop-filter:blur(5px)}
 .lab-credit-deck header{position:static;display:flex;align-items:flex-start;justify-content:space-between;padding:0 0 24px;background:none;backdrop-filter:none;border:0;border-bottom:1px solid #383735}
@@ -90,3 +93,52 @@ body:has(#app.upscale-studio-active:not([hidden])) #lab-credit-banner{
 @media(min-width:901px) and (max-width:1270px){#studio-header .actions .lab-add-credits{padding-inline:17px}}
 @media(max-width:900px){#studio-header .actions .lab-add-credits{min-height:38px;padding:8px 13px;font-size:12px}}
 @media(max-width:560px){#studio-header .actions .lab-add-credits{min-height:36px;padding:8px 10px;font-size:11px;gap:4px}}
+
+
+/* Image Studio credit notice: overlay under the masthead across all accounts
+   and viewport sizes. Never participate in hero/composer document layout. */
+body:has(#app.image-studio-active:not([hidden])) #lab-credit-banner:not([hidden]){
+  position:fixed!important;
+  top:var(--lab-header-height,82px)!important;
+  left:0!important;right:0!important;bottom:auto!important;
+  width:100%!important;margin:0!important;
+  z-index:79!important;
+  box-sizing:border-box!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.20)!important;
+}
+
+
+/* Unified zero-credit banner visuals across Homepage and Studio tools.
+   Preserve existing overlay anchors, eligibility, dismissal and pricing flow. */
+.lab-credit-banner{
+  min-height:52px!important;
+  box-sizing:border-box!important;
+  padding:10px 32px!important;
+  gap:12px!important;
+  font:400 13px/1.4 'DM Sans',Arial,sans-serif!important;
+}
+.lab-credit-banner .lab-credit-banner-icon{
+  width:24px!important;height:24px!important;
+  font-size:15px!important;
+}
+.lab-credit-banner p{font:inherit!important}
+.lab-credit-banner strong{font-weight:700!important;margin-right:6px!important}
+.lab-credit-banner #lab-credit-banner-dismiss{
+  width:30px!important;height:30px!important;min-height:30px!important;
+}
+@media(max-width:700px){
+ .lab-credit-banner{padding:10px 16px!important;gap:10px!important;min-height:52px!important}
+ .lab-credit-banner p{font-size:12px!important}
+}
+
+
+/* Homepage banner uses the same independent overlay as Studio, not header layout. */
+body:has(.landing-header--home) > #lab-credit-banner:not([hidden]){
+ position:fixed!important;
+ top:var(--lab-header-height,82px)!important;
+ inset-inline:0!important;bottom:auto!important;
+ width:100%!important;margin:0!important;
+ z-index:79!important;
+ box-sizing:border-box!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.20)!important;
+}

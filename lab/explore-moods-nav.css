@@ -350,3 +350,14 @@
   .mc-explore-page .mc-look-result-loading.is-stopped .mc-look-story-halt{opacity:1}
 }
 
+
+
+/* Canonical brand mark on Explore Moods for guest and signed-in navigation. */
+.mc-explore-page .landing-header--moods .lab-brand{position:relative;display:inline-block}
+.mc-explore-page .landing-header--moods .lab-brand .lab-wordmark-label{
+ display:inline;opacity:0;font:inherit;letter-spacing:inherit;
+}
+.mc-explore-page .landing-header--moods .lab-brand .lab-wordmark{
+ display:block;position:absolute;left:0;top:50%;transform:translateY(-50%);
+ width:3.375em;height:auto;max-width:100%;pointer-events:none;
+}

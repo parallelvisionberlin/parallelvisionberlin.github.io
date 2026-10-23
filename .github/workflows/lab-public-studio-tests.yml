@@ -17,12 +17,12 @@ jobs:
         with:
           node-version: '22.16.0'
       - name: Recover approved source for visual comparison
-        run: git fetch --depth=1 origin 453e18a4f598184dd1980efd72a27aa9120a711d
+        run: git fetch --depth=1 origin a10eb030babb66bb1dc79cd944c945d137926db7
       - name: Approved Image contract
         run: node --test tests/lab-approved-image-ui-contract.test.mjs
       - name: Install pinned browser runtime
         run: |
-          npm install --prefix /tmp/pv-public-studio --no-audit --no-fund playwright@1.57.0
+          npm install --prefix /tmp/pv-public-studio --no-audit --no-fund playwright@1.57.0 pngjs@7.0.0
           node /tmp/pv-public-studio/node_modules/playwright/cli.js install --with-deps chromium
       - name: Guest and signed-in visual, navigation and privacy regressions
         env:

@@ -31,7 +31,7 @@ function testRig(){
  };
  return {db,env,invoke,objects};
 }
-test('Mood Creator gallery handoff accepts saved board UUIDs and preserves an optional idea',()=>{
+test('Mood Creator gallery handoff accepts saved board UUIDs and photo-only Explore entry',()=>{
   const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const creator=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
   const homepage=readFileSync(new URL('../lab/index.html',import.meta.url),'utf8');
@@ -44,7 +44,9 @@ test('Mood Creator gallery handoff accepts saved board UUIDs and preserves an op
   const explore=readFileSync(new URL('../lab/moods.html',import.meta.url),'utf8');
   const exploreCode=readFileSync(new URL('../lab/explore-moods.js',import.meta.url),'utf8');
   assert.match(explore,/data-mood-id="dreamcore"/);
-  assert.match(exploreCode,/const token=await saveMoodHandoff\(\{file,prompt:direction\.value\.trim\(\)\}\)/);
+  assert.match(exploreCode,/const token=await saveMoodHandoff\(\{file,prompt:''\}\)/);
+  assert.match(exploreCode,/function hasGenerationInput\(\)\{return !!mood&&!!file;\}/);
+  assert.doesNotMatch(exploreCode,/prompt:direction\.value\.trim\(\)/);
   assert.match(exploreCode,/location\.assign\(moodExploreDestination\(mood\.id,\{create,handoff:token,moodVariant\}\)\)/);
   assert.match(creator,/if\(packet\.prompt\)concept\.value=packet\.prompt/);
   assert.match(page,/href="#my-moods">My Moods/);
