@@ -30,8 +30,19 @@
 - Use the shared pinned Playwright 1.62.1 runtime with a bounded installation step.
 - Local approved Image UI contract: 5/5 passed before and after editing.
 - Local syntax checks passed; no live paid requests performed.
-- CI browser/provider-fixture checks and Cloudflare publication are pending.
-- Verify the exact deployed SHA and the visible menu/status on pvlab.studio before claiming live.
+- PR #466 merged as 503bbc10ed5a65695e88a8b99dfcfb22d730d501.
+- Full source suite, approved Image UI and Video integration passed on candidate b0140f4.
+- Upscaler submission smoke 2/2 and full browser checks 34/34 passed; screenshots inspected.
+- Separate visibility fixture still fails at line 79 on the existing empty-source expectation.
+- That fixture suppresses lab.js; unchanged source-control CSS explains the baseline mismatch.
+- Cloudflare pvlab-studio check 120416689032 succeeded for exact merged SHA 503bbc1.
+- Custom-domain /studio?tool=upscale DOM verified both quality options and empty/hidden status.
+- JS URL includes upscalePrecision=20261023-visible1 and upscaleQuietSelection=20261023v1.
+- CSS URL includes precisionQuality=20261023-visible1, avoiding stale cached resources.
+- Role/viewport generation behavior was verified using intercepted APIs, not live paid jobs.
+- Browser was signed out in production; actual signed-in provider acceptance remains untested.
+- Direct shell production byte verification is unavailable; CF plus browser DOM/version evidence used.
+- Repair is published. No further product change is pending for this request.
 
 ## Previous implementation record
 
