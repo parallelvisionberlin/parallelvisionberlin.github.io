@@ -76,18 +76,17 @@ const selectModel=async(page,name)=>{
  const option=page.getByRole('menuitemradio',{name});
  assert.equal(await option.isVisible(),true,'Model is selected through the approved visible popup');
  const engine=await option.getAttribute('data-upscale-engine');
+ const quality=await option.getAttribute('data-upscale-quality');
  await option.click();
- assert.equal(await page.locator('[data-upscale-engine="'+engine+'"]').getAttribute('aria-checked'),'true');
+ assert.equal(await page.locator(quality?'[data-upscale-quality="'+quality+'"]':'[data-upscale-engine="'+engine+'"]').getAttribute('aria-checked'),'true');
  assert.equal(await page.locator('#upscale-model-menu').isVisible(),false);
  assert.equal(await page.locator('#upscale-price-status').isVisible(),false,'Model and quality selection stay quiet');
  assert.equal(await page.locator('#upscale-price-status').textContent(),'','No replacement diagnostic after selection');
 };
 const selectQuality=async(page,quality,{touch=false}={})=>{
  await page.getByRole('button',{name:/Choose upscale model/}).click();
- const group=page.getByRole('group',{name:'Topaz Precision quality',exact:true});
- assert.equal(await group.isVisible(),true);
- assert.deepEqual(await group.getByRole('menuitemradio').allTextContents(),['Standard V2✓','High Fidelity V3✓']);
- const choice=group.getByRole('menuitemradio',{name:quality,exact:true});
+ const choice=page.locator('[data-upscale-quality="'+quality+'"]');
+ assert.equal(await choice.isVisible(),true);
  if(touch)await choice.tap();else await choice.click();
  assert.equal(await page.locator('#upscale-model-menu').isVisible(),false);
  assert.equal(await page.locator('#upscale-price-status').isVisible(),false,'Model and quality selection stay quiet');
@@ -96,7 +95,7 @@ const selectQuality=async(page,quality,{touch=false}={})=>{
  assert.equal(await page.locator('#upscale-topaz-model').inputValue(),quality);
  assert.equal(await page.locator('#upscale-model-id').innerText(),quality);
  assert.equal(await page.locator('#upscale-model-trigger').getAttribute('aria-label'),'Choose upscale model, currently Topaz Precision '+quality);
- assert.equal(await page.locator('[data-upscale-engine="topaz-precision"]').getAttribute('aria-checked'),'true');
+ assert.equal(await page.locator('#upscale-model-menu [aria-checked="true"]').count(),1,'Exactly one concrete option is selected');
  for(const q of ['Standard V2','High Fidelity V3'])assert.equal(await page.locator('[data-upscale-quality="'+q+'"]').getAttribute('aria-checked'),String(q===quality));
 };
 const workspaceGeometry=page=>page.evaluate(()=>{
@@ -149,9 +148,9 @@ try{
  await x.page.locator('#upscale-model-trigger').click();
  assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),true);
  assert.equal(await x.page.locator('#upscale-model-trigger').getAttribute('aria-expanded'),'true');
- assert.deepEqual(await x.page.locator('[data-upscale-engine]').evaluateAll(items=>items.map(x=>x.dataset.upscaleEngine)),['seedvr2','topaz-precision','topaz-wonder']);
- assert.equal(await x.page.getByRole('menuitemradio').count(),5,'Three engine rows plus the two nested Precision qualities');
- await x.page.getByRole('menuitemradio',{name:/Topaz Precision/}).click();
+ assert.deepEqual(await x.page.locator('[data-upscale-engine]').evaluateAll(items=>items.map(x=>x.dataset.upscaleEngine)),['seedvr2','topaz-wonder']);
+ assert.equal(await x.page.getByRole('menuitemradio').count(),4,'Four concrete options without a parent or nested menu');
+ await x.page.getByRole('menuitemradio',{name:/Topaz Standard V2/}).click();
  assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),false);
  assert.equal(await x.page.locator('#upscale-engine').inputValue(),'topaz-precision');
  assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),'Standard V2','Fresh Precision keeps the existing default');
@@ -191,7 +190,7 @@ try{
   ok('4x and format changes obtain fresh bound estimates only on the next explicit action');await x.context.close();
 
   x=await workspace();await x.page.click('#tool-upscale');await uploadSmall(x.page);
-  for(const [name,expected] of [[/ByteDance Premium/,seedModel],[/Topaz Precision/,precisionModel],[/Topaz Wonder 3.5/,wonderModel]]){
+  for(const [name,expected] of [[/ByteDance Premium/,seedModel],[/Topaz Standard V2/,precisionModel],[/Topaz Wonder 3.5/,wonderModel]]){
    const paid=countPaid(x),quotes=quoteRequests(x).length;
    await selectModel(x.page,name);
    assert.equal(await x.page.locator('#preview').isVisible(),true,'Model selection preserves the photo');
@@ -220,7 +219,7 @@ try{
    assert.equal(await x.page.locator('#upscale-scale').inputValue(),'4');assert.equal(countPaid(x),0);assert.equal(quoteRequests(x).length,0);
    assert.equal(await x.page.locator('[data-upscale-quality="'+quality+'"]').getAttribute('aria-checked'),'true','History synchronizes the visible menu quality');
    assertQuoted(await upscale(x),{...precisionModel,quality,scale:4});
-   await selectModel(x.page,/ByteDance Premium/);await selectModel(x.page,/Topaz Precision/);
+   await selectModel(x.page,/ByteDance Premium/);await selectModel(x.page,/Topaz Standard V2/);
    assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),'Standard V2','Newly selecting Precision returns to its approved default');
    assert.equal(countPaid(x),1);assert.equal(quoteRequests(x).length,1,'Engine reselection makes no additional quote or submission');
    assert.equal(x.uploads.length,0,'History reuses the original source');assert.deepEqual(x.historyJobs(),[oldTopaz]);assert.deepEqual(x.errors,[]);
@@ -228,7 +227,7 @@ try{
   }
 
   for(const customer of [false,true]){
-   for(const [name,expected] of [[/ByteDance Premium/,seedModel],[/Topaz Precision/,precisionModel],[/Topaz Wonder 3.5/,wonderModel]]){
+   for(const [name,expected] of [[/ByteDance Premium/,seedModel],[/Topaz Standard V2/,precisionModel],[/Topaz Wonder 3.5/,wonderModel]]){
     x=await workspace([],1440,{customer});await x.page.click('#tool-upscale');await uploadSmall(x.page);await selectModel(x.page,name);
     assertQuoted(await upscale(x),expected);assert.deepEqual(x.errors,[]);await x.context.close();
    }
@@ -237,8 +236,8 @@ try{
 
   for(const [name,options,engine,quality] of [
    ['wrong endpoint',{quoteTransform:q=>({...q,settings:{...q.settings,model:'unrelated/model'}})},null],
-   ['wrong Precision quality',{quoteTransform:q=>({...q,settings:{...q.settings,topazModel:'High Fidelity V3'}})},/Topaz Precision/],
-   ['wrong High Fidelity quality',{quoteTransform:q=>({...q,settings:{...q.settings,topazModel:'Standard V2'}})},/Topaz Precision/,'High Fidelity V3'],
+   ['wrong Precision quality',{quoteTransform:q=>({...q,settings:{...q.settings,topazModel:'High Fidelity V3'}})},/Topaz Standard V2/],
+   ['wrong High Fidelity quality',{quoteTransform:q=>({...q,settings:{...q.settings,topazModel:'Standard V2'}})},/Topaz Standard V2/,'High Fidelity V3'],
    ['wrong output format',{quoteTransform:q=>({...q,settings:{...q.settings,outputFormat:'jpeg'}})},null],
    ['expired quote',{quoteTtlMs:-1},null],
    ['missing review flag',{quoteTransform:q=>({...q,requiresPriceReview:false})},null],
@@ -278,7 +277,7 @@ try{
    x=await workspace([oldJob],width);await x.page.click('#tool-upscale');
    assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'No horizontal overflow');
    mkdirSync('test-results',{recursive:true});await x.page.screenshot({path:'test-results/upscaler-functional-'+width+'.png',fullPage:true});
-   await selectModel(x.page,/Topaz Precision/);assert.equal(await x.page.locator('#upscale-model-display').isVisible(),true);
+   await selectModel(x.page,/Topaz Standard V2/);assert.equal(await x.page.locator('#upscale-model-display').isVisible(),true);
    await selectQuality(x.page,'High Fidelity V3',{touch:width===390});
    await x.page.locator('#upscale-model-trigger').click();
    await x.page.screenshot({path:'test-results/upscaler-precision-empty-'+width+'.png',fullPage:true});
@@ -290,7 +289,7 @@ try{
   for(const width of [1440,390])for(const customer of [false,true]){
    x=await workspace([],width,{customer});await x.page.click('#tool-upscale');await uploadSmall(x.page);
    assert.equal(await x.page.locator('#upscale-engine').inputValue(),'seedvr2','ByteDance remains the fresh default');
-   await selectModel(x.page,/Topaz Precision/);
+   await selectModel(x.page,/Topaz Standard V2/);
    assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),'Standard V2');
    for(const quality of ['High Fidelity V3','Standard V2']){
     const beforePaid=countPaid(x),beforeQuotes=quoteRequests(x).length,geometry=await workspaceGeometry(x.page);
@@ -303,11 +302,11 @@ try{
     assert.equal(quoteRequests(x).at(-1).data.settings.topazModel,quality);
    }
    assert.equal(new Set(x.quotes.map(q=>q.id)).size,2,'Each changed quality obtains its own bound quote');assert.equal(x.uploads.length,1);
-   for(const name of [/Topaz Wonder 3.5/,/ByteDance Premium/,/Topaz Precision/])await selectModel(x.page,name);
+   for(const name of [/Topaz Wonder 3.5/,/ByteDance Premium/,/Topaz Standard V2/])await selectModel(x.page,name);
    assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),'Standard V2');
    assert.equal(countPaid(x),2);assert.equal(quoteRequests(x).length,2,'All three engines remain accessible on each role/viewport without selection side effects');
    await x.page.getByRole('button',{name:/Choose upscale model/}).click();
-   assert.equal(await x.page.getByRole('menuitemradio').count(),5);
+   assert.equal(await x.page.getByRole('menuitemradio').count(),4);
    assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Open quality popup has no mobile overflow');
    const menu=await x.page.locator('#upscale-model-menu').boundingBox();
    const last=await x.page.locator('[data-upscale-engine="topaz-wonder"]').boundingBox();
@@ -322,7 +321,6 @@ try{
   await trigger.focus();await trigger.press('ArrowDown');
   const focused=()=>x.page.evaluate(()=>document.activeElement.dataset.upscaleQuality||document.activeElement.dataset.upscaleEngine||document.activeElement.id);
   assert.equal(await focused(),'seedvr2');
-  await x.page.keyboard.press('ArrowDown');assert.equal(await focused(),'topaz-precision');
   await x.page.keyboard.press('ArrowDown');assert.equal(await focused(),'Standard V2');
   await x.page.keyboard.press('ArrowDown');assert.equal(await focused(),'High Fidelity V3');
   await x.page.keyboard.press('Enter');

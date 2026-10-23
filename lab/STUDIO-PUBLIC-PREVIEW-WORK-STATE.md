@@ -1,6 +1,6 @@
 # PV LAB public Studio preview restoration
 
-Date: 2026-10-23 (Berlin). Initial base: `453e18a4f598184dd1980efd72a27aa9120a711d`. Current main `a10eb030babb66bb1dc79cd944c945d137926db7` incorporated by normal merge, preserving the concurrent loading wordmark, Image credit overlay, Moods and released Precision changes.
+Date: 2026-10-23 (Berlin). Initial base: `453e18a4f598184dd1980efd72a27aa9120a711d`. Current main `ac33d20c50bdd88e71547e96a70781efae4b5a11` incorporated by normal merge, preserving the concurrent loading wordmark, Image credit overlay, Moods and released Precision changes, including the approved four-option picker.
 Scope: public Studio browsing and its authentication boundary. Keep this PR draft, unmerged and undeployed pending CI/review.
 
 ## Root cause and recovered designs
@@ -13,7 +13,7 @@ The approved interfaces remain in the shared components. Recover and reuse those
 - Upscaler: current approved V28 layout, last CSS change `6c7a98cd`, retaining the real chrome/wool photograph and existing sidebar.
 - Retouch: existing Precision workspace and honest selection demonstration; `e9b4e557c87a6a36b9c5b47612abdf05b10abab2`.
 - Fashion: existing outfit replacement form and shadow-root styles; `af52557090a6bff44694b9c22ed1140da89e6b9a`.
-- Image: current approved entrance, Inspiration imagery, prompt code and styles are preserved. The visual baseline uses the complete approved main source at `a10eb030` rather than reverting later approved Image changes.
+- Image: current approved entrance, Inspiration imagery, prompt code and styles are preserved. The visual baseline uses the complete approved main source at `ac33d20c` rather than reverting later approved Image changes.
 
 ## Implementation and security boundary
 

@@ -9,7 +9,7 @@ const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).hr
 const {PNG}=(await import(pathToFileURL(resolve(dirname(process.env.PV_PLAYWRIGHT_MODULE),'../pngjs/lib/png.js')).href)).default;
 const root=resolve('.');
 // Approved source before this fix, including the later locked Image and V28 Upscaler.
-const approvedRef='a10eb030babb66bb1dc79cd944c945d137926db7';
+const approvedRef='ac33d20c50bdd88e71547e96a70781efae4b5a11';
 const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
 const account=`
 const state=window.__publicAccount||=(()=>{
