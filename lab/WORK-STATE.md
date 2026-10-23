@@ -1,6 +1,17 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
-## Fashion legacy header routing, 2026-10-23
+## Fashion internal-template loading repair, 2026-10-23
+- Owner screenshot image(20261023-130857).png proves signed-in Fashion failed with Retry loading Fashion.
+- Cause: PR #471 server redirects also intercepted mountFashionStudio's fetch of fashion.html.
+- Prior signed-out header verification did not exercise the authenticated template loader; completion claim was too broad.
+- Remove all six Fashion server redirects. Return the original HTML body to internal fetch/DOMParser.
+- Add an early document-navigation redirect in fashion.html to the shared Studio, preserving query parameters and setting tool=fashion.
+- DOMParser does not execute that script, so the existing authenticated loader can find #content and mount the original editor.
+- No editor, auth, credits, model, provider, or shared masthead change.
+- Base b99fec4d6714335bbcf95c5dd88ec365548d263c; approved Image contract passed 5/5 before editing.
+- Verify real served template retains #content and direct navigation retains the shared header after deployment.
+
+## Fashion legacy header routing, 2026-10-23 (superseded; see repair above)
 - Owner screenshot image(20261023-125725).png shows /fashion with the old standalone masthead.
 - Verified lab/fashion.html has only Image, Video, Upscaler and Fashion; Retouch/Explore Moods are absent.
 - Canonical /studio?tool=fashion was checked in production and has all six shared destinations.
