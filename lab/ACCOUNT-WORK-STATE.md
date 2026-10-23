@@ -1,3 +1,39 @@
+## Checkout recovery: review pending (2026-10-23)
+
+- Objective: implement only P1/P2/P3 from the purchase audit at `69d7d02`.
+- Branch: `codex/pvlab-checkout-return-recovery`; target main, draft PR only.
+- Latest incorporated main: `8d175979ae1ca341b8c5331bcc738f9b815ea7eb`.
+- Preserve the later homepage credit banner, responsive welcome email, Explore photobooth and subsequent shared banner style changes.
+- P1: `customer-wallet.js` refreshes `/api/session`, including authorization and provider configuration.
+- `lab.js` applies that profile without replaying account initialization or resetting the draft.
+- Positive balance never sets `generationReady`; review/closure/promotion restrictions remain enforced.
+- Success return polls at 2-second intervals, at most 12 requests within a 30-second scheduling window.
+- The existing session request timeout bounds any final in-flight request; focus/manual refresh remains available after polling stops.
+- Logout/account changes invalidate pending profiles, queued refreshes and recovery timers.
+- P2: `pricing-overlay.js` keeps imported cards inert and purchase buttons disabled until handlers and the requested tab are ready.
+- P3: `checkout-return.js` stores only SKU, customer, route, draft marker and timestamp in same-tab sessionStorage.
+- Checkout context is allowlisted, customer-bound, expires after 30 minutes and is consumed once.
+- Cancellation restores the monthly/one-time tab and selected SKU focus; it never starts another Checkout.
+- Homepage, Studio and account-page purchase entries record context only after validating the Stripe destination.
+- Existing private Image draft storage preserves prompt/settings/photos through outgoing Studio Checkout.
+- Focus and persisted pageshow refresh the complete profile; browser Back restores selection with or without a cached document.
+- No CSS, photographs, design, prices, billing address, Worker, database or commercial settings changed.
+- New deterministic tests cover bounded/late webhook, rejected context, account switches and the BFCache purchase lock.
+- Extended account browser tests cover 1440/390px late webhook, denied positive balances, first usable click, cancel, focus and Back.
+- Actual Back navigations passed; Chromium reported `pageshow.persisted=false` in all four cases.
+- Persisted BFCache lifecycle is explicitly simulated in browser and unit tests; native cache eviction/restore remains unverified.
+- Local relevant unit checks: 110 passed, 0 skipped (including approved Image contract and billing/credit/webhook guards).
+- Account browser passed full existing matrix plus the new regressions; pricing overlay browser passed 320/390/1440/1648px.
+- Existing homepage credit banner browser passed all five desktop/tablet/phone sizes, with no geometry changes.
+- Existing one-click mock-generation browser: 53/53 passed; Windows path adapter used in memory only.
+- Screenshots inspected for funded desktop/mobile and cancelled pack/subscription selection; no horizontal overflow.
+- Known unrelated failure retained: `lab-first-image-instant-browser.mjs:126` backdrop comparison at 1920px.
+- Its max=234 / mean=40.745716145833335 exactly matches the audit baseline failure; no assertion was changed or disabled.
+- Payment, credit allocation and first generation are tested locally with synthetic identities/intercepted APIs only.
+- No real purchase, paid generation, production account mutation, merge or deployment performed.
+- Remaining acceptance: normal-customer test payment -> webhook credits -> first generation in a confirmed test environment, plus real Safari BFCache.
+- Next: review draft PR and its exact-head CI; retain failures/limitations explicitly before any release approval.
+
 ## Homepage zero-credit banner (2026-10-23, completed and live)
 
 - Objective: reuse the approved Studio white notice on the PV LAB homepage for confirmed zero-credit customers, with no layout movement.

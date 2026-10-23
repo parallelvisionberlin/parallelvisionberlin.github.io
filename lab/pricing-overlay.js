@@ -1,3 +1,4 @@
+import {checkoutPlans} from './checkout-return.js?v=20261023-recovery1';
 // Studio reuses homepage SKUs and checkout, with its own approved compact visual treatment.
 // No hard-coded SKU amounts or prices: markup comes from the live PV LAB
 // homepage and Stripe purchases use the existing authenticated wallet.
@@ -26,9 +27,9 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
   const closeButton=document.getElementById('lab-pricing-overlay-close');
   const status=document.getElementById('lab-pricing-overlay-status');
   if(!dialog||!surface||!closeButton)throw new Error('PV LAB pricing overlay is unavailable.');
-  let loaded=null,previousFocus=null,submitting=false;
+  let loaded=null,previousFocus=null,submitting=false,ready=false,opening=0;
   const pendingKey='pv-lab-studio-plan-intent';
-  const availablePlans=['starter','creator','studio','topup10','topup29','topup75'];
+  const availablePlans=checkoutPlans;
   let pendingPlan=null;
   function rememberPlan(sku){
     pendingPlan={sku,at:Date.now(),path:location.pathname};
@@ -63,6 +64,8 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
     // Modal-only presentation; product values, prices, IDs and buttons still
     // come directly from the homepage. Never rewrite the public pricing page.
     section.classList.add('lab-studio-pricing');
+    section.inert=true;
+    section.querySelectorAll('button[data-lab-buy]').forEach(button=>{button.disabled=true;});
     surface.replaceChildren(section);
     // The existing homepage pricing tabs implement the same monthly / one-time
     // switch, estimate popovers and keyboard navigation inside this modal.
@@ -76,7 +79,7 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
     return loaded;
   }
   async function purchase(button){
-    if(submitting||!dialog.open)return;
+    if(!ready||submitting||!dialog.open)return;
     const sku=button.dataset.labBuy;
     if(!availablePlans.includes(sku))return;
     const account=getAccount?.()||{};
@@ -105,6 +108,8 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
     }
   }
   async function open({oneTime=false}={}){
+    if(submitting)return;
+    const current=++opening;ready=false;surface.setAttribute('aria-busy','true');
     if(!dialog.open){
       previousFocus=document.activeElement;
       dialog.showModal();
@@ -113,12 +118,16 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
     note(surface.querySelector('#pricing')?'':'Loading plans…');
     try{
       await ensure();
+      if(current!==opening)return;
       note('');
       const tab=surface.querySelector(oneTime?'#lab-tab-onetime':'#lab-tab-monthly');
       if(tab&&tab.getAttribute('aria-selected')!=='true')tab.click();
+      surface.querySelector('#pricing').inert=false;
+      surface.querySelectorAll('button[data-lab-buy]').forEach(button=>{button.disabled=false;});
+      ready=true;surface.setAttribute('aria-busy','false');
       if(dialog.open)closeButton.focus({preventScroll:true});
     }catch(error){
-      note(error?.message||'Pricing is unavailable. Please try again.');
+      if(current===opening)note(error?.message||'Pricing is unavailable. Please try again.');
     }
   }
   async function resumeAfterSignIn(){
@@ -132,8 +141,12 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
       !availablePlans.includes(intent.sku)||!Number.isFinite(age)||age<0||age>15*60*1000)return false;
     // Restore the selected plan, but require a fresh explicit click before
     // creating Checkout. Reloads and later account switches cannot replay it.
-    await open({oneTime:intent.sku.startsWith('topup')});
-    const selected=surface.querySelector('[data-lab-buy="'+intent.sku+'"]');
+    return restoreSelection(intent.sku);
+  }
+  async function restoreSelection(sku){
+    if(!availablePlans.includes(sku))return false;
+    await open({oneTime:sku.startsWith('topup')});
+    const selected=surface.querySelector('[data-lab-buy="'+sku+'"]');
     if(!selected||!dialog.open)return false;
     note('Your selection is ready. Continue to secure checkout when you are ready.');
     selected.focus({preventScroll:true});
@@ -149,5 +162,5 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
     event.preventDefault();
     void open();
   });
-  return {open,close,resumeAfterSignIn};
+  return {open,close,resumeAfterSignIn,restoreSelection};
 }
