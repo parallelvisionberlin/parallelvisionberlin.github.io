@@ -25,7 +25,10 @@ jobs:
         timeout-minutes: 3
         run: |
           npm install --prefix /tmp/pv-upscale-visibility --no-save playwright@1.62.1
-          node /tmp/pv-upscale-visibility/node_modules/playwright/cli.js install --with-deps chromium
+          # ubuntu-latest already supplies Chromium's shared libraries. Avoid
+          # upgrading the host OS/fonts through apt in this browser-download step.
+          # launch() retains Playwright's missing-library validation.
+          node /tmp/pv-upscale-visibility/node_modules/playwright/cli.js install --only-shell chromium
       - name: Verify Upscaler UI, Assets visibility and no paid calls
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs

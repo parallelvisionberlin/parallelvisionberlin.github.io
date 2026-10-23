@@ -188,7 +188,25 @@ try{
   assert.equal(await editor.locator('#result-placeholder').isVisible(),false,'The approved empty composition hides the output placeholder');
   assert.equal(await editor.locator('.result-panel').isVisible(),false,'No output panel is shown before a real stored result is selected');
   assert.equal(await editor.locator('#result-image').getAttribute('src'),null,'The neutral approved composition never invents a generated result');
-  const approvedEmpty=await page.screenshot({path:'test-results/pv-fashion-empty-desktop.png',fullPage:true,animations:'disabled',caret:'hide'});
+  // Compare settled paints, not the first frame after a gallery load/style reparse.
+  // Keep exact PNG equality and fail if either state cannot settle in four captures.
+  async function settledEmptyScreenshot(path){
+    await page.locator('#lab-boot').waitFor({state:'hidden'});
+    await page.evaluate(async()=>{
+      await document.fonts.ready;
+      await Promise.all([...window.__fashionRoot.querySelectorAll('img')]
+        .filter(img=>img.getAttribute('src')&&img.getBoundingClientRect().width>0)
+        .map(img=>img.decode()));
+    });
+    let previous;
+    for(let capture=0;capture<4;capture++){
+      const current=await page.screenshot({path,fullPage:true,animations:'disabled',caret:'hide'});
+      if(previous?.equals(current))return current;
+      previous=current;
+    }
+    assert.fail('The empty Fashion composition must settle before comparing loaded-state CSS: '+path);
+  }
+  const approvedEmpty=await settledEmptyScreenshot('test-results/pv-fashion-empty-desktop.png');
   const loadedStyle=await page.evaluate(()=>{
     const style=window.__fashionRoot.querySelector('style'),text=style.textContent;
     const start=text.indexOf('/* Keep a real History result');
@@ -197,7 +215,7 @@ try{
     style.textContent=text.slice(0,start)+text.slice(end);
     return text;
   });
-  const withoutLoadedFix=await page.screenshot({fullPage:true,animations:'disabled',caret:'hide'});
+  const withoutLoadedFix=await settledEmptyScreenshot('test-results/pv-fashion-empty-without-loaded-fix.png');
   await page.evaluate(text=>{window.__fashionRoot.querySelector('style').textContent=text;},loadedStyle);
   assert.ok(approvedEmpty.equals(withoutLoadedFix),'The loaded-result repair leaves every pixel of the approved empty composition unchanged');
   await editor.locator('#fashion-history .history-item').first().click();

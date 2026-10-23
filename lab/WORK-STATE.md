@@ -24,61 +24,37 @@
 - Source HTML stayed unchanged through test-only follow-ups. Desktop repair published and verified; mobile layout untouched.
 
 
-## CI fixture maintenance, 2026-10-23 (review follow-up)
-- Follow-up baseline: f507b71386256f076dac231c6116813a820b3e1c. Keep the same branch/PR #482; no main merge, publication or #462 modification.
-- The final baseline CI is no longer queued: seven original controls and Public Studio pass. Video fails a pre-mount routing assertion; Motion Effects was cancelled installing Chromium.
-- Product implementation, approved designs, auth, credits, uploads, providers and P1/P2/P3 are outside this follow-up diff.
-- Routing fixture: wait for #app's expected visible/hidden state after the guest route marker, then retain every original assertion.
-- Delay only the local Fashion module HTTP response by 250ms, exercising the already-proven baseline race at both 1440/390; do not increase any timeout or force hidden clicks.
-- Local JavaScript syntax passes. No local Chromium executable is installed; actual browser execution must be verified by exact-head CI, not claimed as a local pass.
-- Reuse the earlier seven-control evidence on unchanged app bytes; record new routing/Video and Motion Effects outcomes in PR #482 when CI completes.
-- All account/API fixtures remain simulated. Do not repeat sandbox purchases or run paid generations.
-
-- Objective: repair the seven inherited CI controls identified during PR #462 validation.
-- Separate branch: codex/pvlab-ci-maintenance-20261023; maintenance PR #482 is open for review. PR #462 remains untouched and draft.
-- Verified main source: 7f44c63feb55eb567872c8b6fed6d29f2b91119e; normal merges preserve approved Fashion #488/#489 and Retouch header #483.
-- Main was incorporated again after the approved Fashion rollback (#480), public header/privacy repair and homepage focus stability (#478).
-- Product repairs limited to loaded Fashion source containment and a guest-only gutter guard; Worker, billing, prices, auth and configuration are unchanged.
-- Masthead: preserve the real Explore body attributes so page-scoped wordmark rules apply; retain twelve widths and guest checks.
-- Landing: retain main's absolute hero overlay, scroll-away and delayed focus/visibility checks; only make the runtime import portable.
-- Assets/verify: public tool navigation remains visible while private History stays hidden; retain cache clearing, folders, downloads, quotes and submission checks.
-- Assets Upscaler checks use the real upload CTA, visible four-choice menu and flush desktop geometry. Embedded Fashion checks its approved hidden empty output and visible header return; stored-output geometry remains in the full Fashion suite.
-- Upscale Assets: separate empty/filled source states; exact 450px phone stage and approved desktop height formulas.
-- Keep upload/replace chooser checks, decoded-result shimmer, History-to-Assets sharing and overflow checks.
-- The retired More options disclosure and provider diagnostics remain hidden, including Owner presentation.
-- All three engines and both Precision qualities retain the independent full quote/credit/History integration coverage.
-- Video/Seedance: use the actual signed-out sync path; retain the public editor while clearing private prompts, references and History.
-- Guest Generate must request authentication and send no upload, quote or job POST; check both phone and desktop.
-- Effects enters its retained URL route instead of clicking the hidden legacy tab.
-- References: expand the visible composer instead of hidden advanced controls; preserve every original byte, dimension, role, note, budget and viewer check.
-- Retained draft/role serialization is explicitly a controller contract with mocked APIs, not a claim of a visible legacy sidebar workflow.
-- First-image: compare backdrop-only pixels with a funded customer; zero-credit overlay remains tested separately with exact masthead anchor and layout invariance.
-- Its approved dismiss control must be reachable; dismissal exposes Refresh and the eye without moving the deck.
-- Mobile Mood: require the full expanded prompt and Generate in view without keyboard focus, whether scrolling is needed or not.
-- Fashion: use the real legacy-document redirect, canonical Studio loader, shared session and Shadow DOM; preserve the current owner-approved #488 neutral composition and hide the empty result panel.
-- Retain model defaults, three model options, valid photo uploads, bound quote without submission, private gallery paging and responsive layout.
-- Add verified-session headers, single-footer, decoded SVG wordmark, logout media cleanup and guest no-write assertions.
-- History exposed a real #481 CSS defect: loaded result collapsed to 2px. Main #488 fixes that collapse but its sources still overlap Direction by 17px at 1440x900; removing only our CSS reproduces it.
-- Main #488 already stretches the result. Two loaded-state selectors bound source flex height. Main #489 also shifts guest Sign in by 15px; scope its gutter to authenticated Fashion like Retouch. Add Customer/Owner Fashion header invariance; retain all guest geometry checks.
-- Cache-only propagation: fashion.css, fashion-studio.js, fashion.html, lab.js and studio.html (sourceContainment/fashionSourceContainment=20261023-6); no generation/provider/auth handler change.
-- An automated pixel comparison with/without the two loaded-state selectors proves the current approved empty screenshot is byte-identical; loaded desktop and mobile captures inspected.
-- No test skipped, assertion removed, timeout increased, forced hidden click, or workflow gate disabled.
-- Local affected checks pass: Masthead, Landing (five sizes), Assets, Upscale Assets (two sizes), Seedance 19, References 22, mobile Mood, first-image and Fashion.
-- Public visual fixture compares Direction and hidden empty output against immutable approved Fashion main 53037c6 with neutral CSS, before #489 guest gutter regression. Other tools keep ac33d20. All 32 pixel comparisons/tolerances and loaded internal return-link checks remain.
-- Full Lab units pass 707/707 under CI Node 22, zero skipped; approved Image contract passes 5/5. Local Node 24/Windows exposes an unchanged main one-tick Blob race in mood-preflight-speed (706/707); no assertion or timing altered.
-- Full Upscaler integration passes 34/34; public Studio passes 1440/390/320px with visual comparisons and private API isolation.
-- A separate uncommitted compatibility candidate combines PR #462 a33ca05 with this main and these tests; full units pass 714/714.
-- Compatibility browser checks already pass P1/P2/P3 late webhook, denied positive balances, first click, cancel, focus, Back, stale responses and account switches at 1440/390px.
-- Full Account compatibility passes all 17 groups. Exact commit and CI receipts belong in the maintenance PR description; do not substitute local runs for CI outcomes.
-- CI exposed a separate stale public smoke: Worker versions now use a hyphen, and October-only asset URLs targeted GitHub Pages.
-- Preserve ok:true and strict dated build/revision validation, with negative tests of the actual workflow command. Canonical pvlab.studio template and its declared versioned CSS/module retain all HTML/gallery assertions and anonymous 401 checks.
-- Read-only production health confirms ok:true/current build; canonical HTML and declared CSS/module contract passed locally. This is not proof of PR deployment or a paid customer journey.
-- Local missing media came from sparse checkout, not product failures; materialize only the exact tracked blobs required by existing fixtures.
-- Existing POSIX-only suites use a path-only local Windows adapter where necessary; CI runs the unchanged Linux entrypoints.
-- Desktop and phone captures inspected; no design or production behavior is asserted from synthetic roles.
-- No sandbox purchase repeated, paid generation, credit grant, settings change, merge to main or manual deployment.
-- Actual customer return to Studio and first generation remain pending from #462; this test maintenance does not approve that production journey.
-- Next: review the maintenance PR and exact-head CI. Any automatic branch preview is separate from production publication.
+## CI fixture maintenance, 2026-10-23 (last two gates)
+- Objective: finish the inherited controls on existing PR #482; no main merge, release or #462 change.
+- Follow-up source: 7506ca67db7f74f2cd94d5764f07093a7653f9a8; same branch codex/pvlab-ci-maintenance-20261023.
+- Baseline exact-head CI: 27 success, Fashion exact screenshot inequality, Upscale Assets installation timeout.
+- Masthead, Landing, Assets/verify, Video/Seedance, First-image, Motion Effects and Public Studio passed at that source.
+- Video includes the 250ms Fashion import race fix at 1440/390 and 708/708 backend units.
+- Fashion failure was at the empty composition comparison, before later loaded-state/quote/privacy assertions.
+- Original Fashion passes twice locally on available Chromium 153; do not claim the CI Chromium 143 failure reproduced locally.
+- Download of CI Chromium 143 failed in this environment; no parity claim.
+- Fashion capture now waits for the boot to hide, fonts and visible private thumbnails to decode.
+- Each side must produce two byte-identical consecutive full-page screenshots within four captures, or fail.
+- The original strict PNG equality between CSS states is unchanged; no pixel tolerance, masking or assertion removal.
+- Save both empty-state PNGs and the loaded result in the existing Fashion CI artifact for actual failure diagnosis.
+- Local browser uses the existing /tmp/pv-scroll-playwright.mjs adapter and Chromium 153; APIs and media remain synthetic.
+- Upscale Assets failed twice downloading optional fonts/OS upgrades with apt, before Chromium was installed.
+- Its ubuntu-latest workflow now installs only the same pinned headless Chromium; runner shared libraries remain validated by Playwright launch.
+- Keep Playwright 1.62.1, the existing 3-minute install/9-minute job limits and all three browser test steps.
+- No browser-dependency validation is bypassed. New exact-head CI must prove runner compatibility.
+- Local Upscale Assets passes desktop/mobile; full Upscaler integration passes 34/34, including both Precision qualities and Owner/Customer.
+- Unchanged application bytes: approved Fashion/Image/Upscaler designs, navigation, scroll, prices, providers, auth, credits and P1/P2/P3.
+- Earlier maintenance includes the loaded Fashion source containment and authenticated-only gutter guard; details/receipts remain in PR #482.
+- Existing privacy tests retain verified headers, private History, logout cleanup and guest no-write assertions.
+- Sandbox billing evidence is already complete for its limited scope; no repeat purchase or credit grant.
+- Customer return to Studio and first real generation remain unverified; these synthetic suites do not close that #462 requirement.
+- Changed Fashion, Studio-layout and Upscaler inline smoke (2/2) pass locally; Image contract passes 5/5.
+- All 122 pre-existing Fashion assertion calls are retained verbatim; exact empty PNG comparison passes.
+- Desktop Fashion capture inspected; synthetic media rectangles are not live generations.
+- Exact next-head CI is pending; final receipts belong in PR #482 without moving the validated commit.
+- Freeze the next commit during CI; update results in the PR description without another documentary commit.
+- No merge, manual deployment, production purchase, paid generation or third-party message.
+- Next: verify Fashion and Upscale Assets on the new exact head; inspect any actual assertion before retrying.
 
 ## Homepage notice focus stability and matching Studio style, 2026-10-23
 - Owner references image(20261023-141333).png and image(20261023-141347).png; prefer Studio notice styling in image 2.
