@@ -21,11 +21,14 @@
   }
 }
 /* Video and Upscaler notices overlay the workspace without changing geometry. */
+.landing-header--home #lab-credit-banner,
 body:has(#app.video-studio-active:not([hidden])) #lab-credit-banner,
 body:has(#app.upscale-studio-active:not([hidden])) #lab-credit-banner{
   position:absolute;inset:var(--lab-header-height,82px) 0 auto;z-index:79;
   box-sizing:border-box;box-shadow:0 8px 24px rgba(0,0,0,.2);
 }
+.lab-credit-banner a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.lab-credit-banner a:focus-visible{outline:2px solid #151515;outline-offset:3px}
 .lab-credit-deck{max-width:760px;width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:30px;border:1px solid #484744;border-radius:12px;background:#151515;color:#eeeae2;box-shadow:0 24px 100px #0009}
 .lab-credit-deck::backdrop{background:#0009;backdrop-filter:blur(5px)}
 .lab-credit-deck header{position:static;display:flex;align-items:flex-start;justify-content:space-between;padding:0 0 24px;background:none;backdrop-filter:none;border:0;border-bottom:1px solid #383735}

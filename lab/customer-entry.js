@@ -9,6 +9,14 @@ const $=id=>document.getElementById(id);
 const pilotSetup=new URLSearchParams(location.search).get('setup-pilot')==='1';
 let clerk=null,profile=null,profileSessionId=null,revision=0,profileLoading=false;
 let purchasing=false;
+const creditBanner=$('lab-credit-banner');
+const creditDismissKey='pv-lab-credit-banner-dismissed';
+const dismissedCreditSessions=new Set();
+$('lab-credit-banner-dismiss')?.addEventListener('click',()=>{
+  const sessionId=clerk?.session?.id;
+  if(sessionId){dismissedCreditSessions.add(sessionId);try{sessionStorage.setItem(creditDismissKey,sessionId);}catch{}}
+  creditBanner.hidden=true;
+});
 const buyButtons=[...document.querySelectorAll('[data-lab-buy]')];
 const purchaseKey='pv-lab-purchase-intent';
 const feedbackNodes=new Map();
@@ -70,6 +78,14 @@ function show(){
   // authenticated /api/session request are still resolving.
   const ready=!!clerk&&(!signed||currentProfile||!profileLoading);
   const customer=ready&&currentProfile&&!!profile.customer;
+  if(creditBanner){
+    const sessionId=clerk?.session?.id;
+    let dismissed=dismissedCreditSessions.has(sessionId);
+    try{dismissed||=!!sessionId&&sessionStorage.getItem(creditDismissKey)===sessionId;}catch{}
+    creditBanner.hidden=!signed||!sessionId||!currentProfile||profileLoading||
+      profile.customer!==true||profile.owner===true||profile.admin===true||
+      profile.balanceCredits!==0||!!profile.accountClosed||!!profile.billingReview||dismissed;
+  }
   const header=document.querySelector('.landing-header--home');
   const homeCredits=$('lab-home-credits');
   $('lab-header-signin').hidden=!ready||signed;
