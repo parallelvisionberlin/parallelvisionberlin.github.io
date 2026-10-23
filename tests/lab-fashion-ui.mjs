@@ -188,7 +188,18 @@ try{
   assert.equal(await editor.locator('#result-placeholder').isVisible(),false,'The approved empty composition hides the output placeholder');
   assert.equal(await editor.locator('.result-panel').isVisible(),false,'No output panel is shown before a real stored result is selected');
   assert.equal(await editor.locator('#result-image').getAttribute('src'),null,'The approved atmospheric photograph is never used as a generated result');
-  await page.screenshot({path:'test-results/pv-fashion-empty-desktop.png',fullPage:true});
+  const approvedEmpty=await page.screenshot({path:'test-results/pv-fashion-empty-desktop.png',fullPage:true,animations:'disabled',caret:'hide'});
+  const loadedStyle=await page.evaluate(()=>{
+    const style=window.__fashionRoot.querySelector('style'),text=style.textContent;
+    const start=text.indexOf('/* Keep a real History result');
+    const end=text.indexOf('\n:host{display:block}#content',start);
+    if(start<0||end<=start)throw new Error('Loaded-state containment block or scoped host boundary missing');
+    style.textContent=text.slice(0,start)+text.slice(end);
+    return text;
+  });
+  const withoutLoadedFix=await page.screenshot({fullPage:true,animations:'disabled',caret:'hide'});
+  await page.evaluate(text=>{window.__fashionRoot.querySelector('style').textContent=text;},loadedStyle);
+  assert.ok(approvedEmpty.equals(withoutLoadedFix),'The loaded-result repair leaves every pixel of the approved empty composition unchanged');
   await editor.locator('#fashion-history .history-item').first().click();
   await page.waitForFunction(()=>!window.__fashionRoot.getElementById('result-image').hidden);
   assert.equal(await editor.locator('#result-stage').isVisible(),true,'Selecting History reveals the actual stored output');
@@ -232,8 +243,8 @@ try{
   assert.equal(desktop.dropdownBackground,'rgba(32, 33, 38, 0.867)','No white form fields remain.');
   assert.deepEqual(desktop.boxStyles,Array.from({length:3},()=>({radius:12,overflow:'hidden'})),
     'The actual Person, Garment and Result image boxes should have matching approved 12px rounded corners and clip media');
-  assert.ok(Math.abs(desktop.title.top-desktop.headerBottom-Math.min(75,Math.max(38,1440*.05)))<=1,'Fashion intro follows the single shared Studio header.');
-  assert.ok(desktop.preview.bottom-desktop.preview.top>=360,'A selected stored output must not collapse to a border-only stage');
+  assert.ok(Math.abs(desktop.title.top-desktop.headerBottom-Math.min(58,Math.max(28,1440*.04)))<=1,'Fashion intro follows the single shared Studio header.');
+  assert.ok(Math.abs(desktop.preview.bottom-desktop.preview.top-(Math.min(440,Math.max(300,1440*.27))-68))<=1,'Stored output fills the approved result row after its unchanged 31px header and 37px actions');
   assert.ok(desktop.preview.width>500,'Result window is large enough for examining details.');
   assert.ok(desktop.person.width>=250&&desktop.garment.width>=250,'Both drop zones are large.');
   assert.ok(Math.abs(desktop.person.top-desktop.garment.top)<3,'Uploads are side by side.');
