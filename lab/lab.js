@@ -24,7 +24,7 @@ import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3';
 import {createInspirationRotation,INSPIRATION_VARIATIONS} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261018-girard-originals2&20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&kreaMoods=20261020v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261018-girard-originals2&20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261024default80&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&kreaMoods=20261020v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1';
 import {HONG_KONG_VARIANTS} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2&hkRefs=20261023two1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&fisheye=20261020v1&fisheyeCover=20261021v1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
@@ -373,6 +373,8 @@ let referenceIntentOpen=false;
 let myMoods=null;
 // Only the explicit six-card Inspiration flow is text-only; manual Mood selection retains its own references.
 let inspirationMoodId=null;
+// Inspiration preserves the original 60% for other looks but honors Dream Blur's Mood default.
+function inspirationMoodDefaultIntensity(id){return id==='dream-blur'?moodById(id).defaultIntensity:id==='fisheye-2000'?75:60;}
 const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-composer-moods'),getEngine:()=>imageEngine,
   chooseEngine:engine=>{if(busy)return;$('image-engine').value=engine;$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));},
   onOpen:()=>{
@@ -1447,7 +1449,7 @@ function restoreGuestImageDraft(){
   const draftMood=draft.mood==='chrome-couture'?'fashion-editorial':draft.mood;
   if(typeof draftMood==='string'&&moodById(draftMood)){
     if(imageEngine!=='seedream'){$('image-engine').value='seedream';$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));}
-    moodUI.restore({moodId:draftMood,moodIntensity:draftMood==='fisheye-2000'?75:60},true);
+    moodUI.restore({moodId:draftMood,moodIntensity:inspirationMoodDefaultIntensity(draftMood)},true);
     // A draft from the public six-card preview remains a visible-prompt-only Inspiration selection.
     inspirationMoodId=draftMood;
     if(draftMood==='fisheye-2000')inspirationMoodId=null;
@@ -1547,7 +1549,7 @@ function useWelcomeMood(id){
   // A seventh look can provide a distinct visible prompt without creating
   // an unsupported seventeenth server Mood or changing credit/provider routing.
   const underlyingMood=id==='chrome-couture'?'fashion-editorial':id;
-  if(moodById(underlyingMood))moodUI.restore({moodId:underlyingMood,moodIntensity:underlyingMood==='fisheye-2000'?75:60},true);
+  if(moodById(underlyingMood))moodUI.restore({moodId:underlyingMood,moodIntensity:inspirationMoodDefaultIntensity(underlyingMood)},true);
   inspirationMoodId=underlyingMood;
   // Fisheye is the same approved Mood from Explore, including its two Style references.
   if(underlyingMood==='fisheye-2000')inspirationMoodId=null;
