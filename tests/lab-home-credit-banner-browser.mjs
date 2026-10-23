@@ -85,6 +85,12 @@ try{
       assert.ok(initial.pageWidth<=width,'No horizontal overflow');
       await page.screenshot({path:resolve(artifacts,`home-credit-visible-${width}.png`)});
 
+      // The notice belongs to the initial hero, never to the viewport while scrolling.
+      await page.evaluate(()=>window.scrollTo({top:500,behavior:'instant'}));await settle(page);
+      const scrolled=await banner.evaluate(el=>({top:el.getBoundingClientRect().top,scrollY}));
+      assert.equal(scrolled.top,overlay.top-scrolled.scrollY,'Notice scrolls away with the document');
+      await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));await settle(page);
+
       // The header menu must remain above the banner and keep its tap targets.
       await page.locator('#lab-account-strip>summary').click();
       assert.equal(await page.locator('#lab-account-strip a[href="./account.html"]').evaluate(el=>{
