@@ -1,27 +1,30 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
-## Approved Fashion integration — release blocked, 2026-10-23
-- Owner approved visual source: `5d28fed8`. Integrated its exact Fashion template, CSS, mount and photographs in the same worktree.
-- Clean release branch: `codex/fashion-approved-release`, based on current main `59f61562c02633902564c59166135496be025e36`.
-- Only additional aesthetic change: garment helper caption has 6px horizontal padding and a slightly smaller responsive font; the 320px font is preserved. All other approved CSS is identical after removing these two caption declarations.
-- Hero and garment WebP bytes match approved source exactly. Fashion HTML/mount differ from approval only in cache markers.
-- Existing models, defaults, uploads, quote/confirmation, generation, private History, backend, credit and pricing code remain unchanged.
-- `lab/lab.js` and `lab/studio.html` have only Fashion cache-marker substitutions, checked against base main after normalizing those markers. Shared header markup/styles and Image, Video, Upscaler and Retouch are unchanged.
-- Version chain: `20261023-fashion-approved1` in Studio entry, Fashion module import, template and CSS fetches. Needed for existing browsers to load the reviewed component after release.
-- New approved-layout browser suite is added to the existing Fashion CI workflow without deleting, bypassing or weakening any existing check.
-- PASS: actual Studio/Fashion bootstrap with synthetic owner, customer and guest, seven viewports including 1672x900 and 390x844; real chooser and drag/drop, local upload previews, all three models, required FLUX prompt, resolution/quality payload, bound price, no submit before confirmation, exactly one submit, output/download and History.
-- PASS: 5 approved Image UI contracts and 12 Fashion model/provider/price/balance safeguards (17/17 total).
-- PASS: Image prompt paste/scroll/Generate stability at four viewports; shared Studio desktop/mobile layout, direct Fashion entry, Video modes and Elements.
-- PASS: real local preview captures after loader/fonts/image decoding at 1672x900 and 390x844, no JavaScript errors or horizontal overflow; inspected the garment caption spacing.
-- Release screenshots: uncommitted `test-results/fashion-release-1672x900.png` and `fashion-release-390x844.png`; logs are uncommitted `test-results/release-*.log`.
-- BLOCK: `lab-first-image-instant-browser.mjs`, backdrop parity at 1920px, max channel delta 234 / mean 32.85790798611111. Exact same failure independently reproduced using unmodified main bytes.
-- BLOCK: legacy `lab-fashion-ui.mjs` cannot initialize its injected standalone mock session after the existing Fashion-to-Studio redirect; `htmlLoaded:false`, 15000ms timeout. Same failure on unmodified main.
-- BLOCK: `lab-public-studio-ui.mjs` at 1440px expects matching Sign in right inset; Fashion reports 46px versus Image 31px. Same failure on unmodified main, whose existing Fashion scrollbar-gutter rule is preserved.
-- Baselines use Git-served main bytes via an uncommitted test loader, Node 22.16.0 and the same Chromium; they do not create or change a second implementation. Original assertions remain unchanged.
-- Approved suite's Quality field tolerance includes the existing 15px Windows scrollbar gutter on main; the user-approved CSS field ratios are unchanged.
-- Decision: do not merge or publish while these checks fail. This task does not alter the protected Image/header design to hide baseline failures.
-- Local preview: `http://127.0.0.1:8888/lab/studio.html?tool=fashion`. Production target remains `https://pvlab.studio/studio?tool=fashion`, not deployed by this branch.
-- Next action: review the PR and resolve the documented existing CI failures before release. No paid Fashion request, production change or deployment was initiated.
+## Approved Fashion #494 — CI repair awaiting review, 2026-10-23
+- PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/494 ; branch `codex/fashion-approved-release`, base main `59f61562c02633902564c59166135496be025e36`.
+- Latest owner instruction: issuecomment-6371725172. Keep the exact approved geometry/photos; fix stale health matcher and legacy fixture, investigate the Fashion gutter, leave unrelated Image 1920px parity outside this PR. No merge or publication; return for owner authorization.
+- Approved Fashion source is PR commit `b0677e7ebd00dfbcca9dca297e90b58523ff7ad4`, based on visual approval `5d28fed8` plus the authorized caption spacing.
+- `fashion.html`, `fashion.css`, `fashion-studio.js`, `fashion.js` and both WebP photos are unchanged by this CI follow-up; confirmed with Git diff against b0677e7e. Shared header styles/markup and other tool implementations remain unchanged.
+- Worker source `lab-worker/worker.mjs` exports `pv-lab-2026-10-23-hk-two-optical-refs-balanced1`; live GET /health returns ok:true with exactly that version.
+- Narrow smoke matcher repair: accept the documented date separator `[.-]` rather than dot-only. The ok:true requirement, HTTP failure handling and both anonymous-route 401 checks remain mandatory. Verified current hyphen and prior dot versions; malformed/empty versions and ok:false rejected.
+- The old publication check required an obsolete GitHub Pages version (`20261010-gallery01`) before an unmerged PR could pass. It now reads canonical pvlab.studio /studio?tool=fashion and the deployed Fashion template's actual CSS/JS references.
+- Production smoke retains form, upload, all three model/default, quote/confirm, private gallery/paging and controller invariants, and validates either currently published ghost cards or approved photographic cards. Static GET only, no provider call or deployment.
+- Legacy component fixture now loads the production template inertly at a fixture-only URL, matching Studio's DOMParser use, so its existing synthetic owner factory is not redirected out of the test.
+- All legacy credits/refresh, deferred secondary reads, gallery pagination/filtering/failure states, upload, quote/no-submit, private thumbnail, archived result/download and embedded single-footer checks remain. Appearance assertions now describe the approved photographic layout and hidden empty output.
+- Header root cause: main already reserves a 15px Fashion root scrollbar gutter, while the older guest-only compensation adds another 15px to the Sign in inset (46px versus Image 31px at 1440px).
+- Remove only Fashion from that redundant compensation selector in studio-guest-image.css; Upscaler/Retouch compensation and all shared-header rules remain intact. Cache-bust that stylesheet in Studio HTML. The original strict viewport-based header alignment assertion is preserved.
+- Public visual test now pins Fashion to approved b0677e7e source, including its public-preview controller. Image/Video/Upscaler/Retouch remain pinned to their original ac33d20c baseline with identical pixel thresholds.
+- Compare the approved title, two photo cards and control bar at 1440/390/320px. Assert an empty result stays hidden; public navigation uses the visible Image tab, while authenticated archived-result return is tested through the real result link.
+- Local PASS: legacy Fashion component fixture, including real inputs, quotes, deferred gallery/balance and both standalone/embedded footer checks.
+- Local PASS: full public/signed-in Studio matrix at 1440/390/320px, all five tools, original strict header alignment, auth returns, navigation, logout and API isolation; 32/32 independently booted approved-source pixel comparisons. Shared Studio desktop/mobile/Video/Elements layout suite also passes.
+- Local PASS: owner/customer/guest approved-layout suite at seven sizes including 1672x900 and 390x844, bound confirmation/single submit, private History, archived result link back to Image and guest API isolation.
+- Local PASS: live public smoke on the deployed prior version, valid health, canonical route, published asset references, and both Fashion APIs returning anonymous 401.
+- Local PASS: 17/17 approved Image contract + Fashion provider/price/balance safeguards; syntax, YAML and diff checks. Screenshots at 1672x900 and 390x844 inspected; Fashion photos/geometry unchanged, no horizontal overflow or JavaScript errors.
+- Before/after main evidence is retained in uncommitted test-results/main-*.log and ci-fix-*.log. The original main failures are documented in PR #494; the exact approved-source pixel comparisons exercise the repaired candidate independently.
+- The local sparse checkout was missing Retouch's existing assets/fashion-hero.png fixture; restored its exact HEAD bytes for test parity with CI, without changing or committing the asset.
+- The unrelated Image 1920px regression and its assertion are untouched. Existing unrelated Account/Moods/Video/installation failures are not hidden or redesigned by this PR.
+- Pending: final GitHub CI on this same PR; update its description with exact results and remaining unrelated failures. Keep draft/unmerged. No production publication or paid Fashion generation.
+- Local review: http://127.0.0.1:8888/lab/studio.html?tool=fashion . Production remains https://pvlab.studio/studio?tool=fashion and has not received this branch.
 
 ## Homepage Mood Creator section background only, 2026-10-23
 - Owner reference: image(20261023-174301).png, libfile_eefbf7cf35e48191abbcc1764fae3931.

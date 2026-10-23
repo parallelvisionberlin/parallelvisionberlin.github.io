@@ -12,6 +12,10 @@ const headerGutterOnly=process.env.PV_HEADER_GUTTER_ONLY==='1';
 // Approved source before this fix, including the later locked Image and V28 Upscaler.
 const approvedRef='ac33d20c50bdd88e71547e96a70781efae4b5a11';
 const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
+// Owner-approved Fashion #494, including the final garment-caption spacing.
+// Keep the independent Image/Video/Upscaler/Retouch baseline unchanged.
+const fashionApprovedRef='b0677e7ebd00dfbcca9dca297e90b58523ff7ad4';
+const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
 const account=`
 const state=window.__publicAccount||=(()=>{
   const listeners=[];
@@ -36,6 +40,7 @@ const server=http.createServer((req,res)=>{
   if(relative(root,path).startsWith('..')||!existsSync(path)||!statSync(path).isFile())return res.writeHead(404).end();
   res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.avif':'image/avif'})[extname(path)]||'application/octet-stream');
   res.end(pathname==='/lab/native-account.js'?account:
+    req.headers['x-pv-approved-fashion']==='1'&&fashionApprovedFiles.has(requestedPath.slice(1))?fashionApprovedFiles.get(requestedPath.slice(1)):
     req.headers['x-pv-approved-baseline']==='1'&&approvedFiles.has(requestedPath.slice(1))?approvedFiles.get(requestedPath.slice(1)):readFileSync(path));
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
@@ -123,8 +128,8 @@ try{
       assert.deepEqual(requests,[],'guests must make no private API requests');
       // Compare the actual editorial regions with the approved implementation
       // recovered from Git, independently booted through its original auth path.
-      const baseline=await browser.newContext({viewport:{width,height:950},isMobile:width<700,hasTouch:width<700,reducedMotion:'reduce',extraHTTPHeaders:{'x-pv-approved-baseline':'1'}});
-      if(route!=='image')await baseline.addInitScript(()=>{window.__publicInitialRole='owner';});
+      const baseline=await browser.newContext({viewport:{width,height:950},isMobile:width<700,hasTouch:width<700,reducedMotion:'reduce',extraHTTPHeaders:{'x-pv-approved-baseline':'1',...(route==='fashion'?{'x-pv-approved-fashion':'1'}:{})}});
+      if(route!=='image'&&route!=='fashion')await baseline.addInitScript(()=>{window.__publicInitialRole='owner';});
       const reference=await baseline.newPage();
       await baseline.route('https://**/*',async intercepted=>{
         const request=intercepted.request(),url=new URL(request.url());
@@ -150,7 +155,13 @@ try{
         }
         await page.locator('#mode-reference').click();await reference.locator('#mode-reference').click();
       }
-      const regions={image:['#gate'],video:width>=700?['#video-model-control','#pv-video-reference-preview']:['#video-model-control','#video-modes','#reference-drop','#prompt'],upscale:['.pv-upscale-workspace-intro','#pv-upscale-dropzone'],retouch:['.precision-board'],fashion:['#fashion-studio .page-intro','#fashion-studio .image-pair','#fashion-studio .result-panel']};
+      if(route==='fashion'){
+        for(const inspected of [page,reference]){
+          assert.equal(await inspected.locator('#fashion-studio .result-panel').isVisible(),false,'An empty Fashion view never presents a decorative photo as a result');
+          assert.equal(await inspected.locator('#fashion-studio .slot-example').count(),2,'Both approved upload photographs remain');
+        }
+      }
+      const regions={image:['#gate'],video:width>=700?['#video-model-control','#pv-video-reference-preview']:['#video-model-control','#video-modes','#reference-drop','#prompt'],upscale:['.pv-upscale-workspace-intro','#pv-upscale-dropzone'],retouch:['.precision-board'],fashion:['#fashion-studio .page-intro','#fashion-studio .image-pair','#fashion-studio .engine-section']};
       for(const [index,selector] of regions[route].entries()){
         const actual=await capture(page,selector,`test-results/visual-${route}-${width}-${index}-actual.png`);
         const expected=await capture(reference,selector,`test-results/visual-${route}-${width}-${index}-approved.png`);
@@ -200,7 +211,11 @@ try{
     await page.locator('#tool-retouch').click();await settled(page,'retouch');
     await page.locator('#precision-return').click();await settled(page,'image');
     await page.locator('#tool-fashion').click();await settled(page,'fashion');
-    await page.locator('#fashion-studio a[href*="studio.html?tool=image"]').click();await settled(page,'image');
+    assert.equal(await page.locator('#fashion-studio .result-actions a[href*="studio.html?tool=image"]').isVisible(),false,
+      'The approved empty Fashion result keeps result-only actions hidden');
+    // Public empty Fashion returns through the shared tab. The authenticated
+    // archived-result link is exercised by lab-fashion-reference-layout-ui.mjs.
+    await page.locator('#tool-image').click();await settled(page,'image');
     await page.locator('#tool-explore-moods').click();
     await page.waitForURL('**/lab/moods');
     await page.getByRole('heading',{name:/Explore Moods/}).waitFor({state:'visible'});

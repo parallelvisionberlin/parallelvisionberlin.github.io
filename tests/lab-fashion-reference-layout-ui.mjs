@@ -163,6 +163,10 @@ try{
   await page.screenshot({path:'test-results/fashion-reference-'+role+'-result-desktop.png',fullPage:true});
   const headerAfter=await page.locator('#studio-header').evaluate(el=>({html:el.innerHTML,height:el.getBoundingClientRect().height}));
   assert.deepEqual(headerAfter,headerBefore,'Shared header remains unchanged during Fashion operations');
+  await fashion.locator('.result-actions a[href*="studio.html?tool=image"]').click();
+  await page.waitForURL('**tool=image');
+  await page.locator('#image-composer').waitFor({state:'visible'});
+  assert.equal(submits,1,'Returning from an archived result cannot submit another generation');
   assert.deepEqual(errors,[]);
   await context.close();
   console.log('PASS '+role+': layout, uploads/drop, models, quote, bound confirmation, result and History');
