@@ -1594,17 +1594,17 @@
 }
 #app.upscale-studio-active .pv-upscale-model-art::before,
 #app.upscale-studio-active .pv-upscale-model-art::after{content:"";position:absolute;pointer-events:none}
-#app.upscale-studio-active .pv-upscale-model-art-bytedance{
-  background:linear-gradient(140deg,rgba(10,12,14,.16),rgba(0,0,0,.18)),
-             url('./visuals/upscaler-chrome-wool-option-1.jpg') 26% 38%/190px auto no-repeat,#1e2022;
+/* Exact three miniature monochrome artworks from the approved Upscaler mockup.
+   More-specific rules override the default dark square in .pv-upscale-model-art,
+   which previously hid the old photographic backgrounds. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card>.pv-upscale-model-art-bytedance{
+  background:#25272a url('./visuals/upscaler-model-bytedance.webp') center/cover no-repeat!important;
 }
-#app.upscale-studio-active .pv-upscale-model-art-precision{
-  background:linear-gradient(140deg,rgba(255,255,255,.03),rgba(0,0,0,.24)),
-             url('./visuals/upscaler-chrome-wool-option-1.jpg') 57% 57%/230px auto no-repeat,#1e2022;
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card>.pv-upscale-model-art-precision{
+  background:#25272a url('./visuals/upscaler-model-precision.webp') center/cover no-repeat!important;
 }
-#app.upscale-studio-active .pv-upscale-model-art-wonder{
-  background:linear-gradient(140deg,rgba(10,11,12,.1),rgba(0,0,0,.3)),
-             url('./visuals/upscaler-chrome-wool-option-1.jpg') 82% 68%/210px auto no-repeat,#1e2022;
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card>.pv-upscale-model-art-wonder{
+  background:#25272a url('./visuals/upscaler-model-wonder.webp') center/cover no-repeat!important;
 }
 #app.upscale-studio-active .pv-upscale-model-art::after{
   inset:0;border-radius:inherit;
