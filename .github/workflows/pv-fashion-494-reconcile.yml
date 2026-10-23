@@ -1,0 +1,185 @@
+name: Fashion 494 isolated merge verification
+on:
+  push:
+    branches: [codex/fashion-approved-release]
+    paths: [.github/workflows/pv-fashion-494-reconcile.yml]
+permissions:
+  contents: write
+concurrency:
+  group: fashion-494-isolated-reconcile
+  cancel-in-progress: false
+jobs:
+  reconcile:
+    if: github.repository == 'parallelvisionberlin/parallelvisionberlin.github.io'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SOURCE_SHA: a84f9ec2ead1c57288e91fec18cd7e06bb3bf2e1
+      MAIN_SHA: 820ff39b7fc9840e5787e8f6c8d76f67a714b0d6
+      BASE_SHA: 59f61562c02633902564c59166135496be025e36
+      PV_PLAYWRIGHT_MODULE: /tmp/pv-fashion-494/node_modules/playwright/index.mjs
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 80
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /lab/
+            /lab-worker/
+            /tests/
+            /.github/
+            /scripts/
+            /package.json
+            /package-lock.json
+            /assets/fashion-hero.png
+            /assets/optimized/nina-fok/Canon.webp
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Prepare one merge without updating any remote branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/fashion-494-report test-results
+          git fetch --no-tags --depth=160 origin "$SOURCE_SHA" "$MAIN_SHA" "$BASE_SHA" ac33d20c50bdd88e71547e96a70781efae4b5a11 b0677e7ebd00dfbcca9dca297e90b58523ff7ad4
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          python3 <<'PY'
+          import os, pathlib, subprocess, json
+          def git(*args): return subprocess.check_output(['git',*args])
+          source,main,base=(os.environ[x] for x in ['SOURCE_SHA','MAIN_SHA','BASE_SHA'])
+          start=git('rev-parse','HEAD').decode().strip()
+          assert git('diff','--name-only',source,start).decode().splitlines()==['.github/workflows/pv-fashion-494-reconcile.yml'], 'Source branch changed; refuse stale reconciliation'
+          assert git('merge-base',source,main).decode().strip()==base, 'Unexpected merge base'
+          result=subprocess.run(['git','merge','--no-commit','--no-ff',main],text=True,capture_output=True)
+          pathlib.Path('test-results/fashion-494-report/merge.log').write_text(result.stdout+result.stderr)
+          conflicts=git('diff','--name-only','--diff-filter=U').decode().splitlines()
+          assert result.returncode in (0,1), result.stderr
+          assert set(conflicts)<= {'lab/lab.js','lab/studio.html'}, 'Unexpected conflicts: '+repr(conflicts)
+          replacements={
+            'lab/lab.js': [('fashion-studio.js?v=20261023-fashion-gutter2','fashion-studio.js?v=20261023-fashion-approved1')],
+            'lab/studio.html': [('lab.js?v=20261023-fashion-gutter2','lab.js?v=20261023-fashion-approved1'),('studio-guest-image.css?v=20261023-guest-signin-parity4','studio-guest-image.css?v=20261023-fashion-gutter3')]
+          }
+          for path,edits in replacements.items():
+            ancestor=git('show',base+':'+path)
+            expected=ancestor
+            merged=git('show',main+':'+path)
+            for old,new in edits:
+              old,new=old.encode(),new.encode()
+              assert expected.count(old)==1, (path,'PR marker not unique')
+              assert merged.count(old)==1, (path,'Main marker changed; review required')
+              expected=expected.replace(old,new,1)
+              merged=merged.replace(old,new,1)
+            assert expected==git('show',source+':'+path), (path,'PR contains more than reviewed cache edits')
+            pathlib.Path(path).write_bytes(merged)
+            subprocess.run(['git','add','--',path],check=True)
+          assert not git('diff','--name-only','--diff-filter=U').strip(), 'Unresolved merge remains'
+          approved=['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/visuals/fashion-replace/hero.webp','lab/visuals/fashion-replace/garment.webp']
+          for path in approved:
+            assert pathlib.Path(path).read_bytes()==git('show',source+':'+path), 'Approved Fashion bytes changed: '+path
+          changed=set(git('diff','--name-only','--cached',main).decode().splitlines())
+          allowed=set(git('diff','--name-only',base,source).decode().splitlines())|{'.github/workflows/pv-fashion-494-reconcile.yml'}
+          assert changed<=allowed, 'Unrelated changes: '+repr(changed-allowed)
+          # Delete this temporary verification runner from the final tree.
+          subprocess.run(['git','rm','--','.github/workflows/pv-fashion-494-reconcile.yml'],check=True)
+          subprocess.run(['git','diff','--check','--cached'],check=True)
+          report={'expected_branch_sha':start,'source_sha':source,'main_sha':main,'base_sha':base,'conflicts_resolved':conflicts,'approved_files_byte_identical':approved,'branch_updated':False,'production_updated':False}
+          pathlib.Path('test-results/fashion-494-report/prepare.json').write_text(json.dumps(report,indent=2))
+          print(json.dumps(report,indent=2))
+          PY
+      - name: Install existing pinned browser runtime
+        run: |
+          npm install --prefix /tmp/pv-fashion-494 --no-save playwright@1.57.0
+          node /tmp/pv-fashion-494/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Run scoped checks once and preserve each result
+        shell: bash
+        run: |
+          set +e
+          run_check() {
+            label="$1"; shift
+            "$@" > "test-results/fashion-494-report/${label}.log" 2>&1
+            result=$?
+            printf '%s\t%s\n' "$label" "$result" >> test-results/fashion-494-report/results.tsv
+            tail -n 18 "test-results/fashion-494-report/${label}.log"
+          }
+          run_check image-contract node --test tests/lab-approved-image-ui-contract.test.mjs
+          run_check fashion-safeguards node --test tests/*fashion*.test.mjs
+          run_check fashion-reference node tests/lab-fashion-reference-layout-ui.mjs
+          run_check fashion-legacy node tests/lab-fashion-ui.mjs
+          run_check studio-layout node tests/lab-studio-layout-ui.mjs
+          run_check public-studio node tests/lab-public-studio-ui.mjs
+          exit 0
+      - name: Create reviewed merge objects only, never update refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import os,json,pathlib,subprocess,urllib.request,base64
+          def git(*args): return subprocess.check_output(['git',*args])
+          reportdir=pathlib.Path('test-results/fashion-494-report')
+          report=json.loads((reportdir/'prepare.json').read_text())
+          results=dict(line.split('\t') for line in (reportdir/'results.tsv').read_text().splitlines())
+          report['checks']={name:int(code) for name,code in results.items()}
+          main,source=report['main_sha'],report['source_sha']
+          state=pathlib.Path('lab/WORK-STATE.md')
+          note='\n## Fashion #494 conflict reconciliation, 2026-10-24\n'
+          note+='- Existing branch only; production and main unchanged. No new Fashion design or photos.\n'
+          note+='- Incorporates pinned main '+main+' into prior Fashion '+source+'.\n'
+          note+='- Shared Studio files retain all main changes; only the three existing Fashion cache markers are applied.\n'
+          note+='- All six approved Fashion component/controller/photo files are byte-identical to the prior branch.\n'
+          note+='- Other automatically merged test changes preserve both branches. No assertion or required gate removed.\n'
+          note+='- Scoped verification results (exit codes): '+json.dumps(report['checks'],sort_keys=True)+'.\n'
+          note+='- Browser calls use synthetic accounts and intercepted APIs only; no real charges or generation.\n'
+          note+='- Complete logs and screenshots: Fashion 494 isolated merge verification, run '+os.environ['GITHUB_RUN_ID']+'.\n'
+          note+='- Keep draft. Review remaining failures and exact-head CI before any separate merge authorization.\n'
+          old=state.read_text()
+          state.write_text(old.split('\n',1)[0]+'\n'+note+'\n'+old.split('\n',1)[1])
+          subprocess.run(['git','add','lab/WORK-STATE.md'],check=True)
+          subprocess.run(['git','diff','--check','--cached'],check=True)
+          def api(path,payload):
+            req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/'+path,data=json.dumps(payload).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},method='POST')
+            with urllib.request.urlopen(req,timeout=60) as response: return json.load(response)
+          entries=[]
+          for path in git('diff','--cached','--name-only',main).decode().splitlines():
+            metadata=git('ls-files','--stage','--',path).decode().strip()
+            if not metadata:
+              entries.append({'path':path,'mode':'100644','type':'blob','sha':None});continue
+            mode,sha,stage=metadata.split('\t',1)[0].split()
+            assert stage=='0'
+            known=False
+            for ref in [source,main]:
+              result=subprocess.run(['git','rev-parse',ref+':'+path],capture_output=True,text=True)
+              if result.returncode==0 and result.stdout.strip()==sha: known=True
+            if not known:
+              obj=api('blobs',{'content':base64.b64encode(git('cat-file','blob',sha)).decode(),'encoding':'base64'})
+              assert obj['sha']==sha, 'Blob byte mismatch: '+path
+            entries.append({'path':path,'mode':mode,'type':'blob','sha':sha})
+          tree=api('trees',{'base_tree':git('rev-parse',main+'^{tree}').decode().strip(),'tree':entries})
+          assert tree['sha']==git('write-tree').decode().strip(), 'Remote tree differs from reviewed local tree'
+          commit=api('commits',{'message':'Merge main into Fashion #494 without changing approved design\n\nPreserve subsequent Studio/Upscaler repairs; resolve only Fashion cache-key conflicts. Verification results are recorded in lab/WORK-STATE.md. No production merge.','tree':tree['sha'],'parents':[report['expected_branch_sha'],main]})
+          report['candidate_sha']=commit['sha'];report['candidate_tree']=tree['sha']
+          report['remote_refs_modified']=False
+          (reportdir/'result.json').write_text(json.dumps(report,indent=2))
+          (reportdir/'diff-against-main.patch').write_bytes(git('diff','--cached',main))
+          print(json.dumps(report,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fashion-494-merge-verification
+          path: |
+            test-results/fashion-494-report/
+            test-results/fashion-reference-*.png
+            test-results/pv-fashion-*.png
+            test-results/visual-fashion-*.png
+          retention-days: 3
+          if-no-files-found: error
+      - name: Report all test failures without masking them
+        if: always()
+        run: |
+          test -f test-results/fashion-494-report/result.json
+          python3 -c 'import json; r=json.load(open("test-results/fashion-494-report/result.json")); assert all(c==0 for c in r["checks"].values()), r["checks"]'
