@@ -2,7 +2,7 @@
 
 - Objective: implement only P1/P2/P3 from the purchase audit at `69d7d02`.
 - Branch: `codex/pvlab-checkout-return-recovery`; [PR #462](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/462), draft and unmerged.
-- Latest incorporated main: `43db51b9bfa53483e9fdb709bc568b6c37c151aa`; normal merge `be9efc4` preserves its final Explore CSS reference.
+- Latest incorporated main: `aafe94081226745c28318671b80a1fb983707232`; normal merges `be9efc4` / `e76f4b5` preserve later Explore and homepage banner changes.
 - Implementation commit: `7558a13`; no force push. Exact-head remote checks are pending review in the PR.
 - Preserve the later homepage credit banner, responsive welcome email, Explore photobooth and subsequent shared banner style changes.
 - P1: `customer-wallet.js` refreshes `/api/session`, including authorization and provider configuration.
@@ -25,15 +25,16 @@
 - Persisted BFCache lifecycle is explicitly simulated in browser and unit tests; native cache eviction/restore remains unverified.
 - Local relevant unit checks: 110 passed, 0 skipped (including approved Image contract and billing/credit/webhook guards).
 - Account browser passed full existing matrix plus the new regressions; pricing overlay browser passed 320/390/1440/1648px.
-- Existing homepage credit banner browser passed all five desktop/tablet/phone sizes, with no geometry changes.
+- Homepage banner browser passed all five sizes on `df04848`; after latest main, both main `aafe940` and PR fail line 82 (expected absolute, actual fixed). No assertion/design repair is included.
 - Existing one-click mock-generation browser: 53/53 passed; Windows path adapter used in memory only.
 - Screenshots inspected for funded desktop/mobile and cancelled pack/subscription selection; no horizontal overflow.
 - Known unrelated failure retained: `lab-first-image-instant-browser.mjs:126` backdrop comparison at 1920px.
 - Audit baseline: max=234 / mean=40.745716145833335. After the later main banner CSS, both exact main `43db51b` and PR `df04848` fail with max=234 / mean=32.85790798611111; no assertion changed.
 - Payment, credit allocation and first generation are tested locally with synthetic identities/intercepted APIs only.
 - No real purchase, paid generation, production account mutation, PR merge or production deployment performed.
-- Final local application validation: `df04848`, Node 24; the subsequent handoff-only commit does not change tested application/test bytes.
-- GitHub Actions: 25 checks queued on `df04848`; no remote test pass claimed.
+- Final account/pricing/110-unit validation: `e76f4b5`, Node 24; only the handoff changes afterward.
+- The 53 one-click checks passed on `df04848`; affected Studio JS/test bytes remain identical after the later homepage-only main changes.
+- GitHub Actions were queued on `df04848`; exact final-head remote checks remain pending in the PR, not reported as passing.
 - Cloudflare automatically built a branch preview (`c410bf21`), not production; no manual deployment was initiated.
 - Remaining acceptance: normal-customer test payment -> webhook credits -> first generation in a confirmed test environment, plus real Safari BFCache.
 - Next: review draft PR and its exact-head CI; retain failures/limitations explicitly before any release approval.
