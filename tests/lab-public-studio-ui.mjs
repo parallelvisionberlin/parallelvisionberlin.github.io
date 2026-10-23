@@ -171,9 +171,16 @@ try{
         assert.equal(await page.locator('#scene-library-dialog').isVisible(),false,'Private Scene Library stays closed');
       }
       if(route==='upscale'){
+        assert.equal(await page.locator('#upscale-model-menu').isVisible(),true,'Guests can see the real model cards');
+        const originalEngine=await page.locator('#upscale-engine').inputValue();
         await page.locator('#upscale-model-trigger').click();
         await page.waitForFunction(()=>window.__publicAccount.signins.length===2);
-        assert.equal(await page.locator('#upscale-model-menu').isVisible(),false,'Model operations require an account');
+        await page.locator('#upscale-precision-trigger').click();
+        await page.waitForFunction(()=>window.__publicAccount.signins.length===3);
+        await page.locator('[data-upscale-engine="topaz-wonder"]').click();
+        await page.waitForFunction(()=>window.__publicAccount.signins.length===4);
+        assert.equal(await page.locator('#upscale-engine').inputValue(),originalEngine,'Public cards cannot silently change provider selection');
+        assert.equal(await page.locator('#upscale-precision-options').isVisible(),false,'Guest cannot open paid Precision settings');
       }
       assert.deepEqual(requests,[],'private controls cannot upload, quote or fetch files');
     }
