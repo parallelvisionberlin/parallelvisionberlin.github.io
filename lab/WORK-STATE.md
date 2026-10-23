@@ -1,5 +1,13 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Homepage Mood Creator section background only, 2026-10-23
+- Owner reference: image(20261023-174301).png, libfile_eefbf7cf35e48191abbcc1764fae3931.
+- Change only the homepage `.mc-home.mc-home--collection` background from #080F0D to #09090B, slightly darker than Explore Moods #0D0D0F.
+- Preserve the main fashion portrait hero, collage photographs, text, lime accents, upload, navigation, layout and all behavior.
+- App diff: one CSS color literal in lab/mood-home.css; cache marker in lab/index.html.
+- Baseline main: 21237eac3895a8ae4247188d84bf2b8fbc3c4544. Image contract 5/5 locally; all non-color CSS bytes identical.
+- Normal preview/release and production rendered-color verification pending. No payment, upload or generation executed.
+
 ## Explore Moods upload symbol and typography polish, 2026-10-23
 - Approved reference: image(20261023-163106).png, Library libfile_705b5d680e7c81918f8239f01e682ed6.
 - Owner authorizes only the plus and upload typography. Preserve modal, photo, Mood title, outer upload surface, Generate, navigation and all behavior.
