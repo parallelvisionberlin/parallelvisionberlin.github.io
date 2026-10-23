@@ -783,7 +783,11 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     });
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
-  return {open,close,isOpen,hasBase:()=>!!base,reset,finalize,setBase,
+  return {open,close,isOpen,preview:()=>{
+    if(owner())return;
+    host.classList.add('is-precision-active');view.hidden=false;
+    refreshButtons();syncPreviewFit();settleRetouchScroll();
+  },hasBase:()=>!!base,reset,finalize,setBase,
     suggest:name=>{const prompt=ideaPrompts[name];if(!prompt)return;
       $('precision-prompt').value=prompt;
       $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));

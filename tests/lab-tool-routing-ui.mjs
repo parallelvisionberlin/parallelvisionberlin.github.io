@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFileSync,existsSync,statSync} from 'node:fs';
-import {resolve,extname} from 'node:path';
+import {resolve,extname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
@@ -18,7 +18,7 @@ const injected=source.slice(0,boot)+source.slice(end)+[
  "window.__routingTest={",
  "  authorize:async()=>{",
  "    const requested=studioRoute();",
- "    owner=true;customerMode=true;userId='synthetic-routing';",
+ "    owner=true;customerMode=true;userId='synthetic-routing';$('app').removeAttribute('data-guest-preview');",
  "    config={enabled:true,customer:true,videoEngines:['seedance','wan'],falEnabled:false};",
  "    $('gate').hidden=true;$('app').hidden=false;",
  "    await restoreStudioEntry(requested);",
@@ -33,7 +33,7 @@ const injected=source.slice(0,boot)+source.slice(end)+[
 ].join('\n');
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+pathname);
- if(!path.startsWith(root+'/')||!existsSync(path)||!statSync(path).isFile()){
+ if(!path.startsWith(root+sep)||!existsSync(path)||!statSync(path).isFile()){
    res.writeHead(404).end();return;
  }
  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2'})[extname(path)]||'application/octet-stream');
@@ -60,7 +60,8 @@ try{
      assert.equal(await page.locator('#pv-guest-title').textContent(),heading);
      assert.equal(new URL(page.url()).searchParams.get('tool'),route);
      assert.equal(await page.locator('#pv-guest-composer').isVisible(),route==='image');
-     assert.equal(await page.locator('#pv-guest-selected-tool').isVisible(),route!=='image');
+     assert.equal(await page.locator('#pv-guest-selected-tool').isVisible(),false);
+     assert.equal(await page.locator('#app').isVisible(),route!=='image');
    }
    // After the guest selects Upscaler, sign-in restores exactly that route.
    await page.evaluate(()=>window.__routingTest.authorize());
