@@ -168,6 +168,12 @@ try{
  assert.equal(await x.page.locator('.upscale-empty-kicker').textContent(),'IMAGE ENHANCEMENT');
  assert.match(await x.page.locator('.upscale-drop-hint').textContent(),/PNG, JPG OR WEBP/);
  await uploadSmall(x.page);
+ const loadedInspector=await x.page.evaluate(()=>{
+   const bounds=id=>document.querySelector(id).getBoundingClientRect();
+   return {formatBottom:bounds('#format-control').bottom,generateTop:bounds('#generate').top};
+ });
+ assert.ok(loadedInspector.generateTop>=loadedInspector.formatBottom-1,
+   'Loaded source keeps Upscale below Image format without overlapping: '+JSON.stringify(loadedInspector));
  assert.equal(await x.page.locator('#upscale-model-display').isVisible(),true);
  assert.equal(await x.page.locator('#empty-title').isVisible(),false);
  assert.equal(countPaid(x),0);assert.equal(quoteRequests(x).length,0);
