@@ -8,7 +8,8 @@ import assert from 'node:assert/strict';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE||resolve('mobile-app/node_modules/@playwright/test/index.mjs')).href);
 const root=resolve('.'),out='/tmp/pv-explore-generation';mkdirSync(out,{recursive:true});
 const lab=readFileSync('lab/lab.js','utf8');
-const entry=lab.slice(lab.indexOf('async function restoreStudioEntry()'),lab.indexOf('let sourceUrl=null'));
+const entry=lab.slice(lab.indexOf('async function restoreStudioEntry('),lab.indexOf('let sourceUrl=null'));
+assert.ok(entry.startsWith('async function restoreStudioEntry('),'Extract the current Studio entry function for the handoff regression');
 const submit=lab.slice(lab.indexOf('async function submitQuotedGeneration('),lab.indexOf("$('generate').onclick="));
 const harness=`<!doctype html><div id="notice"></div><input id="prompt"><input id="image-engine"><input id="resolution"><input id="image-count"><input id="ratio"><dialog id="quote-dialog"></dialog><script type="module">
 import {takeMoodHandoff as readMoodHandoff,moodGenerationQuote} from './mood-handoff.js';
@@ -26,11 +27,13 @@ const server=http.createServer((req,res)=>{const requestedPath=new URL(req.url,'
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
+const scenarioFailures=[];
 try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize','variant-swap','paused','review','catalogue-phone','catalogue-desktop']){
  const page=await browser.newPage({viewport:{
   width:scenario==='small'?320:['mobile','phone','catalogue-phone'].includes(scenario)?390:scenario==='compact'?1280:1440,
   height:scenario==='small'?640:scenario==='compact'?720:scenario==='phone'?700:900
  }});
+ try{
  let paid=0,quotes=0,uploads=0,jobStatusChecks=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{const req=route.request(),url=new URL(req.url());
   if(url.pathname==='/lab/native-account.js')return route.fulfill({contentType:'text/javascript',body:accountSource(scenario==='guest')});
@@ -411,5 +414,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    }
  }
  assert.deepEqual(errors,[]);await page.close();console.log('PASS',scenario);
-}}finally{await browser.close();server.close();}
+ }catch(error){scenarioFailures.push(scenario+': '+error.message);console.error('FAIL',scenario,error);await page.close();}
+}
+assert.deepEqual(scenarioFailures,[],'Every Explore Moods scenario must pass');
+}finally{await browser.close();server.close();}
 
