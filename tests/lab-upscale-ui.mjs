@@ -71,32 +71,38 @@ const uploadSmall=async page=>{
  assert.equal(await page.locator('#preview').isVisible(),true);
  assert.match(await page.locator('#filemeta').innerText(),/320 × 320/);
 };
+// Inline model choices reuse the same native engine and quality selects.
 const selectModel=async(page,name)=>{
- await page.getByRole('button',{name:/Choose upscale model/}).click();
- const option=page.getByRole('menuitemradio',{name});
- assert.equal(await option.isVisible(),true,'Model is selected through the approved visible popup');
- const engine=await option.getAttribute('data-upscale-engine');
- const quality=await option.getAttribute('data-upscale-quality');
- await option.click();
- assert.equal(await page.locator(quality?'[data-upscale-quality="'+quality+'"]':'[data-upscale-engine="'+engine+'"]').getAttribute('aria-checked'),'true');
- assert.equal(await page.locator('#upscale-model-menu').isVisible(),false);
- assert.equal(await page.locator('#upscale-price-status').isVisible(),false,'Model and quality selection stay quiet');
+ const label=String(name);
+ const quality=/Topaz Standard V2/.test(label)?'Standard V2':/Topaz High Fidelity V3/.test(label)?'High Fidelity V3':null;
+ const engine=quality||/Topaz Precision/.test(label)?'topaz-precision':/Topaz Wonder 3\.5/.test(label)?'topaz-wonder':'seedvr2';
+ if(quality){
+   if(!await page.locator('#upscale-precision-options').isVisible())await page.locator('#upscale-precision-trigger').click();
+   await page.locator('[data-upscale-quality="'+quality+'"]').click();
+ }else{
+   await page.locator('[data-upscale-engine="'+engine+'"]').click();
+ }
+ assert.equal(await page.locator('#upscale-engine').inputValue(),engine);
+ assert.equal(await page.locator('#upscale-model-menu').isVisible(),true,'Compact model cards remain inline');
+ assert.equal(await page.locator('#upscale-price-status').isVisible(),false,'Model choice remains quiet');
  assert.equal(await page.locator('#upscale-price-status').textContent(),'','No replacement diagnostic after selection');
 };
 const selectQuality=async(page,quality,{touch=false}={})=>{
- await page.getByRole('button',{name:/Choose upscale model/}).click();
+ if(!await page.locator('#upscale-precision-options').isVisible())await page.locator('#upscale-precision-trigger').click();
  const choice=page.locator('[data-upscale-quality="'+quality+'"]');
  assert.equal(await choice.isVisible(),true);
  if(touch)await choice.tap();else await choice.click();
- assert.equal(await page.locator('#upscale-model-menu').isVisible(),false);
- assert.equal(await page.locator('#upscale-price-status').isVisible(),false,'Model and quality selection stay quiet');
- assert.equal(await page.locator('#upscale-price-status').textContent(),'','No replacement diagnostic after selection');
+ assert.equal(await page.locator('#upscale-model-menu').isVisible(),true,'Integrated version pills never close the model stack');
+ assert.equal(await page.locator('#upscale-price-status').isVisible(),false,'Selection remains quiet');
+ assert.equal(await page.locator('#upscale-price-status').textContent(),'');
  assert.equal(await page.locator('#upscale-engine').inputValue(),'topaz-precision');
  assert.equal(await page.locator('#upscale-topaz-model').inputValue(),quality);
- assert.equal(await page.locator('#upscale-model-id').innerText(),quality);
- assert.equal(await page.locator('#upscale-model-trigger').getAttribute('aria-label'),'Choose upscale model, currently Topaz Precision '+quality);
- assert.equal(await page.locator('#upscale-model-menu [aria-checked="true"]').count(),1,'Exactly one concrete option is selected');
- for(const q of ['Standard V2','High Fidelity V3'])assert.equal(await page.locator('[data-upscale-quality="'+q+'"]').getAttribute('aria-checked'),String(q===quality));
+ assert.equal(await page.locator('#upscale-model-id').textContent(),quality);
+ assert.equal(await page.locator('#upscale-model-brand').textContent(),'Topaz Precision');
+ assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine][aria-checked="true"]').count(),1,'One active engine');
+ assert.equal(await page.locator('#upscale-model-menu [data-upscale-quality][aria-checked="true"]').count(),1,'One active Precision version');
+ for(const version of ['Standard V2','High Fidelity V3'])
+   assert.equal(await page.locator('[data-upscale-quality="'+version+'"]').getAttribute('aria-checked'),String(version===quality));
 };
 const workspaceGeometry=page=>page.evaluate(()=>{
  const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height};};
@@ -145,25 +151,29 @@ try{
  assert.equal(await x.page.locator('#empty-title').textContent(),'Upscaler');
  assert.equal(await x.page.locator('#upscale-model-display').isVisible(),true);
  assert.match(await x.page.locator('#upscale-model-display').innerText(),/ByteDance Premium.*SeedVR2/s);
- await x.page.locator('#upscale-model-trigger').click();
- assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),true);
- assert.equal(await x.page.locator('#upscale-model-trigger').getAttribute('aria-expanded'),'true');
- assert.deepEqual(await x.page.locator('[data-upscale-engine]').evaluateAll(items=>items.map(x=>x.dataset.upscaleEngine)),['seedvr2','topaz-wonder']);
- assert.equal(await x.page.getByRole('menuitemradio').count(),4,'Four concrete options without a parent or nested menu');
- await x.page.getByRole('menuitemradio',{name:/Topaz Standard V2/}).click();
- assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),false);
- assert.equal(await x.page.locator('#upscale-engine').inputValue(),'topaz-precision');
- assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),'Standard V2','Fresh Precision keeps the existing default');
+ assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),true,'Three model cards display directly beneath Model');
+ assert.deepEqual(await x.page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(items=>items.map(item=>item.dataset.upscaleEngine)),['seedvr2','topaz-precision','topaz-wonder']);
+ assert.equal(await x.page.locator('#upscale-model-menu [data-upscale-engine]').count(),3,'Exactly three primary models');
+ assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),false,'ByteDance default keeps versions collapsed');
+ await selectModel(x.page,/Topaz Standard V2/);
+ assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),true,'Topaz Precision expands within its own card');
+ assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),'Standard V2','Fresh Precision keeps its existing default');
  await selectModel(x.page,/Topaz Wonder 3.5/);
  assert.equal(await x.page.locator('#upscale-engine').inputValue(),'topaz-wonder');
  assert.equal(await x.page.locator('#upscale-topaz-control').isVisible(),false);
- assert.match(await x.page.locator('#upscale-model-trigger').innerText(),/Topaz Wonder.*3.5/s);
+ assert.match((await x.page.locator('#upscale-model-brand').textContent())+' '+(await x.page.locator('#upscale-model-id').textContent()),/Topaz Wonder.*3.5/s);
  await selectModel(x.page,/ByteDance Premium/);
  assert.equal(await x.page.locator('#upscale-engine').inputValue(),'seedvr2');
  assert.equal(countPaid(x),0);assert.equal(quoteRequests(x).length,0);
  assert.equal(await x.page.locator('.upscale-empty-kicker').textContent(),'IMAGE ENHANCEMENT');
  assert.match(await x.page.locator('.upscale-drop-hint').textContent(),/PNG, JPG OR WEBP/);
  await uploadSmall(x.page);
+ const loadedInspector=await x.page.evaluate(()=>{
+   const bounds=id=>document.querySelector(id).getBoundingClientRect();
+   return {formatBottom:bounds('#format-control').bottom,generateTop:bounds('#generate').top};
+ });
+ assert.ok(loadedInspector.generateTop>=loadedInspector.formatBottom-1,
+   'Loaded source keeps Upscale below Image format without overlapping: '+JSON.stringify(loadedInspector));
  assert.equal(await x.page.locator('#upscale-model-display').isVisible(),true);
  assert.equal(await x.page.locator('#empty-title').isVisible(),false);
  assert.equal(countPaid(x),0);assert.equal(quoteRequests(x).length,0);
@@ -215,7 +225,7 @@ try{
    x=await workspace([oldTopaz],width,{customer});await openHistory(x,oldTopaz.id);await x.page.locator('#image-detail-reuse').click();
    await x.page.waitForFunction(()=>document.querySelector('#upscale-engine').value==='topaz-precision');
    assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),quality);
-   assert.match(await x.page.locator('#upscale-model-trigger').innerText(),new RegExp(quality));
+   assert.match(await x.page.locator('#upscale-model-id').textContent(),new RegExp(quality));
    assert.equal(await x.page.locator('#upscale-scale').inputValue(),'4');assert.equal(countPaid(x),0);assert.equal(quoteRequests(x).length,0);
    assert.equal(await x.page.locator('[data-upscale-quality="'+quality+'"]').getAttribute('aria-checked'),'true','History synchronizes the visible menu quality');
    assertQuoted(await upscale(x),{...precisionModel,quality,scale:4});
@@ -279,7 +289,6 @@ try{
    mkdirSync('test-results',{recursive:true});await x.page.screenshot({path:'test-results/upscaler-functional-'+width+'.png',fullPage:true});
    await selectModel(x.page,/Topaz Standard V2/);assert.equal(await x.page.locator('#upscale-model-display').isVisible(),true);
    await selectQuality(x.page,'High Fidelity V3',{touch:width===390});
-   await x.page.locator('#upscale-model-trigger').click();
    await x.page.screenshot({path:'test-results/upscaler-precision-empty-'+width+'.png',fullPage:true});
    assert.equal(countPaid(x),0);assert.equal(quoteRequests(x).length,0);
    assert.deepEqual(x.errors,[]);ok('Approved responsive workdeck and real model popup at '+width+'px');await x.context.close();
@@ -294,10 +303,34 @@ try{
    for(const quality of ['High Fidelity V3','Standard V2']){
     const beforePaid=countPaid(x),beforeQuotes=quoteRequests(x).length,geometry=await workspaceGeometry(x.page);
     await selectQuality(x.page,quality,{touch:width===390});
+    const placement=await x.page.evaluate(()=>{
+      const format=document.getElementById('format-control').getBoundingClientRect();
+      const action=document.getElementById('generate').getBoundingClientRect();
+      return {formatBottom:format.bottom,actionTop:action.top};
+    });
+    if(placement.actionTop<placement.formatBottom-1){
+      console.log('UPSCALE_LAYOUT_DIAGNOSTIC='+JSON.stringify(await x.page.evaluate(()=>{
+        const names=['.workspace','.workspace>.controls','.workspace>.controls>.controls-body',
+          '.workspace>.controls>.generate-zone','#upscale-model-display','#upscale-precision-options',
+          '.pv-upscale-source-control','.parameter-grid','#format-control','#generate','#upscale-canvas'];
+        return names.map(selector=>{
+          const el=document.querySelector(selector),r=el?.getBoundingClientRect(),cs=el&&getComputedStyle(el);
+          return {selector,rect:r?{top:r.top,bottom:r.bottom,height:r.height}:null,
+            display:cs?.display,position:cs?.position,height:cs?.height,minHeight:cs?.minHeight,
+            overflow:cs?.overflow,flex:cs?.flex,gridRows:cs?.gridTemplateRows,order:cs?.order};
+        });
+      })));
+    }
+    assert.ok(placement.actionTop>=placement.formatBottom-1,
+      'Expanded Precision variants never overlap the format selector and Upscale action: '+JSON.stringify(placement));
     assert.equal(countPaid(x),beforePaid);assert.equal(quoteRequests(x).length,beforeQuotes,'Quality selection alone cannot upload, quote or submit');
     assert.deepEqual(await workspaceGeometry(x.page),geometry,'Quality choices preserve the approved page, photo and control dimensions');
     assert.equal(await x.page.locator('#upscale-info').isVisible(),false,'No More options or extra panel');
     assertQuoted(await upscale(x),{...precisionModel,quality});
+    if(await x.page.locator('#save').isVisible()){
+      const saveBounds=await x.page.locator('#save').boundingBox();
+      assert.ok(saveBounds.height<=44,'Available Save Draft stays compact below Upscale: '+JSON.stringify(saveBounds));
+    }
     assert.equal(x.quotes.at(-1).estimatedUsd,.08,'Both modes retain the existing authoritative estimate for this source size');
     assert.equal(quoteRequests(x).at(-1).data.settings.topazModel,quality);
    }
@@ -305,39 +338,80 @@ try{
    for(const name of [/Topaz Wonder 3.5/,/ByteDance Premium/,/Topaz Standard V2/])await selectModel(x.page,name);
    assert.equal(await x.page.locator('#upscale-topaz-model').inputValue(),'Standard V2');
    assert.equal(countPaid(x),2);assert.equal(quoteRequests(x).length,2,'All three engines remain accessible on each role/viewport without selection side effects');
-   await x.page.getByRole('button',{name:/Choose upscale model/}).click();
-   assert.equal(await x.page.getByRole('menuitemradio').count(),4);
+   assert.equal(await x.page.locator('#upscale-model-menu [data-upscale-engine]').count(),3,'Three model groups remain visible');
+   assert.equal(await x.page.locator('#upscale-model-menu [data-upscale-quality]').count(),2,'Two nested Precision versions');
    assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Open quality popup has no mobile overflow');
    const menu=await x.page.locator('#upscale-model-menu').boundingBox();
    const last=await x.page.locator('[data-upscale-engine="topaz-wonder"]').boundingBox();
-   assert.ok(last.y+last.height<=menu.y+menu.height,'Wonder stays fully inside the popup below both qualities');
-   for(const quality of ['Standard V2','High Fidelity V3'])assert.ok((await x.page.locator('[data-upscale-quality="'+quality+'"]').boundingBox()).height>=44,'Quality touch targets remain at least 44px');
+   assert.ok(last.y+last.height<=menu.y+menu.height,'Wonder stays within the inline model stack below Precision');
+   for(const quality of ['Standard V2','High Fidelity V3'])assert.ok((await x.page.locator('[data-upscale-quality="'+quality+'"]').boundingBox()).height>=(width===390?44:38),'Quality buttons retain comfortable desktop and touch sizes');
    await x.page.screenshot({path:'test-results/upscaler-precision-access-'+width+'-'+(customer?'customer':'owner')+'.png',fullPage:true});
    assert.deepEqual(x.errors,[]);ok((customer?'Customer':'Owner')+' selects and submits both fresh qualities with bound credits and unchanged geometry at '+width+'px');await x.context.close();
   }
 
+  // Use a real PV LAB photographic JPG, not just the synthetic pixel fixture.
+  // These read-only screenshots prove both Precision variants have a loaded
+  // source and their action stays BELOW the last output selector at both sizes.
+  const photographicFixture='lab/visuals/upscaler-chrome-wool-option-1.jpg';
+  assert.ok(existsSync(photographicFixture),'Approved Upscaler photographic fixture exists');
+  for(const width of [1440,390]){
+   x=await workspace([],width);await x.page.click('#tool-upscale');
+   const chooser=x.page.waitForEvent('filechooser');
+   await x.page.getByRole('button',{name:'Upload an image to upscale',exact:true}).click();
+   await (await chooser).setFiles({
+     name:'pv-lab-editorial-photo.jpg',mimeType:'image/jpeg',buffer:readFileSync(photographicFixture)
+   });
+   await x.page.waitForFunction(()=>{
+     const img=document.getElementById('preview');
+     return img&&!img.hidden&&img.naturalWidth>0&&document.getElementById('app').classList.contains('pv-upscale-source-ready');
+   });
+   await selectModel(x.page,/Topaz Standard V2/);
+   for(const quality of ['Standard V2','High Fidelity V3']){
+    await selectQuality(x.page,quality,{touch:width===390});
+    const g=await x.page.evaluate(()=>{
+      const format=document.getElementById('format-control').getBoundingClientRect();
+      const generate=document.getElementById('generate').getBoundingClientRect();
+      const photo=document.getElementById('preview');
+      return {formatBottom:format.bottom,generateTop:generate.top,photoWidth:photo.naturalWidth,
+        photoHeight:photo.naturalHeight,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth};
+    });
+    assert.ok(g.generateTop>=g.formatBottom-1,
+      'REAL photographic source and '+quality+' keep Upscale below Image format at '+width+'px: '+JSON.stringify(g));
+    assert.ok(g.photoWidth>0&&g.photoHeight>0,'Original photographic media stays visible');
+    assert.ok(g.documentWidth<=g.viewportWidth,'No horizontal overflow with a loaded photograph');
+    assert.equal(quoteRequests(x).length,0,'Model preview never creates a billable quote');
+    assert.equal(countPaid(x),0,'Model preview never submits generation');
+    mkdirSync('test-results',{recursive:true});
+    const version=quality==='Standard V2'?'standard-v2':'high-fidelity-v3';
+    await x.page.screenshot({path:'test-results/upscaler-photo-loaded-'+width+'-'+version+'.png',fullPage:true});
+    ok('Loaded real photograph '+quality+' at '+width+'px: no overlap and no billable calls');
+   }
+   assert.deepEqual(x.errors,[]);
+   await x.context.close();
+  }
+
   x=await workspace();await x.page.click('#tool-upscale');
-  const trigger=x.page.locator('#upscale-model-trigger');
-  await trigger.focus();await trigger.press('ArrowDown');
+  const trigger=x.page.locator('#upscale-model-trigger'),precision=x.page.locator('#upscale-precision-trigger');
   const focused=()=>x.page.evaluate(()=>document.activeElement.dataset.upscaleQuality||document.activeElement.dataset.upscaleEngine||document.activeElement.id);
-  assert.equal(await focused(),'seedvr2');
-  await x.page.keyboard.press('ArrowDown');assert.equal(await focused(),'Standard V2');
-  await x.page.keyboard.press('ArrowDown');assert.equal(await focused(),'High Fidelity V3');
+  await trigger.focus();
+  await trigger.press('ArrowDown');assert.equal(await focused(),'topaz-precision','Next main model is Precision');
   await x.page.keyboard.press('Enter');
-  assert.equal(await x.page.locator('#upscale-model-id').innerText(),'High Fidelity V3');assert.equal(await focused(),'upscale-model-trigger');
-  await trigger.press('ArrowUp');assert.equal(await focused(),'High Fidelity V3','Reopening focuses the saved selection');
+  assert.equal(await x.page.locator('#upscale-engine').inputValue(),'topaz-precision');
+  assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),true,'Keyboard expands nested versions');
+  await precision.press('ArrowDown');assert.equal(await focused(),'Standard V2');
+  await x.page.keyboard.press('ArrowDown');assert.equal(await focused(),'High Fidelity V3');
+  await x.page.keyboard.press('Space');
+  assert.equal(await x.page.locator('#upscale-model-id').textContent(),'High Fidelity V3');
   await x.page.keyboard.press('Home');assert.equal(await focused(),'seedvr2');
-  await x.page.keyboard.press('ArrowUp');assert.equal(await focused(),'topaz-wonder','Arrow navigation wraps');
   await x.page.keyboard.press('End');assert.equal(await focused(),'topaz-wonder');
-  await x.page.keyboard.press('ArrowUp');await x.page.keyboard.press('ArrowUp');assert.equal(await focused(),'Standard V2');
-  await x.page.keyboard.press('Space');assert.equal(await x.page.locator('#upscale-model-id').innerText(),'Standard V2');
-  await trigger.press('ArrowDown');await x.page.keyboard.press('Escape');
-  assert.equal(await focused(),'upscale-model-trigger');assert.equal(await trigger.getAttribute('aria-expanded'),'false');
-  await trigger.press('ArrowDown');await x.page.keyboard.press('Tab');
-  assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),false);assert.notEqual(await focused(),'upscale-model-trigger','Tab continues to the next control');
-  await trigger.click();await x.page.locator('.pv-upscale-workspace-intro h2').click();assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),false);
+  await x.page.keyboard.press('ArrowDown');assert.equal(await focused(),'seedvr2','Arrow navigation wraps');
+  await x.page.keyboard.press('Tab');
+  assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),true,'Tab does not close inline cards');
+  assert.notEqual(await focused(),'upscale-model-trigger','Tab advances naturally');
+  await x.page.locator('.pv-upscale-workspace-intro h2').click();
+  assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),true,'Outside clicks do not dismiss an inline model group');
   assert.equal(x.uploads.length,0);assert.equal(countPaid(x),0);assert.equal(quoteRequests(x).length,0);assert.deepEqual(x.errors,[]);
-  ok('Keyboard selects both qualities, preserves focus, wraps, escapes and exits without API side effects');await x.context.close();
+  ok('Keyboard selects nested Precision quality, wraps between models and leaves inline cards visible with zero paid side effects');await x.context.close();
  }
  console.log('BROWSER_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}
