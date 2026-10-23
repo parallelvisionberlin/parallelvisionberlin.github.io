@@ -42,9 +42,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/fashion-494-report test-results
-          git fetch --no-tags --depth=80 origin "$SOURCE_SHA" "$MAIN_SHA" "$BASE_SHA"
-          git fetch --no-tags --depth=1 origin ac33d20c50bdd88e71547e96a70781efae4b5a11 b0677e7ebd00dfbcca9dca297e90b58523ff7ad4
+          mkdir -p test-results/fashion-494-report test-results
+          git fetch --no-tags --depth=160 origin "$SOURCE_SHA" "$MAIN_SHA" "$BASE_SHA" ac33d20c50bdd88e71547e96a70781efae4b5a11 b0677e7ebd00dfbcca9dca297e90b58523ff7ad4
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           python3 <<'PY'
@@ -52,10 +51,10 @@ jobs:
           def git(*args): return subprocess.check_output(['git',*args])
           source,main,base=(os.environ[x] for x in ['SOURCE_SHA','MAIN_SHA','BASE_SHA'])
           start=git('rev-parse','HEAD').decode().strip()
-          assert git('rev-parse','HEAD^').decode().strip()==source, 'Branch changed; refuse stale reconciliation'
+          assert git('diff','--name-only',source,start).decode().splitlines()==['.github/workflows/pv-fashion-494-reconcile.yml'], 'Source branch changed; refuse stale reconciliation'
           assert git('merge-base',source,main).decode().strip()==base, 'Unexpected merge base'
           result=subprocess.run(['git','merge','--no-commit','--no-ff',main],text=True,capture_output=True)
-          pathlib.Path('/tmp/fashion-494-report/merge.log').write_text(result.stdout+result.stderr)
+          pathlib.Path('test-results/fashion-494-report/merge.log').write_text(result.stdout+result.stderr)
           conflicts=git('diff','--name-only','--diff-filter=U').decode().splitlines()
           assert result.returncode in (0,1), result.stderr
           assert set(conflicts)<= {'lab/lab.js','lab/studio.html'}, 'Unexpected conflicts: '+repr(conflicts)
@@ -87,7 +86,7 @@ jobs:
           subprocess.run(['git','rm','--','.github/workflows/pv-fashion-494-reconcile.yml'],check=True)
           subprocess.run(['git','diff','--check','--cached'],check=True)
           report={'expected_branch_sha':start,'source_sha':source,'main_sha':main,'base_sha':base,'conflicts_resolved':conflicts,'approved_files_byte_identical':approved,'branch_updated':False,'production_updated':False}
-          pathlib.Path('/tmp/fashion-494-report/prepare.json').write_text(json.dumps(report,indent=2))
+          pathlib.Path('test-results/fashion-494-report/prepare.json').write_text(json.dumps(report,indent=2))
           print(json.dumps(report,indent=2))
           PY
       - name: Install existing pinned browser runtime
@@ -100,10 +99,10 @@ jobs:
           set +e
           run_check() {
             label="$1"; shift
-            "$@" > "/tmp/fashion-494-report/${label}.log" 2>&1
+            "$@" > "test-results/fashion-494-report/${label}.log" 2>&1
             result=$?
-            printf '%s\t%s\n' "$label" "$result" >> /tmp/fashion-494-report/results.tsv
-            tail -n 18 "/tmp/fashion-494-report/${label}.log"
+            printf '%s\t%s\n' "$label" "$result" >> test-results/fashion-494-report/results.tsv
+            tail -n 18 "test-results/fashion-494-report/${label}.log"
           }
           run_check image-contract node --test tests/lab-approved-image-ui-contract.test.mjs
           run_check fashion-safeguards node --test tests/*fashion*.test.mjs
@@ -121,7 +120,7 @@ jobs:
           python3 <<'PY'
           import os,json,pathlib,subprocess,urllib.request,base64
           def git(*args): return subprocess.check_output(['git',*args])
-          reportdir=pathlib.Path('/tmp/fashion-494-report')
+          reportdir=pathlib.Path('test-results/fashion-494-report')
           report=json.loads((reportdir/'prepare.json').read_text())
           results=dict(line.split('\t') for line in (reportdir/'results.tsv').read_text().splitlines())
           report['checks']={name:int(code) for name,code in results.items()}
@@ -173,7 +172,7 @@ jobs:
         with:
           name: fashion-494-merge-verification
           path: |
-            /tmp/fashion-494-report/
+            test-results/fashion-494-report/
             test-results/fashion-reference-*.png
             test-results/pv-fashion-*.png
             test-results/visual-fashion-*.png
@@ -182,5 +181,5 @@ jobs:
       - name: Report all test failures without masking them
         if: always()
         run: |
-          test -f /tmp/fashion-494-report/result.json
-          python3 -c 'import json; r=json.load(open("/tmp/fashion-494-report/result.json")); assert all(c==0 for c in r["checks"].values()), r["checks"]'
+          test -f test-results/fashion-494-report/result.json
+          python3 -c 'import json; r=json.load(open("test-results/fashion-494-report/result.json")); assert all(c==0 for c in r["checks"].values()), r["checks"]'
