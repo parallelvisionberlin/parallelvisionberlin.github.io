@@ -347,7 +347,7 @@
 .mc-explore-page .mc-discovery--explore .mc-explore-hero-art{
   position:absolute;z-index:-1;pointer-events:none;inset:0 0 auto;
   height:clamp(330px,33vw,470px);
-  background-image:linear-gradient(90deg,#101312 1%,#101312c4 31%,#1013124d 63%,#101312 100%),linear-gradient(0deg,#101312 0%,transparent 43%),url('/lab/mood-references/hong-kong-nights/plaza-grill.webp');
+  background-image:linear-gradient(90deg,#101312 1%,#101312c4 31%,#1013124d 63%,#101312 100%),linear-gradient(0deg,#101312 0%,transparent 43%),url('/lab/mood-references/hong-kong-nights/supervalu.jpg');
   background-size:cover; background-position:50% 47%;
 }
 .mc-explore-page .mc-discovery--explore .mc-discovery-intro{
@@ -410,7 +410,7 @@
  .mc-explore-page .mc-discovery--explore .mc-explore-hero-art{
   height:390px;
   background-position:60% 40%;
-  background-image:linear-gradient(90deg,#101312e0 0%,#1013129e 50%,#10131260 100%),linear-gradient(0deg,#101312 2%,transparent 53%),url('/lab/mood-references/hong-kong-nights/plaza-grill.webp');
+  background-image:linear-gradient(90deg,#101312e0 0%,#1013129e 50%,#10131260 100%),linear-gradient(0deg,#101312 2%,transparent 53%),url('/lab/mood-references/hong-kong-nights/supervalu.jpg');
  }
  .mc-explore-page .mc-discovery--explore .mc-discovery-intro{min-height:285px;padding-block:26px 16px}
  .mc-explore-page .mc-discovery--explore #mc-look-grid{display:block!important}

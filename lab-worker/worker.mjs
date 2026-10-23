@@ -53,7 +53,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-21.5-account-sync-checkout.hk-three-refs1.clerk-d1-retry1';
+export const VERSION = 'pv-lab-2026-10-23-hk-two-optical-refs-balanced1';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1992,7 +1992,7 @@ async function route(request,env,ctx) {
       return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
     }
     const {c,key}=await requireConfigured(env,owner);
-    if(params.type==='image'&&params.moodId==='hong-kong-nights'&&(params.moodReferenceVersion!==HONG_KONG_REFERENCE_VERSION||params.moodReferenceCount!==3||savedPayload.input?.image_urls?.length!==(params.referenceSourceIds?.length||0)+3))
+    if(params.type==='image'&&params.moodId==='hong-kong-nights'&&(params.moodReferenceVersion!==HONG_KONG_REFERENCE_VERSION||params.moodReferenceCount!==HONG_KONG_REFERENCES.length||savedPayload.input?.image_urls?.length!==(params.referenceSourceIds?.length||0)+HONG_KONG_REFERENCES.length))
       fail(409,'Hong Kong Nights reference pack changed. Refresh the generation price to attach all three original Style photos. Nothing was submitted.');
     if([STILL_EDIT,QWEN3_EDIT,SEEDREAM_LITE_EDIT,FLASH_EDIT].includes(savedPayload.model)&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
       fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');

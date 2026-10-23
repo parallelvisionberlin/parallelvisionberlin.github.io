@@ -1,6 +1,6 @@
 // Shared by the image UI and Worker so the preview matches the submitted prompt.
 import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js?photoOnlyAnatomy=20261022v1';
-import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js';
+import {hongKongReferenceCount,hongKongReferenceError,hongKongReferenceGuidance} from './hong-kong-reference-policy.js?hkBalanced=20261023v1';
 export {referenceRoleAdvisories};
 // No-direction Base only: protect identity, pose and visible anatomy before any subtle refinement.
 // Explicit edits, Moods and assigned reference roles are not restricted by this fallback.
