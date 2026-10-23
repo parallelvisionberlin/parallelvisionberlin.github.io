@@ -171,10 +171,10 @@ try{
   for(const [kind,spec] of Object.entries(icons)){
     assert.ok(spec,'Missing ghost icon for '+kind);
     assert.equal(spec.role,'true',kind+' artwork must remain decorative for screen readers');
-    assert.equal(spec.width,kind==='result'?100:62,kind+' retains its approved editorial icon width');
-    assert.equal(spec.height,kind==='result'?118:72,kind+' retains its approved editorial icon height');
+    assert.equal(spec.width,kind==='result'?100:75,kind+' retains its approved editorial icon width');
+    assert.equal(spec.height,kind==='result'?118:90,kind+' retains its approved editorial icon height');
     assert.equal(spec.radius,0,kind+' icon should not have a circular medallion; only the large image boxes should be rounded');
-    assert.equal(spec.opacity,kind==='result'?.24:.62,kind+' preserves the approved outline opacity in its current state');
+    assert.equal(spec.opacity,kind==='result'?.24:.25,kind+' preserves the approved outline opacity in its current state');
     assert.ok(spec.strokeWidth<=1.4,kind+' icon must use a delicate stroke');
     assert.ok(spec.paths.length>=2,kind+' icon needs recognizable vector geometry');
   }
@@ -187,7 +187,7 @@ try{
   assert.match(await editor.locator('#garment-hint').innerText(),/Flat garment or outfit reference/);
   assert.equal(await editor.locator('#result-placeholder').isVisible(),false,'The approved empty composition hides the output placeholder');
   assert.equal(await editor.locator('.result-panel').isVisible(),false,'No output panel is shown before a real stored result is selected');
-  assert.equal(await editor.locator('#result-image').getAttribute('src'),null,'The approved atmospheric photograph is never used as a generated result');
+  assert.equal(await editor.locator('#result-image').getAttribute('src'),null,'The neutral approved composition never invents a generated result');
   const approvedEmpty=await page.screenshot({path:'test-results/pv-fashion-empty-desktop.png',fullPage:true,animations:'disabled',caret:'hide'});
   const loadedStyle=await page.evaluate(()=>{
     const style=window.__fashionRoot.querySelector('style'),text=style.textContent;
@@ -237,14 +237,14 @@ try{
   assert.equal(desktop.colorScheme,'dark','Dark native inputs and scrollbar match the Studio.');
   assert.equal(desktop.themeColor,'#101114','Browser chrome matches PV Lab Video.');
   assert.equal(desktop.markFilter,'none','PV Lab logo uses the same source colors as Video.');
-  assert.equal(desktop.photoBackground,'rgba(0, 0, 0, 0)','The approved source well uses its photographic CSS layer.');
-  assert.match(desktop.photoImage,/fashion-editorial-reference\.svg/,'The approved reference photograph remains in the source area only');
+  assert.equal(desktop.photoBackground,'rgba(0, 0, 0, 0)','The approved source well retains its neutral gradient layer.');
+  assert.equal(desktop.photoImage,'linear-gradient(140deg, rgb(41, 41, 45), rgb(17, 17, 20) 72%)','The approved neutral source layer contains no decorative photograph');
   assert.equal(desktop.resultBackground,'rgb(25, 26, 27)','Result well remains graphite.');
-  assert.equal(desktop.dropdownBackground,'rgba(32, 33, 38, 0.867)','No white form fields remain.');
-  assert.deepEqual(desktop.boxStyles,Array.from({length:3},()=>({radius:12,overflow:'hidden'})),
-    'The actual Person, Garment and Result image boxes should have matching approved 12px rounded corners and clip media');
-  assert.ok(Math.abs(desktop.title.top-desktop.headerBottom-32)<=1,'Fashion intro follows the single shared Studio header.');
-  assert.ok(Math.abs(desktop.preview.bottom-desktop.preview.top-(Math.min(310,Math.max(228,900*.26))-68))<=1,'Stored output fills the approved result row after its unchanged 31px header and 37px actions');
+  assert.equal(desktop.dropdownBackground,'rgb(31, 32, 36)','No white form fields remain.');
+  assert.deepEqual(desktop.boxStyles,[13,13,12].map(radius=>({radius,overflow:'hidden'})),
+    'The actual source wells retain approved 13px corners and the result 12px corners; all clip media');
+  assert.ok(Math.abs(desktop.title.top-desktop.headerBottom-Math.min(58,Math.max(30,900*.05)))<=1,'Fashion intro follows the single shared Studio header.');
+  assert.ok(Math.abs(desktop.preview.bottom-desktop.preview.top-(Math.min(375,Math.max(290,900*.39))-68))<=1,'Stored output fills the approved result row after its unchanged 31px header and 37px actions');
   assert.ok(desktop.preview.width>500,'Result window is large enough for examining details.');
   assert.ok(desktop.person.width>=250&&desktop.garment.width>=250,'Both drop zones are large.');
   assert.ok(Math.abs(desktop.person.top-desktop.garment.top)<3,'Uploads are side by side.');
@@ -282,7 +282,7 @@ try{
     radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),
     overflow:getComputedStyle(el).overflow
   })));
-  assert.deepEqual(mobileBoxes,Array.from({length:3},()=>({radius:12,overflow:'hidden'})),
+  assert.deepEqual(mobileBoxes,[13,13,12].map(radius=>({radius,overflow:'hidden'})),
     'All three large image boxes keep their rounded corners and image clipping on mobile');
   const mobileIcons=await editor.locator('svg.empty-art').evaluateAll(items=>items.map(el=>
     parseFloat(getComputedStyle(el).borderTopLeftRadius)));

@@ -153,6 +153,12 @@ try{
       if(route==='fashion'){
         assert.equal(await page.locator('#fashion-studio .result-panel').isVisible(),false,'The approved public Fashion empty state has no invented output panel');
         assert.equal(await reference.locator('#fashion-studio .result-panel').isVisible(),false,'The independently booted approved source also hides an empty result');
+        // The old approved bootstrap needs Owner auth to enter Fashion. Match only
+        // its private archive visibility to the public editor being compared: the
+        // approved background gradient is sized to the entire content height.
+        assert.equal(await reference.locator('#fashion-studio #fashion-gallery').isVisible(),true,'The authenticated reference retains its private gallery before visual normalization');
+        await reference.locator('#fashion-studio #fashion-gallery').evaluate(el=>{el.hidden=true;});
+        assert.equal(await reference.locator('#fashion-studio #fashion-gallery').isVisible(),false);
       }
       const regions={image:['#gate'],video:width>=700?['#video-model-control','#pv-video-reference-preview']:['#video-model-control','#video-modes','#reference-drop','#prompt'],upscale:['.pv-upscale-workspace-intro','#pv-upscale-dropzone'],retouch:['.precision-board'],fashion:['#fashion-studio .page-intro','#fashion-studio .image-pair','#fashion-studio .direction-block']};
       for(const [index,selector] of regions[route].entries()){
