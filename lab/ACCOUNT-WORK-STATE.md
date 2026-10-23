@@ -29,9 +29,12 @@
 - Existing one-click mock-generation browser: 53/53 passed; Windows path adapter used in memory only.
 - Screenshots inspected for funded desktop/mobile and cancelled pack/subscription selection; no horizontal overflow.
 - Known unrelated failure retained: `lab-first-image-instant-browser.mjs:126` backdrop comparison at 1920px.
-- Its max=234 / mean=40.745716145833335 exactly matches the audit baseline failure; no assertion was changed or disabled.
+- Audit baseline: max=234 / mean=40.745716145833335. After the later main banner CSS, both exact main `43db51b` and PR `df04848` fail with max=234 / mean=32.85790798611111; no assertion changed.
 - Payment, credit allocation and first generation are tested locally with synthetic identities/intercepted APIs only.
-- No real purchase, paid generation, production account mutation, merge or deployment performed.
+- No real purchase, paid generation, production account mutation, PR merge or production deployment performed.
+- Final local application validation: `df04848`, Node 24; the subsequent handoff-only commit does not change tested application/test bytes.
+- GitHub Actions: 25 checks queued on `df04848`; no remote test pass claimed.
+- Cloudflare automatically built a branch preview (`c410bf21`), not production; no manual deployment was initiated.
 - Remaining acceptance: normal-customer test payment -> webhook credits -> first generation in a confirmed test environment, plus real Safari BFCache.
 - Next: review draft PR and its exact-head CI; retain failures/limitations explicitly before any release approval.
 
