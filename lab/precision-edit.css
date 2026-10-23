@@ -317,3 +317,13 @@ body:has(#app.retouch-studio-active),
   .precision-compare-row label{flex:1 1 100%;min-height:28px}
   #precision-continue,#precision-download{flex:1 1 auto;text-align:center}
 }
+
+/* Retouch can be opened while Upscaler remains the preserved underlying tool.
+   The newer Upscaler deck has a stronger display:grid!important selector, so
+   explicitly prevent it and its results archive from appearing under Retouch.
+   The unchanged Upscaler workspace and results reappear on normal navigation. */
+#app.retouch-studio-active.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) > .workspace,
+#app.retouch-studio-active > .archive,
+#app.retouch-studio-active > #video-effects-explore {
+  display:none!important;
+}
