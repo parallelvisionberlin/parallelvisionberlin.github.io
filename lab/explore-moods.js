@@ -148,7 +148,7 @@ function initialize(){
       return service;
     }).catch(error=>{serviceLoading=null;throw error;}));
   }
-  function hasGenerationInput(){return !!mood&&!!(file||direction.value.trim());}
+  function hasGenerationInput(){return !!mood&&!!file;}
   const accessCodes=new Set(['TRIAL_PAUSED','ACCOUNT_REVIEW','BILLING_REVIEW','ACCOUNT_CLOSED','GENERATION_UNAVAILABLE']);
   function clearAccessNotice(){
     blockedCode=null;
@@ -206,7 +206,7 @@ function initialize(){
     if(stamp!==priceRevision||!hasGenerationInput())return Promise.resolve(null);
     if(price?.expiresAt>Date.now()+5000)return Promise.resolve(price);
     if(priceTask?.stamp===stamp)return priceTask.promise;
-    const source=file,selected=mood,description=direction.value.trim();
+    const source=file,selected=mood,description='';
     const promise=(async()=>{
       const client=await generationService();
       if(stamp!==priceRevision||!dialog.open)return null;
@@ -285,7 +285,7 @@ function initialize(){
     fileURL=null;file=null;fileInput.value='';
     $('mc-look-file-preview')?.remove();
     $('mc-look-file-clear').hidden=true;
-    $('mc-look-file-label-text').textContent='Drop a photograph or browse files';
+    $('mc-look-file-label-text').textContent='Drop your photo here.';
     zone.classList.remove('has-image');
   }
   function attachPhoto(input){
@@ -311,25 +311,10 @@ function initialize(){
     preview.src=selected.preview;
     preview.alt=selected.name+' aesthetic';
     $('mc-look-title').textContent=selected.name;
-    $('mc-look-description').textContent=selected.id==='berlin-rave'?selected.description+'. Transforms wardrobe and lighting into a night-flash editorial while keeping your identity, pose and framing.':selected.id==='synthetic-romance'?selected.description+'. This mood reconstructs visible body parts into engineered chrome, cables and synthetic anatomy.':selected.description+'. Keep your own subject and scene.';
+    $('mc-look-mood-note').textContent='See it in '+selected.name+'.';
+    $('mc-look-description').textContent=selected.description.replace(/\.?$/,'.');
     if(!dialog.open)dialog.showModal();
-    // Freeze the compact *content* height, not the modal viewport limit.
-    // On iPhone the former boundingRect measurement captured 90dvh, which
-    // stranded Generate and the other controls above a large empty footer.
-    // Keep the original desktop height and never resize on photo/quote updates.
-    if(!dialog.style.getPropertyValue('--mc-editor-height')){
-      let height=dialog.getBoundingClientRect().height;
-      if(window.matchMedia('(max-width:600px)').matches){
-        const photo=dialog.querySelector('.mc-look-dialog-media');
-        const body=dialog.querySelector('.mc-look-dialog-body');
-        const border=getComputedStyle(dialog);
-        const natural=photo.getBoundingClientRect().height+body.scrollHeight+
-          (parseFloat(border.borderTopWidth)||0)+(parseFloat(border.borderBottomWidth)||0);
-        const viewport=window.visualViewport?.height||window.innerHeight;
-        height=Math.min(natural,Math.max(0,viewport-22));
-      }
-      dialog.style.setProperty('--mc-editor-height',Math.ceil(height)+'px');
-    }
+    // The responsive photobooth defines a stable editor size in CSS.
     if(photo)attachPhoto(photo);
     // Dialog receives native modal focus; its container should not have a focus ring.
     dialog.focus({preventScroll:true});
@@ -404,7 +389,7 @@ function initialize(){
     resetPrice();setBusy(true);
     status.textContent='Preparing your private photo handoff. Nothing is being generated.';
     try{
-      const token=await saveMoodHandoff({file,prompt:direction.value.trim()});
+      const token=await saveMoodHandoff({file,prompt:''});
       location.assign(moodExploreDestination(mood.id,{create,handoff:token,moodVariant}));
     }catch(error){
       status.textContent=error.message;
@@ -517,7 +502,7 @@ function initialize(){
     setBusy(true);
     try{
       const created=new File([resultBlob],'pvlab-'+mood.id+'.'+ext,{type});
-      const token=await saveMoodHandoff({file:created,prompt:direction.value.trim()});
+      const token=await saveMoodHandoff({file:created,prompt:''});
       location.assign(moodExploreDestination(mood.id,{handoff:token,moodVariant}));
     }catch(error){setBusy(false);status.textContent=error.message;}
   })();
@@ -547,4 +532,5 @@ function initialize(){
   if(requested&&moodById(requested))showMood(moodById(requested));
 }
 if(typeof document!=='undefined')initialize();
+
 
