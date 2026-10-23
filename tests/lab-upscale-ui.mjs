@@ -308,6 +308,19 @@ try{
       const action=document.getElementById('generate').getBoundingClientRect();
       return {formatBottom:format.bottom,actionTop:action.top};
     });
+    if(placement.actionTop<placement.formatBottom-1){
+      console.log('UPSCALE_LAYOUT_DIAGNOSTIC='+JSON.stringify(await x.page.evaluate(()=>{
+        const names=['.workspace','.workspace>.controls','.workspace>.controls>.controls-body',
+          '.workspace>.controls>.generate-zone','#upscale-model-display','#upscale-precision-options',
+          '.pv-upscale-source-control','.parameter-grid','#format-control','#generate','#upscale-canvas'];
+        return names.map(selector=>{
+          const el=document.querySelector(selector),r=el?.getBoundingClientRect(),cs=el&&getComputedStyle(el);
+          return {selector,rect:r?{top:r.top,bottom:r.bottom,height:r.height}:null,
+            display:cs?.display,position:cs?.position,height:cs?.height,minHeight:cs?.minHeight,
+            overflow:cs?.overflow,flex:cs?.flex,gridRows:cs?.gridTemplateRows,order:cs?.order};
+        });
+      })));
+    }
     assert.ok(placement.actionTop>=placement.formatBottom-1,
       'Expanded Precision variants never overlap the format selector and Upscale action: '+JSON.stringify(placement));
     assert.equal(countPaid(x),beforePaid);assert.equal(quoteRequests(x).length,beforeQuotes,'Quality selection alone cannot upload, quote or submit');
