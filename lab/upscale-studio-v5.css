@@ -1775,3 +1775,21 @@
     max-height:none!important;
   }
 }
+
+/* Keep secondary paid-status and Save Draft surfaces compact whenever they
+   become available. Retain their native visibility and click handlers. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #upscale-price{
+  flex:0 0 auto!important;
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #save{
+  flex:0 0 auto!important;
+  min-height:40px!important;
+  height:40px!important;
+  max-height:40px!important;
+  border-radius:8px!important;
+  margin:0!important;
+  padding:8px 10px!important;
+}
