@@ -99,7 +99,9 @@ try{
       const payload=url.pathname==='/api/session'?{
         owner,customer:!owner,generationReady:true,billingReady:true,balanceCredits:500,
         config:{enabled:true,customer:!owner,videoEngines:['seedance','wan'],falEnabled:true,upscaleEnabled:true}
-      }:url.pathname==='/api/fashion/models'?{models:[{id:'fashnmax',available:true}]}:
+      // The wallet must agree with the synthetic funded profile during async refresh.
+      }:url.pathname==='/api/customer/wallet'?{balanceCredits:500,billingReady:true,products:[]}:
+        url.pathname==='/api/fashion/models'?{models:[{id:'fashnmax',available:true}]}:
         url.pathname==='/api/fashion/balance'?{connected:false}:url.pathname==='/api/jobs'?{jobs:[],nextCursor:null}:
         url.pathname==='/api/packs'?{packs:[]}:url.pathname==='/api/moods'?{boards:[]}:{items:[],jobs:[],models:[]};
       await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload)});
@@ -185,9 +187,16 @@ try{
         assert.equal(await page.locator('#scene-library-dialog').isVisible(),false,'Private Scene Library stays closed');
       }
       if(route==='upscale'){
+        assert.equal(await page.locator('#upscale-model-menu').isVisible(),true,'Guests can see the real model cards');
+        const originalEngine=await page.locator('#upscale-engine').inputValue();
         await page.locator('#upscale-model-trigger').click();
         await page.waitForFunction(()=>window.__publicAccount.signins.length===2);
-        assert.equal(await page.locator('#upscale-model-menu').isVisible(),false,'Model operations require an account');
+        await page.locator('#upscale-precision-trigger').click();
+        await page.waitForFunction(()=>window.__publicAccount.signins.length===3);
+        await page.locator('[data-upscale-engine="topaz-wonder"]').click();
+        await page.waitForFunction(()=>window.__publicAccount.signins.length===4);
+        assert.equal(await page.locator('#upscale-engine').inputValue(),originalEngine,'Public cards cannot silently change provider selection');
+        assert.equal(await page.locator('#upscale-precision-options').isVisible(),false,'Guest cannot open paid Precision settings');
       }
       assert.deepEqual(requests,[],'private controls cannot upload, quote or fetch files');
     }

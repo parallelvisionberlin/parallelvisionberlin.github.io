@@ -1,5 +1,33 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Homepage Mood Creator section background only, 2026-10-23
+- Owner reference: image(20261023-174301).png, libfile_eefbf7cf35e48191abbcc1764fae3931.
+- Change only the homepage `.mc-home.mc-home--collection` background from #080F0D to #09090B, slightly darker than Explore Moods #0D0D0F.
+- Preserve the main fashion portrait hero, collage photographs, text, lime accents, upload, navigation, layout and all behavior.
+- App diff: one CSS color literal in lab/mood-home.css; cache marker in lab/index.html.
+- Baseline main: 21237eac3895a8ae4247188d84bf2b8fbc3c4544. Image contract 5/5 locally; all non-color CSS bytes identical.
+- Released via PR #493, merge 1045821697696abcfdd9733a666c4d49a9320b7b.
+- Exact-commit Cloudflare pvlab-studio check 120567033678 succeeded.
+- Production https://pvlab.studio/#mood-creator inspected: computed background rgb(9,9,11), stylesheet URL includes background=20261023-charcoal1; screenshot reviewed.
+- Preview section/title/collage/actions/upload rectangles exactly matched production baseline at the same viewport; original three photograph paths retained.
+- CI approved Image contract, Landing, pricing browser, Account, static validation and Lab tests passed. Overall CI not all green: inherited Fashion Sign in inset and Assets guest visibility assertions remain outside this one-color change.
+- No payment, upload, generation or real signed-in customer operation executed. Mobile background uses the same rule; actual phone rendering not independently inspected.
+- Background request complete; no further styling changes included.
+
+## Explore Moods upload symbol and typography polish, 2026-10-23
+- Approved reference: image(20261023-163106).png, Library libfile_705b5d680e7c81918f8239f01e682ed6.
+- Owner authorizes only the plus and upload typography. Preserve modal, photo, Mood title, outer upload surface, Generate, navigation and all behavior.
+- Desktop-only CSS: neutral transparent 8.4cqw symbol tile, restrained border/radius, larger white plus; upload heading 3.6cqw/36px with -.05em spacing, neutral subtitle and regular Browse files.
+- Mobile and result-view selectors unchanged. No generation, upload, auth, credit or provider code changed.
+- Files: explore-moods-photobooth.css and its cache marker in moods.html.
+- Base: 7f44c63feb55eb567872c8b6fed6d29f2b91119e. Approved Image contract passed 5/5 locally.
+- Local Chromium download unavailable; used the existing cloud browser for actual preview and production visual verification.
+- Preview comparison at the same viewport: modal, photo, Mood title, outer upload surface and Generate x/y/width/height exactly unchanged.
+- PR #490 merged as 6dbb1cab7bce522af64f4be82d07f23c5b5a1d2f. Approved Image contract passed locally and in CI.
+- General public-studio suite fails Fashion Sign in alignment (46px versus31px), outside the modified Moods-only styles. No gate weakened or retry started.
+- Exact merged SHA Cloudflare check120535048562 succeeded. Production CSS bytes match reviewed source exactly.
+- Production /moods DOM uses20261023-upload-polish1; actual computed symbol font32px and heading35.928px confirmed, screenshot inspected. Signed-out production only; no account or generation actions.
+
 ## Authenticated Retouch header gutter alignment, 2026-10-23
 - Owner references image(20261023-144627).png, 144841, 145038 and 145106.
 - Image/Video reserve desktop root scrollbar space; Retouch without document overflow did not, shifting all right-side controls.
@@ -24,37 +52,46 @@
 - Source HTML stayed unchanged through test-only follow-ups. Desktop repair published and verified; mobile layout untouched.
 
 
-## CI fixture maintenance, 2026-10-23 (last two gates)
-- Objective: finish the inherited controls on existing PR #482; no main merge, release or #462 change.
-- Follow-up source: 7506ca67db7f74f2cd94d5764f07093a7653f9a8; same branch codex/pvlab-ci-maintenance-20261023.
-- Baseline exact-head CI: 27 success, Fashion exact screenshot inequality, Upscale Assets installation timeout.
-- Masthead, Landing, Assets/verify, Video/Seedance, First-image, Motion Effects and Public Studio passed at that source.
-- Video includes the 250ms Fashion import race fix at 1440/390 and 708/708 backend units.
-- Fashion failure was at the empty composition comparison, before later loaded-state/quote/privacy assertions.
-- Original Fashion passes twice locally on available Chromium 153; do not claim the CI Chromium 143 failure reproduced locally.
-- Download of CI Chromium 143 failed in this environment; no parity claim.
-- Fashion capture now waits for the boot to hide, fonts and visible private thumbnails to decode.
-- Each side must produce two byte-identical consecutive full-page screenshots within four captures, or fail.
-- The original strict PNG equality between CSS states is unchanged; no pixel tolerance, masking or assertion removal.
-- Save both empty-state PNGs and the loaded result in the existing Fashion CI artifact for actual failure diagnosis.
-- Local browser uses the existing /tmp/pv-scroll-playwright.mjs adapter and Chromium 153; APIs and media remain synthetic.
-- Upscale Assets failed twice downloading optional fonts/OS upgrades with apt, before Chromium was installed.
-- Its ubuntu-latest workflow now installs only the same pinned headless Chromium; runner shared libraries remain validated by Playwright launch.
-- Keep Playwright 1.62.1, the existing 3-minute install/9-minute job limits and all three browser test steps.
-- No browser-dependency validation is bypassed. New exact-head CI must prove runner compatibility.
-- Local Upscale Assets passes desktop/mobile; full Upscaler integration passes 34/34, including both Precision qualities and Owner/Customer.
-- Unchanged application bytes: approved Fashion/Image/Upscaler designs, navigation, scroll, prices, providers, auth, credits and P1/P2/P3.
-- Earlier maintenance includes the loaded Fashion source containment and authenticated-only gutter guard; details/receipts remain in PR #482.
-- Existing privacy tests retain verified headers, private History, logout cleanup and guest no-write assertions.
-- Sandbox billing evidence is already complete for its limited scope; no repeat purchase or credit grant.
-- Customer return to Studio and first real generation remain unverified; these synthetic suites do not close that #462 requirement.
-- Changed Fashion, Studio-layout and Upscaler inline smoke (2/2) pass locally; Image contract passes 5/5.
-- All 122 pre-existing Fashion assertion calls are retained verbatim; exact empty PNG comparison passes.
-- Desktop Fashion capture inspected; synthetic media rectangles are not live generations.
-- Exact next-head CI is pending; final receipts belong in PR #482 without moving the validated commit.
-- Freeze the next commit during CI; update results in the PR description without another documentary commit.
-- No merge, manual deployment, production purchase, paid generation or third-party message.
-- Next: verify Fashion and Upscale Assets on the new exact head; inspect any actual assertion before retrying.
+## CI fixture maintenance, 2026-10-24 (integration of current main)
+- Authorized follow-up: resolve PR #482 conflicts while preserving current approved designs; no merge to main or publication.
+- Existing branch: codex/pvlab-ci-maintenance-20261023. Integration parents: 55d2dfde2864c32e2b1887b08978bedee355279e and main 820ff39b7fc9840e5787e8f6c8d76f67a714b0d6.
+- Incorporate that main once, via a normal merge. Do not chase subsequent unrelated commits during validation.
+- Pre-integration Fashion CI 40012542963 and Upscale Assets CI 40012646683 both passed on exact 55d2dfde.
+- Earlier Masthead/Landing/Assets/Video/First-image/Public Studio receipts are in PR #482; do not call them integrated-head results.
+- Actual merge conflicts were limited to lab/studio.html and tests/lab-upscale-assets-visibility.mjs.
+- Studio conflict: combine main's upscaleModelCards/precisionToggle cache markers with maintenance fashionSourceContainment; preserve the authenticated-only Fashion gutter guard.
+- Upscaler fixture: keep the three inline engine cards and nested Standard V2/High Fidelity V3, matching current main.
+- Keep the real upload/replace chooser, source clearing, History/Assets sharing, thumbnail decode/shimmer, privacy and hidden diagnostics checks.
+- Keep exact mobile 450px stage and strict <=1px sidebar/stage adjacency, model bounds and full-width results checks.
+- Main #486 intentionally keeps the loaded-photo stage at the same fullscreen height as empty; assert its exact current formula, not the superseded 4px taller stage.
+- Wait for the actual source-ready class before measuring loaded source; no arbitrary browser delay or larger timeout.
+- Preserve both Owner diagnostic-hidden assertions and exact Precision card/versions semantics.
+- Current main's Upscaler CSS, three model images, repeat-click Precision toggle, typography and 38px thumbnails stay byte-identical to the selected main.
+- Main's ivory Image Generate button, public preview updates, Moods typography and both charcoal backgrounds also stay byte-identical.
+- Retain all existing maintenance repairs: Fashion loaded-source containment, authenticated-only gutter, route readiness with slow Fashion import, strict stabilized empty-state PNG comparison.
+- Fashion PNG states still require two identical consecutive captures within four attempts; comparison between states is exact, without masks or tolerance changes.
+- Product diff versus selected main remains scoped to original maintenance Fashion containment/gutter and related cache markers.
+- Worker, payments, prices, providers, account permissions and credit allocation unchanged. PR #462 untouched.
+- Local browser runtime was reset: unpack registered @sparticuz/chromium 153.0.0 into a temporary test directory, using Playwright 1.62.1.
+- Local adapter changes only the executable path/graphics arguments; all API requests and media remain mocked. CI uses its existing pinned browsers.
+- Approved Image contract passes 5/5 before and after integration.
+- Integrated Fashion complete and Upscale Assets desktop/mobile already pass locally.
+- All seven affected local controls pass: Masthead (12 widths), Landing (5 viewports), Assets complete, Upscale Assets (1440/390), Seedance 19, First-image and Fashion complete.
+- Full current Upscaler passes 38/38, including both qualities on real bundled photos at 1440/390; local screenshots reviewed.
+- Public/signed-in Studio passes 1440/390/320 with all 32 original visual comparisons, role returns, logout/privacy and API isolation.
+- Routing passes 1440/390 with slow Fashion import; mobile Mood entry and Studio-layout/scroll also pass.
+- The public mock wallet now returns the same 500 credits/billing-ready profile already used by its session fixture; preserve every assertion.
+- Assets diagnostic proved a mobile Upscaler thumbnail had src=null below the viewport (top 1269 at height 1000), waiting correctly for IntersectionObserver.
+- The Assets fixture now scrolls through each real card before its unchanged decode/ratio/overflow assertions; no eager-image override, timeout increase or product scroll change.
+- Materialize only bundled Retouch sample and video inputs needed by local UI tests; they are unchanged tracked bytes, not newly generated media.
+- The broad local Node 24 unit sweep is incomplete: sparse media/sandbox fixtures are missing and the known pre-existing Blob scheduling test fails. Do not report that sweep as passing; exact-head CI must run the existing complete Node 22 suite.
+- Final CI receipts belong in PR #482. Pending runs are never reported as passes.
+- Sandbox purchase tests are already complete for their limited scope; do not repeat transactions, grants or paid generations.
+- Real customer return to Studio/first generation remain unverified; synthetic tests do not close that #462 item.
+- Review the final diff against selected main, commit one normal integration merge, and fast-forward the same remote branch without force push.
+- Freeze the final commit during CI. Record receipts in the PR description without an additional documentation commit.
+- No merge to main, manual deployment, real-account write, outgoing third-party message, purchase, credit grant or paid generation.
+- Next: upload this verified tree as one normal integration merge, update #482, confirm GitHub mergeability and inspect final-head CI.
 
 ## Homepage notice focus stability and matching Studio style, 2026-10-23
 - Owner references image(20261023-141333).png and image(20261023-141347).png; prefer Studio notice styling in image 2.

@@ -51,6 +51,9 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       // A real finished job hides the empty-gallery placeholder.
       document.getElementById('emptyarchive').hidden=true;
       app.classList.add('upscale-studio-active');
+      // The real controller unveils its inline model cards on entry.
+      document.getElementById('upscale-model-menu').hidden=false;
+      document.getElementById('upscale-precision-options').hidden=true;
       // Match the authenticated Upscaler view for the isolated mock page.
       document.getElementById('empty-title').textContent='Upscaler';
       document.getElementById('empty-description').textContent='Restore fine detail and resolution while keeping your original composition.';
@@ -70,15 +73,17 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     const deck=await page.evaluate(()=>{
       const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,width:r.width};};
       // Compare the actual input surfaces, not the model wrapper that also contains its label.
-      return {model:rect('.upscale-model-readout'),size:rect('#upscale-scale'),format:rect('#output-format'),generate:rect('#generate')};
+      return {model:rect('#upscale-model-trigger'),size:rect('#upscale-scale'),format:rect('#output-format'),generate:rect('#generate')};
     });
     assert.ok(deck.model.width>0&&deck.generate.width>0,profile+': Upscale settings remain usable');
     assert.ok(deck.model.top<deck.size.top&&deck.format.top>=deck.size.top-2,profile+': model is above the output controls');
-    assert.ok(Math.abs(deck.size.top-deck.format.top)<5,profile+': enlargement and format share one readable row');
+    if(profile==='desktop')assert.ok(deck.format.top>deck.size.top,profile+': enlargement and format use the approved compact stacked rows');
+    else assert.ok(Math.abs(deck.format.top-deck.size.top)<6,profile+': mobile preserves its compact side-by-side enlargement and format selectors');
     assert.ok(deck.generate.top>deck.size.top,profile+': paid Upscale action is distinct from settings');
-    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Empty state uses the approved photographic upload CTA instead of a duplicate source control');
+    assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Empty Upscaler retains the original uncluttered left panel');
+    assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(nodes=>nodes.map(n=>n.dataset.upscaleEngine)),['seedvr2','topaz-precision','topaz-wonder'],'Three grouped Upscaler models');
     assert.equal(await page.locator('.pv-upscale-output-heading').isVisible(),false,'Unwanted OUTPUT section heading is hidden');
-    assert.equal(await page.locator('.pv-upscale-workspace-intro h2').innerText(),'Upscale.','Approved heading restored');
+    assert.equal(await page.locator('.pv-upscale-workspace-intro h2').innerText(),'Upscale.','Approved Upscaler title preserved');
     const initialLayout=await page.evaluate(()=>{
       const controls=document.querySelector('#app.upscale-studio-active>.workspace>.controls').getBoundingClientRect();
       const model=document.querySelector('#upscale-model-display').getBoundingClientRect();
@@ -101,6 +106,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       assert.ok(geometry.results.top>=geometry.canvas.bottom,'Upscaled results follow the preview');
       assert.ok(geometry.results.left>=geometry.deck.left&&geometry.results.left<geometry.canvas.left&&geometry.results.right<=geometry.canvas.right+1&&(geometry.results.right-geometry.results.left)>=(geometry.canvas.right-geometry.canvas.left),'Results use the approved page gutters below both workspace panels');
       assert.ok(geometry.model.left>=geometry.deck.left&&geometry.model.right<=geometry.deck.right,'The visible model selector stays inside the left deck');
+      assert.equal(await page.locator('#upscale-info').isVisible(),false,'Hidden technical options do not enter the working layout');
       const galleryPeek=await page.evaluate(()=>{
         const archive=document.querySelector('#app>.archive').getBoundingClientRect();
         const card=document.querySelector('#history .card').getBoundingClientRect();
@@ -110,7 +116,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
         return {archiveTop:archive.top,cardTop:card.top,previewHeight:preview.height,
           centerBottom:center.bottom,benefitsTop:benefits.top,viewportHeight:innerHeight};
       });
-      assert.ok(galleryPeek.archiveTop>galleryPeek.viewportHeight-70,'Approved fullscreen preview prioritizes the workspace');
+      assert.ok(galleryPeek.archiveTop>=galleryPeek.previewHeight-1,'Upscaled results follow the large photographic preview');
       assert.ok(galleryPeek.cardTop>galleryPeek.archiveTop,'The real result gallery remains below the editor');
       assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),false,'Approved fullscreen mockup hides extra feature icons');
       assert.ok(galleryPeek.previewHeight>=650&&galleryPeek.previewHeight<=850,'Approved full-screen photographic canvas height');
@@ -122,7 +128,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     assert.equal(await page.locator('.pv-upscale-workspace-intro').isVisible(),true,'Upscale has the editorial settings header');
     assert.equal(await page.locator('.pv-upscale-empty-drop').isVisible(),true,'Approved upload-first empty state is visible');
     assert.equal(await page.locator('.pv-upscale-editorial-blank').count(),0,'Old editorial gallery layout is removed');
-    assert.equal(await page.locator('.pv-upscale-empty-center h2').innerText(),'Use a source frame.','Exact approved headline');
+    assert.equal(await page.locator('.pv-upscale-empty-center h2').innerText(),'Use a source frame.','Exact approved upload headline');
     assert.equal(await page.locator('#pv-upscale-hero-upload').innerText(),'Upload image','Exact approved CTA');
     assert.deepEqual(await page.locator('.pv-upscale-benefit span').allInnerTexts(),['Bigger resolution','Richer textures','More clarity'],'Existing benefit markup is retained without showing decorative icons');
     const dropGeometry=await page.evaluate(()=>{
@@ -132,7 +138,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
         background:getComputedStyle(zone,'::before').backgroundImage};
     });
     assert.equal(dropGeometry.border,'none','Approved full-screen backdrop has a floating dashed upload card');
-    assert.ok(dropGeometry.background.includes('upscaler-chrome-wool-option-1.jpg'),'Existing PV LAB material image appears only as atmospheric background');
+    assert.ok(dropGeometry.background.includes('upscaler-chrome-wool-option-1.jpg'),'The original approved chrome-and-wool photograph remains the hero');
     assert.ok(dropGeometry.left>=geometry.canvas.left&&dropGeometry.right<=geometry.canvas.right+1,'Full-screen backdrop fills the preview');
     if(profile==='mobile'){
       assert.equal(await page.locator('.pv-upscale-benefits').isVisible(),false,'Mobile emphasizes upload without cramped feature icons');
@@ -161,10 +167,9 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       preview.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="140"><rect width="100" height="140" fill="#4c5360"/></svg>');
       preview.hidden=false;empty.hidden=true;
     });
-    const filledCanvasHeight=await page.locator('#upscale-canvas').evaluate(el=>el.getBoundingClientRect().height);
-    const expectedFilledHeight=profile==='desktop'?Math.min(900,Math.max(660,height-100)):450;
-    assert.equal(filledCanvasHeight,expectedFilledHeight,'The approved filled-source stage retains its own exact height, independently of the empty fullscreen rule');
     await page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-upscale-source-ready'));
+    const filledCanvasHeight=await page.locator('#upscale-canvas').evaluate(el=>el.getBoundingClientRect().height);
+    assert.equal(filledCanvasHeight,expectedEmptyHeight,'The approved model-card update keeps the photographic viewport exactly unchanged after upload');
     assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Source image remains available after upload');
     const secondaryChooser=page.waitForEvent('filechooser');
     await page.locator('#pv-upscale-source-upload').click();
@@ -196,10 +201,12 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     });
     assert.equal(await page.locator('#history .history-media').evaluate(el=>getComputedStyle(el,'::before').animationName),'none','Shimmer ends when the image loads');
     assert.equal(await page.locator('#upscale-price').isVisible(),false,'Optional pricing is initially hidden');
-    assert.equal(await page.locator('#upscale-model-trigger').isVisible(),true,'Model selection uses the approved visible dropdown');
-    assert.equal(await page.locator('#upscale-model-trigger').getAttribute('aria-haspopup'),'menu','The visible model control retains menu semantics');
-    assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(nodes=>nodes.map(n=>n.dataset.upscaleEngine)),['seedvr2','topaz-wonder'],'Both other engines remain in the same model menu');
+    assert.equal(await page.locator('#upscale-model-trigger').isVisible(),true,'ByteDance model card remains directly visible');
+    assert.equal(await page.locator('#upscale-model-menu').isVisible(),true,'The approved model cards remain inline');
+    assert.equal(await page.locator('#upscale-precision-trigger').getAttribute('aria-controls'),'upscale-precision-options','The Precision card controls its nested versions');
+    assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(nodes=>nodes.map(n=>n.dataset.upscaleEngine)),['seedvr2','topaz-precision','topaz-wonder'],'All three engines remain in the inline model cards');
     assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-quality]').evaluateAll(nodes=>nodes.map(n=>n.dataset.upscaleQuality)),['Standard V2','High Fidelity V3'],'Both Precision qualities remain available without More options');
+    assert.equal(await page.locator('#upscale-info').isVisible(),false,'The compact Upscaler hides the legacy drawer');
     assert.equal(await page.locator('#upscale-technical-summary').isVisible(),false,'Customer presentation never exposes provider diagnostics');
     await page.evaluate(()=>{for(const diagnostic of document.querySelectorAll('#upscale-info [data-upscale-owner-only]'))diagnostic.hidden=false;});
     assert.equal(await page.locator('#upscale-technical-summary').isVisible(),false,'Even Owner diagnostics do not restore the retired disclosure');

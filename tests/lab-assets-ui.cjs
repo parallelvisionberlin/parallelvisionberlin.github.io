@@ -284,13 +284,13 @@ assert.equal(await page.locator('#pv-upscale-hero-upload').isVisible(),true,'The
 assert.equal(await page.locator('#empty-title').textContent(),'Upscaler');
 assert.equal(await page.locator('#upscale-model-display').isVisible(),true);
 assert.match(await page.locator('#upscale-model-display').innerText(),/ByteDance Premium.*SeedVR2/s);
-await page.locator('#upscale-model-trigger').click();
-assert.equal(await page.locator('#upscale-model-menu').isVisible(),true);
-assert.equal(await page.getByRole('menuitemradio').count(),4,'Four concrete options without nesting');
-assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(items=>items.map(item=>item.dataset.upscaleEngine)),['seedvr2','topaz-wonder']);
-assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-quality] strong').allTextContents(),['Topaz Standard V2','Topaz High Fidelity V3']);
-await page.keyboard.press('Escape');
-assert.equal(await page.locator('#upscale-model-menu').isVisible(),false);
+assert.equal(await page.locator('#upscale-model-menu').isVisible(),true,'Approved model cards are inline');
+assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(items=>items.map(item=>item.dataset.upscaleEngine)),['seedvr2','topaz-precision','topaz-wonder']);
+assert.equal(await page.locator('#upscale-precision-options').isVisible(),false,'Initial ByteDance selection has no expanded versions');
+await page.locator('#upscale-precision-trigger').click();
+assert.equal(await page.locator('#upscale-precision-options').isVisible(),true,'Precision versions expand inside their parent card');
+assert.deepEqual(await page.locator('#upscale-model-menu [data-upscale-quality]').allTextContents(),['Standard V2','High Fidelity V3']);
+assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine="topaz-precision"]').getAttribute('aria-checked'),'true');
 assert.equal(await page.locator('#upscale-info').getAttribute('open'),null);
 console.log('UPSCALE_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
 const canvasBox=await page.locator('.stage').boundingBox(), controlsBox=await page.locator('.controls').boundingBox();
@@ -602,6 +602,10 @@ for(const width of [1911,1440,390,320]){
   for(const section of ['assets','image','upscale']){
     await page.click('#tool-'+section);
     const count=section==='assets'?6:section==='image'?5:1;
+    await page.waitForFunction(n=>document.querySelectorAll('#history .card').length===n,count);
+    // Real thumbnails load on intersection; the taller approved model cards can
+    // place History below the phone viewport. Visit each card before requiring decode.
+    for(const card of await page.locator('#history .card').all())await card.scrollIntoViewIfNeeded();
     await page.waitForFunction(n=>document.querySelectorAll('#history .card').length===n&&[...document.querySelectorAll('#history .history-media img')].every(i=>i.naturalWidth>0),count);
     await page.waitForFunction(()=>[...document.querySelectorAll('#history .card')].every(c=>c.style.width));
     const geometry=await mediaGeometry();assertFills(geometry,section+' at '+width);

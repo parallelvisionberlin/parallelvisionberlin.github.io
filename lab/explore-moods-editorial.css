@@ -1,6 +1,6 @@
 /* PV LAB Explore Moods / editorial visual-first redesign
    Dedicated stylesheet. Keeps the existing generation/dialog logic and data IDs. */
-:root{--pv-ink:#0b100f;--pv-paper:#eef3ed;--pv-muted:#b5c2b7;--pv-acid:#c5ff62}
+:root{--pv-ink:#0d0d0f;--pv-paper:#eef3ed;--pv-muted:#b5c2b7;--pv-acid:#c5ff62}
 .mc-explore-page{background:var(--pv-ink);color:var(--pv-paper);overflow-x:hidden}
 .mc-explore-page a{color:inherit}
 .mc-explore-page .mc-explore-header{
@@ -31,15 +31,15 @@
 .mc-explore-page .mc-mobile-section,.mc-explore-page .mc-menu-toggle{display:none}
 
 .mc-explore-page .mc-discovery--explore{
-  padding:0;margin:0;overflow:hidden;background:#0b100f;color:var(--pv-paper);
+  padding:0;margin:0;overflow:hidden;background:#0d0d0f;color:var(--pv-paper);
 }
 .mc-explore-page .mc-explore-masthead{
   height:clamp(326px,calc(27vw - 50px),388px);position:relative;isolation:isolate;overflow:hidden;
-  background:linear-gradient(120deg,#0a100f,#151c18);
+  background:linear-gradient(120deg,#0d0d0f,#18181a);
 }
 .mc-explore-page .mc-explore-hero-art{
   position:absolute;inset:0 0 0 46%;overflow:hidden;z-index:-2;
-  background:#101b19;
+  background:#0d0d0f;
 }
 .mc-explore-page .mc-explore-hero-art img{
   position:absolute;top:calc(-3.91vw);left:-46vw;width:100vw;
@@ -48,8 +48,8 @@
 .mc-explore-page .mc-explore-hero-veil{
   position:absolute;inset:0;z-index:-1;pointer-events:none;
   background:
-    linear-gradient(90deg,#0a100fee 0%,#0a100fe5 26%,#0a100fad 43%,#0a100f20 70%,#0a100f85 100%),
-    linear-gradient(0deg,#0a100f85 0%,transparent 22%);
+    linear-gradient(90deg,#0d0d0fee 0%,#0d0d0fe5 26%,#0d0d0fad 43%,#0d0d0f20 70%,#0d0d0f85 100%),
+    linear-gradient(0deg,#0d0d0f85 0%,transparent 22%);
 }
 .mc-explore-page .mc-explore-hero-copy{
   position:relative;max-width:760px;padding:clamp(36px,3vw,51px) 0 0 clamp(20px,3.9vw,72px);
@@ -105,7 +105,7 @@
 .mc-explore-page .mc-look-card:focus-visible,
 .mc-explore-page .mc-explore-ending a:focus-visible{outline:2px solid var(--pv-acid);outline-offset:3px}
 
-.mc-explore-page .mc-explore-collection{max-width:none;padding:0 clamp(18px,2.65vw,54px) 44px;background:#0a0e0d;scroll-margin-top:20px}
+.mc-explore-page .mc-explore-collection{max-width:none;padding:0 clamp(18px,2.65vw,54px) 44px;background:#0d0d0f;scroll-margin-top:20px}
 .mc-explore-page .mc-discovery-bar{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   max-width:none;margin:0;padding:15px 0 15px;border-top:1px solid #e6f4e449;
@@ -280,7 +280,7 @@
 .mc-explore-page .mc-explore-ending{
   display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);
   position:relative;overflow:hidden;isolation:isolate;padding:0;gap:0;
-  background:#171a18;color:var(--pv-paper);border-top:1px solid #536149;
+  background:#0d0d0f;color:var(--pv-paper);border-top:1px solid #536149;
 }
 .mc-explore-page .mc-invent-copy{position:relative;z-index:2;padding:64px clamp(24px,4.7vw,90px) 54px;min-width:0}
 .mc-explore-page .mc-invent-copy .mc-overline{color:#c3cebc;font-size:9px;letter-spacing:.17em}
@@ -311,7 +311,7 @@
 .mc-explore-page .mc-invent-note{display:block;margin-top:27px;color:#9ca98f;font-size:9px;letter-spacing:.16em}
 .mc-explore-page .mc-invent-collage{
   position:relative;min-width:0;min-height:650px;overflow:hidden;
-  background:radial-gradient(ellipse at 58% 35%,#39412d 0%,#242b23 42%,#171a18 76%);
+  background:radial-gradient(ellipse at 58% 35%,#29292b 0%,#1c1c1f 42%,#0d0d0f 76%);
 }
 .mc-explore-page .mc-invent-frame{position:absolute;overflow:hidden;background:#283125;box-shadow:0 24px 48px #06090766;transition:transform .4s ease}
 .mc-explore-page .mc-invent-frame img{display:block;width:100%;height:100%;object-fit:cover}
@@ -382,8 +382,8 @@
  }
  .mc-explore-page .mc-explore-hero-veil{
    background:
-    linear-gradient(90deg,#0a100ff7 0%,#0a100fd4 37%,#0a100f72 67%,#0a100f18 100%),
-    linear-gradient(0deg,#0a100ffb 0%,#0a100f63 31%,transparent 75%);
+    linear-gradient(90deg,#0d0d0ff7 0%,#0d0d0fd4 37%,#0d0d0f72 67%,#0d0d0f18 100%),
+    linear-gradient(0deg,#0d0d0ffb 0%,#0d0d0f63 31%,transparent 75%);
  }
  .mc-explore-page .mc-explore-hero-copy{
    padding:27px 18px 0;max-width:100%;

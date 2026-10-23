@@ -1,6 +1,24 @@
 # PV LAB / Explore Moods generation and Image return
 Updated: 2026-10-23
 
+## Active checkpoint / 2026-10-23 Explore page background only
+- Request: replace the green page background with neutral charcoal `#0D0D0F`.
+- Baseline main: `7417ac9f2d1081b5150b339fe68528f5b4d0d852`.
+- Neutralize page/discovery/collection backgrounds and hero veil RGB values.
+- Preserve hero gradient positions and alpha values, photographic sources and carousel.
+- Neutralize the lower Creator section background; preserve its photographs and controls.
+- Keep lime buttons, accents, text, typography, layout, header and modal styles unchanged.
+- No JavaScript, model, price, payment, provider, upload or account changes.
+- Refresh only the two affected stylesheet URLs in `lab/moods.html`.
+- Approved Image UI contract and unchanged non-color declarations checked locally.
+- Published through PR #492, merge `a547605cc7f637b83f9dbae03ac2483e503cc1f1`.
+- Cloudflare Pages pvlab-studio check `120562178681`: success for that exact merge.
+- Actual https://pvlab.studio/moods inspected after release: body/collection rgb(13,13,15), neutral hero veil; both CSS URLs declare background=20261023-charcoal1.
+- Lime action stays rgb(197,255,98); inspected page/hero/collection/button geometry matches the pre-change page.
+- Approved Image UI and static checks pass. Overall CI is not all green: masthead :185 already fails identically on baseline 6dbb1cab; remaining broader browser suites were not claimed complete.
+- No paid generation or signed-in customer test performed; actual mobile rendering was not independently inspected. Mobile CSS changes are color literals only.
+- Background request complete. Further layout or button changes require a separate request.
+
 
 ## Active checkpoint / 2026-10-23 approved responsive photobooth
 - Owner explicitly approved screenshot 1 for desktop and screenshots 2/3 for phone.
