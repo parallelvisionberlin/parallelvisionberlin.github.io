@@ -1,16 +1,17 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
-## Video wheel scrolling / 2026-10-23
-- User reports desktop Video only scrolls when the pointer is over generated results. Baseline `b99fec4d6714335bbcf95c5dd88ec365548d263c`.
-- Cause: desktop CSS locks body/main while History scrolls independently in the center. Outside scrollable panels, wheel input has nowhere to go.
-- Preserve the approved fixed three-column layout, dimensions, native form scrolling, Generate dock and mobile document scrolling.
-- `video-editorial-deck.js` routes otherwise-unused vertical wheel input from active desktop workspace/header to the existing center feed. Native settings/textareas keep priority. Zoom/horizontal gestures, dialogs, selects/ranges, Assets, Fashion, Retouch and other tools are excluded.
-- `studio.html` changes only this module cache key. Existing layout browser suite now tests real downward/upward wheel over dock, inspector, header and preview, plus native settings priority.
-- Seven Image/Video source tests and module syntax passed locally. Local Chromium download returned invalid archives; browser checks must pass in CI before publication.
-- No CSS, design, imagery, models, prices, credits, providers, purchase or authentication changes. No paid calls.
-- Next: verify browser behavior and Video regressions, merge, confirm Cloudflare and live module separately.
+## Fashion internal-template loading repair, 2026-10-23
+- Owner screenshot image(20261023-130857).png proves signed-in Fashion failed with Retry loading Fashion.
+- Cause: PR #471 server redirects also intercepted mountFashionStudio's fetch of fashion.html.
+- Prior signed-out header verification did not exercise the authenticated template loader; completion claim was too broad.
+- Remove all six Fashion server redirects. Return the original HTML body to internal fetch/DOMParser.
+- Add an early document-navigation redirect in fashion.html to the shared Studio, preserving query parameters and setting tool=fashion.
+- DOMParser does not execute that script, so the existing authenticated loader can find #content and mount the original editor.
+- No editor, auth, credits, model, provider, or shared masthead change.
+- Base b99fec4d6714335bbcf95c5dd88ec365548d263c; approved Image contract passed 5/5 before editing.
+- Verify real served template retains #content and direct navigation retains the shared header after deployment.
 
-## Fashion legacy header routing, 2026-10-23
+## Fashion legacy header routing, 2026-10-23 (superseded; see repair above)
 - Owner screenshot image(20261023-125725).png shows /fashion with the old standalone masthead.
 - Verified lab/fashion.html has only Image, Video, Upscaler and Fashion; Retouch/Explore Moods are absent.
 - Canonical /studio?tool=fashion was checked in production and has all six shared destinations.
@@ -242,3 +243,15 @@ Implementation branch: fix/flash-spicyapi-20261014.
 - Review CI results, correct failures, merge validated branch to main.
 - Confirm automatic Cloudflare Worker deploy and GitHub Pages update separately.
 - Confirm no Flash request reaches OpenRouter after rollout.
+
+
+## Video wheel scrolling / 2026-10-23
+- User reports desktop Video only scrolls when the pointer is over generated results. Baseline `b99fec4d6714335bbcf95c5dd88ec365548d263c`.
+- Cause: desktop CSS locks body/main while History scrolls independently in the center. Outside scrollable panels, wheel input has nowhere to go.
+- Preserve the approved fixed three-column layout, dimensions, native form scrolling, Generate dock and mobile document scrolling.
+- `video-editorial-deck.js` routes otherwise-unused vertical wheel input from active desktop workspace/header to the existing center feed. Native settings/textareas keep priority. Zoom/horizontal gestures, dialogs, selects/ranges, Assets, Fashion, Retouch and other tools are excluded.
+- `studio.html` changes only this module cache key. Existing layout browser suite now tests real downward/upward wheel over dock, inspector, header and preview, plus native settings priority.
+- Seven Image/Video source tests and module syntax passed locally. Local Chromium download returned invalid archives; browser checks must pass in CI before publication.
+- No CSS, design, imagery, models, prices, credits, providers, purchase or authentication changes. No paid calls.
+- Next: verify browser behavior and Video regressions, merge, confirm Cloudflare and live module separately.
+

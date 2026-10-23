@@ -12,12 +12,3 @@
 
 # One canonical comparison URL for the new PV LAB domain.
 /zencreator-alternative /zencreator-alternative/ 301
-
-# Fashion uses the shared Studio masthead and navigation.
-# Retire the legacy standalone page without changing the editor itself.
-/fashion /studio?tool=fashion 302
-/fashion/ /studio?tool=fashion 302
-/fashion.html /studio?tool=fashion 302
-/lab/fashion /studio?tool=fashion 302
-/lab/fashion/ /studio?tool=fashion 302
-/lab/fashion.html /studio?tool=fashion 302
