@@ -1,5 +1,18 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Homepage credit notice scroll repair, 2026-10-23
+- Owner screenshot image(20261023-135844).png: credit banner follows scroll over Mood Creator after header leaves view.
+- Cause: commit 90d30b9 changed the homepage-only overlay to position:fixed!important.
+- Restore position:absolute!important in the final homepage selector only; retain top offset and overlay dimensions.
+- Source base 73cd74f18b0fda24739c730436936ccd4c4350d3.
+- Homepage cache key: studio-credits.css?v=20261023-home-scroll-overlay-v5.
+- Existing home browser suite already expects absolute positioning; add a scroll-away assertion across its five viewport sizes.
+- Preserve notice eligibility, dismissal, pricing links, hero geometry and all Studio rules.
+- Product files: lab/studio-credits.css and lab/index.html. Regression: tests/lab-home-credit-banner-browser.mjs.
+- Approved Image contract passed 5/5 locally before editing.
+- Candidate browser verification and publication pending.
+
+
 ## Fashion internal-template loading repair, 2026-10-23
 - Owner screenshot image(20261023-130857).png proves signed-in Fashion failed with Retry loading Fashion.
 - Cause: PR #471 server redirects also intercepted mountFashionStudio's fetch of fashion.html.

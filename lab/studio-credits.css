@@ -132,9 +132,9 @@ body:has(#app.image-studio-active:not([hidden])) #lab-credit-banner:not([hidden]
 }
 
 
-/* Homepage banner uses the same independent overlay as Studio, not header layout. */
+/* Homepage notice overlays the hero and scrolls away with the document. */
 body:has(.landing-header--home) > #lab-credit-banner:not([hidden]){
- position:fixed!important;
+ position:absolute!important;
  top:var(--lab-header-height,82px)!important;
  inset-inline:0!important;bottom:auto!important;
  width:100%!important;margin:0!important;
