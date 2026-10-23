@@ -1704,3 +1704,27 @@
  #app.upscale-studio-active .pv-upscale-version-pill,
  #app.upscale-studio-active .pv-upscale-precision-chevron{transition:none!important}
 }
+
+/* Loaded-photo inspector: the additional model cards must never put the Upscale
+   action on top of the Enlargement / Image format settings. This does not
+   modify the photographic stage or the upload/generation logic. */
+@media(min-width:781px){
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+   row-gap:8px!important;padding-top:18px!important;
+ }
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+   margin:0!important;padding-bottom:13px!important;gap:5px!important;
+ }
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
+   gap:4px!important;
+ }
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload{
+   min-height:61px!important;max-height:61px!important;padding:8px 11px!important;gap:9px!important;
+ }
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload .pv-upscale-source-icon{
+   width:35px!important;height:35px!important;
+ }
+ #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+   margin-top:11px!important;
+ }
+}
