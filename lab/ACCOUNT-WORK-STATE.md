@@ -1,3 +1,40 @@
+## Homepage zero-credit banner (2026-10-23, completed and live)
+
+- Objective: reuse the approved Studio white notice on the PV LAB homepage for confirmed zero-credit customers, with no layout movement.
+- Date: 2026-10-23 (Europe/Berlin).
+- Verified source baseline: main `69d7d02c236fc33472881451257b70b38715bee3`.
+- Implementation commit: `7f503be30837ae68f29817f32ad8cc7d397bf9b2`.
+- [PR #455](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/455) merged as `088d9c1b014aa167e61125a6a3250dd7042cd1f0`; concurrent main changes were preserved.
+- Application scope: `lab/index.html`, `lab/customer-entry.js`, `lab/studio-credits.css` only.
+- Regression coverage: `tests/lab-home-credit-banner-browser.mjs`, existing `.github/workflows/lab-landing-stability.yml`.
+- Reuse the Studio notice classes, copy, responsive styling and Video absolute overlay rule; no new banner system.
+- Mount inside the existing homepage masthead so `.landing-header--home + main` and hero selectors remain intact.
+- The banner top equals the navigation bottom at desktop, tablet and phone widths.
+- Eligibility reads the existing authenticated `/api/session` response: current session, `customer === true`, numeric `balanceCredits === 0`.
+- Hide while loading or refreshing and after failures; never infer zero from missing, null, string or invalid balances.
+- Exclude logged-out visitors, funded customers, Owner/Admin, closed accounts and billing-review accounts.
+- Dismissal uses sessionStorage keyed to the current login session, plus an in-memory fallback for storage errors.
+- Dismissal survives account refresh and same-session reload; a different login session is eligible again.
+- The existing copy links to the homepage's existing `#pricing` flow without starting checkout.
+- No prices, SKUs, billing handlers, authentication, credit balances, hero content, photography or typography changed.
+- Required Image contract and account/referral/role unit checks passed locally (15 checks).
+- New browser coverage passed 1920x1080, 1440x950, 768x1024, 390x844 and 320x740.
+- Exact geometry equality on appearance/dismissal includes hero/photo/copy/actions, header/nav, main/footer, document height/width and scroll offsets.
+- Eligibility, delayed/failed responses, session dismissal, pricing link, account-menu hit targets and no API writes passed; no mobile horizontal overflow.
+- Existing landing browser suite passed all ten width/font cases; existing account/checkout suite and all twelve customer Video cases passed.
+- Local legacy suites used temporary Windows path adapters only; no unrelated committed test changes.
+- PR CI passed landing/new banner, account, pricing, approved Image contract, static validation, backend, gallery and image-reference checks.
+- Approved Image CI initially timed out during checkout; one diagnosed retry passed the unchanged required test.
+- Broader Video CI fails the existing hidden `#upscale-info summary` timeout in `tests/lab-upscale-ui.mjs:57`; the identical failure exists on baseline main.
+- Domain readiness smoke also fails on baseline main and still expects `lab.js?v=20261018-ref-stable1`; neither gate was weakened.
+- Cloudflare Pages `pvlab-studio` production deployment `bab55682-ebf5-4524-b1e3-2491d9c94b5c`, check `120365173297`, succeeded for merged commit `088d9c1b`.
+- Existing read-only release verifier, scoped to homepage references, returned LIVE_VERIFIED for both changed assets on `https://pvlab.studio/`.
+- CSS version `20261023-home-overlay1`: SHA-256 `3d57c110d2188420983b4805a4a977376b5d2bed6cf43da8dd2758f3b48f6130`.
+- Script version `20261023-home-credit-banner1`: SHA-256 `8965cb4c19dcce35ced4a3e0eeb825b9770cfa10aee779658ab66d5513b7d00e`.
+- Live 1440/390px presentation probe used actual published assets and synthetic identity: guest hidden, below-nav overlay, identical geometry after dismissal, no account/payment writes.
+- Real signed-in production customer behavior was not exercised; role/balance behavior is covered by intercepted browser tests.
+- No remaining implementation blocker. Next action: optional real-customer acceptance; unrelated baseline CI repairs remain separate work.
+
 ## Mobile account menu correction (2026-10-21)
 - User screenshot: account dropdown hidden behind the Image composer in an iPhone in-app browser.
 - Scope: shared menu stylesheet, Studio stylesheet revision and existing account browser coverage.
