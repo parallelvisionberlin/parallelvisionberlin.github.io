@@ -1,4 +1,14 @@
-## Active: approved Video Studio redesign — 2026-10-23
+## CI audit: PR #496 — 2026-10-24
+
+- Owner instruction: approved Video design is frozen; inspect only #496, compare four failed checks with main, fix only regressions introduced by #496. No new PR, merge or deployment.
+- Candidate audited: `5794e7e31a99d99a65a967a749ffe593a55f54c3`; main examined separately at `6084321a4ab90efe3fde75fdc42e70ade076dbaf`, with no tracked changes.
+- Three failures reproduce on main: Mood masthead overflow at 1920px; public Fashion Sign in alignment 46px versus Image 31px; legacy Fashion mock startup timeout with `htmlLoaded:false`.
+- One #496 regression: image-viewer browser test still waited for illustrative reference thumbnails. Only that obsolete assertion was updated, with added checks for zero invented references and the original canvas background.
+- Main viewer passed 6/6; original PR reproduced its CI timeout; corrected PR viewer passed 6/6. Remaining fastqueue and composer steps passed; Image/Video contracts 12/12, syntax and whitespace passed.
+- No product/design/assets/workflow changes in this audit. Detailed evidence and CI links: `docs/ci/pr-496-audit-20261024.md`.
+- Original CI also has three jobs cancelled during browser installation. Do not report them as passing; inspect the audit commit CI in #496 before calling it ready to merge.
+
+## Approved Video Studio redesign — 2026-10-23
 
 - Objective: compact owner-approved Video inspector, original subway empty canvas and refined Scene details; draft PR only. No merge or production deployment authorized.
 - Isolated branch: `codex/video-studio-approved-redesign`, based on fetched main `59f61562c02633902564c59166135496be025e36`.
