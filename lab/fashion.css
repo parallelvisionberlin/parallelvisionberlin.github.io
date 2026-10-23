@@ -303,3 +303,8 @@ select,textarea{border-radius:7px;background-color:#222329;border-color:#4a4b52}
  .action-primary{min-height:48px}
  .fashion-gallery{padding-top:14px}
 }
+
+/* Keep the private gallery full-bleed within the new padded editorial frame. */
+@media(min-width:801px){.fashion-workspace>.fashion-gallery{margin-inline:-22px;width:calc(100% + 44px);padding-inline:22px}}
+@media(max-width:800px){.fashion-workspace>.fashion-gallery{margin-inline:-18px;width:calc(100% + 36px);padding-inline:18px}}
+@media(max-width:560px){.fashion-workspace>.fashion-gallery{margin-inline:-12px;width:calc(100% + 24px);padding-inline:12px}}
