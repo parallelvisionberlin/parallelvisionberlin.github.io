@@ -688,7 +688,7 @@ function openUpscaleModelMenu(){
   if(tool!=='upscale'||busy||!config.falEnabled)return;
   const menu=$('upscale-model-menu'),trigger=$('upscale-model-trigger');
   menu.hidden=false;trigger.setAttribute('aria-expanded','true');
-  (menu.querySelector('[data-upscale-engine="'+upscaleEngine+'"]')||menu.querySelector('button'))?.focus({preventScroll:true});
+  (menu.querySelector('[data-upscale-quality][aria-checked="true"]')||menu.querySelector('[data-upscale-engine="'+upscaleEngine+'"]')||menu.querySelector('button'))?.focus({preventScroll:true});
 }
 function updateUpscaleModel(){
   // Provider diagnostics are for the verified PV LAB owner, never customer accounts.
@@ -702,6 +702,7 @@ function updateUpscaleModel(){
   $('upscale-model-trigger').setAttribute('aria-label','Choose upscale model, currently '+shown.brand+' '+$('upscale-model-id').textContent);
   $('upscale-model-trigger').disabled=!active||busy||!config.falEnabled;
   for(const item of $('upscale-model-menu').querySelectorAll('[data-upscale-engine]'))item.setAttribute('aria-checked',String(item.dataset.upscaleEngine===upscaleEngine));
+  for(const item of $('upscale-model-menu').querySelectorAll('[data-upscale-quality]'))item.setAttribute('aria-checked',String(upscaleEngine==='topaz-precision'&&item.dataset.upscaleQuality===$('upscale-topaz-model').value));
   for(const option of $('upscale-engine').options)option.disabled=option.value!=='spicy'&&!config.falEnabled;
   if(!active)return;
   $('resolution-control').hidden=fal;$('engine-name').textContent=model.name.toUpperCase()+' · '+model.provider.toUpperCase();
@@ -733,7 +734,8 @@ function updateUpscalePrice(){
   $('upscale-check-price').disabled=!active||!owner||!file||busy||!(fal?config.falEnabled:config.enabled);
   $('upscale-check-price').textContent=fal?(upscaleQuoteNeedsCheck?'Check price & size again':'Check price & size'):(upscaleQuoteNeedsCheck?'Check live price again':'Check live price');
   const q=upscaleQuote?.quote;
-  $('upscale-price-status').textContent=customerMode&&q?('Estimated credit charge: '+(Number.isSafeInteger(q.creditCost)?q.creditCost+' credits':wallet.describe(q.maxUsd))+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):q?(q.priceIsEstimate?('Estimated charge: '+money(q.estimatedUsd)+' USD. '+q.settings.sourceWidth+' × '+q.settings.sourceHeight+' to '+q.settings.targetWidth+' × '+q.settings.targetHeight+' output. Not a guaranteed maximum. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):('Live price: '+money(q.estimatedUsd)+' USD'+(q.maxUsd!==q.estimatedUsd?' · maximum '+money(q.maxUsd)+' USD':'')+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.')):upscalePriceMessage||(fal?'Check the estimated charge and output dimensions before upscaling.':'Check the price for this image before upscaling, or use Upscale directly.');
+  $('upscale-price-status').textContent=customerMode&&q?('Estimated credit charge: '+(Number.isSafeInteger(q.creditCost)?q.creditCost+' credits':wallet.describe(q.maxUsd))+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):q?(q.priceIsEstimate?('Estimated charge: '+money(q.estimatedUsd)+' USD. '+q.settings.sourceWidth+' × '+q.settings.sourceHeight+' to '+q.settings.targetWidth+' × '+q.settings.targetHeight+' output. Not a guaranteed maximum. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):('Live price: '+money(q.estimatedUsd)+' USD'+(q.maxUsd!==q.estimatedUsd?' · maximum '+money(q.maxUsd)+' USD':'')+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.')):upscalePriceMessage;
+  $('upscale-price-status').hidden=!$('upscale-price-status').textContent;
   if(active&&(fal&&!config.falEnabled||(!fal&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired))$('generate').disabled=true;
   if(active&&q)$('generate').textContent=customerMode?'Upscale · '+(Number.isSafeInteger(q.creditCost)?q.creditCost+' credits':wallet.describe(q.maxUsd)):'Upscale · '+(q.priceIsEstimate?'est. ':q.maxUsd!==q.estimatedUsd?'max ':'')+money(q.priceIsEstimate?q.estimatedUsd:q.maxUsd);
   else if(active&&customerMode)$('generate').textContent=upscaleEngine==='seedvr2'?'Upscale · '+(Number($('upscale-scale').value)===4?18:10)+' credits':'Upscale';
@@ -2717,16 +2719,21 @@ $('upscale-model-trigger').onkeydown=event=>{
   if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();openUpscaleModelMenu();}
 };
 $('upscale-model-menu').addEventListener('click',event=>{
-  const option=event.target.closest('[data-upscale-engine]');
+  const option=event.target.closest('[data-upscale-engine],[data-upscale-quality]');
   if(!option||!$('upscale-model-menu').contains(option)||busy)return;
-  const value=option.dataset.upscaleEngine;
-  if(!UPSCALE_PUBLIC_ENGINES.includes(value))return;
+  const quality=option.dataset.upscaleQuality,value=quality?'topaz-precision':option.dataset.upscaleEngine;
+  if(!UPSCALE_PUBLIC_ENGINES.includes(value)||quality&&!['Standard V2','High Fidelity V3'].includes(quality))return;
   $('upscale-engine').value=value;
   $('upscale-engine').dispatchEvent(new Event('change',{bubbles:true}));
+  if(quality&&$('upscale-topaz-model').value!==quality){
+    $('upscale-topaz-model').value=quality;
+    $('upscale-topaz-model').dispatchEvent(new Event('change',{bubbles:true}));
+  }
   closeUpscaleModelMenu(true);
 });
 $('upscale-model-menu').addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.preventDefault();closeUpscaleModelMenu(true);return;}
+  if(event.key==='Tab'){closeUpscaleModelMenu();return;}
   const choices=[...$('upscale-model-menu').querySelectorAll('button:not(:disabled)')],index=choices.indexOf(document.activeElement);
   if(['ArrowUp','ArrowDown','Home','End'].includes(event.key)){
     event.preventDefault();
@@ -2747,12 +2754,12 @@ $('upscale-engine').onchange=()=>{
   if(value===upscaleEngine){updateUpscaleModel();return;}
   upscaleEngine=value;
   clearUpscalePrice();
-  upscalePriceMessage='Model changed. A fresh estimate is checked before upscaling. No job submitted.';
-  if(value==='topaz-precision')$('upscale-info').open=true;
+  // A new engine selection uses Precision's existing default; History restores its saved quality directly.
+  if(value==='topaz-precision')$('upscale-topaz-model').value='Standard V2';
   $('notice').textContent='';$('notice').classList.remove('error');
   update();
 };
-for(const id of ['upscale-topaz-model','upscale-scale'])$(id).onchange=()=>{if(busy)return;invalidateUpscalePrice('Upscale settings changed. Check the price and output size again.');update();};
+for(const id of ['upscale-topaz-model','upscale-scale'])$(id).onchange=()=>{if(busy)return;invalidateUpscalePrice(id==='upscale-topaz-model'?'':'Upscale settings changed. Check the price and output size again.');update();};
 $('tool-fashion').onclick=()=>void openFashionStudio();
 $('tool-retouch').onclick=()=>{if(!busy)void openRetouch({autofill:true});};
 $('tool-image').onclick=()=>{if(!busy)setTool('image');};
@@ -5054,6 +5061,7 @@ async function submitImageSnapshot(){
     }
   }
 }
+
 
 
 
