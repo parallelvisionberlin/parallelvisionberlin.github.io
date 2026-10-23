@@ -308,3 +308,7 @@ select,textarea{border-radius:7px;background-color:#222329;border-color:#4a4b52}
 @media(min-width:801px){.fashion-workspace>.fashion-gallery{margin-inline:-22px;width:calc(100% + 44px);padding-inline:22px}}
 @media(max-width:800px){.fashion-workspace>.fashion-gallery{margin-inline:-18px;width:calc(100% + 36px);padding-inline:18px}}
 @media(max-width:560px){.fashion-workspace>.fashion-gallery{margin-inline:-12px;width:calc(100% + 24px);padding-inline:12px}}
+
+/* Restore the verified thin-line fashion ghost icon language at all breakpoints. */
+.slot-invite>.empty-art,.slot-invite>.empty-art-garment{width:78px;height:92px;opacity:.24;stroke-width:1.1}
+@media(max-width:560px){.slot-invite>.empty-art,.slot-invite>.empty-art-garment{width:72px;height:85px;opacity:.24}}
