@@ -154,6 +154,25 @@ try{
  assert.equal(await x.page.locator('#upscale-model-menu').isVisible(),true,'Three model cards display directly beneath Model');
  assert.deepEqual(await x.page.locator('#upscale-model-menu [data-upscale-engine]').evaluateAll(items=>items.map(item=>item.dataset.upscaleEngine)),['seedvr2','topaz-precision','topaz-wonder']);
  assert.equal(await x.page.locator('#upscale-model-menu [data-upscale-engine]').count(),3,'Exactly three primary models');
+ const artwork=await x.page.evaluate(async()=>{
+   return await Promise.all(['bytedance','precision','wonder'].map(async name=>{
+     const node=document.querySelector('.pv-upscale-model-art-'+name);
+     const bg=getComputedStyle(node).backgroundImage;
+     const url=bg.match(/url\(["']?([^"')]+)/)?.[1]||'';
+     let decoded=false;
+     if(url){
+       const image=new Image();image.src=url;
+       try{await image.decode();decoded=image.naturalWidth===64&&image.naturalHeight===64;}catch{}
+     }
+     const box=node.getBoundingClientRect();
+     return {name,url,decoded,width:box.width,height:box.height};
+   }));
+ });
+ for(const icon of artwork){
+   assert.match(icon.url,new RegExp('upscaler-model-'+icon.name+'\\.webp'),'Correct approved model thumbnail is used');
+   assert.equal(icon.decoded,true,icon.name+' model artwork decodes from the actual page');
+   assert.ok(icon.width>=35&&icon.width<=37,icon.name+' artwork retains the approved square size');
+ }
  assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),false,'ByteDance default keeps versions collapsed');
  await selectModel(x.page,/Topaz Standard V2/);
  assert.equal(await x.page.locator('#upscale-precision-options').isVisible(),true,'Topaz Precision expands within its own card');
