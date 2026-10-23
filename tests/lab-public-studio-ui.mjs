@@ -97,10 +97,20 @@ try{
         url.pathname==='/api/packs'?{packs:[]}:url.pathname==='/api/moods'?{boards:[]}:{items:[],jobs:[],models:[]};
       await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload)});
     });
+    // All public tools have one shared Sign in and no private Assets shortcut.
+    let imageSignInRightInset=null;
     // Every public direct URL must expose its own approved deck, never a gate or Image stand-in.
     for(const route of Object.keys(surfaces)){
       await page.goto(base+'/lab/studio.html?tool='+route);
       await settled(page,route);
+      assert.equal(await page.locator('#tool-assets').isVisible(),false,route+' guest must not see private Assets');
+      assert.equal(await page.locator('#studio-header #signin').isVisible(),true,route+' retains the shared Sign in control');
+      assert.equal(await page.locator('#studio-header #signin').count(),1,route+' must not duplicate the masthead Sign in');
+      const signInBox=await page.locator('#studio-header #signin').boundingBox();
+      const signInRightInset=width-(signInBox.x+signInBox.width);
+      if(route==='image')imageSignInRightInset=signInRightInset;
+      else assert.ok(Math.abs(signInRightInset-imageSignInRightInset)<=1,
+        route+' Sign in aligns with Image at '+width+'px: '+JSON.stringify({signInRightInset,imageSignInRightInset}));
       assert.equal(await page.getByText(/^Sign in to open /).isVisible(),false,route+' generic gate');
       assert.equal(await page.locator('#pv-guest-selected-tool').isVisible(),false);
       assert.equal(await page.locator('#pv-guest-composer').isVisible(),route==='image');
@@ -204,6 +214,8 @@ try{
         await page.goto(base+'/lab/studio.html?tool='+route);await settled(page,route);
         await page.evaluate(role=>window.__publicAccount.authorize(role),role);
         await settled(page,route,true);
+        assert.equal(await page.locator('#tool-assets').isVisible(),true,
+          role+' signed-in '+route+' keeps the original private Assets control');
         assert.equal(new URL(page.url()).searchParams.get('tool'),route);
         assert.equal(await page.locator('#tool-'+route).getAttribute('aria-pressed'),'true');
         await page.locator('#tool-image').click();
