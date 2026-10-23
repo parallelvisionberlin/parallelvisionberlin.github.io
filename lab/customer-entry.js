@@ -82,7 +82,9 @@ function show(){
     const sessionId=clerk?.session?.id;
     let dismissed=dismissedCreditSessions.has(sessionId);
     try{dismissed||=!!sessionId&&sessionStorage.getItem(creditDismissKey)===sessionId;}catch{}
-    creditBanner.hidden=!signed||!sessionId||!currentProfile||profileLoading||
+    // Keep a confirmed same-session notice stable during background balance refresh.
+    // A new session, response, failure or sign-out still determines eligibility.
+    creditBanner.hidden=!signed||!sessionId||!currentProfile||
       profile.customer!==true||profile.owner===true||profile.admin===true||
       profile.balanceCredits!==0||!!profile.accountClosed||!!profile.billingReview||dismissed;
   }

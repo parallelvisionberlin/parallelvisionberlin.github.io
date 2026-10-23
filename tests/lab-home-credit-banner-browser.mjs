@@ -81,6 +81,8 @@ try{
       assert.equal(overlay.top,overlay.headerBottom,'Banner sits exactly below navigation');
       assert.equal(overlay.position,'absolute','Reuse the Video overlay positioning');
       assert.equal(overlay.background,'rgb(234, 232, 226)','Reuse the Studio white banner');
+      assert.equal(await banner.locator('strong').evaluate(el=>getComputedStyle(el).fontWeight),'700','Studio emphasis is retained');
+      assert.equal(await banner.locator('a').evaluate(el=>getComputedStyle(el).textDecorationLine),'none','Match Studio plain secondary text while preserving the pricing link');
       assert.equal(overlay.left,0);assert.equal(overlay.right,width);
       assert.ok(initial.pageWidth<=width,'No horizontal overflow');
       await page.screenshot({path:resolve(artifacts,`home-credit-visible-${width}.png`)});
@@ -126,9 +128,23 @@ try{
       profile={customer:true,owner:false,balanceCredits:0};await refresh();
       assert.equal(await banner.isVisible(),true,'Confirmed zero balance is eligible');
       sessionGate=new Promise(r=>releaseSession=r);
-      await page.evaluate(()=>window.mockClerk.listeners.forEach(fn=>fn()));await settle(page);
-      assert.equal(await banner.isVisible(),false,'Refreshing wallet hides stale zero balance');
-      sessionGate=null;releaseSession();await banner.waitFor({state:'visible'});
+      await page.evaluate(()=>{
+        window.__creditNoticeHidden=[];
+        window.__creditNoticeObserver=new MutationObserver(()=>window.__creditNoticeHidden.push(document.querySelector('#lab-credit-banner').hidden));
+        window.__creditNoticeObserver.observe(document.querySelector('#lab-credit-banner'),{attributes:true,attributeFilter:['hidden']});
+        window.dispatchEvent(new Event('focus'));
+        document.dispatchEvent(new Event('visibilitychange'));
+      });await settle(page);
+      assert.equal(await banner.isVisible(),true,'Confirmed same-session zero notice stays visible while tab-return refresh is pending');
+      sessionGate=null;releaseSession();await refresh();await settle(page);
+      assert.equal(await banner.isVisible(),true,'Unchanged zero response keeps the notice visible');
+      assert.equal(await page.evaluate(()=>window.__creditNoticeHidden.some(Boolean)),false,'Focus/visibility refresh never hides and re-shows the confirmed notice');
+      await page.evaluate(()=>window.__creditNoticeObserver.disconnect());
+      profile={customer:true,owner:false,balanceCredits:1000};
+      await refresh();
+      assert.equal(await banner.isVisible(),false,'New positive balance removes the old zero notice');
+      profile={customer:true,owner:false,balanceCredits:0};
+      await refresh();await banner.waitFor({state:'visible'});
       failure=true;await refresh();
       assert.equal(await banner.isVisible(),false,'Failed session request cannot imply zero');
       failure=false;await refresh();await banner.waitFor({state:'visible'});

@@ -142,3 +142,8 @@ body:has(.landing-header--home) > #lab-credit-banner:not([hidden]){
  box-sizing:border-box!important;
  box-shadow:0 8px 24px rgba(0,0,0,.20)!important;
 }
+
+/* Match the Studio notice treatment while preserving the homepage pricing link. */
+body:has(.landing-header--home) > #lab-credit-banner strong{font-synthesis:weight}
+body:has(.landing-header--home) > #lab-credit-banner a{text-decoration:none}
+body:has(.landing-header--home) > #lab-credit-banner a:hover{text-decoration:underline}
