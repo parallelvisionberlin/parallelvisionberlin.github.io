@@ -1729,3 +1729,45 @@
    margin-top:11px!important;
  }
 }
+
+/* PR #486: loaded-photo controls must size from their content.
+   This is scoped ONLY to Upscaler with a visible source. The empty approved
+   hero, model-card design, source image, navigation and pricing are untouched.
+   The older fixed-height sidebar put its action above the format selector. */
+@media(min-width:781px){
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+    height:auto!important;
+    min-height:clamp(680px,calc(100dvh - 104px),980px)!important;
+    max-height:none!important;
+    overflow:visible!important;
+    justify-content:flex-start!important;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+    box-sizing:border-box!important;
+    flex:0 0 auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    padding-bottom:0!important;
+  }
+  #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+    box-sizing:border-box!important;
+    position:relative!important;
+    top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+    width:calc(100% - 68px)!important;
+    min-height:0!important;height:auto!important;
+    flex:0 0 auto!important;
+    margin:16px 34px 24px!important;
+    padding:0!important;
+    z-index:1!important;
+  }
+  /* The approved empty drop area is kept unchanged. A real loaded photo
+     uses that same photographic viewport instead of shrinking on upload. */
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(#preview:not([hidden])){
+    box-sizing:border-box!important;
+    height:clamp(680px,calc(100dvh - 104px),980px)!important;
+    min-height:680px!important;
+    max-height:none!important;
+  }
+}
