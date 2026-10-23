@@ -378,10 +378,10 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     // complete user instruction and use a fixed concise canon, not truncation.
     const liteBaseLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a photographic light-and-air treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes. Existing lamps make local petrol-green depth around their actual sources while skin stays warm; outdoor paving may catch wet reflections but indoor floors stay dry. Fine pushed 35mm color-negative shadow texture, not digital noise. User direction takes priority.';
     const primaryOptics=engine==='seedreamlite'
-      ?'PRIMARY OPTICS: small distant green city lamps disappear into deep natural black. Wet outdoor street shows fragments of warm reflected light. Preserve real warm skin and fabric; no global green veil.'
+      ?'OPTICS: sparse green lamps vanish into black, warm reflections outdoors only. Preserve skin and fabric.'
       :'PRIMARY FILM REFERENCE DNA (OPTICS ONLY): city taxi at night -> tiny green practicals descending into black intervals and dimensional humid distance; wet night street -> soft light falloff and broken warm reflections below actual sources. Transfer photographic light and texture only. Never import streets, cars, people, signs, camera or composition; keep warm real skin, naturally neutral fabric and real shadows.';
     const sourceLightRouting=engine==='seedreamlite'
-      ?'SCENE: PORTRAIT same face/outfit; STREET humid dusk, damp paving; ROOM warm lamps and dry floor. Keep existing light sources and architecture, no added objects.'
+      ?'SCENE: PORTRAIT same face/outfit; STREET existing lamps and damp paving; ROOM warm lamps, dry floor. Keep architecture.'
       :'SCENE ADAPTATION, only what IMAGE 1 visibly supports: FASHION PORTRAIT -> untouched real identity, expression, pose, outfit and leather texture with inviting warm skin; the surrounding street gains plausible night air and soft scattered highlights. STREET OR TRANSIT -> allow a believable transition toward nocturnal exposure, richer dark depth, localized distant green sources and limited damp outdoor paving while keeping existing architecture and true light sources. BEDROOM OR INTERIOR -> the same room and furniture, warm lamps, cool spill through original windows, air scattering only close to actual light, absolutely no wet bed or floor. Light has depth, skin has life, shadows retain photographic texture; never add neon signs, taxis, rain curtains or people.';
     const approvedPhotoStrength=intensity<=34
       ?'Subtle: quiet warm/cool film response and gentle bloom from existing practical lights.'
@@ -390,7 +390,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
         :'Expressive: deeper natural night blacks, source-local practical-light bloom, receding humid depth and plausible wet exterior reflections. Keep identical face, composition, natural warm skin and original location. Strength increases dimensional light, not greener skin, global tint, or artificial grain.';
     // Smooth intensity: the 90% and 91% prompts have exactly the same structure.
     const continuousAtmosphere=engine==='seedreamlite'
-      ?'MOOD STRENGTH '+intensity+'/100. Scale existing-light bloom and distant depth smoothly, never global green wash, added fog, grain or skin tint.'
+      ?'MOOD STRENGTH '+intensity+'/100. Scale lamp bloom and depth, not green coverage, fog or skin tint.'
       :'MOOD STRENGTH '+intensity+'/100. Scale only the atmospheric depth and bloom around existing practical lights. At higher strengths, deepen real dark gaps and extend localized luminous falloff, not the green area of the frame. Keep clear foreground eyes, natural clothing, unaffected dry interiors and true shadow texture. No fog overlays, added lamps, digital noise or restaged locations.';
     const photoStrength=approvedPhotoStrength;
     const sceneAtmosphere=sourceLightRouting;
@@ -402,7 +402,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     const liteTextStrength='1990s Hong Kong night-film light: humid emerald depth, glowing warm practicals, wet outdoor reflections when plausible, intimate real skin and organic fine pushed-film shadow texture. Preserve original people and place. '+(intensity>=76?'Stronger believable dusk or nocturnal air, no pasted fog.':intensity<=34?'Very restrained source bloom, existing weather.':'Balanced green-gold light and humid depth.');
     const look=editingBase?[engine==='seedreamlite'?liteBaseLock:originalImageLock,primaryOptics,sceneAtmosphere,photoStrength,continuousAtmosphere,variantDirection].filter(Boolean).join(' '):
       [engine==='seedreamlite'?liteTextStrength:strength,continuousAtmosphere,variantDirection].filter(Boolean).join(' ');
-    const avoid=engine==='seedreamlite'?'teal color filter, artificial grain, copied reference faces, fake neon, indoor wetness, changed clothing or street layout':mood.avoid;
+    const avoid=engine==='seedreamlite'?'green filter, fake fog/grain, copied faces, invented neon, indoor wetness, changed people or places':mood.avoid;
     const prompt=[original,'PV LAB MOOD / '+mood.name+': '+look+' '+preservation+' Avoid: '+avoid+'.'].filter(Boolean).join('\n\n');
     const budget=engine==='seedreamlite'?3000:5000,over=prompt.length-budget;
     return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,moodVariant:variant,...(film?{filmFinish:film}:{})},

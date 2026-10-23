@@ -43,7 +43,7 @@ test('Numbered provider prompt always matches actual two reference positions aft
      const short=(count+i+1)+'='+['City taxi','Wet street'][i];
      assert.ok(final.includes(long)||final.includes(short),engine+' '+label+' was not mapped');
    }
-   assert.match(final,/No global green veil|No global green wash|No uniform green wash/i);
+   assert.match(final,/No global green veil|No global green wash|No uniform green wash|no whole-frame green cast/i);
    assert.ok(final.length<=(engine==='seedreamlite'?3000:5000),engine+' provider prompt overflow: '+final.length);
    if(engine==='seedream'||engine==='gemini')assert.deepEqual(moodReferencePlan(p).references,[],'No duplicate browser upload');
   }
