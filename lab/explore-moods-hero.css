@@ -7,7 +7,7 @@
   top:-12px;height:calc(100% + 12px);
 }
 .mc-explore-page [data-hero-carousel] .mc-explore-hero-veil{
-  background:linear-gradient(90deg,#0a100f 0%,#0a100f 30%,#0a100ffa 35%,#0a100feb 40%,#0a100fa8 47%,#0a100f52 56%,#0a100f14 66%,transparent 76%),linear-gradient(0deg,#0a100f85,transparent 25%);
+  background:linear-gradient(90deg,#0d0d0f 0%,#0d0d0f 30%,#0d0d0ffa 35%,#0d0d0feb 40%,#0d0d0fa8 47%,#0d0d0f52 56%,#0d0d0f14 66%,transparent 76%),linear-gradient(0deg,#0d0d0f85,transparent 25%);
 }
 .mc-hero-controls{
   position:absolute;z-index:2;right:clamp(18px,3.9vw,72px);bottom:14px;
@@ -27,7 +27,7 @@
 .mc-hero-controls .mc-hero-toggle:focus-visible{outline:2px solid var(--pv-acid);outline-offset:2px}
 @media(max-width:700px){
   .mc-explore-page [data-hero-carousel] .mc-explore-hero-veil{
-    background:linear-gradient(90deg,#0a100fee,#0a100fa8 45%,#0a100f25),linear-gradient(0deg,#0a100fe0,transparent 55%);
+    background:linear-gradient(90deg,#0d0d0fee,#0d0d0fa8 45%,#0d0d0f25),linear-gradient(0deg,#0d0d0fe0,transparent 55%);
   }
   .mc-hero-controls{bottom:8px}
 }

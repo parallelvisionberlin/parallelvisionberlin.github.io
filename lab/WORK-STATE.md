@@ -1,5 +1,33 @@
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
+## Homepage Mood Creator section background only, 2026-10-23
+- Owner reference: image(20261023-174301).png, libfile_eefbf7cf35e48191abbcc1764fae3931.
+- Change only the homepage `.mc-home.mc-home--collection` background from #080F0D to #09090B, slightly darker than Explore Moods #0D0D0F.
+- Preserve the main fashion portrait hero, collage photographs, text, lime accents, upload, navigation, layout and all behavior.
+- App diff: one CSS color literal in lab/mood-home.css; cache marker in lab/index.html.
+- Baseline main: 21237eac3895a8ae4247188d84bf2b8fbc3c4544. Image contract 5/5 locally; all non-color CSS bytes identical.
+- Released via PR #493, merge 1045821697696abcfdd9733a666c4d49a9320b7b.
+- Exact-commit Cloudflare pvlab-studio check 120567033678 succeeded.
+- Production https://pvlab.studio/#mood-creator inspected: computed background rgb(9,9,11), stylesheet URL includes background=20261023-charcoal1; screenshot reviewed.
+- Preview section/title/collage/actions/upload rectangles exactly matched production baseline at the same viewport; original three photograph paths retained.
+- CI approved Image contract, Landing, pricing browser, Account, static validation and Lab tests passed. Overall CI not all green: inherited Fashion Sign in inset and Assets guest visibility assertions remain outside this one-color change.
+- No payment, upload, generation or real signed-in customer operation executed. Mobile background uses the same rule; actual phone rendering not independently inspected.
+- Background request complete; no further styling changes included.
+
+## Explore Moods upload symbol and typography polish, 2026-10-23
+- Approved reference: image(20261023-163106).png, Library libfile_705b5d680e7c81918f8239f01e682ed6.
+- Owner authorizes only the plus and upload typography. Preserve modal, photo, Mood title, outer upload surface, Generate, navigation and all behavior.
+- Desktop-only CSS: neutral transparent 8.4cqw symbol tile, restrained border/radius, larger white plus; upload heading 3.6cqw/36px with -.05em spacing, neutral subtitle and regular Browse files.
+- Mobile and result-view selectors unchanged. No generation, upload, auth, credit or provider code changed.
+- Files: explore-moods-photobooth.css and its cache marker in moods.html.
+- Base: 7f44c63feb55eb567872c8b6fed6d29f2b91119e. Approved Image contract passed 5/5 locally.
+- Local Chromium download unavailable; used the existing cloud browser for actual preview and production visual verification.
+- Preview comparison at the same viewport: modal, photo, Mood title, outer upload surface and Generate x/y/width/height exactly unchanged.
+- PR #490 merged as 6dbb1cab7bce522af64f4be82d07f23c5b5a1d2f. Approved Image contract passed locally and in CI.
+- General public-studio suite fails Fashion Sign in alignment (46px versus31px), outside the modified Moods-only styles. No gate weakened or retry started.
+- Exact merged SHA Cloudflare check120535048562 succeeded. Production CSS bytes match reviewed source exactly.
+- Production /moods DOM uses20261023-upload-polish1; actual computed symbol font32px and heading35.928px confirmed, screenshot inspected. Signed-out production only; no account or generation actions.
+
 ## Authenticated Retouch header gutter alignment, 2026-10-23
 - Owner references image(20261023-144627).png, 144841, 145038 and 145106.
 - Image/Video reserve desktop root scrollbar space; Retouch without document overflow did not, shifting all right-side controls.

@@ -193,79 +193,67 @@ footer{display:flex;justify-content:space-between;gap:20px;border-top:1px solid 
 @media(prefers-reduced-motion:reduce){.image-slot,.action-primary,.site-header nav a{transition:none}}
 
 
-/* Approved Fashion Replace Outfit composition, 2026-10-23.
-   References exact user-supplied mockup. Fashion page only. */
-#content{max-width:none;position:relative;padding:0 clamp(15px,2.1vw,35px);isolation:isolate;overflow:hidden}
-#content:before{content:"";pointer-events:none;position:absolute;z-index:-2;inset:0 0 auto;height:clamp(650px,73vw,870px);background:linear-gradient(90deg,#08090aec 0%,#08090adf 23%,#08090a65 53%,#08090a14 100%),url("./branding/fashion-editorial-reference.svg") center 28%/cover no-repeat}
-#content:after{content:"";pointer-events:none;position:absolute;z-index:-1;top:480px;left:0;right:0;height:420px;background:linear-gradient(transparent,#101114 90%)}
-.page-intro{padding:clamp(38px,5vw,75px) 0 10px;display:block}
+
+/* Fashion layout based on approved reference. No decorative reference photo is used.
+   Only Fashion's own scoped UI; provider logic and user images remain unchanged. */
+#content{width:100%;max-width:none;padding:0 clamp(16px,2.2vw,36px);overflow:visible;background:linear-gradient(105deg,#0b0b0d 0%,#111114 52%,#151416 100%)}
+#content:before,#content:after{content:none!important}
+.page-intro{display:block;padding:clamp(30px,5vh,58px) 0 16px}
 .page-intro .eyebrow{display:none}
-.page-intro h1{font-size:clamp(51px,5vw,88px);letter-spacing:-.067em;font-weight:400;line-height:1.06;margin:0}
-.page-intro h1 em{font-size:1.07em}
-.intro-description{display:block;text-align:left;font-size:clamp(12px,1.05vw,16px);color:#d6d0cf;margin:10px 0 0}
-.fashion-workspace{display:grid;grid-template-columns:minmax(0,44%) minmax(0,1fr);grid-template-rows:minmax(270px,31vw) auto auto;gap:10px 22px;padding:5px 0 26px;overflow:visible}
+.page-intro h1{margin:0;font-size:clamp(48px,4.7vw,79px);line-height:1.08;letter-spacing:-.065em}
+.page-intro h1 em{font-size:1.08em}
+.intro-description{display:block;text-align:left;margin:11px 0 0;color:#c5c5c9;font-size:clamp(12px,1.1vw,17px)}
+.fashion-workspace{display:grid;grid-template-columns:minmax(0,43%) minmax(0,1fr);grid-template-rows:clamp(290px,39vh,375px) auto auto;gap:14px 18px;padding:0 0 42px;align-items:stretch}
 #fashion-form{display:contents}
-.source-section{grid-column:1;grid-row:1;min-width:0;align-self:stretch}
+.source-section{grid-column:1;grid-row:1;min-width:0;min-height:0}
 .source-section .section-header{display:none}
-.image-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;height:100%}
-.image-slot{height:100%;min-height:0;border-radius:12px;background:linear-gradient(150deg,#1c1c1cc9,#0b0b0bd8);border:1px solid #ffffff36;backdrop-filter:blur(12px)}
-.image-slot:before{background:linear-gradient(0deg,#0009,transparent 75%)}
-#person-slot:not(:has(img:not([hidden]))){background:linear-gradient(0deg,#08090b55,#08090b77),url("./branding/fashion-editorial-reference.svg") center/cover}
-.image-slot .slot-number,.image-slot .slot-caption{display:none}
-.slot-invite{transform:none;gap:6px;z-index:3}
-.slot-invite>.empty-art{width:62px;height:72px;opacity:.62;stroke-width:1.2}
-.slot-invite strong{font-size:clamp(13px,1.2vw,17px);color:white}
-.slot-invite small{color:#c9c6c6}
+.image-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;height:100%;min-height:0}
+.image-slot{position:relative;width:100%;height:100%;min-height:0;max-height:none;aspect-ratio:auto;overflow:hidden;border-radius:13px;border:1px solid #ffffff35;background:linear-gradient(140deg,#242428,#101013 72%);backdrop-filter:none}
+.image-slot:before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#0009,transparent 45%);pointer-events:none}
+#person-slot:not(:has(img:not([hidden]))){background:linear-gradient(140deg,#29292d,#111114 72%)}
+.slot-number,.slot-caption{display:none}
+.slot-invite{gap:9px;transform:none}
+.slot-invite>.empty-art{width:75px;height:90px;margin:0;opacity:.25;stroke-width:1.1}
+.slot-invite strong{font-size:15px;color:#fff}
+.slot-invite small{font-size:11px;color:#b4b4b9;text-align:center;padding:0 4px}
+.source-note{margin-top:5px}
 .result-panel{grid-column:2;grid-row:1;display:none}
-.engine-section{grid-column:1/-1;grid-row:2;min-width:0;border:1px solid #ffffff24;padding:14px 16px;border-radius:12px;background:#0d0d0fe0;backdrop-filter:blur(12px)}
+.engine-section{grid-column:1/-1;grid-row:2;margin:0;padding:13px 16px;background:#101012d9;border:1px solid #ffffff29;border-radius:12px;min-width:0}
 .engine-section .section-header{display:none}
-.engine-grid{grid-template-columns:minmax(160px,1fr) minmax(175px,1fr) minmax(230px,1.6fr) minmax(160px,.8fr);gap:12px;align-items:end}
-.control-block .field-title{font-size:10px;color:#d2d0d0;font-weight:400;margin-bottom:6px}
-select,textarea{border:1px solid #46464c;border-radius:8px;height:45px;min-height:45px;background-color:#202126dd}
-.action-primary{justify-content:center;border-radius:8px;background:#f3f1ed;color:#111;font-weight:600}
-.action-primary:disabled{background:#38383b;color:#b5b5b8}
-.engine-footer{margin-top:6px;padding-top:8px;min-height:0}
-.fashion-gallery{grid-column:1/-1;grid-row:3;margin-top:36px}
-.fashion-workspace:has(#result-image:not([hidden])){grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);grid-template-rows:minmax(360px,38vw) auto auto}
-.fashion-workspace:has(#result-image:not([hidden])) .result-panel{display:flex;flex-direction:column}
+.engine-grid{grid-template-columns:minmax(160px,1.1fr) minmax(190px,1.15fr) minmax(250px,1.7fr) minmax(160px,.85fr);gap:12px;align-items:end}
+.field-title{font-size:11px;font-weight:400;margin-bottom:6px}
+select,textarea{border-radius:8px;background-color:#1f2024;min-height:44px;height:44px}
+.action-primary{border-radius:8px;justify-content:center;min-height:44px;height:44px;font-weight:600}
+.engine-footer{margin-top:7px;padding-top:8px;min-height:0}
+.fashion-gallery{grid-column:1/-1;grid-row:3;margin-top:15px}
+.fashion-workspace:has(#result-image:not([hidden])){grid-template-columns:minmax(0,43%) minmax(0,1fr)}
+.fashion-workspace:has(#result-image:not([hidden])) .result-panel{display:flex;flex-direction:column;min-height:0}
 .fashion-workspace:has(#result-image:not([hidden])) .result-stage{flex:1;height:auto;min-height:0;border-radius:12px}
 .fashion-workspace:has(#result-image:not([hidden])) .source-section .section-header{display:flex}
 @media(max-width:800px){
- #content:before{height:610px;background:linear-gradient(180deg,#08090a99 0%,#08090a44 44%,#08090ad9 100%),url("./branding/fashion-editorial-reference.svg") 60% top/auto 600px no-repeat}
- .page-intro{padding-top:230px}
- .fashion-workspace{grid-template-columns:1fr;grid-template-rows:auto auto auto;gap:12px}
+ .page-intro{padding:40px 0 18px}
+ .fashion-workspace{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;gap:16px}
+ .source-section{grid-column:1;grid-row:1}
  .image-pair{height:auto}
- .image-slot{height:auto;aspect-ratio:4/5;min-height:0}
+ .image-slot{height:auto;aspect-ratio:4/5;max-height:none}
  .engine-section{grid-column:1;grid-row:2}
  .engine-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
- .model-block,.direction-block,.action-block,.detail-block{grid-column:1/-1}
- .fashion-gallery{grid-column:1;grid-row:3;margin-top:12px}
- .fashion-workspace:has(#result-image:not([hidden])){grid-template-columns:1fr;grid-template-rows:auto auto auto auto}
+ .model-block,.detail-block,.direction-block,.action-block{grid-column:1/-1}
+ .fashion-gallery{grid-column:1;grid-row:3}
+ .fashion-workspace:has(#result-image:not([hidden])){grid-template-columns:1fr}
  .fashion-workspace:has(#result-image:not([hidden])) .result-panel{grid-column:1;grid-row:2}
  .fashion-workspace:has(#result-image:not([hidden])) .engine-section{grid-row:3}
  .fashion-workspace:has(#result-image:not([hidden])) .fashion-gallery{grid-row:4}
 }
 @media(max-width:560px){
  #content{padding:0 14px}
- #content:before{height:610px;background-size:auto 610px;background-position:59% top}
- .page-intro{padding:230px 0 20px}
- .page-intro h1{font-size:clamp(46px,11vw,64px)}
+ .page-intro{padding:35px 0 18px}
+ .page-intro h1{font-size:clamp(45px,11vw,61px)}
  .intro-description{display:block;font-size:12px}
  .image-pair{gap:9px}
- .slot-invite>.empty-art{width:47px;height:55px}
- .slot-invite small{font-size:9px;text-align:center}
- .engine-section{padding:13px 10px}
- .engine-grid{gap:11px}
- .result-stage{aspect-ratio:4/5;min-height:280px}
-}
-
-/* Strict approved mockup viewport geometry. Preserve existing upload/result IDs. */
-@media(min-width:801px){
- .page-intro{padding-top:clamp(28px,4vw,58px);padding-bottom:12px}
- .fashion-workspace{grid-template-columns:minmax(0,42%) minmax(0,1fr);grid-template-rows:clamp(275px,23vw,385px) auto auto}
- .image-pair{height:100%}
- .image-slot{height:100%;min-height:0}
- .engine-section{margin-top:10px}
- #content:before{height:clamp(660px,60vw,860px);background-size:cover}
- .fashion-workspace:has(#result-image:not([hidden])){grid-template-rows:clamp(300px,27vw,440px) auto auto}
+ .image-slot{aspect-ratio:4/5}
+ .slot-invite>.empty-art{width:55px;height:68px}
+ .slot-invite strong{font-size:13px}
+ .slot-invite small{font-size:9px}
+ .engine-section{padding:12px}
 }

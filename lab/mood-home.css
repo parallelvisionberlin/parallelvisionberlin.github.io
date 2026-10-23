@@ -112,7 +112,7 @@
 .mc-home.mc-home--collection{
   position:relative;display:grid;grid-template-columns:minmax(0,.42fr) minmax(0,.58fr);
   align-items:center;gap:clamp(24px,3vw,58px);padding:clamp(76px,7.3vw,140px) 4.6vw;
-  min-height:clamp(620px,42vw,810px);background:#080f0d;color:#f0f2ec;
+  min-height:clamp(620px,42vw,810px);background:#09090b;color:#f0f2ec;
   border-block:1px solid #ffffff12;isolation:isolate;overflow:hidden;
 }
 .mc-collection-copy{min-width:0;position:relative;z-index:2}

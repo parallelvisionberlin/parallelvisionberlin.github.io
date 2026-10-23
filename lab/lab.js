@@ -1,4 +1,4 @@
-import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1';
+import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1&upscaleModelCards=pr486final1';
 import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
 import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-elements-visual-profiles1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
@@ -945,7 +945,7 @@ async function openFashionStudio({preview=false}={}){
   try{
     if(!fashionMount){
       host.setAttribute('aria-busy','true');
-      fashionMount=import('./fashion-studio.js?v=20261023-approved01&publicPreview=20261023-1&firstReady=20261015-1&singleFooter=20261015-1')
+      fashionMount=import('./fashion-studio.js?v=20261023-fashion-gutter2&publicPreview=20261023-1&firstReady=20261015-1&singleFooter=20261015-1')
         .then(({mountFashionStudio})=>mountFashionStudio(host,{sessionClient,onNavigate:navigateStudioTool,publicPreview:()=>!owner&&$('app').hasAttribute('data-guest-preview')}))
         .then(controller=>{fashionController=controller;return controller;})
         .catch(error=>{fashionMount=null;throw error;});
