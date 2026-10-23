@@ -8,7 +8,14 @@
 - Product scope: lab/_redirects only. No editor, shared masthead, logo, auth, credits or generation code changed.
 - Base ac33d20c50bdd88e71547e96a70781efae4b5a11; mandatory approved Image contract 5/5 passed.
 - Prior Upscaler PR #469 changed only its picker HTML/CSS, tests and checkpoint; it did not edit standalone Fashion.
-- Source and hosting confirmation pending; verify /fashion navigation after exact Cloudflare check succeeds.
+- PR #471 merged as 2809060ef95030eb84fa889c0914adb7a72f4f6d.
+- Exact merged SHA Cloudflare Pages check 120430507153 succeeded.
+- Production /fashion?utm_source=chatgpt.com navigated to /studio?tool=fashion as intended.
+- Actual production header observed: approved PV LAB wordmark, Image, Video, Upscaler, Retouch, Fashion, Explore Moods; Fashion underlined.
+- Old standalone masthead absent. Production signed out; no paid job or login performed.
+- Six aliases validated for unique sources and exact destination/status; Image contract 5/5 locally.
+- Direct shell production verification unavailable; Cloudflare plus actual custom-domain navigation/DOM/render used.
+- Routing repair complete and live.
 
 
 ## Upscaler credit notice overlay, 2026-10-22 (completed and live)
