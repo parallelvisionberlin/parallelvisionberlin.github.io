@@ -12,7 +12,8 @@
 - PR #472 merged as ee04b5374d0d7470af57dea6a14484f0793d3258.
 - Exact SHA Cloudflare Pages check 120434350673 succeeded.
 - Actual production GET /fashion.html?v=20261010-gallery1 now contains #content, #fashion-form, #person-file and #garment-file.
-- Downloaded live template exactly matches the reviewed repair HTML; internal fetch no longer returns Studio HTML.
+- Downloaded live HTML confirms the reviewed editor/form structure; internal fetch no longer returns Studio HTML.
+- Raw HTML is transformed by Cloudflare email obfuscation in the footer, so whole-file byte equality was not confirmed.
 - Production browser /fashion reaches /studio?tool=fashion with the shared header.
 - Signed-out browser cannot prove real authenticated editor startup. No paid generation or login performed.
 - Existing standalone localhost Fashion fixture assumes document navigation stays on fashion.html; its navigation expectations require a separate canonical-loader fixture update.
