@@ -73,3 +73,12 @@
   .pv-lab-footer__bottom {margin-top:51px;gap:9px;display:block}
   .pv-lab-footer__bottom p+p {margin-top:9px!important}
 }
+
+/* Studio tools and Fashion are focused workspaces. Keep the full directory footer
+   on landing/discovery pages, without removing legal links or touching histories.
+   Studio mounts Retouch even when a different tool is selected; Fashion has its
+   own generation gallery. Both selectors identify the page, not the active mode. */
+body:has(#app > #precision-workspace) > .pv-lab-footer,
+body:has(#fashion-gallery) .pv-lab-footer {
+  display:none!important;
+}
