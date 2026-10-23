@@ -24,16 +24,18 @@
 - Source HTML stayed unchanged through test-only follow-ups. Desktop repair published and verified; mobile layout untouched.
 
 
-## CI fixture maintenance, 2026-10-23 (review pending)
-- Source checkpoint: ae6827c4c599960447fbbd2130aabe33c49fbcf9. Final-head CI must finish after the closing commit; no merge or publication is authorized.
-- Frozen-head CI completed: 21 workflows passed; smoke and both full-suite jobs exposed the redirect/fixture defects below. Explore timed out installing Chromium; Fashion and gallery also hit installation cancellations. Closing source passes 708/708 Node 22 units and the exact anonymous live smoke gates, including both 401 checks. Final CI receipts belong in PR #482.
-- Reconcile only this handoff with main 6dbb1cab by moving the CI note below Retouch, leaving its Moods insertion untouched in the merge. No main implementation is imported.
-- Closing CI corrections: follow the canonical Fashion HTML 308 redirect in the read-only curl gate; preserve every HTML/asset/401 assertion and all timeouts.
-- The new health gate fixture must be included in both full-suite sparse checkouts (.github/workflows); otherwise Video/private-lab fail with ENOENT before exercising the gate.
-- The actual-curl redirect regression fails without --location and passes with it. Prepared source passes 708/708 Lab units on exact CI Node 22.16.0 under the Video sparse layout, plus both health/redirect tests under the private-lab layout. No test is skipped or weakened; product code, Worker, auth, credits, providers and approved designs are unchanged.
+## CI fixture maintenance, 2026-10-23 (review follow-up)
+- Follow-up baseline: f507b71386256f076dac231c6116813a820b3e1c. Keep the same branch/PR #482; no main merge, publication or #462 modification.
+- The final baseline CI is no longer queued: seven original controls and Public Studio pass. Video fails a pre-mount routing assertion; Motion Effects was cancelled installing Chromium.
+- Product implementation, approved designs, auth, credits, uploads, providers and P1/P2/P3 are outside this follow-up diff.
+- Routing fixture: wait for #app's expected visible/hidden state after the guest route marker, then retain every original assertion.
+- Delay only the local Fashion module HTTP response by 250ms, exercising the already-proven baseline race at both 1440/390; do not increase any timeout or force hidden clicks.
+- Local JavaScript syntax passes. No local Chromium executable is installed; actual browser execution must be verified by exact-head CI, not claimed as a local pass.
+- Reuse the earlier seven-control evidence on unchanged app bytes; record new routing/Video and Motion Effects outcomes in PR #482 when CI completes.
+- All account/API fixtures remain simulated. Do not repeat sandbox purchases or run paid generations.
 
 - Objective: repair the seven inherited CI controls identified during PR #462 validation.
-- Separate branch: codex/pvlab-ci-maintenance-20261023; maintenance PR #482 is draft. PR #462 remains untouched and draft.
+- Separate branch: codex/pvlab-ci-maintenance-20261023; maintenance PR #482 is open for review. PR #462 remains untouched and draft.
 - Verified main source: 7f44c63feb55eb567872c8b6fed6d29f2b91119e; normal merges preserve approved Fashion #488/#489 and Retouch header #483.
 - Main was incorporated again after the approved Fashion rollback (#480), public header/privacy repair and homepage focus stability (#478).
 - Product repairs limited to loaded Fashion source containment and a guest-only gutter guard; Worker, billing, prices, auth and configuration are unchanged.
