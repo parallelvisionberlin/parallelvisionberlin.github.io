@@ -54,14 +54,23 @@ test('optics: derivative keys isolate settings and originals',async()=>{
  assert.notEqual(a,await filmAssetId('owner','original',{...s,haze:30}));
  assert.notEqual(a,await filmAssetId('other','original',s));
 });
-test('Hong Kong atmosphere: stronger high range preserves lower recipe and fits every provider',()=>{
- for(const engine of MOOD_MODELS)for(const [amount,label] of [[90,null],[91,'VISIBLE ATMOSPHERE'],[95,'VISIBLE ATMOSPHERE'],[96,'STRONG ATMOSPHERE'],[100,'MAXIMUM ATMOSPHERE']]){
-  const r=prepareMoodPrompt('Keep the original portrait and room.','hong-kong-nights',amount,{engine,referenceCount:1});
-  assert.equal(r.error,'');
-  if(label)assert.ok(r.prompt.includes(label),engine+' '+amount);else assert.doesNotMatch(r.prompt,/MAXIMUM ATMOSPHERE|VISIBLE ATMOSPHERE|STRONG ATMOSPHERE/);
-  if(amount>90){assert.match(r.prompt,/suspended humidity/);assert.match(r.prompt,/dry rooms|dry interiors/);assert.doesNotMatch(r.prompt,/Increase atmospheric diffusion slightly|Add slight atmospheric diffusion/);}
-  const roles=[{role:'base',name:'original.png',note:''}];
-  assert.ok(compileImagePrompt(r.prompt,roles,{engine,referenceMode:'base',referenceRoles:roles}).length<=(engine==='seedreamlite'?3000:5000));
-  assert.deepEqual(r.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
+test('Hong Kong 90-100 keeps the same optical recipe and provider budget',()=>{
+ for(const engine of MOOD_MODELS){
+  const snapshots=new Map();
+  for(const amount of [89,90,91,95,96,99,100]){
+   const r=prepareMoodPrompt('Keep the original portrait and room.','hong-kong-nights',amount,{engine,referenceCount:1});
+   assert.equal(r.error,'',engine+' '+amount+': '+r.error);
+   assert.ok(r.prompt.includes('MOOD STRENGTH '+amount+'/100'),engine+' '+amount);
+   assert.doesNotMatch(r.prompt,/MAXIMUM ATMOSPHERE|VISIBLE ATMOSPHERE|STRONG ATMOSPHERE/);
+   const roles=[{role:'base',name:'original.png',note:''}];
+   const settings={type:'image',mode:'image',engine,moodId:'hong-kong-nights',referenceMode:'base',referenceRoles:roles};
+   const prompt=compileImagePrompt(r.prompt,roles,settings);
+   assert.ok(prompt.length<=(engine==='seedreamlite'?3000:5000),engine+' '+amount+' '+prompt.length);
+   assert.deepEqual(r.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
+   snapshots.set(amount,r.prompt);
+  }
+  const normalize=x=>x.replace(/MOOD STRENGTH \d+\/100/,'MOOD STRENGTH N/100');
+  assert.equal(normalize(snapshots.get(90)),normalize(snapshots.get(91)),engine+' 90-91 changed recipe');
+  assert.equal(normalize(snapshots.get(99)),normalize(snapshots.get(100)),engine+' 99-100 changed recipe');
  }
 });

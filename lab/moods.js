@@ -372,10 +372,8 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     // direction is retained for text-only and References-only compositions.
     const editingBase=referenceCount>0&&referenceMode!=='references';
     const originalImageLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a photographic light-and-air treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes; do not age, remodel, harden eye shadows or darken the face. Change the atmosphere of the SAME photographed setting, not its geometry: permit believable dusk/night exposure, source-motivated humid air, selective petrol-green light around existing lamps, deep neutral blacks and warm tungsten light. Outdoor paving may acquire a restrained wet sheen and broken reflections consistent with perspective, with no newly added rain or changed street. Interiors remain dry, intimate and physically lit. Fine pushed 35mm color-negative shadow texture is embedded in the photo, not artificial speckles or a global blur. User direction takes priority.'
-    // No external scene classifier, additional references or extra API call. The
-    // edit model reads IMAGE 1 and applies only the physically applicable path.
-    // Primary refs 4-7 are translated into optics, never automatically staged as
-    // foreign people/places. The prior four-Style-photo route damaged fidelity.
+    // The Worker attaches two verified optical Style photos after the Base.
+    // They guide light and atmosphere, never the original person or location.
     // The Lite edit input has a hard 3K compiled prompt budget. Keep the
     // complete user instruction and use a fixed concise canon, not truncation.
     const liteBaseLock='EDIT IMAGE 1, not a new scene. Keep identical face, expression, age, hair, body, pose, outfit, framing, camera and every background building, sign and street element. Hong Kong Nights is a photographic light-and-air treatment, not an instruction to move anyone to Asia or add neon. Keep natural expressive beauty, warm healthy skin and softly visible eyes. Existing lamps make local petrol-green depth around their actual sources while skin stays warm; outdoor paving may catch wet reflections but indoor floors stay dry. Fine pushed 35mm color-negative shadow texture, not digital noise. User direction takes priority.';

@@ -1,3 +1,4 @@
+// Legacy filename retained for historical CI; current Hong Kong pack contains TWO photographs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -13,10 +14,10 @@ import {quoteCustomerImageCredits} from '../lab-worker/customer-image-pricing.mj
 import {krea3EstimateMicros} from '../lab-worker/krea3.mjs';
 
 const sha=b=>createHash('sha256').update(b).digest('hex');
-test('The three approved originals reach Worker bytes in A/B/C order, never generated substitutes',()=>{
- assert.equal(HONG_KONG_REFERENCE_VERSION,'hk-three-originals-20261022-v2-diner-png');
- assert.deepEqual(HONG_KONG_REFERENCES.map(x=>x.name),['supervalu','diner-green-yellow','foggy-wet-street']);
- for(let i=0;i<3;i++){
+test('The two approved originals reach Worker bytes in priority order, never generated substitutes',()=>{
+ assert.equal(HONG_KONG_REFERENCE_VERSION,'hk-two-optical-refs-20261023-v1');
+ assert.deepEqual(HONG_KONG_REFERENCES.map(x=>x.name),['city-haze','wet-street']);
+ for(let i=0;i<2;i++){
   const r=HONG_KONG_REFERENCES[i],spec=HONG_KONG_REFERENCE_MANIFEST[i];
   const raw=Buffer.from(r.data,'base64');
   assert.equal(sha(raw),spec.sha256);assert.equal(r.mime,spec.mime);
@@ -24,7 +25,7 @@ test('The three approved originals reach Worker bytes in A/B/C order, never gene
  }
 });
 
-test('Numbered provider prompt always matches actual three reference positions after user Base',()=>{
+test('Numbered provider prompt always matches actual two reference positions after user Base',()=>{
  for(const engine of ['seedream','seedreamlite','gemini','gemini21','krea3','qwen3']){
   const settings={type:'image',mode:'image',engine,moodId:'hong-kong-nights'};
   const max=hongKongUserReferenceLimit(settings);
@@ -34,15 +35,15 @@ test('Numbered provider prompt always matches actual three reference positions a
    assert.equal(recipe.error,'',engine+' '+count+' '+recipe.error);
    const p={...settings,...recipe.metadata,prompt:recipe.prompt,referenceMode:'base',referenceRoles:labels};
    const final=compileImagePrompt(recipe.prompt,labels,p);
-   assert.equal(builtInMoodReferenceCount(p),3);
-   assert.ok(final.includes('BUILT-IN REFERENCES '+(count+1)+', '+(count+2)+', '+(count+3)) ||
+   assert.equal(builtInMoodReferenceCount(p),2);
+   assert.ok(final.includes('BUILT-IN REFERENCES '+(count+1)+', '+(count+2)) ||
      final.includes('HK STYLE REFERENCES '+(count+1)+'='),'Provider reference numbering');
-   for(const [i,label] of ['Supervalu / DOMINANT LOOK','Diner green-yellow / SECONDARY COLOR','Foggy wet street / SECONDARY DEPTH'].entries()){
+   for(const [i,label] of ['City taxi / PRIMARY NIGHT DEPTH','Wet street / SECONDARY ATMOSPHERE'].entries()){
      const long='Reference '+(count+i+1)+' ['+label+']';
-     const short=(count+i+1)+'='+['Supervalu','Diner','Foggy street'][i];
+     const short=(count+i+1)+'='+['City taxi','Wet street'][i];
      assert.ok(final.includes(long)||final.includes(short),engine+' '+label+' was not mapped');
    }
-   assert.match(final,/No neon spectacle/i);
+   assert.match(final,/No global green veil|No global green wash|No uniform green wash/i);
    assert.ok(final.length<=(engine==='seedreamlite'?3000:5000),engine+' provider prompt overflow: '+final.length);
    if(engine==='seedream'||engine==='gemini')assert.deepEqual(moodReferencePlan(p).references,[],'No duplicate browser upload');
   }
@@ -65,13 +66,15 @@ test('New Hong Kong Nocturne generation defaults to approved film preset, manual
  assert.deepEqual(custom.metadata.filmFinish,HONG_KONG_FILM_FINISH);
 });
 
-test('Krea quotes all four input images and unrelated Mood pricing is unchanged',()=>{
+test('Krea quotes Base and two photographic Style inputs and unrelated Mood pricing is unchanged',()=>{
  const p={type:'image',mode:'image',moodId:'hong-kong-nights',engine:'krea3',referenceRoles:[{role:'base'}],resolution:'2k'};
- assert.equal(hongKongReferenceCount(p),3);
- assert.equal(quoteCustomerImageCredits(p,1).estimatedUsd,krea3EstimateMicros(p,4)/1e6);
+ assert.equal(hongKongReferenceCount(p),2);
+ assert.equal(quoteCustomerImageCredits(p,1).estimatedUsd,krea3EstimateMicros(p,3)/1e6);
  const other={...p,moodId:'night-flash'};
  assert.equal(hongKongReferenceCount(other),0);
  assert.equal(quoteCustomerImageCredits(other,1).estimatedUsd,krea3EstimateMicros(other,1)/1e6);
- assert.ok(hongKongReferenceError({...p,engine:'qwen3'},1));
+ assert.equal(hongKongUserReferenceLimit({...p,engine:'qwen3'}),1);
+ assert.equal(hongKongReferenceError({...p,engine:'qwen3'},1),'');
+ assert.ok(hongKongReferenceError({...p,engine:'qwen3'},2));
  assert.equal(hongKongReferenceCount({...p,moodId:'night-flash'}),0);
 });
