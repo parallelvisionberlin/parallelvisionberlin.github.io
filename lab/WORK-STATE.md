@@ -3,9 +3,9 @@
 ## CI fixture maintenance, 2026-10-23 (review pending)
 - Objective: repair the seven inherited CI controls identified during PR #462 validation.
 - Separate branch: codex/pvlab-ci-maintenance-20261023; maintenance PR #482 is draft. PR #462 remains untouched and draft.
-- Verified main source: 53037c6fabca91da82350ae3f3a4c5a5e2dd531f; normal merges preserve the latest approved Fashion #488 and Retouch header #483.
+- Verified main source: 7f44c63feb55eb567872c8b6fed6d29f2b91119e; normal merges preserve approved Fashion #488/#489 and Retouch header #483.
 - Main was incorporated again after the approved Fashion rollback (#480), public header/privacy repair and homepage focus stability (#478).
-- Product repair limited to loaded Fashion source/result containment; Worker, billing, prices, auth and configuration are unchanged.
+- Product repairs limited to loaded Fashion source containment and a guest-only gutter guard; Worker, billing, prices, auth and configuration are unchanged.
 - Masthead: preserve the real Explore body attributes so page-scoped wordmark rules apply; retain twelve widths and guest checks.
 - Landing: retain main's absolute hero overlay, scroll-away and delayed focus/visibility checks; only make the runtime import portable.
 - Assets/verify: public tool navigation remains visible while private History stays hidden; retain cache clearing, folders, downloads, quotes and submission checks.
@@ -26,12 +26,12 @@
 - Retain model defaults, three model options, valid photo uploads, bound quote without submission, private gallery paging and responsive layout.
 - Add verified-session headers, single-footer, decoded SVG wordmark, logout media cleanup and guest no-write assertions.
 - History exposed a real #481 CSS defect: loaded result collapsed to 2px. Main #488 fixes that collapse but its sources still overlap Direction by 17px at 1440x900; removing only our CSS reproduces it.
-- Main #488 already stretches the result. Remove the redundant selector; two loaded-state selectors bound source flex height. Retain exact result-height and no-overlap regressions.
-- Cache-only propagation: fashion.css, fashion-studio.js, fashion.html, lab.js and studio.html (sourceContainment/fashionSourceContainment=20261023-5); no generation/provider/auth handler change.
+- Main #488 already stretches the result. Two loaded-state selectors bound source flex height. Main #489 also shifts guest Sign in by 15px; scope its gutter to authenticated Fashion like Retouch. Add Customer/Owner Fashion header invariance; retain all guest geometry checks.
+- Cache-only propagation: fashion.css, fashion-studio.js, fashion.html, lab.js and studio.html (sourceContainment/fashionSourceContainment=20261023-6); no generation/provider/auth handler change.
 - An automated pixel comparison with/without the two loaded-state selectors proves the current approved empty screenshot is byte-identical; loaded desktop and mobile captures inspected.
 - No test skipped, assertion removed, timeout increased, forced hidden click, or workflow gate disabled.
 - Local affected checks pass: Masthead, Landing (five sizes), Assets, Upscale Assets (two sizes), Seedance 19, References 22, mobile Mood, first-image and Fashion.
-- Public visual fixture compares visible Direction, checks the empty output stays hidden, and returns by the visible header. Loaded Fashion retains its real internal return-link/navigation check; pixel thresholds and comparison count are unchanged.
+- Public visual fixture compares Direction and hidden empty output against immutable approved Fashion main 53037c6 with neutral CSS, before #489 guest gutter regression. Other tools keep ac33d20. All 32 pixel comparisons/tolerances and loaded internal return-link checks remain.
 - Full Lab units pass 707/707 under CI Node 22, zero skipped; approved Image contract passes 5/5. Local Node 24/Windows exposes an unchanged main one-tick Blob race in mood-preflight-speed (706/707); no assertion or timing altered.
 - Full Upscaler integration passes 34/34; public Studio passes 1440/390/320px with visual comparisons and private API isolation.
 - A separate uncommitted compatibility candidate combines PR #462 a33ca05 with this main and these tests; full units pass 714/714.

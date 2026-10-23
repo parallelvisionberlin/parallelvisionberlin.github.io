@@ -17,7 +17,9 @@ jobs:
         with:
           node-version: '22.16.0'
       - name: Recover approved source for visual comparison
-        run: git fetch --depth=1 origin ac33d20c50bdd88e71547e96a70781efae4b5a11
+        run: |
+          git fetch --depth=1 origin ac33d20c50bdd88e71547e96a70781efae4b5a11
+          git fetch --depth=1 origin 53037c6fabca91da82350ae3f3a4c5a5e2dd531f
       - name: Approved Image contract
         run: node --test tests/lab-approved-image-ui-contract.test.mjs
       - name: Install pinned browser runtime
@@ -28,7 +30,7 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-public-studio/node_modules/playwright/index.mjs
         run: node tests/lab-public-studio-ui.mjs
-      - name: Authenticated Retouch header gutter geometry
+      - name: Authenticated Retouch and Fashion header gutter geometry
         if: ${{ !cancelled() }}
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-public-studio/node_modules/playwright/index.mjs

@@ -11,7 +11,12 @@ const root=resolve('.');
 const headerGutterOnly=process.env.PV_HEADER_GUTTER_ONLY==='1';
 // Approved source before this fix, including the later locked Image and V28 Upscaler.
 const approvedRef='ac33d20c50bdd88e71547e96a70781efae4b5a11';
-const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
+const approvedPaths=['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/fashion-studio.js','lab/fashion.js'];
+const approvedFiles=new Map(approvedPaths.map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
+// Fashion's approved neutral composition uses its immutable main baseline,
+// before the guest gutter regression and this PR's loaded-state repair.
+const approvedFashionRef='53037c6fabca91da82350ae3f3a4c5a5e2dd531f';
+const approvedFashionFiles=new Map([...approvedPaths,'lab/fashion.css','lab/fashion.html'].map(path=>[path,execFileSync('git',['show',approvedFashionRef+':'+path])]));
 const account=`
 const state=window.__publicAccount||=(()=>{
   const listeners=[];
@@ -35,8 +40,9 @@ const server=http.createServer((req,res)=>{
   const path=resolve(root,'.'+decodeURIComponent(requestedPath));
   if(relative(root,path).startsWith('..')||!existsSync(path)||!statSync(path).isFile())return res.writeHead(404).end();
   res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.avif':'image/avif'})[extname(path)]||'application/octet-stream');
+  const baseline=req.headers['x-pv-approved-fashion']==='1'?approvedFashionFiles:approvedFiles;
   res.end(pathname==='/lab/native-account.js'?account:
-    req.headers['x-pv-approved-baseline']==='1'&&approvedFiles.has(requestedPath.slice(1))?approvedFiles.get(requestedPath.slice(1)):readFileSync(path));
+    req.headers['x-pv-approved-baseline']==='1'&&baseline.has(requestedPath.slice(1))?baseline.get(requestedPath.slice(1)):readFileSync(path));
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const base='http://127.0.0.1:'+server.address().port;
@@ -123,12 +129,14 @@ try{
       assert.deepEqual(requests,[],'guests must make no private API requests');
       // Compare the actual editorial regions with the approved implementation
       // recovered from Git, independently booted through its original auth path.
-      const baseline=await browser.newContext({viewport:{width,height:950},isMobile:width<700,hasTouch:width<700,reducedMotion:'reduce',extraHTTPHeaders:{'x-pv-approved-baseline':'1'}});
-      if(route!=='image')await baseline.addInitScript(()=>{window.__publicInitialRole='owner';});
+      const baseline=await browser.newContext({viewport:{width,height:950},isMobile:width<700,hasTouch:width<700,reducedMotion:'reduce',extraHTTPHeaders:{'x-pv-approved-baseline':'1','x-pv-approved-fashion':route==='fashion'?'1':'0'}});
+      if(!['image','fashion'].includes(route))await baseline.addInitScript(()=>{window.__publicInitialRole='owner';});
       const reference=await baseline.newPage();
+      const baselinePrivate=[];
       await baseline.route('https://**/*',async intercepted=>{
         const request=intercepted.request(),url=new URL(request.url());
         if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return intercepted.abort();
+        baselinePrivate.push(url.pathname);
         assert.equal(request.method(),'GET','baseline is read-only');
         const payload=url.pathname==='/api/session'?{owner:true,customer:false,config:{enabled:true,videoEngines:['seedance','wan'],falEnabled:true}}:
           url.pathname==='/api/fashion/models'?{models:[{id:'fashnmax',available:true}]}:
@@ -153,12 +161,8 @@ try{
       if(route==='fashion'){
         assert.equal(await page.locator('#fashion-studio .result-panel').isVisible(),false,'The approved public Fashion empty state has no invented output panel');
         assert.equal(await reference.locator('#fashion-studio .result-panel').isVisible(),false,'The independently booted approved source also hides an empty result');
-        // The old approved bootstrap needs Owner auth to enter Fashion. Match only
-        // its private archive visibility to the public editor being compared: the
-        // approved background gradient is sized to the entire content height.
-        assert.equal(await reference.locator('#fashion-studio #fashion-gallery').isVisible(),true,'The authenticated reference retains its private gallery before visual normalization');
-        await reference.locator('#fashion-studio #fashion-gallery').evaluate(el=>{el.hidden=true;});
-        assert.equal(await reference.locator('#fashion-studio #fashion-gallery').isVisible(),false);
+        assert.equal(await reference.locator('#fashion-studio #fashion-gallery').isVisible(),false,'The approved public Fashion reference hides private History');
+        assert.deepEqual(baselinePrivate,[],'The approved public Fashion reference requests no private API');
       }
       const regions={image:['#gate'],video:width>=700?['#video-model-control','#pv-video-reference-preview']:['#video-model-control','#video-modes','#reference-drop','#prompt'],upscale:['.pv-upscale-workspace-intro','#pv-upscale-dropzone'],retouch:['.precision-board'],fashion:['#fashion-studio .page-intro','#fashion-studio .image-pair','#fashion-studio .direction-block']};
       for(const [index,selector] of regions[route].entries()){
@@ -225,7 +229,7 @@ try{
     }
     // Actual sync() restores the requested destination for customers and owners.
     for(const role of ['customer','owner']){
-      for(const route of (headerGutterOnly?['retouch']:['video','upscale','retouch','fashion'])){
+      for(const route of (headerGutterOnly?['retouch','fashion']:['video','upscale','retouch','fashion'])){
         await page.goto(base+'/lab/studio.html?tool='+route);await settled(page,route);
         await page.evaluate(role=>window.__publicAccount.authorize(role),role);
         await settled(page,route,true);
@@ -242,20 +246,20 @@ try{
             const r=el.getBoundingClientRect();return {id,x:r.x,width:r.width,right:r.right};
           })
         }));
-        const imageHeader=route==='retouch'?await headerPositions():null;
+        const imageHeader=['retouch','fashion'].includes(route)?await headerPositions():null;
         await page.locator('#tool-'+route).click();await settled(page,route,true);
-        if(route==='retouch'&&width>=761){
-          const retouchHeader=await headerPositions();
-          assert.equal(retouchHeader.clientWidth,imageHeader.clientWidth,role+' Retouch keeps the Image scrollbar reservation at '+width);
+        if(['retouch','fashion'].includes(route)&&width>=761){
+          const toolHeader=await headerPositions();
+          assert.equal(toolHeader.clientWidth,imageHeader.clientWidth,role+' '+route+' keeps the Image scrollbar reservation at '+width);
           for(let i=0;i<imageHeader.controls.length;i++){
-            const before=imageHeader.controls[i],after=retouchHeader.controls[i];
+            const before=imageHeader.controls[i],after=toolHeader.controls[i];
             assert.equal(!!after,!!before,'Header control visibility stays unchanged');
             if(before)for(const key of ['x','width','right'])
-              assert.ok(Math.abs(before[key]-after[key])<0.5,role+' '+before.id+' '+key+' remains static entering Retouch at '+width);
+              assert.ok(Math.abs(before[key]-after[key])<0.5,role+' '+before.id+' '+key+' remains static entering '+route+' at '+width);
           }
           await page.locator('#tool-image').click();await page.locator('#image-composer').waitFor({state:'visible'});
           assert.deepEqual(await headerPositions(),imageHeader,'Returning to Image restores the same header positions');
-          await page.locator('#tool-retouch').click();await settled(page,'retouch',true);
+          await page.locator('#tool-'+route).click();await settled(page,route,true);
         }
         await fullPage(page,`test-results/studio-${role}-${route}-${width}.png`);
         if(route==='upscale'){
@@ -277,7 +281,7 @@ try{
     }
     assert.ok(writes.every(write=>write.signed&&write.path==='/api/quotes'),'Only existing authenticated automatic quote previews are permitted; no guest writes, uploads, generation, billing or provider mutations: '+JSON.stringify(writes));
     assert.deepEqual(errors,[]);
-    console.log(headerGutterOnly?`PASS Customer/Owner Retouch ${width}px: desktop header alignment when applicable, navigation, logout and API isolation`:`PASS public/signed-in Studio ${width}px: five approved decks, auth returns, tabs, Back/Forward, logout, API isolation`);
+    console.log(headerGutterOnly?`PASS Customer/Owner Retouch/Fashion ${width}px: desktop header alignment when applicable, navigation, logout and API isolation`:`PASS public/signed-in Studio ${width}px: five approved decks, auth returns, tabs, Back/Forward, logout, API isolation`);
     await context.close();
   }
 }finally{await browser.close();server.close();}
