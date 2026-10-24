@@ -13,7 +13,7 @@ const server=createServer(async(req,res)=>{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const origin='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
-const mock=`const listeners=[];const account={isSignedIn:true,user:{fullName:'Victoria Test'},session:{id:'synthetic',getToken:async()=>'test-token'},addListener(fn){listeners.push(fn)},openSignIn(){},async signOut(){this.isSignedIn=false;this.user=null;this.session=null;listeners.forEach(fn=>fn())}};window.mockAccount=account;export async function loadLabAccount(){return account}`;
+const mock=`const listeners=[];const account={isSignedIn:true,user:{id:'user_Synthetic',fullName:'Victoria Test'},session:{id:'synthetic',getToken:async()=>'test-token'},addListener(fn){listeners.push(fn)},openSignIn(){},async signOut(){this.isSignedIn=false;this.user=null;this.session=null;listeners.forEach(fn=>fn())}};window.mockAccount=account;export async function loadLabAccount(){return account}`;
 let checks=0;
 try{
   for(const width of [390,768,1440]){
@@ -74,6 +74,22 @@ try{
       assert.equal(await page.locator('#partner-content').isVisible(),false);checks++;
       assert.equal(await page.locator('#partner-rows').textContent(),'');checks++;
     }
+    hold=false;ownerView=true;allowed=true;
+    await page.goto(origin+'/lab/owner.html');
+    await page.locator('#owner-dashboard:not([hidden])').waitFor();
+    assert.equal(await page.locator('[data-owner-vitolas]').evaluateAll(links=>links.length===2&&links.every(link=>!link.hidden)),true);checks++;
+    const privateLink=page.locator(width<=900?'.owner-jumpbar [data-owner-vitolas]':'.owner-sidebar [data-owner-vitolas]');
+    assert.equal(await privateLink.isVisible(),true);checks++;
+    await page.screenshot({path:output+'/owner-navigation-'+width+'.png',fullPage:true});
+    await privateLink.click();await page.locator('#partner-content:not([hidden])').waitFor();
+    assert.equal(await page.locator('#partner-purchases').textContent(),'2');checks++;
+    ownerView=false;allowed=false;await page.goto(origin+'/lab/owner.html');
+    await page.waitForFunction(()=>document.querySelector('#owner-status').textContent.includes('reserved'));
+    assert.equal(await page.locator('[data-owner-vitolas]').evaluateAll(links=>links.every(link=>link.hidden)),true);checks++;
+    ownerView=true;allowed=true;await page.goto(origin+'/lab/owner.html');
+    await page.locator('#owner-dashboard:not([hidden])').waitFor();
+    await page.evaluate(()=>window.mockAccount.signOut());
+    assert.equal(await page.locator('[data-owner-vitolas]').evaluateAll(links=>links.every(link=>link.hidden)),true);checks++;
     assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);checks+=2;
     await context.close();
   }
