@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#101010">
+<title>Vitolas Studio / PV LAB</title>
+<link rel="icon" href="./branding/pv-mark.png" type="image/png">
+<link rel="stylesheet" href="./public-header.css?v=20261012-unified-header1">
+<link rel="stylesheet" href="./account-menu.css?v=20261022-bold-consistent1">
+<link rel="stylesheet" href="./account.css?v=20261014-delete-account1">
+<link rel="stylesheet" href="./vitolas-studio.css?v=20261024-1">
+</head>
+<body class="pv-account-page">
+<a class="account-skip" href="#partner-main">Ir al panel</a>
+<header class="landing-header landing-header--moods">
+  <div class="lab-home-group"><a class="lab-brand" href="./" aria-label="PV LAB inicio">PV LAB</a></div>
+  <div class="landing-header-actions">
+    <a class="studio-link" href="./studio.html">Abrir Studio</a>
+    <button id="partner-signin" class="lab-auth-link" type="button" disabled>Iniciar sesión</button>
+    <details id="account-menu" class="pv-account-menu" hidden>
+      <summary aria-label="Abrir menú de cuenta" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
+      <div class="pv-account-panel">
+        <div class="pv-account-details"><strong data-account-name></strong><small data-account-balance></small></div>
+        <a href="./account.html#balance">Credits &amp; billing</a>
+        <a href="./mood-creator.html#my-moods">My moods</a>
+        <a href="./account.html#referrals" data-account-referrals hidden>Invite friends</a>
+        <a href="./account.html#settings">Settings</a>
+        <button id="partner-signout" data-account-signout type="button">Sign out</button>
+      </div>
+    </details>
+  </div>
+</header>
+<main id="partner-main" class="account-shell partner-shell">
+  <div class="partner-heading"><p class="account-eyebrow">PV LAB / COLABORACIONES</p><h1>Vitolas Studio<span>.</span></h1><p>Tu comunidad. Tus campañas. Tus resultados.</p></div>
+  <p id="partner-status" class="account-status" role="status" aria-live="polite">Verificando tu acceso…</p>
+  <div id="partner-content" hidden>
+    <section class="partner-link" aria-labelledby="partner-link-title">
+      <div><p class="account-eyebrow">TU ENLACE PERSONAL</p><h2 id="partner-link-title">Todo empieza aquí.</h2><p>Compártelo para atribuir los nuevos registros a Vitolas Studio.</p></div>
+      <div class="partner-link-control"><label for="partner-url" class="partner-sr">Enlace de invitación</label><input id="partner-url" readonly type="url"><button id="partner-copy" class="account-button" type="button">Copiar enlace</button></div>
+    </section>
+    <section class="partner-metrics" aria-label="Resultados acumulados">
+      <div><span>Registros</span><strong id="partner-registered">0</strong></div>
+      <div><span>Clientes de pago</span><strong id="partner-paying">0</strong></div>
+      <div><span>Suscripciones activas</span><strong id="partner-subscribed">0</strong></div>
+      <div><span>Compras verificadas</span><strong id="partner-purchases">0</strong></div>
+    </section>
+    <section class="partner-customers" aria-labelledby="partner-customers-title">
+      <div class="partner-section-head"><h2 id="partner-customers-title">Personas que llegan contigo</h2><button id="partner-refresh" class="account-text-button" type="button">Actualizar</button></div>
+      <p class="account-muted">Las compras incluyen recargas y pagos de suscripción. Los datos de cuentas cerradas se anonimizan.</p>
+      <div class="partner-table-wrap"><table><thead><tr><th scope="col">Cuenta</th><th scope="col">Registro por tu enlace</th><th scope="col">Estado</th><th scope="col">Compras</th></tr></thead><tbody id="partner-rows"></tbody></table></div>
+      <button id="partner-more" class="account-button account-button-outline" type="button" hidden>Ver más</button>
+    </section>
+  </div>
+</main>
+<script type="module" src="./vitolas-studio.js?v=20261024-1"></script>
+</body>
+</html>
