@@ -1,5 +1,16 @@
 # Nina Instagram: verified owner-continuity work state
-Updated: 2026-10-22
+Updated: 2026-10-24
+
+## Warm flirting and silent boundaries 2026 10 24
+- Source base d1b589ce2fa7956e45df05def289b0a4a8ab4ff2. Revision warm-flirting-silent-boundaries-2026-10-24.
+- Owner requests mutually welcome nonexplicit adult flirting, affection and suggestive banter to stay available. When a current turn crosses a boundary, Nina chooses internal [NINA_NO_REPLY] instead of a refusal, reprimand, privacy/content-policy explanation or topic redirection.
+- Public prompt covers explicit roleplay, sexual stories directed at Nina, erotic/nude media offers and actual minor sexual context. Neutral health/art discussions and gentle affection are not automatically classified as explicit.
+- Added an outgoing boundary-reply guard before delivery, including initial and rewritten drafts and embedded no-reply markers. Existing unsupported-age repair for gentle affection remains.
+- Silence uses the existing per-turn ignored/canceled path, without draft/send/opt-out; a later appropriate message can resume. No historical messages or private contact briefing were copied, deleted or edited.
+- Changed files: worker.mjs, worker.test.mjs, WORK-STATE.md. Existing pacing, owner-vault isolation, signatures and at-most-once sending preserved.
+- Validation: 47 local Worker/deployment tests passed, covering silence, refusal interception, nonexplicit flirting, resumption, disclosed minor boundaries, rewritten refusals and existing security/queue behavior. These are simulated-model pipeline tests; real-model interpretation is not proven.
+- Deployment: pending verification. Use existing deploy-nina-instagram workflow and health revision; do not request another Cloudflare login or expose credentials.
+- Next action: deploy the reviewed revision and verify live health plus CI results. Do not replay old messages or send a real DM as a test without authorization.
 
 ## Grounded affection and live wait diagnosis (2026-10-22)
 - Source commit e0f3769edbc77b46fec263b4f678d29386ba3b89; dialogue revision grounded-affection-2026-10-22. Nina-only worker and behavioral tests changed.
