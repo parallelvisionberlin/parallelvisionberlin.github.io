@@ -33,10 +33,15 @@ cards.forEach(button=>button.addEventListener('click',()=>{
   // On phones bring the full editor and Generate button into view instead.
   if(window.matchMedia('(max-width:680px)').matches){
     if(document.activeElement===prompt)prompt.blur();
-    window.requestAnimationFrame(()=>composer?.scrollIntoView({
-      behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
-      block:'start'
-    }));
+    // The phone editor is viewport-fixed. Calling scrollIntoView() on it
+    // scrolls the document behind the dock and reveals an empty lower page.
+    // Nonfixed fallback layouts retain the original reveal behavior.
+    if(composer&&getComputedStyle(composer).position!=='fixed'){
+      window.requestAnimationFrame(()=>composer.scrollIntoView({
+        behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+        block:'start'
+      }));
+    }
   }
   // Desktop also keeps focus on the chosen card. Editing starts only after
   // the user intentionally clicks the prompt deck.
@@ -108,10 +113,14 @@ window.addEventListener('pagehide',()=>{
 moodButton?.addEventListener('click',()=>{
   const first=cards[0],carousel=document.getElementById('pv-guest-cards');
   if(!first||!carousel)return;
-  carousel.scrollIntoView({
-    behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
-    block:'center'
-  });
+  // Cards are already visible in the fixed phone entrance. Do not move the
+  // whole page while the user reaches for the Moods carousel.
+  if(getComputedStyle(composer).position!=='fixed'){
+    carousel.scrollIntoView({
+      behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+      block:'center'
+    });
+  }
   first.focus({preventScroll:true});
 });
 async function requestSignIn(){
