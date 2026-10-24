@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inflateSync} from 'node:zlib';
 import {readFileSync} from 'node:fs';
-import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION,photochemicalPixel,sourceLightWeight,printGradePng,luminousMaskPng,deluxeResponse,photochemicalPlan} from '../lab-worker/film-finish.mjs';
-import {filmFinishSettings,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF} from '../lab/film-finish.js';
+import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION,photochemicalPixel,earlyEightiesPrintPixel,sourceLightWeight,printGradePng,luminousMaskPng,deluxeResponse,photochemicalPlan} from '../lab-worker/film-finish.mjs';
+import {filmFinishSettings,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish} from '../lab/film-finish.js';
 import {prepareMoodPrompt,preparePersonalMoodPrompt} from '../lab/moods.js';
 
 test('grain is a valid non-tiled PNG, repeatable by image and scalable by strength',async()=>{
@@ -172,4 +172,65 @@ test('V3 promotion invalidates old derivatives and retains V6 as a reversible in
   assert.notDeepEqual(v6,v3,'V3 grade must not be a no-op alias of V6');
   assert.notEqual(await filmAssetId('owner','image',HONG_KONG_FILM_FINISH),
     await filmAssetId('owner','image',{...HONG_KONG_FILM_FINISH,film:95}));
+});
+
+test('80s Film 100% only: automatic finish never affects other moods, engines or reference-only images',()=>{
+  const base={type:'image',mode:'image',engine:'seedream',moodId:'80s-film',moodIntensity:100,
+    referenceMode:'base',referenceRoles:[{role:'base',name:'source.jpg'},{role:'style',name:'80s Film style'}]};
+  assert.deepEqual(eightiesBaseFinish(base),EIGHTIES_100_FILM_FINISH);
+  assert.equal(EIGHTIES_100_FILM_FINISH.grain,100);
+  assert.equal(EIGHTIES_100_FILM_FINISH.film,100);
+  assert.ok(EIGHTIES_100_FILM_FINISH.halation<35,'Keep highlight bloom source-driven');
+  for(const patch of [
+    {moodIntensity:99},{moodIntensity:60},{moodId:'hong-kong-nights'},{moodId:'dream-blur'},
+    {engine:'seedreamlite'},{engine:'gemini21'},{referenceMode:'references'},
+    {referenceRoles:[{role:'identity'}]},{referenceRoles:[]},{type:'video'},{mode:'upscale'}
+  ])assert.equal(eightiesBaseFinish({...base,...patch}),null,JSON.stringify(patch));
+  assert.deepEqual(HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,'Hong Kong remains opt-in and off by default');
+});
+
+test('early-80s print response changes color negative optics while keeping neutral grays, face and scene geometries untouched',()=>{
+  const black=earlyEightiesPrintPixel(0,0,0,1);
+  assert.deepEqual(black,[0,0,0]);
+  for(const n of [30,90,128,190,245]){
+    const gray=earlyEightiesPrintPixel(n,n,n,1);
+    assert.equal(gray[0],gray[1]);assert.equal(gray[1],gray[2]);
+    assert.ok(gray[0]>=0&&gray[0]<=255);
+  }
+  const modernPortrait=[204,157,134];
+  const print=earlyEightiesPrintPixel(...modernPortrait,1);
+  assert.notDeepEqual(print,modernPortrait,'A completed digital image gains a deterministic tonal difference');
+  assert.ok(print[0]>print[2],'Warm skin remains warm, never turns a teal uniform tint');
+  assert.ok(print[0]<255&&print[2]>0,'Color still has readable detail');
+  for(const rgb of [[3,2,2],[60,85,110],[122,155,129],[250,244,227]]){
+    const output=earlyEightiesPrintPixel(...rgb,1);
+    assert.ok(output.every(x=>Number.isInteger(x)&&x>=0&&x<=255));
+  }
+});
+
+test('80s derivative IDs are isolated from Hong Kong and repeat without another AI request',async()=>{
+  const owner='owner',original='image-id';
+  const h=await filmAssetId(owner,original,EIGHTIES_100_FILM_FINISH);
+  const e=await filmAssetId(owner,original,EIGHTIES_100_FILM_FINISH,'eighties');
+  assert.notEqual(h,e,'80s and Hong Kong rendering may never share a cached derivative');
+  assert.equal(e,await filmAssetId(owner,original,EIGHTIES_100_FILM_FINISH,'eighties'));
+  const cached={id:e,owner_id:owner,object_key:'private/film-finish/v10/'+e+'.png'};
+  const originalAsset={id:original,owner_id:owner,object_key:'private/output.png',bytes:1400};
+  const env={LAB_MEDIA:{head:async(key)=>key===cached.object_key?{size:2100}:null}};
+  assert.equal(await prepareFilmAsset(env,originalAsset,EIGHTIES_100_FILM_FINISH,{
+    first:async(_env,_query,id)=>id===e?cached:null,remaining:8000,variant:'eighties'
+  }),cached);
+});
+
+test('80s live/result plumbing retains original output and never invokes a second inference',()=>{
+  const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
+  const studio=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  assert.match(worker,/const eighties=eightiesBaseFinish\(params\)/);
+  assert.match(worker,/variant:eighties\?'eighties':'v10'/);
+  assert.match(worker,/Choose a completed Hong Kong Nights or 100% 80s Film Base image/);
+  assert.match(worker,/filmOriginalId:params\.filmOriginalId/);
+  assert.match(worker,/filmFinishStatus='failed'/);
+  assert.match(studio,/filmPanel\.hidden=!\(params\.moodId==='hong-kong-nights'\|\|eightiesBaseFinish\(params\)\)/);
+  assert.match(studio,/filmControls\.set\(params\.filmFinish\|\|\(eightiesBaseFinish\(params\)\?EIGHTIES_100_FILM_FINISH/);
+  assert.match(studio,/notify\('Film finish saved\. No new AI generation or credit charge\.'/);
 });
