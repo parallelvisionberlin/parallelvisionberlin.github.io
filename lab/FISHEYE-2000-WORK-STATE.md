@@ -1,3 +1,27 @@
+# Fisheye 2000 Mood: current work state
+
+## Active refinement, 2026-10-24
+
+- Objective: the owner found that applying Fisheye to an uploaded Base at 100% produced mainly lens distortion, with too little of the approved circa-2000 Japanese street atmosphere. Strengthen that Base workflow while preserving identity.
+- Starting main: `086d5b67731684d0617279a629414cfd546aef41`. This includes the separate Dream Blur maximum-Base refinement; preserve it.
+- Evidence: uploaded screenshots `image(20261024-002247).png` (`libfile_faac237a38a08191ba0731260ebabcfc`) and `image(20261024-002317).png` (`libfile_159a2be04c1c819188484d5971b64a4d`) show Seedream 5 Pro, Base photo, Fisheye 100%, same European cafe with a circular lens treatment.
+- Cause: Fisheye Base instructions explicitly locked the original location, prohibited Tokyo signage, and restricted its two Style notes to optics. Inspiration also instructed preserving the Base setting.
+- Approved change: intensity may now transform the environment. 1-34% retains place; 35-74% introduces restrained Japanese period detail into recognizable scene structure; 75-89% rebuilds surroundings as a circa-2000 Tokyo side street; 90-100% fully transforms the background into an old shopping alley.
+- Identity, facial features, natural skin tone, hair, body proportions, expression, people count, clothes, coverage and primary pose stay protected. Seats/supports/held objects remain spatially coherent. Explicit user location directions and assigned Environment references override the default Tokyo scene.
+- Whole-frame era treatment: muted green-warm negative-film dyes, integrated skin/shadow grain, soft magazine-scan contrast, restrained halation, raw direct flash and real 15mm depth. Signage belongs to the architecture; no generic cyberpunk, pseudo-lettering overlay or oversized black-circle substitute.
+- Reused both approved original photographs and photo-1 cover paths. No asset bytes, UI layout, pricing, models or other Mood recipes changed.
+- Recipe changes: `lab/moods.js`; the two existing Style notes: `lab/mood-references.js`; subject-neutral Inspiration direction: `lab/inspiration-looks.js`. Other modified application files only invalidate the affected module import chain with `fisheyeY2K=20261024v1`.
+- Verification: 53 focused tests pass, including five new Base-atmosphere regressions, full/Lite budgets with eight user photos plus both Style photos, explicit location/Environment priority, original-photo paths, reference deduplication, History privacy and approved Image UI contract.
+- Before/after verification: 6,300 cases confirm every other Mood object/prompt and Fisheye text-only/References Only recipe remain identical to starting main. Custom user text is retained verbatim; no recipe truncation.
+- Source integrated through PR #505: branch commit `488fa7d03f9c9940caece102906e3c28aa96d2d1`, main merge `fce168fc5c7d44d20da6a5c73e0eacbc56f2cf40`. GitHub private-lab (full Lab suite), reference/Worker compilation plus browser reference-deck workflow, approved-image-ui and static validate all passed.
+- Existing unrelated Assets/verify failure is identical on starting main and this branch: `tests/lab-assets-ui.cjs:140`, "Tools are hidden without an authenticated workspace". Baseline job 120719198362 and branch job 120726122318 confirm the same assertion. No gate was disabled or weakened.
+- Publication VERIFIED 2026-10-24 at 02:38 Europe/Berlin (00:38 UTC). Exact merge Cloudflare Pages check 120727313597 succeeded at 00:37:08 UTC for existing project pvlab-studio, deployment `115f4b1b-b341-4b1f-a62f-c60547400f92`. No manual deployment or authentication was needed.
+- Repository release verifier returned LIVE_VERIFIED for public /studio and lab.js at v=20261024-fashion-main1. SHA-256: `934b73193bf5f7d4b11ffd8d460e60ee49e3ad06049d1d2f7a08011b51dcf311`.
+- Independent fresh public requests returned HTTP 200 and exact reviewed-byte equality for /moods.js, /mood-references.js, /inspiration-looks.js and /studio-guest-image.js with fisheyeY2K=20261024v1. Core recipe SHA-256: `35a93c4bf6f15846af7d0c0c38a341979b8032124e63f3f5e30dc25a8ff6d981`. Thus this new Base recipe, not only the previous cover/card release, is confirmed live.
+- No paid provider generation or upload was submitted. Prompt/reference routing tests cannot prove final image quality; the owner's next real Base generation remains the visual check.
+
+## Historical release record
+
 # Fisheye 2000 Mood: implementation and safety
 
 Scope: additive seventeenth curated Mood for PV LAB, using the owner's two uploaded photographs only. No AI-generated imagery.

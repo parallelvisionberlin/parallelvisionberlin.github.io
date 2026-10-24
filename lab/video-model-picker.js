@@ -214,7 +214,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
 
   function show(){
     if(getBusy()||!isActive())return;
-    open=true;searchText='';search.value='';lastFingerprint='';
+    open=true;searchText='';search.value='';uncensoredOnly=false;lastFingerprint='';
     trigger.setAttribute('aria-expanded','true');
     popover.hidden=false;render();
     if(window.matchMedia('(hover: hover) and (pointer: fine)').matches)
