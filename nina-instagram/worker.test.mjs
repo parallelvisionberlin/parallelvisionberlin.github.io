@@ -44,6 +44,7 @@ test('explicit requests can choose silence for any visitor without contact setup
 test('sexual refusals and policy explanations are intercepted before any outgoing send',async()=>{
   for(const draft of [
     'Prefiero que no me mandes fotos eróticas.',
+    'No, prefiero que no me mandes eso.',
     'No puedo participar en conversaciones sexuales explícitas.',
     'I would rather not receive nude photos.',
     'Bitte keine Nacktfotos schicken.',
