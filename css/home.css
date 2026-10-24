@@ -2916,12 +2916,50 @@ footer {
 
 /* Berlin 2063 / living archive */
 .fashion-portal {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   padding: clamp(96px, 10vw, 140px) 0 clamp(104px, 10vw, 144px);
   border-bottom: 1px solid #111;
   background: #000;
 }
 
+/* Subtle campaign image behind the home portal, without changing its layout. */
+.fashion-portal-shadow {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fashion-portal-shadow img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 45%;
+  opacity: .62;
+  filter: grayscale(1) brightness(.72) contrast(1.16);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 74%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 74%, transparent);
+}
+
+.fashion-portal-shadow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    rgba(0,0,0,.94) 0%,
+    rgba(0,0,0,.72) 32%,
+    rgba(0,0,0,.56) 54%,
+    rgba(0,0,0,.8) 82%,
+    rgba(0,0,0,.96) 100%);
+}
+
 .fashion-portal-inner {
+  position: relative;
+  z-index: 1;
   width: min(1180px, calc(100% - 52px));
   margin: 0 auto;
   border-top: 1px solid rgba(255,255,255,.18);
@@ -3031,6 +3069,18 @@ footer {
 @media (max-width: 680px) {
   .fashion-portal {
     padding: 72px 0 88px;
+  }
+
+  .fashion-portal-shadow img {
+    object-position: 52% center;
+    opacity: .42;
+  }
+
+  .fashion-portal-shadow::after {
+    background: linear-gradient(180deg,
+      rgba(0,0,0,.78) 0%,
+      rgba(0,0,0,.88) 46%,
+      rgba(0,0,0,.96) 100%);
   }
 
   .fashion-portal-inner {
