@@ -210,3 +210,54 @@
   html:not(.pv-native-lab) #gate.pv-guest-image :is(#pv-guest-add,#pv-guest-library){width:33px}
   html:not(.pv-native-lab) #gate.pv-guest-image .composer-mood-control{flex-basis:71px}
 }
+
+/* 2026-10-24: guest Image on short Safari/in-app viewports.
+   The prompt is already a fixed dock. A 330px bottom content spacer plus
+   scrollIntoView on that fixed dock exposed a second, empty page. Keep the
+   resting editor in one viewport; unlock naturally for text focus, photo tray,
+   Options, closed-account recovery and shorter devices. Never target History. */
+@media(max-width:680px){
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-content{
+    padding-bottom:28px!important;
+  }
+}
+@media(max-width:680px) and (min-height:550px){
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))){
+    height:100dvh!important;overflow-y:hidden!important;
+    overscroll-behavior-y:none!important;scroll-behavior:auto!important;
+  }
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) body{
+    height:100dvh!important;max-height:100dvh!important;
+    overflow-x:hidden!important;overflow-y:hidden!important;
+    overscroll-behavior-y:none!important;
+  }
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) body>main#main{
+    box-sizing:border-box;height:calc(100dvh - 78px)!important;
+    min-height:0!important;max-height:none!important;overflow:hidden!important;
+  }
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image[data-guest-tool="image"]{
+    box-sizing:border-box;height:100%!important;min-height:0!important;
+    max-height:100%!important;overflow:hidden!important;
+  }
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image .pv-guest-content{
+    box-sizing:border-box;height:100%;min-height:0;overflow:visible;
+    padding-bottom:0!important;
+  }
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) body>footer.pv-lab-footer{display:none!important}
+}
+/* Keep both original photographs above the fixed editor when mobile browser
+   chrome reduces the usable height. Unaltered on normal/tall phones. */
+@media(max-width:680px) and (min-height:550px) and (max-height:689px){
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image .pv-guest-content{
+    padding-top:clamp(15px,3dvh,26px)!important;
+  }
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image h1{
+    margin-top:6px!important;
+  }
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image .pv-guest-cards{
+    margin-top:12px!important;
+  }
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image .pv-guest-card{
+    height:clamp(134px,calc(100dvh - 455px),195px)!important;
+  }
+}
