@@ -2,8 +2,9 @@
 // Version 1 remains readable for previously saved Hong Kong Nights results.
 export const FILM_FINISH_VERSION=2;
 export const FILM_FINISH_RENDER_REVISION=10;
-// Keep Film Finish available for deliberate use, but OFF on new Hong Kong jobs.
-export const HONG_KONG_FILM_FINISH=Object.freeze({version:2,grain:0,haze:0,halation:0,film:0});
+// Default photochemical treatment for NEW Hong Kong Nights generations.
+// Saved jobs retain their own settings; explicit zero values disable the finish.
+export const HONG_KONG_FILM_FINISH=Object.freeze({version:2,grain:13,haze:100,halation:78,film:100});
 export const FILM_FINISH_OFF=Object.freeze({version:2,grain:0,haze:0,halation:0,film:0});
 // Reuse the existing private R2 film renderer for 100% Seedream Base edits.
 // 1980s capture is an optical finish, not an additional AI generation.

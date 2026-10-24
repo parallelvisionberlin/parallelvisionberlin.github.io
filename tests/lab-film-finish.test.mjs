@@ -26,8 +26,8 @@ test('off bypasses processing and cached derivatives bypass all rendering',async
   const original={id:'original',owner_id:'owner',bytes:100,object_key:'owner/original'};
   assert.equal(await prepareFilmAsset({},original,{version:1,grain:0,glow:0},{}),original);
   const saved={id:'finished',owner_id:'owner',object_key:'owner/finished'};
-  assert.deepEqual(HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,'Restored Hong Kong must not reprocess AI results automatically');
-  assert.equal(await prepareFilmAsset({},original,HONG_KONG_FILM_FINISH,{}),original);
+  assert.notDeepEqual(HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,'New Hong Kong quotes use the approved preset; manual off remains available');
+  assert.equal(await prepareFilmAsset({},original,FILM_FINISH_OFF,{}),original);
   const manual={...HONG_KONG_FILM_FINISH,grain:50,haze:60};
   assert.equal(await prepareFilmAsset({LAB_MEDIA:{head:async()=>({size:100})}},original,manual,{first:async()=>saved}),saved);
   await assert.rejects(renderFilmFinish(null,new Uint8Array(),manual,'x'),/unavailable/);
@@ -108,11 +108,11 @@ test('deluxe photochemical response builds progressively above 70 without changi
   assert.equal(baseline.signature,0);
   assert.equal(baseline.hazeRadius,43);
   const newDefault=photochemicalPlan(HONG_KONG_FILM_FINISH);
-  assert.equal(newDefault.signature,0,'Automatic Film Finish must be completely disabled');
-  assert.equal(newDefault.hazeOpacity,0);
-  assert.equal(newDefault.halationOpacity,0);
-  assert.equal(newDefault.printOpacity,0);
-  assert.equal(newDefault.grainAmount,0);
+  assert.ok(newDefault.signature>0,'New Hong Kong uses strong luminous film optics');
+  assert.ok(newDefault.hazeOpacity>0);
+  assert.ok(newDefault.halationOpacity>0);
+  assert.ok(newDefault.printOpacity>0);
+  assert.ok(newDefault.grainAmount>0);
   const full=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100});
   const previous=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100},{engine:'v3'});
   assert.ok(full.diffusionOpacity<previous.diffusionOpacity*.5,'V8 must reduce whole-image blur');
@@ -186,7 +186,7 @@ test('80s Film 100% only: automatic finish never affects other moods, engines or
     {engine:'seedreamlite'},{engine:'gemini21'},{referenceMode:'references'},
     {referenceRoles:[{role:'identity'}]},{referenceRoles:[]},{type:'video'},{mode:'upscale'}
   ])assert.equal(eightiesBaseFinish({...base,...patch}),null,JSON.stringify(patch));
-  assert.deepEqual(HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,'Hong Kong remains opt-in and off by default');
+  assert.notDeepEqual(HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,'80s and Hong Kong defaults stay distinct');
 });
 
 test('early-80s print response changes color negative optics while keeping neutral grays, face and scene geometries untouched',()=>{

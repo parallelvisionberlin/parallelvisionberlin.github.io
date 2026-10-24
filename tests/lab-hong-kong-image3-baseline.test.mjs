@@ -43,7 +43,7 @@ test('Hong Kong Film Finish remains separate and the browser does not duplicate 
   const settings={type:'image',mode:'image',engine:'seedream',referenceMode:'base',
    referenceRoles:[{role:'base',name:'room.png',note:''}],prompt:r.prompt,...r.metadata};
   assert.deepEqual(moodReferencePlan(settings).references,[]);
-  assert.deepEqual(r.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
+  assert.deepEqual(r.metadata.filmFinish,{version:2,grain:13,haze:100,halation:78,film:100});
  }
  const a=moods.prepareMoodPrompt('Preserve the portrait.','hong-kong-nights',100,{engine:'seedream',referenceCount:1});
  const b=moods.prepareMoodPrompt('Preserve the portrait.','hong-kong-nights',100,

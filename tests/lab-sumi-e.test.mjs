@@ -97,6 +97,6 @@ test('Explicit outfit request, My Moods and other recipes remain compatible',()=
   assert.match(saved.prompt,/PV LAB MOOD \/ Japanese Sumi-e/);
   assert.ok(saved.prompt.startsWith(own+'\n\n'));
   assert.match(prepareMoodPrompt('portrait','kodak-gold',100).prompt,/visibly organic 35mm grain/);
-  assert.match(prepareMoodPrompt('portrait','hong-kong-nights',60).prompt,/Green belongs near physical light sources/);
+  assert.match(prepareMoodPrompt('portrait','hong-kong-nights',60).prompt,/Visible translucent petrol-green mist hangs in distant air/);
   assert.match(prepareMoodPrompt('portrait','hong-kong-nights',60).prompt,/MOOD STRENGTH 60\/100/);
 });

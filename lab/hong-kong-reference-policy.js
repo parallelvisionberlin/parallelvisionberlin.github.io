@@ -16,9 +16,9 @@ export function hongKongReferenceError(p={},count=0){
 }
 export function hongKongReferenceGuidance(userCount=0,compact=false){
  const a=userCount+1,b=userCount+2;
- if(compact)return 'HK STYLE REFERENCES '+a+'=City taxi (primary: tiny distant green practicals and dark gaps), '+b+'=Wet street (secondary: warm night reflections and localized lit humidity). Preserve Base, warm skin and deep blacks. No whole-frame green cast, invented neon or copied places.';
+ if(compact)return 'HK STYLE REFERENCES '+a+'=City taxi (primary: tiny distant green practicals and dark gaps), '+b+'=Wet street (secondary: warm night reflections and localized lit humidity). Preserve Base, warm skin and deep blacks. Visible green-lit humid depth only near existing lights; wet outside reflections, never a whole-frame green cast, invented neon or copied places.';
  return 'HONG KONG NIGHTS BUILT-IN REFERENCES '+a+', '+b+
  '. Reference '+a+' [City taxi / PRIMARY NIGHT DEPTH]: small distant green practical lights fade through real darkness, with deep neutral shadow and no green skin or green wash.'+
  ' Reference '+b+' [Wet street / SECONDARY ATMOSPHERE]: existing lamps illuminate humid depth and broken warm reflections on plausible wet outdoor paving only.'+
- ' The customer Base controls identity, pose, clothing, framing, camera and scene. Borrow optics only, never reference people, cars, places or signs. Preserve natural warm skin and unlit black pockets. No global green veil, fake fog or cyberpunk.';
+ ' The customer Base controls identity, pose, clothing, framing, camera and scene. Borrow optics only, never reference people, cars, places or signs. Make backlit green-tinted humid air visibly dimensional and outside ground gently rain-slick; keep natural warm skin and dark gaps. No flat green veil, opaque pasted fog or cyberpunk.';
 }
