@@ -1,30 +1,31 @@
 name: Reconcile isolated 80s recipe with current main
 on:
-  pull_request:
-    types: [synchronize]
+  push:
+    branches: ['fix/80s-film-early-tape-20261024']
     paths: ['.github/workflows/80s-film-sync-main.yml']
 permissions:
   contents: write
 jobs:
   reconcile:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/80s-film-early-tape-20261024'
+    if: github.ref == 'refs/heads/fix/80s-film-early-tape-20261024'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
       TARGET_MAIN: fce168fc5c7d44d20da6a5c73e0eacbc56f2cf40
       VERIFIED_80S: 7df36800bf89e27adb6092c26b0bb94eed3156d3
       TARGET_BRANCH: fix/80s-film-early-tape-20261024
-      EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+      EXPECTED_HEAD: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
+          ref: ${{ github.sha }}
+          fetch-depth: 20
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
       - name: Merge the pinned main and preserve both isolated recipes
         run: |
+          git fetch --depth=20 origin "$TARGET_MAIN"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git merge --no-commit --no-ff "$TARGET_MAIN" || test -n "$(git diff --name-only --diff-filter=U)"
