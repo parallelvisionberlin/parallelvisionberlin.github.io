@@ -268,11 +268,14 @@ const ALL_MOODS=Object.freeze([
     "name": "Hyper Pop",
     "category": "Experimental",
     "preview": "/lab/visuals/reptare-detail.webp",
-    "description": "Vivid editorial energy",
-    "direction": "Bold fashion-pop photographic treatment, saturated but controlled chromatic accents, luminous highlights, confident flash energy, sharp tactile subject detail, graphic composition, fine bloom and playful 2000s magazine sensibility.",
-    "subtle": "Slightly richer chroma and highlight energy without changing anything else.",
-    "intense": "Strong confident color separation, editorial flash and pop color treatments without skin artifacts.",
-    "avoid": "cheap overlays, emoji, oversaturation, plastic skin"
+    "description": "Liquid-chrome couture, sculptural white foam and reflective orb materials",
+    "defaultIntensity": 75,
+    "direction": "HYPER POP / MATERIAL COUTURE. Editorial fashion translated through physically believable flowing liquid chrome, polished mirror-alloy orbs, clustered ivory vapor-foam volumes and selective translucent bubble-glass accents. These materials belong to couture construction, wearable accessories and complementary set surfaces, not flat graphic overlays. Prioritize sculptural, body-aware styling, high-end early-2000s fashion photography, tactile reflections, controlled flash, genuine skin and natural detail. Base palette: silver, pearl white, charcoal, black; tiny icy-blue or warm practical reflections only when plausible. Person or main subject is the hero: fashion approximately 70%, supporting environment 30%. Never add a model or change the subject's gender by default.",
+    "subtle": "LOW 1-34: Editorial finish only. Preserve original wardrobe, person, composition and environment. Gently enrich existing metallic details, highlight separation and material gloss; no new outfit, foam buildup, spheres or invented set.",
+    "moderate": "MID 35-69: Translate material vocabulary into selected garment panels or accessories: liquid-alloy edging, a few sculptural ivory foam clusters and restrained integrated chrome-orb nodes. Echo one material on an appropriate existing background surface. Keep original outfit type recognizable and location intact.",
+    "intense": "HIGH 70-89: Reinterpret clothing as tailored liquid-metal couture with physically supported vapor-foam volumes around shoulder, torso or hips and embedded mirrored orbs. Form a coherent silhouette, not applied stickers. Echo materials in local floor reflections or set details while retaining original scene geometry and subject dominance.",
+    "climax": "MAXIMUM 90-100: Fully art-direct bespoke chrome-cloud couture around the existing person and pose: flowing mirror-alloy construction, couture-integrated foamy volumes, orb hardware and a few clear-glass details. Let these substances reshape compatible floor, wall or set surfaces, creating one connected fashion world. Outfit remains wearable and person visible; set supports the fashion. Preserve Base identity, anatomy, number of people, main pose, camera and essential scene geometry. No pasted elements or copied reference model.",
+    "avoid": "reference faces, copied reference garments or rooms, replaced identity, distorted anatomy, skin turned to metal, fake armor plating, floating chrome stickers, synthetic snow, bubble-wrap clutter, rainbow saturation, pink neon by default, cyberpunk clichés, childish Y2K icons, cheap overlays, plastic skin, illegible text and logos"
   },
   {
     "id": "sumi-ink",
@@ -455,6 +458,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   const compactSyntheticRomance=syntheticRomance;
   const compactDreamcore=dreamcore;
   const compact80s=cinematic80s&&lite;
+  const hyperPop=mood.id==='hyper-pop';
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';
   const dreamcoreKey=intensity<=34?'subtle':intensity<=69?'moderate':intensity<=89?'immersive':intensity<=99?'intense':'climax';
   const context=referenceCount===0?'No Base: use the written subject.':referenceMode==='references'?'Reference-only: follow requested output and explicitly assigned roles.':'Inspect the first Base image to choose PERSON or SCENE.';
@@ -471,7 +475,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     'SELECTED MORPHOLOGY: restrained facial modification with radical torso and arm reconstruction, layered smoked-metal plates and routed cables.'
   ];
   const syntheticMorphology=syntheticRomance&&intensity>=35?syntheticMorphologies[Math.floor((intensity-35)/13)%syntheticMorphologies.length]:'';
-  const style=syntheticRomance
+  const style=hyperPop
+    ?[mood.direction,'CREATIVE INTENSITY '+intensity+'/100: scale physical garment material reconstruction and coherent environment, NOT pixel opacity or a saturation filter.',intensity<=34?mood.subtle:intensity<=69?mood.moderate:intensity<=89?mood.intense:mood.climax].join(' ')
+    :syntheticRomance
     ?[compactSyntheticRomance?mood.compact:mood.direction,syntheticMorphology,'Creative intensity '+intensity+'/100: physical reconstruction, NOT a pixel filter.',compactSyntheticRomance?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]].join(' ')
     :berlinRave
     ?[compactBerlinRave?mood.compact:mood.direction,
@@ -528,6 +534,8 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   const preservation=referenceCount>0
     ?referenceMode==='references'
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
+      :hyperPop
+        ?'BASE PHOTO / IDENTITY AND CAMERA ANCHOR: preserve recognizable face, age, skin tone, hair, number of people, proportions, principal pose, lens angle, framing and essential scene geometry. The selected Mood explicitly authorizes graduated MATERIAL CHANGES to clothing and compatible surrounding surfaces at medium/high strength. At low strength original clothing and set remain. Style photographs inform material physics and tailoring vocabulary, NEVER their pictured models, faces, exact outfits or scenes. Honor explicit garment, body coverage, location and identity constraints. No extra people or anatomical change.'
       :syntheticRomance
         ?compactSyntheticRomance
           ?'Base: keep visible facial identity, subject count, proportions, pose, crop and camera. ALLOW replacement of wardrobe, skin, limbs and torso by machinery; high intensity allows industrial scene reconstruction. Honor explicit edits, assigned roles and Lock Identity.'
@@ -650,7 +658,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     'synthetic-romance':'Black chrome, human longing',
     'kodak-gold':'Golden color, organic grain',
     'frutiger-aero':'Translucent Y2K optimism',
-    'hyper-pop':'Vivid editorial energy',
+    'hyper-pop':'Chrome-cloud couture',
     'sumi-ink':'Black ink on warm washi'
   };
   const tabs=new Map(),cards=new Map();
