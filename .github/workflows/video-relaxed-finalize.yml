@@ -1,0 +1,85 @@
+name: Finalize scoped Video refinement
+on:
+  push:
+    branches: [codex/video-relaxed-20261024]
+    paths: [.github/workflows/video-relaxed-finalize.yml]
+permissions:
+  contents: write
+jobs:
+  refine:
+    if: github.repository == 'parallelvisionberlin/parallelvisionberlin.github.io' && github.ref == 'refs/heads/codex/video-relaxed-20261024'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/video-relaxed-20261024
+          fetch-depth: 15
+      - name: Refine presentation and preserve behavioral checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          p=Path('lab/video-relaxed-studio.css');s=p.read_text()
+          assert 'Label-width balance' not in s
+          prefix='html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-modes '
+          s+='\n/* Label-width balance: retain all native mode buttons and visibility rules. */\n'
+          for selector,rule in [('#mode-text','flex:.65 1 0!important;min-width:52px!important'),('#mode-start','flex:1 1 0!important;min-width:85px!important'),('#mode-reference','flex:1.25 1 0!important;min-width:103px!important')]:
+              s+=prefix+selector+'{'+rule+'}\n'
+          p.write_text(s)
+          p=Path('tests/lab-image-viewer-browser.mjs');s=p.read_text()
+          old=r'/video-android-trio-original\.png/'
+          assert s.count(old)==1,s.count(old)
+          s=s.replace(old,r'/video-subway-relaxed-approved\.png/')
+          p.write_text(s)
+          p=Path('tests/lab-studio-layout-ui.mjs');s=p.read_text()
+          # The relaxed settings body can legitimately scroll. Test fixed-dock
+          # routing from its non-scrollable Generate zone, while retaining and
+          # strengthening native body priority and boundary propagation below.
+          old="['.controls','#video-inspector','#studio-header','.stage']"
+          new="['.controls>.generate-zone','#video-inspector','#studio-header','.stage']"
+          if old in s:
+              assert s.count(old)==1
+              s=s.replace(old,new)
+          assert new in s,'Expected original wheel matrix'
+          marker="'Scrollable settings retain native wheel priority over History');"
+          assert s.count(marker)==1
+          extra="""
+            await x.page.evaluate(()=>{document.querySelector('.controls-body').scrollTop=100000;document.getElementById('video-feed-center').scrollTop=0;});
+            await x.page.mouse.wheel(0,350);
+            await x.page.waitForFunction(()=>document.getElementById('video-feed-center').scrollTop>100);
+            assert.ok(await x.page.locator('.controls-body').evaluate(el=>Math.abs(el.scrollHeight-el.clientHeight-el.scrollTop)<2),
+              'At the settings boundary, wheel reaches History without disturbing settings position');
+            await x.page.evaluate(()=>document.getElementById('video-feed-center').scrollTop=0);
+          """
+          s=s.replace(marker,marker+extra)
+          p.write_text(s)
+          for f in ['lab/lab.js','lab/video-editorial-deck.js','lab/video-scene-states.js','lab/video-model-picker.js','lab/fashion.html','lab/fashion.css','lab/fashion-studio.js']:
+              assert Path(f).read_bytes()==subprocess.check_output(['git','show','68d378180d95ec27e39032fe5a968ae7a0a0b81f:'+f]),f
+          PY
+          node --check tests/lab-studio-layout-ui.mjs
+          node --check tests/lab-image-viewer-browser.mjs
+          node --test tests/lab-video-relaxed.test.mjs tests/lab-video-compact.test.mjs tests/lab-video-approved-design.test.mjs tests/lab-approved-image-ui-contract.test.mjs
+          git diff --check
+          git add lab/video-relaxed-studio.css tests/lab-image-viewer-browser.mjs tests/lab-studio-layout-ui.mjs
+          git commit -m 'Video: fit mode labels and validate original native scrolling boundaries'
+          SNAPSHOT=$(git rev-parse HEAD)
+          export SNAPSHOT
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          p=Path('tests/lab-public-studio-ui.mjs');s=p.read_text()
+          old="const approvedVideoRef='368d0633f048f53dad973120ce1cc444a6c5b31d';"
+          assert s.count(old)==1
+          p.write_text(s.replace(old,"const approvedVideoRef='"+os.environ['SNAPSHOT']+"';"))
+          Path('docs/previews/video-relaxed-20261024/final-visual-ref.txt').write_text(os.environ['SNAPSHOT']+'\n')
+          PY
+          git add tests/lab-public-studio-ui.mjs docs/previews/video-relaxed-20261024/final-visual-ref.txt
+          git commit -m 'Freeze final approved Video surface for strict visual comparison'
+          git push origin HEAD:codex/video-relaxed-20261024
+          echo "APPROVED_VISUAL_REF=$SNAPSHOT"
+          echo "BRANCH_HEAD=$(git rev-parse HEAD)"
