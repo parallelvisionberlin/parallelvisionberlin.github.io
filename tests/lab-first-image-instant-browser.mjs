@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFileSync,existsSync} from 'node:fs';
-import {resolve,extname} from 'node:path';
+import {resolve,extname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
@@ -41,7 +41,7 @@ const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png'
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
   const file=resolve(root,'.'+pathname);
-  if(!file.startsWith(root+'/')||!existsSync(file)){res.writeHead(404).end();return;}
+  if(!file.startsWith(root+sep)||!existsSync(file)){res.writeHead(404).end();return;}
   res.setHeader('Content-Type',mime[extname(file)]||'text/plain');
   res.end(pathname==='/lab/lab.js'?mock:readFileSync(file));
 });
@@ -140,8 +140,9 @@ try{
       await p.waitForFunction(()=>!document.getElementById('pv-guest-composer').classList.contains('pv-deck-expanded'));
       assert.deepEqual(await frame(),closedFrame,'Public bar keeps its frame when closing at '+viewport.width+'px');
       await assertBackdropStill('Closing the public bar leaves the backdrop fixed');
-      await p.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole=new');
+      await p.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole=returning');
       await p.waitForFunction(()=>window.__welcomeMockReady===true);
+      assert.equal(await p.locator('#lab-credit-banner').isVisible(),false,'Backdrop-only comparison excludes the separately verified zero-credit notice');
       await p.evaluate(()=>document.fonts.ready);
       await assertBackdropStill('Public and signed-in entrances paint the same approved backdrop');
       assert.deepEqual(await entranceGeometry(false),publicGeometry,
@@ -278,16 +279,23 @@ try{
             if(banner){
               const notice=await rolePage.locator('#lab-credit-banner').evaluate(el=>{
                 const r=el.getBoundingClientRect(),style=getComputedStyle(el),deck=document.getElementById('image-composer').getBoundingClientRect();
-                return {position:style.position,top:r.top,bottom:r.bottom,height:r.height,viewport:innerHeight,deckBottom:deck.bottom};
+                return {position:style.position,top:r.top,bottom:r.bottom,height:r.height,viewport:innerHeight,deckBottom:deck.bottom,headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom,deckTop:deck.top};
               });
               assert.equal(notice.position,'fixed','The zero-credit notice floats outside the canonical Owner layout');
-              assert.ok(Math.abs(notice.bottom-notice.viewport)<2,'The notice sits at the viewport edge');
-              assert.ok(notice.top>notice.deckBottom,'The notice does not cover the prompt deck');
+              assert.ok(Math.abs(notice.top-notice.headerBottom)<2,'The approved credit notice sits directly below the masthead');
+              assert.ok(notice.bottom<=notice.deckTop,'The notice does not cover the prompt deck');
+            }
+            if(banner){
+              const dismiss=rolePage.getByRole('button',{name:'Dismiss credit notice',exact:true});
+              assert.equal(await dismiss.evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),true,'The approved overlay always exposes its dismiss action');
+              await dismiss.click();
+              assert.equal(await rolePage.locator('#lab-credit-banner').isVisible(),false,'Dismiss reveals the workspace toolbar');
             }
             assert.ok(await rolePage.evaluate(()=>['refresh','history-preview-toggle'].every(id=>{
               const el=document.getElementById(id),r=el.getBoundingClientRect();
               return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
-            })),'The credit notice never covers Refresh or the eye');
+            })),'Refresh and the eye remain accessible after dismissing the approved overlay '+JSON.stringify({role,viewport,banner}));
+            if(banner)await rolePage.evaluate(()=>{document.getElementById('lab-credit-banner').hidden=false;});
           }
           const before=await roleDeck.boundingBox(),photos=await rolePage.locator('#lab-welcome-presets').boundingBox();
           assert.ok(before.height>=73&&before.height<=75,role+' gets the approved compact toolbar row');

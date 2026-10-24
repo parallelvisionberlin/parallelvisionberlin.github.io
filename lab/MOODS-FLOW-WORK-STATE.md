@@ -1,3 +1,21 @@
+## Moods CI closeout, 2026-10-24
+
+- Objective: close the two inherited Mood-related failures left after published Video #506.
+- Source baseline: current main `44ed961f8badb8b49ed1e0083f20233239a82d29`.
+- Existing maintenance #482 already contains the targeted fixture repairs, but remains open and conflicting with later main. Reuse only the three relevant tests; do not integrate its unrelated product changes.
+- Product files, approved designs/artwork, navigation, scroll behavior, authentication, models, credits and prices remain byte-identical to baseline.
+- `tests/lab-mood-nav-browser.mjs`: extracted Explore header retains its actual body classes, including `mc-explore-page`, so page-scoped styles apply. All twelve-breakpoint overflow/alignment assertions remain.
+- `tests/lab-mobile-mood-entry.mjs`: synthetic boot completion removes `lab-booting`; expect composer/Generate inside viewport rather than arbitrary 250px scroll. Keyboard, readable prompt, header, desktop geometry and overflow assertions remain.
+- `tests/lab-first-image-instant-browser.mjs`: backdrop parity uses a returning customer without a zero-credit overlay; zero-credit customers remain separately tested with the approved notice directly below the masthead and an operable dismiss action. Pixel tolerances and price/submission/privacy checks remain.
+- Local browser suites PASS: mobile Mood entry + desktop welcome; shared masthead at twelve widths; full first-image quote/generation fixture with all four roles.
+- Mandatory Image contract + Inspiration tests: 18/18 PASS. Customer image quote guards: 9/9 PASS. Syntax and whitespace checks PASS.
+- Browser runtime: existing local Chromium adapter; final GitHub pinned-runtime CI is still required. No passing source is relabelled as paid-provider or real-account verification.
+- No skipped assertions, forced clicks, longer timeouts, workflow/protection edits, paid generations, purchases or credit grants.
+- Exact tested bytes are copied from #482; only this existing scoped checkpoint is additionally updated.
+- Publication of Video is already complete and unchanged; these are test-maintenance commits.
+- Final commit, CI and integration receipts are recorded in the closeout pull request. Before integration, status is pending.
+- Next: let the exact candidate finish CI, inspect any failure, then integrate these scoped test repairs under the owner's closeout instruction.
+
 # PV LAB / Explore Moods generation and Image return
 Updated: 2026-10-23
 
