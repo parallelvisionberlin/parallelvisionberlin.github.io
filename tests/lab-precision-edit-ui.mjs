@@ -45,7 +45,7 @@ try{
       if(path==='/api/precision/segment'&&method==='POST')
         return {requestId:'synthetic-request',ticket:'synthetic-ticket',expires:Date.now()+3600000};
       if(path.startsWith('/api/precision/segment?'))return {status:'completed',maskSourceId:'magic-mask'};
-      if(path==='/api/precision/quote')return {quoteId:'e38e4a07-4564-491a-9e1b-d2fd3a167411',ticket:'safe-quote',expiresAt:Date.now()+120000,estimatedUsd:.15,priceIsEstimate:true};
+      if(path==='/api/precision/quote')return {quoteId:'e38e4a07-4564-491a-9e1b-d2fd3a167411',ticket:'safe-quote',expiresAt:Date.now()+120000,estimatedUsd:.15,creditCost:window.pvCreditCost,priceIsEstimate:true};
       if(path==='/api/precision/submit')
         return {job:{id:'job-one',status:'queued',outputId:null,settings:{precisionEdit:true,precisionOriginalId:window.pvBaseId,maskSourceId:body.maskSourceId}}};
       if(path==='/api/jobs/job-one')
@@ -64,7 +64,7 @@ try{
       if(blobs.has(id))return blobs.get(id);
       throw new Error('Unknown asset '+id);
     };
-    const editor=createPrecisionEditor({host:document.querySelector('#app'),api,assetBlob,
+    const editor=createPrecisionEditor({customer:()=>!!window.pvCustomer,host:document.querySelector('#app'),api,assetBlob,
       uploadAsset:async file=>{const id=await store(file);if(file.name==='editorial.png')window.pvBaseId=id;if(file.name==='precision-selection.png')window.pvMaskId=id;return id;},
       notify:()=>{},owner:()=>true,falReady:()=>true,onExit:()=>{window.pvExits++;editor.close();},onJob:job=>window.pvJobs.push(job)});
     const file=new File([original],'editorial.png',{type:'image/png'});
@@ -217,6 +217,19 @@ try{
   assert.match(await page.locator('#precision-prompt').inputValue(),/Remove the selected object/);
   assert.equal(await page.evaluate(()=>window.pvRequests.length),beforeSample,
     'Idea suggestions are purely local and must not trigger a paid request');
+  const submittedBefore=await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length);
+  await page.evaluate(async()=>{window.pvCustomer=true;window.pvCreditCost=222;await window.pvEditor.open();});
+  await page.locator('#precision-generate').click();
+  await page.locator('#precision-price-review').waitFor({state:'visible'});
+  assert.match(await page.locator('#precision-review-body').innerText(),/222 PV credits/);
+  assert.doesNotMatch(await page.locator('#precision-review-body').innerText(),/[€$]|EUR|USD/);
+  assert.doesNotMatch(await page.locator('#precision-tool-magic').getAttribute('title'),/[€$]/);
+  await page.locator('#precision-review-cancel').click();
+  await page.evaluate(()=>{window.pvCreditCost=undefined;});
+  await page.locator('#precision-generate').click();
+  await page.waitForFunction(()=>document.getElementById('precision-status-text').textContent.includes('did not confirm a PV LAB credit price'));
+  assert.equal(await page.locator('#precision-price-review').isVisible(),false,'No dollar fallback for an invalid customer credit quote');
+  assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length),submittedBefore,'Review, cancel and invalid quotes never submit a customer job');
   assert.deepEqual(errors,[]);
   console.log('PASS Retouch V2: zoom/pan, paid-selection consent, mask edit, quote and nonblocking queue, exact PNG pixels, mobile controls');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

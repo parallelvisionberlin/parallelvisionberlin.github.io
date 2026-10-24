@@ -7,7 +7,8 @@
 - Image/Upscale submission notifications use quoted credits for customers; History, opening-frame and existing quote displays already use credits.
 - Billing, pricing, SKUs, quote binding/expiry, confirmation, wallet ledger, provider dispatch and backend prices are unchanged.
 - Browser regressions cover customer review/cancellation at 1440/390/320, customer model captions, retained owner USD review and Fashion customer credit review.
-- Local: syntax, credit-label tests and approved Image contract pass. Local Chromium download is blocked/truncated; browser checks run in existing CI.
+- Retouch customer review and Magic Select tooltips omit provider dollars; a missing/invalid credit amount blocks review and submission instead of falling back to dollars. Owner estimates remain.
+- Local: syntax, credit-label tests and approved Image contract pass. Broad Node 24 suite: 764/765; unchanged Mood preflight timing test failed as previously documented. Local Chromium download is blocked/truncated; browser checks run in existing CI.
 - Publication and exact-head CI pending. No real purchase, credit mutation or provider generation initiated.
 
 ## Reference invitation spacing and larger Generate, 2026-10-24
