@@ -9,8 +9,8 @@ Updated: 2026-10-24
 - Silence uses the existing per-turn ignored/canceled path, without draft/send/opt-out; a later appropriate message can resume. No historical messages or private contact briefing were copied, deleted or edited.
 - Changed files: worker.mjs, worker.test.mjs, WORK-STATE.md. Existing pacing, owner-vault isolation, signatures and at-most-once sending preserved.
 - Validation: 47 local Worker/deployment tests passed, covering silence, refusal interception, nonexplicit flirting, resumption, disclosed minor boundaries, rewritten refusals and existing security/queue behavior. These are simulated-model pipeline tests; real-model interpretation is not proven.
-- Deployment: pending verification. Use existing deploy-nina-instagram workflow and health revision; do not request another Cloudflare login or expose credentials.
-- Next action: deploy the reviewed revision and verify live health plus CI results. Do not replay old messages or send a real DM as a test without authorization.
+- Deployment VERIFIED 2026-10-24 at 01:39:17 UTC from merged source 8a37907024a3ab0ca6520814efef72d153613194 (PR #508). CI 47/47 passed: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40050646115. Version 6c84a286-6bd0-4274-a002-9bb957605681 at 100%, deployment a5a2256a-b9b1-41ad-ab66-fe47a20695e7. Health confirms warm-flirting-silent-boundaries-2026-10-24; settings, seven bindings and minute cron preserved. Direct model evaluation remains unavailable through the existing CI token.
+- Next action: observe a fresh naturally occurring DM to assess real-model tone and boundary detection. No real test DM was sent. Do not replay old messages or claim every model interpretation is proven by the simulated tests.
 
 ## Grounded affection and live wait diagnosis (2026-10-22)
 - Source commit e0f3769edbc77b46fec263b4f678d29386ba3b89; dialogue revision grounded-affection-2026-10-22. Nina-only worker and behavioral tests changed.
