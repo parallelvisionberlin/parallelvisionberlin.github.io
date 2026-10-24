@@ -16,6 +16,17 @@ const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-im
 // Keep the independent Image/Video/Upscaler/Retouch baseline unchanged.
 const fashionApprovedRef='a84f9ec2ead1c57288e91fec18cd7e06bb3bf2e1';
 const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
+// Preserve the approved Fashion layout reference while updating ONLY the
+// deliberate October 24 model-photo swap. Both baseline and actual load the
+// same new illustrative photos; full pixel comparisons still catch all UI drift.
+const fashionApprovedHtml=fashionApprovedFiles.get('lab/fashion.html').toString('utf8');
+const originalFashionHero='<img src="./visuals/fashion-replace/hero.webp" alt="" width="1672" height="941" fetchpriority="high" decoding="async">';
+const originalFashionPerson='<img class="slot-example person-example" src="./visuals/fashion-replace/hero.webp" alt="" width="1672" height="941" decoding="async">';
+assert.ok(fashionApprovedHtml.includes(originalFashionHero)&&fashionApprovedHtml.includes(originalFashionPerson),'Approved Fashion photo anchors still exist');
+const newFashionHero='<img src="./visuals/fashion-replace/hero-model-oct24.jpg" alt="" width="1672" height="941" fetchpriority="high" decoding="async">';
+const newFashionPerson='<img class="slot-example person-example" src="./visuals/fashion-replace/person-model-oct24.jpg" alt="" width="760" height="806" decoding="async">';
+fashionApprovedFiles.set('lab/fashion.html',Buffer.from(fashionApprovedHtml.replace(originalFashionHero,newFashionHero).replace(originalFashionPerson,newFashionPerson)));
+
 // The owner approved a new Video-only design in #496. Freeze that implemented
 // reference while retaining the original pixel baselines for every other tool.
 const approvedVideoRef='c65079e33a4c5be35cb36ceda963120787998fcf';
