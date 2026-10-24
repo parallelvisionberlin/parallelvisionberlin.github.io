@@ -60,7 +60,7 @@ test('supporting photographs are real, ordered, and never interpreted as Base id
   const p=plan('seedream',100);
   assert.deepEqual(p.curated.references.map(r=>r.url),[
     '/lab/visuals/reptare-detail.webp',
-    '/assets/optimized/02REPTARE.webp'
+    '/lab/visuals/studio-tools/video-liquid-dress.webp'
   ]);
   for(const ref of p.curated.references){
     assert.ok(existsSync(new URL('..'+ref.url,import.meta.url)),ref.url);
