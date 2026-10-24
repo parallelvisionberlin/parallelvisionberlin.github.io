@@ -270,6 +270,12 @@ const ALL_MOODS=Object.freeze([
     "preview": "/lab/visuals/reptare-detail.webp",
     "description": "Liquid-chrome couture, sculptural white foam and reflective orb materials",
     "defaultIntensity": 75,
+    "compact": "HYPER POP / CHROME CLOUD COUTURE. Physically believable liquid chrome, clustered ivory vapor foam and embedded mirror orb hardware, with occasional clear-glass details. Make new wearable tailoring and complementary set materials, silver/white/black, true skin, controlled editorial flash. Fashion dominates the setting; use references for material physics, not their people.",
+    "compactSubtle": "LOW: Keep source outfit and location. Improve metallic highlights only; no new foam or chrome outfit.",
+    "compactModerate": "MID: Add selected chrome garment panels, small sculptural foam and orb details, with one matching surface in the existing set. Keep recognizable garment type.",
+    "compactIntense": "HIGH: Make tailored liquid-alloy couture with physically integrated ivory foam and mirror orbs. Echo materials in plausible floor or set reflections without replacing the whole place.",
+    "compactClimax": "MAXIMUM: Build bespoke flowing chrome-cloud couture and a matching but subordinate material environment. Keep wearer visible, original camera, pose, recognizable identity and location geometry.",
+    "compactAvoid": "new face, copied reference outfit or model, new body, altered pose, fake armor, pasted floating spheres, snow, neon overlays, AI plastic skin",
     "direction": "HYPER POP / MATERIAL COUTURE. Editorial fashion translated through physically believable flowing liquid chrome, polished mirror-alloy orbs, clustered ivory vapor-foam volumes and selective translucent bubble-glass accents. These materials belong to couture construction, wearable accessories and complementary set surfaces, not flat graphic overlays. Prioritize sculptural, body-aware styling, high-end early-2000s fashion photography, tactile reflections, controlled flash, genuine skin and natural detail. Base palette: silver, pearl white, charcoal, black; tiny icy-blue or warm practical reflections only when plausible. Person or main subject is the hero: fashion approximately 70%, supporting environment 30%. Never add a model or change the subject's gender by default.",
     "subtle": "LOW 1-34: Editorial finish only. Preserve original wardrobe, person, composition and environment. Gently enrich existing metallic details, highlight separation and material gloss; no new outfit, foam buildup, spheres or invented set.",
     "moderate": "MID 35-69: Translate material vocabulary into selected garment panels or accessories: liquid-alloy edging, a few sculptural ivory foam clusters and restrained integrated chrome-orb nodes. Echo one material on an appropriate existing background surface. Keep original outfit type recognizable and location intact.",
@@ -459,6 +465,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   const compactDreamcore=dreamcore;
   const compact80s=cinematic80s&&lite;
   const hyperPop=mood.id==='hyper-pop';
+  const hyperLook=intensity<=34?(lite?mood.compactSubtle:mood.subtle):intensity<=69?(lite?mood.compactModerate:mood.moderate):intensity<=89?(lite?mood.compactIntense:mood.intense):(lite?mood.compactClimax:mood.climax);
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';
   const dreamcoreKey=intensity<=34?'subtle':intensity<=69?'moderate':intensity<=89?'immersive':intensity<=99?'intense':'climax';
   const context=referenceCount===0?'No Base: use the written subject.':referenceMode==='references'?'Reference-only: follow requested output and explicitly assigned roles.':'Inspect the first Base image to choose PERSON or SCENE.';
@@ -476,7 +483,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   ];
   const syntheticMorphology=syntheticRomance&&intensity>=35?syntheticMorphologies[Math.floor((intensity-35)/13)%syntheticMorphologies.length]:'';
   const style=hyperPop
-    ?[mood.direction,'CREATIVE INTENSITY '+intensity+'/100: scale physical garment material reconstruction and coherent environment, NOT pixel opacity or a saturation filter.',intensity<=34?mood.subtle:intensity<=69?mood.moderate:intensity<=89?mood.intense:mood.climax].join(' ')
+    ?[lite?mood.compact:mood.direction,'CREATIVE INTENSITY '+intensity+'/100: change wardrobe materials and matching local set, NOT a saturation filter.',hyperLook].join(' ')
     :syntheticRomance
     ?[compactSyntheticRomance?mood.compact:mood.direction,syntheticMorphology,'Creative intensity '+intensity+'/100: physical reconstruction, NOT a pixel filter.',compactSyntheticRomance?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]].join(' ')
     :berlinRave
@@ -535,7 +542,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     ?referenceMode==='references'
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
       :hyperPop
-        ?'BASE PHOTO / IDENTITY AND CAMERA ANCHOR: preserve recognizable face, age, skin tone, hair, number of people, proportions, principal pose, lens angle, framing and essential scene geometry. The selected Mood explicitly authorizes graduated MATERIAL CHANGES to clothing and compatible surrounding surfaces at medium/high strength. At low strength original clothing and set remain. Style photographs inform material physics and tailoring vocabulary, NEVER their pictured models, faces, exact outfits or scenes. Honor explicit garment, body coverage, location and identity constraints. No extra people or anatomical change.'
+        ?(lite?'BASE: keep recognizable face, skin, hair, number of people, body, pose, camera and scene geometry. At moderate/high strength ALLOW outfit and compatible background material transformation. Style sources only supply material vocabulary, never their person, exact garment or place. Respect explicit customer constraints.':'BASE PHOTO / IDENTITY AND CAMERA ANCHOR: preserve recognizable face, age, skin tone, hair, number of people, proportions, principal pose, lens angle, framing and essential scene geometry. The selected Mood explicitly authorizes graduated MATERIAL CHANGES to clothing and compatible surrounding surfaces at medium/high strength. At low strength original clothing and set remain. Style photographs inform material physics and tailoring vocabulary, NEVER their pictured models, faces, exact outfits or scenes. Honor explicit garment, body coverage, location and identity constraints. No extra people or anatomical change.')
       :syntheticRomance
         ?compactSyntheticRomance
           ?'Base: keep visible facial identity, subject count, proportions, pose, crop and camera. ALLOW replacement of wardrobe, skin, limbs and torso by machinery; high intensity allows industrial scene reconstruction. Honor explicit edits, assigned roles and Lock Identity.'
@@ -554,7 +561,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           ?'The first reference is the base photograph. Preserve identity, expression, hair, body, pose, camera, framing and actual place. '+(intensity>=70?'Only small period clothing details and already-visible modern objects may change; retain garment category, colors, material and coverage.':'Keep clothes and environmental details unchanged.')+' Explicit user instructions and assigned roles take priority.'
           :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
     :'Honor the requested subject and composition.';
-  const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamBlur||compactMidnight||ultraMidnight?mood.compactAvoid:compactHongKong?'flat green tint, direct flash unchanged, plastic skin, body halos, invented lamps, facial reshaping, flat fog, copied Style scenes':compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
+  const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamBlur||compactMidnight||ultraMidnight?mood.compactAvoid:compactHongKong?'flat green tint, direct flash unchanged, plastic skin, body halos, invented lamps, facial reshaping, flat fog, copied Style scenes':compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance||(hyperPop&&lite)?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
   const budget=lite?3000:5000,over=prompt.length-budget;
   return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,...(hkVariant?{moodVariant:hkVariant}:{}),...(finish?{filmFinish:finish}:{})},
     error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
