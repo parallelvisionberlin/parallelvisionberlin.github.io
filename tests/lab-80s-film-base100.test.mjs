@@ -24,7 +24,7 @@ test('100% Base also fits Seedream Lite and leaves explicit user directions inta
     const result=prepareMoodPrompt(original,'80s-film',100,{engine,referenceCount:1,referenceMode:'base'});
     assert.equal(result.error,'',engine);
     assert.ok(result.prompt.includes(original),engine);
-    assert.ok(result.prompt.includes('BASE PHOTO / 100% PRIORITY'),engine);
+    assert.ok(result.prompt.includes(engine==='seedream'?'BASE PHOTO / 100% PRIORITY':'100% / EARLY-80S TAPE'),engine);
     assert.ok(result.prompt.length<(engine==='seedreamlite'?3000:5000),engine);
   }
 });
