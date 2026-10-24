@@ -18,7 +18,7 @@ const fashionApprovedRef='a84f9ec2ead1c57288e91fec18cd7e06bb3bf2e1';
 const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
 // The owner approved a new Video-only design in #496. Freeze that implemented
 // reference while retaining the original pixel baselines for every other tool.
-const approvedVideoRef='368d0633f048f53dad973120ce1cc444a6c5b31d';
+const approvedVideoRef='c65079e33a4c5be35cb36ceda963120787998fcf';
 const approvedVideoFiles=new Map(['lab/lab.js','lab/studio.html','lab/video-compact-studio.css','lab/video-relaxed-studio.css','lab/video-editorial-deck.js','lab/video-scene-states.js'].map(path=>[path,execFileSync('git',['show',approvedVideoRef+':'+path])]));
 const account=`
 const state=window.__publicAccount||=(()=>{
