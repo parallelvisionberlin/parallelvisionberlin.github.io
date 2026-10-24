@@ -8,7 +8,7 @@ const root=resolve('.'),output=resolve('test-results/vitolas');await mkdir(outpu
 const server=createServer(async(req,res)=>{
   const path=resolve(root,'.'+new URL(req.url,'http://localhost').pathname);
   if(!path.startsWith(root+'/'))return res.writeHead(403).end();
-  try{res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.png':'image/png'})[extname(path)]||'application/octet-stream');res.end(await readFile(path));}catch{res.writeHead(404).end();}
+  try{res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.png':'image/png','.webp':'image/webp'})[extname(path)]||'application/octet-stream');res.end(await readFile(path));}catch{res.writeHead(404).end();}
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const origin='http://127.0.0.1:'+server.address().port;
@@ -16,7 +16,7 @@ const browser=await chromium.launch({headless:true});
 const mock=`const listeners=[];const account={isSignedIn:true,user:{id:'user_Synthetic',fullName:'Victoria Test'},session:{id:'synthetic',getToken:async()=>'test-token'},addListener(fn){listeners.push(fn)},openSignIn(){},async signOut(){this.isSignedIn=false;this.user=null;this.session=null;listeners.forEach(fn=>fn())}};window.mockAccount=account;export async function loadLabAccount(){return account}`;
 let checks=0;
 try{
-  for(const width of [390,768,1440]){
+  for(const width of [320,390,768,1440]){
     const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
     const errors=[],writes=[],requests=[];let allowed=true,hold=false,release,ownerView=false,awaitingPartner=false;
     page.on('pageerror',e=>errors.push(e.message));
@@ -35,6 +35,9 @@ try{
     });
     await page.goto(origin+'/lab/vitolas-studio.html');
     await page.locator('#partner-content:not([hidden])').waitFor();
+    await page.waitForFunction(()=>document.querySelector('.partner-hero-image').complete&&document.querySelector('.partner-hero-image').naturalWidth>0);
+    assert.equal(await page.locator('.partner-hero-image').evaluate(image=>image.naturalWidth>=1900),true);checks++;
+    assert.equal(await page.locator('#partner-title').evaluate(title=>{const hero=title.closest('.partner-hero').getBoundingClientRect(),box=title.getBoundingClientRect();return box.left>=hero.left&&box.right<=hero.right&&box.bottom<=hero.bottom}),true);checks++;
     assert.equal(await page.locator('#partner-rows').textContent().then(t=>t.includes('friend@example.test')),true);checks++;
     assert.equal(await page.locator('#partner-purchases').textContent(),'2');checks++;
     assert.equal(await page.locator('[data-account-admin]').isVisible(),false);checks++;
