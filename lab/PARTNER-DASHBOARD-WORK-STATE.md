@@ -8,8 +8,11 @@
 - Owner data scope resolves Victoria's approved verified email on the server, ignoring browser-supplied customer IDs.
 - Before Victoria's first login, owner sees an activation-pending message, with no fabricated link or counters.
 - No promotion of Victoria to owner, payouts, balance changes, email or schema migration.
-- Focused backend/security checks: 44 passed. Existing Worker suite: verification in progress.
-- Current extension status: prepared; browser CI and production publication pending.
+- Validation: 44 focused checks and 103 Worker tests passed; final browser run 40136336537 passed 81 assertions including actual Owner sign-in/menu/click-through, denied customers, pending activation and both-role logout races. Desktop/phone artifacts 12576849464 inspected.
+- Extension PR #534 published as dbf8e3ce8e8afed2aab7698c33bbc8032edc5919; reviewed head 17eb5224bbafa83a0c9b2b05feb28d09a629bb98.
+- Worker production run 40136458774 completed successfully, including deployment and health.
+- Scoped release verifier returned LIVE_VERIFIED for this merge; production Owner HTML/JS and Vitolas HTML/JS independently matched reviewed bytes (HTTP 200).
+- Current extension status: published. Actual Alejandro/Victoria production sessions have not been used; next real-account check is Owner Dashboard > Vitolas Studio.
 
 - Approved and published 2026-10-24: **Vitolas Studio**, for Victoria Caridad.
 - Authorized primary email is represented by SHA-256 in the Worker; no private address in public source.
