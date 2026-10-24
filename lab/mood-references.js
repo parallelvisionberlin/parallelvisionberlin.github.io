@@ -51,8 +51,8 @@ const FISHEYE_2000_REFERENCES=Object.freeze([
 const HYPER_POP_REFERENCES=Object.freeze([
   {file:'reptare-detail.webp',url:'/lab/visuals/reptare-detail.webp',type:'image/webp',
     note:'MATERIAL ONLY: study clustered ivory vapor foam, molten silver topography and embedded mirrored spheres. Transfer these textures into NEW garment structures and matching local set materials. Never import a person or exact outfit.'},
-  {file:'02REPTARE.webp',url:'/assets/optimized/02REPTARE.webp',type:'image/webp',
-    note:'COUTURE MATERIAL ONLY: use wearable liquid-chrome construction, supported foam volumes and integrated orb hardware as tailoring vocabulary. Do not copy reference face, person, exact dress, pose or studio.'}
+  {file:'video-liquid-dress.webp',url:'/lab/visuals/studio-tools/video-liquid-dress.webp',type:'image/webp',
+    note:'COUTURE MATERIAL ONLY: flowing reflective silver garment design and liquid-alloy pooling on the floor. Transfer material construction into new couture and coherent set surfaces. Do not copy the reference person, exact dress, pose or architecture.'}
 ].map(ref=>Object.freeze({...ref,
   label:Object.freeze({name:'Hyper Pop style - '+ref.file,role:'style',note:ref.note})
 })));
