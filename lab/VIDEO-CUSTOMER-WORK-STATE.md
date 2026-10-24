@@ -1,3 +1,24 @@
+## PR #506 release validation, 2026-10-24
+
+- Owner now authorizes validation, merge and the existing production publication procedure for #506.
+- Scope: preserve the approved charcoal Video design, original model selector, Create/Extend and Text/Start frame/Reference set.
+- Starting head: `da14b874956b12677df03f9e737e3cb561b43d1c`; integrated current main `3825d0435bb35ba0b9ed6e31a383905eecfec740` without conflicts.
+- Product diff against that main remains only `lab/studio.html` (one stylesheet link), `lab/video-relaxed-studio.css`, and `lab/visuals/video-subway-relaxed-approved.png`.
+- Only new test repair: `tests/lab-seedance-ui.mjs:80` expects `video-subway-relaxed-approved.png`; all source-media, History, mobile, permission and quote assertions remain.
+- Artwork SHA-256 remains `e5d8b8f5a46acaa9227dcaea9c37077174e60a77488b342bf7cbb1a5fbef17e4`; provenance is in `docs/previews/video-relaxed-20261024/`.
+- Current main independently fails mobile Mood entry at line 83, timeout 4000ms: run [40051438124](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40051438124), job 120744781016.
+- Current main independently fails Mood masthead viewport at 1920px, line 185: run [40051438077](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40051438077), job 120744780974.
+- These match #506 runs 40051270551 and 40051270535 exactly. Neither test file nor its product source is changed by #506; inherited failures are not repaired or relabelled passed here.
+- Node 22.16.0: all 742 Lab tests PASS, including Image contract, model capabilities, Worker/authentication, credits, billing and bound-price safeguards.
+- Local browser: Seedance 23/23, references 22/22, customer Video 18/18 at 1440/390/320px, guest/signed-in routing, full Studio layout including wheel propagation, short desktop and mobile PASS.
+- Browser fixture uses the existing local Chromium runtime; GitHub CI uses its pinned Playwright/Chromium. Final exact-head CI remains the release check.
+- Local Node 24 had one asynchronous Mood timing failure; configured CI Node 22.16.0 passes all 742. No assertion or timeout was changed.
+- Separate local first-image pixel comparison failed before its quote section. Its Image sources are byte-identical to main; do not claim that suite passed. Credit/price protections are covered independently above.
+- No real customer login, checkout, balance debit or paid provider generation was performed. Synthetic authentication and intercepted APIs are not live-account evidence.
+- Production status at this checkpoint: pending. Preview success is not production evidence.
+- Exact final head, final CI, merge SHA, Cloudflare deployment and custom-domain verification are recorded in [PR #506](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/506).
+- Next: finish final CI, merge only the validated candidate if permitted, follow `RELEASE-PROTOCOL.md`, then verify the exact stylesheet bytes and rendered Video on `pvlab.studio`.
+
 ## CI audit: PR #496 — 2026-10-24
 
 - Owner instruction: approved Video design is frozen; inspect only #496, compare four failed checks with main, fix only regressions introduced by #496. No new PR, merge or deployment.

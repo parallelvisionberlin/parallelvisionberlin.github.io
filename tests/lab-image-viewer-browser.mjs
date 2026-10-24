@@ -324,7 +324,7 @@ try{
     assert.equal(await page.locator('#pv-video-reference-preview img').count(),0,
       'An empty Video canvas never invents attached reference thumbnails');
     assert.match(await page.locator('.canvas').evaluate(el=>getComputedStyle(el,'::before').backgroundImage),
-      /video-android-trio-original\.png/,'The approved original is empty-canvas decoration only');
+      /video-subway-relaxed-approved\.png/,'The approved original is empty-canvas decoration only');
     assert.equal(await page.locator('#video-feed-center>.stage').isVisible(),width>820,
       'The decorative empty stage remains on desktop and disappears only on phones');
     if(shape==='landscape')await page.screenshot({path:`test-results/video-mobile-quiet-${width}.png`,fullPage:false});

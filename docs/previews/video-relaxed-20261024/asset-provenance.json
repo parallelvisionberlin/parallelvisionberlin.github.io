@@ -1,0 +1,12 @@
+{
+  "base": "086d5b67731684d0617279a629414cfd546aef41",
+  "source_size": [
+    932,
+    605
+  ],
+  "source_sha256": "594604b471ea3575b056a57b7def5f53841e9094898e53f9eaf9f218e9eba9b9",
+  "asset_sha256": "e5d8b8f5a46acaa9227dcaea9c37077174e60a77488b342bf7cbb1a5fbef17e4",
+  "original_upper_280px_identical": true,
+  "cleanup": "Only masked UI-overlay regions reconstructed; unmasked pixels retained exactly.",
+  "logic_changes": false
+}

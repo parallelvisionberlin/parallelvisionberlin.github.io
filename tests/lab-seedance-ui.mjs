@@ -77,7 +77,7 @@ try{
    visible:getComputedStyle(el,'::before').display,
    attached:document.getElementById('app').classList.contains('pv-video-has-input')
   }));
-  assert.match((await art()).image,/video-android-trio-original\.png/);
+  assert.match((await art()).image,/video-subway-relaxed-approved\.png/);
   assert.equal(await preview.page.locator('#pv-video-reference-preview img').count(),0,
    'Decorative artwork never becomes a reference or History item');
   assert.equal(await preview.page.locator('#history .card').count(),0);
