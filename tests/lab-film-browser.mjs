@@ -4,7 +4,7 @@ import http from 'node:http';
 import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {HONG_KONG_FILM_FINISH} from '../lab/film-finish.js';
+import {HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from '../lab/film-finish.js';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const start=source.indexOf('try{clerk=await loadLabAccount();'),end=source.indexOf('\n// Soul composer:',start);
@@ -39,7 +39,7 @@ try{
       if(request.method()==='POST'){
         writes.push(u.pathname);assert.equal(u.pathname,'/api/jobs/film-job/film-finish','Only pixel processing may be submitted');
         const data=request.postDataJSON();assert.equal(data.outputId,job.outputId);assert.equal(data.settings.version,2);assert.equal(data.settings.grain,85);assert.equal(data.settings.haze,40);assert.equal(data.settings.halation,HONG_KONG_FILM_FINISH.halation);assert.equal(data.settings.film,70);
-        job={...job,outputId:'finished',settings:{...job.settings,filmOriginalId:'original',filmFinish:data.settings,filmFinishStatus:'applied',filmFinishRevision:8}};return send({job});
+        job={...job,outputId:'finished',settings:{...job.settings,filmOriginalId:'original',filmFinish:data.settings,filmFinishStatus:'applied',filmFinishRevision:FILM_FINISH_RENDER_REVISION}};return send({job});
       }
       if(u.pathname==='/api/jobs')return send({jobs:[job],activeJobs:[],next:null});
       if(u.pathname.startsWith('/api/assets/')){const done=u.pathname.includes('/finished');return route.fulfill({contentType:done?'image/png':'image/jpeg',body:done?finished:original});}
