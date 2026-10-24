@@ -48,10 +48,10 @@ const FISHEYE_2000_REFERENCES=Object.freeze([
 
 // A single already-approved 80s Film card is reused only for analog optics at
 // 100% with a customer Base on Seedream Pro. Do not copy the pictured woman,
- // studio/nightlife setting or props into a customer's photograph.
+// studio/nightlife setting or props into a customer's photograph.
 const EIGHTIES_FILM_REFERENCES=Object.freeze([
   {file:'80s-film-20261011.jpg',url:'/lab/mood-previews/hd/80s-film-20261011.jpg',type:'image/jpeg',
-    note:'1981-1984 OPTICS ONLY: borrow the 35mm grain in shadow and skin, gentle lens softness, subdued photochemical colors and practical-light rolloff. Do NOT borrow its person, pose, face, outfit, cigarette, glass, night interior, lighting direction, composition or scene. The user Base controls subject and ORIGINAL location/time of day.'}
+    note:'OPTICS ONLY: borrow early-1980s grain, lens softness, photochemical color and highlight rolloff. Do NOT borrow its person, pose, face, outfit, cigarette, glass, night interior, light, framing or scene. The user Base controls subject, place, day/night and camera.'}
 ].map(ref=>Object.freeze({...ref,
   label:Object.freeze({name:'80s Film style - '+ref.file,role:'style',note:ref.note})
 })));
