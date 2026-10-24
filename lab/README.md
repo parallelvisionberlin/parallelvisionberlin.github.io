@@ -4,6 +4,7 @@
 The Image Studio History eye control visually hides saved generations, pending results and working photo thumbnails while showing the existing atmospheric background. The browser restores this preference before the studio paints. Hidden images and their generation records are neither changed nor deleted. The toggle affects Image Studio only and is not a security or data-privacy guarantee. See [IMAGE-DISCREET-WORK-STATE.md](IMAGE-DISCREET-WORK-STATE.md).
 
 # Parallel Vision Lab
+Homepage character creation invitation and Elements deep link: [Character homepage work state](CHARACTER-HOME-WORK-STATE.md).
 Homepage image-to-motion second-hero chapter: [Homepage showcase work state](HOME-SHOWCASE-WORK-STATE.md).
 
 Studio loading identity and motion work: [Studio boot work state](STUDIO-BOOT-WORK-STATE.md).
