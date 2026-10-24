@@ -1,0 +1,64 @@
+name: Verify corrected Photobooth focal-point specificity
+on:
+  push:
+    branches: ['fix/photobooth-arrows-soft-pastel-20261024']
+    paths: ['.github/workflows/photobooth-vector-polish-retry.yml']
+permissions:
+  contents: write
+jobs:
+  polish:
+    if: github.repository == 'parallelvisionberlin/parallelvisionberlin.github.io'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Reuse the exact guarded patch and browser assertions with the required CSS priority
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from textwrap import dedent
+          source=Path('.github/workflows/photobooth-vector-polish.yml').read_text()
+          def script(name):
+              marker='      - name: '+name+'\n        run: |\n'
+              assert source.count(marker)==1
+              return dedent(source.split(marker,1)[1].split('\n      - ',1)[0])
+          patch=script('Apply exactly the two approved presentation changes')
+          assert patch.count('object-position:50% 12%')==2
+          patch=patch.replace('object-position:50% 12%','object-position:50% 12%!important')
+          Path('/tmp/photobooth-apply.sh').write_text(patch)
+          Path('/tmp/photobooth-browser.sh').write_text(script('Compare real baseline and updated dialog geometry and capture original photos'))
+          PY
+          bash -e /tmp/photobooth-apply.sh
+      - name: Run all existing Node regressions without omissions
+        run: node --test tests/lab*.test.mjs > /tmp/photobooth-node-tests.log 2>&1 || { tail -180 /tmp/photobooth-node-tests.log; exit 1; }
+      - name: Install the same pinned browser
+        run: |
+          npm install --prefix /tmp/pv-photobooth --no-audit --no-fund playwright@1.57.0
+          node /tmp/pv-photobooth/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify all 15 baseline comparisons with unchanged geometry assertions
+        run: bash -e /tmp/photobooth-browser.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: photobooth-polish-verification
+          path: |
+            test-results/photobooth-polish/*.png
+            /tmp/photobooth-node-tests.log
+          retention-days: 2
+      - name: Commit only the two presentation files and regression test
+        run: |
+          test "$(git ls-remote origin refs/heads/fix/photobooth-arrows-soft-pastel-20261024 | cut -f1)" = "$GITHUB_SHA"
+          git diff --name-only | sort > /tmp/changed-paths
+          printf '%s\n' lab/explore-moods-photobooth.css lab/moods.html | diff - /tmp/changed-paths
+          git rm .github/workflows/photobooth-vector-polish.yml .github/workflows/photobooth-vector-polish-retry.yml
+          git add lab/explore-moods-photobooth.css lab/moods.html tests/lab-photobooth-polish.test.mjs
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Use monochrome Photobooth arrows and correct mobile-only Soft Pastel crop'
+          git push origin HEAD:refs/heads/fix/photobooth-arrows-soft-pastel-20261024
