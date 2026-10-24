@@ -487,7 +487,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
       ?[eightyCore,context,
         'Creative intensity '+intensity+'/100; cinematic generation instructions, NOT a pixel filter.',
         compact80s?mood['compact'+dreamcoreTier]:mood[dreamcoreKey],
-        intensity===100&&referenceCount>0&&referenceMode!=='references'?mood.baseClimax:''
+        intensity===100&&!compact80s&&referenceCount>0&&referenceMode!=='references'?mood.baseClimax:''
       ].filter(Boolean).join(' ')
       :dreamBlur
         ?[
