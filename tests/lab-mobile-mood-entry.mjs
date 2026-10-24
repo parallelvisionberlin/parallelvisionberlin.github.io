@@ -75,7 +75,25 @@ try{
       const before=await metrics();
       assert.equal(before.prompt.font,16,'Public phone prompt prevents undersized-input focus zoom');
       assert.ok(before.deck.x>=0&&before.deck.right<=width&&before.deck.bottom<=height,'Entire dock fits the phone');
-      assert.ok(before.doc<=width+1,'No page overflow');
+      assert.ok(before.doc<=width+1,'No horizontal page overflow');
+      await page.waitForFunction(()=>document.getElementById('studio-header')?.classList.contains('pv-mobile-entry-condensed'));
+      const resting=await page.evaluate(()=>{
+        const card=document.querySelector('#pv-guest-cards .pv-guest-card').getBoundingClientRect();
+        const deck=document.getElementById('pv-guest-composer').getBoundingClientRect();
+        const header=document.getElementById('studio-header').getBoundingClientRect();
+        return {rootOverflow:getComputedStyle(document.documentElement).overflowY,
+          bodyOverflow:getComputedStyle(document.body).overflowY,
+          scrollHeight:document.documentElement.scrollHeight,viewport:innerHeight,
+          scrollY:window.scrollY,cardBottom:card.bottom,deckTop:deck.top,
+          headerHeight:header.height};
+      });
+      assert.equal(resting.rootOverflow,'hidden','Guest Image must not scroll into an empty page: '+JSON.stringify(resting));
+      assert.equal(resting.bodyOverflow,'hidden','Body must not rubber-band: '+JSON.stringify(resting));
+      assert.ok(resting.scrollHeight<=height+4,'Resting guest Image fits the phone viewport: '+JSON.stringify(resting));
+      assert.ok(resting.cardBottom<resting.deckTop-3,'Mood photographs clear the fixed deck: '+JSON.stringify(resting));
+      assert.ok(resting.headerHeight>=76&&resting.headerHeight<=80,'Guest masthead stays stable: '+JSON.stringify(resting));
+      await page.mouse.wheel(0,950);
+      assert.equal(await page.evaluate(()=>window.scrollY),0,'A swipe cannot reveal blank space');
       for(const tool of before.tools){
         assert.ok(Math.abs(tool.y-before.tools[0].y)<2,'All five primary controls share one row: '+JSON.stringify(before));
         assert.ok(tool.width>0&&tool.right<=before.deck.right,'Every primary tool is visible');
@@ -83,12 +101,16 @@ try{
       assert.equal(await page.locator('#pv-guest-ratio').isVisible(),false,'Secondary controls start collapsed');
       await page.locator('#pv-guest-mobile-more').click();
       assert.equal(await page.locator('#pv-guest-mobile-more').getAttribute('aria-expanded'),'true');
+      assert.notEqual(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
+        'Options must unlock scrolling when the controls expand');
       for(const id of ['pv-guest-ratio','pv-guest-resolution','pv-guest-count'])
         assert.equal(await page.locator('#'+id).isVisible(),true,'Disclosure reveals '+id);
       await page.locator('#pv-guest-mobile-more').click();
       assert.equal(await page.locator('#pv-guest-count').isVisible(),false);
       const field=page.locator('#pv-guest-prompt');
       await field.fill('Photographic detail and natural texture. '.repeat(100));
+      assert.notEqual(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
+        'Text focus must allow keyboard-safe scrolling');
       let long=await metrics();
       assert.ok(long.prompt.height>=100&&long.prompt.height<=133,'Long public prompt stays bounded');
       assert.ok(long.generate.bottom<=height&&long.doc<=width+1,'Long prompt does not clip Generate or widen the page');
@@ -97,6 +119,21 @@ try{
       await field.fill('');await field.press('Tab');
       assert.ok(Math.abs((await metrics()).deck.height-before.deck.height)<2,'Clearing restores compact geometry');
       await page.screenshot({path:`test-results/mobile-image-guest-${width}-${height}.png`});
+      if(width===390&&height===600){
+        // The lock belongs to Image only. The public tool switch keeps its
+        // existing route and must restore scrolling and normal header spacing.
+        await page.locator('#tool-video').click();
+        await page.waitForFunction(()=>document.getElementById('gate').dataset.guestTool==='video'&&
+          !document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed'));
+        assert.notEqual(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
+          'Video does not inherit the guest Image scroll lock');
+        await page.locator('#tool-image').click();
+        await page.waitForFunction(()=>document.getElementById('gate').dataset.guestTool==='image'&&
+          document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed'));
+        await page.evaluate(()=>document.activeElement?.blur?.());
+        assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
+          'Image restores its stationary entrance after returning from Video');
+      }
       // Use the real authenticated shell/styles without a real account or API.
       await page.evaluate(()=>{
         document.getElementById('gate').hidden=true;
@@ -150,7 +187,7 @@ try{
       const header=document.getElementById('studio-header').getBoundingClientRect();
       return composer.top>=header.bottom-2&&composer.bottom<=innerHeight+2;
     },null,{timeout:4000});
-    await page.waitForFunction(()=>document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed')===(scrollY>110),null,{timeout:3000});
+    await page.waitForFunction(()=>document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed'),null,{timeout:3000});
     const state=await page.evaluate(()=>{
       const composer=document.getElementById('pv-guest-composer').getBoundingClientRect();
       const header=document.getElementById('studio-header').getBoundingClientRect();
@@ -159,6 +196,7 @@ try{
         viewportHeight:innerHeight,documentWidth:document.documentElement.scrollWidth,
         focusedId:document.activeElement?.id};
     });
+    assert.equal(state.scrollY,0,'Selecting an Inspiration card must not move the document behind the fixed dock');
     assert.ok(state.composerTop>=state.headerHeight-2&&state.generateBottom<=state.viewportHeight+2,
       'Selection brings the prompt into view below the compact header: '+JSON.stringify(state));
     assert.ok(state.generateBottom<=state.viewportHeight+2,
