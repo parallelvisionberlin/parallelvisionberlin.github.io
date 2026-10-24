@@ -1,24 +1,33 @@
 # Vitolas Studio partner dashboard
 
-- Approved 2026-10-24: Victoria Caridad's dashboard is named **Vitolas Studio**.
-- Authorized identity: exact verified primary email represented by SHA-256 in the Worker; no private address in public source.
-- Baseline reviewed: main `f7c114599f18cd450378932a02127bd407bb0547`.
-- Branch: `feature/vitolas-studio-20261024`.
-- Entry: `lab/vitolas-studio.html`; menu appears only from the server's partner descriptor.
-- Backend: `lab-worker/partner-dashboard.mjs`, authenticated `GET /api/customer/partner`.
-- Access rechecks Clerk's verified primary email for every dashboard/page request and resolves the dedicated Studio identity through existing links.
-- Session discovery reads the existing contact snapshot without waiting on Clerk. Existing background contact sync populates a first-login menu; opening the dashboard directly verifies first access.
-- Closed accounts, unverified/changed emails and failed upstream verification cannot read the dashboard.
-- Own referral scope comes only from the authenticated internal subject, never a query/body customer ID.
-- Reuses the existing stable invitation and attribution rules. No attribution or reward schema migration.
-- Lists attributed registrations, verified purchase count, paying customers, active subscriptions and paginated contacts.
-- Closed referred identities are anonymized. No images, prompts, provider costs or owner-wide customer data are returned.
-- Purchases are immutable verified purchase/subscription ledger entries, not promotional credits; totals cover every page.
-- Spanish interface, existing monochrome account styling, desktop/tablet/phone layout.
-- No commission, payout or monetary agreement has been defined or implemented.
-- No balance adjustment, real purchase, provider generation or outbound email performed.
-- 103 existing Worker tests passed; 40 focused security/referral/promotion/menu/Image checks passed locally.
-- New browser workflow covers authorized and denied views, phone/tablet/desktop geometry, logout cleanup and delayed-response identity changes with synthetic accounts.
-- Local browser download was unavailable; visual/browser checks must pass in CI before publication.
-- Current status: implementation prepared; production deployment and Victoria's actual account are unverified.
-- Next: run the partner browser workflow and relevant existing CI, review the screenshot artifacts, then publish the reviewed source and verify Worker/Pages separately.
+- Approved and published 2026-10-24: **Vitolas Studio**, for Victoria Caridad.
+- Authorized primary email is represented by SHA-256 in the Worker; no private address in public source.
+- PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/533
+- Reviewed code head: `550c90d8f401d3dbeda558adbf329b95983bdbb8`.
+- Production merge: `f59a75ab5ce3fde29cf35d314cc972ae0b585c18`.
+- Live entrance: https://pvlab.studio/vitolas-studio
+- Source: `lab/vitolas-studio.{html,css,js}`, `lab/account-menu.js`, `lab-worker/partner-dashboard.mjs`.
+- Authenticated read endpoint: `GET /api/customer/partner`.
+- Account-menu import/cache markers refreshed in account, homepage/Moods, Studio and Mood Creator.
+- Worker checks a freshly verified Clerk primary email on every dashboard/page request.
+- Dedicated Studio identity uses existing server-side identity links.
+- Session/menu discovery stays read-only and never waits on Clerk.
+- First-login contact discovery comes from existing background sync; direct dashboard access verifies and populates the menu immediately.
+- Closed accounts, unverified/changed emails and failed upstream verification cannot read partner data.
+- Referral scope is the authenticated internal subject, never a browser-supplied customer ID.
+- Existing stable referral link, attribution window and referral reward rules are reused unchanged.
+- Spanish panel: registrations, paying customers, active subscriptions, verified purchase counts and paginated contacts.
+- Closed referred identities are anonymized; prompts, media, provider finance and owner-wide data are excluded.
+- Purchase metrics use immutable verified purchase/subscription entries and aggregate all pages.
+- No commission or payout agreement has been defined or implemented.
+- No manual credit adjustment, real purchase, provider generation or outbound email was performed.
+- Local checks passed: 103 existing Worker tests plus 40 focused partner/referral/promotion/menu/Image checks.
+- Final partner workflow `40131708686` passed 42 browser assertions at 390/768/1440px.
+- Desktop/phone artifact `12575666321` inspected: contained layout, aligned header, protected roles and logout/stale-response cleanup.
+- Final full Lab/account/promotions/video checks passed; Upscaler passed one targeted infrastructure retry.
+- Two duplicated final browser installers were cancelled; the same compact Image/pricing scripts passed on parent `3e9721b`, with byte-identical shared app modules. Final delta was confined to new Vitolas header styling and passed its own browser suite.
+- Worker production run `40132488747` completed successfully, including health; deployed version ID `95e9bd55-fd5a-47c7-b064-38a10bcc74ba`.
+- Scoped release verifier returned `LIVE_VERIFIED` for production merge and `lab/lab.js`; SHA-256 `6852ec4ccf4cbfe2742026fc68f9f4e1de5a39df7b68d95c1ac2a1651e157bc2`.
+- New HTML/JS/CSS and account-menu bytes independently matched the reviewed files on pvlab.studio (HTTP 200).
+- Status: frontend and Worker published. Victoria's actual signed-in session and real referral/purchase flow remain unverified.
+- Next: Victoria signs in with the approved email, opens the panel, and copies her actual personal referral link. Keep commission decisions separate.
