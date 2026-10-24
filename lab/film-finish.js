@@ -5,6 +5,15 @@ export const FILM_FINISH_RENDER_REVISION=10;
 // Keep Film Finish available for deliberate use, but OFF on new Hong Kong jobs.
 export const HONG_KONG_FILM_FINISH=Object.freeze({version:2,grain:0,haze:0,halation:0,film:0});
 export const FILM_FINISH_OFF=Object.freeze({version:2,grain:0,haze:0,halation:0,film:0});
+// Reuse the existing private R2 film renderer for 100% Seedream Base edits.
+// 1980s capture is an optical finish, not an additional AI generation.
+export const EIGHTIES_100_FILM_FINISH=Object.freeze({version:2,grain:100,haze:22,halation:20,film:100});
+export function eightiesBaseFinish(settings={}){
+  return settings?.type==='image'&&settings.engine==='seedream'&&
+    settings.moodId==='80s-film'&&Number(settings.moodIntensity)===100&&
+    settings.referenceMode!=='references'&&settings.referenceRoles?.[0]?.role==='base'
+    ?EIGHTIES_100_FILM_FINISH:null;
+}
 const valid=n=>Number.isInteger(n)&&n>=0&&n<=100;
 export function filmFinishSettings(value){
   if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Choose supported film finish settings.');
