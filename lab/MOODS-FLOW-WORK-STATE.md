@@ -13,8 +13,10 @@
 - No skipped assertions, forced clicks, longer timeouts, workflow/protection edits, paid generations, purchases or credit grants.
 - Exact tested bytes are copied from #482; only this existing scoped checkpoint is additionally updated.
 - Publication of Video is already complete and unchanged; these are test-maintenance commits.
-- Final commit, CI and integration receipts are recorded in the closeout pull request. Before integration, status is pending.
-- Next: let the exact candidate finish CI, inspect any failure, then integrate these scoped test repairs under the owner's closeout instruction.
+- Complete: [PR #511](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/511) merged as `57eeed09ac86e1a30ca1f8433edeb7c71555ad75`, validated head `e050a3e07e6c5b9de0ecd58e834410282d39b691`.
+- All nine exact-head PR workflows PASS, zero failed/pending: Mood Creator [40079697665](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40079697665), first-image [40079697639](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40079697639), full Video [40079697678](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40079697678), public Studio visual/privacy [40079697668](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40079697668), references, Lab, Image contract, Motion Effects and static validation.
+- Application bytes still match baseline exactly; this maintenance has no user-facing production change. Video #506 remains the approved published design.
+- No remaining work for these two inherited failures. #482 stays separate with its other changes and later-main conflicts; its wider scope is not silently merged here.
 
 # PV LAB / Explore Moods generation and Image return
 Updated: 2026-10-23
