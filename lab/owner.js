@@ -428,7 +428,7 @@ function render(data){
       const copy=document.createElement('button');copy.type='button';copy.textContent='Copy link';copy.addEventListener('click',()=>void copyLink(voucher.url,copy));actions.append(copy);
       const disable=document.createElement('button');disable.type='button';disable.textContent='Deactivate';
       disable.addEventListener('click',()=>void deactivate(voucher.code,disable));actions.append(disable);
-    }else if(state==='Expired'){
+    }else if(state==='Expired'&&!full){
       const restore=document.createElement('button');restore.type='button';restore.textContent='Remove expiry';
       restore.addEventListener('click',()=>void restoreVoucher(voucher.code,restore));actions.append(restore);
     }else actions.textContent='—';
