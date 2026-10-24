@@ -1,5 +1,5 @@
-import {compileImagePrompt,normalizeReferenceLabel,referenceGuidanceError} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyBudget=20261018v1&fisheye=20261020v1&hkBalanced=20261023v1';
-import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1';
+import {compileImagePrompt,normalizeReferenceLabel,referenceGuidanceError} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1&refOnlyBudget=20261018v1&fisheye=20261020v1&hkBalanced=20261023v1&hkCinema=20261025v1';
+import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkCinema=20261025v1';
 
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.
