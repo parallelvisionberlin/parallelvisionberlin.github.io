@@ -48,8 +48,8 @@ test('one redemption credits the ledger once and does not oversubscribe the gift
   const voucher=(await (await f.admin('/api/admin/vouchers',{credits:200,maxRedemptions:1,code:'FRIEND200'})).json()).voucher;
   const response=await f.redeem('user_ALICE',voucher.code);
   assert.deepEqual(await response.json(),{redeemed:true,credits:200,balanceCredits:200});
-  await assert.rejects(()=>f.redeem('user_ALICE',voucher.code),/already redeemed|unavailable/);
-  await assert.rejects(()=>f.redeem('user_BOB',voucher.code),/unavailable/);
+  await assert.rejects(()=>f.redeem('user_ALICE',voucher.code),/already redeemed/);
+  await assert.rejects(()=>f.redeem('user_BOB',voucher.code),/redemption limit/);
   assert.equal(f.get("SELECT balance_credits AS balance FROM lab_customers WHERE id='user_ALICE'").balance,200);
   assert.equal(f.get("SELECT balance_credits AS balance FROM lab_customers WHERE id='user_BOB'").balance,0);
   assert.equal(f.get("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE reference LIKE 'voucher:%'").n,1);
@@ -67,7 +67,7 @@ test('voucher expiration, revocation, account closure and billing holds block gr
   await assert.rejects(()=>f.redeem('user_BOB','CAMPAIGN2026'),/cannot be redeemed/);
   const disabled=await f.admin('/api/admin/vouchers/deactivate',{code:'CAMPAIGN2026'});
   assert.equal((await disabled.json()).deactivated,true);
-  await assert.rejects(()=>f.redeem('user_CHARLIE','CAMPAIGN2026'),/unavailable/);
+  await assert.rejects(()=>f.redeem('user_CHARLIE','CAMPAIGN2026'),/deactivated/);
   assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_voucher_redemptions').n,0);
 });
 test('unused expired vouchers can be restored by the owner without altering credit balances',async t=>{
