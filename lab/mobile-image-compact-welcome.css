@@ -261,3 +261,12 @@
     height:clamp(134px,calc(100dvh - 455px),195px)!important;
   }
 }
+
+/* The Image masthead is now compact from first paint. Keep Sign in aligned
+   with Video/Upscaler/Fashion's existing 10px right inset on phones. */
+@media(max-width:680px){
+  body:has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden]))
+    >#studio-header.pv-mobile-entry-condensed .wrap.top{
+    padding-right:10px!important;
+  }
+}
