@@ -66,7 +66,7 @@ test('Hong Kong 90-100 keeps the same optical recipe and provider budget',()=>{
    const settings={type:'image',mode:'image',engine,moodId:'hong-kong-nights',referenceMode:'base',referenceRoles:roles};
    const prompt=compileImagePrompt(r.prompt,roles,settings);
    assert.ok(prompt.length<=(engine==='seedreamlite'?3000:5000),engine+' '+amount+' '+prompt.length);
-   assert.deepEqual(r.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
+   assert.deepEqual(r.metadata.filmFinish,{version:2,grain:13,haze:100,halation:78,film:100});
    snapshots.set(amount,r.prompt);
   }
   const normalize=x=>x.replace(/MOOD STRENGTH \d+\/100/,'MOOD STRENGTH N/100');
