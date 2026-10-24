@@ -1,0 +1,83 @@
+name: Stage approved Video visual assets
+on:
+  push:
+    branches: [codex/video-relaxed-20261024]
+    paths: [.github/workflows/video-relaxed-assemble.yml]
+permissions:
+  contents: write
+jobs:
+  stage:
+    if: github.repository == 'parallelvisionberlin/parallelvisionberlin.github.io' && github.ref == 'refs/heads/codex/video-relaxed-20261024'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/video-relaxed-20261024
+          fetch-depth: 1
+      - name: Fetch exact prepared presentation assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pv-relaxed
+          curl --fail --location --retry 2 --max-time 60 'https://at.adobe.com/2pNj4FFY8rM3FsJu' -o /tmp/pv-relaxed/style.css
+          echo 'f41710d243f2bdfd0c55b254f3a6fbc4f4da0337b49c1693e0d4d230ea15c2f9  /tmp/pv-relaxed/style.css' | sha256sum -c -
+          curl --fail --location --retry 2 --max-time 60 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:91f8b33c-68c5-4a02-83b2-8203852c1d42' -o /tmp/pv-relaxed/source.png
+          curl --fail --location --retry 2 --max-time 60 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:4039f17a-9839-4b81-b92c-41f4e1bdb7d2' -o /tmp/pv-relaxed/cleanup.png
+          python -m pip install --quiet Pillow==11.3.0
+      - name: Preserve source pixels and attach scoped presentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json, shutil, subprocess
+          from PIL import Image, ImageDraw, ImageFilter, ImageChops
+          tmp=Path('/tmp/pv-relaxed')
+          source=Image.open(tmp/'source.png').convert('RGB')
+          cleaned=Image.open(tmp/'cleanup.png').convert('RGB').resize(source.size,Image.Resampling.LANCZOS)
+          w,h=source.size
+          assert 900 <= w <= 950 and 580 <= h <= 630, source.size
+          # Only UI-covered pixels are reconstructed. Faces and all upper pixels
+          # are copied exactly from the owner's original generated mockup crop.
+          mask=Image.new('L',source.size,0)
+          d=ImageDraw.Draw(mask)
+          sx,sy=w/932,h/605
+          def box(coords): return tuple(round(v*(sx if i%2==0 else sy)) for i,v in enumerate(coords))
+          d.rounded_rectangle(box((139,291,791,575)),radius=11,outline=255,width=8)
+          for r in [(428,326,502,400),(330,409,606,443),(277,448,655,473),(361,476,568,524),(351,531,581,550)]:
+              d.rectangle(box(r),fill=255)
+          mask=mask.filter(ImageFilter.GaussianBlur(1.5))
+          out=Image.composite(cleaned,source,mask)
+          # Face/hair/eye pixels remain unchanged; no generative identity drift.
+          assert ImageChops.difference(out.crop((0,0,w,280)),source.crop((0,0,w,280))).getbbox() is None
+          art=Path('lab/visuals/video-subway-relaxed-approved.png')
+          art.parent.mkdir(parents=True,exist_ok=True)
+          out.save(art,optimize=True)
+          proof=Path('docs/previews/video-relaxed-20261024')
+          proof.mkdir(parents=True,exist_ok=True)
+          shutil.copyfile(tmp/'source.png',proof/'original-canvas-crop.png')
+          mask.save(proof/'ui-cleanup-mask.png')
+          shutil.copyfile(tmp/'style.css','lab/video-relaxed-studio.css')
+          html_path=Path('lab/studio.html')
+          html=html_path.read_text()
+          marker='<link rel="stylesheet" href="./video-compact-studio.css?v=20261023-approved1">'
+          assert html.count(marker)==1, 'Expected exact current compact CSS link'
+          html=html.replace(marker,marker+'\n<link rel="stylesheet" href="./video-relaxed-studio.css?v=20261024-relaxed1">')
+          html_path.write_text(html)
+          evidence={'base':'086d5b67731684d0617279a629414cfd546aef41','source_size':source.size,'source_sha256':hashlib.sha256((tmp/'source.png').read_bytes()).hexdigest(),'asset_sha256':hashlib.sha256(art.read_bytes()).hexdigest(),'original_upper_280px_identical':True,'cleanup':'Only masked UI-overlay regions reconstructed; unmasked pixels retained exactly.','logic_changes':False}
+          (proof/'asset-provenance.json').write_text(json.dumps(evidence,indent=2)+'\n')
+          print(json.dumps(evidence))
+          PY
+          git diff --check
+          git diff --stat
+      - name: Commit only staged Video presentation files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/video-relaxed-studio.css lab/studio.html lab/visuals/video-subway-relaxed-approved.png docs/previews/video-relaxed-20261024/
+          git commit -m 'Video: relaxed charcoal presentation and pixel-preserved approved subway artwork'
+          git push origin HEAD:codex/video-relaxed-20261024
+          echo "Prepared candidate $(git rev-parse HEAD)"
