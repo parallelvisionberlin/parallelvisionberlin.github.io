@@ -1,3 +1,15 @@
+# Dream Blur cover replacement, 2026-10-24
+
+- User selected the tilted-face blue light-trail artwork for Dream Blur.
+- Approved source: `42e2d5df-4fef-4d1c-82ff-e3f8bb3cfcc1.png`, Library ID `libfile_4adde8d7819881919b0b739219823a04`.
+- Baseline: `bd199302` on main; branch `fix/dream-blur-cover-20261024`.
+- One optimized 1122 × 1402 WebP, `lab/mood-previews/dream-blur-cover-20261024.webp`, used for both public/signed-in Inspiration cards, Explore Moods card and canonical selected-Mood preview.
+- Preserve the old JPEG for existing backgrounds and Video Effects. No Mood recipe, Style reference, default intensity, prompt, card geometry, credit, pricing or generation change.
+- Scope: `lab/studio.html`, `lab/moods.html`, `lab/moods.js`, relevant import cache keys in `lab/lab.js` and `lab/explore-moods.js`, new WebP and this note.
+- Local approved Image contract, Inspiration carousel/rotation and Mood tests passed: 61 tests.
+- Full first-image browser suite passed, including guest/new/returning/owner parity, desktop/mobile, focus and mocked quoted generation. Explore passed 18/19 scenarios; slowquote timing assertion (Generating vs Preparing) also fails on unchanged baseline. No test was weakened. CI/publication pending.
+- Next: complete browser checks, commit, open PR, inspect relevant CI, merge and verify Cloudflare plus live cover bytes on both pages.
+
 # Image entrance title-only cleanup, 2026-10-22
 
 - User approved the cleaner mockup, explicitly restricting this implementation to the header and preserving the deck and its processes.
