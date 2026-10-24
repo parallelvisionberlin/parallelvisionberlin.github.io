@@ -1,5 +1,16 @@
 # Image composer prompt: current state
 
+## Mobile guest/authenticated deck parity (2026-10-24)
+- Owner approved matching the logged-out Image phone deck to the existing signed-in instrument and fixing persistent focus zoom. Base: `fab0e4d8277f3cde6b5ea3bae22e5df1056f5340`.
+- Isolated branch `fix/mobile-image-guest-deck`; no merge/reuse of overlapping #373, #462 or #482. Their shared Studio files must preserve this markup and cache markers during later integration.
+- Public phone Image now uses the compact floating prompt, five primary controls, local photo upload, private-library sign-in gate, secondary-settings disclosure and full-width Generate. No account, API, quote, price, wallet, provider or Mood implementation changes.
+- Both web phone inputs use 16px text, preserving the viewport's normal pinch zoom. The native shell and desktop typography remain unchanged. At 320px the model flex basis no longer forces a primary control onto a second row.
+- Sources: `mobile-image-compact-welcome.css`, `mobile-composer-polish.js`, `studio.html`; cache version `20261024-guest-parity1`.
+- PASS approved Image contract 5/5, prompt paste/scroll, first-image credit/submit and desktop parity, complete Studio layout. Added browser checks at 320x740, 390x844, 430x932 and 390x600 for compact guest/signed geometry, 16px fields, disclosure, bounded long text, blur/clear, visible Generate and no horizontal overflow. Phone screenshots inspected.
+- Existing paste test now requires the explicitly approved 16px mobile font. Public mobile screenshot comparisons retain the independent original title/card baseline; the changed deck is protected by the direct guest/signed geometry and interaction checks. Desktop and other tools retain their pixel comparisons and original thresholds.
+- Tests use local media and synthetic states only. Physical iPhone keyboard/focus zoom remains a real-device verification limit, not a claim of a reproduced iOS session.
+- Publication and exact-head CI receipts will be recorded in the PR. Do not claim a commit is live until Cloudflare and custom-domain bytes are verified.
+
 ## Photo-only source-faithful anatomy correction (2026-10-22)
 - User reported a generated multi-person photograph that introduced an extra leg, changed a person's face/viewpoint and displaced a subject. Explicit request: implement a second correction directly in GitHub.
 - Root cause: the previous blank-Base prompt requested a visibly different scene and permitted new viewpoints, poses, wardrobes and environments without adequately protecting occluded anatomy.

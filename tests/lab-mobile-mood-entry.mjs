@@ -2,7 +2,7 @@
 // Uses the real published HTML, CSS and local scripts with authentication mocked away.
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {readFileSync,existsSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,extname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
@@ -44,7 +44,8 @@ async function openViewport(width,height){
        pathname.endsWith('/inspiration-looks.js')||
        pathname.endsWith('/inspiration-carousel.js')||
        pathname.endsWith('/studio-mobile-entry.js')||
-       pathname.endsWith('/image-editorial-deck.js'))return route.continue();
+       pathname.endsWith('/image-editorial-deck.js')||
+       pathname.endsWith('/mobile-composer-polish.js'))return route.continue();
     return route.fulfill({status:200,contentType:'text/javascript',body:''});
   });
   await page.route('https://**/*',route=>route.abort());
@@ -61,6 +62,67 @@ async function openViewport(width,height){
   return {page,context,errors};
 }
 try{
+  mkdirSync('test-results',{recursive:true});
+  for(const [width,height] of [[320,740],[390,844],[430,932],[390,600]]){
+    const {page,context,errors}=await openViewport(width,height);
+    try{
+      const metrics=()=>page.evaluate(()=>{
+        const rect=id=>{const e=document.getElementById(id),r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,font:parseFloat(getComputedStyle(e).fontSize)}};
+        return {deck:rect('pv-guest-composer'),prompt:rect('pv-guest-prompt'),generate:rect('pv-guest-generate'),
+          tools:['pv-guest-add','pv-guest-library','pv-guest-model','pv-guest-moods','pv-guest-mobile-more'].map(rect),
+          doc:document.documentElement.scrollWidth,viewport:innerWidth};
+      });
+      const before=await metrics();
+      assert.equal(before.prompt.font,16,'Public phone prompt prevents undersized-input focus zoom');
+      assert.ok(before.deck.x>=0&&before.deck.right<=width&&before.deck.bottom<=height,'Entire dock fits the phone');
+      assert.ok(before.doc<=width+1,'No page overflow');
+      for(const tool of before.tools){
+        assert.ok(Math.abs(tool.y-before.tools[0].y)<2,'All five primary controls share one row: '+JSON.stringify(before));
+        assert.ok(tool.width>0&&tool.right<=before.deck.right,'Every primary tool is visible');
+      }
+      assert.equal(await page.locator('#pv-guest-ratio').isVisible(),false,'Secondary controls start collapsed');
+      await page.locator('#pv-guest-mobile-more').click();
+      assert.equal(await page.locator('#pv-guest-mobile-more').getAttribute('aria-expanded'),'true');
+      for(const id of ['pv-guest-ratio','pv-guest-resolution','pv-guest-count'])
+        assert.equal(await page.locator('#'+id).isVisible(),true,'Disclosure reveals '+id);
+      await page.locator('#pv-guest-mobile-more').click();
+      assert.equal(await page.locator('#pv-guest-count').isVisible(),false);
+      const field=page.locator('#pv-guest-prompt');
+      await field.fill('Photographic detail and natural texture. '.repeat(100));
+      let long=await metrics();
+      assert.ok(long.prompt.height>=100&&long.prompt.height<=133,'Long public prompt stays bounded');
+      assert.ok(long.generate.bottom<=height&&long.doc<=width+1,'Long prompt does not clip Generate or widen the page');
+      await field.press('Tab');
+      assert.equal((await metrics()).prompt.font,16,'Blur preserves safe text size');
+      await field.fill('');await field.press('Tab');
+      assert.ok(Math.abs((await metrics()).deck.height-before.deck.height)<2,'Clearing restores compact geometry');
+      await page.screenshot({path:`test-results/mobile-image-guest-${width}-${height}.png`});
+      // Use the real authenticated shell/styles without a real account or API.
+      await page.evaluate(()=>{
+        document.getElementById('gate').hidden=true;
+        const app=document.getElementById('app');app.hidden=false;app.classList.add('image-studio-active');
+        document.getElementById('image-studio').hidden=false;
+        document.getElementById('image-composer').hidden=false;
+        document.getElementById('image-composer').classList.add('is-seedream');
+        document.getElementById('image-composer-references').hidden=true;
+      });
+      assert.equal(await page.locator('#image-composer-prompt').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)),16,'Authenticated phone prompt also avoids undersized text');
+      assert.equal(await page.locator('#image-composer-mobile-more').isVisible(),true);
+      const signed=await page.evaluate(()=>{
+        const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
+        return {deck:rect('image-composer'),tools:['image-composer-add','scene-image-open','image-composer-model','image-composer-moods','image-composer-mobile-more'].map(rect)};
+      });
+      assert.ok(Math.abs(signed.deck.height-before.deck.height)<=5,'Public and signed compact decks share their height');
+      assert.equal(signed.deck.width,before.deck.width,'Public and signed dock widths match');
+      for(let i=0;i<signed.tools.length;i++){
+        assert.ok(Math.abs(signed.tools[i].y-signed.tools[0].y)<2,'Signed primary controls also stay on one row');
+        assert.ok(Math.abs(signed.tools[i].width-before.tools[i].width)<=2,'Public and signed primary tool widths match: '+JSON.stringify({width,i,signed:signed.tools,guest:before.tools}));
+      }
+      await page.screenshot({path:`test-results/mobile-image-signed-${width}-${height}.png`});
+      assert.deepEqual(errors,[]);
+      console.log('PASS compact guest Image, disclosure, bounded text, blur/clear and signed font at '+width+'x'+height);
+    }finally{await context.close();}
+  }
   let {page,context,errors}=await openViewport(390,844);
   try{
     assert.equal(await page.locator('.pv-guest-card').count(),8);
