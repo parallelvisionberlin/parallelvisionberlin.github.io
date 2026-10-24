@@ -8,7 +8,8 @@
 - Scope: `lab/studio.html`, `lab/moods.html`, `lab/moods.js`, relevant import cache keys in `lab/lab.js` and `lab/explore-moods.js`, new WebP and this note.
 - Local approved Image contract, Inspiration carousel/rotation and Mood tests passed: 61 tests.
 - Full first-image browser suite passed, including guest/new/returning/owner parity, desktop/mobile, focus and mocked quoted generation. Explore passed 18/19 scenarios; slowquote timing assertion (Generating vs Preparing) also fails on unchanged baseline. No test was weakened. CI/publication pending.
-- Next: complete browser checks, commit, open PR, inspect relevant CI, merge and verify Cloudflare plus live cover bytes on both pages.
+- PR #521: remote head `67bb4da4` preserves the latest main circular hover arrow. GitHub approved Image contract, first-image browser and full source suite passed. Public visual baseline correctly detected the intentional image change; update only its two Dream Blur image URLs, retaining the original layout and pixel tolerances.
+- Next: finish updated public visual comparison, merge PR #521 after relevant checks and verify Cloudflare plus live cover bytes on both pages.
 
 # Image entrance title-only cleanup, 2026-10-22
 
