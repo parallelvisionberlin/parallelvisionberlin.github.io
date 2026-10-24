@@ -8,11 +8,11 @@
 - Preserve owner/session/busy/input-disabled guards, optional End frame, model-specific modes, authentication, prices and confirmed Video submission.
 - The shared canvas's existing Upscaler drop listener is now enabled only for Upscale, preventing its unrelated no-op action from locking out the Video drop. Other upload zones retain their existing handlers.
 - Add a restrained dashed drag hint and visible keyboard focus. Preserve approved artwork, dimensions, settings spacing, mobile layout and History.
-- Files: `lab/lab.js`, `lab/video-scene-states.js`, `lab/video-relaxed-studio.css`, `lab/studio.html`, `tests/lab-seedance-ui.mjs`.
+- Files: `lab/lab.js`, `lab/video-scene-states.js`, `lab/video-relaxed-studio.css`, `lab/studio.html`, `tests/lab-seedance-ui.mjs`, `tests/lab-public-studio-ui.mjs`.
 - Cache parameter on the three changed assets: `videoCanvasDrop=20261024v1` / `canvasDrop=20261024v1`; existing version parameters retained.
 - Existing browser suite adds mode-specific native-picker, plus/canvas drop, Start tile replacement, optional End frame, no automatic API calls and post-sign-out rejection assertions. Original assertions remain.
 - Local Node 22: 742/742 Lab tests PASS. Full Seedance browser: 27/27 PASS, customer Video: 18/18 PASS, affected Upscaler: 38/38 PASS. Original assertion/timeout/visual tolerances remain unchanged.
-- First exact-head public visual check exposed browser button font/shadow inheritance on the new accessible plus. Explicitly retain the original Arial/inherited spacing/shadow; revalidate the same approved Start canvas, with no baseline or tolerance change. Exact-head CI and production receipts belong below.
+- Public visual checks identified native-button font inheritance, then the intentionally added Reference plus. Retain original Arial/spacing/shadow. The independent old Video fixture adds only plus visibility in Reference/Extend; original Start pixels and every other baseline byte, comparison, region and tolerance remain unchanged. Exact-head CI and production receipts belong below.
 - No real customer login, private media, paid generation, purchase or credit transaction performed.
 - Publication pending: validate fixed candidate, merge normally, await exact Cloudflare Pages production check, verify asset bytes and rendered plus on `pvlab.studio`.
 
