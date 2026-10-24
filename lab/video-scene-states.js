@@ -105,7 +105,7 @@ function mountVideoSceneStates(){
     const values={
       text:['Describe the scene','Write the movement, setting and sound for your video.'],
       start:['Your next scene starts here','Choose an opening image to animate. Add an end frame only if you need a specific finish.'],
-      reference:['Guide the motion with references','Upload images or choose saved elements, then describe how they move and interact.'],
+      reference:['Animate your references',''],
       extend:['Continue the scene','Upload a clip and describe what happens next.']
     };
     const [heading,description]=values[mode]||values.start;

@@ -14,7 +14,7 @@ test('relaxed Video styling is scoped and retains native capability visibility',
   assert.match(css,/pv-video-output-collapsed/);
   assert.match(css,/:not\(\.pv-video-has-input\)/);
   assert.doesNotMatch(css,/#(?:mode-extend|video-model-control|video-model-trigger)[^{]*\{[^}]*display:none/);
-  assert.match(css,/height:44px!important;min-height:44px!important;font-size:14px/);
+  assert.match(css,/height:52px!important;min-height:52px!important;font-size:14px/);
 });
 test('approved subway artwork is local and locked, without replacing source-media logic',()=>{
   assert.equal(createHash('sha256').update(read('lab/visuals/video-subway-relaxed-approved.png')).digest('hex'),'e5d8b8f5a46acaa9227dcaea9c37077174e60a77488b342bf7cbb1a5fbef17e4');

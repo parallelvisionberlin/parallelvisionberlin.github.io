@@ -75,8 +75,8 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
 /* Do not expose capability-hidden controls or change disclosure behavior. */
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .controls-body.pv-video-output-collapsed>.parameter-grid,
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .controls-body.pv-video-output-collapsed>.parameter-grid:not(:has(#ratio-control[hidden])):not(:has(#pv-video-audio-pill[hidden])){display:none!important}
-html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout>.controls>.generate-zone{height:64px!important;min-height:64px!important;flex:0 0 64px!important;box-sizing:border-box;padding:8px 14px 12px!important;background:var(--pv-relaxed-panel)!important}
-html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout #generate{height:44px!important;min-height:44px!important;font-size:14px!important;border-radius:9px!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout>.controls>.generate-zone{height:64px!important;min-height:64px!important;flex:0 0 64px!important;box-sizing:border-box;padding:0 14px 12px!important;background:var(--pv-relaxed-panel)!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout #generate{height:52px!important;min-height:52px!important;font-size:14px!important;border-radius:9px!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .video-feed-center>.stage{background:var(--pv-relaxed-panel)!important;border-color:#303235!important;border-radius:10px!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact:not(.pv-video-has-input) .video-feed-center .canvas:has(>#empty:not([hidden])):before{background:linear-gradient(180deg,#0000 36%,#0008 78%,#000a),url('./visuals/video-subway-relaxed-approved.png') center/cover no-repeat!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .video-feed-center .canvas #empty{padding:24px 22px 48px!important}
@@ -126,3 +126,10 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
 html body #app.video-studio-active.pv-video-compact .pv-video-add-frame{padding:0!important;cursor:pointer;appearance:none;font-family:Arial,sans-serif!important;letter-spacing:inherit!important;text-shadow:inherit!important}
 html body #app.video-studio-active.pv-video-compact .pv-video-add-frame:focus-visible{outline:2px solid #fff;outline-offset:4px}
 html body #app.video-studio-active.pv-video-compact .canvas.pv-video-file-drag{outline:2px dashed #a4a4a0;outline-offset:-5px}
+
+/* Approved Reference invitation: three airy tiers, with no repeated paragraph. */
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .pv-video-start-visual:not([hidden]){margin-bottom:24px!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-title{margin-top:0!important;opacity:.9}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-description{display:none!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-actions{margin-top:24px!important;gap:16px!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-actions>button{height:48px!important;min-height:48px!important;padding:12px 24px!important}

@@ -1,3 +1,20 @@
+## Reference invitation spacing and larger Generate, 2026-10-24
+
+- Owner authorizes the last mockup plus 90% title opacity, implementation and publication.
+- Baseline current main: `2bd842e532d5c34cf4afcc30ea0dde96840d2eda`; isolated branch `polish/video-reference-air-20261024`. Older open Video PRs and unrelated work stay separate.
+- Generate is 52px, retaining its width, bottom edge, style and existing 64px dock. It grows into the previous 8px top padding, so settings space and scroll geometry are unchanged.
+- Reference-only heading: `Animate your references`; opacity .9. Remove the repeated description. Keep the plus and both existing actions.
+- Reference tiers: 24px plus-to-title, 24px title-to-actions; 16px between buttons, 48px action height and 24px horizontal padding. Reset the old 4px title margin so measured gaps match.
+- Synchronize only the Reference copy in the three existing writers: `lab.js`, `video-editorial-deck.js`, `video-scene-states.js`. No model/upload/quote/authentication/credit/pricing or submission handlers change.
+- Photo, stage dimensions/crop, sidebar layout, prompt size, History and original responsive stage policy remain. Approved artwork: `visuals/video-subway-relaxed-approved.png`, SHA-256 `e5d8b8f5a46acaa9227dcaea9c37077174e60a77488b342bf7cbb1a5fbef17e4`.
+- Product paths: the three JS files above, `video-relaxed-studio.css`, and version URLs in `studio.html`; new cache parameter `invitation=20261024v1` / `videoInvitation=20261024v1`.
+- Update only the approved Reference copy/styles in the independent old public visual fixture. All other baseline source, Start canvas, pixel regions, tolerances and privacy assertions remain. Existing ergonomic/layout copy expectations and the 52px button contract follow the explicit owner approval.
+- Existing Seedance matrix asserts 52px Generate, short Reference copy, hidden description, .9 opacity, exact tier/button gaps and previous fitted panels. Native plus/drop, optional End frame, every model mode and no automatic paid submission assertions remain.
+- Local Node22: 759/759 PASS; full Seedance matrix 27/27 PASS; customer Video 18/18 PASS; Studio layout PASS, including fixed dock, short desktop, wheel navigation and mobile. Final screenshot reviewed at 1440x900.
+- Local public comparison passed affected desktop Video regions, then hit the previously observed disabled Retouch fixture timeout with the alternate local Chromium. No Retouch assertion or timeout changed; pinned exact-head CI is the release gate.
+- No real login, private media, paid generation, purchase or credit transaction performed. All local media/accounts/APIs are synthetic.
+- Publication pending: validate the fixed candidate, normal merge, exact Cloudflare Pages `pvlab-studio` check, production-byte verification and actual rendered Reference/Generate inspection on `pvlab.studio`.
+
 ## Video canvas plus and file drop, 2026-10-24
 
 - Owner request: keep the approved plus visible in the empty media modes and allow image drops on both the Start frame tile and the photographic canvas/plus.

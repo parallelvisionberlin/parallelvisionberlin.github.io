@@ -153,9 +153,9 @@ function installVideoEditorialDeck(){
     // Never claim an illustrative montage is the user's generated result.
     const mode=activeMode();
     if(mode==='reference'&&doc.getElementById('empty-title')){
-      doc.getElementById('empty-title').textContent='Guide the motion with references';
+      doc.getElementById('empty-title').textContent='Animate your references';
       const subtitle=doc.getElementById('empty-description');
-      if(subtitle)subtitle.textContent='Upload images or choose saved elements, then describe how they move and interact.';
+      if(subtitle)subtitle.textContent='';
       doc.getElementById('empty')?.classList.add('pv-video-references-empty');
     }else{
       doc.getElementById('empty')?.classList.remove('pv-video-references-empty');

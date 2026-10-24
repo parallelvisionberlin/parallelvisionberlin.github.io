@@ -79,11 +79,11 @@ test('mode naming, compact Video rail and mode-specific preview copy are Video-o
   assert.equal((html.match(/<h3>Attached images<\/h3>/g)||[]).length,2);
   assert.match(app,/isVideo\?'Upload images':'Add identity, wardrobe or set references'/);
   assert.match(app,/isVideo\?'Reference set':'References'/);
-  assert.match(app,/title:'Guide the motion with references'/);
+  assert.match(app,/title:'Animate your references'/);
   assert.match(app,/title:'Describe the scene'/);
   assert.match(scene,/text:\['Describe the scene'/);
-  assert.match(scene,/reference:\['Guide the motion with references'/);
-  assert.match(editor,/textContent='Guide the motion with references'/);
+  assert.match(scene,/reference:\['Animate your references'/);
+  assert.match(editor,/textContent='Animate your references'/);
   assert.match(css,/content:"Upload images"!important/);
   assert.match(css,/grid-template-columns:clamp\(360px,29\.5vw,400px\)/);
   assert.match(css,/grid-template-columns:clamp\(304px,31vw,348px\)/);
