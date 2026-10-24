@@ -612,13 +612,7 @@
 .mc-explore-page .mc-look-card[data-mood-id="dream-blur"] .mc-look-index{top:15px;bottom:auto;left:16px;color:#f4f7faad;font-size:10px;letter-spacing:.22em}
 .mc-explore-page .mc-look-card[data-mood-id="dream-blur"] .mc-look-copy{left:16px;bottom:62px}
 .mc-explore-page .mc-look-card[data-mood-id="dream-blur"]>small{left:16px;right:12px;bottom:42px;color:#e5f0f5;font-size:clamp(8px,.76vw,10px);font-weight:500;letter-spacing:.13em}
-.mc-explore-page .mc-look-card[data-mood-id="dream-blur"] .mc-look-try{
-  right:10px;bottom:8px;display:grid;place-items:center;padding:0;width:35px;height:35px;
-  border:1px solid #f5f9f9b0;background:#060e18a8;color:#fff;font-size:0;
-  opacity:1;transform:none;transition:background .2s,border-color .2s,transform .2s
-}
-.mc-explore-page .mc-look-card[data-mood-id="dream-blur"] .mc-look-try .pv-arrow{width:16px;height:16px}
-.mc-explore-page .mc-look-card[data-mood-id="dream-blur"]:hover .mc-look-try{background:#e7f0f5;color:#0b1319;transform:translateX(2px)}
+/* Dream Blur uses the shared dark circular CTA, including hover, focus and touch behavior. */
 #mc-look-preview[data-mood-id="dream-blur"]{object-position:50% 41%}
 
 /* The Dream Blur caption now inherits precisely the other Mood captions. */
