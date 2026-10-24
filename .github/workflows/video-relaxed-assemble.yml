@@ -14,8 +14,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: codex/video-relaxed-20261024
-          fetch-depth: 5
-      - name: Update only approved visual expectations and preserve every functional assertion
+          fetch-depth: 8
+      - name: Align exact approved geometry without changing functional assertions
         shell: bash
         run: |
           set -euo pipefail
@@ -28,12 +28,9 @@ jobs:
                   assert s.count(old)==1,(path,old,s.count(old))
                   s=s.replace(old,new)
               p.write_text(s)
-          snapshot='368d0633f048f53dad973120ce1cc444a6c5b31d'
           edit('tests/lab-public-studio-ui.mjs',[
-              ("const approvedVideoRef='c3f1a73e7d66e95f917d905ab197cfd194b6da95';",f"const approvedVideoRef='{snapshot}';"),
+              ("const approvedVideoRef='c3f1a73e7d66e95f917d905ab197cfd194b6da95';","const approvedVideoRef='368d0633f048f53dad973120ce1cc444a6c5b31d';"),
               ("'lab/video-compact-studio.css','lab/video-editorial-deck.js'","'lab/video-compact-studio.css','lab/video-relaxed-studio.css','lab/video-editorial-deck.js'")])
-          edit('.github/workflows/lab-public-studio-tests.yml',[
-              ('git fetch --depth=1 origin c3f1a73e7d66e95f917d905ab197cfd194b6da95',f'git fetch --depth=1 origin {snapshot}')])
           edit('tests/lab-studio-layout-ui.mjs',[
               ("assert.equal(d.dock.height,56,'Approved compact Generate dock retains its fixed 56px track');","assert.equal(d.dock.height,64,'Approved relaxed Generate dock retains its fixed 64px track');"),
               ("assert.equal(videoTypography.size,12,'Approved compact Video motion prompt uses 12px type');","assert.equal(videoTypography.size,14,'Approved relaxed Video motion prompt uses 14px type');"),
@@ -81,17 +78,16 @@ jobs:
                   assert old==now,p+' must remain byte-identical'
                   manifest[p]=hashlib.sha256(now).hexdigest()
           Path('docs/previews/video-relaxed-20261024/unchanged-logic.json').write_text(json.dumps(manifest,indent=2)+'\n')
-          Path('.github/workflows/video-relaxed-assemble.yml').unlink()
           PY
           node --test tests/lab-video-relaxed.test.mjs tests/lab-video-compact.test.mjs tests/lab-video-approved-design.test.mjs tests/lab-approved-image-ui-contract.test.mjs
           git diff --check
-      - name: Commit tested expectations and remove temporary staging workflow
+      - name: Commit only tests and evidence, without changing workflows
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .github/workflows/video-relaxed-assemble.yml .github/workflows/lab-public-studio-tests.yml tests/lab-public-studio-ui.mjs tests/lab-studio-layout-ui.mjs tests/lab-video-relaxed.test.mjs docs/previews/video-relaxed-20261024/unchanged-logic.json
-          git commit -m 'Verify relaxed Video surface, preserve all model logic and freeze visual baseline'
+          git add tests/lab-public-studio-ui.mjs tests/lab-studio-layout-ui.mjs tests/lab-video-relaxed.test.mjs docs/previews/video-relaxed-20261024/unchanged-logic.json
+          git commit -m 'Verify relaxed Video surface while preserving all model logic'
           git push origin HEAD:codex/video-relaxed-20261024
           echo "Final candidate $(git rev-parse HEAD)"
