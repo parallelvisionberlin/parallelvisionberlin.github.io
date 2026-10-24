@@ -65,7 +65,7 @@ test('Full hidden provider prompt keeps user direction but History never reveals
     assert.doesNotMatch(imageHistoryCaption({...plan.settings}),/flash sync|Style optics|reference map|PV LAB MOOD/i);
   }
 });
-test('Two fixed Style photographs never replace faces, subject count, outfits or source location',()=>{
+test('Two fixed Style photographs guide era and optics without replacing identity or explicit location choices',()=>{
   for(const engine of ['seedream','seedreamlite','gemini','gemini21']){
     for(const mode of ['base','references']){
       for(const count of [0,1,3,6]){
@@ -79,7 +79,8 @@ test('Two fixed Style photographs never replace faces, subject count, outfits or
           assert.deepEqual(styles.map(s=>s.role),['style','style']);
           for(const label of styles){
             assert.ok(isMoodStyleReference(label));
-            assert.match(label.note,/OPTICS ONLY/);
+            assert.match(label.note,/STYLE \/ ERA AND OPTICS/);
+            assert.match(label.note,/location locks win/);
           }
           const compiled=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings);
           assert.ok(compiled.length<=(engine==='seedreamlite'?3000:5000),
@@ -88,7 +89,7 @@ test('Two fixed Style photographs never replace faces, subject count, outfits or
           assert.equal(moodReferencePlan(plan.settings).references.length,0,'No duplicate hidden uploads on quote refresh');
           assert.match(compiled,/15mm fisheye/);
           if(count&&mode==='base'){
-            assert.match(compiled,/USER PHOTO FIRST|BASE LOCK/);
+            assert.match(compiled,/USER PHOTO FIRST|BASE PHOTO FIRST/);
             assert.match(compiled,/original place|original street\/interior\/room|scene/i);
           }
           for(const ref of plan.references)
