@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFileSync,existsSync,mkdirSync} from 'node:fs';
-import {resolve,extname} from 'node:path';
+import {resolve,extname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
@@ -23,14 +23,16 @@ const server=http.createServer((req,res)=>{
   if(['/landing-header','/moods-header'].includes(pathname)){
     const source=readFileSync(pathname==='/landing-header'?'lab/index.html':'lab/moods.html','utf8');
     const styles=[...source.matchAll(/<link rel="stylesheet"[^>]+>/g)].map(match=>match[0]).join('');
+    const bodyTag=source.match(/<body\b[^>]*>/)[0];
+    if(pathname==='/moods-header')assert.match(bodyTag,/mc-explore-page/,'Explore fixture retains its approved page-scoped styles');
     const masthead=source.match(/<header class="landing-header[\s\S]*?<\/header>/)[0];
-    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><base href="/lab/">'+styles+'</head><body>'+masthead+'</body></html>');return;
+    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><base href="/lab/">'+styles+'</head>'+bodyTag+masthead+'</body></html>');return;
   }
   if(pathname==='/test'){
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end(html);return;
   }
   const target=resolve(root,'.'+pathname);
-  if(!target.startsWith(root+'/')||!existsSync(target)){
+  if(!target.startsWith(root+sep)||!existsSync(target)){
     res.writeHead(404).end();return;
   }
   res.writeHead(200,{'Content-Type':mime[extname(target)]||'application/octet-stream'});
