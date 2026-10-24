@@ -502,77 +502,66 @@ test('Preview-first Moods deck enlarges photos while keeping original slider and
 });
 
 
-test('80s Film high-fashion feature-cinema prompt scales in five cinematic stages',()=>{
+test('80s Film early film-to-tape prompt scales in five protected stages',()=>{
   const preset=moodById('80s-film');
-  assert.equal(preset.description,'35mm movie scenes, burned light and saturated color');
+  assert.equal(preset.description,'1981-1984 film-to-tape, soft analog color and subtle period details');
   const original='Preserve this person and bedroom composition';
-  const steps=[
-    [20,/SUBTLE 1-34% \/ ANALOG TREATMENT/],
-    [50,/CINEMATIC COLOR 35-69%/],
-    [80,/MOVIE STILL 70-89%/],
-    [93,/FULL CINEMATIC SCENE 90-99%/],
-    [100,/MAXIMUM 100% \/ FULL MOVIE PRODUCTION/]
-  ];
+  const steps=[[20,/SUBTLE 1-34%/],[50,/TAPE COLOR 35-69%/],[80,/EARLY-80S STILL 70-89%/],[93,/PERIOD MEMORY 90-99%/],[100,/MAXIMUM 100% \/ EARLY-80S TAPE/]];
   const prompts=steps.map(([intensity,stage])=>{
     const r=prepareMoodPrompt(original,'80s-film',intensity,{engine:'seedream',referenceCount:1});
-    assert.equal(r.error,'');
-    assert.ok(r.prompt.startsWith(original+'\n\n'));
-    assert.match(r.prompt,stage);
-    assert.match(r.prompt,/35mm/);
-    if(intensity>=70){
-      assert.match(r.prompt,/suspended dust/);
-      assert.match(r.prompt,/original garments/);
-    }
-    if(intensity===20)assert.match(r.prompt,/No invented haze, wind/);
+    assert.equal(r.error,'');assert.ok(r.prompt.startsWith(original+'\n\n'));
+    assert.match(r.prompt,stage);assert.match(r.prompt,/35mm/);
+    assert.match(r.prompt,/1981-1984/);assert.match(r.prompt,/well-preserved PAL analog videotape/);
+    assert.match(r.prompt,/facial identity/);assert.match(r.prompt,/actual place/);
     assert.match(r.prompt,/first reference is the base photograph/);
-    assert.equal(r.metadata.moodIntensity,intensity);
-    assert.equal(r.metadata.moodOriginalPrompt,original);
+    if(intensity>=70){assert.match(r.prompt,/small 1981-1984 changes/);assert.match(r.prompt,/preserving garment category/);}
+    else{assert.match(r.prompt,/No period restyling/);assert.match(r.prompt,/Keep clothes and environmental details unchanged/);}
+    assert.equal(r.metadata.moodIntensity,intensity);assert.equal(r.metadata.moodOriginalPrompt,original);
     return r.prompt;
   });
   assert.equal(new Set(prompts).size,steps.length);
-  assert.doesNotMatch(prompts[3],/MAXIMUM 100% \/ FULL MOVIE PRODUCTION/);
-  assert.match(prompts[4],/luminous real air/);
-  assert.match(prompts[4],/DO NOT replace clothes/);
-  const textOnly=prepareMoodPrompt('Fashion model emerging into an 80s movie scene','80s-film',100);
-  assert.equal(textOnly.error,'');
-  assert.match(textOnly.prompt,/designer-quality clothes/);
-  const refsOnly=prepareMoodPrompt('Cinematic fashion still','80s-film',100,{referenceCount:2,referenceMode:'references',engine:'gemini'});
-  assert.equal(refsOnly.error,'');
-  assert.match(refsOnly.prompt,/Reference-only: follow requested output/);
+  assert.doesNotMatch(prompts[3],/MAXIMUM 100% \/ EARLY-80S TAPE/);
+  assert.match(prompts[4],/NOT maximum blur or degradation/);
+  assert.match(prompts[4],/No wholesale outfit replacement/);
+  const textOnly=prepareMoodPrompt('Fashion model in an early-80s film scene','80s-film',100);
+  assert.equal(textOnly.error,'');assert.match(textOnly.prompt,/Without a Base, follow the written subject/);
+  const refsOnly=prepareMoodPrompt('Period fashion still','80s-film',100,{referenceCount:2,referenceMode:'references',engine:'gemini'});
+  assert.equal(refsOnly.error,'');assert.match(refsOnly.prompt,/Reference-only: follow requested output/);
 });
 
-test('80s Film keeps the high-fidelity recipe even when many references exceed the limit',()=>{
-  const direction='High-fashion actor in a room';
+test('80s Film retains fixed recipes and rejects actual reference-note overflow without truncation',()=>{
+  const direction='An actor in a room';
   const refs=Array.from({length:10},(_,i)=>({name:'film-ref-'+i+'.jpg',role:i?'none':'base'}));
   for(const amount of [20,50,80,93,100]){
     const r=prepareMoodPrompt(direction,'80s-film',amount,{referenceCount:10,engine:'seedream'});
     const one=prepareMoodPrompt(direction,'80s-film',amount,{referenceCount:1,engine:'seedream'});
-    assert.equal(r.error,'');
-    assert.equal(r.prompt,one.prompt,'Adding references must not change the 80s creative recipe');
-    assert.match(r.prompt,/80S FILM \/ (?:HIGH-FASHION FEATURE CINEMA|SUBTLE ANALOG|CINEMATIC COLOR)/);
+    assert.equal(r.error,'');assert.equal(r.prompt,one.prompt,'Reference count never changes the authored recipe');
+    assert.match(r.prompt,/80S FILM \/ EARLY 1980S FILM-TO-TAPE/);
     const provider=compileImagePrompt(r.prompt,refs,{...r.metadata,referenceMode:'base'});
-    assert.ok(provider.includes(r.prompt),'All authored Mood content remains in the compiled prompt');
-    if(amount===100)assert.ok(provider.length>5000,'The full 100% recipe must not be silently shortened to fit ten references');
+    assert.ok(provider.includes(r.prompt),'The complete Mood survives compilation');
+    if(amount===100){
+      const noted=refs.map(r=>({...r,note:'Keep this specific source detail unchanged. '.repeat(7)}));
+      const overflow=compileImagePrompt(r.prompt,noted,{...r.metadata,referenceMode:'base'});
+      assert.ok(overflow.length>5000,'Genuine long reference notes must still overflow');
+      assert.ok(overflow.includes(r.prompt),'Never shrink the Mood to hide overflow');
+    }
   }
   const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const creator=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
-  // The entry module must be versioned, but no specific historic cache key is required.
   assert.match(studio,/src="\.\/lab\.js\?v=20\d{6}-[^"\s]+"/);
-  assert.match(app,/moods\.js\?v=20\d{6}-/);
-  assert.match(creator,/moods\.js\?v=20\d{6}-/);
-  const board={id:'10000000-0000-4000-8000-000000000080',name:'Cinematic Night',baseMoodId:'80s-film',direction:'Editorial fashion and elegant fabrics'};
-  const single=preparePersonalMoodPrompt('Luxury movie scene',board,100,{engine:'seedream',referenceCount:1});
+  assert.match(app,/moods\.js\?v=20\d{6}-/);assert.match(creator,/moods\.js\?v=20\d{6}-/);
+  const board={id:'10000000-0000-4000-8000-000000000080',name:'Early Tape',baseMoodId:'80s-film',direction:'Keep the original white shirt'};
+  const single=preparePersonalMoodPrompt('Same room',board,100,{engine:'seedream',referenceCount:1});
   for(const count of [1,2,10]){
-    const saved=preparePersonalMoodPrompt('Luxury movie scene',board,100,{engine:'seedream',referenceCount:count});
+    const saved=preparePersonalMoodPrompt('Same room',board,100,{engine:'seedream',referenceCount:count});
     const boardRefs=Array.from({length:count},(_,i)=>({name:'ref-'+i+'.jpg',role:i?'none':'base'}));
-    assert.equal(saved.error,'');
-    assert.equal(saved.prompt,single.prompt,'Saved Mood never recompiles itself because more references are attached');
+    assert.equal(saved.error,'');assert.equal(saved.prompt,single.prompt,'Saved Mood never recompiles to fit references');
     const compiled=compileImagePrompt(saved.prompt,boardRefs,{...saved.metadata,referenceMode:'base'});
-    assert.ok(compiled.includes(board.direction),'Authored saved style stays intact');
+    assert.ok(compiled.includes(board.direction),'Keep authored saved style');
   }
   const duo=prepareMoodPrompt('Fashion scene','80s-film',100,{engine:'seedream',referenceCount:2});
-  assert.match(duo.prompt,/80S FILM \/ HIGH-FASHION FEATURE CINEMA/);
+  assert.match(duo.prompt,/80S FILM \/ EARLY 1980S FILM-TO-TAPE/);
 });
 
 test('Berlin Rave V5 carries minimal clothing, flash and source composition through every tier',()=>{

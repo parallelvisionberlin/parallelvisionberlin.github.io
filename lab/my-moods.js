@@ -1,4 +1,4 @@
-import {MOODS,userFacingImagePrompt,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016v2&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1';
+import {MOODS,userFacingImagePrompt,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016v2&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v1';
 
 // Personal moodboards: authenticated, private, and independent of paid generation.
 // Reference photos are inspiration only; they are not secretly sent to a model.
