@@ -17,8 +17,13 @@
 - Studio layout/scroll suite PASS. Full Seedance and customer/visual final-candidate checks are recorded in the associated polish PR; only completed results count.
 - Local public visual suite passed the original desktop Video canvas/banner pixel checks, then timed out in the unrelated customer Retouch fixture; the installed local Chromium differs from pinned CI. Keep assertions and tolerances unchanged and require pinned CI before release.
 - No real customer login, upload, paid generation, purchase or credit grant was performed. Browser media/accounts/APIs are synthetic.
-- Publication status before final CI: pending. Final head, exact-head checks, merge, Cloudflare and live-byte verification are recorded in the polish PR.
-- Next: finish the fixed candidate's checks, integrate if validated, then verify exact CSS bytes and affected behavior on `pvlab.studio` using `RELEASE-PROTOCOL.md`.
+- Complete: [PR #514](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/514) merged as `79eabb6aaa7d1d0c8ed4038c67df3ae00cbd0fe4`; validated head `664b80b4b433b72ad4aa1bf0a050a719c584096c`.
+- All 19 exact-head PR workflows PASS, zero failures/pending, including full Video [40084483526](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40084483526), public Studio pixel/privacy [40084483558](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40084483558), account, pricing, first-image and Mood checks.
+- Concurrent main #513 changed only `css/home.css` and `index.html`; normal merge preserves it, and the released Lab/test sources match the validated candidate exactly.
+- Cloudflare Pages `pvlab-studio`: check `120845754881` SUCCESS for the exact merge SHA; deployment `9afa4baf-8635-4ded-bd13-4465e2d90438`.
+- Release verifier returned `LIVE_VERIFIED` for the custom-domain CSS; SHA-256 `d617374a9aebfe1e86041674d8497e905b8de5e7eff46e827408064358efd38d`.
+- Production browser `/studio?tool=video` at 1363x936: Start and Reference both have scrollHeight=clientHeight=714, prompt 104px, model banner 124px, Generate 44px; Start plus is 66px, no horizontal overflow. Loaded URL contains `panelPolish=20261024v1`; History padding-top is 12px.
+- Complete: published and verified. No pending work for these approved spacing/plus refinements.
 
 ## PR #506 release validation, 2026-10-24
 
