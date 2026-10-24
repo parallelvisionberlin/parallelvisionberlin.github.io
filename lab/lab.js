@@ -4785,6 +4785,14 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     restoreGuestImageDraft();
     window.__pvLabBootStage?.('Workspace ready');
     finishLabBoot();
+    // Character landing intent opens only the existing authenticated Elements
+    // creation dialog, never public/private assets or a generation job.
+    if(owner&&tool==='image'&&requestedRoute==='image'&&
+      new URLSearchParams(location.search).get('createCharacter')==='1'){
+      sceneLibrary.open('characters');
+      const createCharacterButton=$('scene-new');
+      if(createCharacterButton&&!createCharacterButton.disabled)createCharacterButton.click();
+    }
     void pricingOverlay.resumeAfterSignIn().catch(()=>{});
     if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){
   const stillSignedIn=!!clerk?.isSignedIn;
