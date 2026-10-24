@@ -501,6 +501,7 @@
 /* Approved editorial cards: square photographs with medium-weight captions below. */
 .mc-explore-page .mc-look-card{
   aspect-ratio:auto;overflow:visible;border:0;border-radius:0;background:transparent;
+  transition:transform .22s ease;
 }
 .mc-explore-page .mc-look-photo{
   position:relative;inset:auto;aspect-ratio:1;width:100%;height:auto;
@@ -521,10 +522,19 @@
 .mc-explore-page .mc-look-card:hover .mc-look-photo,
 .mc-explore-page .mc-look-card.is-selected .mc-look-photo,
 .mc-explore-page .mc-look-card:focus-visible .mc-look-photo{
-  border-color:#c5ff628f;
-  box-shadow:0 0 0 1px #c5ff6220,0 0 14px #c5ff6217;
+  border-color:#c5ff62d2;
+  box-shadow:0 0 0 1px #c5ff6240,0 0 20px #c5ff622e,0 14px 28px #0008;
+}
+/* Hover-only depth: moves the whole tile without reflow or resizing the photo. */
+@media(hover:hover) and (pointer:fine){
+  .mc-explore-page .mc-look-card:hover{transform:translateY(-3px)}
 }
 .mc-explore-page .mc-look-card:focus-visible{outline:2px solid var(--pv-acid);outline-offset:5px}
+@media(prefers-reduced-motion:reduce){
+  .mc-explore-page .mc-look-card,
+  .mc-explore-page .mc-look-photo{transition:none}
+  .mc-explore-page .mc-look-card:hover{transform:none}
+}
 @media(max-width:700px){
   .mc-explore-page .mc-look-card{aspect-ratio:auto}
   .mc-explore-page .mc-look-card .mc-look-copy{margin-top:8px}
