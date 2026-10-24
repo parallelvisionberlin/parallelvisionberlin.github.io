@@ -1,0 +1,118 @@
+name: Reconcile isolated 80s recipe with current main
+on:
+  pull_request:
+    types: [synchronize]
+    paths: ['.github/workflows/80s-film-sync-main.yml']
+permissions:
+  contents: write
+jobs:
+  reconcile:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/80s-film-early-tape-20261024'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      TARGET_MAIN: fce168fc5c7d44d20da6a5c73e0eacbc56f2cf40
+      VERIFIED_80S: 7df36800bf89e27adb6092c26b0bb94eed3156d3
+      TARGET_BRANCH: fix/80s-film-early-tape-20261024
+      EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Merge the pinned main and preserve both isolated recipes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git merge --no-commit --no-ff "$TARGET_MAIN" || test -n "$(git diff --name-only --diff-filter=U)"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,re,subprocess
+          main=os.environ['TARGET_MAIN']; old=os.environ['VERIFIED_80S']
+          read=lambda ref,path:subprocess.check_output(['git','show',ref+':'+path]).decode()
+          runtime=['lab/moods.js','lab/lab.js','lab/app-mood-generation.js','lab/app-moods.js','lab/app-moods.html','lab/explore-moods.js','lab/moods.html','lab/mood-creator.js','lab/mood-creator.html','lab/my-moods.js','lab/studio.html']
+          conflicts=set(subprocess.check_output(['git','diff','--name-only','--diff-filter=U']).decode().splitlines())
+          assert conflicts.issubset(set(runtime)), ('Unexpected conflicts',conflicts)
+          original=read(main,'lab/moods.js'); approved=read(old,'lab/moods.js')
+          Path('lab/.80s-main-baseline.mjs').write_text(original)
+          Path('lab/.80s-approved-baseline.mjs').write_text(approved)
+          start='  {\n    "id": "80s-film",\n'; end='  {\n    "id": "synthetic-romance",\n'
+          a=original.index(start); b=original.index(end,a)
+          x=approved.index(start); y=approved.index(end,x)
+          updated=original[:a]+approved[x:y]+original[b:]
+          old_clause=":compact80s\n          ?'The first reference is the base photograph. Preserve identity, body, pose, clothes, camera and setting unless the user requests changes. Respect assigned roles.'"
+          new_clause=":cinematic80s\n          ?'The first reference is the base photograph. Preserve identity, expression, hair, body, pose, camera, framing and actual place. '+(intensity>=70?'Only small period clothing details and already-visible modern objects may change; retain garment category, colors, material and coverage.':'Keep clothes and environmental details unchanged.')+' Explicit user instructions and assigned roles take priority.'"
+          assert original.count(old_clause)==1
+          assert new_clause in approved
+          updated=updated.replace(old_clause,new_clause)
+          assert 'EIGHTIES_TAPE_RECIPE' not in original
+          updated="import {EIGHTIES_TAPE_RECIPE} from './80s-film-recipe.js?v=20261024v1';\n"+updated
+          for path in runtime: Path(path).write_text(updated if path=='lab/moods.js' else read(main,path))
+          # Reapply only the approved module-cache suffix, retaining every newer
+          # Fisheye parameter and every other byte of current-main callers.
+          changed={'moods.js'}; version='eightiesTape=20261024v1'
+          pattern=re.compile(r'''(?P<q>['"])(?P<path>\./[A-Za-z0-9-]+\.js)(?P<query>\?[^'"\r\n]*)?(?P=q)''')
+          paths=sorted([*Path('lab').glob('*.js'),*Path('lab').glob('*.html')])
+          while True:
+              added=False
+              for path in paths:
+                  source=path.read_text()
+                  def bump(match):
+                      if Path(match['path']).name not in changed:return match.group(0)
+                      query=match['query'] or ''
+                      if version in query:return match.group(0)
+                      return match['q']+match['path']+query+('&' if query else '?')+version+match['q']
+                  revised=pattern.sub(bump,source)
+                  if revised!=source:
+                      assert str(path) in runtime, ('Unexpected cache caller',str(path))
+                      path.write_text(revised)
+                      if path.name not in changed:changed.add(path.name);added=True
+              if not added:break
+          subprocess.check_call(['git','add',*runtime])
+          assert not subprocess.check_output(['git','diff','--name-only','--diff-filter=U']).strip()
+          print('Reconciled conflicts:',sorted(conflicts))
+          PY
+      - name: Verify both recipe families and all Node regressions on the merged tree
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import * as main from './lab/.80s-main-baseline.mjs';
+          import * as approved from './lab/.80s-approved-baseline.mjs';
+          import * as merged from './lab/moods.js';
+          assert.deepEqual(merged.MOODS.filter(m=>m.id!=='80s-film'),main.MOODS.filter(m=>m.id!=='80s-film'));
+          assert.deepEqual(merged.moodById('80s-film'),approved.moodById('80s-film'));
+          let checked=0;
+          for(const mood of main.MOODS)
+          for(const engine of ['seedream','seedreamlite','gemini','gemini21','krea3','qwen3','zspicy'])
+          for(const amount of [1,20,34,35,60,69,70,80,89,90,99,100])
+          for(const referenceCount of [0,1,3])
+          for(const referenceMode of ['base','references'])
+          for(const input of ['', 'Preserve my identity, white shirt and actual place.']){
+            const opts={engine,referenceCount,referenceMode};
+            const before=mood.id==='80s-film'?approved:main;
+            assert.deepEqual(merged.prepareMoodPrompt(input,mood.id,amount,opts),before.prepareMoodPrompt(input,mood.id,amount,opts),`${mood.id}/${engine}/${amount}/${referenceCount}/${referenceMode}`);
+            checked++;
+          }
+          console.log('Merged recipe equality cases passed:',checked);
+          JS
+          rm lab/.80s-main-baseline.mjs lab/.80s-approved-baseline.mjs
+          node --check lab/moods.js
+          node --test tests/lab*.test.mjs
+          git diff --check --cached
+          test -z "$(git diff "$TARGET_MAIN" --name-only -- lab/mood-references.js lab/mood-references lab/mood-previews lab/reference-guidance.js lab-worker lab/image-detail-references.js lab/inspiration-looks.js lab/studio-guest-image.js lab/FISHEYE-2000-WORK-STATE.md)"
+          python3 - <<'PY'
+          import os,subprocess
+          allowed={'lab/80s-film-recipe.js','lab/app-mood-generation.js','lab/app-moods.html','lab/app-moods.js','lab/explore-moods.js','lab/lab.js','lab/mood-creator.html','lab/mood-creator.js','lab/moods.html','lab/moods.js','lab/my-moods.js','lab/studio.html','tests/lab-80s-tape.test.mjs','tests/lab-moods.test.mjs','.github/workflows/80s-film-sync-main.yml'}
+          changed=set(subprocess.check_output(['git','diff',os.environ['TARGET_MAIN'],'--name-only']).decode().splitlines())
+          assert changed.issubset(allowed),changed-allowed
+          PY
+      - name: Commit the verified merge, remove this workflow, and keep all later work safe
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(git ls-remote origin refs/heads/$TARGET_BRANCH | cut -f1)" = "$EXPECTED_HEAD"
+          git rm .github/workflows/80s-film-sync-main.yml
+          git commit -m 'Merge current main once; preserve new Fisheye behavior and verified early-80s recipe'
+          git push origin HEAD:refs/heads/$TARGET_BRANCH
