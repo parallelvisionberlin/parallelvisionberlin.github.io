@@ -43,7 +43,7 @@ test('Numbered provider prompt always matches actual two reference positions aft
      const short=(count+i+1)+'='+['City taxi','Wet street'][i];
      assert.ok(final.includes(long)||final.includes(short),engine+' '+label+' was not mapped');
    }
-   assert.match(final,/No global green veil|No global green wash|No uniform green wash|no whole-frame green cast/i);
+   assert.match(final,/No flat green veil|never a whole-frame green cast|No global green wash|No uniform green wash/i);
    assert.ok(final.length<=(engine==='seedreamlite'?3000:5000),engine+' provider prompt overflow: '+final.length);
    if(engine==='seedream'||engine==='gemini')assert.deepEqual(moodReferencePlan(p).references,[],'No duplicate browser upload');
   }
@@ -53,16 +53,16 @@ test('Numbered provider prompt always matches actual two reference positions aft
 });
 
 test('New Hong Kong Nocturne generation defaults to approved film preset, manual off and history remain possible',()=>{
- const approved={version:2,grain:46,haze:56,halation:83,film:78};
+ const approved={version:2,grain:13,haze:100,halation:78,film:100};
  assert.deepEqual(HONG_KONG_VARIANTS.original.filmFinish,HONG_KONG_FILM_FINISH);
- assert.deepEqual(HONG_KONG_FILM_FINISH,{version:2,grain:0,haze:0,halation:0,film:0});
+ assert.deepEqual(HONG_KONG_FILM_FINISH,approved);
  assert.equal(FILM_FINISH_RENDER_REVISION,10);
  const base=prepareMoodPrompt('Portrait','hong-kong-nights',74,{engine:'seedream',referenceCount:1});
  const custom=prepareMoodPrompt('Portrait','hong-kong-nights',74,{engine:'seedream',referenceCount:1,filmFinish:{...HONG_KONG_FILM_FINISH}});
  assert.equal(base.prompt,custom.prompt);
  assert.deepEqual(base.metadata.filmFinish,HONG_KONG_FILM_FINISH);
  const ui=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
- assert.ok(ui.includes('finishControls.set({version:2,grain:46,haze:56,halation:83,film:78})'),'owner preset is only selected explicitly');
+ assert.ok(ui.includes('finishControls.set(HONG_KONG_FILM_FINISH)'),'new generations select the canonical approved preset');
  assert.deepEqual(custom.metadata.filmFinish,HONG_KONG_FILM_FINISH);
 });
 
