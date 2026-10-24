@@ -161,6 +161,7 @@ try{
   await drop.page.waitForFunction(mode=>mode==='extend'?document.querySelector('#video-reference-list').children.length===1:mode==='reference'?document.querySelectorAll('#reference-list .reference-item').length===1:!document.querySelector('#video-start-thumb').hidden,mode);
   await ready(drop.page);
   assert.equal(await drop.page.locator('.canvas').evaluate(el=>el.classList.contains('pv-video-file-drag')),false);
+  assert.equal(await drop.page.locator('body').evaluate(el=>el.classList.contains('pv-video-reference-browser-drag')),false,'Canvas drop also clears the existing reference-browser drag hint');
   if(mode==='start'){
    const tileFile=await drop.page.evaluateHandle(bytes=>{const data=new DataTransfer();data.items.add(new File([new Uint8Array(bytes)],'settings-frame.png',{type:'image/png'}));return data;},[...png]);
    await drop.page.locator('#drop').dispatchEvent('drop',{dataTransfer:tileFile});await tileFile.dispose();

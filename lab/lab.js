@@ -3137,6 +3137,7 @@ for(const name of ['dragleave','drop'])videoCanvas.addEventListener(name,event=>
 videoCanvas.addEventListener('drop',event=>{
   if(!videoCanvasFiles(event))return;
   event.preventDefault();event.stopPropagation();
+  document.body.classList.remove('pv-video-reference-browser-drag');
   if(!owner||busy||selectedVideoJob||$('start-frame-dialog').open||mode==='text')return;
   const input=$(mode==='extend'?'video-references':mode==='reference'?'reference-images':'image');
   if(input.disabled||!event.dataTransfer.files.length)return;
