@@ -41,8 +41,8 @@ const DREAM_BLUR_REFERENCES=Object.freeze([
   label:Object.freeze({name:'Dream Blur style - '+ref.file,role:'style',note:ref.note})})));
 
 const FISHEYE_2000_REFERENCES=Object.freeze([
-  {file:'01-analog-daylight.webp',note:'OPTICS ONLY: credible early-2000s overcast Japanese street exposure, fine embedded negative grain, muted real color, human skin and deep street perspective. Never copy the models, outfit, signs or place.'},
-  {file:'02-fisheye-flash.webp',note:'OPTICS ONLY: real circular-edge 15mm fisheye near/far scale, naturally curved urban edges, stark direct flash with deep ambient falloff. Never copy the faces, gesture, wardrobe or location.'}
+  {file:'01-analog-daylight.webp',note:'STYLE / ERA AND OPTICS: circa-2000 Japanese shopfronts/signs, muted film color, tactile grain. Borrow context at Mood strength; user location locks win. Never copy people, clothes, pose or layout.'},
+  {file:'02-fisheye-flash.webp',note:'STYLE / ERA AND OPTICS: real 15mm depth, curved edges, raw flash, dark ambient and Y2K print texture. Borrow context at Mood strength; location locks win. Never copy faces, bodies, clothes, pose or layout.'}
 ].map(ref=>Object.freeze({...ref,type:'image/webp',url:'/lab/mood-references/fisheye-2000/'+ref.file,
   label:Object.freeze({name:'Fisheye 2000 style - '+ref.file,role:'style',note:ref.note})})));
 

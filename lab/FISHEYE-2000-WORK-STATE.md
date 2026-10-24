@@ -1,3 +1,23 @@
+# Fisheye 2000 Mood: current work state
+
+## Active refinement, 2026-10-24
+
+- Objective: the owner found that applying Fisheye to an uploaded Base at 100% produced mainly lens distortion, with too little of the approved circa-2000 Japanese street atmosphere. Strengthen that Base workflow while preserving identity.
+- Starting main: `086d5b67731684d0617279a629414cfd546aef41`. This includes the separate Dream Blur maximum-Base refinement; preserve it.
+- Evidence: uploaded screenshots `image(20261024-002247).png` (`libfile_faac237a38a08191ba0731260ebabcfc`) and `image(20261024-002317).png` (`libfile_159a2be04c1c819188484d5971b64a4d`) show Seedream 5 Pro, Base photo, Fisheye 100%, same European cafe with a circular lens treatment.
+- Cause: Fisheye Base instructions explicitly locked the original location, prohibited Tokyo signage, and restricted its two Style notes to optics. Inspiration also instructed preserving the Base setting.
+- Approved change: intensity may now transform the environment. 1-34% retains place; 35-74% introduces restrained Japanese period detail into recognizable scene structure; 75-89% rebuilds surroundings as a circa-2000 Tokyo side street; 90-100% fully transforms the background into an old shopping alley.
+- Identity, facial features, natural skin tone, hair, body proportions, expression, people count, clothes, coverage and primary pose stay protected. Seats/supports/held objects remain spatially coherent. Explicit user location directions and assigned Environment references override the default Tokyo scene.
+- Whole-frame era treatment: muted green-warm negative-film dyes, integrated skin/shadow grain, soft magazine-scan contrast, restrained halation, raw direct flash and real 15mm depth. Signage belongs to the architecture; no generic cyberpunk, pseudo-lettering overlay or oversized black-circle substitute.
+- Reused both approved original photographs and photo-1 cover paths. No asset bytes, UI layout, pricing, models or other Mood recipes changed.
+- Recipe changes: `lab/moods.js`; the two existing Style notes: `lab/mood-references.js`; subject-neutral Inspiration direction: `lab/inspiration-looks.js`. Other modified application files only invalidate the affected module import chain with `fisheyeY2K=20261024v1`.
+- Verification: 53 focused tests pass, including five new Base-atmosphere regressions, full/Lite budgets with eight user photos plus both Style photos, explicit location/Environment priority, original-photo paths, reference deduplication, History privacy and approved Image UI contract.
+- Before/after verification: 6,300 cases confirm every other Mood object/prompt and Fisheye text-only/References Only recipe remain identical to starting main. Custom user text is retained verbatim; no recipe truncation.
+- Publication: pending. Source/hosting verification must be completed before claiming this refinement live. The previous cover/card release below is already live and does not establish publication of this new recipe.
+- No paid provider generation or upload was submitted. Prompt/reference routing tests cannot prove final image quality; the owner's next real Base generation remains the visual check.
+
+## Historical release record
+
 # Fisheye 2000 Mood: implementation and safety
 
 Scope: additive seventeenth curated Mood for PV LAB, using the owner's two uploaded photographs only. No AI-generated imagery.

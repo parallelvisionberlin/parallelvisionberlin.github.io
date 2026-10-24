@@ -3,9 +3,9 @@
 const ROTATION_KEY='pv-lab-inspiration-rotation-v1';
 export const INSPIRATION_VARIATIONS=Object.freeze({
   // Reuse the approved Fisheye recipe. This direction also works on a Base
-  // without inserting the cover's people, wardrobe or location into it.
+  // preserving the Base people while letting the requested Y2K world scale with intensity.
   "fisheye-2000": [
-    "Apply the Fisheye 2000 photographic look: true 15mm fisheye perspective, direct on-camera flash, muted early-2000s film color and fine grain. Preserve the people, identity, clothing and setting of any uploaded Base photograph."
+    "Apply Fisheye 2000: a circa-2000 Japanese street-fashion photograph, true 15mm fisheye perspective, raw direct flash, muted negative-film color and tactile magazine-scan grain. Preserve the Base people, facial identity, body, pose and clothing. Let the selected intensity build the Japanese street atmosphere with real shop signs, storefronts and utility wires; follow any explicit instruction to retain a particular location."
   ],
   "dream-blur": [
     "A documentary 35mm photograph of a middle-aged woman seen through a moving tram window at blue hour, city lights streaking beyond her reflection, restrained cobalt shadows, real motion blur, imperfect film exposure.",
