@@ -31,7 +31,7 @@ test('one Hong Kong Nights Mood retains three variant sets of four actual origin
   const seen=new Set();
   for(const [id,v] of Object.entries(HONG_KONG_VARIANTS)){
     assert.equal(v.files.length,4,id);
-    assert.deepEqual(v.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0},'Film is opt-in for every look');
+    assert.deepEqual(v.filmFinish,id==='original'?{version:2,grain:13,haze:100,halation:78,film:100}:{version:2,grain:0,haze:0,halation:0,film:0},'New Nocturne has the approved preset; historic variants remain unchanged');
     for(const file of v.files){assert.ok(originalHashes[file],file);seen.add(file);}
   }
   assert.equal(seen.size,8);
