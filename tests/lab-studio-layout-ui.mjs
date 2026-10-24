@@ -124,7 +124,7 @@ try{
   assert.ok(d.navigation.top>=d.header.top&&d.navigation.bottom<=d.header.bottom,'Tool tabs stay inside the shared header');
   assert.ok(Math.abs(d.workspace.top-d.header.bottom)<=3,'Workspace starts directly below the shared header');
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
-  assert.equal(d.dock.height,56,'Approved compact Generate dock retains its fixed 56px track');
+  assert.equal(d.dock.height,64,'Approved relaxed Generate dock retains its fixed 64px track');
   assert.ok(d.dock.bottom<=d.panel.bottom+2,'Generation controls remain inside their panel');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
   assert.ok(Math.abs(d.stage.top-d.inspector.top)<2&&Math.abs(d.stage.bottom-d.inspector.bottom)<2,'Video preview and right inspector share their top and bottom edges');
@@ -259,9 +259,9 @@ try{
     const style=getComputedStyle(el);
     return {size:parseFloat(style.fontSize),family:style.fontFamily,color:style.color};
   });
-  assert.equal(videoTypography.size,12,'Approved compact Video motion prompt uses 12px type');
+  assert.equal(videoTypography.size,14,'Approved relaxed Video motion prompt uses 14px type');
   assert.match(videoTypography.family,/DM Sans/,'PV Lab uses its own editorial UI typography');
-  assert.equal(d.stage.height,682,'Approved desktop stage leaves room for real History');
+  assert.equal(d.stage.height,744,'Approved relaxed desktop stage leaves room for real History');
   assert.equal(d.canvas.height,d.stage.height-2,'Empty artwork fills the bordered preview');
   assert.ok(d.modes.top-d.model.bottom<110,'Start/reference buttons remain near model info');
   assert.equal(d.explanationCollapsed,true);
@@ -666,7 +666,7 @@ try{
   await x.page.locator('#prompt').click();
   assert.equal(await x.page.evaluate(()=>document.activeElement.id),'prompt','Motion direction remains directly editable');
   const outputFit=await x.page.evaluate(()=>{
-    const ids=['pv-video-model-pill','duration-control','ratio-control','resolution-control','pv-video-audio-pill'];
+    const ids=['duration-control','ratio-control','resolution-control','pv-video-audio-pill'];
     const nodes=ids.map(id=>document.getElementById(id));
     if(nodes.some(el=>!el||el.hidden||getComputedStyle(el).display==='none'))return {ready:false};
     const rects=nodes.map(el=>el.getBoundingClientRect());
@@ -674,14 +674,16 @@ try{
     return {ready:true,tops:rects.map(r=>r.top),right:Math.max(...rects.map(r=>r.right)),
       railRight:rail.right,widths:rects.map(r=>r.width)};
   });
-  assert.equal(outputFit.ready,true,'Reference mode has the five actual output settings');
-  assert.ok(Math.max(...outputFit.tops.slice(0,4))-Math.min(...outputFit.tops.slice(0,4))<3,
-    'Approved model, duration, ratio and resolution stay on one row: '+JSON.stringify(outputFit));
-  assert.equal(outputFit.tops[4]-outputFit.tops[0],36,'Audio occupies the approved second row');
+  assert.equal(outputFit.ready,true,'Reference mode has all four actual output settings');
+  assert.equal(await x.page.locator('#video-model-trigger').isVisible(),true,'The original top model selector remains accessible');
+  assert.equal(await x.page.locator('#pv-video-model-pill').isVisible(),false,'Only the duplicated model shortcut is removed from Output');
+  assert.ok(Math.max(...outputFit.tops.slice(0,3))-Math.min(...outputFit.tops.slice(0,3))<3,
+    'Approved duration, ratio and resolution stay on one row: '+JSON.stringify(outputFit));
+  assert.equal(outputFit.tops[3]-outputFit.tops[0],46,'Audio occupies the approved relaxed second row');
   assert.ok(outputFit.right<=outputFit.railRight-8,
     'Video settings cannot overflow the right edge of the editor: '+JSON.stringify(outputFit));
   assert.ok(outputFit.widths.every(w=>w>=48),
-    'Model, duration, ratio, resolution and audio remain usable');
+    'Duration, ratio, resolution and audio remain usable; the main model selector stays above');
   await x.page.screenshot({path:'test-results/lab-workspace-reference.png',fullPage:false});
   assert.deepEqual(x.errors,[]);
   await x.context.close();
