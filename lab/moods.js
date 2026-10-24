@@ -298,10 +298,10 @@ const ALL_MOODS=Object.freeze([
     "preview": "/lab/mood-previews/hd/japanese-sumi-e-20261011.jpg",
     "previewFull": "/lab/mood-bank/2026-10-11/sumi-ink/originals/parallel-vision-8c5ceb4a-42e5-47e4-8009-550de60d84ef-2-.png",
     "description": "Canonical black-ink wash on warm washi",
-    "direction": "Canonical Japanese sumi-e (suibokuga) artwork, physically painted with black sumi ink, controlled diluted gray wash and restrained dry-brush marks on handmade warm ivory washi paper with visible subtle paper fibers. Authentic Japanese brush economy, decisive expressive black contours, gentle ink diffusion, delicate gray tonal gradients, purposeful unpainted negative space and disciplined asymmetrical composition. In portraits, keep the person's face softly recognizable through nuanced grayscale wash and careful delicate eyes, while the room, textiles, furniture and silhouette simplify into handmade brush marks. A refined Japanese ink painting with subtle realistic facial continuity, never just a black-and-white photograph.",
-    "subtle": "Transform the reference into an elegant restrained sumi-e and photographic fusion: real washi paper grain, visible ink brush borders, natural gray wash and negative space while retaining recognizable features and the original arrangement.",
-    "intense": "At HIGH and 100% intensity, recreate the whole scene as a confidently executed Japanese ink-wash painting. Simplify architecture, cloth, light and shadow into painterly black brush structure, water-diffused gray ink, broad ivory negative spaces, deliberate dry-brush breaks and handmade paper fibers. Keep only the important readable facial features and pose through delicate black and gray tonal drawing. This must look like real brushed sumi ink, not a grayscale filter.",
-    "avoid": "anime or manga, ink cartoon outline, random kanji or seals, digital grayscale-filter photographs, brightly colored accents, messy paint splatters, watercolor postcards, glossy AI airbrush skin"
+    "direction": "Canonical Japanese sumi-e (suibokuga), physically painted with black sumi ink and diluted gray washes on handmade warm ivory washi with subtle paper fibers. Authentic brush economy, decisive irregular dry-brush contours, soft ink bleeding, delicate gray gradients, asymmetry and generous unpainted negative space. Keep portraits softly photographic at the face, eyes and natural skin detail so the person stays recognizable. Express the supplied image through authentic brushwork without restaging its person or location; for text-only requests, compose the user's described scene.",
+    "subtle": "Light photographic and sumi-e fusion with fine paper grain and gentle ink edges; original clothing, person, background and framing remain readily recognizable.",
+    "intense": "At full expressive strength make a confidently executed Japanese ink-wash painting with black dry-brush gestures and ivory negative space while retaining the recognizable person, clothing identity, pose and essential scene geometry.",
+    "avoid": "anime, manga, ink cartoon outlines, digital grayscale filters, generic watercolor, geisha or samurai costumes, forced kimonos, random kanji or seals, pasted paint splatters, invented faces or limbs, changed crop, relocated streets, glossy artificial skin"
   }
 ]);
 // Keep the public catalogue shared by Studio, My Moods and Mood Creator.
@@ -370,6 +370,31 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
         :'NO BASE: compose the user-requested subject and space. The two built-in photos provide photographic optics only, never their actual faces or outfits.';
     const avoid=editingBase?(lite?mood.baseLiteAvoid:mood.baseAvoid):(lite?mood.liteAvoid:mood.avoid);
     const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+level+' '+guidance+' Avoid: '+avoid+'.'].filter(Boolean).join('\n\n');
+    const budget=lite?3000:5000,over=prompt.length-budget;
+    return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original},
+      error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
+  }
+  // Japanese Sumi-e edits the supplied Base rather than restaging a different scene.
+  // Continuous creative intensity; wardrobe reinterpretation is conditional.
+  if(mood.id==='sumi-ink'){
+    const editingBase=referenceCount>0&&referenceMode!=='references';
+    const lite=engine==='seedreamlite';
+    const reduction=Math.round(intensity*.4);
+    const expression='ARTISTIC STRENGTH '+intensity+'/100. Smoothly scale authentic brush strokes, diluted gray washes, paper texture and negative space, not pixel opacity. At 30 preserve a mostly photographic person, wardrobe and setting with light ink; at 60 balance expressive ink with fewer peripheral details; at 100 create a confidently executed Japanese ink-wash painting. Aim to simplify about '+reduction+'% of NONESSENTIAL background linework at this strength. Do not erase defining objects, change location or break perspective. Retain readable original facial structure, eyes and subtle natural skin warmth even at 100%.';
+    const fashion=lite
+      ?'WARDROBE: keep source garments recognizable. Gradually suggest Japanese avant-garde asymmetrical black draping or kimono-inspired tailoring only on compatible garments. No forced costumes or altered coverage. Explicit outfit directions win.'
+      :'WARDROBE: retain the original garment type, skin coverage and identifiable silhouette. As strength increases, selectively suggest contemporary Japanese avant-garde / Yohji Yamamoto-inspired asymmetrical black tailoring, softly draped layers or kimono-inspired jacket lines only where the existing garment permits. Never force a kimono or replace incompatible outfits. For text-only scenes, Japanese-inspired fashion is optional and must suit the user prompt. Explicit wardrobe instructions take priority.';
+    const preservation=editingBase
+      ?lite
+        ?'EDIT IMAGE 1, not a new scene. Keep identity, person count, anatomy, pose, original outfit, framing, crop, location and defining objects. Only unimportant background strokes may dissolve into washi. Follow user edits.'
+        :'EDIT IMAGE 1, not a new scene. Preserve facial identity, age, eyes, expression, hair, anatomy, body proportions, skin coverage, number of people, pose, orientation, viewpoint, framing, crop and perspective. Keep original clothing identifiable and preserve the real architecture, furniture, street geometry and defining objects. Only unimportant peripheral strokes may dissolve into washi. Follow explicit user edits.'
+      :referenceCount>0
+        ?'REFERENCES ONLY: respect assigned Identity, Body, Pose and Style roles. Compose the requested scene without importing unrelated reference faces, clothing or locations.'
+        :'NO BASE: follow the written subject, clothing and location. Never force a Japanese location or disregard requested garments.';
+    const look=lite
+      ?'Physical black sumi ink, diluted gray wash, dry-brush breaks, subtle warm ivory washi texture, gentle ink diffusion, recognizable realistic face and controlled negative space.'
+      :mood.direction;
+    const prompt=[original,'PV LAB MOOD / '+mood.name+': '+look+' '+expression+' '+fashion+' '+preservation+' Avoid: '+mood.avoid+'.'].filter(Boolean).join('\n\n');
     const budget=lite?3000:5000,over=prompt.length-budget;
     return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original},
       error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
