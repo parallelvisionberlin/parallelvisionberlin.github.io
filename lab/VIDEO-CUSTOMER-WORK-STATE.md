@@ -1,3 +1,25 @@
+## Approved Video panel polish, 2026-10-24
+
+- Owner approved the screenshot refinements: remove unnecessary Start/Reference settings scroll, preserve the plus/drop invitation, and expose slightly more History.
+- Baseline: current main `e33fce34292d652b1bf4a5088afadb39786ccc52`.
+- Existing Video branches #443/#446/#448/#452 and broader maintenance #482 remain separate. No model defaults or other changes are imported.
+- Reproduced at 1440x900: Start settings overflow 39px; Reference settings overflow 13px. Text is already fitted.
+- Only desktop Start/Reference spacing changes: body gap 10 to 5px, bottom padding 14 to 10px. Original top padding, 124px model banner, 104px prompt and 44px Generate remain.
+- At 1920x912 and 1440x900 all three empty Create modes now have zero settings overflow. At 1440x768 real overflow remains scrollable; no overflow hiding or scrollbar masking.
+- The original 66px plus invitation remains visible in Start. Upload/drop handlers and source-media state remain unchanged.
+- History reaches its existing cards 13px earlier by reducing archive top/header gaps. Stage dimensions, photo crop/bytes and card dimensions are unchanged.
+- Mobile CSS, Text/Extend settings spacing, original selector, model capabilities, authentication, credits, quotes/prices, APIs and provider behavior remain unchanged.
+- Asset identity: `lab/visuals/video-subway-relaxed-approved.png`, SHA-256 `e5d8b8f5a46acaa9227dcaea9c37077174e60a77488b342bf7cbb1a5fbef17e4`.
+- CSS cache parameter: `video-relaxed-studio.css?v=20261024-relaxed1&panelPolish=20261024v1`.
+- Relevant product files: `lab/video-relaxed-studio.css` and its single stylesheet URL in `lab/studio.html`.
+- Existing Seedance matrix adds 1920x912 and asserts fitted Start/Reference panels, unchanged banner/prompt heights and the visible plus. All original mode/upload/price/logout assertions remain.
+- Image contract and Video contracts: 7/7 PASS. Final geometry probe PASS at 1920x912, 1440x900 and 1440x768, including native short-window overflow.
+- Studio layout/scroll suite PASS. Full Seedance and customer/visual final-candidate checks are recorded in the associated polish PR; only completed results count.
+- Local public visual suite passed the original desktop Video canvas/banner pixel checks, then timed out in the unrelated customer Retouch fixture; the installed local Chromium differs from pinned CI. Keep assertions and tolerances unchanged and require pinned CI before release.
+- No real customer login, upload, paid generation, purchase or credit grant was performed. Browser media/accounts/APIs are synthetic.
+- Publication status before final CI: pending. Final head, exact-head checks, merge, Cloudflare and live-byte verification are recorded in the polish PR.
+- Next: finish the fixed candidate's checks, integrate if validated, then verify exact CSS bytes and affected behavior on `pvlab.studio` using `RELEASE-PROTOCOL.md`.
+
 ## PR #506 release validation, 2026-10-24
 
 - Owner now authorizes validation, merge and the existing production publication procedure for #506.
