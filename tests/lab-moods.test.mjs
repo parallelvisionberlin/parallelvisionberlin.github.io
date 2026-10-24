@@ -506,23 +506,24 @@ test('80s Film early film-to-tape prompt scales in five protected stages',()=>{
   const preset=moodById('80s-film');
   assert.equal(preset.description,'1981-1984 film-to-tape, soft analog color and subtle period details');
   const original='Preserve this person and bedroom composition';
-  const steps=[[20,/SUBTLE 1-34%/],[50,/TAPE COLOR 35-69%/],[80,/EARLY-80S STILL 70-89%/],[93,/PERIOD MEMORY 90-99%/],[100,/MAXIMUM 100% \/ EARLY-80S TAPE/]];
+  const steps=[[20,/SUBTLE 1-34%/],[50,/TAPE COLOR 35-69%/],[80,/EARLY-80S STILL 70-89%/],[93,/PERIOD MEMORY 90-99%/],[100,/BASE PHOTO \/ 100% PRIORITY/]];
   const prompts=steps.map(([intensity,stage])=>{
     const r=prepareMoodPrompt(original,'80s-film',intensity,{engine:'seedream',referenceCount:1});
     assert.equal(r.error,'');assert.ok(r.prompt.startsWith(original+'\n\n'));
     assert.match(r.prompt,stage);assert.match(r.prompt,/35mm/);
-    assert.match(r.prompt,/1981-1984/);assert.match(r.prompt,/well-preserved PAL analog videotape/);
-    assert.match(r.prompt,/facial identity/);assert.match(r.prompt,/actual place/);
+    assert.match(r.prompt,/1981-1984/);assert.match(r.prompt,intensity===100?/well-preserved PAL analog tape/:/well-preserved PAL analog videotape/);
+    assert.match(r.prompt,intensity===100?/same recognizable face and expression/:/facial identity/);assert.match(r.prompt,/actual place/);
     assert.match(r.prompt,/first reference is the base photograph/);
-    if(intensity>=70){assert.match(r.prompt,/small 1981-1984 changes/);assert.match(r.prompt,/preserving garment category/);}
+    if(intensity===100){assert.match(r.prompt,/EARLY-80S MATERIAL CULTURE/);assert.match(r.prompt,/garment categories actually visible in the Base/);}
+    else if(intensity>=70){assert.match(r.prompt,/small 1981-1984 changes/);assert.match(r.prompt,/preserving garment category/);}
     else{assert.match(r.prompt,/No period restyling/);assert.match(r.prompt,/Keep clothes and environmental details unchanged/);}
     assert.equal(r.metadata.moodIntensity,intensity);assert.equal(r.metadata.moodOriginalPrompt,original);
     return r.prompt;
   });
   assert.equal(new Set(prompts).size,steps.length);
   assert.doesNotMatch(prompts[3],/MAXIMUM 100% \/ EARLY-80S TAPE/);
-  assert.match(prompts[4],/NOT maximum blur or degradation/);
-  assert.match(prompts[4],/No wholesale outfit replacement/);
+  assert.match(prompts[4],/No fake VHS tracking bars/);
+  assert.match(prompts[4],/No scene replacement/);
   const textOnly=prepareMoodPrompt('Fashion model in an early-80s film scene','80s-film',100);
   assert.equal(textOnly.error,'');assert.match(textOnly.prompt,/Without a Base, follow the written subject/);
   const refsOnly=prepareMoodPrompt('Period fashion still','80s-film',100,{referenceCount:2,referenceMode:'references',engine:'gemini'});
@@ -536,7 +537,7 @@ test('80s Film retains fixed recipes and rejects actual reference-note overflow 
     const r=prepareMoodPrompt(direction,'80s-film',amount,{referenceCount:10,engine:'seedream'});
     const one=prepareMoodPrompt(direction,'80s-film',amount,{referenceCount:1,engine:'seedream'});
     assert.equal(r.error,'');assert.equal(r.prompt,one.prompt,'Reference count never changes the authored recipe');
-    assert.match(r.prompt,/80S FILM \/ EARLY 1980S FILM-TO-TAPE/);
+    assert.match(r.prompt,amount===100?/BASE PHOTO \/ 100% PRIORITY/:/80S FILM \/ EARLY 1980S FILM-TO-TAPE/);
     const provider=compileImagePrompt(r.prompt,refs,{...r.metadata,referenceMode:'base'});
     assert.ok(provider.includes(r.prompt),'The complete Mood survives compilation');
     if(amount===100){
@@ -561,7 +562,7 @@ test('80s Film retains fixed recipes and rejects actual reference-note overflow 
     assert.ok(compiled.includes(board.direction),'Keep authored saved style');
   }
   const duo=prepareMoodPrompt('Fashion scene','80s-film',100,{engine:'seedream',referenceCount:2});
-  assert.match(duo.prompt,/80S FILM \/ EARLY 1980S FILM-TO-TAPE/);
+  assert.match(duo.prompt,/BASE PHOTO \/ 100% PRIORITY/);
 });
 
 test('Berlin Rave V5 carries minimal clothing, flash and source composition through every tier',()=>{
