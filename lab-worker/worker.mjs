@@ -14,6 +14,7 @@ import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook
 import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
+import {partnerWorkspace,partnerDashboardRoute} from './partner-dashboard.mjs';
 import {labAdminRoute,voucherCustomerRoute,syncCustomerEmail,scheduledClerkBackfill} from './promotions.mjs';
 import {recordLabTraffic,pruneLabTraffic} from './traffic.mjs';
 import {pruneGenerationReviewAudit} from './generation-review.mjs';
@@ -1402,6 +1403,7 @@ async function route(request,env,ctx) {
       catch(e){fail(400,String(e?.message||'This model cannot be quoted.').slice(0,260));}
     }
     if(path.startsWith('/api/customer/vouchers'))return voucherCustomerRoute(request,env,owner);
+    if(path==='/api/customer/partner')return partnerDashboardRoute(request,env,owner);
     if(path.startsWith('/api/customer/referrals')){
       try{return await referralRoute(request,env,owner);}
       catch(e){if(Number.isInteger(e?.status)&&e.status>=400&&e.status<=599)fail(e.status,e.message);throw e;}
@@ -1489,9 +1491,10 @@ async function route(request,env,ctx) {
   if(path==='/api/session'&&method==='GET'){
     if(customer){
       const account=await customerSession(env,owner);
+      const partnerDashboard=account.accountClosed?null:await partnerWorkspace(env,owner);
       const c=await config(env,owner);
       const ready=account.generationReady;
-      return json({...account,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoPreparationEngines:publicConfig(c,!!env.FAL_KEY).videoEngines,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',geminiEnabled:ready&&!!env.GEMINI_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY}});
+      return json({...account,partnerDashboard,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoPreparationEngines:publicConfig(c,!!env.FAL_KEY).videoEngines,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',geminiEnabled:ready&&!!env.GEMINI_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY}});
     }
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);

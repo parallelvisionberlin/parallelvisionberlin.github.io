@@ -65,7 +65,7 @@ async function clerkStorage(stage,action){
 }
 // Clerk is authoritative for verified account email. Never accept an email claimed by the browser.
 // Provide safe status information for owner-initiated diagnostics without returning Clerk data.
-async function clerkEmailStatus(env,subject,force=false){
+export async function clerkEmailStatus(env,subject,force=false){
   if(!/^user_[A-Za-z0-9]+$/.test(subject))return 'invalid_subject';
   if(await clerkStorage('closure_read',()=>one(env,'SELECT 1 AS closed FROM lab_account_closures WHERE customer_id=?',subject)))return 'closed';
   // Verified new Clerk identity maps to an internal D1 wallet ID; never infer identity by email.

@@ -1,0 +1,24 @@
+# Vitolas Studio partner dashboard
+
+- Approved 2026-10-24: Victoria Caridad's dashboard is named **Vitolas Studio**.
+- Authorized identity: exact verified primary email represented by SHA-256 in the Worker; no private address in public source.
+- Baseline reviewed: main `f7c114599f18cd450378932a02127bd407bb0547`.
+- Branch: `feature/vitolas-studio-20261024`.
+- Entry: `lab/vitolas-studio.html`; menu appears only from the server's partner descriptor.
+- Backend: `lab-worker/partner-dashboard.mjs`, authenticated `GET /api/customer/partner`.
+- Access rechecks Clerk's verified primary email for every dashboard/page request and resolves the dedicated Studio identity through existing links.
+- Session discovery reads the existing contact snapshot without waiting on Clerk. Existing background contact sync populates a first-login menu; opening the dashboard directly verifies first access.
+- Closed accounts, unverified/changed emails and failed upstream verification cannot read the dashboard.
+- Own referral scope comes only from the authenticated internal subject, never a query/body customer ID.
+- Reuses the existing stable invitation and attribution rules. No attribution or reward schema migration.
+- Lists attributed registrations, verified purchase count, paying customers, active subscriptions and paginated contacts.
+- Closed referred identities are anonymized. No images, prompts, provider costs or owner-wide customer data are returned.
+- Purchases are immutable verified purchase/subscription ledger entries, not promotional credits; totals cover every page.
+- Spanish interface, existing monochrome account styling, desktop/tablet/phone layout.
+- No commission, payout or monetary agreement has been defined or implemented.
+- No balance adjustment, real purchase, provider generation or outbound email performed.
+- 103 existing Worker tests passed; 40 focused security/referral/promotion/menu/Image checks passed locally.
+- New browser workflow covers authorized and denied views, phone/tablet/desktop geometry, logout cleanup and delayed-response identity changes with synthetic accounts.
+- Local browser download was unavailable; visual/browser checks must pass in CI before publication.
+- Current status: implementation prepared; production deployment and Victoria's actual account are unverified.
+- Next: run the partner browser workflow and relevant existing CI, review the screenshot artifacts, then publish the reviewed source and verify Worker/Pages separately.

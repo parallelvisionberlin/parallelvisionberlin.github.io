@@ -27,8 +27,11 @@ export function createAccountMenu(root) {
   voucherLink.href='./account.html#voucher';voucherLink.textContent='Redeem voucher';voucherLink.dataset.accountVouchers='';voucherLink.hidden=true;
   adminLink.href='./owner.html';adminLink.textContent='Owner dashboard';adminLink.dataset.accountAdmin='';adminLink.hidden=true;
   agencyLink.href='https://parallelvisionlabel.com/agency/';agencyLink.textContent='Agency preview ↗';agencyLink.dataset.accountAgency='';agencyLink.hidden=true;
+  const partnerLink=document.createElement('a');
+  partnerLink.href='./vitolas-studio.html';partnerLink.textContent='Vitolas Studio';partnerLink.dataset.accountPartner='';partnerLink.hidden=true;
   // Keep the established wordmark. Add an authenticated identity row and quiet navigation icons.
   if(settings){settings.before(voucherLink);settings.after(adminLink);adminLink.after(agencyLink);}else if(panel)panel.append(voucherLink,adminLink,agencyLink);
+  adminLink.before(partnerLink);
   const identityRow=document.createElement('div');
   identityRow.className='pv-account-identity';
   identityRow.hidden=true;
@@ -59,7 +62,7 @@ export function createAccountMenu(root) {
     const href=item.getAttribute('href')||'';
     const kind=item.hasAttribute('data-account-signout')?'signout':
       item.hasAttribute('data-account-agency')?'agency':
-      item.hasAttribute('data-account-admin')?'owner':
+      item.hasAttribute('data-account-admin')||item.hasAttribute('data-account-partner')?'owner':
       item.hasAttribute('data-account-vouchers')?'voucher':
       item.hasAttribute('data-account-referrals')?'invite':
       item.hasAttribute('data-account-connection')?'connection':
@@ -109,6 +112,7 @@ export function createAccountMenu(root) {
   }
   function update({signed=false,user=null,profile=null}={}){
     currentProfile=profile;root.hidden=!signed;
+    partnerLink.hidden=!(signed&&profile?.customer&&!profile.accountClosed&&profile?.partnerDashboard?.slug==='vitolas-studio');
     if(!signed){close();voucherLink.hidden=true;adminLink.hidden=true;agencyLink.hidden=true;identityRow.hidden=true;identityAvatar.replaceChildren();delete identityAvatar.dataset.identity;avatar.replaceChildren();delete avatar.dataset.identity;root.querySelector('[data-account-name]').textContent='';root.querySelector('[data-account-balance]').textContent='';return;}
     const identity=accountIdentity(user);
     identityRow.hidden=false;

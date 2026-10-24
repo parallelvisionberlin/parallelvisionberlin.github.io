@@ -1,0 +1,33 @@
+name: PV LAB partner dashboard
+on:
+  pull_request:
+    paths: ['lab/vitolas-studio*', 'lab/account-menu.js', 'lab-worker/partner-dashboard.mjs', 'lab-worker/promotions.mjs', 'lab-worker/worker.mjs', 'tests/lab-partner-dashboard*', '.github/workflows/pv-lab-partner-dashboard.yml']
+  push:
+    branches: [main]
+    paths: ['lab/vitolas-studio*', 'lab/account-menu.js', 'lab-worker/partner-dashboard.mjs', 'lab-worker/promotions.mjs', 'lab-worker/worker.mjs', 'tests/lab-partner-dashboard*', '.github/workflows/pv-lab-partner-dashboard.yml']
+permissions:
+  contents: read
+jobs:
+  partner-dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/lab-partner-dashboard.test.mjs tests/lab-referrals.test.mjs tests/lab-account-menu.test.mjs tests/lab-approved-image-ui-contract.test.mjs
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/lab-partner-dashboard-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vitolas-dashboard-review
+          path: test-results/vitolas
+          retention-days: 3
