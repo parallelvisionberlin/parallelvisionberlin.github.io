@@ -1,5 +1,16 @@
 # Vitolas Studio partner dashboard
 
+## Owner review extension, 2026-10-24
+- User explicitly requested private Owner access to Victoria's dashboard.
+- Hidden links in Owner sidebar/mobile navigation reveal only after verified owner session; no general customer-menu changes.
+- Same Vitolas page selects the customer or admin endpoint from the verified session role.
+- New read-only GET /api/admin/partners/vitolas-studio reuses the existing OWNER_DB role/auth-provider guard.
+- Owner data scope resolves Victoria's approved verified email on the server, ignoring browser-supplied customer IDs.
+- Before Victoria's first login, owner sees an activation-pending message, with no fabricated link or counters.
+- No promotion of Victoria to owner, payouts, balance changes, email or schema migration.
+- Focused backend/security checks: 44 passed. Existing Worker suite: verification in progress.
+- Current extension status: prepared; browser CI and production publication pending.
+
 - Approved and published 2026-10-24: **Vitolas Studio**, for Victoria Caridad.
 - Authorized primary email is represented by SHA-256 in the Worker; no private address in public source.
 - PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/533

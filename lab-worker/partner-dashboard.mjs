@@ -1,4 +1,4 @@
-import {clerkEmailStatus} from './promotions.mjs';
+import {clerkEmailStatus,requireOwner} from './promotions.mjs';
 import {referralRoute} from './referrals.mjs';
 
 // Exact, owner-approved verified email, hashed to keep it out of public source.
@@ -43,6 +43,29 @@ export async function partnerDashboardRoute(request,env,subject){
   if(request.method!=='GET')fail(405,'This dashboard is read-only.');
   const access=await partnerWorkspace(env,subject,{verify:true});
   if(!access)fail(403,'This account does not have access to Vitolas Studio.');
+  return readPartnerDashboard(request,env,subject,access);
+}
+export async function ownerPartnerDashboardRoute(request,env,owner){
+  await requireOwner(env,owner);
+  if(new URL(request.url).pathname!=='/api/admin/partners/vitolas-studio')fail(404,'Unknown partner endpoint.');
+  if(request.method!=='GET')fail(405,'This dashboard is read-only.');
+  const result=await env.LAB_DB.prepare(`SELECT p.customer_id,p.email FROM lab_customer_contacts p
+    JOIN lab_customers c ON c.id=p.customer_id
+    WHERE p.verified_at IS NOT NULL AND p.email IS NOT NULL AND NOT EXISTS
+      (SELECT 1 FROM lab_account_closures x WHERE x.customer_id=p.customer_id)
+    ORDER BY c.created_at DESC,p.customer_id`).bind().all();
+  let hadCandidate=false;
+  for(const contact of result.results||[]){
+    if(!await approvedEmail(contact.email))continue;
+    hadCandidate=true;
+    const access=await partnerWorkspace(env,contact.customer_id,{verify:true});
+    if(access)return readPartnerDashboard(request,env,contact.customer_id,access,{ownerView:true});
+  }
+  if(hadCandidate)fail(503,'No pudimos verificar la cuenta de Vitolas Studio. Inténtalo de nuevo.');
+  return json({workspace,ownerView:true,awaitingPartner:true});
+}
+async function readPartnerDashboard(request,env,subject,access,{ownerView=false}={}){
+  const url=new URL(request.url);
   const offset=Number(url.searchParams.get('offset')||0),limit=100;
   if(!Number.isSafeInteger(offset)||offset<0||offset>1000000)fail(400,'Invalid page.');
   const paid=`EXISTS(SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=r.referred_customer_id
@@ -70,6 +93,6 @@ export async function partnerDashboardRoute(request,env,subject){
   const linkRequest=new Request(new URL('/api/customer/referrals',request.url),{headers:request.headers});
   const referral=await (await referralRoute(linkRequest,env,subject)).json();
   const customers=result.results||[];
-  return json({workspace:access,referralUrl:referral.url,totals,customers,
+  return json({workspace:access,ownerView,referralUrl:referral.url,totals,customers,
     nextOffset:offset+customers.length<Number(totals.registered)?offset+customers.length:null});
 }

@@ -14,7 +14,7 @@ import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook
 import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
-import {partnerWorkspace,partnerDashboardRoute} from './partner-dashboard.mjs';
+import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute} from './partner-dashboard.mjs';
 import {labAdminRoute,voucherCustomerRoute,syncCustomerEmail,scheduledClerkBackfill} from './promotions.mjs';
 import {recordLabTraffic,pruneLabTraffic} from './traffic.mjs';
 import {pruneGenerationReviewAudit} from './generation-review.mjs';
@@ -1370,6 +1370,7 @@ async function route(request,env,ctx) {
       status:409,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-PV-Lab-Onboarding':'required'}
     });
   }
+  if(path==='/api/admin/partners/vitolas-studio')return ownerPartnerDashboardRoute(request,env,owner);
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
   if(customer&&path==='/api/session'&&ctx?.waitUntil&&

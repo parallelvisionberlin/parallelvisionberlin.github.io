@@ -234,7 +234,7 @@ export async function voucherCustomerRoute(request,env,subject){
   fail(404,'Unknown voucher endpoint.');
 }
 
-async function requireOwner(env,owner){
+export async function requireOwner(env,owner){
   const row=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk' LIMIT 1").bind(owner).first();
   if(!row)fail(403,'PV Lab owner access required.');
 }

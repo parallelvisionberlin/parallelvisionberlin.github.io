@@ -4,6 +4,7 @@ import {createAccountMenu} from './account-menu.js?v=20261024-vitolas1';
 const $=id=>document.getElementById(id);
 const menu=createAccountMenu($('account-menu'));
 let clerk=null,revision=0,nextOffset=null,loading=false;
+let dashboardPath='/api/customer/partner';
 const request=createSessionRequest({baseUrl:'https://parallel-vision-lab.parallelvision.workers.dev',getSession:()=>clerk?.session});
 const status=message=>{$('partner-status').textContent=message;};
 async function api(path){
@@ -37,7 +38,9 @@ async function refresh(){
   try{
     const profile=await api('/api/session');if(current!==revision)return;
     menu.update({signed:true,user:clerk.user,profile});
-    const data=await api('/api/customer/partner');if(current!==revision)return;
+    dashboardPath=profile.owner===true?'/api/admin/partners/vitolas-studio':'/api/customer/partner';
+    const data=await api(dashboardPath);if(current!==revision)return;
+    if(data.awaitingPartner){status('Tu acceso de owner está activo. Victoria debe iniciar sesión una vez para activar su enlace y sus datos.');return;}
     menu.update({signed:true,user:clerk.user,profile:{...profile,partnerDashboard:data.workspace}});
     const link=new URL(data.referralUrl);
     if(!['https://pvlab.studio','https://www.pvlab.studio','https://parallelvisionlabel.com'].includes(link.origin))throw Error('El enlace no está disponible.');
@@ -58,7 +61,7 @@ $('partner-copy').onclick=async()=>{
 $('partner-more').onclick=async()=>{
   if(loading||nextOffset===null)return;
   const current=revision;loading=true;$('partner-more').disabled=true;
-  try{const data=await api('/api/customer/partner?offset='+nextOffset);if(current!==revision)return;rows(data.customers,true);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;status('');}
+  try{const data=await api(dashboardPath+'?offset='+nextOffset);if(current!==revision)return;rows(data.customers,true);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;status('');}
   catch(error){if(current===revision)status(error.message);}
   finally{if(current===revision){loading=false;$('partner-more').disabled=false;}}
 };
