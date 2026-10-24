@@ -43,13 +43,13 @@ test('every supported engine and Mood strength preserves face, flattering skin e
     assert.match(recipe.prompt,/natural expressive beauty/);
     assert.match(recipe.prompt,/softly visible eyes/);
     assert.match(recipe.prompt,/every background building, sign and street element/);
-    assert.match(recipe.prompt,/Fine pushed 35mm color-negative shadow texture/);
+    assert.match(recipe.prompt,/organic pushed-35mm texture|35mm texture/i);
     assert.match(recipe.prompt,/User direction takes priority/);
     assert.match(recipe.prompt,/practicals|practical lights|light sources/);
-    assert.match(recipe.prompt,/warm lamps/);
+    assert.match(recipe.prompt,/warm lamps|warm tungsten|warm practicals|practical reflections/);
     assert.match(recipe.prompt,/not an instruction to move anyone to Asia or add neon/);
     assert.doesNotMatch(recipe.prompt,/reconstruct cinematic scene lighting|off-axis light modeling|Relight whole Base/);
-    assert.deepEqual(recipe.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
+    assert.deepEqual(recipe.metadata.filmFinish,{version:2,grain:13,haze:100,halation:78,film:100});
     assert.ok(recipe.prompt.length<(engine==='seedreamlite'?3000:5000));
   }
 });
@@ -95,7 +95,7 @@ test('Deep Green and Slow Shutter are optical treatments, not alternate characte
   assert.match(prompts[1],/ONLY in the existing background shadows/);
   assert.match(prompts[2],/If there are no moving practical lights/);
 });
-test('the Film Finish stays opt-in and cannot change the paid image edit prompt',()=>{
+test('the Film Finish is adjustable and cannot change the paid image edit prompt',()=>{
   for(const engine of ['seedream','gemini'])for(const intensity of [20,60,100]){
     const opt=prepareMoodPrompt('Original woman in room','hong-kong-nights',intensity,
       {engine,referenceCount:1,filmFinish:{version:2,grain:70,haze:60,halation:55,film:80}});
@@ -106,7 +106,7 @@ test('the Film Finish stays opt-in and cannot change the paid image edit prompt'
     assert.equal(opt.prompt,disabled.prompt);
     assert.equal(disabled.prompt,clean.prompt);
     assert.equal(disabled.metadata.filmFinish,undefined);
-    assert.deepEqual(clean.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
+    assert.deepEqual(clean.metadata.filmFinish,{version:2,grain:13,haze:100,halation:78,film:100});
     assert.equal(opt.metadata.filmFinish.film,80);
   }
 });
@@ -148,7 +148,7 @@ test('three anchor photographs share one coherent source-preserving reference-le
     assert.match(result.prompt,/emerald|green/i);
     assert.match(result.prompt,/existing|same/i);
     assert.match(result.prompt,/no new objects|no new scene|not a new scene|preserve/i);
-    assert.deepEqual(result.metadata.filmFinish,{version:2,grain:0,haze:0,halation:0,film:0});
+    assert.deepEqual(result.metadata.filmFinish,{version:2,grain:13,haze:100,halation:78,film:100});
     const labels=[{role:'base',name:anchor.name+'.jpg',note:''}];
     const plan=moodReferencePlan({type:'image',mode:'image',engine,referenceMode:'base',
       prompt:result.prompt,...result.metadata,referenceRoles:labels});
