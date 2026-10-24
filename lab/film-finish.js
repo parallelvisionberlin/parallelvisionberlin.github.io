@@ -9,7 +9,7 @@ export const FILM_FINISH_OFF=Object.freeze({version:2,grain:0,haze:0,halation:0,
 // 1980s capture is an optical finish, not an additional AI generation.
 export const EIGHTIES_100_FILM_FINISH=Object.freeze({version:2,grain:100,haze:22,halation:20,film:100});
 export function eightiesBaseFinish(settings={}){
-  return settings?.type==='image'&&settings.engine==='seedream'&&
+  return settings?.type==='image'&&settings.mode==='image'&&settings.engine==='seedream'&&
     settings.moodId==='80s-film'&&Number(settings.moodIntensity)===100&&
     settings.referenceMode!=='references'&&settings.referenceRoles?.[0]?.role==='base'
     ?EIGHTIES_100_FILM_FINISH:null;
