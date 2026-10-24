@@ -1,0 +1,55 @@
+name: Repair Video layout selector
+on:
+  push:
+    branches: [codex/video-relaxed-20261024]
+    paths: [.github/workflows/video-relaxed-selector-fix.yml]
+permissions:
+  contents: write
+jobs:
+  repair:
+    if: github.repository == 'parallelvisionberlin/parallelvisionberlin.github.io' && github.ref == 'refs/heads/codex/video-relaxed-20261024'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/video-relaxed-20261024
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Correct complete-selector lookup only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/lab-studio-layout-ui.mjs')
+          s=p.read_text()
+          old="document.querySelector('.'+selector).getBoundingClientRect()"
+          new="document.querySelector(selector).getBoundingClientRect()"
+          assert s.count(old)==1, ('Expected exactly one invalid selector',s.count(old))
+          p.write_text(s.replace(old,new))
+          PY
+          node --check tests/lab-studio-layout-ui.mjs
+          node --test tests/lab-video-relaxed.test.mjs tests/lab-video-compact.test.mjs tests/lab-video-approved-design.test.mjs tests/lab-approved-image-ui-contract.test.mjs
+          git diff --check
+          git diff -- tests/lab-studio-layout-ui.mjs
+      - name: Exercise full layout and original scrolling assertions
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-selector-check/node_modules/playwright/index.mjs
+        run: |
+          npm install --prefix /tmp/pv-selector-check --no-audit --no-fund playwright@1.57.0
+          node /tmp/pv-selector-check/node_modules/playwright/cli.js install chromium --only-shell
+          node tests/lab-studio-layout-ui.mjs
+      - name: Commit only the verified test correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git diff --name-only)" = 'tests/lab-studio-layout-ui.mjs'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/lab-studio-layout-ui.mjs
+          git commit -m 'Fix duplicated CSS prefix in Video wheel regression target lookup'
+          git push origin HEAD:codex/video-relaxed-20261024
+          echo "VERIFIED_HEAD=$(git rev-parse HEAD)"
