@@ -119,6 +119,21 @@ try{
       await field.fill('');await field.press('Tab');
       assert.ok(Math.abs((await metrics()).deck.height-before.deck.height)<2,'Clearing restores compact geometry');
       await page.screenshot({path:`test-results/mobile-image-guest-${width}-${height}.png`});
+      if(width===390&&height===600){
+        // The lock belongs to Image only. The public tool switch keeps its
+        // existing route and must restore scrolling and normal header spacing.
+        await page.locator('#tool-video').click();
+        await page.waitForFunction(()=>document.getElementById('gate').dataset.guestTool==='video'&&
+          !document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed'));
+        assert.notEqual(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
+          'Video does not inherit the guest Image scroll lock');
+        await page.locator('#tool-image').click();
+        await page.waitForFunction(()=>document.getElementById('gate').dataset.guestTool==='image'&&
+          document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed'));
+        await page.evaluate(()=>document.activeElement?.blur?.());
+        assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
+          'Image restores its stationary entrance after returning from Video');
+      }
       // Use the real authenticated shell/styles without a real account or API.
       await page.evaluate(()=>{
         document.getElementById('gate').hidden=true;
