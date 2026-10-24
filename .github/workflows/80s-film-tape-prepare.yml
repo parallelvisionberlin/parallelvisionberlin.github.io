@@ -1,0 +1,181 @@
+name: Prepare isolated early-80s tape recipe
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '.github/workflows/80s-film-tape-prepare.yml'
+permissions:
+  contents: write
+jobs:
+  prepare:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/80s-film-early-tape-20261024'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply only the approved recipe and matching preservation clause
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,re
+          p=Path('lab/moods.js'); source=p.read_text()
+          assert 'EIGHTIES_TAPE_RECIPE' not in source
+          Path('lab/.eighties-baseline.mjs').write_text(source)
+          start=source.index('  {\n    "id": "80s-film",\n')
+          end=source.index('  {\n    "id": "synthetic-romance",\n',start)
+          old=json.loads(source[start:end].strip().rstrip(','))
+          assert old['description']=='35mm movie scenes, burned light and saturated color'
+          fields={'description','lowDirection','midDirection','direction','subtle','moderate','immersive','intense','climax','avoid','compact','compactLow','compactMid','compactSubtle','compactModerate','compactImmersive','compactIntense','compactClimax','compactAvoid'}
+          kept={k:v for k,v in old.items() if k not in fields}
+          replacement='  {\n'+''.join('    '+json.dumps(k)+': '+json.dumps(v)+',\n' for k,v in kept.items())+'    ...EIGHTIES_TAPE_RECIPE\n  },\n'
+          source=source[:start]+replacement+source[end:]
+          old_preserve=":compact80s\n          ?'The first reference is the base photograph. Preserve identity, body, pose, clothes, camera and setting unless the user requests changes. Respect assigned roles.'"
+          new_preserve=":cinematic80s\n          ?'The first reference is the base photograph. Preserve identity, expression, hair, body, pose, camera, framing and actual place. '+(intensity>=70?'Only small period clothing details and already-visible modern objects may change; retain garment category, colors, material and coverage.':'Keep clothes and environmental details unchanged.')+' Explicit user instructions and assigned roles take priority.'"
+          assert source.count(old_preserve)==1
+          source=source.replace(old_preserve,new_preserve)
+          p.write_text("import {EIGHTIES_TAPE_RECIPE} from './80s-film-recipe.js?v=20261024v1';\n"+source)
+          # Only module/entry version strings change outside the Mood compiler.
+          changed={'moods.js'}; version='eightiesTape=20261024v1'
+          pattern=re.compile(r'''(?P<q>['"])(?P<path>\./[A-Za-z0-9-]+\.js)(?P<query>\?[^'"\r\n]*)?(?P=q)''')
+          paths=sorted([*Path('lab').glob('*.js'),*Path('lab').glob('*.html')])
+          while True:
+              added=False
+              for path in paths:
+                  original=path.read_text()
+                  def bump(match):
+                      if Path(match['path']).name not in changed: return match.group(0)
+                      query=match['query'] or ''
+                      if version in query: return match.group(0)
+                      return match['q']+match['path']+query+('&' if query else '?')+version+match['q']
+                  updated=pattern.sub(bump,original)
+                  if updated!=original:
+                      path.write_text(updated)
+                      if path.name not in changed: changed.add(path.name); added=True
+              if not added: break
+          print('Import cache scope:',sorted(changed))
+          # Replace only obsolete art-direction expectations, retain equivalent
+          # tier, identity, role, prompt integrity, metadata and overflow guards.
+          p=Path('tests/lab-moods.test.mjs'); tests=p.read_text()
+          start=tests.index("test('80s Film high-fashion feature-cinema prompt scales in five cinematic stages'")
+          end=tests.index("test('Berlin Rave V5 carries minimal clothing",start)
+          Path('/tmp/eighties-old-tests.txt').write_text(tests[start:end])
+          tests=tests[:start]+r'''test('80s Film early film-to-tape prompt scales in five protected stages',()=>{
+            const preset=moodById('80s-film');
+            assert.equal(preset.description,'1981-1984 film-to-tape, soft analog color and subtle period details');
+            const original='Preserve this person and bedroom composition';
+            const steps=[[20,/SUBTLE 1-34%/],[50,/TAPE COLOR 35-69%/],[80,/EARLY-80S STILL 70-89%/],[93,/PERIOD MEMORY 90-99%/],[100,/MAXIMUM 100% \/ EARLY-80S TAPE/]];
+            const prompts=steps.map(([intensity,stage])=>{
+              const r=prepareMoodPrompt(original,'80s-film',intensity,{engine:'seedream',referenceCount:1});
+              assert.equal(r.error,'');assert.ok(r.prompt.startsWith(original+'\n\n'));
+              assert.match(r.prompt,stage);assert.match(r.prompt,/35mm/);
+              assert.match(r.prompt,/1981-1984/);assert.match(r.prompt,/well-preserved PAL analog videotape/);
+              assert.match(r.prompt,/facial identity/);assert.match(r.prompt,/actual place/);
+              assert.match(r.prompt,/first reference is the base photograph/);
+              if(intensity>=70){assert.match(r.prompt,/small 1981-1984 changes/);assert.match(r.prompt,/preserving garment category/);}
+              else{assert.match(r.prompt,/No period restyling/);assert.match(r.prompt,/Keep clothes and environmental details unchanged/);}
+              assert.equal(r.metadata.moodIntensity,intensity);assert.equal(r.metadata.moodOriginalPrompt,original);
+              return r.prompt;
+            });
+            assert.equal(new Set(prompts).size,steps.length);
+            assert.doesNotMatch(prompts[3],/MAXIMUM 100% \/ EARLY-80S TAPE/);
+            assert.match(prompts[4],/NOT maximum blur or degradation/);
+            assert.match(prompts[4],/No wholesale outfit replacement/);
+            const textOnly=prepareMoodPrompt('Fashion model in an early-80s film scene','80s-film',100);
+            assert.equal(textOnly.error,'');assert.match(textOnly.prompt,/Without a Base, follow the written subject/);
+            const refsOnly=prepareMoodPrompt('Period fashion still','80s-film',100,{referenceCount:2,referenceMode:'references',engine:'gemini'});
+            assert.equal(refsOnly.error,'');assert.match(refsOnly.prompt,/Reference-only: follow requested output/);
+          });
+
+          test('80s Film retains fixed recipes and rejects actual reference-note overflow without truncation',()=>{
+            const direction='An actor in a room';
+            const refs=Array.from({length:10},(_,i)=>({name:'film-ref-'+i+'.jpg',role:i?'none':'base'}));
+            for(const amount of [20,50,80,93,100]){
+              const r=prepareMoodPrompt(direction,'80s-film',amount,{referenceCount:10,engine:'seedream'});
+              const one=prepareMoodPrompt(direction,'80s-film',amount,{referenceCount:1,engine:'seedream'});
+              assert.equal(r.error,'');assert.equal(r.prompt,one.prompt,'Reference count never changes the authored recipe');
+              assert.match(r.prompt,/80S FILM \/ EARLY 1980S FILM-TO-TAPE/);
+              const provider=compileImagePrompt(r.prompt,refs,{...r.metadata,referenceMode:'base'});
+              assert.ok(provider.includes(r.prompt),'The complete Mood survives compilation');
+              if(amount===100){
+                const noted=refs.map(r=>({...r,note:'Keep this specific source detail unchanged. '.repeat(7)}));
+                const overflow=compileImagePrompt(r.prompt,noted,{...r.metadata,referenceMode:'base'});
+                assert.ok(overflow.length>5000,'Genuine long reference notes must still overflow');
+                assert.ok(overflow.includes(r.prompt),'Never shrink the Mood to hide overflow');
+              }
+            }
+            const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+            const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+            const creator=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
+            assert.match(studio,/src="\.\/lab\.js\?v=20\d{6}-[^"\s]+"/);
+            assert.match(app,/moods\.js\?v=20\d{6}-/);assert.match(creator,/moods\.js\?v=20\d{6}-/);
+            const board={id:'10000000-0000-4000-8000-000000000080',name:'Early Tape',baseMoodId:'80s-film',direction:'Keep the original white shirt'};
+            const single=preparePersonalMoodPrompt('Same room',board,100,{engine:'seedream',referenceCount:1});
+            for(const count of [1,2,10]){
+              const saved=preparePersonalMoodPrompt('Same room',board,100,{engine:'seedream',referenceCount:count});
+              const boardRefs=Array.from({length:count},(_,i)=>({name:'ref-'+i+'.jpg',role:i?'none':'base'}));
+              assert.equal(saved.error,'');assert.equal(saved.prompt,single.prompt,'Saved Mood never recompiles to fit references');
+              const compiled=compileImagePrompt(saved.prompt,boardRefs,{...saved.metadata,referenceMode:'base'});
+              assert.ok(compiled.includes(board.direction),'Keep authored saved style');
+            }
+            const duo=prepareMoodPrompt('Fashion scene','80s-film',100,{engine:'seedream',referenceCount:2});
+            assert.match(duo.prompt,/80S FILM \/ EARLY 1980S FILM-TO-TAPE/);
+          });
+
+          '''+tests[end:]
+          p.write_text(tests)
+          PY
+      - name: Compare all unaffected Mood outputs with the exact original compiler
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import * as before from './lab/.eighties-baseline.mjs';
+          import * as after from './lab/moods.js';
+          const unaffected=x=>x.MOODS.filter(m=>m.id!=='80s-film');
+          assert.deepEqual(unaffected(after),unaffected(before));
+          for(const key of ['id','name','category','preview','previewFull','defaultIntensity'])
+            assert.deepEqual(after.moodById('80s-film')[key],before.moodById('80s-film')[key],key);
+          let same=0,changed=0;
+          for(const mood of before.MOODS)
+          for(const engine of ['seedream','seedreamlite','gemini','gemini21','krea3','qwen3','zspicy'])
+          for(const amount of [1,20,34,35,60,69,70,80,89,90,99,100])
+          for(const referenceCount of [0,1,3])
+          for(const referenceMode of ['base','references'])
+          for(const input of ['', 'Keep this same person and place; preserve the white shirt.']){
+            const options={engine,referenceCount,referenceMode};
+            const a=before.prepareMoodPrompt(input,mood.id,amount,options);
+            const b=after.prepareMoodPrompt(input,mood.id,amount,options);
+            if(mood.id==='80s-film'){
+              assert.deepEqual(b.metadata,a.metadata);
+              assert.match(b.prompt,/1981-1984/);
+              assert.equal(Boolean(b.error),Boolean(a.error));changed++;
+            }else{assert.deepEqual(b,a,`${mood.id}/${engine}/${amount}/${referenceCount}/${referenceMode}`);same++;}
+          }
+          console.log(JSON.stringify({unchangedRecipes:same,updated80sRecipes:changed}));
+          JS
+          rm lab/.eighties-baseline.mjs
+      - name: Existing Mood, identity, reference and provider-budget regressions
+        run: |
+          node --check lab/80s-film-recipe.js
+          node --check lab/moods.js
+          node --test tests/lab-moods.test.mjs tests/lab-dream-blur.test.mjs tests/lab-dream-blur-base.test.mjs tests/lab-mood-references.test.mjs tests/lab-reference-mode.test.mjs tests/lab-photobooth-all-moods.test.mjs
+          git diff --check
+          test -z "$(git diff --name-only -- lab/mood-references.js lab/mood-references lab/mood-previews lab/reference-guidance.js lab-worker)"
+      - name: Commit the validated patch on this branch and remove preparation workflow
+        env:
+          TARGET_BRANCH: fix/80s-film-early-tape-20261024
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(git ls-remote origin refs/heads/$TARGET_BRANCH | cut -f1)" = "$EXPECTED_HEAD"
+          git rm .github/workflows/80s-film-tape-prepare.yml
+          git add -u lab tests/lab-moods.test.mjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Apply early-80s tape treatment only to 80s Film; preserve other Moods and all source assets'
+          git push origin HEAD:refs/heads/$TARGET_BRANCH
