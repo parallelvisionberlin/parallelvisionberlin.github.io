@@ -46,12 +46,23 @@ const FISHEYE_2000_REFERENCES=Object.freeze([
 ].map(ref=>Object.freeze({...ref,type:'image/webp',url:'/lab/mood-references/fisheye-2000/'+ref.file,
   label:Object.freeze({name:'Fisheye 2000 style - '+ref.file,role:'style',note:ref.note})})));
 
+// Existing Parallel Vision Reptare images provide approved material references.
+// Supporting STYLE sources only: customer Base remains the sole identity source.
+const HYPER_POP_REFERENCES=Object.freeze([
+  {file:'reptare-detail.webp',url:'/lab/visuals/reptare-detail.webp',type:'image/webp',
+    note:'MATERIAL ONLY: study clustered ivory vapor foam, molten silver topography and embedded mirrored spheres. Transfer these textures into NEW garment structures and matching local set materials. Never import a person or exact outfit.'},
+  {file:'02REPTARE.webp',url:'/assets/optimized/02REPTARE.webp',type:'image/webp',
+    note:'COUTURE MATERIAL ONLY: use wearable liquid-chrome construction, supported foam volumes and integrated orb hardware as tailoring vocabulary. Do not copy reference face, person, exact dress, pose or studio.'}
+].map(ref=>Object.freeze({...ref,
+  label:Object.freeze({name:'Hyper Pop style - '+ref.file,role:'style',note:ref.note})
+})));
+
 export function isMoodStyleReference(label){
-  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||FISHEYE_2000_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCE_LABELS.has(label.name));
+  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||FISHEYE_2000_REFERENCES.some(ref=>ref.label.name===label.name)||HYPER_POP_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCE_LABELS.has(label.name));
 }
 
 export function moodReferencePlan(settings){
-  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','fisheye-2000'].includes(settings.moodId)||!['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine))
+  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','fisheye-2000','hyper-pop'].includes(settings.moodId)||!['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine))
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
   const isHongKong=settings.moodId==='hong-kong-nights';
@@ -65,14 +76,15 @@ export function moodReferencePlan(settings){
     if(over>0)throw Error('Direction, Mood and reference instructions exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or optional reference notes.');
     return {settings,references:[]};
   }
-  const isFisheye=settings.moodId==='fisheye-2000';
-  const source=isHongKong?HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]:isFisheye?FISHEYE_2000_REFERENCES:DREAM_BLUR_REFERENCES;
-  const moodLabel=isHongKong?'Hong Kong Nights':isFisheye?'Fisheye 2000':'Dream Blur';
+  const isFisheye=settings.moodId==='fisheye-2000',isHyperPop=settings.moodId==='hyper-pop';
+  // At low strength, omit the visual pack to avoid overriding source wardrobe.
+  const source=isHyperPop?(Number(settings.moodIntensity??75)>34?HYPER_POP_REFERENCES:[]):isHongKong?HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]:isFisheye?FISHEYE_2000_REFERENCES:DREAM_BLUR_REFERENCES;
+  const moodLabel=isHyperPop?'Hyper Pop':isHongKong?'Hong Kong Nights':isFisheye?'Fisheye 2000':'Dream Blur';
   // Saved older jobs retain their original four Style sources. Never silently
   // append another pack of four to a reused result or duplicate user uploads.
   const preservedHistoricStyle=isHongKong&&labels.some(label=>label.role==='style'&&HONG_KONG_REFERENCE_LABELS.has(label.name));
   const references=preservedHistoricStyle?[]:source.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
-  if(labels.length+references.length>10)throw Error(moodLabel+' includes '+source.length+' Style references. Keep at most '+(isFisheye?'8':'six')+' of your own images, or choose another Mood.');
+  if(labels.length+references.length>10)throw Error(moodLabel+' includes '+source.length+' Style references. Keep at most '+(isFisheye||isHyperPop?'8':'six')+' of your own images, or choose another Mood.');
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
   // Add the four canonical Style photos without rewriting the selected Mood.
   // Check the full provider prompt, including the full/compact role map.
@@ -103,9 +115,9 @@ export function createMoodReferenceLoader({upload,fetchFile=fetch}){
         check();
         if(cache.has(ref.url))return null;
         const response=await fetchFile(ref.url,{credentials:'omit',signal:AbortSignal.timeout(30000)});
-        if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':'Hong Kong Nights')+' Style reference could not load. Please try again.');
+        if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':'Hong Kong Nights')+' Style reference could not load. Please try again.');
         const blob=await response.blob();
-        if(!blob.size)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':'Hong Kong Nights')+' Style reference is empty. Please try again.');
+        if(!blob.size)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':'Hong Kong Nights')+' Style reference is empty. Please try again.');
         check();
         return new File([blob],ref.label.name,{type:ref.type});
       }));
@@ -119,7 +131,7 @@ export function createMoodReferenceLoader({upload,fetchFile=fetch}){
           pending=(async()=>{
             const file=staged[i],result=await upload(file);
             const id=typeof result==='string'?result:result?.id;
-            if(!id)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':'Hong Kong Nights')+' Style reference could not upload. Please try again.');
+            if(!id)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':'Hong Kong Nights')+' Style reference could not upload. Please try again.');
             return {id,file};
           })();
           cache.set(ref.url,pending);
