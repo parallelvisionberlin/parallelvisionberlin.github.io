@@ -67,7 +67,7 @@ const sound=Buffer.alloc(44+8000*3*2);sound.write('RIFF');sound.writeUInt32LE(so
 const choose=async(x,mode='start')=>{await x.page.click('#tool-video');await x.page.selectOption('#video-engine','seedance');await x.page.click('#mode-'+mode);await x.page.fill('#prompt','A ceramic sculpture under soft daylight. The camera moves slowly.');};
 const still=async(x,id='image')=>{await x.page.locator('#'+id).setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);};
 try{
- for(const [width,height] of [[1440,900],[1440,600],[390,844],[320,730]]){
+ for(const [width,height] of [[1920,912],[1440,900],[1440,600],[390,844],[320,730]]){
   const preview=await workspace({width});
   await preview.page.setViewportSize({width,height});
   await choose(preview,'reference');
@@ -82,6 +82,14 @@ try{
    'Decorative artwork never becomes a reference or History item');
   assert.equal(await preview.page.locator('#history .card').count(),0);
   assert.equal(await preview.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  async function assertInputPanelFits(){
+   if(width<821||height<900)return;
+   const panel=await preview.page.locator('.controls-body').evaluate(el=>({scroll:el.scrollHeight,client:el.clientHeight}));
+   assert.ok(panel.scroll<=panel.client+1,'Image-input modes fit without unnecessary settings scroll: '+JSON.stringify({width,height,...panel}));
+   assert.equal(Math.round((await preview.page.locator('#prompt').boundingBox()).height),104,'Fit must preserve the original input-mode prompt height');
+   assert.equal(Math.round((await preview.page.locator('#video-model-control').boundingBox()).height),124,'Fit must preserve the original model banner height');
+  }
+  await assertInputPanelFits();
   await preview.page.click('#pv-video-output-toggle');
   assert.equal(await preview.page.locator('#duration-control').isVisible(),false,'Output disclosure still collapses the real settings');
   await preview.page.click('#pv-video-output-toggle');
@@ -101,6 +109,9 @@ try{
   assert.equal(await preview.page.locator('#pv-video-browse-library').isVisible(),width>=821,'Decorative mobile stage retains the existing responsive visibility policy');
   await preview.page.screenshot({path:`test-results/video-approved-${width}-${height}.png`,fullPage:width<821});
   await preview.page.click('#mode-start');
+  await preview.page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-video-mode-start'));
+  await assertInputPanelFits();
+  if(width>=821)assert.equal(await preview.page.locator('.pv-video-add-frame').isVisible(),true,'Keep the plus invitation for the opening-frame drop area');
   await still(preview);
   await preview.page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-video-has-input'));
   assert.equal((await art()).visible,'none','Real first frame removes the background');
