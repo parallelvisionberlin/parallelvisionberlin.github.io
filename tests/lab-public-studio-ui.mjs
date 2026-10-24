@@ -20,6 +20,16 @@ const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fa
 // reference while retaining the original pixel baselines for every other tool.
 const approvedVideoRef='c65079e33a4c5be35cb36ceda963120787998fcf';
 const approvedVideoFiles=new Map(['lab/lab.js','lab/studio.html','lab/video-compact-studio.css','lab/video-relaxed-studio.css','lab/video-editorial-deck.js','lab/video-scene-states.js'].map(path=>[path,execFileSync('git',['show',approvedVideoRef+':'+path])]));
+// Owner-approved follow-up: the same original plus also invites Reference and
+// Extend uploads. Keep every other byte of the independent Video visual source,
+// including the original Start plus, photograph, typography and dimensions.
+const approvedVideoState=approvedVideoFiles.get('lab/video-scene-states.js').toString();
+const approvedPlusRule="startArt.hidden=!(visible&&mode==='start');";
+assert.equal(approvedVideoState.split(approvedPlusRule).length,2,'Original plus visibility fixture remains identifiable');
+approvedVideoFiles.set('lab/video-scene-states.js',Buffer.from(approvedVideoState.replace(
+  approvedPlusRule,"startArt.hidden=!(visible&&['start','reference','extend'].includes(mode));"
+)));
+
 const account=`
 const state=window.__publicAccount||=(()=>{
   const listeners=[];

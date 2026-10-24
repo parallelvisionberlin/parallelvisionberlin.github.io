@@ -1,3 +1,21 @@
+## Video canvas plus and file drop, 2026-10-24
+
+- Owner request: keep the approved plus visible in the empty media modes and allow image drops on both the Start frame tile and the photographic canvas/plus.
+- Baseline main: `1bee82ec`; older Video branches and unrelated open work remain separate.
+- The original 66px plus is now a keyboard-accessible button. It opens the existing mode-specific native file input: Start image, Reference images or Extend video. Text mode remains prompt-only.
+- Start/Reference/Extend empty states share the same approved plus; attached media and explicit History selections retain precedence.
+- Canvas file drops use those same native input handlers and existing image/video validation. They prepare local media only, with no upload, quote, job or credit charge.
+- Preserve owner/session/busy/input-disabled guards, optional End frame, model-specific modes, authentication, prices and confirmed Video submission.
+- The shared canvas's existing Upscaler drop listener is now enabled only for Upscale, preventing its unrelated no-op action from locking out the Video drop. Other upload zones retain their existing handlers.
+- Add a restrained dashed drag hint and visible keyboard focus. Canvas drop explicitly clears the existing document-level Reference drag hint too; browser assertion covers cleanup. Preserve approved artwork, dimensions, settings spacing, mobile layout and History.
+- Files: `lab/lab.js`, `lab/video-scene-states.js`, `lab/video-relaxed-studio.css`, `lab/studio.html`, `tests/lab-seedance-ui.mjs`, `tests/lab-public-studio-ui.mjs`.
+- Cache parameter on the three changed assets: `videoCanvasDrop=20261024v1` / `canvasDrop=20261024v1`; existing version parameters retained.
+- Existing browser suite adds mode-specific native-picker, plus/canvas drop, Start tile replacement, optional End frame, no automatic API calls and post-sign-out rejection assertions. Original assertions remain.
+- Local Node 22: 742/742 Lab tests PASS. Full Seedance browser: 27/27 PASS, customer Video: 18/18 PASS, affected Upscaler: 38/38 PASS. Original assertion/timeout/visual tolerances remain unchanged.
+- Public visual checks identified native-button font inheritance, then the intentionally added Reference plus. Retain original Arial/spacing/shadow. The independent old Video fixture adds only plus visibility in Reference/Extend; original Start pixels and every other baseline byte, comparison, region and tolerance remain unchanged. Exact-head CI and production receipts belong below.
+- No real customer login, private media, paid generation, purchase or credit transaction performed.
+- Publication pending: validate fixed candidate, merge normally, await exact Cloudflare Pages production check, verify asset bytes and rendered plus on `pvlab.studio`.
+
 ## Approved Video panel polish, 2026-10-24
 
 - Owner approved the screenshot refinements: remove unnecessary Start/Reference settings scroll, preserve the plus/drop invitation, and expose slightly more History.
