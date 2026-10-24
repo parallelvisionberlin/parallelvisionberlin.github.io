@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
-import {partnerWorkspace,partnerDashboardRoute} from '../lab-worker/partner-dashboard.mjs';
+import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute} from '../lab-worker/partner-dashboard.mjs';
 
 function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
@@ -18,6 +18,8 @@ function fixture(t){
     db.prepare('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)').run(id,id,Date.now(),Date.now());
     if(email)db.prepare('INSERT INTO lab_customer_contacts VALUES(?,?,?,?)').run(id,email,Date.now(),Date.now());
   };
+  db.exec("CREATE TABLE users(id TEXT PRIMARY KEY,role TEXT,auth_provider TEXT);INSERT INTO users VALUES('user_Owner','owner','clerk'),('user_Editor','admin','clerk'),('user_Imposter','owner','password')");
+  env.OWNER_DB=env.LAB_DB;
   // Use a synthetic address and mock its digest; public CI needs no private email.
   const email='vitolas@example.test';
   const original=crypto.subtle.digest.bind(crypto.subtle);
@@ -45,6 +47,32 @@ test('workspace requires verified approved email, current account, and fresh aut
   assert.equal(await partnerWorkspace(f.env,'user_Victoria'),null);
   f.db.prepare('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)').run('user_Victoria',Date.now());
   assert.equal(await partnerWorkspace(f.env,'user_Victoria',{verify:true}),null);
+});
+test('private owner view uses the real owner guard and cannot be enabled by a URL parameter',async t=>{
+  const f=fixture(t);
+  const request=new Request('https://worker.test/api/admin/partners/vitolas-studio?owner=true&customer_id=user_Other',{headers:{Origin:'https://pvlab.studio'}});
+  for(const subject of ['user_Victoria','user_Other','user_Editor','user_Imposter'])
+    await assert.rejects(()=>ownerPartnerDashboardRoute(request,f.env,subject),{status:403});
+  f.signup('user_Friend','friend@example.test');
+  f.db.prepare('INSERT INTO lab_referrals(referred_customer_id,referrer_customer_id,attributed_at) VALUES(?,?,?)').run('user_Friend','user_Victoria',Date.now());
+  const response=await ownerPartnerDashboardRoute(request,f.env,'user_Owner'),data=await response.json();
+  assert.match(response.headers.get('cache-control'),/no-store/);
+  assert.equal(data.ownerView,true);assert.equal(data.totals.registered,1);assert.equal(data.customers[0].email,'friend@example.test');
+  assert.equal(f.db.prepare('SELECT customer_id FROM lab_referral_codes').get().customer_id,'user_Victoria');
+  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_credit_entries').get().n,0);
+});
+test('owner access before Victoria activation returns a truthful pending state without creating her account',async t=>{
+  const f=fixture(t);
+  f.db.prepare('DELETE FROM lab_customer_contacts WHERE customer_id=?').run('user_Victoria');
+  const request=new Request('https://worker.test/api/admin/partners/vitolas-studio');
+  const data=await (await ownerPartnerDashboardRoute(request,f.env,'user_Owner')).json();
+  assert.equal(data.awaitingPartner,true);assert.equal(data.ownerView,true);assert.equal(data.referralUrl,undefined);
+  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_referral_codes').get().n,0);
+  await assert.rejects(()=>ownerPartnerDashboardRoute(new Request(request.url,{method:'POST'}),f.env,'user_Owner'),{status:405});
+});
+test('owner view rechecks the selected partner identity and refuses stale reassigned contact data',async t=>{
+  const f=fixture(t);f.setEmail('reassigned@example.test');
+  await assert.rejects(()=>ownerPartnerDashboardRoute(new Request('https://worker.test/api/admin/partners/vitolas-studio'),f.env,'user_Owner'),{status:503});
 });
 test('session discovery never waits on Clerk or creates contacts and access can verify a first login',async t=>{
   const f=fixture(t);

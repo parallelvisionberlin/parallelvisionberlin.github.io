@@ -485,6 +485,7 @@ async function refreshDashboard(){
   finally{if(current===revision&&requestId===fetchSerial){$('owner-refresh').disabled=false;$('owner-refresh').textContent='Refresh data ↻';}}
 }
 async function refreshSession(){
+  for(const link of document.querySelectorAll('[data-owner-vitolas]'))link.hidden=true;
   const current=++revision;fetchSerial++;generationReviewUI.close();profile=null;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;$('owner-agency-link').hidden=true;
   trafficSerial++;$('owner-traffic-content').hidden=true;
   $('owner-traffic-status').textContent='Traffic statistics will load after owner verification.';
@@ -497,7 +498,7 @@ async function refreshSession(){
   try{
     const result=await call('/api/session');if(current!==revision)return;
     if(result.owner!==true)throw Error('This page is reserved for the PV LAB owner account.');
-    profile=result;$('owner-agency-link').hidden=false;await refreshDashboard();if(location.hash==='#owner-providers-section')void providerUI.refresh();
+    profile=result;$('owner-agency-link').hidden=false;for(const link of document.querySelectorAll('[data-owner-vitolas]'))link.hidden=false;await refreshDashboard();if(location.hash==='#owner-providers-section')void providerUI.refresh();
   }catch(error){if(current===revision){$('owner-dashboard').hidden=true;status(error.message);}}
 }
 async function copyLink(url,button){
