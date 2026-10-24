@@ -20,12 +20,81 @@ test('repeated unfounded accusation falls back to nonexplicit affection',async()
   assert.equal(h.effects.sends[0].message.text,'Un abrazo largo con este frío suena bien.');
 });
 
-test('actual disclosed minor context does not trigger the unsupported-age rewrite',async()=>{
+test('actual disclosed minor sexual context stays silent without an age-accusation rewrite',async()=>{
   let calls=0;
   const h=harness({AI:{async run(){calls++;return {response:'No puedo crear contenido íntimo con menores de edad.'};}}});
   await h.incoming('123456','Tengo 16 años y quiero contenido íntimo');h.setTime(h.job('123456').due_at);await h.cron();
   assert.equal(calls,1);
-  assert.match(h.effects.sends[0].message.text,/menores de edad/);
+  assert.equal(h.effects.sends.length,0);
+  assert.equal(h.job('123456').status,'canceled');
+  assert.equal(h.job('123456').last_error_code,'NINA_CHOSE_NO_REPLY');
+});
+
+test('explicit requests can choose silence for any visitor without contact setup or opt-out',async()=>{
+  for(const text of ['Te mando fotos eróticas?', 'Quieres que te cuente los detalles sexuales del trío de anoche?', 'Can I send you nudes?', 'Soll ich dir Nacktfotos schicken?']){
+    const h=harness({AI:{async run(){return {response:'[NINA_NO_REPLY]'};}}});
+    await h.incoming('123456',text);h.setTime(h.job('123456').due_at);await h.cron();
+    assert.equal(h.effects.sends.length,0,text);
+    assert.equal(h.job('123456').status,'canceled');
+    assert.equal(h.one('SELECT COUNT(*) AS n FROM ig_drafts').n,0);
+    assert.equal(h.one('SELECT COUNT(*) AS n FROM ig_optouts').n,0);
+  }
+});
+
+test('sexual refusals and policy explanations are intercepted before any outgoing send',async()=>{
+  for(const draft of [
+    'Prefiero que no me mandes fotos eróticas.',
+    'No puedo participar en conversaciones sexuales explícitas.',
+    'I would rather not receive nude photos.',
+    'Bitte keine Nacktfotos schicken.',
+    'Por mis políticas de privacidad no puedo seguir con eso.',
+    'This is against my content policy.',
+    '[NINA_NO_REPLY] No voy a responder.'
+  ]){
+    let calls=0;
+    const h=harness({AI:{async run(){calls++;return {response:draft};}}});
+    await h.incoming('123456','Te mando fotos eróticas?');h.setTime(h.job('123456').due_at);await h.cron();
+    assert.equal(h.effects.sends.length,0,draft);
+    assert.equal(calls,1,'boundary refusals should not trigger another model call');
+    assert.equal(h.job('123456').last_error_code,'NINA_CHOSE_NO_REPLY');
+  }
+});
+
+test('nonexplicit flirting and affection preserve the character and do not trigger silence',async()=>{
+  for(const [text,draft] of [
+    ['Me gustas, imagina que bailamos muy cerquita.', 'Contigo se me olvida mirar la hora.'],
+    ['Te daría un beso y me quedaría abrazándote.', 'Un beso así y ya me complicaste la noche.'],
+    ['Mi trío de jazz toca esta noche.', 'Eso sí quiero escucharlo.'],
+    ['Me da curiosidad el arte erótico.', 'Me interesa cuando deja espacio a la imaginación.']
+  ]){
+    let prompt;
+    const h=harness({AI:{async run(model,input){prompt=input.messages[0].content;return {response:draft};}}});
+    await h.incoming('123456',text);h.setTime(h.job('123456').due_at);await h.cron();
+    assert.equal(h.effects.sends.length,1,text);
+    assert.equal(h.effects.sends[0].message.text,draft);
+    assert.match(prompt,/nonexplicit adult flirting/i);
+    assert.match(prompt,/Silence applies to this turn only/);
+  }
+});
+
+test('a normal later topic resumes after a sexual boundary turn with no permanent block',async()=>{
+  let calls=0;
+  const h=harness({AI:{async run(){return {response:++calls===1?'Prefiero que no me mandes fotos eróticas.':'Hoy me quedo escuchando música.'};}}});
+  await h.incoming('123456','Te mando fotos eróticas?');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(h.effects.sends.length,0);
+  await h.incoming('123456','Qué haces esta tarde?');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(h.effects.sends.length,1);
+  assert.equal(h.effects.sends[0].message.text,'Hoy me quedo escuchando música.');
+});
+
+test('boundary output produced during a style rewrite is also suppressed',async()=>{
+  for(const boundary of ['Por mis políticas de contenido no puedo responder.','Como modelo de lenguaje no puedo participar en conversaciones sexuales.','[NINA_NO_REPLY]']){
+  let calls=0;
+  const h=harness({AI:{async run(){return {response:++calls===1?'Vale, tío, eso mola.':boundary};}}});
+  await h.incoming('123456','Te mando una foto?');h.setTime(h.job('123456').due_at);await h.cron();
+  assert.equal(calls,2);
+  assert.equal(h.effects.sends.length,0);
+  }
 });
 
 test('the requested imagined home visit remains available as playful roleplay',async()=>{
