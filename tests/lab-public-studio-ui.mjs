@@ -196,7 +196,8 @@ try{
           assert.equal(await inspected.locator('#fashion-studio .slot-example').count(),2,'Both approved upload photographs remain');
         }
       }
-      const regions={image:['#gate'],video:width>=700?['#video-model-control','.canvas']:['#video-model-control','#video-modes','#reference-drop','#prompt'],upscale:['.pv-upscale-workspace-intro','#pv-upscale-dropzone'],retouch:['.precision-board'],fashion:['#fashion-studio .page-intro','#fashion-studio .image-pair','#fashion-studio .engine-section']};
+      // Phone Image deck parity is exercised in lab-mobile-mood-entry; keep independent pixel protection for the unchanged entrance photographs/title.
+      const regions={image:width<=680?['#pv-guest-title','#pv-guest-cards']:['#gate'],video:width>=700?['#video-model-control','.canvas']:['#video-model-control','#video-modes','#reference-drop','#prompt'],upscale:['.pv-upscale-workspace-intro','#pv-upscale-dropzone'],retouch:['.precision-board'],fashion:['#fashion-studio .page-intro','#fashion-studio .image-pair','#fashion-studio .engine-section']};
       for(const [index,selector] of regions[route].entries()){
         const actual=await capture(page,selector,`test-results/visual-${route}-${width}-${index}-actual.png`);
         const expected=await capture(reference,selector,`test-results/visual-${route}-${width}-${index}-approved.png`);

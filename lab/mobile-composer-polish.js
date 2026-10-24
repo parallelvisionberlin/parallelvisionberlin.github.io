@@ -17,3 +17,20 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
   else setup();
 })();
+
+// Public Image uses the same phone disclosure without entering the private Studio.
+(() => {
+  const setup=()=>{
+    const composer=document.getElementById('pv-guest-composer');
+    const button=document.getElementById('pv-guest-mobile-more');
+    if(!composer||!button||document.documentElement.classList.contains('pv-native-lab'))return;
+    button.addEventListener('click',()=>{
+      const expanded=button.getAttribute('aria-expanded')!=='true';
+      button.setAttribute('aria-expanded',String(expanded));
+      button.setAttribute('aria-label',expanded?'Hide secondary image settings':'Show more image settings');
+      composer.dataset.mobileSettings=expanded?'open':'closed';
+    });
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
+  else setup();
+})();

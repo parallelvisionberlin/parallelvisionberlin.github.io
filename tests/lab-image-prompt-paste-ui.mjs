@@ -120,7 +120,7 @@ try{
       });
       assert.equal(result.value,longPrompt,'Pasted text is preserved');
       if(viewport.width>=741)assert.equal(result.fontSize,15.5,'Desktop Image prompt is reduced to 15.5px');
-      else assert.ok(result.fontSize<15.5,'Mobile font remains unchanged');
+      else assert.equal(result.fontSize,16,'Phone prompt uses readable text to avoid iOS focus zoom');
       assert.equal(result.overflow,'auto','Long prompt scrolls in its own field');
       assert.ok(result.scrollMax>140,'The input must contain hidden text beyond the visible area');
       assert.ok(result.scrollTop>=result.scrollMax-3,'Pasting at end shows the final lines');
