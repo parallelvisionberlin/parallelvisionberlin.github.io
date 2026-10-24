@@ -12,6 +12,15 @@ const headerGutterOnly=process.env.PV_HEADER_GUTTER_ONLY==='1';
 // Approved source before this fix, including the later locked Image and V28 Upscaler.
 const approvedRef='ac33d20c50bdd88e71547e96a70781efae4b5a11';
 const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
+// Owner-approved Dream Blur cover replacement, PR #521. Update only the two
+// Image card image URLs in the independent baseline; retain every layout byte
+// and the original wallpaper. Pixel comparison still protects all other UI.
+const approvedImageHtml=approvedFiles.get('lab/studio.html').toString('utf8');
+const originalDreamBlurCard='src="./mood-previews/dream-blur-20261015.jpg"';
+assert.equal(approvedImageHtml.split(originalDreamBlurCard).length,3,'Approved public and signed-in Dream Blur card anchors remain identifiable');
+approvedFiles.set('lab/studio.html',Buffer.from(approvedImageHtml.replaceAll(
+  originalDreamBlurCard,'src="./mood-previews/dream-blur-cover-20261024.webp"'
+)));
 // Owner-approved Fashion #494, including caption spacing and the Generate label.
 // Keep the independent Image/Video/Upscaler/Retouch baseline unchanged.
 const fashionApprovedRef='a84f9ec2ead1c57288e91fec18cd7e06bb3bf2e1';
