@@ -15,9 +15,9 @@ test('80s Film at 100% with Base strongly reinterprets optics but preserves iden
   assert.equal(result.error,'');
   assert.equal(result.metadata.moodIntensity,100);
   assert.match(result.prompt,/BASE PHOTO \/ 100% PRIORITY/);
-  assert.match(result.prompt,/ENTIRE image/);
-  assert.match(result.prompt,/film-to-PAL-tape/);
-  assert.match(result.prompt,/face, expression, body, pose, camera, crop/);
+  assert.match(result.prompt,/REBUILD THE ENTIRE IMAGE INCLUDING BACKGROUND/);
+  assert.match(result.prompt,/well-preserved PAL analog tape/);
+  assert.match(result.prompt,/same recognizable face and expression/);
   assert.match(result.prompt,/no scene replacement|No invented scene/i);
   assert.ok(result.prompt.length<5000,'Seedream prompt must fit its 5000-char budget');
 });
