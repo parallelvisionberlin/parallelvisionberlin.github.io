@@ -208,6 +208,13 @@ try{
   await x.page.waitForFunction(()=>document.querySelector('.controls-body').scrollTop>100);
   assert.equal(await x.page.locator('#video-feed-center').evaluate(el=>el.scrollTop),0,
     'Scrollable settings retain native wheel priority over History');
+  await x.page.evaluate(()=>{document.querySelector('.controls-body').scrollTop=100000;document.getElementById('video-feed-center').scrollTop=0;});
+  await x.page.mouse.wheel(0,350);
+  await x.page.waitForFunction(()=>document.getElementById('video-feed-center').scrollTop>100);
+  assert.ok(await x.page.locator('.controls-body').evaluate(el=>Math.abs(el.scrollHeight-el.clientHeight-el.scrollTop)<2),
+    'At the settings boundary, wheel reaches History without disturbing settings position');
+  await x.page.evaluate(()=>document.getElementById('video-feed-center').scrollTop=0);
+
   await x.page.evaluate(()=>{
     document.getElementById('video-wheel-test').remove();
     document.getElementById('video-controls-wheel-test').remove();

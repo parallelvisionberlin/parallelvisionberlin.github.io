@@ -109,3 +109,8 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #reference-drop>span:after,
  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #reference-mode #scene-video-open>span{font-size:11px!important}
 }
+
+/* Label-width balance: retain all native mode buttons and visibility rules. */
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-modes #mode-text{flex:.65 1 0!important;min-width:52px!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-modes #mode-start{flex:1 1 0!important;min-width:85px!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-modes #mode-reference{flex:1.25 1 0!important;min-width:103px!important}
