@@ -14,7 +14,12 @@
 - Local Node 22: 742/742 Lab tests PASS. Full Seedance browser: 27/27 PASS, customer Video: 18/18 PASS, affected Upscaler: 38/38 PASS. Original assertion/timeout/visual tolerances remain unchanged.
 - Public visual checks identified native-button font inheritance, then the intentionally added Reference plus. Retain original Arial/spacing/shadow. The independent old Video fixture adds only plus visibility in Reference/Extend; original Start pixels and every other baseline byte, comparison, region and tolerance remain unchanged. Exact-head CI and production receipts belong below.
 - No real customer login, private media, paid generation, purchase or credit transaction performed.
-- Publication pending: validate fixed candidate, merge normally, await exact Cloudflare Pages production check, verify asset bytes and rendered plus on `pvlab.studio`.
+- Complete: [PR #516](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/516), final head `b17b89641eb9f0de4d5ba1f5a1be89075153a37f`, merged as `6ee7f939a707d47a1a9b312636148c1c6022839e`. Merge tree exactly matches the tested candidate.
+- Final head: all 20 workflows PASS, including Video [40091583664](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40091583664) and public visual [40091583667](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40091583667). An unrelated Dreamcore image-load timeout in Mood Creator browser was inspected; this fixture does not load changed Studio code. Only that job was rerun, then passed; no Mood source, assertion or timeout changed.
+- Cloudflare Pages `pvlab-studio`: exact-merge check `120866345351` SUCCESS, deployment `93968020-279c-4fee-a0c1-ddfc320556d2`.
+- Production verifier returned `LIVE_VERIFIED` for all three changed assets on `https://pvlab.studio/studio`: `lab.js` SHA-256 `afff37c967cfdb301da0d67f77fe4ae70e241cee14dbf965bb5cbbcc6ed5e541`; `video-scene-states.js` `6fda73acfe987d6552f6db29cd1b88dd256ea0338676bfe6e2f78cb29c583821`; `video-relaxed-studio.css` `c6031f17a2ae812988313a50a9e325dcb23e6a019629060cde67933aa942e04f`.
+- Actual signed-out production browser at `/studio?tool=video`: Reference, Start and Extend show the accessible 66x66 plus with the correct image/video label. Start prompt stays 104px; no horizontal overflow. Approved photograph remains. No real signed-in upload or paid generation claimed; local/mock browser tests cover drops and native picker routing.
+- No pending implementation or publication step for this request. Source, final CI, production bytes and rendered plus are verified.
 
 ## Approved Video panel polish, 2026-10-24
 
