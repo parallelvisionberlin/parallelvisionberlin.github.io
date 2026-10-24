@@ -205,7 +205,7 @@ test('original prompt is not lost; mood metadata can be restored',()=>{
   assert.match(data.prompt,/selective petrol-green light around existing lamps/i);
   assert.match(data.prompt,/EDIT IMAGE 1, not a new scene/);
   assert.match(data.prompt,/Keep identical face, expression, age, hair/);
-  assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',moodVariant:'original',filmFinish:{version:2,grain:0,haze:0,halation:0,film:0}});
+  assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',moodVariant:'original',filmFinish:{version:2,grain:13,haze:100,halation:78,film:100}});
   assert.equal(data.error,'');
 });
 test('mood intensity actually affects the generated directions',()=>{
