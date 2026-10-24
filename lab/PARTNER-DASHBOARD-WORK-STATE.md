@@ -1,5 +1,14 @@
 # Vitolas Studio partner dashboard
 
+## Future Beauty visual refresh, 2026-10-25
+- User requested a shadowed high-fashion future-cosmetics hero and clearer explanation of Victoria's referral workflow.
+- One built-in imagegen artwork: adult beauty portrait, real skin, smoked glass/chrome, deep graphite shadows, left negative space; no text or logos.
+- Source generation: generated_images/exec-903f72f3-7a61-4997-acea-96007e9b226a.png. Project asset: lab/visuals/vitolas/future-beauty-v1.webp, 1983x793, 64,932 bytes.
+- Scoped HTML/CSS refresh: responsive photographic hero, refined typography/rules/metrics, clearer new-account referral instructions. Auth/API/payment code unchanged.
+- Baseline fad4fca5b6dd3898fe33aac2e97c30a35bae337c; 13 focused partner/Image contract tests passed locally.
+- Browser coverage expanded to 320/390/768/1440px with hero image load and title bounds, retaining role and logout checks.
+- Current visual refresh status: prepared; browser screenshots and Pages publication verification pending.
+
 ## Owner review extension, 2026-10-24
 - User explicitly requested private Owner access to Victoria's dashboard.
 - Hidden links in Owner sidebar/mobile navigation reveal only after verified owner session; no general customer-menu changes.
