@@ -215,10 +215,13 @@ export async function voucherCustomerRoute(request,env,subject){
     const data=await payload(request),code=codeOf(data.code);
     if(!code)fail(400,'Enter a valid PV Lab voucher code.');
     const voucher=await one(env,'SELECT code,credits,max_redemptions AS maximum,redeemed_count AS used,expires_at AS expires,active FROM lab_vouchers WHERE code=? COLLATE NOCASE',code);
-    if(!voucher||!voucher.active||voucher.expires&&voucher.expires<=Date.now()||voucher.used>=voucher.maximum)
-      fail(409,'This voucher is unavailable or has expired.');
+    if(!voucher)fail(409,'This voucher code was not found.');
     if(await one(env,'SELECT 1 AS claimed FROM lab_voucher_redemptions WHERE voucher_code=? COLLATE NOCASE AND customer_id=?',code,subject))
       fail(409,'You have already redeemed this voucher.');
+    if(!voucher.active)fail(409,'This voucher has been deactivated.');
+    if(voucher.expires!==null&&voucher.expires<=Date.now())
+      fail(409,'This voucher has expired. Please ask for a renewed invitation.');
+    if(voucher.used>=voucher.maximum)fail(409,'This voucher has reached its redemption limit.');
     try{await run(env,'INSERT INTO lab_voucher_redemptions(voucher_code,customer_id,redeemed_at) VALUES(?,?,?)',voucher.code,subject,Date.now());}
     catch(e){
       if(/unique constraint|voucher unavailable|account unavailable|foreign key constraint/i.test(String(e?.message||'')))
@@ -483,6 +486,18 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       }
     }
     fail(503,'Could not create a unique voucher. Please try again.');
+  }
+  // The owner may restore an expired, still-active voucher without issuing credits.
+  // Existing redemption caps and each recipient's one-time claim remain unchanged.
+  if(path==='/api/admin/vouchers/restore'&&method==='POST'){
+    const data=await payload(request),code=codeOf(data.code);
+    if(!code)fail(400,'Invalid voucher code.');
+    const restored=await run(env,`UPDATE lab_vouchers SET expires_at=NULL
+      WHERE code=? COLLATE NOCASE AND active=1 AND expires_at IS NOT NULL
+        AND expires_at<=? AND redeemed_count<max_redemptions`,code,Date.now());
+    if(!restored.meta?.changes)
+      fail(409,'Only expired, active vouchers with unused redemptions can be restored.');
+    return json({restored:true,code,expiresAt:null});
   }
   if(path==='/api/admin/vouchers/deactivate'&&method==='POST'){
     const data=await payload(request),code=codeOf(data.code);
