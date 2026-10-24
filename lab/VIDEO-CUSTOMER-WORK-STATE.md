@@ -11,7 +11,8 @@
 - Files: `lab/lab.js`, `lab/video-scene-states.js`, `lab/video-relaxed-studio.css`, `lab/studio.html`, `tests/lab-seedance-ui.mjs`.
 - Cache parameter on the three changed assets: `videoCanvasDrop=20261024v1` / `canvasDrop=20261024v1`; existing version parameters retained.
 - Existing browser suite adds mode-specific native-picker, plus/canvas drop, Start tile replacement, optional End frame, no automatic API calls and post-sign-out rejection assertions. Original assertions remain.
-- Focused browser run: Start/Reference/Extend plus and drops PASS, original paid-confirmation/failure/privacy checks PASS. Final full matrix and affected Upscaler checks are running; exact-head CI and production receipts belong below.
+- Local Node 22: 742/742 Lab tests PASS. Full Seedance browser: 27/27 PASS, customer Video: 18/18 PASS, affected Upscaler: 38/38 PASS. Original assertion/timeout/visual tolerances remain unchanged.
+- First exact-head public visual check exposed browser button font/shadow inheritance on the new accessible plus. Explicitly retain the original Arial/inherited spacing/shadow; revalidate the same approved Start canvas, with no baseline or tolerance change. Exact-head CI and production receipts belong below.
 - No real customer login, private media, paid generation, purchase or credit transaction performed.
 - Publication pending: validate fixed candidate, merge normally, await exact Cloudflare Pages production check, verify asset bytes and rendered plus on `pvlab.studio`.
 
