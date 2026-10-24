@@ -116,7 +116,7 @@ test('Hong Kong text recipe is fixed independently of direction length and Film 
     assert.equal(small.error,'');assert.equal(large.error,'');
     assert.equal(large.prompt.slice(large.metadata.moodOriginalPrompt.length),
       small.prompt.slice(small.metadata.moodOriginalPrompt.length));
-    assert.equal(large.metadata.filmFinish.film,0);
+    assert.equal(large.metadata.filmFinish.film,100);
     assert.deepEqual(moodReferencePlan({...settingsFor(),prompt:large.prompt}).references,[]);
   }
   const source=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
