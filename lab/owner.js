@@ -428,6 +428,9 @@ function render(data){
       const copy=document.createElement('button');copy.type='button';copy.textContent='Copy link';copy.addEventListener('click',()=>void copyLink(voucher.url,copy));actions.append(copy);
       const disable=document.createElement('button');disable.type='button';disable.textContent='Deactivate';
       disable.addEventListener('click',()=>void deactivate(voucher.code,disable));actions.append(disable);
+    }else if(state==='Expired'&&!full){
+      const restore=document.createElement('button');restore.type='button';restore.textContent='Remove expiry';
+      restore.addEventListener('click',()=>void restoreVoucher(voucher.code,restore));actions.append(restore);
     }else actions.textContent='—';
     tr.append(actions);body.append(tr);
   }
@@ -500,9 +503,17 @@ async function refreshSession(){
 async function copyLink(url,button){
   try{
     const parsed=new URL(url);
-    if(parsed.protocol!=='https:'||!['parallelvisionlabel.com','www.parallelvisionlabel.com'].includes(parsed.hostname)||parsed.pathname!=='/lab/account.html'||parsed.username||parsed.password)throw Error();
+    const studioDomain=['pvlab.studio','www.pvlab.studio'].includes(parsed.hostname);
+    const legacyDomain=['parallelvisionlabel.com','www.parallelvisionlabel.com'].includes(parsed.hostname);
+    if(parsed.protocol!=='https:'||!(studioDomain&&parsed.pathname==='/account.html'||legacyDomain&&parsed.pathname==='/lab/account.html')||parsed.username||parsed.password)throw Error();
     await navigator.clipboard.writeText(parsed.href);button.textContent='Copied';
   }catch{button.textContent='Select link to copy';$('owner-voucher-result').hidden=false;$('owner-voucher-link').value=url;$('owner-voucher-link').select();}
+}
+async function restoreVoucher(code,button){
+  if(!profile?.owner||!window.confirm('Remove the expiry from '+code+'? Its remaining claims will stay available until the limit is reached or you deactivate it. No credits will be issued now.'))return;
+  button.disabled=true;
+  try{await call('/api/admin/vouchers/restore',{method:'POST',body:{code}});await refreshDashboard();}
+  catch(error){status(error.message);}finally{button.disabled=false;}
 }
 async function deactivate(code,button){
   if(!profile?.owner||!window.confirm('Deactivate voucher '+code+'? Existing redeemed credits remain valid.'))return;
