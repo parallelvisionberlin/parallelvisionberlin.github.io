@@ -9,7 +9,7 @@ import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1&publicPreview=20261023-1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1&publicPreview=20261023-1&creditCurrency=20261024v1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261022-editorial-rows1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1';
@@ -20,7 +20,7 @@ import {createSoul2UI} from './higgsfield-ui.js?v=20261013-character-studio1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1&seedance15-4k=1&publicLabels=20261017-1';
 import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=20261016-1';
 import {createVideoModelPicker} from './video-model-picker.js?v=20261016-wan-mini-priority1';
-import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261015-value2';
+import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261024-credits1';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3';
 import {createInspirationRotation,INSPIRATION_VARIATIONS} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1&fisheyeY2K=20261024v1';
@@ -950,7 +950,7 @@ async function openFashionStudio({preview=false}={}){
   try{
     if(!fashionMount){
       host.setAttribute('aria-busy','true');
-      fashionMount=import('./fashion-studio.js?v=20261023-fashion-approved1&publicPreview=20261023-1&firstReady=20261015-1&singleFooter=20261015-1')
+      fashionMount=import('./fashion-studio.js?v=20261023-fashion-approved1&publicPreview=20261023-1&firstReady=20261015-1&singleFooter=20261015-1&creditCurrency=20261024v1')
         .then(({mountFashionStudio})=>mountFashionStudio(host,{sessionClient,onNavigate:navigateStudioTool,publicPreview:()=>!owner&&$('app').hasAttribute('data-guest-preview')}))
         .then(controller=>{fashionController=controller;return controller;})
         .catch(error=>{fashionMount=null;throw error;});
@@ -1028,7 +1028,7 @@ function setTool(value){
 const imageStudio = $('image-studio');
 const imageComposer = $('image-composer');
 const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadAsset,notify,
-  owner:()=>owner,falReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),magicReady:()=>!!config.falEnabled&&!customerMode,
+  owner:()=>owner,customer:()=>!ownerAccount,falReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),magicReady:()=>!!config.falEnabled&&!customerMode,
   onExit:()=>returnToImageFromRetouch(),
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
 // Retouch is an independent route. Image state stays in its existing deck.
@@ -1965,7 +1965,8 @@ function populateImageModelMenu(query=''){
   items.replaceChildren();
   for(const option of $('image-engine').options){
     if(option.hidden)continue;
-    const name=option.textContent,detail=imageModelDescriptions[option.value]||'Image creation';
+    const publicDescriptions={flash:'Fast · up to 10 references',kling:'Kling V3 · text or one base image'};
+    const name=option.textContent,detail=(!ownerAccount&&publicDescriptions[option.value])||imageModelDescriptions[option.value]||'Image creation';
     if(value&&!(name+' '+detail+(['seedream','seedreamlite','flash','zspicy'].includes(option.value)?' Artistic Freedom':'')).toLowerCase().includes(value))continue;
     const row=document.createElement('button');row.type='button';
     row.className='composer-model-option';row.dataset.value=option.value;row.disabled=busy||option.disabled;
@@ -3245,7 +3246,7 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
   }else{
     const destination=q.settings.mode==='upscale'?'Upscaled images below and Assets':'History';
     notify(failed?(isContentRestriction(data.job.error)?'The selected model declined this request under its content guidelines. Edit your prompt or explore another model in History.':data.job.error||(q.settings.mode==='upscale'?'The upscale was not confirmed. Check Queue and Upscaled images before trying again.':'The generation was not confirmed. Check History before another attempt.')):
-      (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+(q.priceIsEstimate?' Estimated provider charge: '+money(q.estimatedUsd)+' USD. Not a guaranteed maximum. Results appear in '+destination+'.':' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in '+destination+'.'):''),failed);
+      (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+(customerMode?' '+wallet.jobCharge(q)+' reserved. Results appear in '+destination+'.':q.priceIsEstimate?' Estimated provider charge: '+money(q.estimatedUsd)+' USD. Not a guaranteed maximum. Results appear in '+destination+'.':' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in '+destination+'.'):''),failed);
   }
 }
 $('generate').onclick=()=>{if(tool==='image')return submitImageSnapshot();
@@ -3313,10 +3314,10 @@ $('generate').onclick=()=>{if(tool==='image')return submitImageSnapshot();
   currentQuote=q;const isImage=q.settings.type==='image',modeName=q.settings.mode==='extend'?'Extend Video':q.settings.mode==='text'?'Text to Video':q.settings.mode==='reference'?'Reference to Video':'Image to Video';
   $('quote-settings').textContent=q.settings.mode==='upscale'?`Image Upscaler / ${q.settings.resolution.toUpperCase()} / ${q.settings.outputFormat.toUpperCase()} / source ratio kept`:isImage?`${imageModelLabel(q.settings)} / ${q.settings.referenceSourceIds.length?'Reference Edit':'Text to Image'} / ${q.settings.resolution.toUpperCase()} / ${q.settings.aspectRatio}`:`${videoLabel(q.settings)} / ${modeName} / ${q.settings.duration}s / ${q.settings.resolution}`;
   const quotedCredits=Number.isSafeInteger(q.creditCost)&&q.creditCost>0?q.creditCost.toLocaleString()+' credits':'Price unavailable';
-  const videoEuro=customerMode&&!isImage?videoCustomerQuoteLabels(q.creditCost):null;
-  $('quote-price').textContent=videoEuro?.primary||(customerMode?quotedCredits:money(q.estimatedUsd));
-  $('quote-limit').textContent=videoEuro?.detail||(customerMode?`Credit maximum reserved: ${quotedCredits}`:q.priceIsEstimate?`Estimated provider charge: ${money(q.maxUsd)} USD`:`Quoted maximum: ${money(q.maxUsd)} USD`);
-  $('confirm-generation').textContent=videoEuro?.confirm||'Confirm & generate';
+  const videoLabels=customerMode&&!isImage?videoCustomerQuoteLabels(q.creditCost):null;
+  $('quote-price').textContent=videoLabels?.primary||(customerMode?quotedCredits:money(q.estimatedUsd));
+  $('quote-limit').textContent=videoLabels?.detail||(customerMode?`Credit maximum reserved: ${quotedCredits}`:q.priceIsEstimate?`Estimated provider charge: ${money(q.maxUsd)} USD`:`Quoted maximum: ${money(q.maxUsd)} USD`);
+  $('confirm-generation').textContent=videoLabels?.confirm||'Confirm & generate';
   $('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing. '+(q.settings.transferNotes||[]).join(' ');
   $('quote-notice').textContent=q.notice||'';$('confirm-generation').disabled=false;$('quote-dialog').showModal();
 });};

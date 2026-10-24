@@ -43,7 +43,7 @@ function update(){
   $('fashn16-options').hidden=selected!=='fashn16';
   $('fashnmax-options').hidden=selected!=='fashnmax';
   $('model-description').textContent=d.description;
-  $('model-note').textContent=d.note+(providerModel&&!providerModel.available?' This model is not connected yet.':'');
+  $('model-note').textContent=(authenticated&&!isCustomer?d.note:'Review the credit cost before generating.')+(providerModel&&!providerModel.available?' This model is not connected yet.':'');
   $('direction-required').textContent=selected==='fluxvto'?'REQUIRED':'OPTIONAL';
   $('direction').placeholder=selected==='fluxvto'?'Describe how the garment should be worn…':'Keep the silhouette. Open the jacket, soften the folds…';
   $('quote').disabled=!publicPreview()&&(!authenticated||busy||!$('person-file').files.length||!$('garment-file').files.length||!providerModel?.available||(selected==='fluxvto'&&!$('direction').value.trim()));

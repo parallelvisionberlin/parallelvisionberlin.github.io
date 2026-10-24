@@ -10,7 +10,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+source.slice(source.indexOf("\n// Soul composer:",boot))+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock};`;
+const testSource=source.slice(0,boot)+source.slice(source.indexOf("\n// Soul composer:",boot))+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;ownerAccount=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock,setCustomer:()=>{customerMode=true;ownerAccount=false;customerGenerationReady=true;config.customer=true;wallet.connect({customer:true,balanceCredits:1000,billingReady:true});update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg'})[extname(path)]||'application/octet-stream');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4183,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -36,7 +36,7 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
   if(path==='/api/quotes'){
    if(quoteDelay)await new Promise(r=>setTimeout(r,quoteDelay));
    if(failure==='quote')return send({error:'Provider quote unavailable. No generation submitted.'},502);
-   const q={id:id(sequence++),estimatedUsd:0.036,maxUsd:0.036,expiresAt:Date.now()+(failure==='expired'?-1:180000),settings:{...data.settings,mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode,referenceSourceIds:data.referenceSourceIds||[],referenceVideoIds:data.referenceVideoIds||[],referenceAudioIds:data.referenceAudioIds||[],lastSourceId:data.lastSourceId||null,model:data.settings.engine==='seedance'?'bytedance/seedance-2.5/'+({start:'image-to-video',text:'text-to-video',reference:'reference-to-video'})[data.settings.mode]:'alibaba/wan-3.0/image-to-video',transferNotes:[]}};
+   const q={id:id(sequence++),creditCost:222,estimatedUsd:0.036,maxUsd:0.036,expiresAt:Date.now()+(failure==='expired'?-1:180000),settings:{...data.settings,mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode,referenceSourceIds:data.referenceSourceIds||[],referenceVideoIds:data.referenceVideoIds||[],referenceAudioIds:data.referenceAudioIds||[],lastSourceId:data.lastSourceId||null,model:data.settings.engine==='seedance'?'bytedance/seedance-2.5/'+({start:'image-to-video',text:'text-to-video',reference:'reference-to-video'})[data.settings.mode]:'alibaba/wan-3.0/image-to-video',transferNotes:[]}};
    quotes.set(q.id,{q,data});return send(q);
   }
   if(path==='/api/jobs'&&method==='POST'){
@@ -196,9 +196,33 @@ try{
   assert.equal(count(drop,'/api/jobs'),0);assert.deepEqual(drop.errors,[]);
   ok(`Native plus, local canvas drop and signed-out protection in ${mode}`);await drop.context.close();
  }
+ // Exercise the real confirmation handler with a synthetic customer wallet.
+ for(const width of [1440,390,320]){
+  const customer=await workspace({width});
+  await customer.page.evaluate(()=>window.__labTest.setCustomer());
+  await choose(customer,'text');
+  await customer.page.click('#generate');
+  await customer.page.locator('#quote-dialog').waitFor({state:'visible'});
+  assert.equal(await customer.page.locator('#quote-price').innerText(),'222 PV credits');
+  assert.equal(await customer.page.locator('#quote-limit').innerText(),'Reserved from your balance when you confirm.');
+  assert.equal(await customer.page.locator('#confirm-generation').innerText(),'Generate · 222 PV credits');
+  assert.doesNotMatch(await customer.page.locator('#quote-dialog').innerText(),/[€$]|EUR|USD|equivalent/);
+  assert.equal(count(customer,'/api/jobs'),0,'Credit review never submits automatically');
+  assert.equal(await customer.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await customer.page.screenshot({path:`test-results/customer-credit-review-${width}.png`});
+  await customer.page.click('[data-close="quote-dialog"]');
+  assert.equal(count(customer,'/api/jobs'),0,'Cancelling never spends credits');
+  // Model descriptions must not expose API dollar rates to a customer.
+  await customer.page.click('#tool-image');
+  await customer.page.click('#image-composer-model');
+  assert.doesNotMatch(await customer.page.locator('#image-composer-model-items').innerText(),/[€$]|EUR|USD/);
+  assert.deepEqual(customer.errors,[]);
+  ok(`Customer credit-only confirmation and model descriptions at ${width}px`);
+  await customer.context.close();
+ }
  let x=await workspace();await choose(x);
  assert.equal(await x.page.locator('#resolution').inputValue(),'720p');assert.equal(await x.page.locator('#duration').inputValue(),'5');assert.equal(await x.page.locator('#ratio').isVisible(),false);await still(x);await still(x,'last-image');
- await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(count(x,'/api/jobs'),0);assert.match(await x.page.locator('#quote-settings').innerText(),/Seedance 2.5/);
+ await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(count(x,'/api/jobs'),0);assert.match(await x.page.locator('#quote-settings').innerText(),/Seedance 2.5/);assert.match(await x.page.locator('#quote-price').innerText(),/\$0\.036/);assert.match(await x.page.locator('#quote-limit').innerText(),/USD/);
  const quote=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(quote.settings.engine,'seedance');assert.equal(quote.settings.mode,'start');assert.ok(quote.sourceId);assert.ok(quote.lastSourceId);
  await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#pv-video-current-model').count(),1,'Submitting preserves the Current scene inspector fields');ok('Seedance start/end frames, defaults and separate paid confirmation');
  await x.page.locator('.card').first().click();await x.page.click('#video-detail-reuse');await ready(x.page);assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');assert.match(await x.page.locator('#filemeta').innerText(),/320/);assert.match(await x.page.locator('#last-filemeta').innerText(),/320/);assert.equal(count(x,'/api/jobs'),1);ok('Reuse restores model, first/last images and exact settings without generating');assert.deepEqual(x.errors,[]);await x.context.close();

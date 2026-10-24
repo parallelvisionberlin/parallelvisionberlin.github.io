@@ -1,3 +1,16 @@
+## Customer credit currency, 2026-10-24
+
+- User approved credits as the creation currency; euro prices belong in pricing and billing.
+- Baseline main: `a295b985`. Isolated branch: `fix/customer-credits-only-20261024`.
+- Video review displays the server-quoted PV credit amount and a matching Generate button, with no euro equivalent or pack conversion.
+- Customer Image model captions and Fashion model notes omit provider dollar rates; verified owner cost displays remain.
+- Image/Upscale submission notifications use quoted credits for customers; History, opening-frame and existing quote displays already use credits.
+- Billing, pricing, SKUs, quote binding/expiry, confirmation, wallet ledger, provider dispatch and backend prices are unchanged.
+- Browser regressions cover customer review/cancellation at 1440/390/320, customer model captions, retained owner USD review and Fashion customer credit review.
+- Retouch customer review and Magic Select tooltips omit provider dollars; a missing/invalid credit amount blocks review and submission instead of falling back to dollars. Owner estimates remain.
+- Local: syntax, credit-label tests and approved Image contract pass. Broad Node 24 suite: 764/765; unchanged Mood preflight timing test failed as previously documented. Local Chromium download is blocked/truncated; browser checks run in existing CI.
+- Publication and exact-head CI pending. No real purchase, credit mutation or provider generation initiated.
+
 ## Reference invitation spacing and larger Generate, 2026-10-24
 
 - Owner authorizes the last mockup plus 90% title opacity, implementation and publication.

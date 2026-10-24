@@ -1,6 +1,6 @@
 /* Precision Edit: large base canvas, SAM 3 point segmentation, mask brushes,
    non-destructive FLUX inpainting and original-pixel client-side compositing. */
-export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,magicReady=falReady,onJob,onExit}){
+export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,magicReady=falReady,customer=()=>false,onJob,onExit}){
   const $=id=>document.getElementById(id);
   const view=$('precision-workspace'),sourceCanvas=$('precision-source-canvas'),
     overlay=$('precision-selection-canvas'),resultCanvas=$('precision-result-canvas');
@@ -137,7 +137,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       $('precision-result-label').textContent='AWAITING EDIT';
     }else if(!selected){
       message.textContent=mode==='pan'?'Drag to move the view. Choose a selection tool to continue.':
-        mode==='magic'?'Click a subject to select · Magic Select ≈ $0.005 per click':
+        mode==='magic'?(customer()?'Click a subject to select':'Click a subject to select · Magic Select ≈ $0.005 per click'):
         'Paint the area to change. Zoom or pan for precise edges.';
       $('precision-price-note').textContent='1 / Select an area to change · Local brush tools are free';
     }else{
@@ -169,7 +169,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     const exportReady=!highRisk||$('precision-allow-jpeg').checked;
     $('precision-generate').disabled=!have||!selected||!$('precision-prompt').value.trim()||taskBusy||!owner()||!falReady()||!exportReady;
     $('precision-change-photo').hidden=!have;
-    $('precision-tool-magic').title='Select a whole object with SAM 3. Published price approximately $0.005 per click.';
+    $('precision-tool-magic').title=customer()?'Select a whole object with SAM 3.':'Select a whole object with SAM 3. Published price approximately $0.005 per click.';
     $('precision-generate').textContent=taskBusy?'Working…':'Review price';
     $('precision-generate').title=(!owner()||!falReady())?'Paid Retouch generation is not enabled on this account.':
       !have?'Add a photograph first.':!selected?'Select the area to edit.':
@@ -406,9 +406,11 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       const body={originalSourceId,sourceId,maskSourceId,prompt,strength,allowJpegFallback};
       const quoted=await api('/api/precision/quote',{method:'POST',body});
       if(!quoted?.quoteId||!quoted.ticket)throw new Error('Precision Edit did not return a reusable price approval.');
+      if(customer()&&(!Number.isSafeInteger(quoted.creditCost)||quoted.creditCost<1))
+        throw new Error('The server did not confirm a PV LAB credit price. Nothing was charged.');
       pending={...body,quoteId:quoted.quoteId,ticket:quoted.ticket,expiresAt:quoted.expiresAt,maskSourceId};
       const usd=Number(quoted.estimatedUsd||0);
-      $('precision-review-body').textContent=(Number.isSafeInteger(quoted.creditCost)&&quoted.creditCost>0?'FLUX Inpainting · '+quoted.creditCost+' PV credits (published $'+usd.toFixed(3)+' estimate).':'FLUX Inpainting · estimated $'+usd.toFixed(3)+' USD (published estimate).')+' Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
+      $('precision-review-body').textContent=(customer()?'FLUX Inpainting · '+quoted.creditCost+' PV credits':Number.isSafeInteger(quoted.creditCost)&&quoted.creditCost>0?'FLUX Inpainting · '+quoted.creditCost+' PV credits (published $'+usd.toFixed(3)+' estimate).':'FLUX Inpainting · estimated $'+usd.toFixed(3)+' USD (published estimate).')+' Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
       $('precision-price-review').hidden=false;
       setStatus('Price checked. No generation has started.');
     }catch(e){pending=null;setStatus(e.message,true);}

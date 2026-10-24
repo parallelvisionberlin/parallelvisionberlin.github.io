@@ -38,7 +38,7 @@ const context=await browser.newContext({viewport:{width:1440,height:900},acceptD
 const page=await context.newPage(),errors=[],calls=[];
 const imageIds=['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222'];
 let uploaded=0;
-let releaseSecondary;
+let releaseSecondary,sessionCustomer=false;
 const secondaryHeld=new Promise(resolve=>{releaseSecondary=resolve;});
 const fakePng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xfy8AAAAASUVORK5CYII=','base64');
 const completedFashion=(id,outputId,model='fashnmax')=>({
@@ -61,7 +61,7 @@ await page.route('https://**/*',async route=>{
   if(path.startsWith('/api/assets/')&&request.method()==='GET'){
     return route.fulfill({status:200,contentType:'image/png',body:fakePng});
   }
-  const data=path==='/api/session'?{owner:true,config:{enabled:true}}:
+  const data=path==='/api/session'?{owner:true,customer:sessionCustomer,config:{enabled:true}}:
     path==='/api/fashion/models'?{models:[
       {id:'fashn16',provider:'fal',label:'FASHN v1.6',available:true},
       {id:'fashnmax',provider:'fashn',label:'FASHN Max',available:true},
@@ -72,7 +72,7 @@ await page.route('https://**/*',async route=>{
       {jobs:baseJobs,next:{before:Date.now()-9500000,afterId:'ffffffff-ffff-4fff-8fff-ffffffffffff'}}):
     path==='/api/uploads'?{id:imageIds[uploaded++]}:
     path==='/api/fashion/quote'?{id:'33333333-3333-4333-8333-333333333333',
-      estimatedUsd:0.15,expiresAt:Date.now()+600000,notice:'One generation after confirmation.'}:
+      creditCost:222,estimatedUsd:0.15,expiresAt:Date.now()+600000,notice:'One generation after confirmation.'}:
     {error:'Unexpected test request '+path};
   if(data.error)throw new Error(data.error);
   return route.fulfill({status:path==='/api/uploads'?201:200,contentType:'application/json',body:JSON.stringify(data)});
@@ -303,6 +303,20 @@ try{
   });
   assert.deepEqual(embedded,{nestedFooters:0,globalFooters:1,hasEditor:true,hasGallery:true},
     'Embedded Fashion has its full editor and gallery, but Studio owns the only footer');
+  // A customer sees credit costs while the owner assertions above retain USD.
+  sessionCustomer=true;
+  await page.reload();await page.waitForFunction(()=>window.__fashionTestReady);
+  for(const model of ['fashn16','fashnmax','fluxvto']){
+    await page.locator('#model-select').selectOption(model);
+    assert.doesNotMatch(await page.locator('#model-note').innerText(),/[€$]|USD|EUR/);
+  }
+  await page.locator('#model-select').selectOption('fashnmax');
+  await page.setInputFiles('#person-file',{name:'synthetic-person.png',mimeType:'image/png',buffer:png});
+  await page.setInputFiles('#garment-file',{name:'synthetic-jacket.png',mimeType:'image/png',buffer:png});
+  await page.locator('#quote').click();
+  await page.waitForFunction(()=>!document.querySelector('#quote-box').hidden);
+  assert.equal(await page.locator('#quote-price').innerText(),'222 PV credits');
+  assert.equal(calls.some(c=>c.path==='/api/fashion/submit'),false);
   assert.deepEqual(errors,[]);
   console.log('PASS Fashion standalone footer remains, embedded footer is removed, and gallery and provider flows are unchanged.');
 }finally{
