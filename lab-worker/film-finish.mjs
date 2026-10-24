@@ -182,10 +182,36 @@ export function photochemicalPixel(r,g,b,deluxe=0){
       4*push*dense,0,255))
   ];
 }
+// Dedicated 1981-1984 print response. This is an optical transform, not a
+// reconstruction of faces, clothing, props or the location. Keep neutral
+// grays neutral and never force a nighttime, sepia or cyan-only palette.
+export function earlyEightiesPrintPixel(r,g,b,strength=1){
+  const t=clamp(Number(strength)||0),l=(.2126*r+.7152*g+.0722*b)/255;
+  if(l<=.00001)return [0,0,0];
+  const toe=1-smooth(.05,.34,l),shoulder=smooth(.52,.96,l);
+  const target=clamp(l-t*(.024*toe+.045*shoulder)+t*.012*Math.sin(Math.PI*l));
+  const base=target*255,ratio=target/l,saturation=1-.23*t;
+  const red=base+(r*ratio-base)*saturation,green=base+(g*ratio-base)*saturation,blue=base+(b*ratio-base)*saturation;
+  // Source-driven skin/tungsten warmth, no color shift for neutral content.
+  const warm=smooth(.02,.16,(r-b)/255)*smooth(.21,.77,l)*t;
+  const olive=smooth(.035,.22,(g-r)/255)*(1-smooth(.35,.67,l))*t;
+  return [
+    Math.round(clamp(red+8*warm-1*olive,0,255)),
+    Math.round(clamp(green+2*warm+1.5*olive,0,255)),
+    Math.round(clamp(blue-5*warm+1*olive,0,255))
+  ];
+}
 export async function printGradePng(bytes,deluxe=0,engine='v6'){
   const {width,height,pixels}=await normalizedPixels(bytes),scan=new Uint8Array((width*4+1)*height);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
-    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=(['v3','v8','v10'].includes(engine)?filmPrintPixelV3:photochemicalPixel)(pixels[i],pixels[i+1],pixels[i+2],deluxe);
+    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4;
+    const graded=(engine==='eighties'?earlyEightiesPrintPixel:['v3','v8','v10'].includes(engine)?filmPrintPixelV3:photochemicalPixel)(pixels[i],pixels[i+1],pixels[i+2],deluxe);
+    if(engine==='eighties'&&x>0&&x<width-1){
+      // Low-amplitude 1px chroma registration drift. Keep original luma,
+      // avoid large rainbow fringes and never invent scene features.
+      graded[0]=Math.round(graded[0]*.84+pixels[i-4]*.16);
+      graded[2]=Math.round(graded[2]*.84+pixels[i+6]*.16);
+    }
     scan[j]=graded[0];scan[j+1]=graded[1];scan[j+2]=graded[2];scan[j+3]=pixels[i+3];
   }
   return png(width,height,scan,6);
@@ -250,7 +276,7 @@ const stream=bytes=>new Blob([bytes]).stream();
 // V10 retains V3 print color, but uses independent multiscale light-only
 // scattering. V8/V3/V6 remain available for controlled comparison/rollback.
 export async function renderFilmFinish(images,bytes,settings,seed,{engine='v10'}={}){
-  if(!['v6','v3','v8','v10'].includes(engine))throw Error('Unknown film engine.');
+  if(!['v6','v3','v8','v10','eighties'].includes(engine))throw Error('Unknown film engine.');
   const finish=filmFinishSettings(settings);
   if(!images?.input||!images?.info)throw Error('Film processing is temporarily unavailable.');
   if(bytes.length>INPUT_LIMIT)throw Error('This image is too large for the film finish.');
@@ -262,24 +288,24 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v10'}
   const resized=(await images.input(stream(bytes)).transform({width:1000,height:1000,fit:'scale-down'})
     .output({format:'image/png',anim:false})).response();
   const sourcePng=await bytesFrom(resized,5_000_000);
-  const plan=photochemicalPlan(finish,{engine});
+  const plan=photochemicalPlan(finish,{engine:engine==='eighties'?'v10':engine});
   if(finish.film){
     // Blend a graded low-res negative/print layer over the native-resolution
     // photograph. Fine image detail remains in the original underneath.
     const grade=images.input(stream(await printGradePng(sourcePng,plan.printStrength,engine))).transform({width,height,fit:'squeeze'});
     image=image.draw(grade,{opacity:plan.printOpacity,composite:'over'});
   }
-  if(engine==='v10'&&(finish.haze||finish.halation)){
+  if(['v10','eighties'].includes(engine)&&(finish.haze||finish.halation)){
     const optical=await opticalScatterPng(sourcePng,finish);
     const layer=images.input(stream(optical)).transform({width,height,fit:'squeeze'});
     image=image.draw(layer,{opacity:1,composite:'lighter'});
   }
-  if(engine!=='v10'&&finish.haze){
+  if(!['v10','eighties'].includes(engine)&&finish.haze){
     // Minimal global softness; most visible bloom follows real light sources.
     const diffuse=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/2400))});
     image=image.draw(diffuse,{opacity:plan.diffusionOpacity,composite:'over'});
   }
-  if(engine!=='v10'&&(finish.haze||finish.halation)){
+  if(!['v10','eighties'].includes(engine)&&(finish.haze||finish.halation)){
     const mask=await luminousMaskPng(sourcePng,engine);
     if(mask.active){
       // Scene-scale humid diffusion is separate from tight source halation.
@@ -312,8 +338,11 @@ export async function renderFilmFinish(images,bytes,settings,seed,{engine='v10'}
   if(!signature.every((value,index)=>result[index]===value))throw Error('Film processing returned an invalid image.');
   return result;
 }
-export async function filmAssetId(owner,originalId,settings){
-  const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([FILM_RENDER_REVISION,owner,originalId,filmFinishSettings(settings)]))));
+export async function filmAssetId(owner,originalId,settings,variant='v10'){
+  // Existing Hong Kong V10 asset IDs must remain byte-for-byte stable.
+  const fields=[FILM_RENDER_REVISION,owner,originalId,filmFinishSettings(settings)];
+  if(variant!=='v10')fields.push(variant);
+  const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(fields))));
   digest[6]=(digest[6]&15)|64;digest[8]=(digest[8]&63)|128;
   const s=Array.from(digest.slice(0,16),n=>n.toString(16).padStart(2,'0')).join('');
   return `${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20)}`;
@@ -321,17 +350,17 @@ export async function filmAssetId(owner,originalId,settings){
 
 // Caller has already authorized the original asset. No URL fetch, provider API,
 // generation quote or wallet debit exists anywhere in this module.
-export async function prepareFilmAsset(env,original,settings,{first,remaining}){
+export async function prepareFilmAsset(env,original,settings,{first,remaining,variant='v10'}){
   const finish=filmFinishSettings(settings);
   if(!finish.grain&&!finish.haze&&!finish.halation&&!finish.film)return original;
-  const id=await filmAssetId(original.owner_id,original.id,finish);
+  const id=await filmAssetId(original.owner_id,original.id,finish,variant);
   const cached=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',id,original.owner_id);
   if(cached&&await env.LAB_MEDIA.head(cached.object_key))return cached;
   if(original.bytes>INPUT_LIMIT)throw Error('This image is too large for the film finish.');
   const source=await env.LAB_MEDIA.get(original.object_key);
   if(!source)throw Error('The original image is unavailable.');
   const input=await bytesFrom(new Response(source.body),INPUT_LIMIT);
-  const bytes=await renderFilmFinish(env.IMAGES,input,finish,original.id);
+  const bytes=await renderFilmFinish(env.IMAGES,input,finish,original.id,{engine:variant==='eighties'?'eighties':'v10'});
   if(bytes.length>remaining)throw Error('There is not enough archive space for a finished copy.');
   const object_key=original.owner_id+'/film-finish/v'+FILM_RENDER_REVISION+'/'+id+'.png';
   await env.LAB_MEDIA.put(object_key,bytes,{httpMetadata:{contentType:'image/png'}});
