@@ -101,10 +101,16 @@ test('other Moods never inherit the new tape direction and both web/native impor
       assert.doesNotMatch(recipe.prompt,/EARLY 1980S FILM-TO-TAPE|MAXIMUM 100% \/ EARLY-80S TAPE/);
     }
   }
-  for(const path of ['lab/lab.js','lab/app-moods.js','lab/app-mood-generation.js','lab/explore-moods.js','lab/mood-creator.js']){
+  for(const path of ['lab/lab.js','lab/app-mood-generation.js']){
+    assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/moods\.js\?[^'\n]*eightiesTape=20261024v2/,path);
+  }
+  for(const path of ['lab/app-moods.js','lab/explore-moods.js','lab/mood-creator.js']){
     assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/moods\.js\?[^'\n]*eightiesTape=20261024v1/,path);
   }
-  for(const path of ['lab/studio.html','lab/moods.html','lab/app-moods.html','lab/mood-creator.html']){
+  for(const path of ['lab/studio.html','lab/moods.html']){
+    assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/eightiesTape=20261024v2/,path);
+  }
+  for(const path of ['lab/app-moods.html','lab/mood-creator.html']){
     assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/eightiesTape=20261024v1/,path);
   }
 });
