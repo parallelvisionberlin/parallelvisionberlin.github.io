@@ -18,18 +18,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Correct complete-selector lookup only
+      - name: Use the existing visible CSS selectors without reconstructing them
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          p=Path('tests/lab-studio-layout-ui.mjs')
-          s=p.read_text()
-          old="document.querySelector('.'+selector).getBoundingClientRect()"
-          new="document.querySelector(selector).getBoundingClientRect()"
-          assert s.count(old)==1, ('Expected exactly one invalid selector',s.count(old))
-          p.write_text(s.replace(old,new))
+          import re
+          p=Path('tests/lab-studio-layout-ui.mjs');s=p.read_text()
+          lines=s.splitlines(keepends=True)
+          matches=[i for i,line in enumerate(lines) if re.search(r'const\s+point\s*=\s*await\s+x\.page\.evaluate\(selector',line)]
+          assert len(matches)==1,('Expected one wheel target position statement',matches)
+          i=matches[0]
+          print('Replacing:',lines[i].rstrip())
+          context=''.join(lines[max(0,i-5):i+3])
+          assert "'.controls>.generate-zone'" in context and "'#video-inspector'" in context,context
+          indent=re.match(r'\s*',lines[i]).group()
+          lines[i]=(indent+"const rect=await x.page.locator(selector).boundingBox();\n"+
+                    indent+"assert.ok(rect,'Wheel target is visible: '+selector);\n"+
+                    indent+"const point={x:rect.x+Math.min(90,rect.width/2),y:rect.y+Math.min(24,rect.height/2)};\n")
+          p.write_text(''.join(lines))
           PY
           node --check tests/lab-studio-layout-ui.mjs
           node --test tests/lab-video-relaxed.test.mjs tests/lab-video-compact.test.mjs tests/lab-video-approved-design.test.mjs tests/lab-approved-image-ui-contract.test.mjs
@@ -50,6 +58,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add tests/lab-studio-layout-ui.mjs
-          git commit -m 'Fix duplicated CSS prefix in Video wheel regression target lookup'
+          git commit -m 'Use visible target bounds in Video wheel regression without altering scroll assertions'
           git push origin HEAD:codex/video-relaxed-20261024
           echo "VERIFIED_HEAD=$(git rev-parse HEAD)"
