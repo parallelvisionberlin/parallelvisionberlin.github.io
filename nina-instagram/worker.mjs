@@ -311,12 +311,13 @@ function needsNinaRewrite(draft, incoming, history = []) {
 }
 const NINA_NO_REPLY = '[NINA_NO_REPLY]';
 // Boundary handling is an internal no-send decision, never a message to the visitor.
-function isNinaBoundaryReply(draft) {
+function isNinaBoundaryReply(draft, incoming = '') {
   if (/\[NINA_NO_REPLY\]/i.test(draft)) return true;
   const refusal = /\b(?:no puedo|no voy a|no quiero|prefiero(?: que)? no|preferir[ií]a(?: que)? no|mejor(?: que)? no|no me (?:mandes|env[ií]es)|no (?:mandes|env[ií]es)|no participo|no me siento c[oó]moda|i (?:can.?t|cannot|won.?t|don.?t want to)|i(?:'d| would) (?:prefer|rather)|please (?:don.?t|do not)|ich (?:kann|m[oö]chte|will).{0,15}nicht|bitte (?:keine|nicht))\b/i.test(draft);
-  const sexual = /sex(?:ual|o|ting)?|er[oó]tic|expl[ií]cit|[ií]ntim|desnud|nudes?|threesome|tr[ií]os?|porn|nackt|dreier|menores de edad|underage/i.test(draft);
+  const sexual = /sex(?:ual|o|ting)?|er[oó]tic|expl[ií]cit|[ií]ntim|desnud|nudes?|threesome|tr[ií]os?|porn|nackt|dreier|menores de edad|underage/i.test(draft + ' ' + incoming);
   const policyRefusal = /(?:pol[ií]ticas? de (?:privacidad|contenido|seguridad)|normas de (?:contenido|seguridad)|content polic(?:y|ies)|privacy polic(?:y|ies)|safety (?:policy|policies|guidelines)|as an ai|como (?:modelo de lenguaje|inteligencia artificial)|als ki)/i.test(draft);
-  return (refusal && sexual) || policyRefusal;
+  const policyRestriction = /against|viola|contrav|no (?:permit|admit)|impiden|no me deja/i.test(draft);
+  return (refusal && (sexual || policyRefusal)) || (policyRefusal && policyRestriction);
 }
 // Temporary, single-use contact provisioning. Only hashes are public; no notes
 // or bearer capability are committed. This capability expires after setup.
@@ -449,7 +450,7 @@ async function generateNinaDraft(ai, systemMessage, history, text, contact) {
   let draft = String(reply?.response || '').trim().slice(0, 1800);
   if (!draft) throw new Error('empty_response');
   // Preserve the existing repair for unfounded age accusations on gentle affection.
-  if (!isUnsupportedAgeAccusation(draft, text, history) && isNinaBoundaryReply(draft)) return NINA_NO_REPLY;
+  if (!isUnsupportedAgeAccusation(draft, text, history) && isNinaBoundaryReply(draft, text)) return NINA_NO_REPLY;
   if (needsNinaRewrite(draft, text, history)) {
     try {
       const revised = await ai.run(MODEL, {
@@ -458,11 +459,11 @@ async function generateNinaDraft(ai, systemMessage, history, text, contact) {
         max_tokens: 190, temperature: 0.75
       });
       const candidate = String(revised?.response || '').trim().slice(0, 1800);
-      if (!isUnsupportedAgeAccusation(candidate, text, history) && isNinaBoundaryReply(candidate)) return NINA_NO_REPLY;
+      if (!isUnsupportedAgeAccusation(candidate, text, history) && isNinaBoundaryReply(candidate, text)) return NINA_NO_REPLY;
       draft = candidate && !needsNinaRewrite(candidate, text, history) ? candidate : conversationalFallback(text, contact);
     } catch { draft = conversationalFallback(text, contact); }
   }
-  return isNinaBoundaryReply(draft) ? NINA_NO_REPLY : draft;
+  return isNinaBoundaryReply(draft, text) ? NINA_NO_REPLY : draft;
 }
 
 
