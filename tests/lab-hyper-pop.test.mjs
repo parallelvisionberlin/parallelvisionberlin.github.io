@@ -45,7 +45,7 @@ test('strength genuinely changes clothing and supporting set, not just saturatio
   assert.match(maximum.recipe.prompt,/matching local set/i);
   assert.notEqual(high.recipe.prompt,maximum.recipe.prompt);
   for(const p of [low,mid,high,maximum]){
-    assert.ok(p.recipe.prompt.startsWith(portrait+'\\n\\n'));
+    assert.ok(p.recipe.prompt.startsWith(portrait+String.fromCharCode(10,10)));
     assert.match(p.recipe.prompt,/preserve recognizable face/i);
     assert.match(p.recipe.prompt,/Honor explicit garment/i);
     assert.ok(!p.recipe.prompt.includes('undefined'));
