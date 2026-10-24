@@ -121,3 +121,8 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-modes #mode-text{flex:.65 1 0!important;min-width:52px!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-modes #mode-start{flex:1 1 0!important;min-width:85px!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-modes #mode-reference{flex:1.25 1 0!important;min-width:103px!important}
+
+/* Keep the approved plus as a real keyboard and drop affordance. */
+html body #app.video-studio-active.pv-video-compact .pv-video-add-frame{padding:0!important;cursor:pointer}
+html body #app.video-studio-active.pv-video-compact .pv-video-add-frame:focus-visible{outline:2px solid #fff;outline-offset:4px}
+html body #app.video-studio-active.pv-video-compact .canvas.pv-video-file-drag{outline:2px dashed #a4a4a0;outline-offset:-5px}

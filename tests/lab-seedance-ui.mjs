@@ -140,6 +140,47 @@ try{
   ok(`Approved original artwork, real uploads and all modes at ${width}x${height}`);
   await preview.context.close();
  }
+ // Both the settings tile and photographic canvas feed the original inputs.
+ for(const mode of ['start','reference','extend']){
+  const drop=await workspace();await choose(drop,mode);
+  const plus=drop.page.locator('.pv-video-add-frame');
+  await plus.waitFor({state:'visible'});
+  const chooser=drop.page.waitForEvent('filechooser');await plus.click();
+  const picker=await chooser;
+  assert.equal(await picker.element().getAttribute('id'),mode==='extend'?'video-references':mode==='reference'?'reference-images':'image','Plus opens the native input for the selected mode');
+  await picker.setFiles([]);await ready(drop.page);
+  const transfer=await drop.page.evaluateHandle(({bytes,mode})=>{
+   const data=new DataTransfer();
+   data.items.add(new File([new Uint8Array(bytes)],mode==='extend'?'canvas-motion.mp4':'canvas-frame.png',{type:mode==='extend'?'video/mp4':'image/png'}));
+   return data;
+  },{bytes:[...(mode==='extend'?motion:png)],mode});
+  const target=mode==='start'?plus:drop.page.locator('.canvas');
+  await target.dispatchEvent('dragover',{dataTransfer:transfer});
+  assert.equal(await drop.page.locator('.canvas').evaluate(el=>el.classList.contains('pv-video-file-drag')),true,'Canvas shows a file-drop hint');
+  await target.dispatchEvent('drop',{dataTransfer:transfer});await transfer.dispose();
+  await drop.page.waitForFunction(mode=>mode==='extend'?document.querySelector('#video-reference-list').children.length===1:mode==='reference'?document.querySelectorAll('#reference-list .reference-item').length===1:!document.querySelector('#video-start-thumb').hidden,mode);
+  await ready(drop.page);
+  assert.equal(await drop.page.locator('.canvas').evaluate(el=>el.classList.contains('pv-video-file-drag')),false);
+  if(mode==='start'){
+   const tileFile=await drop.page.evaluateHandle(bytes=>{const data=new DataTransfer();data.items.add(new File([new Uint8Array(bytes)],'settings-frame.png',{type:'image/png'}));return data;},[...png]);
+   await drop.page.locator('#drop').dispatchEvent('drop',{dataTransfer:tileFile});await tileFile.dispose();
+   await drop.page.waitForFunction(()=>document.querySelector('#filemeta').textContent.includes('settings-frame.png'));
+   await ready(drop.page);
+   await still(drop,'last-image');
+   assert.equal(await drop.page.locator('#video-end-thumb').isVisible(),true,'Canvas upload preserves the optional end frame');
+  }
+  assert.equal(count(drop,'/api/uploads'),0);assert.equal(count(drop,'/api/reference-uploads'),0);
+  assert.equal(count(drop,'/api/quotes'),0);assert.equal(count(drop,'/api/jobs'),0,'Drop only prepares local media');
+  await drop.page.evaluate(()=>window.__labTest.lock());
+  await drop.page.waitForFunction(()=>document.getElementById('app').dataset.guestPreview==='video');
+  const blocked=await drop.page.evaluateHandle(()=>{const data=new DataTransfer();data.items.add(new File(['blocked'],'guest.png',{type:'image/png'}));return data;});
+  await drop.page.locator('.canvas').dispatchEvent('drop',{dataTransfer:blocked});await blocked.dispose();
+  assert.equal(await drop.page.locator('#image').evaluate(el=>el.files.length),0);
+  assert.equal(await drop.page.locator('#reference-list .reference-item').count(),0);
+  assert.equal(await drop.page.locator('#video-reference-list').locator('video').count(),0);
+  assert.equal(count(drop,'/api/jobs'),0);assert.deepEqual(drop.errors,[]);
+  ok(`Native plus, local canvas drop and signed-out protection in ${mode}`);await drop.context.close();
+ }
  let x=await workspace();await choose(x);
  assert.equal(await x.page.locator('#resolution').inputValue(),'720p');assert.equal(await x.page.locator('#duration').inputValue(),'5');assert.equal(await x.page.locator('#ratio').isVisible(),false);await still(x);await still(x,'last-image');
  await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(count(x,'/api/jobs'),0);assert.match(await x.page.locator('#quote-settings').innerText(),/Seedance 2.5/);

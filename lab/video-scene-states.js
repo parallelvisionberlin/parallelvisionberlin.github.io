@@ -95,7 +95,9 @@ function mountVideoSceneStates(){
       ['video-start-thumb','video-end-thumb'].some(id=>{const img=byId(id);return img&&!img.hidden;})||
       !!byId('video-reference-list')?.children.length||!!byId('audio-reference-list')?.children.length;
     setModeClass('pv-video-has-input',hasInput);
-    startArt.hidden=!(visible&&mode==='start');
+    startArt.hidden=!(visible&&mode!=='text'&&!hasInput);
+    const add=startArt.querySelector('.pv-video-add-frame');
+    if(add)add.setAttribute('aria-label',mode==='extend'?'Choose a video':mode==='reference'?'Upload reference images':'Choose start frame');
     textArt.hidden=!(visible&&mode==='text');
     if(!visible)return;
     const title=byId('empty-title'),subtitle=byId('empty-description');

@@ -2715,6 +2715,7 @@ function runCanvasEntry(action){
   if(input&&!input.disabled)input.click();
 }
 $('canvas-import').addEventListener('click',()=>runCanvasEntry($('canvas-import').dataset.action));
+document.querySelector('.pv-video-add-frame')?.addEventListener('click',()=>$('canvas-import').click());
 $('canvas-secondary').addEventListener('click',()=>runCanvasEntry($('canvas-secondary').dataset.action));
 $('soul-use').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');window.scrollTo({top:0,behavior:'smooth'});};
 $('soul-launch-manage').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');$('soul-dialog').showModal();void soul.load().catch(e=>notify(e.message,true));};
@@ -3112,12 +3113,37 @@ $('image').onchange=e=>action(async()=>{if(e.target.files[0])await setImage(e.ta
 $('soul-base-image').onchange=e=>action(async()=>{if(e.target.files[0])await setImage(e.target.files[0]);e.target.value='';});
 $('last-image').onchange=e=>action(async()=>{if(e.target.files[0])await setLastImage(e.target.files[0]);});
 $('reference-images').onchange=e=>action(async()=>{if(e.target.files.length)await addReferences(e.target.files);e.target.value='';});
-function bindDrop(zone,input,handler){for(const name of ['dragenter','dragover'])$(zone).addEventListener(name,e=>{e.preventDefault();$(zone).classList.add('drag');});for(const name of ['dragleave','drop'])$(zone).addEventListener(name,e=>{e.preventDefault();$(zone).classList.remove('drag');});$(zone).addEventListener('drop',e=>action(async()=>{await handler(e.dataTransfer.files);$(input).value='';}));}
+function bindDrop(zone,input,handler,enabled=()=>true){for(const name of ['dragenter','dragover'])$(zone).addEventListener(name,e=>{if(!enabled())return;e.preventDefault();$(zone).classList.add('drag');});for(const name of ['dragleave','drop'])$(zone).addEventListener(name,e=>{if(!enabled())return;e.preventDefault();$(zone).classList.remove('drag');});$(zone).addEventListener('drop',e=>{if(!enabled())return;return action(async()=>{await handler(e.dataTransfer.files);$(input).value='';});});}
 bindDrop('soul-base-drop','soul-base-image',async files=>{if(files.length!==1)throw new Error('Choose exactly one base image.');await setImage(files[0]);});
 bindDrop('drop','image',async files=>{if(files[0])await setImage(files[0]);});
-bindDrop('upscale-canvas','image',async files=>{if(tool==='upscale'&&files[0])await setImage(files[0]);});
+bindDrop('upscale-canvas','image',async files=>{if(tool==='upscale'&&files[0])await setImage(files[0]);},()=>tool==='upscale');
 bindDrop('last-drop','last-image',async files=>{if(files[0])await setLastImage(files[0]);});
 bindDrop('reference-drop','reference-images',async files=>{if(files.length)await addReferences(files);});
+// The photographic Video canvas and its plus use the same native inputs as the
+// settings tiles. Preserve their validation, session checks and price review.
+const videoCanvas=$('empty').closest('.canvas');
+const videoCanvasFiles=event=>tool==='video'&&event.dataTransfer?.types.includes('Files');
+for(const name of ['dragenter','dragover'])videoCanvas.addEventListener(name,event=>{
+  if(!videoCanvasFiles(event))return;
+  event.preventDefault();
+  if(owner&&!busy&&mode!=='text'&&!selectedVideoJob){
+    event.dataTransfer.dropEffect='copy';videoCanvas.classList.add('pv-video-file-drag');
+  }
+});
+for(const name of ['dragleave','drop'])videoCanvas.addEventListener(name,event=>{
+  if(name==='dragleave'&&videoCanvas.contains(event.relatedTarget))return;
+  videoCanvas.classList.remove('pv-video-file-drag');
+});
+videoCanvas.addEventListener('drop',event=>{
+  if(!videoCanvasFiles(event))return;
+  event.preventDefault();event.stopPropagation();
+  if(!owner||busy||selectedVideoJob||$('start-frame-dialog').open||mode==='text')return;
+  const input=$(mode==='extend'?'video-references':mode==='reference'?'reference-images':'image');
+  if(input.disabled||!event.dataTransfer.files.length)return;
+  input.files=event.dataTransfer.files;
+  input.dispatchEvent(new Event('change',{bubbles:true}));
+});
+
 attachVideoReferenceBrowserDrop({
   doc:document,target:$('reference-drop'),input:$('reference-images'),
   enabled:()=>owner&&!busy&&!$('start-frame-dialog').open&&tool==='video'&&mode==='reference'&&VIDEO_MODELS[engine].maxImages>0,
