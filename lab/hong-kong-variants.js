@@ -1,10 +1,11 @@
 // Hong Kong Nights preserves its three optional photographic look choices.
-// Existing source photographs remain available for previews and saved History.\n// New image generations do not auto-attach them to the model.
+// Historic look photographs remain for previews and saved History.
+// New generations use the separate two-photo Worker optical reference pack.
 export const HONG_KONG_VARIANTS=Object.freeze({
   original:Object.freeze({
     label:'Nocturne',
     direction:'',
-    filmFinish:Object.freeze({version:2,grain:0,haze:0,halation:0,film:0}),
+    filmFinish:Object.freeze({version:2,grain:13,haze:100,halation:78,film:100}),
     files:Object.freeze(['greg-iii.png','plaza-grill.webp','young-woman-tram.webp','greg-reds.png'])
   }),
   'deep-green':Object.freeze({
