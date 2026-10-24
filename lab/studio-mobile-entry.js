@@ -33,7 +33,10 @@
   window.addEventListener('pageshow',schedule);
   const observer=new MutationObserver(schedule);
   for(const node of [gate,app,welcome,empty]){
-    observer.observe(node,{attributes:true,attributeFilter:['hidden','class']});
+    // Public tool navigation updates data-guest-tool without hiding the gate.
+    // Restore the ordinary header immediately on Video/Upscaler/Fashion routes.
+    observer.observe(node,{attributes:true,
+      attributeFilter:node===gate?['hidden','class','data-guest-tool']:['hidden','class']});
   }
   schedule();
 })();
