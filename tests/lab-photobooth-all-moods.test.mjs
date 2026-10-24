@@ -92,6 +92,10 @@ for(const mood of MOODS){
         }else if(mood.id==='hyper-pop'){
           assert.equal(planned.references.length,intensity>34?2:0,context+' chrome-cloud Style references at medium and high intensity only');
           assert.ok(roles.slice(hasPhoto?1:0).every(r=>r.role==='style'),context+' chrome-cloud sources may not replace Base identity');
+        }else if(mood.id==='80s-film'){
+          const shouldAttach=hasPhoto&&intensity===100;
+          assert.equal(planned.references.length,shouldAttach?1:0,context+' approved analog optics Style only for Base 100%');
+          assert.ok(roles.slice(hasPhoto?1:0).every(r=>r.role==='style'),context+' Base identity stays ahead of Style optics');
         }else{
           assert.equal(planned.references.length,0,context+' no extra network-hosted Style photos');
         }

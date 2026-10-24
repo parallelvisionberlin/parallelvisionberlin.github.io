@@ -53,9 +53,10 @@ test('full and Lite provider prompts retain assigned roles and fit the normal Ba
       const recipe=prepareMoodPrompt(direction,'80s-film',amount,{engine,referenceCount:labels.length});
       const settings={type:'image',mode:'image',engine,referenceMode:'base',resolution:'2k',aspectRatio:'16:9',prompt:recipe.prompt,...recipe.metadata,referenceRoles:labels};
       const plan=moodReferencePlan(settings);
-      assert.equal(plan.references.length,0,'80s Film gains no hidden reference pack');
-      assert.equal(plan.settings,settings);
-      const compiled=compileImagePrompt(recipe.prompt,labels,settings);
+      const has100Style=engine==='seedream'&&amount===100;
+      assert.equal(plan.references.length,has100Style?1:0,'style reference only for Seedream Pro at 100% with Base');
+      if(!has100Style)assert.equal(plan.settings,settings);
+      const compiled=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings);
       assert.ok(compiled.includes(recipe.prompt),'Never shorten or replace the authored recipe');
       assert.ok(compiled.includes('Keep the white shirt.'));
       assert.ok(compiled.includes('Use only this identity.'));
@@ -102,15 +103,15 @@ test('other Moods never inherit the new tape direction and both web/native impor
     }
   }
   for(const path of ['lab/lab.js','lab/app-mood-generation.js']){
-    assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/moods\.js\?[^'\n]*eightiesTape=20261024v2/,path);
+    assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/moods\.js\?[^'\n]*eightiesTape=20261024v3/,path);
   }
   for(const path of ['lab/app-moods.js','lab/explore-moods.js','lab/mood-creator.js']){
-    assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/moods\.js\?[^'\n]*eightiesTape=20261024v1/,path);
+    assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/moods\.js\?[^'\n]*eightiesTape=20261024v3/,path);
   }
   for(const path of ['lab/studio.html','lab/moods.html']){
-    assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/eightiesTape=20261024v2/,path);
+    assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/eightiesTape=20261024v3/,path);
   }
   for(const path of ['lab/app-moods.html','lab/mood-creator.html']){
-    assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/eightiesTape=20261024v1/,path);
+    assert.match(readFileSync(new URL('../'+path,import.meta.url),'utf8'),/eightiesTape=20261024v3/,path);
   }
 });

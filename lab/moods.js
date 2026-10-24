@@ -1,4 +1,4 @@
-import {EIGHTIES_TAPE_RECIPE} from './80s-film-recipe.js?v=20261024v2';
+import {EIGHTIES_TAPE_RECIPE} from './80s-film-recipe.js?v=20261024v3';
 import {prepareDreamBlurBasePrompt} from './dream-blur-base.js?v=20261024v1';
 import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10';
 import {HONG_KONG_VARIANTS,hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2';
@@ -464,6 +464,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   const compactSyntheticRomance=syntheticRomance;
   const compactDreamcore=dreamcore;
   const compact80s=cinematic80s&&lite;
+  const immersive80sBase=cinematic80s&&!lite&&intensity===100&&referenceCount>0&&referenceMode!=='references';
   const hyperPop=mood.id==='hyper-pop';
   const hyperLook=intensity<=34?(lite?mood.compactSubtle:mood.subtle):intensity<=69?(lite?mood.compactModerate:mood.moderate):intensity<=89?(lite?mood.compactIntense:mood.intense):(lite?mood.compactClimax:mood.climax);
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';
@@ -497,11 +498,12 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
       compactDreamcore?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
     ].join(' ')
     :cinematic80s
-      ?[eightyCore,context,
-        'Creative intensity '+intensity+'/100; cinematic generation instructions, NOT a pixel filter.',
-        compact80s?mood['compact'+dreamcoreTier]:mood[dreamcoreKey],
-        intensity===100&&!compact80s&&referenceCount>0&&referenceMode!=='references'?mood.baseClimax:''
-      ].filter(Boolean).join(' ')
+      ?immersive80sBase
+        ?[mood.base100Direction,context].join(' ')
+        :[eightyCore,context,
+          'Creative intensity '+intensity+'/100; cinematic generation instructions, NOT a pixel filter.',
+          compact80s?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
+        ].join(' ')
       :dreamBlur
         ?[
           compactDreamBlur?mood.compact:mood.direction,

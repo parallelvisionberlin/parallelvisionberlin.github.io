@@ -46,6 +46,16 @@ const FISHEYE_2000_REFERENCES=Object.freeze([
 ].map(ref=>Object.freeze({...ref,type:'image/webp',url:'/lab/mood-references/fisheye-2000/'+ref.file,
   label:Object.freeze({name:'Fisheye 2000 style - '+ref.file,role:'style',note:ref.note})})));
 
+// A single already-approved 80s Film card is reused only for analog optics at
+// 100% with a customer Base on Seedream Pro. Do not copy the pictured woman,
+// studio/nightlife setting or props into a customer's photograph.
+const EIGHTIES_FILM_REFERENCES=Object.freeze([
+  {file:'80s-film-20261011.jpg',url:'/lab/mood-previews/hd/80s-film-20261011.jpg',type:'image/jpeg',
+    note:'OPTICS ONLY: borrow early-1980s grain, lens softness, photochemical color and highlight rolloff. Do NOT borrow its person, pose, face, outfit, cigarette, glass, night interior, light, framing or scene. The user Base controls subject, place, day/night and camera.'}
+].map(ref=>Object.freeze({...ref,
+  label:Object.freeze({name:'80s Film style - '+ref.file,role:'style',note:ref.note})
+})));
+
 // Existing Parallel Vision Reptare images provide approved material references.
 // Supporting STYLE sources only: customer Base remains the sole identity source.
 const HYPER_POP_REFERENCES=Object.freeze([
@@ -58,14 +68,20 @@ const HYPER_POP_REFERENCES=Object.freeze([
 })));
 
 export function isMoodStyleReference(label){
-  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||FISHEYE_2000_REFERENCES.some(ref=>ref.label.name===label.name)||HYPER_POP_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCE_LABELS.has(label.name));
+  return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||FISHEYE_2000_REFERENCES.some(ref=>ref.label.name===label.name)||EIGHTIES_FILM_REFERENCES.some(ref=>ref.label.name===label.name)||HYPER_POP_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCE_LABELS.has(label.name));
 }
 
 export function moodReferencePlan(settings){
-  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','fisheye-2000','hyper-pop'].includes(settings.moodId)||!['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine))
+  if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','fisheye-2000','hyper-pop','80s-film'].includes(settings.moodId)||!['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine))
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
   const isHongKong=settings.moodId==='hong-kong-nights';
+  const isEighties=settings.moodId==='80s-film';
+  // Preserve all other 80s Film paths, engines and historical output references.
+  const useEightiesStyle=isEighties&&settings.engine==='seedream'&&
+    settings.referenceMode!=='references'&&Number(settings.moodIntensity)===100&&
+    labels.some(label=>label.role==='base');
+  if(isEighties&&!useEightiesStyle)return {settings,references:[]};
   // The Worker appends precisely the approved original photographs to the actual provider request.
   // Do not duplicate the pack in customer uploads or historical image thumbnails.
   if(isHongKong){
@@ -78,13 +94,13 @@ export function moodReferencePlan(settings){
   }
   const isFisheye=settings.moodId==='fisheye-2000',isHyperPop=settings.moodId==='hyper-pop';
   // At low strength, omit the visual pack to avoid overriding source wardrobe.
-  const source=isHyperPop?(Number(settings.moodIntensity??75)>34?HYPER_POP_REFERENCES:[]):isHongKong?HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]:isFisheye?FISHEYE_2000_REFERENCES:DREAM_BLUR_REFERENCES;
-  const moodLabel=isHyperPop?'Hyper Pop':isHongKong?'Hong Kong Nights':isFisheye?'Fisheye 2000':'Dream Blur';
+  const source=isEighties?EIGHTIES_FILM_REFERENCES:isHyperPop?(Number(settings.moodIntensity??75)>34?HYPER_POP_REFERENCES:[]):isHongKong?HONG_KONG_REFERENCES[hongKongVariant(settings.moodVariant)]:isFisheye?FISHEYE_2000_REFERENCES:DREAM_BLUR_REFERENCES;
+  const moodLabel=isEighties?'80s Film':isHyperPop?'Hyper Pop':isHongKong?'Hong Kong Nights':isFisheye?'Fisheye 2000':'Dream Blur';
   // Saved older jobs retain their original four Style sources. Never silently
   // append another pack of four to a reused result or duplicate user uploads.
   const preservedHistoricStyle=isHongKong&&labels.some(label=>label.role==='style'&&HONG_KONG_REFERENCE_LABELS.has(label.name));
   const references=preservedHistoricStyle?[]:source.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
-  if(labels.length+references.length>10)throw Error(moodLabel+' includes '+source.length+' Style references. Keep at most '+(isFisheye||isHyperPop?'8':'six')+' of your own images, or choose another Mood.');
+  if(labels.length+references.length>10)throw Error(moodLabel+' includes '+source.length+' Style references. Keep at most '+(isEighties?'nine':isFisheye||isHyperPop?'8':'six')+' of your own images, or choose another Mood.');
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
   // Add the four canonical Style photos without rewriting the selected Mood.
   // Check the full provider prompt, including the full/compact role map.
@@ -115,9 +131,9 @@ export function createMoodReferenceLoader({upload,fetchFile=fetch}){
         check();
         if(cache.has(ref.url))return null;
         const response=await fetchFile(ref.url,{credentials:'omit',signal:AbortSignal.timeout(30000)});
-        if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':'Hong Kong Nights')+' Style reference could not load. Please try again.');
+        if(!response.ok)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':'Hong Kong Nights')+' Style reference could not load. Please try again.');
         const blob=await response.blob();
-        if(!blob.size)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':'Hong Kong Nights')+' Style reference is empty. Please try again.');
+        if(!blob.size)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':'Hong Kong Nights')+' Style reference is empty. Please try again.');
         check();
         return new File([blob],ref.label.name,{type:ref.type});
       }));
@@ -131,7 +147,7 @@ export function createMoodReferenceLoader({upload,fetchFile=fetch}){
           pending=(async()=>{
             const file=staged[i],result=await upload(file);
             const id=typeof result==='string'?result:result?.id;
-            if(!id)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':'Hong Kong Nights')+' Style reference could not upload. Please try again.');
+            if(!id)throw Error('A '+(ref.label.name.startsWith('Dream Blur')?'Dream Blur':ref.label.name.startsWith('Fisheye 2000')?'Fisheye 2000':ref.label.name.startsWith('Hyper Pop')?'Hyper Pop':ref.label.name.startsWith('80s Film')?'80s Film':'Hong Kong Nights')+' Style reference could not upload. Please try again.');
             return {id,file};
           })();
           cache.set(ref.url,pending);
