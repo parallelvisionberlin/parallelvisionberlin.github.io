@@ -1,4 +1,4 @@
-name: Stage approved Video visual assets
+name: Finalize approved Video visual checks
 on:
   push:
     branches: [codex/video-relaxed-20261024]
@@ -6,7 +6,7 @@ on:
 permissions:
   contents: write
 jobs:
-  stage:
+  finalize:
     if: github.repository == 'parallelvisionberlin/parallelvisionberlin.github.io' && github.ref == 'refs/heads/codex/video-relaxed-20261024'
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -14,70 +14,84 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: codex/video-relaxed-20261024
-          fetch-depth: 1
-      - name: Fetch exact prepared presentation assets
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/pv-relaxed
-          curl --fail --location --retry 2 --max-time 60 'https://at.adobe.com/2pNj4FFY8rM3FsJu' -o /tmp/pv-relaxed/style.css
-          echo 'f41710d243f2bdfd0c55b254f3a6fbc4f4da0337b49c1693e0d4d230ea15c2f9  /tmp/pv-relaxed/style.css' | sha256sum -c -
-          curl --fail --location --retry 2 --max-time 60 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:91f8b33c-68c5-4a02-83b2-8203852c1d42' -o /tmp/pv-relaxed/source.png
-          curl --fail --location --retry 2 --max-time 60 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:4039f17a-9839-4b81-b92c-41f4e1bdb7d2' -o /tmp/pv-relaxed/cleanup.png
-          python -m pip install --quiet Pillow==11.3.0
-      - name: Preserve source pixels and attach scoped presentation
+          fetch-depth: 5
+      - name: Update only approved visual expectations and preserve every functional assertion
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          import hashlib, json, shutil, subprocess
-          from PIL import Image, ImageDraw, ImageFilter, ImageChops
-          tmp=Path('/tmp/pv-relaxed')
-          source=Image.open(tmp/'source.png').convert('RGB')
-          cleaned=Image.open(tmp/'cleanup.png').convert('RGB').resize(source.size,Image.Resampling.LANCZOS)
-          w,h=source.size
-          assert 900 <= w <= 950 and 580 <= h <= 630, source.size
-          # Only UI-covered pixels are reconstructed. Faces and all upper pixels
-          # are copied exactly from the owner's original generated mockup crop.
-          mask=Image.new('L',source.size,0)
-          d=ImageDraw.Draw(mask)
-          sx,sy=w/932,h/605
-          def box(coords): return tuple(round(v*(sx if i%2==0 else sy)) for i,v in enumerate(coords))
-          d.rounded_rectangle(box((139,291,791,575)),radius=11,outline=255,width=8)
-          for r in [(428,326,502,400),(330,409,606,443),(277,448,655,473),(361,476,568,524),(351,531,581,550)]:
-              d.rectangle(box(r),fill=255)
-          mask=mask.filter(ImageFilter.GaussianBlur(1.5))
-          out=Image.composite(cleaned,source,mask)
-          # Face/hair/eye pixels remain unchanged; no generative identity drift.
-          assert ImageChops.difference(out.crop((0,0,w,280)),source.crop((0,0,w,280))).getbbox() is None
-          art=Path('lab/visuals/video-subway-relaxed-approved.png')
-          art.parent.mkdir(parents=True,exist_ok=True)
-          out.save(art,optimize=True)
-          proof=Path('docs/previews/video-relaxed-20261024')
-          proof.mkdir(parents=True,exist_ok=True)
-          shutil.copyfile(tmp/'source.png',proof/'original-canvas-crop.png')
-          mask.save(proof/'ui-cleanup-mask.png')
-          shutil.copyfile(tmp/'style.css','lab/video-relaxed-studio.css')
-          html_path=Path('lab/studio.html')
-          html=html_path.read_text()
-          marker='<link rel="stylesheet" href="./video-compact-studio.css?v=20261023-approved1">'
-          assert html.count(marker)==1, 'Expected exact current compact CSS link'
-          html=html.replace(marker,marker+'\n<link rel="stylesheet" href="./video-relaxed-studio.css?v=20261024-relaxed1">')
-          html_path.write_text(html)
-          evidence={'base':'086d5b67731684d0617279a629414cfd546aef41','source_size':source.size,'source_sha256':hashlib.sha256((tmp/'source.png').read_bytes()).hexdigest(),'asset_sha256':hashlib.sha256(art.read_bytes()).hexdigest(),'original_upper_280px_identical':True,'cleanup':'Only masked UI-overlay regions reconstructed; unmasked pixels retained exactly.','logic_changes':False}
-          (proof/'asset-provenance.json').write_text(json.dumps(evidence,indent=2)+'\n')
-          print(json.dumps(evidence))
+          import json, hashlib, subprocess
+          def edit(path, pairs):
+              p=Path(path);s=p.read_text()
+              for old,new in pairs:
+                  assert s.count(old)==1,(path,old,s.count(old))
+                  s=s.replace(old,new)
+              p.write_text(s)
+          snapshot='368d0633f048f53dad973120ce1cc444a6c5b31d'
+          edit('tests/lab-public-studio-ui.mjs',[
+              ("const approvedVideoRef='c3f1a73e7d66e95f917d905ab197cfd194b6da95';",f"const approvedVideoRef='{snapshot}';"),
+              ("'lab/video-compact-studio.css','lab/video-editorial-deck.js'","'lab/video-compact-studio.css','lab/video-relaxed-studio.css','lab/video-editorial-deck.js'")])
+          edit('.github/workflows/lab-public-studio-tests.yml',[
+              ('git fetch --depth=1 origin c3f1a73e7d66e95f917d905ab197cfd194b6da95',f'git fetch --depth=1 origin {snapshot}')])
+          edit('tests/lab-studio-layout-ui.mjs',[
+              ("assert.equal(d.dock.height,56,'Approved compact Generate dock retains its fixed 56px track');","assert.equal(d.dock.height,64,'Approved relaxed Generate dock retains its fixed 64px track');"),
+              ("assert.equal(videoTypography.size,12,'Approved compact Video motion prompt uses 12px type');","assert.equal(videoTypography.size,14,'Approved relaxed Video motion prompt uses 14px type');"),
+              ("assert.equal(d.stage.height,682,'Approved desktop stage leaves room for real History');","assert.equal(d.stage.height,744,'Approved relaxed desktop stage leaves room for real History');"),
+              ("const ids=['pv-video-model-pill','duration-control','ratio-control','resolution-control','pv-video-audio-pill'];","const ids=['duration-control','ratio-control','resolution-control','pv-video-audio-pill'];"),
+              ("assert.equal(outputFit.ready,true,'Reference mode has the five actual output settings');","assert.equal(outputFit.ready,true,'Reference mode has all four actual output settings');\n  assert.equal(await x.page.locator('#video-model-trigger').isVisible(),true,'The original top model selector remains accessible');\n  assert.equal(await x.page.locator('#pv-video-model-pill').isVisible(),false,'Only the duplicated model shortcut is removed from Output');"),
+              ("Math.max(...outputFit.tops.slice(0,4))-Math.min(...outputFit.tops.slice(0,4))<3","Math.max(...outputFit.tops.slice(0,3))-Math.min(...outputFit.tops.slice(0,3))<3"),
+              ("'Approved model, duration, ratio and resolution stay on one row: '","'Approved duration, ratio and resolution stay on one row: '"),
+              ("assert.equal(outputFit.tops[4]-outputFit.tops[0],36,'Audio occupies the approved second row');","assert.equal(outputFit.tops[3]-outputFit.tops[0],46,'Audio occupies the approved relaxed second row');"),
+              ("'Model, duration, ratio, resolution and audio remain usable'","'Duration, ratio, resolution and audio remain usable; the main model selector stays above'")])
+          provenance=json.loads(Path('docs/previews/video-relaxed-20261024/asset-provenance.json').read_text())
+          test="""import test from 'node:test';
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const read=p=>readFileSync(new URL('../'+p,import.meta.url));
+          const css=read('lab/video-relaxed-studio.css').toString();
+          test('relaxed Video styling is scoped and retains native capability visibility',()=>{
+            assert.match(read('lab/studio.html').toString(),/video-relaxed-studio\\.css\\?v=20261024-relaxed1/);
+            assert.equal((css.match(/\\{/g)||[]).length,(css.match(/\\}/g)||[]).length);
+            assert.doesNotMatch(css,/image-studio-active|fashion-studio-active|upscale-studio-active|PV Motion/);
+            assert.doesNotMatch(css,/pointer-events\\s*:\\s*none|overflow(?:-y)?\\s*:\\s*hidden|position\\s*:\\s*fixed/);
+            assert.match(css,/#pv-video-model-pill\\{display:none!important\\}/);
+            assert.match(css,/#pv-video-audio-pill:not\\(\\[hidden\\]\\)/);
+            assert.match(css,/pv-video-output-collapsed/);
+            assert.match(css,/:not\\(\\.pv-video-has-input\\)/);
+            assert.doesNotMatch(css,/#(?:mode-extend|video-model-control|video-model-trigger)[^{]*\\{[^}]*display:none/);
+            assert.match(css,/height:44px!important;min-height:44px!important;font-size:14px/);
+          });
+          test('approved subway artwork is local and locked, without replacing source-media logic',()=>{
+            assert.equal(createHash('sha256').update(read('lab/visuals/video-subway-relaxed-approved.png')).digest('hex'),'ASSET_SHA');
+            assert.match(css,/url\\('\\.\\/visuals\\/video-subway-relaxed-approved\\.png'\\)/);
+            const state=read('lab/video-scene-states.js').toString();
+            assert.match(state,/setModeClass\\('pv-video-has-input',hasInput\\)/);
+            assert.doesNotMatch(state,/video-subway-relaxed-approved/,'Artwork never becomes a submitted source');
+            assert.match(read('lab/video-editorial-deck.js').toString(),/doc\\.addEventListener\\('wheel'/,'Original wheel routing remains');
+          });
+          """.replace('ASSET_SHA',provenance['asset_sha256'])
+          Path('tests/lab-video-relaxed.test.mjs').write_text(test)
+          protected=['lab/lab.js','lab/video-editorial-deck.js','lab/video-scene-states.js','lab/video-model-picker.js','lab/video-models.js','lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js']
+          manifest={}
+          for p in protected:
+              if Path(p).exists():
+                  old=subprocess.check_output(['git','show','086d5b67731684d0617279a629414cfd546aef41:'+p]);now=Path(p).read_bytes()
+                  assert old==now,p+' must remain byte-identical'
+                  manifest[p]=hashlib.sha256(now).hexdigest()
+          Path('docs/previews/video-relaxed-20261024/unchanged-logic.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          Path('.github/workflows/video-relaxed-assemble.yml').unlink()
           PY
+          node --test tests/lab-video-relaxed.test.mjs tests/lab-video-compact.test.mjs tests/lab-video-approved-design.test.mjs tests/lab-approved-image-ui-contract.test.mjs
           git diff --check
-          git diff --stat
-      - name: Commit only staged Video presentation files
+      - name: Commit tested expectations and remove temporary staging workflow
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add lab/video-relaxed-studio.css lab/studio.html lab/visuals/video-subway-relaxed-approved.png docs/previews/video-relaxed-20261024/
-          git commit -m 'Video: relaxed charcoal presentation and pixel-preserved approved subway artwork'
+          git add .github/workflows/video-relaxed-assemble.yml .github/workflows/lab-public-studio-tests.yml tests/lab-public-studio-ui.mjs tests/lab-studio-layout-ui.mjs tests/lab-video-relaxed.test.mjs docs/previews/video-relaxed-20261024/unchanged-logic.json
+          git commit -m 'Verify relaxed Video surface, preserve all model logic and freeze visual baseline'
           git push origin HEAD:codex/video-relaxed-20261024
-          echo "Prepared candidate $(git rev-parse HEAD)"
+          echo "Final candidate $(git rev-parse HEAD)"
