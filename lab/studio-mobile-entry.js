@@ -9,19 +9,20 @@
   if(!header||!gate||!app||!welcome||!empty)return;
   const mobile=window.matchMedia('(max-width:680px)');
   let frame=0;
-  let wasFirstImage=false;
+  let wasImageEntry=false;
   function update(){
     frame=0;
-    const guest=!gate.hidden&&gate.classList.contains('pv-guest-image');
+    const guestImage=!gate.hidden&&gate.classList.contains('pv-guest-image')&&
+      gate.dataset.guestTool==='image';
     const firstImage=!app.hidden&&app.classList.contains('image-studio-active')&&
       !welcome.hidden&&!empty.hidden;
-    const scrolled=(window.scrollY||document.documentElement.scrollTop)>110;
     const active=mobile.matches&&window.__PV_LAB_NATIVE__!==1;
-    // Signed-in welcome must never change header height at a scroll threshold.
-    // This avoids the iPhone scroll/resize feedback loop reported by the owner.
-    header.classList.toggle('pv-mobile-entry-condensed',active&&(firstImage||(guest&&scrolled)));
-    if(active&&firstImage&&!wasFirstImage&&window.scrollY>0)window.scrollTo(0,0);
-    wasFirstImage=active&&firstImage;
+    const imageEntry=active&&(firstImage||guestImage);
+    // Both guests and signed-in first-image users keep the same 78px masthead.
+    // Scroll thresholds must never resize it underneath a viewport-fixed dock.
+    header.classList.toggle('pv-mobile-entry-condensed',imageEntry);
+    if(imageEntry&&!wasImageEntry&&window.scrollY>0)window.scrollTo(0,0);
+    wasImageEntry=imageEntry;
   }
   function schedule(){
     if(frame)return;
