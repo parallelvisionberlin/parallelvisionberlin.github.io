@@ -1,4 +1,4 @@
-import {isMoodStyleReference} from './mood-references.js?v=20261016-internal-moods-v2&fisheye=20261020v1&hkRefs=20261022three1&fisheyeY2K=20261024v1';
+import {isMoodStyleReference} from './mood-references.js?v=20261016-internal-moods-v2&fisheye=20261020v1&hkRefs=20261022three1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1';
 
 // Public result inspector and reuse actions must never treat a preset's Style
 // photographs as user inputs. Stored generation records remain untouched.
