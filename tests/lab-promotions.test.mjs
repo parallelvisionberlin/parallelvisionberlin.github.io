@@ -70,6 +70,33 @@ test('voucher expiration, revocation, account closure and billing holds block gr
   await assert.rejects(()=>f.redeem('user_CHARLIE','CAMPAIGN2026'),/unavailable/);
   assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_voucher_redemptions').n,0);
 });
+test('unused expired vouchers can be restored by the owner without altering credit balances',async t=>{
+  const f=await setup(t);if(!f)return;
+  const code='PVINVITE2026';
+  await f.admin('/api/admin/vouchers',{credits:300,maxRedemptions:2,code});
+  f.insert('UPDATE lab_vouchers SET expires_at=? WHERE code=?',Date.now()-1000,code);
+  await assert.rejects(()=>f.redeem('user_ALICE',code),/This voucher has expired/);
+  assert.equal(f.get("SELECT COUNT(*) AS n FROM lab_credit_entries").n,0);
+  await assert.rejects(()=>f.admin('/api/admin/vouchers/restore',{code},'POST','user_ALICE'),/owner access required/);
+  const restored=await (await f.admin('/api/admin/vouchers/restore',{code})).json();
+  assert.deepEqual(restored,{restored:true,code,expiresAt:null});
+  assert.equal(f.get('SELECT expires_at FROM lab_vouchers WHERE code=?',code).expires_at,null);
+  assert.equal(f.get("SELECT COUNT(*) AS n FROM lab_credit_entries").n,0,'Restoring must never directly issue credit');
+  const redeemed=await (await f.redeem('user_ALICE',code)).json();
+  assert.equal(redeemed.credits,300);assert.equal(redeemed.balanceCredits,300);
+  await assert.rejects(()=>f.redeem('user_ALICE',code),/already redeemed/);
+  await f.redeem('user_BOB',code);
+  await assert.rejects(()=>f.redeem('user_CHARLIE',code),/redemption limit/);
+  await assert.rejects(()=>f.admin('/api/admin/vouchers/restore',{code}),/Only expired, active vouchers/);
+});
+test('voucher errors distinguish unknown, deactivated and expired codes',async t=>{
+  const f=await setup(t);if(!f)return;
+  await assert.rejects(()=>f.redeem('user_ALICE','NOEXISTCODE'),/code was not found/);
+  await f.admin('/api/admin/vouchers',{credits:125,maxRedemptions:1,code:'PVDEACTIVATED'});
+  await f.admin('/api/admin/vouchers/deactivate',{code:'PVDEACTIVATED'});
+  await assert.rejects(()=>f.redeem('user_ALICE','PVDEACTIVATED'),/has been deactivated/);
+  await assert.rejects(()=>f.admin('/api/admin/vouchers/restore',{code:'PVDEACTIVATED'}),/Only expired, active vouchers/);
+});
 test('owner-only dashboard reads verified ledger payments without treating vouchers as revenue',async t=>{
   const f=await setup(t);if(!f)return;
   await assert.rejects(()=>f.admin('/api/admin/overview',null,'GET','user_ALICE'),/owner access required/);
