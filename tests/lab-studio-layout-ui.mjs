@@ -661,7 +661,7 @@ try{
   await x.page.screenshot({path:'test-results/lab-workspace-image.png',fullPage:false});
   await x.page.click('#tool-video');
   await x.page.click('#mode-reference');
-  assert.equal(await x.page.locator('#empty-title').innerText(),'Guide the motion with references',
+  assert.equal(await x.page.locator('#empty-title').innerText(),'Animate your references',
     'Reference set shows the requested mode-specific invitation');
   assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Upload images/);
   assert.equal(await x.page.locator('#pv-mode-reference-label').innerText(),'Reference set');

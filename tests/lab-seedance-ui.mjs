@@ -90,6 +90,20 @@ try{
    assert.equal(Math.round((await preview.page.locator('#video-model-control').boundingBox()).height),124,'Fit must preserve the original model banner height');
   }
   await assertInputPanelFits();
+  assert.equal(Math.round((await preview.page.locator('#generate').boundingBox()).height),52,'Owner-approved larger Generate keeps the existing dock');
+  await preview.page.waitForFunction(()=>document.getElementById('empty-title').textContent==='Animate your references');
+  assert.equal(await preview.page.locator('#empty-title').textContent(),'Animate your references');
+  assert.equal(await preview.page.locator('#empty-description').textContent(),'');
+  if(width>=821){
+   const spacing=await preview.page.locator('#empty').evaluate(el=>{
+    const plus=el.querySelector('#pv-video-start-visual').getBoundingClientRect(),title=el.querySelector('#empty-title').getBoundingClientRect(),actions=el.querySelector('.empty-actions').getBoundingClientRect();
+    return {plusGap:title.top-plus.bottom,actionGap:actions.top-title.bottom,buttonGap:getComputedStyle(el.querySelector('.empty-actions')).gap,opacity:getComputedStyle(el.querySelector('#empty-title')).opacity,description:getComputedStyle(el.querySelector('#empty-description')).display};
+   });
+   assert.ok(Math.abs(spacing.plusGap-24)<=1,'24px between plus and title: '+JSON.stringify(spacing));
+   assert.ok(Math.abs(spacing.actionGap-24)<=1,'24px between title and actions: '+JSON.stringify(spacing));
+   assert.equal(spacing.buttonGap,'16px');assert.equal(spacing.opacity,'0.9');assert.equal(spacing.description,'none');
+  }
+
   await preview.page.click('#pv-video-output-toggle');
   assert.equal(await preview.page.locator('#duration-control').isVisible(),false,'Output disclosure still collapses the real settings');
   await preview.page.click('#pv-video-output-toggle');

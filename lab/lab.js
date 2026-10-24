@@ -2644,8 +2644,8 @@ function emptyExperience(){
       footnote:'START WITH A DIRECTION'
     };
     if(mode==='reference')return {
-      title:'Guide the motion with references',
-      description:'Upload images or choose saved elements, then describe how they move and interact.',
+      title:'Animate your references',
+      description:'',
       action:'references',button:'Upload images',secondary:'Write the direction',secondaryAction:'prompt',
       footnote:'YOUR REFERENCES STAY SEPARATE FROM GENERATED RESULTS'
     };

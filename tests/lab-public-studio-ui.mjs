@@ -50,6 +50,29 @@ approvedVideoFiles.set('lab/video-scene-states.js',Buffer.from(approvedVideoStat
   approvedPlusRule,"startArt.hidden=!(visible&&['start','reference','extend'].includes(mode));"
 )));
 
+
+// Approved Reference-only copy/spacing follow-up. Original Start and other tools
+// retain their independent source and exact pixel tolerances.
+const referenceInvitation="reference:['Guide the motion with references','Upload images or choose saved elements, then describe how they move and interact.']";
+const referenceState=approvedVideoFiles.get('lab/video-scene-states.js').toString();
+assert.equal(referenceState.split(referenceInvitation).length,2,'Original Reference invitation fixture remains identifiable');
+approvedVideoFiles.set('lab/video-scene-states.js',Buffer.from(referenceState.replace(referenceInvitation,"reference:['Animate your references','']")));
+// Match the same approved copy in both retained presentation writers.
+for(const path of ['lab/lab.js','lab/video-editorial-deck.js']){
+ const original=approvedVideoFiles.get(path).toString();
+ assert.equal(original.split('Guide the motion with references').length,2,'Reference heading anchor: '+path);
+ assert.equal(original.split('Upload images or choose saved elements, then describe how they move and interact.').length,2,'Reference description anchor: '+path);
+ approvedVideoFiles.set(path,Buffer.from(original.replace('Guide the motion with references','Animate your references').replace('Upload images or choose saved elements, then describe how they move and interact.','')));
+}
+const referenceInvitationStyles=`
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .pv-video-start-visual:not([hidden]){margin-bottom:24px!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-title{margin-top:0!important;opacity:.9}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-description{display:none!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-actions{margin-top:24px!important;gap:16px!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-actions>button{height:48px!important;min-height:48px!important;padding:12px 24px!important}
+`;
+approvedVideoFiles.set('lab/video-relaxed-studio.css',Buffer.concat([approvedVideoFiles.get('lab/video-relaxed-studio.css'),Buffer.from(referenceInvitationStyles)]));
+
 const account=`
 const state=window.__publicAccount||=(()=>{
   const listeners=[];
