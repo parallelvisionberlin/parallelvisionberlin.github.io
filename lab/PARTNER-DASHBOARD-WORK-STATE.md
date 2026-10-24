@@ -6,8 +6,10 @@
 - Source generation: generated_images/exec-903f72f3-7a61-4997-acea-96007e9b226a.png. Project asset: lab/visuals/vitolas/future-beauty-v1.webp, 1983x793, 64,932 bytes.
 - Scoped HTML/CSS refresh: responsive photographic hero, refined typography/rules/metrics, clearer new-account referral instructions. Auth/API/payment code unchanged.
 - Baseline fad4fca5b6dd3898fe33aac2e97c30a35bae337c; 13 focused partner/Image contract tests passed locally.
-- Browser coverage expanded to 320/390/768/1440px with hero image load and title bounds, retaining role and logout checks.
-- Current visual refresh status: prepared; browser screenshots and Pages publication verification pending.
+- Browser workflow 40139208994 passed 116 assertions at 320/390/768/1440px: hero loading/title bounds, contained layout, Owner click-through, role denials and logout isolation. Desktop/320/390px artifact 12577904554 inspected.
+- Visual PR #535 published as fc3aa0889988a74e313c424fc5f79b41d5ed7027; reviewed source 3877918d8fe8311c5988c3ec50bb6b90fce8f919.
+- Scoped release verifier returned LIVE_VERIFIED for this merge. Production Vitolas HTML/CSS and hero WebP independently matched reviewed bytes (HTTP 200); asset Git blob 61161d7d5b8231ee0edb1bff9febc26d35c7e230.
+- Current visual status: published. New real registrations, purchases and signed-in production roles were not simulated as real customer activity; backend and referral rules remained unchanged.
 
 ## Owner review extension, 2026-10-24
 - User explicitly requested private Owner access to Victoria's dashboard.
