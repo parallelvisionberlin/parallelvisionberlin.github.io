@@ -2,7 +2,7 @@ import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1
 import {createAccountMenu} from './account-menu.js?v=20261016-account-menu-edge24';
 import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-elements-visual-profiles1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
-import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10';
+import {createFilmFinishControls,HONG_KONG_FILM_FINISH,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&eightiesFinish=20261024v1';
 import {preparePhotoInput,prepareUpscaleInput} from './photo-input.js?v=2';
 import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?hkPhotoOriginals=20261018v2&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1&eightiesStyle=20261024v1';
 import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-hidden-preset1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1';
@@ -3740,13 +3740,13 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-detail-status').textContent=contentRestricted?'Restricted':job.status?.charAt(0).toUpperCase()+String(job.status||'').slice(1);
   $('image-detail-status').dataset.status=contentRestricted?'restricted':job.status||'';
   paintImageDetailFavorite();
-  filmPanel.hidden=params.moodId!=='hong-kong-nights'||!hasResult(job);
+  filmPanel.hidden=!(params.moodId==='hong-kong-nights'||eightiesBaseFinish(params))||!hasResult(job);
   if(!filmPanel.hidden){
-    filmControls.set(params.filmFinish||HONG_KONG_FILM_FINISH);filmControls.lock(filmBusy||loading);
+    filmControls.set(params.filmFinish||(eightiesBaseFinish(params)?EIGHTIES_100_FILM_FINISH:HONG_KONG_FILM_FINISH));filmControls.lock(filmBusy||loading);
     filmApply.disabled=filmBusy||loading;filmOriginal.disabled=loading;
     filmPanel.dataset.filmPending='false';
     const earlierFilm=params.filmFinishStatus==='applied'&&params.filmFinishRevision!==FILM_FINISH_RENDER_REVISION;
-    filmStatus.textContent=params.filmFinishStatus==='failed'?'Finish failed':earlierFilm?'Earlier finish':params.filmFinishStatus==='applied'?'Applied':params.filmFinishStatus==='off'?'Original shown':'Not applied';
+    filmStatus.textContent=params.filmFinishStatus==='failed'?'Finish failed':earlierFilm?'Earlier finish':params.filmFinishStatus==='applied'?'Applied':params.filmFinishStatus==='off'?'Original shown':eightiesBaseFinish(params)?'Analog finish available':'Not applied';
     filmStatus.title=params.filmFinishStatus==='failed'?String(params.filmFinishError||'Film processing failed.'):
       earlierFilm?'An older film finish was saved. Press Apply finish to update it.':
       params.filmFinishStatus==='applied'?'The displayed image has this finish applied.':

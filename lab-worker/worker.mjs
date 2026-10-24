@@ -1,4 +1,4 @@
-import {filmFinishSettings} from '../lab/film-finish.js';
+import {filmFinishSettings,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish} from '../lab/film-finish.js';
 import {checkCustomerPromptSafety} from './prompt-safety.mjs';
 import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook.mjs';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
@@ -53,7 +53,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-23-hk-two-optical-refs-balanced1';
+export const VERSION = 'pv-lab-2026-10-24-eighties-native-film-v1';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -610,22 +610,31 @@ function assetInsert(env,a){
 }
 async function completeImageResult(env,j,original,storedBytes){
   const params=JSON.parse(j.params||'{}');let output=original;
-  if(params.moodId==='hong-kong-nights'&&params.filmFinish){
+  const eighties=eightiesBaseFinish(params);
+  const finish=eighties||(params.moodId==='hong-kong-nights'?params.filmFinish:null);
+  if(finish){
     params.filmOriginalId=original.id;
+    if(eighties)params.filmFinish=EIGHTIES_100_FILM_FINISH;
     try{
-      output=await prepareFilmAsset(env,original,params.filmFinish,{first,remaining:MAX_STORAGE-storedBytes-original.bytes});
+      output=await prepareFilmAsset(env,original,finish,{first,remaining:MAX_STORAGE-storedBytes-original.bytes,
+        variant:eighties?'eighties':'v10'});
       params.filmFinishStatus=output.id===original.id?'off':'applied';
       if(output.id!==original.id)params.filmFinishRevision=FILM_RENDER_REVISION;
       delete params.filmFinishError;
     }catch(e){
-      // A failed finish never loses a paid image, retries inference or refunds a
-      // successful generation. The original remains viewable and downloadable.
+      // A failed optical finish never destroys or re-bills an AI result. The
+      // original remains downloadable, and the viewer can retry locally.
       params.filmFinishStatus='failed';params.filmFinishError=String(e.message||'Film processing is unavailable.').slice(0,180);
     }
   }
   await env.LAB_DB.batch([
     assetInsert(env,original),...(output.id!==original.id?[assetInsert(env,output)]:[]),
-    stmt(env,"UPDATE jobs SET state='completed',output_id=?,params=json_patch(params,?),remote_url=NULL,error='',updated_at=? WHERE id=? AND owner_id=?",output.id,JSON.stringify(params.filmFinishStatus?{filmOriginalId:params.filmOriginalId,filmFinishStatus:params.filmFinishStatus,filmFinishError:params.filmFinishError||null,filmFinishRevision:params.filmFinishRevision||null}:{}),now(),j.id,j.owner_id)
+    stmt(env,"UPDATE jobs SET state='completed',output_id=?,params=json_patch(params,?),remote_url=NULL,error='',updated_at=? WHERE id=? AND owner_id=?",output.id,
+      JSON.stringify(params.filmFinishStatus?{
+        ...(eighties?{filmFinish:params.filmFinish}:{}),
+        filmOriginalId:params.filmOriginalId,filmFinishStatus:params.filmFinishStatus,
+        filmFinishError:params.filmFinishError||null,filmFinishRevision:params.filmFinishRevision||null
+      }:{}),now(),j.id,j.owner_id)
   ]);
   await ensureGalleryDimensions(env,{...j,params:JSON.stringify(params),output_id:output.id});
 }
@@ -2079,12 +2088,12 @@ async function route(request,env,ctx) {
     }
     if(path.endsWith('/film-finish')&&method==='POST'){
       const data=await body(request),p=JSON.parse(j.params||'{}');
-      if(j.state!=='completed'||!j.output_id||p.type!=='image'||p.moodId!=='hong-kong-nights')fail(409,'Choose a completed Hong Kong Nights image.');
+      if(j.state!=='completed'||!j.output_id||p.type!=='image'||!(p.moodId==='hong-kong-nights'||eightiesBaseFinish(p)))fail(409,'Choose a completed Hong Kong Nights or 100% 80s Film Base image.');
       let finish;try{finish=filmFinishSettings(data.settings);}catch(e){fail(400,e.message);}
       if(data.outputId!==j.output_id)fail(409,'This image changed. Reopen it before applying the finish.');
       const original=await source(env,owner,p.filmOriginalId||j.output_id);
       const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',owner);
-      let output;try{output=await prepareFilmAsset(env,original,finish,{first,remaining:MAX_STORAGE-stored.n});}
+      let output;try{output=await prepareFilmAsset(env,original,finish,{first,remaining:MAX_STORAGE-stored.n,variant:eightiesBaseFinish(p)?'eighties':'v10'});}
       catch(e){fail(422,String(e.message||'Could not apply film finish. Your current image is unchanged.').slice(0,200));}
       const settings={...p,filmFinish:finish,filmOriginalId:original.id,filmFinishStatus:output.id===original.id?'off':'applied',filmFinishRevision:output.id===original.id?null:FILM_RENDER_REVISION};
       delete settings.filmFinishError;delete settings.galleryDimensions;
