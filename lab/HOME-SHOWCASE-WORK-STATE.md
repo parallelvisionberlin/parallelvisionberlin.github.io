@@ -1,0 +1,18 @@
+# PV LAB homepage image-to-motion showcase
+- Date: 2026-10-24, Europe/Berlin.
+- Source baseline: main 6400f983a61bbedba4b321b056345ab3b6c7a12f.
+- Scope: one new second-hero editorial chapter immediately beneath the current fashion portrait hero.
+- User selected the large 'Build the look. Keep the identity. Make it move.' mockup, with three photographic panels and lime-highlighted final phrase.
+- New files: lab/home-showcase.css, lab/home-showcase.js, tests/lab-home-showcase.test.mjs.
+- Edited files: lab/index.html and this README pointer.
+- Original hero (image/copy/CTAs), Mood Creator collage and upload, Studio Image/Video/Upscaler cards, pricing, referral and footer remain unchanged.
+- Stage 01 uses the site's current leather-editorial homepage photograph.
+- Stage 02 uses the existing /visuals/fashion-replace/hero-model-oct24.jpg editorial study.
+- Stage 03 uses the existing real video /visuals/studio-tools/video-liquid-dress-hd.mp4 and its poster. Video is click-to-play, lazy, pauseable and stops off-screen/when page hidden.
+- The different portfolio artworks are NOT represented as one real same-person before/after sequence. A visible quiet note makes the limitation explicit.
+- Desktop: three-card editorial row, subtle arrows, lime accent, contained typography.
+- Mobile: horizontally swipable snap cards, no page horizontal overflow, same original hero layout.
+- No new images, provider requests, paid generations, account, wallet, pricing, secrets, tracking or database changes.
+- Approval boundary: only the selected second hero chapter. The separate model strip and creator monetization section mockups remain unimplemented.
+- Verification: static assertions in tests/lab-home-showcase.test.mjs; normal PR checks and Cloudflare release evidence pending.
+- Publish only via the existing Cloudflare Pages main branch workflow. Do not treat source commit or GitHub Pages as production evidence.
