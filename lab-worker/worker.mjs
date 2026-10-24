@@ -1,4 +1,4 @@
-import {filmFinishSettings,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish} from '../lab/film-finish.js';
+import {filmFinishSettings,HONG_KONG_FILM_FINISH,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish} from '../lab/film-finish.js';
 import {checkCustomerPromptSafety} from './prompt-safety.mjs';
 import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook.mjs';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
@@ -256,7 +256,8 @@ function imageMoodMetadata(value){
     if(!name||name.length>64||!UUID.test(boardId||''))fail(400,'Choose a valid saved Mood.');
     return {moodId:'custom',moodIntensity,moodOriginalPrompt,customMoodName:name,customMoodBoardId:boardId};
   }
-  let filmFinish;
+  // Default only new Hong Kong quotes. An explicit zero preset remains off.
+  let filmFinish=value.moodId==='hong-kong-nights'?HONG_KONG_FILM_FINISH:undefined;
   if(value.filmFinish!=null){
     if(value.moodId!=='hong-kong-nights')fail(400,'Film finish is available for Hong Kong Nights.');
     try{filmFinish=filmFinishSettings(value.filmFinish);}catch(e){fail(400,e.message);}
@@ -2006,7 +2007,7 @@ async function route(request,env,ctx) {
     }
     const {c,key}=await requireConfigured(env,owner);
     if(params.type==='image'&&params.moodId==='hong-kong-nights'&&(params.moodReferenceVersion!==HONG_KONG_REFERENCE_VERSION||params.moodReferenceCount!==HONG_KONG_REFERENCES.length||savedPayload.input?.image_urls?.length!==(params.referenceSourceIds?.length||0)+HONG_KONG_REFERENCES.length))
-      fail(409,'Hong Kong Nights reference pack changed. Refresh the generation price to attach all three original Style photos. Nothing was submitted.');
+      fail(409,'Hong Kong Nights reference pack changed. Refresh the generation price to attach both original Style photos. Nothing was submitted.');
     if([STILL_EDIT,QWEN3_EDIT,SEEDREAM_LITE_EDIT,FLASH_EDIT].includes(savedPayload.model)&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
       fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');
     if(savedPayload.model===UPSCALER&&!FILE_URI.test(savedPayload.input?.image_url||''))fail(409,'Review a fresh upscale quote to verify the input file. Nothing was submitted.');
