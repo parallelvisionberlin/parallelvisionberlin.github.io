@@ -15,9 +15,14 @@
 - Local Node 24 had one asynchronous Mood timing failure; configured CI Node 22.16.0 passes all 742. No assertion or timeout was changed.
 - Separate local first-image pixel comparison failed before its quote section. Its Image sources are byte-identical to main; do not claim that suite passed. Credit/price protections are covered independently above.
 - No real customer login, checkout, balance debit or paid provider generation was performed. Synthetic authentication and intercepted APIs are not live-account evidence.
-- Production status at this checkpoint: pending. Preview success is not production evidence.
+- Published: #506 merged as `ab924304f9ea521be44f0163bcb4fc760ebe026c`; its tree exactly matches validated head `5e22e30aa2e8a27b3207d1be8e9106e913363690`.
+- Final PR CI: 17 workflows PASS, including full Video integration [40077071656](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40077071656), public visual/privacy [40077071639](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/40077071639), account and pricing. Only the two independently proven inherited Mood failures remain.
+- Cloudflare production: check `120823984173` SUCCESS for the merge SHA; project `pvlab-studio`, deployment `615f64a9-ce34-414b-a09f-39993e8320b4`.
+- Read-only release verifier returned `LIVE_VERIFIED` on `https://pvlab.studio/studio` for `video-relaxed-studio.css?v=20261024-relaxed1`; exact CSS SHA-256 `6c9ab1d5d747c92a477b74fa3b45adefb12b3d65695dbbb638e48fdb0408c2de`.
+- Live approved PNG also matches SHA-256 `e5d8b8f5a46acaa9227dcaea9c37077174e60a77488b342bf7cbb1a5fbef17e4`.
+- Actual signed-out production browser at `/studio?tool=video`: approved artwork/style/model picker render; Extend selects and displays the original clip upload; Generate is 44px and no horizontal overflow. Live signed-in or paid generation is not claimed.
 - Exact final head, final CI, merge SHA, Cloudflare deployment and custom-domain verification are recorded in [PR #506](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/506).
-- Next: finish final CI, merge only the validated candidate if permitted, follow `RELEASE-PROTOCOL.md`, then verify the exact stylesheet bytes and rendered Video on `pvlab.studio`.
+- Complete: approved Video is verified live. Track the two inherited Mood failures separately; any real-account or paid provider acceptance remains a separate explicit check.
 
 ## CI audit: PR #496 — 2026-10-24
 
