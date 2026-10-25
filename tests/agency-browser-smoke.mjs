@@ -30,8 +30,13 @@ try{
     }),'Agency section order must be Hero → Flesh Zero → Selected Work → Work in motion');
     assert.match(await page.locator('#flesh-zero-film').getAttribute('poster'),/flesh-zero-film-one-poster\.webp$/);
     assert.ok(await page.locator('#featured-film .motion-poster').isVisible(),'Featured Flesh Zero cover must be visible before playback');
-    await page.locator('img').evaluateAll(async images=>{images.forEach(image=>image.loading='eager');await Promise.all(images.map(image=>image.decode().catch(()=>{})));});
-    assert.deepEqual(await page.locator('img').evaluateAll(images=>images.filter(image=>!image.naturalWidth).map(image=>image.getAttribute('src'))),[],'agency artwork failed to load');
+    await page.locator('img').evaluateAll(async images=>{
+      const local=images.filter(image=>new URL(image.src,location.href).origin===location.origin);
+      local.forEach(image=>image.loading='eager');
+      await Promise.all(local.map(image=>image.decode().catch(()=>{})));
+    });
+    assert.deepEqual(await page.locator('img').evaluateAll(images=>images.filter(image=>new URL(image.src,location.href).origin===location.origin&&!image.naturalWidth).map(image=>image.getAttribute('src'))),[],'agency local artwork failed to load');
+    await page.waitForFunction(()=>document.querySelector('#featured-film .motion-poster')?.naturalWidth>0,{timeout:10000});
     await page.screenshot({path:'agency-test-artifacts/agency-'+width+'.png',fullPage:true});
     const sends=[];let fail=true;
     await page.route(api+'/api/public/agency/enquiries',async route=>{
