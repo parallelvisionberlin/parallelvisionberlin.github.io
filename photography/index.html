@@ -15,8 +15,8 @@
   <meta property="og:description" content="Photographic studies, images made with Fujifilm and Canon. Berlin.">
   <meta property="og:url" content="https://parallelvisionlabel.com/photography/">
   <link rel="preload" as="image" href="./assets/nocturne-05.jpeg" fetchpriority="high">
-  <!-- Self-contained styling: protects the archive from missing/blocked stylesheet requests. Canonical CSS: photography/style.css. -->
-  <style data-origin="photography/style.css" data-version="20261025-embedded01">
+  <!-- CSS fallback snapshot. Keep in sync with photography/style.css. The external stylesheet remains canonical when available. -->
+  <style data-fallback-for="photography/style.css" data-version="20261025">
 :root{--paper:#080808;--ink:#eeeae2;--subtle:#aaa49b;--hairline:#34312e;--deep:#080808;--serif:'Iowan Old Style',Baskerville,Georgia,'Times New Roman',serif;--sans:'Helvetica Neue',Arial,sans-serif}
 *{box-sizing:border-box}
 html{background:var(--paper);scroll-behavior:smooth;scroll-padding-top:12px}
@@ -150,7 +150,9 @@ button,a{-webkit-tap-highlight-color:transparent}
 @media(max-width:480px){.opening-text .practice-continuation{margin-top:11px}}
 
   </style>
-  <!-- Gallery manifest and runtime are inlined below, after the document markup, to survive missing JavaScript requests. -->
+  <link rel="stylesheet" href="./style.css?v=20261025-asset-recovery01">
+  <script src="./archive.js?v=20261021-afterhours45" defer></script>
+  <script src="./gallery.js?v=20261021-gesture-reset02" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#series-nocturne">Skip to photographs</a>
@@ -199,7 +201,10 @@ button,a{-webkit-tap-highlight-color:transparent}
     <span>Original photographs. Includes artistic nudity (18+).</span>
     <a href="https://alejandromolinari.com/">Artist page <span aria-hidden="true">↗︎</span></a>
   </footer>
-<script data-origin="photography/archive.js" data-version="20261025-embedded01">
+<!-- Load canonical external scripts first. If either fails, recover the archive from embedded snapshots after deferred scripts have run. -->
+<script data-fallback-for="photography/archive.js and gallery.js" data-version="20261025">
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.AM_ARCHIVE) {
 window.AM_ARCHIVE = {
   edition: '001',
   galleries: [
@@ -300,8 +305,9 @@ window.AM_ARCHIVE = {
   ]
 };
 
-</script>
-<script data-origin="photography/gallery.js" data-version="20261025-embedded01">
+  }
+  const archiveRoot = document.getElementById('series-list');
+  if (archiveRoot && !archiveRoot.querySelector('.gallery-section')) {
 (() => {
   'use strict';
   const archive = window.AM_ARCHIVE;
@@ -478,6 +484,8 @@ window.AM_ARCHIVE = {
   if (window.location.hash) requestAnimationFrame(restoreDeepLink);
 })();
 
+  }
+}, { once: true });
 </script>
 </body>
 </html>
