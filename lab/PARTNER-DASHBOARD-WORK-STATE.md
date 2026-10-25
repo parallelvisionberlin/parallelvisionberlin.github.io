@@ -1,5 +1,12 @@
 # Vitolas Studio partner dashboard
 
+## Spanish partner dossier, 2026-10-25
+- User requested a complete Spanish PDF and ready email for Victoria following their call. Created and saved Vitolas_Studio_Dossier_Victoria_Caridad.pdf, 22 pages, with clickable dashboard/referral/tool/support links and current bold logo/approved Future Beauty artwork.
+- Covers tools/models, live public plan prices, exact-route example creation costs, beauty demo, all five dashboard views, attribution, vouchers, commissions, training offers, contact scripts, four-week plan, prompts, publication review and support/refund FAQ.
+- Grounded in current main dc46a790aaad404cc31a25bb1d38046c9fdbf56e and public homepage/terms/support checked 2026-10-25. All 22 page renders visually inspected; text/link extraction verified. No website, rates, wallets, actual account or payout changes.
+- Preserve distinction: planned initial 20 x 200-credit invitations require actual Owner allowance assignment; 60% class-credit discount and 15th/month-end payouts remain proposals, not active promises. No blanket exclusion of statutory refund rights.
+- Ready Spanish email supplied in conversation for victoriaandreacaridad@gmail.com; not sent. Next: share PDF/dashboard, confirm actual allowance and settle class-credit/payout terms before offering those benefits.
+
 ## Stable session notifications, 2026-10-25
 - User reports repeated Vitolas refreshes. Root cause in current source: every Clerk notification called refresh, whose clear() hides and rebuilds panel, resets forms/pagination and renews tokens that can trigger more notifications.
 - Baseline ea6e0cef68465cbba592d379fe5c737a80506446, isolated worktree vitolas-stable-session. No unrelated credit audit fixes included.
