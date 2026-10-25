@@ -5,7 +5,11 @@
 - Baseline f4bc0ce (current main), isolated worktree vitolas-navigation. Preserve compact results, unified typography and all functionality.
 - Section buttons, keyboard tabs and hash navigation reset directly to page top with instant positioning. No scrollIntoView calls remain. Voucher results and copy fallbacks retain focus using preventScroll.
 - Scope: Vitolas JS/HTML asset version, existing partner unit/browser tests and this checkpoint. No financial, voucher capacity or real account changes.
-- Asset marker 20261025-navigation1. Validation and publication pending.
+- Published PR #562: reviewed head 18d6145eb0d9d40655ee8e8951675411620061fa; production merge f4aaff388d2dd30de54a6dcac76ff85f16bf0b08. Asset marker 20261025-navigation1.
+- Validation: 26 partner/required Image checks, 241 browser assertions at 390/1440px; Partner CI run 40221029858 passed.
+- Exact-merge Cloudflare Pages check 121254258023 succeeded for pvlab-studio; scoped release verifier LIVE_VERIFIED. Production HTML/CSS/JS each HTTP200 and exact reviewed bytes. SHA256 HTML a8af24104f96165fe1ae3624829ea71aad40249874768fde01784eeeb7d42828; JS 5e21ab001d172c69ecc86fc7a44252769a49082e699bea9f48e48787a367502b; CSS unchanged.
+- Live browser at 390/1920px passed all five sections: every tab click leaves scrollY zero and hero at viewport top; current typography/compact board retained, no overflow or Unicode arrows. Synthetic read-only account responses only, no real signed-in observation or mutations.
+- Status: published at https://pvlab.studio/vitolas-studio. No remaining action for this navigation fix. Keep this no-downward-scroll behavior in future Vitolas work.
 
 ## Compact results and unified typography, 2026-10-25
 - User requests a smaller results box and at most two typefaces across the page, with an elegant, comfortable feel. Reference uploads image(20261025-175901).png and image(20261025-175927).png.
