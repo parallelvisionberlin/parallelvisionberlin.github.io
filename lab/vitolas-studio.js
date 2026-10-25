@@ -20,17 +20,17 @@ async function api(path,body){
 const views={overview:'partner-overview',clients:'partner-customers',invitations:'partner-invitations',commissions:'partner-commission-history',guide:'partner-help'};
 const viewHashes={overview:'resumen',clients:'clientes',invitations:'invitaciones',commissions:'comisiones',guide:'guia'};
 function readView(){const hash=location.hash.slice(1);return Object.keys(views).find(key=>key===hash||views[key]===hash||viewHashes[key]===hash)||'overview';}
-function activateView(key,{write=true,focus=false,scroll=false}={}){
+function activateView(key,{write=true,focus=false,resetPosition=false}={}){
   if(!Object.hasOwn(views,key))key='overview';
   for(const [name,id] of Object.entries(views))$(id).hidden=name!==key;
   for(const tab of document.querySelectorAll('.partner-worknav [role=tab]')){const selected=tab.dataset.partnerView===key;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;}
   if(write){const url=new URL(location.href);url.hash=viewHashes[key];history.replaceState(null,'',url);}
-  const panel=$(views[key]);if(focus)panel.focus({preventScroll:true});if(scroll)panel.scrollIntoView({block:'start',behavior:'auto'});
+  const panel=$(views[key]);if(focus)panel.focus({preventScroll:true});if(resetPosition)window.scrollTo({top:0,left:0,behavior:'instant'});
 }
-for(const button of document.querySelectorAll('[data-partner-view]'))button.onclick=()=>activateView(button.dataset.partnerView,{focus:button.getAttribute('role')!=='tab',scroll:true});
+for(const button of document.querySelectorAll('[data-partner-view]'))button.onclick=()=>activateView(button.dataset.partnerView,{focus:button.getAttribute('role')!=='tab',resetPosition:true});
 const tabs=[...document.querySelectorAll('.partner-worknav [role=tab]')];
-for(const tab of tabs)tab.addEventListener('keydown',event=>{let next=tabs.indexOf(tab);if(event.key==='ArrowRight')next=(next+1)%tabs.length;else if(event.key==='ArrowLeft')next=(next+tabs.length-1)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();tabs[next].focus();activateView(tabs[next].dataset.partnerView);});
-window.addEventListener('hashchange',()=>activateView(readView(),{write:false,scroll:true}));
+for(const tab of tabs)tab.addEventListener('keydown',event=>{let next=tabs.indexOf(tab);if(event.key==='ArrowRight')next=(next+1)%tabs.length;else if(event.key==='ArrowLeft')next=(next+tabs.length-1)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();tabs[next].focus({preventScroll:true});activateView(tabs[next].dataset.partnerView,{resetPosition:true});});
+window.addEventListener('hashchange',()=>activateView(readView(),{write:false,resetPosition:true}));
 const voucherStatus=message=>{$('partner-voucher-status').textContent=message;};
 function updatePager(prefix,page,count){const start=count?page*20+1:0,end=Math.min(count,(page+1)*20);$(prefix+'-page').textContent=start+'–'+end+' de '+count;$(prefix+'-prev').disabled=page===0;$(prefix+'-next').disabled=end>=count;}
 function clear(){
@@ -119,7 +119,7 @@ for(const button of document.querySelectorAll('[data-partner-overview-filter]'))
 $('partner-copy').onclick=async()=>{
   const current=revision,value=$('partner-url').value;if(!value)return;
   try{await navigator.clipboard.writeText(value);if(current===revision)$('partner-copy').textContent='Copiado';}
-  catch{if(current===revision){$('partner-url').focus();$('partner-url').select();status('Selecciona y copia tu enlace.');}}
+  catch{if(current===revision){$('partner-url').focus({preventScroll:true});$('partner-url').select();status('Selecciona y copia tu enlace.');}}
 };
 function customerQuery(offset=0){const params=new URLSearchParams({filter:customerFilter,offset:String(offset)});const q=$('partner-search').value.trim();if(q)params.set('q',q);return dashboardPath+'?'+params;}
 async function loadCustomers(){
@@ -215,13 +215,13 @@ function safeInvitation(value){
 async function copy(value){
   const current=revision;
   try{await navigator.clipboard.writeText(value);if(current===revision)$('partner-copy-status').textContent='Copiado. Listo para compartir.';}
-  catch{if(current===revision){$('partner-voucher-url').focus();$('partner-voucher-url').select();$('partner-copy-status').textContent='Selecciona y copia tu enlace.';}}
+  catch{if(current===revision){$('partner-voucher-url').focus({preventScroll:true});$('partner-voucher-url').select();$('partner-copy-status').textContent='Selecciona y copia tu enlace.';}}
 }
 function showInvitation(voucher){
   createdVoucher={...voucher,url:safeInvitation(voucher.url)};
   $('partner-voucher-url').value=createdVoucher.url;$('partner-voucher-code').textContent=voucher.code;
   $('partner-voucher-detail').textContent=voucher.credits+' créditos · válida hasta '+date(voucher.expiresAt);
-  $('partner-voucher-result').hidden=false;$('partner-voucher-form').hidden=true;$('partner-gift-preview').hidden=true;$('partner-create-layout').classList.add('is-ready');$('partner-copy-status').textContent='';if(!$('partner-invitations').hidden){$('partner-voucher-result').scrollIntoView({block:'center'});$('partner-voucher-copy').focus({preventScroll:true});}
+  $('partner-voucher-result').hidden=false;$('partner-voucher-form').hidden=true;$('partner-gift-preview').hidden=true;$('partner-create-layout').classList.add('is-ready');$('partner-copy-status').textContent='';if(!$('partner-invitations').hidden){$('partner-voucher-copy').focus({preventScroll:true});}
 }
 function drawVouchers(data){
   voucherPage=Math.max(0,Math.min(voucherPage,Math.max(0,Math.ceil(data.vouchers.length/20)-1)));redemptionPage=Math.max(0,Math.min(redemptionPage,Math.max(0,Math.ceil(data.redemptions.length/20)-1)));updatePager('partner-voucher',voucherPage,data.vouchers.length);updatePager('partner-redemption',redemptionPage,data.redemptions.length);
@@ -237,7 +237,7 @@ function drawVouchers(data){
     const actions=row.insertCell();
     if(voucher.active&&!expired&&!used){
       const link=document.createElement('button');link.type='button';link.className='account-text-button';link.textContent='Compartir';
-      link.onclick=()=>{showInvitation(voucher);activateView('invitations',{scroll:true});$('partner-voucher-result').scrollIntoView({block:'center'});$('partner-voucher-copy').focus({preventScroll:true});};
+      link.onclick=()=>{showInvitation(voucher);activateView('invitations',{resetPosition:true});$('partner-voucher-copy').focus({preventScroll:true});};
       const deactivate=document.createElement('button');deactivate.type='button';deactivate.className='account-text-button';deactivate.textContent='Desactivar';
       deactivate.onclick=()=>void mutate('/vouchers/deactivate',{code:voucher.code});actions.append(link,deactivate);
     }else actions.textContent='';
@@ -270,7 +270,7 @@ async function mutate(action,body){
 $('partner-voucher-form').onsubmit=event=>{event.preventDefault();void mutate('/vouchers',{note:$('partner-voucher-note').value.trim()||'Invitación Vitolas',credits:Number($('partner-voucher-credits').value),days:Number($('partner-voucher-days').value),requestId});};
 $('partner-voucher-form').oninput=()=>{requestId=crypto.randomUUID();preview();};
 for(const button of document.querySelectorAll('[data-partner-credits]'))button.onclick=()=>{$('partner-voucher-credits').value=button.dataset.partnerCredits;requestId=crypto.randomUUID();preview();};
-$('partner-another-invite').onclick=()=>{$('partner-gift-preview').hidden=false;$('partner-create-layout').classList.remove('is-ready');createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-form').hidden=false;$('partner-voucher-note').value='';$('partner-voucher-url').value='';requestId=crypto.randomUUID();voucherStatus('');preview();$('partner-voucher-note').focus();};
+$('partner-another-invite').onclick=()=>{$('partner-gift-preview').hidden=false;$('partner-create-layout').classList.remove('is-ready');createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-form').hidden=false;$('partner-voucher-note').value='';$('partner-voucher-url').value='';requestId=crypto.randomUUID();voucherStatus('');preview();$('partner-voucher-note').focus({preventScroll:true});};
 for(const [prefix,kind] of [['partner-voucher','voucher'],['partner-redemption','redemption']])for(const [direction,step] of [['prev',-1],['next',1]])$(prefix+'-'+direction).onclick=()=>{if(!voucherData)return;if(kind==='voucher')voucherPage+=step;else redemptionPage+=step;drawVouchers(voucherData);};
 $('partner-budget-form').onsubmit=event=>{event.preventDefault();void mutate('/budget',{total:Number($('partner-budget-total').value)});};
 $('partner-voucher-copy').onclick=()=>createdVoucher&&void copy(createdVoucher.url);
