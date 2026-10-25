@@ -21,7 +21,7 @@ try{
     assert.equal(await page.locator('#motion figure').count(),2);
     assert.equal(await page.locator('#flesh-zero-film').count(),1);
     assert.equal(await page.locator('#featured-film').count(),1);
-    assert.equal(await page.locator('#work .project-image--reptare img').getAttribute('src'),'../assets/optimized/02REPTARE.webp');
+    assert.match(await page.locator('#work .project-image--reptare img').getAttribute('src'),/reptare-look-02-development-sheet\.webp$/);
     assert.ok(await page.evaluate(()=>{
       const hero=document.querySelector('.hero'),featured=document.querySelector('#featured-film'),work=document.querySelector('#work'),motion=document.querySelector('#motion');
       return hero.compareDocumentPosition(featured)&Node.DOCUMENT_POSITION_FOLLOWING &&
@@ -37,6 +37,7 @@ try{
     });
     assert.deepEqual(await page.locator('img').evaluateAll(images=>images.filter(image=>new URL(image.src,location.href).origin===location.origin&&!image.naturalWidth).map(image=>image.getAttribute('src'))),[],'agency local artwork failed to load');
     await page.waitForFunction(()=>document.querySelector('#featured-film .motion-poster')?.naturalWidth>0,{timeout:10000});
+    await page.waitForFunction(()=>document.querySelector('#work .project-image--reptare img')?.naturalWidth>0,{timeout:10000});
     await page.screenshot({path:'agency-test-artifacts/agency-'+width+'.png',fullPage:true});
     const sends=[];let fail=true;
     await page.route(api+'/api/public/agency/enquiries',async route=>{
