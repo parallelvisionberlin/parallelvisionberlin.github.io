@@ -8,6 +8,7 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Preserve the agency hero, typography, five original portfolio projects and PV LAB/Nina artwork.
 - Independent work is labelled as independent, not presented as client commissions.
 - No new Living Characters standalone page or invented client credits.
+- Mobile/iPhone icon rule: do not use Unicode arrow glyphs that iOS may render as emoji; use CSS/SVG line arrows only.
 
 ## Implementation
 - index.html, language.js, css/agency-feature.css: public entry, feature and English/German text.
@@ -42,4 +43,5 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Private PV LAB owner-menu link uses the normal PV LAB release pipeline.
 - Chromium checks passed at 1440, 390 and 320px, including failure/retry receipts and signed-out inbox.
 - Static build and all 15 SQLite-backed enquiry tests passed in the launch workflow.
+- Agency browser regression now rejects rendered Unicode ↗/→ glyphs at desktop and mobile widths.
 - Pending: visual screenshot review, merge and production custom-domain/API verification.
