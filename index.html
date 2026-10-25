@@ -102,7 +102,7 @@ src="https://ct.pinterest.com/v3/?event=init&tid=2613417397136&noscript=1" />
   rel="stylesheet"
 >
 
-<script src="./language.js?v=20261017-pv015-sube" defer></script>
+<script src="./language.js?v=20261025-agency1" defer></script>
 
 <link rel="stylesheet" href="./css/base.css?v=20260814-1">
   <link rel="stylesheet" href="./css/home.css?v=20261024-faf-shadow-final">
@@ -456,6 +456,8 @@ body.pv-home #berlin.berlin-entry .berlin-entry-content { position:relative; z-i
  }
 }
 </style>
+<link rel="stylesheet" href="./css/agency-feature.css?v=20261025-1">
+<script type="module" src="./agency/agency.js?v=20261025-1"></script>
 </head>
 
 
@@ -523,8 +525,8 @@ body.pv-home #berlin.berlin-entry .berlin-entry-content { position:relative; z-i
       <span class="nina-nav-label">Nina FOK</span>
     </a>
 
-    <a href="#contact">
-      Contact
+    <a class="home-agency-link" href="./agency/" data-agency-home-link>
+      Agency
     </a>
 
     <div class="home-mobile-language-slot" id="homeMobileLanguageSlot"></div>
@@ -564,7 +566,7 @@ body.pv-home #berlin.berlin-entry .berlin-entry-content { position:relative; z-i
               <a href="./account.html#memory">Memory</a>
               <a id="ninaAccountNewsletter" href="./account.html#newsletter" hidden>Newsletter</a>
               <a id="ninaAccountLab" href="https://pvlab.studio/" hidden>Lab</a>
-              <a id="ninaAccountAgency" href="./agency/" hidden>Agency preview</a>
+              <a id="ninaAccountAgency" href="./agency/inbox.html" hidden>Agency inbox</a>
               <a id="ninaAccountAnalytics" href="./nina-admin/" hidden>Nina Analytics</a>
             </div>
             <button class="nina-account-signout" id="ninaAccountSignOut" type="button">Sign out</button>
@@ -1937,6 +1939,23 @@ body.pv-home #berlin.berlin-entry .berlin-entry-content { position:relative; z-i
 
 
 
+<section class="home-agency" id="agency" aria-labelledby="home-agency-title">
+  <div class="home-agency-inner">
+    <div class="home-agency-copy">
+      <p class="home-agency-kicker">Parallel Vision / Agency / Berlin</p>
+      <h2 id="home-agency-title">From an image to an entire world.</h2>
+      <p class="home-agency-description">Fashion campaigns, films and digital experiences for brands and culture.</p>
+      <div class="home-agency-actions">
+        <a href="./agency/?from=parallel-vision" data-agency-home-link><span class="home-agency-explore">Explore the agency</span><span aria-hidden="true">↗</span></a>
+        <a href="./agency/?from=parallel-vision#contact" data-agency-home-link><span class="home-agency-discuss">Discuss a project</span><span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <a class="home-agency-visual" href="./agency/?from=parallel-vision" data-agency-home-link aria-label="Explore Parallel Vision Agency">
+      <img src="./assets/optimized/LOOK03.webp" alt="Sculptural chrome fashion from Parallel Vision's Fashion After Fabric project" loading="lazy" decoding="async" width="1400" height="782">
+    </a>
+  </div>
+</section>
+
 <section
   id="contact"
   class="contact"
@@ -1987,6 +2006,7 @@ body.pv-home #berlin.berlin-entry .berlin-entry-content { position:relative; z-i
 
   © 2026 Parallel Vision · Berlin 2063
 
+  <nav class="home-footer-links" aria-label="Footer navigation"><a href="#contact">Contact</a><a href="./agency/">Agency</a><a href="./agency/privacy.html">Enquiry privacy</a></nav>
 </footer>
 
 

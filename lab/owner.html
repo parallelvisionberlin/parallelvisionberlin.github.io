@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261025-inline-recipients1">
+<link rel="stylesheet" href="./owner.css?v=20261025-owner-pages1">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -26,7 +26,7 @@
   </nav>
   <nav class="owner-side-bottom" aria-label="Workspace links">
     <a href="./vitolas-studio.html" data-owner-vitolas hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 16v-4m5 4V7m5 9v-6"/></svg><span>Vitolas Studio ↗</span></a>
-    <a id="owner-agency-link" href="https://parallelvisionlabel.com/agency/" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18m-13 5h8m-8 3h5"/></svg><span>Agency preview ↗</span></a>
+    <a id="owner-agency-link" href="https://parallelvisionlabel.com/agency/inbox.html" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18m-13 5h8m-8 3h5"/></svg><span>Agency enquiries ↗</span></a>
     <a href="./account.html#settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M9.2 2.8h5.6l.7 2.1 2.1 1.1 2.1-.6 2.1 3.7-1.6 1.6v2.6l1.6 1.6-2.1 3.7-2.1-.6-2.1 1.1-.7 2.1H9.2l-.7-2.1-2.1-1.1-2.1.6-2.1-3.7 1.6-1.6v-2.6L2.2 9.1l2.1-3.7 2.1.6 2.1-1.1z"/></svg><span>Settings</span></a>
     <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 4h7v7m0-7-10 10"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/></svg><span>Back to site</span></a>
   </nav>
@@ -156,11 +156,12 @@
           <div><span>Verified receipts</span><strong id="owner-acquisition-revenue">—</strong><small>EUR gross, since tracking</small></div>
         </div>
         <p id="owner-acquisition-summary" class="owner-acquisition-explain"></p>
-        <div class="owner-acquisition-table-head"><h3>Customer activity</h3><span>Lifetime usage, latest 100 accounts</span></div>
+        <div class="owner-acquisition-table-head"><h3>Customer activity</h3><span>Lifetime usage, newest first</span></div>
         <div class="owner-table-wrap owner-acquisition-table">
           <table><thead><tr><th>Account</th><th>Joined</th><th>Completed</th><th>Last completed</th><th>Credits spent</th><th>Provider USD</th><th>Checkouts</th><th>Gross EUR</th><th>Review</th></tr></thead>
           <tbody id="owner-acquisition-customers"><tr><td colspan="9" class="owner-table-empty">Loading activity…</td></tr></tbody></table>
         </div>
+        <div id="owner-acquisition-pagination" class="owner-pagination" aria-label="Acquisition account pages"></div>
         <p class="owner-traffic-disclaimer" id="owner-acquisition-notes">Historical checkouts cannot be backfilled. Provider exposure is not a vendor invoice.</p>
       </div>
     </section>
@@ -168,6 +169,7 @@
       <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Customers.</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
       <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p></div>
       <div class="owner-table-wrap"><table><thead><tr><th>Email / account</th><th>Joined</th><th>Balance</th><th>Paid events</th><th>Subscription</th><th>Last payment</th></tr></thead><tbody id="owner-customers"></tbody></table></div>
+      <div id="owner-customers-pagination" class="owner-pagination" aria-label="Customer directory pages"></div>
       <dialog class="owner-customer-dialog" id="owner-customer-dialog" aria-labelledby="owner-customer-dialog-title">
         <div class="owner-customer-dialog-head">
           <div><span class="owner-index">AUDIENCE / PRIVATE ACTIVITY</span><h2 id="owner-customer-dialog-title">Customer activity<span>.</span></h2><p id="owner-customer-dialog-identity">Select a customer to review their activity.</p></div>
@@ -255,6 +257,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261025-inline-recipients1"></script>
+<script type="module" src="./owner.js?v=20261025-owner-pages1"></script>
 </body>
 </html>

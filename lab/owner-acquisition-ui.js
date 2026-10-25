@@ -1,4 +1,5 @@
 // Owner-only acquisition UI. Renders only text from the secure admin endpoint.
+import {renderOwnerPagination} from './owner-pagination.js?v=20261025-paged1';
 export function createOwnerAcquisitionUI({request,ownerReady,revision,days,formatDate,formatNumber,openActivity,openReview,mobileLabels}){
   const $=id=>document.getElementById(id);
   const money=(value,symbol,multiplier=1)=>symbol+(Number(value||0)*multiplier)
@@ -9,7 +10,7 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
     if(className)item.className=className;
     return item;
   };
-  let serial=0;
+  let serial=0,page=1,lastDays=null;
   const cell=(row,value,kind)=>{
     const td=node('td',value,kind);
     row.append(td);
@@ -79,21 +80,34 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
       review.dataset.level=customer.reviewFlag?'review':'normal';
       body.append(row);
     }
+    renderOwnerPagination($('owner-acquisition-pagination'),{
+      ...data.pagination,
+      onPage:next=>{page=next;void refresh({scroll:true});}
+    });
     $('owner-acquisition-notes').textContent=(data.notes?.checkout||'')+' '+
       (data.notes?.cost||'')+' Returning visitors are not tracked by the anonymous meter.';
     $('owner-acquisition-content').hidden=false;
     $('owner-acquisition-status').textContent='';
     mobileLabels();
   }
-  async function refresh(){
+  async function refresh({scroll=false}={}){
     if(!ownerReady())return;
+    const selectedDays=days();
+    if(lastDays!==selectedDays){page=1;lastDays=selectedDays;}
     const version=revision(),id=++serial,button=$('owner-acquisition-refresh');
     button.disabled=true;
     $('owner-acquisition-status').textContent='Refreshing private business activity…';
     try{
-      const report=await request('/api/admin/acquisition?days='+days());
+      let report=await request('/api/admin/acquisition?days='+selectedDays+'&page='+page);
       if(version!==revision()||id!==serial)return;
+      const last=Math.max(1,Math.ceil((Number(report.pagination?.total)||0)/20));
+      if(page>last){
+        page=last;
+        report=await request('/api/admin/acquisition?days='+selectedDays+'&page='+page);
+        if(version!==revision()||id!==serial)return;
+      }
       paint(report);
+      if(scroll)$('owner-acquisition-section').scrollIntoView({block:'start'});
     }catch(error){
       if(version!==revision()||id!==serial)return;
       $('owner-acquisition-content').hidden=true;

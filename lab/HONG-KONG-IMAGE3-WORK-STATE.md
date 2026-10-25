@@ -1,6 +1,6 @@
 # Hong Kong Nights: release verification and CI follow-up
 
-Verified 2026-10-25 (Berlin). Source main: `61a2729fea715995ed2648aa82cb7a5d9035eee3`, including PRs #536, #537 and #538. Scoped branch: `codex/hong-kong-film-finish-ci-20261025`.
+Verified 2026-10-25 (Berlin). Main integration: `940c00c99f8a57877dd587177c3249917b0730bc` (PR #539), based on `61a2729fea715995ed2648aa82cb7a5d9035eee3` and preserving subsequent main documentation. Scoped branch: `codex/hong-kong-film-finish-ci-20261025`.
 
 ## Approved implementation
 
@@ -24,17 +24,19 @@ Verified 2026-10-25 (Berlin). Source main: `61a2729fea715995ed2648aa82cb7a5d9035
 
 ## Verification and publication evidence
 
-- Targeted film/Hong Kong/Worker/approved Image contract tests passed locally: **156/156** on the initial source; recheck after current-main integration is recorded in the PR.
+- Targeted film/Hong Kong/Worker/approved Image contract tests passed locally: **156/156** after integrating main `61a2729f`. Nine additional Assets/reference/model unit checks passed; the complete Assets browser passed.
 - Film browser passed at 1440px and 390px, including manual OFF, historical OFF, independent controls, one mock finish write and original download. Local finished-image bytes are only a browser fixture; CI must validate real Cloudflare pixels separately.
 - Explore generation scenarios and all 11 Mood Creator browser checks passed with synthetic APIs.
 - Full-bootstrap guest-only subset passed at 1440px, 390px and 320px: public tool decks/navigation, private Assets gate, auth return URLs and zero private API requests. This is not a signed-in production test.
-- Optional full role suite stopped on its pre-existing attempt to fill disabled empty Retouch input (`#precision-prompt`), also addressed separately in #482; no product control was weakened.
+- The initial local full-role run lacked `assets/fashion-hero.png` in the sparse checkout, so the Retouch sample could not enable its input. This was a local missing fixture, not an application regression. The original was restored. Full public/customer/owner privacy and visual checks then passed locally at 1440/390/320px and in CI; no product control was weakened.
 - Cloudflare Pages check `121121874586`, project `pvlab-studio`, succeeded for #536. Read-only release verifier returned LIVE_VERIFIED for `lab/lab.js?v=20261024-fashion-main1`, SHA-256 `3afcb4009bf4267c7ac8ec241b291c755aab9bae5e48ad39a22f07538fec2b5f`.
 - Production `film-finish.js`, `hong-kong-variants.js`, `moods.js`, `app-mood-generation.js`, `mood-creator.js`, `reference-guidance.js` and reference policy matched reviewed bytes. Studio/Explore/Creator HTML contain `hkCinema=20261025v1`. Production-loaded modules return the approved preset and preserve explicit OFF.
 - Worker health reports `pv-lab-2026-10-25-vitolas-invitations-v1`, consistent with subsequent main PR #537, whose source retains Hong Kong fallback. Live unauthenticated jobs, library and private-asset requests returned 401. No authenticated production quote was made.
 - Exact original city/street references and historical indoor portrait were visually inspected. No post-#536 same-input portrait/interior/street AI outputs were available for controlled comparison. Photographic result quality remains UNVERIFIED; prompt and pixel-processing tests do not prove fog/wet-ground generation quality.
 - No paid generation, real-account mutation or customer media access occurred.
-- Next: require relevant branch CI (real film pixels and Assets included), merge the tested SHA through the existing PR procedure, and record final main/hosting evidence separately. Controlled new visual comparisons require explicit paid-generation authorization or already-existing matching outputs.
+- All **13/13** checks on reviewed code commit `6b9743b62f61a4e9e8b4b08253313e9ed4b76687` passed before the approved squash merge. This final checkpoint update changes documentation only.
+- Follow-up release: [PR #539](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/539), tested code commit `6b9743b62f61a4e9e8b4b08253313e9ed4b76687`. Real Cloudflare film pixels: run `40179043073` PASS. Complete Assets: run `40179043074` PASS. Public/customer/owner visual/privacy: run `40179063973` PASS. Final merge and hosting readback are recorded in the PR release update.
+- Remaining visual work: controlled same-input portrait/interior/street comparisons require explicit paid-generation authorization or already-existing matching outputs. This test-only follow-up does not alter production application bytes.
 
 ## Historical approved Image 3 note (2026-10-20, superseded for new jobs)
 
@@ -48,3 +50,4 @@ Owner instruction: preserve the approved Image 3 palette and integrity; increase
 - Preparation verifies all other Mood outputs by deterministic digest. The release diff excludes the V8 implementation, provider/reference routing, safety and billing. Permanent tests cover the approved Hong Kong recipe and controls without blocking unrelated future provider changes.
 - Three anchor PROMPT checks cover portrait/interior/street for all seven compatible model settings. No paid generation or customer wallet action is performed. These are not visual approval of new AI outputs, and a matching prompt cannot guarantee identical pixels on a new stochastic generation.
 - Browser module cache marker: hkImage3=20261020v1.
+

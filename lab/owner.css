@@ -765,3 +765,20 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   .owner-vouchers-table .owner-voucher-inline-list{max-width:none;margin-top:8px}
   .owner-vouchers-table .owner-voucher-inline-person{padding-top:8px}
 }
+
+/* Owner tables: twenty records per page, quiet pagination outside the table. */
+.owner-pagination{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  gap:14px;padding:16px 0 5px;border-top:1px solid #383a36;min-height:52px}
+.owner-pagination-summary{font-size:11px;color:#989c94;font-variant-numeric:tabular-nums}
+.owner-pagination-pages{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+.owner-pagination-button{min-width:31px;min-height:31px;padding:6px 10px;border:1px solid #3e403a;
+  border-radius:3px;color:#c8cac2;background:#1b1c1a;font-size:11px;cursor:pointer}
+.owner-pagination-button:hover:not(:disabled){border-color:#8c8f84;color:#fff}
+.owner-pagination-button[aria-current="page"]{color:#141514;background:#e7e5df;border-color:#e7e5df;cursor:default}
+.owner-pagination-button:disabled:not([aria-current="page"]){opacity:.35;cursor:default}
+.owner-pagination-button:focus-visible{outline:2px solid #e7e5df;outline-offset:2px}
+@media(max-width:620px){
+  .owner-pagination{align-items:flex-start;gap:12px}
+  .owner-pagination-pages{justify-content:flex-start;max-width:100%;gap:4px}
+  .owner-pagination-button{min-width:30px;padding:7px}
+}

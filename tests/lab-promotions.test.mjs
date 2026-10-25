@@ -544,6 +544,56 @@ test('one contact constraint failure does not starve unrelated customer syncs',a
   }finally{globalThis.fetch=previous;}
 });
 
+test('owner Customer and Acquisition pages return newest twenty with truthful totals',async t=>{
+  const f=await setup(t);if(!f)return;
+  const now=Date.now();
+  for(let i=0;i<47;i++){
+    const id='user_PAGED'+String(i).padStart(3,'0');
+    f.insert('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)',
+      id,id,now+i,now+i);
+  }
+  f.insert('INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at) VALUES(?,?,?,?)',
+    'user_PAGED019','unique.page@example.com',now,now);
+  for(const endpoint of ['/api/admin/overview','/api/admin/acquisition?days=7']){
+    const separator=endpoint.includes('?')?'&':'?';
+    const page=async number=>(await (await f.admin(endpoint+separator+'page='+number,null,'GET')).json());
+    const first=await page(1),second=await page(2),third=await page(3);
+    assert.equal(first.pagination.total,50);
+    assert.equal(first.pagination.pageSize,20);
+    assert.equal(first.customers.length,20);
+    assert.equal(second.customers.length,20);
+    assert.equal(third.customers.length,10);
+    assert.deepEqual(new Set([...first.customers,...second.customers,...third.customers].map(c=>c.id)).size,50);
+    assert.equal(first.customers[0].id,'user_PAGED046');
+    assert.equal(second.customers[0].id,'user_PAGED026');
+    assert.equal(third.customers[0].id,'user_PAGED006');
+    const invalid=await Promise.all(['0','-1','1.3','abc'].map(n=>
+      assert.rejects(()=>f.admin(endpoint+separator+'page='+n,null,'GET'),/valid customer page/)));
+    assert.equal(invalid.length,4);
+    await assert.rejects(()=>f.admin(endpoint+separator+'page=2',null,'GET','user_ALICE'),/owner access required/);
+  }
+  const filtered=await (await f.admin('/api/admin/overview?search=unique.page%40example.com&page=1',null,'GET')).json();
+  assert.equal(filtered.pagination.total,1);
+  assert.equal(filtered.customers.length,1);
+  assert.equal(filtered.customers[0].id,'user_PAGED019');
+  assert.equal(filtered.summary.totalAccounts,50,'Pagination must not change global account totals');
+});
+
+test('owner activity tables use compact pagination rather than rendering a hundred rows',()=>{
+  const html=readFileSync(new URL('../lab/owner.html',import.meta.url),'utf8');
+  const owner=readFileSync(new URL('../lab/owner.js',import.meta.url),'utf8');
+  const acquisition=readFileSync(new URL('../lab/owner-acquisition-ui.js',import.meta.url),'utf8');
+  const pager=readFileSync(new URL('../lab/owner-pagination.js',import.meta.url),'utf8');
+  assert.match(html,/id="owner-customers-pagination"/);
+  assert.match(html,/id="owner-acquisition-pagination"/);
+  assert.match(owner,/renderOwnerPagination\(\$\('owner-customers-pagination'\)/);
+  assert.match(owner,/customerPage=1;void refreshDashboard/);
+  assert.match(acquisition,/renderOwnerPagination\(\$\('owner-acquisition-pagination'\)/);
+  assert.match(pager,/add\('Previous'/);
+  assert.match(pager,/add\('Next'/);
+  assert.doesNotMatch(html,/latest 100 accounts/);
+});
+
 test('owner acquisition counts new users, activation, credit debits, checkout starts and true euro receipts',async t=>{
   const f=await setup(t);if(!f)return;
   await assert.rejects(()=>f.admin('/api/admin/acquisition?days=7',null,'GET','user_ALICE'),/owner access required/);
