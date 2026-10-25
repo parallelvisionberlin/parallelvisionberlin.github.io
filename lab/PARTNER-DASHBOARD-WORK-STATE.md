@@ -4,6 +4,7 @@
 - User rejected the olive/green palette, requested a thinner hero and business results immediately below it, then latest signups/purchases, private Owner visibility, a clean referral URL and an FAQ. Full dossier is deferred.
 - Commission rule explicitly selected by user: 50% of each referred customer's first paid purchase or first subscription payment; later subscription installments at 20% for six calendar months. Never add both rates to one receipt. Window begins with the first paid subscription installment, does not restart on reactivation, and excludes the exact six-month boundary.
 - Baseline 940c00c99f8a57877dd587177c3249917b0730bc, isolated branch feature/vitolas-commissions-20261025. Existing voucher/Owner work in other PRs is outside this scope.
+- Active code: lab/vitolas-studio.{html,css,js}, lab/vitolas.html, lab/vitolas-link.js, lab-worker/partner-{dashboard,commissions}.mjs, lab-worker/customer-billing.mjs and migration 0038.
 - Reused the approved beauty hero, now a compact masthead; neutral grayscale invitation tools. Business link, counts, cash totals, commission agreement, latest signup/payment cards and full contact filters precede vouchers.
 - Report, CSV and per-receipt rates/window dates come from actual EUR revenue ledger entries joined to signed processor payment timing. New migration 0038 stores only payment context and the stable alias binding; no payouts or wallet/allowance changes.
 - Existing signed, fully paid billing branches record payment context idempotently. First/renewal ordering uses processor payment time, not webhook arrival order. Missing timing or ambiguous first-payment ordering is sent to reconciliation rather than guessed.
@@ -14,7 +15,19 @@
 - FAQ explains attribution, 50/20 calculations, the six-month window, verified money, billing reviews, vouchers, privacy and manual settlement coordination. No standalone dossier created.
 - Local validation: 201 relevant Worker/auth/billing/promotions/referral/trial/partner/menu/Image checks passed; 24 focused final partner/Image checks passed after added filter/link checks. Syntax and diff checks passed.
 - Browser additions cover compact hero, grayscale card, business-before-vouchers order, recent activity, scoped contact filters, real CSV download/formula protection, FAQ, public referral entrance and private data cleanup.
-- Status: implementation complete locally; fixed-candidate browser CI, visual inspection and deployment verification pending. No real customers, payments, credits, budgets, vouchers or messages were created for testing.
+- Published PR #541: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/541
+- Code merge 006b8c1a33826cda616c0f3d0d4b4d5f7928f36a; integrated reviewed head 02fd5221933e46e441ce36c9fbf403dc0a3ecee5. Frontend visually reviewed at 716f1894535307625292b6066a385824565095d1.
+- Integrated main 8fbc86478eec56b47da86db0bab4465999f29681 to retain Owner pagination and Agency. The only conflict was adjacent migration commands; both 0038 and 0040 are retained. All Agency Worker routes and scheduled handlers preserved.
+- Integrated local Worker/partner/sandbox/Image suite: 138 checks passed. Final binding/partner/Image suite: 25 passed. A complete controller/DOM binding contract now protects all dashboard sections during rearrangement.
+- All ten final integrated PR workflows passed. Integrated partner run 40182033174 passed 273 browser assertions, including the actual updated Owner page. Final artifact 12594494197; identical frontend at artifact 12594309262 was inspected on desktop/390/320px.
+- Production Worker run 40182257193/job 121135583607 succeeded, including both migrations and health. UUID eb14aeea-ac06-492b-aa22-9cc90b1be7c7. Live health reports pv-lab-2026-10-25-vitolas-commissions-v1.
+- Shared billing sandbox run 40182257014 also succeeded, including isolated schema setup/deployment and test-only health.
+- Exact-merge Cloudflare Pages check 121135750427 succeeded. Scoped verifier returned LIVE_VERIFIED for lab/lab.js, SHA-256 3afcb4009bf4267c7ac8ec241b291c755aab9bae5e48ad39a22f07538fec2b5f.
+- Production Vitolas HTML/CSS/JS, public invitation HTML and redirect helper independently matched reviewed bytes, HTTP 200. Public page has no CSP preventing its tested module redirect.
+- Public alias lookup returned HTTP 200 with correct pvlab.studio CORS and https://pvlab.studio/?ref=9GNPKYUW. This initializes only the authorized vanity binding to the existing referral; no signup, payment, voucher or credit grant is generated.
+- Status: frontend, schema, production and sandbox Workers published. Real signed-in Victoria/Owner sessions and real purchase/renewal/redemption activity were not used as tests. No real promotional budget or outbound message was created.
+- Current scope tracks accruals and holds, with CSV export. No automatic refund reconciliation, settlement bookkeeping or bank payout execution is implemented; held accounts need manual reconciliation.
+- Next real action: share https://pvlab.studio/vitolas. Victoria sees referred activity/commissions in her normal Vitolas menu; Owner opens the same scoped report through the existing private link. Full standalone dossier remains deferred.
 
 ## Credit invitations and working dashboard, 2026-10-25
 - User requested a more useful, refined dashboard and a voucher creator so Victoria can offer credits to prospects.
