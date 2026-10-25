@@ -1,5 +1,12 @@
 # Vitolas Studio partner dashboard
 
+## No Unicode arrows in controls, 2026-10-25
+- User explicitly prohibits the arrow characters that iOS renders as blue emoji. Remove them, do not replace them with another Unicode arrow.
+- Applies to static and dynamically generated Vitolas buttons/links. Use clear text labels; pagination uses Anterior / Siguiente. No decorative row chevrons.
+- Carry this preference into subsequent PV LAB interface work. If a future control needs an icon, use the established non-emoji icon system only when requested or necessary.
+- Scope: Vitolas HTML/JS/CSS, existing UI contract and this handoff. Preserve all workflows, permissions and layout.
+- Asset marker 20261025-no-arrows1. Publication pending validation and normal Pages deployment.
+
 ## Full-page working desk and current branding, 2026-10-25
 - User rejected tiny modal tools, duplicated Help/commission-condition buttons, the old spaced wordmark and a boring empty client-first screen. Explicitly requested a redo.
 - Baseline f28f7832365a1e9c6c967bd14eab1e0b8e592507, isolated worktree vitolas-desk. Keep unrelated app and concurrent work unchanged.
