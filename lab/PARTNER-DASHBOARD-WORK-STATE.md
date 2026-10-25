@@ -18,7 +18,9 @@
 - Browser checks passed at 320/390/768/1440px (338 assertions), 1920px (80), plus final 1440px search-error/cache regression (101). Final CI runs all five sizes together.
 - Coverage includes the 105-client/6-page boundary across server chunks, previous pages, global search, stale searches, failed-search cache cleanup, custom credit amounts/expiry, CSV, Owner access and both-role logout races.
 - Actual desktop 1440/1920 and phone 320 screenshots inspected against the supplied reference. Workspace fills the available width; no horizontal page overflow.
-- Publication pending: create scoped PR, keep the reviewed candidate fixed, wait relevant checks, merge and verify the exact Cloudflare Pages deployment and production HTML/CSS/JS.
+- PR #552: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/552
+- Final small-screen correction keeps the title and sign-in action from overlapping after logout. Browser assertions now verify both their geometry and absence of horizontal overflow.
+- Publication pending: wait relevant checks, merge the fixed reviewed candidate and verify the exact Cloudflare Pages deployment and production HTML/CSS/JS.
 - No real clients, purchases, invitations, allowance changes, credit grants or outbound messages were created for verification. Real signed-in Victoria/Owner sessions are separate from synthetic QA.
 - Full standalone dossier, mail provisioning and automatic payouts remain outside this correction.
 

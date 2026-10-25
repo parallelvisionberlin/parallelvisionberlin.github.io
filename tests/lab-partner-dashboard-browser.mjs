@@ -163,6 +163,8 @@ try{
       manyCustomers=false;
     }
     await page.evaluate(()=>window.mockAccount.signOut());
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);checks++;
+    assert.equal(await page.evaluate(()=>{const title=document.querySelector('#partner-title').getBoundingClientRect(),signin=document.querySelector('#partner-signin').getBoundingClientRect();return title.bottom<=signin.top||signin.bottom<=title.top||title.right<=signin.left||signin.right<=title.left;}),true);checks++;
     assert.equal(await page.locator('#partner-content').isVisible(),false);checks++;
     assert.equal(await page.locator('#partner-rows').textContent(),'');checks++;
     assert.equal(await page.locator('#partner-url').inputValue(),'');checks++;
