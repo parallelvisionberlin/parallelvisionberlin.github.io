@@ -30,6 +30,12 @@ try{
     }),'Agency section order must be Hero → Flesh Zero → Selected Work → Work in motion');
     assert.match(await page.locator('#flesh-zero-film').getAttribute('poster'),/flesh-zero-film-one-poster\.webp$/);
     assert.ok(await page.locator('#featured-film .motion-poster').isVisible(),'Featured Flesh Zero cover must be visible before playback');
+    assert.equal(await page.locator('#featured-film').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(247, 247, 247)');
+    assert.ok(await page.locator('.featured-film-play').isVisible(),'Featured film play control must be visible');
+    assert.ok(await page.locator('.featured-film-play').evaluate(el=>{
+      const r=el.getBoundingClientRect(),frame=el.closest('.featured-film-frame').getBoundingClientRect();
+      return Math.abs((r.left+r.width/2)-(frame.left+frame.width/2))<2 && Math.abs((r.top+r.height/2)-(frame.top+frame.height/2))<2;
+    }),'Featured film play control must be centered');
     await page.locator('img').evaluateAll(async images=>{
       const local=images.filter(image=>new URL(image.src,location.href).origin===location.origin);
       local.forEach(image=>image.loading='eager');
