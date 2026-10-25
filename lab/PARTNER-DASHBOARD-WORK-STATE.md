@@ -5,7 +5,12 @@
 - Baseline 4b728001ea89794f6aaf27e0b89078eefa79a1cf, isolated worktree vitolas-type. Preserve results order, workflows, actual EUR figures, logo and beauty hero.
 - Use the existing self-hosted DM Sans (PV Lab Navigation) throughout the workspace, controls and account menu. Unify body/control text at 14px and supporting labels at 12px, restrained heading scale and two weights. Inputs retain accessible sizing.
 - Results board has less padding, reduced control spacing and 48px monetary values desktop / 44px phone. No feature or data changes.
-- Changed files: lab/vitolas-studio.css, lab/vitolas-studio.html and this checkpoint. Asset marker 20261025-type1. Validation and publication pending.
+- Changed files: lab/vitolas-studio.css, lab/vitolas-studio.html and this checkpoint. Asset marker 20261025-type1.
+- Published PR #560: reviewed head 1639f33df796ca23b7c8119827f9d44c3b79cc14; production merge c5be7b6adafcf491dcd20e00fec49945959a831f.
+- Checks: five required Image UI contract tests and 341 dashboard browser assertions at 320/390/1440px passed; phone and desktop screenshots inspected. Partner CI run 40219310613 passed.
+- Cloudflare exact-merge check 121248088255 succeeded for pvlab-studio; scoped verifier LIVE_VERIFIED. Actual HTML/CSS/JS returned HTTP200 and matched reviewed bytes. SHA256 HTML 9ba209d0bcb1ad7e4abcbbc7f6242f6d1d76869bd4a84363af49d71a9db737ed; CSS daaab424b670e6d604b6de8f67c09fc9f8d047b29631ae10bd7e166dd24c3379. JS unchanged from prior release.
+- Live-browser 390/1920px: all five sections use the same computed font family, desktop results board under 160px high, correct results order, no overflow or Unicode arrows. Synthetic read-only account responses only.
+- Status: published at https://pvlab.studio/vitolas-studio. No remaining action for this change; no real account or credit mutations.
 
 ## Results first and slightly denser spacing, 2026-10-25
 - User approved the current Overview and Invitations screenshots and requested only slightly smaller spacing/cards while retaining large money figures, plus the proposed results hierarchy.
