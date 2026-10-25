@@ -222,9 +222,9 @@
 
     .statement {
       display: grid;
-      grid-template-columns: minmax(180px, 0.35fr) minmax(0, 1fr);
-      gap: clamp(42px, 8vw, 150px);
-      padding: clamp(120px, 17vw, 260px) var(--pad);
+      grid-template-columns: minmax(160px, 0.3fr) minmax(0, 1fr);
+      gap: clamp(36px, 6vw, 110px);
+      padding: clamp(96px, 12vw, 180px) var(--pad);
       background: var(--black);
     }
 
@@ -234,28 +234,41 @@
     }
 
     .statement-copy {
-      max-width: 1030px;
+      max-width: 760px;
     }
 
     .statement-copy p {
       margin: 0;
-      font-size: clamp(28px, 4.1vw, 62px);
-      font-weight: 500;
-      letter-spacing: -0.045em;
-      line-height: 1.05;
     }
 
-    .statement-copy p + p {
-      margin-top: clamp(48px, 6vw, 90px);
-      color: rgba(255, 255, 255, 0.74);
-      font-size: clamp(20px, 2.4vw, 36px);
-      line-height: 1.26;
+    /* Use explicit roles: a portrait figure sits between intro and biography. */
+    .statement-copy #alejandro-bio-intro {
+      max-width: 660px;
+      font-size: clamp(28px, 3vw, 43px);
+      font-weight: 400;
+      letter-spacing: -0.035em;
+      line-height: 1.2;
+    }
+
+    .statement-copy #alejandro-bio-practice,
+    .statement-copy #alejandro-bio-world {
+      max-width: 620px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: clamp(17px, 1.4vw, 20px);
+      font-weight: 400;
+      letter-spacing: -0.012em;
+      line-height: 1.56;
+    }
+
+    .statement-copy #alejandro-bio-world {
+      margin-top: 22px;
+      color: rgba(255, 255, 255, 0.7);
     }
 
     .founder-portrait {
       position: relative;
-      width: min(72%, 720px);
-      margin: clamp(64px, 8vw, 120px) 0;
+      width: min(65%, 500px);
+      margin: clamp(46px, 6vw, 80px) 0 clamp(36px, 4vw, 56px);
       overflow: hidden;
       aspect-ratio: 3 / 4;
       background: #111;
@@ -820,9 +833,27 @@
         gap: 36px;
       }
 
+      .statement {
+        gap: 20px;
+        padding-top: 84px;
+        padding-bottom: 104px;
+      }
+
       .statement-label,
       .vision-label {
         padding-top: 0;
+      }
+
+      .statement-copy #alejandro-bio-intro {
+        max-width: 32ch;
+        font-size: clamp(25px, 5.8vw, 34px);
+        line-height: 1.2;
+      }
+
+      .statement-copy #alejandro-bio-practice,
+      .statement-copy #alejandro-bio-world {
+        font-size: 17px;
+        line-height: 1.56;
       }
 
       .section-head {
@@ -863,7 +894,9 @@
       }
 
       .founder-portrait {
-        width: min(88%, 560px);
+        width: min(84%, 440px);
+        margin-top: 42px;
+        margin-bottom: 36px;
       }
 
     }
@@ -886,7 +919,7 @@
       }
 
       .founder-portrait {
-        width: 100%;
+        width: min(100%, 380px);
       }
 
       .featured-ep-art {
