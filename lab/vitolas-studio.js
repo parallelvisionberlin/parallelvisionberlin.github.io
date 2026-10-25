@@ -279,5 +279,7 @@ $('partner-voucher-copy').onclick=()=>createdVoucher&&void copy(createdVoucher.u
 $('partner-message-copy').onclick=()=>createdVoucher&&void copy('Hola, te invito a probar PV LAB con '+createdVoucher.credits+' créditos de parte de Vitolas Studio. Puedes explorar imágenes para tu marca o tus productos. Entra, inicia sesión y canjea tu código antes del '+date(createdVoucher.expiresAt)+': '+createdVoucher.url);
 window.addEventListener('pagehide',()=>{++revision;clear();});
 window.addEventListener('pageshow',event=>{if(event.persisted)void refresh();});
-try{clerk=await loadLabAccount();clerk.addListener(()=>void refresh());await refresh();}
+// Clerk also emits during token renewal. Reload only when account identity changes.
+function accountIdentity(){return JSON.stringify([!!clerk?.isSignedIn,clerk?.user?.id||null,clerk?.session?.id||null,clerk?.user?.primaryEmailAddressId||null,(clerk?.user?.emailAddresses||[]).map(email=>[email.id,email.emailAddress,email.verification?.status])]);}
+try{clerk=await loadLabAccount();let identity=accountIdentity();clerk.addListener(()=>{const next=accountIdentity();if(next===identity)return;identity=next;void refresh();});await refresh();}
 catch{status('No pudimos cargar el inicio de sesión. Recarga la página.');}

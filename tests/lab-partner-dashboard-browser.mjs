@@ -13,7 +13,7 @@ const server=createServer(async(req,res)=>{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const origin='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
-const mock=`const listeners=[];const account={isSignedIn:true,user:{id:'user_Synthetic',fullName:'Victoria Test'},session:{id:'synthetic',getToken:async()=>'test-token'},addListener(fn){listeners.push(fn)},openSignIn(){},async signOut(){this.isSignedIn=false;this.user=null;this.session=null;listeners.forEach(fn=>fn())}};window.mockAccount=account;export async function loadLabAccount(){return account}`;
+const mock=`const listeners=[];const account={isSignedIn:true,user:{id:'user_Synthetic',fullName:'Victoria Test'},session:{id:'synthetic',getToken:async()=>'test-token'},addListener(fn){listeners.push(fn)},emit(){listeners.forEach(fn=>fn())},openSignIn(){},async signOut(){this.isSignedIn=false;this.user=null;this.session=null;listeners.forEach(fn=>fn())}};window.mockAccount=account;export async function loadLabAccount(){return account}`;
 let checks=0;
 async function capture(page,name){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:output+'/'+name,fullPage:true});}
 try{
@@ -146,6 +146,12 @@ try{
     assert.equal(await page.locator('#partner-voucher-credits').inputValue(),'200');checks++;
     await page.locator('#partner-voucher-note').fill('New beauty campaign');
     assert.equal(await page.locator('[data-partner-credits="200"]').getAttribute('aria-pressed'),'true');
+    const beforeRenewal=requests.length;
+    await page.evaluate(async()=>{for(let i=0;i<20;i++)window.mockAccount.emit();await new Promise(resolve=>setTimeout(resolve,50));});
+    assert.equal(requests.length,beforeRenewal,'Same-session auth events must not reload dashboard data');
+    assert.equal(await page.locator('#partner-voucher-note').inputValue(),'New beauty campaign');
+    assert.equal(await page.locator('#partner-voucher-credits').inputValue(),'200');
+    assert.equal(await tab('Invitaciones').getAttribute('aria-selected'),'true');checks+=4;
     await capture(page,'invite-'+width+'.png');checks++;
     failCreate=true;await page.locator('#partner-voucher-create').click();
     await page.waitForFunction(()=>document.querySelector('#partner-voucher-status').textContent.includes('Presupuesto insuficiente'));
