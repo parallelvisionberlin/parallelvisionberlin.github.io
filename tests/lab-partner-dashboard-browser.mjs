@@ -15,6 +15,7 @@ const origin='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
 const mock=`const listeners=[];const account={isSignedIn:true,user:{id:'user_Synthetic',fullName:'Victoria Test'},session:{id:'synthetic',getToken:async()=>'test-token'},addListener(fn){listeners.push(fn)},openSignIn(){},async signOut(){this.isSignedIn=false;this.user=null;this.session=null;listeners.forEach(fn=>fn())}};window.mockAccount=account;export async function loadLabAccount(){return account}`;
 let checks=0;
+async function capture(page,name){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:output+'/'+name,fullPage:true});}
 try{
   for(const width of [320,390,768,1440]){
     const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
@@ -81,7 +82,7 @@ try{
     assert.match(await page.evaluate(()=>navigator.clipboard.readText()),/200 créditos de parte de Vitolas Studio/);checks++;
     await page.locator('#partner-redemption-rows').evaluate(el=>el.closest('details').open=true);
     assert.match(await page.locator('#partner-redemption-rows').textContent(),/friend@example.test/);checks++;
-    await page.screenshot({path:output+'/dashboard-'+width+'.png',fullPage:true});
+    await capture(page,'dashboard-'+width+'.png');
     await page.locator('#partner-voucher-rows tr').filter({hasText:'New beauty campaign'}).getByRole('button',{name:'Desactivar'}).click();
     await page.waitForFunction(()=>document.querySelector('#partner-voucher-status').textContent.includes('desactivada'));
     assert.equal(await page.locator('#partner-voucher-result').isVisible(),false);checks++;
@@ -105,7 +106,7 @@ try{
     await page.locator('#partner-budget-total').fill('2000');await page.locator('#partner-budget-form button').click();
     await page.waitForFunction(()=>document.querySelector('#partner-voucher-status').textContent.includes('Presupuesto guardado'));
     assert.equal(await page.locator('#partner-budget-available').textContent(),(1800).toLocaleString('es'));checks++;
-    await page.screenshot({path:output+'/owner-invitations-'+width+'.png',fullPage:true});
+    await capture(page,'owner-invitations-'+width+'.png');
     assert.equal(requests.includes('/api/admin/partners/vitolas-studio'),true);checks++;
     assert.equal(await page.locator('#partner-purchases').textContent(),'2');checks++;
     assert.equal(await page.locator('[data-account-admin]').getAttribute('hidden'),null);checks++;
@@ -117,6 +118,7 @@ try{
     total=0;await page.reload();await page.locator('#partner-voucher-workspace:not([hidden])').waitFor();
     assert.equal(await page.locator('#partner-budget-empty').isVisible(),true);checks++;
     assert.equal(await page.locator('#partner-voucher-create').isDisabled(),true);checks++;
+    if(width===320||width===1440)await capture(page,'zero-budget-'+width+'.png');
     total=2000;
     for(const role of [false,true]){
       ownerView=role;allowed=true;hold=true;
@@ -145,7 +147,7 @@ try{
     assert.equal(await page.locator('[data-owner-vitolas]').evaluateAll(links=>links.length===2&&links.every(link=>!link.hidden)),true);checks++;
     const privateLink=page.locator(width<=900?'.owner-jumpbar [data-owner-vitolas]':'.owner-sidebar [data-owner-vitolas]');
     assert.equal(await privateLink.isVisible(),true);checks++;
-    await page.screenshot({path:output+'/owner-navigation-'+width+'.png',fullPage:true});
+    await capture(page,'owner-navigation-'+width+'.png');
     await privateLink.click();await page.locator('#partner-content:not([hidden])').waitFor();
     assert.equal(await page.locator('#partner-purchases').textContent(),'2');checks++;
     ownerView=false;allowed=false;await page.goto(origin+'/lab/owner.html');
