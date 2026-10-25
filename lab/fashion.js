@@ -5,9 +5,9 @@ const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>root.getElementById(id);
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(n);
 const modes={
-  fashn16:{description:'An alternative for straightforward garment transfer, through fal.ai.',note:'fal.ai charges separately. Published estimate: $0.075 per image.',provider:'fal'},
+  fashn16:{description:'An alternative for straightforward garment transfer.',note:'Estimated cost: $0.075 per image. Review the quote before generating.',provider:'fal'},
   fashnmax:{description:'High-detail garment transfer using your FASHN API credits.',note:'Balanced 1K estimates 2 FASHN credits ($0.15). Review the quote before generating.',provider:'fashn'},
-  fluxvto:{description:'Prompt-directed styling for layering, fit and the way clothing is worn.',note:'fal.ai charges by megapixel. Person image maximum 2 MP; garment maximum 1 MP.',provider:'fal'}
+  fluxvto:{description:'Prompt-directed styling for layering, fit and the way clothing is worn.',note:'Pricing varies with image size. Person image maximum 2 MP; garment maximum 1 MP.',provider:'fal'}
 };
 let clerk=null,authenticated=false,isCustomer=false,sessionId='',models=[],busy=false,quote=null,pollTimeout=null,activeJobId='',resultUrl='',signingIn=false;
 let fileKeys=new Map(),previews=new Map(),revision=0,authVersion=0;
