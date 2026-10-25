@@ -37,6 +37,24 @@ jobs:
         run: |
           npm install --no-save playwright
           npx playwright install --with-deps chromium
+      - name: Correct intrinsic image dimensions and capture loaded artwork
+        run: |
+          node --input-type=module <<'JS'
+          import sharp from 'sharp';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import assert from 'node:assert/strict';
+          const meta=await sharp('assets/optimized/LOOK03.webp').metadata();
+          const html=await readFile('index.html','utf8');
+          const target='<img src="./assets/optimized/LOOK03.webp" alt="Sculptural chrome fashion from Parallel Vision\'s Fashion After Fabric project" loading="lazy" decoding="async">';
+          assert.equal(html.split(target).length,2);
+          await writeFile('index.html',html.replace(target,target.replace('>',` width="${meta.width}" height="${meta.height}">`)));
+          console.log('Homepage image intrinsic size:',meta.width,meta.height);
+          const path='tests/agency-browser-smoke.mjs';let test=await readFile(path,'utf8');
+          test=test.replace("    await page.screenshot({path:'agency-test-artifacts/agency-'", "    await page.locator('img').evaluateAll(async images=>{images.forEach(image=>image.loading='eager');await Promise.all(images.map(image=>image.decode().catch(()=>{})));});\n    assert.deepEqual(await page.locator('img').evaluateAll(images=>images.filter(image=>!image.naturalWidth).map(image=>image.getAttribute('src'))),[],'agency artwork failed to load');\n    await page.screenshot({path:'agency-test-artifacts/agency-'");
+          test=test.replace("    await page.locator('#agency').scrollIntoViewIfNeeded();", "    if(await toggle.isVisible())await toggle.click();\n    await page.locator('#agency').scrollIntoViewIfNeeded();\n    await page.locator('#agency img').evaluate(image=>image.decode());");
+          await writeFile(path,test);
+          JS
+          git add index.html tests/agency-browser-smoke.mjs
       - name: Build preview and run enquiry regressions
         run: |
           node scripts/agency-social-image.mjs
