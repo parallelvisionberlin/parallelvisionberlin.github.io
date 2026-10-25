@@ -152,20 +152,14 @@
   text-transform: uppercase;
   pointer-events: none;
 }
-.flesh-zero-page .fz-pair-slide {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(10px, 1.5vw, 22px);
-  background: #020202;
+/* Character sheets are complete editorial layouts, not separate look photographs. */
+.flesh-zero-page .fz-single-slide.fz-sheet-slide {
+  height: auto;
+  aspect-ratio: 2048 / 1152;
+  max-height: 88svh;
+  background: #f4f4f4;
 }
-.flesh-zero-page .fz-pair-slide figure {
-  position: relative;
-  min-width: 0;
-  height: min(55svh, 560px);
-  overflow: hidden;
-  background: #080808;
-}
-.flesh-zero-page .fz-pair-slide img {
+.flesh-zero-page .fz-sheet-slide img {
   display: block;
   width: 100%;
   height: 100%;
@@ -214,8 +208,6 @@
   }
   .flesh-zero-page .fz-film-caption { font-size: 8px; letter-spacing: .14em; }
   .flesh-zero-page .fz-single-slide { height: auto; aspect-ratio: 4 / 3; }
-  .flesh-zero-page .fz-pair-slide { grid-template-columns: 1fr; gap: 8px; }
-  .flesh-zero-page .fz-pair-slide figure { height: auto; aspect-ratio: 16 / 9; }
   .flesh-zero-page .fz-carousel-slide figcaption { padding: 45px 15px 12px; font-size: 8px; }
   .flesh-zero-page .fz-arrow { width: 42px; height: 42px; }
   .flesh-zero-page .fz-arrow svg { width: 17px; height: 17px; }
