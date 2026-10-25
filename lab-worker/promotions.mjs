@@ -459,7 +459,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
   if(path==='/api/admin/vouchers/redemptions'&&method==='GET'){
     const code=codeOf(url.searchParams.get('code'));
     const rawOffset=url.searchParams.get('offset')||'0',offset=Number(rawOffset);
-    if(!code||!/^\\d{1,4}$/.test(rawOffset)||!Number.isSafeInteger(offset)||offset>1000)
+    if(!code||!/^\d{1,4}$/.test(rawOffset)||!Number.isSafeInteger(offset)||offset>1000)
       fail(400,'Choose a valid voucher and page.');
     const voucher=await one(env,'SELECT code FROM lab_vouchers WHERE code=? COLLATE NOCASE',code);
     if(!voucher)fail(404,'Voucher not found.');
