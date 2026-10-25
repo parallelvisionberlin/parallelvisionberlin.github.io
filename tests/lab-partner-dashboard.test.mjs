@@ -120,7 +120,7 @@ test('own referrals only, all verified payments counted, closed identities redac
   assert.match(data.referralUrl,/^https:\/\/pvlab.studio\/\?ref=[A-Z2-9]{8}$/);
   assert.equal(data.customers.find(x=>x.closed).email,null);
   assert.equal(JSON.stringify(data).includes('stranger@example.test'),false);
-  assert.equal(data.customers[0].purchases,2);assert.equal(data.nextOffset,null);
+  assert.equal(data.customers.find(person=>person.email==='friend@example.test').purchases,2);assert.equal(data.nextOffset,null);
   assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_credit_entries').get().n,3);
   assert.equal(f.db.prepare('SELECT balance_credits n FROM lab_customers WHERE id=?').get('user_Victoria').n,0);
 });

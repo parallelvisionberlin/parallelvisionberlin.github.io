@@ -155,7 +155,8 @@ try{
     await page.locator('#owner-dashboard:not([hidden])').waitFor();
     await page.evaluate(()=>window.mockAccount.signOut());
     assert.equal(await page.locator('[data-owner-vitolas]').evaluateAll(links=>links.every(link=>link.hidden)),true);checks++;
-    assert.deepEqual(errors,[]);assert.equal(writes.every(path=>/\/partner\/vouchers|\/partners\/vitolas-studio\/budget/.test(path)),true);checks+=2;
+    const expectedWrites=new Set(['/api/customer/partner/vouchers','/api/customer/partner/vouchers/deactivate','/api/admin/partners/vitolas-studio/budget','/api/admin/partners/vitolas-studio/vouchers']);
+    assert.deepEqual(errors,[]);assert.equal(writes.every(path=>expectedWrites.has(path)),true,JSON.stringify(writes));checks+=2;
     await context.close();
   }
   console.log(checks+' dashboard browser assertions passed');
