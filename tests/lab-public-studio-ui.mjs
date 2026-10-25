@@ -33,7 +33,7 @@ const originalFashionHero='<img src="./visuals/fashion-replace/hero.webp" alt=""
 const originalFashionPerson='<img class="slot-example person-example" src="./visuals/fashion-replace/hero.webp" alt="" width="1672" height="941" decoding="async">';
 assert.ok(fashionApprovedHtml.includes(originalFashionHero)&&fashionApprovedHtml.includes(originalFashionPerson),'Approved Fashion photo anchors still exist');
 const newFashionHero='<img src="./visuals/fashion-replace/hero-model-oct24.jpg" alt="" width="1672" height="941" fetchpriority="high" decoding="async">';
-const newFashionPerson='<img class="slot-example person-example" src="./visuals/fashion-replace/person-model-oct24.jpg" alt="" width="760" height="806" decoding="async">';
+const newFashionPerson='<img class="slot-example person-example" src="./visuals/fashion-replace/person-before-jacket-oct25.jpg" alt="" width="760" height="806" decoding="async">';
 fashionApprovedFiles.set('lab/fashion.html',Buffer.from(fashionApprovedHtml.replace(originalFashionHero,newFashionHero).replace(originalFashionPerson,newFashionPerson)));
 
 // The owner approved a new Video-only design in #496. Freeze that implemented
