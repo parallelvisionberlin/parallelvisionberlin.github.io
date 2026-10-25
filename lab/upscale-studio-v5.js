@@ -66,6 +66,27 @@ function installUpscaleSidebar(){
     new MutationObserver(syncActionLabel).observe(app,{attributes:true,attributeFilter:['class']});
     syncActionLabel();
   }
+  // Fit only an actual uploaded/result photo to its intrinsic aspect ratio.
+  // Observing the stage width avoids a resize loop on the fitted canvas.
+  const fitPhoto=()=>{
+    if(!canvas||preview.hidden||!preview.naturalWidth||!preview.naturalHeight){
+      canvas?.style.removeProperty('--pv-photo-fit-height');
+      return;
+    }
+    const width=canvas.getBoundingClientRect().width;
+    if(width<=0)return;
+    const available=Math.max(280,window.innerHeight-(window.innerWidth>780?205:190));
+    canvas.style.setProperty('--pv-photo-fit-height',
+      Math.round(Math.min(width*preview.naturalHeight/preview.naturalWidth,available))+'px');
+  };
+  preview.addEventListener('load',fitPhoto);
+  new MutationObserver(fitPhoto).observe(preview,{attributes:true,attributeFilter:['hidden','src']});
+  if(canvas&&typeof ResizeObserver!=='undefined'){
+    const stage=canvas.closest('.stage');
+    if(stage)new ResizeObserver(fitPhoto).observe(stage);
+  }
+  window.addEventListener('resize',fitPhoto);
+  fitPhoto();
   input.addEventListener('change',sync);
   new MutationObserver(sync).observe(preview,{attributes:true,attributeFilter:['hidden','src']});
   new MutationObserver(sync).observe(app,{attributes:true,attributeFilter:['class']});
