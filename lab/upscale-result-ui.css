@@ -154,3 +154,33 @@
     min-width:0;padding:10px 9px;
   }
 }
+
+/* Result-only refinement: retain the approved empty/upload Upscaler screen.
+   A completed upscale fits together with its toolbar inside the working viewport. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) #upscale-canvas{
+   height:clamp(360px,calc(100dvh - 252px),740px)!important;
+   min-height:360px!important;
+   max-height:740px!important;
+   overflow:hidden!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) #upscale-canvas>#preview{
+   max-width:100%!important;max-height:100%!important;object-fit:contain!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) #upscale-result-toolbar{
+   box-sizing:border-box;min-height:54px;max-height:58px;
+   padding:6px 12px!important;margin-top:0!important;gap:10px!important;
+   border-radius:0 0 10px 10px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) .upscale-result-title{font-size:13px!important;gap:7px!important}
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) .upscale-result-actions button{
+   min-height:35px!important;height:35px!important;padding:7px 11px!important;
+ }
+}
+@media(max-width:780px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) #upscale-canvas{
+   height:min(62dvh,640px)!important;min-height:280px!important;overflow:hidden!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) #upscale-canvas>#preview{object-fit:contain!important;max-width:100%!important;max-height:100%!important}
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) #upscale-result-toolbar{padding:10px!important;margin-top:0!important}
+}
