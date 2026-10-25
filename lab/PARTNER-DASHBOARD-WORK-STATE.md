@@ -21,7 +21,14 @@
 - Browser checks passed at 320px (99 assertions), remaining 390/768/1440/1920px (425), and the final phone layout at 320/390/768px (297). Final CI runs all five sizes together.
 - Coverage includes current logo loading, no modal elements, all five inline sections and keyboard tabs, 105 clients/six pages, search races/errors, 43 invitation/23 redemption paging, CSV safety, custom credit/expiry choices, Owner budget and both-role logout races.
 - Desktop empty Overview and invitation editor, and phone layouts, were inspected. No real users, invitations, payments, allowance grants, customer credits or outbound messages were created for QA.
-- Publication pending: create scoped PR, keep the candidate fixed, wait relevant checks, merge and verify the exact Cloudflare Pages deployment and production HTML/CSS/JS/logo bytes and rendering.
+- Published PR #556: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/556
+- Reviewed head f124900c4a41a156d125e53f73dae664f1d843ff; production merge 12f6a3ff1f7472d8fb1ff369d22dee7c13f8a1ab. All eight final PR workflows passed. Partner run 40210330832/artifact 12605655214 covers all five viewport sizes.
+- Exact-merge Cloudflare Pages check 121220874561 succeeded. Scoped verifier returned LIVE_VERIFIED for lab/lab.js, SHA-256 3afcb4009bf4267c7ac8ec241b291c755aab9bae5e48ad39a22f07538fec2b5f.
+- Actual production Vitolas HTML/CSS/JS and the current bold logo SVG each returned HTTP 200 and exactly matched reviewed merge bytes. Asset marker 20261025-workdesk1.
+- Actual live rendering passed at 390/1920px using synthetic read-only API responses: current SVG loads, all five inline sections open at page width, no modal elements, no horizontal overflow, zero-budget guard and eight-topic guide. No real signed-in account data observed.
+- Additional account-menu hit testing confirmed the menu remains above the navigation on a small screen. No extra product change was needed.
+- Status: published at https://pvlab.studio/vitolas-studio. No Worker or schema redeployment needed. No real promotional allocation, voucher issuance or outbound contact performed.
+- Next real use: reload Vitolas Studio. Owner can assign invitation capacity in Invitaciones when needed; Victoria can share her existing referral link independently. Keep tools inline and help/terms unified in Guía.
 - Real signed-in production account observation remains separate from synthetic visual/role tests. Mail provisioning, automatic payouts and the standalone dossier remain outside this redo.
 
 ## Earlier exact format and usable scale, 2026-10-25
