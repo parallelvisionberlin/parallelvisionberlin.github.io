@@ -75,20 +75,24 @@ async function readPartnerDashboard(request,env,subject,access,{ownerView=false}
   const offset=Number(url.searchParams.get('offset')||0),limit=100;
   if(!Number.isSafeInteger(offset)||offset<0||offset>1000000)fail(400,'Invalid page.');
   const filter=url.searchParams.get('filter')||'all';
-  if(!['all','paying','subscribed'].includes(filter))fail(400,'Invalid contact filter.');
+  if(!['all','registered','paying','subscribed'].includes(filter))fail(400,'Invalid contact filter.');
   const paid=`EXISTS(SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=r.referred_customer_id
     AND e.kind IN ('purchase','subscription'))`;
   const active=`EXISTS(SELECT 1 FROM lab_subscriptions s WHERE s.customer_id=r.referred_customer_id
     AND s.status IN ('active','trialing') AND NOT EXISTS
       (SELECT 1 FROM lab_account_closures x WHERE x.customer_id=s.customer_id))`;
-  const condition=filter==='paying'?paid:filter==='subscribed'?active:'1=1';
+  const condition=filter==='paying'?paid:filter==='subscribed'?active:filter==='registered'?`NOT (${paid})`:'1=1';
+  const search=(url.searchParams.get('q')||'').trim().toLowerCase();
+  if(search.length>80)fail(400,'Search is too long.');
+  // Search only the same verified, open contacts that can be displayed.
+  const searchCondition=search?'AND x.customer_id IS NULL AND p.verified_at IS NOT NULL AND instr(lower(p.email),?)>0':'';
   const totals=await one(env,`SELECT COUNT(*) AS registered,
     COALESCE(SUM(CASE WHEN ${paid} THEN 1 ELSE 0 END),0) AS payingCustomers,
     COALESCE(SUM(CASE WHEN ${active} THEN 1 ELSE 0 END),0) AS activeSubscriptions,
     (SELECT COUNT(*) FROM lab_credit_entries e JOIN lab_referrals f ON f.referred_customer_id=e.customer_id
       WHERE f.referrer_customer_id=? AND e.kind IN ('purchase','subscription')) AS purchases
     FROM lab_referrals r WHERE r.referrer_customer_id=?`,subject,subject);
-  const result=await env.LAB_DB.prepare(`SELECT r.attributed_at AS registeredAt,
+  const result=await env.LAB_DB.prepare(`SELECT r.referred_customer_id AS customerId,r.attributed_at AS registeredAt,
     CASE WHEN x.customer_id IS NULL AND p.verified_at IS NOT NULL THEN p.email ELSE NULL END AS email,
     CASE WHEN x.customer_id IS NULL THEN 0 ELSE 1 END AS closed,
     CASE WHEN ${paid} THEN 1 ELSE 0 END AS paid,
@@ -97,17 +101,18 @@ async function readPartnerDashboard(request,env,subject,access,{ownerView=false}
       AND e.kind IN ('purchase','subscription')) AS purchases
     FROM lab_referrals r LEFT JOIN lab_customer_contacts p ON p.customer_id=r.referred_customer_id
     LEFT JOIN lab_account_closures x ON x.customer_id=r.referred_customer_id
-    WHERE r.referrer_customer_id=? AND ${condition} ORDER BY r.attributed_at DESC,r.referred_customer_id
-    LIMIT ? OFFSET ?`).bind(subject,limit,offset).all();
+    WHERE r.referrer_customer_id=? AND ${condition} ${searchCondition} ORDER BY r.attributed_at DESC,r.referred_customer_id
+    LIMIT ? OFFSET ?`).bind(subject,...(search?[search]:[]),limit+1,offset).all();
   const linkRequest=new Request(new URL('/api/customer/referrals',request.url),{headers:request.headers});
   const referral=await (await referralRoute(linkRequest,env,subject)).json();
   await env.LAB_DB.prepare(`INSERT OR IGNORE INTO lab_partner_links(slug,customer_id,created_at) VALUES('vitolas',?,?)`).bind(subject,Date.now()).run();
   const alias=await one(env,"SELECT customer_id FROM lab_partner_links WHERE slug='vitolas'");
-  const commissions=await partnerCommissionReport(env,subject);
-  const customers=result.results||[];
-  const count=filter==='paying'?totals.payingCustomers:filter==='subscribed'?totals.activeSubscriptions:totals.registered;
+  const customerSummaries=new Map();
+  const commissions=await partnerCommissionReport(env,subject,customerSummaries);
+  const found=result.results||[];
+  const customers=found.slice(0,limit).map(({customerId,...person})=>({...person,...(customerSummaries.get(customerId)||{commissionCents:0,heldCommissionCents:0,needsReconciliation:0,paymentReferences:[]})}));
   return json({workspace:access,ownerView,referralUrl:referral.url,shareUrl:alias?.customer_id===subject?'https://pvlab.studio/vitolas':referral.url,totals,customers,commissions,filter,
-    nextOffset:offset+customers.length<Number(count)?offset+customers.length:null});
+    nextOffset:found.length>limit?offset+limit:null});
 }
 export async function publicPartnerLink(request,env){
   if(request.method!=='GET')fail(405,'Method not allowed.');

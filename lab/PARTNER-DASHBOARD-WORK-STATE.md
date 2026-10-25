@@ -1,5 +1,27 @@
 # Vitolas Studio partner dashboard
 
+## Approved daily workspace, 2026-10-25
+- User approved the two simplified visual mockups and explicitly requested applying them to the website.
+- Baseline main: bb99854d0b3d62c81e20607e7922a46a05f0143c. Current unrelated Agency work is preserved.
+- New main screen: 138px beauty masthead, personal link/copy, one primary invitation action, three compact totals and one searchable client list.
+- Reuse approved asset lab/visuals/vitolas/future-beauty-v1.webp. No new paid media or imagery.
+- Approved mockups: generated_images/exec-79c5c5fe-c2a7-4dff-832b-3fc0e3e1ce9e.png and exec-4eec5683-fb4b-48b7-a76e-190322828dfd.png.
+- Removed duplicate activity/financial panels and section navigation from the daily screen.
+- Commissions/CSV, invitation history, Owner budget and FAQ remain available in accessible native dialogs.
+- Invitation dialog: optional identifying label, 100/200/300 credit presets, one redemption and 14-day validity. Existing issuance/idempotency/allowance checks remain unchanged.
+- Optional name/email is an invitation label, not recipient binding or email sending. The form explains that whoever receives the link can redeem it.
+- New registered-without-purchase filter and verified-email search query the entire scoped client set, including correct pagination after search/filter.
+- Server builds per-client commission summaries from immutable ledger customer identity; never joins people by email or redacted labels. Internal customer IDs are discarded before serialization.
+- Clicking a client reveals its verified payments inline. Reviewed/held amounts are marked and excluded from accrued totals.
+- Existing 50%/20% agreement, six-calendar-month window, billing holds, privacy/Owner guards and voucher capacity unchanged.
+- Frontend: lab/vitolas-studio.{html,css,js}; backend: lab-worker/partner-{dashboard,commissions}.mjs, Worker version marker only; existing schema unchanged.
+- Validation: 34 focused partner/referral/menu/Image contract tests, 137 Worker/billing/promotions/holds tests and nine sandbox billing tests passed.
+- Browser: 295 assertions passed at 320/390/768/1440px using synthetic identities. Covers search/filter/detail, stale search responses, native dialogs, CSV safety, invitation errors/retry/copy/deactivate, zero budget, Owner navigation and both-role logout races.
+- Desktop, invitation dialog and 320px screenshots inspected. No horizontal mobile overflow. Actual source layout matches the approved mockup.
+- Publication pending: local candidate reviewed; next create PR, wait relevant CI, merge, then verify exact Cloudflare/Worker deployment and production bytes.
+- No real invitations, allowance allocation, payments, customer credit grants, outbound messages or real signed-in production sessions were used for verification.
+- Full standalone dossier and automatic payouts remain outside this request.
+
 ## Commission dashboard and neutral redesign, 2026-10-25
 - User rejected the olive/green palette, requested a thinner hero and business results immediately below it, then latest signups/purchases, private Owner visibility, a clean referral URL and an FAQ. Full dossier is deferred.
 - Commission rule explicitly selected by user: 50% of each referred customer's first paid purchase or first subscription payment; later subscription installments at 20% for six calendar months. Never add both rates to one receipt. Window begins with the first paid subscription installment, does not restart on reactivation, and excludes the exact six-month boundary.

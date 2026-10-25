@@ -32,7 +32,7 @@ export function calculatePartnerCommissions(payments){
   }
   return results.sort((a,b)=>(b.paidAt??b.recordedAt)-(a.paidAt??a.recordedAt)||a.reference.localeCompare(b.reference));
 }
-export async function partnerCommissionReport(env,subject){
+export async function partnerCommissionReport(env,subject,customerSummaries=new Map()){
   const payments=await all(env,`SELECT v.reference,v.customer_id AS customerId,v.amount_cents AS amountCents,v.created_at AS recordedAt,
     t.paid_at AS paidAt,e.kind,
     CASE WHEN x.customer_id IS NULL AND p.verified_at IS NOT NULL THEN p.email ELSE NULL END AS email,
@@ -45,6 +45,17 @@ export async function partnerCommissionReport(env,subject){
     LEFT JOIN lab_account_closures x ON x.customer_id=v.customer_id
     WHERE r.referrer_customer_id=?`,subject);
   const receipts=calculatePartnerCommissions(payments);
+  // Join by the immutable ledger identity, never by an email or redacted label.
+  // The map is server-only; internal subject IDs are never serialized.
+  const identities=new Map(payments.map(p=>[p.reference,p.customerId]));
+  for(const receipt of receipts){
+    const id=identities.get(receipt.reference);
+    const summary=customerSummaries.get(id)||{commissionCents:0,heldCommissionCents:0,needsReconciliation:0,paymentReferences:[]};
+    if(receipt.status==='accrued')summary.commissionCents+=receipt.commissionCents;
+    if(receipt.status==='held')summary.heldCommissionCents+=receipt.commissionCents;
+    if(receipt.status==='needs_reconciliation')summary.needsReconciliation++;
+    summary.paymentReferences.push(receipt.reference);customerSummaries.set(id,summary);
+  }
   const totals={revenueCents:0,commissionCents:0,heldCommissionCents:0,payments:receipts.length,needsReconciliation:0};
   for(const receipt of receipts){totals.revenueCents+=receipt.amountCents;if(receipt.status==='accrued')totals.commissionCents+=receipt.commissionCents;
     if(receipt.status==='held')totals.heldCommissionCents+=receipt.commissionCents;
