@@ -18,12 +18,29 @@ try{
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'agency overflow at '+width);
     assert.equal(await page.locator('iframe').count(),0,'YouTube must not load before interaction');
     assert.equal(await page.locator('.case-notes').count(),5);
-    assert.equal(await page.locator('#motion figure').count(),3);
+    assert.equal(await page.locator('#motion figure').count(),2);
     assert.equal(await page.locator('#flesh-zero-film').count(),1);
+    assert.equal(await page.locator('#featured-film').count(),1);
+    assert.match(await page.locator('#work .project-image--reptare img').getAttribute('src'),/reptare-look-02-development-sheet\.webp$/);
+    assert.ok(await page.evaluate(()=>{
+      const hero=document.querySelector('.hero'),featured=document.querySelector('#featured-film'),work=document.querySelector('#work'),motion=document.querySelector('#motion');
+      return hero.compareDocumentPosition(featured)&Node.DOCUMENT_POSITION_FOLLOWING &&
+             featured.compareDocumentPosition(work)&Node.DOCUMENT_POSITION_FOLLOWING &&
+             work.compareDocumentPosition(motion)&Node.DOCUMENT_POSITION_FOLLOWING;
+    }),'Agency section order must be Hero → Flesh Zero → Selected Work → Work in motion');
     assert.match(await page.locator('#flesh-zero-film').getAttribute('poster'),/flesh-zero-film-one-poster\.webp$/);
-    assert.ok(await page.locator('.motion-feature--wide .motion-poster').isVisible(),'Flesh Zero cover must be visible before playback');
-    await page.locator('img').evaluateAll(async images=>{images.forEach(image=>image.loading='eager');await Promise.all(images.map(image=>image.decode().catch(()=>{})));});
-    assert.deepEqual(await page.locator('img').evaluateAll(images=>images.filter(image=>!image.naturalWidth).map(image=>image.getAttribute('src'))),[],'agency artwork failed to load');
+    assert.ok(await page.locator('#featured-film .motion-poster').isVisible(),'Featured Flesh Zero cover must be visible before playback');
+    await page.locator('img').evaluateAll(async images=>{
+      const local=images.filter(image=>new URL(image.src,location.href).origin===location.origin);
+      local.forEach(image=>image.loading='eager');
+      await Promise.all(local.map(image=>image.decode().catch(()=>{})));
+    });
+    assert.deepEqual(await page.locator('img').evaluateAll(images=>images.filter(image=>new URL(image.src,location.href).origin===location.origin&&!image.naturalWidth).map(image=>image.getAttribute('src'))),[],'agency local artwork failed to load');
+    await page.waitForFunction(()=>document.querySelector('#featured-film .motion-poster')?.naturalWidth>0,{timeout:10000});
+    await page.waitForFunction(()=>document.querySelector('#work .project-image--reptare img')?.naturalWidth>0,{timeout:10000});
+    await page.locator('#work .project-image--reptare img').evaluate(async image=>{
+      await Promise.race([image.decode(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Reptare decode timeout')),10000))]);
+    });
     await page.screenshot({path:'agency-test-artifacts/agency-'+width+'.png',fullPage:true});
     const sends=[];let fail=true;
     await page.route(api+'/api/public/agency/enquiries',async route=>{
