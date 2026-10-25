@@ -17,9 +17,9 @@ const mock=`const listeners=[];const account={isSignedIn:true,user:{id:'user_Syn
 let checks=0;
 async function capture(page,name){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:output+'/'+name,fullPage:true});}
 try{
-  for(const width of [320,390,768,1440]){
+  for(const width of (process.env.PV_PARTNER_WIDTHS?process.env.PV_PARTNER_WIDTHS.split(',').map(Number):[320,390,768,1440,1920])){
     const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
-    const errors=[],writes=[],requests=[];let allowed=true,hold=false,release,ownerView=false,awaitingPartner=false,failCreate=false,holdGift=false,releaseGift,businessUnavailable=false,releaseSearch;
+    const errors=[],writes=[],requests=[];let allowed=true,hold=false,release,ownerView=false,awaitingPartner=false,failCreate=false,holdGift=false,releaseGift,businessUnavailable=false,releaseSearch,manyCustomers=false;
     let total=1000,issued=0;
     const sample=(code,note,used=0)=>({code,note,credits:100,maxRedemptions:1,redemptionCount:used,active:1,expiresAt:Date.now()+14*86400000,createdAt:Date.now(),url:'https://pvlab.studio/account.html?voucher='+code+'&ref=ABCDEFGH#voucher'});
     const vouchers=[sample('VT'+'A'.repeat(20),'Beauty founders / Octubre'),sample('VT'+'B'.repeat(20),'Primera imagen',1)];
@@ -49,10 +49,12 @@ try{
         if(!allowed||(url.pathname.startsWith('/api/admin/')&&!ownerView))return send({error:'Denied'},403);
         if(awaitingPartner)return send({workspace:{slug:'vitolas-studio',name:'Vitolas Studio'},ownerView:true,awaitingPartner:true});
         const q=url.searchParams.get('q')||'',filter=url.searchParams.get('filter')||'all';
+        if(q==='failure')return send({error:'Search unavailable'},503);
         if(q==='hold')await new Promise(resolve=>{releaseSearch=resolve});
-        const people=[{email:'friend@example.test',registeredAt:Date.now(),paid:1,subscribed:1,purchases:2,commissionCents:300,paymentReferences:['invoice:renewal']},{email:'aura@example.test',registeredAt:Date.now()-86400000,paid:1,subscribed:1,purchases:1,commissionCents:750,paymentReferences:['invoice:first']},{email:'mara@example.test',registeredAt:Date.now()-2*86400000,paid:1,subscribed:0,purchases:1,commissionCents:0,paymentReferences:[]},{email:'lina@example.test',registeredAt:Date.now()-3*86400000,paid:0,subscribed:0,purchases:0,commissionCents:0,paymentReferences:[]},{email:'nora@example.test',registeredAt:Date.now()-4*86400000,paid:0,subscribed:0,purchases:0,commissionCents:0,paymentReferences:[]}];
+        let people=[{email:'friend@example.test',registeredAt:Date.now(),paid:1,subscribed:1,purchases:2,commissionCents:300,paymentReferences:['invoice:renewal']},{email:'aura@example.test',registeredAt:Date.now()-86400000,paid:1,subscribed:1,purchases:1,commissionCents:750,paymentReferences:['invoice:first']},{email:'mara@example.test',registeredAt:Date.now()-2*86400000,paid:1,subscribed:0,purchases:1,commissionCents:0,paymentReferences:[]},{email:'lina@example.test',registeredAt:Date.now()-3*86400000,paid:0,subscribed:0,purchases:0,commissionCents:0,paymentReferences:[]},{email:'nora@example.test',registeredAt:Date.now()-4*86400000,paid:0,subscribed:0,purchases:0,commissionCents:0,paymentReferences:[]}];
+        if(manyCustomers)people=Array.from({length:105},(_,i)=>({email:'client'+i+'@example.test',registeredAt:Date.now(),paid:0,subscribed:0,purchases:0,commissionCents:0,paymentReferences:[]}));
         const shown=people.filter(p=>(!q||q==='hold'||p.email.includes(q))&&(filter==='all'||filter==='registered'&&!p.paid||filter==='paying'&&p.paid||filter==='subscribed'&&p.subscribed));
-        return send({workspace:{slug:'vitolas-studio',name:'Vitolas Studio'},shareUrl:'https://pvlab.studio/vitolas',referralUrl:'https://pvlab.studio/?ref=ABCDEFGH',commissions:businessUnavailable?null:commissions,totals:{registered:5,payingCustomers:3,activeSubscriptions:2,purchases:2},customers:shown,nextOffset:null});
+        return send({workspace:{slug:'vitolas-studio',name:'Vitolas Studio'},shareUrl:'https://pvlab.studio/vitolas',referralUrl:'https://pvlab.studio/?ref=ABCDEFGH',commissions:businessUnavailable?null:commissions,totals:{registered:manyCustomers?105:5,payingCustomers:manyCustomers?0:3,activeSubscriptions:manyCustomers?0:2,purchases:manyCustomers?0:2},customers:shown.slice(Number(url.searchParams.get('offset')||0),Number(url.searchParams.get('offset')||0)+100),nextOffset:Number(url.searchParams.get('offset')||0)+100<shown.length?Number(url.searchParams.get('offset')||0)+100:null});
       }
       return send({});
     });
@@ -79,6 +81,13 @@ try{
     assert.equal(await page.locator('#partner-url').inputValue(),'https://pvlab.studio/vitolas');checks++;
     assert.equal(await page.locator('#partner-commission').textContent(),new Intl.NumberFormat('es',{style:'currency',currency:'EUR'}).format(10.50));checks++;
     assert.equal(await page.locator('.partner-dialog[open]').count(),0);checks++;
+    assert.equal(await page.locator('header #partner-title').count(),1);assert.equal(await page.locator('.partner-client-avatar').count(),5);checks+=2;
+    assert.equal(await page.locator('#partner-prev').isDisabled(),true);assert.equal(await page.locator('#partner-more').isDisabled(),true);checks+=2;
+    if(width===1440){
+      assert.ok(await page.locator('.partner-shell').evaluate(el=>el.getBoundingClientRect().width>=innerWidth*.98));
+      assert.ok(await page.locator('.partner-client-identity strong').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=16));
+      assert.ok(await page.locator('.partner-metrics>div').first().evaluate(el=>{const a=el.querySelector('span').getBoundingClientRect(),b=el.querySelector('strong').getBoundingClientRect();return Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2)<5;}));checks+=3;
+    }
     await page.locator('.partner-client-name').first().click();assert.match(await page.locator('.partner-client-detail').textContent(),/Comisión:.*3,00/);checks++;
     await page.locator('.partner-client-name').first().click();assert.equal(await page.locator('.partner-client-detail').count(),0);checks++;
     assert.equal(await page.locator('.partner-help-grid article').count(),8);checks++;
@@ -111,6 +120,10 @@ try{
     assert.equal(await page.locator('#partner-budget-available').textContent(),'800');checks++;
     await page.locator('[data-partner-dialog="partner-invitations"]').click();
     assert.equal(await page.locator('#partner-voucher-note').getAttribute('required'),null);checks++;
+    await page.locator('#partner-voucher-credits').fill('50');await page.locator('#partner-voucher-days').selectOption('7');
+    assert.equal(await page.locator('#partner-voucher-create').isEnabled(),true);assert.equal(await page.locator('[data-partner-credits][aria-pressed=true]').count(),0);checks+=2;
+    await page.locator('#partner-voucher-days').selectOption('30');assert.equal(await page.locator('#partner-voucher-days').inputValue(),'30');checks++;
+    await page.locator('#partner-voucher-days').selectOption('14');
     await page.locator('[data-partner-credits="200"]').click();
     assert.equal(await page.locator('#partner-voucher-credits').inputValue(),'200');checks++;
     await page.locator('#partner-voucher-note').fill('New beauty campaign');
@@ -135,7 +148,23 @@ try{
     await page.waitForFunction(()=>document.querySelector('#partner-voucher-status').textContent.includes('desactivada'));
     assert.equal(await page.locator('#partner-voucher-result').getAttribute('hidden'),'');checks++;
     assert.equal(await page.locator('#partner-budget-available').textContent(),'800');checks++;
+    if(width===1440){
+      await page.keyboard.press('Escape');manyCustomers=true;await page.reload();await page.waitForFunction(()=>!document.querySelector('#partner-voucher-workspace').hidden);
+      assert.equal(await page.locator('#partner-rows>.partner-customer-row').count(),20);assert.equal(await page.locator('#partner-page').textContent(),'1');checks+=2;
+      for(let i=0;i<4;i++)await page.locator('#partner-more').click();
+      assert.equal(await page.locator('#partner-page').textContent(),'5');assert.match(await page.locator('#partner-rows').textContent(),/client80@example.test/);checks+=2;
+      await page.locator('#partner-more').click();await page.waitForFunction(()=>document.querySelector('#partner-page').textContent==='6');
+      assert.equal(await page.locator('#partner-rows>.partner-customer-row').count(),5);assert.match(await page.locator('#partner-rows').textContent(),/client100@example.test/);assert.equal(await page.locator('#partner-more').isDisabled(),true);checks+=3;
+      await page.locator('#partner-prev').click();assert.equal(await page.locator('#partner-page').textContent(),'5');assert.equal(await page.locator('#partner-rows>.partner-customer-row').count(),20);checks+=2;
+      const filtering=page.waitForRequest(req=>new URL(req.url()).searchParams.get('q')==='client104');await page.locator('#partner-search').fill('client104');await filtering;
+      await page.waitForFunction(()=>document.querySelector('#partner-customer-status').textContent==='');assert.equal(await page.locator('#partner-rows>.partner-customer-row').count(),1);assert.equal(await page.locator('#partner-page').textContent(),'1');assert.equal(await page.locator('#partner-prev').isDisabled(),true);checks+=3;
+      const failed=page.waitForRequest(req=>new URL(req.url()).searchParams.get('q')==='failure');await page.locator('#partner-search').fill('failure');await failed;await page.waitForFunction(()=>document.querySelector('#partner-customer-status').textContent.includes('Search unavailable'));
+      assert.equal(await page.locator('#partner-rows>.partner-customer-row').count(),0);assert.equal(await page.locator('#partner-prev').isDisabled(),true);assert.equal(await page.locator('#partner-more').isDisabled(),true);checks+=3;
+      manyCustomers=false;
+    }
     await page.evaluate(()=>window.mockAccount.signOut());
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);checks++;
+    assert.equal(await page.evaluate(()=>{const title=document.querySelector('#partner-title').getBoundingClientRect(),signin=document.querySelector('#partner-signin').getBoundingClientRect();return title.bottom<=signin.top||signin.bottom<=title.top||title.right<=signin.left||signin.right<=title.left;}),true);checks++;
     assert.equal(await page.locator('#partner-content').isVisible(),false);checks++;
     assert.equal(await page.locator('#partner-rows').textContent(),'');checks++;
     assert.equal(await page.locator('#partner-url').inputValue(),'');checks++;

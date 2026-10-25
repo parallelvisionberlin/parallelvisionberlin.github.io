@@ -1,6 +1,30 @@
 # Vitolas Studio partner dashboard
 
-## Approved daily workspace, 2026-10-25
+## Exact approved format and usable scale, 2026-10-25
+- User rejected the shipped execution as empty, too narrow and too small, then explicitly supplied the exact visual reference to implement.
+- Current reference: d9a59652-a2e8-479c-82b7-81f790da0ea7.png, attached 2026-10-25. Follow its proportions and full-width layout; do not substitute a new layout or remove working tools.
+- Baseline main 87903a47e15e0ae07f70b1a96e6c692204002c23, after unrelated Upscaler #550. Isolated local worktree vitolas-restore. Other source changes are preserved.
+- The reference has a single integrated PV LAB / Vitolas Studio masthead, beauty photograph and account avatar, not a separate global header plus a second inset hero.
+- Main workspace spans the viewport with proportional gutters, rather than the old 1440px outer limit. Link row, inline label/value metrics, large client heading, underline filters and search follow the supplied composition.
+- Main table uses readable type, circular initials, status pills, row chevrons and payment detail on demand. Customer labels use actual verified emails; no fictional business names or balances are inserted.
+- Real 20-client pagination replaces unlimited row appending. Previous/next controls retain cached pages and fetch the next server chunk only when needed. Search and filters reset to page one and still query every scoped record.
+- Page cache and controls clear on logout, account change and filter/search errors. Stale requests cannot populate another session or overwrite a newer query.
+- Invitation form restores editable 1-500 credit amounts plus 7/14/30-day validity, alongside presets. Existing budget, idempotency, one-redemption and identity restrictions stay enforced by the unchanged backend.
+- Commission report/CSV, billing holds, redemption history, Owner budget and FAQ stay functional. Footer terms are readable. Open Studio remains in the account menu.
+- Existing 50% first payment / 20% eligible subscription agreement and six-calendar-month window remain unchanged. No Worker or schema changes.
+- Frontend asset marker 20261025-reference2. Reuse lab/visuals/vitolas/future-beauty-v1.webp; no new image generation.
+- Changed files: lab/vitolas-studio.html, lab/vitolas-studio.css, lab/vitolas-studio.js, tests/lab-partner-dashboard.test.mjs, tests/lab-partner-dashboard-browser.mjs and this scoped handoff.
+- Local validation: 34 focused partner/referral/menu/approved Image checks passed; syntax and diff checks passed.
+- Browser checks passed at 320/390/768/1440px (338 assertions), 1920px (80), plus final 1440px search-error/cache regression (101). Final CI runs all five sizes together.
+- Coverage includes the 105-client/6-page boundary across server chunks, previous pages, global search, stale searches, failed-search cache cleanup, custom credit amounts/expiry, CSV, Owner access and both-role logout races.
+- Actual desktop 1440/1920 and phone 320 screenshots inspected against the supplied reference. Workspace fills the available width; no horizontal page overflow.
+- PR #552: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/552
+- Final small-screen correction keeps the title and sign-in action from overlapping after logout. Browser assertions now verify both their geometry and absence of horizontal overflow.
+- Publication pending: wait relevant checks, merge the fixed reviewed candidate and verify the exact Cloudflare Pages deployment and production HTML/CSS/JS.
+- No real clients, purchases, invitations, allowance changes, credit grants or outbound messages were created for verification. Real signed-in Victoria/Owner sessions are separate from synthetic QA.
+- Full standalone dossier, mail provisioning and automatic payouts remain outside this correction.
+
+## Earlier daily workspace, 2026-10-25
 - User approved the two simplified visual mockups and explicitly requested applying them to the website.
 - Baseline main: bb99854d0b3d62c81e20607e7922a46a05f0143c. Current unrelated Agency work is preserved.
 - New main screen: 138px beauty masthead, personal link/copy, one primary invitation action, three compact totals and one searchable client list.
