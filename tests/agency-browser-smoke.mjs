@@ -18,7 +18,9 @@ try{
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'agency overflow at '+width);
     assert.equal(await page.locator('iframe').count(),0,'YouTube must not load before interaction');
     assert.equal(await page.locator('.case-notes').count(),5);
-    assert.equal(await page.locator('#motion figure').count(),2);
+    assert.equal(await page.locator('#motion figure').count(),3);
+    assert.equal(await page.locator('#flesh-zero-film').count(),1);
+    assert.match(await page.locator('#flesh-zero-film').getAttribute('poster'),/flesh-zero-film-one-poster\.webp$/);
     await page.locator('img').evaluateAll(async images=>{images.forEach(image=>image.loading='eager');await Promise.all(images.map(image=>image.decode().catch(()=>{})));});
     assert.deepEqual(await page.locator('img').evaluateAll(images=>images.filter(image=>!image.naturalWidth).map(image=>image.getAttribute('src'))),[],'agency artwork failed to load');
     await page.screenshot({path:'agency-test-artifacts/agency-'+width+'.png',fullPage:true});
