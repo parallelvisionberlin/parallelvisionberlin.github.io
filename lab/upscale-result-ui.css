@@ -184,3 +184,25 @@
  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) #upscale-canvas>#preview{object-fit:contain!important;max-width:100%!important;max-height:100%!important}
  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) #upscale-result-toolbar{padding:10px!important;margin-top:0!important}
 }
+
+/* Quiet Upscaler pricing: keep the existing price-check handler and live
+   status available to assistive technology without expanding the left deck. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-price-status:not([hidden]){
+  position:absolute!important;width:1px!important;height:1px!important;padding:0!important;
+  margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;border:0!important;
+}
+/* Completed-result toolbar only: restrained separated action strip.
+   Original/empty stage and upscale history remain untouched. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) #upscale-result-toolbar{
+  width:calc(100% - 20px)!important;
+  margin:8px 10px 10px!important;
+  min-height:50px!important;max-height:none!important;
+  padding:6px 12px!important;
+  border-radius:10px!important;gap:8px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(> #upscale-result-toolbar:not([hidden])) .upscale-result-actions button{
+  height:34px!important;min-height:34px!important;padding:6px 11px!important;
+ }
+}
