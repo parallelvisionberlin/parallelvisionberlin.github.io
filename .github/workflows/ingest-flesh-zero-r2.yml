@@ -1,0 +1,67 @@
+name: Ingest Flesh Zero film to R2
+on:
+  push:
+    branches: [feature/agency-flesh-zero-motion-20261025]
+    paths:
+      - '.github/workflows/ingest-flesh-zero-r2.yml'
+permissions:
+  contents: read
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Normalize Cloudflare token
+        shell: bash
+        env:
+          RAW_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          token="$(printf '%s' "$RAW_CLOUDFLARE_API_TOKEN" | tr -d '\r\n\t ')"
+          test -n "$token"
+          echo "::add-mask::$token"
+          printf 'CLOUDFLARE_API_TOKEN=%s\n' "$token" >> "$GITHUB_ENV"
+      - name: Fetch approved Flesh Zero source media
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 4 --retry-all-errors --output /tmp/flesh-zero-original.mp4 'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6394ef59-1976-43e3-ab1e-e525c5aad43a.mp4'
+          curl --fail --location --retry 4 --retry-all-errors --output /tmp/flesh-zero-hero.png 'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/5a670963-cbd2-4163-ab84-ea8e0c4cce18.png'
+          test "$(stat -c%s /tmp/flesh-zero-original.mp4)" -gt 80000000
+          duration="$(ffprobe -v error -show_entries format=duration -of csv=p=0 /tmp/flesh-zero-original.mp4)"
+          python3 - "$duration" <<'PY'
+          import sys
+          d=float(sys.argv[1])
+          assert 32.0 < d < 34.0, d
+          PY
+      - name: Create web delivery variants
+        shell: bash
+        run: |
+          set -euo pipefail
+          ffmpeg -y -i /tmp/flesh-zero-original.mp4 -vf 'scale=1600:-2' -c:v libx264 -preset veryfast -crf 23 -movflags +faststart -c:a aac -b:a 128k /tmp/flesh-zero-desktop.mp4
+          ffmpeg -y -i /tmp/flesh-zero-original.mp4 -vf 'scale=960:-2' -c:v libx264 -preset veryfast -crf 24 -movflags +faststart -c:a aac -b:a 96k /tmp/flesh-zero-mobile.mp4
+          ffmpeg -y -i /tmp/flesh-zero-hero.png -frames:v 1 -c:v libwebp -quality 88 /tmp/flesh-zero-poster.webp
+          ffprobe -v error -show_entries stream=width,height -of csv=p=0:s=x /tmp/flesh-zero-desktop.mp4 | grep -qx '1600x800'
+          ffprobe -v error -show_entries stream=width,height -of csv=p=0:s=x /tmp/flesh-zero-mobile.mp4 | grep -qx '960x480'
+      - name: Upload to Parallel Vision R2
+        shell: bash
+        env:
+          CLOUDFLARE_ACCOUNT_ID: a40ce1725295563a7b7db9fc3160480a
+        run: |
+          set -euo pipefail
+          npx wrangler@4 r2 object put 'parallel-vision-visuals/fashion-after-fabric/flesh-zero/flesh-zero-film-one-original.mp4' --file /tmp/flesh-zero-original.mp4 --content-type video/mp4 --remote
+          npx wrangler@4 r2 object put 'parallel-vision-visuals/fashion-after-fabric/flesh-zero/flesh-zero-film-one-desktop.mp4' --file /tmp/flesh-zero-desktop.mp4 --content-type video/mp4 --remote
+          npx wrangler@4 r2 object put 'parallel-vision-visuals/fashion-after-fabric/flesh-zero/flesh-zero-film-one-mobile.mp4' --file /tmp/flesh-zero-mobile.mp4 --content-type video/mp4 --remote
+          npx wrangler@4 r2 object put 'parallel-vision-visuals/fashion-after-fabric/flesh-zero/flesh-zero-film-one-poster.webp' --file /tmp/flesh-zero-poster.webp --content-type image/webp --remote
+      - name: Verify public R2 delivery
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/fashion-after-fabric/flesh-zero'
+          for file in flesh-zero-film-one-original.mp4 flesh-zero-film-one-desktop.mp4 flesh-zero-film-one-mobile.mp4 flesh-zero-film-one-poster.webp; do
+            echo "checking $file"
+            curl --fail --location --silent --show-error --retry 5 --retry-delay 2 --range 0-1023 --output /tmp/check "$base/$file"
+            test -s /tmp/check
+          done
+          echo 'FLESH_ZERO_R2_VERIFIED'
