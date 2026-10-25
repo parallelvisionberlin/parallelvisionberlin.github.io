@@ -13,7 +13,11 @@ test('the working desk keeps all bindings, current branding and full-page tools 
   const controller=readFileSync(new URL('../lab/vitolas-studio.js',import.meta.url),'utf8');
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length,'Unique dashboard controls');
   for(const match of controller.matchAll(/\$\('([^']+)'\)/g))assert.ok(ids.includes(match[1]),'Missing controller target: '+match[1]);
-  assert.ok(html.indexOf('class="partner-link"')<html.indexOf('class="partner-metrics"'));
+  assert.ok(html.indexOf('class="partner-metrics"')<html.indexOf('class="partner-link"'));
+  const board=html.slice(html.indexOf('id="partner-results"'),html.indexOf('class="partner-results-context"'));
+  assert.ok(board.indexOf('id="partner-subscribed"')<board.indexOf('id="partner-paying"'));
+  assert.ok(board.indexOf('id="partner-paying"')<board.indexOf('id="partner-overview-revenue"'));
+  assert.ok(board.indexOf('id="partner-overview-revenue"')<board.indexOf('id="partner-commission"'));
   assert.equal((html.match(/<dialog /g)||[]).length,0);
   assert.equal((html.match(/role="tabpanel"/g)||[]).length,5);
   assert.equal((html.match(/role="tab"/g)||[]).length,5);

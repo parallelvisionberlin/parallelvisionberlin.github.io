@@ -115,6 +115,7 @@ async function refresh(){
 $('partner-signin').onclick=()=>clerk?.openSignIn();
 $('partner-signout').onclick=async()=>{++revision;clear();status('Cerrando sesión…');try{await clerk?.signOut();await refresh();}catch{status('No se pudo cerrar sesión. Inténtalo de nuevo.');}};
 $('partner-refresh').onclick=()=>void refresh();
+for(const button of document.querySelectorAll('[data-partner-overview-filter]'))button.addEventListener('click',()=>document.querySelector('[data-partner-filter="'+button.dataset.partnerOverviewFilter+'"]').click());
 $('partner-copy').onclick=async()=>{
   const current=revision,value=$('partner-url').value;if(!value)return;
   try{await navigator.clipboard.writeText(value);if(current===revision)$('partner-copy').textContent='Copiado';}

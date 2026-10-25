@@ -81,7 +81,7 @@ try{
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);checks++;
     assert.equal(await page.locator('.partner-hero').evaluate(el=>el.getBoundingClientRect().height<=270),true);checks++;
     assert.equal(await page.locator('#partner-results').evaluate(el=>el.compareDocumentPosition(document.getElementById('partner-invitations'))&Node.DOCUMENT_POSITION_FOLLOWING?true:false),true);checks++;
-    assert.equal(await page.locator('.partner-link').evaluate(el=>!!(el.compareDocumentPosition(document.querySelector('.partner-metrics'))&Node.DOCUMENT_POSITION_FOLLOWING)),true);checks++;
+    assert.equal(await page.locator('.partner-metrics').evaluate(el=>!!(el.compareDocumentPosition(document.querySelector('.partner-link'))&Node.DOCUMENT_POSITION_FOLLOWING)),true);checks++;
     assert.equal(await page.getByRole('tab').count(),5);assert.equal(await tab('Resumen').getAttribute('aria-selected'),'true');assert.equal(await page.locator('.partner-agreement').isVisible(),true);checks+=2;checks++;
     assert.equal(await page.locator('#partner-url').inputValue(),'https://pvlab.studio/vitolas');checks++;
     assert.equal(await page.locator('#partner-commission').textContent(),new Intl.NumberFormat('es',{style:'currency',currency:'EUR'}).format(10.50));checks++;
@@ -95,6 +95,12 @@ try{
     }
     await page.waitForFunction(()=>document.querySelector('header .lab-wordmark').complete&&document.querySelector('header .lab-wordmark').naturalWidth>0);
     assert.match(await page.locator('header .lab-wordmark').getAttribute('src'),/pvlab-wordmark-bold.svg/);assert.match(await page.locator('#partner-latest-signups').textContent(),/friend@example.test/);assert.match(await page.locator('#partner-recent-purchases').textContent(),/Tu comisión/);checks+=3;
+    assert.deepEqual(await page.locator('#partner-results>div>strong').evaluateAll(nodes=>nodes.map(n=>n.id)),['partner-subscribed','partner-paying','partner-overview-revenue','partner-commission']);checks++;
+    assert.ok(await page.locator('#partner-results').evaluate(el=>el.getBoundingClientRect().top<document.querySelector('.partner-link').getBoundingClientRect().top));checks++;
+    await page.locator('[data-partner-overview-filter="subscribed"]').click();await page.waitForFunction(()=>document.querySelector('[data-partner-filter="subscribed"]').getAttribute('aria-pressed')==='true');assert.equal(await tab('Clientes').getAttribute('aria-selected'),'true');checks++;
+    await tab('Resumen').click();await page.locator('[data-partner-overview-filter="paying"]').click();await page.waitForFunction(()=>document.querySelector('[data-partner-filter="paying"]').getAttribute('aria-pressed')==='true');assert.equal(await tab('Clientes').getAttribute('aria-selected'),'true');checks++;
+    await page.locator('[data-partner-filter="all"]').click();await page.waitForFunction(()=>document.querySelectorAll('.partner-client-name').length===5);await tab('Resumen').click();
+    assert.ok(await page.locator('#partner-results').evaluate(board=>[...board.querySelectorAll(':scope>div')].every(cell=>{const a=cell.querySelector('strong').getBoundingClientRect(),b=cell.querySelector('button').getBoundingClientRect();return a.bottom<=b.top||a.right<=b.left||b.right<=a.left;})));checks++;
     await capture(page,'overview-'+width+'.png');
     await tab('Guía').click();assert.equal(await page.locator('#partner-help').isVisible(),true);assert.equal(await page.locator('.partner-help-grid article').count(),8);checks+=2;
     await tab('Guía').press('Home');await tab('Resumen').press('ArrowRight');assert.equal(await tab('Clientes').getAttribute('aria-selected'),'true');checks++;
