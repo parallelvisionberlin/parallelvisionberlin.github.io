@@ -8,7 +8,7 @@ import {calculatePartnerCommissions,sixCalendarMonthsAfter,recordPartnerPaymentC
 import {stripeWebhook} from '../lab-worker/customer-billing.mjs';
 import {resolveVitolasLink} from '../lab/vitolas-link.js';
 
-test('the daily workspace keeps every binding and opens detail tools only on demand',()=>{
+test('the approved reference keeps every binding, real pagination and flexible invitation controls',()=>{
   const html=readFileSync(new URL('../lab/vitolas-studio.html',import.meta.url),'utf8');
   const controller=readFileSync(new URL('../lab/vitolas-studio.js',import.meta.url),'utf8');
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length,'Unique dashboard controls');
@@ -17,6 +17,11 @@ test('the daily workspace keeps every binding and opens detail tools only on dem
   assert.equal((html.match(/<dialog /g)||[]).length,4);
   assert.equal(/<dialog[^>]+\bopen\b/.test(html),false);
   assert.equal(html.includes('partner-activity-card'),false);
+  assert.match(html,/<header class="[^"]*partner-hero/);
+  assert.equal((html.match(/id="partner-title"/g)||[]).length,1);
+  assert.ok(ids.includes('partner-prev')&&ids.includes('partner-page'));
+  assert.match(html,/<input id="partner-voucher-credits"[^>]+type="number"[^>]+min="1"[^>]+max="500"/);
+  assert.match(html,/<select id="partner-voucher-days"/);
   assert.ok(html.indexOf('class="partner-metrics"')<html.indexOf('id="partner-invitations"'));
 });
 import {partnerVoucherRoute} from '../lab-worker/partner-vouchers.mjs';
