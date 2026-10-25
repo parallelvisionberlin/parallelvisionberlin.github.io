@@ -1,6 +1,30 @@
 # Vitolas Studio partner dashboard
 
-## Exact approved format and usable scale, 2026-10-25
+## Full-page working desk and current branding, 2026-10-25
+- User rejected tiny modal tools, duplicated Help/commission-condition buttons, the old spaced wordmark and a boring empty client-first screen. Explicitly requested a redo.
+- Baseline f28f7832365a1e9c6c967bd14eab1e0b8e592507, isolated worktree vitolas-desk. Keep unrelated app and concurrent work unchanged.
+- New workspace: five large, persistent sections, Resumen / Clientes / Invitaciones / Comisiones / Guía. All tools render inline as full-page panels. No dialog or modal APIs remain.
+- The correct logo reuses the exact current homepage asset lab/branding/pvlab-wordmark-bold.svg?v=20261022-bold1. Do not recreate it as letter-spaced text. Personal account avatars retain their actual signed-in identity.
+- Preserve the approved Future Beauty photograph at lab/visuals/vitolas/future-beauty-v1.webp, wide workspace and neutral high-fashion palette. No paid image generation or new dependencies.
+- Overview shows accrued commission, the 50%/20% agreement, share/copy link, invitation budget and registration/payment/subscription/revenue totals. Empty accounts get practical next steps instead of a large empty table.
+- Latest registrations and purchases are visible on Overview once activity exists. Actual server-scoped activity only, with no illustrative clients, forecasts, balances or invented business names in production.
+- Client list keeps global search/filtering, per-client receipts and 20-client pagination across server chunks. Permission and identity resolution remain on the server.
+- Invitations combine editable 1-500 credits, 7/14/30-day expiry, optional identifying label, live gift preview, created link/copy message, available/reserved/redeemed budget, history and redemption records.
+- Invitation and redemption history paginate 20 rows locally within the existing latest-60/latest-100 API bounds. On phones these records and commission receipts use labelled full-width rows instead of squeezed columns.
+- Owner alone sees the allowance form; the unchanged actual admin API still enforces authorization and audited limits. Zero budget is visible and explained, while the personal referral remains usable.
+- Commissions use a full-width report, actual receipt states, held amounts and CSV. Existing 50% first payment / 20% eligible subscription policy, six calendar months and manual settlement semantics are unchanged.
+- Guía contains the existing eight FAQ/commission topics in one readable page. No duplicated Help/conditions controls or collapsed redemption table.
+- Section hashes support direct links and refresh. Tabs support keyboard navigation. Logout and account changes clear all customer, receipt, voucher and overview caches; stale-response guards remain.
+- Changed files: lab/vitolas-studio.html, lab/vitolas-studio.css, lab/vitolas-studio.js, tests/lab-partner-dashboard.test.mjs, tests/lab-partner-dashboard-browser.mjs and this scoped handoff. No Worker/schema changes.
+- Asset marker: 20261025-workdesk1. The existing logo SVG is referenced, not modified.
+- Local checks: 34 focused partner/referral/menu/approved Image checks passed; JavaScript syntax, balanced HTML and diff checks passed.
+- Browser checks passed at 320px (99 assertions), remaining 390/768/1440/1920px (425), and the final phone layout at 320/390/768px (297). Final CI runs all five sizes together.
+- Coverage includes current logo loading, no modal elements, all five inline sections and keyboard tabs, 105 clients/six pages, search races/errors, 43 invitation/23 redemption paging, CSV safety, custom credit/expiry choices, Owner budget and both-role logout races.
+- Desktop empty Overview and invitation editor, and phone layouts, were inspected. No real users, invitations, payments, allowance grants, customer credits or outbound messages were created for QA.
+- Publication pending: create scoped PR, keep the candidate fixed, wait relevant checks, merge and verify the exact Cloudflare Pages deployment and production HTML/CSS/JS/logo bytes and rendering.
+- Real signed-in production account observation remains separate from synthetic visual/role tests. Mail provisioning, automatic payouts and the standalone dossier remain outside this redo.
+
+## Earlier exact format and usable scale, 2026-10-25
 - User rejected the shipped execution as empty, too narrow and too small, then explicitly supplied the exact visual reference to implement.
 - Current reference: d9a59652-a2e8-479c-82b7-81f790da0ea7.png, attached 2026-10-25. Follow its proportions and full-width layout; do not substitute a new layout or remove working tools.
 - Baseline main 87903a47e15e0ae07f70b1a96e6c692204002c23, after unrelated Upscaler #550. Isolated local worktree vitolas-restore. Other source changes are preserved.
