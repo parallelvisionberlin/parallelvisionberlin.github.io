@@ -7,6 +7,15 @@ import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute,public
 import {calculatePartnerCommissions,sixCalendarMonthsAfter,recordPartnerPaymentContext} from '../lab-worker/partner-commissions.mjs';
 import {stripeWebhook} from '../lab-worker/customer-billing.mjs';
 import {resolveVitolasLink} from '../lab/vitolas-link.js';
+
+test('the complete dashboard keeps every controller binding and prioritizes counters before invitation tools',()=>{
+  const html=readFileSync(new URL('../lab/vitolas-studio.html',import.meta.url),'utf8');
+  const controller=readFileSync(new URL('../lab/vitolas-studio.js',import.meta.url),'utf8');
+  const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length,'Unique dashboard controls');
+  for(const match of controller.matchAll(/\$\('([^']+)'\)/g))assert.ok(ids.includes(match[1]),'Missing controller target: '+match[1]);
+  assert.ok(html.indexOf('class="partner-metrics"')<html.indexOf('class="partner-link"'));
+  assert.ok(html.indexOf('class="partner-metrics"')<html.indexOf('id="partner-invitations"'));
+});
 import {partnerVoucherRoute} from '../lab-worker/partner-vouchers.mjs';
 import {voucherCustomerRoute,labAdminRoute} from '../lab-worker/promotions.mjs';
 
