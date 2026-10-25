@@ -413,7 +413,7 @@ function render(data){
       {primary:voucher.code,secondary:voucher.note||''},
       formatNumber(voucher.credits),
       formatNumber(voucher.redemptionCount)+' / '+formatNumber(voucher.maxRedemptions),
-      formatDate(voucher.expiresAt),
+      voucher.expiresAt===null?'Never':formatDate(voucher.expiresAt),
       state
     ];
     for(const item of cells){
@@ -432,6 +432,12 @@ function render(data){
       const restore=document.createElement('button');restore.type='button';restore.textContent='Remove expiry';
       restore.addEventListener('click',()=>void restoreVoucher(voucher.code,restore));actions.append(restore);
     }else actions.textContent='—';
+    if(voucher.redemptionCount>0){
+      const recipients=document.createElement('button');recipients.type='button';
+      recipients.textContent='View recipients ('+formatNumber(voucher.redemptionCount)+')';
+      recipients.addEventListener('click',()=>void toggleVoucherRecipients(voucher,recipients,tr));
+      actions.append(recipients);
+    }
     tr.append(actions);body.append(tr);
   }
   // Show the server's last sanitized Clerk sync outcome even after a page reload.
@@ -509,6 +515,56 @@ async function copyLink(url,button){
     if(parsed.protocol!=='https:'||!(studioDomain&&parsed.pathname==='/account.html'||legacyDomain&&parsed.pathname==='/lab/account.html')||parsed.username||parsed.password)throw Error();
     await navigator.clipboard.writeText(parsed.href);button.textContent='Copied';
   }catch{button.textContent='Select link to copy';$('owner-voucher-result').hidden=false;$('owner-voucher-link').value=url;$('owner-voucher-link').select();}
+}
+// The full claim identity is fetched only after an owner clicks the voucher.
+// Never render customer names or emails with innerHTML.
+async function toggleVoucherRecipients(voucher,button,mainRow){
+  if(!profile?.owner||!mainRow.isConnected)return;
+  const existing=mainRow.nextElementSibling;
+  if(existing?.dataset.voucherRecipients===voucher.code){
+    existing.remove();button.textContent='View recipients ('+formatNumber(voucher.redemptionCount)+')';return;
+  }
+  const row=document.createElement('tr');row.className='owner-voucher-recipients-row';
+  row.dataset.voucherRecipients=voucher.code;
+  const cell=document.createElement('td');cell.colSpan=6;
+  const panel=activityElement('div','owner-voucher-recipients-panel');
+  const heading=activityElement('strong','', 'Redeemed by · '+voucher.code);
+  const summary=activityElement('p','owner-voucher-recipients-note',
+    'Verified account emails and profile names when available. Only visible to Owner.');
+  const entries=activityElement('div','owner-voucher-recipients-list');
+  const progress=activityElement('p','owner-voucher-recipients-note','Loading redemption history…');
+  const more=activityElement('button','owner-voucher-recipients-more','Load more');
+  more.type='button';more.hidden=true;
+  panel.append(heading,summary,entries,progress,more);cell.append(panel);row.append(cell);mainRow.after(row);
+  button.textContent='Hide recipients';
+  let offset=0;
+  async function loadPage(){
+    more.disabled=true;more.hidden=true;
+    progress.textContent='Loading redemption history…';
+    try{
+      const data=await call('/api/admin/vouchers/redemptions?code='+encodeURIComponent(voucher.code)+'&offset='+offset);
+      if(!row.isConnected||!profile?.owner)return;
+      const recipients=Array.isArray(data.redemptions)?data.redemptions:[];
+      if(!recipients.length&&offset===0)progress.textContent='No redemptions recorded.';
+      else{
+        for(const item of recipients){
+          const record=activityElement('div','owner-voucher-recipient');
+          const identity=activityElement('div','owner-voucher-recipient-identity');
+          const main=item.accountClosed?'Closed account':item.name||item.email||'Profile name unavailable';
+          identity.append(activityElement('strong','',main));
+          if(item.email&&item.email!==main)identity.append(activityElement('span','',item.email));
+          identity.append(activityElement('small','',item.customerId));
+          record.append(identity,activityElement('time','',activityDate(item.redeemedAt)));
+          entries.append(record);
+        }
+        offset=Number(data.nextOffset)||offset+recipients.length;
+        progress.textContent='';
+      }
+      more.hidden=!data.hasMore;more.disabled=false;
+    }catch(error){if(row.isConnected)progress.textContent=error.message||'Could not load recipients.';more.hidden=false;more.disabled=false;}
+  }
+  more.addEventListener('click',()=>void loadPage());
+  await loadPage();
 }
 async function restoreVoucher(code,button){
   if(!profile?.owner||!window.confirm('Remove the expiry from '+code+'? Its remaining claims will stay available until the limit is reached or you deactivate it. No credits will be issued now.'))return;

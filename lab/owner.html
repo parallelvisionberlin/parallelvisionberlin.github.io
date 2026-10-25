@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261018-agency-preview1">
+<link rel="stylesheet" href="./owner.css?v=20261025-voucher-recipients1">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -215,7 +215,7 @@
           <div class="owner-form-grid">
             <label>Credits per person <input id="owner-voucher-credits" name="credits" type="number" min="1" max="20000" step="1" value="200" required></label>
             <label>Maximum redemptions <input id="owner-voucher-limit" name="maxRedemptions" type="number" min="1" max="1000" step="1" value="1" required></label>
-            <label>Expires on <input name="expires" type="date"></label>
+            <label>Expires on <span class="owner-optional">optional, leave blank for no expiry</span><input name="expires" type="date"></label>
             <label>Custom code <span class="owner-optional">optional</span><input name="code" type="text" maxlength="24" placeholder="Automatically generated" autocomplete="off" spellcheck="false"></label>
           </div>
           <div class="owner-credit-presets" role="group" aria-label="Credit amount presets">
@@ -255,6 +255,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261024-vitolas-owner1"></script>
+<script type="module" src="./owner.js?v=20261025-voucher-recipients1"></script>
 </body>
 </html>

@@ -752,3 +752,23 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 
 /* Unlisted Agency entry: visible only after owner access has been verified. */
 .owner-side-bottom a[hidden]{display:none!important}
+
+/* Voucher redemption details, revealed only after an authenticated owner request. */
+.owner-voucher-recipients-row>td{padding:0 0 20px;border:0}
+.owner-voucher-recipients-panel{padding:20px 23px;background:#191a19;border:1px solid #41433e;border-radius:3px;max-width:100%;min-width:0}
+.owner-voucher-recipients-panel>strong{font-size:15px;font-weight:500;letter-spacing:-.02em}
+.owner-voucher-recipients-note{font-size:11px;color:#a0a29b;line-height:1.6;margin:8px 0 12px}
+.owner-voucher-recipient{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:13px 0;border-top:1px solid #353732}
+.owner-voucher-recipient-identity{display:flex;flex-direction:column;gap:4px;min-width:0;overflow-wrap:anywhere}
+.owner-voucher-recipient-identity strong{font-size:13px;font-weight:500}
+.owner-voucher-recipient-identity span{font-size:12px;color:#d2d0c9}
+.owner-voucher-recipient-identity small{font-size:10px;color:#8f928b}
+.owner-voucher-recipient time{font-size:11px;color:#aaa9a3;white-space:nowrap}
+.owner-voucher-recipients-more{padding:9px 13px;background:#272824;border:1px solid #44463f;border-radius:3px;color:#e4e2dc;font-size:11px}
+@media(max-width:600px){
+  .owner-vouchers-table tbody tr.owner-voucher-recipients-row{margin:0;padding:0 0 15px;border-top:0}
+  .owner-vouchers-table tbody tr.owner-voucher-recipients-row>td{display:block;width:100%;padding:0}
+  .owner-voucher-recipients-panel{padding:17px}
+  .owner-voucher-recipient{flex-direction:column;gap:5px}
+  .owner-voucher-recipient time{white-space:normal}
+}

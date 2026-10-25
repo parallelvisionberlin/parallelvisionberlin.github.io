@@ -43,6 +43,76 @@ test('voucher migration is repeatable and generated gift link remains on PV LAB'
   assert.ok(created.voucher.url.includes(created.voucher.code));
   assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_vouchers').n,1);
 });
+test('vouchers without an expiry remain active and owner can inspect verified recipients',async t=>{
+  const f=await setup(t);if(!f)return;
+  const created=(await (await f.admin('/api/admin/vouchers',{credits:200,maxRedemptions:2})).json()).voucher;
+  assert.equal(created.expiresAt,null);
+  assert.equal(f.get('SELECT expires_at AS expiresAt FROM lab_vouchers WHERE code=?',created.code).expiresAt,null);
+  await f.redeem('user_ALICE',created.code);
+  await assert.rejects(
+    ()=>f.admin('/api/admin/vouchers/redemptions?code='+created.code,null,'GET','user_BOB'),
+    /owner access required/
+  );
+  f.env.LAB_CLERK_SECRET_KEY='sk_test_clerk_mock_only';
+  const prior=globalThis.fetch;
+  globalThis.fetch=async (url,options)=>{
+    assert.match(String(url),/^https:\/\/api\.clerk\.com\/v1\/users\/user_ALICE$/);
+    assert.equal(options.redirect,'manual');
+    return Response.json({id:'user_ALICE',first_name:'Alice',last_name:'Example',
+      primary_email_address_id:'em_1',
+      email_addresses:[{id:'em_1',email_address:'Alice@Example.com',verification:{status:'verified'}}]});
+  };
+  try{
+    const details=await (await f.admin('/api/admin/vouchers/redemptions?code='+created.code,null,'GET')).json();
+    assert.equal(details.redemptions.length,1);
+    assert.equal(details.redemptions[0].name,'Alice Example');
+    assert.equal(details.redemptions[0].email,'alice@example.com');
+    assert.equal(details.redemptions[0].customerId,'user_ALICE');
+    assert.equal(details.redemptions[0].accountClosed,false);
+    assert.equal(details.hasMore,false);
+  }finally{globalThis.fetch=prior;}
+  assert.equal(f.get('SELECT balance_credits AS b FROM lab_customers WHERE id=?','user_ALICE').b,200);
+  assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_credit_entries').n,1,'Recipient lookup is read-only');
+});
+
+test('voucher owner details preserve historical claims when Clerk is unavailable',async t=>{
+  const f=await setup(t);if(!f)return;
+  const code='PVDETAILS2026';
+  await f.admin('/api/admin/vouchers',{credits:50,maxRedemptions:2,code});
+  await f.redeem('user_BOB',code);
+  f.insert('INSERT INTO lab_customer_contacts(customer_id,email,verified_at,synced_at) VALUES(?,?,?,?)',
+    'user_BOB','bob@example.com',Date.now(),Date.now());
+  f.env.LAB_CLERK_SECRET_KEY='sk_test_clerk_mock_only';
+  const prior=globalThis.fetch;
+  globalThis.fetch=async()=>new Response('unavailable',{status:503});
+  try{
+    const details=await (await f.admin('/api/admin/vouchers/redemptions?code='+code,null,'GET')).json();
+    assert.deepEqual(details.redemptions.map(({name,email})=>({name,email})),[{name:null,email:'bob@example.com'}]);
+    f.insert('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)','user_BOB',Date.now());
+    const closed=await (await f.admin('/api/admin/vouchers/redemptions?code='+code,null,'GET')).json();
+    assert.equal(closed.redemptions[0].accountClosed,true);
+    assert.equal(closed.redemptions[0].email,null,'Closed account contacts must stay private');
+  }finally{globalThis.fetch=prior;}
+  assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_credit_entries').n,1);
+});
+
+test('voucher recipient history paginates without altering the immutable ledger',async t=>{
+  const f=await setup(t);if(!f)return;
+  const code='PVMULTI2026';
+  await f.admin('/api/admin/vouchers',{credits:10,maxRedemptions:12,code});
+  for(let i=0;i<12;i++){
+    const id='user_EXTRA'+String(i);f.signup(id);await f.redeem(id,code);
+  }
+  const first=await (await f.admin('/api/admin/vouchers/redemptions?code='+code,null,'GET')).json();
+  assert.equal(first.redemptions.length,10);
+  assert.equal(first.hasMore,true);
+  const second=await (await f.admin('/api/admin/vouchers/redemptions?code='+code+'&offset='+first.nextOffset,null,'GET')).json();
+  assert.equal(second.redemptions.length,2);
+  assert.equal(second.hasMore,false);
+  assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_credit_entries').n,12);
+  await assert.rejects(()=>f.admin('/api/admin/vouchers/redemptions?code='+code+'&offset=-1',null,'GET'),/valid voucher and page/);
+});
+
 test('one redemption credits the ledger once and does not oversubscribe the gift link',async t=>{
   const f=await setup(t);if(!f)return;
   const voucher=(await (await f.admin('/api/admin/vouchers',{credits:200,maxRedemptions:1,code:'FRIEND200'})).json()).voucher;
