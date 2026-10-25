@@ -1,5 +1,14 @@
 # Vitolas Studio partner dashboard
 
+## Approved simplified Invitations layout, 2026-10-25
+- User approved visual mockup generated_images/exec-2eecc9b4-08ab-4448-bffc-99bb7e6e5c34.png and explicitly requested implementation.
+- Baseline 7b04b0bc811f77dba932b5a635bfe226c377fb82, isolated worktree vitolas-invite-simple. Keep hero, logo, typography, neutral palette, results hierarchy and no-downward-scroll navigation.
+- One two-column working panel: optional client/brand, credit presets/custom 1-500, validity 7/14/30 days and one Create link action on left; actual reactive invitation preview on right. Phone stacks both within the same panel.
+- Real available credits now sit beside heading. Owner-only Asignar créditos opens the existing audited budget form inline, initially closed; reserved/redeemed totals move to history. No illustrative balances in production.
+- Real generated link/copy/message replaces preview, while form stays present. Create is disabled with Enlace creado until Crear otra invitación resets it. Preserve history, deactivation, canje identities and pagination.
+- Preview reuses existing approved beauty photo asset, no new paid generation. Zero budget remains explicit and blocks issuance; referral remains usable. No Worker/schema or commission changes.
+- Files: Vitolas HTML/CSS/JS, existing browser role test and this checkpoint. Asset marker 20261025-invite-simple1. Validation and normal Pages publication pending.
+
 ## Navigation without automatic downward scrolling, 2026-10-25
 - User rejects section navigation scrolling down and cropping the hero. Every section control should open its destination directly, keeping the page starting at the hero with no scrolling animation.
 - Baseline f4bc0ce (current main), isolated worktree vitolas-navigation. Preserve compact results, unified typography and all functionality.

@@ -201,6 +201,7 @@ try{
     ownerView=true;allowed=true;await page.reload();
     await page.locator('#partner-content:not([hidden])').waitFor();
     await tab('Invitaciones').click();
+    assert.equal(await page.locator('#partner-budget-form').isVisible(),false);checks++;await page.locator('#partner-budget-toggle').click();
     await page.locator('#partner-budget-form:not([hidden])').waitFor();
     await page.locator('#partner-budget-total').fill('2000');await page.locator('#partner-budget-form button').click();
     await page.waitForFunction(()=>document.querySelector('#partner-voucher-status').textContent.includes('Presupuesto guardado'));
