@@ -1,21 +1,40 @@
-# Hong Kong Nights: current release state (2026-10-25)
+# Hong Kong Nights: release verification and CI follow-up
 
-Owner's current approved direction supersedes the earlier 1-90%-unchanged restriction below: a strongly nocturnal 1990s film-scene look at default Mood 60%, visible translucent petrol-green humid fog, softly darkened photographic frame edges, wet existing outdoor surfaces and warm skin. Base identity, wardrobe, architecture and dry indoor furniture remain unchanged.
+Verified 2026-10-25 (Berlin). Source main: `61a2729fea715995ed2648aa82cb7a5d9035eee3`, including PRs #536, #537 and #538. Scoped branch: `codex/hong-kong-film-finish-ci-20261025`.
 
-## Implementation
+## Approved implementation
 
-- Scoped branch `fix/hong-kong-nights-cinematic-fog-default-20261025`, PR #536 targeting `main`. No production merge had occurred when this checkpoint was written.
-- New default `35mm Film Finish`: **Grain 13%, Haze 100%, Halation 78%, Film 100%**. `lab/film-finish.js`, `lab/hong-kong-variants.js` and `lab/moods.js` agree.
-- Worker `lab-worker/worker.mjs` supplies the canonical optical preset for new Hong Kong quotes if clients omit it. Explicit all-zero values still opt out. Historic job metadata remains unchanged.
-- Result viewer `lab/lab.js` displays **OFF** for old jobs with no saved finish metadata, avoiding false impression that processing was applied.
-- Cinematic prompt in `lab/moods.js` allows darker apparent time of day and localized petrol-green backlit humidity; always requests wet sheen on visible original outdoor pavement, never added puddles in a dry room. Physical frame falloff is not graphic bars.
-- The two real model references remain `02-city-haze.jpg` and `03-shop-reflections.jpg` per `lab/hong-kong-reference-policy.js`; `Supervalu` stays preview art. No new source/style images or billing modifications.
-- Model-specific compact Seedream Lite wording is independently constrained to 3,000 characters; the other supported models stay under 5,000. Wording must not truncate user-authored text or reference assignment.
-- Application module import cache revisions `hkCinema=20261025v1` propagate to Studio Image, Explore Moods, Mood Creator and reference guidance; other Mood recipes remain unchanged.
-- Dedicated tests cover four-slider defaults, reference numbering, film result behavior, 60%-100% mood continuity, source preservation and prompt length across supported models.
-- Initial CI caught overlength prompts (5K and Lite 3K) and an outdated film-default assertion; corrected in the PR. Fresh full PR CI and release verification are required before merge.
-- No charged generations or controlled image comparisons were made. Prompt compliance alone does not prove the provider rendered the requested fog, dark edges or wet ground.
-- Next: require the affected CI workflows green, merge reviewed PR, verify automatic Worker deployment and Cloudflare `pvlab-studio` custom-domain artifact, then compare portrait, window/interior and street at 30/60/100% using the same Base. Record visual results separately.
+- PR #536 merged as `bcd80d965b19c7d084b0c5c94009c4bb9467f3c6`.
+- New built-in Hong Kong Nights: Grain **13**, Haze **100**, Halation **78**, Film **100**, default creative intensity 60%.
+- Canonical client preset: `lab/film-finish.js`; Nocturne variant: `lab/hong-kong-variants.js`; recipe and controls: `lab/moods.js`.
+- Worker `imageMoodMetadata()` supplies the same preset when omitted. Explicit all-zero values override it; historical results without finish metadata display OFF. No original or historical result is rewritten.
+- Cinematic recipe requests darker night exposure, localized translucent petrol-green humidity, natural warm skin and wet existing outdoor pavement. Preserve identity, wardrobe, pose, buildings and dry interiors.
+- Automatic photographic inputs remain exactly `02-city-haze.jpg` and `03-shop-reflections.jpg`, with hashes in `lab/hong-kong-reference-policy.js`. Supervalu is artwork only; diner and indoor portrait are historical references, not automatic inputs.
+- Studio and Explore use the shared built-in recipe/preset. Mood Creator loads the same catalog; saved personal Moods intentionally use `preparePersonalMoodPrompt()` without the built-in automatic finish, as existing tests require. They are not new Hong Kong jobs.
+
+## Confirmed failures and scoped correction
+
+- Main run `40141247863` failed only its browser expectation of zero defaults. Remote Cloudflare pixel/off-bypass checks and unit steps had passed.
+- Update `tests/lab-film-browser.mjs` to 13/100/78/100, test explicit-zero restore/enrichment, and assert historical OFF before manually editing all four controls.
+- Add Worker regressions for missing/default, zero and custom finish metadata, unrelated Moods, mocked Gemini completion and server-bound Seedream quotes. No actual provider requests.
+- Main run `40141247979` expected Tools hidden whenever `#app` was hidden. Current `assets.css` explicitly preserves public navigation. This is an obsolete UI expectation, not evidence of an authorization regression.
+- Reuse the scoped Assets expectation corrections already prepared in open PR #482: actual public navigation, private archive hidden, approved Upscaler/Fashion layout, real lazy-loading intersections. Keep actual file, quote/confirmation and billing assertions.
+- Also await favorite-save response before inspecting its asynchronous fixture state.
+- No application, permission, auth, provider, pricing or credit-ledger code is changed by this follow-up.
+
+## Verification and publication evidence
+
+- Targeted film/Hong Kong/Worker/approved Image contract tests passed locally: **156/156** on the initial source; recheck after current-main integration is recorded in the PR.
+- Film browser passed at 1440px and 390px, including manual OFF, historical OFF, independent controls, one mock finish write and original download. Local finished-image bytes are only a browser fixture; CI must validate real Cloudflare pixels separately.
+- Explore generation scenarios and all 11 Mood Creator browser checks passed with synthetic APIs.
+- Full-bootstrap guest-only subset passed at 1440px, 390px and 320px: public tool decks/navigation, private Assets gate, auth return URLs and zero private API requests. This is not a signed-in production test.
+- Optional full role suite stopped on its pre-existing attempt to fill disabled empty Retouch input (`#precision-prompt`), also addressed separately in #482; no product control was weakened.
+- Cloudflare Pages check `121121874586`, project `pvlab-studio`, succeeded for #536. Read-only release verifier returned LIVE_VERIFIED for `lab/lab.js?v=20261024-fashion-main1`, SHA-256 `3afcb4009bf4267c7ac8ec241b291c755aab9bae5e48ad39a22f07538fec2b5f`.
+- Production `film-finish.js`, `hong-kong-variants.js`, `moods.js`, `app-mood-generation.js`, `mood-creator.js`, `reference-guidance.js` and reference policy matched reviewed bytes. Studio/Explore/Creator HTML contain `hkCinema=20261025v1`. Production-loaded modules return the approved preset and preserve explicit OFF.
+- Worker health reports `pv-lab-2026-10-25-vitolas-invitations-v1`, consistent with subsequent main PR #537, whose source retains Hong Kong fallback. Live unauthenticated jobs, library and private-asset requests returned 401. No authenticated production quote was made.
+- Exact original city/street references and historical indoor portrait were visually inspected. No post-#536 same-input portrait/interior/street AI outputs were available for controlled comparison. Photographic result quality remains UNVERIFIED; prompt and pixel-processing tests do not prove fog/wet-ground generation quality.
+- No paid generation, real-account mutation or customer media access occurred.
+- Next: require relevant branch CI (real film pixels and Assets included), merge the tested SHA through the existing PR procedure, and record final main/hosting evidence separately. Controlled new visual comparisons require explicit paid-generation authorization or already-existing matching outputs.
 
 ## Historical approved Image 3 note (2026-10-20, superseded for new jobs)
 

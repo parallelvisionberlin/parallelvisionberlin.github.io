@@ -4,7 +4,7 @@ import http from 'node:http';
 import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from '../lab/film-finish.js';
+import {HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,FILM_FINISH_RENDER_REVISION} from '../lab/film-finish.js';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const start=source.indexOf('try{clerk=await loadLabAccount();'),end=source.indexOf('\n// Soul composer:',start);
@@ -14,7 +14,7 @@ clerk={session:{id:'test-session',getToken:async()=> 'synthetic-token'}};
 owner=true;userId='test';await deviceMediaCache.select(userId);config={enabled:true,concurrency:{image:4,video:1}};
 $('app').hidden=false;$('gate').hidden=true;
 await loadHistory();await restoreStudioEntry();update();finishLabBoot();
-window.__filmTest={settings,select:()=>{moodUI.restore({moodId:'hong-kong-nights',moodIntensity:80});moodUI.open();},close:()=>moodUI.close()};`;
+window.__filmTest={settings,select:(filmFinish)=>{moodUI.restore({moodId:'hong-kong-nights',moodIntensity:80,...(filmFinish?{filmFinish}:{})});moodUI.open();},close:()=>moodUI.close()};`;
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+pathname);
   if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}
@@ -56,18 +56,22 @@ try{
     }
     await page.evaluate(()=>window.__filmTest.select());
     const composer=page.locator('#composer-moods .film-finish');await composer.waitFor({state:'visible'});
-    assert.deepEqual(HONG_KONG_FILM_FINISH,{version:2,grain:0,haze:0,halation:0,film:0},'Restored Hong Kong Nights defaults are off');
+    assert.deepEqual(HONG_KONG_FILM_FINISH,{version:2,grain:13,haze:100,halation:78,film:100},'New Hong Kong Nights generations use the approved preset');
     for(const [label,key] of [['Grain','grain'],['Haze','haze'],['Halation','halation'],['Film','film']]){
       assert.equal(await composer.getByRole('slider',{name:label+' intensity'}).inputValue(),String(HONG_KONG_FILM_FINISH[key]),label+' should load the approved default');
     }
     await composer.getByRole('slider',{name:'Grain intensity'}).fill('90');
     const settings=await page.evaluate(()=>window.__filmTest.settings());assert.equal(settings.filmFinish.grain,90);assert.equal(settings.moodIntensity,80);
+    await page.evaluate(off=>window.__filmTest.select(off),FILM_FINISH_OFF);
+    assert.deepEqual((await page.evaluate(()=>window.__filmTest.settings())).filmFinish,FILM_FINISH_OFF,'Explicit all-zero settings survive restore and prompt enrichment');
+    for(const label of ['Grain','Haze','Halation','Film'])assert.equal(await composer.getByRole('slider',{name:label+' intensity'}).inputValue(),'0','Manual off remains available');
     assert.equal(await page.locator('#composer-moods').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Mood controls fit on mobile and desktop');
     await page.screenshot({path:`test-results/film-finish/controls-${width}.png`});
     await page.evaluate(()=>window.__filmTest.close());
     await page.locator('#history .card').first().evaluate(el=>el.click());
     await page.waitForFunction(()=>!document.querySelector('#image-lightbox-download').disabled);
     const finish=page.locator('#image-film-finish');await finish.waitFor({state:'visible'});
+    for(const label of ['Grain','Haze','Halation','Film'])assert.equal(await finish.getByRole('slider',{name:label+' intensity'}).inputValue(),'0','Historical results without metadata remain OFF');
     const help=finish.getByRole('button',{name:'About 35mm film finish'});
     await help.click();
     assert.equal(await finish.locator('.film-finish-explanation').isVisible(),true);
@@ -88,7 +92,7 @@ try{
         'Finishing actions must clear the fixed result toolbar: '+JSON.stringify(bounds));
     }
 
-    await finish.getByRole('slider',{name:'Grain intensity'}).fill('85');await finish.getByRole('slider',{name:'Haze intensity'}).fill('40');await finish.getByRole('slider',{name:'Film intensity'}).fill('70');
+    await finish.getByRole('slider',{name:'Grain intensity'}).fill('85');await finish.getByRole('slider',{name:'Haze intensity'}).fill('40');await finish.getByRole('slider',{name:'Halation intensity'}).fill(String(HONG_KONG_FILM_FINISH.halation));await finish.getByRole('slider',{name:'Film intensity'}).fill('70');
     await finish.getByRole('button',{name:'Apply finish',exact:true}).click();
     await page.waitForFunction(()=>document.querySelector('#image-film-finish').textContent.includes('Applied'));
     assert.equal(writes.length,1);assert.equal(await finish.getByRole('slider',{name:'Grain intensity'}).inputValue(),'85');
