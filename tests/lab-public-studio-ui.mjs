@@ -35,6 +35,14 @@ assert.ok(fashionApprovedHtml.includes(originalFashionHero)&&fashionApprovedHtml
 const newFashionHero='<img src="./visuals/fashion-replace/hero-model-oct24.jpg" alt="" width="1672" height="941" fetchpriority="high" decoding="async">';
 const newFashionPerson='<img class="slot-example person-example" src="./visuals/fashion-replace/person-before-jacket-oct25.jpg" alt="" width="760" height="806" decoding="async">';
 fashionApprovedFiles.set('lab/fashion.html',Buffer.from(fashionApprovedHtml.replace(originalFashionHero,newFashionHero).replace(originalFashionPerson,newFashionPerson)));
+// Fashion-only approved hero crop: update the expected photograph positioning,
+// while keeping every other pixel comparison and component baseline unchanged.
+const approvedFashionCss=fashionApprovedFiles.get('lab/fashion.css').toString('utf8');
+const oldFashionHeroCrop='transform:scale(1.2);transform-origin:72% 12%';
+const newFashionHeroCrop='transform:translateX(6%) scale(1.12);transform-origin:72% 12%';
+assert.equal(approvedFashionCss.split(oldFashionHeroCrop).length,2,'Approved Fashion framing selector remains unique');
+fashionApprovedFiles.set('lab/fashion.css',Buffer.from(approvedFashionCss.replace(oldFashionHeroCrop,newFashionHeroCrop)));
+
 
 // The owner approved a new Video-only design in #496. Freeze that implemented
 // reference while retaining the original pixel baselines for every other tool.
