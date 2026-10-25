@@ -379,7 +379,7 @@ body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline
 <style id="pv-lab-hero-nav">
 /* A discreet NEW cue next to Lab in the Parallel Vision homepage navigation. */
 .pv-home .home-primary-links>a.home-lab-link{display:inline-flex;align-items:center;white-space:nowrap;gap:7px}
-.pv-home .home-lab-new{display:none}
+.pv-home .home-lab-new{font:500 8px/1.2 Inter,Arial,sans-serif;letter-spacing:.08em;color:#e7e5dc;border:1px solid rgba(225,225,218,.45);border-radius:2px;padding:3px 4px;text-transform:uppercase}
 /* BERLIN 2063 / restrained future-transit capsule, refined geometric lettering. */
 .pv-home .hero-world-cta{
   display:inline-flex;align-items:center;justify-content:space-between;
@@ -427,10 +427,6 @@ body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline
     font-size:10px;letter-spacing:.025em;gap:.5em;
   }
   .pv-home .hero-world-cta svg{width:18px;height:18px;flex-basis:18px}
-}
-@media(min-width:621px) and (max-width:1100px){
-  .pv-home .home-primary-links{gap:clamp(9px,1.4vw,16px);font-size:10px;letter-spacing:.08em}
-  .pv-home .home-lab-new{display:none}
 }
 @media(max-width:620px){
   .pv-home .home-primary-links>a.home-lab-link{display:grid;grid-template-columns:30px max-content auto;justify-content:start;gap:7px}
