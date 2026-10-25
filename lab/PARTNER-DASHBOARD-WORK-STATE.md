@@ -18,7 +18,15 @@
 - Validation: 34 focused partner/referral/menu/Image contract tests, 137 Worker/billing/promotions/holds tests and nine sandbox billing tests passed.
 - Browser: 295 assertions passed at 320/390/768/1440px using synthetic identities. Covers search/filter/detail, stale search responses, native dialogs, CSV safety, invitation errors/retry/copy/deactivate, zero budget, Owner navigation and both-role logout races.
 - Desktop, invitation dialog and 320px screenshots inspected. No horizontal mobile overflow. Actual source layout matches the approved mockup.
-- Publication pending: local candidate reviewed; next create PR, wait relevant CI, merge, then verify exact Cloudflare/Worker deployment and production bytes.
+- Published PR #549: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/549
+- Reviewed head fcdc4226ceea631e235988c70405c4141251869e; production merge b14cbdc463ed1fef6dba3adff30e8a1f0cadc600. All ten final PR workflows passed, including partner browser run 40201677479, artifact 12601054166.
+- Production Worker run 40202131358/job 121195333161 succeeded, including deployment and health. Live version pv-lab-2026-10-25-vitolas-workspace-v1. Shared isolated billing sandbox run 40202131229 also succeeded.
+- Exact-merge Cloudflare Pages check 121195660676 succeeded. Scoped verifier returned LIVE_VERIFIED for lab/lab.js, SHA-256 3afcb4009bf4267c7ac8ec241b291c755aab9bae5e48ad39a22f07538fec2b5f.
+- Actual production Vitolas HTML/CSS/JS returned HTTP 200 and exactly matched reviewed merge bytes. Asset marker 20261025-workspace1.
+- Live page rendered at 390/1440px with synthetic, read-only API responses: compact masthead, empty state, contained layout, invitation dialog, zero-budget guard and Escape close passed. Screenshot inspected. This is production-asset rendering, not observation of Victoria's real session.
+- Status: frontend and Worker published. Private page https://pvlab.studio/vitolas-studio; share link remains https://pvlab.studio/vitolas.
+- Changed files: lab/vitolas-studio.html, lab/vitolas-studio.css, lab/vitolas-studio.js, lab-worker/partner-dashboard.mjs, lab-worker/partner-commissions.mjs, lab-worker/worker.mjs (version marker), tests/lab-partner-dashboard.test.mjs, tests/lab-partner-dashboard-browser.mjs and this scoped handoff.
+- Next real use: open Vitolas Studio from the existing Victoria/Owner menu. Owner can set the existing invitation allowance from Tus invitaciones if needed; this release did not allocate credits.
 - No real invitations, allowance allocation, payments, customer credit grants, outbound messages or real signed-in production sessions were used for verification.
 - Full standalone dossier and automatic payouts remain outside this request.
 
