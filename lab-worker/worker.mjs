@@ -1,3 +1,4 @@
+import {reconcileProviderSettlements} from './provider-settlement.mjs';
 import {agencyPublicRoute,agencyAdminRoute,processAgencyNotifications,pruneAgencyData} from './agency-enquiries.mjs';
 import {filmFinishSettings,HONG_KONG_FILM_FINISH,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish} from '../lab/film-finish.js';
 import {checkCustomerPromptSafety} from './prompt-safety.mjs';
@@ -56,7 +57,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-25-vitolas-workspace-v1';
+export const VERSION = 'pv-lab-2026-10-25-provider-settlement-v1';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -2196,6 +2197,7 @@ export default {
     // Account erasure must not wait for a provider poll, training recovery or
     // an unrelated source-file cleanup to succeed.
     ctx.waitUntil(accountMaintenance(env));
+    ctx.waitUntil(reconcileProviderSettlements(env,{fetchSettlement:async job=>{const c=await config(env,job.owner_id);if(!c)throw Error('Provider not connected');return vendorRequest('/jobs/recordInfo?taskId='+encodeURIComponent(job.provider_task_id),await decryptKey(env,c.encrypted_key));}}));
     ctx.waitUntil(maintenance(env));
     // Discard aggregate counts older than 90 days, once per UTC day.
     const clock=Number(event?.scheduledTime)||Date.now();

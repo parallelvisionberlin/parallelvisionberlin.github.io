@@ -20,7 +20,8 @@ export function createOwnerAcquisitionUI({request,ownerReady,revision,days,forma
     const s=data.summary||{},starts=Number(s.checkoutStarts)||0,paid=Number(s.checkoutPaid)||0;
     $('owner-acquisition-new').textContent=formatNumber(s.newUsers);
     $('owner-acquisition-active').textContent=formatNumber(s.activatedUsers);
-    $('owner-acquisition-cost').textContent=money(s.providerExposureUsd,'$');
+    $('owner-acquisition-cost').textContent=money(s.providerExposureUsd,'$')+(s.unsettledFailedJobs?' + pending':'');
+    $('owner-acquisition-cost').title=(s.unsettledFailedJobs||0)+' failed jobs await final provider billing confirmation.';
     $('owner-acquisition-revenue').textContent=money(s.revenueCents,'€',.01);
     $('owner-acquisition-checkout').textContent=starts?(100*paid/starts).toFixed(1)+'%':'—';
     $('owner-acquisition-checkout-note').textContent=starts?
