@@ -115,6 +115,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0033-owner-voucher-generation.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0036-clerk-contact-hold-upsert.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0037-partner-vouchers.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0038-partner-commissions.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health

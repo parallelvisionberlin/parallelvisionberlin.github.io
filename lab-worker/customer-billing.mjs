@@ -1,6 +1,7 @@
 import {DEFAULT_CREDITS_PER_USD,creditsForJobUsd,SOUL_ID_TRAINING_CREDITS as TRAINING_PRICE} from './job-pricing.mjs';
 import {assertCustomerOpen,customerRestrictions,customerAccount,requestAccountClosure,customerPromotionalReview} from './customer-lifecycle.mjs';
 import {rewardQualifiedReferral} from './referrals.mjs';
+import {recordPartnerPaymentContext} from './partner-commissions.mjs';
 import {labMetaOptIn,sendLabMetaPurchase} from './meta-capi.mjs';
 import {grantVerifiedWelcome} from './welcome-guard.mjs';
 import {canCustomerGenerate,canCustomerCheckout,isPrivateLivePilot,isPermittedPilotPurchase} from './customer-rollout.mjs';
@@ -271,6 +272,7 @@ export async function stripeWebhook(request,env,ctx){
         await credit(env,subject,item.credits,'purchase','checkout:'+data.id);
         await exec(env,`INSERT OR IGNORE INTO lab_revenue_events(reference,customer_id,amount_cents,created_at)
           VALUES(?,?,?,?)`,'checkout:'+data.id,subject,item.cents,now());
+        await recordPartnerPaymentContext(env,{reference:'checkout:'+data.id,paidAt:Number.isSafeInteger(event.created)?event.created*1000:null,kind:'purchase'});
         await rewardQualifiedReferral(env,subject,'checkout:'+data.id,item.cents);
         if(data.metadata?.lab_meta_consent==='1')metaPurchase={subject,transactionId:data.id,amountCents:item.cents,consented:true};
       } else if(data.mode==='subscription'&&item.type==='subscription'&&data.subscription){
@@ -294,6 +296,8 @@ export async function stripeWebhook(request,env,ctx){
         await credit(env,meta.subject,PACKS[meta.sku].credits,'subscription','invoice:'+data.id);
         await exec(env,`INSERT OR IGNORE INTO lab_revenue_events(reference,customer_id,amount_cents,created_at)
           VALUES(?,?,?,?)`,'invoice:'+data.id,meta.subject,Number(data.amount_paid),now());
+        const paidSeconds=data.status_transitions?.paid_at??event.created;
+        await recordPartnerPaymentContext(env,{reference:'invoice:'+data.id,paidAt:Number.isSafeInteger(paidSeconds)?paidSeconds*1000:null,kind:'subscription',subscriptionId:id});
         await rewardQualifiedReferral(env,meta.subject,'invoice:'+data.id,Number(data.amount_paid));
         if(data.billing_reason==='subscription_create'&&sub.metadata?.lab_meta_consent==='1')metaPurchase={subject:meta.subject,transactionId:data.id,amountCents:Number(data.amount_paid),consented:true};
       }

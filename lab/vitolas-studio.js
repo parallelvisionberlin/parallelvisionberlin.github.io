@@ -6,6 +6,8 @@ const menu=createAccountMenu($('account-menu'));
 let clerk=null,revision=0,nextOffset=null,loading=false;
 let dashboardPath='/api/customer/partner';
 let voucherBusy=false,voucherData=null,createdVoucher=null,requestId=crypto.randomUUID();
+let commissionData=null,commissionLimit=25;
+let customerFilter='all',customerRevision=0;
 const request=createSessionRequest({baseUrl:'https://parallel-vision-lab.parallelvision.workers.dev',getSession:()=>clerk?.session});
 const status=message=>{$('partner-status').textContent=message;};
 async function api(path,body){
@@ -15,7 +17,12 @@ async function api(path,body){
 }
 function clear(){
   menu.update();nextOffset=null;loading=false;
+  customerFilter='all';customerRevision++;for(const b of document.querySelectorAll('[data-partner-filter]'))b.setAttribute('aria-pressed',String(b.dataset.partnerFilter==='all'));
   voucherBusy=false;voucherData=null;createdVoucher=null;requestId=crypto.randomUUID();
+  commissionData=null;commissionLimit=25;$('partner-export').disabled=true;$('partner-commission-more').hidden=true;
+  for(const id of ['partner-latest-signups','partner-recent-purchases','partner-commission-rows'])$(id).replaceChildren();
+  for(const id of ['partner-commission','partner-revenue','partner-commission-held'])$(id).textContent='0,00 €';
+  $('partner-commission-status').textContent='';
   $('partner-voucher-workspace').hidden=true;$('partner-budget-form').hidden=true;$('partner-voucher-result').hidden=true;
   $('partner-voucher-url').value='';$('partner-voucher-code').textContent='';$('partner-voucher-detail').textContent='';$('partner-copy-status').textContent='';
   $('partner-voucher-note').value='';$('partner-voucher-credits').value='100';$('partner-voucher-days').value='14';$('partner-budget-total').value='';$('partner-voucher-status').textContent='';
@@ -51,11 +58,11 @@ async function refresh(){
     const data=await api(dashboardPath);if(current!==revision)return;
     if(data.awaitingPartner){status('Tu acceso de owner está activo. Victoria debe iniciar sesión una vez para activar su enlace y sus datos.');return;}
     menu.update({signed:true,user:clerk.user,profile:{...profile,partnerDashboard:data.workspace}});
-    const link=new URL(data.referralUrl);
+    const link=new URL(data.shareUrl||data.referralUrl);
     if(!['https://pvlab.studio','https://www.pvlab.studio','https://parallelvisionlabel.com'].includes(link.origin))throw Error('El enlace no está disponible.');
     $('partner-url').value=link.href;
     for(const [id,key] of [['registered','registered'],['paying','payingCustomers'],['subscribed','activeSubscriptions'],['purchases','purchases']])$('partner-'+id).textContent=Number(data.totals[key]||0).toLocaleString('es');
-    rows(data.customers);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;
+    rows(data.customers);drawBusiness(data);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;
     $('partner-content').hidden=false;status('');await loadVouchers(current);
   }catch(error){if(current===revision)status(error.message);}
 }
@@ -70,11 +77,63 @@ $('partner-copy').onclick=async()=>{
 $('partner-more').onclick=async()=>{
   if(loading||nextOffset===null)return;
   const current=revision;loading=true;$('partner-more').disabled=true;
-  try{const data=await api(dashboardPath+'?offset='+nextOffset);if(current!==revision)return;rows(data.customers,true);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;status('');}
+  try{const data=await api(dashboardPath+'?offset='+nextOffset+'&filter='+customerFilter);if(current!==revision)return;rows(data.customers,true);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;status('');}
   catch(error){if(current===revision)status(error.message);}
   finally{if(current===revision){loading=false;$('partner-more').disabled=false;}}
 };
+for(const button of document.querySelectorAll('[data-partner-filter]'))button.onclick=async()=>{
+  if(loading||button.dataset.partnerFilter===customerFilter)return;
+  const current=revision,local=++customerRevision;loading=true;$('partner-more').disabled=true;
+  try{const data=await api(dashboardPath+'?filter='+button.dataset.partnerFilter);if(current!==revision||local!==customerRevision)return;
+    customerFilter=button.dataset.partnerFilter;rows(data.customers);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;
+    for(const b of document.querySelectorAll('[data-partner-filter]'))b.setAttribute('aria-pressed',String(b===button));
+  }catch(error){if(current===revision)status(error.message);}
+  finally{if(current===revision&&local===customerRevision){loading=false;$('partner-more').disabled=false;}}
+};
 const date=value=>new Date(value).toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'});
+const money=cents=>new Intl.NumberFormat('es',{style:'currency',currency:'EUR'}).format(Number(cents||0)/100);
+const receiptStatus={accrued:'Registrada',held:'En revisión',needs_reconciliation:'Por conciliar',not_eligible:'Fuera del acuerdo'};
+function activity(target,items,kind){
+  const list=$(target);list.replaceChildren();
+  if(!items.length){const p=document.createElement('p');p.className='partner-activity-empty';p.textContent=kind==='signup'?'Los nuevos registros de tu enlace aparecerán aquí.':'Las compras verificadas de tus referidos aparecerán aquí.';list.append(p);return;}
+  for(const item of items){
+    const row=document.createElement('div');row.className='partner-activity-row';const identity=document.createElement('div'),name=document.createElement('strong'),detail=document.createElement('small'),aside=document.createElement('div'),value=document.createElement('strong'),stamp=document.createElement('small');
+    name.textContent=item.closed?'Cuenta cerrada':item.email||'Correo pendiente de verificación';
+    detail.textContent=kind==='signup'?(item.subscribed?'Suscripción activa':item.paid?'Cliente de pago':'Registrada'):(item.kind==='subscription'?'Cuota de suscripción':'Compra de créditos');
+    value.textContent=kind==='signup'?'Registro':money(item.amountCents);stamp.textContent=date(item.registeredAt||item.paidAt||item.recordedAt);
+    identity.append(name,detail);aside.append(value,stamp);row.append(identity,aside);list.append(row);
+  }
+}
+function commissionRows(){
+  const body=$('partner-commission-rows');body.replaceChildren();const receipts=commissionData?.receipts||[];
+  if(!receipts.length){const row=body.insertRow(),cell=row.insertCell();cell.colSpan=5;cell.textContent='Tu informe se completará cuando tus referidos realicen pagos verificados.';}
+  for(const payment of receipts.slice(0,commissionLimit)){
+    const row=body.insertRow(),name=row.insertCell(),label=document.createElement('strong'),reference=document.createElement('small');
+    label.textContent=payment.closed?'Cuenta cerrada':payment.email||'Correo pendiente de verificación';reference.textContent=(payment.kind==='subscription'?'Suscripción':'Recarga')+' · '+payment.reference;name.append(label,reference);
+    row.insertCell().textContent=date(payment.paidAt||payment.recordedAt);row.insertCell().textContent=money(payment.amountCents);
+    const earned=row.insertCell();earned.textContent=payment.status==='needs_reconciliation'?'Por conciliar':money(payment.commissionCents)+' · '+payment.rate+'%';
+    if(payment.kind==='subscription'&&payment.subscriptionWindowEndsAt){const window=document.createElement('small');window.textContent='Periodo hasta '+date(payment.subscriptionWindowEndsAt);earned.append(window);}
+    const badge=document.createElement('span');badge.className='partner-badge';badge.textContent=receiptStatus[payment.status]||'En revisión';row.insertCell().append(badge);
+  }
+  $('partner-commission-more').hidden=receipts.length<=commissionLimit;
+}
+function drawBusiness(data){
+  activity('partner-latest-signups',data.customers.slice(0,5),'signup');commissionData=data.commissions||null;
+  if(!commissionData){for(const id of ['partner-commission','partner-revenue','partner-commission-held'])$(id).textContent='No disponible';$('partner-commission-status').textContent='No pudimos cargar el informe de comisiones. Actualiza el panel.';return;}
+  const totals=commissionData.totals;
+  $('partner-commission').textContent=money(totals.commissionCents);$('partner-revenue').textContent=money(totals.revenueCents);$('partner-commission-held').textContent=money(totals.heldCommissionCents);
+  $('partner-commission-status').textContent=totals.needsReconciliation?totals.needsReconciliation+' pagos sin fecha verificable pendientes de conciliación.':'';
+  activity('partner-recent-purchases',commissionData.recentPurchases.slice(0,5),'purchase');commissionRows();$('partner-export').disabled=!commissionData.receipts.length;
+}
+$('partner-commission-more').onclick=()=>{commissionLimit+=25;commissionRows();};
+$('partner-export').onclick=()=>{
+  if(!commissionData?.receipts.length)return;
+  const safe=value=>{let text=String(value??'');if(/^[\s=+@-]/.test(text))text="'"+text;return '"'+text.replaceAll('"','""')+'"';};
+  const rows=[['Fecha','Cuenta','Referencia','Tipo','Importe EUR','Porcentaje','Comisión EUR','Estado','Fin del periodo de suscripción']];
+  for(const p of commissionData.receipts)rows.push([new Date(p.paidAt||p.recordedAt).toISOString(),p.closed?'Cuenta cerrada':p.email||'Correo pendiente',p.reference,p.kind,(p.amountCents/100).toFixed(2),p.rate,(p.commissionCents/100).toFixed(2),receiptStatus[p.status],p.subscriptionWindowEndsAt?new Date(p.subscriptionWindowEndsAt).toISOString():'']);
+  const url=URL.createObjectURL(new Blob(['\uFEFF'+rows.map(row=>row.map(safe).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
+  const link=document.createElement('a');link.href=url;link.download='vitolas-comisiones-'+new Date().toISOString().slice(0,10)+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
 function preview(){
   const credits=Number($('partner-voucher-credits').value),days=Number($('partner-voucher-days').value);
   $('partner-preview-credits').textContent=Number.isSafeInteger(credits)&&credits>0?credits.toLocaleString('es'):'0';
