@@ -166,7 +166,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       preview.hidden=false;empty.hidden=true;
     });
     const filledCanvasHeight=await page.locator('#upscale-canvas').evaluate(el=>el.getBoundingClientRect().height);
-    assert.ok(Math.abs(filledCanvasHeight-emptyCanvasHeight)<=2,'Source preview remains equally spacious before and after upload');
+    assert.ok(filledCanvasHeight<emptyCanvasHeight&&filledCanvasHeight>=320&&filledCanvasHeight<=620,'Loaded source preview is viewport-fitted, while the empty upload hero stays spacious');
     await page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-upscale-source-ready'));
     assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Source image remains available after upload');
     const secondaryChooser=page.waitForEvent('filechooser');
