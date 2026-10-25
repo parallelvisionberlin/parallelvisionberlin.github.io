@@ -1770,9 +1770,9 @@
      uses that same photographic viewport instead of shrinking on upload. */
   #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(#preview:not([hidden])){
     box-sizing:border-box!important;
-    height:clamp(680px,calc(100dvh - 104px),980px)!important;
-    min-height:680px!important;
-    max-height:none!important;
+    height:clamp(320px,calc(100dvh - 285px),620px)!important;
+    min-height:320px!important;
+    max-height:620px!important;
   }
 }
 
