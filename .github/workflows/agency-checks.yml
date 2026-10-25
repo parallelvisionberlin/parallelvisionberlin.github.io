@@ -1,0 +1,66 @@
+name: Agency enquiry and public page checks
+on:
+  pull_request:
+    paths: ['agency/**','lab-worker/agency-enquiries.mjs','lab-worker/migrations/0040-agency-enquiries.sql','tests/agency-*.mjs','css/agency-feature.css','.github/workflows/agency-checks.yml']
+  push:
+    branches: [main]
+    paths: ['agency/**','lab-worker/agency-enquiries.mjs','lab-worker/migrations/0040-agency-enquiries.sql','tests/agency-*.mjs','css/agency-feature.css','.github/workflows/agency-checks.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/agency-enquiries.test.mjs
+      - run: node --check agency/agency.js && node --check agency/inbox.js && node --check lab-worker/worker.mjs
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - name: Public browser regression checks
+        run: |
+          python3 -m http.server 8799 >/tmp/agency-server.log 2>&1 &
+          node tests/agency-browser-smoke.mjs
+      - name: Verify published custom domain and API without creating enquiries
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          const site='https://parallelvisionlabel.com',api='https://parallel-vision-lab.parallelvision.workers.dev';
+          const report={checkedAt:null,files:[],noEnquiriesCreated:true};
+          const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+          async function get(path,options={}){const r=await fetch(path,{...options,signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache',...options.headers}});return r;}
+          async function verify(){
+            const status=await get(api+'/api/public/agency/status',{headers:{Origin:site}});
+            assert.equal(status.status,200);const body=await status.json();assert.equal(body.ready,true);assert.equal(body.revision,'agency-public-20261025-v1');
+            assert.equal(status.headers.get('access-control-allow-origin'),site);report.api=body;
+            const files=['agency/index.html','agency/agency.js','agency/launch.css','agency/inbox.html','agency/inbox.js','agency/inbox.css','agency/privacy.html','css/agency-feature.css','assets/optimized/agency/agency-social-20261025.jpg'];
+            const checked=[];
+            for(const path of files){const response=await get(site+'/'+path+'?agency-release='+process.env.GITHUB_SHA);assert.equal(response.status,200,path);const actual=Buffer.from(await response.arrayBuffer()),expected=await readFile(path);assert.equal(sha(actual),sha(expected),'Published file differs: '+path);checked.push({path,sha256:sha(actual)});}
+            const home=await (await get(site+'/?agency-release='+process.env.GITHUB_SHA)).text();
+            assert.match(home,/class="home-agency-link" href="\.\/agency\/"/);assert.match(home,/id="home-agency-title"/);
+            const sitemap=await (await get(site+'/sitemap.xml')).text();assert.ok(sitemap.includes(site+'/agency/'));
+            const privateResponse=await get(api+'/api/admin/agency/enquiries',{headers:{Origin:site}});assert.ok([401,403].includes(privateResponse.status),'Owner data must reject signed-out requests');
+            const preflight=await get(api+'/api/public/agency/enquiries',{method:'OPTIONS',headers:{Origin:site,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type'}});assert.ok(preflight.ok);assert.equal(preflight.headers.get('access-control-allow-origin'),site);
+            const invalid=await get(api+'/api/public/agency/enquiries',{method:'POST',headers:{Origin:site,'Content-Type':'application/json'},body:'{}'});assert.equal(invalid.status,400,'Invalid brief must not be accepted');
+            report.checkedAt=new Date().toISOString();report.files=checked;report.signedOutStatus=privateResponse.status;report.invalidBriefStatus=invalid.status;report.homepageAgencyVisible=true;
+          }
+          let lastError;
+          for(let attempt=0;attempt<24;attempt++){
+            try{await verify();lastError=null;break;}catch(error){lastError=error;console.log('Deployment not ready:',error.message);await new Promise(resolve=>setTimeout(resolve,10000));}
+          }
+          if(lastError)throw lastError;
+          await writeFile('agency-test-artifacts/production-verification.json',JSON.stringify(report,null,2));
+          console.log(JSON.stringify(report,null,2));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agency-browser-checks
+          path: agency-test-artifacts/
+          retention-days: 7

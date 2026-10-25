@@ -25,6 +25,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Normalize Cloudflare API token
         shell: bash
         env:
@@ -41,6 +45,8 @@ jobs:
 
       - name: Test private My Moods and Worker syntax
         run: |
+          node --test tests/agency-enquiries.test.mjs
+          node --check lab-worker/agency-enquiries.mjs
           node --test tests/lab-smart-prompts.test.mjs tests/lab-smart-prompt-ui.test.mjs tests/lab-krea3-fashion.test.mjs
           node --test tests/lab-spicy-image-credit-steps.test.mjs tests/lab-pricing-integrity.test.mjs
           node --test tests/lab-auth.test.mjs tests/lab-worker.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-sandbox-billing.test.mjs tests/lab-live-pilot.test.mjs tests/lab-new-models-pricing.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-welcome-credits.test.mjs tests/lab-trial-pause.test.mjs
@@ -115,6 +121,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0033-owner-voucher-generation.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0036-clerk-contact-hold-upsert.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0037-partner-vouchers.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0040-agency-enquiries.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health

@@ -1,3 +1,4 @@
+import {agencyPublicRoute,agencyAdminRoute,processAgencyNotifications,pruneAgencyData} from './agency-enquiries.mjs';
 import {filmFinishSettings,HONG_KONG_FILM_FINISH,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish} from '../lab/film-finish.js';
 import {checkCustomerPromptSafety} from './prompt-safety.mjs';
 import {verifySpicyCallback,spicyWakeToken,equalWakeToken} from './spicy-webhook.mjs';
@@ -1348,6 +1349,7 @@ async function route(request,env,ctx) {
   if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1'});
   // This is the only unauthenticated analytics route. Origin and bounded payload are required.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
+  if(url.pathname.startsWith('/api/public/agency/'))return agencyPublicRoute(request,env,ctx);
 
   if(url.pathname.startsWith('/input/')&&(request.method==='GET'||request.method==='HEAD'))return publicInput(request,env,url);
   if(url.pathname.startsWith('/soul-dataset/')&&request.method==='GET')return publicSoulDataset(request,env,url,soulDeps());
@@ -1374,6 +1376,7 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/admin/partners/vitolas-studio/'))return partnerVoucherRoute(request,env,owner,{ownerView:true});
   if(path==='/api/admin/partners/vitolas-studio')return ownerPartnerDashboardRoute(request,env,owner);
+  if(path.startsWith('/api/admin/agency/'))return agencyAdminRoute(request,env,owner);
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
   if(customer&&path==='/api/session'&&ctx?.waitUntil&&
@@ -2188,6 +2191,7 @@ export default {
     // Customer-email repair is isolated from potentially failing generation maintenance.
     ctx.waitUntil(scheduledClerkBackfill(env));
     ctx.waitUntil(processSignupWelcomeEmails(env).catch(()=>{}));
+    ctx.waitUntil(processAgencyNotifications(env).catch(()=>{}));
     // Account erasure must not wait for a provider poll, training recovery or
     // an unrelated source-file cleanup to succeed.
     ctx.waitUntil(accountMaintenance(env));
@@ -2198,6 +2202,7 @@ export default {
     if(when.getUTCHours()===3&&when.getUTCMinutes()<5)
       ctx.waitUntil(Promise.all([
         pruneLabTraffic(env,{clock:()=>clock}),
+        pruneAgencyData(env,{clock:()=>clock}),
         pruneGenerationReviewAudit(env,{clock:()=>clock})
       ]));
   }
