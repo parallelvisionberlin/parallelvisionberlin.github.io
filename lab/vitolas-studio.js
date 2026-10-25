@@ -77,7 +77,7 @@ function renderCustomers(){
     row.insertCell().textContent=date(person.registeredAt);
     const badge=document.createElement('span');badge.className='partner-badge';badge.dataset.active=String(!!person.subscribed);
     badge.textContent=person.closed?'Cerrada':person.subscribed?'Suscripción':person.paid?'De pago':'Registrada';row.insertCell().append(badge);
-    const earned=row.insertCell(),amount=document.createElement('span'),chevron=document.createElement('span');amount.textContent=Number.isSafeInteger(person.commissionCents)?money(person.commissionCents):'No disponible';chevron.textContent='›';chevron.className='partner-client-chevron';chevron.setAttribute('aria-hidden','true');earned.append(amount,chevron);
+    const earned=row.insertCell(),amount=document.createElement('span');amount.textContent=Number.isSafeInteger(person.commissionCents)?money(person.commissionCents):'No disponible';earned.append(amount);
     if(person.heldCommissionCents||person.needsReconciliation){const review=document.createElement('small');review.textContent=person.needsReconciliation?'Por conciliar':'En revisión';earned.append(review);}
     button.onclick=()=>{
       const existing=row.nextElementSibling;
@@ -202,7 +202,7 @@ function preview(){
 function drawBudget(budget){
   if(voucherData)voucherData.budget=budget;
   for(const key of ['available','reserved','redeemed'])$('partner-budget-'+key).textContent=Number(budget[key]).toLocaleString('es');
-  $('partner-budget-total').value=budget.total;$('partner-overview-budget').textContent=budget.total===0?'Presupuesto de invitaciones pendiente de asignación':Number(budget.available).toLocaleString('es')+' créditos disponibles para invitar';$('partner-overview-budget-action').textContent=voucherData?.ownerView&&budget.total===0?'Asignar presupuesto ↗':'Gestionar invitaciones ↗';
+  $('partner-budget-total').value=budget.total;$('partner-overview-budget').textContent=budget.total===0?'Presupuesto de invitaciones pendiente de asignación':Number(budget.available).toLocaleString('es')+' créditos disponibles para invitar';$('partner-overview-budget-action').textContent=voucherData?.ownerView&&budget.total===0?'Asignar presupuesto':'Gestionar invitaciones';
   $('partner-budget-empty').hidden=budget.total>0;
   preview();
 }
@@ -235,7 +235,7 @@ function drawVouchers(data){
     badge.textContent=used?'Canjeada':!voucher.active?'Desactivada':expired?'Caducada':'Disponible';state.append(badge);
     const actions=row.insertCell();
     if(voucher.active&&!expired&&!used){
-      const link=document.createElement('button');link.type='button';link.className='account-text-button';link.textContent='Compartir ↗';
+      const link=document.createElement('button');link.type='button';link.className='account-text-button';link.textContent='Compartir';
       link.onclick=()=>{showInvitation(voucher);activateView('invitations',{scroll:true});$('partner-voucher-result').scrollIntoView({block:'center'});$('partner-voucher-copy').focus({preventScroll:true});};
       const deactivate=document.createElement('button');deactivate.type='button';deactivate.className='account-text-button';deactivate.textContent='Desactivar';
       deactivate.onclick=()=>void mutate('/vouchers/deactivate',{code:voucher.code});actions.append(link,deactivate);

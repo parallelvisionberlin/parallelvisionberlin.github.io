@@ -20,6 +20,7 @@ test('the working desk keeps all bindings, current branding and full-page tools 
   assert.match(html,/branding\/pvlab-wordmark-bold\.svg/);
   assert.equal(html.includes('data-partner-dialog'),false);
   assert.equal(controller.includes('showModal'),false);
+  assert.doesNotMatch(html+controller,/[\u2190-\u21ff\uFE0F‹›]/u,'No Unicode arrow or emoji controls');
   assert.equal(/<dialog[^>]+\bopen\b/.test(html),false);
   assert.equal(html.includes('partner-activity-card'),false);
   assert.match(html,/<header class="[^"]*partner-hero/);
