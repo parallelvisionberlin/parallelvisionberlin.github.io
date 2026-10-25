@@ -87,6 +87,7 @@
   const playButton = document.querySelector('[data-fz-film-play]');
   const filmStatus = document.querySelector('[data-fz-film-status]');
   if (video && playButton) {
+    playButton.hidden = false;
     playButton.addEventListener('click', async () => {
       playButton.disabled = true;
       if (filmStatus) filmStatus.textContent = '';
