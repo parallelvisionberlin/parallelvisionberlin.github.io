@@ -238,6 +238,37 @@ export async function requireOwner(env,owner){
   const row=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk' LIMIT 1").bind(owner).first();
   if(!row)fail(403,'PV Lab owner access required.');
 }
+// Owner-only, on-demand Clerk lookup. Profile names are not saved in D1 and
+// an unavailable Clerk response must never hide the audited redemption record.
+async function voucherRecipientProfile(env,subject){
+  if(!/^user_[A-Za-z0-9]+$/.test(subject))return null;
+  let realSubject=subject,secret=env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY;
+  if(subject.startsWith('user_PvLabV2')){
+    const link=await one(env,"SELECT new_subject FROM lab_clerk_identity_links WHERE canonical_id=? AND kind='customer'",subject);
+    if(link&&subject==='user_PvLabV2'+link.new_subject.slice(5)){
+      realSubject=link.new_subject;secret=env.LAB_CLERK_V2_SECRET_KEY;
+    }
+  }
+  if(!secret)return null;
+  try{
+    const response=await fetch('https://api.clerk.com/v1/users/'+encodeURIComponent(realSubject),{
+      method:'GET',headers:{Authorization:'Bearer '+secret,Accept:'application/json'},
+      redirect:'manual',signal:AbortSignal.timeout(4000)
+    });
+    if(!response.ok)return null;
+    const account=await response.json();
+    if(account?.id!==realSubject||!Array.isArray(account.email_addresses))return null;
+    const name=[account.first_name,account.last_name]
+      .filter(value=>typeof value==='string'&&value.trim())
+      .map(value=>value.trim()).join(' ').slice(0,120)||null;
+    const primary=account.email_addresses.find(item=>item.id===account.primary_email_address_id);
+    const email=primary?.verification?.status==='verified'&&typeof primary.email_address==='string'&&
+      primary.email_address.length<=254&&EMAIL.test(primary.email_address)
+      ?primary.email_address.toLowerCase():null;
+    return {name,email};
+  }catch{return null;}
+}
+
 export async function labAdminRoute(request,env,owner,{decryptKey,providerFetcher,providerClock}={}){
   await requireOwner(env,owner);
   const url=new URL(request.url),path=url.pathname,method=request.method;
@@ -424,6 +455,30 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
         e.kind==='adjustment'&&e.reference?.startsWith('referral:')?'Referral credits':
         descriptions[e.kind]||'Credit movement'})),
       limits:{jobs:50,entries:80,archivedFinance:50}});
+  }
+  if(path==='/api/admin/vouchers/redemptions'&&method==='GET'){
+    const code=codeOf(url.searchParams.get('code'));
+    const rawOffset=url.searchParams.get('offset')||'0',offset=Number(rawOffset);
+    if(!code||!/^\\d{1,4}$/.test(rawOffset)||!Number.isSafeInteger(offset)||offset>1000)
+      fail(400,'Choose a valid voucher and page.');
+    const voucher=await one(env,'SELECT code FROM lab_vouchers WHERE code=? COLLATE NOCASE',code);
+    if(!voucher)fail(404,'Voucher not found.');
+    const claims=await all(env,`SELECT r.customer_id AS customerId,r.redeemed_at AS redeemedAt,
+        CASE WHEN x.customer_id IS NULL THEN p.email ELSE NULL END AS email,
+        CASE WHEN x.customer_id IS NULL THEN 0 ELSE 1 END AS accountClosed
+      FROM lab_voucher_redemptions r
+      LEFT JOIN lab_customer_contacts p ON p.customer_id=r.customer_id
+      LEFT JOIN lab_account_closures x ON x.customer_id=r.customer_id
+      WHERE r.voucher_code=? COLLATE NOCASE
+      ORDER BY r.redeemed_at DESC,r.customer_id LIMIT 11 OFFSET ?`,voucher.code,offset);
+    const page=claims.slice(0,10);
+    const redemptions=await Promise.all(page.map(async claim=>{
+      const identity=claim.accountClosed?null:await voucherRecipientProfile(env,claim.customerId);
+      return {customerId:claim.customerId,redeemedAt:claim.redeemedAt,
+        accountClosed:!!claim.accountClosed,name:identity?.name||null,
+        email:claim.email||identity?.email||null};
+    }));
+    return json({code:voucher.code,redemptions,hasMore:claims.length>10,nextOffset:offset+page.length});
   }
   if(path==='/api/admin/overview'&&method==='GET'){
     const search=(url.searchParams.get('search')||'').trim().slice(0,80),match='%'+search.replace(/[\\%_]/g,'\\$&')+'%';
