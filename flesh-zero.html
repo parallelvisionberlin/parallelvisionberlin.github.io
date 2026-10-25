@@ -16,7 +16,9 @@
 <meta name="twitter:description" content="Flesh Zero expands the Parallel Vision liquid-metal language into organic, ritual forms.">
 <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/LOOK03.png">
   <link rel="stylesheet" href="./fashion.css">
+  <link rel="stylesheet" href="./flesh-zero.css">
   <script src="./language.js" defer></script>
+  <script src="./flesh-zero.js" defer></script>
 </head>
 <body class="flesh-zero-page">
   <header class="fashion-page-hero collection-hero">
@@ -50,32 +52,106 @@
       </div>
     </section>
 
-    <section class="collection-block">
-      <div class="block-label">01 / Main campaign</div>
-      <figure class="campaign-main">
-        <img src="./assets/optimized/LOOK03.webp" alt="Look 03, the Flesh Zero hero campaign" decoding="async" loading="lazy" width="4000" height="2233">
-      </figure>
+    <section class="collection-block fz-film-block" aria-labelledby="flesh-zero-film-title">
+      <div class="fz-section-bar">
+        <h2 class="block-label" id="flesh-zero-film-title">01 / Film</h2>
+        <span class="fz-section-meta">Fashion After Fabric / 2026</span>
+      </div>
+      <div class="fz-wide">
+        <div class="fz-film-frame">
+          <video id="flesh-zero-film" controls playsinline preload="none" poster="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/fashion-after-fabric/flesh-zero/flesh-zero-film-one-poster.webp" aria-label="Flesh Zero, Fashion After Fabric film">
+            <source media="(max-width: 760px)" src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/fashion-after-fabric/flesh-zero/flesh-zero-film-one-mobile.mp4" type="video/mp4">
+            <source src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/fashion-after-fabric/flesh-zero/flesh-zero-film-one-desktop.mp4" type="video/mp4">
+            Your browser does not support HTML5 video.
+          </video>
+          <button class="fz-film-play" type="button" aria-controls="flesh-zero-film" data-fz-film-play hidden>
+            <span class="fz-film-play-icon" aria-hidden="true"></span>
+            <span>Play Film</span>
+          </button>
+        </div>
+        <div class="fz-film-caption">
+          <span>Flesh Zero / Motion study 01</span>
+          <span>Berlin 2063</span>
+        </div>
+        <p class="fz-film-status" data-fz-film-status role="status"></p>
+      </div>
     </section>
 
-    <section class="collection-block">
-      <div class="block-label">02 / Gallery</div>
-      <div class="gallery flesh-zero-gallery">
-        <figure>
-          <img src="./assets/optimized/LOOK04.webp" alt="Flesh Zero Look 04" decoding="async" loading="lazy" width="5504" height="3072">
-          <figcaption>Look 04</figcaption>
-        </figure>
-        <figure>
-          <img src="./assets/optimized/LOOK05.webp" alt="Flesh Zero Look 05" decoding="async" loading="lazy" width="4000" height="2233">
-          <figcaption>Look 05</figcaption>
-        </figure>
-        <figure>
-          <img src="./assets/optimized/01RADIUM-FRONT.webp" alt="Flesh Zero Radium look" decoding="async" loading="lazy" width="5504" height="3072">
-          <figcaption>Radium</figcaption>
-        </figure>
-        <figure>
-          <img src="./assets/optimized/02REPTARE.webp" alt="Flesh Zero Reptare look" decoding="async" loading="lazy" width="5000" height="2791">
-          <figcaption>Reptare</figcaption>
-        </figure>
+    <section class="collection-block fz-gallery-block" aria-labelledby="flesh-zero-campaign-title">
+      <div class="fz-section-bar">
+        <h2 class="block-label" id="flesh-zero-campaign-title">02 / Campaign</h2>
+        <span class="fz-gallery-count" aria-live="polite" aria-atomic="true"><span data-fz-current>01</span> / 04</span>
+      </div>
+      <div class="fz-wide">
+        <div class="fz-carousel" data-fz-carousel role="region" aria-roledescription="carousel" aria-label="Flesh Zero campaign photography, one image at a time" tabindex="0">
+          <div class="fz-carousel-viewport">
+            <div class="fz-carousel-track" data-fz-track>
+          <figure class="fz-carousel-slide fz-single-slide" data-fz-slide role="group" aria-roledescription="slide" aria-label="Look 04, 1 of 4">
+            <img src="./assets/optimized/LOOK04.webp" alt="Flesh Zero, Look 04" loading="eager" decoding="async" width="5504" height="3072">
+            <figcaption>LOOK 04 / FLESH ZERO</figcaption>
+          </figure>
+          <figure class="fz-carousel-slide fz-single-slide" data-fz-slide role="group" aria-roledescription="slide" aria-label="Look 05, 2 of 4" aria-hidden="true">
+            <img src="./assets/optimized/LOOK05.webp" alt="Flesh Zero, Look 05" loading="lazy" decoding="async" width="4000" height="2233">
+            <figcaption>LOOK 05 / FLESH ZERO</figcaption>
+          </figure>
+          <figure class="fz-carousel-slide fz-single-slide" data-fz-slide role="group" aria-roledescription="slide" aria-label="Radium, 3 of 4" aria-hidden="true">
+            <img src="./assets/optimized/01RADIUM-FRONT.webp" alt="Flesh Zero, Radium" loading="lazy" decoding="async" width="5504" height="3072">
+            <figcaption>RADIUM / FLESH ZERO</figcaption>
+          </figure>
+          <figure class="fz-carousel-slide fz-single-slide" data-fz-slide role="group" aria-roledescription="slide" aria-label="Reptare, 4 of 4" aria-hidden="true">
+            <img src="./assets/optimized/02REPTARE.webp" alt="Flesh Zero, Reptare" loading="lazy" decoding="async" width="5000" height="2791">
+            <figcaption>REPTARE / FLESH ZERO</figcaption>
+          </figure>
+            </div>
+          </div>
+  <button class="fz-arrow fz-arrow--prev" type="button" data-fz-prev aria-label="Previous photographs">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+  </button>
+  <button class="fz-arrow fz-arrow--next" type="button" data-fz-next aria-label="Next photographs">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+  </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="collection-block fz-gallery-block" aria-labelledby="flesh-zero-lookbook-title">
+      <div class="fz-section-bar">
+        <h2 class="block-label" id="flesh-zero-lookbook-title">03 / Lookbook</h2>
+        <span class="fz-gallery-count" aria-live="polite" aria-atomic="true"><span data-fz-current>01</span> / 02</span>
+      </div>
+      <div class="fz-wide">
+        <div class="fz-carousel" data-fz-carousel role="region" aria-roledescription="carousel" aria-label="Flesh Zero lookbook, two photographs per spread" tabindex="0">
+          <div class="fz-carousel-viewport">
+            <div class="fz-carousel-track" data-fz-track>
+          <div class="fz-carousel-slide fz-pair-slide" data-fz-slide role="group" aria-roledescription="slide" aria-label="Look 04 and Look 05, spread 1 of 2">
+            <figure>
+              <img src="./assets/optimized/LOOK04.webp" alt="Flesh Zero, Look 04" loading="lazy" decoding="async" width="5504" height="3072">
+              <figcaption>LOOK 04</figcaption>
+            </figure>
+            <figure>
+              <img src="./assets/optimized/LOOK05.webp" alt="Flesh Zero, Look 05" loading="lazy" decoding="async" width="4000" height="2233">
+              <figcaption>LOOK 05</figcaption>
+            </figure>
+          </div>
+          <div class="fz-carousel-slide fz-pair-slide" data-fz-slide role="group" aria-roledescription="slide" aria-label="Radium and Reptare, spread 2 of 2" aria-hidden="true">
+            <figure>
+              <img src="./assets/optimized/01RADIUM-FRONT.webp" alt="Flesh Zero, Radium" loading="lazy" decoding="async" width="5504" height="3072">
+              <figcaption>RADIUM</figcaption>
+            </figure>
+            <figure>
+              <img src="./assets/optimized/02REPTARE.webp" alt="Flesh Zero, Reptare" loading="lazy" decoding="async" width="5000" height="2791">
+              <figcaption>REPTARE</figcaption>
+            </figure>
+          </div>
+            </div>
+          </div>
+  <button class="fz-arrow fz-arrow--prev" type="button" data-fz-prev aria-label="Previous photographs">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+  </button>
+  <button class="fz-arrow fz-arrow--next" type="button" data-fz-next aria-label="Next photographs">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+  </button>
+        </div>
       </div>
     </section>
   </main>
