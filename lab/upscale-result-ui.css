@@ -255,3 +255,14 @@
   background:#09090b!important;height:min(73dvh,740px)!important;min-height:0!important;
  }
 }
+
+/* Intrinsic-aspect loaded-photo height: no unused bottom strip on landscape.
+   Do not apply to empty hero; keep contain for tall portraits and comparison. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(> #preview:not([hidden])){
+ height:var(--pv-photo-fit-height,calc(100dvh - 210px))!important;
+ min-height:0!important;max-height:none!important;
+ background:#09090b!important;overflow:hidden!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage:has(#upscale-canvas > #preview:not([hidden])){
+ align-self:start!important;height:auto!important;min-height:0!important;background:#09090b!important;
+}
