@@ -47,7 +47,7 @@ function rows(items,append=false){
   }
 }
 async function refresh(){
-  const current=++revision;clear();$('partner-copy').textContent='Copiar enlace';
+  const current=++revision;clear();$('partner-copy').textContent='Copiar';
   $('partner-signin').hidden=!!clerk?.isSignedIn;$('partner-signin').disabled=!clerk;
   if(!clerk?.isSignedIn){status('Inicia sesión con tu cuenta autorizada para abrir Vitolas Studio.');return;}
   status('Cargando tu panel…');
@@ -71,7 +71,7 @@ $('partner-signout').onclick=async()=>{++revision;clear();status('Cerrando sesi�
 $('partner-refresh').onclick=()=>void refresh();
 $('partner-copy').onclick=async()=>{
   const current=revision,value=$('partner-url').value;if(!value)return;
-  try{await navigator.clipboard.writeText(value);if(current===revision)$('partner-copy').textContent='Enlace copiado';}
+  try{await navigator.clipboard.writeText(value);if(current===revision)$('partner-copy').textContent='Copiado';}
   catch{if(current===revision){$('partner-url').focus();$('partner-url').select();status('Selecciona y copia tu enlace.');}}
 };
 $('partner-more').onclick=async()=>{

@@ -70,6 +70,8 @@ try{
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);checks++;
     assert.equal(await page.locator('.partner-hero').evaluate(el=>el.getBoundingClientRect().height<=270),true);checks++;
     assert.equal(await page.locator('#partner-results').evaluate(el=>el.compareDocumentPosition(document.getElementById('partner-invitations'))&Node.DOCUMENT_POSITION_FOLLOWING?true:false),true);checks++;
+    assert.equal(await page.locator('.partner-metrics').evaluate(el=>!!(el.compareDocumentPosition(document.querySelector('.partner-link'))&Node.DOCUMENT_POSITION_FOLLOWING)),true);checks++;
+    assert.equal(await page.locator('.partner-metrics').evaluate(el=>el.getBoundingClientRect().top-document.querySelector('.partner-hero').getBoundingClientRect().bottom<=150),true);checks++;
     assert.equal(await page.locator('#partner-url').inputValue(),'https://pvlab.studio/vitolas');checks++;
     assert.equal(await page.locator('#partner-commission').textContent(),new Intl.NumberFormat('es',{style:'currency',currency:'EUR'}).format(10.50));checks++;
     assert.match(await page.locator('#partner-latest-signups').textContent(),/friend@example.test/);checks++;
