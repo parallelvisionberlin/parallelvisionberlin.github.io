@@ -1,5 +1,12 @@
 # Vitolas Studio partner dashboard
 
+## Compact results and unified typography, 2026-10-25
+- User requests a smaller results box and at most two typefaces across the page, with an elegant, comfortable feel. Reference uploads image(20261025-175901).png and image(20261025-175927).png.
+- Baseline 4b728001ea89794f6aaf27e0b89078eefa79a1cf, isolated worktree vitolas-type. Preserve results order, workflows, actual EUR figures, logo and beauty hero.
+- Use the existing self-hosted DM Sans (PV Lab Navigation) throughout the workspace, controls and account menu. Unify body/control text at 14px and supporting labels at 12px, restrained heading scale and two weights. Inputs retain accessible sizing.
+- Results board has less padding, reduced control spacing and 48px monetary values desktop / 44px phone. No feature or data changes.
+- Changed files: lab/vitolas-studio.css, lab/vitolas-studio.html and this checkpoint. Asset marker 20261025-type1. Validation and publication pending.
+
 ## Results first and slightly denser spacing, 2026-10-25
 - User approved the current Overview and Invitations screenshots and requested only slightly smaller spacing/cards while retaining large money figures, plus the proposed results hierarchy.
 - Baseline c106cd4c98daf123f9a0e349a56c06da6a5b9a77. Isolated worktree vitolas-results. Reuse bold logo, beauty hero, neutral palette and five inline sections.
