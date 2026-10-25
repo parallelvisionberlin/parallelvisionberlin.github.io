@@ -206,3 +206,30 @@
   height:34px!important;min-height:34px!important;padding:6px 11px!important;
  }
 }
+
+/* Photo loaded: original AND upscaled image must fit the viewport.
+   Empty hero is excluded because its #preview remains hidden.
+   Keep the native aspect ratio and do not alter any generation logic. */
+@media(min-width:781px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(> #preview:not([hidden])){
+    box-sizing:border-box!important;
+    height:clamp(320px,calc(100dvh - 280px),690px)!important;
+    min-height:320px!important;
+    max-height:690px!important;
+    overflow:hidden!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(> #preview:not([hidden])) > #preview:not([hidden]){
+    display:block!important;width:100%!important;height:100%!important;
+    max-width:100%!important;max-height:100%!important;
+    object-fit:contain!important;
+  }
+}
+@media(max-width:780px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(> #preview:not([hidden])){
+    height:min(60dvh,620px)!important;
+    min-height:260px!important;overflow:hidden!important;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(> #preview:not([hidden])) > #preview:not([hidden]){
+    display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;
+  }
+}
