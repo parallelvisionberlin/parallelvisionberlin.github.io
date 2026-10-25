@@ -18,7 +18,10 @@ try{
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'agency overflow at '+width);
     assert.equal(await page.locator('iframe').count(),0,'YouTube must not load before interaction');
     assert.equal(await page.locator('.case-notes').count(),5);
-    assert.equal(await page.locator('#motion figure').count(),2);
+    assert.equal(await page.locator('#motion figure').count(),3);
+    assert.equal(await page.locator('#flesh-zero-film').count(),1);
+    assert.match(await page.locator('#flesh-zero-film').getAttribute('poster'),/flesh-zero-film-one-poster\.webp$/);
+    assert.ok(await page.locator('.motion-feature--wide .motion-poster').isVisible(),'Flesh Zero cover must be visible before playback');
     await page.locator('img').evaluateAll(async images=>{images.forEach(image=>image.loading='eager');await Promise.all(images.map(image=>image.decode().catch(()=>{})));});
     assert.deepEqual(await page.locator('img').evaluateAll(images=>images.filter(image=>!image.naturalWidth).map(image=>image.getAttribute('src'))),[],'agency artwork failed to load');
     await page.screenshot({path:'agency-test-artifacts/agency-'+width+'.png',fullPage:true});
@@ -34,6 +37,7 @@ try{
     assert.equal(await page.locator('#brief-name').inputValue(),'Browser test');
     fail=false;await page.locator('#project-brief button[type=submit]').click();await page.waitForSelector('#brief-status[data-state=success]');
     assert.equal(sends.length,2);assert.equal(sends[0].id,sends[1].id);assert.equal(await page.locator('#brief-name').inputValue(),'');
+    assert.ok(!/[↗→]/.test(await page.locator('body').innerText()),'Agency must remain free of Unicode arrow glyphs after form interaction');
     await page.goto(base+'/',{waitUntil:'domcontentloaded'});
     const toggle=page.locator('#homeMobileMenuToggle');if(await toggle.isVisible())await toggle.click();
     assert.equal(await page.locator('#homePrimaryLinks .home-agency-link').getAttribute('href'),'./agency/');

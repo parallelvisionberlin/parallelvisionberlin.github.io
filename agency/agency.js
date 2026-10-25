@@ -41,7 +41,7 @@ if(form){
       status.textContent=error.name==='TimeoutError'?'We could not confirm reception yet. Your brief is still here. Try again with the same details or use the email link.':error.message;
       status.dataset.state='error';
     }finally{
-      busy=false;button.disabled=false;button.textContent='Send project brief ↗';form.removeAttribute('aria-busy');status.focus({preventScroll:true});
+      busy=false;button.disabled=false;button.innerHTML='Send project brief <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span>';form.removeAttribute('aria-busy');status.focus({preventScroll:true});
     }
   });
 }
@@ -50,11 +50,11 @@ document.querySelectorAll('video[data-agency-film],#studio-film').forEach(video=
 for(const button of document.querySelectorAll('[data-film-play]')){
   button.hidden=false;
   button.addEventListener('click',async()=>{
-    const video=document.getElementById(button.dataset.filmPlay),note=button.closest('figure').querySelector('[role="status"]');
+    const frame=button.closest('.motion-frame'),video=document.getElementById(button.dataset.filmPlay),note=button.closest('figure').querySelector('[role="status"]'),poster=frame?.querySelector('.motion-poster');
     if(!video)return;button.disabled=true;note.textContent='';
     if(!video.src)video.src=matchMedia('(max-width:760px)').matches?video.dataset.mobile:video.dataset.desktop;
-    video.controls=true;
-    try{await video.play();button.hidden=true;}catch{note.textContent='The film could not start. Open the project below to watch it.';}
+    video.hidden=false;video.controls=true;
+    try{await video.play();if(poster)poster.hidden=true;button.hidden=true;}catch{video.hidden=true;note.textContent='The film could not start. Open the project below to watch it.';}
     finally{button.disabled=false;}
   });
 }
