@@ -7,7 +7,11 @@
 - Subscriber and payer shortcuts open the actual scoped Clients filter. Invitations, budget, forms and preview use slightly denser spacing. Money figures remain 58px desktop, 44px phone, and occupy full-width phone rows to avoid splitting amounts.
 - Server source and EUR currency remain unchanged. No fabricated prospects, payout statuses or financial data; prospect CRM and recorded settlements remain separate future functionality.
 - Scope: Vitolas HTML/CSS/JS, existing partner unit/browser tests and this handoff. No backend/schema, credit grants, real voucher creation or outbound messages.
-- Asset marker 20261025-results1. Validation and normal Pages publication in progress.
+- Published PR #559: reviewed head a498dd0973bd8ad02a595cc8da8ddfc0eaba7ac2, production merge 47e93538d3636c9f3808d65123d6bc938c404f77. Asset marker 20261025-results1.
+- Checks: 26 unit/required Image tests; 441 browser assertions at 320/390/1440/1920px before final phone spacing fix, then 208 final phone assertions at 320/390px. Partner CI run 40217898037 passed.
+- Cloudflare exact-merge check 121243721670 succeeded for pvlab-studio; scoped verifier LIVE_VERIFIED. Production HTML/CSS/JS each HTTP200 and exact reviewed bytes. SHA256 HTML 04463ace5a09f6eea07441a26e8d637723cfb8f5cc5e59875797b2b55c65423e; CSS 020abbfc85973a8a4bb040b08b43f9d79cb9eed48ed38d0d8e54b6b6e9c308e2; JS fc30b6544dbdf21dd55b544d35e7cfecb8f5fe2f694a96110b394bac81c58e1e.
+- Live-browser 390/1920px passed: correct metrics order, all five inline sections, current logo, no Unicode arrows or horizontal overflow. Synthetic read-only responses only, no real signed-in account observation.
+- Status: published at https://pvlab.studio/vitolas-studio. No remaining action for this layout change. Prospect CRM and actual settlement recording remain future work, not shipped features.
 
 ## No Unicode arrows in controls, 2026-10-25
 - User explicitly prohibits the arrow characters that iOS renders as blue emoji. Remove them, do not replace them with another Unicode arrow.
