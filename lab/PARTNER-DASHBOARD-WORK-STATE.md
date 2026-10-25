@@ -5,7 +5,11 @@
 - Applies to static and dynamically generated Vitolas buttons/links. Use clear text labels; pagination uses Anterior / Siguiente. No decorative row chevrons.
 - Carry this preference into subsequent PV LAB interface work. If a future control needs an icon, use the established non-emoji icon system only when requested or necessary.
 - Scope: Vitolas HTML/JS/CSS, existing UI contract and this handoff. Preserve all workflows, permissions and layout.
-- Asset marker 20261025-no-arrows1. Publication pending validation and normal Pages deployment.
+- Published PR #558: source 5405f265a06e8825f657b66bfa67239b49892d42, production merge 8aa34c0e7ae031bebcb3ca6a9450b9e7d56ecfc2. Asset marker 20261025-no-arrows1.
+- Validation: 26 partner / required Image contract tests pass; 227 dashboard browser assertions pass at 390/1440px. Partner CI run 40211772314 passed.
+- Cloudflare Pages exact-merge check 121225894104 succeeded for pvlab-studio. Read-only verifier returned LIVE_VERIFIED. Production HTML/CSS/JS each HTTP200 with exact reviewed bytes.
+- Production SHA256 HTML b3fa16eadaa0bd45c25ecae9fe1240110db35b4bea12f3145f1b2489ab7bf7ea; CSS fa38d99eee67cf3714e646416f0adfc938ad8824c39e6220a2f5ee9dc23239f2; JS 86049fc471dcf2c0f5e5ea7ee5b359ec29fec85c7fdf525402c663181f20273b.
+- Live-browser check passed at 390/1920px: all five sections, no Unicode arrows in rendered main content, no overflow or page errors. Synthetic read-only account responses only; no real signed-in account data, credit mutations or messages. No remaining action for this fix.
 
 ## Full-page working desk and current branding, 2026-10-25
 - User rejected tiny modal tools, duplicated Help/commission-condition buttons, the old spaced wordmark and a boring empty client-first screen. Explicitly requested a redo.
