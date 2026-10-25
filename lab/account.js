@@ -2,6 +2,9 @@ import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixe
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1&closure=20261021-immediate1';
 import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261024-vitolas1';
+import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
+
+captureReferralCode();
 
 const $=id=>document.getElementById(id);
 const menu=createAccountMenu($('account-menu'));
@@ -134,6 +137,10 @@ async function refresh(){
     }
     profile=data;if(profile.customer)trackLabRegistration(profile.ownerId,profile.createdAt);drawProfile();$('account-workspace').hidden=false;status('');paintRoute();
     if(!profile.customer)return;
+    // Credit invitation links preserve the existing new-account referral rules.
+    void claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}})).then(claimed=>{
+      if(claimed&&current===revision){const url=new URL(location.href);url.searchParams.delete('ref');history.replaceState(null,'',url);}
+    });
     const [wallet,storage]=await Promise.allSettled([api('/api/customer/wallet'),api('/api/customer/account')]);
     if(current!==revision)return;
     if(wallet.status==='fulfilled'){

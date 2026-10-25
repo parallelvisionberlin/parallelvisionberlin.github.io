@@ -15,6 +15,7 @@ import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
 import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute} from './partner-dashboard.mjs';
+import {partnerVoucherRoute} from './partner-vouchers.mjs';
 import {labAdminRoute,voucherCustomerRoute,syncCustomerEmail,scheduledClerkBackfill} from './promotions.mjs';
 import {recordLabTraffic,pruneLabTraffic} from './traffic.mjs';
 import {pruneGenerationReviewAudit} from './generation-review.mjs';
@@ -54,7 +55,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-25-hong-kong-cinema-v1';
+export const VERSION = 'pv-lab-2026-10-25-vitolas-invitations-v1';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1371,6 +1372,7 @@ async function route(request,env,ctx) {
       status:409,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-PV-Lab-Onboarding':'required'}
     });
   }
+  if(path.startsWith('/api/admin/partners/vitolas-studio/'))return partnerVoucherRoute(request,env,owner,{ownerView:true});
   if(path==='/api/admin/partners/vitolas-studio')return ownerPartnerDashboardRoute(request,env,owner);
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
@@ -1405,6 +1407,7 @@ async function route(request,env,ctx) {
       catch(e){fail(400,String(e?.message||'This model cannot be quoted.').slice(0,260));}
     }
     if(path.startsWith('/api/customer/vouchers'))return voucherCustomerRoute(request,env,owner);
+    if(path.startsWith('/api/customer/partner/'))return partnerVoucherRoute(request,env,owner);
     if(path==='/api/customer/partner')return partnerDashboardRoute(request,env,owner);
     if(path.startsWith('/api/customer/referrals')){
       try{return await referralRoute(request,env,owner);}

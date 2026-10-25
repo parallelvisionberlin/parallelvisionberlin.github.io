@@ -45,6 +45,7 @@ jobs:
           node --test tests/lab-spicy-image-credit-steps.test.mjs tests/lab-pricing-integrity.test.mjs
           node --test tests/lab-auth.test.mjs tests/lab-worker.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-sandbox-billing.test.mjs tests/lab-live-pilot.test.mjs tests/lab-new-models-pricing.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-welcome-credits.test.mjs tests/lab-trial-pause.test.mjs
           node --test tests/lab-owner-providers.test.mjs tests/lab-promotions.test.mjs tests/lab-traffic.test.mjs tests/lab-traffic-ui.test.mjs tests/lab-promo-generation-holds.test.mjs tests/lab-owner-generation-review.test.mjs tests/lab-generation-finance.test.mjs
+          node --test tests/lab-partner-dashboard.test.mjs
           node --check lab-worker/owner-providers.mjs
           node --check lab-worker/promotions.mjs
           node --check lab-worker/traffic.mjs
@@ -113,6 +114,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0032-element-visual-profiles.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0033-owner-voucher-generation.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0036-clerk-contact-hold-upsert.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0037-partner-vouchers.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health

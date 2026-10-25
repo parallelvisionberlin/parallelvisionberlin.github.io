@@ -1,10 +1,10 @@
 name: PV LAB partner dashboard
 on:
   pull_request:
-    paths: ['lab/vitolas-studio*', 'lab/account-menu.js', 'lab-worker/partner-dashboard.mjs', 'lab-worker/promotions.mjs', 'lab-worker/worker.mjs', 'tests/lab-partner-dashboard*', '.github/workflows/pv-lab-partner-dashboard.yml']
+    paths: ['lab/vitolas-studio*', 'lab/account-menu.js', 'lab-worker/partner-*.mjs', 'lab-worker/migrations/0037-partner-vouchers.sql', 'lab-worker/promotions.mjs', 'lab-worker/worker.mjs', 'tests/lab-partner-dashboard*', '.github/workflows/pv-lab-partner-dashboard.yml']
   push:
     branches: [main]
-    paths: ['lab/vitolas-studio*', 'lab/account-menu.js', 'lab-worker/partner-dashboard.mjs', 'lab-worker/promotions.mjs', 'lab-worker/worker.mjs', 'tests/lab-partner-dashboard*', '.github/workflows/pv-lab-partner-dashboard.yml']
+    paths: ['lab/vitolas-studio*', 'lab/account-menu.js', 'lab-worker/partner-*.mjs', 'lab-worker/migrations/0037-partner-vouchers.sql', 'lab-worker/promotions.mjs', 'lab-worker/worker.mjs', 'tests/lab-partner-dashboard*', '.github/workflows/pv-lab-partner-dashboard.yml']
 permissions:
   contents: read
 jobs:

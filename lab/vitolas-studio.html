@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="./public-header.css?v=20261012-unified-header1">
 <link rel="stylesheet" href="./account-menu.css?v=20261022-bold-consistent1">
 <link rel="stylesheet" href="./account.css?v=20261014-delete-account1">
-<link rel="stylesheet" href="./vitolas-studio.css?v=20261025-beauty1">
+<link rel="stylesheet" href="./vitolas-studio.css?v=20261025-invitations1">
 </head>
 <body class="pv-account-page pv-partner-page">
 <a class="account-skip" href="#partner-main">Ir al panel</a>
@@ -36,11 +36,36 @@
 <main id="partner-main" class="account-shell partner-shell">
   <section class="partner-hero" aria-labelledby="partner-title">
     <img class="partner-hero-image" src="./visuals/vitolas/future-beauty-v1.webp" alt="" width="1983" height="793" fetchpriority="high" decoding="async">
-    <div class="partner-heading"><p class="account-eyebrow">BELLEZA / IMAGEN / BRANDING</p><h1 id="partner-title">Vitolas Studio<span>.</span></h1><p>Tu enlace, tus nuevos clientes y sus resultados.</p></div>
+    <div class="partner-heading"><p class="account-eyebrow">TU ESPACIO DE COLABORACIÓN / PV LAB</p><h1 id="partner-title">Vitolas Studio<span>.</span></h1><p>Una primera imagen.<br>El comienzo de una nueva marca.</p><a class="partner-hero-action" href="#partner-invitations">Crear una invitación <span aria-hidden="true">↗</span></a></div>
     <span class="partner-hero-caption" aria-hidden="true">Vitolas Studio / Future Beauty</span>
   </section>
   <p id="partner-status" class="account-status" role="status" aria-live="polite">Verificando tu acceso…</p>
   <div id="partner-content" hidden>
+    <nav class="partner-nav" aria-label="Secciones del panel"><a href="#partner-invitations">01 <span>Invitaciones</span></a><a href="#partner-results">02 <span>Resultados</span></a><a href="#partner-customers">03 <span>Contactos</span></a><span class="partner-nav-note">BELLEZA. IMAGEN. POSIBILIDADES.</span></nav>
+    <section id="partner-invitations" class="partner-invitations" aria-labelledby="partner-invitations-title">
+      <div class="partner-section-head"><div><p class="account-eyebrow">01 / UN PRIMER GESTO</p><h2 id="partner-invitations-title">Dales espacio para crear.</h2></div><p class="partner-section-note">Ofrece una prueba con créditos.<br>Comparte el enlace cuando esté lista.</p></div>
+      <p id="partner-voucher-status" class="account-status" role="status" aria-live="polite">Cargando invitaciones…</p>
+      <div id="partner-voucher-workspace" hidden>
+        <div class="partner-budget" aria-label="Presupuesto de invitaciones"><div><span>Disponibles</span><strong id="partner-budget-available">0</strong><small>créditos para invitar</small></div><div><span>Reservados</span><strong id="partner-budget-reserved">0</strong><small>en invitaciones activas</small></div><div><span>Canjeados</span><strong id="partner-budget-redeemed">0</strong><small>por tus contactos</small></div></div>
+        <form id="partner-budget-form" class="partner-owner-budget" hidden><label for="partner-budget-total">Presupuesto total de Vitolas · solo Owner<input id="partner-budget-total" type="number" min="0" max="1000000" step="1" required></label><button class="account-button account-button-outline" type="submit">Guardar presupuesto</button><p>Incluye créditos ya canjeados y reservados. Al aumentarlo, Victoria puede crear más invitaciones.</p></form>
+        <p id="partner-budget-empty" class="partner-budget-empty" hidden>Tu creador está preparado. El owner debe asignar un presupuesto antes de emitir invitaciones.</p>
+        <div class="partner-create-layout">
+          <form id="partner-voucher-form" class="partner-voucher-form">
+            <label for="partner-voucher-note">Nombre de la campaña<input id="partner-voucher-note" name="note" maxlength="80" placeholder="Ej. Primera imagen · Beauty Studio" required></label>
+            <div class="partner-form-pair"><label for="partner-voucher-credits">Créditos de regalo<input id="partner-voucher-credits" name="credits" type="number" min="1" max="500" step="1" value="100" required></label><label for="partner-voucher-days">Válida durante<select id="partner-voucher-days" name="days"><option value="7">7 días</option><option value="14" selected>14 días</option><option value="30">30 días</option></select></label></div>
+            <div class="partner-presets" aria-label="Créditos sugeridos"><button type="button" data-partner-credits="50">50 créditos</button><button type="button" data-partner-credits="100" aria-pressed="true">100 créditos</button><button type="button" data-partner-credits="200">200 créditos</button></div>
+            <p class="partner-form-help">Un enlace para una persona. Los créditos se añaden cuando inicia sesión y canjea su código. Una prueba de Vitolas por cuenta.</p>
+            <button id="partner-voucher-create" class="account-button" type="submit" disabled>Crear invitación <span aria-hidden="true">↗</span></button>
+          </form>
+          <aside class="partner-invitation-card" aria-label="Vista previa de la invitación"><div class="partner-ticket-top"><span>VITOLAS STUDIO</span><span>PV LAB ↗</span></div><p class="partner-ticket-title">Your next<br>beautiful idea.</p><p id="partner-preview-note" class="partner-ticket-note">Una invitación a crear.</p><div class="partner-ticket-bottom"><strong><span id="partner-preview-credits">100</span><small>CRÉDITOS</small></strong><span id="partner-preview-expiry">UNA PERSONA<br>14 DÍAS PARA EMPEZAR</span></div><span class="partner-ticket-watermark" aria-hidden="true">V.</span></aside>
+        </div>
+        <div id="partner-voucher-result" class="partner-invitation-result" hidden><p class="account-eyebrow">TU INVITACIÓN ESTÁ LISTA</p><h3>El primer paso, de tu parte.</h3><label for="partner-voucher-url">Enlace con créditos y tu referencia</label><div class="partner-link-control"><input id="partner-voucher-url" type="url" readonly><button id="partner-voucher-copy" type="button" class="account-button">Copiar enlace</button></div><p>Código: <strong id="partner-voucher-code"></strong> · <span id="partner-voucher-detail"></span></p><button id="partner-message-copy" class="account-text-button" type="button">Copiar mensaje para compartir ↗</button><p id="partner-copy-status" role="status" aria-live="polite"></p></div>
+        <div class="partner-section-head partner-list-head"><h3>Tus invitaciones</h3><span>Últimas 60 · desactiva una para liberar su reserva</span></div>
+        <div class="partner-table-wrap"><table><thead><tr><th scope="col">Campaña / código</th><th scope="col">Créditos</th><th scope="col">Caducidad</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead><tbody id="partner-voucher-rows"></tbody></table></div>
+        <details class="partner-redemptions"><summary>Quién ha canjeado sus créditos <span id="partner-redemption-count">0</span></summary><p class="account-muted">Últimos 100 canjes. Las cuentas con correo pendiente y las cuentas cerradas se anonimizan.</p><div class="partner-table-wrap"><table><thead><tr><th scope="col">Cuenta</th><th scope="col">Campaña</th><th scope="col">Créditos</th><th scope="col">Canje</th></tr></thead><tbody id="partner-redemption-rows"></tbody></table></div></details>
+      </div>
+    </section>
+    <div class="partner-section-head partner-results-head" id="partner-results"><div><p class="account-eyebrow">02 / TU ALCANCE</p><h2>De la invitación a la conexión.</h2></div></div>
     <section class="partner-link" aria-labelledby="partner-link-title">
       <div><p class="account-eyebrow">TU ENLACE PERSONAL</p><h2 id="partner-link-title">Invita a tus próximos clientes.</h2><p>Quien cree una cuenta desde este enlace aparecerá aquí. Verás también sus compras y suscripciones.</p></div>
       <div class="partner-link-control"><label for="partner-url" class="partner-sr">Enlace de invitación</label><input id="partner-url" readonly type="url"><button id="partner-copy" class="account-button" type="button">Copiar enlace</button></div>
@@ -51,7 +76,7 @@
       <div><span>Suscripciones activas</span><strong id="partner-subscribed">0</strong></div>
       <div><span>Compras verificadas</span><strong id="partner-purchases">0</strong></div>
     </section>
-    <section class="partner-customers" aria-labelledby="partner-customers-title">
+    <section class="partner-customers" id="partner-customers" aria-labelledby="partner-customers-title">
       <div class="partner-section-head"><h2 id="partner-customers-title">Personas que llegan contigo</h2><button id="partner-refresh" class="account-text-button" type="button">Actualizar</button></div>
       <p class="account-muted">Las compras incluyen recargas y pagos de suscripción. Los datos de cuentas cerradas se anonimizan.</p>
       <div class="partner-table-wrap"><table><thead><tr><th scope="col">Cuenta</th><th scope="col">Registro por tu enlace</th><th scope="col">Estado</th><th scope="col">Compras</th></tr></thead><tbody id="partner-rows"></tbody></table></div>
@@ -59,6 +84,6 @@
     </section>
   </div>
 </main>
-<script type="module" src="./vitolas-studio.js?v=20261024-owner1"></script>
+<script type="module" src="./vitolas-studio.js?v=20261025-invitations1"></script>
 </body>
 </html>

@@ -49,6 +49,11 @@ export async function ownerPartnerDashboardRoute(request,env,owner){
   await requireOwner(env,owner);
   if(new URL(request.url).pathname!=='/api/admin/partners/vitolas-studio')fail(404,'Unknown partner endpoint.');
   if(request.method!=='GET')fail(405,'This dashboard is read-only.');
+  const partner=await resolveApprovedPartner(env);
+  if(partner)return readPartnerDashboard(request,env,partner.subject,partner.access,{ownerView:true});
+  return json({workspace,ownerView:true,awaitingPartner:true});
+}
+export async function resolveApprovedPartner(env){
   const result=await env.LAB_DB.prepare(`SELECT p.customer_id,p.email FROM lab_customer_contacts p
     JOIN lab_customers c ON c.id=p.customer_id
     WHERE p.verified_at IS NOT NULL AND p.email IS NOT NULL AND NOT EXISTS
@@ -59,10 +64,10 @@ export async function ownerPartnerDashboardRoute(request,env,owner){
     if(!await approvedEmail(contact.email))continue;
     hadCandidate=true;
     const access=await partnerWorkspace(env,contact.customer_id,{verify:true});
-    if(access)return readPartnerDashboard(request,env,contact.customer_id,access,{ownerView:true});
+    if(access)return {subject:contact.customer_id,access};
   }
   if(hadCandidate)fail(503,'No pudimos verificar la cuenta de Vitolas Studio. Inténtalo de nuevo.');
-  return json({workspace,ownerView:true,awaitingPartner:true});
+  return null;
 }
 async function readPartnerDashboard(request,env,subject,access,{ownerView=false}={}){
   const url=new URL(request.url);

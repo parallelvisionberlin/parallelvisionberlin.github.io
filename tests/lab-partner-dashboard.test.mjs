@@ -3,12 +3,25 @@ import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute} from '../lab-worker/partner-dashboard.mjs';
+import {partnerVoucherRoute} from '../lab-worker/partner-vouchers.mjs';
+import {voucherCustomerRoute,labAdminRoute} from '../lab-worker/promotions.mjs';
+
+function gifts(f){
+  const call=(action='',data,actor='user_Victoria',ownerView=false)=>partnerVoucherRoute(new Request('https://worker.test'+(ownerView?'/api/admin/partners/vitolas-studio':'/api/customer/partner')+(action||'/vouchers'),{
+    method:data===undefined?'GET':'POST',headers:{Origin:'https://pvlab.studio',...(data===undefined?{}:{'Content-Type':'application/json'})},...(data===undefined?{}:{body:JSON.stringify(data)})
+  }),f.env,actor,{ownerView});
+  const budget=total=>call('/budget',{total},'user_Owner',true);
+  const data=(overrides={})=>({credits:100,days:14,note:'Beauty campaign',requestId:crypto.randomUUID(),...overrides});
+  const create=async overrides=>(await (await call('/vouchers',data(overrides))).json()).voucher;
+  const redeem=(code,subject)=>voucherCustomerRoute(new Request('https://worker.test/api/customer/vouchers/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})}),f.env,subject);
+  return {call,budget,data,create,redeem};
+}
 
 function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   const file=path=>readFileSync(new URL('../lab-worker/'+path,import.meta.url),'utf8');
   db.exec(file('schema.sql'));
-  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits'])db.exec(file('migrations/'+name+'.sql'));
+  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0037-partner-vouchers'])db.exec(file('migrations/'+name+'.sql'));
   const env={LAB_CLERK_SECRET_KEY:'test-only',LAB_PUBLIC_APP_URL:'https://pvlab.studio/studio.html',LAB_DB:{prepare(sql){return {bind(...args){return {
     async first(){return db.prepare(sql).get(...args)||null;},
     async all(){return {results:db.prepare(sql).all(...args)};},
@@ -31,7 +44,7 @@ function fixture(t){
   let primary=email,verified=true,upstream=200,requestedSubject='';
   t.mock.method(globalThis,'fetch',async url=>{
     requestedSubject=decodeURIComponent(new URL(url).pathname.split('/').at(-1));
-    return new Response(JSON.stringify({id:requestedSubject,primary_email_address_id:'primary',email_addresses:[{id:'primary',email_address:primary,verification:{status:verified?'verified':'unverified'}}]}),{status:upstream});
+    return new Response(JSON.stringify({id:requestedSubject,primary_email_address_id:'primary',email_addresses:[{id:'primary',email_address:requestedSubject==='user_Victoria'?primary:'other@example.test',verification:{status:verified?'verified':'unverified'}}]}),{status:upstream});
   });
   signup('user_Victoria',email);signup('user_Other','other@example.test');
   const request=(query='',method='GET')=>new Request('https://worker.test/api/customer/partner'+query,{method,headers:{Origin:'https://pvlab.studio'}});
@@ -107,7 +120,7 @@ test('own referrals only, all verified payments counted, closed identities redac
   assert.match(data.referralUrl,/^https:\/\/pvlab.studio\/\?ref=[A-Z2-9]{8}$/);
   assert.equal(data.customers.find(x=>x.closed).email,null);
   assert.equal(JSON.stringify(data).includes('stranger@example.test'),false);
-  assert.equal(data.customers[0].purchases,2);assert.equal(data.nextOffset,null);
+  assert.equal(data.customers.find(person=>person.email==='friend@example.test').purchases,2);assert.equal(data.nextOffset,null);
   assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_credit_entries').get().n,3);
   assert.equal(f.db.prepare('SELECT balance_credits n FROM lab_customers WHERE id=?').get('user_Victoria').n,0);
 });
@@ -122,4 +135,94 @@ test('dedicated Clerk identity is resolved server-side and dashboard pagination 
   const last=await (await partnerDashboardRoute(f.request('?offset=100'),f.env,'user_PvLabV2Victoria')).json();
   assert.equal(last.customers.length,1);assert.equal(last.nextOffset,null);
   await assert.rejects(()=>partnerDashboardRoute(f.request('?offset=-1'),f.env,'user_PvLabV2Victoria'),{status:400});
+});
+
+test('partner vouchers default to zero budget and only a real owner can allocate audited credit capacity',async t=>{
+  const f=fixture(t),g=gifts(f);
+  const initial=await (await g.call()).json();
+  assert.deepEqual(initial.budget,{total:0,redeemed:0,reserved:0,available:0,maxPerInvitation:500});
+  assert.match((await g.call()).headers.get('cache-control'),/no-store/);
+  await assert.rejects(()=>g.create(),{status:409});
+  await assert.rejects(()=>g.call('/budget',{total:1000}),{status:403});
+  for(const actor of ['user_Victoria','user_Other','user_Editor','user_Imposter'])
+    await assert.rejects(()=>g.call('/budget',{total:1000},actor,true),{status:403});
+  for(const total of [-1,1.5,1000001,'1000'])await assert.rejects(()=>g.budget(total),{status:400});
+  await g.budget(1000);await g.budget(1200);
+  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_budget_audit').get().n,2);
+  assert.equal(f.db.prepare('SELECT updated_by FROM lab_partner_budgets').get().updated_by,'user_Owner');
+  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_credit_entries').get().n,0);
+});
+test('partner invitation creation is bounded, idempotent, scoped and preserves the referral in its gift link',async t=>{
+  const f=fixture(t),g=gifts(f);await g.budget(500);
+  const payload=g.data({maxRedemptions:1000,subject:'user_Other'});
+  const first=await g.call('/vouchers',payload),created=await first.json();assert.equal(first.status,201);
+  assert.match(created.voucher.code,/^VT[A-F0-9]{20}$/);
+  const link=new URL(created.voucher.url);assert.equal(link.origin,'https://pvlab.studio');assert.equal(link.pathname,'/account.html');
+  assert.equal(link.searchParams.get('voucher'),created.voucher.code);assert.match(link.searchParams.get('ref'),/^[A-HJ-NP-Z2-9]{8}$/);assert.equal(link.hash,'#voucher');
+  assert.equal(f.db.prepare('SELECT customer_id FROM lab_referral_codes').get().customer_id,'user_Victoria');
+  assert.equal(created.voucher.maxRedemptions,1);assert.equal(created.budget.available,400);assert.equal(created.budget.reserved,100);
+  const repeat=await g.call('/vouchers',payload);assert.equal(repeat.status,200);assert.equal((await repeat.json()).voucher.code,created.voucher.code);
+  await assert.rejects(()=>g.call('/vouchers',{...payload,credits:200}),{status:409});
+  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_vouchers').get().n,1);
+  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_credit_entries').get().n,0);
+  for(const overrides of [{credits:0},{credits:501},{credits:1.5},{credits:'100'},{days:0},{days:31},{note:''},{note:'x'.repeat(81)},{requestId:'not-a-request'}])
+    await assert.rejects(()=>g.call('/vouchers',g.data(overrides)),{status:400});
+  await assert.rejects(()=>g.call('/vouchers',g.data(),'user_Other'),{status:403});
+  f.setEmail('changed@example.test');await assert.rejects(()=>g.call(),{status:403});
+});
+test('concurrent invitation requests cannot exceed allowance or mint duplicate reservations',async t=>{
+  const f=fixture(t),g=gifts(f);await g.budget(100);
+  const attempts=await Promise.allSettled([g.create(),g.create()]);
+  assert.equal(attempts.filter(r=>r.status==='fulfilled').length,1);assert.equal(attempts.find(r=>r.status==='rejected').reason.status,409);
+  const budget=(await (await g.call()).json()).budget;assert.equal(budget.reserved,100);assert.equal(budget.available,0);
+});
+test('redemptions atomically grant the existing wallet once and leave committed credits inside the allowance',async t=>{
+  const f=fixture(t),g=gifts(f);f.signup('user_Friend','friend@example.test');f.signup('user_Second','second@example.test');await g.budget(300);
+  const first=await g.create(),second=await g.create();
+  await assert.rejects(()=>g.redeem(first.code,'user_Victoria'),{status:409});
+  const redeemed=await (await g.redeem(first.code,'user_Friend')).json();assert.equal(redeemed.credits,100);assert.equal(redeemed.balanceCredits,100);
+  await assert.rejects(()=>g.redeem(first.code,'user_Friend'),{status:409});
+  await assert.rejects(()=>g.redeem(second.code,'user_Friend'),{status:409});
+  await assert.rejects(()=>g.redeem(first.code,'user_Second'),{status:409});
+  assert.equal(f.db.prepare("SELECT COUNT(*) n FROM lab_credit_entries WHERE reference LIKE 'voucher:%'").get().n,1);
+  const state=await (await g.call()).json();assert.deepEqual(state.budget,{total:300,available:100,reserved:100,redeemed:100,maxPerInvitation:500});
+  assert.equal(state.redemptions[0].email,'friend@example.test');
+  await g.call('/vouchers/deactivate',{code:first.code});assert.equal((await (await g.call()).json()).budget.available,100,'redeemed credits cannot be recovered');
+  await assert.rejects(()=>g.budget(199),{status:409});
+});
+test('expiry and scoped deactivation release only unused reserves, while owner restore cannot oversubscribe',async t=>{
+  const f=fixture(t),g=gifts(f);await g.budget(100);const expired=await g.create();
+  f.db.prepare('UPDATE lab_vouchers SET expires_at=? WHERE code=?').run(Date.now()-10000,expired.code);
+  assert.equal((await (await g.call()).json()).budget.available,100);
+  const active=await g.create();
+  const restore=new Request('https://worker.test/api/admin/vouchers/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:expired.code})});
+  await assert.rejects(()=>labAdminRoute(restore,f.env,'user_Owner'),/budget exceeded/);
+  await g.call('/vouchers/deactivate',{code:active.code});
+  assert.equal((await (await g.call()).json()).budget.available,100);
+  await assert.rejects(()=>g.call('/vouchers/deactivate',{code:'PVOTHEROWNER12'}),{status:400});
+  await assert.rejects(()=>g.call('/vouchers/deactivate',{code:active.code}),{status:409});
+  f.signup('user_Friend','friend@example.test');await assert.rejects(()=>g.redeem(active.code,'user_Friend'),{status:409});
+});
+test('partner gift reports redact closed and unverified contacts and never include owner or other issuer vouchers',async t=>{
+  const f=fixture(t),g=gifts(f);await g.budget(500);
+  for(const [id,email] of [['user_Friend','friend@example.test'],['user_Closed','closed@example.test'],['user_Unverified','unverified@example.test']]){
+    f.signup(id,email);const voucher=await g.create({note:'Campaign '+id});await g.redeem(voucher.code,id);
+  }
+  f.db.prepare('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)').run('user_Closed',Date.now());
+  f.db.prepare('UPDATE lab_customer_contacts SET verified_at=NULL WHERE customer_id=?').run('user_Unverified');
+  f.db.prepare("INSERT INTO lab_vouchers VALUES('OWNERSECRET',100,1,0,1,NULL,'Owner secret',?,'user_Owner')").run(Date.now());
+  const report=await (await g.call()).json(),text=JSON.stringify(report);
+  assert.equal(report.redemptions.length,3);assert.equal(report.vouchers.length,3);
+  for(const privateValue of ['closed@example.test','unverified@example.test','OWNERSECRET','Owner secret'])assert.equal(text.includes(privateValue),false);
+  const owner=await (await g.call('/vouchers',undefined,'user_Owner',true)).json();assert.equal(owner.ownerView,true);assert.equal(owner.redemptions.length,3);
+  assert.equal(report.ownerView,false);
+});
+test('partner migration is repeatable and closed or billing-held recipients cannot receive gifts',async t=>{
+  const f=fixture(t),g=gifts(f);f.db.exec(readFileSync(new URL('../lab-worker/migrations/0037-partner-vouchers.sql',import.meta.url),'utf8'));
+  await g.budget(200);const first=await g.create(),second=await g.create();
+  f.signup('user_Closed','closed@example.test');f.signup('user_Held','held@example.test');
+  f.db.prepare('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)').run('user_Closed',Date.now());
+  f.db.prepare("INSERT INTO lab_billing_reviews(event_id,customer_id,object_id,state,reason,created_at) VALUES('held-test',?,'test-object','open','test',?)").run('user_Held',Date.now());
+  await assert.rejects(()=>g.redeem(first.code,'user_Closed'),{status:409});await assert.rejects(()=>g.redeem(second.code,'user_Held'),{status:409});
+  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_credit_entries').get().n,0);
 });
