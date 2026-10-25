@@ -13,7 +13,7 @@ try{
     await page.goto(base+'/agency/',{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>!document.querySelector('#project-brief button[type=submit]').disabled);
     await page.evaluate(()=>document.fonts.ready);
-    assert.equal(await page.locator('h1').innerText(),'Fashion.\nFilm.\nDigital.\nBeyond.');
+    assert.equal(await page.locator('h1').innerText(),'Fashion\ncampaigns.\nFilms.\nDigital worlds.');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'agency overflow at '+width);
     assert.equal(await page.locator('iframe').count(),0,'YouTube must not load before interaction');
     assert.equal(await page.locator('.case-notes').count(),5);
