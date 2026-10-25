@@ -18,7 +18,7 @@ export function renderOwnerPagination(root,{page=1,pageSize=20,total=0,onPage}={
     button.type='button';button.textContent=label;
     button.disabled=disabled;button.className='owner-pagination-button';
     if(active)button.setAttribute('aria-current','page');
-    button.setAttribute('aria-label',typeof target==='number'&&/^\\d+$/.test(label)?'Page '+target:label);
+    button.setAttribute('aria-label',typeof target==='number'&&/^[0-9]+$/.test(label)?'Page '+target:label);
     button.addEventListener('click',()=>{if(!button.disabled)onPage(target);});
     nav.append(button);
   }
