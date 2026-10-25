@@ -676,47 +676,6 @@
       .photo-work-link-title { font-size: 28px; }
     }
 
-    .history {
-      background: var(--paper);
-      color: var(--ink);
-    }
-
-    .history .section-head {
-      border-color: var(--line-light);
-    }
-
-    .history .section-kicker {
-      color: var(--muted-light);
-    }
-
-    .history-list {
-      border-top: 1px solid var(--line-light);
-    }
-
-    .history-row {
-      min-height: 126px;
-      padding: 28px 0;
-      display: grid;
-      grid-template-columns: minmax(110px, 0.28fr) minmax(0, 1fr);
-      align-items: center;
-      gap: 40px;
-      border-bottom: 1px solid var(--line-light);
-    }
-
-    .history-year {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-    }
-
-    .history-event {
-      font-size: clamp(24px, 3.6vw, 54px);
-      font-weight: 600;
-      letter-spacing: -0.045em;
-      line-height: 1;
-      text-transform: uppercase;
-    }
-
     .contact {
       background: var(--black);
       color: #fff;
@@ -907,10 +866,6 @@
         width: min(88%, 560px);
       }
 
-      .history-row {
-        grid-template-columns: 84px 1fr;
-        gap: 22px;
-      }
     }
 
     @media (max-width: 460px) {
@@ -1026,12 +981,12 @@
     <section class="statement" aria-label="Alejandro Molinari biography">
       <p class="statement-label reveal">Founding Artist / Berlin</p>
       <div class="statement-copy">
-        <p class="reveal">Alejandro Molinari is a Berlin-based artist, producer and creative director working across sound, moving image and speculative culture.</p>
+        <p class="reveal" id="alejandro-bio-intro">Alejandro Molinari is a Berlin-based artist, producer and creative director working across sound, moving image and speculative culture.</p>
         <figure class="founder-portrait reveal">
           <img src="./assets/optimized/fashion-after-fabric/artists/alejandro/fashionsummer1.webp" alt="Alejandro Molinari, artist and founder of Parallel Vision" loading="lazy" decoding="async" width="1536" height="2048">
         </figure>
-        <p class="reveal">He is the founder of Parallel Vision, an independent platform connecting electronic music, visual world-building and material research. His practice moves between the dancefloor and the imagined city: from hypnotic club records and live performance to Berlin 2063, a cinematic universe examining identity, technology and life after the present.</p>
-        <p class="reveal">For Molinari, music is not an isolated product. It is the structural core of a larger system—one in which records, bodies, garments, architecture and fictional realities can occupy the same world.</p>
+        <p class="reveal" id="alejandro-bio-practice">He is the founder of Parallel Vision, an independent platform connecting electronic music, visual world-building and material research. His practice moves between the dancefloor and the imagined city: from hypnotic club records and live performance to Berlin 2063, a cinematic universe examining identity, technology and life after the present.</p>
+        <p class="reveal" id="alejandro-bio-world">For Molinari, music is not an isolated product. It is the structural core of a larger system—one in which records, bodies, garments, architecture and fictional realities can occupy the same world.</p>
 
       </div>
     </section>
@@ -1197,23 +1152,10 @@
       <div class="editorial-grid" aria-label="Alejandro Molinari night archive portrait">
         <div class="editorial-block reveal">
           <img src="./assets/optimized/fashion-after-fabric/artists/alejandro/cassiusfrontale.webp" alt="Dark editorial portrait of Alejandro Molinari" loading="lazy" decoding="async" width="1536" height="2048">
-          <p class="editorial-label">01 — Artist / Founder / Night Archive</p>
+          <p class="editorial-label">01 — Portrait</p>
         </div>
       </div>
       <!-- PHOTOGRAPHY_PAUSED_20261025: editorial photography link temporarily unpublished -->
-    </section>
-
-    <section class="history section-shell" id="history" aria-labelledby="history-title">
-      <header class="section-head reveal">
-        <h2 class="section-title" id="history-title">Selected History</h2>
-        <p class="section-kicker">Chronology / Verified Entry</p>
-      </header>
-      <div class="history-list">
-        <div class="history-row reveal">
-          <span class="history-year">2025</span>
-          <span class="history-event">Parallel Vision founded in Berlin</span>
-        </div>
-      </div>
     </section>
 
     <section class="contact section-shell" id="contact" aria-labelledby="contact-title">
