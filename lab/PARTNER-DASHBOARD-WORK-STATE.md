@@ -2,18 +2,26 @@
 
 ## Credit invitations and working dashboard, 2026-10-25
 - User requested a more useful, refined dashboard and a voucher creator so Victoria can offer credits to prospects.
-- Baseline main bcd80d965b19c7d084b0c5c94009c4bb9467f3c6; isolated branch feature/vitolas-credit-invitations-20261025. Existing open PRs have no Vitolas-specific work.
-- Reuse the approved Future Beauty WebP below. New editorial navigation, gift preview, campaign form, reserved/redeemed/available allowance, recent invitations and redemptions; no new image generation.
-- New lab-worker/partner-vouchers.mjs, migration 0037-partner-vouchers.sql and scoped customer/admin routes reuse verified partner identity and the actual Owner guard.
-- Owner sets a lifetime promotional credit allowance from the same dashboard. Default is zero; deployment issues no credits and allocates no spend. Victoria cannot raise the budget or access owner-wide vouchers.
-- Each invitation: 1-500 credits, one recipient, campaign name, 1-30 days. Existing atomic voucher redemption/wallet trigger retained; one Vitolas trial per customer, no self redemption, closed/billing-held accounts rejected.
-- SQLite triggers enforce reservation capacity under concurrent requests and owner restoration; expired/deactivated unused reserves release automatically. Redeemed credits stay committed. Allowance edits have an audit trail.
-- Request UUID produces an idempotent invite code. Repeating a failed network request cannot create duplicate reserves; changed payload with same key is rejected.
-- Gift URL includes existing referral code and voucher; account controller captures/claims the reference under unchanged new-account rules. Redemption remains an explicit customer action.
-- Contact reporting redacts closed/unverified recipient emails. No real vouchers, credits, purchases, provider generations or outbound messages created during implementation.
-- Local validation: 170 Worker/partner/promotions/referrals/trial/holds/menu/Image checks passed; syntax and diff checks passed.
-- Browser additions cover creation/error/retry, sharing, budget controls, deactivation, zero allowance, signed-out delayed responses, and combined referral/voucher account links at mobile/desktop widths.
-- Status: implementation complete locally; browser CI, visual inspection and production release pending. Next: validate fixed candidate, review mobile/desktop artifacts, publish and verify Worker plus Cloudflare Pages bytes.
+- Published PR #537: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/537
+- Reviewed head 87d4cb7b2f96c8b1513ff4f1371b7e4db776d59c; code merge 709effcc1ee94563ef8e07cf9086dd0c28389914. Baseline bcd80d965b19c7d084b0c5c94009c4bb9467f3c6; no unrelated source edits.
+- Reused the approved Future Beauty WebP below. New editorial navigation, gift preview, campaign form, allowance summary, invitation status and private redemption history.
+- Frontend: lab/vitolas-studio.{html,css,js}, lab/account.{html,js}; backend: lab-worker/partner-vouchers.mjs, shared partner resolver, Worker routes and migration 0037-partner-vouchers.sql.
+- Owner alone sets a lifetime promotional credit allowance from the same dashboard. Default is zero; this release allocated no actual promotional budget and created no real vouchers or wallet grants.
+- Victoria cannot increase the budget or read owner-wide vouchers. All partner requests reverify her approved primary email; admin requests use the actual OWNER_DB role/provider guard.
+- Each invitation: 1-500 credits, one recipient, campaign name, 1-30 days. Existing atomic redemption/wallet trigger retained; one Vitolas trial per customer, no self redemption, closed/billing-held accounts rejected.
+- SQLite triggers enforce capacity under concurrent creation and owner restoration. Expired/deactivated unused reserves release automatically; redeemed credits stay committed. Allowance edits have an audit trail.
+- UUID-based idempotency prevents duplicate reservations on network retry; reusing a request with changed details is rejected.
+- Gift URL combines voucher and existing referral code. The real account controller claims the referral under unchanged attribution/reward rules; the customer must explicitly redeem the voucher.
+- Reports redact closed/unverified recipient emails. No real purchases, provider generations or outbound messages were made. Clipboard sharing was tested with synthetic data only.
+- Local validation: 170 Worker/partner/promotions/referrals/trial/holds/menu/Image checks passed. Syntax and diff checks passed.
+- All 11 final PR workflows passed. General account browser needed one targeted retry for an existing shared-checkout request/count timing race; no product code or assertion was weakened.
+- Partner run 40177903389 passed 208 browser assertions at 320/390/768/1440px: create/error/retry, sharing, budget controls, deactivation, zero allowance, Owner navigation and both-role delayed-response isolation.
+- Artifact 12593262321: desktop, phone, Owner and unallocated layouts inspected. Combined referral/voucher account-controller flow also passed at desktop/mobile widths.
+- Worker production run 40178243603/job 121123504597 succeeded, including migration 0037 and health. Worker UUID 771a39f1-0301-40e4-b110-49f00bf5232a; live health reports pv-lab-2026-10-25-vitolas-invitations-v1.
+- Exact-merge Cloudflare Pages check 121123822822 succeeded. Scoped verifier returned LIVE_VERIFIED for lab/lab.js v=20261024-fashion-main1, SHA-256 3afcb4009bf4267c7ac8ec241b291c755aab9bae5e48ad39a22f07538fec2b5f.
+- Production Vitolas HTML/CSS/JS and account.js independently matched reviewed bytes (HTTP 200). Account HTML references partner=20261025-invitations1; existing Cloudflare email-protection transforms its footer, so raw HTML bytes differ.
+- Status: frontend, schema and Worker published. Actual Victoria/Owner signed-in production sessions and real referral/redemption activity were not used as tests.
+- Next real action: Owner Dashboard > Vitolas Studio > Presupuesto total. Set the allowance, then Victoria can create and copy her credit invitations.
 
 ## Future Beauty visual refresh, 2026-10-25
 - User requested a shadowed high-fashion future-cosmetics hero and clearer explanation of Victoria's referral workflow.
