@@ -51,14 +51,20 @@ jobs:
           ffprobe -v error -show_entries stream=width,height -of csv=p=0:s=x /tmp/flesh-zero-mobile.mp4 | grep -qx '960x480'
       - name: Upload to Parallel Vision R2
         shell: bash
-        env:
-          CLOUDFLARE_ACCOUNT_ID: a40ce1725295563a7b7db9fc3160480a
         run: |
           set -euo pipefail
-          npx wrangler@4 r2 object put 'parallel-vision-visuals/fashion-after-fabric/flesh-zero/flesh-zero-film-one-original.mp4' --file /tmp/flesh-zero-original.mp4 --content-type video/mp4 --remote
-          npx wrangler@4 r2 object put 'parallel-vision-visuals/fashion-after-fabric/flesh-zero/flesh-zero-film-one-desktop.mp4' --file /tmp/flesh-zero-desktop.mp4 --content-type video/mp4 --remote
-          npx wrangler@4 r2 object put 'parallel-vision-visuals/fashion-after-fabric/flesh-zero/flesh-zero-film-one-mobile.mp4' --file /tmp/flesh-zero-mobile.mp4 --content-type video/mp4 --remote
-          npx wrangler@4 r2 object put 'parallel-vision-visuals/fashion-after-fabric/flesh-zero/flesh-zero-film-one-poster.webp' --file /tmp/flesh-zero-poster.webp --content-type image/webp --remote
+          uploader='https://pv-flesh-zero-upload-temp.parallelvision.workers.dev/upload/fz-20261025-9Kq4Wm7'
+          upload() {
+            local file="$1" key="$2" type="$3"
+            echo "uploading $key"
+            response="$(curl --fail --location --silent --show-error --retry 4 --retry-all-errors -X PUT "$uploader" -H "x-object-key: $key" -H "Content-Type: $type" --data-binary "@$file")"
+            echo "$response"
+            echo "$response" | grep -q '"ok":true'
+          }
+          upload /tmp/flesh-zero-original.mp4 'fashion-after-fabric/flesh-zero/flesh-zero-film-one-original.mp4' 'video/mp4'
+          upload /tmp/flesh-zero-desktop.mp4 'fashion-after-fabric/flesh-zero/flesh-zero-film-one-desktop.mp4' 'video/mp4'
+          upload /tmp/flesh-zero-mobile.mp4 'fashion-after-fabric/flesh-zero/flesh-zero-film-one-mobile.mp4' 'video/mp4'
+          upload /tmp/flesh-zero-poster.webp 'fashion-after-fabric/flesh-zero/flesh-zero-film-one-poster.webp' 'image/webp'
       - name: Verify public R2 delivery
         shell: bash
         run: |
