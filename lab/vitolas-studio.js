@@ -9,6 +9,7 @@ let voucherBusy=false,voucherData=null,createdVoucher=null,requestId=crypto.rand
 let commissionData=null,commissionLimit=25;
 let customerFilter='all',customerRevision=0,searchTimer=null;
 let customerItems=[],customerPage=0;const customerPageSize=20;
+let voucherPage=0,redemptionPage=0;
 const request=createSessionRequest({baseUrl:'https://parallel-vision-lab.parallelvision.workers.dev',getSession:()=>clerk?.session});
 const status=message=>{$('partner-status').textContent=message;};
 async function api(path,body){
@@ -16,19 +17,25 @@ async function api(path,body){
   if(!response.ok)throw Error(response.status===403?'Esta cuenta no tiene acceso a Vitolas Studio.':data.error||'No pudimos cargar el panel. Inténtalo de nuevo.');
   return data;
 }
-function openDialog(id){
-  const dialog=$(id);if(!dialog||!clerk?.isSignedIn||$('partner-content').hidden)return;
-  for(const other of document.querySelectorAll('.partner-dialog[open]'))if(other!==dialog)other.close();
-  if(!dialog.open)dialog.showModal();
+const views={overview:'partner-overview',clients:'partner-customers',invitations:'partner-invitations',commissions:'partner-commission-history',guide:'partner-help'};
+const viewHashes={overview:'resumen',clients:'clientes',invitations:'invitaciones',commissions:'comisiones',guide:'guia'};
+function readView(){const hash=location.hash.slice(1);return Object.keys(views).find(key=>key===hash||views[key]===hash||viewHashes[key]===hash)||'overview';}
+function activateView(key,{write=true,focus=false,scroll=false}={}){
+  if(!Object.hasOwn(views,key))key='overview';
+  for(const [name,id] of Object.entries(views))$(id).hidden=name!==key;
+  for(const tab of document.querySelectorAll('.partner-worknav [role=tab]')){const selected=tab.dataset.partnerView===key;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;}
+  if(write){const url=new URL(location.href);url.hash=viewHashes[key];history.replaceState(null,'',url);}
+  const panel=$(views[key]);if(focus)panel.focus({preventScroll:true});if(scroll)panel.scrollIntoView({block:'start',behavior:'auto'});
 }
-for(const button of document.querySelectorAll('[data-partner-dialog]'))button.onclick=()=>openDialog(button.dataset.partnerDialog);
-for(const dialog of document.querySelectorAll('.partner-dialog')){
-  dialog.querySelector('[data-partner-close]').onclick=()=>dialog.close();
-  dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const box=dialog.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)dialog.close();});
-}
-const voucherStatus=message=>{for(const id of ['partner-voucher-status','partner-history-status'])$(id).textContent=message;};
+for(const button of document.querySelectorAll('[data-partner-view]'))button.onclick=()=>activateView(button.dataset.partnerView,{focus:button.getAttribute('role')!=='tab',scroll:true});
+const tabs=[...document.querySelectorAll('.partner-worknav [role=tab]')];
+for(const tab of tabs)tab.addEventListener('keydown',event=>{let next=tabs.indexOf(tab);if(event.key==='ArrowRight')next=(next+1)%tabs.length;else if(event.key==='ArrowLeft')next=(next+tabs.length-1)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();tabs[next].focus();activateView(tabs[next].dataset.partnerView);});
+window.addEventListener('hashchange',()=>activateView(readView(),{write:false,scroll:true}));
+const voucherStatus=message=>{$('partner-voucher-status').textContent=message;};
+function updatePager(prefix,page,count){const start=count?page*20+1:0,end=Math.min(count,(page+1)*20);$(prefix+'-page').textContent=start+'–'+end+' de '+count;$(prefix+'-prev').disabled=page===0;$(prefix+'-next').disabled=end>=count;}
 function clear(){
-  for(const dialog of document.querySelectorAll('.partner-dialog[open]'))dialog.close();
+  activateView('overview',{write:false});voucherPage=0;redemptionPage=0;updatePager('partner-voucher',0,0);updatePager('partner-redemption',0,0);
+  $('partner-create-layout').classList.remove('is-ready');$('partner-gift-preview').hidden=false;$('partner-start').hidden=false;$('partner-recent-activity').hidden=true;$('partner-overview-budget').textContent='';
   customerItems=[];customerPage=0;$('partner-page').textContent='1';$('partner-prev').disabled=true;
   clearTimeout(searchTimer);$('partner-search').value='';$('partner-customer-status').textContent='';
   $('partner-voucher-form').hidden=false;voucherStatus('');
@@ -36,8 +43,8 @@ function clear(){
   customerFilter='all';customerRevision++;for(const b of document.querySelectorAll('[data-partner-filter]'))b.setAttribute('aria-pressed',String(b.dataset.partnerFilter==='all'));
   voucherBusy=false;voucherData=null;createdVoucher=null;requestId=crypto.randomUUID();
   commissionData=null;commissionLimit=25;$('partner-export').disabled=true;$('partner-commission-more').hidden=true;
-  $('partner-commission-rows').replaceChildren();
-  for(const id of ['partner-commission','partner-revenue','partner-commission-held'])$(id).textContent='0,00 €';
+  for(const id of ['partner-commission-rows','partner-latest-signups','partner-recent-purchases'])$(id).replaceChildren();
+  for(const id of ['partner-commission','partner-report-commission','partner-revenue','partner-overview-revenue','partner-commission-held'])$(id).textContent='0,00 €';
   $('partner-commission-status').textContent='';
   $('partner-voucher-workspace').hidden=true;$('partner-budget-form').hidden=true;$('partner-voucher-result').hidden=true;
   $('partner-voucher-url').value='';$('partner-voucher-code').textContent='';$('partner-voucher-detail').textContent='';$('partner-copy-status').textContent='';
@@ -48,7 +55,7 @@ function clear(){
   preview();
   $('partner-content').hidden=true;$('partner-more').hidden=false;$('partner-more').disabled=true;
   $('partner-url').value='';$('partner-rows').replaceChildren();
-  for(const id of ['registered','paying','subscribed','purchases'])$('partner-'+id).textContent='0';
+  for(const id of ['registered','overview-registered','paying','subscribed','purchases'])$('partner-'+id).textContent='0';
 }
 function rows(items){customerItems=items;customerPage=0;renderCustomers();}
 function renderCustomers(){
@@ -86,7 +93,7 @@ function renderCustomers(){
   }
 }
 async function refresh(){
-  const current=++revision;clear();$('partner-copy').textContent='Copiar';
+  const wantedView=readView(),current=++revision;clear();$('partner-copy').textContent='Copiar';
   $('partner-signin').hidden=!!clerk?.isSignedIn;$('partner-signin').disabled=!clerk;
   if(!clerk?.isSignedIn){status('Inicia sesión con tu cuenta autorizada para abrir Vitolas Studio.');return;}
   status('Cargando tu panel…');
@@ -100,9 +107,9 @@ async function refresh(){
     const link=new URL(data.shareUrl||data.referralUrl);
     if(!['https://pvlab.studio','https://www.pvlab.studio','https://parallelvisionlabel.com'].includes(link.origin))throw Error('El enlace no está disponible.');
     $('partner-url').value=link.href;
-    for(const [id,key] of [['registered','registered'],['paying','payingCustomers'],['subscribed','activeSubscriptions'],['purchases','purchases']])$('partner-'+id).textContent=Number(data.totals[key]||0).toLocaleString('es');
+    for(const [id,key] of [['registered','registered'],['overview-registered','registered'],['paying','payingCustomers'],['subscribed','activeSubscriptions'],['purchases','purchases']])$('partner-'+id).textContent=Number(data.totals[key]||0).toLocaleString('es');
     drawBusiness(data);nextOffset=data.nextOffset;rows(data.customers);
-    $('partner-content').hidden=false;status('');await loadVouchers(current);
+    $('partner-content').hidden=false;activateView(wantedView,{write:false});status('');await loadVouchers(current);
   }catch(error){if(current===revision)status(error.message);}
 }
 $('partner-signin').onclick=()=>clerk?.openSignIn();
@@ -143,6 +150,7 @@ $('partner-search').oninput=()=>{clearTimeout(searchTimer);++customerRevision;lo
 const date=value=>new Date(value).toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'});
 const money=cents=>new Intl.NumberFormat('es',{style:'currency',currency:'EUR'}).format(Number(cents||0)/100);
 const receiptStatus={accrued:'Registrada',held:'En revisión',needs_reconciliation:'Por conciliar',not_eligible:'Fuera del acuerdo'};
+function labelCells(id,labels){for(const row of $(id).rows)if(row.cells.length===labels.length)labels.forEach((label,index)=>{row.cells[index].dataset.label=label;});}
 function commissionRows(){
   const body=$('partner-commission-rows');body.replaceChildren();const receipts=commissionData?.receipts||[];
   if(!receipts.length){const row=body.insertRow(),cell=row.insertCell();cell.colSpan=5;cell.textContent='Tu informe se completará cuando tus referidos realicen pagos verificados.';}
@@ -154,15 +162,27 @@ function commissionRows(){
     if(payment.kind==='subscription'&&payment.subscriptionWindowEndsAt){const window=document.createElement('small');window.textContent='Periodo hasta '+date(payment.subscriptionWindowEndsAt);earned.append(window);}
     const badge=document.createElement('span');badge.className='partner-badge';badge.textContent=receiptStatus[payment.status]||'En revisión';row.insertCell().append(badge);
   }
-  $('partner-commission-more').hidden=receipts.length<=commissionLimit;
+  labelCells('partner-commission-rows',['Cuenta / pago','Fecha','Importe','Tu comisión','Estado']);$('partner-commission-more').hidden=receipts.length<=commissionLimit;
+}
+function activity(target,items,kind){
+  const list=$(target);list.replaceChildren();
+  if(!items.length){const p=document.createElement('p');p.className='partner-activity-empty';p.textContent=kind==='signup'?'Los registros de tu enlace aparecerán aquí.':'Las compras de tus clientes aparecerán aquí, con el importe y tu comisión.';list.append(p);return;}
+  for(const item of items.slice(0,5)){
+    const row=document.createElement('div');row.className='partner-activity-row';const identity=document.createElement('div'),name=document.createElement('strong'),detail=document.createElement('small'),aside=document.createElement('div'),value=document.createElement('strong'),stamp=document.createElement('small');
+    name.textContent=item.closed?'Cuenta cerrada':item.email||'Correo pendiente de verificación';
+    detail.textContent=kind==='signup'?(item.subscribed?'Suscripción activa':item.paid?'Cliente de pago':'Registrada'):(item.kind==='subscription'?'Cuota de suscripción':'Compra de créditos');
+    value.textContent=kind==='signup'?date(item.registeredAt):money(item.amountCents);stamp.textContent=kind==='signup'?'':date(item.paidAt||item.recordedAt);
+    identity.append(name,detail);if(kind==='purchase'){const earned=document.createElement('small');earned.textContent=item.status==='accrued'?'Tu comisión: '+money(item.commissionCents):receiptStatus[item.status]||'En revisión';identity.append(earned);}
+    aside.append(value,stamp);row.append(identity,aside);list.append(row);
+  }
 }
 function drawBusiness(data){
-  commissionData=data.commissions||null;
-  if(!commissionData){for(const id of ['partner-commission','partner-revenue','partner-commission-held'])$(id).textContent='No disponible';$('partner-commission-status').textContent='No pudimos cargar el informe de comisiones. Actualiza el panel.';return;}
+  activity('partner-latest-signups',data.customers,'signup');$('partner-start').hidden=Number(data.totals.registered)>0;$('partner-recent-activity').hidden=Number(data.totals.registered)===0&&Number(data.totals.purchases)===0;commissionData=data.commissions||null;
+  if(!commissionData){for(const id of ['partner-commission','partner-report-commission','partner-revenue','partner-overview-revenue','partner-commission-held'])$(id).textContent='No disponible';$('partner-commission-status').textContent='No pudimos cargar el informe de comisiones. Actualiza el panel.';$('partner-recent-purchases').textContent='Informe no disponible. Actualiza el panel.';return;}
   const totals=commissionData.totals;
-  $('partner-commission').textContent=money(totals.commissionCents);$('partner-revenue').textContent=money(totals.revenueCents);$('partner-commission-held').textContent=money(totals.heldCommissionCents);
+  $('partner-commission').textContent=money(totals.commissionCents);$('partner-report-commission').textContent=money(totals.commissionCents);$('partner-revenue').textContent=money(totals.revenueCents);$('partner-overview-revenue').textContent=money(totals.revenueCents);$('partner-commission-held').textContent=money(totals.heldCommissionCents);
   $('partner-commission-status').textContent=totals.needsReconciliation?totals.needsReconciliation+' pagos sin fecha verificable pendientes de conciliación.':'';
-  commissionRows();$('partner-export').disabled=!commissionData.receipts.length;
+  activity('partner-recent-purchases',commissionData.recentPurchases||commissionData.receipts,'purchase');commissionRows();$('partner-export').disabled=!commissionData.receipts.length;
 }
 $('partner-commission-more').onclick=()=>{commissionLimit+=25;commissionRows();};
 $('partner-export').onclick=()=>{
@@ -175,13 +195,14 @@ $('partner-export').onclick=()=>{
 };
 function preview(){
   const credits=Number($('partner-voucher-credits').value),days=Number($('partner-voucher-days').value);
+  $('partner-preview-credits').textContent=Number.isSafeInteger(credits)&&credits>0?credits.toLocaleString('es'):'0';$('partner-preview-note').textContent=$('partner-voucher-note').value.trim()||'Una invitación de Vitolas Studio.';$('partner-preview-expiry').textContent='Un canje · '+days+' días de validez';
   for(const button of document.querySelectorAll('[data-partner-credits]'))button.setAttribute('aria-pressed',String(Number(button.dataset.partnerCredits)===credits));
   $('partner-voucher-create').disabled=voucherBusy||!voucherData||!Number.isSafeInteger(credits)||credits<1||credits>500||credits>voucherData.budget.available||!Number.isSafeInteger(days)||days<1||days>30;
 }
 function drawBudget(budget){
   if(voucherData)voucherData.budget=budget;
   for(const key of ['available','reserved','redeemed'])$('partner-budget-'+key).textContent=Number(budget[key]).toLocaleString('es');
-  $('partner-budget-total').value=budget.total;
+  $('partner-budget-total').value=budget.total;$('partner-overview-budget').textContent=budget.total===0?'Presupuesto de invitaciones pendiente de asignación':Number(budget.available).toLocaleString('es')+' créditos disponibles para invitar';$('partner-overview-budget-action').textContent=voucherData?.ownerView&&budget.total===0?'Asignar presupuesto ↗':'Gestionar invitaciones ↗';
   $('partner-budget-empty').hidden=budget.total>0;
   preview();
 }
@@ -199,12 +220,13 @@ function showInvitation(voucher){
   createdVoucher={...voucher,url:safeInvitation(voucher.url)};
   $('partner-voucher-url').value=createdVoucher.url;$('partner-voucher-code').textContent=voucher.code;
   $('partner-voucher-detail').textContent=voucher.credits+' créditos · válida hasta '+date(voucher.expiresAt);
-  $('partner-voucher-result').hidden=false;$('partner-voucher-form').hidden=true;$('partner-copy-status').textContent='';
+  $('partner-voucher-result').hidden=false;$('partner-voucher-form').hidden=true;$('partner-gift-preview').hidden=true;$('partner-create-layout').classList.add('is-ready');$('partner-copy-status').textContent='';if(!$('partner-invitations').hidden){$('partner-voucher-result').scrollIntoView({block:'center'});$('partner-voucher-copy').focus({preventScroll:true});}
 }
 function drawVouchers(data){
+  voucherPage=Math.max(0,Math.min(voucherPage,Math.max(0,Math.ceil(data.vouchers.length/20)-1)));redemptionPage=Math.max(0,Math.min(redemptionPage,Math.max(0,Math.ceil(data.redemptions.length/20)-1)));updatePager('partner-voucher',voucherPage,data.vouchers.length);updatePager('partner-redemption',redemptionPage,data.redemptions.length);
   const body=$('partner-voucher-rows');body.replaceChildren();
   if(!data.vouchers.length){const row=body.insertRow(),cell=row.insertCell();cell.colSpan=5;cell.textContent='Tu primera invitación empieza aquí.';}
-  for(const voucher of data.vouchers){
+  for(const voucher of data.vouchers.slice(voucherPage*20,(voucherPage+1)*20)){
     const row=body.insertRow(),name=row.insertCell(),label=document.createElement('strong'),code=document.createElement('small');
     label.textContent=voucher.note;code.textContent=voucher.code;name.append(label,code);
     row.insertCell().textContent=Number(voucher.credits).toLocaleString('es');row.insertCell().textContent=date(voucher.expiresAt);
@@ -214,14 +236,15 @@ function drawVouchers(data){
     const actions=row.insertCell();
     if(voucher.active&&!expired&&!used){
       const link=document.createElement('button');link.type='button';link.className='account-text-button';link.textContent='Compartir ↗';
-      link.onclick=()=>{showInvitation(voucher);openDialog('partner-invitations');};
+      link.onclick=()=>{showInvitation(voucher);activateView('invitations',{scroll:true});$('partner-voucher-result').scrollIntoView({block:'center'});$('partner-voucher-copy').focus({preventScroll:true});};
       const deactivate=document.createElement('button');deactivate.type='button';deactivate.className='account-text-button';deactivate.textContent='Desactivar';
       deactivate.onclick=()=>void mutate('/vouchers/deactivate',{code:voucher.code});actions.append(link,deactivate);
     }else actions.textContent='';
   }
   const claims=$('partner-redemption-rows');claims.replaceChildren();$('partner-redemption-count').textContent=String(data.redemptions.length);
   if(!data.redemptions.length){const row=claims.insertRow(),cell=row.insertCell();cell.colSpan=4;cell.textContent='Los canjes aparecerán aquí cuando tus contactos activen su regalo.';}
-  for(const claim of data.redemptions){const row=claims.insertRow();for(const value of [claim.closed?'Cuenta cerrada':claim.email||'Correo pendiente de verificación',claim.note,claim.credits,date(claim.redeemedAt)])row.insertCell().textContent=String(value);}
+  for(const claim of data.redemptions.slice(redemptionPage*20,(redemptionPage+1)*20)){const row=claims.insertRow();for(const value of [claim.closed?'Cuenta cerrada':claim.email||'Correo pendiente de verificación',claim.note,claim.credits,date(claim.redeemedAt)])row.insertCell().textContent=String(value);}
+  labelCells('partner-voucher-rows',['Invitación','Créditos','Caducidad','Estado','Acciones']);labelCells('partner-redemption-rows',['Cuenta','Invitación','Créditos','Canje']);
 }
 async function loadVouchers(current){
   voucherStatus('Cargando invitaciones…');
@@ -229,15 +252,15 @@ async function loadVouchers(current){
     const data=await api(dashboardPath+'/vouchers');if(current!==revision)return;
     voucherData=data;drawBudget(data.budget);drawVouchers(data);
     $('partner-budget-form').hidden=data.ownerView!==true;$('partner-voucher-workspace').hidden=false;voucherStatus('');return true;
-  }catch(error){if(current===revision)voucherStatus(error.message);}
+  }catch(error){if(current===revision){voucherStatus(error.message);$('partner-overview-budget').textContent='No pudimos cargar los créditos para invitar. Actualiza el panel.';}}
 }
 async function mutate(action,body){
   if(voucherBusy||!voucherData)return;
   const current=revision;voucherBusy=true;preview();voucherStatus('Guardando…');
   try{
     const result=await api(dashboardPath+action,body);if(current!==revision)return;
-    if(result.voucher){showInvitation(result.voucher);requestId=crypto.randomUUID();}
-    if(result.deactivated&&createdVoucher?.code===body.code){createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-form').hidden=false;$('partner-voucher-url').value='';}
+    if(result.voucher){voucherPage=0;showInvitation(result.voucher);requestId=crypto.randomUUID();}
+    if(result.deactivated&&createdVoucher?.code===body.code){createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-form').hidden=false;$('partner-gift-preview').hidden=false;$('partner-create-layout').classList.remove('is-ready');$('partner-voucher-url').value='';}
     const loaded=await loadVouchers(current);
     if(current===revision&&loaded)voucherStatus(result.voucher?'Invitación creada. Lista para compartir.':result.deactivated?'Invitación desactivada. Sus créditos están disponibles.':'Presupuesto guardado.');
   }catch(error){if(current===revision)voucherStatus(error.message);}
@@ -246,7 +269,8 @@ async function mutate(action,body){
 $('partner-voucher-form').onsubmit=event=>{event.preventDefault();void mutate('/vouchers',{note:$('partner-voucher-note').value.trim()||'Invitación Vitolas',credits:Number($('partner-voucher-credits').value),days:Number($('partner-voucher-days').value),requestId});};
 $('partner-voucher-form').oninput=()=>{requestId=crypto.randomUUID();preview();};
 for(const button of document.querySelectorAll('[data-partner-credits]'))button.onclick=()=>{$('partner-voucher-credits').value=button.dataset.partnerCredits;requestId=crypto.randomUUID();preview();};
-$('partner-another-invite').onclick=()=>{createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-form').hidden=false;$('partner-voucher-note').value='';$('partner-voucher-url').value='';requestId=crypto.randomUUID();voucherStatus('');$('partner-voucher-note').focus();};
+$('partner-another-invite').onclick=()=>{$('partner-gift-preview').hidden=false;$('partner-create-layout').classList.remove('is-ready');createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-form').hidden=false;$('partner-voucher-note').value='';$('partner-voucher-url').value='';requestId=crypto.randomUUID();voucherStatus('');preview();$('partner-voucher-note').focus();};
+for(const [prefix,kind] of [['partner-voucher','voucher'],['partner-redemption','redemption']])for(const [direction,step] of [['prev',-1],['next',1]])$(prefix+'-'+direction).onclick=()=>{if(!voucherData)return;if(kind==='voucher')voucherPage+=step;else redemptionPage+=step;drawVouchers(voucherData);};
 $('partner-budget-form').onsubmit=event=>{event.preventDefault();void mutate('/budget',{total:Number($('partner-budget-total').value)});};
 $('partner-voucher-copy').onclick=()=>createdVoucher&&void copy(createdVoucher.url);
 $('partner-message-copy').onclick=()=>createdVoucher&&void copy('Hola, te invito a probar PV LAB con '+createdVoucher.credits+' créditos de parte de Vitolas Studio. Puedes explorar imágenes para tu marca o tus productos. Entra, inicia sesión y canjea tu código antes del '+date(createdVoucher.expiresAt)+': '+createdVoucher.url);

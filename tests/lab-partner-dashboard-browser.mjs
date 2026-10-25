@@ -8,7 +8,7 @@ const root=resolve('.'),output=resolve('test-results/vitolas');await mkdir(outpu
 const server=createServer(async(req,res)=>{
   const path=resolve(root,'.'+new URL(req.url,'http://localhost').pathname);
   if(!path.startsWith(root+'/'))return res.writeHead(403).end();
-  try{res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.png':'image/png','.webp':'image/webp'})[extname(path)]||'application/octet-stream');res.end(await readFile(path));}catch{res.writeHead(404).end();}
+  try{res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml'})[extname(path)]||'application/octet-stream');res.end(await readFile(path));}catch{res.writeHead(404).end();}
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const origin='http://127.0.0.1:'+server.address().port;
@@ -19,13 +19,14 @@ async function capture(page,name){await page.evaluate(()=>window.scrollTo(0,0));
 try{
   for(const width of (process.env.PV_PARTNER_WIDTHS?process.env.PV_PARTNER_WIDTHS.split(',').map(Number):[320,390,768,1440,1920])){
     const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
-    const errors=[],writes=[],requests=[];let allowed=true,hold=false,release,ownerView=false,awaitingPartner=false,failCreate=false,holdGift=false,releaseGift,businessUnavailable=false,releaseSearch,manyCustomers=false;
+    const errors=[],writes=[],requests=[];let allowed=true,hold=false,release,ownerView=false,awaitingPartner=false,failCreate=false,holdGift=false,releaseGift,businessUnavailable=false,releaseSearch,manyCustomers=false,emptyWorkspace=false,manyGifts=false;
     let total=1000,issued=0;
     const sample=(code,note,used=0)=>({code,note,credits:100,maxRedemptions:1,redemptionCount:used,active:1,expiresAt:Date.now()+14*86400000,createdAt:Date.now(),url:'https://pvlab.studio/account.html?voucher='+code+'&ref=ABCDEFGH#voucher'});
     const vouchers=[sample('VT'+'A'.repeat(20),'Beauty founders / Octubre'),sample('VT'+'B'.repeat(20),'Primera imagen',1)];
     const budget=()=>{const redeemed=vouchers.reduce((sum,v)=>sum+v.credits*v.redemptionCount,0),reserved=vouchers.reduce((sum,v)=>sum+(v.active&&!v.redemptionCount?v.credits:0),0);return {total,redeemed,reserved,available:Math.max(0,total-redeemed-reserved),maxPerInvitation:500};};
     const receipts=[{reference:'invoice:renewal',email:'friend@example.test',kind:'subscription',amountCents:1500,commissionCents:300,rate:20,status:'accrued',paidAt:Date.now(),recordedAt:Date.now()},{reference:'invoice:first',email:'=formula@example.test',kind:'subscription',amountCents:1500,commissionCents:750,rate:50,status:'accrued',paidAt:Date.now()-30*86400000,recordedAt:Date.now()}];
     const commissions={totals:{revenueCents:3000,commissionCents:1050,heldCommissionCents:0,needsReconciliation:0},receipts,recentPurchases:receipts};
+    const tab=name=>page.getByRole('tab',{name,exact:true});
     page.on('pageerror',e=>errors.push(e.message));
     await page.route('**/native-account.js?**',route=>route.fulfill({contentType:'text/javascript',body:mock}));
     await page.route('https://parallel-vision-lab.parallelvision.workers.dev/**',async route=>{
@@ -35,7 +36,10 @@ try{
       if(url.pathname==='/api/session')return send({owner:ownerView,customer:!ownerView,balanceCredits:0,partnerDashboard:allowed&&!ownerView?{slug:'vitolas-studio',name:'Vitolas Studio'}:null});
       if(/\/partner\/|\/partners\/vitolas-studio\//.test(url.pathname)){
         if(!allowed||(url.pathname.startsWith('/api/admin/')&&!ownerView))return send({error:'Denied'},403);
-        if(req.method()==='GET')return send({ownerView,budget:budget(),vouchers,redemptions:[{code:vouchers[1].code,note:'Primera imagen',credits:100,email:'friend@example.test',redeemedAt:Date.now()}]});
+        if(req.method()==='GET'){
+          if(manyGifts){const gifts=Array.from({length:43},(_,i)=>sample('VT'+String(i).padStart(20,'0'),'Invitation '+i,i<23?1:0));const claims=Array.from({length:23},(_,i)=>({code:gifts[i].code,note:gifts[i].note,credits:100,email:'recipient'+i+'@example.test',redeemedAt:Date.now()}));return send({ownerView,budget:{total:10000,available:5700,reserved:2000,redeemed:2300},vouchers:gifts,redemptions:claims});}
+          return send({ownerView,budget:budget(),vouchers,redemptions:[{code:vouchers[1].code,note:'Primera imagen',credits:100,email:'friend@example.test',redeemedAt:Date.now()}]});
+        }
         const data=req.postDataJSON();
         if(url.pathname.endsWith('/budget')){if(!ownerView)return send({error:'Owner only'},403);total=data.total;return send({budget:budget()});}
         if(url.pathname.endsWith('/deactivate')){vouchers.find(v=>v.code===data.code).active=0;return send({deactivated:true,budget:budget()});}
@@ -53,8 +57,9 @@ try{
         if(q==='hold')await new Promise(resolve=>{releaseSearch=resolve});
         let people=[{email:'friend@example.test',registeredAt:Date.now(),paid:1,subscribed:1,purchases:2,commissionCents:300,paymentReferences:['invoice:renewal']},{email:'aura@example.test',registeredAt:Date.now()-86400000,paid:1,subscribed:1,purchases:1,commissionCents:750,paymentReferences:['invoice:first']},{email:'mara@example.test',registeredAt:Date.now()-2*86400000,paid:1,subscribed:0,purchases:1,commissionCents:0,paymentReferences:[]},{email:'lina@example.test',registeredAt:Date.now()-3*86400000,paid:0,subscribed:0,purchases:0,commissionCents:0,paymentReferences:[]},{email:'nora@example.test',registeredAt:Date.now()-4*86400000,paid:0,subscribed:0,purchases:0,commissionCents:0,paymentReferences:[]}];
         if(manyCustomers)people=Array.from({length:105},(_,i)=>({email:'client'+i+'@example.test',registeredAt:Date.now(),paid:0,subscribed:0,purchases:0,commissionCents:0,paymentReferences:[]}));
+        if(emptyWorkspace)people=[];
         const shown=people.filter(p=>(!q||q==='hold'||p.email.includes(q))&&(filter==='all'||filter==='registered'&&!p.paid||filter==='paying'&&p.paid||filter==='subscribed'&&p.subscribed));
-        return send({workspace:{slug:'vitolas-studio',name:'Vitolas Studio'},shareUrl:'https://pvlab.studio/vitolas',referralUrl:'https://pvlab.studio/?ref=ABCDEFGH',commissions:businessUnavailable?null:commissions,totals:{registered:manyCustomers?105:5,payingCustomers:manyCustomers?0:3,activeSubscriptions:manyCustomers?0:2,purchases:manyCustomers?0:2},customers:shown.slice(Number(url.searchParams.get('offset')||0),Number(url.searchParams.get('offset')||0)+100),nextOffset:Number(url.searchParams.get('offset')||0)+100<shown.length?Number(url.searchParams.get('offset')||0)+100:null});
+        return send({workspace:{slug:'vitolas-studio',name:'Vitolas Studio'},shareUrl:'https://pvlab.studio/vitolas',referralUrl:'https://pvlab.studio/?ref=ABCDEFGH',commissions:businessUnavailable?null:emptyWorkspace?{totals:{commissionCents:0,revenueCents:0,heldCommissionCents:0,needsReconciliation:0},receipts:[],recentPurchases:[]}:commissions,totals:{registered:emptyWorkspace?0:manyCustomers?105:5,payingCustomers:emptyWorkspace||manyCustomers?0:3,activeSubscriptions:emptyWorkspace||manyCustomers?0:2,purchases:emptyWorkspace||manyCustomers?0:2},customers:shown.slice(Number(url.searchParams.get('offset')||0),Number(url.searchParams.get('offset')||0)+100),nextOffset:Number(url.searchParams.get('offset')||0)+100<shown.length?Number(url.searchParams.get('offset')||0)+100:null});
       }
       return send({});
     });
@@ -77,26 +82,33 @@ try{
     assert.equal(await page.locator('.partner-hero').evaluate(el=>el.getBoundingClientRect().height<=270),true);checks++;
     assert.equal(await page.locator('#partner-results').evaluate(el=>el.compareDocumentPosition(document.getElementById('partner-invitations'))&Node.DOCUMENT_POSITION_FOLLOWING?true:false),true);checks++;
     assert.equal(await page.locator('.partner-link').evaluate(el=>!!(el.compareDocumentPosition(document.querySelector('.partner-metrics'))&Node.DOCUMENT_POSITION_FOLLOWING)),true);checks++;
-    assert.equal(await page.locator('.partner-metrics').evaluate(el=>el.getBoundingClientRect().top-document.querySelector('.partner-hero').getBoundingClientRect().bottom<=150),true);checks++;
+    assert.equal(await page.getByRole('tab').count(),5);assert.equal(await tab('Resumen').getAttribute('aria-selected'),'true');assert.equal(await page.locator('.partner-agreement').isVisible(),true);checks+=2;checks++;
     assert.equal(await page.locator('#partner-url').inputValue(),'https://pvlab.studio/vitolas');checks++;
     assert.equal(await page.locator('#partner-commission').textContent(),new Intl.NumberFormat('es',{style:'currency',currency:'EUR'}).format(10.50));checks++;
-    assert.equal(await page.locator('.partner-dialog[open]').count(),0);checks++;
+    assert.equal(await page.locator('dialog').count(),0);checks++;
     assert.equal(await page.locator('header #partner-title').count(),1);assert.equal(await page.locator('.partner-client-avatar').count(),5);checks+=2;
     assert.equal(await page.locator('#partner-prev').isDisabled(),true);assert.equal(await page.locator('#partner-more').isDisabled(),true);checks+=2;
     if(width===1440){
       assert.ok(await page.locator('.partner-shell').evaluate(el=>el.getBoundingClientRect().width>=innerWidth*.98));
       assert.ok(await page.locator('.partner-client-identity strong').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=16));
-      assert.ok(await page.locator('.partner-metrics>div').first().evaluate(el=>{const a=el.querySelector('span').getBoundingClientRect(),b=el.querySelector('strong').getBoundingClientRect();return Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2)<5;}));checks+=3;
+      assert.ok(await page.locator('#partner-commission').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=44));checks+=3;
     }
+    await page.waitForFunction(()=>document.querySelector('header .lab-wordmark').complete&&document.querySelector('header .lab-wordmark').naturalWidth>0);
+    assert.match(await page.locator('header .lab-wordmark').getAttribute('src'),/pvlab-wordmark-bold.svg/);assert.match(await page.locator('#partner-latest-signups').textContent(),/friend@example.test/);assert.match(await page.locator('#partner-recent-purchases').textContent(),/Tu comisión/);checks+=3;
+    await capture(page,'overview-'+width+'.png');
+    await tab('Guía').click();assert.equal(await page.locator('#partner-help').isVisible(),true);assert.equal(await page.locator('.partner-help-grid article').count(),8);checks+=2;
+    await tab('Guía').press('Home');await tab('Resumen').press('ArrowRight');assert.equal(await tab('Clientes').getAttribute('aria-selected'),'true');checks++;
+    await tab('Clientes').click();
     await page.locator('.partner-client-name').first().click();assert.match(await page.locator('.partner-client-detail').textContent(),/Comisión:.*3,00/);checks++;
     await page.locator('.partner-client-name').first().click();assert.equal(await page.locator('.partner-client-detail').count(),0);checks++;
     assert.equal(await page.locator('.partner-help-grid article').count(),8);checks++;
-    await capture(page,'overview-'+width+'.png');
-    await page.locator('[data-partner-dialog="partner-commission-history"]').click();
+    await capture(page,'clients-'+width+'.png');
+    await tab('Comisiones').click();
+    assert.equal(await page.locator('#partner-commission-history').isVisible(),true);assert.equal(await page.locator('#partner-commission-history').evaluate(el=>el.getBoundingClientRect().width>=innerWidth*.85),true);checks+=2;
     const downloading=page.waitForEvent('download');await page.locator('#partner-export').click();const download=await downloading;
     const csv=await readFile(await download.path(),'utf8');assert.match(csv,/Comisión EUR/);assert.match(csv,/'=formula@example.test/);checks+=2;
-    await page.keyboard.press('Escape');
-    assert.equal(await page.locator('.partner-dialog[open]').count(),0);checks++;
+    await tab('Clientes').click();
+    assert.equal(await page.locator('dialog').count(),0);checks++;
     const searching=page.waitForRequest(req=>new URL(req.url()).searchParams.get('q')==='aura');
     await page.locator('#partner-search').fill('aura');await searching;await page.waitForFunction(()=>document.querySelector('#partner-customer-status').textContent==='');
     assert.ok(requests.filter(path=>path==='/api/customer/partner').length>=2);assert.equal(await page.locator('#partner-rows tr').count(),1);assert.match(await page.locator('#partner-rows').textContent(),/aura@example.test/);checks+=3;
@@ -118,7 +130,7 @@ try{
     assert.deepEqual(writes,[]);checks++;
     assert.equal(await page.locator('#partner-budget-form').isVisible(),false);checks++;
     assert.equal(await page.locator('#partner-budget-available').textContent(),'800');checks++;
-    await page.locator('[data-partner-dialog="partner-invitations"]').click();
+    await tab('Invitaciones').click();
     assert.equal(await page.locator('#partner-voucher-note').getAttribute('required'),null);checks++;
     await page.locator('#partner-voucher-credits').fill('50');await page.locator('#partner-voucher-days').selectOption('7');
     assert.equal(await page.locator('#partner-voucher-create').isEnabled(),true);assert.equal(await page.locator('[data-partner-credits][aria-pressed=true]').count(),0);checks+=2;
@@ -140,8 +152,8 @@ try{
     await context.grantPermissions(['clipboard-read','clipboard-write']);
     await page.locator('#partner-message-copy').click();
     assert.match(await page.evaluate(()=>navigator.clipboard.readText()),/200 créditos de parte de Vitolas Studio/);checks++;
-    await page.keyboard.press('Escape');await page.locator('[data-partner-dialog="partner-invitation-history"]').click();
-    await page.locator('#partner-redemption-rows').evaluate(el=>el.closest('details').open=true);
+    await page.locator('#partner-invitation-history').scrollIntoViewIfNeeded();
+    assert.equal(await page.locator('#partner-redemption-rows').isVisible(),true);checks++;
     assert.match(await page.locator('#partner-redemption-rows').textContent(),/friend@example.test/);checks++;
     await capture(page,'dashboard-'+width+'.png');
     await page.locator('#partner-voucher-rows tr').filter({hasText:'New beauty campaign'}).getByRole('button',{name:'Desactivar'}).click();
@@ -149,7 +161,7 @@ try{
     assert.equal(await page.locator('#partner-voucher-result').getAttribute('hidden'),'');checks++;
     assert.equal(await page.locator('#partner-budget-available').textContent(),'800');checks++;
     if(width===1440){
-      await page.keyboard.press('Escape');manyCustomers=true;await page.reload();await page.waitForFunction(()=>!document.querySelector('#partner-voucher-workspace').hidden);
+      manyCustomers=true;await page.reload();await page.waitForFunction(()=>!document.querySelector('#partner-voucher-workspace').hidden);await tab('Clientes').click();
       assert.equal(await page.locator('#partner-rows>.partner-customer-row').count(),20);assert.equal(await page.locator('#partner-page').textContent(),'1');checks+=2;
       for(let i=0;i<4;i++)await page.locator('#partner-more').click();
       assert.equal(await page.locator('#partner-page').textContent(),'5');assert.match(await page.locator('#partner-rows').textContent(),/client80@example.test/);checks+=2;
@@ -170,8 +182,9 @@ try{
     assert.equal(await page.locator('#partner-url').inputValue(),'');checks++;
     assert.equal(await page.locator('#partner-voucher-url').inputValue(),'');checks++;
     assert.equal(await page.locator('#partner-redemption-rows').textContent(),'');checks++;
-    assert.equal(await page.locator('.partner-dialog[open]').count(),0);checks++;
+    assert.equal(await page.locator('dialog').count(),0);checks++;
     assert.equal(await page.locator('#partner-commission-rows').textContent(),'');checks++;
+    for(const id of ['partner-latest-signups','partner-recent-purchases','partner-overview-budget']){assert.equal(await page.locator('#'+id).textContent(),'');checks++;}
     allowed=false;
     await page.reload();await page.waitForFunction(()=>document.querySelector('#partner-status').textContent.includes('no tiene acceso'));
     assert.equal(await page.locator('#partner-content').isVisible(),false);checks++;
@@ -181,7 +194,7 @@ try{
     assert.equal(requests.includes('/api/admin/partners/vitolas-studio'),false);checks++;
     ownerView=true;allowed=true;await page.reload();
     await page.locator('#partner-content:not([hidden])').waitFor();
-    await page.locator('[data-partner-dialog="partner-invitation-history"]').click();
+    await tab('Invitaciones').click();
     await page.locator('#partner-budget-form:not([hidden])').waitFor();
     await page.locator('#partner-budget-total').fill('2000');await page.locator('#partner-budget-form button').click();
     await page.waitForFunction(()=>document.querySelector('#partner-voucher-status').textContent.includes('Presupuesto guardado'));
@@ -195,12 +208,13 @@ try{
     assert.equal(await page.locator('#partner-content').isVisible(),false);checks++;
     assert.equal(await page.locator('#partner-url').inputValue(),'');checks++;
     ownerView=false;awaitingPartner=false;
-    total=0;await page.reload();await page.waitForFunction(()=>!document.querySelector('#partner-voucher-workspace').hidden);
-    await page.locator('[data-partner-dialog="partner-invitations"]').click();
+    total=0;emptyWorkspace=true;await page.reload();await page.waitForFunction(()=>!document.querySelector('#partner-voucher-workspace').hidden);
+    await tab('Invitaciones').click();
     assert.equal(await page.locator('#partner-budget-empty').isVisible(),true);checks++;
     assert.equal(await page.locator('#partner-voucher-create').isDisabled(),true);checks++;
     if(width===320||width===1440)await capture(page,'zero-budget-'+width+'.png');
-    total=2000;
+    await tab('Resumen').click();assert.equal(await page.locator('#partner-start').isVisible(),true);assert.equal(await page.locator('#partner-recent-activity').isVisible(),false);assert.match(await page.locator('#partner-overview-budget').textContent(),/pendiente de asignación/);checks+=3;await capture(page,'empty-overview-'+width+'.png');
+    total=2000;emptyWorkspace=false;
     if(width===1440){businessUnavailable=true;await page.reload();await page.waitForFunction(()=>!document.querySelector('#partner-voucher-workspace').hidden);assert.equal(await page.locator('#partner-commission').textContent(),'No disponible');checks++;businessUnavailable=false;}
     for(const role of [false,true]){
       ownerView=role;allowed=true;hold=true;
@@ -215,7 +229,7 @@ try{
     hold=false;
     for(const role of [false,true]){
       ownerView=role;allowed=true;await page.reload();await page.waitForFunction(()=>!document.querySelector('#partner-voucher-workspace').hidden);
-      await page.locator('[data-partner-dialog="partner-invitations"]').click();
+      await tab('Invitaciones').click();
       await page.locator('#partner-voucher-note').fill('Delayed invitation');holdGift=true;
       const pending=page.waitForRequest(req=>req.method()==='POST'&&new URL(req.url()).pathname.endsWith('/vouchers'));
       await page.locator('#partner-voucher-create').click();await pending;
@@ -223,6 +237,13 @@ try{
       assert.equal(await page.locator('#partner-voucher-result').isVisible(),false);checks++;
       assert.equal(await page.locator('#partner-voucher-url').inputValue(),'');checks++;
       assert.equal(await page.locator('#partner-voucher-rows').textContent(),'');checks++;
+    }
+    if(width===1440){
+      manyGifts=true;ownerView=false;allowed=true;await page.reload();await page.waitForFunction(()=>!document.querySelector('#partner-voucher-workspace').hidden);await tab('Invitaciones').click();
+      assert.equal(await page.locator('#partner-voucher-rows tr').count(),20);await page.locator('#partner-voucher-next').click();assert.match(await page.locator('#partner-voucher-page').textContent(),/21–40 de 43/);await page.locator('#partner-voucher-next').click();assert.equal(await page.locator('#partner-voucher-rows tr').count(),3);assert.equal(await page.locator('#partner-voucher-next').isDisabled(),true);checks+=4;
+      await page.locator('#partner-voucher-prev').click();assert.equal(await page.locator('#partner-voucher-rows tr').count(),20);checks++;
+      assert.equal(await page.locator('#partner-redemption-rows tr').count(),20);await page.locator('#partner-redemption-next').click();assert.equal(await page.locator('#partner-redemption-rows tr').count(),3);assert.match(await page.locator('#partner-redemption-page').textContent(),/21–23 de 23/);checks+=3;
+      manyGifts=false;
     }
     hold=false;ownerView=true;allowed=true;
     await page.goto(origin+'/lab/owner.html');

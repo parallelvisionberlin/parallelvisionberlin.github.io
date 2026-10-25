@@ -8,13 +8,18 @@ import {calculatePartnerCommissions,sixCalendarMonthsAfter,recordPartnerPaymentC
 import {stripeWebhook} from '../lab-worker/customer-billing.mjs';
 import {resolveVitolasLink} from '../lab/vitolas-link.js';
 
-test('the approved reference keeps every binding, real pagination and flexible invitation controls',()=>{
+test('the working desk keeps all bindings, current branding and full-page tools without modal windows',()=>{
   const html=readFileSync(new URL('../lab/vitolas-studio.html',import.meta.url),'utf8');
   const controller=readFileSync(new URL('../lab/vitolas-studio.js',import.meta.url),'utf8');
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length,'Unique dashboard controls');
   for(const match of controller.matchAll(/\$\('([^']+)'\)/g))assert.ok(ids.includes(match[1]),'Missing controller target: '+match[1]);
   assert.ok(html.indexOf('class="partner-link"')<html.indexOf('class="partner-metrics"'));
-  assert.equal((html.match(/<dialog /g)||[]).length,4);
+  assert.equal((html.match(/<dialog /g)||[]).length,0);
+  assert.equal((html.match(/role="tabpanel"/g)||[]).length,5);
+  assert.equal((html.match(/role="tab"/g)||[]).length,5);
+  assert.match(html,/branding\/pvlab-wordmark-bold\.svg/);
+  assert.equal(html.includes('data-partner-dialog'),false);
+  assert.equal(controller.includes('showModal'),false);
   assert.equal(/<dialog[^>]+\bopen\b/.test(html),false);
   assert.equal(html.includes('partner-activity-card'),false);
   assert.match(html,/<header class="[^"]*partner-hero/);
