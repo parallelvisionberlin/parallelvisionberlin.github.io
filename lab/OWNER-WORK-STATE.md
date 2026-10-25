@@ -1,3 +1,13 @@
+## Owner tables: twenty-per-page server pagination, 2026-10-25
+- User screenshot shows long Owner Acquisition & revenue and Customers lists. Requested 20 newest rows in each and compact navigation for pages 2/3/4, rather than an ~200-row continuous dashboard.
+- Branch: `fix/owner-customers-acquisition-pagination-20261025` from main `718a7b840291ce29b5f36e9972bde6d101a4ec57`.
+- Server: `lab-worker/promotions.mjs` adds bounded `page` to existing owner-only `/api/admin/overview` and `/api/admin/acquisition`, returning 20 rows ordered by joinedAt descending + ID tie-break and true total counts. Acquisition metric summary remains whole-period, not limited to displayed rows. No wallet, billing or creative data mutation.
+- Client: `lab/owner.js` and `lab/owner-acquisition-ui.js` provide independent per-table pages with Previous/Next plus 1..5 visible numbers; Accounts search stays server-side and resets page to 1; date-range changes reset acquisition page. Existing recent signups feed remains separate from page-two navigation.
+- Presentation: controls under tables in `lab/owner.html`, shared `lab/owner-pagination.js`, scoped `lab/owner.css` styling. Never render all returned rows for each table at once.
+- Focused `tests/lab-promotions.test.mjs` validates 20+20+10 on 50 accounts, uniqueness, permission, search filtering, totals, page validation and UI pagination contract.
+- Status: branch code authored; CI, merge, Cloudflare Pages/Worker production and signed-in actual browser not yet verified in this entry.
+- Next: run relevant tests via PR CI, review diff, merge only after checks, verify both Cloudflare Pages and Worker for exact merge SHA, then inspect actual signed-in page. Do not claim live based on Github Pages.
+
 ## Voucher recipient UI simplification, 2026-10-25
 - User tested the real Owner voucher lookup after PR #538 and rejected the extra View recipients / Hide recipients accordion. Existing live lookup showed Clerk verified name, email and redemption timestamp, confirming the backend returns identities.
 - Current branch: `fix/owner-voucher-inline-recipients-20261025`. Based on main at `2e7946b2e1316f39ee93da72d56bd39810ff6145`. Keep previous owner-only redemption endpoint unchanged.
