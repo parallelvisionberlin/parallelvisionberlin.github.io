@@ -47,3 +47,27 @@
 @media(max-width:460px){#partner-results>div{padding:18px 15px}#partner-results span{font-size:11px;min-height:28px;margin-bottom:5px}#partner-results #partner-overview-revenue,#partner-results #partner-commission{font-size:44px}#partner-results .account-text-button{font-size:11px;white-space:normal;text-align:left}#partner-overview .partner-overview-top h2{font-size:28px}.partner-budget-empty{padding:13px 15px}.partner-voucher-form{gap:18px}.partner-gift-preview{min-height:390px}}
 @media(max-width:460px){#partner-results>div:nth-child(n+3){grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 12px;border-right:0;border-bottom:1px solid var(--partner-line)}#partner-results>div:last-child{border-bottom:0}#partner-results>div:nth-child(n+3)>span{grid-column:1/-1;min-height:0}#partner-results>div:nth-child(n+3)>strong{white-space:nowrap;overflow-wrap:normal}#partner-results>div:nth-child(n+3)>.account-text-button{align-self:center;text-align:right}}
 @media(max-width:460px){#partner-results>div:nth-child(n+3){grid-template-columns:1fr}#partner-results>div:nth-child(n+3)>.account-text-button{text-align:left;justify-self:start}}
+
+/* One typographic voice across the desk, with a quieter, compact results board. */
+body.pv-partner-page{--partner-body:14px;--partner-caption:12px;--partner-heading:28px;font-family:'PV Lab Navigation',Arial,sans-serif;font-size:var(--partner-body)}
+.pv-partner-page :is(h1,h2,h3,p,span,strong,small,label,legend,a,button,input,select,th,td,summary,div){font-family:'PV Lab Navigation',Arial,sans-serif!important}
+.pv-partner-page .partner-view :is(h2,h3){font-size:var(--partner-heading);font-weight:400;letter-spacing:-.035em;line-height:1.2}
+.pv-partner-page #partner-overview .partner-overview-top h2{font-size:var(--partner-heading)}
+.pv-partner-page :is(.partner-lead,.partner-help-grid p,.partner-start p:not(.account-eyebrow),.partner-voucher-form label,.partner-owner-budget label,.partner-form-help,.partner-invitation-result p,.partner-invitation-result label){font-size:var(--partner-body);line-height:1.65}
+.pv-partner-page :is(.account-button,.account-text-button,.partner-worknav button,.partner-contact-filters button){font-size:var(--partner-body);font-weight:400;letter-spacing:0}
+.pv-partner-page :is(.partner-view .account-eyebrow,.partner-share>label,.partner-available-overview>span,.partner-budget span,.partner-budget-empty,.partner-owner-budget p,.partner-voucher-form>small,.partner-voucher-form label span,.partner-view .account-muted,.partner-activity-row small,.partner-report-summary>span,.partner-help-grid article small){font-size:var(--partner-caption);letter-spacing:0;line-height:1.6}
+.pv-partner-page .partner-view .account-eyebrow{letter-spacing:.06em}
+.pv-partner-page .partner-help-grid article{padding:20px 0}
+.pv-partner-page .partner-help-grid h3{font-size:22px}
+.pv-partner-page .partner-gift-preview>h3{font-size:32px}
+.pv-partner-page .partner-gift-preview>p:first-child{font-size:var(--partner-caption);letter-spacing:.06em}
+.pv-partner-page .partner-activity-row strong{font-size:var(--partner-body)}
+.pv-partner-page #partner-results>div{padding:15px 22px}
+.pv-partner-page #partner-results span{font-size:var(--partner-caption);margin-bottom:5px;line-height:1.5;min-height:0}
+.pv-partner-page #partner-results strong{font-size:40px;line-height:1.1;margin:0;font-weight:400;letter-spacing:-.045em}
+.pv-partner-page #partner-results :is(#partner-overview-revenue,#partner-commission){font-size:48px}
+.pv-partner-page #partner-results .account-text-button{font-size:var(--partner-caption);min-height:30px;padding:6px 0;line-height:1.5}
+.pv-partner-page .partner-results-context :is(.account-text-button,.partner-agreement p,.partner-agreement>span){font-size:var(--partner-caption);line-height:1.6}
+.pv-partner-page .partner-results-context .partner-agreement strong{font-size:16px;font-weight:500}
+@media(max-width:760px){.pv-partner-page{--partner-heading:26px}.pv-partner-page #partner-results>div{padding:14px 18px}.pv-partner-page #partner-results :is(#partner-overview-revenue,#partner-commission){font-size:44px}.pv-partner-page .partner-help-grid h3{font-size:22px}}
+@media(max-width:460px){.pv-partner-page #partner-results>div{padding:13px 16px}.pv-partner-page #partner-results>div:nth-child(-n+2)>span{min-height:36px}.pv-partner-page #partner-results strong{font-size:36px}.pv-partner-page #partner-results :is(#partner-overview-revenue,#partner-commission){font-size:44px}.pv-partner-page #partner-results .account-text-button{min-height:34px}.pv-partner-page .partner-gift-preview>h3{font-size:32px}}
