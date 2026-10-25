@@ -5,7 +5,10 @@
 - Baseline ea6e0cef68465cbba592d379fe5c737a80506446, isolated worktree vitolas-stable-session. No unrelated credit audit fixes included.
 - Subscribe to meaningful signed-in identity changes only: user, session, primary email and verification details. Ignore same-identity/token-renewal events. Initial/manual refresh, real account changes, logout clearing and bfcache recovery remain.
 - Regression sends 20 same-session notifications while editing a voucher and verifies no extra API calls, lost text/credits or changed tab. Existing role/logout race tests remain.
-- Files: Vitolas JS/HTML version, existing browser tests and this checkpoint. Marker 20261025-stable-session1. Validation/publication pending.
+- Published PR #568, source fff698719acd0b87a7cdd3da3c1a43f4693ed7ff; merge 5b82ee38d9d80d13864d49f619f1bf00b334572d. Marker 20261025-stable-session1.
+- Validation: 26 unit/required Image checks, 251 browser assertions at 390/1440px; partner CI 40229588524 passed. Exact-merge Cloudflare Pages check 121279661607 succeeded. Production HTML/CSS/JS each HTTP200 and exact reviewed bytes.
+- Live 390/1920px all five sections/no-scroll/typography checks passed with synthetic read-only accounts. HTML SHA256 720713ef222d46c84fabde3128e567a479ad739edcab1a7ad1ffad30c86f8c56; JS abff813c7fba4c78d2a5c6fdd3b297c4f8f08ec5bdc46182517072a86821348d. No real account mutations.
+- Status: published; no remaining action for session-notification resets. Separate provider financial audit/fixes tracked in OWNER-WORK-STATE.md.
 
 ## Approved simplified Invitations layout, 2026-10-25
 - User approved visual mockup generated_images/exec-2eecc9b4-08ab-4448-bffc-99bb7e6e5c34.png and explicitly requested implementation.
