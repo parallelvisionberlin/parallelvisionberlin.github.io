@@ -1,5 +1,14 @@
 # Vitolas Studio partner dashboard
 
+## Results first and slightly denser spacing, 2026-10-25
+- User approved the current Overview and Invitations screenshots and requested only slightly smaller spacing/cards while retaining large money figures, plus the proposed results hierarchy.
+- Baseline c106cd4c98daf123f9a0e349a56c06da6a5b9a77. Isolated worktree vitolas-results. Reuse bold logo, beauty hero, neutral palette and five inline sections.
+- Overview now leads with active subscribers, paying customers, total paid and recorded commission in one board, followed by referral link/invitation capacity and recent activity. Registrations and 50%/20% terms remain visible as secondary context.
+- Subscriber and payer shortcuts open the actual scoped Clients filter. Invitations, budget, forms and preview use slightly denser spacing. Money figures remain 58px desktop, 44px phone, and occupy full-width phone rows to avoid splitting amounts.
+- Server source and EUR currency remain unchanged. No fabricated prospects, payout statuses or financial data; prospect CRM and recorded settlements remain separate future functionality.
+- Scope: Vitolas HTML/CSS/JS, existing partner unit/browser tests and this handoff. No backend/schema, credit grants, real voucher creation or outbound messages.
+- Asset marker 20261025-results1. Validation and normal Pages publication in progress.
+
 ## No Unicode arrows in controls, 2026-10-25
 - User explicitly prohibits the arrow characters that iOS renders as blue emoji. Remove them, do not replace them with another Unicode arrow.
 - Applies to static and dynamically generated Vitolas buttons/links. Use clear text labels; pagination uses Anterior / Siguiente. No decorative row chevrons.
