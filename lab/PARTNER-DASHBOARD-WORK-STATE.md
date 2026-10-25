@@ -20,7 +20,13 @@
 - Actual desktop 1440/1920 and phone 320 screenshots inspected against the supplied reference. Workspace fills the available width; no horizontal page overflow.
 - PR #552: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/552
 - Final small-screen correction keeps the title and sign-in action from overlapping after logout. Browser assertions now verify both their geometry and absence of horizontal overflow.
-- Publication pending: wait relevant checks, merge the fixed reviewed candidate and verify the exact Cloudflare Pages deployment and production HTML/CSS/JS.
+- Published PR #552. Final reviewed head 01c9737b43d88fc2c77dba01a333c25087608c5a; production merge ab2a91ace8114ca24519bfc1a4ea9aac7c094459.
+- All eight final PR workflows passed. Partner run 40204916973 covers all five viewport sizes; artifact 12603531627. Final 320px logout geometry passed locally before the final source update.
+- Exact-merge Cloudflare Pages check 121204406137 succeeded. Scoped read-only verifier returned LIVE_VERIFIED for lab/lab.js, SHA-256 3afcb4009bf4267c7ac8ec241b291c755aab9bae5e48ad39a22f07538fec2b5f.
+- Production Vitolas HTML/CSS/JS each returned HTTP 200 and exactly matched the reviewed merge. Asset marker 20261025-reference2.
+- Actual production page rendering passed at 390/1920px with synthetic read-only API responses: single integrated masthead, full-width workspace, empty-state table, invitation controls, budget guard and Escape close. Desktop screenshot inspected.
+- Status: published at https://pvlab.studio/vitolas-studio. No Worker or schema redeployment required. Real signed-in account data was not used as visual fixture data.
+- Next action: reload Vitolas Studio. Keep this exact supplied format and readable scale for follow-up work; preserve the existing commission and invitation capabilities.
 - No real clients, purchases, invitations, allowance changes, credit grants or outbound messages were created for verification. Real signed-in Victoria/Owner sessions are separate from synthetic QA.
 - Full standalone dossier, mail provisioning and automatic payouts remain outside this correction.
 
