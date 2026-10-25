@@ -7,7 +7,12 @@
 - Real available credits now sit beside heading. Owner-only Asignar créditos opens the existing audited budget form inline, initially closed; reserved/redeemed totals move to history. No illustrative balances in production.
 - Real generated link/copy/message replaces preview, while form stays present. Create is disabled with Enlace creado until Crear otra invitación resets it. Preserve history, deactivation, canje identities and pagination.
 - Preview reuses existing approved beauty photo asset, no new paid generation. Zero budget remains explicit and blocks issuance; referral remains usable. No Worker/schema or commission changes.
-- Files: Vitolas HTML/CSS/JS, existing browser role test and this checkpoint. Asset marker 20261025-invite-simple1. Validation and normal Pages publication pending.
+- Files: Vitolas HTML/CSS/JS, existing browser role test and this checkpoint. Asset marker 20261025-invite-simple1.
+- Published PR #564: source 70e268ce4f26820c31f3acebc3d0dd8f7407a561; merge 9f250d41959103ce3bf45619630b927d4cad596b.
+- Validation: 26 partner/required Image checks and 350 browser assertions at 320/390/1440px passed. Owner inline budget, partner restrictions, real creation/copy/deactivation flow covered with isolated fixtures. Partner CI run 40222382407 passed.
+- Cloudflare exact-merge check 121258255467 succeeded for pvlab-studio; scoped verifier LIVE_VERIFIED. Production HTML/CSS/JS HTTP200 and exact reviewed bytes. SHA256 HTML f3353a4b46c204eb4f021c604e9a110ae09338dfdb932fc02d874351a026f655; CSS a54335f3a1b8f1f6e891131c55fe3d77e8e76cf6b7e3629051991479dfceec3e; JS dcbfadbc618f67317d71dce3c0fd2e7b6b40e95152ee90cc55cc2c0f3e1c0f97.
+- Live 390/1920px passed: new balance/form/preview, hidden Owner controls for partner, all five sections, unified font, no automatic downward scroll or overflow. Synthetic read-only account responses, no real signed-in observation.
+- Status: published at https://pvlab.studio/vitolas-studio#invitaciones. No remaining implementation action; no real vouchers, allowance grants or messages created.
 
 ## Navigation without automatic downward scrolling, 2026-10-25
 - User rejects section navigation scrolling down and cropping the hero. Every section control should open its destination directly, keeping the page starting at the hero with no scrolling animation.
