@@ -38,6 +38,9 @@ try{
     assert.deepEqual(await page.locator('img').evaluateAll(images=>images.filter(image=>new URL(image.src,location.href).origin===location.origin&&!image.naturalWidth).map(image=>image.getAttribute('src'))),[],'agency local artwork failed to load');
     await page.waitForFunction(()=>document.querySelector('#featured-film .motion-poster')?.naturalWidth>0,{timeout:10000});
     await page.waitForFunction(()=>document.querySelector('#work .project-image--reptare img')?.naturalWidth>0,{timeout:10000});
+    await page.locator('#work .project-image--reptare img').evaluate(async image=>{
+      await Promise.race([image.decode(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Reptare decode timeout')),10000))]);
+    });
     await page.screenshot({path:'agency-test-artifacts/agency-'+width+'.png',fullPage:true});
     const sends=[];let fail=true;
     await page.route(api+'/api/public/agency/enquiries',async route=>{
