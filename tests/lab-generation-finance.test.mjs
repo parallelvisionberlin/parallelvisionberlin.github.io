@@ -137,3 +137,14 @@ test('failed jobs do not create fictional vendor exposure after deletion',async 
   assert.equal(result.summary.archivedJobs,1);
   assert.equal(result.customers.find(c=>c.id===id).failedJobs,1);
 });
+
+test('failed generation with confirmed provider cost stays visible after credit restoration and deletion',async t=>{
+ const f=fixture(t),id='user_PaidFailure';f.account(id);f.install();const at=Date.now();
+ f.insert('INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES(?,?,?,?,?,?)','audit_credit',id,1000,'adjustment','audit_credit',at);
+ f.insert('INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?)','audit_job',id,'{"provider":"spicy","type":"video"}','queued',250000,at,at);
+ f.insert('UPDATE jobs SET state=?,settled_cost=?,updated_at=? WHERE id=?','failed',0.25,at+1,'audit_job');
+ assert.equal(f.get('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,1000);
+ f.insert('DELETE FROM jobs WHERE id=?','audit_job');
+ const report=await(await f.admin('/api/admin/acquisition?days=7')).json();assert.equal(report.summary.providerExposureUsd,0.25);
+ const activity=await(await f.admin('/api/admin/customers/activity?customerId='+id)).json();assert.equal(activity.summary.providerExposureUsd,0.25);assert.equal(activity.archivedFinance[0].costKind,'settled');
+});

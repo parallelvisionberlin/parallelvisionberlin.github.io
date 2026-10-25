@@ -1,7 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
-import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261025-paged1';
+import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261025-settlement1';
 import {renderOwnerPagination} from './owner-pagination.js?v=20261025-paged1';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
 import {createOwnerAuthGuard} from './owner-auth-guard.js?v=20261017-stability1';
@@ -107,7 +107,7 @@ function paintCustomerActivity(data){
     formatNumber(summary.creditsRefunded)+' refunded · '+
     formatNumber(summary.archivedJobs||0)+' finance records archived · '+
     dollar+Number(summary.providerExposureUsd||0).toFixed(2)+
-    ' estimated/settled provider exposure. Credits are charged when jobs start.'));
+    ' estimated/settled provider exposure. '+formatNumber(summary.unsettledFailedJobs||0)+' failed jobs await billing confirmation. Credits are charged when jobs start.'));
   const jobs=Array.isArray(data.jobs)?data.jobs:[];
   activityTable(root,{
     heading:'Generation history',note:'Latest '+(data.limits?.jobs||50)+' jobs',
@@ -135,8 +135,8 @@ function paintCustomerActivity(data){
           item.state==='failed'?'Failed / refunded':String(item.state||'Unknown'),
         {main:item.provider||'Historical provider unrecorded',
           sub:item.type||'No creative details retained'},
-        {main:dollar+Number(item.exposureUsd||0).toFixed(4),
-          sub:item.costKind==='settled'?'Recorded settled cost':'Reservation estimate'}
+        {main:item.costKind==='unconfirmed'?'Pending billing':dollar+Number(item.exposureUsd||0).toFixed(4),
+          sub:item.costKind==='settled'?'Recorded settled cost':item.costKind==='unconfirmed'?'Provider cost unconfirmed':'Reservation estimate'}
       ]),
       emptyMessage:''
     });

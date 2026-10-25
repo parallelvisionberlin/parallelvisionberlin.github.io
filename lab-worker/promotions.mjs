@@ -288,8 +288,8 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
   }
   if(path==='/api/admin/acquisition'&&method==='GET'){
     // Derived from finance-only rows. Creative jobs and R2 outputs may be deleted.
-    const costUsd=`CASE WHEN f.last_state IN ('draft','failed','unknown') THEN 0
-      ELSE COALESCE(f.settled_cost_usd,f.estimated_microusd/1000000.0) END`;
+    const costUsd=`CASE WHEN f.settled_cost_usd IS NOT NULL THEN f.settled_cost_usd WHEN f.last_state IN ('draft','failed','unknown') THEN 0
+      ELSE f.estimated_microusd/1000000.0 END`;
     const days=Number(url.searchParams.get('days')||'7');
     if(days!==7&&days!==30)fail(400,'Choose 7 or 30 days.');
     const page=ownerPage(url),offset=(page-1)*OWNER_PAGE_SIZE;
@@ -304,6 +304,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
             AND f.last_state IN ('completed','reconstructed_completed'))`,start,end),
       one(env,`SELECT COALESCE(SUM(${costUsd}),0) AS exposureUsd,
         COALESCE(SUM(CASE WHEN f.last_state IN ('completed','reconstructed_completed') THEN 1 ELSE 0 END),0) AS completedJobs,
+        SUM(CASE WHEN f.last_state='failed' AND f.settled_cost_usd IS NULL THEN 1 ELSE 0 END) AS unsettledFailedJobs,
         COALESCE(SUM(CASE WHEN f.deleted_at IS NOT NULL THEN 1 ELSE 0 END),0) AS archivedJobs,
         COALESCE(SUM(CASE WHEN f.last_state='reconstructed_completed' THEN 1 ELSE 0 END),0) AS reconstructedCompleted,
         COALESCE(SUM(CASE WHEN f.deleted_at IS NOT NULL THEN ${costUsd} ELSE 0 END),0) AS archivedExposureUsd
@@ -364,7 +365,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       pagination:{page,pageSize:OWNER_PAGE_SIZE,total:Number(customerCount?.n)||0},
       summary:{
         newUsers:Number(accounts?.n)||0,activatedUsers:Number(active?.n)||0,
-        completedJobs:Number(jobs?.completedJobs)||0,providerExposureUsd:Number(jobs?.exposureUsd)||0,
+        unsettledFailedJobs:Number(jobs?.unsettledFailedJobs)||0,completedJobs:Number(jobs?.completedJobs)||0,providerExposureUsd:Number(jobs?.exposureUsd)||0,
         archivedJobs:Number(jobs?.archivedJobs)||0,
         archivedExposureUsd:Number(jobs?.archivedExposureUsd)||0,
         reconstructedCompleted:Number(jobs?.reconstructedCompleted)||0,
@@ -416,10 +417,11 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       one(env,`SELECT COUNT(*) AS totalJobs,
         COALESCE(SUM(CASE WHEN last_state IN ('completed','reconstructed_completed') THEN 1 ELSE 0 END),0) AS completedJobs,
         COALESCE(SUM(CASE WHEN last_state='failed' THEN 1 ELSE 0 END),0) AS failedJobs,
+        SUM(CASE WHEN last_state='failed' AND settled_cost_usd IS NULL THEN 1 ELSE 0 END) AS unsettledFailedJobs,
         COALESCE(SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END),0) AS archivedJobs,
         COALESCE(SUM(CASE WHEN last_state='reconstructed_completed' THEN 1 ELSE 0 END),0) AS reconstructedCompleted,
-        COALESCE(SUM(CASE WHEN last_state NOT IN ('draft','failed','unknown')
-          THEN COALESCE(settled_cost_usd,estimated_microusd/1000000.0) ELSE 0 END),0) AS providerExposureUsd
+        COALESCE(SUM(CASE WHEN settled_cost_usd IS NOT NULL THEN settled_cost_usd WHEN last_state NOT IN ('draft','failed','unknown')
+          THEN estimated_microusd/1000000.0 ELSE 0 END),0) AS providerExposureUsd
         FROM lab_generation_finance WHERE customer_id=?`,customerId),
       one(env,`SELECT COALESCE(SUM(CASE WHEN kind='generation' THEN -delta_credits ELSE 0 END),0) AS creditsCharged,
         COALESCE(SUM(CASE WHEN kind='refund' THEN delta_credits ELSE 0 END),0) AS creditsRefunded
@@ -434,9 +436,9 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
         FROM lab_credit_entries WHERE customer_id=? ORDER BY created_at DESC,id DESC LIMIT 80`,customerId),
       all(env,`SELECT job_id AS jobId,created_at AS createdAt,last_state AS state,
         provider,tool_kind AS type,origin,
-        CASE WHEN last_state IN ('draft','failed','unknown') THEN 0
-          ELSE COALESCE(settled_cost_usd,estimated_microusd/1000000.0) END AS exposureUsd,
-        CASE WHEN settled_cost_usd IS NOT NULL THEN 'settled' ELSE 'estimate' END AS costKind
+        CASE WHEN settled_cost_usd IS NOT NULL THEN settled_cost_usd WHEN last_state IN ('draft','failed','unknown') THEN 0
+          ELSE estimated_microusd/1000000.0 END AS exposureUsd,
+        CASE WHEN settled_cost_usd IS NOT NULL THEN 'settled' WHEN last_state IN ('failed','unknown') THEN 'unconfirmed' ELSE 'estimate' END AS costKind
         FROM lab_generation_finance WHERE customer_id=? AND deleted_at IS NOT NULL
         ORDER BY created_at DESC,job_id DESC LIMIT 50`,customerId)
     ]);
@@ -452,7 +454,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       generation:'Generation charge',refund:'Generation refund',adjustment:'Credit adjustment'};
     return json({customer,summary:{
       totalJobs:Number(jobCounts?.totalJobs)||0,completedJobs:Number(jobCounts?.completedJobs)||0,
-      failedJobs:Number(jobCounts?.failedJobs)||0,
+      failedJobs:Number(jobCounts?.failedJobs)||0,unsettledFailedJobs:Number(jobCounts?.unsettledFailedJobs)||0,
       archivedJobs:Number(jobCounts?.archivedJobs)||0,
       reconstructedCompleted:Number(jobCounts?.reconstructedCompleted)||0,
       providerExposureUsd:Number(jobCounts?.providerExposureUsd)||0,
