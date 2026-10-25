@@ -14,6 +14,7 @@ try{
     await page.waitForFunction(()=>!document.querySelector('#project-brief button[type=submit]').disabled);
     await page.evaluate(()=>document.fonts.ready);
     assert.equal(await page.locator('h1').innerText(),'Fashion\ncampaigns.\nFilms.\nDigital worlds.');
+    assert.ok(!/[↗→]/.test(await page.locator('body').innerText()),'Agency must not render Unicode arrow glyphs on mobile/desktop');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'agency overflow at '+width);
     assert.equal(await page.locator('iframe').count(),0,'YouTube must not load before interaction');
     assert.equal(await page.locator('.case-notes').count(),5);
