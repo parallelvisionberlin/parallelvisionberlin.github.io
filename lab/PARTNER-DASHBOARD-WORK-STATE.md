@@ -1,5 +1,12 @@
 # Vitolas Studio partner dashboard
 
+## Stable session notifications, 2026-10-25
+- User reports repeated Vitolas refreshes. Root cause in current source: every Clerk notification called refresh, whose clear() hides and rebuilds panel, resets forms/pagination and renews tokens that can trigger more notifications.
+- Baseline ea6e0cef68465cbba592d379fe5c737a80506446, isolated worktree vitolas-stable-session. No unrelated credit audit fixes included.
+- Subscribe to meaningful signed-in identity changes only: user, session, primary email and verification details. Ignore same-identity/token-renewal events. Initial/manual refresh, real account changes, logout clearing and bfcache recovery remain.
+- Regression sends 20 same-session notifications while editing a voucher and verifies no extra API calls, lost text/credits or changed tab. Existing role/logout race tests remain.
+- Files: Vitolas JS/HTML version, existing browser tests and this checkpoint. Marker 20261025-stable-session1. Validation/publication pending.
+
 ## Approved simplified Invitations layout, 2026-10-25
 - User approved visual mockup generated_images/exec-2eecc9b4-08ab-4448-bffc-99bb7e6e5c34.png and explicitly requested implementation.
 - Baseline 7b04b0bc811f77dba932b5a635bfe226c377fb82, isolated worktree vitolas-invite-simple. Keep hero, logo, typography, neutral palette, results hierarchy and no-downward-scroll navigation.
