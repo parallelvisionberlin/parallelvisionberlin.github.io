@@ -2,7 +2,20 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
-import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute} from '../lab-worker/partner-dashboard.mjs';
+import {createHmac} from 'node:crypto';
+import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute,publicPartnerLink} from '../lab-worker/partner-dashboard.mjs';
+import {calculatePartnerCommissions,sixCalendarMonthsAfter,recordPartnerPaymentContext} from '../lab-worker/partner-commissions.mjs';
+import {stripeWebhook} from '../lab-worker/customer-billing.mjs';
+import {resolveVitolasLink} from '../lab/vitolas-link.js';
+
+test('the complete dashboard keeps every controller binding and prioritizes counters before invitation tools',()=>{
+  const html=readFileSync(new URL('../lab/vitolas-studio.html',import.meta.url),'utf8');
+  const controller=readFileSync(new URL('../lab/vitolas-studio.js',import.meta.url),'utf8');
+  const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length,'Unique dashboard controls');
+  for(const match of controller.matchAll(/\$\('([^']+)'\)/g))assert.ok(ids.includes(match[1]),'Missing controller target: '+match[1]);
+  assert.ok(html.indexOf('class="partner-metrics"')<html.indexOf('class="partner-link"'));
+  assert.ok(html.indexOf('class="partner-metrics"')<html.indexOf('id="partner-invitations"'));
+});
 import {partnerVoucherRoute} from '../lab-worker/partner-vouchers.mjs';
 import {voucherCustomerRoute,labAdminRoute} from '../lab-worker/promotions.mjs';
 
@@ -21,12 +34,13 @@ function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   const file=path=>readFileSync(new URL('../lab-worker/'+path,import.meta.url),'utf8');
   db.exec(file('schema.sql'));
-  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0037-partner-vouchers'])db.exec(file('migrations/'+name+'.sql'));
+  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0024-owner-acquisition','0037-partner-vouchers','0038-partner-commissions'])db.exec(file('migrations/'+name+'.sql'));
   const env={LAB_CLERK_SECRET_KEY:'test-only',LAB_PUBLIC_APP_URL:'https://pvlab.studio/studio.html',LAB_DB:{prepare(sql){return {bind(...args){return {
     async first(){return db.prepare(sql).get(...args)||null;},
     async all(){return {results:db.prepare(sql).all(...args)};},
     async run(){return {meta:{changes:db.prepare(sql).run(...args).changes}};}
   };}};}}};
+  env.LAB_DB.batch=async statements=>{db.exec('BEGIN');try{const result=[];for(const statement of statements)result.push(await statement.run());db.exec('COMMIT');return result;}catch(error){db.exec('ROLLBACK');throw error;}};
   const signup=(id,email)=>{
     db.prepare('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)').run(id,id,Date.now(),Date.now());
     if(email)db.prepare('INSERT INTO lab_customer_contacts VALUES(?,?,?,?)').run(id,email,Date.now(),Date.now());
@@ -121,6 +135,11 @@ test('own referrals only, all verified payments counted, closed identities redac
   assert.equal(data.customers.find(x=>x.closed).email,null);
   assert.equal(JSON.stringify(data).includes('stranger@example.test'),false);
   assert.equal(data.customers.find(person=>person.email==='friend@example.test').purchases,2);assert.equal(data.nextOffset,null);
+  for(const filter of ['paying','subscribed']){
+    const subset=await (await partnerDashboardRoute(f.request('?filter='+filter),f.env,'user_Victoria')).json();
+    assert.equal(subset.customers.length,1);assert.equal(subset.customers[0].email,'friend@example.test');assert.equal(subset.totals.registered,2);
+  }
+  await assert.rejects(()=>partnerDashboardRoute(f.request('?filter=other'),f.env,'user_Victoria'),{status:400});
   assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_credit_entries').get().n,3);
   assert.equal(f.db.prepare('SELECT balance_credits n FROM lab_customers WHERE id=?').get('user_Victoria').n,0);
 });
@@ -225,4 +244,81 @@ test('partner migration is repeatable and closed or billing-held recipients cann
   f.db.prepare("INSERT INTO lab_billing_reviews(event_id,customer_id,object_id,state,reason,created_at) VALUES('held-test',?,'test-object','open','test',?)").run('user_Held',Date.now());
   await assert.rejects(()=>g.redeem(first.code,'user_Closed'),{status:409});await assert.rejects(()=>g.redeem(second.code,'user_Held'),{status:409});
   assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_credit_entries').get().n,0);
+});
+
+test('50 percent first payment and 20 percent subscriptions use calendar months, not overlapping rates or replay order',()=>{
+  const first=Date.UTC(2026,7,31,12),renewal=Date.UTC(2026,8,30,12),boundary=Date.UTC(2027,1,28,12);
+  assert.equal(sixCalendarMonthsAfter(first),boundary);
+  const pay=(reference,paidAt,kind='subscription',customerId='buyer')=>({reference,customerId,paidAt,recordedAt:Date.now(),kind,amountCents:1500});
+  const rows=calculatePartnerCommissions([pay('invoice:later',boundary),pay('invoice:renewal',renewal),pay('invoice:first',first),pay('checkout:later',renewal+1000,'purchase')]);
+  const find=id=>rows.find(p=>p.reference===id);
+  assert.equal(find('invoice:first').commissionCents,750);assert.equal(find('invoice:first').rate,50);
+  assert.equal(find('invoice:renewal').commissionCents,300);assert.equal(find('invoice:renewal').rate,20);
+  assert.equal(find('invoice:later').commissionCents,0);assert.equal(find('checkout:later').commissionCents,0);
+  const pack=calculatePartnerCommissions([pay('checkout:first',first-1000,'purchase'),pay('invoice:first',first),pay('invoice:renewal',renewal)]);
+  assert.equal(pack.find(p=>p.reference==='checkout:first').rate,50);assert.equal(pack.find(p=>p.reference==='invoice:first').rate,20);
+  const historical=calculatePartnerCommissions([pay('checkout:old',null,'purchase'),pay('invoice:new',renewal)]);
+  assert.ok(historical.every(p=>p.status==='needs_reconciliation'&&p.commissionCents===0));
+  assert.equal(calculatePartnerCommissions([{...pay('invoice:held',first),billingReview:1}])[0].status,'held');
+  assert.equal(sixCalendarMonthsAfter(Date.UTC(2027,7,31)),Date.UTC(2028,1,29));
+});
+
+test('commission report stays scoped to actual EUR receipts, preserves anonymization and holds refunded accounts',async t=>{
+  const f=fixture(t);f.signup('user_Buyer','buyer@example.test');f.signup('user_Stranger','stranger@example.test');
+  f.db.prepare('INSERT INTO lab_referrals(referred_customer_id,referrer_customer_id,attributed_at) VALUES(?,?,?)').run('user_Buyer','user_Victoria',1);
+  f.db.prepare('INSERT INTO lab_referrals(referred_customer_id,referrer_customer_id,attributed_at) VALUES(?,?,?)').run('user_Stranger','user_Other',1);
+  const add=async(reference,subject,kind,amount,paidAt)=>{
+    f.db.prepare('INSERT INTO lab_credit_entries VALUES(?,?,1000,?,?,?)').run(reference,subject,kind,reference,Date.now());
+    f.db.prepare('INSERT INTO lab_revenue_events VALUES(?,?,?,?)').run(reference,subject,amount,Date.now());
+    await recordPartnerPaymentContext(f.env,{reference,kind,paidAt});
+  };
+  const first=Date.UTC(2026,9,25);await add('checkout:first','user_Buyer','purchase',1000,first);
+  await add('invoice:first','user_Buyer','subscription',1500,first+1000);
+  await add('checkout:stranger','user_Stranger','purchase',7500,first);
+  f.db.prepare("INSERT INTO lab_credit_entries VALUES('gift','user_Buyer',200,'adjustment','voucher:gift',?)").run(Date.now());
+  const report=async()=>(await (await partnerDashboardRoute(f.request('?customer_id=user_Other'),f.env,'user_Victoria')).json()).commissions;
+  const a=await report();assert.deepEqual(a.totals,{revenueCents:2500,commissionCents:800,heldCommissionCents:0,payments:2,needsReconciliation:0});
+  assert.equal(a.receipts.length,2);assert.equal(JSON.stringify(a).includes('stranger@example.test'),false);assert.equal(JSON.stringify(a).includes('user_Buyer'),false);
+  f.db.prepare("INSERT INTO lab_billing_reviews(event_id,customer_id,object_id,reason,amount_cents,created_at) VALUES('refund','user_Buyer','ch_refund','charge.refunded',1000,?)").run(Date.now());
+  const held=await report();assert.equal(held.totals.commissionCents,0);assert.equal(held.totals.heldCommissionCents,800);
+  f.db.prepare('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)').run('user_Buyer',Date.now());
+  assert.equal(JSON.stringify(await report()).includes('buyer@example.test'),false);
+});
+
+test('verified webhook stores immutable processor payment timing once and ignores browser-like underpaid receipts',async t=>{
+  const f=fixture(t);f.signup('user_Buyer','buyer@example.test');
+  f.env.LAB_STRIPE_WEBHOOK_SECRET='whsec_synthetic';f.env.LAB_STRIPE_SECRET_KEY='sk_test_synthetic';
+  const seconds=Math.floor(Date.now()/1000);
+  const send=async(event)=>{
+    const raw=JSON.stringify(event),signature=createHmac('sha256',f.env.LAB_STRIPE_WEBHOOK_SECRET).update(seconds+'.'+raw).digest('hex');
+    return stripeWebhook(new Request('https://worker.test/api/billing/webhook',{method:'POST',headers:{'stripe-signature':'t='+seconds+',v1='+signature},body:raw}),f.env);
+  };
+  const event={id:'evt_verified',created:seconds-100,livemode:false,type:'checkout.session.completed',data:{object:{id:'cs_verified',customer:'cus_verified',mode:'payment',currency:'eur',payment_status:'paid',amount_total:1000,client_reference_id:'user_Buyer',metadata:{lab_customer_id:'user_Buyer',lab_sku:'topup10'}}}};
+  await send(event);await send(event);
+  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_payment_context').get().n,1);
+  assert.equal(f.db.prepare('SELECT paid_at FROM lab_payment_context').get().paid_at,(seconds-100)*1000);
+  await send({...event,id:'evt_replayed',created:seconds});
+  assert.equal(f.db.prepare('SELECT paid_at FROM lab_payment_context').get().paid_at,(seconds-100)*1000);
+  await send({...event,id:'evt_underpaid',data:{object:{...event.data.object,id:'cs_underpaid',amount_total:1}}});
+  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_payment_context').get().n,1);
+  t.mock.method(globalThis,'fetch',async()=>Response.json({id:'sub_verified',customer:'cus_verified',status:'active',metadata:{lab_customer_id:'user_Buyer',lab_sku:'starter'},items:{data:[{price:{unit_amount:1500,currency:'eur'}}]}}));
+  await send({id:'evt_invoice',created:seconds,livemode:false,type:'invoice.paid',data:{object:{id:'in_verified',status:'paid',currency:'eur',amount_paid:1500,billing_reason:'subscription_create',subscription:'sub_verified',status_transitions:{paid_at:seconds-50}}}});
+  const invoice=f.db.prepare("SELECT * FROM lab_payment_context WHERE reference='invoice:in_verified'").get();
+  assert.equal(invoice.kind,'subscription');assert.equal(invoice.paid_at,(seconds-50)*1000);assert.equal(invoice.subscription_id,'sub_verified');
+});
+
+test('public vanity entrance resolves only the server-registered referral and fails closed for missing or unsafe destinations',async t=>{
+  const f=fixture(t),request=new Request('https://worker.test/api/partners/vitolas/link?subject=user_Other');
+  await assert.rejects(()=>publicPartnerLink(request,f.env),{status:503});
+  f.db.prepare('INSERT INTO lab_referral_codes(customer_id,code,created_at) VALUES(?,?,?)').run('user_Victoria','ABCDEFGH',Date.now());
+  const initialized=await (await publicPartnerLink(request,f.env)).json();assert.equal(initialized.url,'https://pvlab.studio/?ref=ABCDEFGH');
+  assert.equal(f.requestedSubject,'','Anonymous alias activation never calls Clerk');
+  const dashboard=await (await partnerDashboardRoute(f.request(),f.env,'user_Victoria')).json();assert.equal(dashboard.shareUrl,'https://pvlab.studio/vitolas');
+  const publicData=await (await publicPartnerLink(request,f.env)).json();assert.equal(publicData.url,dashboard.referralUrl);assert.deepEqual(Object.keys(publicData),['url']);
+  t.mock.method(globalThis,'fetch',async()=>Response.json(publicData));
+  assert.equal(await resolveVitolasLink(),dashboard.referralUrl);
+  for(const url of ['https://evil.example/?ref=ABCDEFGH','javascript:alert(1)','https://pvlab.studio/owner?ref=ABCDEFGH']){
+    t.mock.method(globalThis,'fetch',async()=>Response.json({url}));await assert.rejects(()=>resolveVitolasLink(),/Invitación no válida/);
+  }
+  f.db.prepare('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)').run('user_Victoria',Date.now());await assert.rejects(()=>publicPartnerLink(request,f.env),{status:503});
 });

@@ -15,7 +15,7 @@ import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook
 import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
-import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute} from './partner-dashboard.mjs';
+import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute,publicPartnerLink} from './partner-dashboard.mjs';
 import {partnerVoucherRoute} from './partner-vouchers.mjs';
 import {labAdminRoute,voucherCustomerRoute,syncCustomerEmail,scheduledClerkBackfill} from './promotions.mjs';
 import {recordLabTraffic,pruneLabTraffic} from './traffic.mjs';
@@ -56,7 +56,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-25-vitolas-invitations-v1';
+export const VERSION = 'pv-lab-2026-10-25-vitolas-commissions-v1';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1358,6 +1358,7 @@ async function route(request,env,ctx) {
   if(url.pathname.startsWith('/api/webhooks/spicy/wakeup/'))return receiveSpicyMoodWakeup(request,env,ctx);
   if(url.pathname==='/api/webhooks/spicy'&&request.method==='POST')return receiveSpicyMoodCallback(request,env,ctx);
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
+  if(url.pathname==='/api/partners/vitolas/link')return publicPartnerLink(request,env);
   const identity=await authenticate(request,env);
   const {id:owner,issuer:authIssuer}=identity,path=url.pathname,method=request.method;
   if(path.startsWith('/api/migration/')){

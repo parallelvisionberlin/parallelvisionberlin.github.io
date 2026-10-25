@@ -1,5 +1,21 @@
 # Vitolas Studio partner dashboard
 
+## Commission dashboard and neutral redesign, 2026-10-25
+- User rejected the olive/green palette, requested a thinner hero and business results immediately below it, then latest signups/purchases, private Owner visibility, a clean referral URL and an FAQ. Full dossier is deferred.
+- Commission rule explicitly selected by user: 50% of each referred customer's first paid purchase or first subscription payment; later subscription installments at 20% for six calendar months. Never add both rates to one receipt. Window begins with the first paid subscription installment, does not restart on reactivation, and excludes the exact six-month boundary.
+- Baseline 940c00c99f8a57877dd587177c3249917b0730bc, isolated branch feature/vitolas-commissions-20261025. Existing voucher/Owner work in other PRs is outside this scope.
+- Reused the approved beauty hero, now a compact masthead; neutral grayscale invitation tools. Business link, counts, cash totals, commission agreement, latest signup/payment cards and full contact filters precede vouchers.
+- Report, CSV and per-receipt rates/window dates come from actual EUR revenue ledger entries joined to signed processor payment timing. New migration 0038 stores only payment context and the stable alias binding; no payouts or wallet/allowance changes.
+- Existing signed, fully paid billing branches record payment context idempotently. First/renewal ordering uses processor payment time, not webhook arrival order. Missing timing or ambiguous first-payment ordering is sent to reconciliation rather than guessed.
+- Refund/dispute accounts have all commissions held for reconciliation, excluded from the registered total. No automatic settlement or payout date is invented.
+- Partner report is always scoped by verified server-side identity. Closed/unverified emails are redacted; global Owner receipts, prompts and media are excluded. Contact filters query all scoped records, with pagination.
+- Public pvlab.studio/vitolas resolves only the registered existing personal referral. Cached approved identity can activate the alias without a Clerk lookup. Private reporting remains at /vitolas-studio under the same login guards.
+- Static invitation entrance has a checked destination and safe failure state, preserving the rest of the static site's routing. It cannot redirect to arbitrary domains or use a visitor-supplied ref code.
+- FAQ explains attribution, 50/20 calculations, the six-month window, verified money, billing reviews, vouchers, privacy and manual settlement coordination. No standalone dossier created.
+- Local validation: 201 relevant Worker/auth/billing/promotions/referral/trial/partner/menu/Image checks passed; 24 focused final partner/Image checks passed after added filter/link checks. Syntax and diff checks passed.
+- Browser additions cover compact hero, grayscale card, business-before-vouchers order, recent activity, scoped contact filters, real CSV download/formula protection, FAQ, public referral entrance and private data cleanup.
+- Status: implementation complete locally; fixed-candidate browser CI, visual inspection and deployment verification pending. No real customers, payments, credits, budgets, vouchers or messages were created for testing.
+
 ## Credit invitations and working dashboard, 2026-10-25
 - User requested a more useful, refined dashboard and a voucher creator so Victoria can offer credits to prospects.
 - Published PR #537: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/537

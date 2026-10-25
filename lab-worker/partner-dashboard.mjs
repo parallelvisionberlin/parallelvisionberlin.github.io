@@ -1,5 +1,6 @@
 import {clerkEmailStatus,requireOwner} from './promotions.mjs';
 import {referralRoute} from './referrals.mjs';
+import {partnerCommissionReport} from './partner-commissions.mjs';
 
 // Exact, owner-approved verified email, hashed to keep it out of public source.
 const VITOLAS_EMAIL_SHA256 = 'e502c5f0d08298cb39182f9711784dd5f468d3a1eb721699c0acf061a642445a';
@@ -73,11 +74,14 @@ async function readPartnerDashboard(request,env,subject,access,{ownerView=false}
   const url=new URL(request.url);
   const offset=Number(url.searchParams.get('offset')||0),limit=100;
   if(!Number.isSafeInteger(offset)||offset<0||offset>1000000)fail(400,'Invalid page.');
+  const filter=url.searchParams.get('filter')||'all';
+  if(!['all','paying','subscribed'].includes(filter))fail(400,'Invalid contact filter.');
   const paid=`EXISTS(SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=r.referred_customer_id
     AND e.kind IN ('purchase','subscription'))`;
   const active=`EXISTS(SELECT 1 FROM lab_subscriptions s WHERE s.customer_id=r.referred_customer_id
     AND s.status IN ('active','trialing') AND NOT EXISTS
       (SELECT 1 FROM lab_account_closures x WHERE x.customer_id=s.customer_id))`;
+  const condition=filter==='paying'?paid:filter==='subscribed'?active:'1=1';
   const totals=await one(env,`SELECT COUNT(*) AS registered,
     COALESCE(SUM(CASE WHEN ${paid} THEN 1 ELSE 0 END),0) AS payingCustomers,
     COALESCE(SUM(CASE WHEN ${active} THEN 1 ELSE 0 END),0) AS activeSubscriptions,
@@ -93,11 +97,39 @@ async function readPartnerDashboard(request,env,subject,access,{ownerView=false}
       AND e.kind IN ('purchase','subscription')) AS purchases
     FROM lab_referrals r LEFT JOIN lab_customer_contacts p ON p.customer_id=r.referred_customer_id
     LEFT JOIN lab_account_closures x ON x.customer_id=r.referred_customer_id
-    WHERE r.referrer_customer_id=? ORDER BY r.attributed_at DESC,r.referred_customer_id
+    WHERE r.referrer_customer_id=? AND ${condition} ORDER BY r.attributed_at DESC,r.referred_customer_id
     LIMIT ? OFFSET ?`).bind(subject,limit,offset).all();
   const linkRequest=new Request(new URL('/api/customer/referrals',request.url),{headers:request.headers});
   const referral=await (await referralRoute(linkRequest,env,subject)).json();
+  await env.LAB_DB.prepare(`INSERT OR IGNORE INTO lab_partner_links(slug,customer_id,created_at) VALUES('vitolas',?,?)`).bind(subject,Date.now()).run();
+  const alias=await one(env,"SELECT customer_id FROM lab_partner_links WHERE slug='vitolas'");
+  const commissions=await partnerCommissionReport(env,subject);
   const customers=result.results||[];
-  return json({workspace:access,ownerView,referralUrl:referral.url,totals,customers,
-    nextOffset:offset+customers.length<Number(totals.registered)?offset+customers.length:null});
+  const count=filter==='paying'?totals.payingCustomers:filter==='subscribed'?totals.activeSubscriptions:totals.registered;
+  return json({workspace:access,ownerView,referralUrl:referral.url,shareUrl:alias?.customer_id===subject?'https://pvlab.studio/vitolas':referral.url,totals,customers,commissions,filter,
+    nextOffset:offset+customers.length<Number(count)?offset+customers.length:null});
+}
+export async function publicPartnerLink(request,env){
+  if(request.method!=='GET')fail(405,'Method not allowed.');
+  let link=await one(env,`SELECT r.code FROM lab_partner_links l JOIN lab_referral_codes r ON r.customer_id=l.customer_id
+    JOIN lab_customers c ON c.id=l.customer_id WHERE l.slug='vitolas' AND NOT EXISTS
+      (SELECT 1 FROM lab_account_closures x WHERE x.customer_id=l.customer_id)`);
+  if(!link){
+    // Activate the public alias from an already-existing personal referral and
+    // a recent verified snapshot. Never look up Clerk or invent an account on
+    // an anonymous visit; no private account data is returned.
+    const candidates=await env.LAB_DB.prepare(`SELECT p.customer_id,p.email,r.code FROM lab_customer_contacts p
+      JOIN lab_referral_codes r ON r.customer_id=p.customer_id JOIN lab_customers c ON c.id=p.customer_id
+      WHERE p.verified_at IS NOT NULL AND p.synced_at>=? AND p.synced_at<=? AND NOT EXISTS
+        (SELECT 1 FROM lab_account_closures x WHERE x.customer_id=p.customer_id) ORDER BY c.created_at DESC`).bind(Date.now()-86400000,Date.now()).all();
+    for(const candidate of candidates.results||[]){
+      if(!await approvedEmail(candidate.email))continue;
+      await env.LAB_DB.prepare("INSERT OR IGNORE INTO lab_partner_links(slug,customer_id,created_at) VALUES('vitolas',?,?)").bind(candidate.customer_id,Date.now()).run();
+      const registered=await one(env,"SELECT customer_id FROM lab_partner_links WHERE slug='vitolas'");
+      if(registered?.customer_id===candidate.customer_id)link={code:candidate.code};
+      break;
+    }
+  }
+  if(!link)fail(503,'La invitación todavía no está disponible.');
+  return json({url:'https://pvlab.studio/?ref='+encodeURIComponent(link.code)});
 }
