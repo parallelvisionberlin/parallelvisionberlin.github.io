@@ -1811,3 +1811,27 @@
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-model-card .pv-upscale-model-copy small{
   font-size:10.5px!important;
 }
+
+/* Viewport-fit loaded photos, original AND upscale result, without changing
+   the approved empty/upload hero. Scoped only to the real loaded preview. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(> #preview:not([hidden])){
+   box-sizing:border-box!important;
+   height:clamp(360px,calc(100dvh - 265px),720px)!important;
+   min-height:360px!important;
+   max-height:720px!important;
+   overflow:hidden!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#preview:not([hidden]){
+   display:block;max-width:100%!important;max-height:100%!important;
+   width:100%!important;height:100%!important;object-fit:contain!important;
+ }
+}
+@media(max-width:780px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(> #preview:not([hidden])){
+   height:min(62dvh,640px)!important;min-height:280px!important;overflow:hidden!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas>#preview:not([hidden]){
+   width:100%!important;height:100%!important;object-fit:contain!important;
+ }
+}
