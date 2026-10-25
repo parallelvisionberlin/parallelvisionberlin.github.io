@@ -15,7 +15,142 @@
   <meta property="og:description" content="Photographic studies, images made with Fujifilm and Canon. Berlin.">
   <meta property="og:url" content="https://parallelvisionlabel.com/photography/">
   <link rel="preload" as="image" href="./assets/nocturne-05.jpeg" fetchpriority="high">
-  <link rel="stylesheet" href="./style.css?v=20261021-shadow-hero1">
+  <!-- CSS fallback snapshot. Keep in sync with photography/style.css. The external stylesheet remains canonical when available. -->
+  <style data-fallback-for="photography/style.css" data-version="20261025">
+:root{--paper:#080808;--ink:#eeeae2;--subtle:#aaa49b;--hairline:#34312e;--deep:#080808;--serif:'Iowan Old Style',Baskerville,Georgia,'Times New Roman',serif;--sans:'Helvetica Neue',Arial,sans-serif}
+*{box-sizing:border-box}
+html{background:var(--paper);scroll-behavior:smooth;scroll-padding-top:12px}
+body{margin:0;min-width:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appearance:none}
+button,a{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+.skip-link{position:fixed;top:8px;left:12px;z-index:40;padding:11px;background:var(--ink);color:var(--paper);transform:translateY(-180%)}
+.skip-link:focus{transform:none}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.masthead{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,3.5vw,70px);border-bottom:1px solid var(--hairline)}
+.masthead-brand{font:600 23px/1 var(--serif);letter-spacing:-.07em}
+.masthead-center,.masthead-back{font:500 10px/1.3 var(--sans);letter-spacing:.1em;text-transform:uppercase}
+.masthead-center{margin-left:60px;color:var(--subtle)}
+.masthead-back:hover{text-decoration:underline;text-underline-offset:5px}
+.opening{max-width:1800px;margin:auto;padding:clamp(24px,2.5vw,38px) clamp(20px,3.5vw,70px) 0}
+.opening-meta{display:flex;justify-content:space-between;gap:24px;color:var(--subtle);font:500 10px/1.5 var(--sans);letter-spacing:.12em}
+.opening h1{margin:clamp(19px,2vw,32px) 0 clamp(24px,3vw,45px);font:400 clamp(53px,7.1vw,120px)/.99 var(--serif);letter-spacing:-.085em;white-space:nowrap}
+.opening h1 em{font-weight:normal;letter-spacing:-.09em}
+.opening-texts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(32px,9vw,170px);align-items:start;padding-bottom:clamp(20px,2.5vw,36px)}
+.opening-text{min-width:0}
+.opening-label{display:block;margin-bottom:10px;color:var(--subtle);font:500 10px/1.3 var(--sans);letter-spacing:.14em}
+.opening-text p{margin:0;max-width:560px;color:#d6d1c8;font:400 clamp(14px,1.12vw,18px)/1.58 var(--sans)}
+.opening-text a{text-decoration:underline;text-underline-offset:4px;text-decoration-color:#878077;color:var(--ink)}
+.opening-text a:hover{color:#fff}
+/* Original forest photograph, softly revealed behind the title only. */
+.opening{--opening-gutter:clamp(20px,3.5vw,70px);padding-top:0}
+.opening-hero{position:relative;isolation:isolate;overflow:hidden;margin:0 calc(-1 * var(--opening-gutter));padding:clamp(24px,2.5vw,38px) var(--opening-gutter) clamp(42px,4.5vw,72px);min-height:clamp(260px,25vw,380px);display:flex;flex-direction:column;justify-content:space-between;background:var(--paper)}
+.opening-shadow{position:absolute;z-index:-2;inset:0 0 0 18%;width:82%;height:100%;object-fit:cover;object-position:50% 46%;opacity:.52;pointer-events:none;user-select:none}
+.opening-hero::after{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,var(--paper) 3%,rgba(8,8,8,.7) 30%,rgba(8,8,8,.12) 70%,rgba(8,8,8,.32)),linear-gradient(0deg,var(--paper),rgba(8,8,8,.15) 48%,rgba(8,8,8,.12));pointer-events:none}
+.opening-hero h1{margin:clamp(42px,4.5vw,72px) 0 0}
+.opening-texts{position:relative;padding-top:clamp(12px,1.5vw,22px)}
+.lineage-details{margin-top:14px;max-width:560px}
+.lineage-details summary{display:flex;align-items:center;gap:13px;min-height:44px;width:fit-content;padding:6px 0;list-style:none;cursor:pointer;color:var(--ink);font:500 10px/1.4 var(--sans);letter-spacing:.1em;text-transform:uppercase;-webkit-tap-highlight-color:transparent}
+.lineage-details summary::-webkit-details-marker{display:none}
+.lineage-details summary:hover{color:#fff}
+.lineage-toggle{position:relative;width:11px;height:11px;flex:0 0 11px}
+.lineage-toggle::before,.lineage-toggle::after{content:"";position:absolute;background:currentColor}
+.lineage-toggle::before{left:0;top:5px;width:11px;height:1px}
+.lineage-toggle::after{left:5px;top:0;width:1px;height:11px}
+.lineage-close,.lineage-details[open] .lineage-read{display:none}
+.lineage-details[open] .lineage-close{display:inline}
+.lineage-details[open] .lineage-toggle::after{display:none}
+.lineage-story{padding-top:10px}
+.lineage-story p+p{margin-top:16px}
+/* Original seven independent photo series, unchanged source assets or JS. */
+.archive{max-width:1800px;padding:0 clamp(22px,3.3vw,70px) 44px;margin:auto}
+.series-list{margin:0}
+.gallery-section{scroll-margin-top:18px;border-top:1px solid var(--hairline);padding:clamp(22px,2.5vw,42px) 0 clamp(60px,5vw,95px)}
+.gallery-heading{display:flex;align-items:end;justify-content:space-between;gap:22px;margin:0 0 clamp(20px,2vw,32px)}
+.gallery-title-stack{min-width:0}
+.gallery-overline{margin:0 0 10px;color:var(--subtle);font:500 10px/1.3 var(--sans);letter-spacing:.13em;text-transform:uppercase}
+.gallery-heading h3{font:400 clamp(48px,5vw,85px)/1.01 var(--serif);letter-spacing:-.07em;margin:0}
+.gallery-meta{margin:0 0 6px;color:var(--subtle);font:500 10px/1.3 var(--sans);letter-spacing:.1em;text-transform:uppercase;text-align:right;white-space:nowrap}
+.gallery-wrap{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:stretch;max-width:1370px;min-width:0;margin:0 auto}
+.gallery-arrow{display:flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--ink);min-width:0}
+.gallery-arrow:hover{opacity:.65}
+.gallery-arrow:disabled{opacity:.22;cursor:default}
+.photograph{margin:0;display:flex;position:relative;align-items:center;justify-content:center;min-width:0;height:clamp(420px,66svh,785px);overflow:hidden;background:transparent;touch-action:manipulation}
+.photograph img{display:block;width:100%;height:100%;object-fit:contain;object-position:center;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;-webkit-touch-callout:none;touch-action:manipulation}
+.photograph img.is-loading{opacity:.74}
+.gallery-under{display:flex;align-items:start;justify-content:space-between;gap:22px;max-width:1274px;margin:13px auto 0;color:var(--subtle);font:500 10px/1.5 var(--sans);letter-spacing:.06em}
+.photo-caption{margin:0}
+.gallery-navigation{display:flex;align-items:center;justify-content:flex-end;gap:18px;min-width:0}
+.counter{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+.film-marks{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap;min-width:0}
+.film-marks button{width:19px;height:2px;padding:0;border:0;background:#55514b}
+.film-marks button[aria-current="true"]{background:var(--ink);height:3px}
+.navigation-hint{color:var(--subtle);white-space:nowrap}
+.series-index{display:flex;align-items:center;gap:24px;border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);overflow-x:auto;scrollbar-width:none}
+.series-index::-webkit-scrollbar{display:none}
+.series-index-row{display:flex;align-items:center;gap:9px;white-space:nowrap;min-height:57px;flex:0 0 auto;padding:12px 0}
+.series-index-number,.series-index-count{font:500 9px/1 var(--sans);letter-spacing:.08em;color:var(--subtle)}
+.series-index-count{display:none}
+.series-index-title{font:400 20px/1.1 var(--serif);letter-spacing:-.05em}
+.series-index-row:hover .series-index-title{text-decoration:underline;text-underline-offset:5px}
+.footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px clamp(22px,3.3vw,70px) 32px;border-top:1px solid var(--hairline);color:var(--subtle);font:500 10px/1.3 var(--sans);letter-spacing:.04em}
+
+@media(max-width:1050px){
+ .opening h1{font-size:clamp(48px,7vw,78px)}
+ .opening-texts{gap:clamp(25px,5vw,65px)}
+ .opening-text p{font-size:14px}
+}
+@media(max-width:700px){
+ .masthead{height:54px;padding:0 16px}
+ .masthead-brand{font-size:21px}
+ .masthead-center{display:none}
+ .masthead-back{font-size:9px}
+ .opening{--opening-gutter:16px;padding:0 16px}
+ .opening-hero{min-height:230px;padding-top:19px;padding-bottom:36px}
+ .opening-shadow{left:0;width:100%;object-position:61% 45%;opacity:.46}
+ .opening-meta{font-size:8px;gap:10px}
+ .opening-meta span:last-child{display:none}
+ .opening h1{margin:22px 0 19px;font-size:clamp(28px,7.6vw,53px);letter-spacing:-.075em}
+ .opening-hero h1{margin:44px 0 0}
+ .opening-texts{display:grid;grid-template-columns:1fr 1fr;gap:17px;padding-bottom:25px}
+ .opening-label{font-size:8px;line-height:1.3;margin-bottom:8px}
+ .opening-text p{font-size:11.5px;line-height:1.5}
+ .archive{padding:0 16px 25px}
+ .gallery-section{padding:22px 0 60px}
+ .gallery-heading{margin-bottom:14px}
+ .gallery-heading h3{font-size:clamp(42px,10.8vw,67px)}
+ .gallery-overline{font-size:9px}
+ .gallery-meta{font-size:9px;max-width:120px;white-space:normal}
+ .gallery-wrap{display:block;position:relative}
+ .photograph{height:auto;min-height:0;width:100%;aspect-ratio:4/5}
+ .gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);height:42px;width:42px;border:1px solid rgba(235,231,224,.37);border-radius:50%;z-index:4;background:rgba(12,12,12,.84)}
+ .arrow-previous{left:8px}.arrow-next{right:8px}
+ .gallery-under{margin-top:12px;gap:12px;font-size:9px}
+ .gallery-navigation{gap:9px}
+ .film-marks button{width:16px;flex:0 0 16px}
+ .navigation-hint{display:none}
+ .footer{display:grid;gap:13px;font-size:9px;padding:21px 16px 28px}
+}
+@media(max-width:480px){
+ .opening h1{font-size:clamp(25px,7.3vw,37px)}
+ .opening-texts{grid-template-columns:1fr;gap:16px;padding-bottom:21px}
+ .opening-text p{font-size:12.5px;line-height:1.48}
+ .opening-label{margin-bottom:5px}
+}
+@media(max-width:360px){.opening h1{font-size:clamp(24px,7.25vw,27px)}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
+
+/* The exact AM07 monogram from alejandromolinari.com, not an emoji arrow. */
+.masthead-back{display:inline-flex;align-items:center;justify-content:flex-end;gap:9px;white-space:nowrap}
+.masthead-monogram{display:block;width:26px;height:26px;flex:0 0 26px;object-fit:contain;border-radius:2px}
+@media(max-width:700px){.masthead-back{gap:7px}.masthead-monogram{width:24px;height:24px;flex-basis:24px}}
+
+.opening-text .practice-continuation{margin-top:clamp(13px,1.4vw,20px)}
+@media(max-width:480px){.opening-text .practice-continuation{margin-top:11px}}
+
+  </style>
+  <link rel="stylesheet" href="./style.css?v=20261025-asset-recovery01">
   <script src="./archive.js?v=20261021-afterhours45" defer></script>
   <script src="./gallery.js?v=20261021-gesture-reset02" defer></script>
 </head>
@@ -66,5 +201,291 @@
     <span>Original photographs. Includes artistic nudity (18+).</span>
     <a href="https://alejandromolinari.com/">Artist page <span aria-hidden="true">↗︎</span></a>
   </footer>
+<!-- Load canonical external scripts first. If either fails, recover the archive from embedded snapshots after deferred scripts have run. -->
+<script data-fallback-for="photography/archive.js and gallery.js" data-version="20261025">
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.AM_ARCHIVE) {
+window.AM_ARCHIVE = {
+  edition: '001',
+  galleries: [
+    {
+      id: 'nocturne',
+      title: 'Nocturne',
+      subtitle: 'Night flash / Outdoor studies',
+      images: [
+        { src: 'assets/nocturne-05.jpeg', caption: 'Untouched by Time', alt: 'Soft black-and-white image of a figure holding a tree trunk' },
+        { src: 'assets/nocturne-01.jpeg', caption: 'Night study no. 01', alt: 'Figure stretched along the fork of a tree at night' },
+        { src: 'assets/nocturne-03.jpeg', caption: 'Night study no. 03', alt: 'Close-up of a figure in deep shadow and purple light' },
+        { src: 'assets/nocturne/PRINT.jpg', caption: 'Night study no. 06', alt: 'Black-and-white flash photograph of a figure leaning across a wooden bench in the forest' },
+        { src: 'assets/nocturne/The Embrace.jpg', caption: 'The Embrace', alt: 'Black-and-white flash photograph of a figure folded across a tree branch' },
+        { src: 'assets/nocturne/IMG_1345.jpg', caption: 'Night study no. 08', alt: 'Blurred black-and-white study of a figure partly hidden behind a tree trunk' },
+        { src: 'assets/nocturne/Lost Highway.jpg', caption: 'Lost Highway', alt: 'Black-and-white photograph of a figure on an empty road beneath distant streetlights' },
+        { src: 'assets/nocturne/IMBWG_1132.jpg', caption: 'Night study no. 11', alt: 'Black-and-white photograph of a figure walking along an empty road at night' },
+        { src: 'assets/nocturne/IMG_7946.jpg', caption: 'Night study no. 12', alt: 'Flash photograph of a figure leaning across a green car in a dark street' },
+        { src: 'assets/nocturne-02.jpeg', caption: 'Night study no. 02', alt: 'Figure near a tree trunk illuminated by direct flash' },
+        { src: 'assets/nocturne-04.jpeg', caption: 'Night study no. 04', alt: 'Figure leaning into leaves at night' },
+        { src: 'assets/nocturne/4647EC53-CDD5-47EE-924A-552CF3C4285F.JPG', caption: 'Night study no. 10', alt: 'Monochrome flash photograph of a figure reaching up into ivy with crossed hands' },
+        { src: 'assets/nocturne/DSC02122 (2).jpg', caption: 'Night study no. 13', alt: 'Monochrome photograph of a figure on a rooftop ledge against the night sky' }
+      ]
+    },
+    {
+      id: 'after-hours',
+      title: 'After Hours',
+      subtitle: 'Interior studies',
+      images: [
+        { src: 'assets/after-hours-01.jpeg', caption: 'Interior study no. 01', alt: 'Soft-focus study of a figure in a dim room' },
+        { src: 'assets/after-hours-03.jpeg', caption: 'Interior study no. 02', alt: 'Reclining figure photographed in cool interior light' },
+        { src: 'assets/after-hours/88527B82-2E4D-4C5F-9ECA-797D8812928A.JPG', caption: 'Interior study no. 03', alt: 'Soft-focus double portrait against a pale wall' },
+        { src: 'assets/after-hours/8009CDF7-A7F7-4BED-A072-42FD16494B3C.JPG', caption: 'Interior study no. 04', alt: 'Close double portrait beside a white radiator' },
+        { src: 'assets/after-hours/E0E4E219-9BC0-47A3-8D90-1F37359AE1BA.JPG', caption: 'Interior study no. 05', alt: 'Blurred portrait of a figure turning beside a window and white door' },
+        { src: 'assets/after-hours/IMG_27231.jpg', caption: 'Interior study no. 06', alt: 'Figure seen from behind with pale and blue flowers in a candlelit room' },
+        { src: 'assets/after-hours/IMG_2687.jpg', caption: 'Interior study no. 07', alt: 'Warmly lit reflection of a figure in an interior mirror' },
+        { src: 'assets/after-hours/IMG_1246.JPG', caption: 'Interior study no. 08', alt: 'Portrait of a figure turning beside a mirror in a softly lit room' },
+        { src: 'assets/after-hours/IMG_7981.jpg', caption: 'Interior study no. 09', alt: 'Figure seen from behind beside a bright vertical doorway light' }
+      ]
+    },
+    {
+      id: 'negative-space',
+      title: 'Negative Space',
+      subtitle: 'Black and white',
+      images: [
+        { src: 'assets/negative-space-01.jpeg', caption: 'Monochrome study no. 01', alt: 'Black-and-white study of a seated figure against dark rock' },
+        { src: 'assets/negative-space/DSCF1351.JPG', caption: 'Monochrome study no. 02', alt: 'Black-and-white portrait of a seated figure against dark foliage and rock' }
+      ]
+    },
+    {
+      id: 'day',
+      title: 'Day',
+      subtitle: 'Forest / Colour',
+      images: [
+        { src: 'assets/day/DSCF9045.JPG', caption: 'Day no. 01', alt: 'Figure seated on an ivy-covered mound beneath green and yellow leaves' },
+        { src: 'assets/day/DSCF9053.JPG', caption: 'Day no. 02', alt: 'Reclining figure seen from behind in a sunlit autumn forest' },
+        { src: 'assets/day/DSCF9258.JPG', caption: 'Day no. 03', alt: 'Figure on a forest path surrounded by vivid autumn foliage' }
+      ]
+    },
+    {
+      id: 'night',
+      title: 'Night',
+      subtitle: 'Forest creatures / Black and white',
+      images: [
+        { src: 'assets/night/DSCF9094.JPG', caption: 'Night no. 01', alt: 'Black-and-white photograph of a figure curled over a mossy mound among trees' },
+        { src: 'assets/night/DSCF9098.JPG', caption: 'Night no. 02', alt: 'Vertical black-and-white study of a folded figure beneath forest branches' },
+        { src: 'assets/night/DSCF9160.JPG', caption: 'Night no. 03', alt: 'Black-and-white photograph of a standing figure reaching toward a slender tree' },
+        { src: 'assets/night/DSCF9183.JPG', caption: 'Night no. 04', alt: 'Black-and-white photograph of a figure leaning against a tree with one foot raised' },
+        { src: 'assets/night/1DSCF7570.jpg', caption: 'Night no. 05', alt: 'Black-and-white close study of a figure beneath blurred forest branches' }
+      ]
+    },
+    {
+      id: 'amber-room',
+      title: 'Amber Room',
+      subtitle: 'Warm light / Interior studies',
+      images: [
+        { src: 'assets/amber-room/DSC01805.JPG', caption: 'Amber study no. 01', alt: 'Portrait of a figure turning in a room filled with deep amber light' },
+        { src: 'assets/amber-room/DSC01808.JPG', caption: 'Amber study no. 02', alt: 'Figure perched on a cabinet against a warm ochre wall' },
+        { src: 'assets/amber-room/DSC01811.JPG', caption: 'Amber study no. 03', alt: 'Figure suspended across a cabinet with hair falling into amber light' },
+        { src: 'assets/amber-room/DSC02101.JPG', caption: 'Amber study no. 04', alt: 'Figure on a balcony with blurred city lights in the background' }
+      ]
+    },
+    {
+      id: 'silver-room',
+      title: 'Silver Room',
+      subtitle: 'Black and white / Interior studies',
+      images: [
+        { src: 'assets/silver-room/DSC02058.jpg', caption: 'Silver study no. 01', alt: 'Monochrome portrait of a seated figure holding a vintage camera beside a mirror' },
+        { src: 'assets/silver-room/DSC02072.jpg', caption: 'Silver study no. 02', alt: 'Monochrome study of a figure leaning across a wooden dresser beneath a mirror' },
+        { src: 'assets/silver-room/DSC02084.jpg', caption: 'Silver study no. 03', alt: 'Monochrome portrait of a figure beside a wooden dresser and vintage camera' },
+        { src: 'assets/silver-room/DSC02087.jpg', caption: 'Silver study no. 04', alt: 'Monochrome photograph of a figure perched on a wooden dresser' },
+        { src: 'assets/silver-room/DSC01804.jpg', caption: 'Silver study no. 05', alt: 'Black-and-white interior portrait of a figure turning beside a chair' },
+        { src: 'assets/silver-room/IMG_1198.jpg', caption: 'Silver study no. 06', alt: 'Black-and-white photograph of a reclining figure on a bed beneath window shadows' },
+        { src: 'assets/silver-room/IMG_1210.jpg', caption: 'Silver study no. 07', alt: 'Black-and-white close study of a figure beside a bed, one heel raised' },
+        { src: 'assets/silver-room/057EBED0-4E2C-4FC5-9C13-3F5CF4884186.JPG', caption: 'Silver study no. 08', alt: 'Black-and-white interior study of a standing figure beside a bed' },
+        { src: 'assets/silver-room/DSCF0813.jpg', caption: 'Silver study no. 09', alt: 'Black-and-white silhouette seen through a textured shower screen' }
+      ]
+    }
+  ]
+};
+
+  }
+  const archiveRoot = document.getElementById('series-list');
+  if (archiveRoot && !archiveRoot.querySelector('.gallery-section')) {
+(() => {
+  'use strict';
+  const archive = window.AM_ARCHIVE;
+  if (!archive || !Array.isArray(archive.galleries)) return;
+  const galleries = archive.galleries;
+  const indexEl = document.getElementById('series-index');
+  const listEl = document.getElementById('series-list');
+  const year = document.getElementById('copyright-year');
+  if (!indexEl || !listEl) return;
+  if (year) year.textContent = new Date().getFullYear();
+
+  const pad = n => String(n).padStart(2, '0');
+  const states = [];
+  const cache = new Map();
+  const preload = src => {
+    if (!src || cache.has(src)) return;
+    const image = new Image();
+    image.src = src;
+    cache.set(src, image);
+  };
+
+  const arrowSvg = dir => dir < 0
+    ? '<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>'
+    : '<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>';
+
+  function render(state) {
+    const { entry, img, counter, caption, markers, previous, next, narrative } = state;
+    const photos = entry.images || [];
+    if (!photos.length) return;
+    state.photo = (state.photo + photos.length) % photos.length;
+    const current = photos[state.photo];
+    state.ticket += 1;
+    const ticket = state.ticket;
+    img.classList.add('is-loading');
+    img.onerror = () => {
+      if (ticket === state.ticket) {
+        img.classList.remove('is-loading');
+        narrative.textContent = 'The photograph could not be loaded.';
+      }
+    };
+    img.onload = () => {
+      if (ticket === state.ticket) img.classList.remove('is-loading');
+    };
+    img.src = current.src;
+    img.alt = current.alt || current.caption || entry.title;
+    caption.textContent = current.caption || `${entry.title} ${pad(state.photo + 1)}`;
+    counter.textContent = `${pad(state.photo + 1)} / ${pad(photos.length)}`;
+    narrative.textContent = `Photograph ${state.photo + 1} of ${photos.length} in ${entry.title}. ${img.alt}`;
+    for (const [i, mark] of [...markers.children].entries()) {
+      mark.setAttribute('aria-current', String(i === state.photo));
+    }
+    previous.disabled = photos.length <= 1;
+    next.disabled = photos.length <= 1;
+    preload(photos[(state.photo + 1) % photos.length]?.src);
+    if (photos.length > 2) preload(photos[(state.photo + photos.length - 1) % photos.length]?.src);
+  }
+
+  function move(state, delta) {
+    if ((state.entry.images || []).length < 2) return;
+    state.photo += delta;
+    render(state);
+  }
+
+  function makeGallery(entry, index) {
+    const photos = entry.images || [];
+    const link = document.createElement('a');
+    link.className = 'series-index-row';
+    link.href = `#series-${entry.id}`;
+    link.innerHTML = '<span class="series-index-number"></span><span class="series-index-title"></span><span class="series-index-count"></span>';
+    link.children[0].textContent = pad(index + 1);
+    link.children[1].textContent = entry.title;
+    link.children[2].textContent = `${pad(photos.length)} photograph${photos.length === 1 ? '' : 's'}`;
+    indexEl.appendChild(link);
+
+    const section = document.createElement('section');
+    section.className = 'gallery-section';
+    section.id = `series-${entry.id}`;
+    section.setAttribute('aria-label', entry.title);
+    section.innerHTML = `
+      <div class="gallery-heading">
+        <div class="gallery-title-stack"><p class="gallery-overline"></p><h3></h3></div>
+        <p class="gallery-meta"></p>
+      </div>
+      <div class="gallery-wrap">
+        <button class="gallery-arrow arrow-previous" type="button" aria-label="Previous photograph"></button>
+        <figure class="photograph" tabindex="0" aria-label="Photographs in ${entry.title}">
+          <img alt="" draggable="false" decoding="async">
+          <figcaption class="sr-only"></figcaption>
+        </figure>
+        <button class="gallery-arrow arrow-next" type="button" aria-label="Next photograph"></button>
+      </div>
+      <div class="gallery-under">
+        <p class="photo-caption"></p>
+        <div class="gallery-navigation"><span class="counter" aria-live="polite" aria-atomic="true"></span><div class="film-marks" aria-label="Photograph selection"></div><span class="navigation-hint">← → / Swipe</span></div>
+      </div>`;
+    section.querySelector('.gallery-overline').textContent = `Series ${pad(index + 1)} / ${entry.subtitle || 'Photography'}`;
+    section.querySelector('h3').textContent = entry.title;
+    section.querySelector('.gallery-meta').textContent = `${pad(photos.length)} photograph${photos.length === 1 ? '' : 's'}`;
+    listEl.appendChild(section);
+
+    const stage = section.querySelector('.photograph');
+    const state = {
+      entry, index, root: section, stage, photo: 0, ticket: 0,
+      img: section.querySelector('img'),
+      caption: section.querySelector('.photo-caption'),
+      counter: section.querySelector('.counter'),
+      markers: section.querySelector('.film-marks'),
+      previous: section.querySelector('.arrow-previous'),
+      next: section.querySelector('.arrow-next'),
+      narrative: section.querySelector('figcaption'), touchX: null, touchY: null
+    };
+    state.previous.innerHTML = arrowSvg(-1);
+    state.next.innerHTML = arrowSvg(1);
+    state.previous.addEventListener('click', () => move(state, -1));
+    state.next.addEventListener('click', () => move(state, 1));
+    state.stage.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) {
+        state.touchX = e.touches[0].clientX;
+        state.touchY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+    state.stage.addEventListener('touchend', e => {
+      if (state.touchX === null || e.changedTouches.length !== 1) return;
+      const dx = e.changedTouches[0].clientX - state.touchX;
+      const dy = e.changedTouches[0].clientY - state.touchY;
+      state.touchX = null;
+      state.touchY = null;
+      if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy) * 1.3) move(state, dx < 0 ? 1 : -1);
+    }, { passive: true });
+    // Let Safari handle single- and multi-finger gestures natively.
+    // touch-action: manipulation prevents smart double-tap zoom while
+    // keeping normal vertical scrolling and accessible pinch zoom.
+    photos.forEach((photo, i) => {
+      const mark = document.createElement('button');
+      mark.type = 'button';
+      mark.setAttribute('aria-label', `Photograph ${i + 1} of ${photos.length} in ${entry.title}`);
+      mark.addEventListener('click', () => { state.photo = i; render(state); });
+      state.markers.appendChild(mark);
+    });
+    state.img.loading = index === 0 ? 'eager' : 'lazy';
+    if (index === 0) state.img.fetchPriority = 'high';
+    states.push(state);
+    render(state);
+  }
+
+  galleries.forEach(makeGallery);
+
+  function closestGallery() {
+    if (!states.length) return null;
+    const mid = window.innerHeight * .5;
+    return states.reduce((nearest, current) => {
+      const currentRect = current.stage.getBoundingClientRect();
+      const oldRect = nearest.stage.getBoundingClientRect();
+      const distance = rect => mid < rect.top ? rect.top - mid : mid > rect.bottom ? mid - rect.bottom : 0;
+      return distance(currentRect) < distance(oldRect) ? current : nearest;
+    }, states[0]);
+  }
+  document.addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.target?.closest?.('input,textarea,select,a,button,[contenteditable]')) return;
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const state = closestGallery();
+    if (!state) return;
+    e.preventDefault();
+    move(state, e.key === 'ArrowRight' ? 1 : -1);
+  });
+
+  // The previous /photo-work/ page used hashes such as #nocturne.
+  function restoreDeepLink() {
+    const fragment = decodeURIComponent(window.location.hash.slice(1));
+    const key = fragment.replace(/^series-/, '');
+    const selected = states.find(s => s.entry.id === key);
+    if (selected) selected.root.scrollIntoView({ behavior: 'instant', block: 'start' });
+  }
+  if (window.location.hash) requestAnimationFrame(restoreDeepLink);
+})();
+
+  }
+}, { once: true });
+</script>
 </body>
 </html>
