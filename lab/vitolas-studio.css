@@ -71,3 +71,29 @@ body.pv-partner-page{--partner-body:14px;--partner-caption:12px;--partner-headin
 .pv-partner-page .partner-results-context .partner-agreement strong{font-size:16px;font-weight:500}
 @media(max-width:760px){.pv-partner-page{--partner-heading:26px}.pv-partner-page #partner-results>div{padding:14px 18px}.pv-partner-page #partner-results :is(#partner-overview-revenue,#partner-commission){font-size:44px}.pv-partner-page .partner-help-grid h3{font-size:22px}}
 @media(max-width:460px){.pv-partner-page #partner-results>div{padding:13px 16px}.pv-partner-page #partner-results>div:nth-child(-n+2)>span{min-height:36px}.pv-partner-page #partner-results strong{font-size:36px}.pv-partner-page #partner-results :is(#partner-overview-revenue,#partner-commission){font-size:44px}.pv-partner-page #partner-results .account-text-button{min-height:34px}.pv-partner-page .partner-gift-preview>h3{font-size:32px}}
+
+/* Approved invitation proposal: one working panel, balance above, history below. */
+.partner-invite-heading{align-items:center;margin-bottom:24px;gap:24px}
+.partner-invite-balance{display:flex;align-items:center;gap:24px;flex:none}
+.partner-invite-balance>p{font-size:14px;color:#aaa;margin:0;white-space:nowrap}
+.partner-invite-balance>p>strong{font-size:32px;font-weight:400;letter-spacing:-.035em;color:#eee;margin-right:6px}
+#partner-budget-manage{text-align:center}#partner-budget-manage small{display:block;color:#999;font-size:12px;margin-top:4px}
+#partner-invitations .partner-create-layout{max-width:none;margin:0;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:35px;padding:26px 30px;border:1px solid var(--partner-line);border-radius:7px;background:linear-gradient(115deg,#1b1b1b,#141414)}
+#partner-invitations .partner-create-layout>div:first-child{padding-right:35px;border-right:1px solid var(--partner-line)}
+#partner-invitations .partner-create-layout h3{font-size:24px;margin:0 0 22px}
+.partner-voucher-form{gap:18px}.partner-credit-picker{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(125px,1fr);gap:20px;align-items:end}
+.partner-credit-picker .partner-custom-credit{font-size:12px}.partner-credit-picker input{margin-top:11px}.partner-credit-picker .partner-presets{gap:8px}.partner-credit-picker .partner-presets button{min-height:52px;padding:10px;font-size:16px}
+#partner-invitations .partner-voucher-form .partner-form-help{font-size:12px;line-height:1.6;margin:0;color:#999}
+#partner-invitations .partner-voucher-form>.account-button{min-height:50px}
+#partner-invitations .partner-budget-empty{border:0;background:none;padding:0;margin:0 0 18px;font-size:13px;color:#bbb;line-height:1.6}
+#partner-invitations .partner-gift-preview{min-height:375px;padding:26px 30px;box-shadow:0 14px 35px #0003;background:linear-gradient(90deg,#161616f5 15%,#161616ce 55%,#1115),url('./visuals/vitolas/future-beauty-v1.webp') right center/auto 100% no-repeat}
+#partner-invitations .partner-gift-preview>h3{font-size:32px;margin:30px 0 22px}
+#partner-invitations .partner-gift-preview>strong{font-size:56px}#partner-invitations .partner-gift-preview>strong small{font-size:16px;letter-spacing:0;margin-top:9px}
+#partner-invitations .partner-gift-preview>small{font-size:12px;line-height:1.6}
+#partner-invitations .partner-invitation-result{padding:24px;background:#171717}
+#partner-invitations .partner-invitation-result .partner-link-control{flex-wrap:wrap}#partner-invitations .partner-invitation-result .partner-link-control button{width:100%}
+.partner-invitation-totals{display:flex;flex-wrap:wrap;gap:10px 28px;color:#999;font-size:12px;margin:12px 0}.partner-invitation-totals strong{font-weight:500;color:#ddd}
+#partner-invitations .partner-invitation-history{border:1px solid var(--partner-line);border-radius:7px;padding:24px 28px;margin-top:18px;background:#151515}
+#partner-invitations .partner-owner-budget{margin:0 0 18px}
+@media(max-width:1100px){.partner-invite-heading{flex-wrap:wrap}.partner-invite-balance{margin-left:auto}#partner-invitations .partner-create-layout{gap:24px;padding:24px}#partner-invitations .partner-create-layout>div:first-child{padding-right:24px}.partner-credit-picker{grid-template-columns:1fr}.partner-credit-picker .partner-custom-credit{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:15px}.partner-credit-picker input{margin:0}}
+@media(max-width:760px){.partner-invite-balance{margin-left:0;justify-content:space-between;width:100%;gap:12px}.partner-invite-balance>p{font-size:12px}.partner-invite-balance>p>strong{font-size:28px}#partner-budget-manage .account-button{padding:10px 14px;font-size:13px}#partner-invitations .partner-create-layout{grid-template-columns:1fr;padding:22px;gap:26px}#partner-invitations .partner-create-layout>div:first-child{border-right:0;border-bottom:1px solid var(--partner-line);padding:0 0 24px}#partner-invitations .partner-gift-preview{min-height:340px;padding:24px}#partner-invitations .partner-invitation-history{padding:22px 18px}.partner-credit-picker{grid-template-columns:1fr}.partner-credit-picker .partner-presets{gap:10px}#partner-invitations .partner-voucher-form input,#partner-invitations .partner-voucher-form select{font-size:16px}.partner-invitation-totals{gap:8px;flex-direction:column}}

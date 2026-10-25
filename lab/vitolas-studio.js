@@ -46,7 +46,7 @@ function clear(){
   for(const id of ['partner-commission-rows','partner-latest-signups','partner-recent-purchases'])$(id).replaceChildren();
   for(const id of ['partner-commission','partner-report-commission','partner-revenue','partner-overview-revenue','partner-commission-held'])$(id).textContent='0,00 €';
   $('partner-commission-status').textContent='';
-  $('partner-voucher-workspace').hidden=true;$('partner-budget-form').hidden=true;$('partner-voucher-result').hidden=true;
+  $('partner-voucher-workspace').hidden=true;$('partner-invite-balance').hidden=true;$('partner-budget-manage').hidden=true;$('partner-budget-form').hidden=true;$('partner-budget-toggle').setAttribute('aria-expanded','false');$('partner-voucher-result').hidden=true;
   $('partner-voucher-url').value='';$('partner-voucher-code').textContent='';$('partner-voucher-detail').textContent='';$('partner-copy-status').textContent='';
   $('partner-voucher-note').value='';$('partner-voucher-credits').value='100';$('partner-voucher-days').value='14';$('partner-budget-total').value='';$('partner-voucher-status').textContent='';
   $('partner-voucher-rows').replaceChildren();$('partner-redemption-rows').replaceChildren();$('partner-redemption-count').textContent='0';
@@ -198,7 +198,8 @@ function preview(){
   const credits=Number($('partner-voucher-credits').value),days=Number($('partner-voucher-days').value);
   $('partner-preview-credits').textContent=Number.isSafeInteger(credits)&&credits>0?credits.toLocaleString('es'):'0';$('partner-preview-note').textContent=$('partner-voucher-note').value.trim()||'Una invitación de Vitolas Studio.';$('partner-preview-expiry').textContent='Un canje · '+days+' días de validez';
   for(const button of document.querySelectorAll('[data-partner-credits]'))button.setAttribute('aria-pressed',String(Number(button.dataset.partnerCredits)===credits));
-  $('partner-voucher-create').disabled=voucherBusy||!voucherData||!Number.isSafeInteger(credits)||credits<1||credits>500||credits>voucherData.budget.available||!Number.isSafeInteger(days)||days<1||days>30;
+  $('partner-voucher-create').textContent=createdVoucher?'Enlace creado':'Crear enlace';
+  $('partner-voucher-create').disabled=!!createdVoucher||voucherBusy||!voucherData||!Number.isSafeInteger(credits)||credits<1||credits>500||credits>voucherData.budget.available||!Number.isSafeInteger(days)||days<1||days>30;
 }
 function drawBudget(budget){
   if(voucherData)voucherData.budget=budget;
@@ -221,7 +222,7 @@ function showInvitation(voucher){
   createdVoucher={...voucher,url:safeInvitation(voucher.url)};
   $('partner-voucher-url').value=createdVoucher.url;$('partner-voucher-code').textContent=voucher.code;
   $('partner-voucher-detail').textContent=voucher.credits+' créditos · válida hasta '+date(voucher.expiresAt);
-  $('partner-voucher-result').hidden=false;$('partner-voucher-form').hidden=true;$('partner-gift-preview').hidden=true;$('partner-create-layout').classList.add('is-ready');$('partner-copy-status').textContent='';if(!$('partner-invitations').hidden){$('partner-voucher-copy').focus({preventScroll:true});}
+  $('partner-voucher-result').hidden=false;$('partner-voucher-form').hidden=false;$('partner-gift-preview').hidden=true;$('partner-create-layout').classList.remove('is-ready');$('partner-copy-status').textContent='';if(!$('partner-invitations').hidden){$('partner-voucher-copy').focus({preventScroll:true});}
 }
 function drawVouchers(data){
   voucherPage=Math.max(0,Math.min(voucherPage,Math.max(0,Math.ceil(data.vouchers.length/20)-1)));redemptionPage=Math.max(0,Math.min(redemptionPage,Math.max(0,Math.ceil(data.redemptions.length/20)-1)));updatePager('partner-voucher',voucherPage,data.vouchers.length);updatePager('partner-redemption',redemptionPage,data.redemptions.length);
@@ -252,7 +253,7 @@ async function loadVouchers(current){
   try{
     const data=await api(dashboardPath+'/vouchers');if(current!==revision)return;
     voucherData=data;drawBudget(data.budget);drawVouchers(data);
-    $('partner-budget-form').hidden=data.ownerView!==true;$('partner-voucher-workspace').hidden=false;voucherStatus('');return true;
+    $('partner-budget-manage').hidden=data.ownerView!==true;$('partner-invite-balance').hidden=false;if(data.ownerView!==true){$('partner-budget-form').hidden=true;$('partner-budget-toggle').setAttribute('aria-expanded','false');}$('partner-voucher-workspace').hidden=false;voucherStatus('');return true;
   }catch(error){if(current===revision){voucherStatus(error.message);$('partner-overview-budget').textContent='No pudimos cargar los créditos para invitar. Actualiza el panel.';}}
 }
 async function mutate(action,body){
@@ -272,6 +273,7 @@ $('partner-voucher-form').oninput=()=>{requestId=crypto.randomUUID();preview();}
 for(const button of document.querySelectorAll('[data-partner-credits]'))button.onclick=()=>{$('partner-voucher-credits').value=button.dataset.partnerCredits;requestId=crypto.randomUUID();preview();};
 $('partner-another-invite').onclick=()=>{$('partner-gift-preview').hidden=false;$('partner-create-layout').classList.remove('is-ready');createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-form').hidden=false;$('partner-voucher-note').value='';$('partner-voucher-url').value='';requestId=crypto.randomUUID();voucherStatus('');preview();$('partner-voucher-note').focus({preventScroll:true});};
 for(const [prefix,kind] of [['partner-voucher','voucher'],['partner-redemption','redemption']])for(const [direction,step] of [['prev',-1],['next',1]])$(prefix+'-'+direction).onclick=()=>{if(!voucherData)return;if(kind==='voucher')voucherPage+=step;else redemptionPage+=step;drawVouchers(voucherData);};
+$('partner-budget-toggle').onclick=()=>{if(voucherData?.ownerView!==true)return;const open=$('partner-budget-form').hidden;$('partner-budget-form').hidden=!open;$('partner-budget-toggle').setAttribute('aria-expanded',String(open));};
 $('partner-budget-form').onsubmit=event=>{event.preventDefault();void mutate('/budget',{total:Number($('partner-budget-total').value)});};
 $('partner-voucher-copy').onclick=()=>createdVoucher&&void copy(createdVoucher.url);
 $('partner-message-copy').onclick=()=>createdVoucher&&void copy('Hola, te invito a probar PV LAB con '+createdVoucher.credits+' créditos de parte de Vitolas Studio. Puedes explorar imágenes para tu marca o tus productos. Entra, inicia sesión y canjea tu código antes del '+date(createdVoucher.expiresAt)+': '+createdVoucher.url);
