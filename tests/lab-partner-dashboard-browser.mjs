@@ -102,7 +102,7 @@ try{
     await page.locator('[data-partner-filter="all"]').click();await page.waitForFunction(()=>document.querySelectorAll('.partner-client-name').length===5);await tab('Resumen').click();
     assert.ok(await page.locator('#partner-results').evaluate(board=>[...board.querySelectorAll(':scope>div')].every(cell=>{const a=cell.querySelector('strong').getBoundingClientRect(),b=cell.querySelector('button').getBoundingClientRect();return a.bottom<=b.top||a.right<=b.left||b.right<=a.left;})));checks++;
     await capture(page,'overview-'+width+'.png');
-    await tab('Guía').click();assert.equal(await page.locator('#partner-help').isVisible(),true);assert.equal(await page.locator('.partner-help-grid article').count(),8);checks+=2;
+    await tab('Guía').click();assert.equal(await page.evaluate(()=>scrollY),0);assert.ok(await page.locator('.partner-hero').evaluate(el=>el.getBoundingClientRect().top===0));checks+=2;assert.equal(await page.locator('#partner-help').isVisible(),true);assert.equal(await page.locator('.partner-help-grid article').count(),8);checks+=2;
     await tab('Guía').press('Home');await tab('Resumen').press('ArrowRight');assert.equal(await tab('Clientes').getAttribute('aria-selected'),'true');checks++;
     await tab('Clientes').click();
     await page.locator('.partner-client-name').first().click();assert.match(await page.locator('.partner-client-detail').textContent(),/Comisión:.*3,00/);checks++;

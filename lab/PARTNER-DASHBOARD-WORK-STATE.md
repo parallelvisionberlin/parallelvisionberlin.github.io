@@ -1,5 +1,12 @@
 # Vitolas Studio partner dashboard
 
+## Navigation without automatic downward scrolling, 2026-10-25
+- User rejects section navigation scrolling down and cropping the hero. Every section control should open its destination directly, keeping the page starting at the hero with no scrolling animation.
+- Baseline f4bc0ce (current main), isolated worktree vitolas-navigation. Preserve compact results, unified typography and all functionality.
+- Section buttons, keyboard tabs and hash navigation reset directly to page top with instant positioning. No scrollIntoView calls remain. Voucher results and copy fallbacks retain focus using preventScroll.
+- Scope: Vitolas JS/HTML asset version, existing partner unit/browser tests and this checkpoint. No financial, voucher capacity or real account changes.
+- Asset marker 20261025-navigation1. Validation and publication pending.
+
 ## Compact results and unified typography, 2026-10-25
 - User requests a smaller results box and at most two typefaces across the page, with an elegant, comfortable feel. Reference uploads image(20261025-175901).png and image(20261025-175927).png.
 - Baseline 4b728001ea89794f6aaf27e0b89078eefa79a1cf, isolated worktree vitolas-type. Preserve results order, workflows, actual EUR figures, logo and beauty hero.
