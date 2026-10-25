@@ -1,3 +1,15 @@
+## Read-only generation charge/refund audit, 2026-10-25
+- User requests explanation and system review of failed generations, model content refusals and provider costs. Reviewed source 4f0e2f0c50d662cb82fe7ae0c509277b612aaf48; no production balances, jobs, policy or code changed.
+- Verified atomic job debit and one-time failed-state credit restoration in 0006-customers-billing.sql. Customer prompt checks run before paid job insertion on inspected submit routes. Ambiguous submissions remain uncertain, not automatically replayed; temporary archive failures preserve generated outputs for recovery.
+- Official SpicyAPI billing/errors docs: ordinary failure releases holds, but model-disclosed content_rejected failures can be settled with positive cost. FAL official FAQ: infrastructure 500+ free, some processed 422 requests can be billed. Do not infer zero provider cost from failed state.
+- Finding P1: promotions.mjs acquisition/exposure CASE expressions force failed jobs to zero even with positive settled_cost_usd. Synthetic reproduction stored $0.25 confirmed cost, restored customer wallet, and owner exposure returned $0.00. This proves reporting behavior, not an actual production loss.
+- Finding P1: refreshJob and Spicy callback skip terminal failed/completed jobs. If initial terminal response is not settled, later final provider cost may never be captured. Add independent financial settlement reconciliation without resubmitting generations.
+- Policy decision required: customer restoration on charged refusals currently still occurs because all failed states restore credits. Prefer retaining no-delivery credit restoration, tracking any provider loss transparently and restricting/disclosing expensive refusal-prone routes instead of silent charges.
+- Stripe refund/dispute webhook records billing review; partner commissions are held at account scope. This is not a full proportional cash-refund/wallet reversal/commission settlement system. Checkout inspected code does not explicitly collect digital-withdrawal acknowledgement; external Stripe settings/live checkout were not inspected.
+- Checks: 37 existing billing, finance, prompt-safety, FAL queue, Higgsfield and sandbox tests passed. One isolated additional positive-cost-failure reproduction passed; temporary test removed. No paid generations.
+- No production provider ledger/CSV, live database or deployed Worker version reconciled. Exact financial losses and deployed behavior remain unverified. Next: correct confirmed-cost reporting and separate terminal-job settlement reconciliation, then reconcile real provider exports before deciding further policy.
+- Sources: https://docs.spicyapi.ai/docs/billing ; https://docs.spicyapi.ai/docs/errors ; https://fal.ai/docs/documentation/model-apis/faq
+
 ## Owner tables: twenty-per-page server pagination, 2026-10-25
 - User screenshot shows long Owner Acquisition & revenue and Customers lists. Requested 20 newest rows in each and compact navigation for pages 2/3/4, rather than an ~200-row continuous dashboard.
 - Branch: `fix/owner-customers-acquisition-pagination-20261025` from main `718a7b840291ce29b5f36e9972bde6d101a4ec57`.
