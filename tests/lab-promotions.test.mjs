@@ -43,6 +43,18 @@ test('voucher migration is repeatable and generated gift link remains on PV LAB'
   assert.ok(created.voucher.url.includes(created.voucher.code));
   assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_vouchers').n,1);
 });
+test('owner voucher recipients appear inline with no expandable row or click',()=>{
+  const ui=readFileSync(new URL('../lab/owner.js',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/owner.html',import.meta.url),'utf8');
+  assert.ok(ui.includes("if(index===2&&voucher.redemptionCount>0)"));
+  assert.ok(ui.includes('startInlineVoucherRecipients(inlineVoucherRecipients)'));
+  assert.ok(ui.includes('new IntersectionObserver(entries=>'));
+  assert.ok(html.includes('Redemptions / recipients'));
+  assert.ok(!ui.includes('toggleVoucherRecipients('));
+  assert.ok(!ui.includes('View recipients ('));
+  assert.ok(!html.includes('owner-voucher-recipients-panel'));
+});
+
 test('vouchers without an expiry remain active and owner can inspect verified recipients',async t=>{
   const f=await setup(t);if(!f)return;
   const created=(await (await f.admin('/api/admin/vouchers',{credits:200,maxRedemptions:2})).json()).voucher;

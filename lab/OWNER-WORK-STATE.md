@@ -1,3 +1,13 @@
+## Voucher recipient UI simplification, 2026-10-25
+- User tested the real Owner voucher lookup after PR #538 and rejected the extra View recipients / Hide recipients accordion. Existing live lookup showed Clerk verified name, email and redemption timestamp, confirming the backend returns identities.
+- Current branch: `fix/owner-voucher-inline-recipients-20261025`. Based on main at `2e7946b2e1316f39ee93da72d56bd39810ff6145`. Keep previous owner-only redemption endpoint unchanged.
+- Owner renders redemption count plus inline recipient name, verified email and timestamp in the SAME table row. No extra click, expanded row or new navigation. Blank expiry continues to display Never.
+- On-screen rows automatically load identity via the existing owner-only endpoint, with IntersectionObserver + maximum 3 concurrent lookups. No customer records, credits, billing, stored profiles or voucher redemption rules changed. Results on stale/logout screens are ignored.
+- Standard vouchers remain compact when unused. For high-volume campaigns, first 10 recipients are shown and a plain-text count states how many older claims are not in the table, without adding a dropdown.
+- Changed: `lab/owner.js`, `lab/owner.css`, `lab/owner.html`, `tests/lab-promotions.test.mjs`. Adds locked UI test preventing regression to toggle button.
+- Branch source implemented; new PR CI, merge, Cloudflare Pages and signed-in production verification still to be recorded. No Worker deployment needed because only the owner interface and tests changed.
+- Next: check PR tests then merge. Verify Cloudflare Pages commit on production, then inspect the rendered owner table in a real signed-in browser.
+
 ## Voucher redemption identities and expiry clarity, 2026-10-25
 - Source baseline: main bcd80d965b19c7d084b0c5c94009c4bb9467f3c6. Work branch: `fix/owner-voucher-recipients-20261025`.
 - User screenshots show newly created 200-credit voucher Active, 0/1 with no expiry. Backend already accepts `expiresAt=null`, stores SQL NULL and permits redemption when expiry is NULL. PR #528 was merged 2026-10-24.
