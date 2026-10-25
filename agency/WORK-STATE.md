@@ -46,5 +46,6 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Agency browser regression now rejects rendered Unicode ↗/→ glyphs at desktop and mobile widths.
 - 2026-10-25 Flesh Zero film: original master, desktop delivery, mobile delivery and the approved FLESH ZERO HERO poster are stored in Cloudflare R2 bucket `parallel-vision-visuals` under `fashion-after-fabric/flesh-zero/`.
 - R2 objects verified after upload: original 83,717,235 bytes; desktop 10,936,813 bytes; mobile 4,780,745 bytes; poster 84,362 bytes. Temporary R2 upload Worker was deleted after verification.
-- Agency Work in motion now has three films: Berlin 2063, Cabizbajo / Lotus 63, and a full-width Flesh Zero feature below them. Flesh Zero uses responsive R2 MP4 variants and links to `flesh-zero.html`.
+- Flesh Zero is now the featured film immediately after the Agency hero, before Selected Work. It uses the verified responsive R2 MP4 variants and approved FLESH ZERO HERO poster, and links to `flesh-zero.html`. Work in motion is reduced to Berlin 2063 and Cabizbajo / Lotus 63.
+- Selected Work now uses the existing `assets/optimized/02REPTARE.webp` look-development sheet for Fashion After Fabric; Berlin 2063 keeps the existing urban passage image.
 - Pending: visual screenshot review, merge and production custom-domain/API verification.
