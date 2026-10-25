@@ -8,12 +8,15 @@ import {calculatePartnerCommissions,sixCalendarMonthsAfter,recordPartnerPaymentC
 import {stripeWebhook} from '../lab-worker/customer-billing.mjs';
 import {resolveVitolasLink} from '../lab/vitolas-link.js';
 
-test('the complete dashboard keeps every controller binding and prioritizes counters before invitation tools',()=>{
+test('the daily workspace keeps every binding and opens detail tools only on demand',()=>{
   const html=readFileSync(new URL('../lab/vitolas-studio.html',import.meta.url),'utf8');
   const controller=readFileSync(new URL('../lab/vitolas-studio.js',import.meta.url),'utf8');
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length,'Unique dashboard controls');
   for(const match of controller.matchAll(/\$\('([^']+)'\)/g))assert.ok(ids.includes(match[1]),'Missing controller target: '+match[1]);
-  assert.ok(html.indexOf('class="partner-metrics"')<html.indexOf('class="partner-link"'));
+  assert.ok(html.indexOf('class="partner-link"')<html.indexOf('class="partner-metrics"'));
+  assert.equal((html.match(/<dialog /g)||[]).length,4);
+  assert.equal(/<dialog[^>]+\bopen\b/.test(html),false);
+  assert.equal(html.includes('partner-activity-card'),false);
   assert.ok(html.indexOf('class="partner-metrics"')<html.indexOf('id="partner-invitations"'));
 });
 import {partnerVoucherRoute} from '../lab-worker/partner-vouchers.mjs';
@@ -133,6 +136,8 @@ test('own referrals only, all verified payments counted, closed identities redac
   assert.deepEqual(data.totals,{registered:2,payingCustomers:1,activeSubscriptions:1,purchases:2});
   assert.match(data.referralUrl,/^https:\/\/pvlab.studio\/\?ref=[A-Z2-9]{8}$/);
   assert.equal(data.customers.find(x=>x.closed).email,null);
+  const hidden=await (await partnerDashboardRoute(f.request('?q=closed%40example'),f.env,'user_Victoria')).json();assert.equal(hidden.customers.length,0);
+  const registered=await (await partnerDashboardRoute(f.request('?filter=registered'),f.env,'user_Victoria')).json();assert.equal(registered.customers.length,1);assert.equal(registered.customers[0].closed,1);
   assert.equal(JSON.stringify(data).includes('stranger@example.test'),false);
   assert.equal(data.customers.find(person=>person.email==='friend@example.test').purchases,2);assert.equal(data.nextOffset,null);
   for(const filter of ['paying','subscribed']){
@@ -153,6 +158,10 @@ test('dedicated Clerk identity is resolved server-side and dashboard pagination 
   assert.equal(f.requestedSubject,'user_Victoria');assert.equal(first.customers.length,100);assert.equal(first.nextOffset,100);
   const last=await (await partnerDashboardRoute(f.request('?offset=100'),f.env,'user_PvLabV2Victoria')).json();
   assert.equal(last.customers.length,1);assert.equal(last.nextOffset,null);
+  const searched=await (await partnerDashboardRoute(f.request('?q=F0%40EXAMPLE'),f.env,'user_PvLabV2Victoria')).json();
+  assert.equal(searched.customers.length,1);assert.equal(searched.customers[0].email,'f0@example.test');assert.equal(searched.nextOffset,null);
+  const literal=await (await partnerDashboardRoute(f.request('?q=%25'),f.env,'user_PvLabV2Victoria')).json();assert.equal(literal.customers.length,0);
+  await assert.rejects(()=>partnerDashboardRoute(f.request('?q='+('a'.repeat(81))),f.env,'user_PvLabV2Victoria'),{status:400});
   await assert.rejects(()=>partnerDashboardRoute(f.request('?offset=-1'),f.env,'user_PvLabV2Victoria'),{status:400});
 });
 
@@ -321,4 +330,25 @@ test('public vanity entrance resolves only the server-registered referral and fa
     t.mock.method(globalThis,'fetch',async()=>Response.json({url}));await assert.rejects(()=>resolveVitolasLink(),/Invitación no válida/);
   }
   f.db.prepare('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)').run('user_Victoria',Date.now());await assert.rejects(()=>publicPartnerLink(request,f.env),{status:503});
+});
+
+
+test('per-client earnings join immutable identities even with identical emails and redact all internal IDs',async t=>{
+  const f=fixture(t),start=Date.UTC(2026,9,25);
+  for(const [id,amount,review] of [['user_One',1000,false],['user_Two',2000,true],['user_Three',3000,false]]){
+    f.signup(id,'same@example.test');
+    f.db.prepare('INSERT INTO lab_referrals(referred_customer_id,referrer_customer_id,attributed_at) VALUES(?,?,?)').run(id,'user_Victoria',start+amount);
+    f.db.prepare("INSERT INTO lab_credit_entries VALUES(?,?,1000,'purchase',?,?)").run(id,id,'checkout:'+id,start);
+    f.db.prepare('INSERT INTO lab_revenue_events VALUES(?,?,?,?)').run('checkout:'+id,id,amount,start);
+    await recordPartnerPaymentContext(f.env,{reference:'checkout:'+id,kind:'purchase',paidAt:start});
+    if(review)f.db.prepare("INSERT INTO lab_billing_reviews(event_id,customer_id,object_id,reason,amount_cents,created_at) VALUES(?,?,?,'charge.refunded',?,?)").run('refund:'+id,id,'ch_'+id,amount,start);
+  }
+  const data=await (await partnerDashboardRoute(f.request(),f.env,'user_Victoria')).json();
+  const summaries=data.customers.map(p=>[p.commissionCents,p.heldCommissionCents,p.paymentReferences.length]);
+  assert.deepEqual(summaries,[[1500,0,1],[0,1000,1],[500,0,1]]);
+  assert.ok(data.customers.every(p=>p.customerId===undefined));
+  assert.equal(data.commissions.totals.commissionCents,2000);
+  f.db.prepare('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)').run('user_Three',start);
+  const after=await (await partnerDashboardRoute(f.request('?q=same%40example'),f.env,'user_Victoria')).json();
+  assert.equal(after.customers.length,2);assert.ok(after.customers.every(p=>!p.closed));
 });

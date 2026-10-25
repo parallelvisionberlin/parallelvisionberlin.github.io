@@ -7,7 +7,7 @@ let clerk=null,revision=0,nextOffset=null,loading=false;
 let dashboardPath='/api/customer/partner';
 let voucherBusy=false,voucherData=null,createdVoucher=null,requestId=crypto.randomUUID();
 let commissionData=null,commissionLimit=25;
-let customerFilter='all',customerRevision=0;
+let customerFilter='all',customerRevision=0,searchTimer=null;
 const request=createSessionRequest({baseUrl:'https://parallel-vision-lab.parallelvision.workers.dev',getSession:()=>clerk?.session});
 const status=message=>{$('partner-status').textContent=message;};
 async function api(path,body){
@@ -15,12 +15,26 @@ async function api(path,body){
   if(!response.ok)throw Error(response.status===403?'Esta cuenta no tiene acceso a Vitolas Studio.':data.error||'No pudimos cargar el panel. Inténtalo de nuevo.');
   return data;
 }
+function openDialog(id){
+  const dialog=$(id);if(!dialog||!clerk?.isSignedIn||$('partner-content').hidden)return;
+  for(const other of document.querySelectorAll('.partner-dialog[open]'))if(other!==dialog)other.close();
+  if(!dialog.open)dialog.showModal();
+}
+for(const button of document.querySelectorAll('[data-partner-dialog]'))button.onclick=()=>openDialog(button.dataset.partnerDialog);
+for(const dialog of document.querySelectorAll('.partner-dialog')){
+  dialog.querySelector('[data-partner-close]').onclick=()=>dialog.close();
+  dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const box=dialog.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)dialog.close();});
+}
+const voucherStatus=message=>{for(const id of ['partner-voucher-status','partner-history-status'])$(id).textContent=message;};
 function clear(){
+  for(const dialog of document.querySelectorAll('.partner-dialog[open]'))dialog.close();
+  clearTimeout(searchTimer);$('partner-search').value='';$('partner-customer-status').textContent='';
+  $('partner-voucher-form').hidden=false;voucherStatus('');
   menu.update();nextOffset=null;loading=false;
   customerFilter='all';customerRevision++;for(const b of document.querySelectorAll('[data-partner-filter]'))b.setAttribute('aria-pressed',String(b.dataset.partnerFilter==='all'));
   voucherBusy=false;voucherData=null;createdVoucher=null;requestId=crypto.randomUUID();
   commissionData=null;commissionLimit=25;$('partner-export').disabled=true;$('partner-commission-more').hidden=true;
-  for(const id of ['partner-latest-signups','partner-recent-purchases','partner-commission-rows'])$(id).replaceChildren();
+  $('partner-commission-rows').replaceChildren();
   for(const id of ['partner-commission','partner-revenue','partner-commission-held'])$(id).textContent='0,00 €';
   $('partner-commission-status').textContent='';
   $('partner-voucher-workspace').hidden=true;$('partner-budget-form').hidden=true;$('partner-voucher-result').hidden=true;
@@ -36,14 +50,28 @@ function clear(){
 }
 function rows(items,append=false){
   const body=$('partner-rows');if(!append)body.replaceChildren();
-  if(!items.length&&!append){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=4;cell.textContent='Todavía no hay registros a través de tu enlace.';row.append(cell);body.append(row);return;}
+  if(!items.length&&!append){const row=body.insertRow(),cell=row.insertCell();cell.colSpan=4;
+    const title=document.createElement('span');title.className='partner-empty';
+    title.textContent=customerFilter==='all'&&!$('partner-search').value.trim()?'Tu próximo cliente empieza con una invitación.':'No hay clientes con este filtro.';
+    cell.append(title,document.createTextNode(customerFilter==='all'&&!$('partner-search').value.trim()?'Comparte tu enlace o invita con créditos. Sus registros y pagos aparecerán aquí.':'Prueba otro filtro o busca otro correo.'));return;}
   for(const person of items){
-    const row=document.createElement('tr');
-    const values=[person.closed?'Cuenta cerrada':person.email||'Correo pendiente de verificación',
-      new Date(person.registeredAt).toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'}),
-      person.closed?'Cerrada':person.subscribed?'Suscripción activa':person.paid?'Cliente de pago':'Registrada',person.purchases];
-    for(const value of values){const cell=document.createElement('td');cell.textContent=String(value);row.append(cell);}
-    body.append(row);
+    const row=body.insertRow(),name=row.insertCell(),button=document.createElement('button');button.type='button';button.className='partner-client-name';
+    button.textContent=person.closed?'Cuenta cerrada':person.email||'Correo pendiente de verificación';button.setAttribute('aria-expanded','false');name.append(button);
+    row.insertCell().textContent=date(person.registeredAt);
+    const badge=document.createElement('span');badge.className='partner-badge';badge.dataset.active=String(!!person.subscribed);
+    badge.textContent=person.closed?'Cerrada':person.subscribed?'Suscripción':person.paid?'De pago':'Registrada';row.insertCell().append(badge);
+    const earned=row.insertCell();earned.textContent=Number.isSafeInteger(person.commissionCents)?money(person.commissionCents):'No disponible';
+    if(person.heldCommissionCents||person.needsReconciliation){const review=document.createElement('small');review.textContent=person.needsReconciliation?'Por conciliar':'En revisión';earned.append(review);}
+    button.onclick=()=>{
+      const existing=row.nextElementSibling;
+      if(existing?.classList.contains('partner-client-detail')){existing.remove();button.setAttribute('aria-expanded','false');return;}
+      const detail=document.createElement('tr');detail.className='partner-client-detail';const cell=detail.insertCell();cell.colSpan=4;
+      const summary=document.createElement('p');summary.textContent='Registro: '+date(person.registeredAt)+' · '+person.purchases+' compras verificadas';cell.append(summary);
+      const references=new Set(person.paymentReferences||[]),payments=commissionData?.receipts.filter(p=>references.has(p.reference))||[];
+      if(payments.length){const list=document.createElement('ul');for(const payment of payments){const item=document.createElement('li');item.textContent=date(payment.paidAt||payment.recordedAt)+' · '+(payment.kind==='subscription'?'Suscripción':'Créditos')+' · '+money(payment.amountCents)+' · Comisión: '+(payment.status==='needs_reconciliation'?'por conciliar':money(payment.commissionCents))+' · '+(receiptStatus[payment.status]||'En revisión');list.append(item);}cell.append(list);}
+      else{const empty=document.createElement('p');empty.textContent='Aún no hay pagos con comisión registrada.';cell.append(empty);}
+      row.after(detail);button.setAttribute('aria-expanded','true');
+    };
   }
 }
 async function refresh(){
@@ -62,7 +90,7 @@ async function refresh(){
     if(!['https://pvlab.studio','https://www.pvlab.studio','https://parallelvisionlabel.com'].includes(link.origin))throw Error('El enlace no está disponible.');
     $('partner-url').value=link.href;
     for(const [id,key] of [['registered','registered'],['paying','payingCustomers'],['subscribed','activeSubscriptions'],['purchases','purchases']])$('partner-'+id).textContent=Number(data.totals[key]||0).toLocaleString('es');
-    rows(data.customers);drawBusiness(data);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;
+    drawBusiness(data);rows(data.customers);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;
     $('partner-content').hidden=false;status('');await loadVouchers(current);
   }catch(error){if(current===revision)status(error.message);}
 }
@@ -74,36 +102,31 @@ $('partner-copy').onclick=async()=>{
   try{await navigator.clipboard.writeText(value);if(current===revision)$('partner-copy').textContent='Copiado';}
   catch{if(current===revision){$('partner-url').focus();$('partner-url').select();status('Selecciona y copia tu enlace.');}}
 };
+function customerQuery(offset=0){const params=new URLSearchParams({filter:customerFilter,offset:String(offset)});const q=$('partner-search').value.trim();if(q)params.set('q',q);return dashboardPath+'?'+params;}
+async function loadCustomers(){
+  const current=revision,local=++customerRevision;loading=true;nextOffset=null;$('partner-more').hidden=true;$('partner-customer-status').textContent='Buscando…';$('partner-rows').replaceChildren();
+  try{const data=await api(customerQuery());if(current!==revision||local!==customerRevision)return;
+    rows(data.customers);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;$('partner-customer-status').textContent='';
+  }catch(error){if(current===revision&&local===customerRevision)$('partner-customer-status').textContent=error.message;}
+  finally{if(current===revision&&local===customerRevision){loading=false;$('partner-more').disabled=false;}}
+}
 $('partner-more').onclick=async()=>{
   if(loading||nextOffset===null)return;
-  const current=revision;loading=true;$('partner-more').disabled=true;
-  try{const data=await api(dashboardPath+'?offset='+nextOffset+'&filter='+customerFilter);if(current!==revision)return;rows(data.customers,true);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;status('');}
-  catch(error){if(current===revision)status(error.message);}
-  finally{if(current===revision){loading=false;$('partner-more').disabled=false;}}
-};
-for(const button of document.querySelectorAll('[data-partner-filter]'))button.onclick=async()=>{
-  if(loading||button.dataset.partnerFilter===customerFilter)return;
-  const current=revision,local=++customerRevision;loading=true;$('partner-more').disabled=true;
-  try{const data=await api(dashboardPath+'?filter='+button.dataset.partnerFilter);if(current!==revision||local!==customerRevision)return;
-    customerFilter=button.dataset.partnerFilter;rows(data.customers);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;
-    for(const b of document.querySelectorAll('[data-partner-filter]'))b.setAttribute('aria-pressed',String(b===button));
-  }catch(error){if(current===revision)status(error.message);}
+  const current=revision,local=customerRevision;loading=true;$('partner-more').disabled=true;
+  try{const data=await api(customerQuery(nextOffset));if(current!==revision||local!==customerRevision)return;rows(data.customers,true);nextOffset=data.nextOffset;$('partner-more').hidden=nextOffset===null;$('partner-customer-status').textContent='';}
+  catch(error){if(current===revision&&local===customerRevision)$('partner-customer-status').textContent=error.message;}
   finally{if(current===revision&&local===customerRevision){loading=false;$('partner-more').disabled=false;}}
 };
+for(const button of document.querySelectorAll('[data-partner-filter]'))button.onclick=()=>{
+  if(button.dataset.partnerFilter===customerFilter)return;
+  customerFilter=button.dataset.partnerFilter;
+  for(const b of document.querySelectorAll('[data-partner-filter]'))b.setAttribute('aria-pressed',String(b===button));
+  clearTimeout(searchTimer);void loadCustomers();
+};
+$('partner-search').oninput=()=>{clearTimeout(searchTimer);++customerRevision;nextOffset=null;$('partner-more').hidden=true;searchTimer=setTimeout(()=>void loadCustomers(),250);};
 const date=value=>new Date(value).toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'});
 const money=cents=>new Intl.NumberFormat('es',{style:'currency',currency:'EUR'}).format(Number(cents||0)/100);
 const receiptStatus={accrued:'Registrada',held:'En revisión',needs_reconciliation:'Por conciliar',not_eligible:'Fuera del acuerdo'};
-function activity(target,items,kind){
-  const list=$(target);list.replaceChildren();
-  if(!items.length){const p=document.createElement('p');p.className='partner-activity-empty';p.textContent=kind==='signup'?'Los nuevos registros de tu enlace aparecerán aquí.':'Las compras verificadas de tus referidos aparecerán aquí.';list.append(p);return;}
-  for(const item of items){
-    const row=document.createElement('div');row.className='partner-activity-row';const identity=document.createElement('div'),name=document.createElement('strong'),detail=document.createElement('small'),aside=document.createElement('div'),value=document.createElement('strong'),stamp=document.createElement('small');
-    name.textContent=item.closed?'Cuenta cerrada':item.email||'Correo pendiente de verificación';
-    detail.textContent=kind==='signup'?(item.subscribed?'Suscripción activa':item.paid?'Cliente de pago':'Registrada'):(item.kind==='subscription'?'Cuota de suscripción':'Compra de créditos');
-    value.textContent=kind==='signup'?'Registro':money(item.amountCents);stamp.textContent=date(item.registeredAt||item.paidAt||item.recordedAt);
-    identity.append(name,detail);aside.append(value,stamp);row.append(identity,aside);list.append(row);
-  }
-}
 function commissionRows(){
   const body=$('partner-commission-rows');body.replaceChildren();const receipts=commissionData?.receipts||[];
   if(!receipts.length){const row=body.insertRow(),cell=row.insertCell();cell.colSpan=5;cell.textContent='Tu informe se completará cuando tus referidos realicen pagos verificados.';}
@@ -118,12 +141,12 @@ function commissionRows(){
   $('partner-commission-more').hidden=receipts.length<=commissionLimit;
 }
 function drawBusiness(data){
-  activity('partner-latest-signups',data.customers.slice(0,5),'signup');commissionData=data.commissions||null;
+  commissionData=data.commissions||null;
   if(!commissionData){for(const id of ['partner-commission','partner-revenue','partner-commission-held'])$(id).textContent='No disponible';$('partner-commission-status').textContent='No pudimos cargar el informe de comisiones. Actualiza el panel.';return;}
   const totals=commissionData.totals;
   $('partner-commission').textContent=money(totals.commissionCents);$('partner-revenue').textContent=money(totals.revenueCents);$('partner-commission-held').textContent=money(totals.heldCommissionCents);
   $('partner-commission-status').textContent=totals.needsReconciliation?totals.needsReconciliation+' pagos sin fecha verificable pendientes de conciliación.':'';
-  activity('partner-recent-purchases',commissionData.recentPurchases.slice(0,5),'purchase');commissionRows();$('partner-export').disabled=!commissionData.receipts.length;
+  commissionRows();$('partner-export').disabled=!commissionData.receipts.length;
 }
 $('partner-commission-more').onclick=()=>{commissionLimit+=25;commissionRows();};
 $('partner-export').onclick=()=>{
@@ -135,10 +158,7 @@ $('partner-export').onclick=()=>{
   const link=document.createElement('a');link.href=url;link.download='vitolas-comisiones-'+new Date().toISOString().slice(0,10)+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function preview(){
-  const credits=Number($('partner-voucher-credits').value),days=Number($('partner-voucher-days').value);
-  $('partner-preview-credits').textContent=Number.isSafeInteger(credits)&&credits>0?credits.toLocaleString('es'):'0';
-  $('partner-preview-note').textContent=$('partner-voucher-note').value.trim()||'Una invitación a crear.';
-  $('partner-preview-expiry').textContent='UNA PERSONA\n'+days+' DÍAS PARA EMPEZAR';
+  const credits=Number($('partner-voucher-credits').value);
   for(const button of document.querySelectorAll('[data-partner-credits]'))button.setAttribute('aria-pressed',String(Number(button.dataset.partnerCredits)===credits));
   $('partner-voucher-create').disabled=voucherBusy||!voucherData||!Number.isSafeInteger(credits)||credits<1||credits>500||credits>voucherData.budget.available;
 }
@@ -163,7 +183,7 @@ function showInvitation(voucher){
   createdVoucher={...voucher,url:safeInvitation(voucher.url)};
   $('partner-voucher-url').value=createdVoucher.url;$('partner-voucher-code').textContent=voucher.code;
   $('partner-voucher-detail').textContent=voucher.credits+' créditos · válida hasta '+date(voucher.expiresAt);
-  $('partner-voucher-result').hidden=false;$('partner-copy-status').textContent='';
+  $('partner-voucher-result').hidden=false;$('partner-voucher-form').hidden=true;$('partner-copy-status').textContent='';
 }
 function drawVouchers(data){
   const body=$('partner-voucher-rows');body.replaceChildren();
@@ -178,38 +198,39 @@ function drawVouchers(data){
     const actions=row.insertCell();
     if(voucher.active&&!expired&&!used){
       const link=document.createElement('button');link.type='button';link.className='account-text-button';link.textContent='Compartir ↗';
-      link.onclick=()=>{showInvitation(voucher);$('partner-voucher-result').scrollIntoView({behavior:'smooth',block:'center'});};
+      link.onclick=()=>{showInvitation(voucher);openDialog('partner-invitations');};
       const deactivate=document.createElement('button');deactivate.type='button';deactivate.className='account-text-button';deactivate.textContent='Desactivar';
       deactivate.onclick=()=>void mutate('/vouchers/deactivate',{code:voucher.code});actions.append(link,deactivate);
-    }else actions.textContent='—';
+    }else actions.textContent='';
   }
   const claims=$('partner-redemption-rows');claims.replaceChildren();$('partner-redemption-count').textContent=String(data.redemptions.length);
   if(!data.redemptions.length){const row=claims.insertRow(),cell=row.insertCell();cell.colSpan=4;cell.textContent='Los canjes aparecerán aquí cuando tus contactos activen su regalo.';}
   for(const claim of data.redemptions){const row=claims.insertRow();for(const value of [claim.closed?'Cuenta cerrada':claim.email||'Correo pendiente de verificación',claim.note,claim.credits,date(claim.redeemedAt)])row.insertCell().textContent=String(value);}
 }
 async function loadVouchers(current){
-  $('partner-voucher-status').textContent='Cargando invitaciones…';
+  voucherStatus('Cargando invitaciones…');
   try{
     const data=await api(dashboardPath+'/vouchers');if(current!==revision)return;
     voucherData=data;drawBudget(data.budget);drawVouchers(data);
-    $('partner-budget-form').hidden=data.ownerView!==true;$('partner-voucher-workspace').hidden=false;$('partner-voucher-status').textContent='';return true;
-  }catch(error){if(current===revision)$('partner-voucher-status').textContent=error.message;}
+    $('partner-budget-form').hidden=data.ownerView!==true;$('partner-voucher-workspace').hidden=false;voucherStatus('');return true;
+  }catch(error){if(current===revision)voucherStatus(error.message);}
 }
 async function mutate(action,body){
   if(voucherBusy||!voucherData)return;
-  const current=revision;voucherBusy=true;preview();$('partner-voucher-status').textContent='Guardando…';
+  const current=revision;voucherBusy=true;preview();voucherStatus('Guardando…');
   try{
     const result=await api(dashboardPath+action,body);if(current!==revision)return;
     if(result.voucher){showInvitation(result.voucher);requestId=crypto.randomUUID();}
-    if(result.deactivated&&createdVoucher?.code===body.code){createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-url').value='';}
+    if(result.deactivated&&createdVoucher?.code===body.code){createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-form').hidden=false;$('partner-voucher-url').value='';}
     const loaded=await loadVouchers(current);
-    if(current===revision&&loaded)$('partner-voucher-status').textContent=result.voucher?'Invitación creada. Sus créditos están reservados hasta el canje o la caducidad.':result.deactivated?'Invitación desactivada. Su reserva ha quedado disponible.':'Presupuesto guardado.';
-  }catch(error){if(current===revision)$('partner-voucher-status').textContent=error.message;}
+    if(current===revision&&loaded)voucherStatus(result.voucher?'Invitación creada. Lista para compartir.':result.deactivated?'Invitación desactivada. Sus créditos están disponibles.':'Presupuesto guardado.');
+  }catch(error){if(current===revision)voucherStatus(error.message);}
   finally{if(current===revision){voucherBusy=false;preview();}}
 }
-$('partner-voucher-form').onsubmit=event=>{event.preventDefault();void mutate('/vouchers',{note:$('partner-voucher-note').value.trim(),credits:Number($('partner-voucher-credits').value),days:Number($('partner-voucher-days').value),requestId});};
+$('partner-voucher-form').onsubmit=event=>{event.preventDefault();void mutate('/vouchers',{note:$('partner-voucher-note').value.trim()||'Invitación Vitolas',credits:Number($('partner-voucher-credits').value),days:Number($('partner-voucher-days').value),requestId});};
 $('partner-voucher-form').oninput=()=>{requestId=crypto.randomUUID();preview();};
 for(const button of document.querySelectorAll('[data-partner-credits]'))button.onclick=()=>{$('partner-voucher-credits').value=button.dataset.partnerCredits;requestId=crypto.randomUUID();preview();};
+$('partner-another-invite').onclick=()=>{createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-form').hidden=false;$('partner-voucher-note').value='';$('partner-voucher-url').value='';requestId=crypto.randomUUID();voucherStatus('');$('partner-voucher-note').focus();};
 $('partner-budget-form').onsubmit=event=>{event.preventDefault();void mutate('/budget',{total:Number($('partner-budget-total').value)});};
 $('partner-voucher-copy').onclick=()=>createdVoucher&&void copy(createdVoucher.url);
 $('partner-message-copy').onclick=()=>createdVoucher&&void copy('Hola, te invito a probar PV LAB con '+createdVoucher.credits+' créditos de parte de Vitolas Studio. Puedes explorar imágenes para tu marca o tus productos. Entra, inicia sesión y canjea tu código antes del '+date(createdVoucher.expiresAt)+': '+createdVoucher.url);
