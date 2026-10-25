@@ -63,6 +63,28 @@ async function fits(page,label){
     label+' must not scroll horizontally: '+JSON.stringify(metrics));
 }
 try{
+  // Combined Vitolas credit/referral links use the real account controller.
+  // Joining is attributed under existing rules; a gift still requires a click.
+  for(const width of [1440,390]){
+    const rig=await setup(width),{page,writes,errors}=rig;
+    try{
+      await page.route('**/api/customer/vouchers/redeem',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({redeemed:true,credits:100,balanceCredits:1334})}));
+      const code='VT'+'C'.repeat(20);
+      await page.goto(origin+'/lab/account.html?voucher='+code+'&ref=ABCDEFGH#voucher');
+      await page.locator('#account-workspace:not([hidden])').waitFor();
+      await page.waitForFunction(()=>!new URL(location.href).searchParams.has('ref'));
+      assert.equal(await page.locator('#account-voucher-code').inputValue(),code);
+      assert.deepEqual(writes.filter(x=>x.path==='/api/customer/referrals/claim').map(x=>JSON.parse(x.body)),[{code:'ABCDEFGH'}]);
+      assert.equal(writes.filter(x=>x.path==='/api/customer/vouchers/redeem').length,0,'No automatic redemption');
+      await page.locator('#account-voucher-submit').click();
+      await page.getByText('Added 100 credits to your balance.',{exact:true}).waitFor();
+      assert.equal(new URL(page.url()).searchParams.has('voucher'),false);
+      await page.reload();await page.locator('#account-workspace:not([hidden])').waitFor();
+      assert.equal(writes.filter(x=>x.path==='/api/customer/referrals/claim').length,1,'Consumed reference is not replayed');
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
+  }
+  console.log('PASS credit invitation sign-in, referral capture and explicit voucher redemption');
   // Real homepage URL, local source and synthetic Clerk/API only. Fresh setup
   // must not navigate to Studio or discard an existing pricing anchor.
   for(const width of [1440,390]){

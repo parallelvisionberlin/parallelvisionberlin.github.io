@@ -1,5 +1,20 @@
 # Vitolas Studio partner dashboard
 
+## Credit invitations and working dashboard, 2026-10-25
+- User requested a more useful, refined dashboard and a voucher creator so Victoria can offer credits to prospects.
+- Baseline main bcd80d965b19c7d084b0c5c94009c4bb9467f3c6; isolated branch feature/vitolas-credit-invitations-20261025. Existing open PRs have no Vitolas-specific work.
+- Reuse the approved Future Beauty WebP below. New editorial navigation, gift preview, campaign form, reserved/redeemed/available allowance, recent invitations and redemptions; no new image generation.
+- New lab-worker/partner-vouchers.mjs, migration 0037-partner-vouchers.sql and scoped customer/admin routes reuse verified partner identity and the actual Owner guard.
+- Owner sets a lifetime promotional credit allowance from the same dashboard. Default is zero; deployment issues no credits and allocates no spend. Victoria cannot raise the budget or access owner-wide vouchers.
+- Each invitation: 1-500 credits, one recipient, campaign name, 1-30 days. Existing atomic voucher redemption/wallet trigger retained; one Vitolas trial per customer, no self redemption, closed/billing-held accounts rejected.
+- SQLite triggers enforce reservation capacity under concurrent requests and owner restoration; expired/deactivated unused reserves release automatically. Redeemed credits stay committed. Allowance edits have an audit trail.
+- Request UUID produces an idempotent invite code. Repeating a failed network request cannot create duplicate reserves; changed payload with same key is rejected.
+- Gift URL includes existing referral code and voucher; account controller captures/claims the reference under unchanged new-account rules. Redemption remains an explicit customer action.
+- Contact reporting redacts closed/unverified recipient emails. No real vouchers, credits, purchases, provider generations or outbound messages created during implementation.
+- Local validation: 170 Worker/partner/promotions/referrals/trial/holds/menu/Image checks passed; syntax and diff checks passed.
+- Browser additions cover creation/error/retry, sharing, budget controls, deactivation, zero allowance, signed-out delayed responses, and combined referral/voucher account links at mobile/desktop widths.
+- Status: implementation complete locally; browser CI, visual inspection and production release pending. Next: validate fixed candidate, review mobile/desktop artifacts, publish and verify Worker plus Cloudflare Pages bytes.
+
 ## Future Beauty visual refresh, 2026-10-25
 - User requested a shadowed high-fashion future-cosmetics hero and clearer explanation of Victoria's referral workflow.
 - One built-in imagegen artwork: adult beauty portrait, real skin, smoked glass/chrome, deep graphite shadows, left negative space; no text or logos.
