@@ -54,27 +54,29 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
 .nav-instagram:hover{color:#fff;text-decoration:none!important}
 .nav-instagram svg{display:block;width:17px;height:17px;stroke:currentColor;stroke-width:1.55;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .eyebrow,.index-tag,.project-type,.project-number,.section-label{font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
-.hero{padding:32px 0 64px}
-.hero-edition{display:flex;justify-content:space-between;gap:20px;padding:0 0 18px;margin-bottom:38px;border-bottom:1px solid var(--line);color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.hero{padding:14px 0 64px}
+.hero-edition{display:flex;justify-content:space-between;gap:20px;padding:0 0 14px;margin-bottom:24px;border-bottom:1px solid var(--line);color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}
 .hero-edition span:last-child{text-align:right}
-.hero-grid{display:grid;grid-template-columns:minmax(0,.91fr) minmax(0,1.09fr);gap:clamp(32px,4.5vw,66px);align-items:center}
-.hero-copy{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:6px 0;min-width:0}
-.hero .eyebrow{color:var(--muted);margin-bottom:22px;font-size:12px}
-.hero h1{font-size:clamp(61px,6.95vw,108px);line-height:.98;letter-spacing:-.077em;margin-bottom:30px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,.91fr) minmax(0,1.09fr);gap:clamp(34px,4.6vw,70px);align-items:center}
+.hero-copy{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:0;min-width:0}
+.hero .eyebrow{color:#aaa;margin-bottom:24px;font-size:10px;font-weight:600;letter-spacing:.18em;line-height:1.45}
+.hero h1{font-size:clamp(58px,6.35vw,98px);line-height:.92;letter-spacing:-.068em;margin-bottom:28px;max-width:660px}
 .hero h1 span{display:block}
-.hero h1 em{font:400 .97em/.93 Georgia,serif;letter-spacing:-.073em;color:#d8d8d8}
-.hero-description{font-size:18px;max-width:395px;line-height:1.62;color:#cccccc}
-.hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px 25px;margin-top:32px;padding-top:0}
-.button{display:inline-flex;align-items:center;justify-content:center;gap:22px;min-height:52px;padding:10px 20px;border:1px solid var(--paper);background:var(--paper);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;transition:background .2s ease}
-.button:hover{background:#e2e2e2}
-.text-link{display:inline-flex;align-items:center;gap:15px;min-height:44px;font-size:13px;font-weight:500}
+
+.hero-description{font:400 clamp(17px,1.25vw,20px)/1.55 Georgia,'Times New Roman',serif;max-width:510px;color:#d0d0cc}
+.hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px 30px;margin-top:30px;padding-top:0}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:24px;min-height:54px;padding:0 22px;border:1px solid var(--paper);background:var(--paper);color:var(--ink);font:600 12.5px/1 Inter,Arial,sans-serif;letter-spacing:-.01em;cursor:pointer;transition:background .2s ease,transform .2s ease}
+.button:hover{background:#e7e7e4;transform:translateY(-1px)}
+.button span{font-size:17px;font-weight:400;line-height:1}
+.text-link{display:inline-flex;align-items:center;gap:12px;min-height:44px;font:600 12.5px/1 Inter,Arial,sans-serif;letter-spacing:-.01em}
+.text-link span{font-size:14px;font-weight:400}
 .hero-media{display:flex;flex-direction:column;justify-content:center;min-width:0}
 .film-frame{position:relative;aspect-ratio:1/1.065;min-height:0;overflow:hidden;border:0;background:#191919}
 .film-frame video{width:100%;height:100%;object-fit:cover}
 .film-frame.is-active video{object-fit:contain;background:#050505}
 
 
-.play-film{position:absolute;bottom:20px;left:20px;display:flex;align-items:center;gap:11px;min-height:45px;padding:10px 15px;border:1px solid #ffffff88;background:#111111eb;color:#fff;cursor:pointer;font-size:13px}
+.play-film{position:absolute;bottom:20px;left:20px;display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px;border:1px solid #ffffff88;background:#111111eb;color:#fff;cursor:pointer;font:600 12.5px/1 Inter,Arial,sans-serif;letter-spacing:-.01em}
 .play-film:hover{background:#333333}
 .play-film:focus-visible{outline-offset:-5px}
 .media-caption{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:15px;font-size:12px;letter-spacing:0;color:#bcbcbc}
@@ -256,13 +258,12 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
 <main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="wrap">
-        <div class="hero-edition"><span>PV / Creative studio / Berlin</span><span>Art direction &amp; production</span></div>
         <div class="hero-grid">
           <div class="hero-copy">
-            <p class="eyebrow">Independent creative practice / Berlin</p>
-            <h1 id="hero-title"><span>Fashion.</span><span>Film.</span><span>Digital.</span><span><em>Beyond.</em></span></h1>
-            <p class="hero-description">Creative direction, moving image and digital worlds for fashion and culture.</p>
-            <div class="hero-actions"><a class="button" href="#work">Explore work <span aria-hidden="true">↓</span></a><a class="text-link" href="#contact">Start a project <span aria-hidden="true">↗</span></a></div>
+            <p class="eyebrow">Creative direction / Campaigns / Film / Digital / Berlin</p>
+            <h1 id="hero-title"><span>Fashion</span><span>campaigns.</span><span>Films.</span><span>Digital worlds.</span></h1>
+            <p class="hero-description">We create campaign imagery, fashion films, visual identities and digital experiences for brands, artists and cultural projects.</p>
+            <div class="hero-actions"><a class="button" href="#work">Explore work <span aria-hidden="true">→</span></a><a class="text-link" href="#contact">Start a project <span aria-hidden="true">↗</span></a></div>
           </div>
           <figure class="hero-media">
             <div class="film-frame" id="film-frame">
