@@ -68,6 +68,7 @@ Do not merge collections or rename assets unless explicitly requested.
 - Preserve autoplay/video behavior unless the task concerns it.
 - Check for horizontal mobile overflow.
 - Check desktop and mobile after visual changes.
+- For iPhone/mobile interfaces, never use Unicode arrow glyphs that iOS may render as emoji (for example ↗, ➡, ⬆). Use CSS-drawn or SVG line icons instead.
 
 ## Working method
 When given a task:

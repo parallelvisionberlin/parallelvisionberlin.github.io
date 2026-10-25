@@ -49,6 +49,12 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
 .nav{display:flex;align-items:center;gap:29px;font-size:13px;font-weight:500}
 .nav a{display:inline-flex;align-items:center;min-height:44px}
 .nav a:hover,.text-link:hover{text-decoration:underline;text-underline-offset:5px}
+.ui-arrow{position:relative;display:inline-block;width:14px;height:14px;flex:0 0 14px;color:currentColor;vertical-align:-2px}
+.ui-arrow-up-right::before{content:"";position:absolute;top:1px;right:1px;width:7px;height:7px;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor}
+.ui-arrow-up-right::after{content:"";position:absolute;left:1px;top:7px;width:10px;height:1.5px;background:currentColor;transform:rotate(-45deg);transform-origin:center}
+.ui-arrow-right::before{content:"";position:absolute;left:1px;top:6px;width:10px;height:1.5px;background:currentColor}
+.ui-arrow-right::after{content:"";position:absolute;right:1px;top:3px;width:6px;height:6px;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor;transform:rotate(45deg)}
+
 .nav-contact{gap:16px;border-bottom:1px solid var(--muted)}
 .nav-instagram{width:36px;justify-content:center;color:#b6b6b6;transition:color .18s ease}
 .nav-instagram:hover{color:#fff;text-decoration:none!important}
@@ -244,7 +250,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
     <nav class="nav" aria-label="Agency navigation">
       <a class="nav-work" href="#work">Work</a>
       <a class="nav-services" href="#cap">Practice</a>
-      <a class="nav-contact" href="#contact">Start a project <span aria-hidden="true">↗</span></a>
+      <a class="nav-contact" href="#contact">Start a project <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a>
       <a class="nav-instagram" href="https://www.instagram.com/parallelvision.label/" target="_blank" rel="noopener noreferrer" aria-label="Parallel Vision on Instagram (opens in a new tab)" title="Parallel Vision on Instagram">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <rect x="2" y="2" width="20" height="20" rx="5"></rect>
@@ -263,14 +269,14 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
             <p class="eyebrow">Creative direction / Campaigns / Film / Digital / Berlin</p>
             <h1 id="hero-title"><span>Fashion</span><span>campaigns.</span><span>Films.</span><span>Digital worlds.</span></h1>
             <p class="hero-description">We create campaign imagery, fashion films, visual identities and digital experiences for brands, artists and cultural projects.</p>
-            <div class="hero-actions"><a class="button" href="#work">Explore work <span aria-hidden="true">→</span></a><a class="text-link" href="#contact">Start a project <span aria-hidden="true">↗</span></a></div>
+            <div class="hero-actions"><a class="button" href="#work">Explore work <span class="ui-arrow ui-arrow-right" aria-hidden="true"></span></a><a class="text-link" href="#contact">Start a project <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></div>
           </div>
           <figure class="hero-media">
             <div class="film-frame" id="film-frame">
               <video id="studio-film" playsinline preload="none" poster="../assets/optimized/LOOK04.webp" aria-label="Fashion After Fabric moving-image study" data-desktop="../assets/optimized/video/heroafterfabricvideo-desktop.mp4" data-mobile="../assets/optimized/video/heroafterfabricvideo-mobile.mp4"></video>
               <button class="play-film" id="play-film" type="button" aria-controls="studio-film" hidden><span aria-hidden="true">▷</span> Play studio film</button>
             </div>
-            <figcaption class="media-caption"><span>Fashion After Fabric / Studio film</span><a href="../future-fashion.html">Explore the project <span aria-hidden="true">↗</span></a></figcaption>
+            <figcaption class="media-caption"><span>Fashion After Fabric / Studio film</span><a href="../future-fashion.html">Explore the project <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></figcaption>
             <p id="film-error" class="media-error" role="status" hidden>The film could not load. Explore the project using the link above.</p>
           </figure>
         </div>
@@ -290,7 +296,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
           <img src="../assets/optimized/LOOK03.webp" alt="Sculptural chrome fashion artwork from Fashion After Fabric" loading="lazy" decoding="async">
         </a>
         <div class="project-caption">
-          <h3><a href="../future-fashion.html">Fashion After Fabric <span aria-hidden="true">↗</span></a></h3>
+          <h3><a href="../future-fashion.html">Fashion After Fabric <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></h3>
           <p class="project-type">Fashion / Art direction / Moving image</p>
           <p class="project-description">Speculative materials, sculptural silhouettes and editorial images developed into collections and moving-image studies.</p>
           <details class="case-notes"><summary>Project notes</summary><dl>
@@ -298,7 +304,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
             <dt>Scope</dt><dd>Art direction, material concepts, image-making and motion.</dd>
             <dt>Published work</dt><dd>Collections and artist studies in the Fashion After Fabric archive.</dd>
             <dt>Available to commission</dt><dd>Campaign imagery, fashion films and editorial series.</dd>
-          </dl><a class="project-related" href="#contact">Discuss a related project ↗</a></details>
+          </dl><a class="project-related" href="#contact">Discuss a related project <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></details>
         </div>
       </article>
 <article class="work-card work-card--featured">
@@ -306,7 +312,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
           <img src="../assets/optimized/2063/urban-form/urbangalleryfirst.webp" alt="A city passage from the original Berlin 2063 universe" loading="lazy" decoding="async">
         </a>
         <div class="project-caption">
-          <h3><a href="../berlin-2063.html">Berlin 2063 <span aria-hidden="true">↗</span></a></h3>
+          <h3><a href="../berlin-2063.html">Berlin 2063 <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></h3>
           <p class="project-type">Worldbuilding / Film / Sound</p>
           <p class="project-description">An evolving audiovisual world linking imagined urban environments, inhabitants, original music and film.</p>
           <details class="case-notes"><summary>Project notes</summary><dl>
@@ -314,8 +320,8 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
             <dt>Scope</dt><dd>Worldbuilding, environment design, moving image and sound.</dd>
             <dt>Published work</dt><dd>An online archive, music films and an experimental WebXR film.</dd>
             <dt>Available to commission</dt><dd>Visual worlds, music films and screen-based experiences.</dd>
-          </dl><a class="project-related" href="#contact">Discuss a related project ↗</a></details>
-          <a class="project-related" href="../berlin-2063-vr.html">Explore the WebXR film prototype <span aria-hidden="true">↗</span></a>
+          </dl><a class="project-related" href="#contact">Discuss a related project <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></details>
+          <a class="project-related" href="../berlin-2063-vr.html">Explore the WebXR film prototype <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a>
         </div>
       </article>
 <article class="work-card">
@@ -323,7 +329,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
           <img src="../assets/optimized/agency/nina-taxi-2026.webp" alt="Nina FOK photographed through a rain-speckled taxi window at night" loading="lazy" decoding="async" width="1000" height="1000">
         </a>
         <div class="project-caption">
-          <h3><a href="../nina-project.html">Nina FOK <span aria-hidden="true">↗</span></a></h3>
+          <h3><a href="../nina-project.html">Nina FOK <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></h3>
           <p class="project-type">Character / Identity / Interaction</p>
           <p class="project-description">A recurring digital character developed through portraiture, music, voice and conversational interaction.</p>
           <details class="case-notes"><summary>Project notes</summary><dl>
@@ -331,7 +337,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
             <dt>Scope</dt><dd>Character direction, visual identity and interactive development.</dd>
             <dt>Published work</dt><dd>A consistent character presented across portraits, music and web encounters.</dd>
             <dt>Available to commission</dt><dd>Digital characters, virtual models and interactive commissions.</dd>
-          </dl><a class="project-related" href="#contact">Discuss a related project ↗</a></details>
+          </dl><a class="project-related" href="#contact">Discuss a related project <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></details>
         </div>
       </article>
 <article class="work-card">
@@ -339,7 +345,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
           <img src="../assets/optimized/agency/pvlab-agency-card-hd-20261025.webp" alt="PV LAB, Creative Tools / Berlin" loading="lazy" decoding="async" width="1254" height="1254">
         </a>
         <div class="project-caption">
-          <h3><a href="https://pvlab.studio/" target="_blank" rel="noopener noreferrer">PV LAB <span aria-hidden="true">↗</span></a></h3>
+          <h3><a href="https://pvlab.studio/" target="_blank" rel="noopener noreferrer">PV LAB <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></h3>
           <p class="project-type">Creative tools / Product / Web</p>
           <p class="project-description">A creative platform bringing image and video workflows, Moods and recurring digital identities into one studio.</p>
           <details class="case-notes"><summary>Project notes</summary><dl>
@@ -347,7 +353,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
             <dt>Scope</dt><dd>Product direction, interface design and creative workflow development.</dd>
             <dt>Published work</dt><dd>A public platform for image, video and fashion-led creative work.</dd>
             <dt>Available to commission</dt><dd>Creative tools, interactive websites and tailored digital experiences.</dd>
-          </dl><a class="project-related" href="#contact">Discuss a related project ↗</a></details>
+          </dl><a class="project-related" href="#contact">Discuss a related project <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></details>
         </div>
       </article>
 <article class="work-card">
@@ -355,7 +361,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
           <img src="../assets/optimized/artworks/sube-pv015.jpg" alt="Sube single artwork, Parallel Vision PV015" loading="lazy" decoding="async">
         </a>
         <div class="project-caption">
-          <h3><a href="../#releases">Parallel Vision Records <span aria-hidden="true">↗</span></a></h3>
+          <h3><a href="../#releases">Parallel Vision Records <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></h3>
           <p class="project-type">Music / Culture / Art direction</p>
           <p class="project-description">Electronic music releases connected through artwork, films and the visual language of Parallel Vision.</p>
           <details class="case-notes"><summary>Project notes</summary><dl>
@@ -363,7 +369,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
             <dt>Scope</dt><dd>Music production, release direction and visual identity.</dd>
             <dt>Published work</dt><dd>Published releases, cover artwork and accompanying moving image.</dd>
             <dt>Available to commission</dt><dd>Original music, release campaigns and artist visual direction.</dd>
-          </dl><a class="project-related" href="#contact">Discuss a related project ↗</a></details>
+          </dl><a class="project-related" href="#contact">Discuss a related project <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></details>
         </div>
       </article>
     </div>
@@ -378,14 +384,14 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
           <img src="../assets/optimized/2063/lived-city/rave-a-private-second.webp" alt="A frame from the Berlin 2063 audiovisual world" loading="lazy" decoding="async">
           <button type="button" data-youtube-play hidden>▷ Play music film</button>
         </div>
-        <figcaption class="motion-caption"><h3>Berlin 2063</h3><p>Tanzen Im Kreis (Cabizbajo Remix). Music and moving image from the ongoing audiovisual world.</p><a href="https://www.youtube.com/watch?v=T4bKnLgdLjQ" target="_blank" rel="noopener noreferrer">Watch on YouTube ↗</a><p>Playing this film connects to YouTube.</p></figcaption>
+        <figcaption class="motion-caption"><h3>Berlin 2063</h3><p>Tanzen Im Kreis (Cabizbajo Remix). Music and moving image from the ongoing audiovisual world.</p><a href="https://www.youtube.com/watch?v=T4bKnLgdLjQ" target="_blank" rel="noopener noreferrer">Watch on YouTube <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a><p>Playing this film connects to YouTube.</p></figcaption>
       </figure>
       <figure>
         <div class="motion-frame">
           <video id="cabizbajo-film" data-agency-film playsinline preload="none" poster="../assets/optimized/video/fashion-after-fabric/artists/cabizbajo/herocabizlotus63-poster.webp" aria-label="Cabizbajo wearing Lotus 63, Fashion After Fabric" data-desktop="../assets/optimized/video/fashion-after-fabric/artists/cabizbajo/herocabizlotus63-desktop.mp4" data-mobile="../assets/optimized/video/fashion-after-fabric/artists/cabizbajo/herocabizlotus63-mobile.mp4"></video>
           <button type="button" data-film-play="cabizbajo-film" hidden>▷ Play fashion study</button>
         </div>
-        <figcaption class="motion-caption"><h3>Cabizbajo / Lotus 63</h3><p>Fashion After Fabric. An artist study exploring structure, protective volume and movement.</p><a href="../cabizbajo-fashion-after-fabric.html">Explore the artist study ↗</a><p role="status"></p></figcaption>
+        <figcaption class="motion-caption"><h3>Cabizbajo / Lotus 63</h3><p>Fashion After Fabric. An artist study exploring structure, protective volume and movement.</p><a href="../cabizbajo-fashion-after-fabric.html">Explore the artist study <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a><p role="status"></p></figcaption>
       </figure>
     </div>
   </div>
@@ -417,7 +423,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
       <p class="section-label">Also in the studio</p>
       <p>Websites <span aria-hidden="true">/</span> E-commerce <span aria-hidden="true">/</span> Campaigns <span aria-hidden="true">/</span> Digital Characters <span aria-hidden="true">/</span> Original Sound</p>
     </div>
-    <a class="practice-action" href="#contact">Discuss a commission <span aria-hidden="true">↗</span></a>
+    <a class="practice-action" href="#contact">Discuss a commission <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a>
   </div>
 </section>
 <section class="approach" id="approach" aria-labelledby="approach-title">
@@ -439,7 +445,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
       <p class="section-label">05 / Start a conversation</p>
       <h2 id="contact-title">Let's make<br>something.</h2>
       <p class="contact-lead">A collection, a campaign, a film, a digital space or an idea you haven't quite named yet. Tell us what you're imagining.</p>
-      <a class="contact-email" href="mailto:contact@parallelvisionlabel.com?subject=Parallel%20Vision%20Agency%20%2F%20Project%20enquiry">contact@parallelvisionlabel.com <span aria-hidden="true">↗</span></a>
+      <a class="contact-email" href="mailto:contact@parallelvisionlabel.com?subject=Parallel%20Vision%20Agency%20%2F%20Project%20enquiry">contact@parallelvisionlabel.com <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a>
     </div>
     <div class="contact-aside">
       <p>We work with brands, artists and creative partners. Every commission begins with a conversation and is scoped individually.</p>
@@ -467,7 +473,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
           </select>
           <label for="brief-message">About the project</label>
           <textarea id="brief-message" name="message" rows="4" required minlength="10" maxlength="3000" placeholder="A few words about the idea, timeline or references"></textarea>
-          <button class="button" type="submit" disabled>Send project brief <span aria-hidden="true">↗</span></button>
+          <button class="button" type="submit" disabled>Send project brief <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></button>
           <p class="brief-note">Sent directly to the studio. No account needed. We use your details to respond to this enquiry, not for marketing. <a href="./privacy.html">Enquiry privacy</a>.</p>
           <p id="brief-status" class="brief-status" role="status" aria-live="polite" tabindex="-1"></p>
           <noscript><p class="brief-note">JavaScript is needed to send this form. Please use the email link above.</p></noscript>
@@ -478,7 +484,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
 </section>
 </main>
 <footer class="footer">
-  <div class="wrap footer-inner"><span>© 2026 Parallel Vision / Agency / Berlin</span><div class="footer-links"><a href="./privacy.html">Enquiry privacy</a><a href="../">Explore Parallel Vision ↗</a></div></div>
+  <div class="wrap footer-inner"><span>© 2026 Parallel Vision / Agency / Berlin</span><div class="footer-links"><a href="./privacy.html">Enquiry privacy</a><a href="../">Explore Parallel Vision <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a></div></div>
 </footer>
 <script>
     (() => {
