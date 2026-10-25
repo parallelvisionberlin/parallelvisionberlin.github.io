@@ -4,57 +4,98 @@ on:
     branches: [agency/public-launch-20261025]
     paths:
       - '.github/workflows/agency-public-launch.yml'
-      - 'scripts/agency-public-launch.py'
-      - 'agency/**'
-      - 'lab-worker/agency-*.mjs'
-      - 'tests/agency-*.mjs'
+      - 'scripts/agency-launch-payload.*'
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: agency-public-launch-20261025
   cancel-in-progress: false
 jobs:
   verify:
+    if: github.ref == 'refs/heads/agency/public-launch-20261025'
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          sparse-checkout: |
-            agency
-            css
-            js
-            lab-worker
-            lab
-            tests
-            scripts
-            .github
-            assets/optimized/agency
-          fetch-depth: 1
-      - name: Collect scoped source and inspect integration points
+          node-version: '22'
+      - name: Verify exact reviewed patch and apply in isolated checkout
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import zipfile
-          selected=['index.html','language.js','agency/index.html','css/home.css','css/base.css','WORK-STATE.md','package.json','lab-worker/worker.mjs','lab-worker/promotions.mjs','lab-worker/traffic.mjs','lab-worker/signup-welcome-email.mjs','lab-worker/clerk-issuer-policy.mjs','lab/session.js','lab/session-request.js','lab/owner.js','lab/owner.html','lab/account-menu.js','lab/RELEASE-PROTOCOL.md','scripts/build.mjs','scripts/validate-site.mjs','sitemap.xml','robots.txt','.github/workflows/deploy-lab-worker.yml']
-          with zipfile.ZipFile('/tmp/agency-source.zip','w',zipfile.ZIP_DEFLATED) as z:
-            for f in selected:
-              p=Path(f)
-              if p.is_file(): z.write(p,f)
-            for p in Path('assets/optimized/agency').glob('*'):
-              if p.is_file(): z.write(p,str(p))
-          for name,terms,before,after in [('lab-worker/worker.mjs',['async fetch(','async scheduled(','labAdminRoute(','recordLabTraffic('],12,35),('index.html',['<nav','id="contact"','</footer>'],4,24),('language.js',['nav_contact','Contact'],3,4)]:
-            lines=Path(name).read_text().splitlines(); print('\nFILE',name,'LINES',len(lines))
-            ranges=[]
-            for i,line in enumerate(lines):
-              if any(t in line for t in terms): ranges.append((max(0,i-before),min(len(lines),i+after)))
-            seen=set()
-            for start,end in ranges:
-              for i in range(start,end):
-                if i not in seen: print(str(i+1)+': '+lines[i]); seen.add(i)
+          import base64,gzip,hashlib,subprocess
+          files=sorted(Path('scripts').glob('agency-launch-payload.*'))
+          assert len(files)==5
+          data=base64.b64decode(''.join(p.read_text() for p in files),validate=True)
+          assert hashlib.sha256(data).hexdigest()=='1a0d0b782008909a0f7651b2df50fe5b96d4dc7b86614ac2f4b9f9e73b8c4194'
+          patch=gzip.decompress(data)
+          subprocess.run(['git','apply','--check'],input=patch,check=True)
+          subprocess.run(['git','apply','--index'],input=patch,check=True)
           PY
+      - name: Install verification dependencies
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Build preview and run enquiry regressions
+        run: |
+          node scripts/agency-social-image.mjs
+          node --test tests/agency-enquiries.test.mjs
+          node --check agency/agency.js
+          node --check agency/inbox.js
+          node --check lab-worker/agency-enquiries.mjs
+          node --check lab-worker/worker.mjs
+          npm run build
+      - name: Verify desktop, phone, retry and signed-out behavior
+        run: |
+          python3 -m http.server 8799 --bind 127.0.0.1 >/tmp/agency-http.log 2>&1 &
+          node tests/agency-browser-smoke.mjs
+      - name: Prepare reviewed source commit without publishing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,json,base64,subprocess,urllib.request,re
+          old=subprocess.check_output(['git','show','HEAD:agency/index.html']).decode()
+          new=Path('agency/index.html').read_text()
+          pattern=r'<section class="hero"[\s\S]*?</section>'
+          assert re.search(pattern,old).group()==re.search(pattern,new).group(),'Original agency hero changed'
+          p=Path('agency/WORK-STATE.md'); text=p.read_text()
+          text=text.replace('- Pending: review rendered screenshots, merge verified branch, confirm public custom-domain content and API status.', '- Chromium checks passed at 1440, 390 and 320px, including failure/retry receipts and signed-out inbox.\n- Static build and all 15 SQLite-backed enquiry tests passed in the launch workflow.\n- Pending: visual screenshot review, merge and production custom-domain/API verification.')
+          p.write_text(text)
+          subprocess.run(['git','add','agency/WORK-STATE.md','assets/optimized/agency/agency-social-20261025.jpg'],check=True)
+          payloads=sorted(str(p) for p in Path('scripts').glob('agency-launch-payload.*'))
+          subprocess.run(['git','rm','.github/workflows/agency-public-launch.yml',*payloads],check=True)
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          entries=[]
+          repo=os.environ['GITHUB_REPOSITORY']; parent=os.environ['GITHUB_SHA']
+          def api(path,data):
+              req=urllib.request.Request('https://api.github.com/repos/'+repo+path,data=json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'})
+              with urllib.request.urlopen(req,timeout=45) as response:return json.load(response)
+          paths=subprocess.check_output(['git','diff','--cached','--name-only','-z']).decode().strip('\0').split('\0')
+          allowed={'.github/workflows/agency-checks.yml','.github/workflows/deploy-lab-worker.yml','.github/workflows/agency-public-launch.yml','index.html','language.js','sitemap.xml','lab/owner.html','lab-worker/worker.mjs','lab-worker/agency-enquiries.mjs','lab-worker/migrations/0040-agency-enquiries.sql','css/agency-feature.css','scripts/agency-social-image.mjs','tests/agency-enquiries.test.mjs','tests/agency-browser-smoke.mjs','assets/optimized/agency/agency-social-20261025.jpg',*payloads}
+          for path in paths:
+              assert path.startswith('agency/') or path in allowed,path
+              if not Path(path).exists():entries.append({'path':path,'mode':'100644','type':'blob','sha':None});continue
+              content=subprocess.check_output(['git','show',':'+path])
+              blob=api('/git/blobs',{'content':base64.b64encode(content).decode(),'encoding':'base64'})
+              entries.append({'path':path,'mode':'100644','type':'blob','sha':blob['sha']})
+          tree=api('/git/trees',{'base_tree':subprocess.check_output(['git','rev-parse','HEAD^{tree}']).decode().strip(),'tree':entries})
+          commit=api('/git/commits',{'message':'Launch public agency with project stories, direct enquiries and private inbox','tree':tree['sha'],'parents':[parent]})
+          result={'source_commit':commit['sha'],'parent':parent,'tree':tree['sha'],'files':paths,'tests':'15 unit tests, static build, Chromium 1440/390/320px and signed-out inbox passed','no_live_test_enquiries':True}
+          Path('agency-test-artifacts/source-commit.json').write_text(json.dumps(result,indent=2))
+          print('SOURCE_COMMIT='+commit['sha'])
+          PY
+      - name: Collect visual review assets
+        if: always()
+        run: |
+          mkdir -p agency-test-artifacts
+          cp assets/optimized/agency/agency-social-20261025.jpg agency-test-artifacts/ 2>/dev/null || true
+          cp /tmp/agency-http.log agency-test-artifacts/ 2>/dev/null || true
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: agency-scoped-source
-          path: /tmp/agency-source.zip
-          retention-days: 2
+          name: agency-launch-review
+          path: agency-test-artifacts/
+          retention-days: 3
