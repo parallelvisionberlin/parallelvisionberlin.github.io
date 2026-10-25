@@ -269,6 +269,13 @@ async function voucherRecipientProfile(env,subject){
   }catch{return null;}
 }
 
+// Bound, server-side page selection keeps Owner tables responsive as accounts grow.
+const OWNER_PAGE_SIZE=20;
+function ownerPage(url){
+  const raw=url.searchParams.get('page')||'1';
+  if(!/^[1-9][0-9]{0,4}$/.test(raw))fail(400,'Choose a valid customer page.');
+  return Number(raw);
+}
 export async function labAdminRoute(request,env,owner,{decryptKey,providerFetcher,providerClock}={}){
   await requireOwner(env,owner);
   const url=new URL(request.url),path=url.pathname,method=request.method;
@@ -285,10 +292,11 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       ELSE COALESCE(f.settled_cost_usd,f.estimated_microusd/1000000.0) END`;
     const days=Number(url.searchParams.get('days')||'7');
     if(days!==7&&days!==30)fail(400,'Choose 7 or 30 days.');
+    const page=ownerPage(url),offset=(page-1)*OWNER_PAGE_SIZE;
     const nowTime=Date.now(),today=new Date(nowTime).toISOString().slice(0,10);
     const start=new Date(Date.parse(today+'T00:00:00Z')-(days-1)*86400000).getTime();
     const end=Date.parse(today+'T00:00:00Z')+86400000;
-    const [accounts,active,jobs,credits,checkouts,revenue,customers]=await Promise.all([
+    const [accounts,active,jobs,credits,checkouts,revenue,customerCount,customers]=await Promise.all([
       one(env,'SELECT COUNT(*) AS n FROM lab_customers WHERE created_at>=? AND created_at<?',start,end),
       one(env,`SELECT COUNT(*) AS n FROM lab_customers c
         WHERE c.created_at>=? AND c.created_at<?
@@ -308,6 +316,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
         FROM lab_checkout_attempts WHERE created_at>=? AND created_at<?`,start,end),
       one(env,`SELECT COALESCE(SUM(amount_cents),0) AS cents
         FROM lab_revenue_events WHERE created_at>=? AND created_at<?`,start,end),
+      one(env,'SELECT COUNT(*) AS n FROM lab_customers'),
       all(env,`SELECT c.id,c.created_at AS joinedAt,c.balance_credits AS balanceCredits,p.email,
         EXISTS(SELECT 1 FROM lab_account_closures x WHERE x.customer_id=c.id) AS accountClosed,
         COALESCE(j.totalJobs,0) AS totalJobs,COALESCE(j.completedJobs,0) AS completedJobs,
@@ -349,9 +358,10 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
           ch ON ch.customer_id=c.id
         LEFT JOIN (SELECT customer_id,SUM(amount_cents) AS cents FROM lab_revenue_events GROUP BY customer_id)
           rv ON rv.customer_id=c.id
-        ORDER BY c.created_at DESC LIMIT 100`)
+        ORDER BY c.created_at DESC,c.id DESC LIMIT ? OFFSET ?`,OWNER_PAGE_SIZE,offset)
     ]);
     return json({days,from:new Date(start).toISOString().slice(0,10),to:today,
+      pagination:{page,pageSize:OWNER_PAGE_SIZE,total:Number(customerCount?.n)||0},
       summary:{
         newUsers:Number(accounts?.n)||0,activatedUsers:Number(active?.n)||0,
         completedJobs:Number(jobs?.completedJobs)||0,providerExposureUsd:Number(jobs?.exposureUsd)||0,
@@ -481,6 +491,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
     return json({code:voucher.code,redemptions,hasMore:claims.length>10,nextOffset:offset+page.length});
   }
   if(path==='/api/admin/overview'&&method==='GET'){
+    const page=ownerPage(url),offset=(page-1)*OWNER_PAGE_SIZE;
     const search=(url.searchParams.get('search')||'').trim().slice(0,80),match='%'+search.replace(/[\\%_]/g,'\\$&')+'%';
     const summary=await one(env,`SELECT COUNT(*) AS totalAccounts,
       COALESCE(SUM(CASE WHEN NOT EXISTS(SELECT 1 FROM lab_account_closures x WHERE x.customer_id=lab_customers.id) THEN 1 ELSE 0 END),0) AS accounts,
@@ -489,6 +500,9 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       (SELECT COUNT(*) FROM lab_voucher_redemptions) AS voucherClaims,
       (SELECT COUNT(*) FROM lab_referrals WHERE rewarded_at IS NOT NULL) AS rewardedReferrals
       FROM lab_customers`);
+    const customerCount=await one(env,`SELECT COUNT(*) AS n FROM lab_customers c
+      LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
+      WHERE (?='' OR c.id LIKE ? ESCAPE '\\' OR p.email LIKE ? ESCAPE '\\')`,search,match,match);
     const customers=await all(env,`SELECT c.id,c.balance_credits AS balanceCredits,c.created_at AS joinedAt,
         EXISTS(SELECT 1 FROM lab_account_closures x WHERE x.customer_id=c.id) AS accountClosed,
         p.email,COALESCE(s.plan_id,'') AS plan,COALESCE(s.status,'none') AS subscription,
@@ -497,7 +511,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
       LEFT JOIN lab_subscriptions s ON s.customer_id=c.id
       WHERE (?='' OR c.id LIKE ? ESCAPE '\\' OR p.email LIKE ? ESCAPE '\\')
-      ORDER BY c.created_at DESC LIMIT 80`,search,match,match);
+      ORDER BY c.created_at DESC,c.id DESC LIMIT ? OFFSET ?`,search,match,match,OWNER_PAGE_SIZE,offset);
     const payments=await all(env,`SELECT e.customer_id AS customerId,p.email,e.kind,e.delta_credits AS credits,
       e.reference,e.created_at AS paidAt
       FROM lab_credit_entries e LEFT JOIN lab_customer_contacts p ON p.customer_id=e.customer_id
@@ -513,10 +527,11 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       FROM lab_vouchers ORDER BY created_at DESC LIMIT 60`);
     const clerkSyncDiagnostic=await diagnosticSnapshot(env);
     return json({summary,customers,payments,referrals,
+      pagination:{page,pageSize:OWNER_PAGE_SIZE,total:Number(customerCount?.n)||0},
       vouchers:vouchers.map(v=>({...v,url:voucherLink(env,v.code,request.headers.get('Origin')||'')})),
       emailSyncConfigured:!!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY),
       clerkSyncDiagnostic,
-      resultLimit:80});
+      resultLimit:OWNER_PAGE_SIZE});
   }
   if(path==='/api/admin/vouchers'&&method==='POST'){
     const data=await payload(request);

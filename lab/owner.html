@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261025-inline-recipients1">
+<link rel="stylesheet" href="./owner.css?v=20261025-owner-pages1">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -156,11 +156,12 @@
           <div><span>Verified receipts</span><strong id="owner-acquisition-revenue">—</strong><small>EUR gross, since tracking</small></div>
         </div>
         <p id="owner-acquisition-summary" class="owner-acquisition-explain"></p>
-        <div class="owner-acquisition-table-head"><h3>Customer activity</h3><span>Lifetime usage, latest 100 accounts</span></div>
+        <div class="owner-acquisition-table-head"><h3>Customer activity</h3><span>Lifetime usage, newest first</span></div>
         <div class="owner-table-wrap owner-acquisition-table">
           <table><thead><tr><th>Account</th><th>Joined</th><th>Completed</th><th>Last completed</th><th>Credits spent</th><th>Provider USD</th><th>Checkouts</th><th>Gross EUR</th><th>Review</th></tr></thead>
           <tbody id="owner-acquisition-customers"><tr><td colspan="9" class="owner-table-empty">Loading activity…</td></tr></tbody></table>
         </div>
+        <div id="owner-acquisition-pagination" class="owner-pagination" aria-label="Acquisition account pages"></div>
         <p class="owner-traffic-disclaimer" id="owner-acquisition-notes">Historical checkouts cannot be backfilled. Provider exposure is not a vendor invoice.</p>
       </div>
     </section>
@@ -168,6 +169,7 @@
       <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Customers.</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
       <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p></div>
       <div class="owner-table-wrap"><table><thead><tr><th>Email / account</th><th>Joined</th><th>Balance</th><th>Paid events</th><th>Subscription</th><th>Last payment</th></tr></thead><tbody id="owner-customers"></tbody></table></div>
+      <div id="owner-customers-pagination" class="owner-pagination" aria-label="Customer directory pages"></div>
       <dialog class="owner-customer-dialog" id="owner-customer-dialog" aria-labelledby="owner-customer-dialog-title">
         <div class="owner-customer-dialog-head">
           <div><span class="owner-index">AUDIENCE / PRIVATE ACTIVITY</span><h2 id="owner-customer-dialog-title">Customer activity<span>.</span></h2><p id="owner-customer-dialog-identity">Select a customer to review their activity.</p></div>
@@ -255,6 +257,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261025-inline-recipients1"></script>
+<script type="module" src="./owner.js?v=20261025-owner-pages1"></script>
 </body>
 </html>
