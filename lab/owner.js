@@ -7,6 +7,7 @@ import {createOwnerAuthGuard} from './owner-auth-guard.js?v=20261017-stability1'
 const $=id=>document.getElementById(id);
 const apiBase='https://parallel-vision-lab.parallelvision.workers.dev';
 let clerk=null,revision=0,profile=null,creating=false,syncing=false,emailSyncReady=false,fetchSerial=0,searchTimer=null,syncNotice='',autoClerkSyncAttempted=false;
+let voucherRecipientsObserver=null,voucherRecipientsGeneration=0;
 const request=createSessionRequest({baseUrl:apiBase,getSession:()=>clerk?.session});
 const formatNumber=n=>Number.isSafeInteger(Number(n))?Number(n).toLocaleString('en-GB'):'—';
 const formatDate=t=>Number.isFinite(Number(t))&&Number(t)>0?new Date(Number(t)).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
@@ -401,6 +402,7 @@ function render(data){
     r=>r.rewardedAt?'200 + 200 credits':'Awaiting qualified payment'
   ],'No referral invitations have been accepted yet.');
   const vouchers=data.vouchers||[],body=$('owner-vouchers');body.replaceChildren();
+  const inlineVoucherRecipients=[];
   if(!vouchers.length){
     const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=6;td.textContent='No promotional codes yet.';tr.append(td);body.append(tr);
   }
@@ -416,11 +418,15 @@ function render(data){
       voucher.expiresAt===null?'Never':formatDate(voucher.expiresAt),
       state
     ];
-    for(const item of cells){
+    for(const [index,item] of cells.entries()){
       const td=document.createElement('td');
       if(typeof item==='string')td.textContent=item;
       else{const strong=document.createElement('strong');strong.textContent=item.primary;td.append(strong);
         if(item.secondary){const small=document.createElement('small');small.textContent=item.secondary;td.append(small);}}
+      if(index===2&&voucher.redemptionCount>0){
+        const identities=activityElement('div','owner-voucher-inline-list','Loading recipients…');
+        td.append(identities);inlineVoucherRecipients.push({voucher,element:identities});
+      }
       tr.append(td);
     }
     const actions=document.createElement('td');
@@ -432,12 +438,6 @@ function render(data){
       const restore=document.createElement('button');restore.type='button';restore.textContent='Remove expiry';
       restore.addEventListener('click',()=>void restoreVoucher(voucher.code,restore));actions.append(restore);
     }else actions.textContent='—';
-    if(voucher.redemptionCount>0){
-      const recipients=document.createElement('button');recipients.type='button';
-      recipients.textContent='View recipients ('+formatNumber(voucher.redemptionCount)+')';
-      recipients.addEventListener('click',()=>void toggleVoucherRecipients(voucher,recipients,tr));
-      actions.append(recipients);
-    }
     tr.append(actions);body.append(tr);
   }
   // Show the server's last sanitized Clerk sync outcome even after a page reload.
@@ -472,6 +472,7 @@ function render(data){
   $('owner-last-update').textContent='Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   labelTableCellsForMobile();
   $('owner-dashboard').hidden=false;
+  startInlineVoucherRecipients(inlineVoucherRecipients);
 }
 async function refreshDashboard(){
   if(!profile?.owner)return;
@@ -492,7 +493,8 @@ async function refreshDashboard(){
 }
 async function refreshSession(){
   for(const link of document.querySelectorAll('[data-owner-vitolas]'))link.hidden=true;
-  const current=++revision;fetchSerial++;generationReviewUI.close();profile=null;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;$('owner-agency-link').hidden=true;
+  const current=++revision;fetchSerial++;generationReviewUI.close();profile=null;
+  voucherRecipientsObserver?.disconnect();voucherRecipientsObserver=null;voucherRecipientsGeneration++;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;$('owner-agency-link').hidden=true;
   trafficSerial++;$('owner-traffic-content').hidden=true;
   $('owner-traffic-status').textContent='Traffic statistics will load after owner verification.';
   if(customerDialog.open)customerDialog.close();customerActivitySerial++;
@@ -516,55 +518,57 @@ async function copyLink(url,button){
     await navigator.clipboard.writeText(parsed.href);button.textContent='Copied';
   }catch{button.textContent='Select link to copy';$('owner-voucher-result').hidden=false;$('owner-voucher-link').value=url;$('owner-voucher-link').select();}
 }
-// The full claim identity is fetched only after an owner clicks the voucher.
-// Never render customer names or emails with innerHTML.
-async function toggleVoucherRecipients(voucher,button,mainRow){
-  if(!profile?.owner||!mainRow.isConnected)return;
-  const existing=mainRow.nextElementSibling;
-  if(existing?.dataset.voucherRecipients===voucher.code){
-    existing.remove();button.textContent='View recipients ('+formatNumber(voucher.redemptionCount)+')';return;
-  }
-  const row=document.createElement('tr');row.className='owner-voucher-recipients-row';
-  row.dataset.voucherRecipients=voucher.code;
-  const cell=document.createElement('td');cell.colSpan=6;
-  const panel=activityElement('div','owner-voucher-recipients-panel');
-  const heading=activityElement('strong','', 'Redeemed by · '+voucher.code);
-  const summary=activityElement('p','owner-voucher-recipients-note',
-    'Verified account emails and profile names when available. Only visible to Owner.');
-  const entries=activityElement('div','owner-voucher-recipients-list');
-  const progress=activityElement('p','owner-voucher-recipients-note','Loading redemption history…');
-  const more=activityElement('button','owner-voucher-recipients-more','Load more');
-  more.type='button';more.hidden=true;
-  panel.append(heading,summary,entries,progress,more);cell.append(panel);row.append(cell);mainRow.after(row);
-  button.textContent='Hide recipients';
-  let offset=0;
-  async function loadPage(){
-    more.disabled=true;more.hidden=true;
-    progress.textContent='Loading redemption history…';
+// Show recipients in their original voucher row, with no dropdown or extra click.
+// Query only visible rows and at most three at once to avoid unnecessary Clerk calls.
+function startInlineVoucherRecipients(rows){
+  voucherRecipientsObserver?.disconnect();voucherRecipientsObserver=null;
+  const generation=++voucherRecipientsGeneration,queue=[],pending=new Set();
+  let running=0;
+  async function fetchRecipients({voucher,element}){
+    if(!profile?.owner||!element.isConnected||generation!==voucherRecipientsGeneration)return;
     try{
-      const data=await call('/api/admin/vouchers/redemptions?code='+encodeURIComponent(voucher.code)+'&offset='+offset);
-      if(!row.isConnected||!profile?.owner)return;
-      const recipients=Array.isArray(data.redemptions)?data.redemptions:[];
-      if(!recipients.length&&offset===0)progress.textContent='No redemptions recorded.';
-      else{
-        for(const item of recipients){
-          const record=activityElement('div','owner-voucher-recipient');
-          const identity=activityElement('div','owner-voucher-recipient-identity');
-          const main=item.accountClosed?'Closed account':item.name||item.email||'Profile name unavailable';
-          identity.append(activityElement('strong','',main));
-          if(item.email&&item.email!==main)identity.append(activityElement('span','',item.email));
-          identity.append(activityElement('small','',item.customerId));
-          record.append(identity,activityElement('time','',activityDate(item.redeemedAt)));
-          entries.append(record);
-        }
-        offset=Number(data.nextOffset)||offset+recipients.length;
-        progress.textContent='';
+      const result=await call('/api/admin/vouchers/redemptions?code='+encodeURIComponent(voucher.code));
+      if(!profile?.owner||!element.isConnected||generation!==voucherRecipientsGeneration)return;
+      element.replaceChildren();
+      const recipients=Array.isArray(result.redemptions)?result.redemptions:[];
+      if(!recipients.length){element.textContent='No recorded recipients';return;}
+      for(const person of recipients){
+        const entry=activityElement('div','owner-voucher-inline-person');
+        const title=person.accountClosed?'Closed account':person.name||person.email||person.customerId;
+        entry.append(activityElement('strong','',title));
+        if(person.email&&person.email!==title)entry.append(activityElement('small','',person.email));
+        entry.append(activityElement('small','owner-voucher-inline-date',activityDate(person.redeemedAt)));
+        element.append(entry);
       }
-      more.hidden=!data.hasMore;more.disabled=false;
-    }catch(error){if(row.isConnected)progress.textContent=error.message||'Could not load recipients.';more.hidden=false;more.disabled=false;}
+      if(result.hasMore){
+        element.append(activityElement('small','owner-voucher-inline-date',
+          'Latest '+formatNumber(recipients.length)+' of '+formatNumber(voucher.redemptionCount)+' redemptions'));
+      }
+    }catch{
+      if(element.isConnected&&generation===voucherRecipientsGeneration)
+        element.textContent='Recipient details unavailable';
+    }
   }
-  more.addEventListener('click',()=>void loadPage());
-  await loadPage();
+  function drain(){
+    while(running<3&&queue.length&&generation===voucherRecipientsGeneration){
+      const item=queue.shift();running++;
+      void fetchRecipients(item).finally(()=>{running--;drain();});
+    }
+  }
+  if(typeof IntersectionObserver!=='function'){
+    queue.push(...rows);drain();return;
+  }
+  const byElement=new Map(rows.map(item=>[item.element,item]));
+  voucherRecipientsObserver=new IntersectionObserver(entries=>{
+    for(const entry of entries){
+      if(!entry.isIntersecting)continue;
+      voucherRecipientsObserver?.unobserve(entry.target);
+      const item=byElement.get(entry.target);
+      if(item&&!pending.has(item.element)){pending.add(item.element);queue.push(item);}
+    }
+    drain();
+  },{rootMargin:'280px 0px'});
+  for(const item of rows)voucherRecipientsObserver.observe(item.element);
 }
 async function restoreVoucher(code,button){
   if(!profile?.owner||!window.confirm('Remove the expiry from '+code+'? Its remaining claims will stay available until the limit is reached or you deactivate it. No credits will be issued now.'))return;
