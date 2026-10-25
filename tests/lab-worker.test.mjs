@@ -387,6 +387,34 @@ function filmImagesFixture(){
     transform(){return this;},draw(){return this;},async output(){renders++;const bytes=await grainPng(64,64,15,'valid-fixture');return {response:()=>new Response(bytes,{headers:{'Content-Type':'image/png'}})};}
   };}};
 }
+test('new Hong Kong jobs default to the approved finish while explicit zero and other Moods remain independent',async()=>{
+  const {env}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';env.IMAGES=filmImagesFixture();
+  const approved={version:2,grain:13,haze:100,halation:78,film:100};
+  const off={version:2,grain:0,haze:0,halation:0,film:0};
+  const paidBefore=createCount,previous=globalThis.fetch;let providerCalls=0;
+  globalThis.fetch=async(url,options)=>{
+    if(new URL(url).hostname!=='generativelanguage.googleapis.com')return previous(url,options);
+    providerCalls++;return Response.json({candidates:[{content:{parts:[{inlineData:{mimeType:'image/png',data:Buffer.from(pngDimensions(64,64)).toString('base64')}}]}}]});
+  };
+  try{
+    for(const [moodId,finish,expected] of [
+      ['hong-kong-nights',undefined,approved],['hong-kong-nights',off,off],
+      ['hong-kong-nights',{...approved,grain:45},{...approved,grain:45}],
+      ['night-flash',undefined,undefined]
+    ]){
+      const response=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[],settings:{
+        ...imageSettings,engine:'gemini',processing:'normal',mode:'image',moodId,moodIntensity:60,
+        moodOriginalPrompt:'Portrait',...(finish?{filmFinish:finish}:{})
+      }}});
+      assert.equal(response.status,202,await response.clone().text());
+      const job=(await response.json()).jobs[0];assert.equal(job.status,'completed');
+      assert.deepEqual(job.settings.filmFinish,expected);
+      if(expected)assert.equal(job.settings.filmFinishStatus,expected.film?'applied':'off');
+    }
+    assert.equal(providerCalls,4,'Exactly one mocked provider result per job');
+    assert.equal(createCount,paidBefore,'No Spicy generation is submitted');
+  }finally{globalThis.fetch=previous;}
+});
 test('automatic film finishing retains original, survives failure, adjusts without inference and isolates accounts',async()=>{
   for(const available of [true,false]){
     const {env,objects}=fixture();const settings={...imageSettings,engine:'seedream',mode:'image',moodId:'hong-kong-nights',moodIntensity:100,moodOriginalPrompt:'Portrait',filmFinish:{version:1,grain:65,glow:65}};
@@ -721,6 +749,16 @@ test('Hong Kong 1K editing retains user Base and sends two exact photographic St
     assert.match(quotedRequest.input.prompt,/softly visible eyes/);
     assert.match(quotedRequest.input.prompt,/Reference 2 \[City taxi \/ PRIMARY NIGHT DEPTH\]/);
     assert.match(quotedRequest.input.prompt,/Reference 3 \[Wet street \/ SECONDARY ATMOSPHERE\]/);
+    const paidBefore=createCount;
+    for(const finish of [undefined,{version:2,grain:0,haze:0,halation:0,film:0}]){
+      const nextSettings={...settings,moodVariant:'original'};delete nextSettings.filmFinish;
+      if(finish)nextSettings.filmFinish=finish;
+      const response=await req(env,'/api/quotes',{method:'POST',data:{settings:nextSettings,referenceSourceIds:[source]}});
+      assert.equal(response.status,200,await response.clone().text());
+      assert.deepEqual((await response.json()).settings.filmFinish,finish||{version:2,grain:13,haze:100,halation:78,film:100},
+        'Server-bound Seedream quotes preserve the approved default or explicit OFF');
+    }
+    assert.equal(createCount,paidBefore,'Preset verification cannot submit a generation');
   }finally{
     globalThis.fetch=originalFetch;
   }

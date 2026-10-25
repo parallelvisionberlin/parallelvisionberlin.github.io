@@ -137,7 +137,10 @@ console.log('EDITORIAL_HEADER_MOBILE='+Buffer.from(await page.screenshot({type:'
 await page.evaluate(()=>window.__setTestJobs([]));
 await page.setViewportSize({width:1440,height:1000});
 await page.evaluate(()=>document.querySelector('#app').hidden=true);
-assert.equal(await page.locator('.studio-header .tool-switch').isVisible(),false,'Tools are hidden without an authenticated workspace');
+// Public navigation is presentation, not authentication. Real guest/API isolation
+// is covered separately by lab-public-studio-ui and lab-worker.test.
+assert.equal(await page.locator('.studio-header .tool-switch').isVisible(),true,'Public tool navigation remains available without a private workspace');
+assert.equal(await page.locator('#app .archive').isVisible(),false,'A hidden private workspace never exposes its saved files');
 await page.evaluate(()=>document.querySelector('#app').hidden=false);
 await page.click('#tool-image');
 const afterImages=await page.locator('#history .card').evaluateAll(cards=>cards.map(c=>({x:c.offsetLeft,y:c.offsetTop,w:c.offsetWidth,h:c.offsetHeight})));
@@ -156,7 +159,9 @@ console.log('PASS shared image and assets loaders, PV mark, decode failure and r
 
 const bounds=await page.locator('#history').boundingBox();assert.equal(bounds.x,0,'Image gallery reaches left edge');assert.ok(bounds.width>=1424&&bounds.width<=1440,'Image gallery fills the screen, allowing only the reserved scrollbar gutter: '+bounds.width);assert.ok(bounds.y<=135,'Compact top chrome');
 await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile image view has no horizontal overflow');await page.setViewportSize({width:1440,height:1000});
-await page.locator('#history .card').first().hover();await page.getByRole('button',{name:'Add to favorites',exact:true}).first().click();assert.equal(favorites.size,1);
+await page.locator('#history .card').first().hover();
+const favoriteSaved=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/library/members'&&response.request().method()==='POST');
+await page.getByRole('button',{name:'Add to favorites',exact:true}).first().click();await favoriteSaved;assert.equal(favorites.size,1);
 await page.click('#history-select');await page.locator('#history .card').nth(0).click();await page.locator('#history .card').nth(1).click();await page.click('#history-add-folder');await page.fill('#asset-folder-name','Berlin 2063');await page.click('#asset-folder-create');await page.waitForFunction(()=>!document.querySelector('#asset-folder-dialog').open);assert.equal(members['folder-0'].length,2);assert.equal(await page.locator('#history .card').count(),2,'Filed images leave Image grid immediately');
 await page.click('#tool-assets');await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===6);assert.equal(await page.locator('#assets-folders button').count(),1);await page.locator('#history .card[data-kind="video"]').first().click();await page.locator('#asset-video-dialog').waitFor({state:'visible'});await page.click('#asset-video-close');await page.locator('#history .card[data-kind="image"]').first().click();await page.locator('#image-lightbox').waitFor({state:'visible'});await page.keyboard.press('Escape');await page.click('#assets-favorites');await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===1);await page.click('#assets-all');await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===6);
 await page.click('#history-select');await page.locator('#history .card[data-kind="video"]').first().click();await page.click('#history-add-folder');await page.locator('#asset-folder-choices button').first().click();await page.waitForFunction(()=>!document.querySelector('#asset-folder-dialog').open);assert.equal(members['folder-0'].length,3);assert.equal(await page.locator('#history .card').count(),6,'All assets retains filed videos');await page.locator('#assets-folders button').first().click();await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===3);
@@ -278,7 +283,8 @@ console.log('PASS SpicyAPI Flash interruption explains blocking; unrelated inter
 assert.deepEqual(errors,[]);console.log('PASS Flash defaults to 2K, Kling remains 1K, PNG, text-only submission and mobile geometry');
 await page.evaluate(()=>window.__setTestJobs([]));
 await page.click('#tool-upscale');
-assert.equal(await page.locator('#canvas-import').isVisible(),true);
+assert.equal(await page.locator('#canvas-import').isVisible(),false,'The retired central import control stays hidden');
+assert.equal(await page.locator('#pv-upscale-hero-upload').isVisible(),true,'The approved empty Upscaler exposes its real upload CTA');
 assert.equal(await page.locator('#empty-title').textContent(),'Upscaler');
 assert.equal(await page.locator('#upscale-model-display').isVisible(),true);
 assert.match(await page.locator('#upscale-model-display').innerText(),/ByteDance Premium.*SeedVR2/s);
@@ -292,8 +298,8 @@ assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine="topaz
 assert.equal(await page.locator('#upscale-info').getAttribute('open'),null);
 console.log('UPSCALE_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
 const canvasBox=await page.locator('.stage').boundingBox(), controlsBox=await page.locator('.controls').boundingBox();
-assert.ok(controlsBox.y>=canvasBox.y+canvasBox.height,'Upscaler controls sit below the central canvas');
-assert.equal(await page.locator('.controls>.generate-zone').evaluate(el=>getComputedStyle(el).position),'static','Actions never overlap settings');
+assert.ok(Math.abs(controlsBox.x+controlsBox.width-canvasBox.x)<=1,'Upscaler desktop settings sit flush beside the photographic stage');
+assert.ok(await page.locator('#generate').evaluate(el=>el.getBoundingClientRect().top>=document.getElementById('upscale-scale').getBoundingClientRect().bottom),'Upscale action stays below output settings');
 await page.setViewportSize({width:390,height:844});
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Upscaler fits mobile');
 console.log('UPSCALE_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
@@ -446,7 +452,9 @@ assert.equal(await fashion.locator('#person-preview').getAttribute('src'),person
 await fashion.locator('#quote').click();await fashion.locator('#quote-box').waitFor({state:'visible'});
 assert.equal(fashionQuotes,1);assert.equal(fashionSubmits,0,'Price review requires a separate paid confirmation');
 assert.equal(quotedFashion.model,'fashnmax');assert.equal(quotedFashion.modelSourceId,'fashion-input-1');assert.equal(quotedFashion.garmentSourceId,'fashion-input-2');
-assert.ok((await fashion.locator('#result-stage').boundingBox()).x>(await fashion.locator('#person-slot').boundingBox()).x,'Result remains beside source images');
+assert.equal(await fashion.locator('#result-stage').isVisible(),false,'A price review must not expose an invented output in the approved empty composition');
+const sourcePair=await fashion.locator('#person-slot,#garment-slot').evaluateAll(nodes=>nodes.map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};}));
+assert.ok(sourcePair.every(r=>r.width>0)&&sourcePair[0].right<sourcePair[1].left,'Both uploaded sources remain visible side by side; real History output geometry is covered by lab-fashion-ui');
 console.log('FASHION_IN_STUDIO_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
 for(const width of [768,390,320]){
   await page.setViewportSize({width,height:844});
@@ -467,7 +475,7 @@ console.log('FASHION_IN_STUDIO_MOBILE='+Buffer.from(await page.screenshot({type:
 await page.setViewportSize({width:1440,height:1000});
 await page.click('#tool-assets');
 assert.equal(await fashion.isVisible(),false);assert.equal(await page.locator('#tool-assets').getAttribute('aria-pressed'),'true');
-await page.click('#tool-fashion');await fashion.locator('.result-actions a').click();
+await page.click('#tool-fashion');assert.equal(await fashion.locator('.result-actions a').isVisible(),false,'The approved empty output has no visible internal result action');await page.click('#tool-image');
 assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this image direction when visiting Fashion.');
 assert.equal(await fashion.isVisible(),false);assert.equal(page.url(),studioUrl,'Image Studio return stays in the same document');
 assert.equal(fashionSubmits,0);assert.deepEqual(errors,[]);
@@ -598,6 +606,10 @@ for(const width of [1911,1440,390,320]){
   for(const section of ['assets','image','upscale']){
     await page.click('#tool-'+section);
     const count=section==='assets'?6:section==='image'?5:1;
+    await page.waitForFunction(n=>document.querySelectorAll('#history .card').length===n,count);
+    // Real thumbnails load on intersection; the taller approved model cards can
+    // place History below the phone viewport. Visit each card before requiring decode.
+    for(const card of await page.locator('#history .card').all())await card.scrollIntoViewIfNeeded();
     await page.waitForFunction(n=>document.querySelectorAll('#history .card').length===n&&[...document.querySelectorAll('#history .history-media img')].every(i=>i.naturalWidth>0),count);
     await page.waitForFunction(()=>[...document.querySelectorAll('#history .card')].every(c=>c.style.width));
     const geometry=await mediaGeometry();assertFills(geometry,section+' at '+width);
