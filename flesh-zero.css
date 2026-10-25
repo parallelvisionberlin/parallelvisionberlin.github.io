@@ -1,13 +1,13 @@
 /* Flesh Zero / film and editorial galleries. Scoped to this collection only. */
 .flesh-zero-page .fz-film-block { padding-top: clamp(72px, 8vw, 124px); }
-.flesh-zero-page .fz-gallery-block { padding-top: clamp(94px, 12vw, 164px); }
+.flesh-zero-page .fz-gallery-block { padding-top: clamp(54px, 6vw, 104px); }
 
 .flesh-zero-page .fz-section-bar {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 28px;
+  margin-bottom: 14px;
 }
 .flesh-zero-page .fz-section-bar .block-label { margin: 0; }
 .flesh-zero-page .fz-section-meta,
@@ -130,7 +130,7 @@
 }
 .flesh-zero-page .fz-single-slide {
   display: grid;
-  place-items: center;
+  place-items: start center;
   height: min(80svh, 870px);
   background: #080808;
 }
@@ -139,6 +139,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: center top;
 }
 .flesh-zero-page .fz-carousel-slide figcaption {
   position: absolute;
@@ -164,6 +165,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: center top;
 }
 
 .flesh-zero-page .fz-arrow {
@@ -194,7 +196,8 @@
 
 @media (max-width: 700px) {
   .flesh-zero-page .fz-film-block { padding-top: 72px; }
-  .flesh-zero-page .fz-gallery-block { padding-top: 88px; }
+  .flesh-zero-page .fz-gallery-block { padding-top: 52px; }
+  .flesh-zero-page .fz-section-bar { margin-bottom: 12px; }
   .flesh-zero-page .fz-section-bar { margin-bottom: 18px; }
   .flesh-zero-page .fz-section-meta,
   .flesh-zero-page .fz-gallery-count { font-size: 8px; letter-spacing: .18em; }
@@ -207,7 +210,8 @@
     border-left-width: 10px;
   }
   .flesh-zero-page .fz-film-caption { font-size: 8px; letter-spacing: .14em; }
-  .flesh-zero-page .fz-single-slide { height: auto; aspect-ratio: 4 / 3; }
+  .flesh-zero-page .fz-single-slide { height: auto; aspect-ratio: 16 / 9; }
+  .flesh-zero-page .fz-single-slide.fz-sheet-slide { aspect-ratio: 2048 / 1152; max-height: none; }
   .flesh-zero-page .fz-carousel-slide figcaption { padding: 45px 15px 12px; font-size: 8px; }
   .flesh-zero-page .fz-arrow { width: 42px; height: 42px; }
   .flesh-zero-page .fz-arrow svg { width: 17px; height: 17px; }
