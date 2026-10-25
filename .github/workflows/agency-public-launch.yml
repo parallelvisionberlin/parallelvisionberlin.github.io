@@ -1,0 +1,60 @@
+name: Agency public launch verification
+on:
+  push:
+    branches: [agency/public-launch-20261025]
+    paths:
+      - '.github/workflows/agency-public-launch.yml'
+      - 'scripts/agency-public-launch.py'
+      - 'agency/**'
+      - 'lab-worker/agency-*.mjs'
+      - 'tests/agency-*.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: agency-public-launch-20261025
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            agency
+            css
+            js
+            lab-worker
+            lab
+            tests
+            scripts
+            .github
+            assets/optimized/agency
+          fetch-depth: 1
+      - name: Collect scoped source and inspect integration points
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          selected=['index.html','language.js','agency/index.html','css/home.css','css/base.css','WORK-STATE.md','package.json','lab-worker/worker.mjs','lab-worker/promotions.mjs','lab-worker/traffic.mjs','lab-worker/signup-welcome-email.mjs','lab-worker/clerk-issuer-policy.mjs','lab/session.js','lab/session-request.js','lab/owner.js','lab/owner.html','lab/account-menu.js','lab/RELEASE-PROTOCOL.md','scripts/build.mjs','scripts/validate-site.mjs','sitemap.xml','robots.txt','.github/workflows/deploy-lab-worker.yml']
+          with zipfile.ZipFile('/tmp/agency-source.zip','w',zipfile.ZIP_DEFLATED) as z:
+            for f in selected:
+              p=Path(f)
+              if p.is_file(): z.write(p,f)
+            for p in Path('assets/optimized/agency').glob('*'):
+              if p.is_file(): z.write(p,str(p))
+          for name,terms,before,after in [('lab-worker/worker.mjs',['async fetch(','async scheduled(','labAdminRoute(','recordLabTraffic('],12,35),('index.html',['<nav','id="contact"','</footer>'],4,24),('language.js',['nav_contact','Contact'],3,4)]:
+            lines=Path(name).read_text().splitlines(); print('\nFILE',name,'LINES',len(lines))
+            ranges=[]
+            for i,line in enumerate(lines):
+              if any(t in line for t in terms): ranges.append((max(0,i-before),min(len(lines),i+after)))
+            seen=set()
+            for start,end in ranges:
+              for i in range(start,end):
+                if i not in seen: print(str(i+1)+': '+lines[i]); seen.add(i)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agency-scoped-source
+          path: /tmp/agency-source.zip
+          retention-days: 2
