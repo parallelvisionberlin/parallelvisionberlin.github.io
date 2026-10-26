@@ -79,5 +79,8 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Local source validation and desktop managed-preview visual review passed; all 3 galleries initialized, new previous/next controls passed, no desktop overflow.
 - Scoped CI updated for 17 images, 3 galleries, two-sheet wraparound, decoding and 1440/390/320px layout.
 - Managed mobile preview reviewed at 390 and 320px; found and fixed a 3px scrollbar-related overflow using container-relative gallery widths. Footer links now stack cleanly.
-- PR #591 tracks publication and verification. Initial static-site and approved Image UI checks passed; browser CI was still installing its browser after several minutes.
+- PR #591 merged as b242d32a65f90b830ba79fc1880e044d559d04c5. Static-site and approved Image UI checks passed on final candidate 5b248d230ec370aeecebf443030da47045fd0969. Browser CI remained pending in its browser installation, so do not claim its regression run passed.
+- Pages deployment 40400948723 succeeded on subsequent main 258350fe9a6edde32f37c104d27467e5c299a344, which retained this feature and unrelated Agency changes.
+- Production browser confirmed revised film copy, 5 Film Stills, 9 Locations and new 2-sheet Storyboard; next/previous worked, and both live storyboard images decoded at 1536px. Live screenshot captured.
+- Manual desktop and 390/320px preview verification passed, with zero horizontal overflow after correction. No remaining publication blocker; optional full browser CI result can be checked in PR #591.
 - No email sent as part of this website change.
