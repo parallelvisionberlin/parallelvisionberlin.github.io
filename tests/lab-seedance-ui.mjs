@@ -102,6 +102,21 @@ try{
    assert.ok(Math.abs(spacing.plusGap-24)<=1,'24px between plus and title: '+JSON.stringify(spacing));
    assert.ok(Math.abs(spacing.actionGap-24)<=1,'24px between title and actions: '+JSON.stringify(spacing));
    assert.equal(spacing.buttonGap,'16px');assert.equal(spacing.opacity,'0.9');assert.equal(spacing.description,'none');
+   // The real upload + must not jump when the mode-specific text/actions change.
+   const plusPosition=()=>preview.page.locator('.pv-video-add-frame').evaluate(el=>{
+    const box=el.getBoundingClientRect(),label=document.getElementById('empty-title').getBoundingClientRect();
+    return {x:box.x,y:box.y,bottom:box.bottom,labelTop:label.top};
+   });
+   const referencePlus=await plusPosition();
+   for(const mode of ['start','extend','reference']){
+    if(mode==='extend')await preview.page.click('#video-extend-task');
+    else {if(mode==='reference')await preview.page.click('#video-create-task');await preview.page.click('#mode-'+mode);}
+    await preview.page.waitForFunction(expected=>document.getElementById('app').classList.contains('pv-video-mode-'+expected),mode);
+    const placement=await plusPosition();
+    assert.ok(Math.abs(placement.y-referencePlus.y)<=1,mode+' changes text, not plus position: '+JSON.stringify({referencePlus,placement}));
+    assert.ok(Math.abs(placement.x-referencePlus.x)<=1,mode+' keeps plus centered');
+    assert.ok(placement.bottom<=placement.labelTop+1,mode+' never places plus over the heading: '+JSON.stringify(placement));
+   }
   }
 
   await preview.page.click('#pv-video-output-toggle');
