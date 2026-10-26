@@ -242,12 +242,9 @@ try{
   assert.equal(await page.locator('#garment-hint').isVisible(),false,'Decorative garment photograph disappears after upload');
   assert.equal(await page.locator('#person-preview').isVisible(),true);
   assert.equal(await page.locator('#garment-preview').isVisible(),true);
+  await page.waitForFunction(()=>document.querySelector('#quote').textContent==='Generate · 222 credits');
   assert.equal(await page.locator('#quote').isEnabled(),true);
-  await page.locator('#quote').click();
-  await page.waitForFunction(()=>!document.querySelector('#quote-box').hidden);
-  assert.match(await page.locator('#quote-price').innerText(),/\$0\.15/);
-  assert.match(await page.locator('#quote-price').innerText(),/2 credits/);
-  assert.equal(await page.locator('#confirm').isEnabled(),true);
+  assert.equal(await page.locator('#quote-box').count(),0);
   assert.equal(calls.filter(c=>c.path==='/api/uploads').length,2);
   assert.equal(calls.filter(c=>c.path==='/api/fashion/quote').length,1);
   assert.equal(calls.some(c=>c.path==='/api/fashion/submit'),false,'Price review must not buy a generation.');
@@ -269,7 +266,7 @@ try{
   assert.ok(mobileGallery.top>=mobileGallery.controlsEnd&&mobileGallery.top>=mobileGallery.resultEnd,
     'Mobile gallery appears after the result preview, without overlapping the editor');
   assert.equal(mobileGallery.cols,2,'Mobile Fashion uses two readable image columns');
-  assert.equal(await page.locator('#quote-box').isVisible(),true);
+  assert.equal(await page.locator('#quote').innerText(),'Generate · 222 credits');
   assert.equal(await page.locator('#result-stage').isVisible(),false,'A quote cannot populate the generated output');
   await page.screenshot({path:'test-results/pv-fashion-editorial-mobile.png',fullPage:true});
   // Opening a completed generation places the actual stored image in the
@@ -303,7 +300,7 @@ try{
   });
   assert.deepEqual(embedded,{nestedFooters:0,globalFooters:1,hasEditor:true,hasGallery:true},
     'Embedded Fashion has its full editor and gallery, but Studio owns the only footer');
-  // A customer sees credit costs while the owner assertions above retain USD.
+  // Owners and customers see the same server-confirmed PV credit price.
   sessionCustomer=true;
   await page.reload();await page.waitForFunction(()=>window.__fashionTestReady);
   for(const model of ['fashn16','fashnmax','fluxvto']){
@@ -313,10 +310,34 @@ try{
   await page.locator('#model-select').selectOption('fashnmax');
   await page.setInputFiles('#person-file',{name:'synthetic-person.png',mimeType:'image/png',buffer:png});
   await page.setInputFiles('#garment-file',{name:'synthetic-jacket.png',mimeType:'image/png',buffer:png});
-  await page.locator('#quote').click();
-  await page.waitForFunction(()=>!document.querySelector('#quote-box').hidden);
-  assert.equal(await page.locator('#quote-price').innerText(),'222 PV credits');
+  await page.waitForFunction(()=>document.querySelector('#quote').textContent==='Generate · 222 credits');
   assert.equal(calls.some(c=>c.path==='/api/fashion/submit'),false);
+  // A malformed price must never authorize a generation.
+  let malformed=true,releaseOldQuote,oldQuoteSeen;
+  const sawOldQuote=new Promise(resolve=>{oldQuoteSeen=resolve;});
+  await page.route('**/api/fashion/quote',async route=>{
+    const settings=route.request().postDataJSON();
+    if(settings.prompt==='Old direction'){
+      oldQuoteSeen();await new Promise(resolve=>{releaseOldQuote=resolve;});
+    }
+    await route.fulfill({contentType:'application/json',body:JSON.stringify({
+      id:'33333333-3333-4333-8333-333333333333',creditCost:malformed?null:settings.prompt==='Old direction'?111:333,
+      expiresAt:Date.now()+600000
+    })});
+  });
+  await page.locator('#direction').fill('Invalid price');
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('did not confirm'));
+  assert.equal(await page.locator('#quote').innerText(),'Generate');
+  await page.locator('#quote').click();
+  await page.waitForFunction(()=>!document.querySelector('#quote').disabled);
+  assert.equal(calls.some(c=>c.path==='/api/fashion/submit'),false,'An unpriced click can only retry pricing');
+  malformed=false;
+  await page.locator('#direction').fill('Old direction');await sawOldQuote;
+  await page.locator('#direction').fill('New direction');
+  assert.equal(await page.locator('#quote').innerText(),'Generate','Input changes immediately invalidate displayed prices');
+  releaseOldQuote();
+  await page.waitForFunction(()=>document.querySelector('#quote').textContent==='Generate · 333 credits');
+  assert.equal(calls.some(c=>c.path==='/api/fashion/submit'),false,'Stale quote replacement never generates');
   assert.deepEqual(errors,[]);
   console.log('PASS Fashion standalone footer remains, embedded footer is removed, and gallery and provider flows are unchanged.');
 }finally{

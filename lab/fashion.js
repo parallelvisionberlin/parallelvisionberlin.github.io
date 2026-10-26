@@ -3,13 +3,13 @@ import {loadLabAccount} from './native-account.js?v=20261014-custom-domain1&stud
 export function createFashionStudio(root=document,{sessionClient=null,onNavigate=null,publicPreview=()=>false}={}){
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>root.getElementById(id);
-const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(n);
 const modes={
   fashn16:{description:'An alternative for straightforward garment transfer.',note:'Estimated cost: $0.075 per image. Review the quote before generating.',provider:'fal'},
   fashnmax:{description:'High-detail garment transfer using your FASHN API credits.',note:'Balanced 1K estimates 2 FASHN credits ($0.15). Review the quote before generating.',provider:'fashn'},
   fluxvto:{description:'Prompt-directed styling for layering, fit and the way clothing is worn.',note:'Pricing varies with image size. Person image maximum 2 MP; garment maximum 1 MP.',provider:'fal'}
 };
 let clerk=null,authenticated=false,isCustomer=false,sessionId='',models=[],busy=false,quote=null,pollTimeout=null,activeJobId='',resultUrl='',signingIn=false;
+let preparing=false,quoteTimer=null,quoteExpiryTimer=null;
 let fileKeys=new Map(),previews=new Map(),revision=0,authVersion=0;
 let galleryCursor=null,galleryItems=[],galleryLoading=false,galleryRevision=0,selectedGalleryJob='';
 const galleryPreviews=new Map(),galleryCards=new Map();
@@ -17,8 +17,13 @@ const GALLERY_PAGE_SIZE=12;
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 function status(message,error=false){$('status').textContent=message||'';$('status').classList.toggle('error',error);}
 function revokeResult(){if(resultUrl)URL.revokeObjectURL(resultUrl);resultUrl='';$('result-image').hidden=true;$('result-image').removeAttribute('src');$('result-placeholder').hidden=false;$('download').hidden=true;}
-function clearQuote(){quote=null;$('quote-box').hidden=true;$('quote').hidden=false;}
-function change(){revision++;clearQuote();update();}
+function clearQuote(){quote=null;clearTimeout(quoteTimer);clearTimeout(quoteExpiryTimer);}
+function readyToQuote(){return authenticated&&!!$('person-file').files.length&&!!$('garment-file').files.length&&models.some(x=>x.id===current()&&x.available)&&(current()!=='fluxvto'||!!$('direction').value.trim());}
+function scheduleQuote(){
+  clearTimeout(quoteTimer);
+  if(!busy&&readyToQuote())quoteTimer=setTimeout(()=>void prepareQuote(),400);
+}
+function change(){revision++;clearQuote();update();scheduleQuote();}
 async function api(path,{method='GET',body,headers={}}={}){
   const version=authVersion;
   const init={method,headers:{...headers}};
@@ -46,17 +51,16 @@ function update(){
   $('model-note').textContent=(authenticated&&!isCustomer?d.note:'Review the credit cost before generating.')+(providerModel&&!providerModel.available?' This model is not connected yet.':'');
   $('direction-required').textContent=selected==='fluxvto'?'REQUIRED':'OPTIONAL';
   $('direction').placeholder=selected==='fluxvto'?'Describe how the garment should be worn…':'Keep the silhouette. Open the jacket, soften the folds…';
-  $('quote').disabled=!publicPreview()&&(!authenticated||busy||!$('person-file').files.length||!$('garment-file').files.length||!providerModel?.available||(selected==='fluxvto'&&!$('direction').value.trim()));
-  const title=busy?'Preparing…':'Generate';
+  $('quote').disabled=!publicPreview()&&(busy||preparing||!readyToQuote());
+  const title=busy?'Generating…':quote?'Generate · '+quote.creditCost.toLocaleString()+' credits':'Generate';
   if($('quote').dataset.caption!==title){
     $('quote').dataset.caption=title;
-    const arrow=document.createElement('span');arrow.textContent='';arrow.setAttribute('aria-hidden','true');
-    $('quote').replaceChildren(document.createTextNode(title+' '),arrow);
+    const arrow=document.createElement('span');arrow.setAttribute('aria-hidden','true');
+    $('quote').replaceChildren(document.createTextNode(title),arrow);
   }
   const person=!!$('person-file').files.length,garment=!!$('garment-file').files.length;
-  $('action-hint').textContent=!person||!garment?'Add a person and garment to review your cost.':!providerModel?.available?'This model is not connected. Select another available engine.':selected==='fluxvto'&&!$('direction').value.trim()?'Add a styling direction for FLUX.':'Review the estimate first. Generating always needs confirmation.';
-  $('action-hint').hidden=!!quote;
-  $('confirm').disabled=busy||!quote||quote.expiresAt<=Date.now();
+  $('action-hint').textContent=!person||!garment?'Add a person and garment.':!providerModel?.available?'This model is not connected. Select another available engine.':selected==='fluxvto'&&!$('direction').value.trim()?'Add a styling direction for FLUX.':'';
+  $('action-hint').hidden=!$('action-hint').textContent;
 }
 function choosePhoto(id,slot,img,hint){
   const input=$(id),container=$(slot),preview=$(img),invitation=$(hint);
@@ -67,7 +71,7 @@ function choosePhoto(id,slot,img,hint){
     }
     const old=previews.get(id);if(old)URL.revokeObjectURL(old);
     const src=URL.createObjectURL(file);previews.set(id,src);preview.src=src;preview.hidden=false;invitation.hidden=true;
-    fileKeys.delete(id);status('Photographs selected. Review the model and estimated cost.');change();
+    fileKeys.delete(id);status('');change();
   });
   for(const event of ['dragenter','dragover'])container.addEventListener(event,e=>{e.preventDefault();container.classList.add('drag-over');});
   container.addEventListener('dragleave',e=>{if(!container.contains(e.relatedTarget))container.classList.remove('drag-over');});
@@ -93,36 +97,36 @@ async function upload(id){
   if($(id).files?.[0]!==file)throw new Error('Photograph changed during upload. Review again.');
   fileKeys.set(id,{file,assetId:result.id});return result.id;
 }
-$('fashion-form').addEventListener('submit',async event=>{
-  event.preventDefault();if(busy||!authenticated)return;
-  const provider=models.find(x=>x.id===current());
-  if(!provider?.available){status('Connect the selected model API key first.',true);return;}
-  const editVersion=revision;
-  clearQuote();busy=true;update();status('Uploading photographs to your private Cloudflare archive. No generation has started.');
+// Preparing an expiring, server-bound quote is free. Only the priced Generate
+// action below can submit it; input changes and background work never generate.
+async function prepareQuote(){
+  if(busy||preparing||!readyToQuote())return;
+  const editVersion=revision,accountVersion=authVersion;
+  preparing=true;update();
   try{
     const modelSourceId=await upload('person-file'),garmentSourceId=await upload('garment-file');
-    if(revision!==editVersion)throw new Error('Inputs changed. Review again.');
+    if(revision!==editVersion||accountVersion!==authVersion)return;
     const settings={model:current(),modelSourceId,garmentSourceId,prompt:$('direction').value.trim(),
       resolution:$('max-resolution').value,generationMode:$('max-mode').value,
       category:$('fashn16-category').value,quality:$('fashn16-quality').value};
     const response=await api('/api/fashion/quote',{method:'POST',body:settings});
-    if(revision!==editVersion)throw new Error('Settings changed. Request a new quote.');
-    quote=response;
-    // Price comes from the same server policy used by the atomic debit trigger.
-    // Never recalculate customer credits in the browser from USD estimates.
-    if(isCustomer&&(!Number.isSafeInteger(response.creditCost)||response.creditCost<1))
+    if(revision!==editVersion||accountVersion!==authVersion)return;
+    // Display the same server price used by the atomic customer debit.
+    if(!Number.isSafeInteger(response.creditCost)||response.creditCost<1||!response.id||!Number.isFinite(response.expiresAt)||response.expiresAt<=Date.now())
       throw new Error('The server did not confirm a PV LAB credit price. Nothing was charged.');
-    const credits=current()==='fashnmax'?Math.round(response.estimatedUsd/.075):null;
-    $('quote-price').textContent=isCustomer?response.creditCost.toLocaleString()+' PV credits':(credits===null?'Estimated provider cost: ':'Estimated: '+credits+' credits · ')+money(response.estimatedUsd);
-    $('quote-note').textContent=response.notice+' This price check does not generate an image. Quote expires at '+new Date(response.expiresAt).toLocaleTimeString()+'.';
-    $('quote-box').hidden=false;$('quote').hidden=true;status('');
-  }catch(e){status(e.message,true);}
-  finally{busy=false;update();}
-});
-$('confirm').addEventListener('click',async()=>{
-  if(busy||!quote)return;
-  if(quote.expiresAt<=Date.now()){status('Estimate expired. Review price again.',true);clearQuote();update();return;}
-  const quoted=quote;busy=true;update();status('Submitting one paid fashion generation. Please do not repeat this request.');
+    quote=response;
+    quoteExpiryTimer=setTimeout(()=>{clearQuote();update();scheduleQuote();},Math.max(1,response.expiresAt-Date.now()));
+    status('');
+  }catch(e){if(revision===editVersion&&accountVersion===authVersion)status(e.message,true);}
+  finally{
+    preparing=false;update();
+    if(revision!==editVersion)scheduleQuote();
+  }
+}
+$('fashion-form').addEventListener('submit',async event=>{
+  event.preventDefault();if(busy||preparing||!readyToQuote())return;
+  if(!quote||quote.expiresAt<=Date.now()){clearQuote();await prepareQuote();return;}
+  const quoted=quote;clearTimeout(quoteExpiryTimer);busy=true;update();status('Generating your outfit…');
   try{
     const response=await api('/api/fashion/submit',{method:'POST',body:{quoteId:quoted.id,confirm:true}});
     clearQuote();revokeResult();const job=response.job;selectedGalleryJob=job.id;
@@ -130,7 +134,7 @@ $('confirm').addEventListener('click',async()=>{
     await loadHistory();
   }catch(e){
     // Never automatically resubmit an ambiguous paid request.
-    clearQuote();status(e.message+' If submission may have reached the provider, check PV Lab History and the provider dashboard before trying again.',true);
+    clearQuote();status(e.message+' Check your generation history before trying again.',true);
   }finally{busy=false;update();}
 });
 async function loadResult(job){
@@ -350,7 +354,7 @@ async function sync(){
     if(authenticated&&sessionId===clerk.session?.id)return;
     const session=await api('/api/session');isCustomer=!!session.customer;const info=await api('/api/fashion/models');
     models=info.models||[];authenticated=true;sessionId=clerk.session?.id||'';
-    $('gate').hidden=true;$('workspace').hidden=false;$('fashion-gallery').hidden=false;update();
+    $('gate').hidden=true;$('workspace').hidden=false;$('fashion-gallery').hidden=false;update();scheduleQuote();
     // Secondary gallery and provider-balance reads must never delay the editor.
     void loadHistory();
     void checkFashnBalance();
@@ -366,7 +370,7 @@ if(onNavigate)root.addEventListener('click',event=>{
 // operations still go through the real session client after authentication.
 for(const type of ['click','submit'])root.addEventListener(type,event=>{
   if(!publicPreview())return;
-  if(type==='click'&&!event.target.closest('#quote,#confirm,#check-fashn,#refresh-history,#fashion-more'))return;
+  if(type==='click'&&!event.target.closest('#quote,#check-fashn,#refresh-history,#fashion-more'))return;
   event.preventDefault();event.stopImmediatePropagation();clerk?.openSignIn();
 },true);
 update();

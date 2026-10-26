@@ -128,27 +128,28 @@ try{
   await fashion.locator('#model-select').selectOption('fluxvto');
   assert.equal(await fashion.locator('#quote').isEnabled(),false,'FLUX retains required direction');
   await fashion.locator('#direction').fill('Keep the silhouette.');
-  assert.equal(await fashion.locator('#quote').isEnabled(),true);
+  await fashion.locator('#quote').waitFor({state:'visible'});
   await fashion.locator('#model-select').selectOption('fashnmax');
   await fashion.locator('#max-resolution').selectOption('2k');
   await fashion.locator('#max-mode').selectOption('quality');
-  await fashion.locator('#quote').click();
-  await fashion.locator('#quote-box').waitFor({state:'visible'});
+  await page.waitForFunction(()=>document.querySelector('#fashion-studio').shadowRoot.querySelector('#quote').textContent==='Generate · 20 credits');
+  assert.equal(await fashion.locator('#quote').isEnabled(),true);
   assert.equal(uploads,2);
   assert.equal(submits,0,'Review price does not generate');
-  assert.match(await fashion.locator('#quote-price').innerText(),role==='customer'?/20 PV credits/:/2 credits.*\$0\.15/);
-  const settings=JSON.parse(calls.find(x=>x.path==='/api/fashion/quote').body);
+  assert.equal(await fashion.locator('#quote').innerText(),'Generate · 20 credits');
+  assert.equal(await fashion.locator('#quote-box').count(),0);
+  const settings=JSON.parse(calls.filter(x=>x.path==='/api/fashion/quote').at(-1).body);
   assert.deepEqual([settings.model,settings.resolution,settings.generationMode,settings.prompt],['fashnmax','2k','quality','Keep the silhouette.']);
   await page.setViewportSize({width:390,height:844});
-  assert.equal(await fashion.locator('#confirm').isVisible(),true,'Mobile quote confirmation is accessible');
+  assert.equal(await fashion.locator('#quote').isVisible(),true,'Priced Generate is accessible on mobile');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   if(role==='owner'){
    await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
    await page.screenshot({path:'test-results/fashion-reference-quote-mobile.png',fullPage:true});
   }
-  await fashion.locator('#confirm').click();
+  await fashion.locator('#quote').evaluate(button=>{button.click();button.click();});
   await fashion.locator('#result-image').waitFor({state:'visible'});
-  assert.equal(submits,1,'One confirmation submits exactly once');
+  assert.equal(submits,1,'Double-clicking priced Generate submits exactly once');
   assert.deepEqual(JSON.parse(calls.find(x=>x.path==='/api/fashion/submit').body),{quoteId,confirm:true});
   assert.equal(await fashion.locator('#download').isVisible(),true);
   assert.ok(await fashion.locator('#fashion-history .history-item').count()>0);

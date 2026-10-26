@@ -419,7 +419,7 @@ await page.route('https://parallel-vision-lab.parallelvision.workers.dev/api/fas
   let result={};
   if(path==='/api/fashion/models')result={models:['fashn16','fashnmax','fluxvto'].map(id=>({id,label:id,available:true}))};
   else if(path==='/api/fashion/balance')result={connected:true,credits:{total:40,onDemand:40,subscription:0}};
-  else if(path==='/api/fashion/quote'){fashionQuotes++;quotedFashion=route.request().postDataJSON();result={id:'fashion-test-quote',estimatedUsd:.15,notice:'Test quote.',expiresAt:Date.now()+60000};}
+  else if(path==='/api/fashion/quote'){fashionQuotes++;quotedFashion=route.request().postDataJSON();result={id:'fashion-test-quote',creditCost:69,estimatedUsd:.15,notice:'Test quote.',expiresAt:Date.now()+60000};}
   else if(path==='/api/fashion/submit'){fashionSubmits++;result={job:{id:'fashion-test-job',status:'queued',settings:{mode:'fashion',fashionModel:'fashnmax'}}};}
   return route.fulfill({contentType:'application/json',body:JSON.stringify(result)});
 });
@@ -449,8 +449,8 @@ const person=await fashion.locator('#person-preview').getAttribute('src');
 await page.click('#tool-video');await page.click('#tool-fashion');
 assert.equal(await fashion.locator('#direction').inputValue(),'Preserve the pose and natural fabric texture.');
 assert.equal(await fashion.locator('#person-preview').getAttribute('src'),person,'Fashion uploads persist across sections');
-await fashion.locator('#quote').click();await fashion.locator('#quote-box').waitFor({state:'visible'});
-assert.equal(fashionQuotes,1);assert.equal(fashionSubmits,0,'Price review requires a separate paid confirmation');
+await page.waitForFunction(()=>/Generate · \d+ credits/.test(document.querySelector('#fashion-studio').shadowRoot.querySelector('#quote').textContent));
+assert.equal(fashionQuotes,1);assert.equal(fashionSubmits,0,'Background pricing never submits a paid generation');
 assert.equal(quotedFashion.model,'fashnmax');assert.equal(quotedFashion.modelSourceId,'fashion-input-1');assert.equal(quotedFashion.garmentSourceId,'fashion-input-2');
 assert.equal(await fashion.locator('#result-stage').isVisible(),false,'A price review must not expose an invented output in the approved empty composition');
 const sourcePair=await fashion.locator('#person-slot,#garment-slot').evaluateAll(nodes=>nodes.map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};}));
