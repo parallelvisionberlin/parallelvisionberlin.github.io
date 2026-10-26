@@ -1,6 +1,9 @@
 /* Flesh Zero / film and editorial galleries. Scoped to this collection only. */
 .flesh-zero-page .fz-film-block { padding-top: clamp(72px, 8vw, 124px); }
-.flesh-zero-page .fz-gallery-block { padding-top: clamp(54px, 6vw, 104px); }
+.flesh-zero-page .fz-gallery-block {
+  padding-top: clamp(30px, 3.3vw, 58px);
+  --fz-gallery-width: min(1600px, calc(100vw - 48px), 130svh);
+}
 
 .flesh-zero-page .fz-section-bar {
   display: flex;
@@ -24,6 +27,17 @@
 .flesh-zero-page .fz-wide {
   position: relative;
   width: min(1600px, calc(100vw - 48px));
+  max-width: none;
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+/* Keep the labels and both image galleries aligned inside one screen-height-
+   aware frame. The entire photo remains visible without clipping its edges. */
+.flesh-zero-page .fz-gallery-block .fz-wide,
+.flesh-zero-page .fz-gallery-block .fz-section-bar {
+  width: var(--fz-gallery-width);
+}
+.flesh-zero-page .fz-gallery-block .fz-section-bar {
   max-width: none;
   margin-left: 50%;
   transform: translateX(-50%);
@@ -129,43 +143,43 @@
   overflow: hidden;
 }
 .flesh-zero-page .fz-single-slide {
-  display: grid;
-  place-items: start center;
-  height: min(80svh, 870px);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: auto;
   background: #080808;
 }
 .flesh-zero-page .fz-single-slide img {
   display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
   object-fit: contain;
-  object-position: center top;
+  object-position: center;
 }
+/* Captions belong below each photograph, never across its feet or lower edge. */
 .flesh-zero-page .fz-carousel-slide figcaption {
-  position: absolute;
-  z-index: 1;
-  inset: auto 0 0;
-  padding: 64px clamp(22px, 5vw, 72px) 23px;
-  background: linear-gradient(0deg, rgba(0,0,0,.65), transparent);
+  position: static;
+  padding: 12px 2px 6px;
+  background: none;
   color: rgba(255,255,255,.84);
   font: 9px/1.5 'Courier New', monospace;
   letter-spacing: .29em;
   text-transform: uppercase;
   pointer-events: none;
 }
-/* Character sheets are complete editorial layouts, not separate look photographs. */
+/* Character sheets remain intact, as single 16:9 artworks. */
 .flesh-zero-page .fz-single-slide.fz-sheet-slide {
   height: auto;
-  aspect-ratio: 2048 / 1152;
-  max-height: 88svh;
+  max-height: none;
   background: #f4f4f4;
 }
 .flesh-zero-page .fz-sheet-slide img {
-  display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
   object-fit: contain;
-  object-position: center top;
+  object-position: center;
 }
 
 .flesh-zero-page .fz-arrow {
@@ -196,8 +210,10 @@
 
 @media (max-width: 700px) {
   .flesh-zero-page .fz-film-block { padding-top: 72px; }
-  .flesh-zero-page .fz-gallery-block { padding-top: 52px; }
-  .flesh-zero-page .fz-section-bar { margin-bottom: 12px; }
+  .flesh-zero-page .fz-gallery-block {
+    padding-top: 52px;
+    --fz-gallery-width: calc(100vw - 24px);
+  }
   .flesh-zero-page .fz-section-bar { margin-bottom: 18px; }
   .flesh-zero-page .fz-section-meta,
   .flesh-zero-page .fz-gallery-count { font-size: 8px; letter-spacing: .18em; }
@@ -210,9 +226,7 @@
     border-left-width: 10px;
   }
   .flesh-zero-page .fz-film-caption { font-size: 8px; letter-spacing: .14em; }
-  .flesh-zero-page .fz-single-slide { height: auto; aspect-ratio: 16 / 9; }
-  .flesh-zero-page .fz-single-slide.fz-sheet-slide { aspect-ratio: 2048 / 1152; max-height: none; }
-  .flesh-zero-page .fz-carousel-slide figcaption { padding: 45px 15px 12px; font-size: 8px; }
+  .flesh-zero-page .fz-carousel-slide figcaption { padding: 10px 2px 4px; font-size: 8px; }
   .flesh-zero-page .fz-arrow { width: 42px; height: 42px; }
   .flesh-zero-page .fz-arrow svg { width: 17px; height: 17px; }
   .flesh-zero-page .fz-arrow--prev { left: 8px; }
