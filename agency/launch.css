@@ -63,3 +63,12 @@
 .featured-film-caption>a{margin-top:7px}
 .project-image--reptare img{object-fit:cover}
 .motion-section{padding:50px 0}.motion-grid{grid-template-columns:1fr;gap:34px}.motion-caption h3{font-size:25px}}
+
+/* The Finest joins the original two-film Work in Motion selection. */
+.finest-motion-thumb{display:block;cursor:pointer}
+.finest-motion-thumb .motion-frame{background:#110d0b}
+.finest-motion-thumb img{object-fit:cover;object-position:center 43%;transition:transform .5s ease}
+.finest-motion-thumb:hover img,.finest-motion-thumb:focus-visible img{transform:scale(1.025)}
+.finest-motion-thumb:focus-visible{outline:2px solid #161616;outline-offset:4px}
+@media(min-width:981px){.motion-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:25px}}
+@media(min-width:761px) and (max-width:980px){.motion-grid{grid-template-columns:1fr 1fr}}

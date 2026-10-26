@@ -18,7 +18,8 @@ try{
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'agency overflow at '+width);
     assert.equal(await page.locator('iframe').count(),0,'YouTube must not load before interaction');
     assert.equal(await page.locator('.case-notes').count(),5);
-    assert.equal(await page.locator('#motion figure').count(),2);
+    assert.equal(await page.locator('#motion figure').count(),3);
+    assert.equal(await page.locator('#motion .finest-motion-thumb').getAttribute('href'),'../maison-satin-the-finest.html');
     assert.equal(await page.locator('#flesh-zero-film').count(),1);
     assert.equal(await page.locator('#featured-film').count(),1);
     assert.match(await page.locator('#work .project-image--reptare img').getAttribute('src'),/reptare-look-02-development-sheet\.webp$/);
