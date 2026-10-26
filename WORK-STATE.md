@@ -79,3 +79,11 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Browser confirmed the updated roster, four inhabitants and both missing profiles. Existing browser navigation cache required one reload.
 - Instagram remains user-managed. No email sent.
 - Next: user removes the Instagram publications and can send their reviewed response.
+
+## Future Fashion collection placeholder cleanup, 2026-10-26
+- Baseline main commit: `d592e3d17d5a72d5fa9935eeb14a31ea3bc4d631`.
+- Scope: `dna-mutation.html` and `magnetic-tape.html` only; `fashion.css`, assets, layout and navigation unchanged.
+- DNA Mutation: removed three publicly empty Gallery, Lookbook sheets and Material studies blocks with internal placeholder text. Existing hero, introduction and real campaign image retained.
+- Magnetic Tape: removed empty Material studies block containing 'study hook'. Existing campaign, gallery and lookbook images retained.
+- Source validation: all specified placeholder/hook phrases absent from both pages; remaining image paths, navigation and original real content preserved.
+- Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
