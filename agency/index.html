@@ -161,6 +161,42 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
 .footer{border-top:1px solid #414141;padding:21px 0;font-size:11px;color:var(--muted)}
 .footer-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .footer a{text-decoration:underline;text-underline-offset:4px}
+
+/* Selected founder credits, kept separate from Parallel Vision commissions. */
+.founder-archive{padding:59px 0 68px;border-top:1px solid var(--paper-line)}
+.founder-archive-top{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:38px;align-items:end;margin-bottom:32px}
+.founder-archive .section-label{margin-bottom:13px}
+.founder-archive h2{font-size:clamp(32px,4.1vw,57px);line-height:1.04;letter-spacing:-.068em;max-width:630px}
+.founder-archive-lede{max-width:510px;font-size:15px;line-height:1.65;color:#484848}
+.founder-archive-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--ink);border-bottom:1px solid #c7c7c7}
+.founder-credit{display:flex;flex-direction:column;gap:0;min-width:0;min-height:186px;padding:21px 18px 19px 0}
+.founder-credit+.founder-credit{padding-left:20px;border-left:1px solid #d1d1d1}
+.founder-credit-title{font-size:clamp(20px,2vw,27px);font-weight:600;line-height:1.18;letter-spacing:-.048em}
+.founder-credit-description{font-size:13px;line-height:1.58;color:#555;margin-top:13px}
+.founder-credit-action{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;margin-top:auto;padding-top:16px}
+.founder-credit .ui-arrow{width:12px;height:12px;flex-basis:12px}
+.founder-credit:hover .founder-credit-action{text-decoration:underline;text-underline-offset:4px}
+@media(max-width:860px){
+  .founder-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .founder-credit{min-height:148px;padding:19px 16px 20px 0}
+  .founder-credit:nth-child(3){padding-left:0;border-left:0;border-top:1px solid #d1d1d1}
+  .founder-credit:nth-child(4){border-top:1px solid #d1d1d1}
+}
+@media(max-width:760px){
+  .founder-archive{padding:47px 0 55px}
+  .founder-archive-top{grid-template-columns:1fr;gap:15px;margin-bottom:24px}
+  .founder-archive h2{font-size:clamp(33px,7vw,50px)}
+  .founder-archive-lede{font-size:14px}
+}
+@media(max-width:540px){
+  .founder-archive-grid{grid-template-columns:1fr}
+  .founder-credit,.founder-credit+.founder-credit,.founder-credit:nth-child(3),.founder-credit:nth-child(4){min-height:0;padding:18px 0 17px;border-left:0}
+  .founder-credit+.founder-credit{border-top:1px solid #d1d1d1}
+  .founder-credit-title{font-size:23px}
+  .founder-credit-description{margin-top:6px}
+  .founder-credit-action{padding-top:9px}
+}
+
 @media(max-width:1050px){
   .wrap{width:calc(100% - 58px)}
   .hero-grid{gap:28px}
@@ -401,6 +437,41 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
     </div>
   </div>
 </section>
+
+<section class="founder-archive light" aria-labelledby="founder-archive-title">
+  <div class="wrap">
+    <div class="founder-archive-top">
+      <div>
+        <p class="section-label">Founder / Earlier collaborations</p>
+        <h2 id="founder-archive-title">A history in fashion &amp; sound.</h2>
+      </div>
+      <p class="founder-archive-lede">Before founding Parallel Vision in 2025, Alejandro Molinari worked on fashion films and editorial music projects. Selected credits from his independent practice.</p>
+    </div>
+    <div class="founder-archive-grid" aria-label="Selected earlier fashion and editorial work by Alejandro Molinari">
+      <a class="founder-credit" href="https://www.youtube.com/watch?v=DiAL4F3Uxm8" target="_blank" rel="noopener noreferrer" aria-label="Watch Palace Gucci by Purple film with music and sound design by Alejandro Molinari">
+        <span class="founder-credit-title">Gucci / Purple</span>
+        <span class="founder-credit-description">Palace Gucci by Purple. Original music and sound design · 2022.</span>
+        <span class="founder-credit-action">Watch film <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></span>
+      </a>
+      <a class="founder-credit" href="https://models.com/work/victorias-secret-victorias-secret-body-fall-2021-by-alejandro-molinari--juno-francis/1919265" target="_blank" rel="noopener noreferrer" aria-label="View credits for Victoria's Secret Body Fall 2021 featuring music by Alejandro Molinari and Juno Francis">
+        <span class="founder-credit-title">Victoria's Secret</span>
+        <span class="founder-credit-description">Body Fall 2021 campaign film. Music with Juno Francis · 2021.</span>
+        <span class="founder-credit-action">View credits <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></span>
+      </a>
+      <a class="founder-credit" href="https://www.instagram.com/p/CLmkIbGqlWE/" target="_blank" rel="noopener noreferrer" aria-label="Watch Vogue Czechoslovakia Even Cowgirls Have the Blues with Sunday Morning by Alejandro Molinari and Juno Francis">
+        <span class="founder-credit-title">Vogue Czechoslovakia</span>
+        <span class="founder-credit-description">Even Cowgirls Have the Blues. Music: Sunday Morning with Juno Francis · 2021.</span>
+        <span class="founder-credit-action">View film <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></span>
+      </a>
+      <a class="founder-credit" href="https://purple.fr/diary/alejandro-molinari-for-purple-future-radiooooo/" target="_blank" rel="noopener noreferrer" aria-label="Read Alejandro Molinari's original contribution to Purple Future Radiooooo">
+        <span class="founder-credit-title">Purple Magazine</span>
+        <span class="founder-credit-description">Future Radiooooo. Original track and editorial contribution · 2022.</span>
+        <span class="founder-credit-action">Read on Purple <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <section class="motion-section light" id="motion" aria-labelledby="motion-title">
   <div class="wrap">
     <div class="section-heading"><div><p class="section-label">03 / Selected films</p><h2 id="motion-title">Work in motion.</h2></div><p>Fashion studies and music films from the Parallel Vision archive.</p></div>
