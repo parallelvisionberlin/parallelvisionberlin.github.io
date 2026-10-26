@@ -40,7 +40,8 @@
 - Add permanent server redirects for old Moods aliases and a top-level Pages `404.html` for missing routes.
 - No product CSS/JS, provider, account, generation, wallet or private-data changes.
 - 12 focused Node checks passed: search discovery/security, comparison landing, mandatory approved Image contract.
-- Source PR/merge and Pages deployment receipts: pending, must verify before claiming published.
+- PR #589. Initial CI found security-config fixture absent in legacy sparse checkouts; retain its assertions in a dedicated full-checkout search-indexing workflow. Product code unchanged by fixture repair.
+- Source merge and Pages deployment receipts: pending, must verify before claiming published.
 - Relevant files: `lab/_redirects`, `lab/sitemap.xml`, `lab/404.html`, canonical tags in public HTML, new indexing test/config.
 
 ## Remaining Google verification
