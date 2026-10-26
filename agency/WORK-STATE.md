@@ -63,3 +63,19 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Live browser confirmed The Finest page, working next buttons in both galleries, keyboard navigation and the Agency entry. Hero and Locations screenshot review passed.
 - Public URL: https://parallelvisionlabel.com/maison-satin-the-finest.html
 - No remaining blocker for this feature. Full continuous YouTube playback was not verified.
+
+
+### The Finest editorial refinement and storyboard, 2026-10-26
+- Based on main e8e9ba342597af3761e69f8879aaf7c4914baced; other work preserved.
+- Neutral black/grey UI; original warm film imagery and hero artwork retained.
+- Replaced character-consistency sales copy with concise film notes; reduced oversized notes heading.
+- Removed the mismatched elevator portrait from the visible selection, leaving the original mirror portrait; asset retained.
+- Film Stills now has 5 frames; Locations retains all 9.
+- Added a third, 2-sheet Storyboard gallery, with the supplied ocean sequence and underwater framing studies.
+- Sources: Underwater Story 2.png and Underwater Story..png. WebP delivery preserves full sheets at 1536x1024; full-size links permit reading details.
+- Three supplied road-board variants excluded for duplication and illegible annotations; no generated replacements.
+- Storyboard technical annotations are identified as previsualisation references, not physical camera-production claims.
+- Reused existing controls, SVG arrows and keyboard/swipe support; no shared JS changes.
+- Local source validation and desktop managed-preview visual review passed; all 3 galleries initialized, new previous/next controls passed, no desktop overflow.
+- Scoped CI updated for 17 images, 3 galleries, two-sheet wraparound, decoding and 1440/390/320px layout.
+- Publication pending validation of this revision; no email sent as part of this website change.
