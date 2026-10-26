@@ -1,0 +1,13 @@
+{
+  "action": "skip",
+  "action_parameters": {
+    "phases": ["http_request_sbfm"]
+  },
+  "description": "PV LAB: verified search crawlers on public pages only (BOBA-199 false positive)",
+  "enabled": true,
+  "expression": "(http.host eq \"pvlab.studio\" and http.request.method in {\"GET\" \"HEAD\"} and cf.client.bot and cf.verified_bot_category eq \"Search Engine Crawler\" and http.request.uri.path in {\"/\" \"/index.html\" \"/moods\" \"/moods.html\" \"/zencreator-alternative/\" \"/zencreator-alternative/index.html\" \"/robots.txt\" \"/sitemap.xml\"})",
+  "logging": {
+    "enabled": true
+  },
+  "ref": "pvlab_verified_search_public_20261026"
+}

@@ -12,3 +12,15 @@
 
 # One canonical comparison URL for the new PV LAB domain.
 /zencreator-alternative /zencreator-alternative/ 301
+
+# Public Moods aliases resolve at the server, even without JavaScript.
+/explore-moods /moods 301
+/explore-moods.html /moods 301
+/explore-moods-new /moods 301
+/explore-moods-new.html /moods 301
+/lab/moods /moods 301
+/lab/moods.html /moods 301
+/lab/explore-moods /moods 301
+/lab/explore-moods.html /moods 301
+/lab/explore-moods-new /moods 301
+/lab/explore-moods-new.html /moods 301

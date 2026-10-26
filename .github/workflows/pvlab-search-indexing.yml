@@ -1,0 +1,19 @@
+name: PV LAB public search indexing
+on:
+  pull_request:
+    paths: ['lab/**', '.github/cloudflare/pvlab-verified-search-public.json', 'tests/lab-search-indexing.test.mjs', 'tests/pvlab-search-security.test.mjs', '.github/workflows/pvlab-search-indexing.yml']
+  push:
+    branches: [main]
+    paths: ['lab/**', '.github/cloudflare/pvlab-verified-search-public.json', 'tests/lab-search-indexing.test.mjs', 'tests/pvlab-search-security.test.mjs', '.github/workflows/pvlab-search-indexing.yml']
+permissions:
+  contents: read
+jobs:
+  search-indexing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: node --test tests/lab-search-indexing.test.mjs tests/pvlab-search-security.test.mjs tests/lab-zencreator-landing.test.mjs tests/lab-approved-image-ui-contract.test.mjs
