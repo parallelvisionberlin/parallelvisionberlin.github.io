@@ -106,4 +106,6 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - The Finest only: edge wrap cuts directly between last/first without a reverse sweep; adjacent slides retain their existing transition. Shared Flesh Zero behaviour remains unchanged.
 - Existing serif hero/title retained. About text enlarged to 17–19px desktop/16px mobile, credits to 15px and credit labels to 11px; brighter reading contrast and 520px measure.
 - Files: flesh-zero.js, the-finest.css, maison-satin-the-finest.html cache tokens, tests/agency-finest-browser.mjs and this handoff.
-- Added immediate transform-position checks for both boundary directions. Source validation and live review pending publication.
+- Added immediate transform-position checks for both boundary directions; node --check passed.
+- Published source 680bc9a3df937acf801d777ccd5d2ccd4ce4efb3; Pages deployment 40406727702 succeeded. Static-site and approved Image UI checks passed; Agency browser regression 40406727224 was still running at final review.
+- Live browser confirmed 01->07 lands directly at -7300.78px (6 x 1216.796875px), and 07->01 lands at 0 immediately. Reading text measured 17.719px in the review viewport; notes/credits screenshot reviewed and saved.
