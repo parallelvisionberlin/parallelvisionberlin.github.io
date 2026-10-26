@@ -77,3 +77,7 @@
 /* Original storyboard sheets remain uncropped and open at full size. */
 .finest-board-link{display:block;width:100%;cursor:zoom-in}
 .finest-page .finest-storyboard .fz-single-slide img{aspect-ratio:3/2}
+
+/* Keep taps static while retaining native two-finger zoom and vertical scroll. */
+body.finest-page,body.finest-page .fz-carousel,body.finest-page .fz-arrow{touch-action:manipulation}
+body.finest-page .fz-carousel-viewport{touch-action:pan-y pinch-zoom}

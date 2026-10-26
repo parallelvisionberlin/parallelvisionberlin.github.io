@@ -84,3 +84,10 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Production browser confirmed revised film copy, 5 Film Stills, 9 Locations and new 2-sheet Storyboard; next/previous worked, and both live storyboard images decoded at 1536px. Live screenshot captured.
 - Manual desktop and 390/320px preview verification passed, with zero horizontal overflow after correction. No remaining publication blocker; optional full browser CI result can be checked in PR #591.
 - No email sent as part of this website change.
+
+### The Finest tap behaviour, 2026-10-26
+- Scope: the-finest.css and its page cache token only. Shared gallery JS and other pages unchanged.
+- Disable browser double-tap zoom with touch-action:manipulation; gallery viewport explicitly permits pan-y pinch-zoom, replacing the inherited pan-y restriction.
+- Native viewport zoom remains enabled; no maximum-scale, user-scalable=no or blanket preventDefault.
+- Source reviewed against MDN touch-action guidance; actual iPhone Safari gestures cannot be exercised in the cloud desktop browser.
+- Live verification pending this publication.
