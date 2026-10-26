@@ -9,7 +9,11 @@
 - Local checks passed: 5 approved Image contracts; Fashion reference owner/customer/guest at desktop/mobile widths. Focused selectors assert one 1px border, zero outline/shadow. Full priced Generate fits 1900/1440/1024/390/320px. Existing geometry bounds are adjusted narrowly for the approved button-width redistribution.
 - Full public visual suite previously reached an unrelated disabled Retouch input at line 349; no Fashion visual assertion failed in that run. Latest full visual comparison and standalone browser checks run again through CI; no gates weakened.
 - CI at source 7b298100 passed Fashion browser, approved Image, unit, pricing overlay, generation, gallery queue and static checks. Standalone browser passed locally. Updated the obsolete public-smoke confirm-button assertion to verify popup absence, inline server-credit price and bound confirm:true submission; the updated read-only smoke passes against current production.
-- Publication pending; user already authorized publishing this website fix. No real generation or payment used.
+- Published via PR #597 as 5d3f1325a08f91c60ba8fd75ee9661c91a40e53d. Cloudflare pvlab-studio check 121888800198 succeeded; the release verifier returned LIVE_VERIFIED for lab.js version 20261026-fashion-minimal-deck1 (SHA-256 b0c6c86df3d94fc7b0411e868957ca67a81d03a5c8fc23ba4371fa5b0aeebedf).
+- Production fashion.css and mount JS exactly match reviewed source bytes. CSS SHA-256: 5ea555185add50f0e4882a53ab340d816e8dd0b11e7c376eab416966a5df8a18. Mount SHA-256: 408876f806f20ff174b478ea39a83f942bd692f3c3caa9eb649c67dadffde5f7.
+- Live public Fashion DOM verified on pvlab.studio/studio?tool=fashion: DM Sans, model 14px/610, parameters 12px/550, direction 15.5px/420, Generate 15px/600; 1px borders, no shadows, no arrow, no quote popup, content fits. Focus rule verified in loaded CSS; actual keyboard focus was covered in intercepted local/CI browsers.
+- Final CI head 17fbff44 passes Fashion browser and all independent public-Studio visual/navigation/privacy steps, approved Image, unit, generation, public smoke and relevant static checks. Broader Upscaler CI failure remains outside this scope; no gates disabled. No real signed-in generation or payment used.
+- Request complete. Next action: none.
 
 ## Fashion inline Generate price, 2026-10-26
 - Request: remove the Review charge popup; show only Generate · XX credits.
