@@ -128,25 +128,19 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
 .practice-extension p{font-size:17px;line-height:1.85;color:#333333}
 .practice-extension span{color:#8a8a8a;padding-inline:9px}
 .practice{padding-bottom:0}
-.practice-handoff{margin-top:31px;background:var(--ink);color:var(--white);border-top:1px solid #c4c4c4}
-.practice-handoff-inner{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:48px;align-items:end;padding-top:31px;padding-bottom:31px}
-.practice-handoff p{font-size:clamp(25px,2.7vw,38px);letter-spacing:-.055em;line-height:1}
-.practice-handoff-inner>div{justify-self:end;text-align:right}
-.practice-handoff span{display:block;font-size:10px;letter-spacing:.16em;color:#d3d3d3}
-.practice-handoff small{display:block;margin-top:7px;font-size:13px;color:#8f8f8f}
-.approach{padding:68px 0 66px;border-top:1px solid #242424}
-.approach-intro{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:72px;align-items:end}
-.approach .section-label{color:#8d8d8d}
-.approach h2{font-size:clamp(44px,5.1vw,74px);line-height:.98;letter-spacing:-.075em;max-width:760px}
-.approach-intro>p{max-width:470px;font-size:17px;line-height:1.65;color:#c6c6c6}
-.studio-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:56px;border-top:1px solid #3c3c3c;border-bottom:1px solid #3c3c3c}
-.studio-step{min-height:260px;padding:24px 34px 31px 0;border:0}
-.studio-step+.studio-step{padding-left:34px;border-left:1px solid #3c3c3c}
-.step-meta{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:45px!important;font-size:10px!important;letter-spacing:.16em!important;color:#888!important;max-width:none!important}
-.step-meta span:last-child{color:#d7d7d7}
-.studio-step h3{font-size:clamp(27px,2.25vw,34px);letter-spacing:-.055em;margin-bottom:13px}
-.studio-step>p:not(.step-meta){font-size:15px;line-height:1.68;color:#aaa;max-width:315px}
-.approach-endnote{margin-top:22px;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:#777}
+.approach{padding:82px 0 74px;border-top:1px solid #242424;background:var(--ink);overflow:hidden}
+.approach .section-label{color:#7f7f7f;margin-bottom:33px}
+.approach-editorial{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:72px;align-items:end}
+.approach h2{font-size:clamp(70px,9vw,138px);line-height:.84;letter-spacing:-.085em;font-weight:600;max-width:none}
+.approach-fragments{max-width:470px;padding-bottom:8px;font-size:clamp(22px,2.1vw,31px);line-height:1.25;letter-spacing:-.035em;color:#d2d2d2}
+.approach-forms{display:flex;flex-wrap:wrap;gap:0;margin-top:70px;border-top:1px solid #3a3a3a;border-bottom:1px solid #3a3a3a}
+.approach-forms span{display:flex;align-items:center;min-height:84px;padding:0 24px;border-right:1px solid #3a3a3a;font:500 10px/1 Michroma,Arial,sans-serif;letter-spacing:.14em;color:#aaa}
+.approach-forms span:first-child{padding-left:0}
+.approach-forms span:last-child{border-right:0}
+.approach-close{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:end;padding-top:30px}
+.approach-close p{font-size:clamp(28px,3vw,44px);line-height:1.04;letter-spacing:-.055em}
+.approach-close a{display:inline-flex;align-items:center;gap:11px;min-height:44px;border-bottom:1px solid #777;padding-bottom:4px;font-size:13px;font-weight:600}
+.approach-close a:hover{opacity:.68}
 .contact{padding:61px 0 76px;border-top:1px solid #414141}
 .contact-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:55px;align-items:start}
 .contact .section-label{color:var(--muted)}
@@ -251,16 +245,17 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
   .practice-item p{grid-column:2;max-width:530px;font-size:16px}
   .practice-extension{grid-template-columns:1fr;gap:10px}
   .practice-extension p{font-size:16px}
-  .practice-handoff{margin-top:26px}
-  .practice-handoff-inner{grid-template-columns:1fr;gap:17px;padding-top:25px;padding-bottom:27px}
-  .practice-handoff-inner>div{justify-self:start;text-align:left}
-  .approach{padding:52px 0 56px}
-  .approach-intro{grid-template-columns:1fr;gap:22px}
-  .approach-intro>p{font-size:16px}
-  .studio-steps{grid-template-columns:1fr;gap:0;margin-top:38px}
-  .studio-step{min-height:0;padding:24px 0 26px;border-top:1px solid #3c3c3c}
-  .studio-step+.studio-step{padding-left:0;border-left:0}
-  .step-meta{margin-bottom:27px!important}
+  .approach{padding:58px 0 60px}
+  .approach .section-label{margin-bottom:25px}
+  .approach-editorial{grid-template-columns:1fr;gap:26px}
+  .approach h2{font-size:clamp(66px,18vw,96px)}
+  .approach-fragments{font-size:22px;max-width:520px;padding-bottom:0}
+  .approach-forms{margin-top:43px}
+  .approach-forms span{min-height:60px;padding:0 14px;font-size:9px}
+  .approach-forms span:first-child{padding-left:0}
+  .approach-close{grid-template-columns:1fr;gap:24px;padding-top:25px}
+  .approach-close p{font-size:34px}
+  .approach-close a{justify-self:start}
   .contact{padding:52px 0 66px}
   .contact-grid{grid-template-columns:1fr;gap:45px}
   .contact h2{font-size:clamp(52px,9vw,74px)}
@@ -278,9 +273,6 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
   .practice-item{grid-template-columns:28px 1fr;gap:10px}
   .practice-item h3{font-size:clamp(29px,7.6vw,38px)}
   .practice-extension p{font-size:15px}
-  .studio-steps{grid-template-columns:1fr}
-  .studio-step{padding:23px 0 25px}
-  .studio-step h3{font-size:29px}
   .contact h2{font-size:clamp(46px,11vw,60px)}
   .contact-email{font-size:clamp(17px,5.1vw,26px)}
   .footer-inner{align-items:flex-start}
@@ -559,40 +551,21 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
       <p>Websites <span aria-hidden="true">/</span> E-commerce <span aria-hidden="true">/</span> Campaigns <span aria-hidden="true">/</span> Digital Characters <span aria-hidden="true">/</span> Original Sound</p>
     </div>
   </div>
-  <div class="practice-handoff">
-    <div class="wrap practice-handoff-inner">
-      <p>Bring us the fragment.</p>
-      <div>
-        <span>IMAGE / TRACK / GARMENT / FACE / PLACE / IDEA</span>
-        <small>One strong thing is enough.</small>
-      </div>
-    </div>
-  </div>
-</section>
+  </section>
 <section class="approach" id="approach" aria-labelledby="approach-title">
   <div class="wrap" id="formats">
-    <div class="approach-intro">
-      <div><p class="section-label">05 / How a world begins</p><h2 id="approach-title">From an image to an entire world.</h2></div>
-      <p>We don't begin with a format. We begin with the thing that has energy: an image, a track, a face, a garment, a place. From there we build a visual language strong enough to move between image, film, sound and space without losing itself.</p>
+    <p class="section-label">05 / Working method</p>
+    <div class="approach-editorial">
+      <h2 id="approach-title">Start anywhere.</h2>
+      <p class="approach-fragments">A track. A face. A garment. A place. A photograph. A sentence.</p>
     </div>
-    <div class="studio-steps">
-      <article class="studio-step">
-        <p class="step-meta"><span>01</span><span>SOURCE</span></p>
-        <h3>Find the tension.</h3>
-        <p>A frame, a track, a silhouette, a location, a half-formed idea. We start with what already feels alive.</p>
-      </article>
-      <article class="studio-step">
-        <p class="step-meta"><span>02</span><span>LANGUAGE</span></p>
-        <h3>Give it rules.</h3>
-        <p>Light, material, movement, typography, sound and atmosphere. The project becomes a language, not a look.</p>
-      </article>
-      <article class="studio-step">
-        <p class="step-meta"><span>03</span><span>WORLD</span></p>
-        <h3>Let it expand.</h3>
-        <p>Film, campaign, character, digital space, installation or release. The same language moves across every form.</p>
-      </article>
+    <div class="approach-forms" aria-label="Possible forms">
+      <span>IMAGE</span><span>FILM</span><span>SOUND</span><span>CHARACTER</span><span>SPACE</span><span>WEB</span><span>RELEASE</span>
     </div>
-    <p class="approach-endnote">One idea. One language. Many forms.</p>
+    <div class="approach-close">
+      <p>The format can change.<br>The identity shouldn't.</p>
+      <a href="#contact">Show us the idea <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a>
+    </div>
   </div>
 </section>
 <section class="contact" id="contact" aria-labelledby="contact-title">
