@@ -114,4 +114,5 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - User approved retaining the sofa photograph and removing the standing window portrait.
 - Film Stills: coastal-drive, city-drive-profile, living-room-scene, mirror-locked-mood, ocean-entry, underwater-descent. Six frames, 18 images across the page.
 - Updated visible count, all slide ARIA positions and existing browser image-count assertion. Removed only the selected figure; original asset retained.
-- Hero, typography, locations, storyboard and repaired touch/wrap behaviour preserved. Publication verification pending this revision.
+- Hero, typography, locations, storyboard and repaired touch/wrap behaviour preserved.
+- Published source c657c732c3d7ec41b3812eed934f3257c4893603. Static-site, approved Image UI and Agency browser checks passed. Live browser confirmed exactly six frames in approved order, no window portrait, sofa at 03, and working forward/back navigation. Screenshot saved.
