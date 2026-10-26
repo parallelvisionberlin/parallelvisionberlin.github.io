@@ -4,10 +4,11 @@
 - Verified live Image style: DM Sans; model 14px/610, parameter controls approximately 12px/550, prompt 15.5px/420, Generate 15px/600. Fashion copies these values, retaining 16px mobile inputs to prevent focus zoom.
 - Fashion selectors/textareas have one 1px focus border, with no extra outline or shadow. Field heights and photographic layout stay unchanged. Generate gets a 190px minimum on wide desktop and 155px on compact desktop; adjacent selectors redistribute a few pixels to fit the full price.
 - Generate uses text only to match Image and keep the complete credit label inside the button; pricing and quote/submission behavior remain unchanged.
-- Scope: lab/fashion.css, fashion.html, fashion-studio.js, lab.js and studio.html cache references; existing Fashion layout and public visual comparison tests; this checkpoint.
+- Scope: lab/fashion.css, fashion.html, fashion-studio.js, lab.js and studio.html cache references; existing Fashion layout/public visual comparison tests, .github/workflows/pv-lab-fashion-smoke.yml; this checkpoint.
 - Independent visual baseline changes only by the explicitly approved Fashion CSS patch. Other baseline regions and comparison thresholds stay fixed.
 - Local checks passed: 5 approved Image contracts; Fashion reference owner/customer/guest at desktop/mobile widths. Focused selectors assert one 1px border, zero outline/shadow. Full priced Generate fits 1900/1440/1024/390/320px. Existing geometry bounds are adjusted narrowly for the approved button-width redistribution.
 - Full public visual suite previously reached an unrelated disabled Retouch input at line 349; no Fashion visual assertion failed in that run. Latest full visual comparison and standalone browser checks run again through CI; no gates weakened.
+- CI at source 7b298100 passed Fashion browser, approved Image, unit, pricing overlay, generation, gallery queue and static checks. Standalone browser passed locally. Updated the obsolete public-smoke confirm-button assertion to verify popup absence, inline server-credit price and bound confirm:true submission; the updated read-only smoke passes against current production.
 - Publication pending; user already authorized publishing this website fix. No real generation or payment used.
 
 ## Fashion inline Generate price, 2026-10-26
