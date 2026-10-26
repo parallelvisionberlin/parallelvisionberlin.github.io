@@ -57,5 +57,9 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Agency Work in Motion adds The Finest as a third card; existing films and later main changes preserved.
 - Corrected stale two-film regression assertion and replaced new page Unicode arrows with SVG for iPhone.
 - Added scoped 1440/390/320px gallery, image-decoding, keyboard and overflow checks to Agency CI.
-- Local static validation passed. Local Chromium unavailable; browser checks run in GitHub CI.
-- Publication: pending successful checks and merge of PR #584; verify custom-domain page and Agency link after merge.
+- Local static validation passed; GitHub browser checks passed for The Finest and Agency at 1440/390/320px.
+- PR #584 merged as 228f02280c6470c5b1f7370b17a9bc373b03134e; GitHub Pages deployment 40373722883 succeeded.
+- Production Agency custom-domain/API verification passed in run 40373722640.
+- Live browser confirmed The Finest page, working next buttons in both galleries, keyboard navigation and the Agency entry. Hero and Locations screenshot review passed.
+- Public URL: https://parallelvisionlabel.com/maison-satin-the-finest.html
+- No remaining blocker for this feature. Full continuous YouTube playback was not verified.
