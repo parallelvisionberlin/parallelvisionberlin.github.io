@@ -53,9 +53,10 @@
  .finest-main{padding:70px 12px 50px}
  .finest-note-grid{grid-template-columns:1fr;gap:27px}
  .finest-notes{margin-top:80px;padding:32px 0 66px}
- .finest-page .fz-gallery-block{--fz-gallery-width:calc(100vw - 24px);padding-top:74px}
+ .finest-page .fz-gallery-block{--fz-gallery-width:100%;padding-top:74px}
  .finest-page .fz-section-bar{width:var(--fz-gallery-width)}
- .finest-gallery-note{width:calc(100vw - 24px)}
+ .finest-gallery-note{width:100%}
+ .finest-page .archive-footer{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
  .finest-close{margin-top:90px;flex-direction:column}
 }
 @media(max-width:480px){
