@@ -330,3 +330,25 @@ textarea::placeholder{white-space:nowrap}
  #garment-hint small{font-size:9px}
  .slot-plus{width:36px;height:36px;margin-bottom:4px}
 }
+
+/* Owner-approved Image deck typography and single-border Fashion focus. */
+.engine-section .field-title{font:400 12px/1.2 'DM Sans',Arial,sans-serif;letter-spacing:0;color:#b7b8bc}
+.engine-section select,.engine-section textarea{border-radius:9px;box-shadow:none}
+.engine-section select{font:550 12px/1.5 'DM Sans',Arial,sans-serif;letter-spacing:normal}
+.engine-section #model-select{font-size:14px;font-weight:610;line-height:1.2}
+.engine-section textarea{font:420 15.5px/1.48 'DM Sans',Arial,sans-serif;letter-spacing:-.019em}
+.engine-section select:focus,.engine-section select:focus-visible,.engine-section textarea:focus,.engine-section textarea:focus-visible{outline:none;box-shadow:none;border-color:#ffffff80}
+.engine-section .action-primary{font:600 15px/1.17 'DM Sans',Arial,sans-serif;letter-spacing:-.015em;padding:10px 12px;gap:0}
+#quote>span[aria-hidden="true"]:empty{display:none}
+#quote:after{content:none}
+@media(min-width:1101px){
+ .engine-grid{grid-template-columns:minmax(155px,248fr) minmax(240px,402fr) minmax(180px,627fr) minmax(190px,185fr)}
+}
+@media(min-width:801px) and (max-width:1100px){
+ .engine-grid{grid-template-columns:minmax(135px,1.1fr) minmax(185px,1.5fr) minmax(130px,1.3fr) minmax(155px,.9fr)}
+ .engine-section #model-select{font-size:12px}
+ .engine-section .action-primary{font-size:12px}
+}
+@media(max-width:800px){
+ .engine-section select,.engine-section #model-select,.engine-section textarea{font-size:16px}
+}

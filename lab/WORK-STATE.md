@@ -1,3 +1,15 @@
+## Fashion minimal deck typography and focus, 2026-10-26
+- User request: copy Image deck typography and remove doubled selector borders. Screenshot: image(20261026-221638).png, Library libfile_092e473ee27c8191bfb58bcb4c7916a3.
+- Base production: b16c106a456252315c6756d9efb5b2f1b14bcd92. Branch fix/fashion-minimal-deck-20261026.
+- Verified live Image style: DM Sans; model 14px/610, parameter controls approximately 12px/550, prompt 15.5px/420, Generate 15px/600. Fashion copies these values, retaining 16px mobile inputs to prevent focus zoom.
+- Fashion selectors/textareas have one 1px focus border, with no extra outline or shadow. Field heights and photographic layout stay unchanged. Generate gets a 190px minimum on wide desktop and 155px on compact desktop; adjacent selectors redistribute a few pixels to fit the full price.
+- Generate uses text only to match Image and keep the complete credit label inside the button; pricing and quote/submission behavior remain unchanged.
+- Scope: lab/fashion.css, fashion.html, fashion-studio.js, lab.js and studio.html cache references; existing Fashion layout and public visual comparison tests; this checkpoint.
+- Independent visual baseline changes only by the explicitly approved Fashion CSS patch. Other baseline regions and comparison thresholds stay fixed.
+- Local checks passed: 5 approved Image contracts; Fashion reference owner/customer/guest at desktop/mobile widths. Focused selectors assert one 1px border, zero outline/shadow. Full priced Generate fits 1900/1440/1024/390/320px. Existing geometry bounds are adjusted narrowly for the approved button-width redistribution.
+- Full public visual suite previously reached an unrelated disabled Retouch input at line 349; no Fashion visual assertion failed in that run. Latest full visual comparison and standalone browser checks run again through CI; no gates weakened.
+- Publication pending; user already authorized publishing this website fix. No real generation or payment used.
+
 ## Fashion inline Generate price, 2026-10-26
 - Request: remove the Review charge popup; show only Generate · XX credits.
 - Base source: d4e3a9a3, isolated branch fix/fashion-credit-button-20261026.
@@ -8,8 +20,8 @@
 - Current code prices Max Balanced 1K at 69 PV credits ($0.15 provider estimate), v1.6 at 35 ($0.075). Official FASHN Max API and fal v1.6 pricing checked on this date.
 - Unit checks: approved Image contract, Fashion routes and customer wallet billing passed (20).
 - Browser checks passed: actual Studio Fashion owner/customer/guest, desktop 1672/1440/1024/800 and mobile 390/320, upload/drop, quoted generation and History; double-click protection. Standalone Fashion passed malformed-price and stale-response regressions. Full Studio layout/entrance checks passed. Desktop/mobile captures reviewed. All APIs intercepted; no real generation/payment.
-- Publication approved explicitly by Alejandro in this conversation (YES after the public GitHub + live publication question). The earlier automatic approval block is resolved by that authorization. Release checks/publication pending.
-- Verified local implementation/regression head: 10cfc129 (includes 2aaacd91 and 3897bcf2). Current main 99439c89 has no intervening changes to affected files. Next action: push the isolated branch, run relevant CI, merge and verify Cloudflare production bytes per RELEASE-PROTOCOL.md.
+- Published through PR #594 as b16c106a456252315c6756d9efb5b2f1b14bcd92 after explicit approval. Cloudflare pvlab-studio check 121881323750 succeeded; release verifier returned LIVE_VERIFIED for lab.js (SHA-256 19829b980c8fc2f46f32080e700e8982098c776e4e27a4c86b8e5727b7b357ae). Fashion mount/controller also matched exact reviewed production bytes. Template includes the new version and no popup; Cloudflare email protection transforms footer bytes. Public live Fashion rendering verified; no real signed-in generation performed.
+- Release head 78efe715 passed Fashion browser, independent public Studio visual comparison, approved Image, unit, static, pricing, generation and gallery checks. Broader CI reported unrelated checkout, gallery-cache and Upscaler failures; the Upscaler issue reproduces on unchanged main. No gates weakened. Next work is the separately requested typography/focus refinement above.
 
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
