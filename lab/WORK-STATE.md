@@ -1,3 +1,16 @@
+## Fashion inline Generate price, 2026-10-26
+- Request: remove the Review charge popup; show only Generate · XX credits.
+- Base source: d4e3a9a3, isolated branch fix/fashion-credit-button-20261026.
+- Fashion prepares the server-bound quote after valid person/garment/settings changes. Preparation uploads private inputs and checks pricing, with no provider generation.
+- Generate displays the returned PV credit cost for owners and customers. One explicit click submits that exact quote with confirm:true.
+- Input changes invalidate quotes; stale asynchronous responses are ignored; expiry triggers free repricing. Invalid prices cannot generate; busy guards and backend quote replay protection remain.
+- Removed the old quote popup from the template. Updated Fashion controller/template/mount and Studio import versions only; no provider, wallet price, default model, imagery or layout changes.
+- Current code prices Max Balanced 1K at 69 PV credits ($0.15 provider estimate), v1.6 at 35 ($0.075). Official FASHN Max API and fal v1.6 pricing checked on this date.
+- Unit checks: approved Image contract, Fashion routes and customer wallet billing passed (20).
+- Browser checks passed: actual Studio Fashion owner/customer/guest, desktop 1672/1440/1024/800 and mobile 390/320, upload/drop, quoted generation and History; double-click protection. Standalone Fashion passed malformed-price and stale-response regressions. Full Studio layout/entrance checks passed. Desktop/mobile captures reviewed. All APIs intercepted; no real generation/payment.
+- Publication approved explicitly by Alejandro in this conversation (YES after the public GitHub + live publication question). The earlier automatic approval block is resolved by that authorization. Release checks/publication pending.
+- Verified local implementation/regression head: 10cfc129 (includes 2aaacd91 and 3897bcf2). Current main 99439c89 has no intervening changes to affected files. Next action: push the isolated branch, run relevant CI, merge and verify Cloudflare production bytes per RELEASE-PROTOCOL.md.
+
 # PV LAB release checkpoint, 2026-10-21 (Europe/Berlin)
 
 ## Approved Fashion #494 — reconcile after Video merge, 2026-10-24
