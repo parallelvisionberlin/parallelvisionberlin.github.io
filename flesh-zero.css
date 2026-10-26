@@ -1,6 +1,9 @@
 /* Flesh Zero / film and editorial galleries. Scoped to this collection only. */
 .flesh-zero-page .fz-film-block { padding-top: clamp(72px, 8vw, 124px); }
-.flesh-zero-page .fz-gallery-block { padding-top: clamp(54px, 6vw, 104px); }
+.flesh-zero-page .fz-gallery-block {
+  padding-top: clamp(30px, 3.3vw, 58px);
+  --fz-gallery-width: min(1600px, calc(100vw - 48px), 130svh);
+}
 
 .flesh-zero-page .fz-section-bar {
   display: flex;
@@ -28,10 +31,16 @@
   margin-left: 50%;
   transform: translateX(-50%);
 }
-/* Scale the whole gallery to the available screen height, so a complete 16:9
-   photograph (including its lower edge) is visible without vertical cropping. */
-.flesh-zero-page .fz-gallery-block .fz-wide {
-  width: min(1600px, calc(100vw - 48px), 140svh);
+/* Keep the labels and both image galleries aligned inside one screen-height-
+   aware frame. The entire photo remains visible without clipping its edges. */
+.flesh-zero-page .fz-gallery-block .fz-wide,
+.flesh-zero-page .fz-gallery-block .fz-section-bar {
+  width: var(--fz-gallery-width);
+}
+.flesh-zero-page .fz-gallery-block .fz-section-bar {
+  max-width: none;
+  margin-left: 50%;
+  transform: translateX(-50%);
 }
 
 .flesh-zero-page .fz-film-frame {
@@ -201,12 +210,14 @@
 
 @media (max-width: 700px) {
   .flesh-zero-page .fz-film-block { padding-top: 72px; }
-  .flesh-zero-page .fz-gallery-block { padding-top: 52px; }
+  .flesh-zero-page .fz-gallery-block {
+    padding-top: 52px;
+    --fz-gallery-width: calc(100vw - 24px);
+  }
   .flesh-zero-page .fz-section-bar { margin-bottom: 18px; }
   .flesh-zero-page .fz-section-meta,
   .flesh-zero-page .fz-gallery-count { font-size: 8px; letter-spacing: .18em; }
-  .flesh-zero-page .fz-wide,
-  .flesh-zero-page .fz-gallery-block .fz-wide { width: calc(100vw - 24px); }
+  .flesh-zero-page .fz-wide { width: calc(100vw - 24px); }
   .flesh-zero-page .fz-film-play { gap: 12px; font-size: 8px; }
   .flesh-zero-page .fz-film-play-icon { width: 48px; height: 48px; }
   .flesh-zero-page .fz-film-play-icon::before {
