@@ -101,3 +101,9 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Counter/ARIA updated to 7 stills; browser regression image count updated to 19.
 - Published as d592e3d17d5a72d5fa9935eeb14a31ea3bc4d631; Pages deployment 40405520671 succeeded.
 - Live browser verified all 7 images loaded at source dimensions and carousel wrapped back to 01 after 7 next clicks; opening screenshot saved. Header, locations and storyboards unchanged.
+
+### Wrap transition and reading hierarchy, 2026-10-26
+- The Finest only: edge wrap cuts directly between last/first without a reverse sweep; adjacent slides retain their existing transition. Shared Flesh Zero behaviour remains unchanged.
+- Existing serif hero/title retained. About text enlarged to 17–19px desktop/16px mobile, credits to 15px and credit labels to 11px; brighter reading contrast and 520px measure.
+- Files: flesh-zero.js, the-finest.css, maison-satin-the-finest.html cache tokens, tests/agency-finest-browser.mjs and this handoff.
+- Added immediate transform-position checks for both boundary directions. Source validation and live review pending publication.

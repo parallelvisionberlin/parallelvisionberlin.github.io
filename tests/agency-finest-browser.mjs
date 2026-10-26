@@ -21,6 +21,14 @@ try {
       const section=page.locator('#'+sectionId),gallery=section.locator('[data-fz-carousel]');
       const count=section.locator('[data-fz-current]');
       await gallery.scrollIntoViewIfNeeded();
+      const total=await gallery.locator("[data-fz-slide]").count();
+      if(total>2){
+        await gallery.locator("[data-fz-prev]").click();
+        assert.equal(await count.innerText(),String(total).padStart(2,"0"));
+        assert.ok(await gallery.locator("[data-fz-track]").evaluate(track=>Math.abs(new DOMMatrixReadOnly(getComputedStyle(track).transform).m41+(track.children.length-1)*track.getBoundingClientRect().width)<1),"Wrap must not sweep through intermediate frames");
+        await gallery.locator("[data-fz-next]").click();
+        assert.ok(await gallery.locator("[data-fz-track]").evaluate(track=>Math.abs(new DOMMatrixReadOnly(getComputedStyle(track).transform).m41)<1),"Return to first frame immediately");
+      }
       await gallery.locator('[data-fz-next]').click();assert.equal(await count.innerText(),'02');
       await gallery.focus();await page.keyboard.press('ArrowRight');assert.equal(await count.innerText(),sectionId==='storyboard'?'01':'03');
       await page.keyboard.press('ArrowLeft');assert.equal(await count.innerText(),'02');

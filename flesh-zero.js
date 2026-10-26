@@ -17,8 +17,16 @@
 
     let index = 0;
     const show = nextIndex => {
+      const previousIndex = index;
       index = (nextIndex + slides.length) % slides.length;
+      // Wrap directly, without sweeping across the intervening photographs.
+      const wrapCut = root.closest('.finest-page') && Math.abs(index - previousIndex) > 1;
+      if (wrapCut) track.style.transition = 'none';
       track.style.transform = `translate3d(-${index * 100}%,0,0)`;
+      if (wrapCut) {
+        void track.offsetWidth;
+        track.style.transition = '';
+      }
       slides.forEach((slide, slideIndex) => {
         slide.setAttribute('aria-hidden', String(slideIndex !== index));
       });
