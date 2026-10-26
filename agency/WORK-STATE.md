@@ -99,4 +99,5 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - coastal-drive opens the gallery; city-drive-profile replaces highway-drive. mirror-locked-mood (attachment 3) replaces both old mirror views, including the shot flagged in attachment 6.
 - Original assets retained; new WebP files preserve source framing. Hero, nine locations, two storyboards, touch settings and shared JS unchanged.
 - Counter/ARIA updated to 7 stills; browser regression image count updated to 19.
-- Publication and live image/navigation checks pending this revision.
+- Published as d592e3d17d5a72d5fa9935eeb14a31ea3bc4d631; Pages deployment 40405520671 succeeded.
+- Live browser verified all 7 images loaded at source dimensions and carousel wrapped back to 01 after 7 next clicks; opening screenshot saved. Header, locations and storyboards unchanged.
