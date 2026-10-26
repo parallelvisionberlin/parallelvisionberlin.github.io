@@ -73,4 +73,9 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Existing sitemap already excludes both withdrawn pages.
 - No other artists, collections, page layout rules, social accounts or reusable source assets changed.
 - Validation: focused roster/card/order and unchanged-content checks passed; inline JavaScript parses; diff whitespace check passed.
-- Next: verify static validation, Pages deployment and public responses before confirming withdrawal.
+- Published implementation: `a884f099ea3677a40f6ea3949bd50a089aee1ab3`.
+- Static validation passed: Actions run `40389360429`; Pages build/deploy succeeded: `40389359777`.
+- Public verification: homepage 200 with 11 artists and no Amatista; Fashion overview 200 with four inhabitants and no Amatista; both withdrawn profile URLs return 404.
+- Browser confirmed the updated roster, four inhabitants and both missing profiles. Existing browser navigation cache required one reload.
+- Instagram remains user-managed. No email sent.
+- Next: user removes the Instagram publications and can send their reviewed response.
