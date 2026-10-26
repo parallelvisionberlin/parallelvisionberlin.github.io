@@ -53,7 +53,11 @@ function update(){
   $('direction').placeholder=selected==='fluxvto'?'Describe how the garment should be worn…':'Keep the silhouette. Open the jacket, soften the folds…';
   $('quote').disabled=!publicPreview()&&(busy||preparing||!readyToQuote());
   const title=busy?'Generating…':quote?'Generate · '+quote.creditCost.toLocaleString()+' credits':'Generate';
-  $('quote').textContent=title;
+  if($('quote').dataset.caption!==title){
+    $('quote').dataset.caption=title;
+    const arrow=document.createElement('span');arrow.setAttribute('aria-hidden','true');
+    $('quote').replaceChildren(document.createTextNode(title),arrow);
+  }
   const person=!!$('person-file').files.length,garment=!!$('garment-file').files.length;
   $('action-hint').textContent=!person||!garment?'Add a person and garment.':!providerModel?.available?'This model is not connected. Select another available engine.':selected==='fluxvto'&&!$('direction').value.trim()?'Add a styling direction for FLUX.':'';
   $('action-hint').hidden=!$('action-hint').textContent;
