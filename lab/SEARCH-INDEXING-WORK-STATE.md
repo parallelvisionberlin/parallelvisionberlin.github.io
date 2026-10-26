@@ -24,7 +24,7 @@
 - Private account, Studio, owner, API, media and payment paths are outside the exception. Logging stays enabled.
 - Managed WAF, DDoS, rate limits, Browser Integrity Check, AI-training preference and Clerk/Worker authorization unchanged.
 - A per-rule skip was rejected by Cloudflare as unavailable in the custom phase; documented supported SBFM skip used.
-- Readback confirms exact active rule. A subsequent genuine Google crawl is still needed to prove its crawl result.
+- Readback confirms exact active rule. Search Console live homepage fetch on Oct 26 at 21:20 Europe/Berlin now says `URL is available to Google` and `Page can be indexed`.
 
 ## HTTP and source findings
 - Ordinary curl GET: `/`, `/zencreator-alternative/`, `/moods`, `/sitemap.xml` return 200 with correct content types.
@@ -49,10 +49,14 @@
 - The post-merge comparison smoke failed because it required the withdrawn 200-credit offer. Follow-up changes only that obsolete expectation to current prepaid/monthly and no-free-signup copy; image/sitemap/robots checks retained.
 - Relevant files: `lab/_redirects`, `lab/sitemap.xml`, `lab/404.html`, canonical tags in public HTML, new indexing test/config.
 
-## Remaining Google verification
-- Search Console reached the selected account password screen. Secure authentication request timed out; one recovery navigation also timed out. Authentication outcome is unknown; no further browser retries or claims of access.
-- Cannot identify the exact indexed-without-content example or assert it shares the 403 cause without that report.
-- Next: resume authorized Search Console access and inspect both report example lists and latest crawl/rendered HTML. Repository repairs are live; do not republish them.
-- Then rerun live URL tests for affected public URLs and request appropriate indexing/403 validation.
-- Keep authenticated pages noindexed and excluded from sitemap; do not expose private data to make validation green.
-- No verified-crawler events appeared in the sampled 17:55-19:10 UTC query, so no subsequent Google fetch is proven. Do not claim warnings cleared. No validation restarted.
+## Google verification on 2026-10-26
+- Secure sign-in and iPhone verification completed; Search Console shows Parallel Vision account and domain property pvlab.studio.
+- Exact indexed-without-content example: `https://clerk.pvlab.studio/`, last crawl Oct 23. This is the Clerk frontend API host, not a commercial HTML page.
+- Direct root GET returns HTTP 200, application/json, empty body and `X-Robots-Tag: noindex, nofollow`. Preserve its DNS/authentication/privacy; do not publish content or request indexing for this host.
+- Exact five 403 report examples: HTTPS apex homepage, HTTPS apex /zencreator-alternative/, HTTP www homepage, HTTPS www homepage and HTTP apex homepage.
+- Homepage live inspection succeeded: available to Google, page can be indexed; indexing request accepted into priority crawl queue.
+- 403 validation restarted and visibly confirmed `Validation Started`, Oct 26, 5 pending / 0 failed. This is a newly started check, not a completed pass.
+- Indexed-without-content validation also visibly confirmed `Validation Started`, Oct 26, for the Clerk root; noindex was retained.
+- Sitemap still showed Oct 23 `Couldn't fetch`. Resubmitted changed sitemap exactly once; Google now reports `Success`, last read Oct 26, 3 discovered pages.
+- No new production code or security changes were needed during this Google follow-up. Prior repairs and private account protections remain in place.
+- Next: await Google's recrawl and validation results. Do not restart checks or resubmit unchanged sitemap repeatedly; do not claim pages already indexed.
