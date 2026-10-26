@@ -109,3 +109,9 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Added immediate transform-position checks for both boundary directions; node --check passed.
 - Published source 680bc9a3df937acf801d777ccd5d2ccd4ce4efb3; Pages deployment 40406727702 succeeded. Static-site and approved Image UI checks passed; Agency browser regression 40406727224 was still running at final review.
 - Live browser confirmed 01->07 lands directly at -7300.78px (6 x 1216.796875px), and 07->01 lands at 0 immediately. Reading text measured 17.719px in the review viewport; notes/credits screenshot reviewed and saved.
+
+### Final six-still edit, 2026-10-26
+- User approved retaining the sofa photograph and removing the standing window portrait.
+- Film Stills: coastal-drive, city-drive-profile, living-room-scene, mirror-locked-mood, ocean-entry, underwater-descent. Six frames, 18 images across the page.
+- Updated visible count, all slide ARIA positions and existing browser image-count assertion. Removed only the selected figure; original asset retained.
+- Hero, typography, locations, storyboard and repaired touch/wrap behaviour preserved. Publication verification pending this revision.
