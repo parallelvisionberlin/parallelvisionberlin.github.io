@@ -90,4 +90,5 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Disable browser double-tap zoom with touch-action:manipulation; gallery viewport explicitly permits pan-y pinch-zoom, replacing the inherited pan-y restriction.
 - Native viewport zoom remains enabled; no maximum-scale, user-scalable=no or blanket preventDefault.
 - Source reviewed against MDN touch-action guidance; actual iPhone Safari gestures cannot be exercised in the cloud desktop browser.
-- Live verification pending this publication.
+- Published source d3585ad045be9325903068dceb1a4ab309aa16c5. Live browser confirmed new stylesheet token, body manipulation and gallery pan-y pinch-zoom, with next/previous counts 02/01.
+- Static-site, approved Image UI and Agency browser checks passed for this source. Actual two-finger and double-tap gestures still require physical iPhone Safari confirmation.
