@@ -63,3 +63,14 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - At 1363x936, music player reduced from ~722px to ~679px height; whole heading/player/credits group is ~828px.
 - Screenshot confirms heading at y64 and caption bottom at y892 in a 936px viewport.
 - Local npm run build passed. Public desktop refinement verified.
+
+## Artist withdrawal, 2026-10-26
+- User authorized removing Amatista from the artist roster and Fashion After Fabric inhabitants; user handles Instagram.
+- Verified source baseline: `939d2a0c7b53d063f52840f510bb77a4c981a2b3`.
+- `index.html`: removed artist entry; corrected roster count from 12 to 11.
+- `future-fashion.html`: removed inhabitant card and its mobile-only image rules; numbered remaining four inhabitants 01 through 04.
+- Removed `amatista.html` and `amatista-fashion-after-fabric.html` so direct links no longer publish the profiles.
+- Existing sitemap already excludes both withdrawn pages.
+- No other artists, collections, page layout rules, social accounts or reusable source assets changed.
+- Validation: focused roster/card/order and unchanged-content checks passed; inline JavaScript parses; diff whitespace check passed.
+- Next: verify static validation, Pages deployment and public responses before confirming withdrawal.
