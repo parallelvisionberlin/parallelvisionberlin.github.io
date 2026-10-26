@@ -3,6 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- Prevent a fallback-to-webfont flash in the oversized NINA FOK hero heading. -->
+  <script>document.documentElement.classList.add('nina-hero-font-loading');</script>
+  <style>
+    html.nina-hero-font-loading body.pv-nina-project .nx-hero-copy h1 { opacity:0 !important; }
+    html.nina-hero-font-fallback body.pv-nina-project .nx-hero-copy h1 { font-family:Arial,sans-serif !important; }
+    body.pv-nina-project .nx-hero-copy h1 { transition:opacity .15s ease-out; }
+    @media (prefers-reduced-motion:reduce) {
+      body.pv-nina-project .nx-hero-copy h1 { transition:none; }
+    }
+  </style>
   <title>Nina FOK | Parallel Vision</title>
   <meta name="description" content="Nina FOK is an ongoing Parallel Vision artwork exploring identity, memory and live conversation within an imagined Berlin 2063. Speak with Nina now.">
   <link rel="canonical" href="https://parallelvisionlabel.com/nina-project.html">
@@ -165,6 +175,26 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/nina-exhibition-v4.css?v=20261020-mobile-stability-01">
+  <script>
+    (() => {
+      const root = document.documentElement;
+      let finished = false;
+      const deadline = window.setTimeout(() => reveal(true), 3000);
+      function reveal(useFallback) {
+        if (finished) return;
+        finished = true;
+        window.clearTimeout(deadline);
+        if (useFallback) root.classList.add('nina-hero-font-fallback');
+        root.classList.remove('nina-hero-font-loading');
+      }
+      if (!document.fonts || typeof document.fonts.load !== 'function') {
+        reveal(true);
+        return;
+      }
+      document.fonts.load('500 191px "Inter Tight"', 'NINA FOK')
+        .then(faces => reveal(!faces.length), () => reveal(true));
+    })();
+  </script>
 
 </head>
 <body class="pv-nina-project">
