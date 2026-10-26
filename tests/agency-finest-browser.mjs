@@ -16,7 +16,7 @@ try {
       images.forEach(image=>image.loading='eager');
       await Promise.all(images.map(image=>image.decode()));
     });
-    assert.equal(await page.locator('img').count(),17);
+    assert.equal(await page.locator('img').count(),19);
     for(const sectionId of ['film-stills','locations','storyboard']) {
       const section=page.locator('#'+sectionId),gallery=section.locator('[data-fz-carousel]');
       const count=section.locator('[data-fz-current]');

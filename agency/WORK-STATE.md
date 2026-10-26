@@ -92,3 +92,11 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Source reviewed against MDN touch-action guidance; actual iPhone Safari gestures cannot be exercised in the cloud desktop browser.
 - Published source d3585ad045be9325903068dceb1a4ab309aa16c5. Live browser confirmed new stylesheet token, body manipulation and gallery pan-y pinch-zoom, with next/previous counts 02/01.
 - Static-site, approved Image UI and Agency browser checks passed for this source. Actual two-finger and double-tap gestures still require physical iPhone Safari confirmation.
+
+### Film Stills selection, 2026-10-26
+- User supplied five new stills and a screenshot identifying the old mirror shot to remove.
+- Seven distinct frames in order: coastal-drive, city-drive-profile, window-portrait, living-room-scene, mirror-locked-mood, ocean-entry, underwater-descent.
+- coastal-drive opens the gallery; city-drive-profile replaces highway-drive. mirror-locked-mood (attachment 3) replaces both old mirror views, including the shot flagged in attachment 6.
+- Original assets retained; new WebP files preserve source framing. Hero, nine locations, two storyboards, touch settings and shared JS unchanged.
+- Counter/ARIA updated to 7 stills; browser regression image count updated to 19.
+- Publication and live image/navigation checks pending this revision.
