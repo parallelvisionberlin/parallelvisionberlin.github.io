@@ -1,0 +1,16 @@
+/* Verified independent label coverage, not part of the release grid. */
+.label-recognition{background:#f0f0ec;color:#171817;border-top:1px solid #d3d3ce;border-bottom:1px solid #d3d3ce}
+.label-recognition-inner{padding-top:clamp(34px,4.1vw,66px);padding-bottom:clamp(38px,4.5vw,72px)}
+.label-recognition-head{display:grid;grid-template-columns:1fr 1fr;gap:16px 44px;align-items:end;margin-bottom:28px}
+.label-recognition-overline{grid-column:1/-1;margin:0;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#686a66}
+.label-recognition-head h2{margin:0;font:500 clamp(30px,3.2vw,53px)/1.05 Inter,Arial,sans-serif;letter-spacing:-.06em}
+.label-recognition-head>p:last-child{max-width:490px;margin:0;color:#61645f;font-size:15px;line-height:1.6}
+.label-recognition-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid #666}
+.label-recognition-links>a{display:flex;flex-direction:column;gap:9px;min-width:0;min-height:222px;padding:20px 20px 18px 0;color:inherit;text-decoration:none}
+.label-recognition-links>a+ a{padding-left:21px;border-left:1px solid #ccc}
+.label-recognition-date{font-size:10px;letter-spacing:.095em;color:#71716e;text-transform:uppercase}
+.label-recognition-links strong{font-size:clamp(21px,2vw,30px);letter-spacing:-.055em;line-height:1.1;font-weight:600}
+.label-recognition-links a>span:nth-child(3){color:#52534f;font-size:14px;line-height:1.55}
+.label-recognition-view{margin-top:auto;display:inline-block;align-self:flex-start;border-bottom:1px solid #444;font-size:12px;font-weight:600;padding-bottom:3px}
+.label-recognition-links a:hover .label-recognition-view{border-color:#999}
+@media(max-width:780px){.label-recognition-head{grid-template-columns:1fr;gap:15px}.label-recognition-links{grid-template-columns:1fr}.label-recognition-links>a,.label-recognition-links>a+ a{min-height:0;padding:19px 0 21px;border-left:0}.label-recognition-links>a+ a{border-top:1px solid #ccc}.label-recognition-view{margin-top:12px}}

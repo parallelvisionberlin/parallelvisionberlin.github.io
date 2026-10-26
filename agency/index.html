@@ -179,6 +179,12 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
 .founder-credit-action{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;margin-top:auto;padding-top:16px}
 .founder-credit .ui-arrow{width:12px;height:12px;flex-basis:12px}
 .founder-credit:hover .founder-credit-action{text-decoration:underline;text-underline-offset:4px}
+.founder-continuum{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-top:25px}
+.founder-continuum p{max-width:700px;font-size:13px;line-height:1.7;color:#545454}
+.founder-continuum p a{text-decoration:underline;text-underline-offset:3px}
+.founder-archive-link{display:inline-flex;align-items:center;gap:9px;padding-bottom:5px;border-bottom:1px solid #999;flex:none;font-size:12px;font-weight:600}
+.founder-archive-link:hover{text-decoration:none;border-color:#111}
+@media(max-width:760px){.founder-continuum{display:block}.founder-archive-link{margin-top:16px}}
 @media(max-width:860px){
   .founder-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .founder-credit{min-height:148px;padding:19px 16px 20px 0}
@@ -471,6 +477,10 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
         <span class="founder-credit-description">Future Radiooooo. Original track and editorial contribution · 2022.</span>
         <span class="founder-credit-action">Read on Purple <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></span>
       </a>
+    </div>
+    <div class="founder-continuum">
+      <p>Earlier music releases also appeared through <a href="https://www.qobuz.com/us-en/interpreter/alejandro-molinari/2520798" target="_blank" rel="noopener noreferrer">ORIANNA / Sony Music España</a> and <a href="https://www.weirdomusicforever.com/weird-news-and-interviews/wmf-top-20-tracks-of-2021" target="_blank" rel="noopener noreferrer">Italians Do It Better</a>. A documented <a href="https://smv.de/bits-beats/rossano-snel-new-ep-carbon" target="_blank" rel="noopener noreferrer">Fusion Festival 2023</a> performance is part of this independent career history.</p>
+      <a class="founder-archive-link" href="https://alejandromolinari.com/" target="_blank" rel="noopener noreferrer">Explore Alejandro Molinari's artist archive <span class="ui-arrow ui-arrow-up-right" aria-hidden="true"></span></a>
     </div>
   </div>
 </section>
