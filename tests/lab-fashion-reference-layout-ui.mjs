@@ -82,9 +82,9 @@ try{
     if(width===1672&&height===900){
      assert.ok(layout.person.height<=351,'1672 x 900 cards stay at the reviewed compact height');
      assert.ok(layout.controls.bottom<=860,'The entire controls row retains room below it');
-     assert.ok(layout.fields[1].width>=165&&layout.fields[1].width<=169,'Reference resolution width');
+     assert.ok(layout.fields[1].width>=163&&layout.fields[1].width<=166,'Resolution width with complete priced Generate');
      // Current main reserves the shared header's classic scrollbar gutter.
-     assert.ok(layout.fields[2].width>=216&&layout.fields[2].width<=221,'Reference quality width with the platform scrollbar gutter');
+     assert.ok(layout.fields[2].width>=214&&layout.fields[2].width<=218,'Quality width with complete priced Generate and scrollbar gutter');
     }
    }
    if(role==='owner')await page.screenshot({path:'test-results/fashion-reference-'+width+'.png',fullPage:true});
@@ -125,6 +125,15 @@ try{
   await fashion.locator('#model-select').selectOption('fashn16');
   assert.equal(await fashion.locator('#fashn16-options').isVisible(),true);
   assert.equal(await fashion.locator('#fashnmax-options').isVisible(),false);
+  await page.setViewportSize({width:1900,height:900});
+  await page.waitForFunction(()=>document.querySelector('#fashion-studio').shadowRoot.querySelector('#quote').textContent==='Generate · 20 credits');
+  await fashion.locator('#fashn16-category').focus();
+  const focusStyle=await fashion.locator('#fashn16-category').evaluate(el=>{
+   const style=getComputedStyle(el);return{border:style.borderWidth,outline:style.outlineStyle,shadow:style.boxShadow};
+  });
+  assert.deepEqual(focusStyle,{border:'1px',outline:'none',shadow:'none'},'Focused selectors use a single border');
+  if(role==='owner')await page.screenshot({path:'test-results/fashion-minimal-single-focus-desktop.png',fullPage:true});
+
   await fashion.locator('#model-select').selectOption('fluxvto');
   assert.equal(await fashion.locator('#quote').isEnabled(),false,'FLUX retains required direction');
   await fashion.locator('#direction').fill('Keep the silhouette.');
@@ -138,6 +147,14 @@ try{
   assert.equal(submits,0,'Review price does not generate');
   assert.equal(await fashion.locator('#quote').innerText(),'Generate · 20 credits');
   assert.equal(await fashion.locator('#quote-box').count(),0);
+  for(const width of [1900,1440,1024,390,320]){
+   await page.setViewportSize({width,height:900});
+   const action=await fashion.locator('#quote').evaluate(el=>({font:getComputedStyle(el).fontSize,arrow:getComputedStyle(el,':after').content,fits:el.scrollWidth<=el.clientWidth}));
+   assert.equal(action.fits,true,'The complete credit label fits at '+width+'px');
+   assert.equal(action.arrow,'none','Generate matches Image with text only');
+   assert.equal(action.font,width===1024?'12px':'15px');
+  }
+
   const settings=JSON.parse(calls.filter(x=>x.path==='/api/fashion/quote').at(-1).body);
   assert.deepEqual([settings.model,settings.resolution,settings.generationMode,settings.prompt],['fashnmax','2k','quality','Keep the silhouette.']);
   await page.setViewportSize({width:390,height:844});
