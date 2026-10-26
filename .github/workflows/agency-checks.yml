@@ -23,6 +23,7 @@ jobs:
       - name: Public browser regression checks
         run: |
           python3 -m http.server 8799 >/tmp/agency-server.log 2>&1 &
+          node tests/agency-finest-browser.mjs
           node tests/agency-browser-smoke.mjs
       - name: Verify published custom domain and API without creating enquiries
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

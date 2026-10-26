@@ -49,3 +49,13 @@ Source: verified launch branch based on main, inspected at 3dca5ef994c1d096ce165
 - Flesh Zero is now the featured film immediately after the Agency hero, before Selected Work. It uses the verified responsive R2 MP4 variants and approved FLESH ZERO HERO poster, and links to `flesh-zero.html`. Work in motion is reduced to Berlin 2063 and Cabizbajo / Lotus 63.
 - Selected Work now uses the exact user-approved 2048×1152 REPTARE / FLESH ZERO look-development sheet, stored in Cloudflare R2 at `fashion-after-fabric/agency/reptare-look-02-development-sheet.webp`; the two lead project cards use a 16:9 ratio. Berlin 2063 keeps the existing urban passage image.
 - Pending: visual screenshot review, merge and production custom-domain/API verification.
+
+## The Finest, 2026-10-26
+- Resumed PR #584, original source d410f1eb90860398b5c98033f7142c238689bcfa.
+- New maison-satin-the-finest.html and the-finest.css: official film FnU6oW1__Lg, 6 Film Stills and 9 Locations, plus original key art.
+- 16 supplied WebP assets under assets/optimized/the-finest/; reuse flesh-zero.js gallery controls.
+- Agency Work in Motion adds The Finest as a third card; existing films and later main changes preserved.
+- Corrected stale two-film regression assertion and replaced new page Unicode arrows with SVG for iPhone.
+- Added scoped 1440/390/320px gallery, image-decoding, keyboard and overflow checks to Agency CI.
+- Local static validation passed. Local Chromium unavailable; browser checks run in GitHub CI.
+- Publication: pending successful checks and merge of PR #584; verify custom-domain page and Agency link after merge.

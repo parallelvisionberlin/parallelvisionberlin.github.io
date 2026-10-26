@@ -71,3 +71,4 @@
  .finest-page .fz-section-bar .block-label{font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){.finest-text-link{transition:none}}
+.finest-link-arrow{display:inline-block;width:14px;height:14px;vertical-align:middle;flex:none}
