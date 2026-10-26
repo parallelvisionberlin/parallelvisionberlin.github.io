@@ -41,13 +41,18 @@
 - No product CSS/JS, provider, account, generation, wallet or private-data changes.
 - 12 focused Node checks passed: search discovery/security, comparison landing, mandatory approved Image contract.
 - PR #589. Initial CI found security-config fixture absent in legacy sparse checkouts; retain its assertions in a dedicated full-checkout search-indexing workflow. Product code unchanged by fixture repair.
-- Source merge and Pages deployment receipts: pending, must verify before claiming published.
+- PR #589 merged as `c4ea73c6ea215cf6e3df10682cf0ddf8f5e70353` at 18:56:33 UTC; reviewed head `90b663c08c1201dfef9ce633846ddf7e4af2401d` has 15 successful checks.
+- Exact merge Cloudflare Pages check succeeded. Production `0019e506-7c1a-493e-b227-3f1ba77e6cb1` at descendant `5bf68cc665aa3613e81c93f127df116324873747` succeeded 19:03:35 UTC; ancestry verified.
+- Live verification: three public pages 200 with apex canonicals; sitemap includes Moods; aliases 301; missing URL 404 with noindex. Sitemap and 404 body exactly match reviewed source.
+- Source hashes: sitemap SHA256 `c8f13fab609d734a3b909d540f490d5dd96c260f3fb7877801faadd825550e1c`; 404 `01c5c0de409128de8663934494485e2547a3dc47d014b9a855f97793184ec65e`.
+- Account/owner/Studio shells remain noindexed. Unauthenticated Worker GET `/api/jobs` returns 401, no-store and X-Robots-Tag noindex.
+- The post-merge comparison smoke failed because it required the withdrawn 200-credit offer. Follow-up changes only that obsolete expectation to current prepaid/monthly and no-free-signup copy; image/sitemap/robots checks retained.
 - Relevant files: `lab/_redirects`, `lab/sitemap.xml`, `lab/404.html`, canonical tags in public HTML, new indexing test/config.
 
 ## Remaining Google verification
-- Search Console browser reaches selected `parallelvision.label@gmail.com` password screen; not authenticated yet.
+- Search Console reached the selected account password screen. Secure authentication request timed out; one recovery navigation also timed out. Authentication outcome is unknown; no further browser retries or claims of access.
 - Cannot identify the exact indexed-without-content example or assert it shares the 403 cause without that report.
-- Next: publish verified repository repair; inspect both report example lists and latest crawl/rendered HTML.
+- Next: resume authorized Search Console access and inspect both report example lists and latest crawl/rendered HTML. Repository repairs are live; do not republish them.
 - Then rerun live URL tests for affected public URLs and request appropriate indexing/403 validation.
 - Keep authenticated pages noindexed and excluded from sitemap; do not expose private data to make validation green.
-- Do not claim Google warnings cleared until Google recrawls/reprocesses them. No validation restarted yet.
+- No verified-crawler events appeared in the sampled 17:55-19:10 UTC query, so no subsequent Google fetch is proven. Do not claim warnings cleared. No validation restarted.

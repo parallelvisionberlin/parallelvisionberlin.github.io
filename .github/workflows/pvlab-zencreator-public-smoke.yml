@@ -26,7 +26,9 @@ jobs:
               "https://pvlab.studio/zencreator-alternative/?test=zencreator-20261016" \
               -o /tmp/zencreator-landing.html || true
             if grep -Fq 'More room' /tmp/zencreator-landing.html 2>/dev/null \
-              && grep -Fq '200 welcome credits' /tmp/zencreator-landing.html 2>/dev/null \
+              && grep -Fq 'One-time credits and monthly plans' /tmp/zencreator-landing.html 2>/dev/null \
+              && grep -Fq 'New signups do not currently receive free generation credits' /tmp/zencreator-landing.html 2>/dev/null \
+              && ! grep -Fq '200 welcome credits' /tmp/zencreator-landing.html 2>/dev/null \
               && grep -Fq 'href="https://pvlab.studio/zencreator-alternative/"' /tmp/zencreator-landing.html 2>/dev/null; then
               ready=1
               break
