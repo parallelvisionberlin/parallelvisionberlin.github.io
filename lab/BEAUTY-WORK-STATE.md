@@ -2,9 +2,9 @@
 
 - Date: 2026-10-27, Europe/Berlin.
 - Approved task: build the selected Beauty Studio page and add Studios to the upper navigation, for now.
-- Source baseline: main `0b1f8f568fd2fae0ae0c148c06ff36c7316b6a19`.
-- Feature source: `feat/beauty-studio-20261027` at `78d860f97a2e09b88c87d5799ec9385f631b2622`; PR #599 merged after the owner reported the page was not live.
-- Production application source: `572164132b66749fb62ae7ba2979baadde2624ef`, preserving concurrent Character/Video changes from main `5e96053b`.
+- Viewport refinement baseline: main `79ca3b2a67e8a67d6b739beedf088761181c8a45`; original launch baseline `0b1f8f56`.
+- Initial launch: PR #599. Viewport refinement: PR #604, feature source `8718ad9c5f23344e6b8530d5b27eda81de14ad67`, published after the owner requested a visible lower bar and smoother flow.
+- Current production application source: `2aa1138afb101e694b39e977ec528737477106a4`, preserving the latest Saved References changes from main `df803f9b`.
 - Approved page reference: `fb67472e-b6c9-4c43-ac94-3bc39eda7143.png`, Library `libfile_1c73c9c1156c8191a8380dea0f292c90`.
 - Entry: `beauty.html`, with `beauty.css`, `beauty.js`, and the pure prompt/price binding functions in `beauty-settings.js`.
 - Approved black-veil portrait restored to a clean background without interface elements using ImageGen, then saved as `visuals/beauty/beauty-veil-editorial.webp` (1448x1086, approximately 193 KiB).
@@ -39,10 +39,10 @@
 - CI's old landing navigation assertion expected Fashion as a direct tab. Updated that assertion to explicitly check Studios, its Beauty/Fashion/Character destinations and Escape dismissal. Existing Assets/Fashion navigation checks now open the menu, including its scrollable mobile trigger; original geometry, image and financial assertions remain.
 - PASS after those updates: full existing `lab-landing-ui.cjs` at six responsive sizes and full `lab-assets-ui.cjs`, including embedded Fashion, shared session/input persistence, quoted generation, mobile menu reachability, navigation geometry and the original gallery/submission checks. Sparse checkout needed the existing tracked image/video test fixtures restored locally; they were not changed or added to the feature commit.
 - PASS: final Beauty browser matrix also follows the actual mobile Explore Moods menu into Beauty, generates two edits, keeps Generate clickable after completion, and rejects delayed older result selection. The final 7 approved Image/Beauty contracts passed.
-- Final feature CI passed Beauty, approved Image, build, unit, landing, Fashion and gallery. Its Upscale/Assets source-preview sizing assertion at `tests/lab-upscale-assets-visibility.mjs:169` also fails on unchanged baseline `0b1f8f56`; its other 38 Upscaler checks passed. Some other workflows were cancelled. No gate was disabled.
+- Refinement CI passed Beauty, approved Image, static build and search. A separate public Studio Video canvas screenshot comparison failed; this change touches no Video/shared Studio/reference-snapshot files. That gate remains unchanged. Earlier Upscale source-preview failure reproduces on the original baseline.
 - Exact merged application checks passed locally: all 7 approved Image/Beauty contracts, full Beauty role/responsive/credit/privacy browser cases, and tool routing at 1440/390px.
-- LIVE 2026-10-27: Cloudflare Pages app `cloudflare-workers-and-pages`, project `pvlab-studio`, check `122205430668`, exact application commit `57216413`, deployment `83858b1d-86d9-4086-aa5c-6f7028e3853e`, conclusion success.
+- LIVE 2026-10-27: Cloudflare Pages app `cloudflare-workers-and-pages`, project `pvlab-studio`, check `122265448208`, exact application commit `2aa1138a`, deployment `0383d5ab-f816-42a0-89d4-18cf030c2712`, conclusion success.
 - Release verifier returned LIVE_VERIFIED for `studios-menu.js?v=20261027-studios1`, SHA-256 `f0510e9f11ed35f1b5ad885945a825d96fcd1f217cfb1bcaaa29d3f87e16e540`.
-- Production HTTP 200 and exact SHA-256 equality confirmed for Beauty HTML/CSS/JS/settings, Studios CSS/JS and the veil portrait against the reviewed application commit.
-- Live browser followed homepage Studios > Beauty Studio to `https://pvlab.studio/beauty`, verified v2 Beauty assets, controls and layout. Production appearance inspected. Real signed-in generation/payment remains untested.
-- Current task: publish the tested viewport refinement from `feat/beauty-viewport-20261027`, then verify the new CSS version and actual first-view Generate bar on pvlab.studio. The preceding release evidence describes the original Beauty launch. Homepage hero/cards and arrival hub remain separate work.
+- Current Beauty HTML and `beauty.css?v=20261027-beauty-fit1` return HTTP 200 and exactly match reviewed source bytes. CSS SHA-256: `8fd0eae9dd3cf0d5f76a72a4ee67b8076d2c780926f82b95d535041bf88afc55`. Controller/settings/menu/portrait are unchanged from the original seven-file byte verification.
+- Live browser at `https://pvlab.studio/beauty` verified fit1 CSS and the complete action bar: bottom 803.625px in a 1363x936 viewport, with notes above it. Production composition inspected. Real signed-in generation/payment remains untested.
+- Status: viewport refinement is published and verified. This record update changes documentation only. No release action is pending. Homepage hero/cards and arrival hub remain separate work.
