@@ -767,7 +767,7 @@ document.addEventListener('click',event=>{
               <button id="image-detail-edit-area" type="button">Retouch</button>
               <button id="image-detail-fix-eyes" type="button">Fix eyes precisely</button>
               <div id="image-detail-extra-list" class="detail-extra-list"></div>
-              <button id="image-detail-scene-save" type="button">Save to Scene Library</button>
+              <button id="image-detail-scene-save" type="button">Save as reference</button>
                <button id="image-detail-delete" type="button">Delete</button>
             </div>
           </details>
@@ -912,7 +912,7 @@ document.addEventListener('click',event=>{
 <div id="reference-mode" class="mode-panel" hidden><p id="extend-help" class="fine" hidden>Continue from an existing clip.</p>
 <div class="upload-heading"><span class="label">Reference images</span><span class="micro" id="ref-count">0 / 10</span></div>
 <label class="drop reference-drop" id="reference-drop" aria-label="Add reference images, drop or browse"><svg viewBox="0 0 24 24" class="pv-reference-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="15" height="14" rx="2"/><circle cx="8.5" cy="9.5" r="1.3"/><path d="m5 16 4-4 3.2 2.5 2.1-2"/><path d="M19 15v7m-3.5-3.5h7"/></svg><span>Upload images</span><small>JPG / PNG / WebP · up to 10 photos</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
-<div class="scene-video-access" aria-label="Your saved scene items"><span>Characters, outfits, props and locations</span><button id="scene-video-open" type="button"><svg viewBox="0 0 24 24" class="pv-scene-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg><span>Scene Library</span><small>Your saved collection</small></button></div>
+<div class="scene-video-access" aria-label="Browse saved characters, outfits, props and locations"><span>Characters, outfits, props and locations</span><button id="scene-video-open" type="button"><svg viewBox="0 0 24 24" class="pv-scene-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg><span>Saved References</span><small>Characters, outfits &amp; more</small></button></div>
 <div id="start-frame-maker" class="generate-zone">
 <button id="create-start-frame" class="secondary full" type="button">Create opening image</button>
 <p class="fine">Optional · Seedream image credits charged separately after review.</p>
@@ -1064,7 +1064,7 @@ document.addEventListener('click',event=>{
    <div class="empty-actions">
     <button id="canvas-import" type="button" class="canvas-import">Choose start frame </button>
     <button id="canvas-secondary" type="button" class="canvas-secondary">Create an image first </button>
-    <button id="pv-video-browse-library" type="button" class="canvas-secondary" hidden>Browse scene library</button>
+    <button id="pv-video-browse-library" type="button" class="canvas-secondary" hidden>Browse saved references</button>
   </div>
   <span class="upscale-drop-hint">OR DROP A PNG, JPG OR WEBP · MAX 20 MB</span>
   <p class="pv-upscale-example-note">Illustrative PV LAB photograph. No upscale has been generated.</p>
@@ -1386,7 +1386,7 @@ document.addEventListener('click',event=>{
     <div id="scene-empty" class="scene-empty" hidden><span class="scene-empty-symbol" aria-hidden="true">▧</span><div><strong id="scene-empty-heading">No characters yet</strong><small id="scene-empty-description">Save your favorite reference images to find them here next time.</small></div></div>
    </section>
   <section id="scene-create" hidden aria-label="Save a new scene item">
-   <div class="scene-create-heading"><h3>Save to Scene Library</h3><button id="scene-back" class="scene-back" type="button">← Your library</button></div>
+   <div class="scene-create-heading"><h3>Save reference</h3><button id="scene-back" class="scene-back" type="button">← Your library</button></div>
    <div class="scene-form-grid">
     <label class="scene-field"><span>Name</span><input id="scene-name" type="text" maxlength="70" autocomplete="off" placeholder="e.g. Nina FOK, silver coat or metro"></label>
     <label class="scene-field"><span>Type</span><select id="scene-category"><option value="characters">Characters</option><option value="outfits">Outfits</option><option value="props">Props</option><option value="locations">Locations</option></select></label>
