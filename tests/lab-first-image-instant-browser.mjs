@@ -492,7 +492,14 @@ try{
   assert.equal(await welcomePrev.isVisible(),true,'Both gallery arrows remain in place');
   assert.equal(await welcomePrev.isDisabled(),true,'At the first look, previous is dimmed');
   await welcomeNext.click();
-  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft>30);
+  // A second native smooth-scroll click must start after the first card lands.
+  // Waiting only for 30px of motion can merge both clicks into one snap.
+  await page.waitForFunction(()=>{
+    const track=document.getElementById('lab-welcome-presets');
+    const first=track.querySelector(':scope > button');
+    const step=first.getBoundingClientRect().width+(parseFloat(getComputedStyle(track).columnGap)||0);
+    return track.scrollLeft>=Math.min(step,track.scrollWidth-track.clientWidth)-4;
+  });
   await welcomeNext.click();
   await page.waitForFunction(()=>{
     const track=document.getElementById('lab-welcome-presets');
@@ -509,11 +516,21 @@ try{
   });
   assert.ok(welcomeHit.within,'Carousel back arrow must receive pointer events: '+JSON.stringify(welcomeHit));
   await welcomePrev.click();
-  await page.waitForFunction(()=>{const track=document.getElementById('lab-welcome-presets');return track.scrollLeft<track.scrollWidth-track.clientWidth-30;});
+  await page.waitForFunction(()=>{
+    const track=document.getElementById('lab-welcome-presets');
+    const first=track.querySelector(':scope > button');
+    const step=first.getBoundingClientRect().width+(parseFloat(getComputedStyle(track).columnGap)||0);
+    return track.scrollLeft<=Math.max(0,track.scrollWidth-track.clientWidth-step)+4;
+  });
   await welcomePrev.click();
   await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<4);
   await page.keyboard.press('ArrowRight');
-  await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft>30);
+  await page.waitForFunction(()=>{
+    const track=document.getElementById('lab-welcome-presets');
+    const first=track.querySelector(':scope > button');
+    const step=first.getBoundingClientRect().width+(parseFloat(getComputedStyle(track).columnGap)||0);
+    return track.scrollLeft>=Math.min(step,track.scrollWidth-track.clientWidth)-4;
+  });
   await page.keyboard.press('ArrowLeft');
   await page.waitForFunction(()=>document.getElementById('lab-welcome-presets').scrollLeft<.4);
   const placement=await page.evaluate(()=>{

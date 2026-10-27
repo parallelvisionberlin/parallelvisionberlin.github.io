@@ -19,7 +19,7 @@ test('supports old packs and failed private thumbnails with a valid fallback',()
   assert.equal(sceneCoverId(undefined),null);
 });
 
-test('category artwork stays on the overview; selected Elements show their own image',()=>{
+test('collection heading stays on the overview; selected Elements show their own image',()=>{
   const js=readFileSync(new URL('../lab/scene-library.js',import.meta.url),'utf8');
   assert.match(js,/hero\.hidden=!!selected;/);
   assert.match(js,/const selected=list\.find\(i=>i\.id===selectedId\)\|\|null;/);

@@ -477,16 +477,16 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
       if(list.some(item=>stamp(item)))list.sort((a,b)=>stamp(b)-stamp(a));
     }
     // A saved item is not automatically selected; its private photograph
-    // belongs to the card, not in place of the category artwork.
+    // belongs to the card, not in place of the collection heading.
     const selected=list.find(i=>i.id===selectedId)||null;
     if(!selected)selectedId=null;
     const hero=$('scene-category-hero');
     hero.dataset.category=current;
-    hero.setAttribute('aria-label',categoryData.label+' visual collection');
+    hero.setAttribute('aria-label',categoryData.label+' collection');
     $('scene-category-hero-title').textContent=categoryData.label;
     $('scene-category-hero-subtitle').textContent=categoryDescriptions[current];
-    // Archive artwork belongs to the overview only. Never show an unrelated
-    // face above the user's selected Character or Element.
+    // The collection heading belongs to the overview only. F removes category
+    // artwork, while a selected Character still opens its existing detail view.
     hero.hidden=!!selected;
     dialog.classList.toggle('scene-item-open',!!selected);
     renderFeatured(selected);
@@ -498,6 +498,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     const createButton=$('scene-new');
     createButton.setAttribute('aria-label','New '+singular);
     createButton.title='New '+singular;
+    $('scene-new-label').textContent='New '+singular;
     createButton.disabled=working||allPacks.length>=40;
     $('scene-sort').setAttribute('aria-label','Sort '+categoryData.label.toLowerCase());
     const grid=$('scene-grid');grid.replaceChildren();grid.dataset.view=viewMode;

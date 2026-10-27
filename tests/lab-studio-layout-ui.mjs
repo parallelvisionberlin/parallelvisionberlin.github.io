@@ -456,6 +456,12 @@ try{
     'The inline Exact switch cannot resize the compact Generate deck');
 
   assert.equal(await x.page.locator('#composer-character').isVisible(),false,'No duplicate right-side references tile');
+  await x.page.locator('#scene-characters-open').click();
+  assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true,'Person shortcut opens the private Characters library directly');
+  assert.equal(await x.page.locator('#scene-library-title').textContent(),'Characters');
+  assert.equal(await x.page.locator('#scene-image-menu').isVisible(),false,'Person shortcut skips the category menu');
+  await x.page.locator('#scene-close').click();
+
   await x.page.click('#scene-image-open');
   assert.equal(await x.page.locator('#scene-image-menu').isVisible(),true);
   const menuPlacement=await x.page.evaluate(()=>{
@@ -472,12 +478,7 @@ try{
   assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true);
   assert.equal(await x.page.locator('#scene-library-title').innerText(),'Characters');
   assert.equal(await x.page.locator('#scene-tabs .scene-category-tab').count(),5);
-  for(const [label,image] of [
-    ['Characters','scene-hero-art/characters.webp'],
-    ['Outfits','scene-hero-art/outfits.webp'],
-    ['Props','scene-hero-art/props.webp'],
-    ['Locations','scene-hero-art/locations.webp']
-  ]){
+  for(const label of ['Characters','Outfits','Props','Locations']){
     await x.page.locator('#scene-tabs .scene-category-tab').filter({hasText:label}).click();
     const hero=await x.page.locator('#scene-category-hero').evaluate(el=>{
       const r=el.getBoundingClientRect(),dialog=document.getElementById('scene-library-dialog').getBoundingClientRect();
@@ -487,9 +488,9 @@ try{
         contentScroll:document.querySelector('#scene-library-dialog .scene-main').scrollHeight-
           document.querySelector('#scene-library-dialog .scene-main').clientHeight};
     });
-    assert.ok(hero.visible&&hero.height>=140&&hero.height<=154,'Approved '+label+' banner is slightly taller: '+JSON.stringify(hero));
+    assert.ok(hero.visible&&hero.height>=40&&hero.height<=100,'Compact '+label+' uses a fitted text heading: '+JSON.stringify(hero));
     assert.equal(hero.title,label);
-    assert.ok(hero.background.includes(image),'Use the approved PV LAB hero image for '+label+': '+hero.background.slice(0,150));
+    assert.equal(hero.background,'none','The approved F library has no photographic category banner');
     assert.equal(hero.centered,true,'Elements modal is vertically centered for '+label);
     assert.ok(hero.contentScroll<=3,'Empty Elements should not scroll: '+JSON.stringify(hero));
   }
@@ -540,10 +541,8 @@ try{
   });
   assert.ok(packDialog.width<=1220&&packDialog.top>=12&&packDialog.bottom<=890,
     'Library is centered and contained inside the viewport: '+JSON.stringify(packDialog));
-  assert.ok(Math.abs(packDialog.top-sceneLayout.dialog.top)<=2&&
-    Math.abs(packDialog.left-sceneLayout.dialog.left)<=2&&
-    Math.abs(packDialog.width-sceneLayout.dialog.width)<=2,
-    'All five Elements categories and Photo Packs share one fixed modal frame');
+  assert.ok(sceneLayout.dialog.width<=1040&&sceneLayout.dialog.height<=600,
+    'F keeps the Elements box compact without changing the existing Photo Packs browser');
   const packLayout=await x.page.evaluate(()=>{
     const rect=selector=>{
       const r=document.querySelector(selector).getBoundingClientRect();
@@ -552,13 +551,9 @@ try{
     return {search:rect('#pack-studio-search'),close:rect('#pack-studio-close'),
       hero:rect('#pack-studio-dialog .pack-studio-intro')};
   });
-  assert.ok(Math.abs(packLayout.search.top-sceneLayout.search.top)<=3&&
-    Math.abs(packLayout.close.top-sceneLayout.close.top)<=3,
-    'Search and close controls stay in position when switching to Photo Packs');
-  assert.ok(Math.abs(packLayout.hero.top-sceneLayout.hero.top)<=3&&
-    Math.abs(packLayout.hero.left-sceneLayout.hero.left)<=3&&
-    Math.abs(packLayout.hero.width-sceneLayout.hero.width)<=3,
-    'Elements heroes and Photo Packs share the same banner geometry');
+  assert.ok(packLayout.search.width>150&&Math.abs(packLayout.search.top-packLayout.close.top)<=3,
+    'Existing Photo Packs search and close remain aligned');
+  assert.ok(packLayout.hero.width>400,'The separate Photo Packs browser keeps its existing collection content');
   await x.page.click('#pack-studio-close');
   await x.page.click('#image-composer-prompt');
   const floatingChooser=x.page.waitForEvent('filechooser');
@@ -1076,7 +1071,7 @@ try{
   await coverTest.page.click('#scene-image-menu [data-scene-target="locations"]');
   assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true,'Saved Locations preserve their editorial hero');
   assert.equal(await coverTest.page.locator('#scene-feature').isVisible(),false,'Saving an item does not hijack the hero with a selected feature');
-  assert.ok((await coverTest.page.locator('#scene-category-hero').evaluate(el=>getComputedStyle(el).backgroundImage)).includes('scene-hero-art/locations.webp'));
+  assert.equal(await coverTest.page.locator('#scene-category-hero').evaluate(el=>getComputedStyle(el).backgroundImage),'none','F keeps Location inputs in their cards, without a category photograph');
   assert.equal(await coverTest.page.locator('#scene-grid .scene-card-select').count(),1);
   await coverTest.page.waitForFunction(()=>{
     const img=document.querySelector('#scene-grid .scene-card-image img');

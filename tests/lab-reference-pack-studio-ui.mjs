@@ -153,11 +153,16 @@ try{
   assert.equal(await page.locator('#pack-studio-dialog').isVisible(),false);
   const elementNav=await rects('#scene-tabs .scene-category-tab');
   assert.equal(elementNav.length,5);
-  for(let i=0;i<5;i++){
-    for(const metric of ['x','y','width','height'])
-      assert.ok(Math.abs(photoNavBefore[i][metric]-elementNav[i][metric])<=1.5,
-        'Sidebar position should not jump for menu item '+i+' '+metric+': '+JSON.stringify({photo:photoNavBefore[i],elements:elementNav[i]}));
-  }
+  // Owner-approved F is a smaller Elements box. Photo Packs retains its
+  // separate approved frame, navigation order and saved collection state.
+  const compactBox=await page.locator('#scene-library-dialog').boundingBox();
+  assert.ok(compactBox.width<=1040&&compactBox.height<=600,'Elements uses the approved compact frame');
+  for(const item of elementNav)assert.ok(item.x>=compactBox.x&&item.y>=compactBox.y&&
+    item.x+item.width<=compactBox.x+compactBox.width&&item.y+item.height<=compactBox.y+compactBox.height,
+    'Every category remains inside the compact box');
+  assert.deepEqual(await page.locator('#scene-tabs .scene-category-tab').allTextContents(),
+    await page.locator('#pack-studio-dialog .pack-studio-side-link').allTextContents(),
+    'Both library views retain the same category order');
   await page.locator('#scene-tabs .scene-photo-packs-link').click();
   assert.equal(await page.locator('#pack-studio-dialog').isVisible(),true,
     'Photo Packs reopens from Elements without losing the collection');
