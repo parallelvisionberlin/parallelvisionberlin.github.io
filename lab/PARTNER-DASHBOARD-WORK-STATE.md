@@ -1,5 +1,10 @@
 # Vitolas Studio partner dashboard
 
+## Commission example copy, 2026-10-27
+- User requested a more tangible 100 EUR first-payment / 50 EUR commission example in the 50% FAQ.
+- Based on current main f2655eb631ac63e71d2b3f615ffe2f622615430a; change only the matching sentence in Bellini and Vitolas HTML. No rates, eligibility, layout, accounting or wallet changes.
+- Local validation: 39 existing partner/referral/menu/required Image checks passed. Normal PR gates and Cloudflare publication pending.
+
 ## Bellini Studios / second isolated partner, published 2026-10-27
 - Final user-approved name: Bellini Studios. Private dashboard https://pvlab.studio/bellini-studio; public client alias /bellini. Approved verified-primary-email allowlist uses only its hash in Worker source; audience is AI influencer/creator communities.
 - Published PR #605. Reviewed final head 1c0943e644ff09434549bae732c3f967734894a6; production merge 328b964d4de05f7208435380806a80de4d0ff0c3. One normal integration with main c02b171 preserved the new Elements entry and all Studio flags.
