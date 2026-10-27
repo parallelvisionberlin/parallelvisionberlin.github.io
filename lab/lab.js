@@ -1239,7 +1239,7 @@ $('scene-image-open').onclick=()=>{
   $('scene-image-menu-categories').hidden=false;
   menu.hidden=false;
   $('scene-image-open').setAttribute('aria-expanded','true');
-  $('scene-image-menu [data-scene-target="characters"]').focus({preventScroll:true});
+  document.querySelector('#scene-image-menu [data-scene-target="characters"]')?.focus({preventScroll:true});
 };
 $('scene-menu-elements').onclick=()=>{
   $('scene-image-menu-home').hidden=true;
