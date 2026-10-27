@@ -68,6 +68,7 @@ try{
   await page.locator('.pv-studios-trigger').click();
   await page.locator('.pv-studios-panel').waitFor({state:'visible'});
   assert.equal(await page.getByRole('link',{name:'Beauty Studio',exact:true}).isVisible(),true);
+   assert.equal(await page.getByRole('link',{name:'Retouch Studio',exact:true}).isVisible(),true);
   const bounds=await page.locator('.pv-studios-panel').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width+1);
   await page.screenshot({path:'test-results/beauty-menu-'+width+'.png',fullPage:true});
   await page.keyboard.press('Escape');assert.equal(await page.locator('.pv-studios-panel').isVisible(),false);

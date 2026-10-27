@@ -11,14 +11,36 @@
   const shell=document.createElement('span');shell.className='pv-studios-menu';
   const trigger=document.createElement('button');trigger.type='button';trigger.className='pv-studios-trigger';trigger.innerHTML='Studios<svg viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5"/></svg>';trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','pv-studios-panel');
   const panel=document.createElement('div');panel.id='pv-studios-panel';panel.className='pv-studios-panel';panel.hidden=true;panel.setAttribute('role','region');panel.setAttribute('aria-label','Studios');
-  panel.innerHTML='<span class="pv-studios-kicker">STUDIOS</span><div class="pv-studios-grid"><section class="pv-studios-fashion"><img class="pv-studios-cover" src="'+url('visuals/beauty/beauty-veil-editorial.webp')+'" alt="Black veil beauty editorial" loading="lazy"><h2>Beauty &amp; Fashion</h2><p>Makeup, hair, skin and new looks.</p><div class="pv-studios-links"><a href="'+url('beauty.html')+'">Beauty Studio'+arrow+'</a></div></section><section class="pv-studios-character"><img class="pv-studios-cover" src="'+url('visuals/character-studies/nina-study.webp')+'" alt="Character portrait study" loading="lazy"><h2>Character Studio</h2><p>Create a character. Return to their identity.</p><a class="pv-studios-character-link" href="'+url('studio.html?tool=image&createCharacter=1')+'">Open studio'+arrow+'</a></section></div>';
-  original.before(shell);shell.append(trigger,panel);panel.querySelector('.pv-studios-links').append(original);original.classList.add('pv-studios-fashion-link');
+  panel.innerHTML=`
+   <span class="pv-studios-kicker">STUDIOS</span>
+   <div class="pv-studios-grid">
+    <section class="pv-studios-tile pv-studios-beauty">
+     <img class="pv-studios-cover" src="${url('visuals/beauty/beauty-veil-editorial.webp')}" alt="" loading="lazy">
+     <a href="${url('beauty.html')}">Beauty Studio${arrow}</a>
+    </section>
+    <section class="pv-studios-tile pv-studios-fashion">
+     <img class="pv-studios-cover" src="${url('visuals/fashion-replace/hero-model-oct24.jpg')}" alt="" loading="lazy">
+    </section>
+    <section class="pv-studios-tile pv-studios-character">
+     <img class="pv-studios-cover" src="${url('visuals/character-studies/nina-study.webp')}" alt="" loading="lazy">
+     <a class="pv-studios-character-link" href="${url('studio.html?tool=image&createCharacter=1')}">Character Studio${arrow}</a>
+    </section>
+    <section class="pv-studios-tile pv-studios-retouch">
+     <img class="pv-studios-cover" src="${url('../assets/fashion-hero.png')}" alt="" loading="lazy">
+    </section>
+   </div>`;
+  original.before(shell);shell.append(trigger,panel);panel.querySelector('.pv-studios-fashion').append(original);original.classList.add('pv-studios-fashion-link');
   if(original.tagName==='A')original.textContent='Fashion Studio';else{original.setAttribute('aria-label','Fashion Studio');original.textContent='Fashion Studio';}
   const icon=document.createElement('span');icon.innerHTML=arrow;original.append(icon.firstChild);
+  // Reuse the existing Retouch button so the working photo and mask are preserved.
+  const existingRetouch=header.querySelector('#tool-retouch')||[...header.querySelectorAll('nav a')].find(a=>a.getAttribute('href')?.includes('tool=retouch'));
+  const retouchLink=document.createElement('a');retouchLink.className='pv-studios-retouch-link';retouchLink.href=existingRetouch?.href||url('studio.html?tool=retouch');retouchLink.textContent='Retouch Studio';retouchLink.insertAdjacentHTML('beforeend',arrow);
+  panel.querySelector('.pv-studios-retouch').append(retouchLink);
+  if(existingRetouch?.tagName==='BUTTON')retouchLink.addEventListener('click',event=>{event.preventDefault();existingRetouch.click();});
   const active=()=>trigger.classList.toggle('is-active',location.pathname.endsWith('/beauty.html')||original.getAttribute('aria-pressed')==='true');active();
   new MutationObserver(active).observe(original,{attributes:true,attributeFilter:['aria-pressed']});
   function position(){
-   const rect=trigger.getBoundingClientRect(),width=Math.min(730,innerWidth-28),left=Math.max(14,Math.min(rect.left-24,innerWidth-width-14)),top=Math.max(10,rect.bottom+16);
+   const rect=trigger.getBoundingClientRect(),width=Math.min(920,innerWidth-28),left=Math.max(14,Math.min(rect.left-24,innerWidth-width-14)),top=Math.max(10,rect.bottom+16);
    if(rect.bottom<0){close();return;}
    Object.assign(panel.style,{width:width+'px',left:left+'px',top:top+'px',maxHeight:Math.max(100,innerHeight-top-14)+'px'});
   }

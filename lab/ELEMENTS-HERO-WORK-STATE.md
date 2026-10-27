@@ -25,6 +25,7 @@
 - Independent public Image pixel comparison passed with only the explicitly approved Characters shortcut added to its frozen expected source. All original pixel tolerances remain unchanged; guest shortcut sign-in/privacy also passed.
 - Broader public test then reaches an existing Video canvas mismatch, reproduced on unchanged base (4940 vs 4938 pixels, same max delta 232). Upscale source-preview height failure also reproduced unchanged. Neither application area was edited.
 - Initial CI: approved-image-ui, unit, first-image, Image prompt, library browser, gallery, precision, Fashion, Beauty, appearance and other targeted checks passed. The legacy live-version check expects PR assets before publication and is pending production.
+- Concurrent main updates through `f48a6953` (isolated per-tool uploads and square Studios menu) are preserved. Resolved only the adjacent stylesheet link conflict, retaining both the new Studios stylesheet version and compact library stylesheet.
 - Production deployment and byte verification pending. Next: publish reviewed source, inspect exact Cloudflare commit, verify live CSS and shortcuts; record signed-in verification separately.
 
 ## Historical banner implementation (superseded where noted), 2026-10-18
