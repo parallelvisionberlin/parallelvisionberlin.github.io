@@ -81,6 +81,28 @@ try{
   await page.waitForFunction(()=>window.__elementsBrowserReady===true,{timeout:30000});
   await page.locator('#lab-boot').waitFor({state:'hidden',timeout:5000});
   await page.locator('#tool-image').click();
+  // F / Compact box adds a direct person shortcut without changing the existing
+  // four-square category menu, private uploads or selected-Element handoff.
+  await page.locator('#scene-characters-open').click();
+  assert.equal(await page.locator('#scene-library-dialog').isVisible(),true);
+  assert.equal(await page.locator('#scene-library-title').textContent(),'Characters');
+  assert.equal(await page.locator('#scene-image-menu').isVisible(),false);
+  assert.equal(await page.locator('#scene-new-label').textContent(),'New character');
+  const compact=await page.locator('#scene-library-dialog').evaluate(el=>({
+    width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height,
+    background:getComputedStyle(el.querySelector('#scene-category-hero')).backgroundImage,
+    columns:getComputedStyle(el.querySelector('#scene-grid')).gridTemplateColumns.split(' ').length
+  }));
+  assert.ok(compact.width<=1040&&compact.height<=600,'Approved compact library bounds');
+  assert.equal(compact.background,'none','The F heading has no category photograph');
+  assert.equal(compact.columns,3,'Desktop F uses three compact cover columns');
+  await page.locator('#scene-tabs .scene-category-tab').filter({hasText:'Outfits'}).click();
+  assert.equal(await page.locator('#scene-new-label').textContent(),'New outfit');
+  await page.locator('#scene-close').click();
+  await page.locator('#scene-characters-open').click();
+  assert.equal(await page.locator('#scene-library-title').textContent(),'Characters','Person shortcut always returns directly to Characters');
+  await page.locator('#scene-close').click();
+
   const text=page.locator('#image-composer-prompt');
   await text.fill('Nina posing by the window in @My');
   await page.locator('#scene-element-suggestions .scene-element-choice').filter({hasText:'@MyRoom'}).click();

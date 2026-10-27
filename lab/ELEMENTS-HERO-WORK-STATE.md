@@ -1,4 +1,29 @@
-# PV LAB Elements hero photography, 2026-10-18
+# PV LAB Saved References / compact F
+
+## Active release, 2026-10-27
+- Owner approved F / Compact box and requested implementation and publication.
+- Approved mock: `3352c270-443a-4584-afe0-68701d02ce7d.png`, Library `libfile_4abcb7ed43688191b33c0eba1284d0e6`.
+- Base: `5953a6313b2a9c62e52cb0367d59008c7daf918d`; isolated branch `feat/reference-compact-f-20261027`.
+- This approval supersedes the older photographic category-banner and matching Photo Packs frame requirements below.
+- Shared Elements browser keeps its original category rail, search, sorting, grid/list, create, detail and private handoff flows.
+- New scoped skin: `lab/reference-library.css?v=20261027-compact-f1`, loaded by `lab/studio.html`.
+- Compact neutral-black box, text-only category heading, three landscape-cover columns on desktop, two on phones.
+- New labelled create action follows category; actual profile-state badges remain truthful.
+- Gallery uses existing authenticated source thumbnails. Mockup people are never seeded into live accounts.
+- New Image person shortcut opens Characters directly. Four-square shortcut retains direct category menu and legacy Photo Packs access.
+- Matching public person button requests sign-in; it never opens private account data.
+- No changes to provider routing, selection of source views, analysis, uploads, consent, credits or backend APIs.
+- Separate Photo Packs editor, Video settings/layout, homepage and Beauty remain unchanged.
+- Local unit/contract checks: 12 passed; prompt-paste browser passed; Elements upload/draft/handoff browser passed.
+- Focused six-cover QA passed desktop 1440/1366/1024, tablet 736 and phones 390/320; selected detail remains fitted and all original photos selectable.
+- Full layout browser reaches the same mobile ResizeObserver error on this branch and unchanged base `5953a63`; no error filtering or gate weakening.
+- First-image browser carousel assertion had a smooth-scroll race: now waits for the first actual card step before clicking Next again; application carousel unchanged.
+- Final first-image browser passed: public/customer/owner parity, focus, attachments, carousel navigation and synthetic quote/generation handoff.
+- Full source matrix: 802 passed initially; the missing sparse-checkout sandbox dependency was restored and all 9 sandbox tests passed. Dream Blur preflight timing fails equally on unchanged base under local Node 24; source unchanged.
+- PR, production deployment and byte verification pending.
+- Next: finish relevant checks, publish the reviewed commit, verify Cloudflare and live CSS/shortcut markup.
+
+## Historical banner implementation (superseded where noted), 2026-10-18
 
 ## Objective
 Apply the owner-approved Elements tab hero visuals without redesigning library, navigation, image generation, or saved references.
