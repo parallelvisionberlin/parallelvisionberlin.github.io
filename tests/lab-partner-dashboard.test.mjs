@@ -108,7 +108,7 @@ function bellini(f,t){
 
 test('Bellini requires its own verified identity and cannot read another partner dashboard',async t=>{
   const f=fixture(t),b=bellini(f,t);
-  assert.deepEqual(await partnerWorkspace(f.env,'user_Bellini'),{slug:'bellini-studio',name:'Bellini Studio'});
+  assert.deepEqual(await partnerWorkspace(f.env,'user_Bellini'),{slug:'bellini-studio',name:'Berlín Studios'});
   for(const [subject,workspace] of [['user_Victoria','bellini-studio'],['user_Bellini','vitolas-studio']])
     await assert.rejects(()=>partnerDashboardRoute(f.request('?workspace='+workspace),f.env,subject),{status:403});
   await assert.rejects(()=>ownerPartnerDashboardRoute(new Request('https://worker.test/api/admin/partners/bellini-studio'),f.env,'user_Bellini'),{status:403});
