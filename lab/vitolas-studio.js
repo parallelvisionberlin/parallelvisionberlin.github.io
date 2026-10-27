@@ -1,7 +1,10 @@
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
-import {createAccountMenu} from './account-menu.js?v=20261024-vitolas1';
+import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
 const $=id=>document.getElementById(id);
+const workspaceSlug=document.body.dataset.partnerWorkspace||'vitolas-studio';
+const studioName=workspaceSlug==='bellini-studio'?'Bellini Studios':'Vitolas Studio';
+const studioAlias=workspaceSlug==='bellini-studio'?'bellini':'vitolas';
 const menu=createAccountMenu($('account-menu'));
 let clerk=null,revision=0,nextOffset=null,loading=false;
 let dashboardPath='/api/customer/partner';
@@ -14,7 +17,7 @@ const request=createSessionRequest({baseUrl:'https://parallel-vision-lab.paralle
 const status=message=>{$('partner-status').textContent=message;};
 async function api(path,body){
   const response=await request(path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),data=await response.json().catch(()=>({}));
-  if(!response.ok)throw Error(response.status===403?'Esta cuenta no tiene acceso a Vitolas Studio.':data.error||'No pudimos cargar el panel. Inténtalo de nuevo.');
+  if(!response.ok)throw Error(response.status===403?'Esta cuenta no tiene acceso a '+studioName+'.':data.error||'No pudimos cargar el panel. Inténtalo de nuevo.');
   return data;
 }
 const views={overview:'partner-overview',clients:'partner-customers',invitations:'partner-invitations',commissions:'partner-commission-history',guide:'partner-help'};
@@ -95,14 +98,15 @@ function renderCustomers(){
 async function refresh(){
   const wantedView=readView(),current=++revision;clear();$('partner-copy').textContent='Copiar';
   $('partner-signin').hidden=!!clerk?.isSignedIn;$('partner-signin').disabled=!clerk;
-  if(!clerk?.isSignedIn){status('Inicia sesión con tu cuenta autorizada para abrir Vitolas Studio.');return;}
+  if(!clerk?.isSignedIn){status('Inicia sesión con tu cuenta autorizada para abrir '+studioName+'.');return;}
   status('Cargando tu panel…');
   try{
     const profile=await api('/api/session');if(current!==revision)return;
     menu.update({signed:true,user:clerk.user,profile});
-    dashboardPath=profile.owner===true?'/api/admin/partners/vitolas-studio':'/api/customer/partner';
-    const data=await api(dashboardPath);if(current!==revision)return;
-    if(data.awaitingPartner){status('Tu acceso de owner está activo. Victoria debe iniciar sesión una vez para activar su enlace y sus datos.');return;}
+    dashboardPath=profile.owner===true?'/api/admin/partners/'+workspaceSlug:'/api/customer/partner';
+    const data=await api(dashboardPath+(profile.owner===true?'':'?workspace='+workspaceSlug));if(current!==revision)return;
+    if(data.workspace?.slug!==workspaceSlug)throw Error('Esta cuenta no tiene acceso a '+studioName+'.');
+    if(data.awaitingPartner){status('Tu acceso de owner está activo. La cuenta de '+studioName+' debe iniciar sesión una vez para activar su enlace y sus datos.');return;}
     menu.update({signed:true,user:clerk.user,profile:{...profile,partnerDashboard:data.workspace}});
     const link=new URL(data.shareUrl||data.referralUrl);
     if(!['https://pvlab.studio','https://www.pvlab.studio','https://parallelvisionlabel.com'].includes(link.origin))throw Error('El enlace no está disponible.');
@@ -192,11 +196,11 @@ $('partner-export').onclick=()=>{
   const rows=[['Fecha','Cuenta','Referencia','Tipo','Importe EUR','Porcentaje','Comisión EUR','Estado','Fin del periodo de suscripción']];
   for(const p of commissionData.receipts)rows.push([new Date(p.paidAt||p.recordedAt).toISOString(),p.closed?'Cuenta cerrada':p.email||'Correo pendiente',p.reference,p.kind,(p.amountCents/100).toFixed(2),p.rate,(p.commissionCents/100).toFixed(2),receiptStatus[p.status],p.subscriptionWindowEndsAt?new Date(p.subscriptionWindowEndsAt).toISOString():'']);
   const url=URL.createObjectURL(new Blob(['\uFEFF'+rows.map(row=>row.map(safe).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
-  const link=document.createElement('a');link.href=url;link.download='vitolas-comisiones-'+new Date().toISOString().slice(0,10)+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const link=document.createElement('a');link.href=url;link.download=studioAlias+'-comisiones-'+new Date().toISOString().slice(0,10)+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function preview(){
   const credits=Number($('partner-voucher-credits').value),days=Number($('partner-voucher-days').value);
-  $('partner-preview-credits').textContent=Number.isSafeInteger(credits)&&credits>0?credits.toLocaleString('es'):'0';$('partner-preview-note').textContent=$('partner-voucher-note').value.trim()||'Una invitación de Vitolas Studio.';$('partner-preview-expiry').textContent='Un canje · '+days+' días de validez';
+  $('partner-preview-credits').textContent=Number.isSafeInteger(credits)&&credits>0?credits.toLocaleString('es'):'0';$('partner-preview-note').textContent=$('partner-voucher-note').value.trim()||'Una invitación de '+studioName+'.';$('partner-preview-expiry').textContent='Un canje · '+days+' días de validez';
   for(const button of document.querySelectorAll('[data-partner-credits]'))button.setAttribute('aria-pressed',String(Number(button.dataset.partnerCredits)===credits));
   $('partner-voucher-create').textContent=createdVoucher?'Enlace creado':'Crear enlace';
   $('partner-voucher-create').disabled=!!createdVoucher||voucherBusy||!voucherData||!Number.isSafeInteger(credits)||credits<1||credits>500||credits>voucherData.budget.available||!Number.isSafeInteger(days)||days<1||days>30;
@@ -268,7 +272,7 @@ async function mutate(action,body){
   }catch(error){if(current===revision)voucherStatus(error.message);}
   finally{if(current===revision){voucherBusy=false;preview();}}
 }
-$('partner-voucher-form').onsubmit=event=>{event.preventDefault();void mutate('/vouchers',{note:$('partner-voucher-note').value.trim()||'Invitación Vitolas',credits:Number($('partner-voucher-credits').value),days:Number($('partner-voucher-days').value),requestId});};
+$('partner-voucher-form').onsubmit=event=>{event.preventDefault();void mutate('/vouchers',{note:$('partner-voucher-note').value.trim()||'Invitación '+studioName,credits:Number($('partner-voucher-credits').value),days:Number($('partner-voucher-days').value),requestId});};
 $('partner-voucher-form').oninput=()=>{requestId=crypto.randomUUID();preview();};
 for(const button of document.querySelectorAll('[data-partner-credits]'))button.onclick=()=>{$('partner-voucher-credits').value=button.dataset.partnerCredits;requestId=crypto.randomUUID();preview();};
 $('partner-another-invite').onclick=()=>{$('partner-gift-preview').hidden=false;$('partner-create-layout').classList.remove('is-ready');createdVoucher=null;$('partner-voucher-result').hidden=true;$('partner-voucher-form').hidden=false;$('partner-voucher-note').value='';$('partner-voucher-url').value='';requestId=crypto.randomUUID();voucherStatus('');preview();$('partner-voucher-note').focus({preventScroll:true});};
@@ -276,7 +280,7 @@ for(const [prefix,kind] of [['partner-voucher','voucher'],['partner-redemption',
 $('partner-budget-toggle').onclick=()=>{if(voucherData?.ownerView!==true)return;const open=$('partner-budget-form').hidden;$('partner-budget-form').hidden=!open;$('partner-budget-toggle').setAttribute('aria-expanded',String(open));};
 $('partner-budget-form').onsubmit=event=>{event.preventDefault();void mutate('/budget',{total:Number($('partner-budget-total').value)});};
 $('partner-voucher-copy').onclick=()=>createdVoucher&&void copy(createdVoucher.url);
-$('partner-message-copy').onclick=()=>createdVoucher&&void copy('Hola, te invito a probar PV LAB con '+createdVoucher.credits+' créditos de parte de Vitolas Studio. Puedes explorar imágenes para tu marca o tus productos. Entra, inicia sesión y canjea tu código antes del '+date(createdVoucher.expiresAt)+': '+createdVoucher.url);
+$('partner-message-copy').onclick=()=>createdVoucher&&void copy('Hola, te invito a probar PV LAB con '+createdVoucher.credits+' créditos de parte de '+studioName+'. Puedes explorar imágenes para tu marca o tus productos. Entra, inicia sesión y canjea tu código antes del '+date(createdVoucher.expiresAt)+': '+createdVoucher.url);
 window.addEventListener('pagehide',()=>{++revision;clear();});
 window.addEventListener('pageshow',event=>{if(event.persisted)void refresh();});
 // Clerk also emits during token renewal. Reload only when account identity changes.

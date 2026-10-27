@@ -112,7 +112,15 @@ export function createAccountMenu(root) {
   }
   function update({signed=false,user=null,profile=null}={}){
     currentProfile=profile;root.hidden=!signed;
-    partnerLink.hidden=!(signed&&profile?.customer&&!profile.accountClosed&&profile?.partnerDashboard?.slug==='vitolas-studio');
+    const partner={
+      'vitolas-studio':{name:'Vitolas Studio',href:'./vitolas-studio.html'},
+      'bellini-studio':{name:'Bellini Studios',href:'./bellini-studio.html'}
+    }[profile?.partnerDashboard?.slug];
+    partnerLink.hidden=!(signed&&profile?.customer&&!profile.accountClosed&&partner);
+    partnerLink.href=partner?.href||'#';
+    // Keep the existing icon while replacing only the workspace label.
+    for(const node of [...partnerLink.childNodes])if(node.nodeType===Node.TEXT_NODE)node.remove();
+    partnerLink.append(document.createTextNode(partner?.name||''));
     if(!signed){close();voucherLink.hidden=true;adminLink.hidden=true;agencyLink.hidden=true;identityRow.hidden=true;identityAvatar.replaceChildren();delete identityAvatar.dataset.identity;avatar.replaceChildren();delete avatar.dataset.identity;root.querySelector('[data-account-name]').textContent='';root.querySelector('[data-account-balance]').textContent='';return;}
     const identity=accountIdentity(user);
     identityRow.hidden=false;

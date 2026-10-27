@@ -4,7 +4,11 @@ import {createServer} from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
 import {resolve,extname} from 'node:path';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
-const root=resolve('.'),output=resolve('test-results/vitolas');await mkdir(output,{recursive:true});
+const workspaceSlug=process.env.PV_PARTNER_WORKSPACE==='bellini-studio'?'bellini-studio':'vitolas-studio';
+const studioName=workspaceSlug==='bellini-studio'?'Bellini Studios':'Vitolas Studio';
+const alias=workspaceSlug==='bellini-studio'?'bellini':'vitolas';
+const adminPath='/api/admin/partners/'+workspaceSlug;
+const root=resolve('.'),output=resolve('test-results/'+alias);await mkdir(output,{recursive:true});
 const server=createServer(async(req,res)=>{
   const path=resolve(root,'.'+new URL(req.url,'http://localhost').pathname);
   if(!path.startsWith(root+'/'))return res.writeHead(403).end();
@@ -32,9 +36,9 @@ try{
     await page.route('https://parallel-vision-lab.parallelvision.workers.dev/**',async route=>{
       const req=route.request(),url=new URL(req.url());requests.push(url.pathname);if(req.method()!=='GET')writes.push(url.pathname);
       const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
-      if(url.pathname==='/api/partners/vitolas/link')return send({url:'https://pvlab.studio/?ref=ABCDEFGH'});
-      if(url.pathname==='/api/session')return send({owner:ownerView,customer:!ownerView,balanceCredits:0,partnerDashboard:allowed&&!ownerView?{slug:'vitolas-studio',name:'Vitolas Studio'}:null});
-      if(/\/partner\/|\/partners\/vitolas-studio\//.test(url.pathname)){
+      if(url.pathname==='/api/partners/'+alias+'/link')return send({url:'https://pvlab.studio/?ref=ABCDEFGH'});
+      if(url.pathname==='/api/session')return send({owner:ownerView,customer:!ownerView,balanceCredits:0,partnerDashboard:allowed&&!ownerView?{slug:workspaceSlug,name:studioName}:null});
+      if((url.pathname.startsWith('/api/customer/partner/')||url.pathname.startsWith(adminPath+'/'))){
         if(!allowed||(url.pathname.startsWith('/api/admin/')&&!ownerView))return send({error:'Denied'},403);
         if(req.method()==='GET'){
           if(manyGifts){const gifts=Array.from({length:43},(_,i)=>sample('VT'+String(i).padStart(20,'0'),'Invitation '+i,i<23?1:0));const claims=Array.from({length:23},(_,i)=>({code:gifts[i].code,note:gifts[i].note,credits:100,email:'recipient'+i+'@example.test',redeemedAt:Date.now()}));return send({ownerView,budget:{total:10000,available:5700,reserved:2000,redeemed:2300},vouchers:gifts,redemptions:claims});}
@@ -48,10 +52,10 @@ try{
         const voucher={...sample('VT'+String(++issued).padStart(20,'0'),data.note),credits:data.credits};vouchers.unshift(voucher);
         return send({voucher,budget:budget()},201);
       }
-      if(['/api/customer/partner','/api/admin/partners/vitolas-studio'].includes(url.pathname)){
+      if(['/api/customer/partner',adminPath].includes(url.pathname)){
         if(hold)await new Promise(resolve=>{release=resolve});
         if(!allowed||(url.pathname.startsWith('/api/admin/')&&!ownerView))return send({error:'Denied'},403);
-        if(awaitingPartner)return send({workspace:{slug:'vitolas-studio',name:'Vitolas Studio'},ownerView:true,awaitingPartner:true});
+        if(awaitingPartner)return send({workspace:{slug:workspaceSlug,name:studioName},ownerView:true,awaitingPartner:true});
         const q=url.searchParams.get('q')||'',filter=url.searchParams.get('filter')||'all';
         if(q==='failure')return send({error:'Search unavailable'},503);
         if(q==='hold')await new Promise(resolve=>{releaseSearch=resolve});
@@ -59,14 +63,19 @@ try{
         if(manyCustomers)people=Array.from({length:105},(_,i)=>({email:'client'+i+'@example.test',registeredAt:Date.now(),paid:0,subscribed:0,purchases:0,commissionCents:0,paymentReferences:[]}));
         if(emptyWorkspace)people=[];
         const shown=people.filter(p=>(!q||q==='hold'||p.email.includes(q))&&(filter==='all'||filter==='registered'&&!p.paid||filter==='paying'&&p.paid||filter==='subscribed'&&p.subscribed));
-        return send({workspace:{slug:'vitolas-studio',name:'Vitolas Studio'},shareUrl:'https://pvlab.studio/vitolas',referralUrl:'https://pvlab.studio/?ref=ABCDEFGH',commissions:businessUnavailable?null:emptyWorkspace?{totals:{commissionCents:0,revenueCents:0,heldCommissionCents:0,needsReconciliation:0},receipts:[],recentPurchases:[]}:commissions,totals:{registered:emptyWorkspace?0:manyCustomers?105:5,payingCustomers:emptyWorkspace||manyCustomers?0:3,activeSubscriptions:emptyWorkspace||manyCustomers?0:2,purchases:emptyWorkspace||manyCustomers?0:2},customers:shown.slice(Number(url.searchParams.get('offset')||0),Number(url.searchParams.get('offset')||0)+100),nextOffset:Number(url.searchParams.get('offset')||0)+100<shown.length?Number(url.searchParams.get('offset')||0)+100:null});
+        return send({workspace:{slug:workspaceSlug,name:studioName},shareUrl:'https://pvlab.studio/'+alias,referralUrl:'https://pvlab.studio/?ref=ABCDEFGH',commissions:businessUnavailable?null:emptyWorkspace?{totals:{commissionCents:0,revenueCents:0,heldCommissionCents:0,needsReconciliation:0},receipts:[],recentPurchases:[]}:commissions,totals:{registered:emptyWorkspace?0:manyCustomers?105:5,payingCustomers:emptyWorkspace||manyCustomers?0:3,activeSubscriptions:emptyWorkspace||manyCustomers?0:2,purchases:emptyWorkspace||manyCustomers?0:2},customers:shown.slice(Number(url.searchParams.get('offset')||0),Number(url.searchParams.get('offset')||0)+100),nextOffset:Number(url.searchParams.get('offset')||0)+100<shown.length?Number(url.searchParams.get('offset')||0)+100:null});
       }
       return send({});
     });
     await page.route('https://pvlab.studio/?ref=ABCDEFGH',route=>route.fulfill({contentType:'text/html',body:'<title>Synthetic referral destination</title>'}));
-    await page.goto(origin+'/lab/vitolas.html?ref=HACK');await page.waitForURL('https://pvlab.studio/?ref=ABCDEFGH');
+    await page.goto(origin+'/lab/'+alias+'.html?ref=HACK');await page.waitForURL('https://pvlab.studio/?ref=ABCDEFGH');
     assert.equal(page.url(),'https://pvlab.studio/?ref=ABCDEFGH');checks++;
-    await page.goto(origin+'/lab/vitolas-studio.html');
+    await page.goto(origin+'/lab/'+workspaceSlug+'.html');
+    await page.locator('#partner-content:not([hidden])').waitFor();
+    await page.goto(origin+'/lab/'+(workspaceSlug==='bellini-studio'?'vitolas-studio':'bellini-studio')+'.html');
+    await page.waitForFunction(()=>document.getElementById('partner-status').textContent.includes('no tiene acceso'));
+    assert.equal(await page.locator('#partner-content').isHidden(),true);checks++;
+    await page.goto(origin+'/lab/'+workspaceSlug+'.html');
     await page.locator('#partner-content:not([hidden])').waitFor();
     await page.waitForFunction(()=>!document.querySelector('#partner-voucher-workspace').hidden);
     await page.waitForFunction(()=>document.querySelector('.partner-hero-image').complete&&document.querySelector('.partner-hero-image').naturalWidth>0);
@@ -83,7 +92,7 @@ try{
     assert.equal(await page.locator('#partner-results').evaluate(el=>el.compareDocumentPosition(document.getElementById('partner-invitations'))&Node.DOCUMENT_POSITION_FOLLOWING?true:false),true);checks++;
     assert.equal(await page.locator('.partner-metrics').evaluate(el=>!!(el.compareDocumentPosition(document.querySelector('.partner-link'))&Node.DOCUMENT_POSITION_FOLLOWING)),true);checks++;
     assert.equal(await page.getByRole('tab').count(),5);assert.equal(await tab('Resumen').getAttribute('aria-selected'),'true');assert.equal(await page.locator('.partner-agreement').isVisible(),true);checks+=2;checks++;
-    assert.equal(await page.locator('#partner-url').inputValue(),'https://pvlab.studio/vitolas');checks++;
+    assert.equal(await page.locator('#partner-url').inputValue(),'https://pvlab.studio/'+alias);checks++;
     assert.equal(await page.locator('#partner-commission').textContent(),new Intl.NumberFormat('es',{style:'currency',currency:'EUR'}).format(10.50));checks++;
     assert.equal(await page.locator('dialog').count(),0);checks++;
     assert.equal(await page.locator('header #partner-title').count(),1);assert.equal(await page.locator('.partner-client-avatar').count(),5);checks+=2;
@@ -163,7 +172,7 @@ try{
     assert.equal(await page.locator('#partner-budget-reserved').textContent(),'300');checks++;
     await context.grantPermissions(['clipboard-read','clipboard-write']);
     await page.locator('#partner-message-copy').click();
-    assert.match(await page.evaluate(()=>navigator.clipboard.readText()),/200 créditos de parte de Vitolas Studio/);checks++;
+    assert.match(await page.evaluate(()=>navigator.clipboard.readText()),new RegExp('200 créditos de parte de '+studioName));checks++;
     await page.locator('#partner-invitation-history').scrollIntoViewIfNeeded();
     assert.equal(await page.locator('#partner-redemption-rows').isVisible(),true);checks++;
     assert.match(await page.locator('#partner-redemption-rows').textContent(),/friend@example.test/);checks++;
@@ -201,9 +210,9 @@ try{
     await page.reload();await page.waitForFunction(()=>document.querySelector('#partner-status').textContent.includes('no tiene acceso'));
     assert.equal(await page.locator('#partner-content').isVisible(),false);checks++;
     assert.equal(await page.locator('[data-account-partner]').isVisible(),false);checks++;
-    await page.goto(origin+'/lab/vitolas-studio.html?view=owner');
+    await page.goto(origin+'/lab/'+workspaceSlug+'.html?view=owner');
     await page.waitForFunction(()=>document.querySelector('#partner-status').textContent.includes('no tiene acceso'));
-    assert.equal(requests.includes('/api/admin/partners/vitolas-studio'),false);checks++;
+    assert.equal(requests.includes(adminPath),false);checks++;
     ownerView=true;allowed=true;await page.reload();
     await page.locator('#partner-content:not([hidden])').waitFor();
     await tab('Invitaciones').click();
@@ -213,11 +222,11 @@ try{
     await page.waitForFunction(()=>document.querySelector('#partner-voucher-status').textContent.includes('Presupuesto guardado'));
     assert.equal(await page.locator('#partner-budget-available').textContent(),(1800).toLocaleString('es'));checks++;
     await capture(page,'owner-invitations-'+width+'.png');
-    assert.equal(requests.includes('/api/admin/partners/vitolas-studio'),true);checks++;
+    assert.equal(requests.includes(adminPath),true);checks++;
     assert.equal(await page.locator('#partner-purchases').textContent(),'2');checks++;
     assert.equal(await page.locator('[data-account-admin]').getAttribute('hidden'),null);checks++;
     awaitingPartner=true;await page.reload();
-    await page.waitForFunction(()=>document.querySelector('#partner-status').textContent.includes('Victoria debe iniciar sesión'));
+    await page.waitForFunction(name=>document.querySelector('#partner-status').textContent.includes('La cuenta de '+name+' debe iniciar sesión'),studioName);
     assert.equal(await page.locator('#partner-content').isVisible(),false);checks++;
     assert.equal(await page.locator('#partner-url').inputValue(),'');checks++;
     ownerView=false;awaitingPartner=false;
@@ -231,7 +240,7 @@ try{
     if(width===1440){businessUnavailable=true;await page.reload();await page.waitForFunction(()=>!document.querySelector('#partner-voucher-workspace').hidden);assert.equal(await page.locator('#partner-commission').textContent(),'No disponible');checks++;businessUnavailable=false;}
     for(const role of [false,true]){
       ownerView=role;allowed=true;hold=true;
-      const path=role?'/api/admin/partners/vitolas-studio':'/api/customer/partner';
+      const path=role?adminPath:'/api/customer/partner';
       const pending=page.waitForRequest(req=>new URL(req.url()).pathname===path);
       await page.reload();await pending;
       await page.evaluate(()=>window.mockAccount.signOut());release();
@@ -261,20 +270,20 @@ try{
     hold=false;ownerView=true;allowed=true;
     await page.goto(origin+'/lab/owner.html');
     await page.locator('#owner-dashboard:not([hidden])').waitFor();
-    assert.equal(await page.locator('[data-owner-vitolas]').evaluateAll(links=>links.length===2&&links.every(link=>!link.hidden)),true);checks++;
-    const privateLink=page.locator(width<=900?'.owner-jumpbar [data-owner-vitolas]':'.owner-sidebar [data-owner-vitolas]');
+    assert.equal(await page.locator('[data-owner-'+alias+']').evaluateAll(links=>links.length===2&&links.every(link=>!link.hidden)),true);checks++;
+    const privateLink=page.locator(width<=900?'.owner-jumpbar [data-owner-'+alias+']':'.owner-sidebar [data-owner-'+alias+']');
     assert.equal(await privateLink.isVisible(),true);checks++;
     await capture(page,'owner-navigation-'+width+'.png');
     await privateLink.click();await page.locator('#partner-content:not([hidden])').waitFor();
     assert.equal(await page.locator('#partner-purchases').textContent(),'2');checks++;
     ownerView=false;allowed=false;await page.goto(origin+'/lab/owner.html');
     await page.waitForFunction(()=>document.querySelector('#owner-status').textContent.includes('reserved'));
-    assert.equal(await page.locator('[data-owner-vitolas]').evaluateAll(links=>links.every(link=>link.hidden)),true);checks++;
+    assert.equal(await page.locator('[data-owner-'+alias+']').evaluateAll(links=>links.every(link=>link.hidden)),true);checks++;
     ownerView=true;allowed=true;await page.goto(origin+'/lab/owner.html');
     await page.locator('#owner-dashboard:not([hidden])').waitFor();
     await page.evaluate(()=>window.mockAccount.signOut());
-    assert.equal(await page.locator('[data-owner-vitolas]').evaluateAll(links=>links.every(link=>link.hidden)),true);checks++;
-    const expectedWrites=new Set(['/api/customer/partner/vouchers','/api/customer/partner/vouchers/deactivate','/api/admin/partners/vitolas-studio/budget','/api/admin/partners/vitolas-studio/vouchers']);
+    assert.equal(await page.locator('[data-owner-'+alias+']').evaluateAll(links=>links.every(link=>link.hidden)),true);checks++;
+    const expectedWrites=new Set(['/api/customer/partner/vouchers','/api/customer/partner/vouchers/deactivate',adminPath+'/budget',adminPath+'/vouchers']);
     assert.deepEqual(errors,[]);assert.equal(writes.every(path=>expectedWrites.has(path)),true,JSON.stringify(writes));checks+=2;
     await context.close();
   }
