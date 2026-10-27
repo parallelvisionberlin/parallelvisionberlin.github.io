@@ -521,7 +521,7 @@ try{
  x=await workspace({savedPacks:slowPacks,packPreviewGate,brokenPreviewAssets:[badId]});
  const originalDeckHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
  await x.page.click('#image-composer-prompt');
- await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');
+ await x.page.click('#scene-image-open');await x.page.click('#scene-menu-back');await x.page.click('#scene-menu-packs');
  assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'The Photo Packs menu opens the existing reference library modal');
  assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs');
  assert.equal(await x.page.locator('#composer-library').isVisible(),false,'No legacy oversized popover competes with the modal');
@@ -548,7 +548,7 @@ try{
  // It must not touch the generation quote/submit routes or reset the Image deck.
  x=await workspace();
  await x.page.click('#image-composer-prompt');
- await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');
+ await x.page.click('#scene-image-open');await x.page.click('#scene-menu-back');await x.page.click('#scene-menu-packs');
  await x.page.click('#pack-studio-new');
  assert.equal(await x.page.locator('#pack-studio-create-view').isVisible(),true);
  assert.equal(await x.page.locator('#pack-studio-from-deck').isDisabled(),true);
@@ -576,7 +576,7 @@ try{
  const packReferencePhotos=[{name:'front.png',mimeType:'image/png',buffer:png},{name:'side.png',mimeType:'image/png',buffer:png},{name:'back.png',mimeType:'image/png',buffer:png}];
  x=await workspace();await x.page.locator('#reference-images').setInputFiles(packReferencePhotos);await waitRefs(x.page,3);
  await x.page.click('#image-composer-prompt');
- await x.page.click('#scene-image-open');await x.page.click('#scene-menu-packs');await x.page.click('#pack-studio-new');
+ await x.page.click('#scene-image-open');await x.page.click('#scene-menu-back');await x.page.click('#scene-menu-packs');await x.page.click('#pack-studio-new');
  assert.equal(await x.page.locator('#pack-studio-from-deck').getAttribute('aria-pressed'),'false');
  assert.equal(await x.page.locator('#pack-studio-previews .pack-studio-preview').count(),0);
  await x.page.click('#pack-studio-from-deck');
