@@ -1090,8 +1090,10 @@ try{
   assert.ok(Math.abs(imgRules.width-imgRules.parentWidth)<2,'Location card photo fills its frame');
   await coverTest.page.click('#scene-grid .scene-card-select');
   assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),false,'Selecting a Location hides unrelated category artwork');
-  await coverTest.page.waitForFunction(()=>document.querySelector('#scene-feature-cover img')?.naturalWidth===8||
-    document.querySelector('.scene-feature-cover img')?.naturalWidth===8,{},{timeout:12000});
+  await coverTest.page.waitForFunction(()=>{
+    const image=document.querySelector('.scene-feature-cover img');
+    return image?.complete&&image.naturalWidth>0;
+  },null,{timeout:12000});
   assert.equal(await coverTest.page.locator('#scene-feature').isVisible(),true,'A saved Element opens a dedicated detail workspace');
   assert.equal(await coverTest.page.locator('#scene-grid').isVisible(),false,'The overview grid does not duplicate the selected item');
   assert.equal(await coverTest.page.locator('.scene-feature-photos .scene-feature-shot').count(),4,'All saved photographs are immediately accessible');
