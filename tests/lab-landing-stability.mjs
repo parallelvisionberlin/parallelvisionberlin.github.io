@@ -154,6 +154,10 @@ try{
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width}: no horizontal overflow`);
       const heading=await page.locator('#hero-title').boundingBox(),header=await page.locator('.landing-header').boundingBox();
       assert.ok(heading.y>=header.y+header.height,`${width}: heading clears the navigation`);
+      if(width<=700){
+        const crop=await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).objectPosition);
+        assert.equal(crop,'92% 0%',`${width}: keep the model's face within the mobile hero crop`);
+      }
       assert.equal(await page.evaluate(()=>window.testSignInOptions.forceRedirectUrl),undefined,'Header sign-in stays on the current page');
       assert.deepEqual(errors,[]);
       if(!slowFont&&(width===1440||width===390))await page.screenshot({path:resolve(artifacts,`landing-${width}.png`)});
