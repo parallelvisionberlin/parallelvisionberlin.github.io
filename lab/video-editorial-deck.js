@@ -147,8 +147,14 @@ function installVideoEditorialDeck(){
     if(promptCount&&prompt){
       promptCount.textContent=prompt.value.length+' / '+(prompt.maxLength||5000);
     }
-    const count=referenceList.querySelectorAll('.reference-item').length;
-    if(refCount)refCount.textContent='('+count+')';
+    const cards=Array.from(referenceList.querySelectorAll('.reference-item'));
+    const count=cards.length;
+    const single= count===1&&cards[0].classList.contains('reference-element-item')?cards[0]:null;
+    const kinds={characters:'Character attached',outfits:'Outfit attached',props:'Prop attached',locations:'Location attached'};
+    const label=single?(kinds[single.dataset.elementCategory]||'Element attached'):'Reference images';
+    const heading=refTitle?.querySelector('strong');
+    if(heading?.firstChild?.nodeType===Node.TEXT_NODE)heading.firstChild.nodeValue=label+' ';
+    if(refCount)refCount.textContent=single?'':'('+count+')';
     if(refTitle)refTitle.hidden=count===0;
     // Never claim an illustrative montage is the user's generated result.
     const mode=activeMode();

@@ -8,8 +8,8 @@ const html=source('studio.html'),app=source('lab.js'),
   models=source('video-models.js');
 
 test('the approved editorial deck replaces the superseded compact layer',()=>{
-  assert.match(html,/video-restored-editorial\.css\?v=20261022-mobile-slim1/);
-  assert.match(html,/video-editorial-deck\.js\?v=20261023-wheel-history1/);
+  assert.match(html,/video-restored-editorial\.css\?v=20261027-grouped-character1/);
+  assert.match(html,/video-editorial-deck\.js\?v=20261027-character-ref-heading1/);
   assert.match(html,/video-scene-states\.js\?v=20261018-compact-flow1/);
   assert.match(html,/videoFlow=20261018-compact1/);
   assert.doesNotMatch(html,/<link[^>]*video-ergonomics\.css/);

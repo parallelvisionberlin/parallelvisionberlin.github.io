@@ -42,3 +42,13 @@ Confirm Cloudflare Pages production deploy for merge `1064c992` or later, and vi
 - User-approved state signal: grey Not analyzed, pulsing Analyzing, green Ready only when a profile exists, and muted failure if Gemini does not return a usable result. Retry remains in expanded details.
 - Newly saved item is selected automatically so its own photo and analysis state are immediately visible.
 - Branch: `fix/character-uploads-analysis-selection-20261027`. Release pending verification.
+
+## 2026-10-27 single workspace and Video handoff
+- Latest owner screenshots confirmed the selected card above the collection was redundant and did not feel like opening a Character. Owner requested a clear two-screen flow.
+- Collection view: existing category hero and card grid, no selected person. A selected card opens its own workspace, not an extra banner.
+- Detail workspace: Back to category, one full-source fitted main photograph, all saved photo thumbnails immediately visible and selectable, truthful Gemini profile status, Analyze retry only if needed, one Use in scene action. No duplicate collection cards below.
+- New saved Characters still open their dedicated detail immediately. Existing packs and permission rules are unchanged.
+- Video Reference mode: attached Character appears as one named grouped reference with its saved-photo count, one remove action, no duplicate Selected items bar and no “Uploaded images” heading. Selected provider views remain implementation-only; no model/quote/credit/reference-selection logic changes.
+- Implemented in `lab/scene-library.js`, `lab/scene-library.css`, `lab/lab.js`, `lab/video-editorial-deck.js`, `lab/video-restored-editorial.css`, `lab/studio.html`.
+- Tests updated: `tests/lab-scene-library-cover.test.mjs`, `tests/lab-studio-layout-ui.mjs`, `tests/lab-video-editorial-deck.test.mjs`.
+- Branch `fix/pvlab-character-single-workspace-20261027`. Merge, CI and custom-domain publication to be recorded separately.
