@@ -16,8 +16,8 @@ const server=http.createServer((req,res)=>{
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const base='http://127.0.0.1:'+server.address().port,browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox']});
 mkdirSync('test-results',{recursive:true});
-async function scenario({role='customer',width=1448,malformed=false,delayed=false,submitFailure=false}={}){
- const context=await browser.newContext({viewport:{width,height:1086},reducedMotion:'reduce'}),page=await context.newPage();
+async function scenario({role='customer',width=1448,height=1086,malformed=false,delayed=false,submitFailure=false}={}){
+ const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'}),page=await context.newPage();
  await context.addInitScript(value=>{window.__beautyRole=value},role);
  const calls=[],quotes=[],jobs=[],errors=[];let submits=0,uploads=0,delayOldResult=false;
  page.on('pageerror',error=>errors.push(error.message));
@@ -47,6 +47,21 @@ async function scenario({role='customer',width=1448,malformed=false,delayed=fals
 }
 const input={name:'portrait.webp',mimeType:'image/webp',buffer:photo};
 try{
+ for(const [width,height] of [[1920,900],[1440,800],[1366,768],[1280,720],[1024,768]]){
+  const s=await scenario({role:'guest',width,height}),{page}=s;
+  await page.evaluate(()=>document.fonts.ready);
+  const layout=await page.evaluate(()=>{
+   const bounds=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};};
+   return {title:bounds('h1'),photo:bounds('.beauty-photo'),notes:bounds('#beauty-direction'),bar:bounds('.beauty-generate-bar'),button:bounds('#beauty-generate'),height:innerHeight,width:innerWidth,scrollWidth:document.documentElement.scrollWidth};
+  });
+  assert.ok(layout.bar.bottom<=height-12,'Complete Generate bar fits the first viewport at '+width+'x'+height+': '+JSON.stringify(layout));
+  assert.ok(layout.notes.bottom+10<=layout.bar.top,'Notes and Generate never overlap');
+  assert.ok(layout.title.bottom<layout.photo.top&&layout.photo.bottom<layout.notes.top,'Photo and styling retain their visual order');
+  assert.ok(layout.bar.left>=0&&layout.bar.right<=width&&layout.scrollWidth<=width,'Workspace fits horizontally');
+  await page.locator('#beauty-generate').click({trial:true});
+  await page.screenshot({path:'test-results/beauty-fit-'+width+'x'+height+'.png',fullPage:true});
+  await s.context.close();
+ }
  for(const width of [1448,1024,390,320]){
   const s=await scenario({role:'guest',width}),{page}=s;
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Beauty has no horizontal overflow at '+width);

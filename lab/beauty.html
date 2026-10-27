@@ -6,7 +6,7 @@
 <meta name="description" content="Makeup, hair and skin. Create a new beauty direction from your photograph with PV LAB.">
 <meta name="theme-color" content="#080909"><link rel="canonical" href="https://pvlab.studio/beauty.html">
 <link rel="preload" href="./visuals/beauty/beauty-veil-editorial.webp" as="image">
-<link rel="stylesheet" href="./beauty.css?v=20261027-beauty2">
+<link rel="stylesheet" href="./beauty.css?v=20261027-beauty-fit1">
 <link rel="stylesheet" href="./account-menu.css?v=20261024-vitolas1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261027-studios1">
 <script defer src="./studios-menu.js?v=20261027-studios1"></script>
@@ -33,7 +33,7 @@
     <label class="beauty-field" for="beauty-hair"><span>Hair</span><select id="beauty-hair"><option value="keep">Keep original</option><option value="sleek">Sleek</option><option value="waves">Soft waves</option><option value="wet">Wet look</option><option value="updo">Updo</option></select></label>
     <label class="beauty-field" for="beauty-skin"><span>Skin</span><select id="beauty-skin"><option value="natural">Natural texture</option><option value="dewy">Dewy</option><option value="matte">Matte</option><option value="keep">Keep original</option></select></label>
     <div class="beauty-strength"><label for="beauty-strength">Look strength</label><input id="beauty-strength" type="range" min="0" max="100" value="50"><output id="beauty-strength-value" for="beauty-strength">50</output></div>
-    <label class="beauty-direction" for="beauty-direction">Anything else?<textarea id="beauty-direction" rows="3" placeholder="Describe the look you want..."></textarea></label>
+    <label class="beauty-direction" for="beauty-direction">Anything else?<textarea id="beauty-direction" rows="2" placeholder="Describe the look you want..."></textarea></label>
    </div>
    <div class="beauty-generate-bar"><label>Model<select id="beauty-model"><option value="seedream">Auto</option><option value="seedream-pro">Seedream 5 Pro</option><option value="flash">Seedream Flash</option></select></label><label class="sr-only" for="beauty-resolution">Resolution</label><select id="beauty-resolution"><option value="1k">1K</option><option value="2k">2K</option></select><label class="sr-only" for="beauty-ratio">Aspect ratio</label><select id="beauty-ratio"><option value="4:5">4:5</option><option value="1:1">1:1</option><option value="3:4">3:4</option><option value="9:16">9:16</option><option value="auto">Auto</option></select><button id="beauty-generate" type="submit">Generate <span class="beauty-arrow" aria-hidden="true"></span></button></div>
   </form>
