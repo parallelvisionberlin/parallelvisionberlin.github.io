@@ -35,3 +35,10 @@ Confirm Cloudflare Pages production deploy for merge `1064c992` or later, and vi
 - CI on PR #322 reached the new MyRoom assertion after verifying visible hero, decoded landscape card photo and selected-item details, but its immediate image-count check after list toggle raced asynchronous decoding. PR #323 merged `156232b9476cc26d1f0dbb623870f2d5516134af` to wait for the image instead.
 - The existing Photo Packs browser check also used an outdated create-card assertion after a separate toolbar redesign; PR #323 updates this test to the approved toolbar layout.
 - Full post-merge browser CI and Cloudflare Pages live domain verification remain outstanding unless subsequently confirmed.
+
+## 2026-10-27 selected Element override
+- Owner explicitly changed the earlier always-visible hero decision: overview retains its category artwork; clicking a Character/Element hides unrelated category photography and displays the saved item's own thumbnail and detail panel.
+- Changes are scoped to `lab/scene-library.js`, stylesheet and browser regressions. Saved originals, category art files, unrelated tabs and model generation are unchanged.
+- User-approved state signal: grey Not analyzed, pulsing Analyzing, green Ready only when a profile exists, and muted failure if Gemini does not return a usable result. Retry remains in expanded details.
+- Newly saved item is selected automatically so its own photo and analysis state are immediately visible.
+- Branch: `fix/character-uploads-analysis-selection-20261027`. Release pending verification.
