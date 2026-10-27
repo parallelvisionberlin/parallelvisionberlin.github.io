@@ -117,7 +117,7 @@ export function createAccountMenu(root) {
       'bellini-studio':{name:'Bellini Studio',href:'./bellini-studio.html'}
     }[profile?.partnerDashboard?.slug];
     partnerLink.hidden=!(signed&&profile?.customer&&!profile.accountClosed&&partner);
-    partnerLink.href=partner?.href||'./account.html';
+    partnerLink.href=partner?.href||'#';
     // Keep the existing icon while replacing only the workspace label.
     for(const node of [...partnerLink.childNodes])if(node.nodeType===Node.TEXT_NODE)node.remove();
     partnerLink.append(document.createTextNode(partner?.name||''));
