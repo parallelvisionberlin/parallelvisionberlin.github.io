@@ -78,6 +78,10 @@ try{
   await page.fill('#prompt',prompt);
   if(scenario==='trial'){
    await page.waitForFunction(()=>!document.getElementById('remove-start-frame').hidden);
+   assert.equal(await page.locator('#drop .video-frame-label').textContent(),'Replace image',
+     'Selected Start frame offers exactly one replace action');
+   assert.equal(await page.locator('#drop .video-frame-label').evaluate(el=>getComputedStyle(el,'::after').content),'none',
+     'No duplicated pseudo-element Replace image label');
    assert.equal(await page.locator('#remove-end-frame').isVisible(),false);
    const clearLook=await page.locator('#clear').evaluate(el=>({
     gradient:getComputedStyle(el).backgroundImage,shadow:getComputedStyle(el).boxShadow
