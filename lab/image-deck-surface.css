@@ -49,19 +49,19 @@
       display:inline-flex!important;align-items:center!important;flex:0 0 auto!important;
       padding:8px!important;font-size:13px!important;font-weight:700!important;
     }
-    & .composer-add-wrap{display:flex!important;flex:0 0 68px!important;width:68px!important;min-width:68px!important;height:40px!important}
+    & .composer-add-wrap{display:flex!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:40px!important}
     & [data-deck-control="add"]{
       display:grid!important;place-items:center!important;flex:0 0 40px!important;
       width:40px!important;min-width:40px!important;padding:0!important;background:#292c2a!important;
       font:350 26px/1 Arial,sans-serif!important;
     }
     & .composer-add-plus{font:350 26px/1 Arial,sans-serif!important;transform:translateY(-1px)}
-    & .scene-image-library-wrap{display:block!important;flex:0 0 38px!important;width:38px!important}
-    & [data-deck-control="library"]{
+    & .scene-image-library-wrap{display:flex!important;flex-direction:row!important;align-items:center!important;gap:5px!important;flex:0 0 81px!important;width:81px!important;min-width:81px!important;height:40px!important}
+    & :is([data-deck-control="library"],[data-deck-control="characters"]){
       display:grid!important;place-items:center!important;width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;
       padding:0!important;border-radius:50%!important;background:transparent!important;border-color:#626762!important;
     }
-    & [data-deck-control="library"] svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.5!important}
+    & :is([data-deck-control="library"],[data-deck-control="characters"]) svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.5!important}
     & .composer-model-wrap{display:block!important;flex:0 0 165px!important;width:165px!important;min-width:165px!important;max-width:165px!important}
     & [data-deck-control="model"]{display:flex!important;align-items:center!important;width:100%!important;min-width:0!important;font-size:14px!important;font-weight:610!important}
     & :is(.composer-model-symbol,.pv-guest-model-symbol){display:inline-flex!important;flex:0 0 20px!important;width:20px!important;height:20px!important}

@@ -1,5 +1,17 @@
 # PV LAB Image Studio: Discreet Mode
 
+## Active: account-specific preview preference (2026-10-27)
+- User reproduced a fresh account opening Image with the inspiration cards concealed.
+- Verified cause: one same-origin `pv-lab-image-previews-hidden-v1` preference was reused across every account in that browser.
+- `lab.js` now sends authenticated account selection and the first unfiltered History outcome to the presentation script. Session/revision guards remain unchanged.
+- `image-discreet.js` stores hide/show under an account-specific key. Empty/new accounts start with cards visible. Saved explicit preferences win even with empty History.
+- Existing libraries retain the legacy hidden choice on first migration; legacy concealment remains during loading to avoid flashing existing media. The early reload hint stays compatible.
+- A session memory map preserves deliberate hide/show choices when browser storage is unavailable; sign-out clears the private presentation state.
+- No user records, saved images, auth permissions, API requests, generations or credits are changed.
+- PASS four regressions: fresh account with legacy hidden state, legacy existing-library migration, switching/reloading with independent choices, and unavailable storage. First-image real UI fixture also passes the fresh-account regression.
+- Source base `463d22e1`; branch `fix/image-library-controls-20261027`. Publication pending; actual real-account signup remains separate from synthetic browser verification.
+
+
 Updated: 2026-10-15
 Code: lab/studio.html, lab/image-discreet.css, lab/image-discreet.js.
 Initial implementation commits: 85db913, ea6d648, 90c7d985.

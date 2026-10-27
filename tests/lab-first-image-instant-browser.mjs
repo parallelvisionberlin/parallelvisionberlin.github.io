@@ -155,12 +155,17 @@ try{
   const parity=[];
   for(const role of ['new','returning','owner','guest']){
     const context=await browser.newContext({viewport:{width:1920,height:1000},reducedMotion:'reduce'});
+    if(role==='new')await context.addInitScript(()=>localStorage.setItem('pv-lab-image-previews-hidden-v1','1'));
     const p=await context.newPage();
     await context.route('https://**/*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({jobs:[],packs:[],activeJobs:[],products:[]})}));
     try{
       await p.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole='+role);
       await p.waitForFunction(()=>window.__welcomeMockReady===true);
       await p.evaluate(()=>document.fonts.ready);
+      if(role==='new'){
+        assert.equal(await p.locator('html').evaluate(el=>el.classList.contains('pv-image-previews-hidden')),false,'A new account must not inherit browser-wide Discreet Mode');
+        assert.equal(await p.locator('#lab-welcome-presets').isVisible(),true,'New account cards are visible after empty History resolves');
+      }
       const prefix=role==='guest'?'pv-guest':'image-composer';
       const field=p.locator('#'+prefix+'-prompt'),bar=p.locator(role==='guest'?'#pv-guest-composer':'#image-composer');
       assert.equal(await p.locator('#image-composer:visible,#pv-guest-composer:visible').count(),1,
@@ -206,6 +211,14 @@ try{
         for(const key of ['x','y','w'])assert.ok(Math.abs(states[state][key]-states.idle[key])<2,
           role+' keeps the same outer '+key+' when '+state+': '+JSON.stringify({idle:states.idle,state:states[state]}));
         assert.equal(states[state].radius,states.idle.radius,role+' keeps the same outer corner shape when '+state);
+      }
+      for(const [state,geometry] of Object.entries(states)){
+        const person=geometry.controls.characters,library=geometry.controls.library;
+        assert.ok(person&&library,role+' exposes both reference shortcuts in '+state);
+        assert.ok(Math.abs(person.y-library.y)<2,role+' reference icons share one row in '+state);
+        assert.ok(person.x+person.w<=library.x+1,role+' Characters precedes All references without overlap');
+        for(const control of [person,library])assert.ok(control.y>=0&&control.y+control.h<=geometry.h+1,
+          role+' reference icons stay inside the '+state+' deck');
       }
       assert.equal(states.idle.h,74,role+' starts with the approved compact row');
       for(const tool of ['add','library','model','moods','base','ratio','resolution','count','exact'])

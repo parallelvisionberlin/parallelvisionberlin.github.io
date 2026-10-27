@@ -1,5 +1,19 @@
 # Image composer prompt: current state
 
+## Active: aligned Characters and reference shortcuts (2026-10-27)
+- User reported stacked icons extending beyond both compact and expanded Image decks, plus hidden cards on a new account.
+- Base main: `463d22e10dc09815fe275e2204a0f245e4a4e8c4`; isolated branch `fix/image-library-controls-20261027`.
+- Cause: desktop `image-deck-surface.css` still forced the two-button library wrapper to a single 38px block.
+- Corrected to one 81px horizontal group immediately after Add, with matching 38px round controls; removed unused Add-wrapper spacing to preserve the existing frame and other controls.
+- Compact/expanded deck width, prompt copy, Generate, model settings, library contents, upload flows and backend logic remain unchanged.
+- Relevant source: `image-deck-surface.css`, `image-discreet.js`, `lab.js`, `studio.html`; preference details in `IMAGE-DISCREET-WORK-STATE.md`.
+- Added first-image browser assertions for aligned/contained icons in idle/focus/short/cleared states across public/new/returning/Owner roles. New account fixture starts with the previous browser-wide hidden preference and must show cards.
+- PASS approved Image contract 5/5, account-preference regressions 4/4, complete first-image role/interaction/synthetic generation suite, prompt paste at 1440/1100/390 widths and short phones.
+- Focused closed/open control QA passed 1920,1440,1180,1100,390,320; desktop/phone screenshots visually inspected.
+- Full Studio layout reaches the two previously recorded mobile ResizeObserver errors; no errors filtered and no unrelated observer code changed.
+- Production publication pending. Next: publish reviewed source, verify hosting and exact live assets, record separately from real signed-in account observation.
+
+
 ## Mobile guest/authenticated deck parity (2026-10-24)
 - Owner approved matching the logged-out Image phone deck to the existing signed-in instrument and fixing persistent focus zoom. Base: `fab0e4d8277f3cde6b5ea3bae22e5df1056f5340`.
 - Isolated branch `fix/mobile-image-guest-deck`; no merge/reuse of overlapping #373, #462 or #482. Their shared Studio files must preserve this markup and cache markers during later integration.
