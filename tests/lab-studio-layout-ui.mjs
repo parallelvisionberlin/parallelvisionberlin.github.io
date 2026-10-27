@@ -465,8 +465,8 @@ try{
   });
   assert.ok(menuPlacement.menuBottom<=menuPlacement.triggerTop+2,
     'Compact library opens above the circular trigger: '+JSON.stringify(menuPlacement));
-  await x.page.click('#scene-menu-elements');
-  assert.equal(await x.page.locator('#scene-image-menu-categories').isVisible(),true);
+  assert.equal(await x.page.locator('#scene-image-menu-categories').isVisible(),true,'Four-square icon opens Elements directly');
+  assert.equal(await x.page.locator('#scene-image-menu-home').isVisible(),false,'Do not require an Elements submenu click');
   assert.equal(await x.page.locator('#scene-image-menu [data-scene-target]').count(),4);
   await x.page.click('#scene-image-menu [data-scene-target="characters"]');
   assert.equal(await x.page.locator('#scene-library-dialog').isVisible(),true);
@@ -531,6 +531,7 @@ try{
   await x.page.click('#scene-close');
   await x.page.click('#image-composer-prompt');
   await x.page.click('#scene-image-open');
+  await x.page.click('#scene-menu-back');
   await x.page.click('#scene-menu-packs');
   assert.equal(await x.page.locator('#pack-studio-heading').textContent(),'Photo packs');
   assert.equal(await x.page.locator('#pack-studio-dialog').isVisible(),true,'Saved packs open the matching Elements-style Photo Packs library');
@@ -1007,8 +1008,8 @@ try{
     const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};
   });
   assert.ok(libraryMenu.left>=8&&libraryMenu.right<=382,
-    'Photo Packs / Elements menu must remain entirely visible on the phone: '+JSON.stringify(libraryMenu));
-  await x.page.locator('#scene-menu-elements').click();
+    'Elements categories menu must remain entirely visible on the phone: '+JSON.stringify(libraryMenu));
+  assert.equal(await x.page.locator('#scene-image-menu-categories').isVisible(),true);
   const categoriesMenu=await x.page.locator('#scene-image-menu').evaluate(el=>{
     const r=el.getBoundingClientRect();return {left:r.left,right:r.right};
   });
@@ -1072,7 +1073,6 @@ try{
   await coverTest.page.click('#tool-image');
   await coverTest.page.click('#image-composer-prompt');
   await coverTest.page.click('#scene-image-open');
-  await coverTest.page.click('#scene-menu-elements');
   await coverTest.page.click('#scene-image-menu [data-scene-target="locations"]');
   assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true,'Saved Locations preserve their editorial hero');
   assert.equal(await coverTest.page.locator('#scene-feature').isVisible(),false,'Saving an item does not hijack the hero with a selected feature');
