@@ -1,0 +1,36 @@
+name: PV LAB Beauty Studio
+on:
+  pull_request:
+    paths: ['lab/beauty*', 'lab/studios-menu*', 'lab/visuals/beauty/**', 'lab/index.html', 'lab/studio.html', 'tests/lab-beauty*', '.github/workflows/pv-lab-beauty.yml']
+  push:
+    branches: [main]
+    paths: ['lab/beauty*', 'lab/studios-menu*', 'lab/visuals/beauty/**', 'lab/index.html', 'lab/studio.html', 'tests/lab-beauty*', '.github/workflows/pv-lab-beauty.yml']
+permissions:
+  contents: read
+jobs:
+  beauty:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Approved Image and Beauty price binding contracts
+        run: node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-beauty.test.mjs
+      - name: Beauty uses the existing Worker quote and idempotent submission routes
+        run: node --test --test-name-pattern="Beauty Studio binds" tests/lab-worker.test.mjs
+      - name: Install pinned browser runtime
+        run: |
+          npm install --prefix /tmp/pv-beauty --no-audit --no-fund playwright@1.57.0
+          node /tmp/pv-beauty/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Beauty role, billing, navigation and responsive checks
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-beauty/node_modules/playwright/index.mjs
+        run: node tests/lab-beauty-ui.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: beauty-studio-screenshots
+          path: test-results/beauty-*.png
+          retention-days: 7

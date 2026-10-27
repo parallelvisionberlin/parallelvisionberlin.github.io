@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {beautySettings,validateBeautyQuote} from '../lab/beauty-settings.js';
+test('Beauty controls compile an identity-preserving edit and never borrow the example styling',()=>{
+ const p=beautySettings({makeup:'bold',hair:'waves',skin:'dewy',strength:75,direction:'Copper eyes, soft gloss.'});
+ assert.equal(p.engine,'seedream');assert.equal(p.mode,'image');assert.equal(p.resolution,'1k');assert.equal(p.referenceRoles[0].role,'identity');
+ assert.match(p.prompt,/Preserve their identity/);assert.match(p.prompt,/Bold fashion makeup/);assert.match(p.prompt,/soft waves/);assert.match(p.prompt,/dewy/);assert.match(p.prompt,/75\/100/);assert.match(p.prompt,/Copper eyes/);assert.match(p.prompt,/Do not add a veil/);
+ assert.doesNotMatch(beautySettings({strength:0}).prompt,/Editorial makeup/);
+ assert.equal(beautySettings({model:'flash'}).engine,'flash');
+ for(const options of [{strength:101},{strength:-1},{makeup:'bad'},{model:'unknown'},{aspectRatio:'bad'},{direction:'x'.repeat(1501)}])assert.throws(()=>beautySettings(options));
+});
+test('Beauty accepts only unexpired integer-credit quotes bound to the exact photo and settings',()=>{
+ const settings=beautySettings(),quote={id:'quoted-job',creditCost:23,expiresAt:2000,settings:{...settings,referenceSourceIds:['photo-1']}};
+ assert.equal(validateBeautyQuote(quote,settings,'photo-1',1000),quote);
+ for(const changed of [{creditCost:0},{creditCost:'23'},{creditCost:1.5},{id:{}},{expiresAt:900},{settings:{...quote.settings,prompt:'A different edit'}},{settings:{...quote.settings,engine:'flash'}},{settings:{...quote.settings,resolution:'2k'}},{settings:{...quote.settings,referenceSourceIds:['different-photo']}}])assert.throws(()=>validateBeautyQuote({...quote,...changed},settings,'photo-1',1000));
+});

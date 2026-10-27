@@ -279,6 +279,7 @@ try{
     await page.goto(base+'/lab/studio.html?tool=image');await settled(page,'image');
     await page.locator('#pv-guest-prompt').fill('Keep my public Image draft.');
     for(const route of ['video','upscale','retouch','fashion','image']){
+      if(route==='fashion')await page.locator('.pv-studios-trigger').click();
       await page.locator('#tool-'+route).click();await settled(page,route);
       assert.equal(new URL(page.url()).searchParams.get('tool'),route);
     }
@@ -287,6 +288,7 @@ try{
     await page.goForward();await settled(page,'image');
     await page.locator('#tool-retouch').click();await settled(page,'retouch');
     await page.locator('#precision-return').click();await settled(page,'image');
+    await page.locator('.pv-studios-trigger').click();
     await page.locator('#tool-fashion').click();await settled(page,'fashion');
     assert.equal(await page.locator('#fashion-studio .result-actions a[href*="studio.html?tool=image"]').isVisible(),false,
       'The approved empty Fashion result keeps result-only actions hidden');
@@ -323,6 +325,7 @@ try{
           })
         }));
         const imageHeader=route==='retouch'?await headerPositions():null;
+        if(route==='fashion')await page.locator('.pv-studios-trigger').click();
         await page.locator('#tool-'+route).click();await settled(page,route,true);
         if(route==='retouch'&&width>=761){
           const retouchHeader=await headerPositions();

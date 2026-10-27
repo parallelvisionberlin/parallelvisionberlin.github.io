@@ -1,3 +1,4 @@
+import {beautySettings,validateBeautyQuote} from '../lab/beauty-settings.js';
 import {grainPng} from '../lab-worker/film-finish.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -2326,4 +2327,23 @@ test('confirmed customer DELETE waits for Clerk deletion before immediate new-ac
    previousId=session.ownerId;
   }
  }finally{globalThis.fetch=originalFetch;}
+});
+
+// Beauty uses the existing image routes and their unchanged payment guards.
+test('Beauty Studio binds portrait edits to existing quotes and idempotent image jobs',async()=>{
+  const {env}=fixture();await setup(env);createMode='ok';providerState='queued';createCount=0;
+  const id=await uploadGuidanceReference(env,'beauty-person.png',42);
+  for(const engine of ['seedream','flash']){
+    const settings=beautySettings({model:engine,direction:'Subtle copper eye makeup.'});
+    const response=await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,referenceSourceIds:[id],settings}});
+    assert.equal(response.status,200);const quote=await response.json();
+    validateBeautyQuote(quote,settings,id);
+    const before=createCount;
+    const first=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quote.id,confirm:true}});
+    assert.equal(first.status,202);const job=(await first.json()).job;
+    const repeat=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quote.id,confirm:true}});
+    assert.equal((await repeat.json()).job.id,job.id);
+    assert.equal(createCount,before+1,'An identical bound quote never creates a second paid job');
+    assert.equal(job.sourceId,id);assert.match(job.settings.prompt,/Beauty Studio portrait edit/);
+  }
 });
