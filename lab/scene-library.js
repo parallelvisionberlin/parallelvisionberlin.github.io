@@ -284,7 +284,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     render();
   }
   function open(categoryId){
-    if(!getContext().owner){notify('Sign in to use Scene Library.',true);return;}
+    if(!getContext().owner){notify('Sign in to use Saved References.',true);return;}
     if(getContext().busy){notify('Wait for the current operation to finish.',true);return;}
     if(categoryId)current=category(categoryId).id;
     selectedId=null;selectedPhotoIndex=0;featuredExpanded=false;
@@ -584,7 +584,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
   async function useItem(item){
     if(working)return;
     const context=getContext();
-    if(context.tool==='video'&&context.mode!=='reference'){setStatus('Use Scene Library in Video → References.',true);return;}
+    if(context.tool==='video'&&context.mode!=='reference'){setStatus('Open Saved References from Video → Reference set.',true);return;}
     if(context.tool==='image'&&!context.supportsReferences){setStatus('Choose an Image model that supports image references.',true);return;}
     const currentRefs=getReferences();
     if(currentRefs.some(ref=>ref.elementId===item.id)||item.refs.every(ref=>currentRefs.some(active=>active.id===ref.id))){
@@ -637,7 +637,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     }
   }
   async function deleteItem(item){
-    if(working||!window.confirm('Delete '+item.title+' from Scene Library? Generations already made will remain in History.'))return;
+    if(working||!window.confirm('Delete '+item.title+' from Saved References? Generations already made will remain in History.'))return;
     setWorking(true);setStatus('Removing saved item…');
     try{
       await runTask(async()=>{
@@ -665,7 +665,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     if(!photos.length){setStatus('Choose at least one photograph.',true);return;}
     if(cat.id==='characters'&&!$('scene-consent').checked){setStatus('Confirm that you are authorized to use the person’s photos.',true);return;}
     const packName=PREFIX+cat.id+'|'+title;
-    if(allPacks.length>=40){setStatus('The current private archive allows 40 saved packs and Scene Library entries combined.',true);return;}
+    if(allPacks.length>=40){setStatus('You can save up to 40 reference collections and photo packs.',true);return;}
     if(entries.some(e=>e.name.toLowerCase()===packName.toLowerCase())){setStatus('You already saved '+title+' in '+cat.label+'. Use another name.',true);return;}
     const appearance=dialog.querySelector('input[name="scene-appearance"]:checked')?.value||'identity',extra=String($('scene-note').value||'').trim().slice(0,120);
     const role=cat.id==='characters'&&appearance==='full'?'custom':cat.role;
