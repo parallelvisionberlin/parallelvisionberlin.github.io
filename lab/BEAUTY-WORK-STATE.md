@@ -8,7 +8,7 @@
 - Approved page reference: `fb67472e-b6c9-4c43-ac94-3bc39eda7143.png`, Library `libfile_1c73c9c1156c8191a8380dea0f292c90`.
 - Entry: `beauty.html`, with `beauty.css`, `beauty.js`, and the pure prompt/price binding functions in `beauty-settings.js`.
 - Approved black-veil portrait restored to a clean background without interface elements using ImageGen, then saved as `visuals/beauty/beauty-veil-editorial.webp` (1448x1086, approximately 193 KiB).
-- Photo layout, large white title, quiet controls and one generation bar follow the selected design. Phone layout retains readable 16px inputs and no horizontal page overflow.
+- Viewport refinement 2026-10-27: tighter desktop title/back spacing, smaller height-responsive photo tile, 2-row optional notes, and shorter control gaps keep Generate in the first view. Portrait framing follows viewport height so the action bar sits below the face. Phone inputs remain 16px with natural scrolling.
 - The background is labelled Example look. It is never treated as an uploaded user photograph or a generated result.
 - User uploads accept decodable JPG/PNG/WebP images up to 10 MiB. Guest selection stays local; generation requires the existing Clerk account flow.
 - Makeup, hair, skin, strength and optional direction compile a reference edit preserving the person's identity, age, pose, anatomy and background. Strength is prompt guidance, not a provider-native guarantee.
@@ -22,13 +22,13 @@
 - Actual completed images are fetched from private assets, displayed without cropping, downloadable, and available in recent Beauty history. The full Image archive remains the existing history destination.
 - Account changes/sign-out clear photos, prompts, private history, result URLs, quotes and polling. No real account, generation, payment or private customer media was used in validation.
 - Results and history use selection revisions as well as the account epoch: late image/history responses cannot replace a newer selection. Browser coverage selects two saved results with the older response deliberately delayed; selection causes no generation.
-- Live-result layout is bounded to the editor rather than the growing History section, with Generate above the image layer. Browser coverage submits a second edit and checks that Generate remains clickable with completed desktop/phone results. Beauty HTML loads the v2 CSS/controller cache markers.
+- Live-result layout is bounded to the editor rather than the growing History section, with Generate above the image layer. Browser coverage submits a second edit and checks that Generate remains clickable with completed desktop/phone results. Beauty HTML loads `beauty.css?v=20261027-beauty-fit1` and the unchanged v2 controller.
 - `studios-menu.js` and `.css` progressively replace the existing Fashion header entry on homepage, Studio and Explore Moods. The original Fashion element/ID/listeners and return-to-draft URL remain intact inside the dropdown.
 - Menu entries: Beauty Studio, existing Fashion Studio, and Character Studio linked to the verified Elements/Characters creation entry (`studio.html?tool=image&createCharacter=1`).
 - Upscaler and Retouch remain direct header links. Menus support keyboard opening, Escape, outside dismissal and bounded mobile positioning.
 - Homepage hero, sections, Image composer, Moods content, and other studio controllers remain outside this change. The separately discussed homepage card section, Beauty/Fashion arrival hub and Full Editorial workspace are not implemented in this step.
 - PASS: 5 approved Image UI contracts, 2 Beauty prompt/quote tests, 4 search/crawler checks; 11 selected Worker credit/refund/identity/idempotency cases, including the actual Beauty Seedream/Flash route test.
-- PASS: synthetic browser Beauty matrix at 1448, 1024, 390 and 320px; guest isolation, owner/customer exact pricing, stale response rejection, single submit, completed downloads, ambiguous-submit reload protection, logout cleanup, and homepage menu links.
+- PASS after viewport refinement: complete Generate bar visible with non-overlapping notes at 1920x900, 1440x800, 1366x768, 1280x720 and 1024x768; existing 1448/1024/390/320px Beauty role/credit/privacy/history/menu checks also pass. Desktop and phone screenshots inspected.
 - PASS: existing tool-routing regression at 1440 and 390px. Browser screenshots were visually inspected for desktop, phone, and the open mobile menu.
 - Full public Studio visual suite passed its 1440px guest component comparisons and navigation before stopping on the existing disabled customer Retouch `#precision-prompt` field. Both the full and header-only paths stop there.
 - Baseline reproduction: unchanged main `0b1f8f56`, in a separate detached worktree, stops at the same Retouch field (`tests/lab-public-studio-ui.mjs:349`; candidate line shifted by new menu-open actions). No Retouch gate/assertion was weakened.
@@ -45,4 +45,4 @@
 - Release verifier returned LIVE_VERIFIED for `studios-menu.js?v=20261027-studios1`, SHA-256 `f0510e9f11ed35f1b5ad885945a825d96fcd1f217cfb1bcaaa29d3f87e16e540`.
 - Production HTTP 200 and exact SHA-256 equality confirmed for Beauty HTML/CSS/JS/settings, Studios CSS/JS and the veil portrait against the reviewed application commit.
 - Live browser followed homepage Studios > Beauty Studio to `https://pvlab.studio/beauty`, verified v2 Beauty assets, controls and layout. Production appearance inspected. Real signed-in generation/payment remains untested.
-- Status: Beauty and Studios navigation are published and verified. This record update changes documentation only. Homepage hero/cards and the arrival hub remain separate proposed work; no further release action is pending for this feature.
+- Current task: publish the tested viewport refinement from `feat/beauty-viewport-20261027`, then verify the new CSS version and actual first-view Generate bar on pvlab.studio. The preceding release evidence describes the original Beauty launch. Homepage hero/cards and arrival hub remain separate work.
