@@ -220,7 +220,39 @@ try{
  assert.equal(countPaid(x),0);assert.equal(quoteRequests(x).length,0);
  assert.equal(await x.page.locator('.upscale-empty-kicker').textContent(),'IMAGE ENHANCEMENT');
  assert.match(await x.page.locator('.upscale-drop-hint').textContent(),/PNG, JPG OR WEBP/);
+ const emptyCanvasHeight=await x.page.locator('#upscale-canvas').evaluate(el=>el.getBoundingClientRect().height);
  await uploadSmall(x.page);
+ await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-upscale-source-ready'));
+ const loadedSource=await x.page.evaluate(()=>{
+   const rect=selector=>document.querySelector(selector).getBoundingClientRect();
+   const thumb=document.getElementById('pv-upscale-source-thumb');
+   const photo=document.getElementById('preview');
+   const canvas=document.getElementById('upscale-canvas');
+   return {
+     previewFit:getComputedStyle(photo).objectFit,
+     previewHeight:rect('#preview').height,
+     canvasHeight:rect('#upscale-canvas').height,
+     canvasWidth:rect('#upscale-canvas').width,
+     previewWidth:rect('#preview').width,
+     thumbSource:thumb.getAttribute('src'),
+     thumbFilename:thumb.dataset.filename,
+     chipBottom:rect('.pv-upscale-source-control').bottom,
+     modelTop:rect('#upscale-model-display').top
+   };
+ });
+ assert.equal(loadedSource.previewFit,'contain','Original source must remain fully visible, never cropped');
+ assert.ok(loadedSource.canvasHeight>=emptyCanvasHeight*.9,
+   'Loaded image retains nearly the full empty-stage height: '+JSON.stringify(loadedSource));
+ assert.ok(Math.abs(loadedSource.previewWidth-loadedSource.canvasWidth)<3,
+   'Loaded image occupies the full photographic deck width');
+ assert.ok(loadedSource.previewHeight>=loadedSource.canvasHeight-3);
+ assert.ok(loadedSource.thumbSource?.startsWith('blob:'),'Source chip displays actual local original');
+ assert.equal(loadedSource.thumbFilename,'test-scene.png');
+ assert.ok(loadedSource.chipBottom<loadedSource.modelTop,
+   'Loaded photo chip sits above model selection');
+ assert.equal(await x.page.locator('#pv-upscale-source-upload-title').textContent(),'Replace image');
+ assert.equal(countPaid(x),0);assert.equal(quoteRequests(x).length,0);
+ ok('Upscaler restored full contained source deck and compact original-photo chip above models');
  const loadedInspector=await x.page.evaluate(()=>{
    const bounds=id=>document.querySelector(id).getBoundingClientRect();
    return {formatBottom:bounds('#format-control').bottom,generateTop:bounds('#generate').top};

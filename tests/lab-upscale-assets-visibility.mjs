@@ -164,15 +164,38 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       const preview=document.getElementById('preview'),empty=document.getElementById('empty');
       preview.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="140"><rect width="100" height="140" fill="#4c5360"/></svg>');
       preview.hidden=false;empty.hidden=true;
+      // This fixture intentionally mocks lab.js, so mirror its source-thumbnail
+      // handoff explicitly instead of mistaking a result preview for a source.
+      const thumb=document.getElementById('pv-upscale-source-thumb');
+      thumb.src=preview.src;
+      thumb.dataset.filename='mock-source.svg';
+      thumb.hidden=false;
+      document.getElementById('app').classList.add('pv-upscale-source-ready');
     });
-    const filledCanvasHeight=await page.locator('#upscale-canvas').evaluate(el=>el.getBoundingClientRect().height);
-    assert.ok(filledCanvasHeight<emptyCanvasHeight&&filledCanvasHeight>=320&&filledCanvasHeight<=620,'Loaded source preview is viewport-fitted, while the empty upload hero stays spacious');
+    const loaded=await page.evaluate(()=>{
+      const canvas=document.getElementById('upscale-canvas');
+      const source=document.querySelector('.pv-upscale-source-control').getBoundingClientRect();
+      const model=document.getElementById('upscale-model-display').getBoundingClientRect();
+      return {canvasHeight:canvas.getBoundingClientRect().height,
+        photoFit:getComputedStyle(document.getElementById('preview')).objectFit,
+        chipBeforeModel:source.bottom<model.top};
+    });
+    assert.ok(loaded.canvasHeight>=emptyCanvasHeight*.9,
+      'Loaded photograph retains the approved full-sized stage: '+JSON.stringify(loaded));
+    assert.equal(loaded.photoFit,'contain','Loaded photo shows all content without cropping');
+    assert.equal(loaded.chipBeforeModel,true,'Source photo chip appears above the model cards');
     await page.waitForFunction(()=>document.getElementById('app').classList.contains('pv-upscale-source-ready'));
     assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),true,'Source image remains available after upload');
     const secondaryChooser=page.waitForEvent('filechooser');
     await page.locator('#pv-upscale-source-upload').click();
     assert.equal((await secondaryChooser).isMultiple(),false,'Replace source uses the original single-image chooser');
-    await page.evaluate(()=>{document.getElementById('preview').hidden=true;document.getElementById('empty').hidden=false;});
+    await page.evaluate(()=>{
+      document.getElementById('preview').hidden=true;
+      document.getElementById('empty').hidden=false;
+      const thumb=document.getElementById('pv-upscale-source-thumb');
+      thumb.hidden=true;thumb.removeAttribute('src');
+      document.getElementById('app').classList.remove('pv-upscale-source-ready');
+    });
     await page.waitForFunction(()=>!document.getElementById('app').classList.contains('pv-upscale-source-ready'));
     assert.equal(await page.locator('.pv-upscale-source-control').isVisible(),false,'Clearing a source restores the original upload-first page');
     assert.equal(await page.locator('.stagefoot').isVisible(),false,'Empty Upscaler does not show a technical footer');
