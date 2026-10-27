@@ -19,11 +19,13 @@ test('supports old packs and failed private thumbnails with a valid fallback',()
   assert.equal(sceneCoverId(undefined),null);
 });
 
-test('category artwork is never replaced by selected element previews',()=>{
+test('category artwork stays on the overview; selected Elements show their own image',()=>{
   const js=readFileSync(new URL('../lab/scene-library.js',import.meta.url),'utf8');
-  assert.match(js,/hero\.hidden=false;/);
+  assert.match(js,/hero\.hidden=!!selected;/);
   assert.match(js,/const selected=list\.find\(i=>i\.id===selectedId\)\|\|null;/);
   assert.match(js,/renderCover\(cover,item\);/);
+  assert.match(js,/profileSignal\(item\)/);
+  assert.match(js,/failedProfiles\.set\(item\.id/);
   assert.match(js,/renderCover\(top,item\);/);
   assert.doesNotMatch(js,/assetPhoto\((?:image|portrait|img),/);
 });

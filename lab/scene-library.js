@@ -68,7 +68,7 @@ function elementReferenceNote(item,selectedIndex){
   return notes.join(' ').slice(0,300);
 }
 
-export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAssetRatio,getReferences,getReferenceLimit,getContext,prepareUse,addReferences,loadPacks,getAllPacks,notify,action,closeOverlays,openPhotoPacks}) {
+export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhoto,assetPhoto,getAssetRatio,getReferences,getReferenceLimit,getContext,prepareUse,addReferences,loadPacks,getAllPacks,notify,action,closeOverlays,openPhotoPacks}) {
   const $=id=>document.getElementById(id);
   const dialog=$('scene-library-dialog');
   if(!dialog)return {open(){},sync(){},renderSelected(){},fromGallery(){}};
@@ -92,7 +92,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
   });
   let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false,sortMode='recent',viewMode='grid';
   const coverChoices=new Map(),coverRequests=new Map();
-   const pendingProfiles=new Map();
+   const pendingProfiles=new Map(),failedProfiles=new Map();
   const sceneToast=$('scene-toast'),leaveConfirm=$('scene-leave-confirm');
   let pendingNavigation=null;
   function hideSceneToast(){if(sceneToast)sceneToast.hidden=true;}
@@ -153,6 +153,22 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
       if(best&&best!==chosen&&host.isConnected&&entries.includes(item))
         assetPhoto(host,best);
     });
+  }
+  // The visual profile is not a trained model. Surface only verified state:
+  // stored result, in-flight request, local failure, or not yet analyzed.
+  function profileSignal(item){
+    const state=item.profile?'ready':pendingProfiles.has(item.id)?'analyzing':failedProfiles.has(item.id)?'failed':'idle';
+    const labels={ready:'Ready',analyzing:'Analyzing',failed:'Analysis unavailable',idle:'Not analyzed'};
+    const badge=document.createElement('span');
+    badge.className='scene-profile-status';badge.dataset.state=state;
+    badge.setAttribute('role','status');
+    badge.title=state==='ready'?'Visual profile saved for reuse.':
+      state==='analyzing'?'Google Gemini is analyzing reduced previews.':
+      state==='failed'?failedProfiles.get(item.id):
+      'Visual analysis has not finished. Open details to analyze.';
+    const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');
+    badge.append(dot,document.createTextNode(labels[state]));
+    return badge;
   }
   const category=id=>CATEGORIES.find(c=>c.id===id)||CATEGORIES[0];
   const safeName=value=>String(value||'').trim().replace(/[\r\n|]+/g,' ').replace(/\s+/g,' ').slice(0,70);
@@ -216,8 +232,8 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     if(incoming.length>remaining)throw Error('Choose up to eight images per saved item.');
     for(const entry of incoming){
       const file=entry.file||entry;
-      if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||!file.size||file.size>20*1024*1024)
-        throw Error('Use JPG, PNG or WebP images under 20 MB each.');
+      if(!file||!String(file.type||'').startsWith('image/')||!file.size)
+        throw Error('Choose a valid image file.');
     }
     for(const entry of incoming){
       const file=entry.file||entry;
@@ -380,7 +396,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     detail.textContent=featuredExpanded?'Hide details ↑':'View details →';
     detail.setAttribute('aria-expanded',String(featuredExpanded));
     detail.onclick=()=>{featuredExpanded=!featuredExpanded;render();};
-    bottom.append(badges,detail);content.append(eyebrow,title,summary,bottom);
+    bottom.append(badges,detail);content.append(eyebrow,title,profileSignal(item),summary,bottom);
     host.append(cover,content);
     if(featuredExpanded){
       const details=document.createElement('div');details.className='scene-feature-expanded';
@@ -460,8 +476,9 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     hero.setAttribute('aria-label',categoryData.label+' visual collection');
     $('scene-category-hero-title').textContent=categoryData.label;
     $('scene-category-hero-subtitle').textContent=categoryDescriptions[current];
-    // Always preserve the chosen PV LAB category hero, even with saved items.
-    hero.hidden=false;
+    // Archive artwork belongs to the overview only. Never show an unrelated
+    // face above the user's selected Character or Element.
+    hero.hidden=!!selected;
     renderFeatured(selected);
     $('scene-active-label').textContent='All '+categoryData.label.toLowerCase();
     $('scene-library-count').textContent=query
@@ -486,7 +503,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
       renderCover(top,item);
       const title=document.createElement('strong');title.textContent=item.title;
       const meta=document.createElement('small');meta.textContent=item.refs.length+' image'+(item.refs.length===1?'':'s');
-      const details=document.createElement('div');details.className='scene-card-details';details.append(title,meta);
+      const details=document.createElement('div');details.className='scene-card-details';details.append(title,meta,profileSignal(item));
       select.append(top,details);
       select.onclick=()=>{selectedId=item.id;featuredExpanded=false;render();};
       const actions=document.createElement('div');actions.className='scene-card-actions';
@@ -529,16 +546,19 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     if(item.profile)return Promise.resolve(item.profile);
     const existing=pendingProfiles.get(item.id);
     if(existing)return existing;
+    failedProfiles.delete(item.id);
     const pending=api('/api/elements/'+encodeURIComponent(item.id)+'/analyze',{method:'POST'})
       .then(async result=>{
         if(!result?.profile)throw Error('No visual profile was returned.');
         item.profile=result.profile;
+        failedProfiles.delete(item.id);
         await loadPacks();
         if(dialog.open&&view==='browse'&&current===item.category)
           setStatus('@'+item.title+' visual analysis ready. Saved photos are unchanged.');
         return result.profile;
       })
       .catch(error=>{
+        failedProfiles.set(item.id,String(error?.message||'Google Gemini failed.'));
         if(showFailure&&dialog.open&&view==='browse'&&current===item.category)
           setStatus('@'+item.title+' analysis unavailable: '+(error?.message||'Google Gemini failed.') ,true);
         return null;
@@ -640,11 +660,17 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
     const appearance=dialog.querySelector('input[name="scene-appearance"]:checked')?.value||'identity',extra=String($('scene-note').value||'').trim().slice(0,120);
     const role=cat.id==='characters'&&appearance==='full'?'custom':cat.role;
     let saved=false;
-    setWorking(true);hideSceneToast();setStatus('Saving original references privately…');
+    setWorking(true);hideSceneToast();setStatus('Saving references privately…');
     try{
       await runTask(async()=>{
         const ids=[];
-        for(const item of photos)ids.push(item.id||await uploadAsset(item.file));
+        for(const item of photos){
+          if(item.id){ids.push(item.id);continue;}
+          // Prepare oversized/alternate-format photos locally and silently.
+          // Never mutate the user's original; only the private saved copy is sent.
+          const ready=await prepareElementPhoto(item.file);
+          ids.push(await uploadAsset(ready));
+        }
         const labels=ids.map((id,i)=>({
           name:photos[i].file.name||title+'-'+(i+1),role,
           ...(role==='outfit'?{target:'full'}:role==='object'?{target:'prop'}:{}),
@@ -655,6 +681,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
         }});
         await loadPacks();
         saved=true;
+        selectedId=created?.id||null;featuredExpanded=false;
         current=cat.id;browse();setStatus(title+' saved to '+cat.label+'. No generation was started.');
         if($('scene-smart-analyze')?.checked&&created?.id){
           setStatus('@'+title+' saved. Preparing its reusable visual profile…');
@@ -669,7 +696,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,assetPhoto,getAsse
       if(saved&&typeof afterSuccess==='function')afterSuccess();
     }
   }
-  function reset(){working=false;if(leaveConfirm?.open)leaveConfirm.close();pendingNavigation=null;if(dialog.open)dialog.close();hideSceneToast();clearPhotos();allPacks=[];entries=[];selectedId=null;featuredExpanded=false;coverRevision++;coverChoices.clear();coverRequests.clear();pendingProfiles.clear();setStatus('');renderSelected();}
+  function reset(){working=false;if(leaveConfirm?.open)leaveConfirm.close();pendingNavigation=null;if(dialog.open)dialog.close();hideSceneToast();clearPhotos();allPacks=[];entries=[];selectedId=null;featuredExpanded=false;coverRevision++;coverChoices.clear();coverRequests.clear();pendingProfiles.clear();failedProfiles.clear();setStatus('');renderSelected();}
   function sync(packs){
     allPacks=Array.isArray(packs)?packs:[];
     coverRevision++;coverChoices.clear();coverRequests.clear();
