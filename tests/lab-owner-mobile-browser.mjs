@@ -4,14 +4,15 @@ import assert from 'node:assert/strict';
 import {readFile, mkdir} from 'node:fs/promises';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
 const root=new URL('../lab/',import.meta.url);
-const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi,rawReviewUi,rawPaginationUi]=await Promise.all([
+const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi,rawReviewUi,rawPaginationUi,rawPayoutUi]=await Promise.all([
   readFile(new URL('owner.html',root),'utf8'),
   readFile(new URL('owner.css',root),'utf8'),
   readFile(new URL('owner.js',root),'utf8'),
   readFile(new URL('owner-providers-ui.js',root),'utf8'),
   readFile(new URL('owner-acquisition-ui.js',root),'utf8'),
   readFile(new URL('owner-generation-review-ui.js',root),'utf8'),
-  readFile(new URL('owner-pagination.js',root),'utf8')
+  readFile(new URL('owner-pagination.js',root),'utf8'),
+  readFile(new URL('partner-payouts.js',root),'utf8')
 ]);
 // Run the real dashboard renderer with synthetic owner data, without authentication/network requests.
 const providerJs="const {createOwnerProviderUI,renderOwnerProviderFinances}=(()=>{"+
@@ -20,7 +21,8 @@ const providerJs="const {createOwnerProviderUI,renderOwnerProviderFinances}=(()=
 const acquisitionJs=rawAcquisitionUi.replace(/^import .*\n/gm,'').replace(/^export /gm,'')+'\n';
 const paginationJs=rawPaginationUi.replace(/^export /gm,'')+'\n';
 const reviewJs=rawReviewUi.replace(/^export /gm,'')+'\n';
-const runtimeJs=providerJs+paginationJs+acquisitionJs+reviewJs+"const createSessionRequest=()=>async()=>({ok:false,json:async()=>({})});\n"+
+const payoutJs="const {createOwnerPayoutNotice}=(()=>{"+rawPayoutUi.replace(/^export /gm,'')+";return {createOwnerPayoutNotice};})();\n";
+const runtimeJs=payoutJs+providerJs+paginationJs+acquisitionJs+reviewJs+"const createSessionRequest=()=>async()=>({ok:false,json:async()=>({})});\n"+
   rawJs.replace(/^import .*\n/gm,'').replace(/\ntry\{clerk=await loadLabAccount\(\);[\s\S]*$/,'');
 const html=rawHtml
   .replace(/<link\b[^>]*>/g,'')

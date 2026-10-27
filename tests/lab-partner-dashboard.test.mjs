@@ -54,7 +54,7 @@ function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   const file=path=>readFileSync(new URL('../lab-worker/'+path,import.meta.url),'utf8');
   db.exec(file('schema.sql'));
-  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0024-owner-acquisition','0037-partner-vouchers','0038-partner-commissions','0042-partner-workspaces'])db.exec(file('migrations/'+name+'.sql'));
+  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0024-owner-acquisition','0037-partner-vouchers','0038-partner-commissions','0042-partner-workspaces','0043-partner-payouts'])db.exec(file('migrations/'+name+'.sql'));
   const env={LAB_CLERK_SECRET_KEY:'test-only',LAB_PUBLIC_APP_URL:'https://pvlab.studio/studio.html',LAB_DB:{prepare(sql){return {bind(...args){return {
     async first(){return db.prepare(sql).get(...args)||null;},
     async all(){return {results:db.prepare(sql).all(...args)};},
@@ -126,6 +126,7 @@ test('two partner dashboards, commissions, Owner views and public aliases stay s
     f.db.prepare("INSERT INTO lab_credit_entries VALUES(?,?,1000,'purchase',?,?)").run('credit-'+id,id,reference,Date.now());
     f.db.prepare('INSERT INTO lab_revenue_events(reference,customer_id,amount_cents,created_at) VALUES(?,?,1000,?)').run(reference,id,Date.now());
     await recordPartnerPaymentContext(f.env,{reference,paidAt:Date.now(),kind:'purchase'});
+    f.db.prepare('INSERT INTO lab_partner_payment_facts VALUES(?,?,?,?,?,?,?)').run(reference,'ch_'+id,'txn_'+id,1000,0,0,Date.now());
   }
   for(const [slug,subject,expected,excluded,alias] of [['bellini-studio','user_Bellini','bellinibuyer@example.test','vitolasbuyer@example.test','bellini'],['vitolas-studio','user_Victoria','vitolasbuyer@example.test','bellinibuyer@example.test','vitolas']]){
     const data=await(await partnerDashboardRoute(f.request('?workspace='+slug),f.env,subject)).json();

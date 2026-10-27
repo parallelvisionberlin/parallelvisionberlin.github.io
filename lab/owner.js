@@ -1,3 +1,4 @@
+import {createOwnerPayoutNotice} from './partner-payouts.js?v=20261027-payout1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
@@ -479,6 +480,7 @@ function render(data){
   $('owner-dashboard').hidden=false;
   startInlineVoucherRecipients(inlineVoucherRecipients);
 }
+const payoutNotice=createOwnerPayoutNotice({root:document.getElementById('owner-partner-payout-notice'),api:path=>call(path),isCurrent:value=>value===revision&&profile?.owner===true});
 async function refreshDashboard({scrollCustomers=false}={}){
   if(!profile?.owner)return;
   const current=revision,requestId=++fetchSerial,search=$('owner-search').value.trim();
@@ -495,7 +497,7 @@ async function refreshDashboard({scrollCustomers=false}={}){
     }
     render(data);status('');
     if(scrollCustomers)$('owner-customers-section').scrollIntoView({block:'start'});
-    if(!search&&customerPage===1){void refreshTraffic();void acquisitionUI.refresh();}
+    if(!search&&customerPage===1){void refreshTraffic();void acquisitionUI.refresh();void payoutNotice.load(revision);}
     if(!autoClerkSyncAttempted&&!syncing&&!search&&data.emailSyncConfigured&&
         Array.isArray(data.customers)&&data.customers.some(c=>!c.accountClosed&&!c.email)){
       autoClerkSyncAttempted=true;
@@ -505,6 +507,7 @@ async function refreshDashboard({scrollCustomers=false}={}){
   finally{if(current===revision&&requestId===fetchSerial){$('owner-refresh').disabled=false;$('owner-refresh').textContent='Refresh data ↻';}}
 }
 async function refreshSession(){
+  payoutNotice.clear();
   for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini]'))link.hidden=true;
   const current=++revision;fetchSerial++;generationReviewUI.close();profile=null;
   voucherRecipientsObserver?.disconnect();voucherRecipientsObserver=null;voucherRecipientsGeneration++;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;$('owner-agency-link').hidden=true;

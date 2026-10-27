@@ -1,10 +1,10 @@
 name: PV LAB partner dashboard
 on:
   pull_request:
-    paths: ['lab/vitolas-studio*', 'lab/bellini*', 'lab-worker/migrations/0042-partner-workspaces.sql', 'lab/vitolas.html', 'lab/vitolas-link.js', 'lab-worker/customer-billing.mjs', 'lab-worker/migrations/0038-partner-commissions.sql', 'lab/account-menu.js', 'lab-worker/partner-*.mjs', 'lab-worker/migrations/0037-partner-vouchers.sql', 'lab-worker/promotions.mjs', 'lab-worker/worker.mjs', 'tests/lab-partner-dashboard*', '.github/workflows/pv-lab-partner-dashboard.yml']
+    paths: ['lab/vitolas-studio*', 'lab/bellini*', 'lab-worker/migrations/0042-partner-workspaces.sql', 'lab-worker/migrations/0043-partner-payouts.sql', 'lab/partner-payouts*', 'lab/vitolas.html', 'lab/vitolas-link.js', 'lab-worker/customer-billing.mjs', 'lab-worker/migrations/0038-partner-commissions.sql', 'lab/account-menu.js', 'lab-worker/partner-*.mjs', 'lab-worker/migrations/0037-partner-vouchers.sql', 'lab-worker/promotions.mjs', 'lab-worker/worker.mjs', 'tests/lab-partner-dashboard*', 'tests/lab-partner-payouts*', '.github/workflows/pv-lab-partner-dashboard.yml']
   push:
     branches: [main]
-    paths: ['lab/vitolas-studio*', 'lab/bellini*', 'lab-worker/migrations/0042-partner-workspaces.sql', 'lab/vitolas.html', 'lab/vitolas-link.js', 'lab-worker/customer-billing.mjs', 'lab-worker/migrations/0038-partner-commissions.sql', 'lab/account-menu.js', 'lab-worker/partner-*.mjs', 'lab-worker/migrations/0037-partner-vouchers.sql', 'lab-worker/promotions.mjs', 'lab-worker/worker.mjs', 'tests/lab-partner-dashboard*', '.github/workflows/pv-lab-partner-dashboard.yml']
+    paths: ['lab/vitolas-studio*', 'lab/bellini*', 'lab-worker/migrations/0042-partner-workspaces.sql', 'lab-worker/migrations/0043-partner-payouts.sql', 'lab/partner-payouts*', 'lab/vitolas.html', 'lab/vitolas-link.js', 'lab-worker/customer-billing.mjs', 'lab-worker/migrations/0038-partner-commissions.sql', 'lab/account-menu.js', 'lab-worker/partner-*.mjs', 'lab-worker/migrations/0037-partner-vouchers.sql', 'lab-worker/promotions.mjs', 'lab-worker/worker.mjs', 'tests/lab-partner-dashboard*', 'tests/lab-partner-payouts*', '.github/workflows/pv-lab-partner-dashboard.yml']
 permissions:
   contents: read
 jobs:
@@ -21,9 +21,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/lab-partner-dashboard.test.mjs tests/lab-referrals.test.mjs tests/lab-account-menu.test.mjs tests/lab-approved-image-ui-contract.test.mjs
+      - run: node --test tests/lab-partner-payouts.test.mjs tests/lab-partner-dashboard.test.mjs tests/lab-referrals.test.mjs tests/lab-account-menu.test.mjs tests/lab-approved-image-ui-contract.test.mjs
       - run: npm install --no-save --package-lock=false playwright
       - run: npx playwright install --with-deps chromium
+      - run: node tests/lab-partner-payouts-browser.mjs
       - run: node tests/lab-partner-dashboard-browser.mjs
       - run: PV_PARTNER_WORKSPACE=bellini-studio PV_PARTNER_WIDTHS=390,1440 node tests/lab-partner-dashboard-browser.mjs
       - uses: actions/upload-artifact@v4
@@ -33,4 +34,5 @@ jobs:
           path: |
             test-results/vitolas
             test-results/bellini
+            test-results/bellini-payouts
           retention-days: 3

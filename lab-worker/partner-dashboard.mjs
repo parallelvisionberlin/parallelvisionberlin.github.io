@@ -119,7 +119,7 @@ async function readPartnerDashboard(request,env,subject,access,{ownerView=false}
   await env.LAB_DB.prepare('INSERT OR IGNORE INTO lab_partner_links(slug,customer_id,created_at) VALUES(?,?,?)').bind(config.alias,subject,Date.now()).run();
   const alias=await one(env,'SELECT customer_id FROM lab_partner_links WHERE slug=?',config.alias);
   const customerSummaries=new Map();
-  const commissions=await partnerCommissionReport(env,subject,customerSummaries);
+  const commissions=await partnerCommissionReport(env,subject,customerSummaries,{netOfFees:access.slug==='bellini-studio'});
   const found=result.results||[];
   const customers=found.slice(0,limit).map(({customerId,...person})=>({...person,...(customerSummaries.get(customerId)||{commissionCents:0,heldCommissionCents:0,needsReconciliation:0,paymentReferences:[]})}));
   return json({workspace:access,ownerView,referralUrl:referral.url,shareUrl:alias?.customer_id===subject?'https://pvlab.studio/'+config.alias:referral.url,totals,customers,commissions,filter,

@@ -1,3 +1,4 @@
+import {createPartnerPayoutUI} from './partner-payouts.js?v=20261027-payout1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
@@ -20,6 +21,7 @@ async function api(path,body){
   if(!response.ok)throw Error(response.status===403?'Esta cuenta no tiene acceso a '+studioName+'.':data.error||'No pudimos cargar el panel. Inténtalo de nuevo.');
   return data;
 }
+const payoutUI=createPartnerPayoutUI({root:document.querySelector('[data-partner-payouts]'),api,isCurrent:value=>value===revision&&!!clerk?.isSignedIn,onCommissions:commissions=>{if(commissions)drawCommissions(commissions);}});
 const views={overview:'partner-overview',clients:'partner-customers',invitations:'partner-invitations',commissions:'partner-commission-history',guide:'partner-help'};
 const viewHashes={overview:'resumen',clients:'clientes',invitations:'invitaciones',commissions:'comisiones',guide:'guia'};
 function readView(){const hash=location.hash.slice(1);return Object.keys(views).find(key=>key===hash||views[key]===hash||viewHashes[key]===hash)||'overview';}
@@ -37,6 +39,7 @@ window.addEventListener('hashchange',()=>activateView(readView(),{write:false,re
 const voucherStatus=message=>{$('partner-voucher-status').textContent=message;};
 function updatePager(prefix,page,count){const start=count?page*20+1:0,end=Math.min(count,(page+1)*20);$(prefix+'-page').textContent=start+'–'+end+' de '+count;$(prefix+'-prev').disabled=page===0;$(prefix+'-next').disabled=end>=count;}
 function clear(){
+  payoutUI.clear();
   activateView('overview',{write:false});voucherPage=0;redemptionPage=0;updatePager('partner-voucher',0,0);updatePager('partner-redemption',0,0);
   $('partner-create-layout').classList.remove('is-ready');$('partner-gift-preview').hidden=false;$('partner-start').hidden=false;$('partner-recent-activity').hidden=true;$('partner-overview-budget').textContent='';
   customerItems=[];customerPage=0;$('partner-page').textContent='1';$('partner-prev').disabled=true;
@@ -113,7 +116,7 @@ async function refresh(){
     $('partner-url').value=link.href;
     for(const [id,key] of [['registered','registered'],['overview-registered','registered'],['paying','payingCustomers'],['subscribed','activeSubscriptions'],['purchases','purchases']])$('partner-'+id).textContent=Number(data.totals[key]||0).toLocaleString('es');
     drawBusiness(data);nextOffset=data.nextOffset;rows(data.customers);
-    $('partner-content').hidden=false;activateView(wantedView,{write:false});status('');await loadVouchers(current);
+    $('partner-content').hidden=false;activateView(wantedView,{write:false});status('');await loadVouchers(current);if(current===revision)await payoutUI.load({path:dashboardPath+'/payouts',owner:data.ownerView===true,revision:current});
   }catch(error){if(current===revision)status(error.message);}
 }
 $('partner-signin').onclick=()=>clerk?.openSignIn();
@@ -164,6 +167,7 @@ function commissionRows(){
     label.textContent=payment.closed?'Cuenta cerrada':payment.email||'Correo pendiente de verificación';reference.textContent=(payment.kind==='subscription'?'Suscripción':'Recarga')+' · '+payment.reference;name.append(label,reference);
     row.insertCell().textContent=date(payment.paidAt||payment.recordedAt);row.insertCell().textContent=money(payment.amountCents);
     const earned=row.insertCell();earned.textContent=payment.status==='needs_reconciliation'?'Por conciliar':money(payment.commissionCents)+' · '+payment.rate+'%';
+    if(Number.isSafeInteger(payment.baseCents)){const base=document.createElement('small');base.textContent='Base neta: '+money(payment.baseCents)+' · Stripe: '+money(payment.feeCents)+' · Impuestos: '+money(payment.taxCents);earned.append(base);}
     if(payment.kind==='subscription'&&payment.subscriptionWindowEndsAt){const window=document.createElement('small');window.textContent='Periodo hasta '+date(payment.subscriptionWindowEndsAt);earned.append(window);}
     const badge=document.createElement('span');badge.className='partner-badge';badge.textContent=receiptStatus[payment.status]||'En revisión';row.insertCell().append(badge);
   }
@@ -182,11 +186,14 @@ function activity(target,items,kind){
   }
 }
 function drawBusiness(data){
-  activity('partner-latest-signups',data.customers,'signup');$('partner-start').hidden=Number(data.totals.registered)>0;$('partner-recent-activity').hidden=Number(data.totals.registered)===0&&Number(data.totals.purchases)===0;commissionData=data.commissions||null;
+  activity('partner-latest-signups',data.customers,'signup');$('partner-start').hidden=Number(data.totals.registered)>0;$('partner-recent-activity').hidden=Number(data.totals.registered)===0&&Number(data.totals.purchases)===0;drawCommissions(data.commissions);
+}
+function drawCommissions(report){
+  commissionData=report||null;
   if(!commissionData){for(const id of ['partner-commission','partner-report-commission','partner-revenue','partner-overview-revenue','partner-commission-held'])$(id).textContent='No disponible';$('partner-commission-status').textContent='No pudimos cargar el informe de comisiones. Actualiza el panel.';$('partner-recent-purchases').textContent='Informe no disponible. Actualiza el panel.';return;}
   const totals=commissionData.totals;
   $('partner-commission').textContent=money(totals.commissionCents);$('partner-report-commission').textContent=money(totals.commissionCents);$('partner-revenue').textContent=money(totals.revenueCents);$('partner-overview-revenue').textContent=money(totals.revenueCents);$('partner-commission-held').textContent=money(totals.heldCommissionCents);
-  $('partner-commission-status').textContent=totals.needsReconciliation?totals.needsReconciliation+' pagos sin fecha verificable pendientes de conciliación.':'';
+  $('partner-commission-status').textContent=totals.needsReconciliation?totals.needsReconciliation+(workspaceSlug==='bellini-studio'?' pagos pendientes de conciliación.':' pagos sin fecha verificable pendientes de conciliación.'):'';
   activity('partner-recent-purchases',commissionData.recentPurchases||commissionData.receipts,'purchase');commissionRows();$('partner-export').disabled=!commissionData.receipts.length;
 }
 $('partner-commission-more').onclick=()=>{commissionLimit+=25;commissionRows();};
@@ -194,7 +201,8 @@ $('partner-export').onclick=()=>{
   if(!commissionData?.receipts.length)return;
   const safe=value=>{let text=String(value??'');if(/^[\s=+@-]/.test(text))text="'"+text;return '"'+text.replaceAll('"','""')+'"';};
   const rows=[['Fecha','Cuenta','Referencia','Tipo','Importe EUR','Porcentaje','Comisión EUR','Estado','Fin del periodo de suscripción']];
-  for(const p of commissionData.receipts)rows.push([new Date(p.paidAt||p.recordedAt).toISOString(),p.closed?'Cuenta cerrada':p.email||'Correo pendiente',p.reference,p.kind,(p.amountCents/100).toFixed(2),p.rate,(p.commissionCents/100).toFixed(2),receiptStatus[p.status],p.subscriptionWindowEndsAt?new Date(p.subscriptionWindowEndsAt).toISOString():'']);
+  const net=commissionData.policy?.basis==='verified_net';if(net)rows[0].push('Stripe EUR','Impuestos EUR','Base neta EUR');
+  for(const p of commissionData.receipts){const row=[new Date(p.paidAt||p.recordedAt).toISOString(),p.closed?'Cuenta cerrada':p.email||'Correo pendiente',p.reference,p.kind,(p.amountCents/100).toFixed(2),p.rate,(p.commissionCents/100).toFixed(2),receiptStatus[p.status],p.subscriptionWindowEndsAt?new Date(p.subscriptionWindowEndsAt).toISOString():''];if(net)row.push(...[p.feeCents,p.taxCents,p.baseCents].map(n=>Number.isSafeInteger(n)?(n/100).toFixed(2):''));rows.push(row);}
   const url=URL.createObjectURL(new Blob(['\uFEFF'+rows.map(row=>row.map(safe).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
   const link=document.createElement('a');link.href=url;link.download=studioAlias+'-comisiones-'+new Date().toISOString().slice(0,10)+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
