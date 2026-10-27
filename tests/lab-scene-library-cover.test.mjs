@@ -23,7 +23,10 @@ test('category artwork stays on the overview; selected Elements show their own i
   const js=readFileSync(new URL('../lab/scene-library.js',import.meta.url),'utf8');
   assert.match(js,/hero\.hidden=!!selected;/);
   assert.match(js,/const selected=list\.find\(i=>i\.id===selectedId\)\|\|null;/);
-  assert.match(js,/renderCover\(cover,item\);/);
+  assert.match(js,/assetPhoto\\(photo,item\\.refs\\[index\\]\\.id\\)/);
+  assert.match(js,/selectedPhotoIndex=i;assetPhoto\\(photo,ref\\.id\\)/);
+  assert.match(js,/dialog\\.classList\\.toggle\\('scene-item-open',!!selected\\)/);
+  assert.match(js,/back\\.onclick=.*selectedId=null/);
   assert.match(js,/profileSignal\(item\)/);
   assert.match(js,/failedProfiles\.set\(item\.id/);
   assert.match(js,/renderCover\(top,item\);/);
