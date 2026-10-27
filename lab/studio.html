@@ -206,6 +206,7 @@ document.addEventListener('click',event=>{
 <link rel="stylesheet" href="./mobile-image-compact-welcome.css?v=20261024-guest-no-overscroll1">
 <link rel="stylesheet" href="./image-deck-surface.css?v=20261022-compact-controls1&generatePearl=20261023-neutral1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261027-square1">
+<link rel="stylesheet" href="./video-frame-actions.css?v=20261027-frame-remove-gloss1">
 </head>
 <body class="lab-booting">
 <div id="pv-credit-toast" class="pv-credit-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
@@ -900,11 +901,13 @@ document.addEventListener('click',event=>{
 <div class="upload-block">
 <div class="upload-heading"><span class="label" id="start-label">Start frame</span><span class="micro">Required</span></div>
 <label class="drop compact-drop" id="drop" aria-label="Choose start frame image"><img id="video-start-thumb" class="video-frame-thumb" alt="Selected start frame" hidden><svg class="pv-frame-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.8" width="15" height="15.5" rx="2"/><circle cx="8.2" cy="9" r="1.45"/><path d="m4.8 16 4.6-4.4 3.3 3 2-1.9"/><path d="M19.4 15v8m-4-4h8"/></svg><span class="video-frame-label">Choose image</span><span class="pv-frame-drop-help">or drop it here</span><small>JPG / PNG / WebP</small><input id="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<button id="remove-start-frame" class="pv-frame-remove" type="button" aria-label="Remove start frame" title="Remove start frame" hidden>×</button>
 <p class="filemeta" id="filemeta">Choose the exact opening frame.</p>
 </div>
 <div class="upload-block" id="last-upload">
 <div class="upload-heading"><span class="label">End frame</span><span class="micro">Optional</span></div>
 <label class="drop compact-drop" id="last-drop" aria-label="Choose optional end frame image"><img id="video-end-thumb" class="video-frame-thumb" alt="Selected end frame" hidden><svg class="pv-frame-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.8" width="15" height="15.5" rx="2"/><circle cx="8.2" cy="9" r="1.45"/><path d="m4.8 16 4.6-4.4 3.3 3 2-1.9"/><path d="M19.4 15v8m-4-4h8"/></svg><span class="video-frame-label">Choose image</span><span class="pv-frame-drop-help">or drop it here</span><small>JPG / PNG / WebP</small><input id="last-image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<button id="remove-end-frame" class="pv-frame-remove" type="button" aria-label="Remove end frame" title="Remove end frame" hidden>×</button>
 <p class="filemeta" id="last-filemeta">Leave empty for an open ending.</p>
 </div>
 </div>
