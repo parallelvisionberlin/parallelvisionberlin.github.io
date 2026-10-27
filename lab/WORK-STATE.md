@@ -1,3 +1,9 @@
+## Mobile homepage hero crop, 2026-10-27
+- Screenshot from the owner shows the woman's face cut off at the right on an iPhone in-app browser. The horizontal tool navigation is a deliberately scrollable row, not a page overflow; no header redesign was requested.
+- Keep the existing approved hero image and all copy. Change only mobile image `object-position` from 70% to 92% on <=700px, leaving the desktop crop, video, and existing hero gradient alone.
+- Refresh only the `landing-motion.css` URL in the homepage for browser cache. No new image or asset.
+- Verify the homepage and approved UI checks and Cloudflare deployment independently before claiming live.
+
 ## Homepage hero crop adjustment, 2026-10-27
 - Owner asked to move the woman slightly left in the already-published industrial fashion hero. No image generation or file replacement.
 - Desktop-only `lab/landing-motion.css` overscans the existing photo 8% and offsets it left 8%, giving the right-side subject a modest inward shift without exposing blank space. At widths <=900px, existing positioning stays unchanged.
