@@ -1,5 +1,13 @@
 # Vitolas Studio partner dashboard
 
+## Bellini hero direction, pending new asset, 2026-10-27
+- User requests a more sensual dark-fashion Bellini-only hero, with readable midtones and the existing compact header. Rejected the generated satin portrait and then the monochrome leather portrait.
+- Latest desired direction combines IMG_8042.jpeg (intimate monochrome grain, natural adult portrait) with IMG_8045.jpeg (triangular loft window, angular architecture and daylight), adding black fashion styling. Reference Library IDs libfile_f55db93c22b88191b21a8aa408d374b2 and libfile_ea1f167e62208191913ff8a1252c3d9d; local attachments in upload/.
+- Built-in image generation rejected the two-reference combination with moderation_blocked/sexual, even with an explicitly fully clothed black dress. No combined asset was produced; do not claim otherwise or retry around the filter.
+- PR #609 for the superseded leather candidate is closed without merge. Source 07c129e3bcc1d8d75300771dcbd17e7ea51e7386 remains only on design/bellini-sensual-fashion-hero-20261027. Its local tests/preview are not production or user acceptance.
+- No hero change was published. Production Bellini continues using visuals/vitolas/future-beauty-v1.webp. Last completed user change remains PR #608, the verified 100 EUR / 50 EUR FAQ example.
+- Next action: establish a usable clothed reference/direction for the new hero before further generation, testing or publication. Preserve Vitolas, shared CSS, dashboard behavior and budgets.
+
 ## Commission example copy, 2026-10-27
 - User requested a more tangible 100 EUR first-payment / 50 EUR commission example in the 50% FAQ.
 - Based on current main f2655eb631ac63e71d2b3f615ffe2f622615430a; change only the matching sentence in Bellini and Vitolas HTML. No rates, eligibility, layout, accounting or wallet changes.
