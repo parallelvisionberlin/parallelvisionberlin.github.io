@@ -21,7 +21,10 @@ test('new affordances remain separate from Image Studio and preserve original AP
   }
   assert.match(html,/video-editorial-deck\.css\?v=/);
   assert.match(html,/video-editorial-deck\.js\?v=/);
-  assert.match(html,/Scene Library<\/button>/);
+  assert.match(html,/Saved References<\\/span>/);
+  assert.match(html,/Browse saved references<\\/button>/);
+  assert.match(html,/Characters, outfits &amp; more/);
+  assert.doesNotMatch(html,/Browse scene library|<span>Scene Library<\\/span>/);
   assert.match(css,/#app\.video-studio-active/);
   assert.match(css,/\.pv-video-deck-ready/,'the advanced disclosure fails open without JS');
   assert.match(css,/#generate:not\(:disabled\):hover/);
