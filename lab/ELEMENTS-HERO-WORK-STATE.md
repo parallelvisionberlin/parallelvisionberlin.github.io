@@ -20,8 +20,12 @@
 - First-image browser carousel assertion had a smooth-scroll race: now waits for the first actual card step before clicking Next again; application carousel unchanged.
 - Final first-image browser passed: public/customer/owner parity, focus, attachments, carousel navigation and synthetic quote/generation handoff.
 - Full source matrix: 802 passed initially; the missing sparse-checkout sandbox dependency was restored and all 9 sandbox tests passed. Dream Blur preflight timing fails equally on unchanged base under local Node 24; source unchanged.
-- PR, production deployment and byte verification pending.
-- Next: finish relevant checks, publish the reviewed commit, verify Cloudflare and live CSS/shortcut markup.
+- PR #611: initial source `72bbcf6384f914906719cd7e1ea366f057db95f9`; final test-only follow-up pending.
+- Photo Packs full browser passed after replacing superseded matching-frame expectations with compact bounds, preserved category order and original Photo Packs return geometry.
+- Independent public Image pixel comparison passed with only the explicitly approved Characters shortcut added to its frozen expected source. All original pixel tolerances remain unchanged; guest shortcut sign-in/privacy also passed.
+- Broader public test then reaches an existing Video canvas mismatch, reproduced on unchanged base (4940 vs 4938 pixels, same max delta 232). Upscale source-preview height failure also reproduced unchanged. Neither application area was edited.
+- Initial CI: approved-image-ui, unit, first-image, Image prompt, library browser, gallery, precision, Fashion, Beauty, appearance and other targeted checks passed. The legacy live-version check expects PR assets before publication and is pending production.
+- Production deployment and byte verification pending. Next: publish reviewed source, inspect exact Cloudflare commit, verify live CSS and shortcuts; record signed-in verification separately.
 
 ## Historical banner implementation (superseded where noted), 2026-10-18
 

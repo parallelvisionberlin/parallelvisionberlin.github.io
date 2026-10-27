@@ -21,6 +21,26 @@ assert.equal(approvedImageHtml.split(originalDreamBlurCard).length,3,'Approved p
 approvedFiles.set('lab/studio.html',Buffer.from(approvedImageHtml.replaceAll(
   originalDreamBlurCard,'src="./mood-previews/dream-blur-cover-20261024.webp"'
 )));
+// Explicit owner approval, October 27: add the direct Characters shortcut
+// beside All references. Freeze only that button and its responsive slot rules
+// in the independent Image baseline; retain all pixel comparison tolerances.
+const approvedCharacterButton='<button id="pv-guest-characters" data-deck-control="characters" class="pv-guest-setting pv-guest-icon pv-guest-expanded-only" type="button" data-guest-signin title="Characters" aria-label="Sign in to open saved characters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7.5" r="3.5"/><path d="M5 20v-2.2c0-3.8 14-3.8 14 0V20Z"/></svg></button>';
+const approvedCharacterStyles=`
+#gate.pv-guest-image #pv-guest-characters{display:flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;border-radius:50%;border:1px solid #686b6c;background:transparent}
+#gate.pv-guest-image #pv-guest-characters svg{width:17px;height:17px}
+#gate.pv-guest-image .scene-image-library-wrap{display:flex;gap:5px}
+@media(max-width:760px){
+html:not(.pv-native-lab) #gate.pv-guest-image .scene-image-library-wrap{display:flex!important;flex:0 0 auto!important;min-width:0!important;width:auto!important;gap:4px}
+#gate.pv-guest-image #pv-guest-characters{flex:0 0 35px;width:35px;min-width:35px;height:35px;min-height:35px}
+}
+@media(max-width:360px){#gate.pv-guest-image #pv-guest-characters{flex-basis:33px;width:33px;min-width:33px;height:33px;min-height:33px}}
+`;
+const approvedCharacterAnchor='<div class="scene-image-library-wrap"><button id="pv-guest-library"';
+const approvedCharacterHtml=approvedFiles.get('lab/studio.html').toString();
+assert.equal(approvedCharacterHtml.split(approvedCharacterAnchor).length,2,'Original library slot remains unique');
+approvedFiles.set('lab/studio.html',Buffer.from(approvedCharacterHtml
+  .replace(approvedCharacterAnchor,'<div class="scene-image-library-wrap">'+approvedCharacterButton+'<button id="pv-guest-library"')
+  .replace('</head>','<style>'+approvedCharacterStyles+'</style></head>')));
 // Owner-approved Fashion #494, including caption spacing and the Generate label.
 // Keep the independent Image/Video/Upscaler/Retouch baseline unchanged.
 const fashionApprovedRef='a84f9ec2ead1c57288e91fec18cd7e06bb3bf2e1';
@@ -194,6 +214,8 @@ try{
       assert.equal(await page.locator('#studio-account-menu').isVisible(),false,'account');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,route+' overflow');
       assert.equal(await page.evaluate(()=>window.__publicAccount.signins.length),0,'browse without auth');
+      if(route==='image')assert.equal(await page.locator('#pv-guest-characters').isVisible(),true,
+        'The approved Characters shortcut is directly accessible');
       assert.deepEqual(requests,[],'guests must make no private API requests');
       // Compare the actual editorial regions with the approved implementation
       // recovered from Git, independently booted through its original auth path.
@@ -246,6 +268,15 @@ try{
       assert.equal(options.forceRedirectUrl,page.url());
       assert.equal(options.signUpForceRedirectUrl,page.url());
       assert.deepEqual(requests,[],'auth action cannot submit or upload');
+      if(route==='image'){
+        await page.locator('#pv-guest-prompt').fill('A character study');
+        await page.locator('#pv-guest-characters').waitFor({state:'visible'});
+        await page.locator('#pv-guest-characters').click();
+        await page.waitForFunction(()=>window.__publicAccount.signins.length===2);
+        assert.equal(await page.locator('#scene-library-dialog').isVisible(),false,
+          'The public Characters shortcut authenticates before opening private references');
+        assert.deepEqual(requests,[],'The guest character entry cannot fetch private data');
+      }
       if(route==='video'){
         await page.locator('#scene-video-open').click();
         await page.waitForFunction(()=>window.__publicAccount.signins.length===2);
