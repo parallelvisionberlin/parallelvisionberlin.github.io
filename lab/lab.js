@@ -2923,9 +2923,15 @@ function renderReferences(){
       const item=document.createElement('div');item.className='reference-item reference-element-item';
       const img=document.createElement('img');img.src=r.thumbUrl||r.url;img.alt='Element @'+r.elementName;img.width=68;img.height=82;
       const fields=document.createElement('div');fields.className='reference-fields';
-      const name=document.createElement('strong');name.textContent='@'+r.elementName;
+      const name=document.createElement('strong');
+      const type=r.elementCategory==='characters'?'Character':(r.elementCategory||'Element');
+      name.textContent=r.elementName;
+      item.dataset.elementCategory=r.elementCategory||'';
+      item.dataset.elementName=r.elementName||'';
       const count=references.filter(x=>x.elementId===r.elementId).length;
-      const hint=document.createElement('small');hint.textContent=(r.elementCategory||'Element')+' · '+count+' selected view'+(count===1?'':'s')+' of '+(r.elementCount||count)+' saved';
+      const hint=document.createElement('small');
+      hint.textContent=type+' · '+(r.elementCount||count)+' saved photos';
+      hint.title=count+' reference photo'+(count===1?'':'s')+' chosen from '+(r.elementCount||count)+' saved for this scene. This is a visual reference, not a trained model.';
       fields.append(name,hint);
       const controls=document.createElement('div');controls.className='reference-actions';
       const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.disabled=busy;
@@ -2999,7 +3005,9 @@ async function addReferences(list,ids=[],labels=[]){
     }
   }finally{
     if(e===epoch){
-      $('reference-list').setAttribute('aria-busy','false');$('reference-progress').textContent=added?added+' reference'+(added===1?'':'s')+' ready. Originals kept unchanged.':'';
+      $('reference-list').setAttribute('aria-busy','false');
+      const attachedName=labels[0]?.elementName;
+      $('reference-progress').textContent=added?(attachedName?'Character '+attachedName+' attached.':'Reference images ready.'):'';
       update();
       // Load every thumbnail first; prewarming must not delay the next preview
       // behind an expensive 34 MP decode/encode in the image-worker queue.
