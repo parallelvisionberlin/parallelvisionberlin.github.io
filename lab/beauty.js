@@ -6,7 +6,7 @@ const API='https://parallel-vision-lab.parallelvision.workers.dev',$=id=>documen
 const activeStates=new Set(['submitting','queued','running','saving','uncertain']);
 const menu=createAccountMenu($('beauty-account')),pendingKey='pvlab-beauty-pending';
 let clerk=null,profile=null,sessionId='',epoch=0,revision=0,syncing=false,file=null,source=null,photoUrl='',resultUrl='',quote=null;
-let preparing=false,submitting=false,activeId='',uncertain=false,quoteTimer=null,expiryTimer=null,pollTimer=null;
+let preparing=false,submitting=false,activeId='',uncertain=false,quoteTimer=null,expiryTimer=null,pollTimer=null,resultRevision=0,historyRevision=0;
 const blobs=new Map();
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 const status=(message='',error=false)=>{$('beauty-status').textContent=message;$('beauty-status').classList.toggle('error',error);};
@@ -92,8 +92,8 @@ async function generate(event){
  finally{if(version===epoch){submitting=false;update();}}
 }
 async function showResult(job){
- if(!job.outputId)return;const version=epoch,blob=await imageBlob(job.outputId,version);
- if(version!==epoch)return;
+ if(!job.outputId)return;const version=epoch,selection=++resultRevision,blob=await imageBlob(job.outputId,version);
+ if(version!==epoch||selection!==resultRevision)return;
  if(resultUrl)URL.revokeObjectURL(resultUrl);resultUrl=URL.createObjectURL(blob);
  $('beauty-result-image').src=resultUrl;$('beauty-result').hidden=false;$('beauty-download').href=resultUrl;
  $('beauty-download').download='pvlab-beauty-'+job.id+(blob.type==='image/jpeg'?'.jpg':blob.type==='image/webp'?'.webp':'.png');
@@ -120,9 +120,9 @@ async function poll(id){
  catch(error){if(profile){status(error.message+' Use Refresh to check this generation.',true);$('beauty-check-history').hidden=false;}}
 }
 async function loadHistory(){
- if(!profile)return;const version=epoch;
+ if(!profile)return;const version=epoch,selection=++historyRevision;
  try{
-  const data=await api('/api/jobs');if(version!==epoch)return;
+  const data=await api('/api/jobs');if(version!==epoch||selection!==historyRevision)return;
   const jobs=(data.jobs||[]).filter(j=>j.settings?.type==='image'&&j.settings.prompt?.startsWith(BEAUTY_PROMPT_PREFIX));
   const active=(data.activeJobs||[]).find(j=>j.settings?.prompt?.startsWith(BEAUTY_PROMPT_PREFIX));
   $('beauty-history').replaceChildren();for(const value of blobs.values())URL.revokeObjectURL(value);blobs.clear();

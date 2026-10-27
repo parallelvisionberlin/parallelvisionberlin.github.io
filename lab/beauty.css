@@ -8,3 +8,6 @@
 .beauty-result{z-index:2}.beauty-reset-pending{display:block;margin-top:12px;padding:0;border:0;border-bottom:1px solid #999;background:none;color:#bbb;font-size:12px;cursor:pointer}
 .beauty-strength label{white-space:nowrap}
 .beauty-field select:focus-visible,.beauty-direction textarea:focus-visible,.beauty-generate-bar select:focus-visible{outline:none;border-color:#fff;box-shadow:none}
+/* Bound the live result to the editor, independently of growing History. */
+.beauty-generate-bar{z-index:3}.beauty-content>.beauty-result{bottom:120px}
+@media(max-width:760px){.beauty-content>.beauty-result{bottom:auto}}

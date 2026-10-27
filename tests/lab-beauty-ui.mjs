@@ -19,7 +19,7 @@ mkdirSync('test-results',{recursive:true});
 async function scenario({role='customer',width=1448,malformed=false,delayed=false,submitFailure=false}={}){
  const context=await browser.newContext({viewport:{width,height:1086},reducedMotion:'reduce'}),page=await context.newPage();
  await context.addInitScript(value=>{window.__beautyRole=value},role);
- const calls=[],quotes=[],jobs=[],errors=[];let submits=0,uploads=0;
+ const calls=[],quotes=[],jobs=[],errors=[];let submits=0,uploads=0,delayOldResult=false;
  page.on('pageerror',error=>errors.push(error.message));
  await page.route('https://**/*',async route=>{
   const request=route.request(),url=new URL(request.url());
@@ -38,12 +38,12 @@ async function scenario({role='customer',width=1448,malformed=false,delayed=fals
    if(submitFailure)return route.abort('failed');
    const job={id:'job-'+submits,status:'completed',outputId:'output-'+submits,createdAt:Date.now(),settings:q.settings};jobs.unshift(job);result={job};
   }else if(url.pathname==='/api/jobs')result={jobs,activeJobs:[]};
-  else if(url.pathname.startsWith('/api/assets/'))return route.fulfill({status:200,contentType:'image/webp',body:photo});
+  else if(url.pathname.startsWith('/api/assets/')){if(delayOldResult&&url.pathname==='/api/assets/output-1')await new Promise(done=>setTimeout(done,1100));return route.fulfill({status:200,contentType:'image/webp',body:photo});}
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});
  });
  await page.goto(base+'/lab/beauty.html');await page.waitForFunction(()=>!!window.__beautyAccount);
  if(role!=='guest')await page.locator('#beauty-account').waitFor({state:'visible'});
- return {context,page,calls,quotes,jobs,errors,get submits(){return submits},get uploads(){return uploads}};
+ return {context,page,calls,quotes,jobs,errors,delayOldResult:()=>{delayOldResult=true},get submits(){return submits},get uploads(){return uploads}};
 }
 const input={name:'portrait.webp',mimeType:'image/webp',buffer:photo};
 try{
@@ -62,13 +62,16 @@ try{
   assert.deepEqual(s.calls,[],'Guest Generate opens sign-in without uploading, quoting or submitting');
   await page.screenshot({path:'test-results/beauty-'+width+'.png',fullPage:true});assert.deepEqual(s.errors,[]);await s.context.close();
  }
- for(const role of ['customer','owner']){
-  const s=await scenario({role}),{page}=s;
+ for(const options of [{role:'customer',width:1448},{role:'owner',width:1448},{role:'customer',width:390}]){
+  const s=await scenario(options),{page}=s;
   await page.locator('#beauty-photo').setInputFiles(input);
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
   assert.equal(s.submits,0,'Quoting does not generate');assert.equal(s.uploads,1);
   await page.evaluate(()=>{document.querySelector('#beauty-form').requestSubmit();document.querySelector('#beauty-form').requestSubmit()});
   await page.locator('#beauty-result').waitFor({state:'visible'});assert.equal(s.submits,1,'Double-click submits exactly once');
+  await page.locator('#beauty-generate').click({trial:true});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Completed result does not widen the page');
+  await page.screenshot({path:'test-results/beauty-result-'+options.role+'-'+options.width+'.png',fullPage:true});
   assert.equal(await page.locator('#beauty-download').getAttribute('href').then(v=>v.startsWith('blob:')),true);
   await page.evaluate(()=>window.__beautyAccount.signOut());
   await page.waitForFunction(()=>document.querySelector('#beauty-result').hidden&&document.querySelector('#beauty-photo-preview').hidden);
@@ -95,6 +98,20 @@ try{
   await page.evaluate(()=>document.querySelector('#beauty-form').requestSubmit());assert.equal(s.submits,1,'Ambiguous submission is never retried automatically');
   await page.reload();await page.locator('#beauty-check-history').waitFor({state:'visible'});assert.equal(s.submits,1,'Reload cannot submit or reprice an ambiguous request');
   await s.context.close();
+ }
+ {
+  const s=await scenario(),{page}=s;await page.locator('#beauty-photo').setInputFiles(input);
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
+  await page.locator('#beauty-generate').click();await page.locator('#beauty-result').waitFor({state:'visible'});
+  await page.locator('#beauty-generate').waitFor({state:'visible'});await page.waitForFunction(()=>!document.querySelector('#beauty-generate').disabled);
+  await page.locator('#beauty-direction').fill('Another look');
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
+  await page.locator('#beauty-generate').click();await page.waitForFunction(()=>document.querySelectorAll('#beauty-history button').length===2);
+  await page.locator('#beauty-generate').click({trial:true});
+  s.delayOldResult();await page.locator('#beauty-history button').nth(1).click();await page.locator('#beauty-history button').nth(0).click();
+  await page.waitForTimeout(1300);
+  assert.match(await page.locator('#beauty-download').getAttribute('download'),/job-2/,'A delayed older image cannot replace the newer selection');
+  assert.equal(s.submits,2,'History selection never generates');await s.context.close();
  }
  // The homepage uses the real new menu, retaining its original Fashion URL.
  {
