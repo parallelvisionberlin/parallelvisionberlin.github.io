@@ -83,6 +83,7 @@ async function workspace(width=1440,height=900){
 async function openPackMenu(page){
   if(!await page.locator('#scene-image-open').isVisible())await page.locator('#image-composer-prompt').click();
   await page.locator('#scene-image-open').click();
+  await page.locator('#scene-menu-back').click();
 }
 const noPaid=()=>assert.equal(requests.some(r=>r.method==='POST'&&['/api/quotes','/api/jobs','/api/higgsfield/generate'].includes(r.path)),false,'Pack actions never submit paid inference');
 const refs=async (page,n)=>page.waitForFunction(expected=>document.querySelectorAll('#reference-list .reference-item').length===expected,n);
