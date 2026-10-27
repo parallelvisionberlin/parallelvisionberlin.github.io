@@ -73,3 +73,61 @@ export async function prepareUpscaleInput(file,{maxBytes=20*1024*1024}={}){
     if(canvas){canvas.width=0;canvas.height=0;}
   }
 }
+
+
+/* Browser-local working copies for Elements and Video.
+   Ordinary supported photos stay byte-for-byte intact. Oversized or
+   browser-decodable alternate image types are converted privately before
+   upload; the chosen local file is never modified. */
+export async function prepareElementPhoto(file,{maxSide=6000,maxBytes=20*1024*1024}={}){
+  if(!file?.size||!String(file.type||'').startsWith('image/'))
+    throw Error('Choose a valid photograph.');
+  if(file.size>120*1024*1024)
+    throw Error('This photograph exceeds the browser upload safety limit.');
+  const originalType=['image/jpeg','image/png','image/webp'].includes(file.type);
+  let image=null,url=null,canvas=null;
+  try{
+    if(typeof createImageBitmap==='function'){
+      try{image=await createImageBitmap(file);}catch{}
+    }
+    if(!image){
+      url=URL.createObjectURL(file);
+      image=new Image();image.src=url;
+      await image.decode();
+    }
+    const width=image.width||image.naturalWidth,height=image.height||image.naturalHeight;
+    if(!width||!height||width*height>72000000)
+      throw Error('This photograph exceeds the supported image dimensions.');
+    if(originalType&&Math.max(width,height)<=maxSide&&file.size<=maxBytes)
+      return file;
+    const name=(file.name||'reference').replace(/\.[^.]+$/,'')+'-ready.webp';
+    canvas=typeof OffscreenCanvas!=='undefined'?new OffscreenCanvas(1,1):document.createElement('canvas');
+    const context=canvas.getContext('2d');
+    if(!context)throw Error('Your browser could not prepare this photograph.');
+    const firstScale=Math.min(1,maxSide/Math.max(width,height));
+    for(const factor of [1,.88,.76,.65,.54]){
+      const scale=firstScale*factor;
+      canvas.width=Math.max(1,Math.floor(width*scale));
+      canvas.height=Math.max(1,Math.floor(height*scale));
+      context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
+      context.drawImage(image,0,0,canvas.width,canvas.height);
+      for(const quality of [.94,.86,.76,.66]){
+        const blob=canvas.convertToBlob
+          ?await canvas.convertToBlob({type:'image/webp',quality})
+          :await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+        if(blob?.type==='image/webp'&&blob.size>0&&blob.size<=maxBytes)
+          return new File([blob],name,{type:'image/webp',lastModified:file.lastModified});
+      }
+    }
+    throw Error('Your browser could not prepare this photograph.');
+  }catch(error){
+    if(error?.message==='This photograph exceeds the supported image dimensions.'||
+       error?.message==='Your browser could not prepare this photograph.')throw error;
+    throw Error('This browser could not read the selected image. Use a JPG, PNG or WebP export.');
+  }finally{
+    image?.close?.();
+    if(url)URL.revokeObjectURL(url);
+    if(image&&typeof image.removeAttribute==='function')image.removeAttribute('src');
+    if(canvas){canvas.width=0;canvas.height=0;}
+  }
+}
