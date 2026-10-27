@@ -81,3 +81,103 @@
 /* Keep taps static while retaining native two-finger zoom and vertical scroll. */
 body.finest-page,body.finest-page .fz-carousel,body.finest-page .fz-arrow{touch-action:manipulation}
 body.finest-page .fz-carousel-viewport{touch-action:pan-y pinch-zoom}
+
+/* Autoplay cinematic trailer hero (2026-10-27).
+   Background is the actual The Finest trailer, delivered from the account's confirmed media CDN.
+   The static skyline poster remains visible if playback fails or motion is reduced. */
+body.finest-page .finest-header {
+  position: relative;
+  min-height: 100svh;
+  padding: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: #050608;
+  border-bottom: 1px solid rgba(255,255,255,.14);
+}
+body.finest-page .finest-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(4,5,7,.91) 0%, rgba(4,5,7,.80) 20%, rgba(4,5,7,.56) 40%, rgba(4,5,7,.23) 70%, rgba(4,5,7,.10) 100%),
+    linear-gradient(0deg, rgba(4,5,7,.62), transparent 42%, rgba(4,5,7,.16));
+}
+body.finest-page .finest-header .archive-nav {
+  z-index: 5;
+  background: rgba(5,6,8,.18);
+  backdrop-filter: blur(5px);
+}
+.finest-hero-media {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  background: #060809 url('https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/ea52d599-74ab-4dee-817d-453f63fb6f4b.webp') center / cover no-repeat;
+}
+.finest-hero-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: brightness(.78) saturate(.79) contrast(1.05);
+}
+body.finest-page .finest-hero-inner {
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0;
+  width: 100%;
+  max-width: none;
+  min-height: 100svh;
+  margin: 0;
+  padding: clamp(170px,22svh,260px) clamp(24px,7.5vw,130px) clamp(80px,10svh,132px);
+}
+body.finest-page .finest-hero-copy {
+  width: min(680px, 100%);
+  align-self: flex-start;
+}
+body.finest-page h1 {
+  margin: 22px 0 28px;
+  font-size: clamp(88px, 11vw, 184px);
+  line-height: .86;
+  text-shadow: 0 5px 32px rgba(0,0,0,.28);
+}
+body.finest-page .finest-byline { color: #f5f4f2; }
+body.finest-page .finest-hero-statement {
+  max-width: 465px;
+  margin: 26px 0 34px;
+  color: #e0deda;
+  text-shadow: 0 2px 14px rgba(0,0,0,.45);
+}
+body.finest-page .finest-text-link {
+  color: #f4f3f0;
+  border-bottom-color: rgba(255,255,255,.75);
+}
+@media(max-width:800px) {
+  body.finest-page .finest-header { padding: 0; min-height: 94svh; }
+  body.finest-page .finest-header::after {
+    background: linear-gradient(0deg, rgba(4,5,7,.93), rgba(4,5,7,.71) 29%, rgba(4,5,7,.12) 85%),
+                linear-gradient(90deg, rgba(4,5,7,.25), transparent 66%);
+  }
+  body.finest-page .finest-hero-inner {
+    min-height: 94svh;
+    padding: 135px 22px 70px;
+  }
+  body.finest-page h1 { font-size: clamp(80px, 17.5vw, 135px); margin: 18px 0 24px; }
+  body.finest-page .finest-hero-statement { margin: 20px 0 27px; max-width: 370px; }
+  .finest-hero-video { object-position: 50% center; }
+}
+@media(max-width:480px) {
+  body.finest-page .finest-hero-inner { padding: 120px 18px 62px; }
+  body.finest-page h1 { font-size: clamp(75px, 18vw, 110px); }
+}
+@media(prefers-reduced-motion: reduce) {
+  .finest-hero-video { display: none; }
+}
