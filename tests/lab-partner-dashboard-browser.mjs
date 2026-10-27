@@ -5,7 +5,7 @@ import {readFile,mkdir} from 'node:fs/promises';
 import {resolve,extname} from 'node:path';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
 const workspaceSlug=process.env.PV_PARTNER_WORKSPACE==='bellini-studio'?'bellini-studio':'vitolas-studio';
-const studioName=workspaceSlug==='bellini-studio'?'Berlín Studios':'Vitolas Studio';
+const studioName=workspaceSlug==='bellini-studio'?'Bellini Studios':'Vitolas Studio';
 const alias=workspaceSlug==='bellini-studio'?'bellini':'vitolas';
 const adminPath='/api/admin/partners/'+workspaceSlug;
 const root=resolve('.'),output=resolve('test-results/'+alias);await mkdir(output,{recursive:true});

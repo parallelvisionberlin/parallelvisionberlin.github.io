@@ -3,7 +3,7 @@ import {createSessionRequest} from './session-request.js?v=20260927-auth1&studio
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
 const $=id=>document.getElementById(id);
 const workspaceSlug=document.body.dataset.partnerWorkspace||'vitolas-studio';
-const studioName=workspaceSlug==='bellini-studio'?'Berlín Studios':'Vitolas Studio';
+const studioName=workspaceSlug==='bellini-studio'?'Bellini Studios':'Vitolas Studio';
 const studioAlias=workspaceSlug==='bellini-studio'?'bellini':'vitolas';
 const menu=createAccountMenu($('account-menu'));
 let clerk=null,revision=0,nextOffset=null,loading=false;

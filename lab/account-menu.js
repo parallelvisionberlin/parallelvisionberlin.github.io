@@ -114,7 +114,7 @@ export function createAccountMenu(root) {
     currentProfile=profile;root.hidden=!signed;
     const partner={
       'vitolas-studio':{name:'Vitolas Studio',href:'./vitolas-studio.html'},
-      'bellini-studio':{name:'Berlín Studios',href:'./bellini-studio.html'}
+      'bellini-studio':{name:'Bellini Studios',href:'./bellini-studio.html'}
     }[profile?.partnerDashboard?.slug];
     partnerLink.hidden=!(signed&&profile?.customer&&!profile.accountClosed&&partner);
     partnerLink.href=partner?.href||'#';

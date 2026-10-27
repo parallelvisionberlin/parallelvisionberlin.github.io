@@ -6,7 +6,7 @@ import {partnerCommissionReport} from './partner-commissions.mjs';
 const VITOLAS_EMAIL_SHA256 = 'e502c5f0d08298cb39182f9711784dd5f468d3a1eb721699c0acf061a642445a';
 const partners=Object.freeze([
   {workspace:Object.freeze({slug:'vitolas-studio',name:'Vitolas Studio'}),alias:'vitolas',emailHash:VITOLAS_EMAIL_SHA256},
-  {workspace:Object.freeze({slug:'bellini-studio',name:'Berlín Studios'}),alias:'bellini',emailHash:'c484790dd1d02365be89451c4917401abe80da73d059b7f159995a59dac5aefd'}
+  {workspace:Object.freeze({slug:'bellini-studio',name:'Bellini Studios'}),alias:'bellini',emailHash:'c484790dd1d02365be89451c4917401abe80da73d059b7f159995a59dac5aefd'}
 ]);
 export const partnerConfiguration=slug=>partners.find(partner=>partner.workspace.slug===slug)||null;
 const one=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).first();
