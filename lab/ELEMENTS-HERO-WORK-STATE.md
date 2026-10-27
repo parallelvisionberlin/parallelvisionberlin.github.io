@@ -59,3 +59,10 @@ Confirm Cloudflare Pages production deploy for merge `1064c992` or later, and vi
 - Supporting upload/save and in-dialog feedback no longer call the feature a Scene Library. Internal IDs, existing routes, categories, asset ownership, prompts, generation, and credits stay unchanged.
 - Scoped source: `lab/studio.html` and `lab/scene-library.js`; browser-text assertion in `tests/lab-video-editorial-deck.test.mjs`.
 - Branch: `fix/pvlab-saved-references-label-20261027`; merge and live deployment status require independent verification.
+
+## 2026-10-27 Image deck four-square shortcut
+- Owner supplied desktop screenshots: currently the four-square control opens an unnecessary top-level choice between Photo Packs and Elements. Approved behavior: click directly opens the existing four Elements categories (Characters, Outfits, Props, Locations), matching the previous nested categories screen.
+- Only the default entry state changes in `lab/lab.js`. The legacy back arrow can expose the existing Photo Packs option; the separate saved-photo-packs chevron continues working.
+- `lab/studio.html` updates the four-square tooltip/accessibility name to Elements and refreshes the script cache key. No categories, layouts, stored references, model settings, prices or paid generation change.
+- `tests/lab-elements-smart-browser.mjs` and `tests/lab-studio-layout-ui.mjs` validate direct categories, legacy Photo Packs access and narrow mobile menu bounds.
+- Working branch `fix/pvlab-image-elements-direct-menu-20261027`. Merge and production publication must be checked separately.
