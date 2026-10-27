@@ -137,6 +137,40 @@ const precisionModel={engine:'topaz-precision',model:'topaz/upscale/image/precis
 const wonderModel={engine:'topaz-wonder',model:'topaz/upscale/image/generative',quality:'Wonder 3.5',credits:37};
 
 try{
+ // A photo dropped in Upscaler is not a Video Start frame. Switching back
+ // preserves each tool's own file, and only a deliberate Video upload fills it.
+ {
+   const isolated=await workspace();
+   await isolated.page.click('#tool-upscale');
+   await uploadSmall(isolated.page);
+   const upscalePreview=await isolated.page.locator('#preview').getAttribute('src');
+   assert.ok(upscalePreview?.startsWith('blob:'),'Upscaler has a real local source');
+   await isolated.page.click('#tool-video');
+   await isolated.page.click('#mode-start');
+   assert.equal(await isolated.page.locator('#video-start-thumb').isVisible(),false,
+     'Upscaler source cannot become the Video Start frame');
+   assert.equal(await isolated.page.locator('#preview').isVisible(),false,
+     'Video canvas must not display the Upscaler photograph');
+   assert.equal(await isolated.page.locator('#generate').isEnabled(),false,
+     'A Video Start-frame generation stays disabled without its own source');
+   await isolated.page.locator('#image').setInputFiles({
+     name:'video-only-frame.png',mimeType:'image/png',buffer:png
+   });
+   await isolated.page.waitForFunction(()=>!document.querySelector('#video-start-thumb').hidden);
+   await isolated.page.click('#tool-upscale');
+   assert.equal(await isolated.page.locator('#preview').getAttribute('src'),upscalePreview,
+     'Returning to Upscaler restores its original, not the Video upload');
+   assert.match(await isolated.page.locator('#filemeta').textContent(),/test-scene.png/);
+   await isolated.page.click('#tool-video');
+   await isolated.page.click('#mode-start');
+   assert.match(await isolated.page.locator('#filemeta').textContent(),/video-only-frame.png/,
+     'Video still owns the frame the user explicitly selected there');
+   assert.equal(quoteRequests(isolated).length,0);
+   assert.equal(countPaid(isolated),0);
+   assert.deepEqual(isolated.errors,[]);
+   ok('Upscaler and Video Start frame keep independent sources, with no paid side effects');
+   await isolated.context.close();
+ }
  let x=await workspace();await x.page.click('#tool-upscale');
  assert.equal(await x.page.locator('#upscale-model-control').isVisible(),false);
  assert.deepEqual(await x.page.locator('#upscale-engine option').evaluateAll(options=>options.map(x=>x.value)),['seedvr2','topaz-precision','topaz-wonder']);
