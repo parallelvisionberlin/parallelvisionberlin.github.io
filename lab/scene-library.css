@@ -1128,3 +1128,93 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   position:absolute;right:9px;bottom:7px;font-size:9px;
   max-width:calc(100% - 66px);justify-content:flex-end
 }
+
+/* Selected Element is a dedicated workspace, not a second card over the grid. */
+#scene-library-dialog.scene-item-open .scene-category-hero,
+#scene-library-dialog.scene-item-open .scene-library-meta,
+#scene-library-dialog.scene-item-open .scene-grid,
+#scene-library-dialog.scene-item-open .scene-empty,
+#scene-library-dialog.scene-item-open .scene-header-actions .scene-search-label{
+  display:none!important;
+}
+#scene-library-dialog.scene-item-open #scene-feature{
+  display:grid;grid-template-columns:minmax(0,44%) minmax(0,1fr);
+  gap:0;margin:8px 0 12px;min-height:0;
+  border:1px solid #343b40;border-radius:12px;background:#151a1e;
+  overflow:hidden;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-detail-back{
+  grid-column:1/-1;display:flex;align-items:center;gap:8px;width:max-content;
+  padding:13px 17px;border:0;background:transparent;color:#c4cbd0;
+  font:600 11px/1.25 'DM Sans',Arial,sans-serif;cursor:pointer;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-detail-back:before{
+  content:"";display:block;width:7px;height:7px;border-left:1.6px solid currentColor;
+  border-bottom:1.6px solid currentColor;transform:rotate(45deg);
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-detail-back:hover{color:#fff}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-cover{
+  height:274px;min-height:274px;width:100%;align-self:stretch;
+  background:#0e1215;display:flex;align-items:center;justify-content:center;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-cover>img{
+  display:block;width:100%;height:100%;object-fit:contain!important;
+  object-position:center!important;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-content{
+  padding:24px 24px 17px;min-height:274px;box-sizing:border-box;
+  display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-content h3{
+  font-size:clamp(23px,3vw,30px);margin:4px 0 6px;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-content p{
+  display:block;font-size:11px;line-height:1.5;margin-top:14px;
+  overflow:visible;-webkit-line-clamp:unset;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-action-row{
+  display:flex;justify-content:flex-start;align-items:center;gap:8px;
+  flex-wrap:wrap;margin-top:auto;padding-top:15px;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-attach{
+  padding:11px 20px;font-size:12px;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-expanded{
+  grid-column:1/-1;display:block;padding:13px 16px 14px;
+  border-top:1px solid #30373b;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-photos{
+  display:flex;gap:8px;overflow-x:auto;max-width:100%;padding:1px;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-shot{
+  flex:0 0 73px;width:73px;height:76px;min-width:73px;
+  padding:0;cursor:pointer;border:1px solid #434c50;border-radius:8px;
+  background:#151a1d;overflow:hidden;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-shot>img{
+  display:block;width:100%;height:100%;object-fit:cover;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-shot[aria-pressed="true"]{
+  outline:2px solid #d4d9d8;outline-offset:1px;border-color:#d4d9d8;
+}
+#scene-library-dialog.scene-item-open #scene-feature .scene-feature-photo-note{
+  display:block;margin-top:10px;color:#8d969d;font-size:10px;
+}
+@media(max-width:700px){
+  #scene-library-dialog.scene-item-open #scene-feature{grid-template-columns:1fr}
+  #scene-library-dialog.scene-item-open #scene-feature .scene-feature-cover{
+    height:clamp(185px,34vh,250px);min-height:0;
+  }
+  #scene-library-dialog.scene-item-open #scene-feature .scene-feature-content{
+    min-height:0;padding:16px;gap:2px;
+  }
+  #scene-library-dialog.scene-item-open #scene-feature .scene-feature-content p{
+    margin:7px 0;
+  }
+  #scene-library-dialog.scene-item-open #scene-feature .scene-feature-expanded{
+    padding:12px;
+  }
+  #scene-library-dialog.scene-item-open #scene-feature .scene-feature-shot{
+    width:58px;min-width:58px;flex-basis:58px;height:65px;
+  }
+}
