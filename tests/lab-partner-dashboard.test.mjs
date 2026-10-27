@@ -7,6 +7,7 @@ import {partnerWorkspace,partnerDashboardRoute,ownerPartnerDashboardRoute,public
 import {calculatePartnerCommissions,sixCalendarMonthsAfter,recordPartnerPaymentContext} from '../lab-worker/partner-commissions.mjs';
 import {stripeWebhook} from '../lab-worker/customer-billing.mjs';
 import {resolveVitolasLink} from '../lab/vitolas-link.js';
+import {resolveBelliniLink} from '../lab/bellini-link.js';
 
 test('the working desk keeps all bindings, current branding and full-page tools without modal windows',()=>{
   const html=readFileSync(new URL('../lab/vitolas-studio.html',import.meta.url),'utf8');
@@ -53,7 +54,7 @@ function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   const file=path=>readFileSync(new URL('../lab-worker/'+path,import.meta.url),'utf8');
   db.exec(file('schema.sql'));
-  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0024-owner-acquisition','0037-partner-vouchers','0038-partner-commissions'])db.exec(file('migrations/'+name+'.sql'));
+  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0024-owner-acquisition','0037-partner-vouchers','0038-partner-commissions','0042-partner-workspaces'])db.exec(file('migrations/'+name+'.sql'));
   const env={LAB_CLERK_SECRET_KEY:'test-only',LAB_PUBLIC_APP_URL:'https://pvlab.studio/studio.html',LAB_DB:{prepare(sql){return {bind(...args){return {
     async first(){return db.prepare(sql).get(...args)||null;},
     async all(){return {results:db.prepare(sql).all(...args)};},
@@ -83,6 +84,100 @@ function fixture(t){
   const request=(query='',method='GET')=>new Request('https://worker.test/api/customer/partner'+query,{method,headers:{Origin:'https://pvlab.studio'}});
   return {db,env,email,signup,request,setEmail(value){primary=value;},unverify(){verified=false;},upstream(value){upstream=value;},get requestedSubject(){return requestedSubject;}};
 }
+
+// Both approved accounts use synthetic addresses; private emails stay out of CI.
+function bellini(f,t){
+  const email='bellini@example.test',digest=crypto.subtle.digest.bind(crypto.subtle),fetcher=globalThis.fetch;
+  t.mock.method(crypto.subtle,'digest',async(algorithm,data)=>{
+    if(algorithm==='SHA-256'&&new TextDecoder().decode(data)===email)
+      return Uint8Array.from('c484790dd1d02365be89451c4917401abe80da73d059b7f159995a59dac5aefd'.match(/../g),v=>parseInt(v,16)).buffer;
+    return digest(algorithm,data);
+  });
+  let primary=email,verified=true;
+  t.mock.method(globalThis,'fetch',async(url,...args)=>{
+    if(new URL(url).pathname.endsWith('/user_Bellini'))return Response.json({id:'user_Bellini',primary_email_address_id:'primary',email_addresses:[{id:'primary',email_address:primary,verification:{status:verified?'verified':'unverified'}}]});
+    return fetcher(url,...args);
+  });
+  f.signup('user_Bellini',email);
+  const call=(action='/vouchers',data,actor='user_Bellini',ownerView=false)=>partnerVoucherRoute(new Request('https://worker.test'+(ownerView?'/api/admin/partners/bellini-studio':'/api/customer/partner')+action,{
+    method:data===undefined?'GET':'POST',headers:{Origin:'https://pvlab.studio',...(data===undefined?{}:{'Content-Type':'application/json'})},...(data===undefined?{}:{body:JSON.stringify(data)})
+  }),f.env,actor,{ownerView});
+  return {call,email,setEmail(value){primary=value;},unverify(){verified=false;},budget:total=>call('/budget',{total},'user_Owner',true),
+    create:async(overrides={})=>(await(await call('/vouchers',{credits:200,days:14,note:'Bellini campaign',requestId:crypto.randomUUID(),...overrides})).json()).voucher};
+}
+
+test('Bellini requires its own verified identity and cannot read another partner dashboard',async t=>{
+  const f=fixture(t),b=bellini(f,t);
+  assert.deepEqual(await partnerWorkspace(f.env,'user_Bellini'),{slug:'bellini-studio',name:'Bellini Studio'});
+  for(const [subject,workspace] of [['user_Victoria','bellini-studio'],['user_Bellini','vitolas-studio']])
+    await assert.rejects(()=>partnerDashboardRoute(f.request('?workspace='+workspace),f.env,subject),{status:403});
+  await assert.rejects(()=>ownerPartnerDashboardRoute(new Request('https://worker.test/api/admin/partners/bellini-studio'),f.env,'user_Bellini'),{status:403});
+  b.setEmail('changed@example.test');
+  await assert.rejects(()=>partnerDashboardRoute(f.request(),f.env,'user_Bellini'),{status:403});
+  b.setEmail(b.email);b.unverify();await assert.rejects(()=>b.call(),{status:403});
+});
+
+test('two partner dashboards, commissions, Owner views and public aliases stay separate',async t=>{
+  const f=fixture(t);bellini(f,t);
+  for(const [id,email,parent] of [['user_BelliniBuyer','bellinibuyer@example.test','user_Bellini'],['user_VitolasBuyer','vitolasbuyer@example.test','user_Victoria']]){
+    f.signup(id,email);
+    f.db.prepare('INSERT INTO lab_referrals(referred_customer_id,referrer_customer_id,attributed_at) VALUES(?,?,?)').run(id,parent,Date.now());
+    const reference='checkout:'+id;
+    f.db.prepare("INSERT INTO lab_credit_entries VALUES(?,?,1000,'purchase',?,?)").run('credit-'+id,id,reference,Date.now());
+    f.db.prepare('INSERT INTO lab_revenue_events(reference,customer_id,amount_cents,created_at) VALUES(?,?,1000,?)').run(reference,id,Date.now());
+    await recordPartnerPaymentContext(f.env,{reference,paidAt:Date.now(),kind:'purchase'});
+  }
+  for(const [slug,subject,expected,excluded,alias] of [['bellini-studio','user_Bellini','bellinibuyer@example.test','vitolasbuyer@example.test','bellini'],['vitolas-studio','user_Victoria','vitolasbuyer@example.test','bellinibuyer@example.test','vitolas']]){
+    const data=await(await partnerDashboardRoute(f.request('?workspace='+slug),f.env,subject)).json();
+    assert.equal(data.workspace.slug,slug);assert.equal(data.totals.registered,1);assert.equal(data.customers[0].email,expected);
+    assert.equal(data.commissions.totals.commissionCents,500);assert.equal(JSON.stringify(data).includes(excluded),false);
+    assert.equal(data.shareUrl,'https://pvlab.studio/'+alias);
+    const admin=await(await ownerPartnerDashboardRoute(new Request('https://worker.test/api/admin/partners/'+slug+'?customer_id=user_Other'),f.env,'user_Owner')).json();
+    assert.equal(admin.ownerView,true);assert.equal(admin.customers[0].email,expected);
+    const publicData=await(await publicPartnerLink(new Request('https://worker.test/api/partners/'+alias+'/link'),f.env)).json();
+    assert.deepEqual(Object.keys(publicData),['url']);assert.equal(publicData.url,data.referralUrl);
+  }
+  assert.notEqual(f.db.prepare("SELECT customer_id FROM lab_partner_links WHERE slug='bellini'").get().customer_id,f.db.prepare("SELECT customer_id FROM lab_partner_links WHERE slug='vitolas'").get().customer_id);
+  assert.equal(f.db.prepare("SELECT SUM(balance_credits) n FROM lab_customers WHERE id IN ('user_Bellini','user_Victoria')").get().n,0);
+});
+
+test('Bellini invitations have a separate atomic budget, cannot deactivate Vitolas gifts or self-redeem',async t=>{
+  const f=fixture(t),b=bellini(f,t),v=gifts(f);
+  assert.equal((await(await b.call()).json()).budget.total,0);
+  await assert.rejects(()=>b.create(),{status:409});await assert.rejects(()=>b.call('/budget',{total:1000}),{status:403});
+  await v.budget(100);await b.budget(200);
+  const vitolas=await v.create(),results=await Promise.allSettled([b.create(),b.create()]);
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);assert.equal(results.find(r=>r.status==='rejected').reason.status,409);
+  const gift=results.find(r=>r.status==='fulfilled').value;
+  assert.notEqual(gift.code,vitolas.code);assert.notEqual(new URL(gift.url).searchParams.get('ref'),new URL(vitolas.url).searchParams.get('ref'));
+  assert.equal((await(await b.call()).json()).vouchers.length,1);assert.equal((await(await v.call()).json()).vouchers.length,1);
+  await assert.rejects(()=>b.call('/vouchers/deactivate',{code:vitolas.code}),{status:409});
+  await assert.rejects(()=>v.call('/vouchers/deactivate',{code:gift.code}),{status:409});
+  await assert.rejects(()=>v.redeem(gift.code,'user_Bellini'),{status:409});
+  f.signup('user_GiftRecipient','gift@example.test');await v.redeem(gift.code,'user_GiftRecipient');
+  assert.equal((await(await b.call()).json()).redemptions[0].email,'gift@example.test');
+  assert.equal((await(await v.call()).json()).redemptions.length,0);
+  await assert.rejects(()=>b.budget(199),{status:409});
+});
+
+test('expanded partner schema replays without losing budgets, audit, links or redeemed credits',async t=>{
+  const f=fixture(t),b=bellini(f,t),v=gifts(f);await v.budget(300);await b.budget(400);
+  const gift=await v.create();f.signup('user_Recipient','recipient@example.test');await v.redeem(gift.code,'user_Recipient');await b.create();
+  await partnerDashboardRoute(f.request(),f.env,'user_Victoria');await partnerDashboardRoute(f.request(),f.env,'user_Bellini');
+  const snapshot=()=>JSON.stringify(['lab_partner_budgets','lab_partner_budget_audit','lab_partner_links','lab_vouchers','lab_voucher_redemptions','lab_credit_entries'].map(table=>f.db.prepare('SELECT * FROM '+table+' ORDER BY 1').all()));
+  const before=snapshot();
+  for(let i=0;i<2;i++)for(const migration of ['0037-partner-vouchers','0038-partner-commissions','0042-partner-workspaces'])f.db.exec(readFileSync(new URL('../lab-worker/migrations/'+migration+'.sql',import.meta.url),'utf8'));
+  assert.equal(snapshot(),before);assert.deepEqual(f.db.prepare('PRAGMA foreign_key_check').all(),[]);
+  await assert.rejects(()=>b.budget(199),{status:409});
+  assert.equal((await(await v.call()).json()).budget.redeemed,100);
+});
+
+test('Bellini link is fixed to its partner endpoint and rejects an unsafe redirect',async t=>{
+  let requested='';
+  assert.equal(await resolveBelliniLink(async url=>{requested=url;return Response.json({url:'https://pvlab.studio/?ref=ABCDEFGH'});}), 'https://pvlab.studio/?ref=ABCDEFGH');
+  assert.equal(new URL(requested).pathname,'/api/partners/bellini/link');
+  await assert.rejects(()=>resolveBelliniLink(async()=>Response.json({url:'https://example.com/?ref=ABCDEFGH'})),/Invitación no válida/);
+});
 test('workspace requires verified approved email, current account, and fresh authoritative contact',async t=>{
   const f=fixture(t);
   assert.equal((await partnerWorkspace(f.env,'user_Victoria')).name,'Vitolas Studio');

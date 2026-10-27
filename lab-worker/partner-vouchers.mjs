@@ -1,8 +1,7 @@
-import {partnerWorkspace,resolveApprovedPartner} from './partner-dashboard.mjs';
+import {partnerWorkspace,resolveApprovedPartner,partnerConfiguration} from './partner-dashboard.mjs';
 import {requireOwner,voucherLink} from './promotions.mjs';
 import {referralRoute} from './referrals.mjs';
 
-const ISSUER='partner:vitolas-studio';
 const one=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).first();
 const all=async(env,sql,...args)=>(await env.LAB_DB.prepare(sql).bind(...args).all()).results||[];
 const run=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).run();
@@ -14,8 +13,9 @@ async function body(request){
   try{const value=JSON.parse(raw);if(value&&typeof value==='object'&&!Array.isArray(value))return value;}catch{}
   fail(400,'Invalid request.');
 }
-async function allowance(env){
-  const budget=await one(env,"SELECT credit_limit AS total FROM lab_partner_budgets WHERE workspace='vitolas-studio'");
+async function allowance(env,workspace){
+  const ISSUER='partner:'+workspace.slug;
+  const budget=await one(env,'SELECT credit_limit AS total FROM lab_partner_budgets WHERE workspace=?',workspace.slug);
   const totals=await one(env,`SELECT COALESCE(SUM(credits*redeemed_count),0) AS redeemed,
     COALESCE(SUM(CASE WHEN active=1 AND (expires_at IS NULL OR expires_at>?)
       THEN credits*(max_redemptions-redeemed_count) ELSE 0 END),0) AS reserved
@@ -33,18 +33,24 @@ function invite(env,request,row,code){
 }
 export async function partnerVoucherRoute(request,env,actor,{ownerView=false}={}){
   const path=new URL(request.url).pathname;
-  const base=ownerView?'/api/admin/partners/vitolas-studio':'/api/customer/partner';
+  const slug=ownerView?path.match(/^\/api\/admin\/partners\/([^/]+)/)?.[1]:null;
+  if(ownerView&&!partnerConfiguration(slug))fail(404,'Unknown partner workspace.');
+  const base=ownerView?'/api/admin/partners/'+slug:'/api/customer/partner';
   const action=path.slice(base.length);
   if(!['/vouchers','/vouchers/deactivate','/budget'].includes(action))fail(404,'Unknown partner endpoint.');
   if(!['GET','POST'].includes(request.method)||request.method==='GET'&&action!=='/vouchers')fail(405,'Method not allowed.');
   if(action==='/budget'&&!ownerView)fail(403,'Solo el owner puede asignar presupuesto.');
-  let subject=actor;
+  let subject=actor,workspace;
   if(ownerView){
     await requireOwner(env,actor);
-    const partner=await resolveApprovedPartner(env);
-    if(!partner)fail(409,'Victoria debe iniciar sesión antes de activar sus invitaciones.');
-    subject=partner.subject;
-  }else if(!await partnerWorkspace(env,subject,{verify:true}))fail(403,'Esta cuenta no tiene acceso a Vitolas Studio.');
+    const partner=await resolveApprovedPartner(env,slug);
+    if(!partner)fail(409,'La cuenta de '+partnerConfiguration(slug).workspace.name+' debe iniciar sesión antes de activar sus invitaciones.');
+    subject=partner.subject;workspace=partner.access;
+  }else{
+    workspace=await partnerWorkspace(env,subject,{verify:true});
+    if(!workspace)fail(403,'Esta cuenta no tiene acceso a un panel de colaboración.');
+  }
+  const ISSUER='partner:'+workspace.slug;
   if(request.method==='GET'){
     const rows=await all(env,`SELECT code,credits,max_redemptions AS maxRedemptions,redeemed_count AS redemptionCount,
       active,expires_at AS expiresAt,note,created_at AS createdAt FROM lab_vouchers WHERE created_by=? ORDER BY created_at DESC,code LIMIT 60`,ISSUER);
@@ -57,23 +63,23 @@ export async function partnerVoucherRoute(request,env,actor,{ownerView=false}={}
       LEFT JOIN lab_customer_contacts p ON p.customer_id=r.customer_id
       LEFT JOIN lab_account_closures x ON x.customer_id=r.customer_id
       WHERE v.created_by=? ORDER BY r.redeemed_at DESC,r.voucher_code LIMIT 100`,ISSUER);
-    return json({budget:await allowance(env),vouchers,redemptions,ownerView});
+    return json({budget:await allowance(env,workspace),vouchers,redemptions,ownerView});
   }
   const data=await body(request);
   if(action==='/budget'){
     if(!Number.isSafeInteger(data.total)||data.total<0||data.total>1000000)fail(400,'El presupuesto debe ser un entero entre 0 y 1.000.000 créditos.');
     try{await run(env,`INSERT INTO lab_partner_budgets(workspace,partner_customer_id,credit_limit,updated_at,updated_by)
-      VALUES('vitolas-studio',?,?,?,?) ON CONFLICT(workspace) DO UPDATE SET
+      VALUES(?,?,?,?,?) ON CONFLICT(workspace) DO UPDATE SET
       partner_customer_id=excluded.partner_customer_id,credit_limit=excluded.credit_limit,
-      updated_at=excluded.updated_at,updated_by=excluded.updated_by`,subject,data.total,Date.now(),actor);}
+      updated_at=excluded.updated_at,updated_by=excluded.updated_by`,workspace.slug,subject,data.total,Date.now(),actor);}
     catch(error){if(/already committed/i.test(error.message))fail(409,'El presupuesto debe cubrir los créditos reservados y canjeados.');throw error;}
-    return json({budget:await allowance(env)});
+    return json({budget:await allowance(env,workspace)});
   }
   if(action==='/vouchers/deactivate'){
     if(typeof data.code!=='string'||!/^VT[A-F0-9]{20}$/.test(data.code))fail(400,'Invitación no válida.');
     const result=await run(env,'UPDATE lab_vouchers SET active=0 WHERE code=? AND created_by=? AND active=1',data.code,ISSUER);
-    if(!result.meta?.changes)fail(409,'Esta invitación ya está desactivada o no pertenece a Vitolas Studio.');
-    return json({deactivated:true,budget:await allowance(env)});
+    if(!result.meta?.changes)fail(409,'Esta invitación ya está desactivada o no pertenece a '+workspace.name+'.');
+    return json({deactivated:true,budget:await allowance(env,workspace)});
   }
   if(!Number.isSafeInteger(data.credits)||data.credits<1||data.credits>500)fail(400,'Elige entre 1 y 500 créditos por invitación.');
   if(!Number.isSafeInteger(data.days)||data.days<1||data.days>30)fail(400,'La invitación debe durar entre 1 y 30 días.');
@@ -97,5 +103,5 @@ export async function partnerVoucherRoute(request,env,actor,{ownerView=false}={}
   if(!row)fail(503,'No pudimos crear la invitación. Inténtalo de nuevo.');
   if(row.credits!==data.credits||row.note!==note||row.expiresAt-row.createdAt!==data.days*86400000)
     fail(409,'Esta solicitud ya se usó con otros datos. Actualiza el formulario.');
-  return json({voucher:invite(env,request,row,await referralCode(env,request,subject)),budget:await allowance(env)},created?201:200);
+  return json({voucher:invite(env,request,row,await referralCode(env,request,subject)),budget:await allowance(env,workspace)},created?201:200);
 }

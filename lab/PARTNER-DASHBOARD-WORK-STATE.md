@@ -1,5 +1,15 @@
 # Vitolas Studio partner dashboard
 
+## Bellini Studio / second isolated partner, 2026-10-27
+- User requests a second dashboard with the same Vitolas design/functions for a separately approved email. Working name Bellini Studio; private /bellini-studio, public /bellini. The email is hashed only in the Worker allowlist; fresh verified-primary-email checks remain mandatory.
+- Baseline de8c429fdb2a48e789fde7f0b4dbfccb15920b39, isolated pvlab-bellini checkout. No overlapping open partner work found.
+- Share the approved five-section layout/controller/CSS/photo. New Bellini HTML/link page, menu discovery, private Owner links, same commission policy; server scopes contacts, alias, voucher issuer, capacity and report by approved workspace.
+- Migration 0042 expands the two workspace/alias allowlists and recreates atomic allowance/recipient guards. Preserves existing Vitolas budgets, audit, vouchers, claims and links on repeated deployment. No account, actual voucher, wallet grant or payout created; new promotional capacity defaults to zero.
+- Frontend query changes only invalidate shared partner-menu dependencies; existing feature flags, styles, generation and pricing stay intact. Real identity/account changes still clear the panel; token notifications do not reset it.
+- Local validation: 39 partner/referral/menu/required Image checks and 155 relevant Worker/payment/privacy checks pass. Both full browser role suites pass at 390/1440px, 253 assertions each, using isolated APIs; current logo, five sections, no arrows/overflow, voucher workflow, pending activation, Owner, logout and cross-panel denial. Bellini phone/desktop renders inspected.
+- Local browser uses existing Chromium 133 adapter; CI uses its normal pinned/current installation. No real signed-in sessions, external messages, purchases or generations used.
+- Status: prepared and validated locally; PR, CI and actual deployment receipts pending. Owner must assign any real invitation capacity after the approved partner signs in.
+
 ## Spanish partner dossier, 2026-10-25
 - User requested a complete Spanish PDF and ready email for Victoria following their call. Created and saved Vitolas_Studio_Dossier_Victoria_Caridad.pdf, 22 pages, with clickable dashboard/referral/tool/support links and current bold logo/approved Future Beauty artwork.
 - Covers tools/models, live public plan prices, exact-route example creation costs, beauty demo, all five dashboard views, attribution, vouchers, commissions, training offers, contact scripts, four-week plan, prompts, publication review and support/refund FAQ.
