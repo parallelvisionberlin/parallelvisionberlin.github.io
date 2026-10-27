@@ -82,6 +82,7 @@ try{
     await page.locator('.pv-studios-trigger').click();
     assert.match(await page.locator('.pv-studios-retouch-link').getAttribute('href'),/tool=retouch$/);
     await page.locator('.pv-studios-retouch-link').click();
+    await page.waitForFunction(()=>window.__routingTest.state().tool==='retouch');
     state=await page.evaluate(()=>window.__routingTest.state());
     assert.deepEqual([state.route,state.tool],['retouch','retouch']);
     assert.equal(await page.locator('.pv-studios-panel').isVisible(),false);
