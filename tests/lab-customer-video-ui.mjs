@@ -72,9 +72,35 @@ try{
   await model.click();
   await page.click('#mode-start');
   const png=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=512;c.height=512;c.getContext('2d').fillRect(0,0,512,512);return c.toDataURL().split(',')[1];});
-  await page.setInputFiles('#image',{name:'synthetic-frame.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
+  const startFile={name:'synthetic-frame.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')};
+  await page.setInputFiles('#image',startFile);
   const prompt='A slow camera move across a sculptural coat.';
   await page.fill('#prompt',prompt);
+  if(scenario==='trial'){
+   await page.waitForFunction(()=>!document.getElementById('remove-start-frame').hidden);
+   assert.equal(await page.locator('#remove-end-frame').isVisible(),false);
+   const clearLook=await page.locator('#clear').evaluate(el=>({
+    gradient:getComputedStyle(el).backgroundImage,shadow:getComputedStyle(el).boxShadow
+   }));
+   assert.match(clearLook.gradient,/linear-gradient/,'Clear has a subtle glossy gradient');
+   assert.notEqual(clearLook.shadow,'none','Clear has a restrained highlight');
+   await page.setInputFiles('#last-image',{name:'ending-frame.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
+   await page.waitForFunction(()=>!document.getElementById('remove-end-frame').hidden);
+   await page.locator('#remove-start-frame').click();
+   assert.equal(await page.locator('#remove-start-frame').isVisible(),false);
+   assert.equal(await page.locator('#video-start-thumb').isVisible(),false);
+   assert.equal(await page.locator('#remove-end-frame').isVisible(),true,'Removing Start keeps End');
+   assert.equal(await page.locator('#generate').isEnabled(),false,'No video generation without a Start frame');
+   assert.equal(await page.locator('#prompt').inputValue(),prompt);
+   await page.setInputFiles('#image',startFile);
+   await page.waitForFunction(()=>!document.getElementById('remove-start-frame').hidden);
+   await page.locator('#remove-end-frame').click();
+   assert.equal(await page.locator('#remove-end-frame').isVisible(),false);
+   assert.equal(await page.locator('#video-end-thumb').isVisible(),false);
+   assert.equal(await page.locator('#remove-start-frame').isVisible(),true,'Removing End keeps Start');
+   assert.equal(await page.locator('#prompt').inputValue(),prompt);
+   assert.deepEqual(posts,[],'Removing an uploaded frame causes no paid calls');
+  }
   assert.doesNotMatch(await page.locator('#generate').textContent(),/connect|API/i);
   if(scenario==='trial'){
    assert.equal(await page.locator('#generation-help').isVisible(),false,'No credit-pack note below Generate');

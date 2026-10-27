@@ -1,0 +1,67 @@
+/* A single uploaded frame can be removed without resetting the Video editor.
+   The controls sit outside the native file-input labels so they cannot open
+   the file chooser when clicked. Other studios are not affected. */
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .upload-block{
+  position:relative;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .pv-frame-remove{
+  position:absolute;
+  top:42px;
+  right:19px;
+  z-index:8;
+  display:grid;
+  place-items:center;
+  box-sizing:border-box;
+  width:23px;
+  height:23px;
+  min-width:23px;
+  min-height:23px;
+  margin:0;
+  padding:0 0 2px;
+  border:1px solid #b9c0cc8a;
+  border-radius:6px;
+  background:linear-gradient(155deg,#333940f2,#161b21f2);
+  box-shadow:inset 0 1px 0 #ffffff30,0 2px 7px #0009;
+  color:#f6f7f8;
+  font:500 17px/1 'DM Sans',Arial,sans-serif;
+  cursor:pointer;
+  transition:background .15s,border-color .15s,box-shadow .15s;
+}
+#app.video-studio-active .pv-frame-remove[hidden]{display:none!important}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .pv-frame-remove:hover:not(:disabled){
+  border-color:#e2e7ef;
+  background:linear-gradient(155deg,#4b515b,#222932);
+  box-shadow:inset 0 1px 0 #ffffff45,0 2px 9px #000c;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .pv-frame-remove:focus-visible{
+  outline:2px solid #d6dee9;
+  outline-offset:2px;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #start-mode .pv-frame-remove:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start.pv-video-compact #start-mode .pv-frame-remove{
+  top:35px;
+  right:16px;
+}
+/* Slight charcoal sheen for the existing full-editor Clear action.
+   Keep its location, size, label and meaning unchanged. */
+#app.video-studio-active .video-feed-center .stagehead #clear{
+  color:#e2e5e9!important;
+  border:1px solid #555a62!important;
+  background:linear-gradient(175deg,#363b43 0%,#282c33 52%,#1e2228 100%)!important;
+  box-shadow:inset 0 1px 0 #ffffff33,inset 0 -1px 0 #0008,0 2px 5px #0007!important;
+  transition:border-color .15s,background .15s,box-shadow .15s;
+}
+#app.video-studio-active .video-feed-center .stagehead #clear:hover:not(:disabled){
+  border-color:#8b94a0!important;
+  background:linear-gradient(175deg,#454b55,#303741 55%,#22272f)!important;
+}
+#app.video-studio-active .video-feed-center .stagehead #clear:disabled{
+  opacity:.48;
+}
+@media(prefers-reduced-motion:reduce){
+  #app.video-studio-active .pv-frame-remove,
+  #app.video-studio-active .video-feed-center .stagehead #clear{transition:none!important}
+}
