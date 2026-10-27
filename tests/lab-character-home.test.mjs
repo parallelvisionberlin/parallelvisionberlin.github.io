@@ -36,3 +36,9 @@ test('no billing or generation is performed by deep link',()=>{
   assert.doesNotMatch(logic,/fetch\(|\/api\b|generate|\bquote\b|\bbuy\b/);
   assert.match(logic,/sceneLibrary\.open/);
 });
+
+test('character CTA uses text only, never an iOS emoji arrow',()=>{
+  const cta=home.match(/<a class="lab-character-home__action"[^>]*>(.*?)<\/a>/s)?.[1];
+  assert.equal(cta,'Create a character');
+  assert.doesNotMatch(cta,/[↗➡⬆🔗]/u);
+});

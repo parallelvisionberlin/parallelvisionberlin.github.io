@@ -1,3 +1,9 @@
+## iPhone Character CTA arrow correction, 2026-10-27
+- User's iPhone screenshot showed an unwanted emoji-style diagonal arrow after “Create a character”.
+- Remove only the Unicode arrow span from the homepage CTA, retaining the exact link, text, styling and character creation behavior. Text-only button prevents iOS emoji substitution.
+- Add focused static regression in tests/lab-character-home.test.mjs; no changes to layout, billing or other sections.
+- Release verification pending; do not claim live before Cloudflare completes and production HTML is verified.
+
 # PV LAB homepage / Create your character
 - Date: 2026-10-24, Europe/Berlin.
 - Task: Add a dedicated editorial character-creation section as a new commercial path without altering the approved image-to-motion demonstration or other homepage sections.
