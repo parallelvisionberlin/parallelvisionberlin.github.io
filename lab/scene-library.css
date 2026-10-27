@@ -1123,6 +1123,8 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   #scene-library-dialog .scene-profile-status[data-state="analyzing"] i{animation:none}
 }
 #scene-library-dialog .scene-feature-content>.scene-profile-status{margin:1px 0 4px}
-#scene-library-dialog .scene-card-details>.scene-profile-status{font-size:9px}
-#scene-library-dialog .scene-card-details{min-height:51px}
-#scene-library-dialog .scene-card-actions .scene-use{bottom:55px}
+#scene-library-dialog .scene-card-details{position:relative}
+#scene-library-dialog .scene-card-details>.scene-profile-status{
+  position:absolute;right:9px;bottom:7px;font-size:9px;
+  max-width:calc(100% - 66px);justify-content:flex-end
+}
