@@ -181,3 +181,37 @@ body.finest-page .finest-text-link {
 @media(prefers-reduced-motion: reduce) {
   .finest-hero-video { display: none; }
 }
+
+
+/* The Finest / film presentation and Cam development (2026-10-27) */
+.finest-page .finest-film-block .finest-section-bar {
+  align-items: flex-end;
+  margin-bottom: clamp(23px, 3vw, 42px);
+}
+.finest-film-heading-group { display: flex; flex-direction: column; gap: 12px; }
+.finest-film-index {
+  margin: 0;
+  color: #a8a7a4;
+  font: 10px/1.5 'Courier New', monospace;
+  letter-spacing: .23em;
+  text-transform: uppercase;
+}
+.finest-page .finest-film-block .finest-section-bar h2 {
+  margin: 0;
+  color: #f4f3f1;
+  font: 400 clamp(34px,4.1vw,55px)/1.08 Georgia,'Times New Roman',serif;
+  letter-spacing: -.035em;
+  text-transform: none;
+}
+.finest-page .finest-film-block .finest-section-bar > span {
+  padding-bottom: 5px;
+  font: 10px/1.5 'Courier New',monospace;
+  letter-spacing: .15em;
+  color: #aaa;
+}
+.finest-page .finest-character-block .fz-sheet-slide { background: #92908d; }
+.finest-page .finest-character-block .fz-sheet-slide img { display:block; width:100%;height:auto;aspect-ratio:16/9;object-fit:contain; }
+@media(max-width:800px) {
+  .finest-page .finest-film-block .finest-section-bar { align-items: flex-start; gap: 11px; }
+  .finest-page .finest-film-block .finest-section-bar h2 {font-size:clamp(32px,8vw,46px);}
+}
