@@ -1096,3 +1096,33 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   #scene-leave-confirm #scene-leave-stay{grid-column:1/-1}
   #scene-leave-confirm .scene-leave-actions button{min-height:42px}
 }
+
+
+/* Elements visual-analysis signal. Green means a stored Gemini profile exists,
+   not that a provider request was merely dispatched. */
+#scene-library-dialog .scene-profile-status{
+  display:inline-flex;align-items:center;gap:6px;width:max-content;max-width:100%;
+  color:#a9afb4;font-size:10px;line-height:1.35;font-weight:550;white-space:nowrap
+}
+#scene-library-dialog .scene-profile-status i{
+  display:block;flex:0 0 7px;width:7px;height:7px;
+  border-radius:50%;background:#717a82
+}
+#scene-library-dialog .scene-profile-status[data-state="ready"]{color:#8fd3ac}
+#scene-library-dialog .scene-profile-status[data-state="ready"] i{
+  background:#62c58d;box-shadow:0 0 7px rgba(98,197,141,.38)
+}
+#scene-library-dialog .scene-profile-status[data-state="analyzing"]{color:#c5ccd0}
+#scene-library-dialog .scene-profile-status[data-state="analyzing"] i{
+  background:#d6dce0;animation:scene-profile-pulse 1.15s ease-in-out infinite alternate
+}
+#scene-library-dialog .scene-profile-status[data-state="failed"]{color:#ca9898}
+#scene-library-dialog .scene-profile-status[data-state="failed"] i{background:#b47777}
+@keyframes scene-profile-pulse{from{opacity:.35}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){
+  #scene-library-dialog .scene-profile-status[data-state="analyzing"] i{animation:none}
+}
+#scene-library-dialog .scene-feature-content>.scene-profile-status{margin:1px 0 4px}
+#scene-library-dialog .scene-card-details>.scene-profile-status{font-size:9px}
+#scene-library-dialog .scene-card-details{min-height:51px}
+#scene-library-dialog .scene-card-actions .scene-use{bottom:55px}
