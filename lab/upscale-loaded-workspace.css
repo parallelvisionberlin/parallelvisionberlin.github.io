@@ -1,0 +1,117 @@
+/* Loaded-image correction only. The approved empty Upscaler hero, model
+   choices and paid workflow are untouched. 2026-10-27 */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .pv-upscale-workspace-intro{
+  order:-6!important;
+}
+#app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) .controls-body>.pv-upscale-source-control{
+  order:-5!important;
+  grid-column:1/-1!important;
+  display:flex!important;
+  gap:5px!important;
+  margin:0 0 5px!important;
+  padding:0!important;
+}
+#app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload{
+  min-height:65px!important;
+  max-height:none!important;
+  padding:8px 11px!important;
+  gap:12px!important;
+  border:1px solid #44484e!important;
+  border-radius:8px!important;
+  background:linear-gradient(145deg,#222429,#181a1e)!important;
+}
+#app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload .pv-upscale-source-icon{
+  display:grid!important;
+  place-items:center!important;
+  flex:none!important;
+  width:46px!important;
+  height:46px!important;
+  overflow:hidden!important;
+  border:1px solid #555a61!important;
+  border-radius:6px!important;
+  background:#141518!important;
+}
+#app.upscale-studio-active #pv-upscale-source-thumb:not([hidden]){
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  border-radius:5px!important;
+}
+#app.upscale-studio-active #pv-upscale-source-upload .pv-upscale-source-icon:has(#pv-upscale-source-thumb:not([hidden])) svg{
+  display:none!important;
+}
+#app.upscale-studio-active #pv-upscale-source-upload .pv-upscale-source-copy{
+  min-width:0!important;
+  flex:1!important;
+}
+#app.upscale-studio-active #pv-upscale-source-filename{
+  display:block!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  max-width:100%!important;
+  color:#a7a8ac!important;
+}
+#app.upscale-studio-active.pv-upscale-source-ready #pv-upscale-source-state{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  overflow:hidden!important;
+  padding:0!important;
+  margin:-1px!important;
+  clip-path:inset(50%)!important;
+  white-space:nowrap!important;
+}
+/* Restore the same generous full-width photographic stage used by the empty
+   deck. Previous V5 loaded override capped it at 620px and was later in the
+   stylesheet cascade than the earlier containment fix. */
+@media(min-width:781px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(> #preview:not([hidden])){
+    height:clamp(680px,calc(100dvh - 104px),980px)!important;
+    min-height:680px!important;
+    max-height:980px!important;
+    overflow:hidden!important;
+    background:#09090b!important;
+  }
+}
+@media(max-width:780px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(> #preview:not([hidden])){
+    height:clamp(360px,72dvh,740px)!important;
+    min-height:360px!important;
+    max-height:740px!important;
+    overflow:hidden!important;
+    background:#09090b!important;
+  }
+  #app.upscale-studio-active.pv-upscale-source-ready:not(.assets-active):not(.fashion-studio-active) #pv-upscale-source-upload{
+    min-height:56px!important;
+  }
+  #app.upscale-studio-active.pv-upscale-source-ready #pv-upscale-source-upload .pv-upscale-source-icon{
+    width:38px!important;height:38px!important;
+  }
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-canvas:has(> #preview:not([hidden])) > img#preview:not([hidden]){
+  display:block!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  position:relative!important;
+  inset:auto!important;
+  transform:none!important;
+}
+/* The loaded Video frame previously generated a second "Replace image" label
+   via ::after while still showing "Choose image". Keep one actual label. */
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop.has-frame .video-frame-label::after,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop.has-frame .video-frame-label::after{
+  content:none!important;
+  display:none!important;
+}
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #drop.has-frame .video-frame-label,
+#app.video-studio-active.pv-video-state-ready.pv-video-mode-start #last-drop.has-frame .video-frame-label{
+  font-size:10px!important;
+  line-height:1.2!important;
+}
