@@ -38,6 +38,11 @@ try{
       const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
       if(url.pathname==='/api/partners/'+alias+'/link')return send({url:'https://pvlab.studio/?ref=ABCDEFGH'});
       if(url.pathname==='/api/session')return send({owner:ownerView,customer:!ownerView,balanceCredits:0,partnerDashboard:allowed&&!ownerView?{slug:workspaceSlug,name:studioName}:null});
+      if(url.pathname==='/api/customer/partner/payouts'||url.pathname===adminPath+'/payouts'){
+        if(!allowed||(url.pathname.startsWith('/api/admin/')&&!ownerView))return send({error:'Denied'},403);
+        return send({availableCents:emptyWorkspace||businessUnavailable?0:1050,requestedCents:0,paidCents:0,feePending:0,minimumCents:5000,nextPayDate:'2026-10-30',history:[],breakdown:[],
+          ...(!businessUnavailable?{commissionReport:emptyWorkspace?{totals:{commissionCents:0,revenueCents:0,heldCommissionCents:0,needsReconciliation:0},receipts:[],recentPurchases:[]}:commissions}:{})});
+      }
       if((url.pathname.startsWith('/api/customer/partner/')||url.pathname.startsWith(adminPath+'/'))){
         if(!allowed||(url.pathname.startsWith('/api/admin/')&&!ownerView))return send({error:'Denied'},403);
         if(req.method()==='GET'){
@@ -119,6 +124,7 @@ try{
     assert.equal(await page.locator('.partner-help-grid article').count(),8);checks++;
     await capture(page,'clients-'+width+'.png');
     await tab('Comisiones').click();
+    if(workspaceSlug==='bellini-studio'){await page.locator('[data-partner-payouts]:not([hidden])').waitFor();assert.equal(await page.getByRole('button',{name:'Solicitar pago',exact:true}).isDisabled(),true);assert.match(await page.locator('[data-partner-payouts]').innerText(),/50,00/);checks+=2;}
     assert.equal(await page.locator('#partner-commission-history').isVisible(),true);assert.equal(await page.locator('#partner-commission-history').evaluate(el=>el.getBoundingClientRect().width>=innerWidth*.85),true);checks+=2;
     const downloading=page.waitForEvent('download');await page.locator('#partner-export').click();const download=await downloading;
     const csv=await readFile(await download.path(),'utf8');assert.match(csv,/Comisión EUR/);assert.match(csv,/'=formula@example.test/);checks+=2;
