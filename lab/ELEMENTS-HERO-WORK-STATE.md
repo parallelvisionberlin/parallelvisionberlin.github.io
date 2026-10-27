@@ -52,3 +52,10 @@ Confirm Cloudflare Pages production deploy for merge `1064c992` or later, and vi
 - Implemented in `lab/scene-library.js`, `lab/scene-library.css`, `lab/lab.js`, `lab/video-editorial-deck.js`, `lab/video-restored-editorial.css`, `lab/studio.html`.
 - Tests updated: `tests/lab-scene-library-cover.test.mjs`, `tests/lab-studio-layout-ui.mjs`, `tests/lab-video-editorial-deck.test.mjs`.
 - Branch `fix/pvlab-character-single-workspace-20261027`. Merge, CI and custom-domain publication to be recorded separately.
+
+## 2026-10-27 clarity: Video navigation naming
+- Owner found “Scene Library” misleading for the Video Reference set entry, because it stores reusable characters, outfits, props and locations, not preassembled scenes.
+- Approved visible term: **Saved References**, with “Characters, outfits & more” as the compact entry subtitle; center-canvas secondary button: **Browse saved references**.
+- Supporting upload/save and in-dialog feedback no longer call the feature a Scene Library. Internal IDs, existing routes, categories, asset ownership, prompts, generation, and credits stay unchanged.
+- Scoped source: `lab/studio.html` and `lab/scene-library.js`; browser-text assertion in `tests/lab-video-editorial-deck.test.mjs`.
+- Branch: `fix/pvlab-saved-references-label-20261027`; merge and live deployment status require independent verification.
