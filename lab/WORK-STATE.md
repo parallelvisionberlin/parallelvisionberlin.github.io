@@ -1,3 +1,10 @@
+## PV LAB homepage hero image, 2026-10-27
+- Owner approved the retouched industrial-fashion photograph featuring the wet-haired woman and darkened chrome robots, with the upper black band removed. The prior beauty portrait is preserved for its other uses.
+- New homepage-only asset: `lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg` (JPEG of approved Adobe edit; 2048 × 1054 source, Git blob `0e33174f37f48b211a96129b2207f6f99f5091e5`).
+- Change: `lab/index.html` primary hero on desktop and mobile, image preloads, Open Graph share preview and accurate image description. Both viewports use the same approved photograph; existing mobile `object-position`, gradient and typography remain unchanged.
+- Do not change navigation, fonts, components, buttons, other page imagery or the hidden original-photo showcase image.
+- Source branch pending review and Cloudflare Pages production verification. This note alone is not deployment evidence.
+
 ## Fashion minimal deck typography and focus, 2026-10-26
 - User request: copy Image deck typography and remove doubled selector borders. Screenshot: image(20261026-221638).png, Library libfile_092e473ee27c8191bfb58bcb4c7916a3.
 - Base production: b16c106a456252315c6756d9efb5b2f1b14bcd92. Branch fix/fashion-minimal-deck-20261026.
