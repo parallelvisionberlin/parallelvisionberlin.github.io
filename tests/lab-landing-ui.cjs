@@ -27,6 +27,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),true,'Studios opens from the upper bar');
   assert.match(await page.getByRole('link',{name:'Beauty Studio',exact:true}).getAttribute('href'),/beauty\.html$/);
   assert.equal(await page.getByRole('link',{name:'Fashion Studio',exact:true}).getAttribute('href'),'./studio.html?tool=fashion');
+  assert.match(await page.getByRole('link',{name:'Retouch Studio',exact:true}).getAttribute('href'),/studio\.html\?tool=retouch$/);
   assert.match(await page.locator('.pv-studios-character-link').getAttribute('href'),/createCharacter=1/);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),false,'Escape closes Studios');
