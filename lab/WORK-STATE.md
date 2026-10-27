@@ -1,3 +1,9 @@
+## Homepage hero crop adjustment, 2026-10-27
+- Owner asked to move the woman slightly left in the already-published industrial fashion hero. No image generation or file replacement.
+- Desktop-only `lab/landing-motion.css` overscans the existing photo 8% and offsets it left 8%, giving the right-side subject a modest inward shift without exposing blank space. At widths <=900px, existing positioning stays unchanged.
+- `lab/index.html` cache-busts only the landing-motion stylesheet. All hero image URLs, copy, navigation, and other pages remain unchanged.
+- Verification: focused homepage/landing CI, reviewed diff and Cloudflare production check. Deployment status must be recorded separately.
+
 ## PV LAB homepage hero image, 2026-10-27
 - Owner approved the retouched industrial-fashion photograph featuring the wet-haired woman and darkened chrome robots, with the upper black band removed. The prior beauty portrait is preserved for its other uses.
 - New homepage-only asset: `lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg` (JPEG of approved Adobe edit; 2048 × 1054 source, Git blob `0e33174f37f48b211a96129b2207f6f99f5091e5`).

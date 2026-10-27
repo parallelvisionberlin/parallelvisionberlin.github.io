@@ -98,3 +98,10 @@
 }
 .landing-header--home .lab-wordmark{top:50%;width:3.375em;height:auto;transform:translateY(-50%)}
 .lab-hero #hero-title .lab-wordmark{top:0;width:auto;height:.9em}
+
+/* Homepage only: bring the existing model slightly inward on wide screens.
+   The landscape photo already fills the width, so object-position alone cannot
+   shift it horizontally; a small overscan provides crop room without blank edges. */
+@media(min-width:901px){
+  .lab-hero .hero-poster{left:-8%;width:108%;max-width:none}
+}
