@@ -82,9 +82,10 @@ try{
     await page.locator('.pv-studios-trigger').click();
     assert.match(await page.locator('.pv-studios-retouch-link').getAttribute('href'),/tool=retouch$/);
     await page.locator('.pv-studios-retouch-link').click();
-    await page.waitForFunction(()=>window.__routingTest.state().tool==='retouch');
+    await page.waitForFunction(()=>document.getElementById('app')?.classList.contains('retouch-studio-active'));
     state=await page.evaluate(()=>window.__routingTest.state());
-    assert.deepEqual([state.route,state.tool],['retouch','retouch']);
+    assert.equal(state.route,'retouch');
+    assert.equal(await page.locator('#app').evaluate(el=>el.classList.contains('retouch-studio-active')),true);
     assert.equal(await page.locator('.pv-studios-panel').isVisible(),false);
     assert.deepEqual(errors,[],'No JS crashes during guest and signed-in route changes');
    console.log('PASS PV LAB tool routing at '+width+'px: guests, login, config fallback, tabs');
