@@ -1233,10 +1233,13 @@ $('scene-image-open').onclick=()=>{
   if(!menu.hidden){sceneImageMenuClose();return;}
   closeComposerLibrary();closeImageModelMenu();closeReferenceIntent();
   moodUI.close();toggleImageSettings(false);
-  $('scene-image-menu-home').hidden=false;
-  $('scene-image-menu-categories').hidden=true;
+  // The four-square icon is the Elements shortcut: show its four categories
+  // immediately. Photo Packs still has its own saved-pack entry.
+  $('scene-image-menu-home').hidden=true;
+  $('scene-image-menu-categories').hidden=false;
   menu.hidden=false;
   $('scene-image-open').setAttribute('aria-expanded','true');
+  $('scene-image-menu [data-scene-target="characters"]').focus({preventScroll:true});
 };
 $('scene-menu-elements').onclick=()=>{
   $('scene-image-menu-home').hidden=true;
