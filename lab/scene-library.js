@@ -90,7 +90,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     if(!elementsInfo?.hidden&&!elementsInfo.contains(event.target)
       &&!elementsInfoTriggers.some(button=>button.contains(event.target)))setElementsInfoOpen(false);
   });
-  let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false,sortMode='recent',viewMode='grid';
+  let current='characters',entries=[],allPacks=[],view='browse',photos=[],working=false,selectedId=null,featuredExpanded=false,selectedPhotoIndex=0,sortMode='recent',viewMode='grid';
   const coverChoices=new Map(),coverRequests=new Map();
    const pendingProfiles=new Map(),failedProfiles=new Map();
   const sceneToast=$('scene-toast'),leaveConfirm=$('scene-leave-confirm');
@@ -287,7 +287,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     if(!getContext().owner){notify('Sign in to use Scene Library.',true);return;}
     if(getContext().busy){notify('Wait for the current operation to finish.',true);return;}
     if(categoryId)current=category(categoryId).id;
-    selectedId=null;featuredExpanded=false;
+    selectedId=null;selectedPhotoIndex=0;featuredExpanded=false;
     closeOverlays();
     view='browse';$('scene-create').hidden=true;$('scene-browser').hidden=false;
     dialog.classList.toggle('scene-from-image',getContext().tool==='image');
@@ -320,7 +320,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     if(destination?.type==='packs'){close();openPhotoPacks?.();return;}
     if(destination?.type==='category'){
       current=category(destination.id).id;
-      selectedId=null;featuredExpanded=false;
+      selectedId=null;selectedPhotoIndex=0;featuredExpanded=false;
       $('scene-search').value='';
     }
     browse();
@@ -373,59 +373,68 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     props:'Objects and details for your projects.',
     locations:'Places and environments for your projects.'
   };
+  // An opened Character is its own workspace. The archive grid belongs to the
+  // library overview, never underneath the selected item.
   function renderFeatured(item){
     const host=$('scene-feature');
     host.replaceChildren();
     host.hidden=!item||!item.refs?.length;
     if(host.hidden)return;
-    const cover=document.createElement('div');cover.className='scene-feature-cover';
-    cover.setAttribute('role','img');
-    cover.setAttribute('aria-label',item.title+' reference cover');
-    renderCover(cover,item);
+    host.setAttribute('aria-label',item.title+' details');
+    const back=document.createElement('button');back.type='button';
+    back.className='scene-detail-back';back.textContent='Back to '+category(current).label;
+    back.setAttribute('aria-label','Back to '+category(current).label);
+    back.onclick=()=>{selectedId=null;selectedPhotoIndex=0;render();};
+    const photo=document.createElement('div');photo.className='scene-feature-cover';
+    photo.setAttribute('role','img');photo.setAttribute('aria-label',item.title+' selected photograph');
+    const index=Math.max(0,Math.min(item.refs.length-1,selectedPhotoIndex));
+    assetPhoto(photo,item.refs[index].id);
     const content=document.createElement('div');content.className='scene-feature-content';
     const eyebrow=document.createElement('span');eyebrow.className='scene-feature-eyebrow';
-    eyebrow.textContent=current==='characters'?'SELECTED IDENTITY':'SELECTED ELEMENT';
+    eyebrow.textContent=current==='characters'?'SAVED CHARACTER':'SAVED ELEMENT';
     const title=document.createElement('h3');title.textContent=item.title;
     const summary=document.createElement('p');
-    summary.textContent='Your saved '+(current==='characters'?'identity':category(current).label.toLowerCase().slice(0,-1))+' reference'+(item.refs.length===1?'':'s')+', ready for the next scene.';
-    const bottom=document.createElement('div');bottom.className='scene-feature-bottom';
-    const badges=document.createElement('div');badges.className='scene-feature-badges';
-    const count=document.createElement('span');count.textContent=item.refs.length+' image'+(item.refs.length===1?'':'s');
-    const kind=document.createElement('span');kind.textContent=category(current).label;badges.append(count,kind);
-    const detail=document.createElement('button');detail.type='button';detail.className='scene-feature-details';
-    detail.textContent=featuredExpanded?'Hide details ↑':'View details →';
-    detail.setAttribute('aria-expanded',String(featuredExpanded));
-    detail.onclick=()=>{featuredExpanded=!featuredExpanded;render();};
-    bottom.append(badges,detail);content.append(eyebrow,title,profileSignal(item),summary,bottom);
-    host.append(cover,content);
-    if(featuredExpanded){
-      const details=document.createElement('div');details.className='scene-feature-expanded';
-      const shots=document.createElement('div');shots.className='scene-feature-photos';
-      item.refs.forEach((ref,index)=>{
-        if(!ref.id)return;
-        const tile=document.createElement('div');tile.className='scene-feature-shot';
-        tile.setAttribute('role','img');tile.setAttribute('aria-label',item.title+' view '+(index+1));
-        assetPhoto(tile,ref.id);shots.append(tile);
-      });
-      const attach=document.createElement('button');attach.type='button';attach.className='scene-feature-attach';
-      const attached=getReferences().some(active=>active.elementId===item.id)||item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
-      attach.textContent=attached?'Already in deck ✓':'Use in scene →';
-      attach.disabled=attached||working;attach.dataset.sceneUse='';
-      attach.onclick=()=>{void useItem(item);};
-      const actionRow=document.createElement('div');actionRow.className='scene-feature-action-row';
-      if(!item.profile){
-        const retry=document.createElement('button');retry.type='button';
-        retry.className='scene-feature-details scene-feature-analyze';
-        retry.textContent=pendingProfiles.has(item.id)?'Analyzing…':'Analyze photos';
-        retry.title='Retry Google Gemini visual indexing of the existing saved images';
-        retry.disabled=working||pendingProfiles.has(item.id);
-        retry.onclick=()=>{setStatus('Analyzing @'+item.title+'…');void analyzeSavedElement(item,true);};
-        actionRow.append(retry);
-      }
-      actionRow.append(attach);
-      details.append(shots,actionRow);host.append(details);
+    summary.textContent=item.refs.length+' saved photograph'+(item.refs.length===1?'':'s')+' · Reusable visual reference, not a trained model.';
+    const use=document.createElement('button');use.type='button';
+    use.className='scene-feature-attach';use.dataset.sceneUse='';
+    const attached=getReferences().some(r=>r.elementId===item.id)||
+      item.refs.every(ref=>getReferences().some(r=>r.id===ref.id));
+    use.textContent=attached?'Already in scene':'Use in scene';
+    use.disabled=attached||working;
+    use.onclick=()=>{void useItem(item);};
+    const actions=document.createElement('div');actions.className='scene-feature-action-row';
+    if(!item.profile){
+      const retry=document.createElement('button');retry.type='button';
+      retry.className='scene-feature-details scene-feature-analyze';
+      retry.textContent=pendingProfiles.has(item.id)?'Analyzing…':'Analyze photos';
+      retry.disabled=working||pendingProfiles.has(item.id);
+      retry.onclick=()=>{setStatus('Analyzing @'+item.title+'…');void analyzeSavedElement(item,true);};
+      actions.append(retry);
     }
+    actions.append(use);
+    content.append(eyebrow,title,profileSignal(item),summary,actions);
+    const details=document.createElement('div');details.className='scene-feature-expanded';
+    const photos=document.createElement('div');photos.className='scene-feature-photos';
+    photos.setAttribute('aria-label',item.title+' saved photographs');
+    const buttons=[];
+    item.refs.forEach((ref,i)=>{
+      if(!ref.id)return;
+      const tile=document.createElement('button');tile.type='button';
+      tile.className='scene-feature-shot';tile.setAttribute('aria-label','View photograph '+(i+1)+' of '+item.refs.length);
+      tile.setAttribute('aria-pressed',String(i===index));
+      assetPhoto(tile,ref.id);
+      tile.onclick=()=>{
+        selectedPhotoIndex=i;assetPhoto(photo,ref.id);
+        buttons.forEach((button,j)=>button.setAttribute('aria-pressed',String(j===i)));
+      };
+      buttons.push(tile);photos.append(tile);
+    });
+    const note=document.createElement('small');note.className='scene-feature-photo-note';
+    note.textContent='Choose a photograph to preview';
+    details.append(photos,note);
+    host.append(back,photo,content,details);
   }
+
   function render(){
     if(view!=='browse'||!dialog.open)return;
     const categoryData=category(current);
@@ -479,6 +488,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     // Archive artwork belongs to the overview only. Never show an unrelated
     // face above the user's selected Character or Element.
     hero.hidden=!!selected;
+    dialog.classList.toggle('scene-item-open',!!selected);
     renderFeatured(selected);
     $('scene-active-label').textContent='All '+categoryData.label.toLowerCase();
     $('scene-library-count').textContent=query
@@ -505,7 +515,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
       const meta=document.createElement('small');meta.textContent=item.refs.length+' image'+(item.refs.length===1?'':'s');
       const details=document.createElement('div');details.className='scene-card-details';details.append(title,meta,profileSignal(item));
       select.append(top,details);
-      select.onclick=()=>{selectedId=item.id;featuredExpanded=false;render();};
+      select.onclick=()=>{selectedId=item.id;selectedPhotoIndex=0;featuredExpanded=false;render();};
       const actions=document.createElement('div');actions.className='scene-card-actions';
       const use=document.createElement('button');use.type='button';use.className='scene-use';
       const already=getReferences().some(active=>active.elementId===item.id)||item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
@@ -529,8 +539,8 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     if(!host)return;
     host.replaceChildren();
     const selected=entries.filter(e=>getReferences().some(a=>a.elementId===e.id)||(e.refs.length&&e.refs.every(r=>getReferences().some(a=>a.id===r.id))));
-    host.hidden=!selected.length;
-    if(!selected.length)return;
+    host.hidden=!selected.length||getContext().tool==='video';
+    if(host.hidden)return;
     const label=document.createElement('small');label.textContent='Saved in this scene';
     host.append(label);
     for(const e of selected){
@@ -681,7 +691,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
         }});
         await loadPacks();
         saved=true;
-        selectedId=created?.id||null;featuredExpanded=false;
+        selectedId=created?.id||null;selectedPhotoIndex=0;featuredExpanded=false;
         current=cat.id;browse();setStatus(title+' saved to '+cat.label+'. No generation was started.');
         if($('scene-smart-analyze')?.checked&&created?.id){
           setStatus('@'+title+' saved. Preparing its reusable visual profile…');
@@ -696,7 +706,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
       if(saved&&typeof afterSuccess==='function')afterSuccess();
     }
   }
-  function reset(){working=false;if(leaveConfirm?.open)leaveConfirm.close();pendingNavigation=null;if(dialog.open)dialog.close();hideSceneToast();clearPhotos();allPacks=[];entries=[];selectedId=null;featuredExpanded=false;coverRevision++;coverChoices.clear();coverRequests.clear();pendingProfiles.clear();failedProfiles.clear();setStatus('');renderSelected();}
+  function reset(){working=false;if(leaveConfirm?.open)leaveConfirm.close();pendingNavigation=null;if(dialog.open)dialog.close();hideSceneToast();clearPhotos();allPacks=[];entries=[];selectedId=null;selectedPhotoIndex=0;featuredExpanded=false;coverRevision++;coverChoices.clear();coverRequests.clear();pendingProfiles.clear();failedProfiles.clear();setStatus('');renderSelected();}
   function sync(packs){
     allPacks=Array.isArray(packs)?packs:[];
     coverRevision++;coverChoices.clear();coverRequests.clear();
