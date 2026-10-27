@@ -1,0 +1,79 @@
+/* Beauty Studio uses the same global masthead as the Image, Video and Upscaler workspace.
+   Only navigation chrome changes here; the Beauty editor, upload and Generate layout are untouched. */
+.beauty-header{
+ position:sticky;top:0;z-index:120;display:flex;flex-wrap:nowrap;align-items:center;
+ box-sizing:border-box;width:100%;height:70px;min-height:70px;
+ margin:0;padding:0 clamp(20px,2.8vw,48px);gap:clamp(24px,3vw,48px);
+ border:0;border-bottom:1px solid rgba(203,207,215,.2);border-radius:0;
+ background:linear-gradient(180deg,#17181b 0%,#121317 70%,#0d0e11 100%);
+ box-shadow:inset 0 1px rgba(255,255,255,.045),0 4px 18px rgba(0,0,0,.2);
+}
+.beauty-header .beauty-brand{display:flex;align-items:center;flex:0 0 auto}
+.beauty-header .beauty-brand img{display:block;width:60px;height:auto;max-width:none}
+.beauty-header nav[aria-label="Creative tools"]{
+ display:flex;flex:1 1 auto;align-items:stretch;justify-content:flex-start;
+ width:auto;min-width:0;height:100%;margin:0;padding:0;
+ gap:clamp(20px,2.1vw,34px);overflow:visible;white-space:nowrap;
+ font:500 13px/1 'DM Sans',Arial,sans-serif;
+}
+.beauty-header nav[aria-label="Creative tools"]>a,
+.beauty-header nav[aria-label="Creative tools"]>.pv-studios-menu>.pv-studios-trigger{
+ position:relative;display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;
+ height:100%;min-height:44px;margin:0;padding:0 1px;border:0;border-radius:0;
+ background:transparent;color:#efede7;font:inherit;line-height:1;letter-spacing:0;
+ text-decoration:none;white-space:nowrap;
+}
+.beauty-header nav[aria-label="Creative tools"]>a[hidden]{display:none!important}
+.beauty-header nav[aria-label="Creative tools"]>a:hover,
+.beauty-header nav[aria-label="Creative tools"]>.pv-studios-menu>.pv-studios-trigger:hover{color:#fff;text-decoration:none}
+.beauty-header nav[aria-label="Creative tools"]>.pv-studios-menu{align-self:stretch;align-items:stretch}
+.beauty-header .pv-studios-trigger[aria-expanded=true]:after,
+.beauty-header .pv-studios-trigger.is-active:after{bottom:0}
+.beauty-header .beauty-header-actions{
+ display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto;
+ min-width:100px;margin-left:auto;gap:clamp(14px,1.6vw,24px);
+ color:#f5f5f5;white-space:nowrap;
+}
+.beauty-header .beauty-assets-link{
+ box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
+ flex:none;width:36px;height:36px;padding:0;border:1px solid #393b41;border-radius:10px;
+ color:#c7c9ce;background:#101114;text-decoration:none;
+}
+.beauty-header .beauty-assets-link:hover{border-color:#82858b;color:#fff}
+.beauty-header .beauty-assets-link svg{display:block;width:21px;height:21px}
+.beauty-header .beauty-signin{
+ flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+ width:34px;height:34px;padding:6px;border:1px solid #e1e1e1;
+ border-radius:50%;background:transparent;color:#f2f2f0;
+}
+.beauty-header .beauty-signin svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.4}
+.beauty-header .pv-account-menu{flex:none}
+.beauty-header:has(.pv-studios-trigger[aria-expanded=true]){z-index:1100}
+.beauty-header:has(.pv-account-menu[open]){z-index:1300}
+@media(max-width:900px){
+ .beauty-header{
+  height:104px;min-height:104px;flex-wrap:wrap;align-content:start;
+  column-gap:12px;row-gap:0;padding:0 18px;
+ }
+ .beauty-header .beauty-brand{height:57px}
+ .beauty-header .beauty-header-actions{height:57px;min-width:90px;gap:12px}
+ .beauty-header nav[aria-label="Creative tools"]{
+  order:3;flex:0 0 100%;height:47px;min-height:47px;
+  align-items:stretch;gap:clamp(16px,3vw,26px);
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+ }
+ .beauty-header nav[aria-label="Creative tools"]::-webkit-scrollbar{display:none}
+ .beauty-header nav[aria-label="Creative tools"]>a,
+ .beauty-header nav[aria-label="Creative tools"]>.pv-studios-menu>.pv-studios-trigger{
+  min-height:47px;height:47px;font-size:12px;
+ }
+ .beauty-header .pv-studios-trigger[aria-expanded=true]:after,
+ .beauty-header .pv-studios-trigger.is-active:after{bottom:1px}
+}
+@media(max-width:480px){
+ .beauty-header{padding:0 14px}
+ .beauty-header .beauty-brand img{width:56px}
+ .beauty-header nav[aria-label="Creative tools"]{gap:20px}
+ .beauty-header .beauty-assets-link{width:34px;height:34px}
+ .beauty-header .beauty-signin{width:32px;height:32px}
+}
