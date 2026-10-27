@@ -33,3 +33,17 @@ test('new affordances remain separate from Image Studio and preserve original AP
   assert.doesNotMatch(js,/\bfetch\s*\(|\/api\/jobs|credits\s*=|apiKey|providerKey/,'presentation must never submit paid work or change pricing');
   assert.doesNotThrow(()=>new Function(js),'client-side enhancement should parse as JavaScript');
 });
+
+test('a saved Character becomes one named Video asset, not a stack of unexplained uploads',()=>{
+  const lab=src('lab.js');
+  const library=src('scene-library.js');
+  const videoStyles=src('video-restored-editorial.css');
+  assert.match(js,/Character attached/);
+  assert.match(js,/reference-element-item/);
+  assert.match(lab,/name.textContent=r.elementName/);
+  assert.match(lab,/saved photos/);
+  assert.doesNotMatch(lab,/selected view.*of .* saved/);
+  assert.match(library,/host.hidden=!selected.length\|\|getContext\(\).tool==='video'/);
+  assert.match(videoStyles,/reference-item.reference-element-item/);
+  assert.match(html,/<strong>Reference images <span id="pv-video-added-count">/);
+});
