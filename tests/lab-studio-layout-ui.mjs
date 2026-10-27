@@ -1092,12 +1092,17 @@ try{
   assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),false,'Selecting a Location hides unrelated category artwork');
   await coverTest.page.waitForFunction(()=>document.querySelector('#scene-feature-cover img')?.naturalWidth===8||
     document.querySelector('.scene-feature-cover img')?.naturalWidth===8,{},{timeout:12000});
-  assert.equal(await coverTest.page.locator('#scene-feature').isVisible(),true,'Selected element has an independent detail panel');
-  await coverTest.page.click('#scene-feature .scene-feature-details');
-  assert.equal(await coverTest.page.locator('.scene-feature-photos .scene-feature-shot').count(),4);
+  assert.equal(await coverTest.page.locator('#scene-feature').isVisible(),true,'A saved Element opens a dedicated detail workspace');
+  assert.equal(await coverTest.page.locator('#scene-grid').isVisible(),false,'The overview grid does not duplicate the selected item');
+  assert.equal(await coverTest.page.locator('.scene-feature-photos .scene-feature-shot').count(),4,'All saved photographs are immediately accessible');
   await coverTest.page.waitForFunction(()=>[...document.querySelectorAll('.scene-feature-shot img')].every(img=>img.complete&&img.naturalWidth>0),null,{timeout:12000});
+  await coverTest.page.locator('.scene-feature-shot').nth(1).click();
+  assert.equal(await coverTest.page.locator('.scene-feature-shot[aria-pressed="true"]').count(),1,'Only one displayed photo is selected');
+  await coverTest.page.click('.scene-detail-back');
+  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true,'Back returns to the collection');
+  assert.equal(await coverTest.page.locator('#scene-grid').isVisible(),true);
   await coverTest.page.click('#scene-list-view');
-  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),false);
+  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true);
   // A list toggle re-renders the card. Private images decode asynchronously:
   // wait for the photo, not for an immediate DOM <img> count on that frame.
   await coverTest.page.waitForFunction(()=>{
@@ -1105,7 +1110,9 @@ try{
     return image?.complete&&image.naturalWidth===8&&image.naturalHeight===5;
   },null,{timeout:12000});
   await coverTest.page.setViewportSize({width:390,height:844});
+  await coverTest.page.click('#scene-grid .scene-card-select');
   assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),false,'Mobile selected Location shows its own photo, not static artwork');
+  assert.equal(await coverTest.page.locator('.scene-feature-photos .scene-feature-shot').count(),4);
   assert.ok(await coverTest.page.locator('#scene-library-dialog').evaluate(el=>el.getBoundingClientRect().width<=window.innerWidth),
     'Saved Locations modal does not overflow mobile horizontally');
   await coverTest.page.screenshot({path:'test-results/lab-elements-saved-location.png',fullPage:false});
