@@ -29,11 +29,14 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.getByRole('link',{name:'Fashion Studio',exact:true}).getAttribute('href'),'./studio.html?tool=fashion');
   assert.match(await page.getByRole('link',{name:'Retouch Studio',exact:true}).getAttribute('href'),/studio\.html\?tool=retouch$/);
   const studioTiles=page.locator('.pv-studios-tile');
-  assert.equal(await studioTiles.count(),4,'Studios contains exactly four photographic cards');
+  assert.equal(await studioTiles.count(),3,'Studios restores the three original wide cards');
+  assert.match(await page.getByRole('link',{name:'Full Editorial',exact:true}).getAttribute('href'),/tool=fashion&workflow=editorial$/);
   for(const tile of await studioTiles.all()){
     const box=await tile.boundingBox();
-    assert.ok(box&&Math.abs(box.width-box.height)<1,'Studio choices remain square at '+width);
+    assert.ok(box&&Math.abs(box.width/box.height-446/247)<0.04,'Original wide card proportions are retained at '+width);
   }
+  assert.equal(await page.locator('.pv-studios-artwork').count(),3,'Every Studio card uses the same unchanged original artwork');
+  assert.equal(await page.locator('.pv-studios-artwork').first().getAttribute('src')?.includes('studios-original-reference.svg'),true);
   assert.match(await page.locator('.pv-studios-character-link').getAttribute('href'),/createCharacter=1/);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),false,'Escape closes Studios');
