@@ -15,6 +15,11 @@
   original.before(shell);shell.append(trigger,panel);panel.querySelector('.pv-studios-links').append(original);original.classList.add('pv-studios-fashion-link');
   if(original.tagName==='A')original.textContent='Fashion Studio';else{original.setAttribute('aria-label','Fashion Studio');original.textContent='Fashion Studio';}
   const icon=document.createElement('span');icon.innerHTML=arrow;original.append(icon.firstChild);
+  // Retouch is already a working tool; reuse its current navigation and in-studio handler.
+  const existingRetouch=header.querySelector('#tool-retouch')||[...header.querySelectorAll('nav a')].find(a=>a.getAttribute('href')?.includes('tool=retouch'));
+  const retouchLink=document.createElement('a');retouchLink.className='pv-studios-retouch-link';retouchLink.href=existingRetouch?.href||url('studio.html?tool=retouch');retouchLink.textContent='Retouch Studio';retouchLink.insertAdjacentHTML('beforeend',arrow);
+  panel.querySelector('.pv-studios-links').append(retouchLink);
+  if(existingRetouch?.tagName==='BUTTON')retouchLink.addEventListener('click',event=>{event.preventDefault();existingRetouch.click();});
   const active=()=>trigger.classList.toggle('is-active',location.pathname.endsWith('/beauty.html')||original.getAttribute('aria-pressed')==='true');active();
   new MutationObserver(active).observe(original,{attributes:true,attributeFilter:['aria-pressed']});
   function position(){
