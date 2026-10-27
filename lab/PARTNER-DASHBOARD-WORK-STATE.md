@@ -1,5 +1,12 @@
 # Vitolas Studio partner dashboard
 
+## Bellini exclusive fashion hero, 2026-10-27
+- User requested a more sensual, high-end dark fashion hero for Bellini only, with visible midtones. Rejected the first polished satin portrait as cheesy and requested more eros.
+- Final generated direction: monochrome leather, close adult fashion portrait, architectural concrete and tactile photographic detail. First stronger erotic generation was blocked by the image tool; generated a fully clothed fashion alternative. No further variants needed.
+- Source image exec-73306201-d545-4e9e-9a9c-5833b1d1f180.png, built-in image generation; production asset lab/visuals/bellini/leather-editorial-v1.webp (2172 x 724), WebP encoding only. Main baseline 96ce07260945a852684bcece84941b1a7da1d6ba.
+- Changes limited to Bellini image reference/dimensions, new asset and this checkpoint. Preserve Vitolas hero, shared CSS/controller, compact header and all dashboard behavior.
+- Local 31 existing partner/approved Image checks passed; final Bellini role/browser suite passed 253 assertions at 390/1440px. Both final header crops inspected, image loads with no horizontal overflow. Relevant CI and production verification pending.
+
 ## Commission example copy, 2026-10-27
 - User requested a more tangible 100 EUR first-payment / 50 EUR commission example in the 50% FAQ.
 - Based on current main f2655eb631ac63e71d2b3f615ffe2f622615430a; change only the matching sentence in Bellini and Vitolas HTML. No rates, eligibility, layout, accounting or wallet changes.
