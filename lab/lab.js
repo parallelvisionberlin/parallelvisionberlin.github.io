@@ -1,9 +1,9 @@
 import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1&upscaleModelCards=pr486final1';
 import {createAccountMenu} from './account-menu.js?v=20261024-vitolas1';
-import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261018-elements-visual-profiles1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1';
+import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261027-character-status1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&eightiesFinish=20261024v1&hkCinema=20261025v1';
-import {preparePhotoInput,prepareUpscaleInput} from './photo-input.js?v=2';
+import {preparePhotoInput,prepareUpscaleInput,prepareElementPhoto} from './photo-input.js?v=20261027-character-working1';
 import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?hkPhotoOriginals=20261018v2&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1&eightiesStyle=20261024v1';
 import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-hidden-preset1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
@@ -1204,7 +1204,7 @@ const packStudio=createReferencePackStudio({
   openElementCategory:categoryId=>sceneLibrary?.open(categoryId)
 });
 sceneLibrary=createSceneLibrary({
-  api,uploadAsset,assetFile,assetPhoto:composerAssetPhoto,getAssetRatio:sceneAssetRatio,
+  api,uploadAsset,assetFile,prepareElementPhoto,assetPhoto:composerAssetPhoto,getAssetRatio:sceneAssetRatio,
   getReferences:()=>references,getReferenceLimit:referenceLimit,
   getContext:()=>({owner,busy,tool,mode,prompt:$('prompt').value.trim(),supportsReferences:usesReferenceGuidance()&&imageEngine!=='kling'}),
   prepareUse:()=>{
@@ -2887,6 +2887,8 @@ async function inspectImage(candidate){
   if(tool==='upscale'&&candidate?.size>20*1024*1024)candidate=await prepareUpscaleInput(candidate,{maxBytes:20*1024*1024});
   if(window.__PV_LAB_NATIVE__===1)candidate=await preparePhotoInput(candidate,{maxBytes:20*1024*1024});
   if(!candidate)throw new Error('No image was provided. Drop a JPG, PNG or WebP photograph.');
+  // Video uses an upload-safe temporary copy. Saved Elements and local originals stay unchanged.
+  if(tool==='video')candidate=await prepareElementPhoto(candidate,{maxSide:engine==='seedance'?6000:8000,maxBytes:10*1024*1024});
   if(candidate.size>20*1024*1024)throw new Error('Image too large: '+(candidate.name||'photograph')+' ('+(Math.ceil(candidate.size/104857.6)/10).toFixed(1)+' MB). Maximum size is 20 MB per image. Compress it and try again.');
   if(!['image/jpeg','image/png','image/webp'].includes(candidate.type))throw new Error('Unsupported image format: '+(candidate.name||'file')+'. Use JPG, PNG or WebP.');
   if(!candidate.size)throw new Error('This image is empty. Choose another JPG, PNG or WebP photograph.');
@@ -2907,8 +2909,8 @@ async function inspectImage(candidate){
   return {file:candidate,id:null,url:URL.createObjectURL(prepared.preview),thumbUrl:URL.createObjectURL(prepared.thumbnail),width,height};
 }
 
-async function setImage(candidate,id=null){clearImageComposerNotice();const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;if(isSoul2()&&!soulRatioExplicit)$('hf-bar-ratio').value='source';syncDefaultRatio(!imageRatioExplicit);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
-async function setLastImage(candidate,id=null){const e=epoch,item=await inspectImage(candidate);release(item.thumbUrl);if(e!==epoch||!owner){release(item.url);return false;}release(lastUrl);lastFile=item.file;lastSourceId=id;lastUrl=item.url;$('last-filemeta').textContent=`${candidate.name||'Last frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;}
+async function setImage(candidate,id=null){clearImageComposerNotice();const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=item.file===candidate?id:null;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;if(isSoul2()&&!soulRatioExplicit)$('hf-bar-ratio').value='source';syncDefaultRatio(!imageRatioExplicit);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
+async function setLastImage(candidate,id=null){const e=epoch,item=await inspectImage(candidate);release(item.thumbUrl);if(e!==epoch||!owner){release(item.url);return false;}release(lastUrl);lastFile=item.file;lastSourceId=item.file===candidate?id:null;lastUrl=item.url;$('last-filemeta').textContent=`${candidate.name||'Last frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;}
 function renderReferences(){
   if(usesReferenceGuidance()&&references.length){
     if(referencesOnly()){for(const r of references)if(r.role==='base')r.role=r.nonBaseRole||'none';}
@@ -2985,7 +2987,7 @@ async function addReferences(list,ids=[],labels=[]){
       }
       const item=await inspectImage(incoming[i]);
       if(e!==epoch||!owner){releaseReference(item);return;}
-      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';
+      item.id=item.file===incoming[i]?(ids[i]||null):null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';
        item.elementId=labels[i]?.elementId||null;item.elementName=labels[i]?.elementName||'';item.elementCategory=labels[i]?.elementCategory||'';
        item.elementView=labels[i]?.elementView;item.elementCount=labels[i]?.elementCount;if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;toWarm.push(item);
        if(explicitBaseAfterElement&&!item.elementId){
