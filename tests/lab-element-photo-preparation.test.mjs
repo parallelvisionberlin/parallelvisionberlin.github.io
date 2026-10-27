@@ -7,9 +7,9 @@ function withCanvas(width,height,run){
   const output=[];
   globalThis.createImageBitmap=async()=>({width,height,close(){}});
   globalThis.OffscreenCanvas=class{
-    constructor(w,h){this.width=w;this.height=h;output.push(this);}
+    constructor(w,h){this.width=w;this.height=h;}
     getContext(){return {drawImage(){},imageSmoothingEnabled:false,imageSmoothingQuality:'low'};}
-    async convertToBlob(){return new Blob(['working copy'],{type:'image/webp'});}
+    async convertToBlob(){output.push({width:this.width,height:this.height});return new Blob(['working copy'],{type:'image/webp'});}
   };
   return Promise.resolve().then(()=>run(output)).finally(()=>{
     if(originals.bitmap===undefined)delete globalThis.createImageBitmap;
