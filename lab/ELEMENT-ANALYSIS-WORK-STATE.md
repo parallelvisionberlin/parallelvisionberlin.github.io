@@ -41,3 +41,10 @@ Source base: `1566e668b4688bbf499a3fb700c316fbf1d08ca1`, main.
 - Static diff checks and existing Lab desktop/mobile browser CI `39515740820` passed.
 - Live browser at pvlab.studio confirmed stylesheet revision `statusSpacing=20261021v1` and computed message wrapping `anywhere`.
 - Local preview browser download was unavailable; the signed-out production session cannot open the owner's actual saved Element.
+
+## 2026-10-27 Character usability follow-up
+- Character photo upload automatically prepares oversized and browser-decodable alternate-format images as private WebP copies, preserving the local source file.
+- Video Studio automatically fits over-limit camera photos to each mode's bound and clears stale original asset IDs when a working copy is made. The image model's own pixel/size constraints remain.
+- Character list and selected details show actual analysis state from stored profile or in-flight request. This does not claim Gemini completed until a valid profile was stored.
+- Existing stored Jenn LSS images remain untouched; Video can prepare a compatible copy on selection.
+- Branch `fix/character-uploads-analysis-selection-20261027`, not yet published or verified against a signed-in customer session.
