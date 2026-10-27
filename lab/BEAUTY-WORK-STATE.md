@@ -3,7 +3,8 @@
 - Date: 2026-10-27, Europe/Berlin.
 - Approved task: build the selected Beauty Studio page and add Studios to the upper navigation, for now.
 - Source baseline: main `0b1f8f568fd2fae0ae0c148c06ff36c7316b6a19`.
-- Branch: `feat/beauty-studio-20261027`; the commit containing this checkpoint contains the tested implementation.
+- Feature source: `feat/beauty-studio-20261027` at `78d860f97a2e09b88c87d5799ec9385f631b2622`; PR #599 merged after the owner reported the page was not live.
+- Production application source: `572164132b66749fb62ae7ba2979baadde2624ef`, preserving concurrent Character/Video changes from main `5e96053b`.
 - Approved page reference: `fb67472e-b6c9-4c43-ac94-3bc39eda7143.png`, Library `libfile_1c73c9c1156c8191a8380dea0f292c90`.
 - Entry: `beauty.html`, with `beauty.css`, `beauty.js`, and the pure prompt/price binding functions in `beauty-settings.js`.
 - Approved black-veil portrait restored to a clean background without interface elements using ImageGen, then saved as `visuals/beauty/beauty-veil-editorial.webp` (1448x1086, approximately 193 KiB).
@@ -38,6 +39,10 @@
 - CI's old landing navigation assertion expected Fashion as a direct tab. Updated that assertion to explicitly check Studios, its Beauty/Fashion/Character destinations and Escape dismissal. Existing Assets/Fashion navigation checks now open the menu, including its scrollable mobile trigger; original geometry, image and financial assertions remain.
 - PASS after those updates: full existing `lab-landing-ui.cjs` at six responsive sizes and full `lab-assets-ui.cjs`, including embedded Fashion, shared session/input persistence, quoted generation, mobile menu reachability, navigation geometry and the original gallery/submission checks. Sparse checkout needed the existing tracked image/video test fixtures restored locally; they were not changed or added to the feature commit.
 - PASS: final Beauty browser matrix also follows the actual mobile Explore Moods menu into Beauty, generates two edits, keeps Generate clickable after completion, and rejects delayed older result selection. The final 7 approved Image/Beauty contracts passed.
-- CI at parent `fffd18f7`: Beauty, approved Image, unit, static build, search, public Studio, landing, pricing, gallery and appearance checks passed. Upscale-assets stopped during Chromium installation after its 3-minute infrastructure timeout; the complete same local Assets suite passed. Some other workflows were cancelled. No gate was disabled.
-- Final patch: result/history selection revisions, bounded result layout, v2 cache markers and the browser regression cases are included in the commit containing this checkpoint. Relevant local checks passed; the PR tracks the final commit and latest branch-preview verification. Production publication is not verified.
-- Next action: review the feature PR and its relevant checks, then use the existing Cloudflare Pages release protocol if publication is authorized. No manual deployment or real paid-generation test was run.
+- Final feature CI passed Beauty, approved Image, build, unit, landing, Fashion and gallery. Its Upscale/Assets source-preview sizing assertion at `tests/lab-upscale-assets-visibility.mjs:169` also fails on unchanged baseline `0b1f8f56`; its other 38 Upscaler checks passed. Some other workflows were cancelled. No gate was disabled.
+- Exact merged application checks passed locally: all 7 approved Image/Beauty contracts, full Beauty role/responsive/credit/privacy browser cases, and tool routing at 1440/390px.
+- LIVE 2026-10-27: Cloudflare Pages app `cloudflare-workers-and-pages`, project `pvlab-studio`, check `122205430668`, exact application commit `57216413`, deployment `83858b1d-86d9-4086-aa5c-6f7028e3853e`, conclusion success.
+- Release verifier returned LIVE_VERIFIED for `studios-menu.js?v=20261027-studios1`, SHA-256 `f0510e9f11ed35f1b5ad885945a825d96fcd1f217cfb1bcaaa29d3f87e16e540`.
+- Production HTTP 200 and exact SHA-256 equality confirmed for Beauty HTML/CSS/JS/settings, Studios CSS/JS and the veil portrait against the reviewed application commit.
+- Live browser followed homepage Studios > Beauty Studio to `https://pvlab.studio/beauty`, verified v2 Beauty assets, controls and layout. Production appearance inspected. Real signed-in generation/payment remains untested.
+- Status: Beauty and Studios navigation are published and verified. This record update changes documentation only. Homepage hero/cards and the arrival hub remain separate proposed work; no further release action is pending for this feature.
