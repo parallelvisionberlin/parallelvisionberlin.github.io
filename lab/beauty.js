@@ -9,6 +9,8 @@ let clerk=null,profile=null,sessionId='',epoch=0,revision=0,syncing=false,file=n
 let preparing=false,submitting=false,activeId='',uncertain=false,quoteTimer=null,expiryTimer=null,pollTimer=null,resultRevision=0,historyRevision=0;
 const blobs=new Map();
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
+// The main Studio exposes Effects only to the server-verified owner account.
+function syncHeaderAccess(){const effects=$('beauty-effects-link');if(effects)effects.hidden=!(profile?.owner===true&&profile?.customer!==true);}
 const status=(message='',error=false)=>{$('beauty-status').textContent=message;$('beauty-status').classList.toggle('error',error);};
 function readPending(){try{const p=JSON.parse(sessionStorage.getItem(pendingKey));return p?.sessionId===sessionId?p:null;}catch{return null;}}
 function savePending(value){try{if(value)sessionStorage.setItem(pendingKey,JSON.stringify({...value,sessionId}));else sessionStorage.removeItem(pendingKey);}catch{}}
@@ -138,14 +140,14 @@ async function loadHistory(){
   if(active&&!activeId&&!uncertain){activeId=active.id;await showJob(active);}
  }catch(error){if(version===epoch)status(error.message,true);}
 }
-async function refreshProfile(){if(!profile)return;try{const next=await api('/api/session');profile=next;menu.update({signed:true,user:clerk.user,profile});}catch{} }
+async function refreshProfile(){if(!profile)return;try{const next=await api('/api/session');profile=next;menu.update({signed:true,user:clerk.user,profile});syncHeaderAccess();}catch{} }
 function clearPrivate(){
  epoch++;revision++;clearQuote();clearTimeout(pollTimer);file=null;source=null;activeId='';submitting=false;uncertain=false;profile=null;preparing=false;
  if(photoUrl)URL.revokeObjectURL(photoUrl);if(resultUrl)URL.revokeObjectURL(resultUrl);photoUrl='';resultUrl='';
  for(const value of blobs.values())URL.revokeObjectURL(value);blobs.clear();$('beauty-history').replaceChildren();
  $('beauty-form').reset();$('beauty-photo-preview').removeAttribute('src');$('beauty-photo-preview').hidden=true;$('beauty-photo-empty').hidden=false;$('beauty-change-photo').textContent='Add photo';
  $('beauty-result-image').removeAttribute('src');$('beauty-download').removeAttribute('href');$('beauty-result').hidden=true;$('beauty-example-label').hidden=false;$('beauty-workspace').classList.remove('has-result');$('beauty-empty-results').hidden=false;
- $('beauty-reset-pending')?.setAttribute('hidden','');status('');menu.update({signed:false});$('beauty-signin').hidden=false;update();
+ $('beauty-reset-pending')?.setAttribute('hidden','');status('');menu.update({signed:false});$('beauty-signin').hidden=false;syncHeaderAccess();update();
 }
 async function sync(){
  const nextId=clerk?.isSignedIn?clerk.session?.id||'':'';
@@ -154,7 +156,7 @@ async function sync(){
  syncing=true;const version=epoch;
  try{
   const data=await api('/api/session');if(version!==epoch)return;
-  profile=data;$('beauty-signin').hidden=true;menu.update({signed:true,user:clerk.user,profile});
+  profile=data;$('beauty-signin').hidden=true;menu.update({signed:true,user:clerk.user,profile});syncHeaderAccess();
   const pending=readPending();if(pending){if(pending.jobId){activeId=pending.jobId;void poll(activeId);}else{uncertain=true;status('A previous submission needs review. Check Image history before starting another.',true);}}
   await loadHistory();scheduleQuote();
  }catch(error){if(version===epoch){status(error.message,true);menu.update({signed:false});}}

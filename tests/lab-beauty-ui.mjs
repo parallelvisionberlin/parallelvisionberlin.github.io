@@ -65,6 +65,17 @@ try{
  for(const width of [1448,1024,390,320]){
   const s=await scenario({role:'guest',width}),{page}=s;
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Beauty has no horizontal overflow at '+width);
+  const header=page.locator('.beauty-header'),nav=header.locator('nav[aria-label="Creative tools"]');
+  const navLabels=await nav.locator(':scope > a:not([hidden]), :scope > .pv-studios-menu > .pv-studios-trigger').allTextContents();
+  assert.deepEqual(navLabels,['Image','Video','Upscaler','Retouch','Studios','Explore Moods'],'Beauty uses the standard Studio menu, not its old standalone links');
+  const headerBounds=await header.boundingBox();
+  assert.equal(Math.round(headerBounds.y),0,'Global header aligns to the top edge');
+  assert.equal(Math.round(headerBounds.height),width<=900?104:70,'Beauty retains Studio header proportions');
+  assert.equal(await header.locator('.beauty-assets-link').getAttribute('href'),'./studio.html?tool=assets');
+  assert.equal(await header.getByRole('link',{name:'Effects'}).isVisible(),false,'Effects remains owner-only');
+  assert.equal(await header.getByRole('link',{name:'Pricing'}).count(),0,'No second Pricing header');
+  assert.equal(await header.getByRole('link',{name:'Open studio'}).count(),0,'No duplicate Studio launch in header');
+  assert.equal(await header.getByRole('link',{name:'Credits'}).count(),0,'Credit controls stay in the account menu');
   await page.locator('.pv-studios-trigger').click();
   await page.locator('.pv-studios-panel').waitFor({state:'visible'});
   assert.equal(await page.getByRole('link',{name:'Beauty Studio',exact:true}).isVisible(),true);
@@ -80,6 +91,9 @@ try{
  }
  for(const options of [{role:'customer',width:1448},{role:'owner',width:1448},{role:'customer',width:390}]){
   const s=await scenario(options),{page}=s;
+  assert.equal(await page.locator('#beauty-effects-link').isVisible(),options.role==='owner','Effects matches server-verified Studio owner visibility');
+  assert.equal(await page.locator('.beauty-assets-link').getAttribute('href'),'./studio.html?tool=assets');
+  assert.equal(await page.locator('#beauty-account').isVisible(),true,'Signed-in account menu is visible on Beauty');
   await page.locator('#beauty-photo').setInputFiles(input);
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
   assert.equal(s.submits,0,'Quoting does not generate');assert.equal(s.uploads,1);
