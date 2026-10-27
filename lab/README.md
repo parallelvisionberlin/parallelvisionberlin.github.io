@@ -1,3 +1,4 @@
+> Beauty Studio and shared Studios header navigation: [BEAUTY-WORK-STATE.md](./BEAUTY-WORK-STATE.md).
 > Current Chrome Couture + Image Inspiration carousel implementation: [INSPIRATION-WORK-STATE.md](./INSPIRATION-WORK-STATE.md).
 
 ## Image Discreet Mode (2026-10-15)

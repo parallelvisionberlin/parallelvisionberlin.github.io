@@ -1,0 +1,43 @@
+# Beauty Studio and Studios navigation
+
+- Date: 2026-10-27, Europe/Berlin.
+- Approved task: build the selected Beauty Studio page and add Studios to the upper navigation, for now.
+- Source baseline: main `0b1f8f568fd2fae0ae0c148c06ff36c7316b6a19`.
+- Branch: `feat/beauty-studio-20261027`; the commit containing this checkpoint contains the tested implementation.
+- Approved page reference: `fb67472e-b6c9-4c43-ac94-3bc39eda7143.png`, Library `libfile_1c73c9c1156c8191a8380dea0f292c90`.
+- Entry: `beauty.html`, with `beauty.css`, `beauty.js`, and the pure prompt/price binding functions in `beauty-settings.js`.
+- Approved black-veil portrait restored to a clean background without interface elements using ImageGen, then saved as `visuals/beauty/beauty-veil-editorial.webp` (1448x1086, approximately 193 KiB).
+- Photo layout, large white title, quiet controls and one generation bar follow the selected design. Phone layout retains readable 16px inputs and no horizontal page overflow.
+- The background is labelled Example look. It is never treated as an uploaded user photograph or a generated result.
+- User uploads accept decodable JPG/PNG/WebP images up to 10 MiB. Guest selection stays local; generation requires the existing Clerk account flow.
+- Makeup, hair, skin, strength and optional direction compile a reference edit preserving the person's identity, age, pose, anatomy and background. Strength is prompt guidance, not a provider-native guarantee.
+- Auto and Seedream 5 Pro use the existing Seedream route. Seedream Flash uses the existing Flash edit route. Defaults: 1K, 4:5, PNG.
+- No new provider, Worker route, database, price table, wallet rule or credential is introduced.
+- The existing session-request module handles authentication renewal and account setup. Tokens and private photographs are not placed in browser storage.
+- Free quote preparation follows a valid authenticated source/settings change. Generate displays only the bound server credit price, including for owners.
+- Quotes must match the exact engine, prompt, resolution, ratio and source, with integer credits and an unexpired ID. Stale async responses cannot replace a newer selection.
+- One explicit priced Generate submits that exact quote with confirm:true. Duplicate actions are held busy; backend quote idempotency is retained.
+- Ambiguous submission is not retried or repriced. A session-bound pending job/quote marker survives reload and directs the user to Image History. Explicit reset requires a new edit and never resubmits the old request.
+- Actual completed images are fetched from private assets, displayed without cropping, downloadable, and available in recent Beauty history. The full Image archive remains the existing history destination.
+- Account changes/sign-out clear photos, prompts, private history, result URLs, quotes and polling. No real account, generation, payment or private customer media was used in validation.
+- Results and history use selection revisions as well as the account epoch: late image/history responses cannot replace a newer selection. Browser coverage selects two saved results with the older response deliberately delayed; selection causes no generation.
+- Live-result layout is bounded to the editor rather than the growing History section, with Generate above the image layer. Browser coverage submits a second edit and checks that Generate remains clickable with completed desktop/phone results. Beauty HTML loads the v2 CSS/controller cache markers.
+- `studios-menu.js` and `.css` progressively replace the existing Fashion header entry on homepage, Studio and Explore Moods. The original Fashion element/ID/listeners and return-to-draft URL remain intact inside the dropdown.
+- Menu entries: Beauty Studio, existing Fashion Studio, and Character Studio linked to the verified Elements/Characters creation entry (`studio.html?tool=image&createCharacter=1`).
+- Upscaler and Retouch remain direct header links. Menus support keyboard opening, Escape, outside dismissal and bounded mobile positioning.
+- Homepage hero, sections, Image composer, Moods content, and other studio controllers remain outside this change. The separately discussed homepage card section, Beauty/Fashion arrival hub and Full Editorial workspace are not implemented in this step.
+- PASS: 5 approved Image UI contracts, 2 Beauty prompt/quote tests, 4 search/crawler checks; 11 selected Worker credit/refund/identity/idempotency cases, including the actual Beauty Seedream/Flash route test.
+- PASS: synthetic browser Beauty matrix at 1448, 1024, 390 and 320px; guest isolation, owner/customer exact pricing, stale response rejection, single submit, completed downloads, ambiguous-submit reload protection, logout cleanup, and homepage menu links.
+- PASS: existing tool-routing regression at 1440 and 390px. Browser screenshots were visually inspected for desktop, phone, and the open mobile menu.
+- Full public Studio visual suite passed its 1440px guest component comparisons and navigation before stopping on the existing disabled customer Retouch `#precision-prompt` field. Both the full and header-only paths stop there.
+- Baseline reproduction: unchanged main `0b1f8f56`, in a separate detached worktree, stops at the same Retouch field (`tests/lab-public-studio-ui.mjs:349`; candidate line shifted by new menu-open actions). No Retouch gate/assertion was weakened.
+- Existing public browser navigation tests now open Studios before selecting the unchanged Fashion tool. Pixel thresholds and other role/privacy assertions are unchanged.
+- New CI: `.github/workflows/pv-lab-beauty.yml`; screenshots artifact `beauty-studio-screenshots`.
+- GitHub implementation commit: `fbbe8105034b02377c94b767426f958e055d7d67`, PR #599. Its complete tree `6bbb0aaf0a82d1effc9a4f360239f13cb1dd86cf` exactly matches the locally tested source.
+- Cloudflare branch preview deployed successfully: `https://f08e2389.pvlab-studio.pages.dev/beauty.html`. HTTP 200 and SHA-256 equality verified for Beauty HTML/CSS/JS, menu JS and the portrait asset. This is a feature preview, not production.
+- CI's old landing navigation assertion expected Fashion as a direct tab. Updated that assertion to explicitly check Studios, its Beauty/Fashion/Character destinations and Escape dismissal. Existing Assets/Fashion navigation checks now open the menu, including its scrollable mobile trigger; original geometry, image and financial assertions remain.
+- PASS after those updates: full existing `lab-landing-ui.cjs` at six responsive sizes and full `lab-assets-ui.cjs`, including embedded Fashion, shared session/input persistence, quoted generation, mobile menu reachability, navigation geometry and the original gallery/submission checks. Sparse checkout needed the existing tracked image/video test fixtures restored locally; they were not changed or added to the feature commit.
+- PASS: final Beauty browser matrix also follows the actual mobile Explore Moods menu into Beauty, generates two edits, keeps Generate clickable after completion, and rejects delayed older result selection. The final 7 approved Image/Beauty contracts passed.
+- CI at parent `fffd18f7`: Beauty, approved Image, unit, static build, search, public Studio, landing, pricing, gallery and appearance checks passed. Upscale-assets stopped during Chromium installation after its 3-minute infrastructure timeout; the complete same local Assets suite passed. Some other workflows were cancelled. No gate was disabled.
+- Final patch: result/history selection revisions, bounded result layout, v2 cache markers and the browser regression cases are included in the commit containing this checkpoint. Relevant local checks passed; the PR tracks the final commit and latest branch-preview verification. Production publication is not verified.
+- Next action: review the feature PR and its relevant checks, then use the existing Cloudflare Pages release protocol if publication is authorized. No manual deployment or real paid-generation test was run.

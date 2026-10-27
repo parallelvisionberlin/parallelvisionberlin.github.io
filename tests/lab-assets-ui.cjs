@@ -3,7 +3,7 @@ const fs=require('fs'),http=require('http'),path=require('path'),assert=require(
 async function chooseReferenceMode(page,value){await page.click('#composer-reference-intent-toggle');await page.click('[data-reference-intent="'+value+'"]');}
 const root=process.cwd();let source=fs.readFileSync('lab/lab.js','utf8');const a=source.indexOf("try{clerk=await loadLabAccount();"),b=source.indexOf('// Soul composer:',a);source=source.slice(0,a)+`clerk={session:{getToken:async()=> 'test'}};owner=true;ownerAccount=true;userId='test';studioAccount.update({signed:true,user:{fullName:'Test Owner'},profile:{customer:false}});config={enabled:true,higgsfieldEnabled:true,openrouterEnabled:true,falEnabled:true,videoEngines:['seedance','wan'],concurrency:{image:10,video:3}};$('app').hidden=false;$('gate').hidden=true;hf.configure(true);await loadHistory();await restoreStudioEntry();update();finishLabBoot();window.__lockTest=lock;window.__assetCacheSize=()=>assetBlobs.size;window.__referenceSettings=()=>settings();window.__setTestJobs=setActiveJobs;window.__surfaceTestJob=surfaceHistoryJob;window.__ready=true;\n`+source.slice(b);
 const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost'),rel=url.pathname.replace(/^\//,'')+(url.pathname.endsWith('/')?'index.html':'');const f=['.'].map(x=>path.join(root,x,rel)).find(fs.existsSync);if(!f){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(f)]||'text/plain');res.end(rel==='lab/lab.js'?source:fs.readFileSync(f));});
-(async()=>{await new Promise(r=>server.listen(8765,'127.0.0.1',r));const browser=await chromium.launch({headless:true,args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:1440,height:1000}});const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=900;c.height=600;const x=c.getContext('2d');x.fillStyle='#454b50';x.fillRect(0,0,900,600);x.fillStyle='#9b9489';x.fillRect(240,80,400,450);return c.toDataURL().split(',')[1];}),'base64');const errors=[];page.on('pageerror',e=>errors.push(e.message));let releaseImages;const imagesReady=new Promise(r=>releaseImages=r);let folders=[],members={},favorites=new Set();let jobs=Array.from({length:6},(_,i)=>({id:'job-'+i,sourceId:'source-'+i,outputId:'out-'+i,status:'completed',createdAt:Date.now()-i*100,settings:{galleryDimensions:{assetId:'out-'+i,width:900,height:600},type:i<4?'image':'video',mode:i<4?'image':'start',engine:i<4?'seedream':'wan',resolution:'1k',prompt:'A quiet room',aspectRatio:'16:9',duration:5}}));
+(async()=>{await new Promise(r=>server.listen(8765,'127.0.0.1',r));const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:1440,height:1000}});const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=900;c.height=600;const x=c.getContext('2d');x.fillStyle='#454b50';x.fillRect(0,0,900,600);x.fillStyle='#9b9489';x.fillRect(240,80,400,450);return c.toDataURL().split(',')[1];}),'base64');const errors=[];page.on('pageerror',e=>errors.push(e.message));let releaseImages;const imagesReady=new Promise(r=>releaseImages=r);let folders=[],members={},favorites=new Set();let jobs=Array.from({length:6},(_,i)=>({id:'job-'+i,sourceId:'source-'+i,outputId:'out-'+i,status:'completed',createdAt:Date.now()-i*100,settings:{galleryDimensions:{assetId:'out-'+i,width:900,height:600},type:i<4?'image':'video',mode:i<4?'image':'start',engine:i<4?'seedream':'wan',resolution:'1k',prompt:'A quiet room',aspectRatio:'16:9',duration:5}}));
 await page.route('https://**/*',async route=>{const req=route.request(),u=new URL(req.url());if(!u.href.includes('parallel-vision-lab.parallelvision.workers.dev'))return route.abort();let result={};const d=req.method()==='POST'?req.postDataJSON():{};if(u.pathname==='/api/jobs'){let list=jobs.filter(j=>(u.searchParams.get('unfiled')!=='1'||u.searchParams.get('folder')||u.searchParams.get('favorite')||!Object.values(members).some(ids=>ids.includes(j.id)))&&(!u.searchParams.get('kind')||j.settings.type===u.searchParams.get('kind'))&&(!u.searchParams.get('mode')||j.settings.mode===u.searchParams.get('mode'))&&(!u.searchParams.get('favorite')||favorites.has(j.id))&&(!u.searchParams.get('folder')||(members[u.searchParams.get('folder')]||[]).includes(j.id)));result={jobs:list.map(j=>({...j,favorite:favorites.has(j.id)})),next:null,activeJobs:[]};}else if(u.pathname==='/api/library')result={folders:folders.map(f=>({...f,count:(members[f.id]||[]).length}))};else if(u.pathname==='/api/library/folders'){const folder={id:'folder-'+folders.length,name:d.name};folders.push(folder);result={folder};}else if(u.pathname==='/api/library/archive'){let folder=folders.find(f=>f.name==='Archive');if(!folder){folder={id:'archive',name:'Archive'};folders.push(folder);}members[folder.id]=[...new Set([...(members[folder.id]||[]),...d.ids])];}else if(u.pathname==='/api/library/members'){for(const id of d.ids){if(typeof d.favorite==='boolean'){d.favorite?favorites.add(id):favorites.delete(id);}else{const m=new Set(members[d.folderId]||[]);d.remove?m.delete(id):m.add(id);members[d.folderId]=[...m];}}}else if(u.pathname==='/api/jobs/bulk-delete'){jobs=jobs.filter(j=>!d.ids.includes(j.id));result={deleted:d.ids.length};}else if(u.pathname.startsWith('/api/assets/')){await imagesReady;return route.fulfill({contentType:/out-[45]$/.test(u.pathname)?'video/mp4':'image/png',body:/out-[45]$/.test(u.pathname)?Buffer.from('mock video bytes'):png});}return route.fulfill({contentType:'application/json',body:JSON.stringify(result)});});
 await page.emulateMedia({reducedMotion:'reduce'});
 await page.goto('http://127.0.0.1:8765/lab/',{waitUntil:'domcontentloaded'});
@@ -430,7 +430,7 @@ await page.setViewportSize({width:1440,height:1000});
 await page.click('#tool-image');await page.fill('#image-composer-prompt','Keep this image direction when visiting Fashion.');
 const studioUrl=page.url();await page.evaluate(()=>window.__fashionDocument='same-studio');
 const navGeometry=await page.locator('.tool-switch .tool-group > *').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};}));
-await page.click('#tool-fashion');
+await page.locator('.pv-studios-trigger').click();await page.click('#tool-fashion');
 const fashion=page.locator('#fashion-studio');
 await fashion.locator('#workspace').waitFor({state:'visible'});
 assert.equal(new URL(page.url()).searchParams.get('tool'),'fashion','Fashion updates the section URL');assert.equal(new URL(page.url()).pathname,new URL(studioUrl).pathname,'Fashion stays in the same document');
@@ -446,7 +446,7 @@ await fashion.locator('#direction').fill('Preserve the pose and natural fabric t
 await fashion.locator('#person-preview').evaluate(img=>img.decode());
 await fashion.locator('#garment-preview').evaluate(img=>img.decode());
 const person=await fashion.locator('#person-preview').getAttribute('src');
-await page.click('#tool-video');await page.click('#tool-fashion');
+await page.click('#tool-video');await page.locator('.pv-studios-trigger').click();await page.click('#tool-fashion');
 assert.equal(await fashion.locator('#direction').inputValue(),'Preserve the pose and natural fabric texture.');
 assert.equal(await fashion.locator('#person-preview').getAttribute('src'),person,'Fashion uploads persist across sections');
 await page.waitForFunction(()=>/Generate · \d+ credits/.test(document.querySelector('#fashion-studio').shadowRoot.querySelector('#quote').textContent));
@@ -462,20 +462,20 @@ for(const width of [768,390,320]){
 }
 const mobileTools=page.locator('#studio-header .tool-switch');
 assert.equal(await mobileTools.evaluate(el=>getComputedStyle(el).overflowX),'auto','Narrow mobile tools remain horizontally scrollable');
-for(const id of ['tool-image','tool-retouch','tool-video','tool-upscale','tool-fashion','tool-explore-moods']){
-  const tab=page.locator('#'+id);
+for(const id of ['tool-image','tool-retouch','tool-video','tool-upscale','studios-menu','tool-explore-moods']){
+  const tab=page.locator(id==='studios-menu'?'.pv-studios-trigger':'#'+id);
   await tab.scrollIntoViewIfNeeded();
   const bounds=await tab.boundingBox(),navBounds=await mobileTools.boundingBox();
   assert.ok(bounds.x>=navBounds.x-1&&bounds.x+bounds.width<=navBounds.x+navBounds.width+1,id+' is fully reachable by scrolling the mobile navigation: '+JSON.stringify({bounds,navBounds}));
 }
-await page.locator('#tool-fashion').click();
+await page.locator('.pv-studios-trigger').click();await page.locator('#tool-fashion').click();
 assert.equal(await page.locator('#tool-fashion').getAttribute('aria-pressed'),'true','Fashion remains usable after scrolling the mobile tools');
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Scrolling tools never widens the mobile page');
 console.log('FASHION_IN_STUDIO_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
 await page.setViewportSize({width:1440,height:1000});
 await page.click('#tool-assets');
 assert.equal(await fashion.isVisible(),false);assert.equal(await page.locator('#tool-assets').getAttribute('aria-pressed'),'true');
-await page.click('#tool-fashion');assert.equal(await fashion.locator('.result-actions a').isVisible(),false,'The approved empty output has no visible internal result action');await page.click('#tool-image');
+await page.locator('.pv-studios-trigger').click();await page.click('#tool-fashion');assert.equal(await fashion.locator('.result-actions a').isVisible(),false,'The approved empty output has no visible internal result action');await page.click('#tool-image');
 assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this image direction when visiting Fashion.');
 assert.equal(await fashion.isVisible(),false);assert.equal(page.url(),studioUrl,'Image Studio return stays in the same document');
 assert.equal(fashionSubmits,0);assert.deepEqual(errors,[]);
@@ -483,7 +483,7 @@ console.log('PASS integrated Fashion: stable shell, shared session, preserved in
 
 await page.reload();await page.waitForFunction(()=>window.__ready);
 assert.equal(await page.locator('#tool-image').getAttribute('aria-pressed'),'true');
-await page.click('#tool-fashion');
+await page.locator('.pv-studios-trigger').click();await page.click('#tool-fashion');
 await page.reload();await page.waitForFunction(()=>window.__ready);
 assert.equal(await page.locator('#tool-fashion').getAttribute('aria-pressed'),'true','Reload restores embedded Fashion');
 await page.click('#tool-image');
