@@ -238,7 +238,7 @@ try{
  assert.equal(await x.page.locator('#upscale-notice-slot').isVisible(),false,'Routine messages remain visually quiet');
  assert.deepEqual(x.errors,[]);ok('Premium 2x Upscale submits one checked quote through the visible action');
  await imageAdvanced(x.page);assert.equal(await x.page.locator('#notice').evaluate(el=>el.nextElementSibling?.id),'archive-rest-anchor');
- await x.page.click('#tool-video');assert.equal(await x.page.locator('#last-upload').isVisible(),true);
+ await x.page.click('#tool-video');await x.page.click('#mode-start');assert.equal(await x.page.locator('#last-upload').isVisible(),true);
  assert.deepEqual(x.errors,[]);ok('Image and Video still work after Upscale');await x.context.close();
  if(process.env.PV_UPSCALE_NOTICE_SMOKE!=='1'){
   x=await workspace();await x.page.click('#tool-upscale');await uploadSmall(x.page);
