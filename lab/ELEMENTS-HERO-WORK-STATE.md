@@ -66,3 +66,9 @@ Confirm Cloudflare Pages production deploy for merge `1064c992` or later, and vi
 - `lab/studio.html` updates the four-square tooltip/accessibility name to Elements and refreshes the script cache key. No categories, layouts, stored references, model settings, prices or paid generation change.
 - `tests/lab-elements-smart-browser.mjs` and `tests/lab-studio-layout-ui.mjs` validate direct categories, legacy Photo Packs access and narrow mobile menu bounds.
 - Working branch `fix/pvlab-image-elements-direct-menu-20261027`. Merge and production publication must be checked separately.
+
+## 2026-10-27 direct Elements final source status
+- UI pull request #606 merged to main as `c02b171115621d16ca90a6788084661e1b1b5057`. Clicking the Image composer four-square shortcut goes immediately to the existing Elements category list; the back option retains Photo Packs access.
+- Original PR validation: approved Image UI contract and Lab tests passed. The Video browser suite exposed an older Photo Packs fixture that expected the previous first-level menu. Application behavior was not reverted.
+- Test-only PR #607 updates `tests/lab-image-oneclick-ui.mjs` and `tests/lab-reference-pack-studio-ui.mjs` to traverse Back → Photo Packs. Merged to main as `c0c0a25fb766d3a71497642216e3aff9f239634e`.
+- No database, references, generation provider, pricing, or Image deck layout modification. Custom-domain Cloudflare deployment and the test-only PR CI remain unverified as of this checkpoint. Exact next action: check production asset version and signed-in first-click categories.
