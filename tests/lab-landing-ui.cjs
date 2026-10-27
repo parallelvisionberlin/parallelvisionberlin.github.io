@@ -6,7 +6,7 @@ const server=http.createServer((req,res)=>{
  const rel=url.pathname.replace(/^\//,'')+(url.pathname.endsWith('/')?'index.html':'');
  const f=path.join(root,rel);
  if(!f.startsWith(root+path.sep)||!fs.existsSync(f)||!fs.statSync(f).isFile()){res.writeHead(404).end();return;}
- res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.png':'image/png'})[path.extname(f)]||'application/octet-stream');res.end(fs.readFileSync(f));
+ res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.jpg':'image/jpeg','.png':'image/png'})[path.extname(f)]||'application/octet-stream');res.end(fs.readFileSync(f));
 });
 (async()=>{
  await new Promise(r=>server.listen(8766,'127.0.0.1',r));
@@ -37,7 +37,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationName),'none');
   assert.equal(await page.locator('#motion-toggle').count(),0);
   const current=await page.locator('.hero-poster').evaluate(el=>el.currentSrc);
-  assert.ok(current.endsWith(width<=700?'/leather-editorial/hero-mobile-editorial-20261017.jpg':'/leather-editorial/hero-desktop.webp'),'Approved responsive editorial portrait matches the viewport');
+  assert.ok(current.endsWith('/visuals/hero/pvlab-industrial-fashion-20261027.jpg'),'Approved industrial fashion hero is shown at every viewport');
   assert.equal(await page.locator('#pv-hero-motion').count(),0,'The selected still hero does not request an old hero video');
   assert.equal(await page.locator('#hero-motion-toggle').count(),0,'The still hero needs no playback control');
   await page.locator('#tools').scrollIntoViewIfNeeded();await page.locator('.studio-tool-link img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
