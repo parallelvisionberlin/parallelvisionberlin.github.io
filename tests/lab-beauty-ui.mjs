@@ -103,5 +103,12 @@ try{
   assert.match(await s.page.locator('.pv-studios-character-link').getAttribute('href'),/createCharacter=1/);
   assert.match(await s.page.locator('#hero-title').textContent(),/PV LAB/);await s.context.close();
  }
+ {
+  const s=await scenario({role:'guest',width:390});await s.page.goto(base+'/lab/moods.html');
+  await s.page.locator('.pv-studios-trigger').click();
+  await s.page.getByRole('link',{name:'Beauty Studio',exact:true}).click();
+  await s.page.waitForURL('**/lab/beauty.html');
+  assert.equal(await s.page.locator('h1').textContent(),'Beauty Studio.');await s.context.close();
+ }
  console.log('PASS Beauty: desktop/mobile, menu, guest isolation, owner/customer, exact credits, one submit, stale quotes, ambiguity and logout privacy');
 }finally{await browser.close();server.close();}
