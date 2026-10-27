@@ -3,7 +3,8 @@
 ## Commission example copy, 2026-10-27
 - User requested a more tangible 100 EUR first-payment / 50 EUR commission example in the 50% FAQ.
 - Based on current main f2655eb631ac63e71d2b3f615ffe2f622615430a; change only the matching sentence in Bellini and Vitolas HTML. No rates, eligibility, layout, accounting or wallet changes.
-- Local validation: 39 existing partner/referral/menu/required Image checks passed. Normal PR gates and Cloudflare publication pending.
+- Published PR #608: reviewed source 5ac6f69559bab9cb13788581b8029276febf0b4d, production merge b1de71b5785c8b05b38f8a357f01ce01dc177e09. Local 39 existing partner/referral/menu/required Image checks passed; relevant partner browser, approved Image, private Lab and unit CI passed.
+- Exact-merge Cloudflare Pages check 122431805889 succeeded for pvlab-studio deployment 6a0d6a2a-3b71-4e84-8ee6-f4b3c883d3a4. Both public dashboard HTML responses HTTP200 and exactly match reviewed bytes: Bellini SHA256 8d472754dbaef28137fe07d64c1117e973161af17eb6ffe9bc1255f60e1bceed; Vitolas 74695ca52df74a278c3ae87b7f16a2a558d0e7645a3c59ee5993eb4cbb3f289c. New 100/50 example present, previous 10/5 example absent. Status: published and verified.
 
 ## Bellini Studios / second isolated partner, published 2026-10-27
 - Final user-approved name: Bellini Studios. Private dashboard https://pvlab.studio/bellini-studio; public client alias /bellini. Approved verified-primary-email allowlist uses only its hash in Worker source; audience is AI influencer/creator communities.
