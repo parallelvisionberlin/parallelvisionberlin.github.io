@@ -1,5 +1,13 @@
 # Vitolas Studio partner dashboard
 
+## Bellini Studios dossier, delivered 2026-10-27
+- Created Bellini_Studios_Dossier_PVLAB.pdf in Spanish: 18 pages, 4,376 words, 12 clickable links. Native Library libfile_f0647d4bb49c81918f196ca784b2ce2f; local output/pdf/Bellini_Studios_Dossier_PVLAB.pdf. Private guide for Alejandro Izaguirre/team, not an email send or a new commercial contract.
+- Tailored to AI character/creator communities: current tools/models/prices, identity workflow, all five dashboard sections, exact 50% first-payment / 20% eligible-subscription rules, invitations, manual settlement, outreach, 14-day plan, eight proposed course modules, a practical project/prompts and 90-minute pilot.
+- User explicitly forbids self-gifting. Dossier repeats that invitation allowance is for third parties, separate from the personal wallet; no own-voucher redemption, no using invitation gifts for their demonstrations. Existing deployed migration 0042 already blocks partner recipients; the focused existing Bellini budget/self-redemption regression passed. No account, budget, wallet or voucher was changed.
+- Production public Bellini link resolver now returns HTTP200 with an active destination, unlike the initial release observation. Public tools, dashboard FAQ, terms, prices and support checked 27/10/2026. No signed-in customer data was used.
+- All 18 PDF page renders inspected; final table-heading fix re-rendered/inspected, fonts embedded, text/link extraction and anti-self-gift/calendar wording validated. No hero imagery used: rejected hero PR #609 stays closed.
+- Payout dates, payment method, invitation amount and special teaching credit terms remain unagreed. Owner-facing recommendation only: semi-monthly 15th/last day after reconciliation. No automatic transfers or guaranteed course income promised.
+
 ## Bellini hero direction, pending new asset, 2026-10-27
 - User requests a more sensual dark-fashion Bellini-only hero, with readable midtones and the existing compact header. Rejected the generated satin portrait and then the monochrome leather portrait.
 - Latest desired direction combines IMG_8042.jpeg (intimate monochrome grain, natural adult portrait) with IMG_8045.jpeg (triangular loft window, angular architecture and daylight), adding black fashion styling. Reference Library IDs libfile_f55db93c22b88191b21a8aa408d374b2 and libfile_ea1f167e62208191913ff8a1252c3d9d; local attachments in upload/.
