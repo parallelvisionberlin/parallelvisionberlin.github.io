@@ -1089,7 +1089,7 @@ try{
   assert.equal(imgRules.fit,'cover','Saved Location card scales and crops the chosen photo');
   assert.ok(Math.abs(imgRules.width-imgRules.parentWidth)<2,'Location card photo fills its frame');
   await coverTest.page.click('#scene-grid .scene-card-select');
-  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true,'Selecting a location does not hide the editorial hero');
+  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),false,'Selecting a Location hides unrelated category artwork');
   await coverTest.page.waitForFunction(()=>document.querySelector('#scene-feature-cover img')?.naturalWidth===8||
     document.querySelector('.scene-feature-cover img')?.naturalWidth===8,{},{timeout:12000});
   assert.equal(await coverTest.page.locator('#scene-feature').isVisible(),true,'Selected element has an independent detail panel');
@@ -1097,7 +1097,7 @@ try{
   assert.equal(await coverTest.page.locator('.scene-feature-photos .scene-feature-shot').count(),4);
   await coverTest.page.waitForFunction(()=>[...document.querySelectorAll('.scene-feature-shot img')].every(img=>img.complete&&img.naturalWidth>0),null,{timeout:12000});
   await coverTest.page.click('#scene-list-view');
-  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true);
+  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),false);
   // A list toggle re-renders the card. Private images decode asynchronously:
   // wait for the photo, not for an immediate DOM <img> count on that frame.
   await coverTest.page.waitForFunction(()=>{
@@ -1105,7 +1105,7 @@ try{
     return image?.complete&&image.naturalWidth===8&&image.naturalHeight===5;
   },null,{timeout:12000});
   await coverTest.page.setViewportSize({width:390,height:844});
-  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),true,'Mobile Locations keeps its static banner');
+  assert.equal(await coverTest.page.locator('#scene-category-hero').isVisible(),false,'Mobile selected Location shows its own photo, not static artwork');
   assert.ok(await coverTest.page.locator('#scene-library-dialog').evaluate(el=>el.getBoundingClientRect().width<=window.innerWidth),
     'Saved Locations modal does not overflow mobile horizontally');
   await coverTest.page.screenshot({path:'test-results/lab-elements-saved-location.png',fullPage:false});
