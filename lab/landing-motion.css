@@ -69,6 +69,13 @@
   .lab-hero .hero-poster,.lab-hero .hero-motion{
     top:102px;height:calc(100% - 102px);object-position:70% top;
   }
+  /* The landscape hero crops the woman's face on narrow phones. Shift the
+     existing photograph within its frame without affecting desktop or video. */
+  .lab-hero .hero-poster{object-position:92% top}
+  .lab-hero .hero-motion{
+    /* Preserve its previous mobile positioning. */
+    object-position:70% top;
+  }
   .lab-hero .hero-shade,.lab-hero.motion-active .hero-shade{
     background:linear-gradient(0deg,#100e13 0%,#100e13e8 20%,#100e1380 43%,transparent 70%);
   }
