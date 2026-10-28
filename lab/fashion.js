@@ -14,6 +14,30 @@ let fileKeys=new Map(),previews=new Map(),revision=0,authVersion=0;
 let galleryCursor=null,galleryItems=[],galleryLoading=false,galleryRevision=0,selectedGalleryJob='';
 const galleryPreviews=new Map(),galleryCards=new Map();
 const GALLERY_PAGE_SIZE=12;
+/* Optional looks write genuine provider-supported prompt directions. No separate
+   generations, mock provider, hidden charges, or image replacements. */
+const lookDirections=Object.freeze({
+  runway:'High-fashion runway presentation, dramatic directional light and believable fabric detail. Preserve the person, supplied garment and natural anatomy.',
+  editorial:'Restrained magazine editorial treatment, cinematic contrast, subtle texture and precise tailoring. Preserve the person and supplied garment.',
+  street:'Grounded street-style photography, natural urban light and authentic fabric movement. Preserve the person and supplied garment.',
+  avantgarde:'Sculptural avant-garde styling, strong silhouettes and quiet architectural contrast. Keep the supplied garment recognizable and the person realistic.',
+  minimal:'Clean minimal fashion photography, controlled shadows, neutral tones and tactile material detail. Preserve identity and actual garment.',
+  techwear:'Industrial utility-fashion styling, refined technical textures and practical urban lighting. Preserve the source garment and person.',
+  tailoring:'Emphasize realistic seams, tailoring, folds and garment fit with carefully balanced fashion lighting. Preserve the uploaded garment design.',
+  conceptual:'Experimental editorial composition with restrained optical character and grounded photographic realism. Preserve the person and uploaded garment.'
+});
+let activeLook='';
+function syncLooks(){
+  const strip=$('looks-scroller');if(!strip)return;
+  const supported=current()!=='fashn16';
+  for(const card of strip.querySelectorAll('[data-look]')){
+    card.disabled=!supported;
+    card.setAttribute('aria-pressed',String(supported&&activeLook===card.dataset.look));
+  }
+  const note=$('looks-support');
+  note.textContent=supported?'':'Styling prompt unavailable with v1.6';
+}
+
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 function status(message,error=false){$('status').textContent=message||'';$('status').classList.toggle('error',error);}
 function revokeResult(){if(resultUrl)URL.revokeObjectURL(resultUrl);resultUrl='';$('result-image').hidden=true;$('result-image').removeAttribute('src');$('result-placeholder').hidden=false;$('download').hidden=true;}
@@ -51,6 +75,7 @@ function update(){
   $('model-note').textContent=(authenticated&&!isCustomer?d.note:'Review the credit cost before generating.')+(providerModel&&!providerModel.available?' This model is not connected yet.':'');
   $('direction-required').textContent=selected==='fluxvto'?'REQUIRED':'OPTIONAL';
   $('direction').placeholder=selected==='fluxvto'?'Describe how the garment should be worn…':'Keep the silhouette. Open the jacket, soften the folds…';
+  syncLooks();
   $('quote').disabled=!publicPreview()&&(busy||preparing||!readyToQuote());
   const title=busy?'Generating…':quote?'Generate · '+quote.creditCost.toLocaleString()+' credits':'Generate';
   if($('quote').dataset.caption!==title){
@@ -90,6 +115,32 @@ for(const id of ['model-select','fashn16-category','fashn16-quality','max-resolu
   $(id).addEventListener('change',()=>{change();status('');});
 }
 $('direction').addEventListener('input',()=>change());
+const looks=$('looks-scroller');
+if(looks){
+  looks.addEventListener('click',event=>{
+    const card=event.target.closest('[data-look]');if(!card||card.disabled)return;
+    const next=activeLook===card.dataset.look?'':card.dataset.look;
+    const direction=$('direction');
+    const old=lookDirections[activeLook];
+    const manual=old?direction.value.replace(old,'').replace(/\n{2,}/g,'\n').trim():direction.value.trim();
+    const text=[manual,next?lookDirections[next]:''].filter(Boolean).join('\n');
+    if(text.length>1200){status('Shorten your styling direction before adding a look.',true);return;}
+    direction.value=text;activeLook=next;syncLooks();
+    direction.dispatchEvent(new Event('input',{bubbles:true}));
+    status('');
+  });
+  for(const [id,offset] of [['looks-prev',-1],['looks-next',1]]){
+    $(id)?.addEventListener('click',()=>{
+      looks.scrollBy({left:offset*Math.max(220,looks.clientWidth*.66),behavior:'smooth'});
+    });
+  }
+  $('looks-view-all')?.addEventListener('click',()=>{
+    const expanded=looks.classList.toggle('looks-expanded');
+    $('looks-view-all').textContent=expanded?'CLOSE':'VIEW ALL';
+    $('looks-view-all').setAttribute('aria-expanded',String(expanded));
+  });
+}
+
 async function upload(id){
   const file=$(id).files?.[0];if(!file)throw new Error('Select both photographs first.');
   const saved=fileKeys.get(id);if(saved?.file===file)return saved.assetId;
@@ -341,7 +392,8 @@ function lock(){
   for(const [fileId,imgId,hintId] of [['person-file','person-preview','person-hint'],['garment-file','garment-preview','garment-hint']]){
     $(fileId).value='';$(imgId).hidden=true;$(imgId).removeAttribute('src');$(hintId).hidden=false;
   }
-  if(publicPreview()){$('direction').value='';status('');}
+  activeLook='';$('direction').value='';syncLooks();
+  if(publicPreview())status('');
   $('fashn-api-state').textContent='Sign in to check API credits';$('check-fashn').disabled=true;
   $('gate').hidden=publicPreview();$('workspace').hidden=!publicPreview();$('fashion-gallery').hidden=publicPreview();$('signin').disabled=!clerk;
   update();
