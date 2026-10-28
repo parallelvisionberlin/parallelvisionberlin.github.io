@@ -6,7 +6,7 @@ const server=http.createServer((req,res)=>{
  const rel=url.pathname.replace(/^\//,'')+(url.pathname.endsWith('/')?'index.html':'');
  const f=path.join(root,rel);
  if(!f.startsWith(root+path.sep)||!fs.existsSync(f)||!fs.statSync(f).isFile()){res.writeHead(404).end();return;}
- res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.jpg':'image/jpeg','.png':'image/png'})[path.extname(f)]||'application/octet-stream');res.end(fs.readFileSync(f));
+ res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.jpg':'image/jpeg','.png':'image/png','.svg':'image/svg+xml'})[path.extname(f)]||'application/octet-stream');res.end(fs.readFileSync(f));
 });
 (async()=>{
  await new Promise(r=>server.listen(8766,'127.0.0.1',r));
@@ -29,18 +29,23 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.getByRole('link',{name:'Fashion Studio',exact:true}).getAttribute('href'),'./studio.html?tool=fashion');
   assert.match(await page.getByRole('link',{name:'Retouch Studio',exact:true}).getAttribute('href'),/studio\.html\?tool=retouch$/);
   const studioTiles=page.locator('.pv-studios-tile');
-  assert.equal(await studioTiles.count(),3,'Studios restores the three original wide cards');
+  assert.equal(await studioTiles.count(),4,'Studios adds Outfit alongside three original photographic cards');
+  assert.equal(await studioTiles.evaluateAll(tiles=>tiles.map(tile=>[...tile.classList].find(name=>name.startsWith('pv-studios-')&&name!=='pv-studios-tile'))).then(names=>names.join(',')),'pv-studios-beauty,pv-studios-fashion,pv-studios-outfit,pv-studios-editorial');
+  assert.match(await page.getByRole('link',{name:'Outfit Studio',exact:true}).getAttribute('href'),/tool=fashion$/);
   assert.match(await page.getByRole('link',{name:'Full Editorial',exact:true}).getAttribute('href'),/tool=fashion&workflow=editorial$/);
   for(const tile of await studioTiles.all()){
     const box=await tile.boundingBox();
     assert.ok(box&&Math.abs(box.width/box.height-446/247)<0.04,'Original wide card proportions are retained at '+width);
   }
-  assert.equal(await page.locator('.pv-studios-artwork').count(),3,'Every Studio card uses the same unchanged original artwork');
+  assert.equal(await page.locator('.pv-studios-artwork').count(),3,'Three existing Studios retain their exact original artwork');
+  assert.equal(await page.locator('.pv-studios-outfit-artwork').count(),1,'Outfit uses its own approved editorial card');
+  assert.equal((await page.locator('.pv-studios-outfit-artwork').getAttribute('src'))?.includes('outfit-studio-card-20261028.webp'),true);
+  assert.ok(await page.locator('.pv-studios-outfit-artwork').evaluate(async img=>{await img.decode();return img.naturalWidth===446&&img.naturalHeight===247;}),'Outfit artwork fits the existing card ratio without cropping text');
   assert.equal((await page.locator('.pv-studios-artwork').first().getAttribute('src'))?.includes('studios-original-reference.svg'),true);
   // Check the actual sprite artwork coordinates rather than splitting the
   // source screenshot into three equal thirds (which includes its gutters).
   await page.locator('.pv-studios-artwork').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
-  const crops=await studioTiles.evaluateAll(tiles=>tiles.map(tile=>{
+  const crops=await page.locator('.pv-studios-tile:not(.pv-studios-outfit)').evaluateAll(tiles=>tiles.map(tile=>{
     const t=tile.getBoundingClientRect(),a=tile.querySelector('.pv-studios-artwork').getBoundingClientRect();
     const scale=a.height/247;
     return {sourceX:(t.left-a.left)/scale,sourceY:(t.top-a.top)/scale,sourceRatio:a.width/a.height};
