@@ -182,3 +182,36 @@ dialog::backdrop{background:#000c;backdrop-filter:blur(3px)}
   object-position:53% 20%!important;
  }
 }
+
+
+/* Full Editorial / create a Character in place, using the same private Elements
+   reference library. This compact section never navigates to Image Studio. */
+.inline-character-editor{
+ margin:0 0 20px;padding:20px 20px 18px;
+ border:1px solid #414449;border-radius:10px;background:#151719;
+}
+.inline-character-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.inline-character-heading h3{font-size:22px;font-weight:550;letter-spacing:-.04em;margin:8px 0 0}
+.inline-character-heading .text-action{margin:0}
+.inline-character-intro{color:#b3b5b9;max-width:600px;font-size:12px;line-height:1.6;margin:14px 0}
+.inline-character-input{
+ display:block;width:100%;min-height:43px;padding:9px 12px;
+ background:#0f1113;border:1px solid #3d4046;border-radius:8px;
+ color:#eee;font-size:14px;
+}
+.inline-character-appearance{display:flex;flex-wrap:wrap;align-items:center;gap:15px;margin:17px 0 8px;padding:0;border:0}
+.inline-character-appearance legend{font-size:13px;font-weight:550;margin-bottom:9px}
+.inline-character-appearance label,.inline-character-consent{display:inline-flex;align-items:center;gap:8px;color:#d2d3d5;font-size:12px}
+.inline-character-appearance input,.inline-character-consent input{accent-color:#ecebe9;flex:none}
+.inline-character-editor .field-name{margin:14px 0 8px}
+.inline-character-editor textarea{min-height:70px;resize:vertical}
+.inline-character-consent{margin:18px 0 16px;cursor:pointer}
+.inline-character-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.inline-character-actions .primary{min-width:170px;min-height:42px}
+.inline-character-actions p{margin:0;color:#aaaeb4;font-size:11px;line-height:1.45;flex:1 1 180px}
+.inline-character-actions p.error{color:#ffb3b3}
+@media(max-width:520px){
+ .inline-character-editor{padding:15px 13px}
+ .inline-character-heading h3{font-size:20px}
+ .inline-character-actions .primary{width:100%}
+}
