@@ -173,7 +173,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     const quoted=ready&&pending&&Number.isSafeInteger(pending.creditCost)&&pending.creditCost>0&&pending.expiresAt>Date.now()+5000;
     $('precision-generate').disabled=!ready||(!quoted&&!quoteFailure);
     $('precision-change-photo').hidden=!have;
-    $('precision-tool-magic').title='Click a subject to select it automatically.';
+    $('precision-tool-magic').title=customer()?'Included with Retouch. Up to 5 automatic selections per photo and 12 per day.':'Click a subject to select it automatically.';
     $('precision-generate').textContent=taskBusy?'Working…':quoted?'Generate · '+pending.creditCost+' credits':'Generate';
     $('precision-generate').title=quoted?'Create one Retouch image for '+pending.creditCost+' credits.':'Preparing a secure PV LAB credit quote.';
     if(ready&&!quoted&&!quoteBusy&&!quoteFailure&&!quoteTimer)
@@ -388,7 +388,10 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       const blob=await assetBlob(ready.maskSourceId),bitmap=await createImageBitmap(blob);
       try{await saveUndo();maskFromSam(bitmap,point);}finally{bitmap.close();}
       setStatus('Object selected. Click another garment to add it, or refine with the brush.');
-    }catch(e){setStatus(e.message,true);}
+    }catch(e){
+      if(/Magic Select limit reached/.test(e.message))selectMode('brush');
+      setStatus(e.message,true);
+    }
     finally{taskBusy=false;$('precision-source-holder').classList.remove('is-busy');refreshButtons();}
   }
   function maskExport(){
