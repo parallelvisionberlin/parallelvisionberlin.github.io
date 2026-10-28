@@ -44,7 +44,7 @@ approvedFiles.set('lab/studio.html',Buffer.from(approvedCharacterHtml
 // Owner-approved Runway Replace Outfit. This feature freezes its own new
 // Fashion visual source, while all Image/Video/Upscaler/Retouch baselines remain
 // the exact previously approved references and pixel tolerances.
-const fashionApprovedRef='e0f5bd1b5554247c4bca50c0ab59cdb7fcd86e6e';
+const fashionApprovedRef='45e63c19b612ee7ffef17b234b5c2ef23ea4724c';
 const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
 const fashionApprovedHtml=fashionApprovedFiles.get('lab/fashion.html').toString('utf8');
 const approvedFashionCss=fashionApprovedFiles.get('lab/fashion.css').toString('utf8');
