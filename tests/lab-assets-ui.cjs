@@ -339,10 +339,19 @@ await page.locator('.pv-video-model-more summary').click();
 assert.equal(await page.locator('.pv-video-model-more').evaluate(el=>el.open),true,'More models opens on demand');
 await page.locator('.pv-video-model-more summary').click();
 const videoModelsBeforeFilter=await page.locator('.pv-video-model-item').count();
+assert.equal(await page.locator('.pv-video-model-filter-row').isVisible(),false,
+ 'Content-policy filter stays hidden in the default professional presentation');
+assert.ok(!(await page.locator('.pv-video-model-foot').textContent()).includes('Uncensored'),
+ 'Public video picker footer does not advertise moderation options');
 assert.equal(await page.locator('.pv-video-model-moderation-dot').count(),7,
  'Seven documented SpicyAPI routes have small purple uncensored markers');
 assert.equal(await page.locator('.pv-video-model-item[data-model="omni"] .pv-video-model-moderation-dot').count(),0,
  'FAL models must not display an uncensored marker');
+await page.evaluate(()=>localStorage.setItem('pv-lab-model-policy-details-v1:test','1'));
+await page.locator('#video-model-trigger').click();
+await page.locator('#video-model-trigger').click();
+assert.equal(await page.locator('.pv-video-model-filter-row').isVisible(),true,
+ 'Opted-in account sees the content-policy filter');
 await page.locator('.pv-video-model-filter-toggle').click();
 assert.equal(await page.locator('.pv-video-model-filter-toggle').getAttribute('aria-pressed'),'true');
 assert.equal(await page.locator('.pv-video-model-item').count(),7,
@@ -351,6 +360,12 @@ await page.locator('.pv-video-model-filter-toggle').click();
 assert.equal(await page.locator('.pv-video-model-filter-toggle').getAttribute('aria-pressed'),'false');
 assert.equal(await page.locator('.pv-video-model-item').count(),videoModelsBeforeFilter,
  'Turning the filter off restores all available models');
+await page.evaluate(()=>localStorage.removeItem('pv-lab-model-policy-details-v1:test'));
+await page.locator('#video-model-trigger').click();
+await page.locator('#video-model-trigger').click();
+assert.equal(await page.locator('.pv-video-model-filter-row').isVisible(),false,
+ 'Disabled preference removes policy filter again while keeping purple dots');
+assert.equal(await page.locator('.pv-video-model-moderation-dot').count(),7);
 await page.fill('.pv-video-model-search-wrap input','wan 3.0');
 assert.equal(await page.locator('.pv-video-model-item').count(),2,'Video model search narrows results');
 await page.locator('.pv-video-model-item[data-model="wan"]').click();
