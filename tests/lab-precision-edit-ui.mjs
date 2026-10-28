@@ -121,7 +121,7 @@ try{
     const toPixels=async blob=>{const bit=await createImageBitmap(blob),c=document.createElement('canvas');c.width=bit.width;c.height=bit.height;const x=c.getContext('2d');x.drawImage(bit,0,0);return x;};
     const orig=await toPixels(window.pvOriginal),composed=await toPixels(window.pvComposite);
     const at=(ctx,x,y)=>Array.from(ctx.getImageData(x,y,1,1).data);
-    return {beforeOutside:at(orig,40,40),afterOutside:at(composed,40,40),inside:at(composed,300,200)};
+    return {beforeOutside:at(orig,560,420),afterOutside:at(composed,560,420),inside:at(composed,300,200)};
   });
   assert.deepEqual(colors.afterOutside,colors.beforeOutside,'Outside the selection must remain pixel-identical');
   assert.ok(colors.inside[0]>180&&colors.inside[2]<80,'Selected region must contain the generated edit');
