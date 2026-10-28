@@ -7,7 +7,10 @@ const js=read('lab/full-editorial.js');
 const css=read('lab/full-editorial.css');
 test('Full Editorial has the approved hero and real four-step navigation',()=>{
  assert.match(html,/Full<br>Editorial<br>Studio/);
- assert.match(html,/d6c51742-8079-4412-a063-25ed134cec95\.png/,'Use approved uploaded mockup artwork, not a regenerated replacement');
+ assert.match(html,/full-editorial-hero-clean-20261028\.jpg/,'Use clean photographic hero, not flattened mockup screenshot');
+ assert.doesNotMatch(html,/d6c51742-8079-4412-a063-25ed134cec95\.png/,'Old flattened composite must not remain in the hero');
+ const hero=readFileSync(new URL('../lab/visuals/full-editorial-hero-clean-20261028.jpg',import.meta.url));
+ assert.ok(hero.length>85000&&hero[0]===0xff&&hero[1]===0xd8,'Standalone full-resolution JPEG must be committed');
  for(const step of ['model','style','mood','generate','progress','results'])assert.match(html,new RegExp('id="panel-'+step+'"'));
  assert.match(html,/id="editorial-confirm"/);
  assert.match(html,/id="model-files"[^>]+multiple/);
