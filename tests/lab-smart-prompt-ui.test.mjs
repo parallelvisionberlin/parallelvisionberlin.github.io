@@ -20,7 +20,7 @@ test('eye repair enters explicitly priced masked Retouch',()=>{
  assert.match(html,/id="image-detail-fix-eyes"/);
  assert.match(app,/precisionEditor\.suggest\('eyes'\)/);
  assert.match(repair,/const creditCost=d\.creditsForJobUsd/);
-  assert.match(repair,/customerChargeCredits:creditCost/);
-  assert.match(repair,/return d\.json\(\{quoteId,ticket,[\s\S]*?creditCost,/);
+ assert.match(repair,/customerChargeCredits:creditCost/);
+ assert.match(repair,/priceIsEstimate:true,model:FAL_CONTROLLED_INPAINT,\s*creditCost,/);
  assert.match(repair,/Magic Select is owner-only/);
 });
