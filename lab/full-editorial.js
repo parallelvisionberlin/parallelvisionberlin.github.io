@@ -8,12 +8,12 @@ const activeStates=new Set(['submitting','queued','running','saving']);
 const mockupUrl='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/d6c51742-8079-4412-a063-25ed134cec95.png';
 const directionSets={
  moods:[
- {id:'studio',name:'Studio Fashion',image:'./visuals/studio-tools/image-ivory-suit.webp',prompt:'A restrained studio fashion editorial, sculptural tailoring, believable materials, precise photographic lighting.'},
- {id:'hongkong',name:'Hong Kong Nights',image:'./mood-previews/hd/90s-cinema-clean-final-20261011.jpg',prompt:'Moody nocturnal city atmosphere, wet natural reflections, deep shadows, restrained cinematic halation, no neon clichés.'},
+ {id:'studio',name:'Studio Fashion',image:'./mood-previews/hd/fashion-editorial-20261011.jpg',prompt:'A restrained studio fashion editorial, sculptural tailoring, believable materials, precise photographic lighting.'},
+ {id:'hongkong',name:'Hong Kong Nights',image:'./mood-references/hong-kong-nights/supervalu.jpg',prompt:'Moody nocturnal city atmosphere, wet natural reflections, deep shadows, restrained cinematic halation, no neon clichés.'},
  {id:'industrial',name:'Industrial',image:'./visuals/fashion-replace/hero-model-oct24.jpg',prompt:'Industrial concrete architecture, dark editorial contrast, real atmospheric depth, textured surfaces and cinematic photography.'},
- {id:'sumi',name:'Japanese Sumi-e',image:'./mood-previews/hd/80s-film-20261011.jpg',prompt:'Minimal ink wash influence, Yohji Yamamoto-inspired draping, neutral washi texture, realism with generous negative space.'},
- {id:'dreamblur',name:'Dream Blur',image:'./mood-bank/2026-10-11/dreamcore/preview.webp',prompt:'Soft natural lens diffusion and gentle halation with believable faces and tactile analogue detail.'},
- {id:'fisheye',name:'Fish Eye 2000',image:'./visuals/studio-tools/video-liquid-dress.webp',prompt:'Optical fisheye lens, direct flash, grounded early-2000s street fashion styling, realistic skin and materials.'}
+ {id:'sumi',name:'Japanese Sumi-e',image:'./mood-previews/hd/japanese-sumi-e-20261011.jpg',prompt:'Minimal ink wash influence, Yohji Yamamoto-inspired draping, neutral washi texture, realism with generous negative space.'},
+ {id:'dreamblur',name:'Dream Blur',image:'./mood-previews/dream-blur-cover-20261024.webp',prompt:'Soft natural lens diffusion and gentle halation with believable faces and tactile analogue detail.'},
+ {id:'fisheye',name:'Fish Eye 2000',image:'./mood-references/fisheye-2000/01-analog-daylight.webp',prompt:'Optical fisheye lens, direct flash, grounded early-2000s street fashion styling, realistic skin and materials.'}
  ],
  location:[
  {id:'industrial-room',name:'Industrial interior',image:'./visuals/fashion-replace/hero-model-oct24.jpg',prompt:'Concrete loft interior, weathered structural surfaces and natural urban light.'},
