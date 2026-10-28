@@ -67,7 +67,7 @@ try{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Beauty has no horizontal overflow at '+width);
   const header=page.locator('.beauty-header'),nav=header.locator('nav[aria-label="Creative tools"]');
   const navLabels=await nav.locator(':scope > a:not([hidden]), :scope > .pv-studios-menu > .pv-studios-trigger').allTextContents();
-  assert.deepEqual(navLabels,['Image','Video','Upscaler','Retouch','Studios','Explore Moods'],'Beauty uses the standard Studio menu, not its old standalone links');
+  assert.deepEqual(navLabels,['Image','Video','Upscaler','Studios','Explore Moods'],'Beauty uses the standard Studio menu, not its old standalone links');
   const headerBounds=await header.boundingBox();
   assert.equal(Math.round(headerBounds.y),0,'Global header aligns to the top edge');
   assert.equal(Math.round(headerBounds.height),width<=900?104:70,'Beauty retains Studio header proportions');
