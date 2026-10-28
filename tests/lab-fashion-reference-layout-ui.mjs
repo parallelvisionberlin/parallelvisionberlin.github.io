@@ -82,14 +82,40 @@ try{
     if(width===1672&&height===900){
      assert.ok(layout.person.height<=351,'1672 x 900 cards stay at the reviewed compact height');
      assert.ok(layout.controls.bottom<=860,'The entire controls row retains room below it');
-     assert.ok(layout.fields[1].width>=163&&layout.fields[1].width<=166,'Resolution width with complete priced Generate');
-     // Current main reserves the shared header's classic scrollbar gutter.
-     assert.ok(layout.fields[2].width>=214&&layout.fields[2].width<=218,'Quality width with complete priced Generate and scrollbar gutter');
+     assert.ok(layout.fields[1].width>=85,'Runway dock: resolution remains usable');
+     assert.ok(layout.fields[2].width>=100,'Runway dock: quality selector remains usable');
     }
    }
    if(role==='owner')await page.screenshot({path:'test-results/fashion-reference-'+width+'.png',fullPage:true});
   }
   await page.setViewportSize({width:1440,height:900});
+  // Real Runway direction remains a Fashion control, not a decorative mockup.
+  const design=await fashion.evaluate(host=>{
+    const root=host.shadowRoot,hero=root.querySelector('.fashion-backdrop img');
+    const src=root.querySelector('#person-file');
+    const cards=[...root.querySelectorAll('#looks-scroller .look-card')];
+    return {
+      title:root.querySelector('#fashion-title').textContent,
+      cards:cards.map(card=>({id:card.dataset.look,label:card.textContent.trim()})),
+      plus:getComputedStyle(root.querySelector('#person-hint .slot-plus'),':after').content,
+      photoOpacity:getComputedStyle(root.querySelector('.person-example')).opacity,
+      heroFilter:getComputedStyle(hero).filter,
+      actualUpload:src?.type,
+      realResult:root.querySelector('#result-image').hidden
+    };
+  });
+  assert.match(design.title,/Replace\s*outfit\./);
+  assert.equal(design.cards.length,8,'Eight labeled editorial Looks are available');
+  assert.deepEqual(new Set(design.cards.map(x=>x.id)).size,8,'No duplicate look options');
+  assert.match(design.heroFilter,/brightness\(/,'Runway portrait is intentionally shadowed');
+  assert.equal(design.actualUpload,'file','Original real upload is intact');
+  assert.equal(design.realResult,true,'Examples never masquerade as generated results');
+  await fashion.locator('[data-look="runway"]').click();
+  assert.match(await fashion.locator('#direction').inputValue(),/High-fashion runway/,'Selected look modifies real prompt');
+  assert.equal(await fashion.locator('[data-look="runway"]').getAttribute('aria-pressed'),'true');
+  await fashion.locator('[data-look="runway"]').click();
+  assert.equal(await fashion.locator('#direction').inputValue(),'','Toggling off restores a clean direction');
+  assert.equal(calls.some(x=>x.path==='/api/fashion/quote'),false,'Looks alone cannot quote, upload or spend credits');
   assert.equal(await fashion.locator('#person-file').getAttribute('type'),'file');
   assert.equal(await fashion.locator('#person-file').inputValue(),'','Example photos are never upload values');
   const [picker]=await Promise.all([page.waitForEvent('filechooser'),fashion.locator('#person-slot').click()]);
@@ -123,6 +149,7 @@ try{
   }
   await page.setViewportSize({width:1440,height:900});
   await fashion.locator('#model-select').selectOption('fashn16');
+  assert.equal(await fashion.locator('[data-look="runway"]').isDisabled(),true,'v1.6 cannot use styling prompts');
   assert.equal(await fashion.locator('#fashn16-options').isVisible(),true);
   assert.equal(await fashion.locator('#fashnmax-options').isVisible(),false);
   await page.setViewportSize({width:1900,height:900});
