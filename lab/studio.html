@@ -347,7 +347,7 @@ document.addEventListener('click',event=>{
       <div><span class="precision-eyebrow">PV LAB / RETOUCH / PRECISION EDIT</span><h2>Retouch</h2><p>Change only what you select. Keep the original everywhere else.</p></div>
       <div class="precision-head-actions"><span class="precision-method">SAM 3 <span>+</span> FLUX</span><button id="precision-return" type="button" aria-label="Back to Image studio"> Back to Image</button></div>
     </header>
-    <p id="precision-access-note" class="precision-access-note" role="status" hidden>Customer Retouch uses the brush and eraser. Magic Select is owner-only. Review the credit cost before generating.</p>
+    <p id="precision-access-note" class="precision-access-note" role="status" hidden>Customer Retouch uses the brush and eraser. Magic Select is owner-only. Generations use PV LAB credits.</p>
     <div class="precision-board">
       <section class="precision-panel precision-input-panel" aria-labelledby="precision-source-title">
         <div class="precision-panel-label"><span id="precision-source-title">01 / ORIGINAL</span><span id="precision-source-meta">DROP IMAGE</span></div>
@@ -437,24 +437,16 @@ document.addEventListener('click',event=>{
       </div>
       <div class="precision-bottom">
         <div class="precision-strength" title="Lower strength keeps more of the selected area's existing appearance. Higher strength allows more change, always limited to the selection."><label for="precision-strength">Edit strength <span aria-hidden="true">ⓘ</span></label><input id="precision-strength" type="range" min=".3" max="1" step=".05" value=".75" aria-label="Edit strength. Lower keeps more original detail, higher allows more change"><output id="precision-strength-value">0.75</output></div>
-        <button id="precision-generate" type="button" disabled>Review price </button>
+        <button id="precision-generate" type="button" disabled>Generate</button>
       </div>
       <div class="precision-deck-meta">
-        <div class="precision-status"><strong>Precision Edit <span>/ FLUX Inpainting</span></strong><span id="precision-price-note">Add photo · Select area · Describe edit · Review price</span></div>
+        <div class="precision-status"><strong>Precision Edit <span>/ FLUX Inpainting</span></strong><span id="precision-price-note">Add photo · Select area · Describe edit · Generate</span></div>
         <p id="precision-status-text" class="precision-status-text" role="status" aria-live="polite"></p>
         <label id="precision-export-option" class="precision-export-option" hidden>
           <input id="precision-allow-jpeg" type="checkbox">
           <span>High-resolution export: allow JPEG if the lossless PNG exceeds 20 MB. Only PNG preserves the original pixels exactly outside the edit.</span>
         </label>
       </div>
-    </div>
-    <dialog id="precision-select-consent" class="precision-select-consent" aria-labelledby="precision-select-consent-title">
-      <strong id="precision-select-consent-title">Magic Select · paid action</strong>
-      <p>Each SAM 3 object selection is a paid request, approximately $0.005 per click at the current published rate. Authorize up to five selections in this session (approximately $0.025 total). No charge happens until you confirm.</p>
-      <div class="precision-price-actions"><button id="precision-select-cancel" type="button">Use brush instead</button><button id="precision-select-approve" type="button">Approve up to 5 selections</button></div>
-    </dialog>
-    <div id="precision-price-review" class="precision-price-review" role="dialog" aria-modal="false" aria-labelledby="precision-review-title" hidden>
-      <strong id="precision-review-title">Review Precision Edit</strong><p id="precision-review-body"></p><div class="precision-price-actions"><button id="precision-review-cancel" type="button">Cancel</button><button id="precision-review-confirm" type="button">Generate image</button></div>
     </div>
     <input id="precision-photo-input" type="file" accept="image/jpeg,image/png,image/webp" hidden>
   </section>
