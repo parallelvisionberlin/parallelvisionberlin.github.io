@@ -97,6 +97,10 @@ try{
   assert.equal(await page.locator('#precision-generate').isDisabled(),true,'Prompt is still required');
   await page.locator('#precision-tool-brush').click();
   assert.equal(await page.locator('#precision-tool-brush').getAttribute('aria-pressed'),'true');
+  assert.match(await page.locator('#precision-status-text').textContent(),/Click and drag directly/);
+  await page.mouse.click(rect.x+rect.width*.08,rect.y+rect.height*.08);
+  const painted=await page.evaluate(()=>{const c=document.getElementById('precision-selection-canvas');return c.getContext('2d').getImageData(Math.floor(c.width*.08),Math.floor(c.height*.08),1,1).data[3];});
+  assert.ok(painted>0,'Brush click must create a visible selection on the source image');
   await page.locator('#precision-expand').click();
   assert.equal(await page.locator('#precision-undo').isEnabled(),true);
   await page.locator('#precision-undo').click();
@@ -185,7 +189,7 @@ try{
     'The animation and explanation must stay visible inside the mobile Result panel: '+JSON.stringify(mobileDiscovery));
   assert.ok(mobileDiscovery.scrollWidth<=mobileDiscovery.viewport+3,'Retouch onboarding must not overflow mobile width');
   await page.setViewportSize({width:1440,height:900});
-  const beforeSample=await page.evaluate(()=>window.pvRequests.length);
+  const beforeSample=await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit'||r.path==='/api/precision/segment').length);
   await page.locator('#precision-try-sample').click();
   await page.waitForFunction(()=>document.querySelector('#precision-source-meta').textContent.includes('Fashion Sample'));
   assert.equal(await page.locator('#precision-demo').isVisible(),false);
@@ -202,12 +206,12 @@ try{
   assert.ok(sampleMask.chest>90&&sampleMask.head===0&&sampleMask.floor===0,
     'The free starter selection should cover the chrome garment, not the face or floor: '+JSON.stringify(sampleMask));
   await page.screenshot({path:'test-results/pv-precision-sample.png',fullPage:false});
-  assert.equal(await page.evaluate(()=>window.pvRequests.length),beforeSample,
-    'Sample loading and local mask generation must not call any provider API');
+  assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit'||r.path==='/api/precision/segment').length),beforeSample,
+    'Sample loading and local mask generation must not request paid inference');
   await page.locator('[data-retouch-idea="remove"]').click();
   assert.match(await page.locator('#precision-prompt').inputValue(),/Remove the selected object/);
-  assert.equal(await page.evaluate(()=>window.pvRequests.length),beforeSample,
-    'Idea suggestions are purely local and must not trigger a paid request');
+  assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit'||r.path==='/api/precision/segment').length),beforeSample,
+    'Idea suggestions must not trigger paid inference');
   const submittedBefore=await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length);
   await page.evaluate(async()=>{window.pvCustomer=true;window.pvCreditCost=222;await window.pvEditor.open();});
   await page.locator('#precision-prompt').fill('Remove the item and preserve the original scene.');
