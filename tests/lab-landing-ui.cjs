@@ -36,7 +36,7 @@ const server=http.createServer((req,res)=>{
     assert.ok(box&&Math.abs(box.width/box.height-446/247)<0.04,'Original wide card proportions are retained at '+width);
   }
   assert.equal(await page.locator('.pv-studios-artwork').count(),3,'Every Studio card uses the same unchanged original artwork');
-  assert.equal(await page.locator('.pv-studios-artwork').first().getAttribute('src')?.includes('studios-original-reference.svg'),true);
+  assert.equal((await page.locator('.pv-studios-artwork').first().getAttribute('src'))?.includes('studios-original-reference.svg'),true);
   // Check the actual sprite artwork coordinates rather than splitting the
   // source screenshot into three equal thirds (which includes its gutters).
   await page.locator('.pv-studios-artwork').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
