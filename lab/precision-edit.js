@@ -273,7 +273,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   async function open({file=null,id=null}={}){
     if(!owner())throw new Error('Sign in to edit an image.');
     host.classList.add('is-precision-active');view.hidden=false;
-    
+
     settleRetouchScroll();
     // Navigating between Image and Retouch must not clear a work-in-progress mask.
     // Only load a new source when it is actually a different photograph.
@@ -286,7 +286,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   function close(){
     view.hidden=true;host.classList.remove('is-precision-active');
-    
+
     // Keep a queued job in History; closing never resubmits or cancels it.
   }
   async function setBase(file,id=null){
