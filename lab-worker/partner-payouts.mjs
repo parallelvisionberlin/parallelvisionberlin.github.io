@@ -1,6 +1,7 @@
 import {partnerWorkspace,resolveApprovedPartner} from './partner-dashboard.mjs';
 import {partnerCommissionReport} from './partner-commissions.mjs';
 import {reconcilePartnerFees} from './partner-fees.mjs';
+import {refreshPartnerCostFx,costSnapshotStatement} from './partner-generation-costs.mjs';
 import {requireOwner} from './promotions.mjs';
 const one=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).first();
 const all=async(env,sql,...args)=>(await env.LAB_DB.prepare(sql).bind(...args).all()).results||[];
@@ -20,15 +21,16 @@ export function nextPartnerPayDate(now=Date.now()){
  return year+'-'+String(month).padStart(2,'0')+'-'+String(due).padStart(2,'0');
 }
 async function report(env,subject){
- const commissions=await partnerCommissionReport(env,subject,new Map(),{netOfFees:true});
+ const commissions=await partnerCommissionReport(env,subject,new Map(),{netOfFees:true,costProtection:true});
  const claimed=new Set((await all(env,'SELECT c.reference FROM lab_partner_payout_claims c JOIN lab_partner_payouts p ON p.id=c.payout_id WHERE p.partner_customer_id=?',subject)).map(x=>x.reference));
- const available=commissions.receipts.filter(p=>p.status==='accrued'&&p.commissionCents>0&&!claimed.has(p.reference));
+ const reserved=new Map((await all(env,`SELECT s.reference,SUM(s.commission_cents) AS cents FROM lab_partner_payout_segments s JOIN lab_partner_payouts p ON p.id=s.payout_id WHERE p.partner_customer_id=? AND p.status IN ('pending','paid') GROUP BY s.reference`,subject)).map(p=>[p.reference,p.cents]));
+ const available=commissions.receipts.filter(p=>p.status==='accrued'&&!claimed.has(p.reference)).map(p=>({...p,withdrawalCents:Math.max(0,(p.payableCents??p.commissionCents)-(reserved.get(p.reference)||0))})).filter(p=>p.withdrawalCents>0);
  const history=await all(env,`SELECT id,status,amount_cents AS amountCents,created_at AS createdAt,paid_at AS paidAt,transfer_reference AS transferReference
   FROM lab_partner_payouts WHERE partner_customer_id=? ORDER BY created_at DESC,id LIMIT 100`,subject);
  const summary=await one(env,`SELECT COALESCE(SUM(CASE WHEN status='pending' THEN amount_cents ELSE 0 END),0) AS requestedCents,
   COALESCE(SUM(CASE WHEN status='paid' THEN amount_cents ELSE 0 END),0) AS paidCents FROM lab_partner_payouts WHERE partner_customer_id=?`,subject);
- return {available,view:{...summary,commissionReport:commissions,availableCents:available.reduce((n,p)=>n+p.commissionCents,0),feePending:commissions.receipts.filter(p=>p.feePending&&!claimed.has(p.reference)).length,
-  minimumCents:5000,nextPayDate:nextPartnerPayDate(),history,breakdown:available.map(p=>({reference:p.reference,amountCents:p.amountCents,feeCents:p.feeCents,taxCents:p.taxCents,baseCents:p.baseCents,rate:p.rate,commissionCents:p.commissionCents}))}};
+ return {available,view:{...summary,commissionReport:commissions,availableCents:available.reduce((n,p)=>n+p.withdrawalCents,0),feePending:commissions.receipts.filter(p=>p.feePending&&!claimed.has(p.reference)).length,
+  costReserveCents:commissions.totals.costReserveCents,costAdjustmentCents:commissions.totals.costAdjustmentCents,minimumCents:5000,nextPayDate:nextPartnerPayDate(),history,breakdown:available.map(p=>({reference:p.reference,amountCents:p.amountCents,feeCents:p.feeCents,taxCents:p.taxCents,baseCents:p.baseCents,rate:p.rate,commissionCents:p.withdrawalCents,nominalCommissionCents:p.nominalCommissionCents??p.commissionCents,costAdjustmentCents:p.costAdjustmentCents||0,costReserveCents:p.costReserveCents||0,generationCostCents:p.generationCostCents??null,costPending:p.costPending||false}))}};
 }
 export async function partnerPayoutRoute(request,env,actor,{ownerView=false}={}){
  const path=new URL(request.url).pathname,adminQueue=path==='/api/admin/partner-payouts';
@@ -56,31 +58,39 @@ export async function partnerPayoutRoute(request,env,actor,{ownerView=false}={})
  const data=await body(request);
  if(action==='/prepare'){
   const result=await reconcilePartnerFees(env,subject);
-  return json({...((await report(env,subject)).view),reconciliation:result});
+  const costFx=await refreshPartnerCostFx(env);
+  return json({...((await report(env,subject)).view),reconciliation:result,costFx});
  }
  if(action==='/confirm'||action==='/cancel'){
   if(typeof data.id!=='string'||!/^[a-f0-9-]{36}$/.test(data.id))fail(400,'Solicitud no válida.');
   const payout=await one(env,'SELECT * FROM lab_partner_payouts WHERE id=? AND partner_customer_id=?',data.id,subject);
   if(!payout||payout.status!=='pending')fail(409,'Esta solicitud ya no está pendiente.');
   if(action==='/cancel'){
-   await env.LAB_DB.batch([
+   const cancelled=await env.LAB_DB.batch([
     env.LAB_DB.prepare("DELETE FROM lab_partner_payout_claims WHERE payout_id=? AND EXISTS(SELECT 1 FROM lab_partner_payouts WHERE id=? AND status='pending')").bind(data.id,data.id),
     env.LAB_DB.prepare("UPDATE lab_partner_payouts SET status='cancelled',updated_at=? WHERE id=? AND status='pending'").bind(Date.now(),data.id)]);
+   if(!cancelled.at(-1).meta?.changes)fail(409,'Esta solicitud ya no está pendiente.');
   }else{
    const reference=typeof data.transferReference==='string'?data.transferReference.trim():'';
    if(!reference||reference.length>100||/[\u0000-\u001f]/.test(reference))fail(400,'Añade la referencia del abono realizado.');
-   const current=await partnerCommissionReport(env,subject,new Map(),{netOfFees:true});
+   const current=await partnerCommissionReport(env,subject,new Map(),{netOfFees:true,costProtection:true});
    const receipts=new Map(current.receipts.map(p=>[p.reference,p]));
    const snapshot=await all(env,'SELECT reference,rate,commission_cents AS commissionCents FROM lab_partner_payout_items WHERE payout_id=?',data.id);
    if(snapshot.some(p=>receipts.get(p.reference)?.status!=='accrued'||receipts.get(p.reference)?.rate!==p.rate||receipts.get(p.reference)?.commissionCents!==p.commissionCents))
     fail(409,'El cálculo de esta solicitud cambió. Revisa el informe antes de confirmar el abono.');
-   const now=Date.now();const result=await env.LAB_DB.prepare(`UPDATE lab_partner_payouts SET status='paid',updated_at=?,paid_at=?,transfer_reference=?
-    WHERE id=? AND status='pending' AND amount_cents=(SELECT SUM(commission_cents) FROM lab_partner_payout_items WHERE payout_id=?)
+   const segments=await all(env,'SELECT reference,rate FROM lab_partner_payout_segments WHERE payout_id=?',data.id);
+   const committed=new Map((await all(env,`SELECT s.reference,SUM(s.commission_cents) AS cents FROM lab_partner_payout_segments s JOIN lab_partner_payouts p ON p.id=s.payout_id WHERE p.partner_customer_id=? AND p.status IN ('pending','paid') GROUP BY s.reference`,subject)).map(p=>[p.reference,p.cents]));
+   if(segments.some(p=>receipts.get(p.reference)?.status!=='accrued'||receipts.get(p.reference)?.rate!==p.rate||(receipts.get(p.reference)?.payableCents??receipts.get(p.reference)?.commissionCents??-1)<committed.get(p.reference)))
+    fail(409,'El cálculo de esta solicitud cambió. Revisa el informe antes de confirmar el abono.');
+   const now=Date.now();let results;
+   try{results=await env.LAB_DB.batch([costSnapshotStatement(env,subject,current.receipts,current.costRevision),env.LAB_DB.prepare(`UPDATE lab_partner_payouts SET status='paid',updated_at=?,paid_at=?,transfer_reference=?
+    WHERE id=? AND status='pending' AND amount_cents=(SELECT COALESCE((SELECT SUM(commission_cents) FROM lab_partner_payout_items WHERE payout_id=?),0)+COALESCE((SELECT SUM(commission_cents) FROM lab_partner_payout_segments WHERE payout_id=?),0))
+    AND ?=(SELECT revision FROM lab_partner_cost_revision WHERE id=1)
     AND ?=(SELECT COUNT(*) FROM lab_revenue_events v JOIN lab_referrals r ON r.referred_customer_id=v.customer_id
       JOIN lab_credit_entries e ON e.reference=v.reference AND e.customer_id=v.customer_id AND e.kind IN ('purchase','subscription') WHERE r.referrer_customer_id=?)
-    AND NOT EXISTS(SELECT 1 FROM lab_partner_payout_items i JOIN lab_revenue_events e ON e.reference=i.reference JOIN lab_billing_reviews b ON b.customer_id=e.customer_id WHERE i.payout_id=?)`)
-    .bind(now,now,reference,data.id,data.id,current.receipts.length,subject,data.id).run();
-   if(!result.meta?.changes)fail(409,'Revisa las incidencias de estos pagos antes de confirmar la transferencia.');
+    AND NOT EXISTS(SELECT 1 FROM (SELECT reference FROM lab_partner_payout_items WHERE payout_id=? UNION SELECT reference FROM lab_partner_payout_segments WHERE payout_id=?) i JOIN lab_revenue_events e ON e.reference=i.reference JOIN lab_billing_reviews b ON b.customer_id=e.customer_id)`)
+    .bind(now,now,reference,data.id,data.id,data.id,current.costRevision,current.receipts.length,subject,data.id,data.id)]);}catch{fail(409,'Los costes cambiaron. Actualiza el informe antes de confirmar el abono.');}
+   if(!results.at(-1).meta?.changes)fail(409,'Revisa las incidencias de estos pagos antes de confirmar la transferencia.');
   }
   return json((await report(env,subject)).view);
  }
@@ -94,12 +104,13 @@ export async function partnerPayoutRoute(request,env,actor,{ownerView=false}={})
  if(!Number.isSafeInteger(data.expectedAmountCents)||data.expectedAmountCents!==view.availableCents)fail(409,'El importe cambió. Actualiza el saldo y revisa el nuevo neto antes de solicitarlo.');
  const now=Date.now();const statements=[env.LAB_DB.prepare(`INSERT INTO lab_partner_payouts
   (id,workspace,partner_customer_id,status,amount_cents,created_at,updated_at) VALUES(?,'bellini-studio',?,'pending',?,?,?)`).bind(data.requestId,subject,view.availableCents,now,now)];
- const items=JSON.stringify(available.map(p=>[p.reference,p.amountCents,p.feeCents,p.taxCents,p.baseCents,p.rate,p.commissionCents]));
- statements.push(env.LAB_DB.prepare(`INSERT INTO lab_partner_payout_items
-  (payout_id,reference,amount_cents,fee_cents,tax_cents,base_cents,rate,commission_cents)
+ const items=JSON.stringify(available.map(p=>[p.reference,p.amountCents,p.feeCents,p.taxCents,p.baseCents,p.rate,p.withdrawalCents,p.nominalCommissionCents??p.commissionCents,p.costAdjustmentCents||0,p.costReserveCents||0,p.generationCostCents??null,p.payableCents??p.commissionCents]));
+ statements.push(costSnapshotStatement(env,subject,view.commissionReport.receipts,view.commissionReport.costRevision));
+ statements.push(env.LAB_DB.prepare(`INSERT INTO lab_partner_payout_segments
+  (payout_id,reference,amount_cents,fee_cents,tax_cents,base_cents,rate,commission_cents,nominal_cents,adjustment_cents,reserve_cents,cost_cents,entitlement_cents,revision)
   SELECT ?,json_extract(value,'$[0]'),json_extract(value,'$[1]'),json_extract(value,'$[2]'),json_extract(value,'$[3]'),
-   json_extract(value,'$[4]'),json_extract(value,'$[5]'),json_extract(value,'$[6]') FROM json_each(?)`).bind(data.requestId,items));
- statements.push(env.LAB_DB.prepare('INSERT INTO lab_partner_payout_claims(reference,payout_id) SELECT reference,payout_id FROM lab_partner_payout_items WHERE payout_id=?').bind(data.requestId));
+   json_extract(value,'$[4]'),json_extract(value,'$[5]'),json_extract(value,'$[6]'),json_extract(value,'$[7]'),json_extract(value,'$[8]'),
+   json_extract(value,'$[9]'),json_extract(value,'$[10]'),json_extract(value,'$[11]'),? FROM json_each(?)`).bind(data.requestId,view.commissionReport.costRevision,items));
  try{await env.LAB_DB.batch(statements);}catch{fail(409,'El saldo cambió. Actualiza el informe antes de solicitar el retiro.');}
  return json((await report(env,subject)).view);
 }

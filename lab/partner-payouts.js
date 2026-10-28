@@ -35,9 +35,11 @@ export function createPartnerPayoutUI({root,api,isCurrent,onCommissions=()=>{}})
   for(const [label,key] of [['Disponible para solicitar','availableCents'],['Pendiente de pago','requestedCents'],['Ya transferido','paidCents']]){
    const item=node('div');item.append(node('span',label),node('strong',money(data[key])));grid.append(item);
   }
-  root.append(grid,node('p','Próxima fecha de abono: '+date(data.nextPayDate)));
+  root.append(grid);
+  if(data.costReserveCents||data.costAdjustmentCents)root.append(node('p','En conciliación por costes: '+money(data.costReserveCents)+' · Ajustes aplicados: '+money(data.costAdjustmentCents),'partner-form-help'));
+  root.append(node('p','Próxima fecha de abono: '+date(data.nextPayDate)));
   const controls=node('div',undefined,'partner-payout-actions');
-  if(owner)controls.append(button('Actualizar cálculo de Stripe',()=>action('/prepare',{})));
+  if(owner)controls.append(button('Actualizar cálculo',()=>action('/prepare',{})));
   else{
    const calculating=data.feePending&&!data.availableCents;
    const b=button(calculating?'Calcular neto':'Solicitar pago',()=>calculating?action('/prepare',{}):action('request',{expectedAmountCents:data.availableCents}));
@@ -48,7 +50,12 @@ export function createPartnerPayoutUI({root,api,isCurrent,onCommissions=()=>{}})
   const status=node('p',data.feePending?data.feePending+' pagos pendientes de confirmar sus gastos reales de Stripe.':'','account-status');status.role='status';status.setAttribute('aria-live','polite');root.append(status);
   root.append(node('p','La comisión se calcula sobre el cobro neto de impuestos aplicables y gastos reales de procesamiento. Los pagos con incidencias quedan en revisión.','partner-form-help'));
   root.append(node('h3','Desglose del importe disponible'));
-  root.append(table(['Pago','Cobrado','Stripe','Impuestos','Base neta','Tu comisión'],(data.breakdown||[]).slice(0,10).map(p=>[p.reference,money(p.amountCents),money(p.feeCents),money(p.taxCents),money(p.baseCents),money(p.commissionCents)+' · '+p.rate+'%'])));
+  root.append(table(['Pago','Cobrado','Stripe','Impuestos','Base neta','Tu comisión'],(data.breakdown||[]).slice(0,10).map(p=>{
+   const detail=node('div',money(p.commissionCents));
+   if(p.costAdjustmentCents)detail.append(node('small','Ajuste por costes: '+money(p.costAdjustmentCents)+'. Costes superiores a la parte de PV LAB.'));
+   if(p.costReserveCents)detail.append(node('small','En conciliación: '+money(p.costReserveCents)));
+   return [p.reference,money(p.amountCents),money(p.feeCents),money(p.taxCents),money(p.baseCents),detail];
+  })));
   if(data.breakdown?.length>10)root.append(node('p','Se muestran los primeros 10 pagos disponibles. La solicitud incluye todo el importe conciliado.','partner-form-help'));
   root.append(node('h3','Tus solicitudes'));
   const labels={pending:'Pendiente',paid:'Transferido',cancelled:'Cancelado'};

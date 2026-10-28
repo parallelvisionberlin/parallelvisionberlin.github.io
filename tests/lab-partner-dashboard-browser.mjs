@@ -30,6 +30,7 @@ try{
     const budget=()=>{const redeemed=vouchers.reduce((sum,v)=>sum+v.credits*v.redemptionCount,0),reserved=vouchers.reduce((sum,v)=>sum+(v.active&&!v.redemptionCount?v.credits:0),0);return {total,redeemed,reserved,available:Math.max(0,total-redeemed-reserved),maxPerInvitation:500};};
     const receipts=[{reference:'invoice:renewal',email:'friend@example.test',kind:'subscription',amountCents:1500,commissionCents:300,rate:20,status:'accrued',paidAt:Date.now(),recordedAt:Date.now()},{reference:'invoice:first',email:'=formula@example.test',kind:'subscription',amountCents:1500,commissionCents:750,rate:50,status:'accrued',paidAt:Date.now()-30*86400000,recordedAt:Date.now()}];
     const commissions={totals:{revenueCents:3000,commissionCents:1050,heldCommissionCents:0,needsReconciliation:0},receipts,recentPurchases:receipts};
+    if(workspaceSlug==='bellini-studio'){Object.assign(receipts[1],{baseCents:1500,feeCents:0,taxCents:0,nominalCommissionCents:750,commissionCents:730,costAdjustmentCents:20,costReserveCents:55,generationCostCents:770,payableCents:675,costReason:'Costes superiores a la parte de PV LAB.'});commissions.totals.commissionCents=1030;commissions.policy={basis:'verified_net',costProtection:{maxAdjustmentPoints:5}};}
     const tab=name=>page.getByRole('tab',{name,exact:true});
     page.on('pageerror',e=>errors.push(e.message));
     await page.route('**/native-account.js?**',route=>route.fulfill({contentType:'text/javascript',body:mock}));
@@ -40,7 +41,7 @@ try{
       if(url.pathname==='/api/session')return send({owner:ownerView,customer:!ownerView,balanceCredits:0,partnerDashboard:allowed&&!ownerView?{slug:workspaceSlug,name:studioName}:null});
       if(url.pathname==='/api/customer/partner/payouts'||url.pathname===adminPath+'/payouts'){
         if(!allowed||(url.pathname.startsWith('/api/admin/')&&!ownerView))return send({error:'Denied'},403);
-        return send({availableCents:emptyWorkspace||businessUnavailable?0:1050,requestedCents:0,paidCents:0,feePending:0,minimumCents:5000,nextPayDate:'2026-10-30',history:[],breakdown:[],
+        return send({availableCents:emptyWorkspace||businessUnavailable?0:workspaceSlug==='bellini-studio'?975:1050,requestedCents:0,paidCents:0,feePending:0,minimumCents:5000,nextPayDate:'2026-10-30',history:[],breakdown:[],
           ...(!businessUnavailable?{commissionReport:emptyWorkspace?{totals:{commissionCents:0,revenueCents:0,heldCommissionCents:0,needsReconciliation:0},receipts:[],recentPurchases:[]}:commissions}:{})});
       }
       if((url.pathname.startsWith('/api/customer/partner/')||url.pathname.startsWith(adminPath+'/'))){
@@ -98,7 +99,7 @@ try{
     assert.equal(await page.locator('.partner-metrics').evaluate(el=>!!(el.compareDocumentPosition(document.querySelector('.partner-link'))&Node.DOCUMENT_POSITION_FOLLOWING)),true);checks++;
     assert.equal(await page.getByRole('tab').count(),5);assert.equal(await tab('Resumen').getAttribute('aria-selected'),'true');assert.equal(await page.locator('.partner-agreement').isVisible(),true);checks+=2;checks++;
     assert.equal(await page.locator('#partner-url').inputValue(),'https://pvlab.studio/'+alias);checks++;
-    assert.equal(await page.locator('#partner-commission').textContent(),new Intl.NumberFormat('es',{style:'currency',currency:'EUR'}).format(10.50));checks++;
+    assert.equal(await page.locator('#partner-commission').textContent(),new Intl.NumberFormat('es',{style:'currency',currency:'EUR'}).format(workspaceSlug==='bellini-studio'?10.30:10.50));checks++;
     assert.equal(await page.locator('dialog').count(),0);checks++;
     assert.equal(await page.locator('header #partner-title').count(),1);assert.equal(await page.locator('.partner-client-avatar').count(),5);checks+=2;
     assert.equal(await page.locator('#partner-prev').isDisabled(),true);assert.equal(await page.locator('#partner-more').isDisabled(),true);checks+=2;
@@ -119,11 +120,11 @@ try{
     await tab('Guía').click();assert.equal(await page.evaluate(()=>scrollY),0);assert.ok(await page.locator('.partner-hero').evaluate(el=>el.getBoundingClientRect().top===0));checks+=2;assert.equal(await page.locator('#partner-help').isVisible(),true);assert.equal(await page.locator('.partner-help-grid article').count(),8);checks+=2;
     if(workspaceSlug==='bellini-studio'){
       const note=page.locator('.bellini-cost-note');
-      assert.equal(await note.getAttribute('open'),null);assert.equal(await note.locator('p').isVisible(),false);checks+=2;
+      assert.equal(await note.getAttribute('open'),null);assert.equal(await note.locator('p').first().isVisible(),false);checks+=2;
       await capture(page,'guide-closed-'+width+'.png');
       await note.locator('summary').focus();await note.locator('summary').press('Enter');
-      assert.equal(await note.locator('p').isVisible(),true);assert.match(await note.textContent(),/nunca será inferior al 45%/);checks+=2;
-      await note.locator('summary').press('Enter');assert.equal(await note.locator('p').isVisible(),false);checks++;
+      assert.equal(await note.locator('p').first().isVisible(),true);assert.match(await note.textContent(),/nunca será inferior al 45%/);checks+=2;
+      await note.locator('summary').press('Enter');assert.equal(await note.locator('p').first().isVisible(),false);checks++;
     }
     await tab('Guía').press('Home');await tab('Resumen').press('ArrowRight');assert.equal(await tab('Clientes').getAttribute('aria-selected'),'true');checks++;
     await tab('Clientes').click();
@@ -134,8 +135,10 @@ try{
     await tab('Comisiones').click();
     if(workspaceSlug==='bellini-studio'){await page.locator('[data-partner-payouts]:not([hidden])').waitFor();assert.equal(await page.getByRole('button',{name:'Solicitar pago',exact:true}).isDisabled(),true);assert.match(await page.locator('[data-partner-payouts]').innerText(),/50,00/);checks+=2;}
     assert.equal(await page.locator('#partner-commission-history').isVisible(),true);assert.equal(await page.locator('#partner-commission-history').evaluate(el=>el.getBoundingClientRect().width>=innerWidth*.85),true);checks+=2;
+    if(workspaceSlug==='bellini-studio'){assert.match(await page.locator('#partner-commission-rows').innerText(),/Ajuste por costes: 0,20/);assert.match(await page.locator('#partner-commission-rows').innerText(),/En conciliación por costes: 0,55/);checks+=2;}
     const downloading=page.waitForEvent('download');await page.locator('#partner-export').click();const download=await downloading;
     const csv=await readFile(await download.path(),'utf8');assert.match(csv,/Comisión EUR/);assert.match(csv,/'=formula@example.test/);checks+=2;
+    if(workspaceSlug==='bellini-studio'){assert.match(csv,/Ajuste costes EUR/);assert.match(csv,/Reserva costes EUR/);assert.match(csv,/Costes superiores a la parte de PV LAB/);checks+=3;}
     await tab('Clientes').click();
     assert.equal(await page.locator('dialog').count(),0);checks++;
     const searching=page.waitForRequest(req=>new URL(req.url()).searchParams.get('q')==='aura');

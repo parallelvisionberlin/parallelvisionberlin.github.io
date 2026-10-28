@@ -1,5 +1,6 @@
 const all=async(env,sql,...args)=>(await env.LAB_DB.prepare(sql).bind(...args).all()).results||[];
 import {netPartnerReceipts} from './partner-fees.mjs';
+import {protectPartnerGenerationCosts,costPolicyVersion} from './partner-generation-costs.mjs';
 export const partnerCommissionPolicy=Object.freeze({version:'vitolas-20261025-v1',firstPaymentPercent:50,renewalPercent:20,subscriptionMonths:6,currency:'EUR'});
 
 // Called only inside already-verified, fully paid EUR webhook branches.
@@ -33,7 +34,8 @@ export function calculatePartnerCommissions(payments){
   }
   return results.sort((a,b)=>(b.paidAt??b.recordedAt)-(a.paidAt??a.recordedAt)||a.reference.localeCompare(b.reference));
 }
-export async function partnerCommissionReport(env,subject,customerSummaries=new Map(),{netOfFees=false}={}){
+export async function partnerCommissionReport(env,subject,customerSummaries=new Map(),{netOfFees=false,costProtection=false}={}){
+  const costRevisionAtStart=costProtection?(await all(env,'SELECT revision FROM lab_partner_cost_revision WHERE id=1'))[0].revision:null;
   const payments=await all(env,`SELECT v.reference,v.customer_id AS customerId,v.amount_cents AS amountCents,v.created_at AS recordedAt,
     t.paid_at AS paidAt,e.kind,
     CASE WHEN x.customer_id IS NULL AND p.verified_at IS NOT NULL THEN p.email ELSE NULL END AS email,
@@ -47,6 +49,8 @@ export async function partnerCommissionReport(env,subject,customerSummaries=new 
     WHERE r.referrer_customer_id=?`,subject);
   let receipts=calculatePartnerCommissions(payments);
   if(netOfFees)receipts=await netPartnerReceipts(env,receipts,subject);
+  let costRevision=null;
+  if(costProtection){const result=await protectPartnerGenerationCosts(env,receipts,payments,subject,costRevisionAtStart);receipts=result.receipts;costRevision=result.revision;}
   // Join by the immutable ledger identity, never by an email or redacted label.
   // The map is server-only; internal subject IDs are never serialized.
   const identities=new Map(payments.map(p=>[p.reference,p.customerId]));
@@ -59,9 +63,12 @@ export async function partnerCommissionReport(env,subject,customerSummaries=new 
     summary.paymentReferences.push(receipt.reference);customerSummaries.set(id,summary);
   }
   const totals={revenueCents:0,commissionCents:0,heldCommissionCents:0,payments:receipts.length,needsReconciliation:0};
-  for(const receipt of receipts){totals.revenueCents+=receipt.amountCents;if(receipt.status==='accrued')totals.commissionCents+=receipt.commissionCents;
+  if(costProtection)Object.assign(totals,{costAdjustmentCents:0,costReserveCents:0});
+  for(const receipt of receipts){if(costProtection){totals.costAdjustmentCents+=receipt.costAdjustmentCents||0;totals.costReserveCents+=receipt.costReserveCents||0;}totals.revenueCents+=receipt.amountCents;if(receipt.status==='accrued')totals.commissionCents+=receipt.commissionCents;
     if(receipt.status==='held')totals.heldCommissionCents+=receipt.commissionCents;
     if(receipt.status==='needs_reconciliation')totals.needsReconciliation++;}
-  return {policy:netOfFees?{...partnerCommissionPolicy,version:'bellini-net-20261027-v1',basis:'verified_net'}:partnerCommissionPolicy,totals,recentPurchases:receipts.slice(0,10),receipts,
+  const report={policy:netOfFees?{...partnerCommissionPolicy,version:costProtection?costPolicyVersion:'bellini-net-20261027-v1',basis:'verified_net',...(costProtection?{costProtection:{maxAdjustmentPoints:5,minimumFirstPercent:45,reserveUntilSettled:true,fxSource:'ECB reference'}}:{})}:partnerCommissionPolicy,totals,recentPurchases:receipts.slice(0,10),receipts,
     note:netOfFees?'50% del primer pago y 20% de las suscripciones durante seis meses. Base neta de impuestos aplicables y gastos reales de procesamiento. Transferencias los días 15 y 30; en febrero, el segundo abono es el último día del mes.':'50% del primer pago; después 20% de las cuotas durante seis meses naturales desde la primera cuota pagada. Importes realmente cobrados en EUR, sin deducir gastos. Las cuentas con devoluciones o disputas quedan en revisión hasta conciliar sus ajustes. Este panel registra comisiones; no ejecuta transferencias.'};
+  Object.defineProperty(report,'costRevision',{value:costRevision});
+  return report;
 }

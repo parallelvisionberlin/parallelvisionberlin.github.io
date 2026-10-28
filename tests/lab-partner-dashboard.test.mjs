@@ -54,7 +54,7 @@ function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   const file=path=>readFileSync(new URL('../lab-worker/'+path,import.meta.url),'utf8');
   db.exec(file('schema.sql'));
-  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0024-owner-acquisition','0037-partner-vouchers','0038-partner-commissions','0042-partner-workspaces','0043-partner-payouts'])db.exec(file('migrations/'+name+'.sql'));
+  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0024-owner-acquisition','0025-promo-generation-holds','0028-generation-finance-ledger','0037-partner-vouchers','0038-partner-commissions','0042-partner-workspaces','0043-partner-payouts','0044-partner-generation-costs'])db.exec(file('migrations/'+name+'.sql'));
   const env={LAB_CLERK_SECRET_KEY:'test-only',LAB_PUBLIC_APP_URL:'https://pvlab.studio/studio.html',LAB_DB:{prepare(sql){return {bind(...args){return {
     async first(){return db.prepare(sql).get(...args)||null;},
     async all(){return {results:db.prepare(sql).all(...args)};},

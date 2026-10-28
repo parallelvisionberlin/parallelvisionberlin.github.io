@@ -1,4 +1,4 @@
-import {createPartnerPayoutUI} from './partner-payouts.js?v=20261027-payout1';
+import {createPartnerPayoutUI} from './partner-payouts.js?v=20261028-cost1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
@@ -169,6 +169,9 @@ function commissionRows(){
     const earned=row.insertCell();earned.textContent=payment.status==='needs_reconciliation'?'Por conciliar':money(payment.commissionCents)+' · '+payment.rate+'%';
     if(Number.isSafeInteger(payment.baseCents)){const base=document.createElement('small');base.textContent='Base neta: '+money(payment.baseCents)+' · Stripe: '+money(payment.feeCents)+' · Impuestos: '+money(payment.taxCents);earned.append(base);}
     if(payment.kind==='subscription'&&payment.subscriptionWindowEndsAt){const window=document.createElement('small');window.textContent='Periodo hasta '+date(payment.subscriptionWindowEndsAt);earned.append(window);}
+    if(payment.costAdjustmentCents){earned.firstChild.textContent=money(payment.commissionCents);const note=document.createElement('small');note.textContent='Ajuste por costes: '+money(payment.costAdjustmentCents)+' · '+payment.costReason;earned.append(note);}
+    if(payment.costReserveCents){const note=document.createElement('small');note.textContent='En conciliación por costes: '+money(payment.costReserveCents);earned.append(note);}
+    if(payment.costReviewRequired){const note=document.createElement('small');note.textContent='Revisión del owner: coste posterior a una liquidación cerrada. El abono realizado se conserva.';earned.append(note);}
     const badge=document.createElement('span');badge.className='partner-badge';badge.textContent=receiptStatus[payment.status]||'En revisión';row.insertCell().append(badge);
   }
   labelCells('partner-commission-rows',['Cuenta / pago','Fecha','Importe','Tu comisión','Estado']);$('partner-commission-more').hidden=receipts.length<=commissionLimit;
@@ -202,7 +205,8 @@ $('partner-export').onclick=()=>{
   const safe=value=>{let text=String(value??'');if(/^[\s=+@-]/.test(text))text="'"+text;return '"'+text.replaceAll('"','""')+'"';};
   const rows=[['Fecha','Cuenta','Referencia','Tipo','Importe EUR','Porcentaje','Comisión EUR','Estado','Fin del periodo de suscripción']];
   const net=commissionData.policy?.basis==='verified_net';if(net)rows[0].push('Stripe EUR','Impuestos EUR','Base neta EUR');
-  for(const p of commissionData.receipts){const row=[new Date(p.paidAt||p.recordedAt).toISOString(),p.closed?'Cuenta cerrada':p.email||'Correo pendiente',p.reference,p.kind,(p.amountCents/100).toFixed(2),p.rate,(p.commissionCents/100).toFixed(2),receiptStatus[p.status],p.subscriptionWindowEndsAt?new Date(p.subscriptionWindowEndsAt).toISOString():''];if(net)row.push(...[p.feeCents,p.taxCents,p.baseCents].map(n=>Number.isSafeInteger(n)?(n/100).toFixed(2):''));rows.push(row);}
+  const protectedCosts=!!commissionData.policy?.costProtection;if(protectedCosts)rows[0].push('Comisión inicial EUR','Ajuste costes EUR','Reserva costes EUR','Coste confirmado EUR','Motivo');
+  for(const p of commissionData.receipts){const row=[new Date(p.paidAt||p.recordedAt).toISOString(),p.closed?'Cuenta cerrada':p.email||'Correo pendiente',p.reference,p.kind,(p.amountCents/100).toFixed(2),p.rate,(p.commissionCents/100).toFixed(2),receiptStatus[p.status],p.subscriptionWindowEndsAt?new Date(p.subscriptionWindowEndsAt).toISOString():''];if(net)row.push(...[p.feeCents,p.taxCents,p.baseCents].map(n=>Number.isSafeInteger(n)?(n/100).toFixed(2):''));if(protectedCosts)row.push(...[p.nominalCommissionCents??p.commissionCents,p.costAdjustmentCents||0,p.costReserveCents||0,p.generationCostCents].map(n=>Number.isSafeInteger(n)?(n/100).toFixed(2):''),p.costReason||'');rows.push(row);}
   const url=URL.createObjectURL(new Blob(['\uFEFF'+rows.map(row=>row.map(safe).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
   const link=document.createElement('a');link.href=url;link.download=studioAlias+'-comisiones-'+new Date().toISOString().slice(0,10)+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
