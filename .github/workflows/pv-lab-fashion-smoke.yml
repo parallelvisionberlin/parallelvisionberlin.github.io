@@ -59,7 +59,7 @@ jobs:
           const studio=await publicText('/studio?tool=fashion');
           assert.ok(studio.includes('id="tool-fashion"'),'Canonical Studio retains Fashion navigation');
           const html=await publicText('/fashion.html');
-          assert.ok(html.includes('Replace <em>outfit.</em>'),'Published Fashion title is present');
+          assert.ok(html.includes('Replace <em>outfit.</em>')||html.includes('<span>Replace</span><em>outfit.</em>'),'Published Fashion title is present in classic or Runway presentation');
           assert.ok(html.includes('<meta name="theme-color" content="#101114">'),'Fashion keeps the dark theme');
           for(const id of ['fashion-form','person-slot','person-file','garment-slot','garment-file',
             'model-select','max-resolution','max-mode','direction','quote','result-stage',
