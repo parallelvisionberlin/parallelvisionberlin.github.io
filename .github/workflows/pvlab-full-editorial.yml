@@ -1,0 +1,36 @@
+name: PV LAB Full Editorial Studio
+on:
+  pull_request:
+    paths:
+      - 'lab/full-editorial.html'
+      - 'lab/full-editorial.js'
+      - 'lab/full-editorial.css'
+      - 'lab/studios-menu.js'
+      - 'lab/studio.html'
+      - 'tests/lab-full-editorial*'
+      - '.github/workflows/pvlab-full-editorial.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  editorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and contract checks
+        run: |
+          node --check lab/full-editorial.js
+          node --test tests/lab-full-editorial.test.mjs
+          node --test tests/lab-approved-image-ui-contract.test.mjs
+      - name: Install browser
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npx playwright install --with-deps chromium
+      - name: Mock-only desktop and mobile flow
+        env:
+          PV_PLAYWRIGHT_MODULE: node_modules/playwright/index.mjs
+        run: node tests/lab-full-editorial-browser.mjs
