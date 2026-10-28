@@ -117,13 +117,12 @@ export async function precisionEditRoute(request,env,owner,url,d){
       SELECT ?,?,?,?
       WHERE (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?
       AND (?=0 OR (
-        EXISTS(SELECT 1 FROM lab_customers WHERE id=? AND balance_credits>0)
-        AND (SELECT COUNT(*) FROM spend WHERE owner_id=? AND created_at>=? AND job_id LIKE ?)< ?
+        (SELECT COUNT(*) FROM spend WHERE owner_id=? AND created_at>=? AND job_id LIKE ?)< ?
         AND (SELECT COUNT(*) FROM spend WHERE owner_id=? AND created_at>=? AND job_id LIKE ?)< ?
       ))`,
       slotId,owner,PRECISION_SEGMENT_ESTIMATE_MICROS,Date.now(),
       owner,dayStart,PRECISION_SEGMENT_ESTIMATE_MICROS,limit,
-      d.customer?1:0,owner,
+      d.customer?1:0,
       owner,dayStart,accountPattern,PRECISION_MAGIC_PER_DAY,
       owner,dayStart,photoPattern,PRECISION_MAGIC_PER_PHOTO);
     if(!reservation.meta?.changes)
