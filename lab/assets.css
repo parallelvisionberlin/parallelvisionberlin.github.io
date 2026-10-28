@@ -1558,8 +1558,8 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
 #image-composer .composer-controls #composer-exact-prompt-option input:disabled{opacity:.5;cursor:not-allowed}
 #image-composer .composer-controls #composer-exact-prompt-option .composer-exact-tooltip{
   position:absolute;right:-7px;bottom:calc(100% + 10px);z-index:155;
-  box-sizing:border-box;display:grid;gap:5px;width:min(235px,calc(100vw - 38px));
-  max-width:none;min-width:0;margin:0;padding:11px 12px;
+  box-sizing:border-box;display:grid;gap:3px;width:min(225px,calc(100vw - 38px));
+  max-width:none;min-width:0;margin:0;padding:6px 8px;
   border:1px solid #474a46;border-radius:10px;background:#202220;
   color:#f0f1ed;box-shadow:0 14px 38px rgba(0,0,0,.62);
   text-align:left;white-space:normal;line-height:1.35;
