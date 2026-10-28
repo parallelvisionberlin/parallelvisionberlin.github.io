@@ -243,6 +243,7 @@ async function submitBatch(){
   $('batch-status').textContent='All '+started.length+' jobs submitted. Loading each completed image…';
   // Poll accepted IDs only. No paid submission can be repeated by polling.
   await Promise.all(started.map(id=>pollJob(id,version)));
+  activeJobs=[];
   $('generation-progress').textContent='Your current set is ready';
   go(6);status('Editorial images are saved to your PV LAB account.');
  }catch(error){
