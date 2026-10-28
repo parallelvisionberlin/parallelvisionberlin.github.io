@@ -1,5 +1,12 @@
 # Image composer prompt: current state
 
+## Exact Prompt tooltip compact spacing (2026-10-28)
+- Owner screenshot identified oversized negative space from tooltip text to its border. Request is to keep existing typography and deck size while reducing only tooltip dimensions.
+- Branch `fix/exact-prompt-tooltip-compact-20261028`: in `assets.css`, width 235 → 225px, vertical/horizontal padding 11/12 → 6/8px, internal gap 5 → 3px; retain title 12px, explanation 11px, hover/focus behavior, alignment and position.
+- Only `studio.html` asset query is refreshed to `20261028-exact-tooltip-compact1`; `tests/lab-studio-layout-ui.mjs` adds exact tooltip box/typography bounds. No prompt controls, switch behavior, Generate sizing, pricing or image generation logic changes.
+- Publication requires PR CI, exact Cloudflare deployment and custom-domain asset verification. No claim of live publication from branch source alone.
+
+
 ## Image model dropdown legacy character entry removal (2026-10-28)
 - Owner identified `Create / manage characters` at bottom of the Image model menu as opening the unused legacy Higgsfield `YOUR CHARACTERS` dialog, while their active workflow is the separate PV LAB reference-library `Characters` modal.
 - Branch `fix/remove-legacy-character-model-footer-20261028`: delete only the obsolete model-menu footer from `studio.html`, its `hf.open()` click binding in `lab.js`, and the footer-only CSS in `image-studio.css`; collapse the resulting space naturally without replacing it with another control.
