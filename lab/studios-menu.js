@@ -1,4 +1,4 @@
-// Shared Studios navigation. Preserve the three approved original cards; Outfit uses its approved artwork.
+// Shared Studios navigation. Preserve the three approved original cards; Outfit and Retouch use approved artwork.
 // Do not redraw original photography or baked-in typography.
 (()=>{
  const script=document.currentScript,base=new URL('./',script?.src||location.href);
@@ -6,6 +6,7 @@
  const arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
  const sprite=url('visuals/beauty/studios-original-reference.svg');
  const outfit=url('visuals/beauty/outfit-studio-card-20261028.webp');
+ const retouchCard=url('visuals/beauty/retouch-studio-reference-card.svg');
  const headers=document.querySelectorAll('.landing-header,.studio-header,.beauty-header');
  for(const header of headers){
   if(header.querySelector('.pv-studios-trigger'))continue;
@@ -21,8 +22,9 @@
      '<section class="pv-studios-tile pv-studios-fashion">'+artwork+'</section>'+
      '<section class="pv-studios-tile pv-studios-outfit"><img class="pv-studios-outfit-artwork" alt="" loading="lazy" decoding="async" src="'+outfit+'"><a class="pv-studios-outfit-link" aria-label="Outfit Studio" href="'+url('studio.html?tool=fashion')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-editorial">'+artwork+'<a aria-label="Full Editorial" href="'+url('studio.html?tool=fashion&workflow=editorial')+'"></a></section>'+
+     '<section class="pv-studios-tile pv-studios-retouch"><img class="pv-studios-retouch-artwork" alt="" loading="lazy" decoding="async" src="'+retouchCard+'"><a class="pv-studios-retouch-link" aria-label="Retouch Studio" href="'+url('studio.html?tool=retouch')+'"></a></section>'+
    '</div>'+
-   '<div class="pv-studios-secondary"><a class="pv-studios-character-link" href="'+url('studio.html?tool=image&createCharacter=1')+'">Character Studio'+arrow+'</a><a class="pv-studios-retouch-link" href="'+url('studio.html?tool=retouch')+'">Retouch Studio'+arrow+'</a></div>';
+   '<div class="pv-studios-secondary"><a class="pv-studios-character-link" href="'+url('studio.html?tool=image&createCharacter=1')+'">Character Studio'+arrow+'</a></div>';
   original.before(shell);shell.append(trigger,panel);panel.querySelector('.pv-studios-fashion').append(original);
   // Keep the original live Fashion element so its ID, handlers and return-to-draft behavior survive.
   original.classList.add('pv-studios-fashion-link');original.textContent='';original.setAttribute('aria-label','Fashion Studio');
