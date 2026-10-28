@@ -28,7 +28,7 @@ const directionSets={
 };
 let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='moods',chosenDirection='studio';
 let chosenCount=4,chosenRatio='3:4',quote=null,quoteBusy=false,submitting=false,uncertain=false,pollTimeout=null;
-let files={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0;
+let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0;
 const objectUrls=new Map();
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 const status=(text='',error=false)=>{$('editorial-status').textContent=text;$('editorial-status').classList.toggle('error',error)};
@@ -36,7 +36,7 @@ function preview(file){if(!objectUrls.has(file))objectUrls.set(file,URL.createOb
 function pruneFile(file){const url=objectUrls.get(file);if(url){URL.revokeObjectURL(url);objectUrls.delete(file)} uploaded.delete(file);}
 function wipeResults(){for(const r of results)if(r.url)URL.revokeObjectURL(r.url);results=[];activeJobs=[];renderResults();}
 function resetAll(){revision++;clearTimeout(pollTimeout);quote=null;quoteBusy=false;submitting=false;uncertain=false;wipeResults();
- for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};
+ for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
  $('identity-guide').value='80';$('garment-guide').value='70';$('mood-guide').value='60';
  chosenCount=4;chosenRatio='3:4';chosenDirection='studio';directionTab='moods';
@@ -61,14 +61,15 @@ function renderFiles(){
   for(const file of files[kind]){const item=document.createElement('div');item.className='thumb';
     const img=document.createElement('img');img.src=preview(file);img.alt=nameFor(file);item.append(img);
     const remove=document.createElement('button');remove.type='button';remove.setAttribute('aria-label','Remove '+nameFor(file));remove.textContent='×';remove.addEventListener('click',()=>{if(submitting)return;files[kind]=files[kind].filter(f=>f!==file);pruneFile(file);quote=null;renderFiles();});item.append(remove);box.append(item);}
+  for(const ref of savedRefs[kind]){const item=document.createElement('div');item.className='thumb saved-thumb';const img=document.createElement('img');img.alt=ref.name;img.src=ref.url||'./visuals/studio-tools/image-ivory-suit.webp';item.append(img);const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove saved '+ref.name);remove.addEventListener('click',()=>{if(submitting)return;savedRefs[kind]=savedRefs[kind].filter(r=>r!==ref);if(ref.url)URL.revokeObjectURL(ref.url);quote=null;renderFiles()});item.append(remove);const badge=document.createElement('small');badge.className='saved-badge';badge.textContent='ELEMENT';item.append(badge);box.append(item);}
  }
 }
 function addFiles(kind,list){if(submitting)return;
  const incoming=Array.from(list||[]);const limit={model:4,outfit:3,location:2}[kind];
  const accept=incoming.filter(file=>['image/jpeg','image/png','image/webp'].includes(file.type)&&file.size<=20*1024*1024&&file.size>0);
  if(accept.length!==incoming.length){status('Use JPG, PNG or WebP photographs under 20 MB each.',true)}
- const used=Object.values(files).reduce((n,part)=>n+part.length,0);
- const allowed=Math.min(Math.max(0,limit-files[kind].length),Math.max(0,10-used));
+ const used=Object.values(files).reduce((n,part)=>n+part.length,0)+Object.values(savedRefs).reduce((n,part)=>n+part.length,0);
+ const allowed=Math.min(Math.max(0,limit-files[kind].length-savedRefs[kind].length),Math.max(0,10-used));
  files[kind].push(...accept.slice(0,allowed));
  if(accept.length>allowed)status('Reference limit reached. Keep up to 4 model, 3 garment and 2 location images.',true);
  quote=null;renderFiles();
@@ -82,8 +83,8 @@ function renderDirections(){
   const name=document.createElement('span');name.textContent=dir.name;card.append(img,name);card.addEventListener('click',()=>{chosenDirection=dir.id;quote=null;renderDirections()});container.append(card);}
  for(const tab of document.querySelectorAll('[data-direction-tab]')){const active=tab.dataset.directionTab===directionTab;tab.classList.toggle('is-selected',active);tab.setAttribute('aria-selected',String(active));}
 }
-function validateStep(){if(step===1&&files.model.length<1){status('Add at least one photograph of your model.',true);$('model-drop').focus();return false;}
- if(step===2&&!files.outfit.length&&!$('styling-direction').value.trim()){status('Add a garment image or describe your styling.',true);$('styling-direction').focus();return false;}
+function validateStep(){if(step===1&&files.model.length+savedRefs.model.length<1){status('Add at least one photograph of your model.',true);$('model-drop').focus();return false;}
+ if(step===2&&!files.outfit.length&&!savedRefs.outfit.length&&!$('styling-direction').value.trim()){status('Add a garment image or describe your styling.',true);$('styling-direction').focus();return false;}
  return true;}
 async function api(path,{method='GET',body,headers={}}={}){
  const version=epoch;const init={method,headers:{...headers}};
@@ -128,13 +129,45 @@ async function uploadReferences(){
    if(!response?.id)throw Error('PV LAB did not confirm the uploaded photograph.');id=response.id;uploaded.set(item.file,id);}
   ids.push({id,role:item.role,file:item.file});
  }
+ for(const [kind,role] of [['model','identity'],['outfit','outfit'],['location','room']])for(const ref of savedRefs[kind])ids.push({id:ref.id,role,file:{name:ref.name}});
  return ids;
 }
+
+const elementTypes={model:'characters',outfit:'outfits',location:'locations'};
+async function openSaved(kind){
+ if(!profile){await signIn();return}
+ const dlg=$('saved-elements-dialog'),container=$('saved-elements-list');container.replaceChildren();dlg.showModal();
+ const loading=document.createElement('p');loading.textContent='Loading private '+elementTypes[kind]+'…';container.append(loading);
+ try{
+  const response=await api('/api/packs'),packs=(response.packs||[]).filter(pack=>typeof pack.name==='string'&&pack.name.startsWith('PVSCENE1|'+elementTypes[kind]+'|')&&Array.isArray(pack.refs)&&pack.refs.length);
+  container.replaceChildren();if(!packs.length){container.textContent='No saved '+elementTypes[kind]+' yet. Add a photograph instead, or create an Element in Image Studio.';return}
+  for(const pack of packs){
+   const row=document.createElement('button');row.type='button';row.className='saved-element-option';
+   const name=document.createElement('strong');name.textContent=pack.name.split('|').slice(2).join('|');
+   const detail=document.createElement('small');detail.textContent=pack.refs.length+' saved view'+(pack.refs.length===1?'':'s');
+   row.append(name,detail);container.append(row);
+   row.addEventListener('click',async()=>{
+    const max={model:4,outfit:3,location:2}[kind];
+    const existing=files[kind].length+savedRefs[kind].length;
+    const used=Object.values(files).reduce((n,part)=>n+part.length,0)+Object.values(savedRefs).reduce((n,part)=>n+part.length,0);
+    const allowed=Math.min(max-existing,10-used,2);
+    if(allowed<=0){status('This category already has its maximum reference images.',true);dlg.close();return}
+    const refs=pack.refs.filter(r=>typeof r.id==='string'&&r.id&&!Object.values(savedRefs).flat().some(e=>e.id===r.id)).slice(0,allowed);
+    for(const r of refs){
+     const record={id:r.id,name:r.name||name.textContent,role:kind,url:null};savedRefs[kind].push(record);
+     void fetchBlob('/api/assets/'+encodeURIComponent(r.id)+'/thumbnail').then(blob=>{if(!savedRefs[kind].includes(record))return;record.url=URL.createObjectURL(blob);renderFiles()}).catch(()=>{});
+    }
+    quote=null;renderFiles();dlg.close();status(refs.length?'Added '+refs.length+' saved reference image'+(refs.length===1?'':'s')+'.':'No new views were available.');
+   });
+  }
+ }catch(error){container.textContent=error.message;}
+}
+
 function validQuote(q){return q&&typeof q.id==='string'&&q.id&&Number.isSafeInteger(q.creditCost)&&q.creditCost>0&&Number(q.expiresAt)>Date.now()&&q.settings?.type==='image';}
 async function reviewBatch(){
  if(quoteBusy||submitting||uncertain)return;
  if(!profile){status('Sign in to review a live credit price.');await signIn();return}
- if(!files.model.length){status('Add your model photograph first.',true);go(1);return}
+ if(!files.model.length&&!savedRefs.model.length){status('Add a model photograph or select a saved Character.',true);go(1);return}
  const remain=Math.max(0,chosenCount-results.length);
  if(!remain){go(6);return}
  const revisionId=++revision;quoteBusy=true;status('Uploading references and checking the live credit price…');
@@ -238,6 +271,10 @@ $('model-drop').addEventListener('keydown',event=>{if(event.key==='Enter'||event
 $('model-drop').addEventListener('dragover',event=>event.preventDefault());
 $('model-drop').addEventListener('drop',event=>{event.preventDefault();addFiles('model',event.dataTransfer.files)});
 $('add-outfits').addEventListener('click',()=>$('outfit-files').click());
+$('saved-character').addEventListener('click',()=>void openSaved('model'));
+$('saved-outfit').addEventListener('click',()=>void openSaved('outfit'));
+$('saved-location').addEventListener('click',()=>void openSaved('location'));
+$('saved-elements-close').addEventListener('click',()=>$('saved-elements-dialog').close());
 $('add-location').addEventListener('click',()=>$('location-files').click());
 for(const [kind,id] of [['model','model-files'],['outfit','outfit-files'],['location','location-files']])$(id).addEventListener('change',event=>{addFiles(kind,event.target.files);event.target.value=''});
 for(const id of ['styling-direction','location-direction','editorial-prompt','editorial-model','editorial-resolution'])$(id).addEventListener('input',()=>{quote=null});
