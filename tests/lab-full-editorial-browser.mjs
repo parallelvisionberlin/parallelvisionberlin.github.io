@@ -15,7 +15,7 @@ const server=http.createServer(async(req,res)=>{
  if(u.pathname==='/lab/session-request.js'){res.setHeader('Content-Type','text/javascript');res.end(mockSession);return}
  const json=obj=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(obj));};
  if(u.pathname==='/api/session'){json({config:{enabled:true},credits:{balance:5000}});return}
- if(u.pathname==='/api/uploads'){json({id:'upload-'+(++uploadCount)});return}
+ if(u.pathname==='/api/uploads'){for await(const _chunk of req){}json({id:'upload-'+(++uploadCount)});return}
  if(u.pathname==='/api/quotes'){
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
   const input=JSON.parse(Buffer.concat(chunks).toString());quoteCount++;
