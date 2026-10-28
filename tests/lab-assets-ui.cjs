@@ -325,6 +325,7 @@ assert.ok(videoPickerDesktop.width>=390&&videoPickerDesktop.width<=410,'Video pi
 assert.ok(videoPickerDesktop.top>=videoPickerDesktop.headerBottom+14,'Video picker stays below navigation: '+JSON.stringify(videoPickerDesktop));
 assert.equal(videoPickerDesktop.scrollable,true,'Only model rows scroll in the compact Video picker');
 assert.equal(videoPickerDesktop.searchInside,true,'Search stays inside the fixed menu header');
+const videoPickerOriginalBounds=await page.locator('#video-model-popover').boundingBox();
 assert.deepEqual(await page.locator('.pv-video-model-group h3').allTextContents(),
  ['Best value','Creative & motion','Advanced & high res'],'Video models keep their familiar grouped interface');
 assert.deepEqual(await page.locator('.pv-video-model-group').first().locator('.pv-video-model-item').evaluateAll(items=>items.map(item=>item.dataset.model)),
@@ -337,12 +338,19 @@ assert.deepEqual(await page.locator('.pv-video-model-more .pv-video-model-item')
  ['h3','h3spicy','h3max','h3maxfal'],'All MiniMax routes are still reachable and retain their model IDs');
 await page.locator('.pv-video-model-more summary').click();
 assert.equal(await page.locator('.pv-video-model-more').evaluate(el=>el.open),true,'More models opens on demand');
+const pickerExpandedBounds=await page.locator('#video-model-popover').boundingBox();
+for(const dimension of ['x','y','width','height'])
+ assert.ok(Math.abs(pickerExpandedBounds[dimension]-videoPickerOriginalBounds[dimension])<1,
+ 'Opening More models must not move or resize outer picker: '+dimension);
 await page.locator('.pv-video-model-more summary').click();
 const videoModelsBeforeFilter=await page.locator('.pv-video-model-item').count();
 assert.equal(await page.locator('.pv-video-model-filter-row').isVisible(),false,
  'Content-policy filter stays hidden in the default professional presentation');
-assert.ok(!(await page.locator('.pv-video-model-foot').textContent()).includes('Uncensored'),
- 'Public video picker footer does not advertise moderation options');
+assert.equal(await page.locator('.pv-video-model-foot').count(),0,
+ 'No footer text, empty footer container or dead space remains in the open picker');
+const videoPickerListBottom=await page.locator('.pv-video-model-list').evaluate(el=>el.getBoundingClientRect().bottom);
+assert.ok(videoPickerOriginalBounds.y+videoPickerOriginalBounds.height-videoPickerListBottom<20,
+ 'Model rows use the removed footer space, with the old picker boundary preserved');
 assert.equal(await page.locator('.pv-video-model-moderation-dot').count(),7,
  'Seven documented SpicyAPI routes have small purple uncensored markers');
 assert.equal(await page.locator('.pv-video-model-item[data-model="omni"] .pv-video-model-moderation-dot').count(),0,
