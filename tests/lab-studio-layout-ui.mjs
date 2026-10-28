@@ -428,14 +428,22 @@ try{
   assert.ok(exactMetrics.exact.width<=40&&Math.abs(exactMetrics.exact.top-exactMetrics.count.top)<15,
     'Exact is switch-only and remains aligned in the toolbar: '+JSON.stringify(exactMetrics));
   const exactSurface=await x.page.locator('#composer-exact-prompt-option').evaluate(el=>{
-    const style=getComputedStyle(el),help=el.querySelector('.composer-exact-tooltip');
+    const style=getComputedStyle(el),help=el.querySelector('.composer-exact-tooltip'),tipStyle=getComputedStyle(help);
     return {border:style.borderTopWidth,background:style.backgroundColor,
-      tooltipText:help?.textContent,tooltipVisibility:getComputedStyle(help).visibility};
+      tooltipText:help?.textContent,tooltipVisibility:tipStyle.visibility,
+      tooltipWidth:help.getBoundingClientRect().width,
+      paddingTop:tipStyle.paddingTop,paddingLeft:tipStyle.paddingLeft,rowGap:tipStyle.rowGap,
+      titleFontSize:getComputedStyle(help.querySelector('strong')).fontSize,
+      descriptionFontSize:getComputedStyle(help.querySelector('small')).fontSize};
   });
   assert.equal(exactSurface.border,'0px','No chip border around Exact');
   assert.equal(exactSurface.background,'rgba(0, 0, 0, 0)','Exact background is transparent');
   assert.equal(exactSurface.tooltipVisibility,'hidden','Hover explanation is hidden by default');
   assert.match(exactSurface.tooltipText,/Exact Prompt.*No automatic prompt improvements/);
+  assert.ok(exactSurface.tooltipWidth<=225&&exactSurface.paddingTop==='6px'&&exactSurface.paddingLeft==='8px'&&exactSurface.rowGap==='3px',
+    'Exact tooltip should fit the copy with a tight photographic-deck border: '+JSON.stringify(exactSurface));
+  assert.equal(exactSurface.titleFontSize,'12px','Exact title typography must stay unchanged');
+  assert.equal(exactSurface.descriptionFontSize,'11px','Exact explanation typography must stay unchanged');
   await x.page.locator('#composer-exact-prompt-option').hover();
   await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('.composer-exact-tooltip')).visibility==='visible');
   await x.page.locator('#image-composer-model').hover();
