@@ -18,7 +18,7 @@ export async function netPartnerReceipts(env,receipts,subject){
 }
 async function stripeGet(env,path){
  if(!/^(?:sk|rk)_(?:live|test)_/.test(env.LAB_STRIPE_SECRET_KEY||''))invalid();
- const r=await fetch('https://api.stripe.com/v1/'+path,{redirect:'error',headers:{Authorization:'Bearer '+env.LAB_STRIPE_SECRET_KEY},signal:AbortSignal.timeout(10000)});
+ const r=await fetch('https://api.stripe.com/v1/'+path,{redirect:'manual',headers:{Authorization:'Bearer '+env.LAB_STRIPE_SECRET_KEY},signal:AbortSignal.timeout(10000)});
  if(!r.ok)invalid();return r.json();
 }
 function taxAmount(obj,isInvoice){

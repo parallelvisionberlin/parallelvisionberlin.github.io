@@ -105,13 +105,14 @@ test('actual Stripe fees reconcile through read-only calls; delayed, foreign and
  const earlier=globalThis.fetch;let variant='valid',calls=0;
  t.mock.method(globalThis,'fetch',async(url,options={})=>{
   const u=new URL(url);if(u.hostname!=='api.stripe.com')return earlier(url,options);
-  calls++;assert.equal(options.method||'GET','GET');
+  calls++;assert.equal(options.method||'GET','GET');assert.equal(options.redirect,'manual');
+  if(variant==='redirect')return new Response(null,{status:302,headers:{Location:'https://example.invalid/'}});
   if(u.pathname.includes('checkout/sessions/'))return Response.json({id:'cs_A',currency:'eur',customer:'cus_user_Buyer',mode:'payment',payment_status:'paid',amount_total:1000,total_details:{amount_tax:0},payment_intent:'pi_A'});
   if(u.pathname.includes('payment_intents/'))return Response.json({id:'pi_A',currency:'eur',customer:'cus_user_Buyer',status:'succeeded',amount_received:1000,latest_charge:'ch_A'});
   return Response.json({id:'ch_A',currency:'eur',amount:1000,paid:true,captured:true,refunded:false,disputed:false,amount_refunded:0,customer:'cus_user_Buyer',livemode:false,
    balance_transaction:variant==='delayed'?null:{id:'txn_A',source:'ch_A',currency:variant==='foreign'?'usd':'eur',amount:1000,fee:variant==='invalid'?-1:40,net:960}});
  });
- for(const v of ['delayed','foreign','invalid']){variant=v;assert.equal((await reconcilePartnerFees(f.env,'user_Bellini')).reconciled,0);assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payment_facts').get().n,0);}
+ for(const v of ['redirect','delayed','foreign','invalid']){variant=v;assert.equal((await reconcilePartnerFees(f.env,'user_Bellini')).reconciled,0);assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payment_facts').get().n,0);}
  variant='valid';assert.equal((await reconcilePartnerFees(f.env,'user_Bellini')).reconciled,1);
  assert.equal((await(await call(f)).json()).availableCents,480);
  const before=calls;await reconcilePartnerFees(f.env,'user_Bellini');assert.equal(calls,before);
@@ -122,7 +123,7 @@ test('legacy and current invoice payments both use verified Stripe fees and reco
   const earlier=globalThis.fetch;
   st.mock.method(globalThis,'fetch',async(url,options={})=>{
    const u=new URL(url);if(u.hostname!=='api.stripe.com')return earlier(url,options);
-   assert.equal(options.method||'GET','GET');
+   assert.equal(options.method||'GET','GET');assert.equal(options.redirect,'manual');
    if(u.pathname==='/v1/invoices/in_A')return Response.json({id:'in_A',currency:'eur',customer:'cus_user_Buyer',status:'paid',amount_paid:12000,
     ...(modern?{total_taxes:[{amount:1000}]}:{payment_intent:'pi_A',total_tax_amounts:[]})});
    if(u.pathname==='/v1/invoice_payments')return Response.json({has_more:false,data:[{invoice:'in_A',status:'paid',amount_paid:12000,payment:{type:'payment_intent',payment_intent:'pi_A'}}]});
@@ -265,13 +266,15 @@ test('the 20% recurring subscription policy is unchanged by expensive generation
 test('ECB reconciliation is read-only externally, cached, immutable and fails without guessing a conversion',async t=>{
  const {refreshPartnerCostFx}=await import('../lab-worker/partner-generation-costs.mjs');const f=fixture(t);const at=Date.parse('2026-10-27T18:00:00Z');let calls=0;
  const xml=rate=>`<Envelope xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref"><Cube time='2026-10-27'><Cube currency='USD' rate='${rate}'/></Cube></Envelope>`;
- const fetcher=async(url,opts)=>{calls++;assert.equal(url,'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml');assert.equal(opts.redirect,'error');assert.equal(opts.headers,undefined);return new Response(xml('1.1150'));};
+ const fetcher=async(url,opts)=>{calls++;assert.equal(url,'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml');assert.equal(opts.redirect,'manual');assert.equal(opts.headers,undefined);return new Response(xml('1.1150'));};
  assert.deepEqual(await refreshPartnerCostFx(f.env,{fetcher,now:at}),{updated:true});assert.equal(calls,1);
  assert.deepEqual(await refreshPartnerCostFx(f.env,{fetcher,now:at+1000}),{cached:true});assert.equal(calls,1);
  await refreshPartnerCostFx(f.env,{fetcher:async()=>new Response(xml('1.5')),now:at+3600001});
  assert.equal(f.db.prepare('SELECT usd_per_eur_micros n FROM lab_partner_fx_rates').get().n,1115000);
  assert.deepEqual(await refreshPartnerCostFx(f.env,{fetcher:async()=>{throw Error('offline');},now:at+7200010}),{pending:true});
+ assert.deepEqual(await refreshPartnerCostFx(f.env,{fetcher:async()=>new Response(null,{status:302,headers:{Location:'https://example.invalid/'}}),now:at+10800020}),{pending:true});
  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_fx_rates').get().n,1);
+ assert.equal(f.db.prepare('SELECT fx_ok FROM lab_partner_cost_refresh WHERE id=1').get().fx_ok,0);
 });
 test('small-cent reservations respect both the five-point cap and the rounded45% floor',async t=>{
  const f=fixture(t);bellini(f,t);let i=0;
