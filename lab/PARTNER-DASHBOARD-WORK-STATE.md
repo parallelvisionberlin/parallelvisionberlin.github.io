@@ -1,10 +1,11 @@
 # Vitolas Studio partner dashboard
 
-## Bellini guide cost note / publishing, 2026-10-28
+## Bellini guide cost note / published and verified, 2026-10-28
 - User approved the exact generation-cost note after the 50%/20% guide entries: only compensate actual generation costs exceeding PV LAB's retained share, cap adjustment at five percentage points, first-payment commission floor45%.
 - Scope is one added note paragraph inside the existing commission guide entry in lab/bellini-studio.html, preserving all eight guide entries and their styling. No calculation, reservation, payout, wallet, credit, provider, Vitolas or dossier changes. Automatic generation-cost adjustment remains unimplemented; this text change must not be reported as billing logic.
 - PR #625, branch copy/bellini-generation-cost-note-20261028, baseline a3e0505e6936319b037d57b7c8858de1e8555f24; first content commit14b7932fd12aec6b6e4d62e9d4d901be290ccddf. Approved Image contract5/5 and diff whitespace checks passed. No new implementation-mirroring tests.
-- Next: relevant existing CI, normal merge/publication, then exact live HTML verification. No real adjustments or funds moved.
+- Published via PR #625, reviewed head b16b374c7a80e5cc2926254ea27d7b54290f8815, merge f95a74e9e414ce72c986997a89ff7bc70ad87bd0. Partner dashboard, approved Image5/5, generic tests and validation CI passed. Existing Video/private-Lab failures are the same four gallery pagination assertions already failing on baseline a3e0505; no gates weakened.
+- Production Cloudflare deployment 6cd4544d-47d2-4a22-916e-d2725819f3b4 (main, exact merge) succeeded 2026-10-28T09:15:50Z. Verified /bellini-studio HTTP200, exactly equal to tested HTML; SHA256 7d570f71a24a7893520709967a0fae686cd384c52b3b640ac482af69231daddf. Note/cap45% rendered source present. No automatic cost adjustment or real funds changed; PDF unchanged. No signed-in production account observed. Complete.
 
 ## Bellini payout requests / published and verified, 2026-10-28
 - Approved: 15th/30th transfers (February second payment on month end), minimum 50 EUR net, Solicitar pago, available → pending → paid history. Owner receives amount and confirms only an actual external transfer with a reference. No bank transfer is initiated by this feature. Keep 50% first verified payment (including initial top-up), then 20% eligible subscriptions for six calendar months. Vitolas policy and layout preserved.
