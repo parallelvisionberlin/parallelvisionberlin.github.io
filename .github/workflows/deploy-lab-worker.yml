@@ -126,6 +126,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0041-provider-settlement.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0042-partner-workspaces.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0043-partner-payouts.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0044-partner-generation-costs.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health

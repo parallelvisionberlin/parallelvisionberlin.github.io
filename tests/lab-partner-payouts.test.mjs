@@ -8,13 +8,14 @@ import {reconcilePartnerFees} from '../lab-worker/partner-fees.mjs';
 import {partnerVoucherRoute} from '../lab-worker/partner-vouchers.mjs';
 const call=(f,path='/api/customer/partner/payouts',data,actor='user_Bellini',ownerView=false)=>partnerPayoutRoute(new Request('https://worker.test'+path,{method:data===undefined?'GET':'POST',headers:{'Content-Type':'application/json',Origin:'https://pvlab.studio'},...(data===undefined?{}:{body:JSON.stringify(data.requestId?{expectedAmountCents:5800,...data}:data)})}),f.env,actor,{ownerView});
 const admin=(f,suffix,data)=>call(f,'/api/admin/partners/bellini-studio/payouts'+suffix,data,'user_Owner',true);
-async function sale(f,{buyer='user_Buyer',reference='checkout:cs_A',amount=12000,fee=400,tax=0,facts=true,kind='purchase',at=Date.now()}={}){
+async function sale(f,{buyer='user_Buyer',reference='checkout:cs_A',amount=12000,fee=400,tax=0,facts=true,kind='purchase',at=Date.now(),consumed=true}={}){
  if(!f.db.prepare('SELECT id FROM lab_customers WHERE id=?').get(buyer))f.signup(buyer,buyer+'@example.test');
  f.db.prepare('UPDATE lab_customers SET stripe_customer_id=? WHERE id=?').run('cus_'+buyer,buyer);
  f.db.prepare('INSERT OR IGNORE INTO lab_referrals(referred_customer_id,referrer_customer_id,attributed_at) VALUES(?,?,?)').run(buyer,'user_Bellini',at-1000);
  f.db.prepare('INSERT INTO lab_credit_entries VALUES(?,?,1000,?,?,?)').run('credit:'+reference,buyer,kind,reference,at);
  f.db.prepare('INSERT INTO lab_revenue_events VALUES(?,?,?,?)').run(reference,buyer,amount,at);
  await recordPartnerPaymentContext(f.env,{reference,paidAt:at,kind});
+ if(consumed){const job='used:'+reference;f.db.prepare('INSERT INTO lab_credit_entries VALUES(?,?,-1000,?,?,?)').run('debit:'+reference,buyer,'generation','job:'+job,at+1);f.db.prepare("INSERT INTO lab_generation_finance(job_id,customer_id,created_at,updated_at,last_state,settled_cost_usd,origin) VALUES(?,?,?,?,'completed',0,'observed')").run(job,buyer,at+1,at+1);}
  if(facts)f.db.prepare('INSERT INTO lab_partner_payment_facts VALUES(?,?,?,?,?,?,?)').run(reference,'ch_'+reference.replace(/\W/g,''),'txn_'+reference.replace(/\W/g,''),amount,fee,tax,at);
 }
 
@@ -55,10 +56,10 @@ test('concurrent requests reserve a payment once; cancellation releases only pen
  const f=fixture(t);bellini(f,t);await sale(f);
  const results=await Promise.allSettled([call(f,undefined,{requestId:crypto.randomUUID()}),call(f,undefined,{requestId:crypto.randomUUID()})]);
  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
- assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payout_claims').get().n,1);
+ assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payout_segments').get().n,1);
  const {id}=f.db.prepare("SELECT id FROM lab_partner_payouts WHERE status='pending'").get();
  const cancelled=await(await admin(f,'/cancel',{id})).json();assert.equal(cancelled.availableCents,5800);assert.equal(cancelled.history[0].status,'cancelled');
- await call(f,undefined,{requestId:crypto.randomUUID()});assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payout_items').get().n,2);
+ await call(f,undefined,{requestId:crypto.randomUUID()});assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payout_segments').get().n,2);
 });
 test('only actual confirmed transfers become paid; reviews block confirmation and paid claims never reopen',async t=>{
  const f=fixture(t);bellini(f,t);await sale(f);const id=crypto.randomUUID();await call(f,undefined,{requestId:id});
@@ -71,7 +72,7 @@ test('only actual confirmed transfers become paid; reviews block confirmation an
  await assert.rejects(()=>admin(f,'/confirm',{id,transferReference:'BANK-1'}),{status:409});
  await assert.rejects(()=>admin(f,'/cancel',{id}),{status:409});
  await assert.rejects(()=>call(f,undefined,{requestId:crypto.randomUUID()}),{status:409});
- assert.throws(()=>f.db.prepare('DELETE FROM lab_partner_payout_claims').run(),/Settled/);
+ assert.throws(()=>f.db.prepare('DELETE FROM lab_partner_payout_segments').run(),/immutable/);
 });
 test('net rounding, recurring policy, and gross Vitolas accounting remain distinct',async t=>{
  const f=fixture(t);bellini(f,t);const at=Date.now()-10000;
@@ -95,7 +96,7 @@ test('many payments request atomically in one bounded D1 batch and migration rep
  const f=fixture(t);bellini(f,t);
  for(let i=0;i<75;i++)await sale(f,{buyer:'user_B'+i,reference:'checkout:cs_'+i});
  const id=crypto.randomUUID(),result=await(await call(f,undefined,{requestId:id,expectedAmountCents:75*5800})).json();
- assert.equal(result.requestedCents,75*5800);assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payout_claims').get().n,75);
+ assert.equal(result.requestedCents,75*5800);assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payout_segments').get().n,75);
  f.db.exec(readFileSync(new URL('../lab-worker/migrations/0043-partner-payouts.sql',import.meta.url),'utf8'));
  assert.equal((await(await call(f)).json()).requestedCents,75*5800);
 });
@@ -137,7 +138,7 @@ function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   const file=path=>readFileSync(new URL('../lab-worker/'+path,import.meta.url),'utf8');
   db.exec(file('schema.sql'));
-  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0024-owner-acquisition','0037-partner-vouchers','0038-partner-commissions','0042-partner-workspaces','0043-partner-payouts'])db.exec(file('migrations/'+name+'.sql'));
+  for(const name of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0024-owner-acquisition','0025-promo-generation-holds','0028-generation-finance-ledger','0037-partner-vouchers','0038-partner-commissions','0042-partner-workspaces','0043-partner-payouts','0044-partner-generation-costs'])db.exec(file('migrations/'+name+'.sql'));
   const env={LAB_CLERK_SECRET_KEY:'test-only',LAB_PUBLIC_APP_URL:'https://pvlab.studio/studio.html',LAB_DB:{prepare(sql){return {bind(...args){return {
     async first(){return db.prepare(sql).get(...args)||null;},
     async all(){return {results:db.prepare(sql).all(...args)};},
@@ -189,3 +190,108 @@ function bellini(f,t){
     create:async(overrides={})=>(await(await call('/vouchers',{credits:200,days:14,note:'Bellini campaign',requestId:crypto.randomUUID(),...overrides})).json()).voucher};
 }
 
+
+// Cost protection: real settled expenses, refundable FIFO funding and split payouts.
+function costJob(f,{buyer='user_Buyer',id='cost-job',credits=1000,cost=0,at=Date.now(),state='completed'}={}){
+ f.db.prepare('INSERT INTO lab_credit_entries VALUES(?,?,?,?,?,?)').run('generation:'+id,buyer,-credits,'generation','job:'+id,at);
+ f.db.prepare('INSERT INTO lab_generation_finance(job_id,customer_id,created_at,updated_at,last_state,settled_cost_usd,origin) VALUES(?,?,?,?,?,?,?)').run(id,buyer,at,at,state,cost,'observed');
+}
+function fx(f,at=Date.now(),rate=1000000){f.db.prepare("INSERT OR IGNORE INTO lab_partner_fx_rates VALUES(?,?,'ECB',?)").run(new Date(at).toISOString().slice(0,10),rate,at);}
+test('45% is available while credits remain; only actual excess is deducted and the remainder releases once',async t=>{
+ const f=fixture(t);bellini(f,t);const at=Date.now()-10000;
+ await sale(f,{amount:20000,fee:0,at,consumed:false});
+ let v=await(await call(f)).json();assert.equal(v.availableCents,9000);assert.equal(v.costReserveCents,1000);assert.equal(v.costAdjustmentCents,0);
+ const first=crypto.randomUUID();await call(f,undefined,{requestId:first,expectedAmountCents:9000});
+ await admin(f,'/confirm',{id:first,transferReference:'BANK-FIRST'});
+ assert.equal((await(await call(f)).json()).availableCents,0);
+ fx(f,at);costJob(f,{cost:106,at:at+1000});
+ v=await(await call(f)).json();assert.equal(v.costAdjustmentCents,600);assert.equal(v.costReserveCents,0);assert.equal(v.availableCents,400);assert.equal(v.paidCents,9000);
+ const p=v.commissionReport.receipts[0];assert.equal(p.commissionCents,9400);assert.equal(p.generationCostCents,10600);assert.equal(p.costPending,false);
+ await sale(f,{buyer:'user_Second',reference:'checkout:cs_Second',amount:12000,fee:0,at:at+2000});
+ const second=crypto.randomUUID();v=await(await call(f)).json();assert.equal(v.availableCents,6400);
+ await call(f,undefined,{requestId:second,expectedAmountCents:6400});
+ await admin(f,'/confirm',{id:second,transferReference:'BANK-SECOND'});
+ v=await(await call(f)).json();assert.equal(v.availableCents,0);assert.equal(v.paidCents,15400);
+ assert.equal(f.db.prepare("SELECT SUM(commission_cents) n FROM lab_partner_payout_segments WHERE reference='checkout:cs_A'").get().n,9400);
+ await assert.rejects(()=>call(f,undefined,{requestId:crypto.randomUUID(),expectedAmountCents:6400}),{status:409});
+ f.db.exec(readFileSync(new URL('../lab-worker/migrations/0044-partner-generation-costs.sql',import.meta.url),'utf8'));
+ assert.equal((await(await call(f)).json()).paidCents,15400);
+});
+test('unknown provider cost or conversion retains only the five-point reserve; cap never exceeds five points',async t=>{
+ const f=fixture(t);bellini(f,t);const at=Date.now()-10000;
+ await sale(f,{amount:20000,fee:0,at,consumed:false});costJob(f,{at:at+1000,cost:null});
+ let v=await(await call(f)).json();assert.equal(v.availableCents,9000);assert.equal(v.costReserveCents,1000);
+ f.db.prepare('UPDATE lab_generation_finance SET settled_cost_usd=500 WHERE job_id=?').run('cost-job');
+ v=await(await call(f)).json();assert.equal(v.costAdjustmentCents,0);assert.equal(v.costReserveCents,1000);
+ fx(f,at);v=await(await call(f)).json();assert.equal(v.costAdjustmentCents,1000);assert.equal(v.costReserveCents,0);assert.equal(v.availableCents,9000);
+ assert.equal(f.db.prepare("SELECT balance_credits n FROM lab_customers WHERE id='user_Bellini'").get().n,0);
+});
+test('a late settlement updates pending costs without paying the reserve twice',async t=>{
+ const f=fixture(t);bellini(f,t);const at=Date.now()-10000;
+ await sale(f,{amount:20000,fee:0,at,consumed:false});costJob(f,{at:at+1000,cost:null});fx(f,at);
+ const id=crypto.randomUUID();await call(f,undefined,{requestId:id,expectedAmountCents:9000});
+ f.db.prepare('UPDATE lab_generation_finance SET settled_cost_usd=104 WHERE job_id=?').run('cost-job');
+ const v=await(await admin(f,'/confirm',{id,transferReference:'BANK-LATE-COST'})).json();
+ assert.equal(v.paidCents,9000);assert.equal(v.availableCents,600);assert.equal(v.costAdjustmentCents,400);
+});
+test('accounting changes between calculation and reservation abort atomically',async t=>{
+ const f=fixture(t);bellini(f,t);await sale(f);
+ const batch=f.env.LAB_DB.batch;let changed=false;
+ f.env.LAB_DB.batch=async statements=>{
+  if(!changed){changed=true;f.db.prepare("UPDATE lab_generation_finance SET updated_at=updated_at+1").run();}
+  return batch(statements);
+ };
+ await assert.rejects(()=>call(f,undefined,{requestId:crypto.randomUUID()}),{status:409});
+ assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payouts').get().n,0);
+ assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payout_segments').get().n,0);
+});
+test('already claimed legacy commissions remain intact without retroactive adjustment',async t=>{
+ const f=fixture(t);bellini(f,t);await sale(f,{consumed:false});
+ const id=crypto.randomUUID(),now=Date.now();f.db.prepare("INSERT INTO lab_partner_payouts VALUES(?,'bellini-studio','user_Bellini','pending',5800,?,?,NULL,NULL)").run(id,now,now);
+ f.db.prepare("INSERT INTO lab_partner_payout_items VALUES(?,'checkout:cs_A',12000,400,0,11600,50,5800)").run(id);
+ f.db.prepare("INSERT INTO lab_partner_payout_claims VALUES('checkout:cs_A',?)").run(id);
+ let v=await(await call(f)).json();assert.equal(v.costReserveCents,0);assert.equal(v.requestedCents,5800);assert.equal(v.availableCents,0);
+ await admin(f,'/confirm',{id,transferReference:'OLD-APPROVED'});
+ v=await(await call(f)).json();assert.equal(v.paidCents,5800);assert.equal(v.costAdjustmentCents,0);assert.equal(v.availableCents,0);
+});
+test('the 20% recurring subscription policy is unchanged by expensive generations',async t=>{
+ const f=fixture(t);bellini(f,t);const at=Date.now()-10000;
+ await sale(f,{amount:1000,fee:0,at});await sale(f,{reference:'invoice:in_renew',kind:'subscription',amount:10000,fee:0,at:at+2000,consumed:false});
+ costJob(f,{id:'renewal-cost',at:at+3000,cost:1000});fx(f,at);
+ const v=await(await call(f)).json(),p=v.commissionReport.receipts.find(p=>p.reference==='invoice:in_renew');
+ assert.equal(p.rate,20);assert.equal(p.commissionCents,2000);assert.equal(p.costAdjustmentCents,undefined);assert.equal(p.costReserveCents,undefined);
+});
+
+test('ECB reconciliation is read-only externally, cached, immutable and fails without guessing a conversion',async t=>{
+ const {refreshPartnerCostFx}=await import('../lab-worker/partner-generation-costs.mjs');const f=fixture(t);const at=Date.parse('2026-10-27T18:00:00Z');let calls=0;
+ const xml=rate=>`<Envelope xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref"><Cube time='2026-10-27'><Cube currency='USD' rate='${rate}'/></Cube></Envelope>`;
+ const fetcher=async(url,opts)=>{calls++;assert.equal(url,'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml');assert.equal(opts.redirect,'error');assert.equal(opts.headers,undefined);return new Response(xml('1.1150'));};
+ assert.deepEqual(await refreshPartnerCostFx(f.env,{fetcher,now:at}),{updated:true});assert.equal(calls,1);
+ assert.deepEqual(await refreshPartnerCostFx(f.env,{fetcher,now:at+1000}),{cached:true});assert.equal(calls,1);
+ await refreshPartnerCostFx(f.env,{fetcher:async()=>new Response(xml('1.5')),now:at+3600001});
+ assert.equal(f.db.prepare('SELECT usd_per_eur_micros n FROM lab_partner_fx_rates').get().n,1115000);
+ assert.deepEqual(await refreshPartnerCostFx(f.env,{fetcher:async()=>{throw Error('offline');},now:at+7200010}),{pending:true});
+ assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_fx_rates').get().n,1);
+});
+test('small-cent reservations respect both the five-point cap and the rounded45% floor',async t=>{
+ const f=fixture(t);bellini(f,t);let i=0;
+ for(const amount of [1,11,19,21,101])await sale(f,{buyer:'user_Cent'+(++i),reference:'checkout:cs_Cent'+i,amount,fee:0,consumed:false});
+ const v=await(await call(f)).json();
+ for(const p of v.commissionReport.receipts){assert.ok(p.costReserveCents<=p.baseCents*.05);assert.ok(p.payableCents>=Math.round(p.baseCents*.45));}
+ assert.equal('costRevision' in v.commissionReport,false,'Internal accounting revision is not public');
+});
+test('a payment arriving between payment selection and costing cannot reserve a stale first-payment rate',async t=>{
+ const f=fixture(t);bellini(f,t);const at=Date.now()-1000;await sale(f,{at});
+ const prepare=f.env.LAB_DB.prepare;let injected=false;
+ f.env.LAB_DB.prepare=sql=>{const statement=prepare(sql);return {bind(...args){const bound=statement.bind(...args);return {...bound,async all(){const result=await bound.all();if(!injected&&sql.includes('SELECT v.reference')){injected=true;await sale(f,{reference:'checkout:cs_EarlyRace',at:at-10000});}return result;}};}};};
+ await assert.rejects(()=>call(f,undefined,{requestId:crypto.randomUUID()}),{status:409});
+ assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payouts').get().n,0);
+});
+test('a corrected expense after final payment never rewrites a paid payout or creates a fictional reserve',async t=>{
+ const f=fixture(t);bellini(f,t);const at=Date.now()-10000;await sale(f,{amount:20000,fee:0,at});
+ const id=crypto.randomUUID();await call(f,undefined,{requestId:id,expectedAmountCents:10000});await admin(f,'/confirm',{id,transferReference:'ALREADY-FINAL'});
+ fx(f,at);f.db.prepare('UPDATE lab_generation_finance SET settled_cost_usd=200').run();
+ const v=await(await call(f)).json();assert.equal(v.availableCents,0);assert.equal(v.paidCents,10000);assert.equal(v.costReserveCents,0);
+ const receipt=v.commissionReport.receipts[0];assert.equal(receipt.costReviewRequired,true);assert.equal(receipt.commissionCents,10000);assert.equal(receipt.costAdjustmentCents,0);
+ assert.equal(f.db.prepare('SELECT commission_cents n FROM lab_partner_payout_segments WHERE payout_id=?').get(id).n,10000);
+});

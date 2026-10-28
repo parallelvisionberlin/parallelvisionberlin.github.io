@@ -7,14 +7,14 @@ const root=resolve('.'),output=resolve('test-results/bellini-payouts');await mkd
 const html=`<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="/lab/account.css"><link rel="stylesheet" href="/lab/vitolas-studio.css"><link rel="stylesheet" href="/lab/partner-payouts.css"><style>body{font:15px Arial;background:#101010;color:#eee;margin:0}main{padding:24px;max-width:1100px;margin:auto}button{cursor:pointer}</style><body class="pv-account-page pv-partner-page"><main><h1>Bellini Studios</h1><section id="payout" class="partner-payouts"></section><p id="notice" hidden></p></main><script type="module">
 import {createPartnerPayoutUI,createOwnerPayoutNotice} from '/lab/partner-payouts.js';
 const owner=new URLSearchParams(location.search).has('owner');let revision=1,release;
-const payment={reference:'checkout:cs_synthetic',amountCents:12000,feeCents:400,taxCents:0,baseCents:11600,rate:50,commissionCents:5800};
+const payment={reference:'checkout:cs_synthetic',amountCents:12000,feeCents:400,taxCents:0,baseCents:11600,rate:50,commissionCents:5220,nominalCommissionCents:5800,costReserveCents:580,costAdjustmentCents:0,costPending:true};
 let data={availableCents:owner?0:0,requestedCents:owner?5800:0,paidCents:0,feePending:owner?0:1,nextPayDate:'2026-10-30',breakdown:[],history:owner?[{id:'synthetic',createdAt:Date.now(),amountCents:5800,status:'pending'}]:[]};
 window.calls=[];window.hold=false;
 const api=async(path,body)=>{window.calls.push({path,body});if(window.hold){await new Promise(r=>release=r);window.hold=false;}
  if(path==='/api/admin/partner-payouts')return {requests:[{amountCents:5800}]};
- if(path.endsWith('/prepare'))data={...data,availableCents:5800,feePending:0,breakdown:[payment]};
+ if(path.endsWith('/prepare'))data={...data,availableCents:5220,costReserveCents:580,costAdjustmentCents:0,feePending:0,breakdown:[payment]};
  else if(path.endsWith('/confirm'))data={...data,requestedCents:0,paidCents:5800,history:[{...data.history[0],status:'paid',transferReference:body.transferReference}]};
- else if(body?.requestId){if(body.expectedAmountCents!==5800)throw Error('Incorrect expected amount');data={...data,availableCents:0,requestedCents:5800,breakdown:[],history:[{id:'synthetic',createdAt:Date.now(),amountCents:5800,status:'pending'}]};}
+ else if(body?.requestId){if(body.expectedAmountCents!==5220)throw Error('Incorrect expected amount');data={...data,availableCents:0,requestedCents:5220,breakdown:[],history:[{id:'synthetic',createdAt:Date.now(),amountCents:5220,status:'pending'}]};}
  return structuredClone(data);};
 const ui=createPartnerPayoutUI({root:document.getElementById('payout'),api,isCurrent:r=>r===revision});
 const notice=createOwnerPayoutNotice({root:document.getElementById('notice'),api,isCurrent:r=>r===revision});
@@ -28,18 +28,19 @@ const server=createServer(async(req,res)=>{
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});let checks=0;
-try{for(const width of [390,1440]){
+try{for(const width of (process.env.PV_PAYOUT_WIDTHS?process.env.PV_PAYOUT_WIDTHS.split(',').map(Number):[390,1440])){
  const page=await browser.newPage({viewport:{width,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(origin+'/test');await page.waitForFunction(()=>window.ready);
  await page.getByRole('button',{name:'Calcular neto',exact:true}).click();
  await page.getByRole('button',{name:'Solicitar pago',exact:true}).waitFor();
  assert.equal((await page.evaluate(()=>window.calls)).filter(c=>c.body?.requestId).length,0,'Calculating does not request money');checks++;
- assert.match(await page.locator('#payout').innerText(),/58,00/);checks++;
+ assert.match(await page.locator('#payout').innerText(),/52,20/);checks++;
+ assert.match(await page.locator('#payout').innerText(),/En conciliación por costes: 5,80/);checks++;
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);checks++;
  await page.screenshot({path:output+'/available-'+width+'.png',fullPage:true});
  await page.getByRole('button',{name:'Solicitar pago',exact:true}).click();await page.getByText('Pendiente',{exact:true}).waitFor();
  assert.equal(await page.getByRole('button',{name:'Solicitar pago',exact:true}).isDisabled(),true);checks++;
- const request=await page.evaluate(()=>window.calls.find(c=>c.body?.requestId));assert.equal(request.body.expectedAmountCents,5800);checks++;
+ const request=await page.evaluate(()=>window.calls.find(c=>c.body?.requestId));assert.equal(request.body.expectedAmountCents,5220);checks++;
  await page.reload();await page.waitForFunction(()=>window.ready);await page.evaluate(()=>window.hold=true);
  await page.getByRole('button',{name:'Calcular neto',exact:true}).click();await page.evaluate(()=>window.invalidate());await page.evaluate(()=>window.release());
  await page.waitForFunction(()=>document.getElementById('payout').hidden);assert.equal(await page.locator('#payout').innerText(),'');checks++;
