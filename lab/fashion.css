@@ -630,7 +630,7 @@ textarea::placeholder{white-space:nowrap}
 
 /* A compact 1024px viewport must still have one coherent control dock. */
 @media(min-width:801px) and (max-width:1199px){
-  .source-section{width:min(590px,55vw)}
+  .source-section{width:min(590px,43vw)}
   .engine-grid{grid-template-columns:minmax(155px,1.1fr) minmax(206px,1.4fr) minmax(160px,1.7fr) minmax(146px,.95fr);gap:12px}
   .engine-section{padding:15px 69px 17px 16px}
   .fashion-details>summary{right:14px;bottom:17px;width:42px}
@@ -682,7 +682,8 @@ textarea::placeholder{white-space:nowrap}
   .looks-heading h2{font-size:9px;letter-spacing:.24em}
   .look-card{width:130px}
   .look-card img{height:88px}
-  .engine-section{grid-area:3/1;margin:0;padding:18px 65px 18px 17px;border-radius:16px}
+  .engine-section{grid-area:3/1;margin:0;padding:18px 17px;border-radius:16px}
+  .engine-section .action-block{padding-right:55px}
   .engine-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
   .engine-section .model-block,.engine-section .detail-block,
   .engine-section .direction-block,.engine-section .action-block{grid-column:1/-1}
@@ -717,7 +718,7 @@ textarea::placeholder{white-space:nowrap}
   #looks-support{font-size:9px;max-width:112px;line-height:1.15}
   .look-card{width:115px;gap:5px;font-size:12px}
   .look-card img{height:78px}
-  .engine-section{padding:16px 15px 73px}
+  .engine-section{padding:16px 15px 17px}
   .engine-grid{gap:13px}
   .engine-section .action-block{grid-column:1/-1}
   .fashion-details>summary{bottom:15px;right:15px;width:44px;height:44px}
@@ -726,11 +727,29 @@ textarea::placeholder{white-space:nowrap}
 @media(max-width:360px){
   .page-intro h1{font-size:49px}
   .look-card{width:108px}
-  .engine-section{padding:14px 12px 69px}
+  .engine-section{padding:14px 12px 15px}
   .slot-invite strong{font-size:14px}
   .slot-invite small,#garment-hint small{font-size:8px}
 }
 @media(prefers-reduced-motion:reduce){
   .look-card img,.image-slot .slot-example{transition:none}
   .looks-scroller{scroll-behavior:auto}
+}
+
+/* Clarify that muted reference photographs do not count as user uploads. */
+.image-slot .slot-invite:before{
+  content:"EXAMPLE";position:absolute;top:14px;left:12px;z-index:2;
+  font:500 8px/1 var(--font);letter-spacing:.18em;
+  color:rgba(242,239,233,.67);pointer-events:none;
+}
+@media(min-width:801px) and (min-height:801px) and (max-height:950px){
+  .page-intro{padding-top:clamp(34px,5vh,52px);padding-bottom:10px}
+  .page-intro .eyebrow{margin-bottom:10px}
+  .page-intro h1{font-size:clamp(64px,5.8vw,91px)}
+  .intro-description{margin-top:12px;font-size:16px;line-height:1.25}
+  .fashion-workspace{grid-template-rows:clamp(145px,10.2vw,170px);gap:16px}
+  .look-card img{height:84px}
+  .look-card{gap:5px;font-size:12px}
+  .engine-section{padding-top:14px;padding-bottom:14px}
+  .fashion-details>summary{bottom:14px}
 }
