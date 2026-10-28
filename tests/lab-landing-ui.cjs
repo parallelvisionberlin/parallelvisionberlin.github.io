@@ -58,7 +58,7 @@ const server=http.createServer((req,res)=>{
   assert.match(await page.locator('.pv-studios-character-link').getAttribute('href'),/createCharacter=1/);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),false,'Escape closes Studios');
-  assert.equal(await page.locator('.landing-header nav a[href*="tool=retouch"]').isVisible(),false,'Retouch is nested under Studios');
+  assert.equal(await page.locator('.landing-header nav > a[href*="tool=retouch"]').isVisible(),false,'Retouch is nested under Studios');
   assert.equal(await page.locator('.pv-studios-fashion-link').getAttribute('href'),'./studio.html?tool=fashion');
   assert.equal(await page.locator('.landing-header nav a.lab-nav-pricing').getAttribute('href'),'#pricing');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No overflow at '+width);
