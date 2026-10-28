@@ -1,0 +1,21 @@
+/* Visual-only controls and authentic same-photo comparison. No provider logic. */
+(()=>{'use strict';
+const photo=document.getElementById('beauty-photo-drop'),result=document.getElementById('beauty-result'),source=document.getElementById('beauty-photo-preview'),makeup=document.getElementById('beauty-makeup');
+if(!photo||!result||!source)return;
+photo.appendChild(result);
+const before=document.createElement('img');before.alt='Original uploaded photograph';before.className='beauty-before-image';before.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;';
+const handle=document.createElement('div');handle.className='beauty-compare-handle';handle.setAttribute('role','slider');handle.setAttribute('tabindex','0');handle.setAttribute('aria-label','Compare original and generated image');handle.setAttribute('aria-valuemin','0');handle.setAttribute('aria-valuemax','100');handle.setAttribute('aria-valuenow','50');
+const label1=document.createElement('span');label1.className='beauty-compare-label beauty-compare-before';label1.textContent='BEFORE';
+const label2=document.createElement('span');label2.className='beauty-compare-label beauty-compare-after';label2.textContent='AFTER';
+result.prepend(before);result.append(handle,label1,label2);
+const setSplit=n=>{const v=Math.max(0,Math.min(100,n));result.style.setProperty('--beauty-split',v+'%');handle.setAttribute('aria-valuenow',Math.round(v));};
+const show=()=>{const valid=!result.hidden&&Boolean(source.src)&&Boolean(document.getElementById('beauty-result-image')?.src);before.src=valid?source.src:'';handle.hidden=label1.hidden=label2.hidden=!valid;};
+new MutationObserver(show).observe(result,{attributes:true,attributeFilter:['hidden']});
+new MutationObserver(show).observe(source,{attributes:true,attributeFilter:['src']});
+const fromEvent=e=>{const rect=result.getBoundingClientRect();setSplit((e.clientX-rect.left)/rect.width*100);};
+handle.addEventListener('pointerdown',e=>{handle.setPointerCapture(e.pointerId);fromEvent(e);});
+handle.addEventListener('pointermove',e=>{if(handle.hasPointerCapture(e.pointerId))fromEvent(e);});
+handle.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();setSplit(Number(handle.getAttribute('aria-valuenow'))+(e.key==='ArrowRight'?5:-5));});
+document.querySelectorAll('[data-look]').forEach(b=>{b.addEventListener('click',()=>{const look=b.dataset.look; if(look==='film'||look==='night'||look==='avant'){document.getElementById('beauty-direction').value={film:'Natural analog film grain, restrained color, authentic skin texture',night:'Low-key editorial portrait lighting, preserve skin tone and identity',avant:'Avant-garde fashion portrait direction with realistic textures and identity preserved'}[look];document.getElementById('beauty-direction').dispatchEvent(new Event('input',{bubbles:true}));}else{makeup.value=look==='natural'?'natural':'editorial';makeup.dispatchEvent(new Event('change',{bubbles:true}));}document.querySelectorAll('[data-look]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));});});
+show();
+})();
