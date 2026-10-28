@@ -22,5 +22,7 @@ test('eye repair enters explicitly priced masked Retouch',()=>{
  assert.match(repair,/const creditCost=d\.creditsForJobUsd/);
  assert.match(repair,/customerChargeCredits:creditCost/);
  assert.match(repair,/priceIsEstimate:true,model:FAL_CONTROLLED_INPAINT,\s*creditCost,/);
- assert.match(repair,/Magic Select is owner-only/);
+ assert.match(repair,/PRECISION_MAGIC_PER_DAY=12/);
+ assert.match(repair,/PRECISION_MAGIC_PER_PHOTO=5/);
+ assert.doesNotMatch(repair,/Magic Select is owner-only/);
 });
