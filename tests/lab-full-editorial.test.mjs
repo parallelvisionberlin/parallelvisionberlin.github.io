@@ -6,11 +6,14 @@ const html=read('lab/full-editorial.html');
 const js=read('lab/full-editorial.js');
 const css=read('lab/full-editorial.css');
 test('Full Editorial has the approved hero and real four-step navigation',()=>{
- assert.match(html,/Full<br>Editorial<br>Studio/);
- assert.match(html,/170a21ab-5d66-44bd-ada6-533d07a00014\.png/,'Use the selected full-resolution ivory fabric editorial hero');
+ assert.match(html,/aria-label="Full Editorial Studio"/);
+ assert.match(html,/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a\.png/,'Use owner-selected geometric sculpture and black couture image');
  assert.doesNotMatch(html,/d6c51742-8079-4412-a063-25ed134cec95\.png/,'Old flattened composite must not remain in the hero');
  assert.doesNotMatch(html,/src="\.\/visuals\/full-editorial-hero-clean-20261028\.jpg"/,'Old chrome portrait must not render as hero');
- assert.match(css,/PVLAB_IVORY_HERO_20261029/,'Full-bleed responsive image composition must be present');
+ assert.match(css,/PVLAB_ANGULAR_EDITORIAL_20261029/,'Responsive editorial image art direction is present');
+ assert.match(html,/class="hero-title-italic">Studio\./);
+ assert.match(html,/Create your editorial/);
+ assert.match(html,/class="editorial-hero-process"/);
  for(const step of ['model','style','mood','generate','progress','results'])assert.match(html,new RegExp('id="panel-'+step+'"'));
  assert.match(html,/id="editorial-confirm"/);
  assert.match(html,/id="model-files"[^>]+multiple/);
