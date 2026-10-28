@@ -1,5 +1,13 @@
 # Vitolas Studio partner dashboard
 
+## Bellini welcome email and dossier / sent, 2026-10-28
+- User requested thank-you/welcome email with dossier and both links for Alejandro Izaguirre/team. Recipient explicitly supplied in this session: vickybellini2@gmail.com; no additional recipients inferred. Sent from verified Parallel Vision mailbox parallelvision.label@gmail.com. Exact-address history search found no earlier email; user-supplied address is the identity anchor.
+- Subject: Bienvenidos a Bellini Studios | PV LAB. Gmail message/thread1a181fd1e43827d3 returned SENT. Full PDF attached as application/pdf, filename Bellini_Studios_Dossier_PVLAB.pdf (161751 bytes). No bank transfer or invitation budget assigned.
+- Email includes dashboard/access email, public referral link, positive50% first verified payment /20% subsequent subscription quotas for six months, net-basis reference, Stripe verification/calculation (no automatic bank payout claim),50 EUR minimum, pending/paid states,15/30 schedule and February exception, getting started, invitation budget coordination and future-course ideas. Invites questions. Signature Alejandro Molinari / Parallel Vision / PV LAB / Instagram, no phone.
+- Same dossier Library libfile_f0647d4bb49c81918f196ca784b2ce2f replaced v3→v4 before sending. Updated only page5 to include approved generation-cost adjustment cap5 percentage points/floor45%, preserving50%/20% examples.18 pages,4417 words,12 links. Revised page rendered/inspected; other17 page texts unchanged. Library version guard and local metadata applied.
+- Authoring intermediate: bellini-mail/update_dossier.py; final output/pdf/Bellini_Studios_Dossier_PVLAB.pdf. No scratch path needed to recover authoritative Library v4. Both live links returnedHTTP200 before send. No automatic generation-cost deduction implemented.
+- Complete. No unsent welcome draft remains to send; avoid duplicate email.
+
 ## Bellini guide disclosure and spacing / published and verified, 2026-10-28
 - User rejected the long exposed cost note and large empty left column. Cost note now a native details disclosure closed by default inside the 20% entry, with +/minus indicator and keyboard focus. Two independent desktop columns remove row-height gaps; mobile retains original question order. Clarified approved 20% example: net100 EUR →20 EUR. Full adjustment text/cap/floor unchanged.
 - Files: lab/bellini-studio.html, new Bellini-only lab/bellini-studio.css?v=20261028-guide1, existing tests/lab-partner-dashboard-browser.mjs. No shared styles, Vitolas, commission calculations, payouts, credits or PDF changed.
