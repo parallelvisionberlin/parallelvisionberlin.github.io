@@ -227,16 +227,22 @@ async function submitBatch(){
  if(!profile){status('Sign in again to confirm the charge.',true);return}
  $('editorial-confirm').close();go(5);submitting=true;const version=epoch;
  try{
+  const started=[];
+  // Submit the four distinct bound quotes promptly before any one image
+  // finishes, so the remaining quotes do not expire while the first runs.
   for(const [index,q] of frozen.quotes.entries()){
-   $('generation-progress').textContent='Submitting image '+(results.length+1)+' of '+chosenCount;
-   $('batch-status').textContent='Submitting '+(index+1)+' of '+frozen.quotes.length+' images in this confirmed batch.';
-   // Never retry a paid submission. On uncertainty, stop and send the user to History.
+   $('generation-progress').textContent='Submitting image '+(index+1)+' of '+frozen.quotes.length;
+   $('batch-status').textContent='Submitting '+(index+1)+' of '+frozen.quotes.length+' confirmed images.';
    let response;
+   // Never retry a paid submission. On uncertainty, stop and send the user to History.
    try{response=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}})}
    catch(error){uncertain=true;throw Error('Submission was not confirmed: '+error.message+' Check Image Studio History. Do not submit again until its status is clear.');}
    if(!response.job?.id){uncertain=true;throw Error('No job receipt. Check Image Studio History before continuing.');}
-   activeJobs.push(response.job.id);await pollJob(response.job.id,version);
+   activeJobs.push(response.job.id);started.push(response.job.id);
   }
+  $('batch-status').textContent='All '+started.length+' jobs submitted. Loading each completed image…';
+  // Poll accepted IDs only. No paid submission can be repeated by polling.
+  await Promise.all(started.map(id=>pollJob(id,version)));
   $('generation-progress').textContent='Your current set is ready';
   go(6);status('Editorial images are saved to your PV LAB account.');
  }catch(error){
