@@ -182,3 +182,24 @@ dialog::backdrop{background:#000c;backdrop-filter:blur(3px)}
   object-position:53% 20%!important;
  }
 }
+
+
+/* PVLAB_IVORY_HERO_20261029: approved monumental ivory fabric editorial.
+   Full-bleed photographic hero; UI remains separate, with no black split panel. */
+.editorial-hero{background:#08090a}
+.editorial-hero-art{position:absolute;inset:0;overflow:hidden}
+.editorial-hero-art img{
+ top:0!important;right:0!important;width:100%!important;height:100%!important;
+ object-fit:cover!important;object-position:50% 49%!important;transform:none!important;
+ filter:brightness(.78) saturate(.63) contrast(1.08);
+}
+.editorial-hero-overlay{
+ background:linear-gradient(90deg,#08090bf8 0%,#08090be9 18%,#08090bb3 35%,#08090b53 55%,#08090b0a 82%),linear-gradient(0deg,#08090b70 0%,transparent 28%);
+}
+@media(max-width:800px){
+ .editorial-hero-art img{top:0!important;right:0!important;width:100%!important;height:100%!important;object-position:50% 42%!important}
+ .editorial-hero-overlay{background:linear-gradient(0deg,#08090bfc 0%,#08090bea 27%,#08090b90 46%,#08090b12 78%),linear-gradient(90deg,#08090b55,transparent 78%)}
+}
+@media(max-width:520px){
+ .editorial-hero-art img{top:0!important;right:0!important;width:100%!important;height:100%!important;object-position:50% 40%!important}
+}
