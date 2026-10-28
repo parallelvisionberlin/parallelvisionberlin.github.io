@@ -9,7 +9,7 @@ import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261015-eye-repair1&publicPreview=20261023-1&creditCurrency=20261024v1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261028-customer-magic-quota1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261022-editorial-rows1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&partnerMenu=20261027-bellini1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1';
@@ -1113,7 +1113,7 @@ function setTool(value){
 const imageStudio = $('image-studio');
 const imageComposer = $('image-composer');
 const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadAsset,notify,
-  owner:()=>owner,customer:()=>!ownerAccount,falReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),magicReady:()=>!!config.falEnabled&&!customerMode,
+  owner:()=>owner,customer:()=>!ownerAccount,falReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),magicReady:()=>!!config.falEnabled&&(!customerMode||customerGenerationReady),
   onExit:()=>returnToImageFromRetouch(),
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
 // Retouch is an independent route. Image state stays in its existing deck.
