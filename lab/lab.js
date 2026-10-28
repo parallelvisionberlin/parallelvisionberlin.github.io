@@ -2029,7 +2029,7 @@ function fitImageModelMenu(){
       rowsHeight+=height;
       fitted++;
     }
-    // Keep Search and Create / manage characters fixed. Only the list scrolls.
+    // Keep Search visible; only the model list scrolls.
     if(fitted>0&&fitted<rows.length){
       menu.style.setProperty('--pv-model-menu-fit',Math.min(available,Math.ceil(chrome+topPadding+rowsHeight))+'px');
       menu.classList.add('has-overflow');
@@ -2267,10 +2267,6 @@ $('image-composer-model').onclick=()=>{
   if(imageMenuOpen){$('image-composer-model-search').value='';populateImageModelMenu();fitImageModelMenu();$('image-composer-model-search').focus();}
 };
 $('image-composer-model-search').oninput=()=>{populateImageModelMenu($('image-composer-model-search').value);$('image-composer-model-items').scrollTop=0;fitImageModelMenu();};
-$('image-composer-train').onclick=()=>{
-  closeImageModelMenu();
-  if(!busy)void hf.open();
-};
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){moodUI.close();if($('soul-pro-identity-dialog').open){$('soul-pro-identity-dialog').close();return;}closeComposerAddMenu();closeImageModelMenu();toggleImageSettings(false);closeComposerLibrary();}
 });
