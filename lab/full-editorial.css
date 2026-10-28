@@ -143,3 +143,42 @@ dialog::backdrop{background:#000c;backdrop-filter:blur(3px)}
 .saved-element-option strong{font-size:13px;font-weight:600}
 .saved-element-option small{color:#9fa1a5;font-size:11px}
 .saved-element-option:hover{background:#282a2d}
+
+/* 28 Oct 2026. Source is a standalone photographic JPEG, never the flattened
+   UI mockup. No embedded lettering can bleed through the live headline. */
+.editorial-hero{background:#08090a}
+.editorial-hero-art img{
+ position:absolute!important;
+ top:0!important;
+ right:-4%!important;
+ width:72%!important;
+ height:100%!important;
+ max-width:none!important;
+ object-fit:cover!important;
+ object-position:50% 40%!important;
+ transform:none!important;
+}
+.editorial-hero-overlay{
+ background:linear-gradient(90deg,#090a0b 0%,#090a0beF 19%,#090a0bd8 33%,#090a0b80 48%,#090a0b15 66%,transparent 82%),linear-gradient(0deg,#090a0bd0 0%,transparent 25%);
+}
+@media (max-width:800px){
+ .editorial-hero-art img{
+  top:0!important;
+  right:-18%!important;
+  width:118%!important;
+  height:74%!important;
+  object-position:55% 22%!important;
+  transform:none!important;
+ }
+ .editorial-hero-overlay{
+  background:linear-gradient(0deg,#08090afb 0%,#08090be0 26%,#08090b91 46%,#08090b0a 79%),linear-gradient(90deg,#08090b6b,transparent 70%);
+ }
+}
+@media (max-width:520px){
+ .editorial-hero-art img{
+  right:-24%!important;
+  width:128%!important;
+  height:76%!important;
+  object-position:53% 20%!important;
+ }
+}
