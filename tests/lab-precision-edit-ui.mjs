@@ -38,7 +38,7 @@ try{
       return new Promise(r=>c.toBlob(r,'image/png'));
     };
     const original=await make('original'),raw=await make('raw'),magic=await make('mask');
-    window.pvOriginal=original;window.pvComposite=null;
+    window.pvOriginal=original;window.pvComposite=null;window.pvCreditCost=150;
     const store=async file=>{const id='uploaded-'+(++seq);blobs.set(id,file);return id;};
     const api=async(path,{method='GET',body}={})=>{
       window.pvRequests.push({path,method,body});
@@ -91,10 +91,7 @@ try{
   const source=page.locator('#precision-selection-canvas');
   const rect=await source.boundingBox();assert.ok(rect?.width>200&&rect?.height>100);
   await page.mouse.click(rect.x+rect.width*330/640,rect.y+rect.height*200/480);
-  await page.locator('#precision-select-consent').waitFor({state:'visible'});
-  assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/segment'&&r.method==='POST').length),0,
-    'Magic Select must never call the metered provider before explicit approval');
-  await page.locator('#precision-select-approve').click();
+  assert.equal(await page.locator('#precision-select-consent').count(),0,'No paid-selection popup');
   await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Object selected'));
   assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/segment'&&r.method==='POST').length),1);
   assert.equal(await page.locator('#precision-generate').isDisabled(),true,'Prompt is still required');
@@ -104,13 +101,7 @@ try{
   assert.equal(await page.locator('#precision-undo').isEnabled(),true);
   await page.locator('#precision-undo').click();
   await page.locator('#precision-prompt').fill('Change the selected dark garment to a vivid red material.');
-  await page.locator('#precision-generate').click();
-  await page.locator('#precision-price-review').waitFor({state:'visible'});
-  assert.match(await page.locator('#precision-review-body').textContent(),/estimated \$0\.150 USD/);
-  assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length),0,
-    'Pricing does not authorize inference');
-  await page.locator('#precision-review-confirm').click();
-  await page.waitForFunction(()=>window.pvJobs.length>0,{timeout:10000});
+[object Object]  await page.waitForFunction(()=>window.pvJobs.length>0,{timeout:10000});
   assert.equal(await page.locator('#precision-tool-brush').isEnabled(),true,
     'Paid submission must release the editing controls while the job is in Queue');
   assert.match(await page.locator('#precision-status-text').textContent(),/Queued/i);
@@ -219,17 +210,16 @@ try{
     'Idea suggestions are purely local and must not trigger a paid request');
   const submittedBefore=await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length);
   await page.evaluate(async()=>{window.pvCustomer=true;window.pvCreditCost=222;await window.pvEditor.open();});
-  await page.locator('#precision-generate').click();
-  await page.locator('#precision-price-review').waitFor({state:'visible'});
-  assert.match(await page.locator('#precision-review-body').innerText(),/222 PV credits/);
-  assert.doesNotMatch(await page.locator('#precision-review-body').innerText(),/[€$]|EUR|USD/);
+  await page.locator('#precision-prompt').fill('Remove the item and preserve the original scene.');
+  await page.waitForFunction(()=>document.querySelector('#precision-generate').textContent.includes('222 credits'));
+  assert.doesNotMatch(await page.locator('#precision-generate').innerText(),/[€$]|EUR|USD/);
   assert.doesNotMatch(await page.locator('#precision-tool-magic').getAttribute('title'),/[€$]/);
-  await page.locator('#precision-review-cancel').click();
+  assert.equal(await page.locator('#precision-price-review').count(),0);
   await page.evaluate(()=>{window.pvCreditCost=undefined;});
-  await page.locator('#precision-generate').click();
+  await page.locator('#precision-prompt').fill('Remove only the selected object and keep the scene.');
   await page.waitForFunction(()=>document.getElementById('precision-status-text').textContent.includes('did not confirm a PV LAB credit price'));
-  assert.equal(await page.locator('#precision-price-review').isVisible(),false,'No dollar fallback for an invalid customer credit quote');
-  assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length),submittedBefore,'Review, cancel and invalid quotes never submit a customer job');
+  assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length),submittedBefore,
+    'An invalid credit quote must never submit a customer job');
   assert.deepEqual(errors,[]);
-  console.log('PASS Retouch V2: zoom/pan, paid-selection consent, mask edit, quote and nonblocking queue, exact PNG pixels, mobile controls');
+  console.log('PASS Retouch V2: zoom/pan, direct selection, brush guidance, inline credit quote and nonblocking queue, exact PNG pixels, mobile controls');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
