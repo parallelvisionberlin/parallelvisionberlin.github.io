@@ -27,6 +27,7 @@ test('Navigation routes Full Editorial to its own real page, including legacy li
 test('Generation is server quoted, confirmed once, and attached to real jobs',()=>{
  assert.match(js,/\/api\/uploads/);
  assert.match(js,/\/api\/quotes/);
+ assert.match(js,/\$\('review-credits'\)\.addEventListener\('click',\(\)=>void reviewBatch\(\)\)/,'Visible primary review button must open real credit review');
  assert.match(js,/\/api\/jobs/);
  assert.match(js,/\/api\/assets\//);
  assert.match(js,/confirm:true/);
