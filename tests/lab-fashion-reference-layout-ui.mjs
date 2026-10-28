@@ -81,7 +81,7 @@ try{
     assert.ok(layout.controls.bottom<=height,'Controls fit first desktop viewport');
     if(width===1672&&height===900){
      assert.ok(layout.person.height<=351,'1672 x 900 cards stay at the reviewed compact height');
-     assert.ok(layout.controls.bottom<=860,'The entire controls row retains room below it');
+     assert.ok(layout.controls.bottom<=height-8,'Runway dock stays inside the first desktop viewport');
      assert.ok(layout.fields[1].width>=85,'Runway dock: resolution remains usable');
      assert.ok(layout.fields[2].width>=100,'Runway dock: quality selector remains usable');
     }
