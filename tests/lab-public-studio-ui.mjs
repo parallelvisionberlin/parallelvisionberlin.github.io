@@ -41,31 +41,16 @@ assert.equal(approvedCharacterHtml.split(approvedCharacterAnchor).length,2,'Orig
 approvedFiles.set('lab/studio.html',Buffer.from(approvedCharacterHtml
   .replace(approvedCharacterAnchor,'<div class="scene-image-library-wrap">'+approvedCharacterButton+'<button id="pv-guest-library"')
   .replace('</head>','<style>'+approvedCharacterStyles+'</style></head>')));
-// Owner-approved Fashion #494, including caption spacing and the Generate label.
-// Keep the independent Image/Video/Upscaler/Retouch baseline unchanged.
-const fashionApprovedRef='a84f9ec2ead1c57288e91fec18cd7e06bb3bf2e1';
+// Owner-approved Runway Replace Outfit. This feature freezes its own new
+// Fashion visual source, while all Image/Video/Upscaler/Retouch baselines remain
+// the exact previously approved references and pixel tolerances.
+const fashionApprovedRef='45e63c19b612ee7ffef17b234b5c2ef23ea4724c';
 const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
-// Preserve the approved Fashion layout reference while updating ONLY the
-// deliberate October 24 model-photo swap. Both baseline and actual load the
-// same new illustrative photos; full pixel comparisons still catch all UI drift.
 const fashionApprovedHtml=fashionApprovedFiles.get('lab/fashion.html').toString('utf8');
-const originalFashionHero='<img src="./visuals/fashion-replace/hero.webp" alt="" width="1672" height="941" fetchpriority="high" decoding="async">';
-const originalFashionPerson='<img class="slot-example person-example" src="./visuals/fashion-replace/hero.webp" alt="" width="1672" height="941" decoding="async">';
-assert.ok(fashionApprovedHtml.includes(originalFashionHero)&&fashionApprovedHtml.includes(originalFashionPerson),'Approved Fashion photo anchors still exist');
-const newFashionHero='<img src="./visuals/fashion-replace/hero-model-oct24.jpg" alt="" width="1672" height="941" fetchpriority="high" decoding="async">';
-const newFashionPerson='<img class="slot-example person-example" src="./visuals/fashion-replace/person-before-jacket-oct25.jpg" alt="" width="760" height="806" decoding="async">';
-fashionApprovedFiles.set('lab/fashion.html',Buffer.from(fashionApprovedHtml.replace(originalFashionHero,newFashionHero).replace(originalFashionPerson,newFashionPerson)));
-// Fashion-only approved hero crop: update the expected photograph positioning,
-// while keeping every other pixel comparison and component baseline unchanged.
 const approvedFashionCss=fashionApprovedFiles.get('lab/fashion.css').toString('utf8');
-const oldFashionHeroCrop='transform:scale(1.2);transform-origin:72% 12%';
-const newFashionHeroCrop='transform:translateX(6%) scale(1.12);transform-origin:72% 12%';
-assert.equal(approvedFashionCss.split(oldFashionHeroCrop).length,2,'Approved Fashion framing selector remains unique');
-// Explicit October 26 approval: Image deck typography and one focus border.
-// All other independent baseline regions and comparison thresholds stay fixed.
-const approvedFashionDeckPolish="\n/* Owner-approved Image deck typography and single-border Fashion focus. */\n.engine-section .field-title{font:400 12px/1.2 'DM Sans',Arial,sans-serif;letter-spacing:0;color:#b7b8bc}\n.engine-section select,.engine-section textarea{border-radius:9px;box-shadow:none}\n.engine-section select{font:550 12px/1.5 'DM Sans',Arial,sans-serif;letter-spacing:normal}\n.engine-section #model-select{font-size:14px;font-weight:610;line-height:1.2}\n.engine-section textarea{font:420 15.5px/1.48 'DM Sans',Arial,sans-serif;letter-spacing:-.019em}\n.engine-section select:focus,.engine-section select:focus-visible,.engine-section textarea:focus,.engine-section textarea:focus-visible{outline:none;box-shadow:none;border-color:#ffffff80}\n.engine-section .action-primary{font:600 15px/1.17 'DM Sans',Arial,sans-serif;letter-spacing:-.015em;padding:10px 12px;gap:0}\n#quote>span[aria-hidden=\"true\"]:empty{display:none}\n#quote:after{content:none}\n@media(min-width:1101px){\n .engine-grid{grid-template-columns:minmax(155px,248fr) minmax(240px,402fr) minmax(180px,627fr) minmax(190px,185fr)}\n}\n@media(min-width:801px) and (max-width:1100px){\n .engine-grid{grid-template-columns:minmax(135px,1.1fr) minmax(185px,1.5fr) minmax(130px,1.3fr) minmax(155px,.9fr)}\n .engine-section #model-select{font-size:12px}\n .engine-section .action-primary{font-size:12px}\n}\n@media(max-width:800px){\n .engine-section select,.engine-section #model-select,.engine-section textarea{font-size:16px}\n}\n";
-fashionApprovedFiles.set('lab/fashion.css',Buffer.from(approvedFashionCss.replace(oldFashionHeroCrop,newFashionHeroCrop)+approvedFashionDeckPolish));
-
+assert.ok(fashionApprovedHtml.includes('<span>Replace</span><em>outfit.</em>'),'Runway headline remains in approved Fashion reference');
+assert.ok(fashionApprovedHtml.includes('id="looks-scroller"')&&fashionApprovedHtml.includes('class="look-card"'),'Runway style strip retained');
+assert.ok(approvedFashionCss.includes('PV LAB / RUNWAY REPLACE OUTFIT')&&approvedFashionCss.includes('filter:brightness(.78)'),'Runway art direction and portrait shadow locked in reference');
 
 // The owner approved a new Video-only design in #496. Freeze that implemented
 // reference while retaining the original pixel baselines for every other tool.

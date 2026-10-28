@@ -17,8 +17,8 @@ location.replace(fashionStudioUrl.href);
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./fashion.css?v=20261026-minimal-deck1">
-<script type="module" src="./fashion.js?v=20261011-no-emoji1&studioAuth=20261015-1&optionalFastReady=20261015-1&creditCurrency=20261024v1&publicLabels=20261026&fashionPrice=20261026-inline1"></script>
+<link rel="stylesheet" href="./fashion.css?v=20261028-runway1">
+<script type="module" src="./fashion.js?v=20261028-runway1&prior=20261011-no-emoji1&studioAuth=20261015-1&optionalFastReady=20261015-1&creditCurrency=20261024v1&publicLabels=20261026&fashionPrice=20261026-inline1"></script>
 <link rel="stylesheet" href="/lab/site-footer.css?v=20261023-focused-tools1">
 </head>
 <body>
@@ -37,10 +37,10 @@ location.replace(fashionStudioUrl.href);
  <div class="fashion-backdrop" aria-hidden="true"><img src="./visuals/fashion-replace/hero-model-oct24.jpg" alt="" width="1672" height="941" fetchpriority="high" decoding="async"></div>
  <section class="page-intro" aria-labelledby="fashion-title">
   <div class="intro-copy">
-   <p class="eyebrow">PV LAB <span aria-hidden="true">/</span> FASHION STUDIO</p>
-   <h1 id="fashion-title">Replace <em>outfit.</em></h1>
+   <p class="eyebrow">FASHION STUDIO <span aria-hidden="true">/</span> PV LAB</p>
+   <h1 id="fashion-title"><span>Replace</span><em>outfit.</em></h1>
   </div>
-  <p class="intro-description">One photograph. One garment. A different look.</p>
+  <p class="intro-description">One photograph. Endless possibilities.<br>Change the look while keeping the person recognizable.</p>
  </section>
  <section class="sign-in-panel" id="gate" aria-label="Private access">
   <p class="eyebrow">PRIVATE WORKSPACE</p>
@@ -78,6 +78,27 @@ location.replace(fashionStudioUrl.href);
      </label>
     </div>
     <p class="source-note">JPG, PNG, WEBP <span aria-hidden="true">·</span> 20 MB MAX EACH <span aria-hidden="true">·</span> USE IMAGES YOU HAVE RIGHTS TO EDIT</p>
+   </section>
+
+   <section class="looks-section" aria-labelledby="fashion-looks-title">
+    <div class="looks-heading"><h2 id="fashion-looks-title">STYLE &amp; LOOKS</h2>
+     <div class="looks-controls">
+      <span id="looks-support" aria-live="polite"></span>
+      <button type="button" id="looks-view-all" aria-expanded="false">VIEW ALL</button>
+      <button type="button" id="looks-prev" aria-label="Previous looks">&#x2190;</button>
+      <button type="button" id="looks-next" aria-label="Next looks">&#x2192;</button>
+     </div>
+    </div>
+    <div class="looks-scroller" id="looks-scroller" role="group" aria-label="Optional styling directions">
+     <button type="button" class="look-card" data-look="runway" aria-pressed="false" title="Add a Runway styling direction"><img src="./visuals/fashion-replace/hero-model-oct24.jpg" alt="" loading="lazy"><span>Runway</span></button>
+     <button type="button" class="look-card" data-look="editorial" aria-pressed="false" title="Add an Editorial styling direction"><img src="./mood-previews/hd/fashion-editorial-20261011.jpg" alt="" loading="lazy"><span>Editorial</span></button>
+     <button type="button" class="look-card" data-look="street" aria-pressed="false" title="Add a Street styling direction"><img src="./mood-previews/hd/90s-cinema-clean-final-20261011.jpg" alt="" loading="lazy"><span>Street</span></button>
+     <button type="button" class="look-card" data-look="avantgarde" aria-pressed="false" title="Add an Avant-garde styling direction"><img src="./mood-previews/hd/japanese-sumi-e-20261011.jpg" alt="" loading="lazy"><span>Avant-garde</span></button>
+     <button type="button" class="look-card" data-look="minimal" aria-pressed="false" title="Add a Minimal styling direction"><img src="./visuals/studio-tools/image-ivory-suit.webp" alt="" loading="lazy"><span>Minimal</span></button>
+     <button type="button" class="look-card" data-look="techwear" aria-pressed="false" title="Add a Techwear styling direction"><img src="./visuals/studio-tools/video-liquid-dress.webp" alt="" loading="lazy"><span>Techwear</span></button>
+     <button type="button" class="look-card" data-look="tailoring" aria-pressed="false" title="Add a Tailoring styling direction"><img src="./visuals/fashion-replace/garment.webp" alt="" loading="lazy"><span>Tailoring</span></button>
+     <button type="button" class="look-card" data-look="conceptual" aria-pressed="false" title="Add a Conceptual styling direction"><img src="./mood-references/fisheye-2000/01-analog-daylight.webp" alt="" loading="lazy"><span>Conceptual</span></button>
+    </div>
    </section>
    <section class="composer-section engine-section" aria-label="Transformation settings">
     <div class="section-header"><h2>03 <span>/</span> Direction</h2><span>ART DIRECTION &amp; MODEL</span></div>
