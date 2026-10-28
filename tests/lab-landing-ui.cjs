@@ -29,8 +29,8 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.getByRole('link',{name:'Fashion Studio',exact:true}).getAttribute('href'),'./studio.html?tool=fashion');
   assert.match(await page.getByRole('link',{name:'Retouch Studio',exact:true}).getAttribute('href'),/studio\.html\?tool=retouch$/);
   const studioTiles=page.locator('.pv-studios-tile');
-  assert.equal(await studioTiles.count(),4,'Studios adds Outfit alongside three original photographic cards');
-  assert.equal(await studioTiles.evaluateAll(tiles=>tiles.map(tile=>[...tile.classList].find(name=>name.startsWith('pv-studios-')&&name!=='pv-studios-tile'))).then(names=>names.join(',')),'pv-studios-beauty,pv-studios-fashion,pv-studios-outfit,pv-studios-editorial');
+  assert.equal(await studioTiles.count(),5,'Studios shows Beauty, Fashion, Outfit, Editorial and Retouch photographic cards');
+  assert.equal(await studioTiles.evaluateAll(tiles=>tiles.map(tile=>[...tile.classList].find(name=>name.startsWith('pv-studios-')&&name!=='pv-studios-tile'))).then(names=>names.join(',')),'pv-studios-beauty,pv-studios-fashion,pv-studios-outfit,pv-studios-editorial,pv-studios-retouch');
   assert.match(await page.getByRole('link',{name:'Outfit Studio',exact:true}).getAttribute('href'),/tool=fashion$/);
   assert.match(await page.getByRole('link',{name:'Full Editorial',exact:true}).getAttribute('href'),/tool=fashion&workflow=editorial$/);
   for(const tile of await studioTiles.all()){
