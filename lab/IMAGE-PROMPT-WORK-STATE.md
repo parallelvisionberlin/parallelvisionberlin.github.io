@@ -1,5 +1,12 @@
 # Image composer prompt: current state
 
+## Image model dropdown legacy character entry removal (2026-10-28)
+- Owner identified `Create / manage characters` at bottom of the Image model menu as opening the unused legacy Higgsfield `YOUR CHARACTERS` dialog, while their active workflow is the separate PV LAB reference-library `Characters` modal.
+- Branch `fix/remove-legacy-character-model-footer-20261028`: delete only the obsolete model-menu footer from `studio.html`, its `hf.open()` click binding in `lab.js`, and the footer-only CSS in `image-studio.css`; collapse the resulting space naturally without replacing it with another control.
+- Preserve reference-library tabs, account assets, character creation, upload/selection, model options, pricing and all other image controls. Do not delete any character records or backend routes.
+- Existing Studio layout test now requires no legacy footer and checks that the model search remains visible within the dropdown. Cache versions in `studio.html`: `20261028-model-legacy-clean1` for JS and CSS. CI, merge and Cloudflare/custom-domain confirmation remain independent.
+
+
 ## Active: aligned Characters and reference shortcuts (2026-10-27)
 - User reported stacked icons extending beyond both compact and expanded Image decks, plus hidden cards on a new account.
 - Base main: `463d22e10dc09815fe275e2204a0f245e4a4e8c4`; isolated branch `fix/image-library-controls-20261027`.
