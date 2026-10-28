@@ -3,7 +3,9 @@
 import {FAL_CONTROLLED_INPAINT,controlledRepairParameters,controlledRepairEstimateMicros,buildRepairInput,falSubmit,falStatus,falResult} from './fal-controlled-pose.mjs';
 
 export const PRECISION_SEGMENT_MODEL='fal-ai/sam-3/image';
-export const PRECISION_SEGMENT_ESTIMATE_MICROS=5000; // fal.ai published $0.005/request, not a bound quote.
+export const PRECISION_SEGMENT_ESTIMATE_MICROS=5000; // Internal fal.ai estimate, never customer credits.
+export const PRECISION_MAGIC_PER_PHOTO=5;
+export const PRECISION_MAGIC_PER_DAY=12;
 export const PRECISION_LARGE_IMAGE_PIXELS=5000000;
 export const PRECISION_COMPOSITE_LIMIT=20*1024*1024;
 
@@ -83,11 +85,10 @@ async function quotedEdit(request,env,owner,d){
 }
 export async function precisionEditRoute(request,env,owner,url,d){
   const path=url.pathname,method=request.method;
-  // Manual-mask customer edits use the existing atomic generation/debit trigger.
-  // SAM segmentation has separate metered costs and stays owner-only.
+  // FLUX edits use the existing atomic generation/credit debit.
+  // SAM segmentation is included for funded customers within server-enforced limits.
   if(!env.FAL_KEY)d.fail(503,'Magic Select and Precision Edit require the existing FAL_KEY Worker secret.');
   if(!env.LAB_SECRET)d.fail(503,'Precision Edit private signing is not configured.');
-  if(path==='/api/precision/segment'&&d.customer)d.fail(403,'Magic Select is owner-only. Paint a selection with the free Brush instead.');
   if(path==='/api/precision/segment'&&method==='POST'){
     const data=await d.body(request);
     const source=await d.source(env,owner,verifyUuid(data.sourceId,d.fail));
@@ -97,20 +98,46 @@ export async function precisionEditRoute(request,env,owner,url,d){
     let point;try{point=precisionPoint(data.point,dimensions.width,dimensions.height);}
     catch(e){d.fail(400,e.message);}
     const settings=await d.config(env,owner);
-    const used=await d.first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(Date.now()/86400000)*86400000);
-    if((used?.n||0)+PRECISION_SEGMENT_ESTIMATE_MICROS>(settings?.daily_limit_microusd||10000000))
-      d.fail(409,'Magic Select would exceed your daily spending limit.');
+    const dayStart=Math.floor(Date.now()/86400000)*86400000;
+    // Validate and prepare the signed image before taking a metered slot.
+    const imageUrl=await d.signedInput(env,url,source.id,86400);
+    if(d.customer){
+      const wallet=await d.first(env,'SELECT balance_credits FROM lab_customers WHERE id=?',owner);
+      if(!wallet||wallet.balance_credits<1)
+        d.fail(402,'Add PV LAB credits before using Magic Select. No credits were deducted.');
+    }
+    // Reserve inside ONE atomic SQL statement. Two tabs cannot both use the
+    // final available selection or race past an account/day spending ceiling.
+    // The provider attempt is recorded even if its outcome becomes uncertain:
+    // do not retry metered requests silently or release uncertain spending.
+    const slotId='precision-segment:'+source.id+':'+crypto.randomUUID();
+    const accountPattern='precision-segment:%',photoPattern='precision-segment:'+source.id+':%';
+    const limit=Number(settings?.daily_limit_microusd)||10000000;
+    const reservation=await d.run(env,`INSERT INTO spend(job_id,owner_id,estimate_microusd,created_at)
+      SELECT ?,?,?,?
+      WHERE (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?
+      AND (?=0 OR (
+        EXISTS(SELECT 1 FROM lab_customers WHERE id=? AND balance_credits>0)
+        AND (SELECT COUNT(*) FROM spend WHERE owner_id=? AND created_at>=? AND job_id LIKE ?)< ?
+        AND (SELECT COUNT(*) FROM spend WHERE owner_id=? AND created_at>=? AND job_id LIKE ?)< ?
+      ))`,
+      slotId,owner,PRECISION_SEGMENT_ESTIMATE_MICROS,Date.now(),
+      owner,dayStart,PRECISION_SEGMENT_ESTIMATE_MICROS,limit,
+      d.customer?1:0,owner,
+      owner,dayStart,accountPattern,PRECISION_MAGIC_PER_DAY,
+      owner,dayStart,photoPattern,PRECISION_MAGIC_PER_PHOTO);
+    if(!reservation.meta?.changes)
+      d.fail(429,d.customer?
+        'Magic Select limit reached: up to 5 selections per photo and 12 per day. Brush and Erase are still available.':
+        'Magic Select would exceed your daily spending limit.');
     const requestId=verifyRequestId(await falSubmit(PRECISION_SEGMENT_MODEL,env.FAL_KEY,{
-      image_url:await d.signedInput(env,url,source.id,86400),
+      image_url:imageUrl,
       point_prompts:[point],prompt:'',apply_mask:false,output_format:'png',
       return_multiple_masks:false,max_masks:1
     }),d.fail);
     const expires=Math.floor(Date.now()/1000)+3600;
     const ticket=await signTicket(env,[owner,source.id,requestId,expires].join(':'));
-    // Owner-only published-price estimate. No customer-wallet debit or automated retry.
-    await d.run(env,'INSERT OR IGNORE INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)',
-      'precision-segment:'+requestId,owner,PRECISION_SEGMENT_ESTIMATE_MICROS,Date.now());
-    return d.json({status:'queued',requestId,sourceId:source.id,expires,ticket,publishedEstimateUsd:.005},202);
+    return d.json({status:'queued',requestId,sourceId:source.id,expires,ticket},202);
   }
   if(path==='/api/precision/segment'&&method==='GET'){
     const sourceId=verifyUuid(url.searchParams.get('sourceId'),d.fail);
