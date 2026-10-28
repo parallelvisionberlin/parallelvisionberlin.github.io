@@ -178,7 +178,7 @@ async function reviewBatch(){
   const response=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:references.map(r=>r.id),settings,count:Math.min(4,remain)}});
   if(revisionId!==revision)return;
   const quotes=Array.isArray(response.quotes)?response.quotes:[response];
-  if(quotes.length!==Math.min(4,remain)||quotes.some(q=>!validQuote(q)))throw Error('The server did not return a complete, current credit quote.');
+  if(quotes.length!==Math.min(4,remain)||quotes.some(q=>!validQuote(q)||q.settings.engine!==settings.engine||q.settings.resolution!==settings.resolution||q.settings.aspectRatio!==settings.aspectRatio))throw Error('The server did not return a complete, matching credit quote.');
   quote={quotes,remaining:remain,settings,revision:revisionId};
   const total=quotes.reduce((sum,q)=>sum+q.creditCost,0);
   $('confirm-count').textContent=quotes.length+' images';$('confirm-price').textContent=total.toLocaleString()+' credits';
@@ -239,7 +239,11 @@ async function submitBatch(){
   }
   $('generation-progress').textContent='Your current set is ready';
   go(6);status('Editorial images are saved to your PV LAB account.');
- }catch(error){status(error.message,true);$('batch-status').textContent=error.message;renderResults();
+ }catch(error){
+  // A request may have reached the provider even when polling or network I/O fails.
+  // Freeze further payments until the user checks the authoritative job History.
+  if(activeJobs.length)uncertain=true;
+  status(error.message,true);$('batch-status').textContent=error.message;renderResults();
   if(results.length){go(6);status(error.message,true)}
  }finally{submitting=false}
 }
