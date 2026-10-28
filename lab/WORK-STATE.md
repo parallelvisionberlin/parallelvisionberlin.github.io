@@ -1,3 +1,12 @@
+## Owner-supplied FLESH ZERO hero edit, 2026-10-28
+- User explicitly requested the newly attached `PVLAB FLESH ZERO HERO. .mp4` as the exact main PV LAB homepage hero video, replacing the prior Fashion After Fabric loop. No regeneration, video restyling or third-party stock substitution.
+- Verified uploaded file: 21,925,850 bytes, H.264/AAC, 3380×1440 at 30fps, duration 32.879 seconds; SHA-256 `af375a488ff9bd2781d0edde248c7d975d49fe47d27c4d26ad718cf885958d9e`.
+- Uploaded unchanged source bytes to confirmed video media hosting. URL: `https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/d736bdd1-ff46-4c7a-bfd5-c863bd6e920a.mp4`, upload media id `d736bdd1-ff46-4c7a-bfd5-c863bd6e920a`, confirmed size 21,925,850. Note this is externally hosted media, not an object in PV's Cloudflare R2.
+- Inspected actual video frames: source export is black from t≈8.167 until 32.833 seconds. Preserve exact original file and set a homepage-only `data-loop-end=7.9` so `landing-motion.js` seeks back to t=0 before export black.
+- `lab/index.html`: use exact confirmed URL on mobile and desktop, align fallback and social preview to existing Fashion After Fabric portrait poster rather than showing old wet-haired model. Change only video, poster, preload and JS cache reference; preserve existing copy, controls, nav, prices and layout.
+- `tests/lab-landing-ui.cjs`: verify video URL, poster, end-of-visible-picture and reduced-motion fallback. Check focused landing, motion and approved Image UI tests separately from unrelated existing CI.
+- Source branch: `feat/pvlab-flesh-zero-uploaded-hero-20261028`. PR/merge, Cloudflare project deployment, production custom-domain asset and actual browser video playback each require independent verification.
+
 ## Fashion After Fabric PV LAB homepage hero, 2026-10-28
 - Owner approved replacing the homepage's static background experience with the existing Fashion After Fabric hero animation; preserve all headline, copy, CTA, image fallback and header/navigation layouts.
 - Source: existing Parallel Vision film `assets/optimized/video/heroafterfabricvideo-{desktop,mobile}.mp4` (6.57 sec; 2.98 MB desktop / 1.29 MB mobile). Both are referenced from the public `parallelvisionlabel.com` origin; no new generation or upload.
