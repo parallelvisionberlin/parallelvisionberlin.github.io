@@ -1,3 +1,11 @@
+## Clean photographic hero replacement, 2026-10-28
+- Owner supplied a screenshot showing pixelated Full Editorial hero and ghost wording behind the live title.
+- Root cause: `full-editorial.html` referenced a flattened 1536x1024 UI mockup as if it were a standalone fashion photograph; CSS enlarged its small embedded photo, exposing baked-in labels and softness.
+- Replaced hero `src` with the separate clean image `lab/visuals/full-editorial-hero-clean-20261028.jpg` (Git blob `be516a8082664ab99816ce422d2561a08a03d0b1`). It is a photographic reconstruction/crop from the new clean image generation; no text or UI is embedded. 1190x809 JPEG before full-size CSS display.
+- Positioned clean photo at the right with responsive crop and independent gradients on left, retaining approved Full Editorial copy, buttons, flow, account, billing, and all generation behavior.
+- Updated `tests/lab-full-editorial.test.mjs` to require the standalone JPEG and reject the old flattened screenshot.
+- Branch: `fix/full-editorial-clean-photographic-hero-20261028`. CI, Cloudflare deployment and real browser appearance are separately checked before claiming live.
+
 # Full Editorial Studio implementation checkpoint
 Updated: 2026-10-28 (Berlin)
 Branch: feat/pvlab-full-editorial-studio-20261028
