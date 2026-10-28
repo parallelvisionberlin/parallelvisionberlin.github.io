@@ -5,7 +5,7 @@
  const url=path=>new URL(path,base).href;
  const arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
  const sprite=url('visuals/beauty/studios-original-reference.svg');
- const outfit=url('visuals/beauty/outfit-studio-card-20261028.svg');
+ const outfit=url('visuals/beauty/outfit-studio-card-20261028.webp');
  const headers=document.querySelectorAll('.landing-header,.studio-header,.beauty-header');
  for(const header of headers){
   if(header.querySelector('.pv-studios-trigger'))continue;

@@ -39,7 +39,7 @@ const server=http.createServer((req,res)=>{
   }
   assert.equal(await page.locator('.pv-studios-artwork').count(),3,'Three existing Studios retain their exact original artwork');
   assert.equal(await page.locator('.pv-studios-outfit-artwork').count(),1,'Outfit uses its own approved editorial card');
-  assert.equal((await page.locator('.pv-studios-outfit-artwork').getAttribute('src'))?.includes('outfit-studio-card-20261028.svg'),true);
+  assert.equal((await page.locator('.pv-studios-outfit-artwork').getAttribute('src'))?.includes('outfit-studio-card-20261028.webp'),true);
   assert.ok(await page.locator('.pv-studios-outfit-artwork').evaluate(async img=>{await img.decode();return img.naturalWidth===446&&img.naturalHeight===247;}),'Outfit artwork fits the existing card ratio without cropping text');
   assert.equal((await page.locator('.pv-studios-artwork').first().getAttribute('src'))?.includes('studios-original-reference.svg'),true);
   // Check the actual sprite artwork coordinates rather than splitting the
