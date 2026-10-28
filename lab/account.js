@@ -1,4 +1,5 @@
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
+import {readProviderPolicyDetails,setProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1&closure=20261021-immediate1';
 import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261027-partners1';
@@ -97,6 +98,8 @@ function drawProfile(){
   $('account-profile-kind').textContent=profile.customer?'Personal account':'Owner workspace';
   for(const id of ['account-primary-label','account-primary-option'])$(id).textContent=profile.customer?'Credits & billing':'Workspace';
   $('settings-name').textContent=identity.name;$('settings-email').textContent=identity.email;
+  $('settings-model-policy-details').checked=readProviderPolicyDetails(clerk?.user?.id);
+  $('settings-policy-status').textContent='';
   $('account-edit-profile').hidden=typeof clerk.openUserProfile!=='function';$('settings-native').hidden=typeof clerk.openUserProfile==='function';
   $('settings-connection').hidden=!!profile.customer;
   $('account-voucher-link').hidden=!profile.customer||!!profile.accountClosed;
@@ -212,6 +215,15 @@ $('account-signout').onclick=async()=>{++revision;clearPrivateView();try{await c
 $('account-refresh').onclick=()=>void refresh();
 $('account-portal').onclick=()=>void openPayment('/api/billing/portal');
 $('account-section').onchange=event=>{if(event.target.value==='moods')location.assign('./mood-creator.html#my-moods');else if(event.target.value==='admin')location.assign('./owner.html');else location.hash=event.target.value;};
+$('settings-model-policy-details').onchange=event=>{
+  const userId=clerk?.user?.id;
+  if(!setProviderPolicyDetails(userId,event.target.checked)){
+    event.target.checked=readProviderPolicyDetails(userId);
+    $('settings-policy-status').textContent='Preference could not be saved in this browser.';
+  } else {
+    $('settings-policy-status').textContent='Preference saved for this browser.';
+  }
+};
 $('account-edit-profile').onclick=()=>clerk?.openUserProfile?.({appearance:{variables:{colorBackground:'#1a1b19',colorText:'#eeeae2',colorTextSecondary:'#aaa9a1',colorPrimary:'#eeeae2',colorInputBackground:'#252622',colorInputText:'#eeeae2',borderRadius:'8px'}}});
 $('account-voucher-form').addEventListener('submit',async event=>{
   event.preventDefault();if(voucherBusy||!profile?.customer)return;
