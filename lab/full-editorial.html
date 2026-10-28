@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090a0b">
+<meta name="description" content="Full Editorial Studio by PV LAB. Build an editorial series with your identity, styling, and visual direction.">
+<link rel="canonical" href="https://pvlab.studio/full-editorial.html">
+<title>Full Editorial Studio | PV LAB</title>
+<link rel="icon" type="image/png" href="./branding/pv-mark.png">
+<link rel="stylesheet" href="./full-editorial.css?v=20261028-1">
+<link rel="stylesheet" href="./studios-menu.css?v=20261028-retouch-card1">
+</head>
+<body>
+<a class="skip" href="#editorial-main">Skip to content</a>
+<header class="editorial-header landing-header">
+  <a class="editorial-brand" href="./" aria-label="PV LAB home"><img src="./branding/pvlab-wordmark-bold.svg?v=20261022-bold1" alt="PV LAB"></a>
+  <nav aria-label="Main navigation">
+   <a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=video">Video</a>
+   <a href="./studio.html?tool=upscale">Upscaler</a><a id="tool-fashion" href="./studio.html?tool=fashion">Fashion</a>
+   <a href="./moods">Explore Moods</a><a href="./studio.html?tool=image">Effects</a>
+  </nav>
+  <div class="editorial-account"><button id="editorial-signin" type="button" hidden>Sign in</button><span id="editorial-balance" aria-live="polite"></span><a href="./account.html#balance" aria-label="Credits and billing" class="credits-link">Credits <span>+</span></a><a class="editorial-avatar" href="./account.html" aria-label="My account">○</a></div>
+</header>
+<main id="editorial-main">
+<section class="editorial-hero" id="editorial-hero" aria-labelledby="editorial-hero-heading">
+  <div class="editorial-hero-art" aria-hidden="true"><img src="https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/d6c51742-8079-4412-a063-25ed134cec95.png" alt=""></div>
+  <div class="editorial-hero-overlay"></div>
+  <div class="editorial-hero-copy"><span class="eyebrow">PV LAB / STUDIO</span><h1 id="editorial-hero-heading">Full<br>Editorial<br>Studio</h1>
+    <p>Turn a person, a look and a mood<br>into a complete fashion story.</p>
+    <div class="hero-points"><span>Model &amp; identity</span><span>Outfits &amp; styling</span><span>Location &amp; mood</span><span>Editorial image series</span></div>
+    <button class="primary hero-start" type="button" id="editorial-start">Start creating <span aria-hidden="true">→</span></button>
+  </div>
+  <div class="editorial-hero-foot">CAMPAIGNS<br>LOOKBOOKS<br>EDITORIALS<br>CHARACTERS</div>
+</section>
+
+<section class="editorial-flow" id="editorial-flow" aria-labelledby="flow-heading">
+  <div class="intro-rail">
+   <span class="eyebrow">FULL EDITORIAL / WORKFLOW</span><h2 id="flow-heading">Create your<br>editorial.</h2>
+   <p>A simple flow to build a fashion series using existing PV LAB image models and your own references.</p>
+   <ol class="intro-steps"><li><b>01</b><span><strong>Model</strong><small>Choose a photograph or reference identity.</small></span></li>
+   <li><b>02</b><span><strong>Styling</strong><small>Add garments, accessories or describe the look.</small></span></li>
+   <li><b>03</b><span><strong>Mood &amp; location</strong><small>Set atmosphere, material and environment.</small></span></li>
+   <li><b>04</b><span><strong>Generate</strong><small>Review the real credit cost before creating.</small></span></li></ol>
+  </div>
+  <div class="flow-main">
+   <div class="progress-top"><span class="eyebrow" id="progress-title">STEP 1 / 4</span><div class="step-track" aria-label="Progress"><i id="step-indicator"></i></div><button id="editorial-reset" type="button" class="text-action">Start over</button></div>
+   <section class="step-panel" id="panel-model" aria-labelledby="model-heading">
+     <h2 id="model-heading">Model &amp; identity</h2><p class="step-intro">Upload your person and optional additional angles. Photos are used as identity references, not as a guarantee of exact likeness.</p>
+     <div class="tabs" aria-label="Model source"><button class="tab is-selected" type="button" data-model-tab="photos">Upload photos</button><a class="tab" href="./studio.html?tool=image&createCharacter=1">Create a character</a></div>
+     <div class="upload-large" id="model-drop" role="button" tabindex="0" aria-label="Choose model reference photographs"><span class="upload-plus">+</span><strong>Drop your model photographs here</strong><small>or click to browse · JPG, PNG or WebP · up to 4 photos</small></div>
+     <input type="file" id="model-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
+     <div class="thumb-row" id="model-thumbs" aria-label="Selected model photographs"></div>
+     <div class="control-row"><label for="identity-guide">Identity guidance <output id="identity-value">80%</output></label><input id="identity-guide" type="range" min="25" max="100" value="80"><small>Prompt emphasis only. Actual consistency depends on the selected model.</small></div>
+   </section>
+   <section class="step-panel" id="panel-style" aria-labelledby="style-heading" hidden>
+     <h2 id="style-heading">Styling &amp; garments</h2><p class="step-intro">Add garment photographs, accessories or describe your styling. Use the same model across your series.</p>
+     <div class="tabs" aria-label="Styling reference"><button class="tab is-selected" type="button">Garments &amp; references</button></div>
+     <div class="thumb-row outfit-row" id="outfit-thumbs" aria-label="Selected garments"></div>
+     <button class="upload-compact" type="button" id="add-outfits"><span>+</span> Add garment or accessory</button>
+     <input type="file" id="outfit-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
+     <label for="styling-direction" class="field-name">Style direction <small>(optional)</small></label>
+     <textarea id="styling-direction" maxlength="800" rows="4" placeholder="Black leather, metallic textures, deconstructed tailoring, Yohji Yamamoto-inspired silhouettes..."></textarea>
+     <div class="control-row"><label for="garment-guide">Garment emphasis <output id="garment-value">70%</output></label><input id="garment-guide" type="range" min="25" max="100" value="70"><small>Prompt emphasis for clothing details.</small></div>
+   </section>
+   <section class="step-panel" id="panel-mood" aria-labelledby="mood-heading" hidden>
+     <h2 id="mood-heading">Mood &amp; location</h2><p class="step-intro">Choose an aesthetic direction. The selected style guides the image prompt; your saved Moods remain accessible in the main studio.</p>
+     <div class="tabs" role="tablist" aria-label="Creative direction"><button class="tab is-selected" role="tab" aria-selected="true" type="button" data-direction-tab="moods">Moods</button><button class="tab" role="tab" aria-selected="false" type="button" data-direction-tab="location">Location</button><button class="tab" role="tab" aria-selected="false" type="button" data-direction-tab="material">Materials</button></div>
+     <div id="direction-cards" class="direction-cards" aria-label="Aesthetic directions"></div>
+     <div class="mood-links"><a href="./moods" target="_blank" rel="noopener">Explore all Moods</a><span>Choose one direction for the set.</span></div>
+     <label class="field-name" for="location-direction">Location reference <small>(optional)</small></label>
+     <div class="thumb-row" id="location-thumbs"></div><button class="upload-compact" id="add-location" type="button"><span>+</span> Add location photo</button><input type="file" id="location-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
+     <label class="field-name" for="location-direction">Environment direction <small>(optional)</small></label>
+     <textarea id="location-direction" rows="2" maxlength="500" placeholder="Abandoned concrete atelier, directional daylight, tangible materials..."></textarea>
+     <div class="control-row"><label for="mood-guide">Mood emphasis <output id="mood-value">60%</output></label><input id="mood-guide" type="range" min="20" max="100" value="60"></div>
+   </section>
+   <section class="step-panel" id="panel-generate" aria-labelledby="settings-heading" hidden>
+     <h2 id="settings-heading">Generate your editorial</h2><p class="step-intro">Create one cohesive series. PV LAB quotes each group of four images separately, so no extra credits are charged without confirmation.</p>
+     <label class="field-name">Number of images</label><div class="segmented" id="count-options" role="group" aria-label="Number of images"><button type="button" data-count="4" class="is-selected">4</button><button type="button" data-count="8">8</button><button type="button" data-count="12">12</button></div>
+     <label class="field-name">Aspect ratio</label><div class="segmented" id="ratio-options" role="group" aria-label="Aspect ratio"><button type="button" data-ratio="3:4">3:4</button><button type="button" data-ratio="4:3">4:3</button><button type="button" data-ratio="16:9">16:9</button><button type="button" data-ratio="1:1">1:1</button><button type="button" data-ratio="9:16">9:16</button></div>
+     <div class="field-grid"><label>Model <select id="editorial-model"><option value="seedream">Seedream 5 Pro</option><option value="seedreamlite">Seedream 5 Lite</option><option value="flash">Seedream Flash</option></select></label><label>Resolution <select id="editorial-resolution"><option value="1k">1K</option><option value="2k">2K</option></select></label></div>
+     <label class="field-name" for="editorial-prompt">Final creative direction <small>(optional)</small></label><textarea id="editorial-prompt" rows="4" maxlength="1500" placeholder="Cinematic fashion editorial, restrained imperfections, tactile materials, confident styling..."></textarea>
+     <div class="setting-note"><span class="mini-indicator">◎</span> Each image is generated as its own result. Identity and garments are guided by the selected references, not guaranteed.</div>
+     <button id="review-credits" type="button" class="primary full">Review credits <span aria-hidden="true">→</span></button>
+   </section>
+   <section class="step-panel" id="panel-progress" aria-labelledby="generating-heading" hidden>
+     <h2 id="generating-heading">Creating your editorial...</h2><p class="step-intro" id="batch-status">Preparing images using your selected model and references.</p>
+     <div class="generation-visual"><div class="visual-reference"><img src="./visuals/beauty/studios-original-reference.svg" alt="Editorial creative reference"></div><div class="generation-overlay"><span class="spinner" aria-hidden="true"></span><strong id="generation-progress">Waiting for the first result</strong><small id="generation-subtext">Your results are saved privately to your account.</small></div></div>
+     <div class="result-strip" id="progress-results"></div><button type="button" id="progress-history" class="secondary">Open Image Studio history</button>
+   </section>
+   <section class="step-panel" id="panel-results" aria-labelledby="results-heading" hidden>
+     <h2 id="results-heading">Your editorial series</h2><p class="step-intro" id="result-summary">Review your generated photographs.</p>
+     <div class="result-actions"><button id="download-selected" class="secondary" type="button">Download selected</button><button id="create-variations" class="secondary" type="button">Generate next set / variations</button><button id="edit-selection" class="secondary" type="button">Edit in Retouch</button></div>
+     <div class="results-grid" id="editorial-results" aria-label="Generated editorial photographs"></div>
+     <p class="result-disclaimer">Only completed PV LAB jobs appear here. Downloaded files are the originals returned by the generator.</p>
+     <a class="secondary inline-link" href="./studio.html?tool=video">Continue in Video Studio</a>
+   </section>
+   <div class="flow-footer" id="step-footer"><button id="step-back" class="secondary" type="button">Back</button><button id="step-next" class="primary" type="button">Next <span aria-hidden="true">→</span></button></div>
+   <p id="editorial-status" class="editorial-status" role="status" aria-live="polite"></p>
+  </div>
+</section>
+</main>
+<dialog id="editorial-confirm" aria-labelledby="confirm-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / CREDIT REVIEW</span><h2 id="confirm-heading">Confirm your editorial set</h2><p id="confirm-description">The server determines your exact credit price.</p><dl><div><dt>Images in this batch</dt><dd id="confirm-count"></dd></div><div><dt>Credits for this batch</dt><dd id="confirm-price"></dd></div><div><dt>Remaining planned images</dt><dd id="confirm-remaining"></dd></div></dl><div class="confirm-buttons"><button type="button" class="secondary" id="confirm-cancel">Cancel</button><button type="button" class="primary" id="confirm-submit">Generate · confirm credits</button></div><p class="fineprint">Only this confirmed batch is submitted and charged. Never automatically resubmitted after a network error.</p></div></dialog>
+<script src="./studios-menu.js?v=20261028-retouch-card1" defer></script>
+<script type="module" src="./full-editorial.js?v=20261028-1"></script>
+</body>
+</html>
