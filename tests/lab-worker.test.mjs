@@ -32,6 +32,7 @@ class DB {
 }
 function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async head(k){return objects.has(k)?{size:objects.get(k).length}:null;},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
+let samRequestCounter=0;
 let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0,falResult422=false,falSubmitMode='ok',falVideoReject=false;
 let falUpscaleMode='ok',falPollError=0,falHistoryItems=[],falUploadMode='ok',falUploadCount=0;
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});
@@ -73,6 +74,18 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
     }
     if(u.pathname.endsWith('/status'))return Response.json({status:falState});
     return Response.json({image:{url:'https://v3.fal.media/files/test/topaz.png',content_type:'image/png'}});
+  }
+  if(u.pathname.startsWith('/fal-ai/sam-3/image')){
+    if(options.method==='POST'){
+      falSubmitCount++;samRequestCounter++;
+      const input=JSON.parse(options.body);
+      assert.equal(input.point_prompts.length,1);
+      assert.equal(input.point_prompts[0].label,1);
+      assert.equal(input.output_format,'png');
+      assert.equal(input.apply_mask,false);
+      return Response.json({request_id:'fal_sam_synthetic_'+samRequestCounter.toString().padStart(6,'0')});
+    }
+    if(u.pathname.endsWith('/status'))return Response.json({status:'IN_QUEUE'});
   }
   const soulPro=u.pathname.includes('/ideogram/v4.5/')||u.pathname.includes('/fal-ai/flux-pro/');
   const h3maxVideo=u.pathname.includes('/minimax/h3-max/');
@@ -1783,6 +1796,43 @@ test('Precision Edit binds each paid FLUX job to exactly one approved quote, eve
   const quoted=(await separate.json());
   const mismatch=await req(env,'/api/precision/submit',{method:'POST',data:{...submission,quoteId:quoted.quoteId}});
   assert.equal(mismatch.status,409,'Quote ticket cannot be reused for a different quote');
+});
+
+test('Included customer Magic Select has atomic free quotas, funded-only access and secure tickets',async()=>{
+  const {env,authToken,owner}=await archiveAccount(true),db=env.LAB_DB.db;
+  const png=pngDimensions(640,480);
+  const upload=async()=>{
+    const result=await req(env,'/api/uploads',{method:'POST',authToken,raw:png,headers:{'Content-Type':'image/png','X-Filename':'retouch.png'}});
+    assert.equal(result.status,201,await result.clone().text());
+    return (await result.json()).id;
+  };
+  const sources=[await upload(),await upload(),await upload()];
+  const endpoint='/api/precision/segment';
+  const selection=(sourceId,point={x:200,y:200})=>req(env,endpoint,{method:'POST',authToken,data:{sourceId,point}});
+  const balance=()=>db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(owner).n;
+  const initial=balance(),before=falSubmitCount;
+  const parallel=await Promise.all(Array.from({length:6},()=>selection(sources[0])));
+  assert.equal(parallel.filter(r=>r.status===202).length,5,'One photo has at most five automatic selections, even across tabs');
+  assert.equal(parallel.filter(r=>r.status===429).length,1);
+  const first=await parallel.find(r=>r.status===202).json();
+  assert.ok(first.ticket&&first.requestId);
+  assert.equal(first.creditCost,undefined,'Selection has no customer credit price');
+  const ticket=new URLSearchParams({sourceId:sources[0],requestId:first.requestId,expires:first.expires,ticket:first.ticket});
+  const poll=await req(env,endpoint+'?'+ticket,{authToken});
+  assert.equal(poll.status,202,'Polling the already-paid selection does not create another provider request');
+  const other=await req(env,endpoint+'?'+ticket,{authToken:await token('user_SeparateCustomer')});
+  assert.notEqual(other.status,202,'Another account cannot read the signed segmentation');
+  const four=await Promise.all(Array.from({length:4},()=>selection(sources[1])));
+  assert.ok(four.every(r=>r.status===202));
+  const three=await Promise.all(Array.from({length:3},()=>selection(sources[2])));
+  assert.ok(three.every(r=>r.status===202),'Twelve daily picks can span several images');
+  assert.equal((await selection(sources[2])).status,429,'Thirteenth selection must be rejected before FAL spend');
+  assert.equal(falSubmitCount-before,12);
+  assert.equal(balance(),initial,'Magic Select must not debit PV LAB credits');
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM spend WHERE owner_id=? AND job_id LIKE 'precision-segment:%'").get(owner).n,12);
+  db.prepare('UPDATE lab_customers SET balance_credits=0 WHERE id=?').run(owner);
+  assert.equal((await selection(sources[2])).status,402,'Empty wallet must not consume included selections');
+  assert.equal(falSubmitCount-before,12);
 });
 
 test('Seedream rejects >36MP input before a provider quote and accepts a separate working copy',async()=>{
