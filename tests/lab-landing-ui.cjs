@@ -66,8 +66,12 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('#motion-toggle').count(),0);
   const current=await page.locator('.hero-poster').evaluate(el=>el.currentSrc);
   assert.ok(current.endsWith('/visuals/hero/pvlab-industrial-fashion-20261027.jpg'),'Approved industrial fashion hero is shown at every viewport');
-  assert.equal(await page.locator('#pv-hero-motion').count(),0,'The selected still hero does not request an old hero video');
-  assert.equal(await page.locator('#hero-motion-toggle').count(),0,'The still hero needs no playback control');
+  const heroFilm=page.locator('#pv-hero-motion');
+  assert.equal(await heroFilm.count(),1,'The Fashion After Fabric hero is present');
+  assert.ok((await heroFilm.getAttribute('data-desktop-src')).endsWith('/assets/optimized/video/heroafterfabricvideo-desktop.mp4'));
+  assert.ok((await heroFilm.getAttribute('data-mobile-src')).endsWith('/assets/optimized/video/heroafterfabricvideo-mobile.mp4'));
+  assert.equal(await heroFilm.getAttribute('src'),null,'Reduced-motion visitors do not load the hero video');
+  assert.equal(await page.locator('#hero-motion-toggle').isHidden(),true,'Reduced-motion visitors see the static poster without a video control');
   await page.locator('#tools').scrollIntoViewIfNeeded();await page.locator('.studio-tool-link img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
   await page.locator('#pricing').scrollIntoViewIfNeeded();
   await page.locator('.lab-pricing-mood img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
