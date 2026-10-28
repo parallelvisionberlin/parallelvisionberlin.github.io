@@ -47,7 +47,7 @@
    <div class="progress-top"><span class="eyebrow" id="progress-title">STEP 1 / 4</span><div class="step-track" aria-label="Progress"><i id="step-indicator"></i></div><button id="editorial-reset" type="button" class="text-action">Start over</button></div>
    <section class="step-panel" id="panel-model" aria-labelledby="model-heading">
      <h2 id="model-heading">Model &amp; identity</h2><p class="step-intro">Upload your person and optional additional angles. Photos are used as identity references, not as a guarantee of exact likeness.</p>
-     <div class="tabs" aria-label="Model source"><button class="tab is-selected" type="button" data-model-tab="photos">Upload photos</button><a class="tab" href="./studio.html?tool=image&createCharacter=1">Create a character</a></div>
+     <div class="tabs" aria-label="Model source"><button class="tab is-selected" type="button" data-model-tab="photos">Upload photos</button><button class="tab" id="saved-character" type="button">Saved character</button><a class="tab" href="./studio.html?tool=image&createCharacter=1">Create a character</a></div>
      <div class="upload-large" id="model-drop" role="button" tabindex="0" aria-label="Choose model reference photographs"><span class="upload-plus">+</span><strong>Drop your model photographs here</strong><small>or click to browse · JPG, PNG or WebP · up to 4 photos</small></div>
      <input type="file" id="model-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
      <div class="thumb-row" id="model-thumbs" aria-label="Selected model photographs"></div>
@@ -57,7 +57,7 @@
      <h2 id="style-heading">Styling &amp; garments</h2><p class="step-intro">Add garment photographs, accessories or describe your styling. Use the same model across your series.</p>
      <div class="tabs" aria-label="Styling reference"><button class="tab is-selected" type="button">Garments &amp; references</button></div>
      <div class="thumb-row outfit-row" id="outfit-thumbs" aria-label="Selected garments"></div>
-     <button class="upload-compact" type="button" id="add-outfits"><span>+</span> Add garment or accessory</button>
+     <button class="upload-compact" type="button" id="add-outfits"><span>+</span> Add garment or accessory</button><button class="upload-compact" type="button" id="saved-outfit">Saved outfit</button>
      <input type="file" id="outfit-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
      <label for="styling-direction" class="field-name">Style direction <small>(optional)</small></label>
      <textarea id="styling-direction" maxlength="800" rows="4" placeholder="Black leather, metallic textures, deconstructed tailoring, Yohji Yamamoto-inspired silhouettes..."></textarea>
@@ -69,7 +69,7 @@
      <div id="direction-cards" class="direction-cards" aria-label="Aesthetic directions"></div>
      <div class="mood-links"><a href="./moods" target="_blank" rel="noopener">Explore all Moods</a><span>Choose one direction for the set.</span></div>
      <label class="field-name" for="location-direction">Location reference <small>(optional)</small></label>
-     <div class="thumb-row" id="location-thumbs"></div><button class="upload-compact" id="add-location" type="button"><span>+</span> Add location photo</button><input type="file" id="location-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
+     <div class="thumb-row" id="location-thumbs"></div><button class="upload-compact" id="add-location" type="button"><span>+</span> Add location photo</button><button class="upload-compact" type="button" id="saved-location">Saved location</button><input type="file" id="location-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
      <label class="field-name" for="location-direction">Environment direction <small>(optional)</small></label>
      <textarea id="location-direction" rows="2" maxlength="500" placeholder="Abandoned concrete atelier, directional daylight, tangible materials..."></textarea>
      <div class="control-row"><label for="mood-guide">Mood emphasis <output id="mood-value">60%</output></label><input id="mood-guide" type="range" min="20" max="100" value="60"></div>
@@ -100,6 +100,7 @@
   </div>
 </section>
 </main>
+<dialog id="saved-elements-dialog" aria-labelledby="saved-elements-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / ELEMENTS</span><h2 id="saved-elements-heading">Saved Elements</h2><p>Use existing private reference images from your Elements library.</p><div id="saved-elements-list" class="saved-elements-list"></div><button type="button" class="secondary" id="saved-elements-close">Close</button></div></dialog>
 <dialog id="editorial-confirm" aria-labelledby="confirm-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / CREDIT REVIEW</span><h2 id="confirm-heading">Confirm your editorial set</h2><p id="confirm-description">The server determines your exact credit price.</p><dl><div><dt>Images in this batch</dt><dd id="confirm-count"></dd></div><div><dt>Credits for this batch</dt><dd id="confirm-price"></dd></div><div><dt>Remaining planned images</dt><dd id="confirm-remaining"></dd></div></dl><div class="confirm-buttons"><button type="button" class="secondary" id="confirm-cancel">Cancel</button><button type="button" class="primary" id="confirm-submit">Generate · confirm credits</button></div><p class="fineprint">Only this confirmed batch is submitted and charged. Never automatically resubmitted after a network error.</p></div></dialog>
 <script src="./studios-menu.js?v=20261028-retouch-card1" defer></script>
 <script type="module" src="./full-editorial.js?v=20261028-1"></script>
