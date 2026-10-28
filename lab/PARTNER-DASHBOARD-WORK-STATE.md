@@ -1,5 +1,12 @@
 # Vitolas Studio partner dashboard
 
+## Bellini guide disclosure and spacing / published and verified, 2026-10-28
+- User rejected the long exposed cost note and large empty left column. Cost note now a native details disclosure closed by default inside the 20% entry, with +/minus indicator and keyboard focus. Two independent desktop columns remove row-height gaps; mobile retains original question order. Clarified approved 20% example: net100 EUR →20 EUR. Full adjustment text/cap/floor unchanged.
+- Files: lab/bellini-studio.html, new Bellini-only lab/bellini-studio.css?v=20261028-guide1, existing tests/lab-partner-dashboard-browser.mjs. No shared styles, Vitolas, commission calculations, payouts, credits or PDF changed.
+- PR #629, tested head1dab7965a9ccb14335d7a451d234f373f4e8e026, merge b0dd90feb520cdba0003c4435bb1715df8626f2e. Local synthetic-role browser passed148 assertions at1440px and119 at390px, including default-closed/click/keyboard opening and closing; both guide renders inspected with no overflow. Approved Image contract5/5 and diff whitespace check passed. Partner CI122735701241, generic tests, validation and approved Image122735700770 passed. Unrelated inherited gallery pagination failures remain; no tests weakened.
+- Exact-merge production Cloudflare deployment3747bc39-513e-447d-9445-841c1da9c1e0 succeeded2026-10-28T09:37:57Z. Live /bellini-studio and /bellini-studio.css?v=20261028-guide1 bothHTTP200 and exactly equal to tested bytes. HTML SHA25637294256d47d94f8ae6940278550002ff7add866191538963fd44da45cf8c82b; CSS SHA256bfbec273ed8bd0277540816e53add7b9cc3c0ba82084e318c98a77ad37f5a147.
+- Publication complete. Browser role tests are synthetic; no real signed-in production observation, financial adjustment, transfer or email performed. Automatic generation-cost adjustment remains unimplemented as recorded below.
+
 ## Bellini guide cost note / published and verified, 2026-10-28
 - User approved the exact generation-cost note after the 50%/20% guide entries: only compensate actual generation costs exceeding PV LAB's retained share, cap adjustment at five percentage points, first-payment commission floor45%.
 - Scope is one added note paragraph inside the existing commission guide entry in lab/bellini-studio.html, preserving all eight guide entries and their styling. No calculation, reservation, payout, wallet, credit, provider, Vitolas or dossier changes. Automatic generation-cost adjustment remains unimplemented; this text change must not be reported as billing logic.
