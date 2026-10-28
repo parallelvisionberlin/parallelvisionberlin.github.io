@@ -147,19 +147,20 @@ try{
   for(const width of [1440,390,320]){
     await page.setViewportSize({width,height:900});
     await page.locator('#studio-header').evaluate((el,small)=>el.classList.toggle('pv-mobile-entry-condensed',small),width<=680);
-    for(const id of ['tool-image','tool-video','tool-upscale','tool-retouch','tool-fashion','tool-explore-moods'])
+    for(const id of ['tool-image','tool-video','tool-upscale','tool-fashion','tool-explore-moods'])
       assert.equal(await page.locator('#'+id).isVisible(),true,'Signed-out users retain the original '+id+' at '+width);
+    assert.equal(await page.locator('#tool-retouch').isVisible(),false,'Retouch moves into Studios at '+width);
     assert.equal(await page.locator('.studio-assets-icon').isVisible(),false,'Private Assets remains gated');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=3,'Signed-out navigation fits at '+width);
   }
   for(const route of ['landing','moods']){
     await page.goto('http://127.0.0.1:4193/'+route+'-header');
-    assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),route==='landing'
-      ?['Image','Video','Upscaler','Retouch','Fashion','Explore Moods','Pricing']:['Image','Video','Upscaler','Retouch','Fashion','Explore Moods']);
+    assert.deepEqual(await page.locator('.landing-header nav a:not([hidden])').allTextContents(),route==='landing'
+      ?['Image','Video','Upscaler','Fashion','Explore Moods','Pricing']:['Image','Video','Upscaler','Fashion','Explore Moods']);
     if(route==='landing'){
-      const paths=await page.locator('.landing-header nav a').evaluateAll(els=>els.map(el=>new URL(el.href).pathname+new URL(el.href).search));
-      assert.ok(paths[3].endsWith('/studio.html?tool=retouch'),'Retouch goes to the existing Studio tool');
-      assert.ok(paths[4].endsWith('/studio.html?tool=fashion'),'Fashion goes to the existing Studio tool');
+      const paths=await page.locator('.landing-header nav a:not([hidden])').evaluateAll(els=>els.map(el=>new URL(el.href).pathname+new URL(el.href).search));
+      assert.equal(await page.locator('.landing-header nav a[href*="tool=retouch"]').isVisible(),false,'Retouch is not a top-level destination');
+      assert.ok(paths[3].endsWith('/studio.html?tool=fashion'),'Fashion keeps its existing Studio destination');
       const pricing=page.locator('.landing-header nav a.lab-nav-pricing');
       assert.equal(await pricing.count(),1,'Pricing has its own quiet utility treatment');
       assert.equal(await pricing.getAttribute('href'),'#pricing','Pricing still scrolls to plans');

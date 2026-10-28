@@ -229,7 +229,8 @@ try{
     model:document.querySelector('#image-composer-model-label').textContent.trim(),
     role:document.querySelector('#reference-list .reference-item select')?.value||''
   })),before,'Image sources, prompt, model and ratio must remain untouched');
-  await x.page.click('#tool-retouch');
+  await x.page.locator('.pv-studios-trigger').click();
+  await x.page.locator('.pv-studios-retouch-link').click();
   assert.match(x.page.url(),/tool=retouch/);
   await retouchTopAndBackButton(x.page);
   await x.page.click('#precision-return');
@@ -279,7 +280,8 @@ try{
   assert.match(x.page.url(),/tool=image/);
   // Public customers can inspect Retouch, but no metered service is enabled.
   await x.page.evaluate(()=>window.__labTest.setCustomerMode(true));
-  await x.page.click('#tool-retouch');
+  await x.page.locator('.pv-studios-trigger').click();
+  await x.page.locator('.pv-studios-retouch-link').click();
   assert.equal(await x.page.locator('#precision-access-note').isVisible(),true);
   assert.equal(await x.page.locator('#precision-tool-magic').isDisabled(),true);
   assert.equal(await x.page.locator('#precision-generate').isDisabled(),true);

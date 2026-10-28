@@ -462,7 +462,7 @@ for(const width of [768,390,320]){
 }
 const mobileTools=page.locator('#studio-header .tool-switch');
 assert.equal(await mobileTools.evaluate(el=>getComputedStyle(el).overflowX),'auto','Narrow mobile tools remain horizontally scrollable');
-for(const id of ['tool-image','tool-retouch','tool-video','tool-upscale','studios-menu','tool-explore-moods']){
+for(const id of ['tool-image','tool-video','tool-upscale','studios-menu','tool-explore-moods']){
   const tab=page.locator(id==='studios-menu'?'.pv-studios-trigger':'#'+id);
   await tab.scrollIntoViewIfNeeded();
   const bounds=await tab.boundingBox(),navBounds=await mobileTools.boundingBox();

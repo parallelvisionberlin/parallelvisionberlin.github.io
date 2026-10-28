@@ -217,8 +217,9 @@ try{
     await page.waitForFunction(()=>document.getElementById('pv-guest-cards').scrollLeft<4);
     const guest=page.locator('#pv-guest-composer');
     const field=page.locator('#pv-guest-prompt');
-    for(const id of ['tool-image','tool-video','tool-upscale','tool-retouch','tool-fashion','tool-explore-moods'])
+    for(const id of ['tool-image','tool-video','tool-upscale','tool-fashion','tool-explore-moods'])
       assert.equal(await page.locator('#'+id).isVisible(),true,'The original public navigation stays visible: '+id);
+    assert.equal(await page.locator('#tool-retouch').isVisible(),false,'Retouch is only in Studios');
     const originalFrame=await guest.boundingBox();
     await page.evaluate(()=>{window.__navSignIns=0;document.getElementById('signin').addEventListener('click',()=>window.__navSignIns++);});
     await page.locator('#tool-video').click();
