@@ -310,14 +310,14 @@ try{
     await page.goto(base+'/lab/studio.html?tool=image');await settled(page,'image');
     await page.locator('#pv-guest-prompt').fill('Keep my public Image draft.');
     for(const route of ['video','upscale','retouch','fashion','image']){
-      if(route==='fashion')await page.locator('.pv-studios-trigger').click();
-      await page.locator('#tool-'+route).click();await settled(page,route);
+      if(route==='fashion'||route==='retouch')await page.locator('.pv-studios-trigger').click();
+      await page.locator(route==='retouch'?'.pv-studios-retouch-link':'#tool-'+route).click();await settled(page,route);
       assert.equal(new URL(page.url()).searchParams.get('tool'),route);
     }
     assert.equal(await page.locator('#pv-guest-prompt').inputValue(),'Keep my public Image draft.');
     await page.goBack();await settled(page,'fashion');
     await page.goForward();await settled(page,'image');
-    await page.locator('#tool-retouch').click();await settled(page,'retouch');
+    await page.locator('.pv-studios-trigger').click();await page.locator('.pv-studios-retouch-link').click();await settled(page,'retouch');
     await page.locator('#precision-return').click();await settled(page,'image');
     await page.locator('.pv-studios-trigger').click();
     await page.locator('#tool-fashion').click();await settled(page,'fashion');
@@ -356,8 +356,8 @@ try{
           })
         }));
         const imageHeader=route==='retouch'?await headerPositions():null;
-        if(route==='fashion')await page.locator('.pv-studios-trigger').click();
-        await page.locator('#tool-'+route).click();await settled(page,route,true);
+        if(route==='fashion'||route==='retouch')await page.locator('.pv-studios-trigger').click();
+        await page.locator(route==='retouch'?'.pv-studios-retouch-link':'#tool-'+route).click();await settled(page,route,true);
         if(route==='retouch'&&width>=761){
           const retouchHeader=await headerPositions();
           assert.equal(retouchHeader.clientWidth,imageHeader.clientWidth,role+' Retouch keeps the Image scrollbar reservation at '+width);
@@ -369,7 +369,7 @@ try{
           }
           await page.locator('#tool-image').click();await page.locator('#image-composer').waitFor({state:'visible'});
           assert.deepEqual(await headerPositions(),imageHeader,'Returning to Image restores the same header positions');
-          await page.locator('#tool-retouch').click();await settled(page,'retouch',true);
+          await page.locator('.pv-studios-trigger').click();await page.locator('.pv-studios-retouch-link').click();await settled(page,'retouch',true);
         }
         await fullPage(page,`test-results/studio-${role}-${route}-${width}.png`);
         if(route==='upscale'){

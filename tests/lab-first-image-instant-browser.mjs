@@ -170,8 +170,12 @@ try{
       const field=p.locator('#'+prefix+'-prompt'),bar=p.locator(role==='guest'?'#pv-guest-composer':'#image-composer');
       assert.equal(await p.locator('#image-composer:visible,#pv-guest-composer:visible').count(),1,
         role+' has one visible Image editor, not a separate role-specific copy');
-      if(role!=='guest')assert.equal(await p.locator('#tool-retouch').isVisible(),true,
-        role+' retains Retouch in the shared tool navigation');
+      if(role!=='guest'){
+        assert.equal(await p.locator('#tool-retouch').isVisible(),false,role+' has Retouch only inside Studios');
+        await p.locator('.pv-studios-trigger').click();
+        assert.equal(await p.locator('.pv-studios-retouch-link').isVisible(),true,role+' can still reach Retouch');
+        await p.keyboard.press('Escape');
+      }
       const states={};
       async function capture(state){
         states[state]=await bar.evaluate(el=>{
