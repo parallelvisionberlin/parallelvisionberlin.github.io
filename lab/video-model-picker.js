@@ -65,9 +65,12 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
 
   const list=document.createElement('div');list.className='pv-video-model-list';
   list.setAttribute('role','group');list.setAttribute('aria-label','Available video models');
-  const foot=document.createElement('div');foot.className='pv-video-model-foot';
-  foot.textContent='Extend uses Higgsfield. Provider policies still apply.';
-  popover.append(head,searchWrap,filterRow,list,foot);
+  // Measure the existing menu height once before removing its old footer.
+  // Locking that exact height gives the model rows the recovered space without
+  // changing the outer popup size, anchor, width or scroll behavior.
+  const layoutMeasure=document.createElement('div');layoutMeasure.className='pv-video-model-foot';
+  layoutMeasure.textContent='Extend uses Higgsfield. Provider policies still apply.';
+  popover.append(head,searchWrap,filterRow,list,layoutMeasure);
   document.body.append(popover);
   let open=false,lastFingerprint='',lastSelection='',searchText='',uncensoredOnly=false,moreExpanded=false;
 
@@ -95,9 +98,6 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
     const policyDetails=!!getPolicyDetails();
     filterRow.hidden=!policyDetails;
     if(!policyDetails)uncensoredOnly=false;
-    foot.textContent=policyDetails
-      ? 'Purple dots mark SpicyAPI models without an added platform content scan. Models can still refuse requests. Extend uses Higgsfield.'
-      : 'Extend uses Higgsfield. Provider policies still apply.';
     const all=entries(),query=searchText.trim().toLocaleLowerCase(),mapped=new Set();
     const matches=(entry,section='')=>(!uncensoredOnly||entry.meta.uncensored)
       &&(entry.name+' '+entry.meta.description+' '+section+(policyDetails&&entry.meta.uncensored?' uncensored':'')).toLocaleLowerCase().includes(query);
@@ -228,6 +228,12 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
     open=true;searchText='';search.value='';uncensoredOnly=false;lastFingerprint='';
     trigger.setAttribute('aria-expanded','true');
     popover.hidden=false;render();
+    if(layoutMeasure.isConnected){
+      // Calculate with the original footer, then remove the entire footer.
+      // Neither the popup nor the page reflows; the flex list fills the space.
+      popover.style.height=popover.getBoundingClientRect().height+'px';
+      layoutMeasure.remove();
+    }
     if(window.matchMedia('(hover: hover) and (pointer: fine)').matches)
       search.focus({preventScroll:true});
   }
