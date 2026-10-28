@@ -1,3 +1,10 @@
+## Fashion After Fabric PV LAB homepage hero, 2026-10-28
+- Owner approved replacing the homepage's static background experience with the existing Fashion After Fabric hero animation; preserve all headline, copy, CTA, image fallback and header/navigation layouts.
+- Source: existing Parallel Vision film `assets/optimized/video/heroafterfabricvideo-{desktop,mobile}.mp4` (6.57 sec; 2.98 MB desktop / 1.29 MB mobile). Both are referenced from the public `parallelvisionlabel.com` origin; no new generation or upload.
+- `lab/index.html`: add one muted looping `#pv-hero-motion` with responsive sources and existing optional play/pause control; keep the approved 2026-10-27 JPG visible until playback and for reduced-motion, saved-data, or failed video.
+- Reuse `lab/landing-motion.css` and `lab/landing-motion.js` unchanged. Update focused `tests/lab-landing-ui.cjs` to check responsive sources and reduced-motion handling.
+- Branch: `feat/pvlab-fashion-after-fabric-hero-20261028`. PR/CI, Cloudflare publication and live playback need independent verification; do not claim this source note proves deployment.
+
 ## Mobile homepage hero crop, 2026-10-27
 - Screenshot from the owner shows the woman's face cut off at the right on an iPhone in-app browser. The horizontal tool navigation is a deliberately scrollable row, not a page overflow; no header redesign was requested.
 - Keep the existing approved hero image and all copy. Change only mobile image `object-position` from 70% to 92% on <=700px, leaving the desktop crop, video, and existing hero gradient alone.
