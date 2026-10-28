@@ -88,7 +88,7 @@ function update(){
     $('quote').replaceChildren(document.createTextNode(title),arrow);
   }
   const person=!!$('person-file').files.length,garment=!!$('garment-file').files.length;
-  $('action-hint').textContent=!person||!garment?'Add a person and garment.':!providerModel?.available?'This model is not connected. Select another available engine.':selected==='fluxvto'&&!$('direction').value.trim()?'Add a styling direction for FLUX.':'';
+  $('action-hint').textContent=!person||!garment?'Add a person and garment.':!providerModel?.available?'This model is not connected. Select another available engine.':selected==='fluxvto'&&!finalDirection()?'Add a styling direction for FLUX.':finalDirection().length>1200?'Shorten your styling direction to 1,200 characters.':'';
   $('action-hint').hidden=!$('action-hint').textContent;
 }
 function choosePhoto(id,slot,img,hint){
