@@ -5,7 +5,7 @@ import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
-let uploadCount=0,jobCount=0,quoteCount=0;
+let uploadCount=0,jobCount=0,quoteCount=0,characterSaves=0;
 const mockAuth="export async function loadLabAccount(){return {isSignedIn:true,session:{id:'sess-editorial-mock',getToken:async()=> 'token'},user:{id:'user-editorial-mock'},addListener(){},openSignIn(){throw Error('Sign in should not be opened in mock');}}}";
 const mockSession="export function createSessionRequest(){return async (path,init)=>fetch('http://127.0.0.1:4179'+path,init)}";
 const image=readFileSync('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
@@ -16,6 +16,19 @@ const server=http.createServer(async(req,res)=>{
  const json=obj=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(obj));};
  if(u.pathname==='/api/session'){json({config:{enabled:true},credits:{balance:5000}});return}
  if(u.pathname==='/api/uploads'){for await(const _chunk of req){}json({id:'upload-'+(++uploadCount)});return}
+ if(u.pathname==='/api/packs'&&req.method==='GET'){json({packs:[]});return}
+ if(u.pathname==='/api/packs'&&req.method==='POST'){
+  const chunks=[];for await(const part of req)chunks.push(part);
+  const payload=JSON.parse(Buffer.concat(chunks).toString());
+  assert.equal(payload.engine,'seedance');
+  assert.match(payload.name,/^PVSCENE1\|characters\|Noir Model$/);
+  assert.equal(payload.referenceSourceIds.length,1);
+  assert.equal(payload.referenceRoles[0].role,'identity');
+  assert.match(payload.referenceRoles[0].note,/facial identity/i);
+  characterSaves++;
+  json({id:'character-'+characterSaves});
+  return;
+ }
  if(u.pathname==='/api/quotes'){
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
   const input=JSON.parse(Buffer.concat(chunks).toString());quoteCount++;
@@ -38,7 +51,24 @@ try{
   const page=await browser.newPage({viewport:{width,height:900},acceptDownloads:true});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4179/lab/full-editorial.html',{waitUntil:'domcontentloaded'});
-  await page.locator('#editorial-start').click();await page.locator('#model-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
+  await page.locator('#editorial-start').click();
+  const currentUrl=page.url();
+  await page.locator('#create-character').click();
+  assert.equal(page.url(),currentUrl,'Creating a character remains inside Full Editorial');
+  assert.equal(await page.locator('#inline-character-editor').isVisible(),true);
+  await page.locator('#inline-character-name').fill('Noir Model');
+  await page.locator('#model-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
+  const savesBefore=characterSaves;
+  await page.locator('#inline-character-save').click();
+  assert.equal(characterSaves,savesBefore,'Saving requires explicit photo-use authorization');
+  assert.match(await page.locator('#inline-character-status').textContent(),/permission/i);
+  await page.locator('#inline-character-consent').check();
+  await page.locator('#inline-character-save').click();
+  await page.locator('#model-thumbs .saved-thumb').waitFor({state:'visible'});
+  assert.equal(characterSaves,savesBefore+1,'One private Elements pack created without duplicate saves');
+  assert.equal(page.url(),currentUrl,'Saving a character never leaves Full Editorial');
+  assert.equal(jobCount,0,'Saving a character never submits paid generation');
+  assert.equal(await page.locator('#inline-character-editor').isVisible(),false,'Editor collapses after saving');
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-style').isVisible(),true);
   await page.locator('#styling-direction').fill('Architectural black leather and natural tailoring.');
   await page.locator('#outfit-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
@@ -63,5 +93,5 @@ try{
   assert.deepEqual(errors,[],'No browser errors at '+width);
   await page.close();
  }
- console.log('PASS Full Editorial 1440/390 steps, uploads, bound credit quote, confirm gate, real result assets and overflow');
+ console.log('PASS Full Editorial 1440/390 inline Create Character, private Elements save, no redirect, reference reuse, credits and generated results');
 }finally{await browser.close();server.close()}
