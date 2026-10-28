@@ -1,5 +1,11 @@
 # Vitolas Studio partner dashboard
 
+## Bellini guide cost note / publishing, 2026-10-28
+- User approved the exact generation-cost note after the 50%/20% guide entries: only compensate actual generation costs exceeding PV LAB's retained share, cap adjustment at five percentage points, first-payment commission floor45%.
+- Scope is one added note paragraph inside the existing commission guide entry in lab/bellini-studio.html, preserving all eight guide entries and their styling. No calculation, reservation, payout, wallet, credit, provider, Vitolas or dossier changes. Automatic generation-cost adjustment remains unimplemented; this text change must not be reported as billing logic.
+- PR #625, branch copy/bellini-generation-cost-note-20261028, baseline a3e0505e6936319b037d57b7c8858de1e8555f24; first content commit14b7932fd12aec6b6e4d62e9d4d901be290ccddf. Approved Image contract5/5 and diff whitespace checks passed. No new implementation-mirroring tests.
+- Next: relevant existing CI, normal merge/publication, then exact live HTML verification. No real adjustments or funds moved.
+
 ## Bellini payout requests / published and verified, 2026-10-28
 - Approved: 15th/30th transfers (February second payment on month end), minimum 50 EUR net, Solicitar pago, available → pending → paid history. Owner receives amount and confirms only an actual external transfer with a reference. No bank transfer is initiated by this feature. Keep 50% first verified payment (including initial top-up), then 20% eligible subscriptions for six calendar months. Vitolas policy and layout preserved.
 - Reviewed source 12edb1152941be031d765a5fb1271f797a065cea, PR #620, merge 463d22e10dc09815fe275e2204a0f245e4a4e8c4. Latest observed main d8556a6 descends from merge; all six affected Bellini/Owner static files unchanged. Preserve concurrent Beauty/Image/hero work.
