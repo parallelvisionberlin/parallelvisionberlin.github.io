@@ -325,7 +325,6 @@ try{
     const items=el.querySelector('.composer-model-items'),list=items.getBoundingClientRect();
     const rows=[...items.querySelectorAll('.composer-model-option')].map(row=>row.getBoundingClientRect());
     const search=el.querySelector('.composer-model-search').getBoundingClientRect();
-    const footer=el.querySelector('.composer-model-footer').getBoundingClientRect();
     const trigger=document.getElementById('image-composer-model').getBoundingClientRect();
     const overflow=items.scrollHeight>items.clientHeight+2;
     return {width:r.width,height:r.height,top:r.top,bottom:r.bottom,headerBottom:head.bottom,triggerTop:trigger.top,
@@ -336,7 +335,7 @@ try{
       descriptionWhiteSpace:getComputedStyle(items.querySelector('.composer-model-info small')).whiteSpace,
       partialBottomRow:rows.some(row=>row.top<list.bottom-1&&row.bottom>list.bottom+2),
       emptyTail:rows.length?list.bottom-rows.at(-1).bottom:0,
-      searchTop:search.top,searchBottom:search.bottom,footerTop:footer.top,footerBottom:footer.bottom,
+      searchTop:search.top,searchBottom:search.bottom,
       limit:getComputedStyle(el).maxHeight};
   });
   assert.ok(menuGeometry.width>=438&&menuGeometry.width<=442,'Model menu should have its refined 440px desktop width: '+JSON.stringify(menuGeometry));
@@ -344,13 +343,14 @@ try{
   assert.ok(menuGeometry.top>=menuGeometry.headerBottom+14,'Model dropdown must preserve a visible gap below navigation: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.rowHeight>=57&&menuGeometry.titleSize>=12.5&&menuGeometry.descriptionWhiteSpace==='nowrap',
     'Model rows must have breathing room and one-line descriptions: '+JSON.stringify(menuGeometry));
-  assert.ok(menuGeometry.searchTop>=menuGeometry.top&&menuGeometry.footerBottom<=menuGeometry.bottom+1,'Search and character shortcut stay inside menu: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.searchTop>=menuGeometry.top&&menuGeometry.searchBottom<=menuGeometry.bottom+1,'Model search stays inside menu: '+JSON.stringify(menuGeometry));
+  assert.equal(await x.page.locator('#image-composer-train,.composer-model-footer').count(),0,'Legacy character-management footer must not appear in model menu');
   assert.equal(menuGeometry.partialBottomRow,false,'Only complete model rows should show initially: '+JSON.stringify(menuGeometry));
   if(!menuGeometry.overflow)assert.ok(menuGeometry.emptyTail<7,'No large blank area after the last model: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.itemsClient>=250,'Model list stays usable before scrolling: '+JSON.stringify(menuGeometry));
   assert.equal(await x.page.locator('.composer-model-option[data-value="qwen3"] img').getAttribute('src'),'./branding/qwen.svg?v=20261013-mono1','Qwen uses refreshed local icon');
   // Simulate future models: the menu must clip at a full row and never insert
-  // a large empty zone between the final visible card and the fixed footer.
+  // a large empty zone beneath the final visible model.
   await x.page.locator('#image-composer-model-items').evaluate(list=>{
     const model=list.querySelector('.composer-model-option');
     for(let i=0;i<6;i++){
