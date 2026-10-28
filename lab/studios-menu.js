@@ -28,8 +28,9 @@
   const retouchLink=panel.querySelector('.pv-studios-retouch-link');
   if(existingRetouch?.tagName==='A')retouchLink.href=existingRetouch.href;
   if(existingRetouch?.tagName==='BUTTON')retouchLink.addEventListener('click',event=>{event.preventDefault();existingRetouch.click();});
-  const active=()=>trigger.classList.toggle('is-active',location.pathname.endsWith('/beauty.html')||original.getAttribute('aria-pressed')==='true');active();
+  const active=()=>trigger.classList.toggle('is-active',location.pathname.endsWith('/beauty.html')||original.getAttribute('aria-pressed')==='true'||existingRetouch?.getAttribute('aria-pressed')==='true');active();
   new MutationObserver(active).observe(original,{attributes:true,attributeFilter:['aria-pressed']});
+  if(existingRetouch?.tagName==='BUTTON')new MutationObserver(active).observe(existingRetouch,{attributes:true,attributeFilter:['aria-pressed']});
   function position(){
    const rect=trigger.getBoundingClientRect(),width=Math.min(1400,innerWidth-28),left=Math.max(14,Math.min(rect.left-24,innerWidth-width-14)),top=Math.max(10,rect.bottom+16);
    if(rect.bottom<0){close();return;}

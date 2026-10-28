@@ -1,3 +1,5 @@
+/* Keep Retouch's existing internal route control, but only show it inside Studios. */
+.studio-header #tool-retouch[hidden]{display:none!important}
 /* Studios panel uses the exact original three photographic cards including the baked-in titles. */
 .pv-studios-menu{display:inline-flex;align-items:center;flex-shrink:0}
 .pv-studios-trigger{display:inline-flex;align-items:center;justify-content:center;gap:9px;position:relative;border:0;border-radius:0;background:none;color:inherit;padding:14px 0;font:inherit;line-height:inherit;cursor:pointer;white-space:nowrap}
