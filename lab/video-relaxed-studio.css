@@ -133,3 +133,73 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-description{display:none!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-actions{margin-top:24px!important;gap:16px!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-actions>button{height:48px!important;min-height:48px!important;padding:12px 24px!important}
+
+
+/* Video-only: Seed opens horizontally inside its existing row. The numeric
+   field is out of flow, so it cannot lengthen the controls or shift Generate. */
+html body #app.video-studio-active #video-utilities > details.seed-settings{
+ position:relative;
+ flex:1 1 auto;
+ width:100%;
+ min-width:0;
+ height:26px;
+ min-height:26px;
+ margin:0!important;
+}
+html body #app.video-studio-active #video-utilities > details.seed-settings > summary{
+ display:list-item;
+ width:max-content;
+ max-width:58px;
+ min-height:26px;
+ line-height:26px;
+ padding:0;
+ font-size:11px!important;
+ letter-spacing:0!important;
+ text-transform:none!important;
+ color:#acb0ba!important;
+}
+html body #app.video-studio-active #video-utilities > details.seed-settings[open] > label{
+ position:absolute;
+ inset:0 0 0 58px;
+ display:flex;
+ flex-direction:row;
+ align-items:center;
+ gap:8px;
+ margin:0!important;
+ padding:0;
+ min-width:0;
+ width:auto;
+ height:26px;
+}
+html body #app.video-studio-active #video-utilities > details.seed-settings[open] > label > .label{
+ display:block;
+ flex:none;
+ width:auto;
+ margin:0!important;
+ color:#9da1aa!important;
+ font:400 10px/1.1 'DM Sans',Arial,sans-serif!important;
+ letter-spacing:0!important;
+ text-transform:none!important;
+ white-space:nowrap;
+}
+html body #app.video-studio-active #video-utilities > details.seed-settings[open] #seed{
+ display:block;
+ flex:1 1 auto;
+ min-width:0;
+ width:100%;
+ max-width:none;
+ height:26px!important;
+ min-height:26px!important;
+ box-sizing:border-box;
+ margin:0!important;
+ padding:3px 8px!important;
+ border:1px solid #353942;
+ border-radius:7px;
+ background:#1c1e22;
+ color:#f2f2f2;
+ font:400 12px/1.2 'DM Sans',Arial,sans-serif!important;
+}
+html body #app.video-studio-active #video-utilities > details.seed-settings[open] #seed:focus-visible{
+ outline:2px solid #d2d6de;
+ outline-offset:2px;
+}

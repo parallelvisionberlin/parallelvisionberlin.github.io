@@ -1,3 +1,9 @@
+## Seed control inline layout, 2026-10-28
+- Owner screenshot: Video Studio's open Seed puts the Optional seed text and numeric input below its disclosure, adding a scrollbar and shifting the left-side stack.
+- Approved behavior: keep the native `<details>` and `#seed` value, but show a compact 10px `Optional` label and numeric `Random` field to the right of `Seed` within the same 26px row; opening should not grow the panel or move Generate.
+- Scoped files: `lab/video-relaxed-studio.css`, `lab/studio.html` (video Seed markup and stylesheet cache marker only), `tests/lab-video-relaxed.test.mjs`. Soul Pro Seed and other non-Video inputs untouched; no model, generation, quote, credits, price, scene, navigation or frame changes.
+- Branch: `fix/video-seed-inline-right-20261028`. Focused relaxed-Video, approved Image UI, and relevant browser checks before release. Cloudflare Pages `pvlab-studio` deployment and live layout are separate from source merges.
+
 ## Customer credit currency, 2026-10-24
 
 - User approved credits as the creation currency; euro prices belong in pricing and billing.

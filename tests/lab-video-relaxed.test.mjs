@@ -24,3 +24,15 @@ test('approved subway artwork is local and locked, without replacing source-medi
   assert.doesNotMatch(state,/video-subway-relaxed-approved/,'Artwork never becomes a submitted source');
   assert.match(read('lab/video-editorial-deck.js').toString(),/doc\.addEventListener\('wheel'/,'Original wheel routing remains');
 });
+
+
+test('Video Seed expands to the right without changing the sidebar height',()=>{
+  const html=read('lab/studio.html').toString();
+  assert.match(html,/video-relaxed-studio\.css\?v=20261024-relaxed1[^"]*seedInline=20261028-right1/);
+  assert.match(html,/<details class="seed-settings"><summary>Seed<\/summary><label><span class="label">Optional<\/span><input id="seed" type="number" min="0" max="2147483647" placeholder="Random" aria-label="Optional seed"><\/label><\/details>/);
+  assert.match(css,/#video-utilities > details\.seed-settings\{/);
+  assert.match(css,/height:26px;\s*min-height:26px;/,'Seed reserves one row, open or closed');
+  assert.match(css,/details\.seed-settings\[open\] > label\{\s*position:absolute;\s*inset:0 0 0 58px;/,'Seed input opens horizontally without adding a row');
+  assert.match(css,/font:400 10px\/1\.1 'DM Sans'/,'Optional label uses discreet small text');
+  assert.match(css,/details\.seed-settings\[open\] #seed\{/,'Original numeric input remains bound for provider requests');
+});
