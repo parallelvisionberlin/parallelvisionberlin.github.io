@@ -21,7 +21,7 @@
      '<section class="pv-studios-tile pv-studios-beauty">'+artwork+'<a aria-label="Beauty Studio" href="'+url('beauty.html')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-fashion">'+artwork+'</section>'+
      '<section class="pv-studios-tile pv-studios-outfit"><img class="pv-studios-outfit-artwork" alt="" loading="lazy" decoding="async" src="'+outfit+'"><a class="pv-studios-outfit-link" aria-label="Outfit Studio" href="'+url('studio.html?tool=fashion')+'"></a></section>'+
-     '<section class="pv-studios-tile pv-studios-editorial">'+artwork+'<a aria-label="Full Editorial" href="'+url('studio.html?tool=fashion&workflow=editorial')+'"></a></section>'+
+     '<section class="pv-studios-tile pv-studios-editorial">'+artwork+'<a aria-label="Full Editorial" href="'+url('full-editorial.html')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-retouch"><img class="pv-studios-retouch-artwork" alt="" loading="lazy" decoding="async" src="'+retouchCard+'"><a class="pv-studios-retouch-link" aria-label="Retouch Studio" href="'+url('studio.html?tool=retouch')+'"></a></section>'+
    '</div>'+
    '<div class="pv-studios-secondary"><a class="pv-studios-character-link" href="'+url('studio.html?tool=image&createCharacter=1')+'">Character Studio'+arrow+'</a></div>';
