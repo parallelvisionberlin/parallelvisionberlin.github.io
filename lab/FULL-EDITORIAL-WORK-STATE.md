@@ -1,3 +1,9 @@
+## 2026-10-29 / angular desert hero and editorial typography
+- User explicitly selected image 3, angular bronze sculptural installation with black-clad model in the desert, replacing ivory fabric.
+- Owner-supplied original: hf_20261028_233627_10a3c169-0264-4d3d-9be6-65aed55f126a.png. Confirmed media CDN upload ID 6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a (external dependency). Hero, image preload and OG now use that image.
+- Accessible heading Full Editorial Studio receives contrasting italic Studio., a restrained descriptive line, a four-part numbered workflow rail and clear Create your editorial action. Gradient and mobile crop adjusted independently.
+- Account, credit quote, generation workflow and studio controls untouched. Branch feat/full-editorial-angular-hero-typography-20261029. Production deployment requires separate verification.
+
 ## Approved ivory-fabric Full Editorial hero replacement, 2026-10-29
 - User rejected wet-haired chrome model, selected visual #2: dramatic ivory sculptural fabric in an industrial hall. Use supplied full-resolution original `hf_20261028_230415_de672549-cd46-42a2-b2d2-a92b25975add.png` rather than cropping six-panel mockup.
 - Uploaded original to Higgsfield media CDN, media id `170a21ab-5d66-44bd-ada6-533d07a00014` (external source); hero, preload and Open Graph image point to CDN PNG. Third-party image dependency remains, not repository-hosted asset.
