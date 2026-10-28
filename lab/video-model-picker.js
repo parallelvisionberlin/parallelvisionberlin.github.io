@@ -159,8 +159,13 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
     const title=document.createElement('strong');title.textContent=item.name;
     if(item.meta.uncensored){
       const marker=document.createElement('span');marker.className='pv-video-model-moderation-dot';
-      marker.setAttribute('role','img');marker.setAttribute('aria-label','Listed as uncensored by SpicyAPI');
-      marker.title='SpicyAPI uncensored listing: no added content scan. The model can still refuse.';
+      marker.setAttribute('role','img');const policyDetails=!!getPolicyDetails();
+      marker.setAttribute('aria-label',policyDetails
+        ? 'SpicyAPI listing: no additional platform content scan; model rules still apply'
+        : 'Optional provider policy information');
+      marker.title=policyDetails
+        ? 'SpicyAPI listing: no additional platform content scan. Model rules still apply.'
+        : 'Optional provider policy information. See Account Settings.';
       title.append(marker);
     }
     const desc=document.createElement('small');desc.textContent=item.disabled?'Not available with this account':item.meta.description;
