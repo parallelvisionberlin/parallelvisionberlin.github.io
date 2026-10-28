@@ -19,7 +19,8 @@ captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261013-character-studio1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1&seedance15-4k=1&publicLabels=20261017-1';
 import {mountVideoEffectsGallery,resolveVideoEffect} from './video-effects.js?v=20261016-1';
-import {createVideoModelPicker} from './video-model-picker.js?v=20261016-wan-mini-priority1';
+import {createVideoModelPicker} from './video-model-picker.js?v=20261028-discreet-policy1';
+import {readProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {videoCustomerQuoteLabels} from './video-euro-pricing.js?v=20261024-credits1';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3&hkCinema=20261025v1';
@@ -332,7 +333,7 @@ let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[
 let lastVideoCreateMode='reference',initialVideoEntryConfigured=false;
 let engine='seedance', imageEngine='seedream', imageProcessing='normal', soulProModel='soul2', soulProQuality='medium', soulProIdentity={configured:false,count:0,refs:[]}, soulProPackSelection=[], soulProPackUrls=[], poseMapSourceId=null, repairTarget=null, repairImage=null, repairMaskCanvas=null, repairMaskDirty=false;
 let tool='image', packs=[],resultKind='video',resultExt='mp4';
-const videoModelPicker=createVideoModelPicker({select:$('video-engine'),getBusy:()=>busy,isActive:()=>tool==='video'&&owner&&!fashionActive&&!assetLibrary?.active()});
+const videoModelPicker=createVideoModelPicker({select:$('video-engine'),getBusy:()=>busy,isActive:()=>tool==='video'&&owner&&!fashionActive&&!assetLibrary?.active(),getPolicyDetails:()=>readProviderPolicyDetails(userId)});
 let resultUrl=null, resultId=null, resultSettings=null, previewRevision=0, autoPreview=null, currentQuote=null, next=null, activeJob=null, timer=null, historyRevision=0;
 let activeJobs=[], polling=false, historySelectMode=false, historySelected=new Set();
 const downloadUrls=new Set();
@@ -2056,7 +2057,7 @@ function populateImageModelMenu(query=''){
     if(option.hidden)continue;
     const publicDescriptions={flash:'Fast · up to 10 references',kling:'Kling V3 · text or one base image'};
     const name=option.textContent,detail=(!ownerAccount&&publicDescriptions[option.value])||imageModelDescriptions[option.value]||'Image creation';
-    if(value&&!(name+' '+detail+(['seedream','seedreamlite','flash','zspicy'].includes(option.value)?' Artistic Freedom':'')).toLowerCase().includes(value))continue;
+    if(value&&!(name+' '+detail+(readProviderPolicyDetails(userId)?' provider policy':'')).toLowerCase().includes(value))continue;
     const row=document.createElement('button');row.type='button';
     row.className='composer-model-option';row.dataset.value=option.value;row.disabled=busy||option.disabled;
     row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.value===imageEngine));
@@ -2064,14 +2065,13 @@ function populateImageModelMenu(query=''){
     const info=document.createElement('span');info.className='composer-model-info';
     const title=document.createElement('strong');title.textContent=name;
     const heading=document.createElement('span');heading.className='composer-model-heading';heading.append(title);
-    if(['seedream','seedreamlite','flash','zspicy'].includes(option.value)){
-      const badge=document.createElement('span');badge.className='composer-model-freedom';
-      badge.title='SpicyAPI adds no platform content filter. The model may still decline a request.';
-      const star=document.createElement('span');star.setAttribute('aria-hidden','true');star.textContent='✳';
-      badge.append(star,document.createTextNode('Artistic Freedom'));heading.append(badge);
-    }
     const caption=document.createElement('small');caption.textContent=detail;caption.title=detail;
     info.append(heading,caption);
+    if(readProviderPolicyDetails(userId)&&['seedream','seedreamlite','flash','zspicy'].includes(option.value)){
+      const policy=document.createElement('small');policy.className='composer-model-policy';
+      policy.textContent='No additional SpicyAPI content scan. Model rules still apply.';
+      info.append(policy);
+    }
     const active=document.createElement('span');active.className='composer-model-check';
     active.textContent=option.value===imageEngine?'✓':'';
     row.append(icon,info,active);

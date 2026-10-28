@@ -618,3 +618,7 @@ html:has(#image-lightbox[open]),body:has(#image-lightbox[open]){overflow:hidden}
   color:#aeb0b7;text-align:center;font:600 9px/1.2 'DM Sans',sans-serif;
   pointer-events:none;
 }
+
+/* Only opted-in accounts see the quiet policy note below relevant Image models. */
+.composer-model-info .composer-model-policy{color:#aeb1bd;font-size:10px;white-space:normal;line-height:1.35}
+.composer-model-option:has(.composer-model-policy){min-height:66px}

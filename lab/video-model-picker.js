@@ -23,7 +23,7 @@ const META={
   omni:{description:'Text, frames & references · up to 4K',brand:'google',badge:'4K'}
 };
 
-export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>true}){
+export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>true,getPolicyDetails=()=>false}){
   const trigger=document.getElementById('video-model-trigger');
   const current=document.getElementById('video-model-current');
   if(!select||!trigger||!current)throw new Error('Video model picker controls not found.');
@@ -66,7 +66,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
   const list=document.createElement('div');list.className='pv-video-model-list';
   list.setAttribute('role','group');list.setAttribute('aria-label','Available video models');
   const foot=document.createElement('div');foot.className='pv-video-model-foot';
-  foot.textContent='Uncensored = no added SpicyAPI content scan, not guaranteed output. Extend uses Higgsfield. Model and provider policies still apply.';
+  foot.textContent='Extend uses Higgsfield. Provider policies still apply.';
   popover.append(head,searchWrap,filterRow,list,foot);
   document.body.append(popover);
   let open=false,lastFingerprint='',lastSelection='',searchText='',uncensoredOnly=false,moreExpanded=false;
@@ -92,9 +92,15 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
   }
 
   function render(){
+    const policyDetails=!!getPolicyDetails();
+    filterRow.hidden=!policyDetails;
+    if(!policyDetails)uncensoredOnly=false;
+    foot.textContent=policyDetails
+      ? 'Purple dots mark SpicyAPI models without an added platform content scan. Models can still refuse requests. Extend uses Higgsfield.'
+      : 'Extend uses Higgsfield. Provider policies still apply.';
     const all=entries(),query=searchText.trim().toLocaleLowerCase(),mapped=new Set();
     const matches=(entry,section='')=>(!uncensoredOnly||entry.meta.uncensored)
-      &&(entry.name+' '+entry.meta.description+' '+section+(entry.meta.uncensored?' uncensored':'')).toLocaleLowerCase().includes(query);
+      &&(entry.name+' '+entry.meta.description+' '+section+(policyDetails&&entry.meta.uncensored?' uncensored':'')).toLocaleLowerCase().includes(query);
     const fragments=document.createDocumentFragment();
     let shown=0;
     uncensoredToggle.setAttribute('aria-pressed',String(uncensoredOnly));

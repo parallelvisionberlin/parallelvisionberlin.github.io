@@ -232,3 +232,6 @@
   background-size:cover!important;
   background-repeat:no-repeat!important;
 }
+
+/* Policy filter is an opt-in disclosure. The quiet purple model dots remain visible. */
+.pv-video-model-filter-row[hidden]{display:none!important}
