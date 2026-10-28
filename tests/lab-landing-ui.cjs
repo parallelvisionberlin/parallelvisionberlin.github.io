@@ -37,6 +37,19 @@ const server=http.createServer((req,res)=>{
   }
   assert.equal(await page.locator('.pv-studios-artwork').count(),3,'Every Studio card uses the same unchanged original artwork');
   assert.equal(await page.locator('.pv-studios-artwork').first().getAttribute('src')?.includes('studios-original-reference.svg'),true);
+  // Check the actual sprite artwork coordinates rather than splitting the
+  // source screenshot into three equal thirds (which includes its gutters).
+  await page.locator('.pv-studios-artwork').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
+  const crops=await studioTiles.evaluateAll(tiles=>tiles.map(tile=>{
+    const t=tile.getBoundingClientRect(),a=tile.querySelector('.pv-studios-artwork').getBoundingClientRect();
+    const scale=a.height/247;
+    return {sourceX:(t.left-a.left)/scale,sourceY:(t.top-a.top)/scale,sourceRatio:a.width/a.height};
+  }));
+  for(let i=0;i<3;i++){
+    assert.ok(Math.abs(crops[i].sourceX-[0,460,916][i])<2,'Studio image '+i+' starts on its own photo at '+width+': '+JSON.stringify(crops[i]));
+    assert.ok(Math.abs(crops[i].sourceY-14)<1,'Studio image '+i+' excludes the old top strip at '+width);
+    assert.ok(Math.abs(crops[i].sourceRatio-1337/247)<0.03,'Studio images keep the original photographic aspect ratio');
+  }
   assert.match(await page.locator('.pv-studios-character-link').getAttribute('href'),/createCharacter=1/);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),false,'Escape closes Studios');
