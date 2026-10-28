@@ -103,6 +103,11 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-actions>button{height:48px!important;min-height:48px!important;padding:12px 24px!important}
 `;
 approvedVideoFiles.set('lab/video-relaxed-studio.css',Buffer.concat([approvedVideoFiles.get('lab/video-relaxed-studio.css'),Buffer.from(referenceInvitationStyles)]));
+// Owner-approved October 26: only the real Video canvas + is pinned. Preserve
+// independent original artwork, text and controls in the pixel baseline.
+const pinnedPlusStyles="/* The empty-stage + is a mode-aware native upload control, not part of the\n   changing invitation copy. Keep its original 66px layout slot so the\n   approved headings/actions retain their own spacing, but pin the clickable\n   button against the stage instead of letting different copy lengths move it.\n   Phones keep their existing no-decorative-stage behavior. */\n@media(min-width:821px){\n  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact:not(.pv-video-has-input) .video-feed-center .canvas #empty .pv-video-start-visual:not([hidden]){\n    position:static!important;\n  }\n  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact:not(.pv-video-has-input) .video-feed-center .canvas #empty .pv-video-start-visual:not([hidden])>.pv-video-add-frame{\n    position:absolute!important;\n    left:50%;bottom:220px;transform:translateX(-50%)!important;\n    margin:0!important;\n  }\n}\n@media(min-width:821px) and (max-height:650px){\n  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact:not(.pv-video-has-input) .video-feed-center .canvas #empty .pv-video-start-visual:not([hidden])>.pv-video-add-frame{\n    bottom:240px;\n  }\n}\n";
+assert.ok(readFileSync('lab/video-relaxed-studio.css','utf8').endsWith(pinnedPlusStyles),'Only the explicitly approved pinned-plus CSS can update the video fixture');
+approvedVideoFiles.set('lab/video-relaxed-studio.css',Buffer.concat([approvedVideoFiles.get('lab/video-relaxed-studio.css'),Buffer.from(pinnedPlusStyles)]));
 
 const account=`
 const state=window.__publicAccount||=(()=>{
