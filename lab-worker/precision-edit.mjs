@@ -152,7 +152,7 @@ export async function precisionEditRoute(request,env,owner,url,d){
       quoteId,owner,q.working.id,JSON.stringify({...q.p,customerChargeCredits:creditCost}),q.price,q.expires,'fal-precision-edit',String(q.price/1000000),JSON.stringify(payload));
     return d.json({quoteId,ticket:q.ticket,expiresAt:q.expires,estimatedUsd:q.price/1000000,
       priceIsEstimate:true,model:FAL_CONTROLLED_INPAINT,
-      ...(d.customer?{creditCost}:{}),
+      creditCost,
       notice:'Published fal.ai estimate, not a live bound quote. No generation submitted.'});
   }
   if(path==='/api/precision/submit'&&method==='POST'){

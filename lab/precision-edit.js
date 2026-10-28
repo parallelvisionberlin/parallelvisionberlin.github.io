@@ -9,10 +9,10 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   const rc=resultCanvas.getContext('2d');
   const mask=document.createElement('canvas'),maskCtx=mask.getContext('2d',{willReadFrequently:true});
   const undoStack=[],maxUndo=12,finalizing=new Map();
-  let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null;
+  let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null,quoteBusy=false,quoteFailure=false,quoteTimer=null;
   let selected=false,resultBlob=null,resultBitmap=null,disposed=false,workingId=null,session=0;
   let resultFormat='png',lastResultSourceId=null,zoom=1,panX=0,panY=0,panDrag=null,spaceHeld=false;
-  let selectionAllowance=0,consentPoint=null,queueRevision=0,editEpoch=0,latestJobId=null;
+  let queueRevision=0,editEpoch=0,latestJobId=null;
   const pendingPolls=new Map();
   const exportRiskPixels=5000000;
   // An existing Parallel Vision editorial is used only as a free sample input.
@@ -108,7 +108,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     editEpoch++;selected=hasSelection();renderMask();
     // A previous quote is bound to a specific mask PNG. Never allow it to
     // survive further selection edits, brush strokes or undo.
-    pending=null;$('precision-price-review').hidden=true;refreshButtons();
+    pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;refreshButtons();
   };
   function hasSelection(){
     if(!mask.width||!mask.height)return false;
@@ -128,23 +128,25 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }
     overlay.style.cursor=mode==='pan'?'grab':'crosshair';
     refreshGuidance();
+    if(base&&next==='brush')setStatus('Brush active. Click and drag directly on the photograph to paint your selection.');
+    if(base&&next==='erase')setStatus('Eraser active. Drag on the photograph to remove parts of the selection.');
   }
   function refreshGuidance(){
     const message=$('precision-selection-message');
     if(!base){
       message.textContent='Start by dropping a photograph above.';
-      $('precision-price-note').textContent='Add photo · Select area · Describe edit · Review price';
+      $('precision-price-note').textContent='Add photo · Select area · Describe edit · Generate';
       $('precision-result-label').textContent='AWAITING EDIT';
     }else if(!selected){
       message.textContent=mode==='pan'?'Drag to move the view. Choose a selection tool to continue.':
-        mode==='magic'?(customer()?'Click a subject to select':'Click a subject to select · Magic Select ≈ $0.005 per click'):
+        mode==='magic'?'Click a subject in the photograph to select it automatically':
         'Paint the area to change. Zoom or pan for precise edges.';
       $('precision-price-note').textContent='1 / Select an area to change · Local brush tools are free';
     }else{
       message.textContent=mode==='pan'?'Drag to inspect the selected area.':
         'Area selected · Refine its edges, then describe the change.';
       $('precision-price-note').textContent=$('precision-prompt').value.trim()?
-        '3 / Ready to review the FLUX generation price':
+        'Ready to generate · Credits shown on the button':
         '2 / Describe what should change inside the selection';
     }
   }
@@ -167,14 +169,16 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-undo').disabled=!undoStack.length||taskBusy;
     const highRisk=!!(base&&base.width*base.height>=exportRiskPixels);
     const exportReady=!highRisk||$('precision-allow-jpeg').checked;
-    $('precision-generate').disabled=!have||!selected||!$('precision-prompt').value.trim()||taskBusy||!owner()||!falReady()||!exportReady;
+    const ready=isOpen()&&have&&selected&&!!$('precision-prompt').value.trim()&&!taskBusy&&owner()&&falReady()&&exportReady;
+    const quoted=ready&&pending&&Number.isSafeInteger(pending.creditCost)&&pending.creditCost>0&&pending.expiresAt>Date.now()+5000;
+    $('precision-generate').disabled=!ready||(!quoted&&!quoteFailure);
     $('precision-change-photo').hidden=!have;
-    $('precision-tool-magic').title=customer()?'Select a whole object with SAM 3.':'Select a whole object with SAM 3. Published price approximately $0.005 per click.';
-    $('precision-generate').textContent=taskBusy?'Working…':'Review price';
-    $('precision-generate').title=(!owner()||!falReady())?'Paid Retouch generation is not enabled on this account.':
-      !have?'Add a photograph first.':!selected?'Select the area to edit.':
-      !$('precision-prompt').value.trim()?'Describe the edit before reviewing its price.':
-      'Confirm a quote before starting paid inference.';
+    $('precision-tool-magic').title='Click a subject to select it automatically.';
+    $('precision-generate').textContent=taskBusy?'Working…':quoted?'Generate · '+pending.creditCost+' credits':'Generate';
+    $('precision-generate').title=quoted?'Create one Retouch image for '+pending.creditCost+' credits.':'Preparing a secure PV LAB credit quote.';
+    if(ready&&!quoted&&!quoteBusy&&!quoteFailure&&!quoteTimer)
+      quoteTimer=setTimeout(()=>{quoteTimer=null;void prepareQuote();},550);
+    if(!ready&&quoteTimer){clearTimeout(quoteTimer);quoteTimer=null;}
     $('precision-zoom-controls').hidden=!have;
     $('precision-export-option').hidden=!highRisk;
     // The demo is an illustration only. Hide it immediately when any source
@@ -240,7 +244,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   function resetSelection(){
     editEpoch++;maskCtx.clearRect(0,0,mask.width,mask.height);
-    undoStack.length=0;selected=false;pending=null;$('precision-price-review').hidden=true;
+    undoStack.length=0;selected=false;pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;
     renderMask();refreshButtons();
   }
   async function ensureBaseId(){
@@ -269,7 +273,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   async function open({file=null,id=null}={}){
     if(!owner())throw new Error('Sign in to edit an image.');
     host.classList.add('is-precision-active');view.hidden=false;
-    $('precision-price-review').hidden=true;
+
     settleRetouchScroll();
     // Navigating between Image and Retouch must not clear a work-in-progress mask.
     // Only load a new source when it is actually a different photograph.
@@ -282,7 +286,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   function close(){
     view.hidden=true;host.classList.remove('is-precision-active');
-    $('precision-price-review').hidden=true;
+
     // Keep a queued job in History; closing never resubmits or cancels it.
   }
   async function setBase(file,id=null){
@@ -322,7 +326,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-result-label').textContent='AWAITING EDIT';
     $('precision-drop').hidden=true;$('precision-source-holder').hidden=false;
     $('precision-selection-message').textContent='Click an object to select it. Brush tools refine your mask.';
-    $('precision-price-review').hidden=true;setStatus('');
+    setStatus('');
     selectMode(magicReady()?'magic':'brush');refreshButtons();
     syncPreviewFit();paintZoom();
     // File-picker/drop imports may resize a previously empty panel. Keep the
@@ -362,12 +366,12 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   async function magicSelect(point){
     if(!base||taskBusy)return;
-    if(!magicReady()){setStatus('Magic Select is owner-only. Use the Brush instead.',true);return;}
+    if(!magicReady()){setStatus('Magic Select is unavailable on this account. Use the Brush instead.',true);return;}
     taskBusy=true;refreshButtons();$('precision-source-holder').classList.add('is-busy');
     const revision=++session;
     try{
       const sourceId=await ensureBaseId();
-      setStatus('SAM 3 is selecting the object. This selection uses a metered API request.');
+      setStatus('Selecting your subject…');
       const p={x:Math.min(base.width-1,Math.round(point.x*base.width/mask.width)),
         y:Math.min(base.height-1,Math.round(point.y*base.height/mask.height))};
       const reply=await api('/api/precision/segment',{method:'POST',body:{sourceId,point:p}});
@@ -392,29 +396,31 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);x.drawImage(mask,0,0);
     return c;
   }
-  async function reviewPrice(){
-    if(!base||!selected||taskBusy)return;
+  async function prepareQuote(){
+    if(!base||!selected||taskBusy||quoteBusy||!owner()||!falReady())return;
     const prompt=$('precision-prompt').value.trim();
-    if(!prompt){setStatus('Describe the change inside the selection.',true);return;}
+    if(!prompt)return;
     const allowJpegFallback=$('precision-allow-jpeg').checked;
-    if(base.width*base.height>=exportRiskPixels&&!allowJpegFallback){setStatus('High-resolution photo: approve JPEG backup before paying for generation.',true);return;}
-    taskBusy=true;refreshButtons();setStatus('Preparing the private working image and selection. No generation submitted.');
+    if(base.width*base.height>=exportRiskPixels&&!allowJpegFallback)return;
+    const epoch=editEpoch,originalBase=base;
+    quoteBusy=true;refreshButtons();
     try{
       const originalSourceId=await ensureBaseId(),sourceId=await ensureWorkingId(),blob=await readBlob(maskExport());
+      if(epoch!==editEpoch||base!==originalBase)return;
       const maskSourceId=await uploadAsset(new File([blob],'precision-selection.png',{type:'image/png'}));
       const strength=Number($('precision-strength').value);
       const body={originalSourceId,sourceId,maskSourceId,prompt,strength,allowJpegFallback};
       const quoted=await api('/api/precision/quote',{method:'POST',body});
-      if(!quoted?.quoteId||!quoted.ticket)throw new Error('Precision Edit did not return a reusable price approval.');
-      if(customer()&&(!Number.isSafeInteger(quoted.creditCost)||quoted.creditCost<1))
+      if(epoch!==editEpoch||base!==originalBase)return;
+      if(!quoted?.quoteId||!quoted.ticket||!Number.isSafeInteger(quoted.creditCost)||quoted.creditCost<1)
         throw new Error('The server did not confirm a PV LAB credit price. Nothing was charged.');
-      pending={...body,quoteId:quoted.quoteId,ticket:quoted.ticket,expiresAt:quoted.expiresAt,maskSourceId};
-      const usd=Number(quoted.estimatedUsd||0);
-      $('precision-review-body').textContent=(customer()?'FLUX Inpainting · '+quoted.creditCost+' PV credits':Number.isSafeInteger(quoted.creditCost)&&quoted.creditCost>0?'FLUX Inpainting · '+quoted.creditCost+' PV credits (published $'+usd.toFixed(3)+' estimate).':'FLUX Inpainting · estimated $'+usd.toFixed(3)+' USD (published estimate).')+' Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
-      $('precision-price-review').hidden=false;
-      setStatus('Price checked. No generation has started.');
-    }catch(e){pending=null;setStatus(e.message,true);}
-    finally{taskBusy=false;refreshButtons();}
+      pending={...body,quoteId:quoted.quoteId,ticket:quoted.ticket,expiresAt:quoted.expiresAt,creditCost:quoted.creditCost};
+      quoteFailure=false;setStatus('');
+    }catch(e){
+      if(epoch===editEpoch&&base===originalBase){
+        pending=null;quoteFailure=true;setStatus('Could not prepare credits: '+e.message,true);
+      }
+    }finally{quoteBusy=false;refreshButtons();}
   }
   async function monitorSubmittedJob(initial,revision,sourceEpoch){
     let job=initial;
@@ -466,12 +472,12 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }
   }
   async function submit(){
-    if(!pending||taskBusy)return;
-    if(Date.now()>=pending.expiresAt){
-      pending=null;$('precision-price-review').hidden=true;
-      setStatus('Price approval expired. Review it again.',true);return;
+    if(taskBusy)return;
+    if(!pending){quoteFailure=false;await prepareQuote();return;}
+    if(Date.now()>=pending.expiresAt-5000){
+      pending=null;quoteFailure=false;refreshButtons();setStatus('Refreshing the credit price…');return;
     }
-    const snapshot={...pending};pending=null;$('precision-price-review').hidden=true;
+    const snapshot={...pending};pending=null;
     taskBusy=true;refreshButtons();setStatus('Submitting one paid FLUX inpainting job…');
     try{
       const response=await api('/api/precision/submit',{method:'POST',body:snapshot});
@@ -593,13 +599,12 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     setTimeout(()=>URL.revokeObjectURL(url),5000);
   }
   function reset(){
-    session++;close();
+    session++;editEpoch++;clearTimeout(quoteTimer);quoteTimer=null;close();
     if(base?.bitmap)base.bitmap.close();base=null;
     if(resultBitmap)resultBitmap.close();resultBitmap=null;resultBlob=null;workingId=null;
     sourceCanvas.width=overlay.width=mask.width=0;sourceCanvas.height=overlay.height=mask.height=0;
     undoStack.length=0;selected=false;pending=null;taskBusy=false;resetZoom();
-    queueRevision++;pendingPolls.clear();latestJobId=null;selectionAllowance=0;consentPoint=null;
-    if($('precision-select-consent').open)$('precision-select-consent').close();
+    queueRevision++;pendingPolls.clear();latestJobId=null;
     $('precision-allow-jpeg').checked=false;$('precision-export-option').hidden=true;
     $('precision-source-holder').hidden=true;$('precision-drop').hidden=false;
     $('precision-result-canvas').hidden=true;$('precision-output-empty').hidden=false;
@@ -682,27 +687,16 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(event.code==='Space'&&spaceHeld){spaceHeld=false;if(base)paintZoom();}
   });
   window.addEventListener('blur',()=>{spaceHeld=false;if(base&&isOpen())paintZoom();});
-  $('precision-select-cancel').onclick=()=>{consentPoint=null;$('precision-select-consent').close();selectMode('brush');};
-  $('precision-select-consent').addEventListener('close',()=>{
-    if(consentPoint){consentPoint=null;if(base&&selectionAllowance<=0)selectMode('brush');}
-  });
-  $('precision-select-approve').onclick=()=>{
-    const point=consentPoint;consentPoint=null;
-    $('precision-select-consent').close();selectionAllowance=5;
-    if(point&&base)attemptMagic(point);
-  };
-  $('precision-allow-jpeg').onchange=()=>{editEpoch++;pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-allow-jpeg').onchange=()=>{editEpoch++;pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;refreshButtons();};
   $('precision-tool-brush').onclick=()=>selectMode('brush');
   $('precision-tool-erase').onclick=()=>selectMode('erase');
   $('precision-undo').onclick=()=>handle(undo());
   $('precision-expand').onclick=()=>handle(growMask());
   $('precision-clear-mask').onclick=()=>resetSelection();
   $('precision-brush-size').oninput=()=>$('precision-size-label').textContent=$('precision-brush-size').value;
-  $('precision-strength').oninput=()=>{editEpoch++;$('precision-strength-value').textContent=Number($('precision-strength').value).toFixed(2);pending=null;$('precision-price-review').hidden=true;refreshButtons();};
-  $('precision-prompt').oninput=()=>{editEpoch++;pending=null;$('precision-price-review').hidden=true;refreshButtons();};
-  $('precision-generate').onclick=()=>handle(reviewPrice());
-  $('precision-review-confirm').onclick=()=>handle(submit());
-  $('precision-review-cancel').onclick=()=>{$('precision-price-review').hidden=true;pending=null;};
+  $('precision-strength').oninput=()=>{editEpoch++;$('precision-strength-value').textContent=Number($('precision-strength').value).toFixed(2);pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;refreshButtons();};
+  $('precision-prompt').oninput=()=>{editEpoch++;pending=null;quoteFailure=false;clearTimeout(quoteTimer);quoteTimer=null;refreshButtons();};
+  $('precision-generate').onclick=()=>handle(submit());
   $('precision-compare').oninput=renderComparison;
   $('precision-download').onclick=download;
   $('precision-continue').onclick=()=>handle((async()=>{
@@ -748,12 +742,6 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   });
   function attemptMagic(point){
     if(!base||taskBusy||!magicReady())return;
-    if(selectionAllowance<=0){
-      consentPoint=point;
-      if(!$('precision-select-consent').open)$('precision-select-consent').showModal();
-      return;
-    }
-    selectionAllowance--;
     handle(magicSelect(point));
   }
   overlay.onpointerdown=e=>{
@@ -793,6 +781,6 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     suggest:name=>{const prompt=ideaPrompts[name];if(!prompt)return;
       $('precision-prompt').value=prompt;
       $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
-      setStatus('Brush only the detail to repair, then review the price.');
+      setStatus('Brush only the detail to repair, then generate with credits.');
     }};
 }
