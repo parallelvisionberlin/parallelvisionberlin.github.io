@@ -105,7 +105,11 @@ try{
   assert.equal(await page.locator('#precision-undo').isEnabled(),true);
   await page.locator('#precision-undo').click();
   await page.locator('#precision-prompt').fill('Change the selected dark garment to a vivid red material.');
-[object Object]  await page.waitForFunction(()=>window.pvJobs.length>0,{timeout:10000});
+  await page.waitForFunction(()=>document.querySelector('#precision-generate').textContent.includes('150 credits'));
+  assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length),0,
+    'Preparing the credit quote must not submit inference');
+  await page.locator('#precision-generate').click();
+  await page.waitForFunction(()=>window.pvJobs.length>0,{timeout:10000});
   assert.equal(await page.locator('#precision-tool-brush').isEnabled(),true,
     'Paid submission must release the editing controls while the job is in Queue');
   assert.match(await page.locator('#precision-status-text').textContent(),/Queued/i);
