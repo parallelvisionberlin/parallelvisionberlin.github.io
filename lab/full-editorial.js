@@ -49,7 +49,7 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
  $('step-footer').hidden=next>=5||next<=0;
  $('progress-title').textContent=next>=1&&next<=4?'STEP '+next+' / 4':next===5?'GENERATING':next===6?'YOUR EDITORIAL':'GET STARTED';
  $('step-indicator').style.width=Math.min(100,Math.max(25,(next>=5?4:next)*25))+'%';
- $('step-next').textContent=next===4?'Review credits':'Next →';
+ $('step-next').textContent=next===4?'Review credits':'Next';
  if(next>0)document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});
 }
 function updateOptions(){for(const b of $('count-options').querySelectorAll('button'))b.classList.toggle('is-selected',Number(b.dataset.count)===chosenCount);
@@ -248,8 +248,8 @@ for(const tab of document.querySelectorAll('[data-direction-tab]'))tab.addEventL
 $('confirm-cancel').addEventListener('click',()=>$('editorial-confirm').close());
 $('confirm-submit').addEventListener('click',()=>void submitBatch());
 $('download-selected').addEventListener('click',()=>void downloadSelected().catch(e=>status(e.message,true)));
-$('create-variations').addEventListener('click',()=>{if(submitting||uncertain)return;if(results.length>=chosenCount){chosenCount+=4;updateOptions()}go(4);status('Review the next set of four and its real credit price before generating.')});
-$('edit-selection').addEventListener('click',()=>{status('Download a selected image, then open Retouch Studio and load it from your file or saved results.');});
+$('create-variations').addEventListener('click',()=>{if(submitting||uncertain)return;if(results.length>=chosenCount&&chosenCount<12){chosenCount+=4;updateOptions()}go(4);status('Review the next set of four and its real credit price before generating.')});
+$('edit-selection').addEventListener('click',()=>{location.assign('./studio.html?tool=retouch');});
 $('progress-history').addEventListener('click',()=>location.assign('./studio.html?tool=image'));
 $('editorial-signin').addEventListener('click',()=>void signIn().catch(e=>status(e.message,true)));
 window.addEventListener('pagehide',()=>{for(const url of objectUrls.values())URL.revokeObjectURL(url);for(const r of results)if(r.url)URL.revokeObjectURL(r.url)});
