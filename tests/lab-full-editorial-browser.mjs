@@ -46,7 +46,12 @@ try{
   await page.locator('.direction-card').first().click();
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-generate').isVisible(),true);
   const before=jobCount;await page.locator('#review-credits').click();
-  await page.locator('#editorial-confirm').waitFor({state:'visible'});
+  try{await page.locator('#editorial-confirm').waitFor({state:'visible',timeout:5500})}
+  catch(error){
+   const diagnostics=await page.evaluate(()=>({status:document.getElementById('editorial-status')?.textContent,profile:document.getElementById('editorial-balance')?.textContent,buttonDisabled:document.getElementById('review-credits')?.disabled,body:document.getElementById('panel-generate')?.innerText?.slice(0,550)}));
+   console.error('EDITORIAL_QUOTE_DIAGNOSTICS',JSON.stringify({uploadCount,quoteCount,jobCount,width,diagnostics}));
+   throw error;
+  }
   assert.equal(jobCount,before,'No paid job is made before explicit credit confirmation');
   assert.equal(await page.locator('#confirm-price').textContent(),'140 credits');
   await page.locator('#confirm-submit').click();
