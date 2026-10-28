@@ -25,7 +25,7 @@ export async function refreshPartnerCostFx(env,{fetcher=fetch,now=Date.now()}={}
  const cached=await one(env,'SELECT fx_checked_at AS at,fx_ok AS ok FROM lab_partner_cost_refresh WHERE id=1');
  if(cached?.at&&now-cached.at>=0&&now-cached.at<(cached.ok?3600000:300000))return cached.ok?{cached:true}:{pending:true};
  try{
-  const response=await fetcher(ECB_HISTORY_URL,{redirect:'error',signal:AbortSignal.timeout(10000)});
+  const response=await fetcher(ECB_HISTORY_URL,{redirect:'manual',signal:AbortSignal.timeout(10000)});
   if(!response.ok)throw Error('ECB unavailable');
   const rates=parseEcbRates(await response.text(),now);
   // Historical observations are immutable; a different quote cannot silently
