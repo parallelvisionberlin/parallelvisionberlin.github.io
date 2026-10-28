@@ -117,6 +117,14 @@ try{
     assert.ok(await page.locator('#partner-results').evaluate(board=>[...board.querySelectorAll(':scope>div')].every(cell=>{const a=cell.querySelector('strong').getBoundingClientRect(),b=cell.querySelector('button').getBoundingClientRect();return a.bottom<=b.top||a.right<=b.left||b.right<=a.left;})));checks++;
     await capture(page,'overview-'+width+'.png');
     await tab('Guía').click();assert.equal(await page.evaluate(()=>scrollY),0);assert.ok(await page.locator('.partner-hero').evaluate(el=>el.getBoundingClientRect().top===0));checks+=2;assert.equal(await page.locator('#partner-help').isVisible(),true);assert.equal(await page.locator('.partner-help-grid article').count(),8);checks+=2;
+    if(workspaceSlug==='bellini-studio'){
+      const note=page.locator('.bellini-cost-note');
+      assert.equal(await note.getAttribute('open'),null);assert.equal(await note.locator('p').isVisible(),false);checks+=2;
+      await capture(page,'guide-closed-'+width+'.png');
+      await note.locator('summary').focus();await note.locator('summary').press('Enter');
+      assert.equal(await note.locator('p').isVisible(),true);assert.match(await note.textContent(),/nunca será inferior al 45%/);checks+=2;
+      await note.locator('summary').press('Enter');assert.equal(await note.locator('p').isVisible(),false);checks++;
+    }
     await tab('Guía').press('Home');await tab('Resumen').press('ArrowRight');assert.equal(await tab('Clientes').getAttribute('aria-selected'),'true');checks++;
     await tab('Clientes').click();
     await page.locator('.partner-client-name').first().click();assert.match(await page.locator('.partner-client-detail').textContent(),/Comisión:.*3,00/);checks++;
