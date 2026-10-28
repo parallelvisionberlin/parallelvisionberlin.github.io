@@ -1,3 +1,9 @@
+## Approved ivory-fabric Full Editorial hero replacement, 2026-10-29
+- User rejected wet-haired chrome model, selected visual #2: dramatic ivory sculptural fabric in an industrial hall. Use supplied full-resolution original `hf_20261028_230415_de672549-cd46-42a2-b2d2-a92b25975add.png` rather than cropping six-panel mockup.
+- Uploaded original to Higgsfield media CDN, media id `170a21ab-5d66-44bd-ada6-533d07a00014` (external source); hero, preload and Open Graph image point to CDN PNG. Third-party image dependency remains, not repository-hosted asset.
+- Full-bleed responsive CSS gradient for legibility. Existing independent copy, buttons, account, and generation logic untouched.
+- Feature branch: `fix/pvlab-full-editorial-ivory-hero-20261029`. Production deployment not yet verified.
+
 ## Clean photographic hero replacement, 2026-10-28
 - Owner supplied a screenshot showing pixelated Full Editorial hero and ghost wording behind the live title.
 - Root cause: `full-editorial.html` referenced a flattened 1536x1024 UI mockup as if it were a standalone fashion photograph; CSS enlarged its small embedded photo, exposing baked-in labels and softness.
