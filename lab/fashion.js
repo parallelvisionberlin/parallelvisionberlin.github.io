@@ -14,19 +14,23 @@ let fileKeys=new Map(),previews=new Map(),revision=0,authVersion=0;
 let galleryCursor=null,galleryItems=[],galleryLoading=false,galleryRevision=0,selectedGalleryJob='';
 const galleryPreviews=new Map(),galleryCards=new Map();
 const GALLERY_PAGE_SIZE=12;
-/* Optional looks write genuine provider-supported prompt directions. No separate
-   generations, mock provider, hidden charges, or image replacements. */
+/* Looks guide garment fit only. Keep the user's optional directions independent. */
 const lookDirections=Object.freeze({
-  runway:'High-fashion runway presentation, dramatic directional light and believable fabric detail. Preserve the person, supplied garment and natural anatomy.',
-  editorial:'Restrained magazine editorial treatment, cinematic contrast, subtle texture and precise tailoring. Preserve the person and supplied garment.',
-  street:'Grounded street-style photography, natural urban light and authentic fabric movement. Preserve the person and supplied garment.',
-  avantgarde:'Sculptural avant-garde styling, strong silhouettes and quiet architectural contrast. Keep the supplied garment recognizable and the person realistic.',
-  minimal:'Clean minimal fashion photography, controlled shadows, neutral tones and tactile material detail. Preserve identity and actual garment.',
-  techwear:'Industrial utility-fashion styling, refined technical textures and practical urban lighting. Preserve the source garment and person.',
-  tailoring:'Emphasize realistic seams, tailoring, folds and garment fit with carefully balanced fashion lighting. Preserve the uploaded garment design.',
-  conceptual:'Experimental editorial composition with restrained optical character and grounded photographic realism. Preserve the person and uploaded garment.'
+  runway:'Fit the supplied garment naturally with clean lines and a polished fashion presentation. Preserve the original person, pose, garment design and setting.',
+  editorial:'Prioritize precise garment placement, realistic folds and refined fabric detail. Keep the original person, garment and background unchanged.',
+  street:'Use a relaxed, naturally worn fit with believable fabric drape. Preserve the original person, garment design and setting.',
+  avantgarde:'Respect the garment’s distinctive shape and construction, with believable folds and proportions. Preserve the person and original background.',
+  minimal:'Keep the garment fit simple and clean, with accurate seams and material texture. Preserve the source person and setting.',
+  techwear:'Respect technical garment details, fastenings, seams and functional layering with a realistic fit. Preserve the source person and setting.',
+  tailoring:'Prioritize accurate tailoring, seams, lapels, folds and a natural fit while preserving the uploaded garment design and original person.',
+  conceptual:'Preserve unusual garment construction and distinctive details with physically believable fit. Keep the source person and setting unchanged.'
 });
 let activeLook='';
+function finalDirection(){
+  const manual=$('direction').value.trim();
+  const look=current()==='fashn16'?'':(lookDirections[activeLook]||'');
+  return [look,manual].filter(Boolean).join('\n');
+}
 function syncLooks(){
   const strip=$('looks-scroller');if(!strip)return;
   const supported=current()!=='fashn16';
@@ -42,7 +46,7 @@ const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 function status(message,error=false){$('status').textContent=message||'';$('status').classList.toggle('error',error);}
 function revokeResult(){if(resultUrl)URL.revokeObjectURL(resultUrl);resultUrl='';$('result-image').hidden=true;$('result-image').removeAttribute('src');$('result-placeholder').hidden=false;$('download').hidden=true;}
 function clearQuote(){quote=null;clearTimeout(quoteTimer);clearTimeout(quoteExpiryTimer);}
-function readyToQuote(){return authenticated&&!!$('person-file').files.length&&!!$('garment-file').files.length&&models.some(x=>x.id===current()&&x.available)&&(current()!=='fluxvto'||!!$('direction').value.trim());}
+function readyToQuote(){return authenticated&&!!$('person-file').files.length&&!!$('garment-file').files.length&&models.some(x=>x.id===current()&&x.available)&&(current()!=='fluxvto'||!!finalDirection())&&finalDirection().length<=1200;}
 function scheduleQuote(){
   clearTimeout(quoteTimer);
   if(!busy&&readyToQuote())quoteTimer=setTimeout(()=>void prepareQuote(),400);
@@ -120,13 +124,9 @@ if(looks){
   looks.addEventListener('click',event=>{
     const card=event.target.closest('[data-look]');if(!card||card.disabled)return;
     const next=activeLook===card.dataset.look?'':card.dataset.look;
-    const direction=$('direction');
-    const old=lookDirections[activeLook];
-    const manual=old?direction.value.replace(old,'').replace(/\n{2,}/g,'\n').trim():direction.value.trim();
-    const text=[manual,next?lookDirections[next]:''].filter(Boolean).join('\n');
-    if(text.length>1200){status('Shorten your styling direction before adding a look.',true);return;}
-    direction.value=text;activeLook=next;syncLooks();
-    direction.dispatchEvent(new Event('input',{bubbles:true}));
+    const nextPrompt=[next?lookDirections[next]:'',$('direction').value.trim()].filter(Boolean).join('\n');
+    if(nextPrompt.length>1200){status('Shorten your styling direction before adding a look.',true);return;}
+    activeLook=next;syncLooks();change();
     status('');
   });
   for(const [id,offset] of [['looks-prev',-1],['looks-next',1]]){
@@ -157,7 +157,7 @@ async function prepareQuote(){
   try{
     const modelSourceId=await upload('person-file'),garmentSourceId=await upload('garment-file');
     if(revision!==editVersion||accountVersion!==authVersion)return;
-    const settings={model:current(),modelSourceId,garmentSourceId,prompt:$('direction').value.trim(),
+    const settings={model:current(),modelSourceId,garmentSourceId,prompt:finalDirection(),
       resolution:$('max-resolution').value,generationMode:$('max-mode').value,
       category:$('fashn16-category').value,quality:$('fashn16-quality').value};
     const response=await api('/api/fashion/quote',{method:'POST',body:settings});
