@@ -305,3 +305,76 @@
 @media(prefers-reduced-motion:reduce){
   #app #history .history-no-result.is-content-restricted button.content-restriction-edit{transition:none}
 }
+
+/* Immersive desktop image review: gallery-hidden canvas, Higgsfield-style framing.
+   Keep all result actions, download, reference navigation and uncropped full-resolution fit.
+   Phones/native retain the existing one-column scroll layout. */
+@media (min-width:961px) {
+  html:not(.pv-native-lab) #image-lightbox .image-detail-layout {
+    grid-template-columns:minmax(0,1fr) clamp(304px,19vw,336px);
+  }
+  html:not(.pv-native-lab) #image-lightbox .image-detail-media {
+    position:relative;
+    grid-template-rows:minmax(0,1fr);
+    overflow:hidden;
+  }
+  html:not(.pv-native-lab) #image-lightbox .image-detail-topbar {
+    position:absolute;
+    top:9px;
+    right:10px;
+    left:10px;
+    z-index:10;
+    width:auto;
+    height:40px;
+    min-height:0;
+    padding:0 9px;
+    border:0;
+    background:transparent;
+    pointer-events:none;
+  }
+  html:not(.pv-native-lab) #image-lightbox .image-detail-brand,
+  html:not(.pv-native-lab) #image-lightbox #image-lightbox-title {
+    display:none;
+  }
+  html:not(.pv-native-lab) #image-lightbox .image-detail-topbar #image-lightbox-counter {
+    margin:0 auto 0 0;
+    padding:7px 10px;
+    border-radius:7px;
+    background:#111414a6;
+    color:#e8e9e4;
+    font-size:11px;
+    letter-spacing:.04em;
+    line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
+  html:not(.pv-native-lab) #image-lightbox .image-detail-media-actions {
+    margin-left:auto;
+    pointer-events:auto;
+  }
+  html:not(.pv-native-lab) #image-lightbox #image-lightbox-fit {
+    min-height:36px;
+    padding:0 12px;
+    background:#151819d9;
+    border:1px solid #ffffff4a;
+    border-radius:7px;
+    color:#f0f0ec;
+    backdrop-filter:blur(8px);
+  }
+  html:not(.pv-native-lab) #image-lightbox .image-lightbox-stage {
+    padding:4px!important;
+  }
+  html:not(.pv-native-lab) #image-lightbox .image-detail-bottomline {
+    position:absolute;
+    right:0;
+    bottom:0;
+    left:0;
+    z-index:3;
+    height:30px;
+    padding:10px 12px 5px;
+    background:linear-gradient(to top,#101112b8,transparent);
+    border:0;
+    color:#d1d4d0;
+    pointer-events:none;
+    text-shadow:0 1px 3px #000a;
+  }
+}
