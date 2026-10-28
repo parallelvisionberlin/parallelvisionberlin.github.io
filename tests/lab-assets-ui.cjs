@@ -324,6 +324,10 @@ const videoPickerDesktop=await page.locator('#video-model-popover').evaluate(el=
 assert.ok(videoPickerDesktop.width>=390&&videoPickerDesktop.width<=410,'Video picker keeps its desktop width: '+JSON.stringify(videoPickerDesktop));
 assert.ok(videoPickerDesktop.top>=videoPickerDesktop.headerBottom+14,'Video picker stays below navigation: '+JSON.stringify(videoPickerDesktop));
 assert.equal(videoPickerDesktop.scrollable,true,'Only model rows scroll in the compact Video picker');
+assert.equal(await page.locator('.pv-video-model-list').evaluate(el=>el.classList.contains('pv-video-model-has-more')),true,
+ 'The first cut-off row fades behind a subtle scroll edge');
+assert.ok((await page.locator('.pv-video-model-list').evaluate(el=>getComputedStyle(el).maskImage))!=='none',
+ 'The scroll fade is applied only when more models remain below');
 assert.equal(videoPickerDesktop.searchInside,true,'Search stays inside the fixed menu header');
 const videoPickerOriginalBounds=await page.locator('#video-model-popover').boundingBox();
 assert.deepEqual(await page.locator('.pv-video-model-group h3').allTextContents(),
@@ -353,6 +357,16 @@ assert.ok(videoPickerOriginalBounds.y+videoPickerOriginalBounds.height-videoPick
  'Model rows use the removed footer space, with the old picker boundary preserved');
 assert.equal(await page.locator('.pv-video-model-moderation-dot').count(),7,
  'Seven documented SpicyAPI routes have small purple uncensored markers');
+await page.locator('.pv-video-model-list').evaluate(el=>{el.scrollTop=el.scrollHeight;el.dispatchEvent(new Event('scroll'));});
+assert.equal(await page.locator('.pv-video-model-list').evaluate(el=>el.classList.contains('pv-video-model-has-more')),false,
+ 'The bottommost models remain fully readable after scrolling to the end');
+assert.equal(await page.locator('.pv-video-model-list').evaluate(el=>getComputedStyle(el).maskImage),'none',
+ 'No obscuring mask at the end of the list');
+await page.locator('.pv-video-model-list').evaluate(el=>{el.scrollTop=0;el.dispatchEvent(new Event('scroll'));});
+const pickerEdgeBounds=await page.locator('#video-model-popover').boundingBox();
+for(const dimension of ['x','y','width','height'])
+ assert.ok(Math.abs(pickerEdgeBounds[dimension]-videoPickerOriginalBounds[dimension])<1,
+ 'Scroll-edge treatment must not resize or move the popup: '+dimension);
 assert.equal(await page.locator('.pv-video-model-item[data-model="omni"] .pv-video-model-moderation-dot').count(),0,
  'FAL models must not display an uncensored marker');
 await page.evaluate(()=>localStorage.setItem('pv-lab-model-policy-details-v1:test','1'));

@@ -94,6 +94,13 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
     return span;
   }
 
+  function updateScrollEdge(){
+    // Fade a cut-off next row instead of showing a hard slice at the bottom.
+    // Keep every row accessible by scrolling; fully reveal the end of the list.
+    list.classList.toggle('pv-video-model-has-more',
+      list.scrollHeight-list.scrollTop-list.clientHeight>3);
+  }
+
   function render(){
     const policyDetails=!!getPolicyDetails();
     filterRow.hidden=!policyDetails;
@@ -137,7 +144,10 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
       const title=document.createElement('span');title.textContent='More models';
       const count=document.createElement('span');count.textContent=alternatives.length+' available';
       summary.append(title,count);section.append(summary);
-      section.addEventListener('toggle',()=>{if(!query&&!selectedInMore)moreExpanded=section.open;});
+      section.addEventListener('toggle',()=>{
+        if(!query&&!selectedInMore)moreExpanded=section.open;
+        updateScrollEdge();
+      });
       for(const item of alternatives){section.append(makeRow(item));shown++;}
       fragments.append(section);
     }
@@ -147,6 +157,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
     list.replaceChildren(fragments);
     total.textContent=shown===all.length?shown+' models':shown+' / '+all.length+' models';
     position();
+    updateScrollEdge();
   }
 
   function makeRow(item){
@@ -234,6 +245,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
       popover.style.height=popover.getBoundingClientRect().height+'px';
       layoutMeasure.remove();
     }
+    updateScrollEdge();
     if(window.matchMedia('(hover: hover) and (pointer: fine)').matches)
       search.focus({preventScroll:true});
   }
@@ -270,6 +282,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
 
   trigger.addEventListener('click',()=>open?close(true):show());
   search.addEventListener('input',()=>{searchText=search.value;list.scrollTop=0;render();});
+  list.addEventListener('scroll',updateScrollEdge,{passive:true});
   uncensoredToggle.addEventListener('click',()=>{
     uncensoredOnly=!uncensoredOnly;
     list.scrollTop=0;render();
