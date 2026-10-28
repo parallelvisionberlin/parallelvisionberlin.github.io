@@ -27,7 +27,7 @@ const directionSets={
  ]
 };
 let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='moods',chosenDirection='studio';
-let chosenCount=4,chosenRatio='3:4',quote=null,quoteBusy=false,submitting=false,uncertain=false,pollTimeout=null;
+let chosenCount=4,chosenRatio='3:4',quote=null,quoteBusy=false,submitting=false,uncertain=false,characterSaving=false,pollTimeout=null;
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0;
 const objectUrls=new Map();
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
@@ -41,6 +41,9 @@ function resetAll(){revision++;clearTimeout(pollTimeout);quote=null;quoteBusy=fa
  $('identity-guide').value='80';$('garment-guide').value='70';$('mood-guide').value='60';
  chosenCount=4;chosenRatio='3:4';chosenDirection='studio';directionTab='moods';
  for(const input of ['model-files','outfit-files','location-files'])$(input).value='';
+ $('inline-character-name').value='';$('inline-character-note').value='';$('inline-character-consent').checked=false;
+ document.querySelector('input[name="inline-character-appearance"][value="identity"]').checked=true;
+ toggleInlineCharacter(false);characterMessage('');
  renderFiles();renderDirections();updateOptions();refreshSliderLabels();go(0);status('');
 }
 function go(next){step=next;const panels=['model','style','mood','generate','progress','results'];
@@ -60,11 +63,11 @@ function renderFiles(){
   const box=$(id);box.replaceChildren();
   for(const file of files[kind]){const item=document.createElement('div');item.className='thumb';
     const img=document.createElement('img');img.src=preview(file);img.alt=nameFor(file);item.append(img);
-    const remove=document.createElement('button');remove.type='button';remove.setAttribute('aria-label','Remove '+nameFor(file));remove.textContent='×';remove.addEventListener('click',()=>{if(submitting)return;files[kind]=files[kind].filter(f=>f!==file);pruneFile(file);quote=null;renderFiles();});item.append(remove);box.append(item);}
+    const remove=document.createElement('button');remove.type='button';remove.setAttribute('aria-label','Remove '+nameFor(file));remove.textContent='×';remove.addEventListener('click',()=>{if(submitting||characterSaving)return;files[kind]=files[kind].filter(f=>f!==file);pruneFile(file);quote=null;renderFiles();});item.append(remove);box.append(item);}
   for(const ref of savedRefs[kind]){const item=document.createElement('div');item.className='thumb saved-thumb';const img=document.createElement('img');img.alt=ref.name;img.src=ref.url||'./visuals/studio-tools/image-ivory-suit.webp';item.append(img);const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove saved '+ref.name);remove.addEventListener('click',()=>{if(submitting)return;savedRefs[kind]=savedRefs[kind].filter(r=>r!==ref);if(ref.url)URL.revokeObjectURL(ref.url);quote=null;renderFiles()});item.append(remove);const badge=document.createElement('small');badge.className='saved-badge';badge.textContent='ELEMENT';item.append(badge);box.append(item);}
  }
 }
-function addFiles(kind,list){if(submitting)return;
+function addFiles(kind,list){if(submitting||characterSaving)return;
  const incoming=Array.from(list||[]);const limit={model:4,outfit:3,location:2}[kind];
  const accept=incoming.filter(file=>['image/jpeg','image/png','image/webp'].includes(file.type)&&file.size<=20*1024*1024&&file.size>0);
  if(accept.length!==incoming.length){status('Use JPG, PNG or WebP photographs under 20 MB each.',true)}
@@ -129,8 +132,89 @@ async function uploadReferences(){
    if(!response?.id)throw Error('PV LAB did not confirm the uploaded photograph.');id=response.id;uploaded.set(item.file,id);}
   ids.push({id,role:item.role,file:item.file});
  }
- for(const [kind,role] of [['model','identity'],['outfit','outfit'],['location','room']])for(const ref of savedRefs[kind])ids.push({id:ref.id,role,file:{name:ref.name}});
+ for(const [kind,role] of [['model','identity'],['outfit','outfit'],['location','room']])for(const ref of savedRefs[kind])ids.push({id:ref.id,role:['identity','custom','outfit','room'].includes(ref.role)?ref.role:role,note:ref.note||'',file:{name:ref.name}});
  return ids;
+}
+
+
+function characterMessage(message='',error=false){
+ const line=$('inline-character-status');line.textContent=message;line.classList.toggle('error',error);
+}
+function toggleInlineCharacter(open){
+ if(characterSaving)return;
+ $('inline-character-editor').hidden=!open;
+ $('create-character').setAttribute('aria-expanded',String(open));
+ $('create-character').classList.toggle('is-selected',open);
+ $('editorial-upload-photos').classList.toggle('is-selected',!open);
+ if(open){characterMessage('');$('inline-character-name').focus({preventScroll:true})}
+}
+async function createInlineCharacter(){
+ if(characterSaving||submitting)return;
+ const name=$('inline-character-name').value.trim().replace(/\s+/g,' ');
+ const pictures=files.model.slice();
+ if(!name||name.length>70||/[|\r\n]/.test(name)){
+  characterMessage('Enter a character name without vertical bars.',true);$('inline-character-name').focus();return;
+ }
+ if(pictures.length<1||pictures.length>4){
+  characterMessage('Add between one and four model photographs below, then save.',true);$('model-drop').focus();return;
+ }
+ if(!$('inline-character-consent').checked){
+  characterMessage('Confirm that you have permission to use these photographs.',true);$('inline-character-consent').focus();return;
+ }
+ if(!profile){characterMessage('Sign in to save your character. Your photographs will stay selected.');await signIn();return}
+ const role=document.querySelector('input[name="inline-character-appearance"]:checked')?.value==='full'?'custom':'identity';
+ const extra=$('inline-character-note').value.trim().slice(0,120);
+ const description=role==='custom'
+  ?'Character @'+name+': use the person including recognizable face, hair and clothing, but not the original pose or background.'
+  :'Character @'+name+': match facial identity only, not clothing, pose, lighting or background.';
+ const note=(description+(extra?' '+extra:'')).slice(0,300);
+ const key='PVSCENE1|characters|'+name;
+ const version=epoch;
+ characterSaving=true;
+ $('inline-character-save').disabled=true;$('inline-character-cancel').disabled=true;
+ $('step-next').disabled=true;$('model-files').disabled=true;
+ characterMessage('Checking your saved Elements…');
+ try{
+  const data=await api('/api/packs');
+  const current=Array.isArray(data.packs)?data.packs:[];
+  if(current.length>=40)throw Error('Your Elements and Photo Packs library already contains 40 collections.');
+  if(current.some(p=>String(p.name||'').toLowerCase()===key.toLowerCase()))throw Error('This character name is already saved. Choose another name.');
+  const ids=[];
+  for(const photo of pictures){
+   if(version!==epoch||!files.model.includes(photo))throw Error('The selected photographs changed. Review your character before saving.');
+   let id=uploaded.get(photo);
+   if(!id){
+    characterMessage('Preparing character photo '+(ids.length+1)+' of '+pictures.length+'…');
+    const response=await api('/api/uploads',{method:'POST',body:photo,headers:{'Content-Type':photo.type,'X-Filename':encodeURIComponent(photo.name)}});
+    if(!response?.id)throw Error('PV LAB did not confirm your photograph upload.');
+    id=response.id;uploaded.set(photo,id);
+   }
+   ids.push(id);
+  }
+  const labels=pictures.map(photo=>({name:nameFor(photo),role,note}));
+  characterMessage('Saving the character privately to Elements…');
+  // Never repeat this write automatically. If the response is lost,
+  // check Saved Character before trying the same name again.
+  const created=await api('/api/packs',{method:'POST',body:{name:key,engine:'seedance',referenceSourceIds:ids,referenceRoles:labels}});
+  if(version!==epoch||!created?.id)throw Error('The save could not be confirmed. Check Saved Character before saving again.');
+  for(const ref of savedRefs.model)if(ref.url)URL.revokeObjectURL(ref.url);
+  savedRefs.model=pictures.map((photo,i)=>({id:ids[i],name:nameFor(photo),role,note,url:preview(photo)}));
+  for(const photo of pictures){objectUrls.delete(photo);uploaded.delete(photo);}
+  files.model=[];
+  quote=null;
+  renderFiles();
+  $('inline-character-name').value='';$('inline-character-note').value='';
+  $('inline-character-consent').checked=false;
+  characterMessage('');
+  characterSaving=false;
+  toggleInlineCharacter(false);
+  status(name+' saved to Characters and selected for this editorial. No generation was started.');
+ }catch(error){characterMessage(error.message,true);status(error.message,true)}
+ finally{
+  characterSaving=false;
+  $('inline-character-save').disabled=false;$('inline-character-cancel').disabled=false;
+  $('step-next').disabled=false;$('model-files').disabled=false;
+ }
 }
 
 const elementTypes={model:'characters',outfit:'outfits',location:'locations'};
@@ -174,7 +258,7 @@ async function reviewBatch(){
  $('review-credits').disabled=true;
  try{
   const settings=getSettings();const references=await uploadReferences();if(revisionId!==revision)return;
-  settings.referenceRoles=references.map(({file,role})=>({role,name:nameFor(file),note:''}));
+  settings.referenceRoles=references.map(({file,role,note})=>({role,name:nameFor(file),note:note||''}));
   const response=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:references.map(r=>r.id),settings,count:Math.min(4,remain)}});
   if(revisionId!==revision)return;
   const quotes=Array.isArray(response.quotes)?response.quotes:[response];
@@ -275,15 +359,19 @@ async function downloadSelected(){
 }
 $('editorial-start').addEventListener('click',()=>{go(1);status('')});
 $('step-back').addEventListener('click',()=>{if(!submitting){go(Math.max(1,step-1));status('')}});
-$('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4){void reviewBatch();return}if(validateStep()){go(step+1);status('')}});
+$('step-next').addEventListener('click',()=>{if(submitting||characterSaving)return;if(step===4){void reviewBatch();return}if(validateStep()){go(step+1);status('')}});
 $('review-credits').addEventListener('click',()=>void reviewBatch());
-$('editorial-reset').addEventListener('click',()=>{if(submitting){status('A paid generation is running. Open History before starting another.',true);return}resetAll()});
-$('model-drop').addEventListener('click',()=>$('model-files').click());
+$('editorial-reset').addEventListener('click',()=>{if(submitting||characterSaving){status('A paid generation is running. Open History before starting another.',true);return}resetAll()});
+$('editorial-upload-photos').addEventListener('click',()=>toggleInlineCharacter(false));
+$('create-character').addEventListener('click',()=>toggleInlineCharacter($('inline-character-editor').hidden));
+$('inline-character-cancel').addEventListener('click',()=>toggleInlineCharacter(false));
+$('inline-character-save').addEventListener('click',()=>void createInlineCharacter());
+$('model-drop').addEventListener('click',()=>{if(!characterSaving)$('model-files').click()});
 $('model-drop').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();$('model-files').click()}});
 $('model-drop').addEventListener('dragover',event=>event.preventDefault());
 $('model-drop').addEventListener('drop',event=>{event.preventDefault();addFiles('model',event.dataTransfer.files)});
 $('add-outfits').addEventListener('click',()=>$('outfit-files').click());
-$('saved-character').addEventListener('click',()=>void openSaved('model'));
+$('saved-character').addEventListener('click',()=>{toggleInlineCharacter(false);void openSaved('model')});
 $('saved-outfit').addEventListener('click',()=>void openSaved('outfit'));
 $('saved-location').addEventListener('click',()=>void openSaved('location'));
 $('saved-elements-close').addEventListener('click',()=>$('saved-elements-dialog').close());
