@@ -16,6 +16,7 @@ Branch: feat/pvlab-full-editorial-studio-20261028
 
 ## Actual workflow
 - Upload one to four identity photos, up to three garment references and two optional environment references; cap 10 total images and each input to 20 MB JPG/PNG/WebP.
+- Saved Elements from the authenticated account are available directly in the three steps: `GET /api/packs`, filtered by existing `PVSCENE1|characters/outfits/locations|` names, using at most two selected views per pack and source IDs already owned by the account. Read-only thumbnails come from `/api/assets/:id/thumbnail`. Nothing in Elements is overwritten or copied.
 - Artistic direction derived from selected tile plus custom text, with labeled reference roles (`identity`, `outfit`, `room`). Strength sliders are **creative prompt emphasis**, never claimed to be native numeric provider controls or guaranteed consistency.
 - Uses existing Clerk and session request helpers. Real Worker `/api/uploads` for private images, `/api/quotes` with at most four bound prices, `/api/jobs` with explicit `confirm:true` and server quote IDs; each result is a real completed job read from `/api/assets/:id`.
 - 4/8/12-image selection is implemented as separate groups of up to four; new batches require a new server quote and distinct user confirmation, not an assumed price or hidden purchase.
