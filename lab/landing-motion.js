@@ -50,6 +50,14 @@
     heroToggle.setAttribute('aria-label', playing ? 'Pause background video' : 'Play background video');
   };
   if (hero) {
+    // The owner-supplied MP4 contains the approved visible edit followed by
+    // an export tail of black frames. Loop only the intended picture.
+    const approvedLoopEnd = Number(hero.dataset.loopEnd);
+    if (approvedLoopEnd > 0) {
+      hero.addEventListener('timeupdate', () => {
+        if (hero.currentTime >= approvedLoopEnd) hero.currentTime = 0;
+      });
+    }
     hero.addEventListener('playing', () => {
       hero.classList.add('is-playing');
       heroSection?.classList.add('motion-active');

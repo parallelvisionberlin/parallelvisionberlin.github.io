@@ -65,11 +65,13 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationName),'none');
   assert.equal(await page.locator('#motion-toggle').count(),0);
   const current=await page.locator('.hero-poster').evaluate(el=>el.currentSrc);
-  assert.ok(current.endsWith('/visuals/hero/pvlab-industrial-fashion-20261027.jpg'),'Approved industrial fashion hero is shown at every viewport');
+  assert.ok(current.endsWith('/assets/optimized/video/heroafterfabricvideo-poster.webp'),'The Fashion After Fabric poster replaces the former hero still');
   const heroFilm=page.locator('#pv-hero-motion');
-  assert.equal(await heroFilm.count(),1,'The Fashion After Fabric hero is present');
-  assert.ok((await heroFilm.getAttribute('data-desktop-src')).endsWith('/assets/optimized/video/heroafterfabricvideo-desktop.mp4'));
-  assert.ok((await heroFilm.getAttribute('data-mobile-src')).endsWith('/assets/optimized/video/heroafterfabricvideo-mobile.mp4'));
+  assert.equal(await heroFilm.count(),1,'The owner-supplied Flesh Zero hero edit is present');
+  const ownerFilm='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/d736bdd1-ff46-4c7a-bfd5-c863bd6e920a.mp4';
+  assert.equal(await heroFilm.getAttribute('data-desktop-src'),ownerFilm);
+  assert.equal(await heroFilm.getAttribute('data-mobile-src'),ownerFilm);
+  assert.equal(await heroFilm.getAttribute('data-loop-end'),'7.9','Skip the exported black section without changing the owner video');
   assert.equal(await heroFilm.getAttribute('src'),null,'Reduced-motion visitors do not load the hero video');
   assert.equal(await page.locator('#hero-motion-toggle').isHidden(),true,'Reduced-motion visitors see the static poster without a video control');
   await page.locator('#tools').scrollIntoViewIfNeeded();await page.locator('.studio-tool-link img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
