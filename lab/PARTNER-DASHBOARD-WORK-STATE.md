@@ -2,7 +2,7 @@
 
 ## Bellini guide cost note / publishing, 2026-10-28
 - User approved the exact generation-cost note after the 50%/20% guide entries: only compensate actual generation costs exceeding PV LAB's retained share, cap adjustment at five percentage points, first-payment commission floor45%.
-- Scope is one added article in lab/bellini-studio.html, existing guide styling. No calculation, reservation, payout, wallet, credit, provider, Vitolas or dossier changes. Automatic generation-cost adjustment remains unimplemented; this text change must not be reported as billing logic.
+- Scope is one added note paragraph inside the existing commission guide entry in lab/bellini-studio.html, preserving all eight guide entries and their styling. No calculation, reservation, payout, wallet, credit, provider, Vitolas or dossier changes. Automatic generation-cost adjustment remains unimplemented; this text change must not be reported as billing logic.
 - PR #625, branch copy/bellini-generation-cost-note-20261028, baseline a3e0505e6936319b037d57b7c8858de1e8555f24; first content commit14b7932fd12aec6b6e4d62e9d4d901be290ccddf. Approved Image contract5/5 and diff whitespace checks passed. No new implementation-mirroring tests.
 - Next: relevant existing CI, normal merge/publication, then exact live HTML verification. No real adjustments or funds moved.
 
