@@ -1,0 +1,14 @@
+/* Bellini's optional commission detail stays compact until requested. */
+.bellini-guide-column{display:flex;flex-direction:column}
+.bellini-guide-column>article{order:var(--guide-order)}
+@media(max-width:760px){
+  [data-partner-workspace="bellini-studio"] .partner-help-grid{display:flex;flex-direction:column}
+  .bellini-guide-column{display:contents}
+}
+.bellini-cost-note{margin-top:10px}
+.bellini-cost-note summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:44px;color:#ccc;font-size:var(--partner-body,14px);font-weight:400;cursor:pointer;list-style:none}
+.bellini-cost-note summary::-webkit-details-marker{display:none}
+.bellini-cost-note summary::after{content:"+";flex:none;font-size:20px;line-height:1}
+.bellini-cost-note[open] summary::after{content:"−"}
+.bellini-cost-note summary:focus-visible{outline:1px solid #aaa;outline-offset:4px}
+.pv-partner-page .bellini-cost-note>p{padding:4px 0 8px;font-size:var(--partner-caption,12px);line-height:1.65}
