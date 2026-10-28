@@ -101,3 +101,11 @@
 - Dedicated CI: .github/workflows/lab-gallery-layout.yml. No prompt deck, Mood recipe, auth, billing, provider or saved-photo changes.
 - Publication and real signed-in owner/customer browser zoom remain to be verified separately; synthetic fractional-width tests are not a live account check.
 - After these requested fixes are complete, remind Alejandro to test recreation/login using alejandro.molinari.c@gmail.com, which he reported deleting. Do not assume same-email recreation succeeds before testing.
+
+## Immersive result viewer, 2026-10-29
+- Requested visual target: screenshots of PV LAB viewer and Higgsfield modal. Enlarge the photo, hide the viewer's branded top strip, maximize the usable desktop canvas. Higgsfield's underlying generation composer screenshot is reference context, not an instruction to replace the approved PV LAB prompt deck.
+- Source branch: `design/image-result-immersive-20261029` from current main, review pending.
+- Desktop web at 961px+: media fills full viewer height; top controls become a floating counter and Fit action. Bottom metadata stays legible as a lightweight image overlay. Right inspector narrows to 304–336px so the photograph gets more width. Full image remains uncropped with zoom behavior retained.
+- Keep original image/action state, reference navigation, Download, video handoff, prompt control geometry, mobile and native layouts unchanged. No backend, credits or model changes.
+- Files: `lab/image-result-deck.css`, stylesheet cache version in `lab/studio.html`, this checkpoint.
+- Verify Image UI contract, image viewer browser/desktop responsiveness, and live Cloudflare deployment before claiming publication. No paid generation required.
