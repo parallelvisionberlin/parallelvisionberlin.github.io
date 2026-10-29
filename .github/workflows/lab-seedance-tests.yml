@@ -32,6 +32,10 @@ jobs:
           npm install --prefix /tmp/pv-standard-ui --no-save playwright@1.57.0
           node /tmp/pv-standard-ui/node_modules/playwright/cli.js install --with-deps chromium
           if ! command -v ffmpeg >/dev/null; then sudo apt-get update -qq && sudo apt-get install -y ffmpeg; fi
+      - name: History pagination and account preview browser regression
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
+        run: node tests/lab-history-scroll-ui.mjs
       - name: Customer Video model selection and pricing handoff
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs

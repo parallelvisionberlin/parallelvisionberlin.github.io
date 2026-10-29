@@ -10,9 +10,13 @@
 - Original pagination, retry, filter and sign-out assertions remain. Additional assertions protect the initial preview event from append/incremental and stale responses.
 - Two added cases cover empty/populated History event payloads and account changes while initial History is pending, including retained request guards and rejection of private prior-account results.
 - Targeted local checks: History 6/6, account preview 4/4, approved Image UI contract 5/5; diff check passes.
-- Full local sweep in the reduced checkout hit missing media/sandbox fixtures; it is not a full-suite pass. The existing complete Node 22 and mock-only browser workflow must validate the candidate in GitHub.
-- Scope: this test fixture and this checkpoint only. Studio source, design, models, account isolation, pricing, billing and all CI gates remain unchanged. No paid generation or purchase.
-- Next: validate the fixed candidate through the existing Video workflow, merge if valid, then verify Cloudflare publication and unchanged production asset bytes separately from real signed-in behavior.
+- First candidate `8fba0e60`: GitHub Node 22 passes 861/861; customer Video and guest/signed-in routing pass. Full local sweep is not a pass: reduced checkout media and a Node 24 preflight timing assertion differ from CI.
+- Browser steps now reach an unrelated `lab-studio-layout-ui.mjs:693` assertion expecting Audio in the former second row. Application and layout test are byte-identical to base. Preserve the approved prompt-contained audio control.
+- Public visual comparison fails with exactly the same main/candidate 1440px canvas result: 4,796 changed pixels, maxDelta 232 / 613,008 pixels. Main job `123472976674`, candidate `123616661313`. Do not replace approved visuals or adjust comparison tolerances for this repair.
+- Added `tests/lab-history-scroll-ui.mjs`: full Studio, synthetic auth, controlled GET responses, real cursor scroll, single-flight, manual retry, filter and sign-out invalidation, preview event payloads and zero API writes at 1440/390px. Runs as a separate additional step in the existing Video workflow; all existing tests/gates remain.
+- PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/660 . Final CI and publication receipts belong in this section and the PR body.
+- Scope: History unit/browser fixtures, one additional CI step and this checkpoint. Studio source, design, models, account isolation, pricing and billing remain unchanged. No paid generation or purchase.
+- Next: validate the dedicated History browser case, integrate the fixture correction if valid, and verify Cloudflare publication and unchanged production bytes. Existing unrelated browser failures remain explicit; real signed-in production behavior is separate.
 
 ## Active: account-specific preview preference (2026-10-27)
 - User reproduced a fresh account opening Image with the inspiration cards concealed.
