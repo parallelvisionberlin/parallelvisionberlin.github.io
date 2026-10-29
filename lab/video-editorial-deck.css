@@ -10,6 +10,17 @@
   --pv-video-ink:#f0f0ef;
   --pv-video-muted:#a9adb6;
 }
+/* Each desktop side panel stops at its own edges, including the prompt. */
+@media(min-width:821px){
+  #app.video-studio-active .workspace.video-layout>.controls,
+  #app.video-studio-active .workspace.video-layout .controls-body,
+  #app.video-studio-active .controls textarea,
+  #app.video-studio-active #video-inspector,
+  #app.video-studio-active .video-inspector-body,
+  #app.video-studio-active .pv-video-create-inspector{
+    overscroll-behavior-y:contain;
+  }
+}
 @media(min-width:1161px){
   #app.video-studio-active>.workspace.video-layout{
     grid-template-columns:clamp(344px,27vw,406px) minmax(0,1fr) 235px;

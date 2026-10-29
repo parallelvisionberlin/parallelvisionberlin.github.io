@@ -1,3 +1,13 @@
+## Independent desktop Video scrolling, 2026-10-30
+- User approved independent scrolling for the whole prompt deck, textarea, center gallery and Scene details. Base main: 4852dedb14b30c668f8661205eff291747553a96.
+- Cause: the existing document wheel handler deliberately handed side-panel boundary input to History.
+- video-editorial-deck.js now excludes the entire controls panel, inspector and textareas from that fallback. Center/header wheel routing remains. Desktop-only CSS contains native overscroll in both panels and the prompt; mobile keeps natural page scrolling.
+- studio.html refreshes only these two asset URLs. No layout, imagery, model, quote, credit, provider or account changes.
+- Updated the existing layout browser regression for upward/downward panel limits, fixed dock, inspector, native prompt scrolling and prompt limits. Full layout suite passed, including desktop, short windows, mobile and Elements.
+- Approved Image contract and focused Video tests: 11/11 pass. Existing Image prompt-paste browser suite passes desktop/mobile. First-image parity suite passes on unchanged main and final patch after an initial timing-sensitive 10px label mismatch; no Image source or test changed.
+- Browser fixtures use synthetic accounts and intercepted APIs. No paid generations or real signed-in production action performed.
+- Branch: fix/video-scroll-isolation-20261030. Publication and exact production asset verification pending; record release evidence below after merge.
+
 ## Video Generate and credit preview, 2026-10-29
 - Base main 6311d4f; isolated branch polish/video-generate-credit.
 - Requested: a modern Video Generate button with the credit price visible beside its label.

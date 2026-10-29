@@ -180,15 +180,15 @@ try{
   assert.equal(videoLayout.historyParent,'video-feed-center','Existing private History lives inside results feed');
   assert.ok(videoLayout.feedScroll>100,'Results feed scrolls independently of left creation panel');
   assert.equal(videoLayout.panelVisible,true,'Right video details panel is visible');
-  // Real wheel input must reach History from the fixed side panels as well as
-  // the center, without changing the approved three-column geometry.
+  // Central/header wheel input reaches History. The whole editor and inspector
+  // retain their own scrolling, including at either boundary.
   await x.page.evaluate(()=>{
     const filler=document.createElement('div');filler.id='video-wheel-test';
     filler.style.cssText='height:1800px;flex:0 0 1800px';
     document.getElementById('video-feed-center').append(filler);
     document.querySelector('.controls-body').scrollTop=10000;
   });
-  for(const selector of ['.controls>.generate-zone','#video-inspector','#studio-header','.stage']){
+  for(const selector of ['#studio-header','.stage']){
     await x.page.evaluate(()=>document.getElementById('video-feed-center').scrollTop=0);
     const box=await x.page.locator(selector).boundingBox();
     await x.page.mouse.move(box.x+box.width/2,box.y+Math.min(24,box.height/2));
@@ -210,9 +210,48 @@ try{
     'Scrollable settings retain native wheel priority over History');
   await x.page.evaluate(()=>{document.querySelector('.controls-body').scrollTop=100000;document.getElementById('video-feed-center').scrollTop=0;});
   await x.page.mouse.wheel(0,350);
-  await x.page.waitForFunction(()=>document.getElementById('video-feed-center').scrollTop>100);
+  await x.page.waitForTimeout(150);
+  assert.equal(await x.page.locator('#video-feed-center').evaluate(el=>el.scrollTop),0,
+    'Settings bottom never hands wheel input to History');
   assert.ok(await x.page.locator('.controls-body').evaluate(el=>Math.abs(el.scrollHeight-el.clientHeight-el.scrollTop)<2),
-    'At the settings boundary, wheel reaches History without disturbing settings position');
+    'Settings stay at their bottom boundary');
+  await x.page.evaluate(()=>{document.querySelector('.controls-body').scrollTop=0;document.getElementById('video-feed-center').scrollTop=350;});
+  await x.page.mouse.wheel(0,-350);
+  await x.page.waitForTimeout(150);
+  assert.equal(await x.page.locator('#video-feed-center').evaluate(el=>el.scrollTop),350,
+    'Settings top never hands wheel input to History');
+  for(const selector of ['.controls>.generate-zone','#video-inspector']){
+    const box=await x.page.locator(selector).boundingBox();
+    await x.page.mouse.move(box.x+box.width/2,box.y+Math.min(24,box.height/2));
+    for(const delta of [350,-350]){
+      await x.page.mouse.wheel(0,delta);
+      await x.page.waitForTimeout(150);
+      assert.equal(await x.page.locator('#video-feed-center').evaluate(el=>el.scrollTop),350,
+        selector+' never redirects wheel input to History');
+    }
+  }
+  await x.page.evaluate(()=>{
+    const prompt=document.getElementById('prompt');
+    prompt.value='Scroll isolation test\n'.repeat(100);prompt.dispatchEvent(new Event('input',{bubbles:true}));
+    prompt.scrollIntoView({block:'center'});
+  });
+  const promptBox=await x.page.locator('#prompt').boundingBox();
+  await x.page.mouse.move(promptBox.x+20,promptBox.y+20);
+  await x.page.mouse.wheel(0,200);
+  await x.page.waitForFunction(()=>document.getElementById('prompt').scrollTop>50);
+  for(const [edge,delta] of [[100000,350],[0,-350]]){
+    const panelTop=await x.page.evaluate(edge=>{
+      document.getElementById('prompt').scrollTop=edge;
+      return document.querySelector('.controls-body').scrollTop;
+    },edge);
+    await x.page.mouse.wheel(0,delta);
+    await x.page.waitForTimeout(150);
+    assert.equal(await x.page.locator('.controls-body').evaluate(el=>el.scrollTop),panelTop,
+      'Prompt boundary does not move its containing controls');
+    assert.equal(await x.page.locator('#video-feed-center').evaluate(el=>el.scrollTop),350,
+      'Prompt boundary does not move History');
+  }
+  await x.page.locator('#prompt').fill('');
   await x.page.evaluate(()=>document.getElementById('video-feed-center').scrollTop=0);
 
   await x.page.evaluate(()=>{
@@ -220,7 +259,7 @@ try{
     document.getElementById('video-controls-wheel-test').remove();
     document.querySelector('.controls-body').scrollTop=0;
   });
-  console.log('PASS Video wheel reaches History from side panels, header and preview; settings keep native scrolling');
+  console.log('PASS Video center/header reach History; deck, dock, inspector and prompt stay isolated at both edges');
   await x.page.screenshot({path:'test-results/lab-video-feed-desktop.png',fullPage:false});
 
   // The old Live Queue was a full-width slab *below* Video, introducing unwanted
