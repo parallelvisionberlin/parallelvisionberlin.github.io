@@ -82,12 +82,12 @@ try{
     assert.equal(await page.locator('[data-job="image-0"]').count(),1,'earlier page preserves existing work');
     assert.equal((await page.evaluate(()=>window.__historyPreviewEvents)).length,1,'append never republishes the initial preference');
 
-    const refresh=waitRead(4);await page.locator('#refresh').click();await refresh;
-    const filtered=waitRead(5);await page.locator('#tool-video').click();await filtered;
+    const changed=waitRead(4);await page.locator('#tool-video').click();await changed;
+    const filtered=waitRead(5);await page.locator('#tool-image').click();await filtered;
     assert.equal(await page.locator('#history .card').count(),0);
     const staleResponse=page.waitForResponse(response=>response.url()===reads[3].url.href);
-    reads[3].reply({body:pageData([job('stale-image')],cursor)});await staleResponse;await settle();
-    assert.equal(await page.locator('[data-job="stale-image"]').count(),0);
+    reads[3].reply({body:pageData([job('stale-video','video')],cursor)});await staleResponse;await settle();
+    assert.equal(await page.locator('[data-job="stale-video"]').count(),0);
     assert.equal((await page.evaluate(()=>window.__historyPreviewEvents)).length,1);
     reads[4].reply({body:pageData([])});
     await page.waitForFunction(()=>window.__historyPreviewEvents.length===2);
@@ -95,7 +95,7 @@ try{
 
     const pending=waitRead(6);await page.locator('#refresh').click();await pending;
     await page.evaluate(()=>window.__historyBrowser.lock());
-    reads[5].reply({body:pageData([job('private-stale-video','video')],cursor)});await settle();
+    reads[5].reply({body:pageData([job('private-stale-image')],cursor)});await settle();
     assert.equal(await page.locator('#history .card').count(),0);
     assert.equal(await page.locator('#more').isVisible(),false);
     assert.deepEqual(await page.evaluate(()=>window.__historyPreviewEvents.at(-1)),{userId:''});
