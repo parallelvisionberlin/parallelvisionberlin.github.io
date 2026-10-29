@@ -1,11 +1,10 @@
-// Shared Studios navigation. Preserve the three approved original cards; Outfit and Retouch use approved artwork.
+// Shared Studios navigation. Preserve approved Beauty and Fashion artwork; Full Editorial and Retouch retain their artwork.
 // Do not redraw original photography or baked-in typography.
 (()=>{
  const script=document.currentScript,base=new URL('./',script?.src||location.href);
  const url=path=>new URL(path,base).href;
  const arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
  const sprite=url('visuals/beauty/studios-original-reference.svg');
- const outfit=url('visuals/beauty/outfit-studio-card-20261028.webp');
  const retouchCard=url('visuals/beauty/retouch-studio-reference-card.svg');
  const editorialHero='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png';
  const headers=document.querySelectorAll('.landing-header,.studio-header,.beauty-header');
@@ -21,7 +20,6 @@
    '<div class="pv-studios-grid">'+
      '<section class="pv-studios-tile pv-studios-beauty">'+artwork+'<a aria-label="Beauty Studio" href="'+url('beauty.html')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-fashion">'+artwork+'</section>'+
-     '<section class="pv-studios-tile pv-studios-outfit"><img class="pv-studios-outfit-artwork" alt="" loading="lazy" decoding="async" src="'+outfit+'"><a class="pv-studios-outfit-link" aria-label="Outfit Studio" href="'+url('studio.html?tool=fashion')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-editorial"><img class="pv-studios-editorial-artwork" alt="" loading="lazy" decoding="async" src="'+editorialHero+'"><div class="pv-studios-editorial-copy"><strong>Full<br>Editorial</strong><p>Build a complete fashion story.</p><span class="pv-studios-editorial-go" aria-hidden="true">'+arrow+'</span></div><a aria-label="Full Editorial" href="'+url('full-editorial.html')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-retouch"><img class="pv-studios-retouch-artwork" alt="" loading="lazy" decoding="async" src="'+retouchCard+'"><a class="pv-studios-retouch-link" aria-label="Retouch Studio" href="'+url('studio.html?tool=retouch')+'"></a></section>'+
    '</div>'+
@@ -29,11 +27,6 @@
   original.before(shell);shell.append(trigger,panel);panel.querySelector('.pv-studios-fashion').append(original);
   // Keep the original live Fashion element so its ID, handlers and return-to-draft behavior survive.
   original.classList.add('pv-studios-fashion-link');original.textContent='';original.setAttribute('aria-label','Fashion Studio');
-  // Outfit enters the existing Replace Outfit editor. Keep in-page Fashion navigation
-  // and each page's return-to-draft link rather than introducing a second editor.
-  const outfitLink=panel.querySelector('.pv-studios-outfit-link');
-  if(original.tagName==='A')outfitLink.href=original.href;
-  if(original.tagName==='BUTTON')outfitLink.addEventListener('click',event=>{event.preventDefault();original.click();});
   const existingRetouch=header.querySelector('#tool-retouch')||[...header.querySelectorAll('nav a')].find(a=>a.getAttribute('href')?.includes('tool=retouch'));
   const retouchLink=panel.querySelector('.pv-studios-retouch-link');
   if(existingRetouch?.tagName==='A')retouchLink.href=existingRetouch.href;
