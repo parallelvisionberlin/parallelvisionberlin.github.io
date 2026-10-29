@@ -13,7 +13,7 @@ const boot=source.indexOf("try{clerk=await loadLabAccount();");
 const bootEnd=source.indexOf("\n// Soul composer:",boot);
 assert.ok(boot>0&&bootEnd>boot,'Preserve the current image composer after replacing only Clerk bootstrap');
 const testSource=source.slice(0,boot)+source.slice(bootEnd)+
-  `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;customerMode=new URLSearchParams(location.search).has('customer');ownerAccount=!customerMode;customerGenerationReady=true;customerBillingReady=true;customerCreditBalance=1000;userId='test';if(customerMode)wallet.connect({customer:true,balanceCredits:1000,billingReady:true});config={enabled:true,falEnabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,settled:()=>!busy&&!imageSubmissionPending&&!fastImageHandoff.active()};`;
+  `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;customerMode=new URLSearchParams(location.search).has('customer');ownerAccount=!customerMode;customerGenerationReady=true;customerBillingReady=true;customerCreditBalance=1000;userId='test';if(customerMode)wallet.connect({customer:true,balanceCredits:1000,billingReady:true});config={enabled:true,falEnabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,animateImage,settled:()=>!busy&&!imageSubmissionPending&&!fastImageHandoff.active()};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve('.','.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(resolve('.')+sep)||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webp':'image/webp','.jpg':'image/jpeg','.woff2':'font/woff2'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4178,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -192,6 +192,33 @@ try{
    assert.equal(countPaid(isolated),0,'Tab navigation never submits a paid job');
    assert.deepEqual(isolated.errors,[],'No client errors during isolated reference navigation');
    ok('Image/Video references isolate, persist, remove and reset independently at '+width+'px');
+   await isolated.context.close();
+ }
+ // An explicit History "Use in Video" action may transfer one selected result,
+ // but should not destroy the Image Studio reference draft it came from.
+ {
+   const isolated=await workspace();
+   const {page}=isolated;
+   await page.locator('#reference-images').setInputFiles({
+     name:'keep-image-draft.png',mimeType:'image/png',buffer:png
+   });
+   await page.waitForFunction(()=>document.querySelector('#reference-list .reference-item strong')?.textContent.includes('keep-image-draft.png'));
+   await page.evaluate(async outputId=>window.__labTest.animateImage({
+     id:'completed-image-job',status:'completed',outputId,settings:{type:'image',mode:'image'}
+   }),outputId);
+   await page.waitForFunction(()=>document.getElementById('app').classList.contains('video-studio-active')&&
+     !document.getElementById('video-start-thumb').hidden);
+   assert.match(await page.locator('#filemeta').textContent(),/generated-image/,
+     'Explicit Use in Video installs only the selected image as its Start frame');
+   assert.equal(await page.locator('#reference-list .reference-item').count(),0,
+     'Explicit Start frame handoff does not silently attach Image references');
+   await page.click('#tool-image');
+   assert.match((await page.locator('#reference-list .reference-item strong').allTextContents()).join(' '),/keep-image-draft/,
+     'Image reference draft survives the intentional Use in Video action');
+   assert.equal(quoteRequests(isolated).length,0);
+   assert.equal(countPaid(isolated),0);
+   assert.deepEqual(isolated.errors,[]);
+   ok('Explicit Use in Video installs a Start frame without leaking or erasing Image references');
    await isolated.context.close();
  }
  // A photo dropped in Upscaler is not a Video Start frame. Switching back
