@@ -49,6 +49,12 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
  $('step-footer').hidden=next>=5||next<=0;
  $('progress-title').textContent=next>=1&&next<=4?'STEP '+next+' / 4':next===5?'GENERATING':next===6?'YOUR EDITORIAL':'GET STARTED';
  $('step-indicator').style.width=Math.min(100,Math.max(25,(next>=5?4:next)*25))+'%';
+ for(const item of document.querySelectorAll('[data-flow-step]')){
+  const index=Number(item.dataset.flowStep),current=next>=5?4:next;
+  item.classList.toggle('is-current',index===current);
+  item.classList.toggle('is-complete',index<current);
+  if(index===current)item.setAttribute('aria-current','step');else item.removeAttribute('aria-current');
+ }
  $('step-next').textContent=next===4?'Review credits':'Next';
  if(next>0)document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});
 }

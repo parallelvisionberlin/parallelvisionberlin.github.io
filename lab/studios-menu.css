@@ -18,7 +18,18 @@
    existing card dimensions. Preserve the original baked-in titles and photos. */
 .pv-studios-artwork{position:absolute!important;top:-6.0086%!important;left:0!important;display:block!important;width:auto!important;max-width:none!important;height:106.0086%!important;object-fit:contain!important;pointer-events:none!important}
 .pv-studios-fashion .pv-studios-artwork{transform:translateX(-34.4054%)}
-.pv-studios-editorial .pv-studios-artwork{transform:translateX(-68.5116%)}
+/* Full Editorial's bespoke live art direction, not the outdated third panel of the sprite. */
+.pv-studios-editorial{background:#1b1916}
+.pv-studios-editorial-artwork{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:58% center!important;display:block!important;filter:brightness(.85) saturate(.78);pointer-events:none!important}
+.pv-studios-editorial:before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(7,8,9,.91) 0%,rgba(7,8,9,.71) 38%,rgba(7,8,9,.18) 77%,rgba(7,8,9,.06) 100%)}
+.pv-studios-editorial-copy{position:absolute;z-index:1;top:18px;bottom:18px;left:19px;width:57%;display:flex;flex-direction:column;align-items:flex-start;pointer-events:none;color:#f6f3ed}
+.pv-studios-editorial-copy strong{display:block;font:600 clamp(24px,2.18vw,34px)/.96 'DM Sans',DM,Arial,sans-serif;letter-spacing:-.06em;text-shadow:0 1px 15px #0005}
+.pv-studios-editorial-copy p{max-width:165px;margin:10px 0 9px;color:#d2d0cd;font:400 11px/1.35 'DM Sans',DM,Arial,sans-serif;letter-spacing:0}
+.pv-studios-editorial-go{margin-top:auto;display:grid;place-items:center;width:35px;height:35px;border:1px solid #ffffffb3;border-radius:50%;background:#08080917}
+.pv-studios-editorial-go svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.pv-studios-editorial:has(a:hover) .pv-studios-editorial-go{background:#f4f0e7;color:#171717;border-color:#f4f0e7;transition:background .18s,color .18s}
+@media(max-width:420px){.pv-studios-editorial-copy{top:14px;bottom:14px;left:16px}.pv-studios-editorial-copy strong{font-size:27px}.pv-studios-editorial-copy p{font-size:10.5px;margin-top:7px}.pv-studios-editorial-go{width:32px;height:32px}}
+
 .pv-studios-editorial{grid-column:2/span 2}
 .pv-studios-retouch{grid-column:4/span 2}
 .pv-studios-retouch-artwork{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;pointer-events:none!important}

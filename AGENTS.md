@@ -41,6 +41,8 @@ Avoid:
 - random redesigns
 
 ## Berlin 2063
+
+Current Berlin 2063 gallery changes and speculative architecture notes: `BERLIN-2063-WORK-STATE.md`.
 Berlin 2063 is an imagined future world, not generic science fiction.
 
 Use restrained architecture, industrial environments, transit systems, fashion, sound, material research, and human characters.

@@ -37,7 +37,10 @@ const server=http.createServer((req,res)=>{
     const box=await tile.boundingBox();
     assert.ok(box&&Math.abs(box.width/box.height-446/247)<0.04,'Original wide card proportions are retained at '+width);
   }
-  assert.equal(await page.locator('.pv-studios-artwork').count(),3,'Three existing Studios retain their exact original artwork');
+  assert.equal(await page.locator('.pv-studios-artwork').count(),2,'Beauty and Fashion retain their original artwork');
+   assert.equal(await page.locator('.pv-studios-editorial-artwork').count(),1,'Full Editorial uses its selected campaign photograph');
+   assert.match(await page.locator('.pv-studios-editorial-artwork').getAttribute('src'),/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a\.png/);
+   assert.equal(await page.locator('.pv-studios-editorial-copy p').textContent(),'Build a complete fashion story.');
   assert.equal(await page.locator('.pv-studios-outfit-artwork').count(),1,'Outfit uses its own approved editorial card');
   assert.equal((await page.locator('.pv-studios-outfit-artwork').getAttribute('src'))?.includes('outfit-studio-card-20261028.webp'),true);
   assert.ok(await page.locator('.pv-studios-outfit-artwork').evaluate(async img=>{await img.decode();return img.naturalWidth===446&&img.naturalHeight===247;}),'Outfit artwork fits the existing card ratio without cropping text');
@@ -45,12 +48,12 @@ const server=http.createServer((req,res)=>{
   // Check the actual sprite artwork coordinates rather than splitting the
   // source screenshot into three equal thirds (which includes its gutters).
   await page.locator('.pv-studios-artwork').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
-  const crops=await page.locator('.pv-studios-tile:not(.pv-studios-outfit)').evaluateAll(tiles=>tiles.map(tile=>{
+  const crops=await page.locator('.pv-studios-tile:is(.pv-studios-beauty,.pv-studios-fashion)').evaluateAll(tiles=>tiles.map(tile=>{
     const t=tile.getBoundingClientRect(),a=tile.querySelector('.pv-studios-artwork').getBoundingClientRect();
     const scale=a.height/247;
     return {sourceX:(t.left-a.left)/scale,sourceY:(t.top-a.top)/scale,sourceRatio:a.width/a.height};
   }));
-  for(let i=0;i<3;i++){
+  for(let i=0;i<2;i++){
     assert.ok(Math.abs(crops[i].sourceX-[0,460,916][i])<2,'Studio image '+i+' starts on its own photo at '+width+': '+JSON.stringify(crops[i]));
     assert.ok(Math.abs(crops[i].sourceY-14)<1,'Studio image '+i+' excludes the old top strip at '+width);
     assert.ok(Math.abs(crops[i].sourceRatio-1337/247)<0.03,'Studio images keep the original photographic aspect ratio');

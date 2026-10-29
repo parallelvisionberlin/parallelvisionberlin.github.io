@@ -14,6 +14,12 @@ test('Full Editorial has the approved hero and real four-step navigation',()=>{
  assert.match(html,/class="hero-title-italic">Studio\./);
  assert.match(html,/Create your editorial/);
  assert.match(html,/class="editorial-hero-process"/);
+ assert.match(html,/class="editorial-flow-rail"/);
+ assert.match(js,/item\.classList\.toggle\('is-current'/);
+ assert.match(css,/PVLAB_EDITORIAL_COHERENCE_20261029/);
+ assert.match(css,/min-width:278px;min-height:62px/);
+ assert.match(read('lab/studios-menu.js'),/pv-studios-editorial-artwork/);
+ assert.match(read('lab/studios-menu.css'),/pv-studios-editorial-copy/);
  for(const step of ['model','style','mood','generate','progress','results'])assert.match(html,new RegExp('id="panel-'+step+'"'));
  assert.match(html,/id="editorial-confirm"/);
  assert.match(html,/id="model-files"[^>]+multiple/);
