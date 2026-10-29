@@ -10,7 +10,7 @@ const account=`const listeners=[];const role=window.__beautyRole||'guest';const 
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+decodeURIComponent(pathname));
  if(relative(root,path).startsWith('..')||!existsSync(path)||!statSync(path).isFile())return res.writeHead(404).end();
- res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.webp':'image/webp'})[extname(path)]||'application/octet-stream');
+ res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.webp':'image/webp','.jpg':'image/jpeg','.jpeg':'image/jpeg','.avif':'image/avif'})[extname(path)]||'application/octet-stream');
  res.end(pathname==='/lab/native-account.js'?account:readFileSync(path));
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
@@ -52,14 +52,31 @@ try{
   await page.evaluate(()=>document.fonts.ready);
   const layout=await page.evaluate(()=>{
    const bounds=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};};
-   return {title:bounds('h1'),photo:bounds('.beauty-photo'),notes:bounds('#beauty-direction'),bar:bounds('.beauty-generate-bar'),button:bounds('#beauty-generate'),height:innerHeight,width:innerWidth,scrollWidth:document.documentElement.scrollWidth};
+   return {title:bounds('h1'),photo:bounds('.beauty-photo'),notes:bounds('#beauty-direction'),panel:bounds('.beauty-edit-panel'),ratio:bounds('#beauty-ratio'),button:bounds('#beauty-generate'),height:innerHeight,width:innerWidth,scrollWidth:document.documentElement.scrollWidth};
   });
-  assert.ok(layout.bar.bottom<=height-12,'Complete Generate bar fits the first viewport at '+width+'x'+height+': '+JSON.stringify(layout));
-  assert.ok(layout.notes.bottom+10<=layout.bar.top,'Notes and Generate never overlap');
-  assert.ok(layout.title.bottom<layout.photo.top&&layout.photo.bottom<layout.notes.top,'Photo and styling retain their visual order');
-  assert.ok(layout.bar.left>=0&&layout.bar.right<=width&&layout.scrollWidth<=width,'Workspace fits horizontally');
+  assert.ok(layout.button.bottom<=height-12,'Generate fits the first viewport at '+width+'x'+height+': '+JSON.stringify(layout));
+  assert.ok(layout.button.top>=layout.panel.top+8&&layout.button.bottom<=layout.panel.bottom-5,'Generate remains inside the visible Edit Look panel at '+width+'x'+height+': '+JSON.stringify(layout));
+  assert.ok(layout.ratio.bottom<=layout.photo.bottom-8,'Aspect ratio stays visible above the bottom of the hero at '+width+'x'+height+': '+JSON.stringify(layout));
+  assert.ok(layout.notes.bottom+8<=layout.button.top,'Creative direction and Generate never overlap');
+  assert.ok(layout.title.right+8<=layout.photo.left&&layout.photo.right+8<=layout.panel.left,'Approved layout keeps settings left, image centered and tools right');
+  assert.ok(layout.panel.left>=0&&layout.panel.right<=width&&layout.scrollWidth<=width,'Workspace fits horizontally');
   await page.locator('#beauty-generate').click({trial:true});
   await page.screenshot({path:'test-results/beauty-fit-'+width+'x'+height+'.png',fullPage:true});
+  await s.context.close();
+ }
+ // Visual shortcuts must control the native fields used by credit quotes and generation.
+ {
+  const s=await scenario({role:'guest',width:1448}),{page}=s;
+  assert.equal(await page.locator('[data-beauty-choice]').count(),12,'Three editable categories show four visual options each');
+  const src=await page.locator('.beauty-looks-list .beauty-look-photo').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')));
+  assert.equal(src.length,6,'Six editorial cards are visible');
+  assert.equal(new Set(src).size,6,'Editorial cards use six distinct photographic assets');
+  await page.locator('[data-beauty-choice="beauty-makeup"][data-value="bold"]').click();
+  assert.equal(await page.locator('#beauty-makeup').inputValue(),'bold','Makeup card changes the generation setting');
+  await page.locator('#beauty-reset-look').click();
+  assert.equal(await page.locator('#beauty-makeup').inputValue(),'keep','Reset returns editing settings to defaults');
+  await page.locator('[data-look="night"]').click();
+  assert.match(await page.locator('#beauty-direction').inputValue(),/low-key evening/i,'Editorial mood cards produce real creative directions');
   await s.context.close();
  }
  for(const width of [1448,1024,390,320]){
