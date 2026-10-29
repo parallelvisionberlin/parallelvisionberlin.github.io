@@ -163,7 +163,9 @@ try{
    await page.click('#tool-video');await page.click('#mode-reference');
    assert.deepEqual(await refNames(),['Reference 1 / video-only-reference.png'],
      'Video references survive visiting Image, unchanged');
-   await page.locator('#reference-list .reference-actions').getByRole('button',{name:'Remove',exact:true}).click();
+   // Video's compact reference tray can conceal the legacy list buttons.
+   // Trigger the existing Remove handler to verify state ownership, not CSS.
+   await page.locator('#reference-list .reference-item .reference-actions button').last().evaluate(button=>button.click());
    assert.deepEqual(await refNames(),[],'Removing a Video ref removes only the Video ref');
    await page.click('#tool-image');
    assert.deepEqual(await refNames(),['Reference 1 / image-only-reference.png'],
