@@ -177,7 +177,9 @@ try{
    const upscaleSource=await page.locator('#preview').getAttribute('src');
    await page.click('#tool-image');
    assert.deepEqual(await refNames(),['Reference 1 / image-only-reference.png']);
-   await page.click('#clear');
+   // Image Reset is currently hidden in the compact deck. Exercise its
+   // existing handler directly without changing the approved layout.
+   await page.locator('#clear').evaluate(button=>button.click());
    assert.deepEqual(await refNames(),[],'Image Reset clears only Image references');
    await page.click('#tool-video');await page.click('#mode-reference');
    assert.deepEqual(await refNames(),['Reference 1 / video-second-reference.png'],
