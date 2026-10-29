@@ -1,10 +1,10 @@
 name: PV LAB Video credit preview
 on:
   pull_request:
-    paths: ['lab/lab.js', 'lab/media-references.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'tests/lab-video-credit-preview-ui.mjs', '.github/workflows/lab-video-credit-preview.yml']
+    paths: ['lab/lab.js', 'lab/media-references.js', 'lab/video-input-action.js', 'lab/video-scene-states.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'tests/lab-video-credit-preview-ui.mjs', '.github/workflows/lab-video-credit-preview.yml']
   push:
     branches: [main]
-    paths: ['lab/lab.js', 'lab/media-references.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'tests/lab-video-credit-preview-ui.mjs', '.github/workflows/lab-video-credit-preview.yml']
+    paths: ['lab/lab.js', 'lab/media-references.js', 'lab/video-input-action.js', 'lab/video-scene-states.js', 'lab/video-euro-pricing.js', 'lab/video-relaxed-studio.css', 'tests/lab-video-credit-preview-ui.mjs', '.github/workflows/lab-video-credit-preview.yml']
 jobs:
   video-credit-preview:
     runs-on: ubuntu-latest
@@ -14,7 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-customer-image-quotes.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-video-character-removal.test.mjs
+      - run: node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-customer-image-quotes.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-video-character-removal.test.mjs tests/lab-video-input-action.test.mjs tests/lab-video-scene-states.test.mjs
       - run: npm install --prefix /tmp/pv-video-credit playwright
       - run: /tmp/pv-video-credit/node_modules/.bin/playwright install --with-deps chromium
       - run: node tests/lab-video-credit-preview-ui.mjs

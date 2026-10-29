@@ -1,3 +1,10 @@
+## Missing input and duplicate draft prompt, 2026-10-30
+- Screenshot has Reference set, typed prompt, and no reference attached. Existing hasInput correctly prevents generation; Text mode accepts prompt-only generation.
+- Replaces the unexplained disabled action with Add a reference / Add a start frame / Add a video for signed-in eligible accounts with a prompt but missing media. It opens the existing picker, never a quote/job. Existing account/balance/busy guards remain; attached media restores Generate.
+- Draft prompt is hidden/cleared in the create inspector. Saved/selected-video prompt renderer is separate and unchanged.
+- Relevant files: video-input-action.js, lab.js, video-scene-states.js, video-relaxed-studio.css, studio.html. Targeted unit and browser regression covers mode-specific actions, account guards, native picker, no paid submission, draft prompt isolation and Generate recovery.
+- 11 local focused checks PASS. Publication pending.
+
 ## Independent desktop Video scrolling, 2026-10-30
 - User approved independent scrolling for the whole prompt deck, textarea, center gallery and Scene details. Base main: 4852dedb14b30c668f8661205eff291747553a96.
 - Cause: the existing document wheel handler deliberately handed side-panel boundary input to History.

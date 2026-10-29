@@ -69,13 +69,9 @@ function mountVideoSceneStates(){
     const sceneModel=byId('pv-video-scene-model');
     if(sceneModel)sceneModel.disabled=!!byId('video-model-trigger')?.disabled;
     byId('pv-video-current-model-description').textContent=byId('pv-video-model-hero')?.querySelector('small')?.textContent||'';
-    const p=prompt?.value.trim();
-    byId('pv-video-current-prompt').textContent=p||(
-      mode==='extend'?'Describe what happens after the original clip.':
-      mode==='reference'?'Add reference images, then describe how they interact.':
-      mode==='start'?'Choose the opening frame, then describe its motion.':
-      'Write what happens, where it takes place and how the camera moves.'
-    );
+    // Draft text belongs in the composer. Saved-video prompts have their own inspector.
+    const draftPrompt=byId('pv-video-current-prompt');
+    if(draftPrompt){draftPrompt.textContent='';draftPrompt.closest('section').hidden=true;}
     byId('pv-video-current-duration').textContent=quoteOption('duration');
     byId('pv-video-current-resolution').textContent=quoteOption('resolution').toUpperCase();
     const ratio=byId('ratio'),ratioHidden=ratio?.closest('label')?.hidden;
