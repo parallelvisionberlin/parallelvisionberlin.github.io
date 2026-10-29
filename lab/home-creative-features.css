@@ -73,3 +73,32 @@
  .pv-editorial-feature-copy h2,.pv-fashion-feature-copy h2{font-size:clamp(45px,12vw,62px)}
 }
 @media(prefers-reduced-motion:reduce){.pv-feature-button,.pv-creative-card{transition:none}}
+
+/* Keep campaign photography separate from HTML copy.
+   Crop the user-approved right-hand photographic region out of the
+   uploaded source composition using CSS, without a text-bearing hero. */
+@media(min-width:1001px){
+ .pv-editorial-feature,.pv-fashion-feature{background-image:none!important;background-color:#08090a}
+ .pv-editorial-feature-art{display:block!important;position:absolute;inset:0 0 0 34%;width:66%;height:100%;z-index:0;background-image:url('https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/9d6f48c4-e89e-47a3-8315-c92b7805a789.png');background-position:right center;background-size:151.52% 100%;background-repeat:no-repeat;filter:none}
+ .pv-fashion-feature-photo{display:block!important;position:absolute;inset:0 0 0 35%;width:65%;height:100%;z-index:0;background-image:url('https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/184f3a88-c1c8-470f-9fc7-1ab0a939a59e.png');background-position:right center;background-size:153.85% 100%;background-repeat:no-repeat;filter:none}
+ .pv-editorial-feature-shade{display:block!important;position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,#08090a 0%,#08090afc 25%,#08090aaf 37%,#08090a22 51%,transparent 66%)}
+ .pv-fashion-feature:after{content:'';display:block!important;position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,#08090a 0%,#08090afd 26%,#08090aa8 40%,#08090a16 59%,transparent 73%)}
+ .pv-editorial-feature-copy,.pv-fashion-feature-copy{z-index:2}
+ .pv-editorial-feature-copy>:not(a),.pv-fashion-feature-copy>:not(a){position:absolute!important;width:auto!important;height:auto!important;overflow:visible!important;clip-path:none!important}
+ .pv-editorial-feature-copy:before,.pv-fashion-feature-copy:before{content:'PV LAB';position:absolute;left:5.2%;font-family:Impact,'Arial Narrow',sans-serif;font-size:clamp(20px,1.7vw,34px);font-weight:800;letter-spacing:-.045em;color:#f4f2ef}
+ .pv-editorial-feature-copy:before{top:11%}
+ .pv-fashion-feature-copy:before{top:20%}
+ .pv-editorial-feature-copy .pv-feature-kicker{left:5.2%;top:22.5%;font-size:clamp(9px,.84vw,15px);letter-spacing:.29em;color:#d4d0cb}
+ .pv-fashion-feature-copy .pv-feature-kicker{left:5.8%;top:28.1%;font-size:clamp(9px,.83vw,15px);letter-spacing:.3em;color:#d4d0cb}
+ .pv-editorial-feature-copy h2,.pv-fashion-feature-copy h2{font-family:'Bodoni MT',Didot,'Times New Roman',serif;font-weight:400;color:#f8f6f2;letter-spacing:-.064em;margin:0;max-width:none}
+ .pv-editorial-feature-copy h2{left:5.2%;top:28.3%;font-size:clamp(58px,5.15vw,105px);line-height:.9;white-space:nowrap}
+ .pv-fashion-feature-copy h2{left:5.8%;top:33.3%;font-size:clamp(60px,4.6vw,98px);line-height:1.0;white-space:nowrap}
+ .pv-editorial-feature-copy .pv-editorial-feature-lead{left:5.2%;top:54.4%;font:400 clamp(20px,1.88vw,37px)/1.2 'Bodoni MT',Didot,'Times New Roman',serif;color:#f4f0ea;margin:0}
+ .pv-editorial-feature-copy p:not(.pv-editorial-feature-lead){left:5.2%;top:61.1%;font-size:clamp(13px,1.23vw,24px);line-height:1.38;color:#dedbd7;margin:0}
+ .pv-fashion-feature-copy p{left:5.8%;top:45.6%;font-size:clamp(13px,1.26vw,24px);line-height:1.4;color:#e2dfda;margin:0}
+ .pv-editorial-feature-copy .pv-feature-button,.pv-fashion-feature-copy .pv-feature-button{display:flex;align-items:center;justify-content:space-between;height:9.5%;width:19.1%;min-height:0;padding:0 2.7%;background:#f4f0e8!important;color:#141414!important;font-size:clamp(13px,1.13vw,23px)!important;font-weight:500;line-height:1.2;white-space:nowrap;box-shadow:none;transform:none}
+ .pv-editorial-feature-copy .pv-feature-button{left:5.2%;top:72.4%}
+ .pv-fashion-feature-copy .pv-feature-button{left:5.8%;top:56.3%}
+ .pv-editorial-feature-copy .pv-feature-button span,.pv-fashion-feature-copy .pv-feature-button span{display:inline;font-size:clamp(17px,1.3vw,24px)}
+ .pv-editorial-feature-copy .pv-feature-button:hover,.pv-fashion-feature-copy .pv-feature-button:hover{background:#fff!important;box-shadow:none}
+}
