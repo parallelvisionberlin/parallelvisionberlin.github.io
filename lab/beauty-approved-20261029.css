@@ -185,3 +185,22 @@
  .beauty-looks-list>button{height:165px;scroll-snap-align:start;}
  .beauty-results{margin-top:12px;}
 }
+
+/* Viewport-fidelity corrections: all controls remain visible above the card deck. */
+@media(min-width:1001px){
+ .beauty-editorial-heading .beauty-back{display:none!important;}
+ .beauty-editor-grid::before{background-position:center,center,45% 5%;}
+ .beauty-editorial-heading .beauty-intro{margin-bottom:13px;}
+ .beauty-editorial-heading .beauty-description{margin-bottom:13px;}
+ .beauty-left-settings{padding-top:12px;gap:9px;}
+ .beauty-edit-panel{padding-bottom:72px;}
+ .beauty-edit-panel #beauty-generate{
+  position:absolute!important;left:14px;right:14px;bottom:14px;top:auto;
+  display:block!important;width:calc(100% - 28px);min-height:44px;margin:0!important;
+  background:#fafaf8!important;color:#101010!important;z-index:9;opacity:1;
+ }
+ .beauty-edit-panel #beauty-generate:disabled{opacity:.55!important;}
+}
+@media(max-width:1000px){
+ .beauty-edit-panel #beauty-generate{position:static!important;display:block!important;width:100%;margin:5px 0 0!important;}
+}
