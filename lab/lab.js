@@ -3549,7 +3549,10 @@ document.addEventListener('keydown',event=>{
 function button(text,fn,run=action){const b=document.createElement('button');b.className='quiet';b.textContent=text;b.onclick=()=>run(fn);return b;}
 async function assetFile(id,name='source'){const blob=await api('/api/assets/'+id,{blob:true}),ext=({'image/jpeg':'jpg','video/quicktime':'mov','audio/mpeg':'mp3','audio/x-wav':'wav'})[blob.type]||blob.type.split('/')[1];return new File([blob],name+'.'+ext,{type:blob.type});}
 async function restore(job){
-  clearMedia();const p=job.settings||{};engine=engineFor(p);imageReferenceMode=p.referenceMode==='references'?'references':'base';$('composer-exact-prompt').checked=p.exactPrompt===true;
+  const p=job.settings||{};
+  const destination=p.mode==='upscale'?'upscale':p.type||'video';
+  if(tool!==destination)setTool(destination);
+  clearMedia();engine=engineFor(p);imageReferenceMode=p.referenceMode==='references'?'references':'base';$('composer-exact-prompt').checked=p.exactPrompt===true;
   if(p.mode==='upscale'){
     upscaleEngine=UPSCALE_PUBLIC_ENGINES.includes(p.upscaleEngine)?p.upscaleEngine:'seedvr2';$('upscale-engine').value=upscaleEngine;
     upscalePrecisionExpanded=upscaleEngine==='topaz-precision';
@@ -4341,7 +4344,9 @@ async function prepareQuoteInputs(inputs,snapshot=null){
 }
 async function upscaleImage(job){
   if(!hasResult(job)||job.settings.type!=='image')throw new Error('Choose a completed image first.');
-  clearMedia();setTool('upscale');
+  // This is an explicit handoff. Reset only the target Upscaler, preserving
+  // the Image workspace and its references for navigation back.
+  setTool('upscale');clearMedia();
   await setImage(await assetFile(job.outputId,'image-to-upscale'),job.outputId);
   update();notify(isFalUpscale()?'Image loaded for upscaling. Choose the Topaz model and scale, then click Upscale. PV Lab will check price and output size automatically before submitting.':'Image loaded for upscaling. Choose the size, then click Upscale to start one paid job. Nothing has been submitted yet.');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -4351,7 +4356,9 @@ async function animateImage(job){
   if(!hasResult(job)||job.settings.type!=='image')throw new Error('Choose a completed image first.');
   const requestEpoch=epoch,firstFrame=await assetFile(job.outputId,'generated-image');
   if(!owner||epoch!==requestEpoch)return;
-  clearMedia();videoStartFrameHandoff=true;selectedVideoJob=null;setTool('video');setMode('start');
+  // Use in Video is the only transfer here: leave Image references intact,
+  // clear the destination Video editor, then load the chosen start frame.
+  setTool('video');clearMedia();videoStartFrameHandoff=true;selectedVideoJob=null;setMode('start');
   if(!await setImage(firstFrame,job.outputId)||!owner||epoch!==requestEpoch)return;
   $('prompt').value='';update();restoreLatestVideoSelection();
   notify('');
@@ -4367,7 +4374,7 @@ async function refineInSeedream(job,preset='full'){
     extremities:'Preserve the entire image exactly. Refine only hands, fingers, feet and toes for anatomically coherent realistic detail. Keep the exact adult identity, face, body proportions, pose, clothing, composition, room, camera and lighting unchanged. Do not reshape the body.',
     clothing:'Preserve the exact adult person, identity, body proportions, pose, composition, camera and lighting. Refine only garment construction and textile realism: clean seams, straps, hems, closures, fabric tension, folds and edges. Remove fused or impossible clothing artifacts. Do not redesign the outfit or body.'
   };
-  clearMedia();setTool('image');imageEngine='seedream';$('image-engine').value='seedream';setTool('image');
+  setTool('image');clearMedia();imageEngine='seedream';$('image-engine').value='seedream';setTool('image');
   const file=await assetFile(job.outputId,'pv-soul-refine-source');
   await addReferences([file],[job.outputId],[{name:file.name,role:'none',note:'Primary image. Preserve identity, body, pose, composition, camera and lighting; refine only requested defects.'}]);
   $('prompt').value=prompts[preset]||prompts.full;
