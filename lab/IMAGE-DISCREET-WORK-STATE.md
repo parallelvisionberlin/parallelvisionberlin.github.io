@@ -16,7 +16,13 @@
 - Added `tests/lab-history-scroll-ui.mjs`: full Studio, synthetic auth, controlled GET responses, real cursor scroll, single-flight, manual retry, filter and sign-out invalidation, preview event payloads and zero API writes at 1440/390px. Runs as a separate additional step in the existing Video workflow; all existing tests/gates remain.
 - PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/660 . Final CI and publication receipts belong in this section and the PR body.
 - Scope: History unit/browser fixtures, one additional CI step and this checkpoint. Studio source, design, models, account isolation, pricing and billing remain unchanged. No paid generation or purchase.
-- Next: validate the dedicated History browser case, integrate the fixture correction if valid, and verify Cloudflare publication and unchanged production bytes. Existing unrelated browser failures remain explicit; real signed-in production behavior is separate.
+- Integrated via PR #660 to main `585999cc38749a68a8b6188ab336b0dcc0b8a68a` on 2026-10-29. Final source head was `bb4129086fa89653d0fe304d77d73243d0691f8b`.
+- Merged-main CI job `123622479938` confirms 861/861 Node tests and both 1440/390px History browser cases PASS, with zero writes/browser exceptions. Customer Video and routing also pass; the grouped layout step retains the separate Audio assertion failure.
+- Cloudflare Pages `pvlab-studio` check `123623479072` succeeded for the exact merged SHA; deployment `38259163-2d8b-46be-8ef0-a139db286f3c`.
+- Scoped read-only release verifier returned `LIVE_VERIFIED` for production `https://pvlab.studio/studio`, `lab/lab.js?v=20261029-studio-reference-isolation1`. SHA-256: `14e6047ae9fcc544539375b81f7a34c7e55abcd86a273937058b4196c6dd0c76`.
+- Production browser opens the public Studio normally. This browser has no signed-in account; private production History is not claimed. The pagination/privacy interactions above use synthetic sessions and intercepted APIs.
+- This repair is complete. Overall CI remains non-green because of the two separately documented existing layout/visual failures; later grouped browser suites remain unexecuted. No assertions, baselines, tolerances or CI gates were bypassed.
+- Next for separate work: reconcile the obsolete Audio layout expectation with the approved prompt-contained control and diagnose the existing public-canvas visual comparison. Preserve the current Studio design. No paid generation is needed.
 
 ## Active: account-specific preview preference (2026-10-27)
 - User reproduced a fresh account opening Image with the inspiration cards concealed.
