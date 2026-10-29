@@ -23,11 +23,21 @@
 - Existing desktop hero, video URL, loop and autoplay logic preserved.
 - Relevant code: lab/index.html, home-creative-features.css, landing-motion.css.
 - Cache keys: 20261029-mobile-notes-no-arrows1 / 20261029-mobile-viewport1.
-- Checks: 12 targeted Image contract, homepage showcase and mood tests pass.
+- Checks: 17 targeted Image contract, character, homepage showcase and mood tests pass.
 - Diff whitespace check passed.
 - Browser QA: 390x740 and 320x568 phone frames plus desktop inspected.
 - Notes are right of heading, 16px; no page horizontal overflow observed.
 - Small-phone hero actions remain within the viewport.
 - Production authentication is outside this cosmetic change's verification.
-- Publication and custom-domain verification pending.
-- Next: review PR checks, publish, verify the exact deployed homepage assets.
+- Reviewed remote candidate: 8e5e60442833c0630e418ed3d1fb0ec7fd36b7f4.
+- PR #663; existing main has unrelated Studio-card and image-decode failures.
+- PR #663 merged as 019ccfd6643c771835a07ca705f1ea8857d4ed0d.
+- Cloudflare Pages pvlab-studio app check for that exact SHA: success.
+- Production home-creative-features.css and landing-motion.css exactly match reviewed bytes.
+- HTML differences are Cloudflare email obfuscation plus its email-decoding script.
+- Live browser verifies both new CSS versions, right-side 16px notes and zero decorative action arrows.
+- Live phone frames inspected at 390/320; no horizontal overflow observed.
+- Updated landing stability browser suite passes, including viewport-visible actions.
+- Approved Image UI, full unit suite, account, beauty and gallery checks pass.
+- Existing unrelated failures: five-vs-four Studios menu expectation, asset image decoding, Fashion form timeout.
+- Next: only owner-requested refinements; no deployment blocker for this change.
