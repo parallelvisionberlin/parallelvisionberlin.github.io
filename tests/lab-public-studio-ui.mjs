@@ -56,6 +56,9 @@ assert.ok(approvedFashionCss.includes('PV LAB / RUNWAY REPLACE OUTFIT')&&approve
 // Pin its implemented Video source independently; keep every other tool's
 // existing pixel reference and all comparison tolerances unchanged.
 const approvedVideoRef='80ed747b8c5df30abc0abd80352c61c1aad15990';
+// Shallow CI checkouts must retrieve this immutable approved reference too.
+try{execFileSync('git',['cat-file','-e',approvedVideoRef+'^{commit}'],{stdio:'pipe'});}
+catch{execFileSync('git',['fetch','--depth=1','origin',approvedVideoRef],{stdio:'pipe'});}
 const approvedVideoFiles=new Map(['lab/lab.js','lab/studio.html','lab/video-compact-studio.css','lab/video-relaxed-studio.css','lab/video-editorial-deck.js','lab/video-scene-states.js'].map(path=>[path,execFileSync('git',['show',approvedVideoRef+':'+path])]));
 assert.match(approvedVideoFiles.get('lab/video-relaxed-studio.css').toString(),/Approved refined mockup/,'Frozen Video reference includes the approved typography and prompt fit');
 assert.match(approvedVideoFiles.get('lab/video-editorial-deck.js').toString(),/pv-video-prompt-box/,'Frozen Video reference retains inside-prompt controls');
