@@ -369,6 +369,23 @@ let sourcePixels=0, sourceWidth=0, sourceHeight=0;
 // uploaded source when changing tabs. A deliberate History handoff still calls
 // setImage() in the target studio.
 const toolSourceStates=new Map();
+// Each editor owns its reference collection. The shared #reference-images input
+// and #reference-list are merely the visible picker/tray for the current tool.
+// Never use these UI elements as a cross-studio reference store.
+const toolReferenceStates=new Map();
+function swapToolReferences(nextTool){
+  toolReferenceStates.set(tool,references);
+  references=toolReferenceStates.get(nextTool)||[];
+  $('reference-images').value='';
+  $('reference-progress').textContent='';
+  $('reference-list').removeAttribute('aria-busy');
+  closeInputPreview();
+}
+function clearStoredToolReferences(){
+  for(const saved of toolReferenceStates.values())
+    for(const ref of saved)releaseReference(ref);
+  toolReferenceStates.clear();
+}
 function swapToolSource(nextTool){
   toolSourceStates.set(tool,{
     file,sourceId,sourceUrl,sourceWidth,sourceHeight,sourcePixels,
@@ -1064,6 +1081,7 @@ function setTool(value){
   if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
   const toolChanged=tool!==nextTool;
   if(toolChanged){
+    swapToolReferences(nextTool);
     swapToolSource(nextTool);
     if(tool==='upscale'||nextTool==='upscale')clearUpscalePrice();
   }
@@ -2966,7 +2984,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){toolSourceStates.delete(tool);inspirationMoodId=null;videoLoadJobId=null;videoLoadErrorJobId=null;++videoSelectionRevision;videoStartFrameHandoff=false;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';frameMaker?.clear();$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){toolSourceStates.delete(tool);toolReferenceStates.delete(tool);inspirationMoodId=null;videoLoadJobId=null;videoLoadErrorJobId=null;++videoSelectionRevision;videoStartFrameHandoff=false;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();if(tool==='video')mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';frameMaker?.clear();$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
   if(tool==='upscale'&&candidate?.size>20*1024*1024)candidate=await prepareUpscaleInput(candidate,{maxBytes:20*1024*1024});
   if(window.__PV_LAB_NATIVE__===1)candidate=await preparePhotoInput(candidate,{maxBytes:20*1024*1024});
@@ -3065,7 +3083,7 @@ function renderReferences(){
 }
 async function addReferences(list,ids=[],labels=[]){
   clearImageComposerNotice();
-  const e=epoch,incoming=[...list];if(imageEngine==='fal')poseMapSourceId=null;if(references.length+incoming.length>referenceLimit())throw new Error('This mode supports up to '+referenceLimit()+' image references.');
+  const e=epoch,selectedTool=tool,selectedReferences=references,incoming=[...list];if(imageEngine==='fal')poseMapSourceId=null;if(references.length+incoming.length>referenceLimit())throw new Error('This mode supports up to '+referenceLimit()+' image references.');
   const explicitBaseAfterElement=tool==='image'&&usesReferenceGuidance()&&referencesOnly()&&incoming.length===1&&
     references.some(ref=>ref.elementId)&&!labels[0]?.elementId&&!references.some(ref=>ref.role==='base');
   autoPreview=null;$('reference-list').setAttribute('aria-busy','true');let added=0;const toWarm=[];
@@ -3076,7 +3094,7 @@ async function addReferences(list,ids=[],labels=[]){
         const issue=modelImageInputIssue(imageEngine,[...references,{file:incoming[i]}]);if(issue)throw new Error(issue);
       }
       const item=await inspectImage(incoming[i]);
-      if(e!==epoch||!owner){releaseReference(item);return;}
+      if(e!==epoch||!owner||tool!==selectedTool||references!==selectedReferences){releaseReference(item);return;}
       item.id=item.file===incoming[i]?(ids[i]||null):null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';
        item.elementId=labels[i]?.elementId||null;item.elementName=labels[i]?.elementName||'';item.elementCategory=labels[i]?.elementCategory||'';
        item.elementView=labels[i]?.elementView;item.elementCount=labels[i]?.elementCount;if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;toWarm.push(item);
@@ -3088,7 +3106,7 @@ async function addReferences(list,ids=[],labels=[]){
       await new Promise(resolve=>setTimeout(resolve,0));
     }
   }finally{
-    if(e===epoch){
+    if(e===epoch&&tool===selectedTool&&references===selectedReferences){
       $('reference-list').setAttribute('aria-busy','false');
       const attachedName=labels[0]?.elementName;
       $('reference-progress').textContent=added?(attachedName?'Character '+attachedName+' attached.':'Reference images ready.'):'';
@@ -4811,7 +4829,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();document.documentElement.classList.remove('pv-studio-route-pending');}
-function lock(){$('app').removeAttribute('data-guest-preview');const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';syncImagePreviewAccount();soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();clearStoredToolSources();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
+function lock(){$('app').removeAttribute('data-guest-preview');const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';syncImagePreviewAccount();soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();clearStoredToolSources();clearStoredToolReferences();mediaRefs.clear();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
 const pricingOverlay=createPricingOverlay({
   buy:(sku,report)=>wallet.buyPlan(sku,report),
   getAccount:()=>({signedIn:owner,customer:customerMode}),
