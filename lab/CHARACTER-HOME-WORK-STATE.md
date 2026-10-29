@@ -1,23 +1,34 @@
-## iPhone Character CTA arrow correction, 2026-10-27
-- User's iPhone screenshot showed an unwanted emoji-style diagonal arrow after “Create a character”.
-- Remove only the Unicode arrow span from the homepage CTA, retaining the exact link, text, styling and character creation behavior. Text-only button prevents iOS emoji substitution.
-- Add focused static regression in tests/lab-character-home.test.mjs; no changes to layout, billing or other sections.
-- Release verification pending; do not claim live before Cloudflare completes and production HTML is verified.
+# PV LAB homepage / Cinematic character section
 
-# PV LAB homepage / Create your character
-- Date: 2026-10-24, Europe/Berlin.
-- Task: Add a dedicated editorial character-creation section as a new commercial path without altering the approved image-to-motion demonstration or other homepage sections.
-- Placement: after the existing Image / Video / Upscaler Studio cards, before Plans & Credits.
-- Heading: "Create your character." and "A face you can return to."
-- Content: Define → Save → Create, promoting the verified Elements > Characters reusable reference workflow without promising guaranteed identity fidelity.
-- CTA: studio.html?tool=image&createCharacter=1.
-- In authenticated image Studio, the new query intent opens the existing Elements / Characters creation form after successful workspace setup. It still uses existing ownership, credits and permission checks. Guests see their existing public Studio entrance; no private library access.
-- First-party imagery from the Parallel Vision archive: optimized Nina FOK studies copied from assets/optimized/nina-fok/HDNINACANON.webp and Canon.webp; no invented people or generated mock output. The art depicts a project character, not a guaranteed same-person output proof.
-- New assets: lab/visuals/character-studies/nina-canon.webp and nina-study.webp.
-- New stylesheet: lab/character-home.css, strictly namespaced.
-- Changes: lab/index.html, lab/lab.js, lab/studio.html cache marker, lab/README.md; tests/lab-character-home.test.mjs.
-- Auth, wallet, generation, Mood Creator, current hero, image-to-motion story, pricing and existing Studio controls unchanged.
-- Only direct user interaction saves reference profiles or creates paid results. No new automatic upload/training or inference.
-- Tests: independent character homepage static contract; normal PR CI to check public and signed-in tool behavior, approved Image UI, homepage layout and mobile.
-- Publication: GitHub merge and exact Cloudflare deployment status are separate from production DOM/image verification.
-- Future improvement: replace the separate existing demo examples with a verified same-character before/transformation/video sequence when source and outputs are available.
+- Date: 2026-10-29, Europe/Berlin.
+- Objective: implement the owner's selected “02 / Cinematic World” mockup.
+- Starting main: `924325e14c403764d4fc4e998c8f2de62d40ce59`.
+- Selected reference: `libfile_b5791b3ea0c48191b8ff19da6bb95ff5`.
+- Generated concept: `libfile_06d2f7ea63e081918b25275d49dd8cda`.
+- Replaces only the existing character invitation before pricing.
+- Full-width photographic background with a dark left fade.
+- Live headline: “Your character. Every scene.”
+- Supporting copy: “Bring the same identity into new looks, places and stories.”
+- Main CTA: “Create your character” with a line SVG arrow.
+- Existing destination: `studio.html?tool=image&createCharacter=1`.
+- Original-identity portrait and caption remain at the lower left.
+- No numbered instructions, lime heading or mask-wall artwork.
+- No mockup proposal label is included in production.
+- Photography uses original project images, not the flattened mockup.
+- Source landscape: `libfile_360112da64e08191aea8a5fe74412e26`.
+- Source portrait: `libfile_ffcca4bbe6908191921695b67594823a`.
+- Optimized background: `lab/visuals/character-studies/nina-silver-world.webp` (81 KB).
+- Optimized portrait: `lab/visuals/character-studies/nina-original-identity.webp` (38 KB).
+- Styles: `lab/character-home.css`, isolated to the character section.
+- HTML/cache version: `lab/index.html`, `20261029-cinematic-world1`.
+- Existing source photographs and other homepage sections preserved.
+- Mobile uses the portrait above the live copy, CTA and identity inset.
+- CTA's SVG prevents iOS emoji substitution.
+- Existing authentication and character-creation behavior preserved.
+- No generation, billing, credits or provider logic changed.
+- Focused tests: 10 passed across character-home and approved Image UI contract.
+- Desktop browser: both photographs load; no horizontal overflow.
+- Mobile browser: checked 390px and 320px frames; no section overflow.
+- Final narrow CTA refinement keeps its label on one line.
+- Production: pending commit, review, merge and exact Cloudflare release verification.
+- Next action: publish validated bytes, verify deployment and production section.

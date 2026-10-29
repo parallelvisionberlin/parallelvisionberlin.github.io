@@ -13,7 +13,7 @@ test('character invitation follows Studio cards and precedes pricing',()=>{
   const character=home.indexOf('id="create-your-character"');
   const pricing=home.indexOf('class="lab-plans" id="pricing"');
   assert.ok(tools>=0&&character>tools&&pricing>character);
-  assert.match(home,/Create your <em>character\.<\/em>/);
+  assert.match(home,/<span>Your character\.<\/span><span>Every scene\.<\/span>/);
 });
 test('character invitation links to the exact create workflow',()=>{
   assert.match(home,/studio\.html\?tool=image&amp;createCharacter=1/);
@@ -23,11 +23,11 @@ test('character invitation links to the exact create workflow',()=>{
   assert.match(studio,/characterLanding=20261024v1/);
 });
 test('character invitation reuses local project images and responsive CSS',()=>{
-  for(const img of ['nina-canon.webp','nina-study.webp']){
+  for(const img of ['nina-silver-world.webp','nina-original-identity.webp']){
     assert.match(home,new RegExp(img.replace('.','\\.')));
     assert.ok(existsSync(path.join(root,'lab/visuals/character-studies',img)));
   }
-  assert.match(home,/character-home\.css\?v=20261024-creator-entrance1/);
+  assert.match(home,/character-home\.css\?v=20261029-cinematic-world1/);
   assert.match(css,/@media\(max-width:700px\)/);
   assert.doesNotMatch(css,/#studio-header|\.mc-home|\.pv-showcase/);
 });
@@ -37,8 +37,9 @@ test('no billing or generation is performed by deep link',()=>{
   assert.match(logic,/sceneLibrary\.open/);
 });
 
-test('character CTA uses text only, never an iOS emoji arrow',()=>{
+test('character CTA uses a line SVG, never an iOS emoji arrow',()=>{
   const cta=home.match(/<a class="lab-character-home__action"[^>]*>(.*?)<\/a>/s)?.[1];
-  assert.equal(cta,'Create a character');
+  assert.match(cta,/^Create your character <svg/);
+  assert.match(cta,/aria-hidden="true"/);
   assert.doesNotMatch(cta,/[↗➡⬆🔗]/u);
 });
