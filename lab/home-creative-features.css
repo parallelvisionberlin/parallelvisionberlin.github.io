@@ -30,3 +30,28 @@
 @media(max-width:1080px){.pv-creative{grid-template-columns:1fr}.pv-creative-intro{max-width:730px}.pv-creative-intro h2{font-size:58px}.pv-creative-cards{gap:9px}.pv-creative-card{min-height:280px}}
 @media(max-width:700px){.pv-creative{padding:55px 16px;gap:30px}.pv-creative-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.pv-creative-card{min-height:260px;aspect-ratio:.72}.pv-card-copy strong{font-size:26px}.pv-editorial-feature{min-height:610px}.pv-editorial-feature-art{background-position:58% center}.pv-editorial-feature-shade{background:linear-gradient(0deg,#08090af5 0%,#08090aba 42%,#08090a4a 85%)}.pv-editorial-feature-copy{position:absolute;bottom:40px;left:0;padding:30px 22px}.pv-editorial-feature h2{font-size:clamp(49px,11vw,72px)}.pv-editorial-feature-mark{display:none}}
 @media(prefers-reduced-motion:reduce){.pv-feature-button,.pv-creative-card>img{transition:none}}
+
+/* 29 Oct refinements. Repair flattened visual, align layout with approved fashion mockups. */
+.pv-creative{grid-template-columns:minmax(205px,20%) minmax(0,1fr);gap:clamp(12px,2.2vw,37px);padding:clamp(35px,4vw,70px) clamp(20px,3.4vw,63px)}
+.pv-creative-card{min-height:0;aspect-ratio:.82;border-radius:2px}
+.pv-creative-cards{gap:5px}
+.pv-creative-card>img{filter:saturate(.64) contrast(1.035)}
+.pv-creative-card:nth-child(1)>img{object-position:49% 35%}
+.pv-creative-card:nth-child(2)>img{object-position:50% 45%}
+.pv-creative-card:nth-child(3)>img{object-position:64% 50%}
+.pv-creative-card:nth-child(4)>img{filter:grayscale(1) contrast(1.09);object-position:center 32%}
+.pv-creative-intro h2{margin-top:16px;font-size:clamp(43px,3.75vw,70px)}
+.pv-card-copy strong{font-size:clamp(22px,1.7vw,33px)}
+.pv-card-copy{bottom:23px;left:16px;gap:5px}
+.pv-editorial-feature{min-height:clamp(430px,36vw,660px)}
+.pv-editorial-feature-art{background-position:center 48%;filter:saturate(.18) brightness(1.03)}
+.pv-editorial-feature-shade{background:linear-gradient(90deg,#08090af4 0%,#08090ae3 19%,#08090a83 34%,transparent 63%),linear-gradient(0deg,#09090960,transparent 27%)}
+.pv-editorial-feature-copy{padding:clamp(50px,5vw,94px) clamp(25px,5vw,90px)}
+.pv-editorial-feature h2{font-size:clamp(60px,5.6vw,94px);margin:18px 0 23px}
+.pv-fashion-feature{min-height:clamp(460px,42vw,740px);position:relative;isolation:isolate;overflow:hidden;background:#101214;color:#f4f0e8}
+.pv-fashion-feature-photo{position:absolute;inset:0;z-index:-2;background:url('./visuals/studio-tools/video-liquid-dress.webp') 77% 44% / cover no-repeat;filter:grayscale(.4) contrast(1.15) brightness(.8)}
+.pv-fashion-feature:after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#08090afc 0%,#08090aef 21%,#08090a76 43%,transparent 70%)}
+.pv-fashion-feature-copy{padding:clamp(70px,7vw,120px) clamp(25px,5vw,90px);max-width:730px}
+.pv-fashion-feature h2{font:400 clamp(57px,6vw,105px)/1 Georgia,'Times New Roman',serif;letter-spacing:-.065em;margin:26px 0 24px}
+.pv-fashion-feature-copy p{font-size:clamp(15px,1.25vw,20px);line-height:1.48;color:#ddd9d4;margin:0 0 27px}
+@media(max-width:700px){.pv-creative{grid-template-columns:1fr;padding:40px 15px}.pv-creative-card{aspect-ratio:.78}.pv-editorial-feature{min-height:590px}.pv-editorial-feature-art{background-position:61% center}.pv-fashion-feature{min-height:570px}.pv-fashion-feature-photo{background-position:64% center}.pv-fashion-feature:after{background:linear-gradient(0deg,#08090af5,#08090a5e 80%)}.pv-fashion-feature-copy{position:absolute;bottom:0;padding:32px 23px}.pv-fashion-feature h2{font-size:55px}}
