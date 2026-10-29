@@ -1,3 +1,11 @@
+## Character removal and inside-prompt controls, 2026-10-29
+- Base main f674201; branch fix/video-character-remove-prompt-toolbar.
+- Verified cause: saved Element attaches inside busy action; grouped Remove was rendered disabled and update never re-enabled it. syncReferenceRemovalState now follows every update and preserves busy protection.
+- Grouped Remove has an explicit accessible character name. Regression test runs actual render/removal handlers: loading disables removal, completion enables the existing button, removal releases all selected views of that character and keeps another character.
+- Video presentation wraps the native textarea and existing utility row in one prompt surface; character and audio controls sit inside its lower edge. Original nodes return to their original positions when Video is inactive. Seed and original audio state preserved; no generation/credit/provider changes.
+- Focused checks: 12 PASS including mandatory Image contract and new behavioral regression. Preview verifies buttons inside prompt bounds and audio checkbox updates.
+- Pending publication and production verification. No real signed-in account actions or paid generation performed.
+
 ## Single audio chip and frame wells, 2026-10-29
 - Continues 97986f9 on fix/video-prompt-resize-audio.
 - User rejected nested Start/End upload boxes and full-width audio across modes.

@@ -251,3 +251,16 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode :is(#drop,#last-drop) .pv-frame-upload-icon{width:36px!important;height:36px!important;padding:8px;border:1px solid #484c50;border-radius:50%;background:#303336;color:#d7dadd}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode :is(#drop,#last-drop):hover{border-color:#797e83!important;background:#232629!important}
 html body #app.video-studio-active #start-mode .upload-block:has(.video-frame-thumb:not([hidden])) .upload-heading{display:none!important}
+
+/* Video prompt is one writing surface, including its compact footer controls. */
+html body #app.video-studio-active #pv-video-prompt-box{
+ order:6;display:flex;flex-direction:column;flex-shrink:0;min-width:0;
+ border:1px solid var(--pv-relaxed-line);border-radius:9px;background:var(--pv-relaxed-field);
+}
+html body #app.video-studio-active #pv-video-prompt-box:focus-within{border-color:#7c8084}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout .controls #pv-video-prompt-box textarea#prompt{
+ order:0!important;margin:0!important;border:0!important;box-shadow:none!important;background:transparent!important;border-radius:9px 9px 0 0!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #pv-video-prompt-box #video-utilities{
+ order:1!important;margin:0!important;padding:0 10px 8px!important;min-width:0;
+}

@@ -42,6 +42,25 @@ function installVideoEditorialDeck(){
   const audioPillText=doc.getElementById('pv-video-audio-pill-label');
   const audioControl=doc.getElementById('audio');
   const prompt=doc.getElementById('prompt');
+  const utilities=doc.getElementById('video-utilities');
+  const utilityHome=utilities?.nextSibling;
+  const promptBox=doc.createElement('div');
+  promptBox.id='pv-video-prompt-box';
+  promptBox.hidden=true;
+  prompt?.before(promptBox);
+  function syncPromptBox(active){
+    if(!prompt||!utilities)return;
+    if(active){
+      if(prompt.parentElement!==promptBox)promptBox.append(prompt,utilities);
+      promptBox.hidden=false;
+    }else{
+      if(prompt.parentElement===promptBox){
+        promptBox.before(prompt);
+        controls.insertBefore(utilities,utilityHome);
+      }
+      promptBox.hidden=true;
+    }
+  }
   const promptCount=doc.getElementById('pv-video-prompt-count');
   const refCount=doc.getElementById('pv-video-added-count');
   const refTitle=doc.getElementById('pv-video-ref-title');
@@ -169,7 +188,8 @@ function installVideoEditorialDeck(){
     }
   }
   function refresh(){
-    const active=app.classList.contains('video-studio-active');
+    const active=!app.hidden&&app.classList.contains('video-studio-active');
+    syncPromptBox(active);
     if(!active){
       collage.hidden=true;
       const autoRatio=Array.from(doc.getElementById('ratio')?.options||[]).find(opt=>opt.value==='auto');
@@ -237,7 +257,7 @@ function installVideoEditorialDeck(){
   modes.addEventListener('click',scheduleRefresh);
   doc.getElementById('video-task-switch')?.addEventListener('click',scheduleRefresh);
   doc.getElementById('video-model-trigger')?.addEventListener('click',scheduleRefresh);
-  new MutationObserver(scheduleRefresh).observe(app,{attributes:true,attributeFilter:['class']});
+  new MutationObserver(scheduleRefresh).observe(app,{attributes:true,attributeFilter:['class','hidden']});
   new MutationObserver(scheduleRefresh).observe(media,{attributes:true,attributeFilter:['hidden']});
   new MutationObserver(scheduleRefresh).observe(modes,{subtree:true,attributes:true,attributeFilter:['aria-selected','hidden']});
   new MutationObserver(scheduleRefresh).observe(referenceList,{childList:true,subtree:true});
