@@ -54,8 +54,8 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #pv-video-prompt-head{margin:4px 0 -2px!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #pv-video-prompt-head #prompt-label{font-size:13px!important;font-weight:550!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #pv-video-prompt-count{font-size:11px!important;color:#93969a!important}
-html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout .controls textarea#prompt{height:104px!important;min-height:104px!important;padding:12px!important;font-size:14px!important;line-height:1.55!important;background:var(--pv-relaxed-field)!important;border-color:var(--pv-relaxed-line)!important;border-radius:9px!important}
-html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-text .workspace.video-layout .controls textarea#prompt{height:194px!important;min-height:194px!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout .controls textarea#prompt{height:104px;min-height:104px!important;padding:12px!important;font-size:14px!important;line-height:1.55!important;background:var(--pv-relaxed-field)!important;border-color:var(--pv-relaxed-line)!important;border-radius:9px!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-text .workspace.video-layout .controls textarea#prompt{height:194px;min-height:194px!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #pv-video-output-toggle{height:36px!important;min-height:36px!important;padding:8px 10px!important;font-size:12px!important;background:var(--pv-relaxed-field)!important;border-color:var(--pv-relaxed-line)!important;border-radius:8px!important}
 /* The original model selector above remains the single visible entry point. */
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .controls-body>.parameter-grid>#pv-video-model-pill{display:none!important}
@@ -203,3 +203,51 @@ html body #app.video-studio-active #video-utilities > details.seed-settings[open
  outline:2px solid #d2d6de;
  outline-offset:2px;
 }
+
+/* Native textarea resizing must win over the starting height. */
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout .controls textarea#prompt{
+ resize:vertical;flex-shrink:0;overflow-y:auto;max-height:60vh;
+}
+/* Audio and Seed share a compact utility row. Native capability gates remain. */
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-utilities{justify-content:flex-start;gap:12px}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-utilities>#pv-video-audio-pill:not([hidden]){
+ display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;flex:0 0 auto;
+ width:auto!important;min-width:0!important;height:28px!important;min-height:28px!important;
+ margin:0;padding:0!important;border:0!important;background:transparent!important;
+}
+html body #app.video-studio-active #video-utilities>#pv-video-audio-pill .pv-pill-icon{display:inline-flex}
+html body #app.video-studio-active #video-utilities>details.seed-settings{flex:1 1 0;width:auto}
+html body #app.video-studio-active #video-utilities>details.seed-settings[open] > label{gap:4px}
+html body #app.video-studio-active #video-utilities>details.seed-settings[open] > label > .label{display:none}
+
+#pv-video-characters{display:none}
+html body #app.video-studio-active #pv-video-characters{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:5px;margin-left:auto;border:1px solid #353942;border-radius:7px;background:transparent;color:#d7d9dd;cursor:pointer}
+html body #app.video-studio-active #pv-video-characters svg{width:18px;height:18px}
+html body #app.video-studio-active #pv-video-prompt-head{gap:8px}
+
+/* A single prompt toolbar in every creation mode. */
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-utilities{order:7!important;gap:8px;justify-content:flex-start}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #pv-video-output-toggle{order:8!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .controls-body>.parameter-grid{order:9!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #video-utilities>#pv-video-audio-pill:not([hidden]){order:1;gap:5px;padding:4px 7px!important;background:#232527!important;border-radius:6px;min-height:28px!important}
+html body #app.video-studio-active #video-utilities>#pv-video-audio-pill:after{content:none!important}
+html body #app.video-studio-active #video-utilities>#pv-video-characters{order:0;margin:0;background:#232527;border:0}
+html body #app.video-studio-active #video-utilities>details.seed-settings{order:2;margin-left:auto!important}
+html body #app.video-studio-active #video-utilities>.switch-row[for=video-camera-lock]{order:3}
+/* Frame inputs are single upload wells, with no nested framed boxes. */
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode .frame-pair{gap:8px!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode .frame-pair>.upload-block{
+ position:relative;min-height:128px!important;padding:0!important;border:0!important;background:transparent!important;gap:0!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode :is(#drop,#last-drop){
+ height:128px!important;min-height:128px!important;border:1px dashed #3b3e41!important;border-radius:10px!important;background:#1c1e20!important;padding:20px 8px 36px!important;gap:0!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode .upload-heading{
+ position:absolute;left:0;right:0;bottom:9px;z-index:2;justify-content:center!important;flex-direction:column!important;gap:3px!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode .upload-heading .label{font-size:12px!important;font-weight:550!important;margin:0!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode .upload-heading .micro{border:0!important;background:transparent!important;padding:0!important;font-size:9px!important;color:#8e9296!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode :is(#drop,#last-drop) .video-frame-label{display:none!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode :is(#drop,#last-drop) .pv-frame-upload-icon{width:36px!important;height:36px!important;padding:8px;border:1px solid #484c50;border-radius:50%;background:#303336;color:#d7dadd}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #start-mode :is(#drop,#last-drop):hover{border-color:#797e83!important;background:#232629!important}
+html body #app.video-studio-active #start-mode .upload-block:has(.video-frame-thumb:not([hidden])) .upload-heading{display:none!important}

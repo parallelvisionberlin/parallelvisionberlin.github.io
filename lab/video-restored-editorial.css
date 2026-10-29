@@ -266,13 +266,13 @@
 }
 /* Comfortable editor. Important copy never cuts off simply to save a row. */
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .workspace.video-layout .controls textarea#prompt{
- height:130px!important;min-height:130px!important;
+ height:130px;min-height:130px!important;
  max-height:420px!important;
  padding:12px 13px!important;border-radius:11px!important;
  font-size:14px!important;line-height:1.62!important;
 }
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-mode-text .workspace.video-layout .controls textarea#prompt{
- height:194px!important;min-height:174px!important;
+ height:194px;min-height:174px!important;
 }
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready #pv-video-prompt-head{
  margin:2px 0 -5px!important;
@@ -434,7 +434,7 @@
   min-height:70px!important;height:70px!important;
  }
  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .workspace.video-layout .controls textarea#prompt{
-  height:132px!important;min-height:132px!important;
+  height:132px;min-height:132px!important;
  }
 }
 @media(prefers-reduced-motion:reduce){
@@ -465,7 +465,7 @@
   height:98px!important;min-height:98px!important;
  }
  #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready .workspace.video-layout .controls textarea#prompt{
-  height:124px!important;min-height:124px!important;
+  height:124px;min-height:124px!important;
  }
 }
 

@@ -142,7 +142,8 @@ function installVideoEditorialDeck(){
       audioPill.hidden=!usable;
       audioPill.disabled=!usable;
       audioPill.setAttribute('aria-pressed',String(!!audioControl?.checked));
-      audioPillText.textContent='Audio '+(audioControl?.checked?'on':'off');
+      audioPillText.textContent=audioControl?.checked?'On':'Off';
+      audioPill.title='Generate audio: '+(audioControl?.checked?'on':'off');
     }
     if(promptCount&&prompt){
       promptCount.textContent=prompt.value.length+' / '+(prompt.maxLength||5000);
@@ -201,6 +202,9 @@ function installVideoEditorialDeck(){
 
   modelPill?.addEventListener('click',()=>{
     doc.getElementById('video-model-trigger')?.click();
+  });
+  doc.getElementById('pv-video-characters')?.addEventListener('click',()=>{
+    doc.getElementById('scene-video-open')?.click();
   });
   audioPill?.addEventListener('click',()=>{
     if(audioControl&&!audioControl.disabled)audioControl.click();

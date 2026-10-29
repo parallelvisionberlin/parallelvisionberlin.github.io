@@ -100,6 +100,6 @@ test('mobile-only Video sequence is subtly slimmer and Start frame remains the d
   assert.match(css,/@media\(max-width:440px\)\{[\s\S]*?height:119px!important;min-height:119px!important/);
   assert.match(css,/min-height:148px!important/);
   assert.match(css,/height:98px!important;min-height:98px!important/);
-  assert.match(css,/height:124px!important;min-height:124px!important/);
+  assert.match(css,/height:124px;min-height:124px!important/,'Starting height permits native drag resizing');
   assert.match(app,/let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=\[\], mode='start'/);
 });
