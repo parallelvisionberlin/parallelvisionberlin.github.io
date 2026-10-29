@@ -6,7 +6,11 @@
 - Updated the existing layout browser regression for upward/downward panel limits, fixed dock, inspector, native prompt scrolling and prompt limits. Full layout suite passed, including desktop, short windows, mobile and Elements.
 - Approved Image contract and focused Video tests: 11/11 pass. Existing Image prompt-paste browser suite passes desktop/mobile. First-image parity suite passes on unchanged main and final patch after an initial timing-sensitive 10px label mismatch; no Image source or test changed.
 - Browser fixtures use synthetic accounts and intercepted APIs. No paid generations or real signed-in production action performed.
-- Branch: fix/video-scroll-isolation-20261030. Publication and exact production asset verification pending; record release evidence below after merge.
+- Published through PR #665 as 09cc9d9a80d95653a7a94fc296d7f76c0e476473. Cloudflare pvlab-studio deployment ae3eee25-f693-4a5d-9881-514f39ec72ef / check 123793079350 succeeded.
+- Release verifier returned LIVE_VERIFIED for both assets. CSS v=20261030-scroll-isolation1 SHA-256 f877cdaed95ec74a9e9c8e5e685ce64b3ce0bf063cbb9adf5860675d72459603; JS (scrollIsolation=20261030-1) SHA-256 c555c0b4f1f602351da5ac86517a61ed61ccc9de2a86279aff454bf8099b62fb.
+- Production public Video DOM loads both exact asset versions and computes overscroll-behavior-y:contain for controls-body, prompt, inspector and its scene body. No real signed-in History gesture or paid generation was performed.
+- CI approved Image, prompt-paste and first-image checks passed. Video CI logs explicitly pass the new real-wheel boundary checks, full layout/mobile/Elements checks, History, customer model/pricing and tool routing. The broader Video job was canceled at its time limit after those PASS messages; no claim of overall CI success. Other failures concern homepage card count, asset decoding, Fashion look prompt and public-reference visibility. No gate was removed or weakened.
+- Complete. Normal account-specific History scrolling remains for the owner to observe in their existing session after refresh.
 
 ## Video Generate and credit preview, 2026-10-29
 - Base main 6311d4f; isolated branch polish/video-generate-credit.
