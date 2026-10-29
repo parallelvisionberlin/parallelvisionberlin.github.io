@@ -30,5 +30,13 @@
 - Desktop browser: both photographs load; no horizontal overflow.
 - Mobile browser: checked 390px and 320px frames; no section overflow.
 - Final narrow CTA refinement keeps its label on one line.
-- Production: pending commit, review, merge and exact Cloudflare release verification.
-- Next action: publish validated bytes, verify deployment and production section.
+- Source: `2860d5323c1230e87b8cd094d1808c71835de45a`; PR #662 merged as `f385e97b8c99a95baa91940ba878ea3befcbf200`.
+- Cloudflare exact merge check `123704078521`: completed successfully.
+- Production homepage verifier: `LIVE_VERIFIED`, version `20261029-cinematic-world1`.
+- CSS SHA-256: `5d9777b844c868ad69b48e4833b2d1e0ea915fe28b748e72dc81e6bf89e02b7a`.
+- Production browser: expected headline, creation destination and both loaded images observed.
+- Production page width 1348px at viewport 1363px: no horizontal page overflow.
+- CI: approved Image UI, character tests, new landing check and core tests passed.
+- Inherited checks still fail on the removed Outfit card and an unrelated image decode; no gates changed.
+- Signed-in character creation was not re-exercised; its existing logic is unchanged.
+- Next action: complete. Preserve this selected design unless the owner requests a revision.
