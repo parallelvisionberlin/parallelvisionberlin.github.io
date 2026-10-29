@@ -102,3 +102,6 @@
  .pv-editorial-feature-copy .pv-feature-button span,.pv-fashion-feature-copy .pv-feature-button span{display:inline;font-size:clamp(17px,1.3vw,24px)}
  .pv-editorial-feature-copy .pv-feature-button:hover,.pv-fashion-feature-copy .pv-feature-button:hover{background:#fff!important;box-shadow:none}
 }
+
+/* Homepage-only removal of the old Mood Creator promotional block. */
+#mood-creator[hidden]{display:none!important}
