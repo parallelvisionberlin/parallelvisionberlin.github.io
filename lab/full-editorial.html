@@ -10,7 +10,7 @@
 <meta property="og:image" content="https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png">
 <title>Full Editorial Studio | PV LAB</title>
 <link rel="icon" type="image/png" href="./branding/pv-mark.png">
-<link rel="stylesheet" href="./full-editorial.css?v=20261029-editorial-unify2">
+<link rel="stylesheet" href="./full-editorial.css?v=20261029-workflow-editorial3">
 <link rel="stylesheet" href="./studios-menu.css?v=20261029-editorial-unify2">
 </head>
 <body>
@@ -42,6 +42,7 @@
 
 <section class="editorial-flow" id="editorial-flow" aria-labelledby="flow-heading">
   <div class="intro-rail">
+   <div class="workflow-photo" aria-hidden="true"></div>
    <span class="eyebrow">FULL EDITORIAL / WORKFLOW</span><h2 id="flow-heading">Create your<br>editorial.</h2>
    <p>A simple flow to build a fashion series using existing PV LAB image models and your own references.</p>
    <ol class="intro-steps"><li><b>01</b><span><strong>Model</strong><small>Choose a photograph or reference identity.</small></span></li>
@@ -54,11 +55,11 @@
    <div class="editorial-flow-rail" aria-label="Your editorial progress"><span data-flow-step="1"><small>01</small> Identity</span><span data-flow-step="2"><small>02</small> Styling</span><span data-flow-step="3"><small>03</small> Atmosphere</span><span data-flow-step="4"><small>04</small> The series</span></div>
    <section class="step-panel" id="panel-model" aria-labelledby="model-heading">
      <h2 id="model-heading">Model &amp; identity</h2><p class="step-intro">Upload your person and optional additional angles. Photos are used as identity references, not as a guarantee of exact likeness.</p>
-     <div class="tabs" aria-label="Model source"><button class="tab is-selected" type="button" data-model-tab="photos">Upload photos</button><button class="tab" id="saved-character" type="button">Saved character</button><a class="tab" href="./studio.html?tool=image&createCharacter=1">Create a character</a></div>
+     <div class="tabs" aria-label="Model source"><button class="tab is-selected" type="button" data-model-tab="photos"><span class="source-icon" aria-hidden="true">▧</span><strong>Upload photos</strong><small>Use your own images</small></button><button class="tab" id="saved-character" type="button"><span class="source-icon" aria-hidden="true">♙</span><strong>Saved character</strong><small>From your library</small></button><a class="tab" href="./studio.html?tool=image&createCharacter=1"><span class="source-icon" aria-hidden="true">✧</span><strong>Create a character</strong><small>Generate a new identity</small></a></div>
      <div class="upload-large" id="model-drop" role="button" tabindex="0" aria-label="Choose model reference photographs"><span class="upload-plus">+</span><strong>Drop your model photographs here</strong><small>or click to browse · JPG, PNG or WebP · up to 4 photos</small></div>
      <input type="file" id="model-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
      <div class="thumb-row" id="model-thumbs" aria-label="Selected model photographs"></div>
-     <div class="control-row"><label for="identity-guide">Identity guidance <output id="identity-value">80%</output></label><input id="identity-guide" type="range" min="25" max="100" value="80"><small>Prompt emphasis only. Actual consistency depends on the selected model.</small></div>
+     <details class="identity-advanced"><summary>Identity guidance <span>Advanced settings</span></summary><div class="control-row"><label for="identity-guide">Identity guidance <output id="identity-value">80%</output></label><input id="identity-guide" type="range" min="25" max="100" value="80"><small>Prompt emphasis only. Actual consistency depends on the selected model.</small></div></details>
    </section>
    <section class="step-panel" id="panel-style" aria-labelledby="style-heading" hidden>
      <h2 id="style-heading">Styling &amp; garments</h2><p class="step-intro">Add garment photographs, accessories or describe your styling. Use the same model across your series.</p>
