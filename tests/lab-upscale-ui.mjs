@@ -137,6 +137,63 @@ const precisionModel={engine:'topaz-precision',model:'topaz/upscale/image/precis
 const wonderModel={engine:'topaz-wonder',model:'topaz/upscale/image/generative',quality:'Wonder 3.5',credits:37};
 
 try{
+ // Regression for the previous shared-reference leak. Image, Video and
+ // Upscaler use separate reference collections, including across Reset.
+ for(const width of [1440,390]){
+   const isolated=await workspace([],width);
+   const {page}=isolated;
+   const refNames=()=>page.locator('#reference-list .reference-item strong').allTextContents();
+   const choose=async name=>{
+     await page.locator('#reference-images').setInputFiles({name,mimeType:'image/png',buffer:png});
+     await page.waitForFunction(expected=>
+       [...document.querySelectorAll('#reference-list .reference-item strong')]
+         .some(node=>node.textContent.includes(expected)),name);
+   };
+   await choose('image-only-reference.png');
+   assert.deepEqual(await refNames(),['Reference 1 / image-only-reference.png']);
+   await page.click('#tool-video');await page.click('#mode-reference');
+   assert.deepEqual(await refNames(),[],'Video starts without Image Studio references');
+   assert.equal(await page.locator('#pv-video-reference-preview img').count(),0,
+     'Video reference canvas has no inherited Image thumbnails');
+   await choose('video-only-reference.png');
+   assert.deepEqual(await refNames(),['Reference 1 / video-only-reference.png']);
+   await page.click('#tool-image');
+   assert.deepEqual(await refNames(),['Reference 1 / image-only-reference.png'],
+     'Image references survive visiting Video, unchanged');
+   await page.click('#tool-video');await page.click('#mode-reference');
+   assert.deepEqual(await refNames(),['Reference 1 / video-only-reference.png'],
+     'Video references survive visiting Image, unchanged');
+   await page.locator('#reference-list .reference-actions').getByRole('button',{name:'Remove',exact:true}).click();
+   assert.deepEqual(await refNames(),[],'Removing a Video ref removes only the Video ref');
+   await page.click('#tool-image');
+   assert.deepEqual(await refNames(),['Reference 1 / image-only-reference.png'],
+     'Removing a Video reference cannot remove Image references');
+   await page.click('#tool-video');await page.click('#mode-reference');
+   await choose('video-second-reference.png');
+   await page.click('#tool-upscale');
+   assert.deepEqual(await refNames(),[],'Upscaler has no inherited video references');
+   await page.locator('#image').setInputFiles({name:'upscale-only-source.png',mimeType:'image/png',buffer:png});
+   await page.waitForFunction(()=>document.getElementById('filemeta').textContent.includes('upscale-only-source.png'));
+   const upscaleSource=await page.locator('#preview').getAttribute('src');
+   await page.click('#tool-image');
+   assert.deepEqual(await refNames(),['Reference 1 / image-only-reference.png']);
+   await page.click('#clear');
+   assert.deepEqual(await refNames(),[],'Image Reset clears only Image references');
+   await page.click('#tool-video');await page.click('#mode-reference');
+   assert.deepEqual(await refNames(),['Reference 1 / video-second-reference.png'],
+     'Image Reset cannot erase the independent Video references');
+   await page.click('#clear');
+   assert.deepEqual(await refNames(),[],'Video Reset clears only Video references');
+   await page.click('#tool-upscale');
+   assert.equal(await page.locator('#preview').getAttribute('src'),upscaleSource,
+     'Upscaler keeps its own uploaded source despite both other studios resetting');
+   assert.match(await page.locator('#filemeta').textContent(),/upscale-only-source\.png/);
+   assert.equal(quoteRequests(isolated).length,0,'Tab navigation does not request a quote');
+   assert.equal(countPaid(isolated),0,'Tab navigation never submits a paid job');
+   assert.deepEqual(isolated.errors,[],'No client errors during isolated reference navigation');
+   ok('Image/Video references isolate, persist, remove and reset independently at '+width+'px');
+   await isolated.context.close();
+ }
  // A photo dropped in Upscaler is not a Video Start frame. Switching back
  // preserves each tool's own file, and only a deliberate Video upload fills it.
  {
