@@ -292,7 +292,7 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout #generate{
  display:flex!important;align-items:center!important;justify-content:center!important;gap:9px!important;
  padding:0 20px!important;border-radius:16px!important;border:0!important;
- background:#fff!important;color:#18191b!important;box-shadow:none!important;
+ background:#fff!important;color:#181b20!important;box-shadow:none!important;
  font:600 14px/1 'DM Sans',Arial,sans-serif!important;letter-spacing:0!important;
  transition:background .16s ease,transform .16s ease!important;
 }

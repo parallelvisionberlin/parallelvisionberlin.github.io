@@ -3445,7 +3445,7 @@ $('generate').onclick=async()=>{if(tool==='image')return submitImageSnapshot();
   if(previewKey&&videoPricing){
     videoPriceClickPending=true;
     try{await videoPricing.readyForClick(previewKey);previewQuote=videoPricing.consume(previewKey)?.quote;}
-    catch{if(videoCreditSnapshot()?.key!==previewKey)return;}
+    catch(error){if(videoCreditSnapshot()?.key===previewKey)notify(error.message||'Could not check the video price. Nothing generated.',true);return;}
     finally{videoPriceClickPending=false;}
   }
   return action(async()=>{

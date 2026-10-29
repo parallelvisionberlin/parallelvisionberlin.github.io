@@ -37,7 +37,7 @@ try{
    if(req.method()==='POST'&&url.pathname==='/api/jobs')jobs.push(url.pathname);
    if(url.pathname==='/api/quotes'){
     const body=req.postDataJSON();quotes.push(body);
-    payload={id:'quote-'+quotes.length,settings:{...body.settings,model:'bytedance/seedance-2.5/text-to-video'},creditCost:body.settings.duration*10+(body.settings.audio?5:0),expiresAt:Date.now()+290000,estimatedUsd:1,maxUsd:1};
+    payload={id:'quote-'+quotes.length,settings:{...body.settings,model:'bytedance/seedance-2.5/text-to-video'},creditCost:body.settings.prompt==='Reject quote'?0:body.settings.duration*10+(body.settings.audio?5:0),expiresAt:Date.now()+290000,estimatedUsd:1,maxUsd:1};
    }
    return route.fulfill({contentType:'application/json',body:JSON.stringify(payload)});
   });
@@ -66,6 +66,13 @@ try{
   assert.ok(geometry.right<=width+1&&geometry.width>100);
   assert.equal(geometry.radius,'16px');assert.equal(geometry.after,'none');
   assert.deepEqual(errors,[]);
+  const beforeFailure=quotes.length;
+  await page.locator('#prompt').fill('Reject quote');
+  await page.locator('#generate').click();
+  await page.waitForFunction(()=>document.getElementById('notice').textContent.includes('Could not verify the video credit price'));
+  assert.equal(quotes.length,beforeFailure+1,'Failed preflight never falls back to a duplicate quote');
+  assert.equal(await page.locator('#quote-dialog').isVisible(),false);
+  assert.equal(jobs.length,0);
   await page.locator('#prompt').fill('A cinematic train scene.');
   await page.waitForFunction(()=>document.getElementById('generate').dataset.credits);
   await page.screenshot({path:'test-results/video-credit-button-'+width+'-'+role+'.png'});
