@@ -31,7 +31,7 @@ async function scenario({role='customer',width=1448,height=1086,malformed=false,
   else if(url.pathname==='/api/uploads'){uploads++;result={id:'photo-'+uploads};}
   else if(url.pathname==='/api/quotes'){
    const body=request.postDataJSON(),number=quotes.length+1;
-   const quoted={id:'quote-'+number,creditCost:malformed?'23':number===1?23:31,expiresAt:Date.now()+240000,settings:{...body.settings,referenceSourceIds:body.referenceSourceIds}};quotes.push(quoted);
+   const quoted={id:'quote-'+number,creditCost:malformed?'23':number===1?23:31,expiresAt:Date.now()+240000,settings:{...body.settings,aspectRatio:body.settings.referenceMode==='references'&&body.settings.aspectRatio==='auto'?'16:9':body.settings.aspectRatio,referenceSourceIds:body.referenceSourceIds}};quotes.push(quoted);
    if(delayed&&number===1)await new Promise(done=>setTimeout(done,1100));result=quoted;
   }else if(url.pathname==='/api/jobs'&&request.method()==='POST'){
    submits++;const body=request.postDataJSON();assert.equal(body.confirm,true);const q=quotes.find(q=>q.id===body.quoteId);assert.ok(q);
@@ -115,6 +115,8 @@ try{
   assert.equal(await page.locator('#beauty-account').isVisible(),true,'Signed-in account menu is visible on Beauty');
   await page.locator('#beauty-photo').setInputFiles(input);
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
+  assert.equal(s.quotes[0].settings.aspectRatio,'16:9','Auto is priced as the Worker canonical 16:9 reference ratio');
+  assert.equal(await page.locator('#beauty-ratio').inputValue(),'auto','Auto remains selected in the approved UI');
   assert.equal(s.submits,0,'Quoting does not generate');assert.equal(s.uploads,1);
   await page.evaluate(()=>{document.querySelector('#beauty-form').requestSubmit();document.querySelector('#beauty-form').requestSubmit()});
   await page.locator('#beauty-result').waitFor({state:'visible'});assert.equal(s.submits,1,'Double-click submits exactly once');
