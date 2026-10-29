@@ -2984,7 +2984,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){toolSourceStates.delete(tool);toolReferenceStates.delete(tool);inspirationMoodId=null;videoLoadJobId=null;videoLoadErrorJobId=null;++videoSelectionRevision;videoStartFrameHandoff=false;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();if(tool==='video')mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';frameMaker?.clear();$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){toolSourceStates.delete(tool);toolReferenceStates.delete(tool);$('reference-list').removeAttribute('aria-busy');inspirationMoodId=null;videoLoadJobId=null;videoLoadErrorJobId=null;++videoSelectionRevision;videoStartFrameHandoff=false;imageReferenceMode=preferredImageReferenceMode();closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();if(tool==='video')mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';frameMaker?.clear();$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
   if(tool==='upscale'&&candidate?.size>20*1024*1024)candidate=await prepareUpscaleInput(candidate,{maxBytes:20*1024*1024});
   if(window.__PV_LAB_NATIVE__===1)candidate=await preparePhotoInput(candidate,{maxBytes:20*1024*1024});
@@ -3207,11 +3207,32 @@ const mediaRefs=createMediaReferences({element:$,owner:()=>owner,busy:()=>busy,e
   upload:async snapshot=>(await api('/api/reference-uploads',{method:'POST',headers:{'Content-Type':snapshot.type,'X-Filename':encodeURIComponent(snapshot.name||'reference')},body:snapshot})).id,assetFile});
 async function uploadAsset(snapshot){const data=await api('/api/uploads',{method:'POST',headers:{'Content-Type':snapshot.type,'X-Filename':encodeURIComponent(snapshot.name||'source.png')},body:snapshot});return data.id;}
 async function ensureSource(){if(sourceId)return sourceId;const snapshot=file,rev=imageRevision;if(!snapshot)throw new Error(tool==='upscale'?'Choose an image to upscale first.':'Choose a start frame first.');const id=await uploadAsset(snapshot);if(rev!==imageRevision)throw new Error('Image changed during upload. Please try again.');sourceId=id;return id;}
-async function ensureLast(){if(!lastFile)return null;if(lastSourceId)return lastSourceId;lastSourceId=await uploadAsset(lastFile);return lastSourceId;}
+async function ensureLast(){
+  if(!lastFile)return null;
+  if(lastSourceId)return lastSourceId;
+  const selected=lastFile,selectedTool=tool,session=epoch;
+  const id=await uploadAsset(selected);
+  if(epoch!==session||tool!==selectedTool||lastFile!==selected)
+    throw new Error('Studio or End frame changed during upload. Nothing submitted.');
+  lastSourceId=id;return id;
+}
 async function ensureReferences(){
-  if(!references.length)throw new Error('Add at least one reference image.');
-  for(let i=0;i<references.length;i++){const r=references[i];if(!r.id){notify('Uploading original reference '+(i+1)+' of '+references.length+'…');r.id=await uploadAsset(r.file);}}
-  return references.map(r=>r.id);
+  // The reference collection that initiated a provider upload remains its owner.
+  // A late completion must never attach asset IDs to another studio.
+  const selected=references,selectedTool=tool,session=epoch;
+  const valid=()=>owner&&epoch===session&&tool===selectedTool&&references===selected;
+  if(!selected.length)throw new Error('Add at least one reference image.');
+  for(let i=0;i<selected.length;i++){
+    if(!valid())throw new Error('Studio changed during reference upload. Nothing submitted.');
+    const r=selected[i];
+    if(!r.id){
+      notify('Uploading original reference '+(i+1)+' of '+selected.length+'…');
+      const id=await uploadAsset(r.file);
+      if(!valid()||selected[i]!==r)throw new Error('References changed during upload. Nothing submitted.');
+      r.id=id;
+    }
+  }
+  return selected.map(r=>r.id);
 }
 async function ensureInputs(){if(tool==='video'&&mode==='extend'){const inputs=await mediaRefs.inputs();if(inputs.referenceVideoIds.length!==1)throw new Error('Choose exactly one video to extend.');return {sourceId:inputs.referenceVideoIds[0],lastSourceId:null,referenceSourceIds:[],referenceVideoIds:inputs.referenceVideoIds,referenceAudioIds:[]};}if(imageEngine==='soulpro'&&tool==='image')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(isReinterpret())return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&imageEngine==='soul'){if(references.length)throw new Error('This LoRA mode cannot edit an input photo. Nothing was submitted.');return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};}if(tool==='video'&&engine==='klinghf'&&mode==='text')return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='video'&&['seedance','seedance15','h3','h3max','h3maxfal','omni'].includes(engine)){if(mode==='text')return {sourceId:null,lastSourceId:null,referenceSourceIds:[],referenceVideoIds:[],referenceAudioIds:[]};if(mode==='reference'){const ids=references.length?await ensureReferences():[];return {sourceId:ids[0]||null,lastSourceId:null,referenceSourceIds:ids,...(engine==='seedance'?await mediaRefs.inputs():{referenceVideoIds:[],referenceAudioIds:[]})};}}if(tool==='upscale')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&!imageInputReferences().length)return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='image'||mode==='reference'){const ids=await ensureReferences();return {sourceId:ids[0],lastSourceId:null,referenceSourceIds:ids};}return {sourceId:await ensureSource(),lastSourceId:await ensureLast(),referenceSourceIds:[]};}
 function applyConfig(c){c={...config,...c};config=c;hf.configure(c.higgsfieldEnabled);updateSoulProModelUi();soul.configure(c);$('soul-launch-note').textContent=c.soulTrainingEnabled?'FAL training is ready. Train from 20–80 photos, then use the character in Image.':'FAL training is not available on this Worker.';$('soul-launch-manage').disabled=!c.soulTrainingEnabled;const soulOption=$('image-engine').querySelector('[value=soul]'),soulProOption=$('image-engine').querySelector('[value=soulpro]'),falOption=$('image-engine').querySelector('[value=fal]');if(soulOption){soulOption.hidden=!!c.customer||!owner;soulOption.disabled=!c.soulTrainingEnabled||!!c.customer;}if(soulProOption)soulProOption.disabled=false;if(falOption)falOption.disabled=!c.falEnabled;if((imageEngine==='soul'&&!c.soulTrainingEnabled)||((imageEngine==='fal'||imageEngine==='soulpro'&&!isSoul2())&&!c.falEnabled)){imageEngine='seedream';$('image-engine').value='seedream';setTool(tool);}for(const option of $('video-engine').options){option.disabled=!videoSelectionEngines().includes(option.value);if(option.value==='klinghf')option.hidden=!owner||!!c.customer||!c.higgsfieldEnabled;}$('connection-status').textContent=(c.enabled?'SpicyAPI connected':'SpicyAPI disconnected')+(c.geminiEnabled?' · Gemini connected':'')+(c.openrouterEnabled?' · OpenRouter connected':'')+(c.soulTrainingEnabled?' · FAL training ready':'')+(c.falEnabled?' · FAL controls ready':'')+' / Private archive ready';update();}
