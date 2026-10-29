@@ -34,10 +34,11 @@ try{
    const req=route.request(),url=new URL(req.url());
    if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
    let payload=url.pathname==='/api/jobs'?{jobs:[],activeJobs:[],next:null}:url.pathname==='/api/packs'?{packs:[]}:{error:'Unexpected request'};
+   if(url.pathname==='/api/uploads')payload={id:'30000000-0000-4000-8000-000000000001'};
    if(req.method()==='POST'&&url.pathname==='/api/jobs')jobs.push(url.pathname);
    if(url.pathname==='/api/quotes'){
     const body=req.postDataJSON();quotes.push(body);
-    payload={id:'quote-'+quotes.length,settings:{...body.settings,model:'bytedance/seedance-2.5/text-to-video'},creditCost:body.settings.prompt==='Reject quote'?0:body.settings.duration*10+(body.settings.audio?5:0),expiresAt:Date.now()+290000,estimatedUsd:1,maxUsd:1};
+    payload={id:'quote-'+quotes.length,settings:{...body.settings,model:'bytedance/seedance-2.5/'+({text:'text-to-video',reference:'reference-to-video',start:'image-to-video'})[body.settings.mode]},creditCost:body.settings.prompt==='Reject quote'?0:body.settings.duration*10+(body.settings.audio?5:0),expiresAt:Date.now()+290000,estimatedUsd:1,maxUsd:1};
    }
    return route.fulfill({contentType:'application/json',body:JSON.stringify(payload)});
   });
@@ -46,6 +47,8 @@ try{
   await page.locator('#prompt').fill('A quiet train moving through rain.');
   await page.waitForFunction(()=>document.getElementById('generate').dataset.credits);
   assert.equal(quotes.length,1);
+  assert.equal(await page.locator('#pv-video-current-prompt').textContent(),'');
+  assert.equal(await page.locator('#pv-video-current-prompt').isVisible(),false,'Draft prompt stays only in the editor');
   const first=await page.locator('#generate').getAttribute('data-credits');
   const options=await page.locator('#duration').evaluate(el=>[...el.options].map(o=>o.value));
   const current=await page.locator('#duration').inputValue();
@@ -79,6 +82,18 @@ try{
   await page.getByRole('button',{name:'Image',exact:true}).click();
   assert.equal(await page.locator('#generate').getAttribute('data-video-credit-preview'),null);
   assert.equal(await page.locator('#generate').getAttribute('data-credits'),null);
+  await page.getByRole('button',{name:'Video',exact:true}).click();
+  await page.getByRole('tab',{name:'Reference set',exact:true}).click();
+  await page.locator('#prompt').fill('Animate this reference image.');
+  await page.getByRole('button',{name:'Add a reference',exact:true}).waitFor();
+  const pickerPromise=page.waitForEvent('filechooser');
+  await page.getByRole('button',{name:'Add a reference',exact:true}).click();
+  const picker=await pickerPromise;
+  const picture=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=320;canvas.height=320;canvas.getContext('2d').fillRect(0,0,320,320);return canvas.toDataURL('image/png').split(',')[1];});
+  await picker.setFiles({name:'reference.png',mimeType:'image/png',buffer:Buffer.from(picture,'base64')});
+  await page.waitForFunction(()=>document.getElementById('generate').textContent==='Generate'&&document.getElementById('generate').dataset.credits);
+  assert.equal(await page.locator('#generate').isEnabled(),true);
+  assert.equal(jobs.length,0,'Missing-input picker never submits a generation');
   console.log('VIDEO_CREDIT_PREVIEW_PASS width='+width+' role='+role);
   await context.close();
  }

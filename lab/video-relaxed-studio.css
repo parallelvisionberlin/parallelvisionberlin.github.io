@@ -309,3 +309,7 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
  transform:none!important;mask:none!important;background:none!important;order:2;
  font-size:13px!important;font-weight:500!important;
 }
+
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout #generate.is-input-action::before{
+ mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 5v14M5 12h14' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
