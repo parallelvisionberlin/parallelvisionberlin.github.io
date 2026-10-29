@@ -2,8 +2,8 @@
 function installVideoEditorialDeck(){
   const doc=document;
   const app=doc.getElementById('app');
-  // Desktop keeps the editor fixed and History inside the center feed. Route
-  // otherwise-unused wheel input there instead of dropping it on the locked page.
+  // Desktop keeps the editor fixed and History inside the center feed. Only
+  // wheel input outside the editor and inspector may fall back to History.
   doc.addEventListener('wheel',event=>{
     if(event.defaultPrevented||event.ctrlKey||event.shiftKey||!matchMedia('(min-width:821px)').matches||
       app?.hidden||!app?.classList.contains('video-studio-active')||
@@ -11,6 +11,7 @@ function installVideoEditorialDeck(){
       !event.deltaY||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
     const target=event.target instanceof Element?event.target:null;
     if(!target||!target.closest('#app,#studio-header')||
+      target.closest('.workspace.video-layout>.controls,#video-inspector,textarea')||
       target.closest('dialog,[role="dialog"],[role="menu"],select,input[type="number"],input[type="range"]')||
       doc.querySelector('dialog[open]'))return;
     const feed=doc.getElementById('video-feed-center');
