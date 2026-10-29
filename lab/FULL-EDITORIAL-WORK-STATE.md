@@ -1,3 +1,12 @@
+## 2026-10-29 / editorial hero and Studios card cohesion
+- Owner accepts the angular bronze sculpture hero and editorial typography. Requested stronger hero CTA, same photograph in Full Editorial Studios card, concise card description and subtle four-stage progress feedback.
+- Card now displays same owner-supplied angular desert image via previously approved CDN URL, with title, 'Build a complete fashion story.' and understated round arrow. Beauty, Fashion, Outfit and Retouch images remain unchanged.
+- Studios JS/CSS cache versions refreshed on index, studio, beauty, moods and Full Editorial. Routing remains unchanged; menu active state accounts for Full Editorial.
+- Hero CTA enlarged to 278x62px desktop, 248x55px mobile with more readable font. Button label and click action ID remain unchanged.
+- The actual four-stage creation workflow now includes read-only progress feedback, reflecting current and completed steps from go() while preserving generation and credit logic.
+- Files changed: lab/studios-menu.js, lab/studios-menu.css, lab/full-editorial.html, lab/full-editorial.css, lab/full-editorial.js, four shared entry pages, two tests and this note.
+- Branch feat/pvlab-editorial-hero-menu-coherence-20261029. PR, CI and Cloudflare deployment status not yet verified.
+
 ## 2026-10-29 / angular desert hero and editorial typography
 - User explicitly selected image 3, angular bronze sculptural installation with black-clad model in the desert, replacing ivory fabric.
 - Owner-supplied original: hf_20261028_233627_10a3c169-0264-4d3d-9be6-65aed55f126a.png. Confirmed media CDN upload ID 6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a (external dependency). Hero, image preload and OG now use that image.
