@@ -278,7 +278,7 @@
  order:1!important;color:#9199a5;font-size:11px;font-variant-numeric:tabular-nums;
 }
 #app.video-studio-active.pv-video-approved-ready textarea#prompt{
- min-height:124px!important;height:124px!important;
+ min-height:124px!important;height:124px;
  border:1px solid #38414e!important;
  background:linear-gradient(135deg,#202832,#19212b)!important;
  border-radius:10px!important;

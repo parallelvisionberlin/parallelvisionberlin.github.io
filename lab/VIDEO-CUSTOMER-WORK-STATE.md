@@ -1,3 +1,23 @@
+## Single audio chip and frame wells, 2026-10-29
+- Continues 97986f9 on fix/video-prompt-resize-audio.
+- User rejected nested Start/End upload boxes and full-width audio across modes.
+- One speaker On/Off chip below prompt beside the identical Image character icon; Seed remains to the right. Hidden native checkbox is the sole underlying audio state. Original motion/audio-reference uploads are separate inputs, preserved.
+- Start/End now use single dark dashed wells with circular image icons, small frame names and required/optional text. Native file inputs, thumbnails, removal, drop and capability gates preserved.
+- 22 focused tests pass. Desktop preview confirms 50px audio chip, hidden native checkbox, single wells; resize previously drag-tested 104 to 204px.
+- Verified toggle updates native #audio checkbox and remains a 50-51px chip across Start/Text/Reference modes. No paid generation performed.
+- Source commit 4819ed0. Push blocked by automatic approval review: UI editing was authorized, but publication/private source egress to the existing GitHub origin was not considered authorized. No PR, merge or production deployment performed.
+- User explicitly authorized push/publication on 2026-10-29. Terminal Git has no credentials, so publishing exact tested files through connected GitHub integration.
+
+## Prompt resize and compact audio, 2026-10-29
+- Based on main f2113b6, isolated branch fix/video-prompt-resize-audio.
+- User clarified internal scrolling works; bottom-right native resize handle was blocked.
+- Removed important fixed heights from Video prompt layers so native inline drag height can win. Retained initial heights, minima, vertical scrolling and original wheel routing.
+- Audio icon/toggle now shares the utility row with Seed on its right; original checkbox, numeric input and capability gates retained.
+- Changed studio.html and four Video stylesheets; cache markers updated. Existing mobile starting-height assertion updated to permit drag resizing.
+- All 22 focused Image contract/Video checks passed, including original artwork byte checks.
+- Preview verified native drag from 104px to 204px; audio/Seed on one row. Matching Image person SVG beside prompt delegates to existing Saved References character picker.
+- Implemented and locally committed; not published. No generation, credits, provider or account behavior changed.
+
 ## Seed control inline layout, 2026-10-28
 - Owner screenshot: Video Studio's open Seed puts the Optional seed text and numeric input below its disclosure, adding a scrollbar and shifting the left-side stack.
 - Approved behavior: keep the native `<details>` and `#seed` value, but show a compact 10px `Optional` label and numeric `Random` field to the right of `Seed` within the same 26px row; opening should not grow the panel or move Generate.
