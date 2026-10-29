@@ -10,7 +10,7 @@ const account=`const listeners=[];const role=window.__beautyRole||'guest';const 
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+decodeURIComponent(pathname));
  if(relative(root,path).startsWith('..')||!existsSync(path)||!statSync(path).isFile())return res.writeHead(404).end();
- res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.webp':'image/webp'})[extname(path)]||'application/octet-stream');
+ res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.webp':'image/webp','.jpg':'image/jpeg','.jpeg':'image/jpeg','.avif':'image/avif'})[extname(path)]||'application/octet-stream');
  res.end(pathname==='/lab/native-account.js'?account:readFileSync(path));
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
