@@ -27,7 +27,7 @@ test('character invitation reuses local project images and responsive CSS',()=>{
     assert.match(home,new RegExp(img.replace('.','\\.')));
     assert.ok(existsSync(path.join(root,'lab/visuals/character-studies',img)));
   }
-  assert.match(home,/character-home\.css\?v=20261030-character-editorial2/);
+  assert.match(home,/character-home\.css\?v=20261030-character-editorial3/);
   assert.match(css,/@media\(max-width:700px\)/);
   assert.ok(css.includes('.lab-character-home__heading span:nth-child(2)'), 'second title line should be styled in an editorial italic');
   assert.ok(css.includes('border-radius:999px'), 'character CTA should be rounded');
