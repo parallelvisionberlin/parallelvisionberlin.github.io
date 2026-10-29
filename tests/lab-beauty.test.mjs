@@ -9,6 +9,18 @@ test('Beauty controls compile an identity-preserving edit and never borrow the e
  assert.equal(beautySettings({model:'flash'}).engine,'flash');
  for(const options of [{strength:101},{strength:-1},{makeup:'bad'},{model:'unknown'},{aspectRatio:'bad'},{direction:'x'.repeat(1501)}])assert.throws(()=>beautySettings(options));
 });
+test('Beauty Auto matches the Worker normalized 16:9 reference-edit quote for Seedream and Flash',()=>{
+ for(const model of ['seedream','seedream-pro','flash']){
+  const settings=beautySettings({model,aspectRatio:'auto',filename:'portrait.webp'});
+  assert.equal(settings.aspectRatio,'16:9','Auto must use the Worker reference-mode ratio');
+  assert.equal(settings.referenceMode,'references');
+  const accepted={id:'q',creditCost:23,expiresAt:2000,settings:{...settings,referenceSourceIds:['photo-1']}};
+  assert.equal(validateBeautyQuote(accepted,settings,'photo-1',1000),accepted);
+  assert.throws(()=>validateBeautyQuote({...accepted,settings:{...accepted.settings,aspectRatio:'4:5'}},settings,'photo-1',1000));
+  assert.throws(()=>validateBeautyQuote({...accepted,settings:{...accepted.settings,referenceSourceIds:['other-photo']}},settings,'photo-1',1000));
+ }
+ for(const ratio of ['4:5','1:1','3:4','9:16'])assert.equal(beautySettings({aspectRatio:ratio}).aspectRatio,ratio,'Explicit aspect ratio must remain unchanged');
+});
 test('Beauty accepts only unexpired integer-credit quotes bound to the exact photo and settings',()=>{
  const settings=beautySettings(),quote={id:'quoted-job',creditCost:23,expiresAt:2000,settings:{...settings,referenceSourceIds:['photo-1']}};
  assert.equal(validateBeautyQuote(quote,settings,'photo-1',1000),quote);

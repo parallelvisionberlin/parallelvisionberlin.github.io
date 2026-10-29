@@ -1,7 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
-import {beautySettings,validateBeautyQuote,BEAUTY_PROMPT_PREFIX} from './beauty-settings.js?v=20261027-beauty1';
+import {beautySettings,validateBeautyQuote,BEAUTY_PROMPT_PREFIX} from './beauty-settings.js?v=20261029-auto-reference-ratio1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev',$=id=>document.getElementById(id);
 const activeStates=new Set(['submitting','queued','running','saving','uncertain']);
 const menu=createAccountMenu($('beauty-account')),pendingKey='pvlab-beauty-pending';

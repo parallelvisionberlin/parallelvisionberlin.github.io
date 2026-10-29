@@ -10,7 +10,9 @@ export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',s
  const prompt=[BEAUTY_PROMPT_PREFIX,'Edit the supplied photograph of this same person. Preserve their identity, facial structure, age, skin tone, body proportions, pose and background. Make only the requested beauty changes. Do not add a veil, clothing, jewellery or props unless explicitly requested.',
  value===0?'Keep the original look without an intentional transformation.':[makeup[makeupId],hair[hairId],skin[skinId],`Look intensity: ${value}/100; scale the beauty changes accordingly.`].join(' '),
  'Believable fashion photography, realistic skin and hair; no plastic smoothing or reshaped anatomy.',extra?`Additional direction: ${extra}`:''].filter(Boolean).join('\n');
- return {type:'image',mode:'image',engine:model==='seedream-pro'?'seedream':model,referenceMode:'references',prompt,resolution,aspectRatio,outputFormat:'png',referenceRoles:[{name:String(filename).slice(0,160),role:'identity',note:'Preserve the identity and distinctive facial features of this person.'}]};
+ // The Worker normalizes Auto to 16:9 for reference edits. Bind the live quote to that exact ratio.
+ const quotedAspectRatio=aspectRatio==='auto'?'16:9':aspectRatio;
+ return {type:'image',mode:'image',engine:model==='seedream-pro'?'seedream':model,referenceMode:'references',prompt,resolution,aspectRatio:quotedAspectRatio,outputFormat:'png',referenceRoles:[{name:String(filename).slice(0,160),role:'identity',note:'Preserve the identity and distinctive facial features of this person.'}]};
 }
 export function validateBeautyQuote(quote,settings,sourceId,at=Date.now()){
  if(typeof quote?.id!=='string'||!quote.id||quote.id.length>100||!Number.isSafeInteger(quote.creditCost)||quote.creditCost<1||!Number.isFinite(quote.expiresAt)||quote.expiresAt<=at)throw Error('The server could not confirm a current credit price. Nothing was generated.');
