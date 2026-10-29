@@ -1,3 +1,12 @@
+## Approved typography and prompt fit, 2026-10-29
+- Base main 7703d35; isolated branch polish/video-typography-prompt-fit.
+- Owner approved the generated refinement mockup: cohesive type, neutral secondary text, a larger prompt, and almost no empty gap above Generate.
+- Scoped CSS in video-relaxed-studio.css: 13px control scale, 14px prompt (16px on mobile), restrained medium labels and neutral gray supporting copy.
+- Desktop prompt frame grows into spare controls-body height. Its native textarea grows with it, retains resize and scroll, and long input/reference stacks can scroll above fixed Generate.
+- Preview at 1363x936: prompt writing height about 201px, settings-to-Generate gap 8–10px across Text, Start frame and Reference set; original controls, photo, header and layout preserved. Small upload labels scale to retain narrow-side readability.
+- Existing Video modes, reference inputs, audio state, character removal and all generation/account/pricing code unchanged.
+- Focused mandatory Image contract and Video tests passed. Publication pending.
+
 ## Character removal and inside-prompt controls, 2026-10-29
 - Base main f674201; branch fix/video-character-remove-prompt-toolbar.
 - Verified cause: saved Element attaches inside busy action; grouped Remove was rendered disabled and update never re-enabled it. syncReferenceRemovalState now follows every update and preserves busy protection.
