@@ -55,3 +55,11 @@
 .pv-fashion-feature h2{font:400 clamp(57px,6vw,105px)/1 Georgia,'Times New Roman',serif;letter-spacing:-.065em;margin:26px 0 24px}
 .pv-fashion-feature-copy p{font-size:clamp(15px,1.25vw,20px);line-height:1.48;color:#ddd9d4;margin:0 0 27px}
 @media(max-width:700px){.pv-creative{grid-template-columns:1fr;padding:40px 15px}.pv-creative-card{aspect-ratio:.78}.pv-editorial-feature{min-height:590px}.pv-editorial-feature-art{background-position:61% center}.pv-fashion-feature{min-height:570px}.pv-fashion-feature-photo{background-position:64% center}.pv-fashion-feature:after{background:linear-gradient(0deg,#08090af5,#08090a5e 80%)}.pv-fashion-feature-copy{position:absolute;bottom:0;padding:32px 23px}.pv-fashion-feature h2{font-size:55px}}
+
+/* 2026-10-29: Correct portrait crop and restore image-led presentation. */
+.pv-fashion-feature-photo{background-size:auto 100%;background-position:75% center;background-repeat:no-repeat;filter:saturate(.65) brightness(.92)}
+.pv-fashion-feature:after{background:linear-gradient(90deg,#08090afc 0%,#08090af0 24%,#08090a92 43%,transparent 78%)}
+.pv-fashion-feature h2{font-size:clamp(52px,5vw,94px);white-space:nowrap}
+.pv-editorial-feature-shade{background:linear-gradient(90deg,#08090af8 0%,#08090aeb 20%,#08090a8c 39%,transparent 73%)}
+.pv-creative-card:nth-child(1)>img{object-position:center 28%}
+@media(max-width:700px){.pv-fashion-feature-photo{background-size:auto 90%;background-position:70% 10%}.pv-fashion-feature h2{font-size:clamp(42px,9vw,64px);white-space:normal}}
