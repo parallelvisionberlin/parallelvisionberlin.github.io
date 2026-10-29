@@ -52,42 +52,13 @@ assert.ok(fashionApprovedHtml.includes('<span>Replace</span><em>outfit.</em>'),'
 assert.ok(fashionApprovedHtml.includes('id="looks-scroller"')&&fashionApprovedHtml.includes('class="look-card"'),'Runway style strip retained');
 assert.ok(approvedFashionCss.includes('PV LAB / RUNWAY REPLACE OUTFIT')&&approvedFashionCss.includes('filter:brightness(.78)'),'Runway art direction and portrait shadow locked in reference');
 
-// The owner approved a new Video-only design in #496. Freeze that implemented
-// reference while retaining the original pixel baselines for every other tool.
-const approvedVideoRef='c65079e33a4c5be35cb36ceda963120787998fcf';
+// Owner-approved typography and expanding prompt mockup, 29 Oct 2026.
+// Pin its implemented Video source independently; keep every other tool's
+// existing pixel reference and all comparison tolerances unchanged.
+const approvedVideoRef='80ed747b8c5df30abc0abd80352c61c1aad15990';
 const approvedVideoFiles=new Map(['lab/lab.js','lab/studio.html','lab/video-compact-studio.css','lab/video-relaxed-studio.css','lab/video-editorial-deck.js','lab/video-scene-states.js'].map(path=>[path,execFileSync('git',['show',approvedVideoRef+':'+path])]));
-// Owner-approved follow-up: the same original plus also invites Reference and
-// Extend uploads. Keep every other byte of the independent Video visual source,
-// including the original Start plus, photograph, typography and dimensions.
-const approvedVideoState=approvedVideoFiles.get('lab/video-scene-states.js').toString();
-const approvedPlusRule="startArt.hidden=!(visible&&mode==='start');";
-assert.equal(approvedVideoState.split(approvedPlusRule).length,2,'Original plus visibility fixture remains identifiable');
-approvedVideoFiles.set('lab/video-scene-states.js',Buffer.from(approvedVideoState.replace(
-  approvedPlusRule,"startArt.hidden=!(visible&&['start','reference','extend'].includes(mode));"
-)));
-
-
-// Approved Reference-only copy/spacing follow-up. Original Start and other tools
-// retain their independent source and exact pixel tolerances.
-const referenceInvitation="reference:['Guide the motion with references','Upload images or choose saved elements, then describe how they move and interact.']";
-const referenceState=approvedVideoFiles.get('lab/video-scene-states.js').toString();
-assert.equal(referenceState.split(referenceInvitation).length,2,'Original Reference invitation fixture remains identifiable');
-approvedVideoFiles.set('lab/video-scene-states.js',Buffer.from(referenceState.replace(referenceInvitation,"reference:['Animate your references','']")));
-// Match the same approved copy in both retained presentation writers.
-for(const path of ['lab/lab.js','lab/video-editorial-deck.js']){
- const original=approvedVideoFiles.get(path).toString();
- assert.equal(original.split('Guide the motion with references').length,2,'Reference heading anchor: '+path);
- assert.equal(original.split('Upload images or choose saved elements, then describe how they move and interact.').length,2,'Reference description anchor: '+path);
- approvedVideoFiles.set(path,Buffer.from(original.replace('Guide the motion with references','Animate your references').replace('Upload images or choose saved elements, then describe how they move and interact.','')));
-}
-const referenceInvitationStyles=`
-html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .pv-video-start-visual:not([hidden]){margin-bottom:24px!important}
-html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-title{margin-top:0!important;opacity:.9}
-html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-description{display:none!important}
-html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-actions{margin-top:24px!important;gap:16px!important}
-html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.pv-video-mode-reference .video-feed-center .empty-actions>button{height:48px!important;min-height:48px!important;padding:12px 24px!important}
-`;
-approvedVideoFiles.set('lab/video-relaxed-studio.css',Buffer.concat([approvedVideoFiles.get('lab/video-relaxed-studio.css'),Buffer.from(referenceInvitationStyles)]));
+assert.match(approvedVideoFiles.get('lab/video-relaxed-studio.css').toString(),/Approved refined mockup/,'Frozen Video reference includes the approved typography and prompt fit');
+assert.match(approvedVideoFiles.get('lab/video-editorial-deck.js').toString(),/pv-video-prompt-box/,'Frozen Video reference retains inside-prompt controls');
 
 const account=`
 const state=window.__publicAccount||=(()=>{
