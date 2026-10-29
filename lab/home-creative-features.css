@@ -136,7 +136,7 @@
   inset:0;
   z-index:1;
   background:
-    linear-gradient(90deg,#090a0b 0%,#090a0b 19%,rgba(9,10,11,.98) 27%,rgba(9,10,11,.79) 35%,rgba(9,10,11,.3) 46%,transparent 61%),
+    linear-gradient(90deg,#090a0b 0%,#090a0b 32%,rgba(9,10,11,.99) 35%,rgba(9,10,11,.84) 43%,rgba(9,10,11,.32) 52%,transparent 67%),
     linear-gradient(0deg,rgba(9,10,11,.22),transparent 24%);
 }
 #featured-editorial .pv-editorial-feature-copy:before{content:none!important;display:none!important}
