@@ -270,7 +270,7 @@ html body #app.video-studio-active.pv-video-compact{
  --pv-video-muted:#a3a5a7;--pv-video-ink:#ededee;
  font-family:'DM Sans',Arial,sans-serif;
 }
-html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout :is(button,select,input,textarea){font-family:'DM Sans',Arial,sans-serif!important;letter-spacing:0!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout .controls :is(button,select,input,textarea){font-family:'DM Sans',Arial,sans-serif!important;letter-spacing:0!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact :is(#video-task-switch button,#video-modes .mode-tab,#video-motion-toggle,#pv-video-output-toggle,.controls-body>.parameter-grid select){font-size:13px!important;font-weight:500!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact :is(#pv-video-prompt-head #prompt-label,.reference-fields>strong){font-size:13px!important;font-weight:500!important}
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact :is(#pv-video-model-hero small,#reference-drop>small:after,#reference-mode #scene-video-open>small,#pv-video-prompt-count,.reference-fields>small,.video-inspector-body p,.video-inspector-body dt){color:#a3a5a7!important;font-weight:400!important}
