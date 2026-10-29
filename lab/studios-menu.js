@@ -7,6 +7,7 @@
  const sprite=url('visuals/beauty/studios-original-reference.svg');
  const outfit=url('visuals/beauty/outfit-studio-card-20261028.webp');
  const retouchCard=url('visuals/beauty/retouch-studio-reference-card.svg');
+ const editorialHero='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png';
  const headers=document.querySelectorAll('.landing-header,.studio-header,.beauty-header');
  for(const header of headers){
   if(header.querySelector('.pv-studios-trigger'))continue;
@@ -21,7 +22,7 @@
      '<section class="pv-studios-tile pv-studios-beauty">'+artwork+'<a aria-label="Beauty Studio" href="'+url('beauty.html')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-fashion">'+artwork+'</section>'+
      '<section class="pv-studios-tile pv-studios-outfit"><img class="pv-studios-outfit-artwork" alt="" loading="lazy" decoding="async" src="'+outfit+'"><a class="pv-studios-outfit-link" aria-label="Outfit Studio" href="'+url('studio.html?tool=fashion')+'"></a></section>'+
-     '<section class="pv-studios-tile pv-studios-editorial">'+artwork+'<a aria-label="Full Editorial" href="'+url('full-editorial.html')+'"></a></section>'+
+     '<section class="pv-studios-tile pv-studios-editorial"><img class="pv-studios-editorial-artwork" alt="" loading="lazy" decoding="async" src="'+editorialHero+'"><div class="pv-studios-editorial-copy"><strong>Full<br>Editorial</strong><p>Build a complete fashion story.</p><span class="pv-studios-editorial-go" aria-hidden="true">'+arrow+'</span></div><a aria-label="Full Editorial" href="'+url('full-editorial.html')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-retouch"><img class="pv-studios-retouch-artwork" alt="" loading="lazy" decoding="async" src="'+retouchCard+'"><a class="pv-studios-retouch-link" aria-label="Retouch Studio" href="'+url('studio.html?tool=retouch')+'"></a></section>'+
    '</div>'+
    '<div class="pv-studios-secondary"><a class="pv-studios-character-link" href="'+url('studio.html?tool=image&createCharacter=1')+'">Character Studio'+arrow+'</a></div>';
@@ -37,7 +38,7 @@
   const retouchLink=panel.querySelector('.pv-studios-retouch-link');
   if(existingRetouch?.tagName==='A')retouchLink.href=existingRetouch.href;
   if(existingRetouch?.tagName==='BUTTON')retouchLink.addEventListener('click',event=>{event.preventDefault();existingRetouch.click();});
-  const active=()=>trigger.classList.toggle('is-active',location.pathname.endsWith('/beauty.html')||original.getAttribute('aria-pressed')==='true'||existingRetouch?.getAttribute('aria-pressed')==='true');active();
+  const active=()=>trigger.classList.toggle('is-active',(location.pathname.endsWith('/beauty.html')||location.pathname.endsWith('/full-editorial.html')||location.pathname.endsWith('/full-editorial'))||original.getAttribute('aria-pressed')==='true'||existingRetouch?.getAttribute('aria-pressed')==='true');active();
   new MutationObserver(active).observe(original,{attributes:true,attributeFilter:['aria-pressed']});
   if(existingRetouch?.tagName==='BUTTON')new MutationObserver(active).observe(existingRetouch,{attributes:true,attributeFilter:['aria-pressed']});
   function position(){
