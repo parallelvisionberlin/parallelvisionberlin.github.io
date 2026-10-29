@@ -266,3 +266,67 @@
   #featured-editorial h2{font-size:clamp(45px,11vw,57px)!important}
   #featured-editorial .pv-editorial-feature-copy{padding:22px 22px 28px!important}
 }
+
+
+/* PV LAB Full Editorial: muted cinematic background loop.
+   Stills are retained behind video, including when playback is disabled. */
+#featured-editorial{
+  isolation:isolate;
+  position:relative;
+  background:#090a0b!important;
+  background-image:none!important;
+}
+#featured-editorial .pv-editorial-feature-art{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  background-image:url('https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/3daa34c8-f368-472d-944f-26ff306905c5.jpg')!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  filter:none!important;
+  z-index:0!important;
+}
+#featured-editorial .pv-editorial-feature-video{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center center!important;
+  z-index:1!important;
+  opacity:0;
+  pointer-events:none;
+  background:transparent;
+  transition:opacity .5s ease-in;
+}
+#featured-editorial .pv-editorial-feature-video.is-playing{opacity:1}
+#featured-editorial .pv-editorial-feature-shade{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:2!important;
+  pointer-events:none;
+  background:linear-gradient(90deg,#090a0bf7 0%,#090a0bf0 15%,#090a0bd4 25%,#090a0b8f 34%,#090a0b33 48%,transparent 68%)!important;
+}
+#featured-editorial .pv-editorial-feature-copy{
+  position:absolute!important;
+  z-index:3!important;
+}
+#featured-editorial .pv-editorial-feature-mark{z-index:3}
+@media(max-width:1000px){
+  #featured-editorial .pv-editorial-feature-art{
+    background-position:60% center!important;
+  }
+  #featured-editorial .pv-editorial-feature-video{
+    object-position:60% center!important;
+  }
+  #featured-editorial .pv-editorial-feature-shade{
+    background:linear-gradient(0deg,#090a0bf8 0%,#090a0bef 22%,#090a0b9c 46%,#090a0b20 86%)!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #featured-editorial .pv-editorial-feature-video{display:none!important;transition:none!important}
+}
