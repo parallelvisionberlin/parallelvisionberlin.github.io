@@ -65,22 +65,21 @@
   .lab-hero .hero-poster,.lab-hero .hero-motion{top:109px;height:calc(100% - 109px)}
 }
 @media(max-width:700px){
-  .lab-hero{min-height:780px}
+  .lab-hero{height:100svh;min-height:560px;max-height:none}
   .lab-hero .hero-poster,.lab-hero .hero-motion{
     top:102px;height:calc(100% - 102px);object-position:70% top;
   }
-  /* The landscape hero crops the woman's face on narrow phones. Shift the
-     existing photograph within its frame without affecting desktop or video. */
-  .lab-hero .hero-poster{object-position:92% top}
+  /* Center the face in the landscape photograph's narrow phone crop. */
+  .lab-hero .hero-poster{object-position:48% top}
   .lab-hero .hero-motion{
-    /* Preserve its previous mobile positioning. */
-    object-position:70% top;
+    /* Match the poster crop when motion starts, keeping the subject in frame. */
+    object-position:48% top;
   }
   .lab-hero .hero-shade,.lab-hero.motion-active .hero-shade{
     background:linear-gradient(0deg,#100e13 0%,#100e13e8 20%,#100e1380 43%,transparent 70%);
   }
-  /* Lift the complete copy as Safari's usable height shrinks, keeping both actions in view. */
-  .lab-hero .hero-copy{left:24px;right:24px;bottom:clamp(148px,calc(820px - 100svh),220px);max-width:none}
+  /* Fit the title and actions inside Safari's usable viewport. */
+  .lab-hero .hero-copy{left:24px;right:24px;bottom:clamp(88px,13svh,110px);max-width:none}
   .lab-hero .hero-copy h1{font-size:40px;margin-bottom:12px}
   .lab-hero .hero-copy h2{font-size:clamp(36px,10.8vw,46px);line-height:1.04;margin-bottom:18px}
   .lab-hero .hero-description{max-width:290px;font-size:13px;margin-bottom:20px}

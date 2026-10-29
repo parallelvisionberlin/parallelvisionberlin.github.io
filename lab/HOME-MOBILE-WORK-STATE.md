@@ -1,0 +1,33 @@
+# PV LAB phone homepage layout
+
+- Updated: 2026-10-29, Europe/Berlin.
+- Source baseline: main d3c38fd.
+- Branch: fix/mobile-home-spacing.
+- User references: IMG_8196.jpeg, IMG_8194.jpeg, IMG_8195.jpeg.
+- Scope: Creative Studios introduction, decorative homepage arrows, mobile hero.
+- Mobile/tablet introduction places Creative Studios on the left.
+- Its descriptive notes sit in a separate right-hand column.
+- Notes use 16px on phones and scale to 22px on tablets.
+- Main heading and notes align at the top; CTA sits below.
+- Preserve the existing two-column studio artwork and destinations.
+- All homepage decorative CTA arrow glyphs and SVG arrows removed.
+- Desktop artwork arrows are covered; its intro uses a real text-only CTA.
+- Decorative showcase transition arrows removed; swipe hint remains text.
+- Functional menus, video controls and photo-detail control remain usable.
+- Standing preference saved in root AGENTS.md: text-only actions.
+- Do not replace removed arrow glyphs with SVG or CSS decoration.
+- Phone viewport is the primary visual review surface; also check desktop.
+- Mobile hero uses 100svh with a 560px minimum for very short screens.
+- Copy and actions sit above the bottom video control/signature row.
+- Mobile poster and motion share a 48% horizontal crop to show the subject.
+- Existing desktop hero, video URL, loop and autoplay logic preserved.
+- Relevant code: lab/index.html, home-creative-features.css, landing-motion.css.
+- Cache keys: 20261029-mobile-notes-no-arrows1 / 20261029-mobile-viewport1.
+- Checks: 12 targeted Image contract, homepage showcase and mood tests pass.
+- Diff whitespace check passed.
+- Browser QA: 390x740 and 320x568 phone frames plus desktop inspected.
+- Notes are right of heading, 16px; no page horizontal overflow observed.
+- Small-phone hero actions remain within the viewport.
+- Production authentication is outside this cosmetic change's verification.
+- Publication and custom-domain verification pending.
+- Next: review PR checks, publish, verify the exact deployed homepage assets.

@@ -156,7 +156,11 @@ try{
       assert.ok(heading.y>=header.y+header.height,`${width}: heading clears the navigation`);
       if(width<=700){
         const crop=await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).objectPosition);
-        assert.equal(crop,'92% 0%',`${width}: keep the model's face within the mobile hero crop`);
+        assert.equal(crop,'48% 0%',`${width}: keep the model's face within the mobile hero crop`);
+        const hero=await page.locator('.lab-hero').boundingBox();
+        const actions=await page.locator('.hero-actions').boundingBox();
+        assert.ok(hero.height<=height,`${width}: phone hero fits the usable viewport`);
+        assert.ok(actions.y>=header.height&&actions.y+actions.height<=height-24,`${width}: both hero actions stay in view`);
       }
       assert.equal(await page.evaluate(()=>window.testSignInOptions.forceRedirectUrl),undefined,'Header sign-in stays on the current page');
       assert.deepEqual(errors,[]);

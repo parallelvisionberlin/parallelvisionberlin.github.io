@@ -37,9 +37,7 @@ test('no billing or generation is performed by deep link',()=>{
   assert.match(logic,/sceneLibrary\.open/);
 });
 
-test('character CTA uses a line SVG, never an iOS emoji arrow',()=>{
+test('character CTA follows the owner-approved text-only action design',()=>{
   const cta=home.match(/<a class="lab-character-home__action"[^>]*>(.*?)<\/a>/s)?.[1];
-  assert.match(cta,/^Create your character <svg/);
-  assert.match(cta,/aria-hidden="true"/);
-  assert.doesNotMatch(cta,/[↗➡⬆🔗]/u);
+  assert.equal(cta,'Create your character');
 });
