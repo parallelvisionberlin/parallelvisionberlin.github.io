@@ -52,9 +52,11 @@ try{
   await page.evaluate(()=>document.fonts.ready);
   const layout=await page.evaluate(()=>{
    const bounds=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};};
-   return {title:bounds('h1'),photo:bounds('.beauty-photo'),notes:bounds('#beauty-direction'),panel:bounds('.beauty-edit-panel'),button:bounds('#beauty-generate'),height:innerHeight,width:innerWidth,scrollWidth:document.documentElement.scrollWidth};
+   return {title:bounds('h1'),photo:bounds('.beauty-photo'),notes:bounds('#beauty-direction'),panel:bounds('.beauty-edit-panel'),ratio:bounds('#beauty-ratio'),button:bounds('#beauty-generate'),height:innerHeight,width:innerWidth,scrollWidth:document.documentElement.scrollWidth};
   });
   assert.ok(layout.button.bottom<=height-12,'Generate fits the first viewport at '+width+'x'+height+': '+JSON.stringify(layout));
+  assert.ok(layout.button.top>=layout.panel.top+8&&layout.button.bottom<=layout.panel.bottom-5,'Generate remains inside the visible Edit Look panel at '+width+'x'+height+': '+JSON.stringify(layout));
+  assert.ok(layout.ratio.bottom<=layout.photo.bottom-8,'Aspect ratio stays visible above the bottom of the hero at '+width+'x'+height+': '+JSON.stringify(layout));
   assert.ok(layout.notes.bottom+8<=layout.button.top,'Creative direction and Generate never overlap');
   assert.ok(layout.title.right+8<=layout.photo.left&&layout.photo.right+8<=layout.panel.left,'Approved layout keeps settings left, image centered and tools right');
   assert.ok(layout.panel.left>=0&&layout.panel.right<=width&&layout.scrollWidth<=width,'Workspace fits horizontally');
