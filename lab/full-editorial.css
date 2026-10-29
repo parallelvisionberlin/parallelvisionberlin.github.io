@@ -304,3 +304,43 @@ dialog::backdrop{background:#000c;backdrop-filter:blur(3px)}
 @media(prefers-reduced-motion:reduce){
  .editorial-hero .hero-start,.editorial-flow-rail>span{transition:none}
 }
+
+/* PVLAB WORKFLOW EDITORIAL 2026-10-29: redesign only the post-hero wizard. */
+.editorial-flow{position:relative;isolation:isolate;grid-template-columns:minmax(285px,38%) minmax(0,1fr);gap:clamp(22px,3vw,58px);max-width:none;min-height:calc(100svh - 78px);padding:clamp(28px,3.5vw,58px) clamp(23px,3.1vw,60px) 70px;background:radial-gradient(ellipse at 15% 27%,#222326 0%,#101113 42%,#090a0b 78%)}
+.intro-rail{position:relative;isolation:isolate;top:110px;min-height:720px;overflow:hidden;padding:clamp(40px,6vw,92px) clamp(18px,3.2vw,52px) 45px;border-radius:12px;align-self:stretch}
+.workflow-photo{position:absolute;z-index:-2;inset:0;background:url('./visuals/fashion-replace/hero-model-oct24.jpg') center 25%/cover no-repeat;filter:grayscale(.75) brightness(.59) contrast(1.12)}
+.intro-rail:before{content:'';position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,#090a0bdf,#090a0b48 72%,#090a0b75),linear-gradient(0deg,#090a0bef 0%,transparent 55%,#090a0b35)}
+.intro-rail h2{font-size:clamp(42px,4.2vw,78px);line-height:.99;font-weight:510;letter-spacing:-.064em;margin:24px 0 21px}
+.intro-rail>p{font-size:clamp(13px,1vw,16px);line-height:1.6;color:#e0dfe0;max-width:370px}
+.intro-steps{margin-top:32px;padding-top:0;max-width:360px}
+.intro-steps li{padding-bottom:20px}
+.intro-steps li strong{font-size:14px}
+.intro-steps li small{color:#bebfc1}
+.intro-steps li:first-child b{background:#f4f1e9;color:#151515;border-color:#f4f1e9}
+.flow-main{padding:clamp(28px,3vw,48px);background:#0b0d0fee;border-color:#2b2d32;border-radius:17px;min-height:700px;box-shadow:0 25px 90px #0007;align-self:start}
+.progress-top{margin-bottom:26px}
+.editorial-flow-rail{display:none}
+.step-panel h2{font-size:clamp(35px,3.3vw,54px);margin:12px 0 12px}
+.step-intro{max-width:680px;font-size:14px;line-height:1.65}
+#panel-model .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border:0;padding:0;margin:25px 0 18px}
+#panel-model .tab{min-width:0;min-height:136px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;text-align:left;padding:18px;gap:6px;border:1px solid #383b40;border-radius:10px;background:#0d1012;color:#f2f1ee;white-space:normal}
+#panel-model .tab.is-selected{border-color:#e8e7e3;box-shadow:inset 0 0 0 1px #e8e7e34d;background:#17191b;color:#fff}
+#panel-model .tab:hover{border-color:#cac8c5}
+#panel-model .source-icon{font-family:Arial,sans-serif;font-size:28px;font-weight:300;line-height:1;margin-bottom:auto;color:#eceae6}
+#panel-model .tab strong{font-size:13px;font-weight:600}
+#panel-model .tab small{font-size:11px;color:#9c9da1;line-height:1.35}
+#panel-model .upload-large{min-height:205px;border-radius:11px;background:#131519;border-color:#55585d}
+#panel-model .upload-large:hover{background:#191b1f;border-color:#d5d5d2}
+#panel-model .thumb-row{gap:10px}
+.identity-advanced{margin-top:20px;border-top:1px solid #33363a;border-bottom:1px solid #33363a}
+.identity-advanced summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:16px 2px;font-size:13px;font-weight:550;list-style:none}
+.identity-advanced summary::-webkit-details-marker{display:none}
+.identity-advanced summary:after{content:'⌄';color:#b8b8bb;margin-left:15px}
+.identity-advanced summary span{font-size:11px;color:#85878e;font-weight:400;margin-left:auto}
+.identity-advanced[open] summary:after{content:'⌃'}
+.identity-advanced .control-row{padding:2px 0 18px}
+.flow-footer{margin-top:24px}
+.flow-footer button{min-width:136px}
+@media(max-width:1050px){.editorial-flow{grid-template-columns:minmax(245px,35%) minmax(0,1fr);gap:18px;padding:24px 20px 50px}.intro-rail{padding:40px 20px}.flow-main{padding:28px}#panel-model .tab{padding:12px;min-height:125px}}
+@media(max-width:800px){.editorial-flow{grid-template-columns:minmax(0,1fr);padding:18px 16px 50px}.intro-rail{position:relative;top:auto;min-height:300px;padding:32px 28px}.intro-rail h2{font-size:42px}.intro-steps{display:none}.flow-main{min-height:0}.workflow-photo{background-position:center 30%}.intro-rail:before{background:linear-gradient(90deg,#08090aef,#08090aa0 65%,#08090a35)}}
+@media(max-width:520px){.editorial-flow{padding:12px 11px 50px}.intro-rail{min-height:250px;padding:28px 22px}.intro-rail h2{font-size:38px}.flow-main{padding:20px 15px}#panel-model .tabs{gap:7px}#panel-model .tab{min-height:112px;padding:10px 7px;border-radius:8px}#panel-model .tab strong{font-size:11px}#panel-model .tab small{font-size:10px}#panel-model .source-icon{font-size:23px}#panel-model .upload-large{min-height:185px}}
