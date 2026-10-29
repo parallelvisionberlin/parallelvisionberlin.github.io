@@ -5,7 +5,7 @@
   position:relative;isolation:isolate;overflow:hidden;
   height:clamp(680px,84svh,840px);min-height:680px;
   background:#090a0b;color:#f6f3ec;
-  font-family:DM,'Helvetica Neue',Arial,sans-serif;
+  font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;
 }
 .lab-character-home__world{
   position:absolute;inset:0;z-index:-2;margin:0;overflow:hidden;
@@ -52,7 +52,7 @@
 }
 .lab-character-home__description{
   max-width:345px;margin:0;
-  color:#c9c7c4;font:400 clamp(14px,1vw,16px)/1.65 DM,'Helvetica Neue',Arial,sans-serif;
+  color:#c9c7c4;font:400 clamp(14px,1vw,16px)/1.65 'DM Sans','Helvetica Neue',Arial,sans-serif;
   letter-spacing:0;text-wrap:pretty;
 }
 .lab-character-home__actions{margin-top:27px}
@@ -61,7 +61,7 @@
   gap:0;width:auto;min-width:0;min-height:49px;
   padding:13px 24px;border:1px solid #f3eee5;border-radius:999px;
   background:#f3eee5;color:#25231f;text-decoration:none;
-  font:500 13px/1.4 DM,'Helvetica Neue',Arial,sans-serif;
+  font:500 13px/1.4 'DM Sans','Helvetica Neue',Arial,sans-serif;
   letter-spacing:0;white-space:nowrap;
   transition:background-color .18s,border-color .18s;
 }
@@ -81,12 +81,12 @@
   content:'';display:block;width:32px;height:1px;background:#b9b8b4;margin-bottom:12px;
 }
 .lab-character-home__identity strong{
-  display:block;font:600 10px/1.4 DM,'Helvetica Neue',Arial,sans-serif;
+  display:block;font:600 10px/1.4 'DM Sans','Helvetica Neue',Arial,sans-serif;
   letter-spacing:.18em;text-transform:uppercase;color:#e0ddd8;
 }
 .lab-character-home__identity p{
   margin:7px 0 0;color:#bcbdbb;
-  font:400 12px/1.5 DM,'Helvetica Neue',Arial,sans-serif;
+  font:400 12px/1.5 'DM Sans','Helvetica Neue',Arial,sans-serif;
 }
 @media(max-width:1000px) and (min-width:701px){
   .lab-character-home{height:700px;min-height:700px}
