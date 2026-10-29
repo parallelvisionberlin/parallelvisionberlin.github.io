@@ -1,5 +1,19 @@
 # PV LAB Image Studio: Discreet Mode
 
+## Active: History CI fixture repair (2026-10-29)
+- Base/latest main reproduced: `70f87bbee522c3ab58eb2eb8551d04b3444d7190`.
+- Video CI job `123472975446`: 859 tests, 855 pass, four History failures; browser steps never ran.
+- All four failures reproduce in `tests/lab-history-scroll.test.mjs` with `ReferenceError: userId is not defined`.
+- Cause is the isolated test fixture: its extracted History slice now includes `syncImagePreviewAccount`, but omitted the surrounding `userId`, `window`, `document` and `CustomEvent` dependencies.
+- Production declares `userId` in module scope, assigns the authenticated Clerk ID before `loadHistory`, and clears/publishes it at sign-out. No application-code correction is needed for this reference error.
+- Fixture supplies account state, a real EventTarget/CustomEvent and a window object. It runs the production preview publisher unchanged, recording dispatched event details.
+- Original pagination, retry, filter and sign-out assertions remain. Additional assertions protect the initial preview event from append/incremental and stale responses.
+- Two added cases cover empty/populated History event payloads and account changes while initial History is pending, including retained request guards and rejection of private prior-account results.
+- Targeted local checks: History 6/6, account preview 4/4, approved Image UI contract 5/5; diff check passes.
+- Full local sweep in the reduced checkout hit missing media/sandbox fixtures; it is not a full-suite pass. The existing complete Node 22 and mock-only browser workflow must validate the candidate in GitHub.
+- Scope: this test fixture and this checkpoint only. Studio source, design, models, account isolation, pricing, billing and all CI gates remain unchanged. No paid generation or purchase.
+- Next: validate the fixed candidate through the existing Video workflow, merge if valid, then verify Cloudflare publication and unchanged production asset bytes separately from real signed-in behavior.
+
 ## Active: account-specific preview preference (2026-10-27)
 - User reproduced a fresh account opening Image with the inspiration cards concealed.
 - Verified cause: one same-origin `pv-lab-image-previews-hidden-v1` preference was reused across every account in that browser.
