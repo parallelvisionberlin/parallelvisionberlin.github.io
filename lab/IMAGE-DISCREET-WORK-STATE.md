@@ -1,5 +1,23 @@
 # PV LAB Image Studio: Discreet Mode
 
+## Active: History CI fixture repair (2026-10-29)
+- Base/latest main reproduced: `70f87bbee522c3ab58eb2eb8551d04b3444d7190`.
+- Video CI job `123472975446`: 859 tests, 855 pass, four History failures; browser steps never ran.
+- All four failures reproduce in `tests/lab-history-scroll.test.mjs` with `ReferenceError: userId is not defined`.
+- Cause is the isolated test fixture: its extracted History slice now includes `syncImagePreviewAccount`, but omitted the surrounding `userId`, `window`, `document` and `CustomEvent` dependencies.
+- Production declares `userId` in module scope, assigns the authenticated Clerk ID before `loadHistory`, and clears/publishes it at sign-out. No application-code correction is needed for this reference error.
+- Fixture supplies account state, a real EventTarget/CustomEvent and a window object. It runs the production preview publisher unchanged, recording dispatched event details.
+- Original pagination, retry, filter and sign-out assertions remain. Additional assertions protect the initial preview event from append/incremental and stale responses.
+- Two added cases cover empty/populated History event payloads and account changes while initial History is pending, including retained request guards and rejection of private prior-account results.
+- Targeted local checks: History 6/6, account preview 4/4, approved Image UI contract 5/5; diff check passes.
+- First candidate `8fba0e60`: GitHub Node 22 passes 861/861; customer Video and guest/signed-in routing pass. Full local sweep is not a pass: reduced checkout media and a Node 24 preflight timing assertion differ from CI.
+- Browser steps now reach an unrelated `lab-studio-layout-ui.mjs:693` assertion expecting Audio in the former second row. Application and layout test are byte-identical to base. Preserve the approved prompt-contained audio control.
+- Public visual comparison fails with exactly the same main/candidate 1440px canvas result: 4,796 changed pixels, maxDelta 232 / 613,008 pixels. Main job `123472976674`, candidate `123616661313`. Do not replace approved visuals or adjust comparison tolerances for this repair.
+- Added `tests/lab-history-scroll-ui.mjs`: full Studio, synthetic auth, controlled GET responses, real cursor scroll, single-flight, manual retry, filter and sign-out invalidation, preview event payloads and zero API writes at 1440/390px. Runs as a separate additional step in the existing Video workflow; all existing tests/gates remain.
+- PR: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/660 . Final CI and publication receipts belong in this section and the PR body.
+- Scope: History unit/browser fixtures, one additional CI step and this checkpoint. Studio source, design, models, account isolation, pricing and billing remain unchanged. No paid generation or purchase.
+- Next: validate the dedicated History browser case, integrate the fixture correction if valid, and verify Cloudflare publication and unchanged production bytes. Existing unrelated browser failures remain explicit; real signed-in production behavior is separate.
+
 ## Active: account-specific preview preference (2026-10-27)
 - User reproduced a fresh account opening Image with the inspiration cards concealed.
 - Verified cause: one same-origin `pv-lab-image-previews-hidden-v1` preference was reused across every account in that browser.
