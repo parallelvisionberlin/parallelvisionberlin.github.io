@@ -49,11 +49,11 @@ jobs:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
         run: |
           node tests/lab-studio-layout-ui.mjs
+          node tests/lab-seedance-ui.mjs
           node tests/lab-soul-reinterpret-ui.mjs
           node tests/lab-image-oneclick-ui.mjs
           node tests/lab-upscale-ui.mjs
           node tests/lab-reference-ui.mjs
-          node tests/lab-seedance-ui.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
