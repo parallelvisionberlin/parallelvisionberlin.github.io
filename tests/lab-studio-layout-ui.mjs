@@ -683,14 +683,17 @@ try{
     const rects=nodes.map(el=>el.getBoundingClientRect());
     const rail=document.querySelector('.workspace.video-layout>.controls').getBoundingClientRect();
     return {ready:true,tops:rects.map(r=>r.top),right:Math.max(...rects.map(r=>r.right)),
-      railRight:rail.right,widths:rects.map(r=>r.width)};
+      railRight:rail.right,widths:rects.map(r=>r.width),audioInsidePrompt:document.getElementById('pv-video-prompt-box').contains(nodes[3]),
+      audioFitsPrompt:rects[3].bottom<=document.getElementById('pv-video-prompt-box').getBoundingClientRect().bottom};
   });
   assert.equal(outputFit.ready,true,'Reference mode has all four actual output settings');
   assert.equal(await x.page.locator('#video-model-trigger').isVisible(),true,'The original top model selector remains accessible');
   assert.equal(await x.page.locator('#pv-video-model-pill').isVisible(),false,'Only the duplicated model shortcut is removed from Output');
   assert.ok(Math.max(...outputFit.tops.slice(0,3))-Math.min(...outputFit.tops.slice(0,3))<3,
     'Approved duration, ratio and resolution stay on one row: '+JSON.stringify(outputFit));
-  assert.equal(outputFit.tops[3]-outputFit.tops[0],46,'Audio occupies the approved relaxed second row');
+  assert.equal(outputFit.audioInsidePrompt,true,'Audio is inside the owner-approved prompt surface');
+  assert.equal(outputFit.audioFitsPrompt,true,'Compact audio control fits inside the prompt border');
+  assert.ok(outputFit.tops[3]<outputFit.tops[0],'Prompt audio sits above output settings');
   assert.ok(outputFit.right<=outputFit.railRight-8,
     'Video settings cannot overflow the right edge of the editor: '+JSON.stringify(outputFit));
   assert.ok(outputFit.widths.every(w=>w>=48),

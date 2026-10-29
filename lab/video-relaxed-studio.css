@@ -264,3 +264,26 @@ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #pv-video-prompt-box #video-utilities{
  order:1!important;margin:0!important;padding:0 10px 8px!important;min-width:0;
 }
+
+/* Approved refined mockup: one type scale and a prompt that uses spare height. */
+html body #app.video-studio-active.pv-video-compact{
+ --pv-video-muted:#a3a5a7;--pv-video-ink:#ededee;
+ font-family:'DM Sans',Arial,sans-serif;
+}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout .controls :is(button,select,input,textarea){font-family:'DM Sans',Arial,sans-serif!important;letter-spacing:0!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact :is(#video-task-switch button,#video-modes .mode-tab,#video-motion-toggle,#pv-video-output-toggle,.controls-body>.parameter-grid select){font-size:13px!important;font-weight:500!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact :is(#pv-video-prompt-head #prompt-label,.reference-fields>strong){font-size:13px!important;font-weight:500!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact :is(#pv-video-model-hero small,#reference-drop>small:after,#reference-mode #scene-video-open>small,#pv-video-prompt-count,.reference-fields>small,.video-inspector-body p,.video-inspector-body dt){color:#a3a5a7!important;font-weight:400!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact :is(.video-inspector-body h3,.video-inspector-body strong){color:#ededee!important;font-weight:500!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout .controls #pv-video-prompt-box textarea#prompt{font-size:14px!important;font-weight:400!important;line-height:1.5!important;color:#ededee!important}
+html body #app.video-studio-active #prompt::placeholder{color:#9d9fa1!important;opacity:1}
+@media(min-width:821px){
+ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout .controls-body{flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;padding-bottom:8px!important}
+ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact #pv-video-prompt-box{flex:1 0 auto!important}
+ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout .controls #pv-video-prompt-box textarea#prompt{flex:1 0 auto!important;max-height:none!important}
+}
+@media(max-width:820px){
+ html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout .controls #pv-video-prompt-box textarea#prompt{font-size:16px!important}
+}
+
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact :is(#reference-drop>span:after,#reference-mode #scene-video-open>span){font-size:clamp(11px,.75vw,13px)!important;font-weight:500!important}
