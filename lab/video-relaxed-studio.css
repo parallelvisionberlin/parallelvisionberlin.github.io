@@ -287,3 +287,25 @@ html body #app.video-studio-active #prompt::placeholder{color:#9d9fa1!important;
 }
 
 html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact :is(#reference-drop>span:after,#reference-mode #scene-video-open>span){font-size:clamp(11px,.75vw,13px)!important;font-weight:500!important}
+
+/* One calm, rounded action with the server-quoted cost in the same line. */
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout #generate{
+ display:flex!important;align-items:center!important;justify-content:center!important;gap:9px!important;
+ padding:0 20px!important;border-radius:16px!important;border:0!important;
+ background:#fff!important;color:#181b20!important;box-shadow:none!important;
+ font:600 14px/1 'DM Sans',Arial,sans-serif!important;letter-spacing:0!important;
+ transition:background .16s ease,transform .16s ease!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout #generate:disabled{color:#8b8d91!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout #generate:hover:not(:disabled){background:#e7e8e9!important;box-shadow:none!important}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout #generate:active:not(:disabled){transform:translateY(1px)}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout #generate::before{
+ content:'';display:block;width:15px;height:15px;flex:0 0 15px;background:currentColor;
+ mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3 21 12 12 21 3 12Z' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cpath d='m12 7 5 5-5 5-5-5Z' fill='black'/%3E%3C/svg%3E") center/contain no-repeat;
+ order:1;
+}
+html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout #generate::after{
+ content:attr(data-credits)!important;position:static!important;width:auto!important;height:auto!important;
+ transform:none!important;mask:none!important;background:none!important;order:2;
+ font-size:13px!important;font-weight:500!important;
+}

@@ -9,3 +9,12 @@ export function videoCustomerQuoteLabels(credits) {
     confirm: 'Generate · ' + creditsLabel
   };
 }
+
+// Only the server quote supplies credits; reject prices for different settings.
+export function videoCreditPreview(q,selected){
+  if(!q?.id||q.settings?.type!=='video'||
+     ['engine','mode','duration','resolution','audio','prompt'].some(key=>q.settings[key]!==selected[key])||
+     !Number.isSafeInteger(q.creditCost)||q.creditCost<1)
+    throw new Error('Could not verify the video credit price.');
+  return {credits:q.creditCost,expiresAt:q.expiresAt,quote:q,estimated:q.priceIsEstimate===true};
+}

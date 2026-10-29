@@ -48,7 +48,7 @@ try{
         assert.equal(data.settings.mode,'start');
         assert.equal(data.sourceId,assetId);
         assert.match(data.settings.prompt,/liquid chrome/i);
-        return send({id:'30000000-0000-4000-8000-000000000090',estimatedUsd:0.21,maxUsd:0.21,
+        return send({id:'30000000-0000-4000-8000-000000000090',creditCost:73,estimatedUsd:0.21,maxUsd:0.21,
           expiresAt:Date.now()+180000,settings:{...data.settings,model:'bytedance/seedance-2.5/image-to-video',
             referenceSourceIds:[],lastSourceId:null,transferNotes:[]}});
       }

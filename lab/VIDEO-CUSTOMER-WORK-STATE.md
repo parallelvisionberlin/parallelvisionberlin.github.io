@@ -1,3 +1,14 @@
+## Video Generate and credit preview, 2026-10-29
+- Base main 6311d4f; isolated branch polish/video-generate-credit.
+- Requested: a modern Video Generate button with the credit price visible beside its label.
+- Rounded flat pearl action, restrained diamond credit icon, one-line server credit amount; removes the separate arrow. Existing Image deck preserved.
+- Video uses the existing debounced quote controller and authenticated /api/quotes. No browser rate tables or fabricated prices. Estimates carry ~. Invalid/mismatched/expired quotes cannot supply the displayed amount.
+- Generate awaits/reuses the same preview, prevents competing double-clicks, and retains the final confirmation. No automatic paid submission. Source-upload completions also check Studio/session ownership.
+- Quote key includes settings, session, image URLs/order, and video/audio reference identity; tool switch/sign-out discards stale prices. Video metadata is cleared before Image composer pricing.
+- 18 focused unit/contract checks pass. Cloud-browser mock preview confirms 16px corners, server credit display, duration update 55 to 65, audio invalidation, and retained confirmation. These figures are synthetic test fixtures, not live prices.
+- Dedicated CI browser test covers desktop/mobile, owner/customer, setting changes, double-click reuse, no job POST and Image isolation. Local Playwright browser installation unavailable; CI will run the browser suite.
+- Publication pending. No real account generation, payment or checkout performed.
+
 ## Approved typography and prompt fit, 2026-10-29
 - Base main 7703d35; isolated branch polish/video-typography-prompt-fit.
 - Owner approved the generated refinement mockup: cohesive type, neutral secondary text, a larger prompt, and almost no empty gap above Generate.
