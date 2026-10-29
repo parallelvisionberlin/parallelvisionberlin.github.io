@@ -86,7 +86,13 @@ try{
    if(width<821||height<900)return;
    const panel=await preview.page.locator('.controls-body').evaluate(el=>({scroll:el.scrollHeight,client:el.clientHeight}));
    assert.ok(panel.scroll<=panel.client+1,'Image-input modes fit without unnecessary settings scroll: '+JSON.stringify({width,height,...panel}));
-   assert.equal(Math.round((await preview.page.locator('#prompt').boundingBox()).height),104,'Fit must preserve the original input-mode prompt height');
+   assert.ok((await preview.page.locator('#prompt').boundingBox()).height>=104,'Approved prompt may grow into spare panel height without shrinking its writing area');
+   const spacing=await preview.page.evaluate(()=>({
+    gap:document.getElementById('generate').getBoundingClientRect().top-document.querySelector('.controls-body>.parameter-grid').getBoundingClientRect().bottom,
+    inside:document.getElementById('pv-video-prompt-box').contains(document.getElementById('pv-video-audio-pill'))
+   }));
+   assert.ok(spacing.gap>=0&&spacing.gap<=16,'Output controls stay close to Generate: '+JSON.stringify(spacing));
+   assert.equal(spacing.inside,true,'Audio remains inside the expanded prompt surface');
    assert.equal(Math.round((await preview.page.locator('#video-model-control').boundingBox()).height),124,'Fit must preserve the original model banner height');
   }
   await assertInputPanelFits();
