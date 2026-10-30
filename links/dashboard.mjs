@@ -5,14 +5,14 @@ import {createSessionRequest} from '../lab/session-request.js?v=20260927-auth1&s
 const $=id=>document.getElementById(id),form=$('release-form'),editor=$('editor');
 const el=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined)n.textContent=value;return n;};
 const format=n=>Number(n||0).toLocaleString('en-GB');
-let clerk=null,sessionId='',generation=0,records=[],settings=null,editing=null,createId='',slugEdited=false,saving=false,uploading=false,fetchSerial=0;
+let clerk=null,sessionId=null,generation=0,records=[],settings=null,editing=null,createId='',slugEdited=false,saving=false,uploading=false,fetchSerial=0;
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 async function call(path,{method='GET',data,headers,body}={}){
   const revision=generation;
   const current=()=>{if(revision!==generation)throw Error('Your account changed. Please sign in again.');};
   const response=await request('/api/music/admin'+path,{method,headers:headers||(data?{'Content-Type':'application/json'}:undefined),body:data?JSON.stringify(data):body},current);
   const result=await response.json().catch(()=>({}));current();
-  if(!response.ok)throw Error(result.error||'The music workspace could not complete this request.');return result;
+  if(!response.ok){const error=Error(result.error||'The music workspace could not complete this request.');error.status=response.status;throw error;}return result;
 }
 function notice(message){$('status').textContent=message;}
 function field(name){return form.elements.namedItem(name);}
@@ -96,7 +96,7 @@ async function refresh(){
     report($('sources'),data.sources,item=>item.source==='meta'?'Meta Ads':item.source[0].toUpperCase()+item.source.slice(1),item=>format(item.views)+' visits / '+format(item.clicks)+' clicks','Visitor sources will appear here.');
     report($('campaigns'),data.campaigns,item=>item.campaign,item=>format(item.views)+' visits / '+format(item.clicks)+' clicks','No tagged campaign activity yet.');
     $('gate').hidden=true;$('dashboard').hidden=false;$('new-release').disabled=false;notice('Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'.');
-  }catch(error){if(serial===fetchSerial)notice(error.message);}finally{if(serial===fetchSerial)$('refresh').disabled=false;}
+  }catch(error){if(serial===fetchSerial){notice(error.message);$('gate').hidden=false;$('gate').querySelector('h2').textContent='Your workspace could not load.';$('gate').querySelector('p:not(.eyebrow)').textContent='You are signed in. Retry loading your smart links.';$('signin').textContent='Retry';}}finally{if(serial===fetchSerial)$('refresh').disabled=false;}
 }
 form.addEventListener('submit',async event=>{
   event.preventDefault();if(saving||uploading)return;const data=draft();if(event.submitter?.value==='draft')data.status='draft';
@@ -104,7 +104,7 @@ form.addEventListener('submit',async event=>{
   saving=true;controls();$('save-status').textContent='Saving your smart link…';const revision=generation;
   try{const result=await call(editing?'/releases/'+editing.id:'/releases',{method:'POST',data});if(revision!==generation)return;
     editing=result.release;field('status').value=editing.status;field('slug').readOnly=true;slugEdited=true;$('editor-title').textContent='Edit smart link.';
-    $('save-status').textContent=editing.status==='published'?'Your smart link is live.':editing.status==='archived'?'Smart link archived. The public page is unavailable.':'Draft saved. Only owners can see it.';
+    $('save-status').textContent=editing.status==='published'?'Your smart link is live.':editing.status==='archived'?'Smart link archived. The public page is unavailable.':'Draft saved. Only your account can see it.';
     $('saved-link').hidden=editing.status!=='published';$('saved-url').value=releaseUrl(editing.slug);$('open-saved').href=releaseUrl(editing.slug);await refresh();
   }catch(error){if(revision===generation)$('save-status').textContent=error.message;}
   finally{saving=false;controls();}
@@ -116,11 +116,11 @@ $('tracking-form').addEventListener('submit',async event=>{
   catch(error){$('tracking-status').textContent=error.message;}finally{button.disabled=false;}
 });
 $('refresh').addEventListener('click',()=>void refresh());$('days').addEventListener('change',()=>void refresh());$('search').addEventListener('input',renderRecords);$('filter').addEventListener('change',renderRecords);
-$('signin').addEventListener('click',()=>clerk?.openSignIn());$('signout').addEventListener('click',()=>void clerk?.signOut());
+$('signin').addEventListener('click',()=>{if(clerk?.session){void refresh();}else clerk?.openSignIn();});$('signout').addEventListener('click',()=>void clerk?.signOut());
 function authChanged(){
   const next=clerk?.session?.id||'';if(next===sessionId)return;sessionId=next;generation++;fetchSerial++;records=[];settings=null;editing=null;
-  $('dashboard').hidden=true;$('gate').hidden=false;$('new-release').disabled=true;$('release-rows').replaceChildren();$('signout').hidden=!next;editor.close();
-  if(!next){notice('Sign in to manage your smart links.');return;}void refresh();
+  $('dashboard').hidden=true;$('gate').hidden=!!next;$('signin').textContent='Sign in';$('new-release').disabled=true;$('release-rows').replaceChildren();$('signout').hidden=!next;editor.close();
+  if(!next){$('gate').querySelector('h2').textContent='Your smart links live here.';$('gate').querySelector('p:not(.eyebrow)').textContent='Sign in with your Parallel Vision account to create pages and see their performance.';notice('Sign in to manage your smart links.');return;}void refresh();
 }
-try{clerk=await loadLabAccount();$('signin').disabled=false;clerk.addListener(authChanged);if(clerk.session)authChanged();else notice('Sign in to manage your smart links.');}
+try{clerk=await loadLabAccount();$('signin').disabled=false;clerk.addListener(authChanged);authChanged();}
 catch{notice('Sign-in could not load. Reload this page to try again.');}

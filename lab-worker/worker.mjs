@@ -129,7 +129,7 @@ async function getJwks(issuer,refresh=false) {
   const data=await r.json();if(!Array.isArray(data.keys))fail(503,'Sign-in verification is temporarily unavailable.');
   jwksCache.set(issuer,{keys:data.keys,at:now()});return data.keys;
 }
-async function authenticate(request,env) {
+async function authenticate(request,env,{music=false}={}) {
   const header=request.headers.get('authorization') || '';
   if(!/^Bearer [A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(header) || header.length>10000)fail(401,'Sign in with your Parallel Vision owner account.');
   const token=header.slice(7), [a,b,c]=token.split('.');let h,p;
@@ -148,6 +148,7 @@ async function authenticate(request,env) {
   let valid=false;
   try{const k=await crypto.subtle.importKey('jwk',key,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);valid=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',k,unbase(c),enc.encode(a+'.'+b));}catch{}
   if(!valid)fail(401,'Invalid sign-in signature.');
+  if(music&&p.iss!==LEGACY_ISSUER)fail(403,'Use your Parallel Vision account for Smart Links.');
   // Two independently verified Clerk subjects are never matched by email.
   if(p.iss===STUDIO_ISSUER){
     const link=await linkedStudioIdentity(env,p.sub);
@@ -174,6 +175,7 @@ async function authenticate(request,env) {
     "SELECT id FROM users WHERE auth_provider='clerk' AND auth_subject=? AND role='owner' LIMIT 1"
   ).bind(p.sub).first();
   if(owner)return {id:owner.id,kind:'owner',issuer:p.iss,subject:p.sub};
+  if(music&&p.iss===LEGACY_ISSUER)return {id:p.sub,kind:'music',issuer:p.iss,subject:p.sub};
   if(env.LAB_CUSTOMER_SIGNUPS_ENABLED!=='true')fail(403,'PV Lab registration is not enabled.');
   const id=await ensureCustomer(env,p.sub);
   return {id,kind:'customer',issuer:p.iss,subject:p.sub};
@@ -1364,7 +1366,7 @@ async function route(request,env,ctx) {
   if(url.pathname==='/api/webhooks/spicy'&&request.method==='POST')return receiveSpicyMoodCallback(request,env,ctx);
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   if(/^\/api\/partners\/(vitolas|bellini)\/link$/.test(url.pathname))return publicPartnerLink(request,env);
-  const identity=await authenticate(request,env);
+  const identity=await authenticate(request,env,{music:url.pathname.startsWith('/api/music/admin/')});
   const {id:owner,issuer:authIssuer}=identity,path=url.pathname,method=request.method;
   if(path.startsWith('/api/migration/')){
     const answer=await migrationRoute(request,env,identity);

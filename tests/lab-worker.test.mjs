@@ -2400,3 +2400,18 @@ test('Beauty Studio binds portrait edits to existing quotes and idempotent image
     assert.equal(job.sourceId,id);assert.match(job.settings.prompt,/Beauty Studio portrait edit/);
   }
 });
+
+test('Smart Links accepts a verified Parallel Vision public session without creating a Lab customer',async()=>{
+  const {env}=fixture();
+  for(const file of ['0045-music-links.sql','0046-music-link-designs.sql','0047-music-link-click-event.sql','0048-music-user-workspaces.sql'])env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/'+file,import.meta.url),'utf8'));
+  const call=async (authorization,origin=ORIGIN)=>worker.fetch(new Request(BASE+'/api/music/admin/dashboard',{headers:{Origin:origin,Authorization:'Bearer '+authorization}}),env,{});
+  const signed=await token('user_PublicMusic');
+  const response=await call(signed);assert.equal(response.status,200);const data=await response.json();assert.deepEqual(data.releases,[]);assert.equal(data.settings.pixelId,'');
+  assert.equal(env.LAB_DB.db.prepare("SELECT COUNT(*) AS n FROM sqlite_master WHERE name='lab_customers'").get().n,0);
+  assert.equal((await call(await token('user_PublicMusic',{exp:1}))).status,401);
+  assert.equal((await call(signed.slice(0,-5)+'wrong')).status,401);
+  assert.equal((await call(signed,'https://pvlab.studio')).status,401);
+  const lab=await worker.fetch(new Request(BASE+'/api/session',{headers:{Origin:ORIGIN,Authorization:'Bearer '+signed}}),env,{});
+  assert.equal(lab.status,403,'Music access does not enable Lab signup or private owner routes');
+  const owner=await call(await token());assert.equal(owner.status,200);assert.equal((await owner.json()).releases.length,2);
+});

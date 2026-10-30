@@ -6,7 +6,7 @@ Published visual correction: c0349a9 (PR #677), included in successful Pages run
 Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), independent MusicLinkClick, existing label pixel and consent preserved.
 
 ## Approved direction
-- Smart Links is placed inside the existing Parallel Vision account menu below Profile for both signed-in owner and public accounts; no new main-navigation item. Public creator access remains owner-only and requires a separate access/isolation implementation. Browser fixture QA: 390px public menu and 1363px owner menu without horizontal overflow. Published 3a4dd059; Pages run 41074364007 succeeded, full live homepage exact match. Static-site and Smart Links CI checks passed. Browser QA used isolated owner/public menu fixtures, not production sign-in; fixtures do not ship. Local full verifier could not run against missing sparse-checkout assets.
+- Smart Links is placed inside the existing Parallel Vision account menu below Profile for both signed-in owner and public accounts; no new main-navigation item. Public creator access is enabled by the current account-isolation update described below. Browser fixture QA: 390px public menu and 1363px owner menu without horizontal overflow. Published 3a4dd059; Pages run 41074364007 succeeded, full live homepage exact match. Static-site and Smart Links CI checks passed. Browser QA used isolated owner/public menu fixtures, not production sign-in; fixtures do not ship. Local full verifier could not run against missing sparse-checkout assets.
 - Private dashboard: white/black/cool grey, permanent sidebar, compact medium artwork rows, prominent metrics. Only Spotify, SoundCloud, YouTube.
 - Public target: artwork-first refinement exec-730d0f3b-081e-4845-8ec2-898a49b9378a.png, re-supplied as libfile_a8746d7ea8b48191b6360f9930e777e8.
 - User rejected the live 62px blur and undersized composition; preserve visible blue/red light shapes and match target proportions.
@@ -20,7 +20,7 @@ Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), indepen
 - Background uses the same artwork, cropped to its photographic area; full cover remains sharp and complete in front.
 - Desktop columns grow up to 600/620px with larger title/artist; phone cover up to 310px. Existing Spotify row preserved.
 - Creator preview uses matching lighter blur and larger mobile proportions. Entry HTML cache queries updated to 20261030-match1.
-- Visual correction did not change tracking. Current tracking update advances backend to music-links-20261030-v4.
+- Visual correction did not change tracking. Current backend advances to music-links-20261030-v5 for account workspaces.
 - Browser QA: phone body width/scrollWidth 390px and height 844px; desktop widths 1363px and 1920px fit without horizontal overflow.
 - Desktop 1920x900 fixture fits without vertical overflow. Existing real artwork and Spotify destination unchanged.
 - Visual correction verified live: four HTML/CSS assets exact, actual Sube screenshot and body width/scrollWidth 1363px. Screenshot: sube-reference-correction-live-20261030.jpg.
@@ -28,7 +28,7 @@ Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), indepen
 - Worker gate propagation fix c1f12ec verified by run 41055303256 / job 124061208029 success.
 
 ## Existing implementation
-- Owner /links/ uses existing Clerk with server-verified OWNER_DB role. Public /listen/?release=slug works on static hosting.
+- /links/ uses existing Parallel Vision Clerk with server-verified signature, issuer and origin. Owners retain label data; public accounts get isolated workspaces. Public /listen/?release=slug works on static hosting.
 - Title, artist, catalogue, date, description, artwork, MP3, links, publication and pixel override. Stable saved slugs and optimistic revisions.
 - Draft/published/archived. Artwork up to 6MB, MP3 up to 12MB; isolated public music-links R2 namespace and media byte ranges.
 - Pixel 1746851780072706 matches label/prior Hypeddit music setup; separate PV LAB pixel untouched.
@@ -62,3 +62,13 @@ Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), indepen
 - One QA Spotify click made with consent enabled on 30 Oct, then consent declined again. Do not count that click as an acquired listener.
 - Direct executor workers.dev requests previously hit Cloudflare 1010; use production workflow checks and actual frontend browser.
 - Local dist/, fixture modules and .openai preview config are excluded from Git and must not ship.
+
+## Public account fix, 30 October
+- Root cause: menu linked public accounts to the owner-only API; signed-in failures left an irrelevant Sign in gate.
+- Regular Parallel Vision sessions now use verified Clerk subject for their own workspace, without Lab signup, wallets or credits.
+- Releases, all report queries, edits, tracking settings and upload quotas are scoped by account. Owners retain existing label records/settings and cannot edit customer links through the label workspace.
+- Migration 0048 creates per-account settings and indexes, applied before Worker deploy. Customer pixels start blank; label Pixel remains unchanged. Public listener resolves the correct workspace pixel.
+- Signed-in loading hides the Sign in gate. Request failures offer Retry. New smart link opens the existing creator after successful workspace load. Sidebar returns to Parallel Vision.
+- Checks: 35 music/session tests and all 107 Worker tests pass. Includes two-account isolation, publication/edit, pixel/report separation, real RSA signature verification, expired/forged tokens and rejected cross-domain tokens. No Lab wallet is created.
+- Browser fixture checks use actual dashboard code with simulated Clerk/API only: signed-in account, New smart link, save draft, sign out and sign back in passed. No production user credentials used.
+- Publication pending for this update; verify Worker v5, static assets and workflow results before marking live.

@@ -1,5 +1,5 @@
 import {API,MUSIC_PIXEL,CLICK_EVENTS,BACKGROUNDS,SERVICES,SLUG,UUID,releaseUrl,safeUrl,validateLinks} from './music-links-shared.mjs';
-export const MUSIC_LINKS_VERSION='music-links-20261030-v4';
+export const MUSIC_LINKS_VERSION='music-links-20261030-v5';
 const PREFIX='/api/music',DAY=86400000,HOUR=3600000;
 const ORIGINS=new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const SOURCES=new Set(['direct','meta','instagram','facebook','google','youtube','soundcloud','email','other']);
@@ -43,38 +43,47 @@ export function validateRelease(data){
 function view(row){return {id:row.id,slug:row.slug,title:row.title,artist:row.artist,catalogue:row.catalogue,description:row.description,
   background:row.background||'blur',artworkUrl:row.artwork_url,audioUrl:row.audio_url,releaseDate:row.release_date,links:JSON.parse(row.links),pixelId:row.pixel_id,
   status:row.status,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at,url:releaseUrl(row.slug)};}
-async function settings(env){return await one(env,'SELECT pixel_id AS pixelId,click_event AS clickEvent,revision FROM music_link_settings WHERE id=1')||{pixelId:MUSIC_PIXEL,clickEvent:CLICK_EVENTS[0],revision:0};}
-async function allowedOwner(env,owner){
-  if(!owner||!await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk' LIMIT 1").bind(owner).first())fail(403,'Owner access required.');
+async function settings(env,account=''){
+  if(account){const scoped=await one(env,'SELECT pixel_id AS pixelId,click_event AS clickEvent,revision FROM music_user_settings WHERE account_id=?',account);if(scoped)return scoped;}
+  return await one(env,'SELECT pixel_id AS pixelId,click_event AS clickEvent,revision FROM music_link_settings WHERE id=1')||{pixelId:MUSIC_PIXEL,clickEvent:CLICK_EVENTS[0],revision:0};}
+// The Worker verifies Clerk's signature, issuer and authorized origin before calling here.
+async function accountScope(env,account){
+  if(!account)fail(401,'Sign in to manage your smart links.');
+  const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk' LIMIT 1").bind(account).first();
+  if(owner)return '';
+  if(!/^user_[A-Za-z0-9]+$/.test(account))fail(403,'A verified Parallel Vision account is required.');
+  await stmt(env,"INSERT OR IGNORE INTO music_user_settings(account_id,pixel_id,click_event) VALUES(?,'','MusicLinkClick')",account).run();
+  return account;
 }
 export async function musicAdminRoute(request,env,owner,{clock=Date.now}={}){
-  await allowedOwner(env,owner);
+  const scope=await accountScope(env,owner);
   const url=new URL(request.url),path=url.pathname.slice((PREFIX+'/admin').length),method=request.method,time=clock();
   if(path==='/settings'){
-    if(method==='GET')return json({settings:await settings(env),version:MUSIC_LINKS_VERSION});
+    if(method==='GET')return json({settings:await settings(env,scope),version:MUSIC_LINKS_VERSION});
     if(method==='POST'){
       const data=await body(request,512),id=pixel(data.pixelId);
       if(!CLICK_EVENTS.includes(data.clickEvent))fail(400,'Choose a supported conversion event.');
       if(!Number.isSafeInteger(data.revision)||data.revision<1)fail(400,'Reload the tracking settings.');
-      const changed=await one(env,'UPDATE music_link_settings SET pixel_id=?,click_event=?,revision=revision+1 WHERE id=1 AND revision=? RETURNING id',id,data.clickEvent,data.revision);
+      const changed=scope?await one(env,'UPDATE music_user_settings SET pixel_id=?,click_event=?,revision=revision+1 WHERE account_id=? AND revision=? RETURNING account_id',id,data.clickEvent,scope,data.revision):await one(env,'UPDATE music_link_settings SET pixel_id=?,click_event=?,revision=revision+1 WHERE id=1 AND revision=? RETURNING id',id,data.clickEvent,data.revision);
       if(!changed)fail(409,'Tracking settings changed in another tab. Reload before saving.');
-      return json({settings:await settings(env)});
+      return json({settings:await settings(env,scope)});
     }
   }
   if(path==='/dashboard'&&method==='GET'){
     const days=Number(url.searchParams.get('days')||30);if(![7,30,90,0].includes(days))fail(400,'Choose 7, 30, 90 days or all time.');
     const start=days?new Date(time-(days-1)*DAY).toISOString().slice(0,10):'0000-01-01';
+    const visible="SELECT id FROM music_releases WHERE (?='' AND created_by NOT IN (SELECT account_id FROM music_user_settings)) OR created_by=?";
     const [releases,counts,platforms,sources,campaigns,trend]=await Promise.all([
-      all(env,releaseSelect+' ORDER BY r.created_at DESC,r.id DESC'),
-      all(env,'SELECT release_id AS releaseId,event,SUM(count) AS count FROM music_link_daily WHERE day_utc>=? GROUP BY release_id,event',start),
-      all(env,"SELECT service,SUM(count) AS count FROM music_link_daily WHERE day_utc>=? AND event='click' GROUP BY service ORDER BY count DESC",start),
-      all(env,"SELECT source,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE day_utc>=? GROUP BY source ORDER BY views DESC",start),
-      all(env,"SELECT campaign,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE day_utc>=? AND campaign!='' GROUP BY campaign ORDER BY clicks DESC LIMIT 20",start),
-      all(env,"SELECT day_utc AS day,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE day_utc>=? GROUP BY day_utc ORDER BY day_utc",days?start:new Date(time-89*DAY).toISOString().slice(0,10))
+      all(env,releaseSelect+' WHERE r.id IN ('+visible+') ORDER BY r.created_at DESC,r.id DESC',scope,scope),
+      all(env,'SELECT release_id AS releaseId,event,SUM(count) AS count FROM music_link_daily WHERE release_id IN ('+visible+') AND day_utc>=? GROUP BY release_id,event',scope,scope,start),
+      all(env,"SELECT service,SUM(count) AS count FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? AND event='click' GROUP BY service ORDER BY count DESC",scope,scope,start),
+      all(env,"SELECT source,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? GROUP BY source ORDER BY views DESC",scope,scope,start),
+      all(env,"SELECT campaign,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? AND campaign!='' GROUP BY campaign ORDER BY clicks DESC LIMIT 20",scope,scope,start),
+      all(env,"SELECT day_utc AS day,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? GROUP BY day_utc ORDER BY day_utc",scope,scope,days?start:new Date(time-89*DAY).toISOString().slice(0,10))
     ]);
     const records=releases.map(row=>{const metrics={views:0,clicks:0};for(const c of counts)if(c.releaseId===row.id)metrics[c.event==='view'?'views':'clicks']+=Number(c.count);return {...view(row),...metrics};});
     const total=records.reduce((s,r)=>({views:s.views+r.views,clicks:s.clicks+r.clicks}),{views:0,clicks:0});
-    return json({releases:records,summary:{...total,published:records.filter(r=>r.status==='published').length},platforms,sources,campaigns,trend,days,settings:await settings(env),version:MUSIC_LINKS_VERSION});
+    return json({releases:records,summary:{...total,published:records.filter(r=>r.status==='published').length},platforms,sources,campaigns,trend,days,settings:await settings(env,scope),version:MUSIC_LINKS_VERSION});
   }
   if(path==='/media'&&method==='POST'){
     const content=await bytes(request,12*1024*1024),head=new TextDecoder('latin1').decode(content.subarray(0,16));
@@ -85,7 +94,7 @@ export async function musicAdminRoute(request,env,owner,{clock=Date.now}={}){
     else if(head.startsWith('ID3')||content[0]===255&&(content[1]&0xe0)===0xe0)mime='audio/mpeg';
     if(!mime||content.length<16)fail(415,'Upload a JPG, PNG, WebP or MP3 file.');
     if(mime.startsWith('image/')&&content.length>6*1024*1024)fail(413,'Artwork must be smaller than 6 MB.');
-    const quota=await one(env,'SELECT COALESCE(SUM(bytes),0) AS bytes FROM music_link_media');
+    const quota=await one(env,'SELECT COALESCE(SUM(bytes),0) AS bytes FROM music_link_media WHERE created_by=?',owner);
     if(Number(quota.bytes)+content.length>500*1024*1024)fail(409,'Release media storage is full. Use hosted artwork or audio links.');
     const id=crypto.randomUUID(),key='music-links/'+id;
     await env.LAB_MEDIA.put(key,content,{httpMetadata:{contentType:mime}});
@@ -100,7 +109,7 @@ export async function musicAdminRoute(request,env,owner,{clock=Date.now}={}){
     if(duplicate&&(create||duplicate.id!==id))fail(409,'That release link already exists. Choose another link.');
     const values=[r.title,r.artist,r.catalogue,r.description,r.artworkUrl,r.audioUrl,r.releaseDate,JSON.stringify(r.links),r.pixelId,r.status,time];
     if(create){
-      const count=await one(env,'SELECT COUNT(*) AS n FROM music_releases');if(count.n>=500)fail(409,'The release limit has been reached.');
+      const count=await one(env,'SELECT COUNT(*) AS n FROM music_releases WHERE created_by=?',owner);if(count.n>=500)fail(409,'The release limit has been reached.');
       // A caller-generated UUID makes a retried create safe, including lost responses.
       if(!UUID.test(data.id||''))fail(400,'Reload the creator and try again.');
       const existing=await one(env,'SELECT * FROM music_releases WHERE id=?',data.id);
@@ -109,7 +118,7 @@ export async function musicAdminRoute(request,env,owner,{clock=Date.now}={}){
       catch(e){if(/unique/i.test(e.message))fail(409,'This release or link already exists. Refresh the dashboard.');throw e;}
       return json({release:view(await releaseById(env,data.id))},201);
     }
-    const previous=await one(env,'SELECT * FROM music_releases WHERE id=?',id);if(!previous)fail(404,'Release not found.');
+    const previous=await one(env,'SELECT * FROM music_releases WHERE id=?',id);if(!previous||scope&&previous.created_by!==scope||!scope&&await one(env,'SELECT account_id FROM music_user_settings WHERE account_id=?',previous.created_by))fail(404,'Release not found.');
     if(previous.slug!==r.slug)fail(409,'Saved release links stay fixed so existing adverts keep working.');
     if(!Number.isSafeInteger(data.revision)||data.revision<1)fail(400,'Reload this release before saving.');
     // D1 batch is atomic. Match the original revision before either write so a stale tab cannot replace the design.
@@ -130,7 +139,7 @@ async function digest(env,value){
 export async function musicPublicRoute(request,env,{clock=Date.now}={}){
   const url=new URL(request.url),path=url.pathname.slice((PREFIX+'/public').length),method=request.method,time=clock();
   if(path==='/status'&&method==='GET'){
-    await one(env,'SELECT id FROM music_releases LIMIT 1');await one(env,'SELECT release_id FROM music_link_designs LIMIT 1');return json({ready:true,version:MUSIC_LINKS_VERSION});
+    await one(env,'SELECT id FROM music_releases LIMIT 1');await one(env,'SELECT release_id FROM music_link_designs LIMIT 1');await one(env,'SELECT account_id FROM music_user_settings LIMIT 1');return json({ready:true,version:MUSIC_LINKS_VERSION});
   }
   if(path.startsWith('/media/')&&['GET','HEAD'].includes(method)){
     const id=path.slice('/media/'.length);if(!UUID.test(id))fail(404,'Media not found.');
@@ -145,7 +154,7 @@ export async function musicPublicRoute(request,env,{clock=Date.now}={}){
   if(path.startsWith('/releases/')&&method==='GET'){
     const slug=path.slice('/releases/'.length);if(slug.length>80||!SLUG.test(slug))fail(404,'Release not found.');
     const row=await one(env,releaseSelect+" WHERE r.slug=? AND r.status='published'",slug);if(!row)fail(404,'This release is not available.');
-    const config=await settings(env);return json({release:view(row),tracking:{pixelId:row.pixel_id||config.pixelId,clickEvent:config.clickEvent},version:MUSIC_LINKS_VERSION});
+    const config=await settings(env,row.created_by);return json({release:view(row),tracking:{pixelId:row.pixel_id||config.pixelId,clickEvent:config.clickEvent},version:MUSIC_LINKS_VERSION});
   }
   if(path==='/events'&&method==='POST'){
     if(!ORIGINS.has(request.headers.get('origin')||''))fail(403,'Use the Parallel Vision release page.');

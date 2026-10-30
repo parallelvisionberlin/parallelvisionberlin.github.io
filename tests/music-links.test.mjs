@@ -10,6 +10,7 @@ const fixtureRelease=(change={})=>({id:crypto.randomUUID(),title:'Test Release',
 function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   const migration=readFileSync(new URL('../lab-worker/migrations/0045-music-links.sql',import.meta.url),'utf8');db.exec('PRAGMA foreign_keys=ON');db.exec(migration);db.exec(readFileSync(new URL('../lab-worker/migrations/0046-music-link-designs.sql',import.meta.url),'utf8'));db.exec(readFileSync(new URL('../lab-worker/migrations/0047-music-link-click-event.sql',import.meta.url),'utf8'));
+  db.exec(readFileSync(new URL('../lab-worker/migrations/0048-music-user-workspaces.sql',import.meta.url),'utf8'));
   const binding={prepare(sql){return {bind(...values){const query=()=>db.prepare(sql);return {
     async first(){return query().get(...values)||null;},async all(){return {results:query().all(...values)};},async run(){return {meta:{changes:query().run(...values).changes}};}
   };}};},async batch(items){db.exec('BEGIN');try{const results=[];for(const item of items)results.push(await item.run());db.exec('COMMIT');return results;}catch(error){db.exec('ROLLBACK');throw error;}}};
@@ -37,8 +38,8 @@ test('event migration replaces legacy settings once, preserving pixel and preven
   await assert.rejects(()=>f.admin('/settings',{method:'POST',data:{...settings,revision:8}}),e=>e.status===409);
   await assert.rejects(()=>f.admin('/settings',{method:'POST',data:{...settings,clickEvent:'Hypeddit Smart Link Click'}}),e=>e.status===400);
 });
-test('every admin route rejects customer, missing and forged owners before DB mutation',async t=>{
-  const f=fixture(t);for(const owner of ['',null,'customer','forged'])for(const path of ['/dashboard','/settings','/media','/releases'])await assert.rejects(()=>f.admin(path,{owner,method:path==='/dashboard'?'GET':'POST',data:fixtureRelease()}),e=>e.status===403);
+test('every admin route rejects missing and invalid account identities before DB mutation',async t=>{
+  const f=fixture(t);for(const owner of ['',null,'customer','forged'])for(const path of ['/dashboard','/settings','/media','/releases'])await assert.rejects(()=>f.admin(path,{owner,method:path==='/dashboard'?'GET':'POST',data:fixtureRelease()}),e=>e.status===(owner?403:401));
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM music_releases').get().n,2);assert.equal(f.objects.size,0);
 });
 test('draft create, publish, edit and archive preserve public visibility and stable links',async t=>{
@@ -188,4 +189,28 @@ test('design and release changes roll back together on a failed release write',a
   await assert.rejects(()=>f.admin('/releases/'+saved.id,{method:'POST',data:{...saved,background:'black',title:'Failed edit'}}),/test write failure/);
   assert.equal(f.db.prepare('SELECT background FROM music_link_designs WHERE release_id=?').get(saved.id).background,'blur');
   assert.equal(f.db.prepare('SELECT title FROM music_releases WHERE id=?').get(saved.id).title,'Test Release');
+});
+
+test('public accounts create and publish isolated workspaces with independent tracking and reports',async t=>{
+  const f=fixture(t),a='user_Alice',b='user_Bob';
+  const dash=async owner=>(await(await f.admin('/dashboard',{owner})).json());
+  assert.deepEqual((await dash(a)).releases,[]);
+  assert.equal((await dash(a)).settings.pixelId,'');
+  const saved=(await(await f.admin('/releases',{owner:a,method:'POST',data:fixtureRelease({status:'published'})})).json()).release;
+  assert.equal((await dash(a)).releases[0].id,saved.id);
+  assert.equal((await dash(b)).releases.length,0);
+  assert.equal((await dash('owner')).releases.some(r=>r.id===saved.id),false);
+  for(const owner of [b,'owner'])await assert.rejects(()=>f.admin('/releases/'+saved.id,{owner,method:'POST',data:{...saved,title:'Stolen'}}),e=>e.status===404);
+  const settings=(await dash(a)).settings;
+  await f.admin('/settings',{owner:a,method:'POST',data:{...settings,pixelId:'987654321098765'}});
+  assert.equal((await(await f.pub('/releases/'+saved.slug)).json()).tracking.pixelId,'987654321098765');
+  assert.equal((await dash(b)).settings.pixelId,'');
+  assert.equal((await dash('owner')).settings.pixelId,MUSIC_PIXEL);
+  await f.pub('/events',{method:'POST',data:{id:crypto.randomUUID(),releaseId:saved.id,event:'click',service:'spotify',source:'meta',campaign:'alice'}});
+  assert.equal((await dash(a)).summary.clicks,1);
+  for(const owner of [b,'owner']){const d=await dash(owner);assert.equal(d.summary.clicks,0);for(const key of ['platforms','sources','campaigns','trend'])assert.equal(d[key].length,0);}
+  const updated=(await(await f.admin('/releases/'+saved.id,{owner:a,method:'POST',data:{...saved,title:'My edit'}})).json()).release;
+  assert.equal(updated.title,'My edit');
+  f.db.exec(readFileSync(new URL('../lab-worker/migrations/0048-music-user-workspaces.sql',import.meta.url),'utf8'));
+  assert.equal((await dash(a)).releases.length,1);
 });
