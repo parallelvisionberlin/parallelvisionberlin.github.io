@@ -23,7 +23,7 @@ Published refinement: e354ffff1d5c6244052cf08312113d77af62b44d (PR #675); prior 
 - Syntax/whitespace passed. Pages run 41054184749 succeeded; seven changed frontend assets match exact committed bytes.
 - Worker run 41054185064 deployed successfully (version ee7af2c5-2fbf-4be0-a237-28b70263d665), but immediate feature check still saw v2.
 - Actual browser subsequently verified ready:true/music-links-20261030-v3 and Sube JSON background:blur; live page shows refined layout and real Spotify link.
-- Follow-up gate retries revision mismatches during Cloudflare rollout. This fixes the observed false failure without changing application code.
+- Gate now retries revision mismatches during rollout; follow-up Worker run 41055303256 / job 124061208029 succeeded. Application code unchanged.
 
 ## Existing implementation
 - Owner /links/ uses existing Clerk with server-verified OWNER_DB role. Public /listen/?release=slug works on static hosting.
