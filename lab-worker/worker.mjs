@@ -1365,7 +1365,7 @@ async function route(request,env,ctx) {
   if(url.pathname.startsWith('/api/webhooks/spicy/wakeup/'))return receiveSpicyMoodWakeup(request,env,ctx);
   if(url.pathname==='/api/webhooks/spicy'&&request.method==='POST')return receiveSpicyMoodCallback(request,env,ctx);
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
-  if(/^\/api\/partners\/(vitolas|bellini)\/link$/.test(url.pathname))return publicPartnerLink(request,env);
+  if(/^\/api\/partners\/(vitolas|bellini|robin)\/link$/.test(url.pathname))return publicPartnerLink(request,env);
   const identity=await authenticate(request,env,{music:url.pathname.startsWith('/api/music/admin/')});
   const {id:owner,issuer:authIssuer}=identity,path=url.pathname,method=request.method;
   if(path.startsWith('/api/migration/')){
@@ -1383,9 +1383,9 @@ async function route(request,env,ctx) {
     });
   }
   if(path.startsWith('/api/music/admin/'))return musicAdminRoute(request,env,owner);
-  if(path==='/api/admin/partner-payouts'||path.startsWith('/api/admin/partners/bellini-studio/payouts'))return partnerPayoutRoute(request,env,owner,{ownerView:true});
-  if(/^\/api\/admin\/partners\/(vitolas-studio|bellini-studio)\//.test(path))return partnerVoucherRoute(request,env,owner,{ownerView:true});
-  if(/^\/api\/admin\/partners\/(vitolas-studio|bellini-studio)$/.test(path))return ownerPartnerDashboardRoute(request,env,owner);
+  if(path==='/api/admin/partner-payouts'||/^\/api\/admin\/partners\/(bellini-studio|robin-studio)\/payouts/.test(path))return partnerPayoutRoute(request,env,owner,{ownerView:true});
+  if(/^\/api\/admin\/partners\/(vitolas-studio|bellini-studio|robin-studio)\//.test(path))return partnerVoucherRoute(request,env,owner,{ownerView:true});
+  if(/^\/api\/admin\/partners\/(vitolas-studio|bellini-studio|robin-studio)$/.test(path))return ownerPartnerDashboardRoute(request,env,owner);
   if(path.startsWith('/api/admin/agency/'))return agencyAdminRoute(request,env,owner);
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);

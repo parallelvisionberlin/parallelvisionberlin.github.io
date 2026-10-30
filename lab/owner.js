@@ -508,7 +508,7 @@ async function refreshDashboard({scrollCustomers=false}={}){
 }
 async function refreshSession(){
   payoutNotice.clear();
-  for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini]'))link.hidden=true;
+  for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin]'))link.hidden=true;
   const current=++revision;fetchSerial++;generationReviewUI.close();profile=null;
   voucherRecipientsObserver?.disconnect();voucherRecipientsObserver=null;voucherRecipientsGeneration++;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;$('owner-agency-link').hidden=true;
   trafficSerial++;$('owner-traffic-content').hidden=true;
@@ -522,7 +522,7 @@ async function refreshSession(){
   try{
     const result=await call('/api/session');if(current!==revision)return;
     if(result.owner!==true)throw Error('This page is reserved for the PV LAB owner account.');
-    profile=result;$('owner-agency-link').hidden=false;for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini]'))link.hidden=false;await refreshDashboard();if(location.hash==='#owner-providers-section')void providerUI.refresh();
+    profile=result;$('owner-agency-link').hidden=false;for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin]'))link.hidden=false;await refreshDashboard();if(location.hash==='#owner-providers-section')void providerUI.refresh();
   }catch(error){if(current===revision){$('owner-dashboard').hidden=true;status(error.message);}}
 }
 async function copyLink(url,button){

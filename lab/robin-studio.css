@@ -1,0 +1,14 @@
+/* Bellini's optional commission detail stays compact until requested. */
+.robin-guide-column{display:flex;flex-direction:column}
+.robin-guide-column>article{order:var(--guide-order)}
+@media(max-width:760px){
+  [data-partner-workspace="robin-studio"] .partner-help-grid{display:flex;flex-direction:column}
+  .robin-guide-column{display:contents}
+}
+.robin-cost-note{margin-top:10px}
+.robin-cost-note summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:44px;color:#ccc;font-size:var(--partner-body,14px);font-weight:400;cursor:pointer;list-style:none}
+.robin-cost-note summary::-webkit-details-marker{display:none}
+.robin-cost-note summary::after{content:"+";flex:none;font-size:20px;line-height:1}
+.robin-cost-note[open] summary::after{content:"−"}
+.robin-cost-note summary:focus-visible{outline:1px solid #aaa;outline-offset:4px}
+.pv-partner-page .robin-cost-note>p{padding:4px 0 8px;font-size:var(--partner-caption,12px);line-height:1.65}

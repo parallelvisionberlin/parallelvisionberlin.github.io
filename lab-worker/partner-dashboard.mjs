@@ -6,7 +6,8 @@ import {partnerCommissionReport} from './partner-commissions.mjs';
 const VITOLAS_EMAIL_SHA256 = 'e502c5f0d08298cb39182f9711784dd5f468d3a1eb721699c0acf061a642445a';
 const partners=Object.freeze([
   {workspace:Object.freeze({slug:'vitolas-studio',name:'Vitolas Studio'}),alias:'vitolas',emailHash:VITOLAS_EMAIL_SHA256},
-  {workspace:Object.freeze({slug:'bellini-studio',name:'Bellini Studios'}),alias:'bellini',emailHash:'c484790dd1d02365be89451c4917401abe80da73d059b7f159995a59dac5aefd'}
+  {workspace:Object.freeze({slug:'bellini-studio',name:'Bellini Studios'}),alias:'bellini',emailHash:'c484790dd1d02365be89451c4917401abe80da73d059b7f159995a59dac5aefd'},
+  {workspace:Object.freeze({slug:'robin-studio',name:'Robin / König Media'}),alias:'robin',emailHash:'b7cae886d711f0a9cbc38c5323cd744d9ac59c7d7a3b209869e202422d265248'}
 ]);
 export const partnerConfiguration=slug=>partners.find(partner=>partner.workspace.slug===slug)||null;
 const one=(env,sql,...args)=>env.LAB_DB.prepare(sql).bind(...args).first();
@@ -119,7 +120,7 @@ async function readPartnerDashboard(request,env,subject,access,{ownerView=false}
   await env.LAB_DB.prepare('INSERT OR IGNORE INTO lab_partner_links(slug,customer_id,created_at) VALUES(?,?,?)').bind(config.alias,subject,Date.now()).run();
   const alias=await one(env,'SELECT customer_id FROM lab_partner_links WHERE slug=?',config.alias);
   const customerSummaries=new Map();
-  const commissions=await partnerCommissionReport(env,subject,customerSummaries,{netOfFees:access.slug==='bellini-studio',costProtection:access.slug==='bellini-studio'});
+  const commissions=await partnerCommissionReport(env,subject,customerSummaries,{netOfFees:['bellini-studio','robin-studio'].includes(access.slug),costProtection:['bellini-studio','robin-studio'].includes(access.slug)});
   const found=result.results||[];
   const customers=found.slice(0,limit).map(({customerId,...person})=>({...person,...(customerSummaries.get(customerId)||{commissionCents:0,heldCommissionCents:0,needsReconciliation:0,paymentReferences:[]})}));
   return json({workspace:access,ownerView,referralUrl:referral.url,shareUrl:alias?.customer_id===subject?'https://pvlab.studio/'+config.alias:referral.url,totals,customers,commissions,filter,

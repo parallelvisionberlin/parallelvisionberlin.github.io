@@ -1,4 +1,4 @@
-import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
+import {createAccountMenu} from './account-menu.js?v=20261030-robin-partner1';
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261015-standalone1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();

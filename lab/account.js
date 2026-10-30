@@ -2,7 +2,7 @@ import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixe
 import {readProviderPolicyDetails,setProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1&closure=20261021-immediate1';
-import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261027-partners1';
+import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261030-robin-partner1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 
 captureReferralCode();
