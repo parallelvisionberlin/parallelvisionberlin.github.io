@@ -1,5 +1,24 @@
 # PV LAB phone homepage layout
 
+## Referral original framing and placement, 2026-10-30
+
+- Owner again selected image 2 and accepted the button, asking for a shorter section than that mockup.
+- Baseline: main 87dedd60665dab2f92566af7072eac67bcc3820e.
+- Branch: fix/referral-original-framing-20261030.
+- Earlier wide adaptation changed the artwork and lifted the headline too high; it is superseded here.
+- Cleanup source: exact attachment 76813ec4-f26f-4c71-a509-fa67d454aa2d(1).png.
+- Imagegen removes text/UI and footer only, preserving source framing rather than widening the room.
+- Generated source: exec-8bd6a424-31f1-4547-b5ed-35f6174b0e01.png.
+- Asset: visuals/invite-concept06-original-20261030.webp, 1893x831, 106216 bytes.
+- Restore the dark left side, original wall/garment framing and no desktop overlay.
+- Desktop height: clamp(420px,31vw,600px), shorter than the reference photo ratio 734/1672.
+- Headline group moves lower, around 29% of desktop stage height; description and CTA sit near the bottom.
+- Retain 16px/600 button lettering, 52px height and ivory pill; width follows the reference.
+- Supporting text scales to 21px; mobile stacks naturally without a fixed height.
+- Referral terms, routing, accounting, homepage order and footer remain unchanged.
+- Cache: invite-hero.css?v=20261030-concept06-original3.
+- Existing Image and referral tests pass 11/11; final preview/deployment recorded after inspection.
+
 ## Referral composition correction, 2026-10-30
 
 - Owner rejected the small photograph panel and requested the exact concept 06 composition again.
