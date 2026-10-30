@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'lab-worker/**'
+      - 'links/shared.mjs'
       - 'lab/reference-guidance.js'
       - 'lab/prompt-quality.js'
       - '.github/workflows/deploy-lab-worker.yml'
@@ -45,6 +46,8 @@ jobs:
 
       - name: Test private My Moods and Worker syntax
         run: |
+          node --test tests/music-links.test.mjs
+          node --check lab-worker/music-links.mjs
           node --test tests/agency-enquiries.test.mjs
           node --check lab-worker/agency-enquiries.mjs
           node --test tests/lab-smart-prompts.test.mjs tests/lab-smart-prompt-ui.test.mjs tests/lab-krea3-fashion.test.mjs
@@ -127,6 +130,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0042-partner-workspaces.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0043-partner-payouts.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0044-partner-generation-costs.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0045-music-links.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health
@@ -144,3 +148,11 @@ jobs:
           done
           echo "Production health check did not report $expected"
           exit 1
+
+      - name: Verify release-link service and seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 4 --retry-delay 3 \
+            https://parallel-vision-lab.parallelvision.workers.dev/api/music/public/status \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const x=JSON.parse(s);if(!x.ready||x.version!=='music-links-20261030-v1')process.exit(1);console.log(x);})"
