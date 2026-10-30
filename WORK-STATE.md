@@ -89,7 +89,7 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-31
-- Objective complete: opening copy identifies Siento, Estero and the core concept directly; approved layout, interview typography, artist profile and Instagram images retained.
+- Objective complete: website refinements published and a new six-slide Instagram carousel exported with the same original photographs and typography.
 - Artist URL: https://parallelvisionlabel.com/estero.html
 - Release URL: https://parallelvisionlabel.com/siento.html
 - Latest product source: `f3c49e96e200607836229c42e06e2b1de9a311cd`, PR #707.
@@ -126,17 +126,20 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Current interview typography: locally hosted Barlow Condensed Medium for the uppercase title and sentence-case questions; normal sans retained for answers. Title uses a small connecting “on”.
 - Font asset: `assets/fonts/barlow-condensed/BarlowCondensed-Medium.woff` (49,876 bytes), from google/fonts; adjacent `OFL.txt` retains the original copyright and license.
 - Interview measure capped at 760px, answer lines at 62ch; desktop answer text 20px, phone 18px; questions 30–48px desktop / 32px phone.
-- Latest changed files: `siento.html` and this checkpoint. Styles/assets are unchanged; the original question/answer articles, release facts and closing quote are retained.
+- Latest website copy edit: `siento.html`; current carousel refresh changes only this checkpoint in Git. Original interview, release facts and closing quote retained.
 - Validation: static build passes 24 maintained public pages; whitespace check passes; PR static CI passed.
-- Previous hero framing checked at 1920x900 and phone 390/320 frames (375/305px content widths); full head remains visible.
-- At 1920px, revised closing quote measures 1300x286.7px with 64px text.
 - Hero object-position remains 50% 0%; closing quote, shadow interview and artist page are unchanged by the current refinement.
-- Instagram order: 01 Siento, 02 Estero, 03 Fashion After Fabric; 1080x1350 PNGs with original photographs and approved typography, repeated category numbers/dividers removed.
-- 01_SIENTO.png: libfile_2d62505da8848191bfab6f55e1c72694, version 1.
-- 02_ESTERO.png: libfile_bc8ca3f3c5188191b859d630c654ac6c, version 1.
-- 03_FASHION_AFTER_FABRIC.png: libfile_dfbe986e44b481918a32c37697a348ea, version 1.
-- Carousel ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d; both version 1.
-- Image files were revised in place, preserving identity/history; no Instagram posting was requested or performed.
+- Instagram edition 2026-10-31: six 1080x1350 PNGs matching the website’s photographic shadows and condensed typography; all use original supplied photographs.
+- Order: Siento, Estero, Feeling as resistance, In his own words, Fashion After Fabric, release dates/story link.
+- 01_SIENTO.png: libfile_2d62505da8848191bfab6f55e1c72694, version 2.
+- 02_ESTERO.png: libfile_bc8ca3f3c5188191b859d630c654ac6c, version 2.
+- 03_FEELING_AS_RESISTANCE.png: libfile_36a57017a0288191981e58d26ce3959e, version 0.
+- 04_IN_HIS_OWN_WORDS.png: libfile_4b99efba9b28819196cc6f0208904d14, version 0.
+- 05_FASHION_AFTER_FABRIC.png: libfile_dfbe986e44b481918a32c37697a348ea, version 2; former slide 03 identity retained and renamed.
+- 06_RELEASE.png: libfile_e6100f66a0f881919c20bd90c1d0f534, version 0.
+- Carousel ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d; both version 2.
+- Caption TXT: libfile_0fa954c693f88191b0ae84a4927aa154, version 0; also included in ZIP with the six numbered PNGs.
+- All nine artifacts saved successfully with local identity metadata. PNG dimensions/opacity, release dates, text placement and ZIP integrity checked. No Instagram posting performed.
 - Animation slots remain documented in artist hero, release hero and story backdrop; preserve corresponding posters and reading overlay.
 - No verified listening/purchase/presave URLs supplied; no guessed destinations or empty players added.
 - Previous reading refinement: PR #700 deployed as ccb433ac; Pages 41137176120 succeeded. Current photographic refinement: local build/whitespace and both PR static CI checks pass; 1920px, 1348px and phone 390/320 previews checked without horizontal overflow.
