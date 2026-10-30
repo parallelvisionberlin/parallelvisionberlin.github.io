@@ -27,6 +27,7 @@ jobs:
       - run: node tests/lab-partner-payouts-browser.mjs
       - run: node tests/lab-partner-dashboard-browser.mjs
       - run: PV_PARTNER_WORKSPACE=bellini-studio PV_PARTNER_WIDTHS=390,1440 node tests/lab-partner-dashboard-browser.mjs
+      - run: PV_PARTNER_WORKSPACE=robin-studio PV_PARTNER_WIDTHS=390,1440 node tests/lab-partner-dashboard-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
