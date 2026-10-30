@@ -1,53 +1,41 @@
 # PV LAB homepage / Character casting invitation
 
-- Date: 2026-10-30, Europe/Berlin.
-- Objective: implement and publish the owner's selected Concept 03, Fashion index.
-- Selected design: `libfile_bc78cf7aa1e88191a4d4afcfe3e2c17f`.
-- Selection is Concept 03, superseding the assistant's earlier preference for Concept 06.
-- Starting production source: `4db39d6`, fetched before implementation.
-- Isolated branch: `codex/character-casting-20261030`.
-- Replace only the character invitation between Creative Studios and pricing.
-- Keep dark section, strong uppercase angular headline, quiet tracked supporting copy.
-- Headline: “Make room for your character.”
-- Supporting copy: “Create an identity. Keep the story going.”
-- First ivory card: plus, “Your character goes here.”, black creation button.
-- Exact existing route: `studio.html?tool=image&createCharacter=1`.
-- Four character photographs: ivory, sage, oxblood, chrome.
-- Separate clean photographic assets reproduced from the selected mockup using image generation.
-- Generated source PNGs remain in the session `generated_images/` directory.
-- Ivory source: `exec-7c5b17cb-d997-4fb8-92df-8b038b9ee049.png`.
-- Sage source: `exec-5b0a6a1d-073c-4838-a136-70bbdea4d5c0.png`.
-- Oxblood source: `exec-c2648aa8-7321-4728-ba2b-f7a0c170e687.png`.
-- Chrome source: `exec-c28c5de3-0606-44ec-adfc-ea5c287f5a7b.png`.
-- Optimized production photos: `lab/visuals/character-casting/*.webp`, 251 KB combined.
-- Main portraits are 700x1050; original blonde proof photo is 480x640.
-- Proof strip pairs the original blonde black outfit with the new ivory portrait.
-- Self-hosted display and supporting fonts: Russo One and Rajdhani, Latin WOFF subsets.
-- Subset internal family names renamed PV Casting Display / PV Casting Text; OFL licenses retained.
-- Source font files downloaded from official Google Fonts; WOFF assets total about 44 KB.
-- Website files: `lab/index.html`, `lab/character-home.css`, new portraits/fonts.
-- HTML cache version: `20261030-casting-concept03-1`.
-- Desktop: five-card row; mobile: contained swipe rail with creation card first.
-- Button remains 16px and at least 52px tall on phones; tablet can wrap to 68px.
+- Updated: 2026-10-30, Europe/Berlin.
+- Owner explicitly selected the latest 03 / Compact Cast mockup and requested publication with long cards.
+- Approved mockup source: `exec-f2ed83c8-633f-4f4b-8f38-214111e544fb.png`.
+- This supersedes the earlier four-portrait Fashion Index, published in PR #676 / `e18f0189`.
+- Starting main for this revision: `d57da74`, fetched once before implementation.
+- Isolated branch: `codex/character-compact03-20261030`.
+- Scope: only homepage character invitation, after Creative Studios and before pricing.
+- Preserve main hero, tools, editorial section, navigation, pricing and referral section.
+- Headline: “Make room for / your character.” in existing self-hosted PV Casting Display.
+- Supporting line: “Create an identity. Keep the story going.”
+- First ivory card: thin plus, “Your character goes here.” and clear sentence-case black button.
+- Existing create route remains `studio.html?tool=image&createCharacter=1`.
+- Long portrait row: creation card plus five static photographic examples.
+- Character order: dark-haired night portrait, blonde/ivory, man/chrome, silver-haired/plum, bronze goddess.
+- Owner-provided photos are used directly, not reconstructed from the generated mockup.
+- Night source: `libfile_834841ab11c08191a8de4d19c9fec4ac`.
+- Ivory source: `libfile_5b704846db948191aeef1cc6e666700d`.
+- Chrome source: `libfile_7f31af4a80b08191a0eac11de99f3f63`.
+- Plum source: `libfile_ffb181f2645081918c7811773cea2846`.
+- Bronze source: `libfile_60ab3d8642d881918c530d80adf30291`.
+- Assets: five quality-90 WebP photos, about 878 KB combined, under `lab/visuals/character-casting/*-cast03.webp`.
+- Portrait images up to 900px wide; landscape night original retained at 1600px with CSS focal crop.
+- Bronze has a closer CSS crop so the face remains readable alongside the other characters.
+- Desktop: six-column row, card heights 410–530px, 4px corners, 10px gaps.
+- Phones/tablets: contained horizontal rail, 230x410px phone cards / 235x420px tablet cards.
+- Button uses DM Sans, minimum 52px outer height; mobile font 16px.
+- Quiet divider and “One identity. Different scenes.” caption; old proof thumbnails removed per approved mockup.
+- CSS cache version: `20261030-casting-compact03-2`.
+- Files: `lab/index.html`, `lab/character-home.css`, five new WebPs, focused test, this record.
+- Account, character creation, billing and generation logic unchanged.
 - No decorative arrows or fake clickable example cards.
-- Existing account, character creation, wallet, pricing and generation logic untouched.
-- Tests: all 10 passed across character-home and approved Image UI contract.
-- Browser QA: desktop 1348px, phones 375/305px content widths, tablet 753px content width.
-- No horizontal page overflow at verified widths; all six character/proof image instances loaded.
-- Final phone button content width equals button width, without clipped letters.
-- Desktop screenshot inspected; loaded display/supporting font families confirmed.
-- Preview uses temporary untracked configuration, excluded from publication.
-- Published source: `e18f0189d8f0cb4379c668b884b814f8c0caf62d`, squash merge of PR #676.
-- Reviewed branch source: `b0a1c07c2d6d665920f4d62b2baf65e93ab2718b`; remote tree matched locally tested tree exactly.
-- Cloudflare Pages production check `124067445287`: completed successfully for the exact merged source.
-- Homepage read-only verifier returned LIVE_VERIFIED for `20261030-casting-concept03-1`.
-- Verification reused repository verifier with plugin-fetched Cloudflare evidence and homepage as the target, rather than its default Studio URL.
-- Production CSS SHA-256: `bb06770e2c6e3a003e0766a7b02c88d6f7e9b8ee614c7c2d135c919c8bd2e0db`.
-- All five WebP files and three WOFF files returned HTTP 200 with bytes matching merged source.
-- Live browser verified heading, loaded display font, existing create route, six loaded photo instances and no page overflow.
-- Live screenshot captured 2026-10-30; the selected casting design is visibly present on pvlab.studio.
-- Relevant CI: approved Image UI, core tests, current landing checks and validation passed.
-- Inspected inherited failures: old five-card Outfit assertion, unchanged hero-poster decode, Fashion form timeout. No gates changed.
-- Signed-in character creation not re-exercised; its route and logic are unchanged.
-- Next: complete. Preserve the selected Concept 03 unless the owner requests a revision.
-- Follow `RELEASE-PROTOCOL.md`; GitHub Pages success is not evidence of pvlab.studio publication.
+- Validation: approved Image contract and character-home tests passed 10/10 after final crop adjustment.
+- Browser QA: phone content widths 375/305px, tablet 753px, desktop 1348px; no page horizontal overflow.
+- Phone button text fits without clipping; 410px long cards retained.
+- Desktop: all five original photos loaded; card height about 450px; readable faces and button.
+- Preview-only files/config excluded from publication.
+- Publication: pending reviewed commit and normal Cloudflare Pages deployment.
+- Next: publish tested source, verify exact Cloudflare commit and custom-domain bytes, inspect live section.
+- Follow `lab/RELEASE-PROTOCOL.md`; GitHub Pages success is not proof of pvlab.studio publication.
