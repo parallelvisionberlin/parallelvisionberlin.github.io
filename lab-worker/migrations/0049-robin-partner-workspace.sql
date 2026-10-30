@@ -87,6 +87,10 @@ INSERT OR IGNORE INTO lab_migrations(id,applied_at)
  VALUES('0049-robin-partner-workspace',CAST(strftime('%s','now') AS INTEGER)*1000);
 
 -- Expand payouts to the approved Robin workspace while retaining immutable history.
+-- Referencing triggers must be recreated around the parent table rebuild.
+DROP TRIGGER IF EXISTS lab_partner_payout_item_guard;
+DROP TRIGGER IF EXISTS lab_partner_paid_claims_immutable;
+DROP TRIGGER IF EXISTS lab_partner_payout_segment_guard;
 CREATE TABLE IF NOT EXISTS lab_partner_payouts_robin (
  id TEXT PRIMARY KEY,
  workspace TEXT NOT NULL CHECK(workspace IN ('bellini-studio','robin-studio')),
@@ -104,8 +108,26 @@ ALTER TABLE lab_partner_payouts_robin RENAME TO lab_partner_payouts;
 CREATE UNIQUE INDEX IF NOT EXISTS lab_partner_one_pending_payout
  ON lab_partner_payouts(partner_customer_id) WHERE status='pending';
 
+CREATE TRIGGER lab_partner_payout_item_guard BEFORE INSERT ON lab_partner_payout_items
+BEGIN
+ SELECT CASE WHEN NOT EXISTS (
+  SELECT 1 FROM lab_partner_payouts p
+  JOIN lab_revenue_events e ON e.reference=NEW.reference
+  JOIN lab_referrals r ON r.referred_customer_id=e.customer_id AND r.referrer_customer_id=p.partner_customer_id
+  JOIN lab_partner_payment_facts f ON f.reference=e.reference
+  WHERE p.id=NEW.payout_id AND p.status='pending'
+   AND f.amount_cents=NEW.amount_cents AND f.fee_cents=NEW.fee_cents AND f.tax_cents=NEW.tax_cents
+   AND NEW.base_cents=MAX(0,f.amount_cents-f.fee_cents-f.tax_cents)
+   AND NEW.commission_cents=CAST(ROUND(NEW.base_cents*NEW.rate/100.0) AS INTEGER)
+   AND NOT EXISTS(SELECT 1 FROM lab_billing_reviews b WHERE b.customer_id=e.customer_id)
+ ) THEN RAISE(ABORT,'Payout payment requires reconciliation') END;
+
+CREATE TRIGGER lab_partner_paid_claims_immutable BEFORE DELETE ON lab_partner_payout_claims
+WHEN EXISTS(SELECT 1 FROM lab_partner_payouts WHERE id=OLD.payout_id AND status<>'pending')
+BEGIN SELECT RAISE(ABORT,'Settled payments cannot be requested again'); END;
+
+
 -- Rebuild the immutable finance guard to recognize both authorized payout workspaces.
-DROP TRIGGER IF EXISTS lab_partner_payout_segment_guard;
 CREATE TRIGGER lab_partner_payout_segment_guard BEFORE INSERT ON lab_partner_payout_segments
 BEGIN
  SELECT CASE WHEN NOT EXISTS(
