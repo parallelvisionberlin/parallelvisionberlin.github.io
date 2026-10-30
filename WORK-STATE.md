@@ -89,7 +89,7 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-31
-- Objective complete: website refinements published and a new six-slide Instagram carousel exported with the same original photographs and typography.
+- Objective: restore the owner’s preferred original question and full manifesto introduction on the page and in the post; retain the clear Siento heading and approved design.
 - Artist URL: https://parallelvisionlabel.com/estero.html
 - Release URL: https://parallelvisionlabel.com/siento.html
 - Latest product source: `f3c49e96e200607836229c42e06e2b1de9a311cd`, PR #707.
@@ -118,15 +118,15 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Closing quote caps at 64px and 1300px width with 1.12 leading, .035em negative tracking and 96px maximum vertical section padding; original wording retained.
 - Current release stylesheet cache: estero-editorial.css?v=20261030-interview-type-1.
 - Approved visual refinement: merge the former paper story section and standalone petals photo into one dark photographic article; remove the independent duplicate image.
-- Opening copy now names the release and central idea: “Siento: feeling as resistance.” The lead identifies Estero, the Parallel Vision release and the manifesto’s future disconnected from nature.
-- Removed repeated setup/resistance sentences from the following paragraphs; nature, vulnerability, time and music context stays grounded in the supplied manifesto.
+- Owner correction: retain “Siento: feeling as resistance” but restore the exact question “What makes us human: our biology, or our capacity to feel?” and both original context paragraphs.
+- Full opening paragraphs begin “In the manifesto for Siento…” and “Against this backdrop…” exactly as supplied; do not shorten them again without the owner’s instruction.
 - Desktop: title, lead and both context paragraphs overlay a directional shadow on the left; portrait sits to the right with the face clear. Copy width capped at 680px; body 20–22px.
 - Mobile/tablet <=960px: title and lead overlay the portrait, then body continues on black; phone body 18px and lead 24px. Gradient fades the picture into the text.
 - Metadata retains all six fields in a compact strip below the article: 6 desktop columns, 3 tablet columns, 2 phone columns. Original visual-study credit retained.
 - Current interview typography: locally hosted Barlow Condensed Medium for the uppercase title and sentence-case questions; normal sans retained for answers. Title uses a small connecting “on”.
 - Font asset: `assets/fonts/barlow-condensed/BarlowCondensed-Medium.woff` (49,876 bytes), from google/fonts; adjacent `OFL.txt` retains the original copyright and license.
 - Interview measure capped at 760px, answer lines at 62ch; desktop answer text 20px, phone 18px; questions 30–48px desktop / 32px phone.
-- Latest website copy edit: `siento.html`; current carousel refresh changes only this checkpoint in Git. Original interview, release facts and closing quote retained.
+- Current website source change: `siento.html` plus this checkpoint; the carousel concept slide/caption will use the restored question and complete introduction. Original interview, facts and quote retained.
 - Validation: static build passes 24 maintained public pages; whitespace check passes; PR static CI passed.
 - Hero object-position remains 50% 0%; closing quote, shadow interview and artist page are unchanged by the current refinement.
 - Instagram edition 2026-10-31: six 1080x1350 PNGs matching the website’s photographic shadows and condensed typography; all use original supplied photographs.
@@ -146,5 +146,5 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Photographic story: PR #701 merged as 3b188d37; Pages 41139867141 succeeded. Original paragraphs, Spanish interview, dates and photographs remain intact; current type changes are scoped to the interview.
 - Read Estero’s words was browser-checked at a 90px header offset. Mobile photo fades continuously into the reading area, with 375/305px content widths.
 - Current interview refinement: local build/whitespace and source static CI pass; desktop 1920px/native 1348px plus 390/320 phone frames checked, no horizontal overflow. Font loading and Spanish glyphs confirmed.
-- Opening-copy refinement: static build/whitespace and both source static CI checks pass; 390/320 phone wrapping and native 1348px desktop reviewed without overflow. Public text verified after deployment.
+- Previous clear-heading copy: PR #707 / Pages 41143150489 succeeded. Current restoration: exact copy, static build, whitespace and responsive 1348px/390/320 review pass; publication and four artifact replacements pending.
 - No publication blocker remains. Next: owner supplies animation clips, final artwork and verified listening links.
