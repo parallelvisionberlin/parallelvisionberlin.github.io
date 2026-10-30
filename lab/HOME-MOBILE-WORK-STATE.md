@@ -1,5 +1,27 @@
 # PV LAB phone homepage layout
 
+## Homepage order and Editorial typography, 2026-10-30
+
+- Owner approved hero → Image/Video/Upscaler → Full Editorial → Creative Studios → Characters → pricing.
+- Owner additionally requested a more cohesive Full Editorial Studio heading.
+- Baseline: main bf65ef6607a9e4dec96d4c5b77f6a73d22c4613f.
+- Branch: fix/homepage-section-order-20261030.
+- Move the existing complete #tools section before #featured-editorial in lab/index.html.
+- Full Editorial heading and supporting lead use the existing DM Sans; remove italic emphasis from Studio.
+- Shorten only the Editorial feature: 2.5 desktop ratio, 520px minimum; compact tablet/580px phone stage.
+- Keep the existing hero, imagery, motion behavior, tool controls, links and hidden Fashion block intact.
+- Bump only home-creative-features.css to 20261030-tool-first-editorial-type1.
+- Checks: 14/14 existing Image contract, character and homepage showcase tests pass; whitespace diff passes.
+- Source comparison verifies the hero and tool-card markup remain byte-identical apart from section placement.
+- Files: lab/index.html, lab/home-creative-features.css and this checkpoint.
+- Reviewed source commit: c8aaa9ef4bdb337815c9036112fa8b41724080a7, PR #668.
+- Cloudflare preview 4eedb406.pvlab-studio.pages.dev succeeded; no production deployment performed.
+- Preview DOM confirms visible order hero/tools/Editorial/Creative Studios/Characters/pricing; hidden Fashion remains display:none.
+- Desktop preview inspected at 1363px: DM sans-serif, font-style normal, Editorial height 539px, no horizontal page overflow.
+- Existing homepage stability and Image contract CI pass. The old Studios five-vs-four landing assertion still fails as on baseline main.
+- No separate phone browser viewport was available for this scoped review; existing responsive rules retain the phone layout.
+- Request complete: edited, committed and preview-reviewed; production publication remains a separate step.
+
 ## Homepage Fashion feature visibility, 2026-10-30
 
 - Owner requested hiding the standalone Fashion Studio feature shown in image(20261030-093559).png.
