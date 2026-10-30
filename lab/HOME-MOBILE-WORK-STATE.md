@@ -1,5 +1,22 @@
 # PV LAB phone homepage layout
 
+## Referral composition correction, 2026-10-30
+
+- Owner rejected the small photograph panel and requested the exact concept 06 composition again.
+- Baseline: main bfe79ed48abbeb2e51983525b28429b305aa041b; branch fix/referral-approved-composition-20261030.
+- Exact selected edit source: image-edit-target-6394faac42918d26.png, identical to the attached approved concept.
+- Imagegen removed text/UI/footer and adapted that source to a wide photographic background; no substitute source image.
+- Generated source: exec-0632b9dc-1648-433e-a116-4177a8611817.png.
+- Project asset: visuals/invite-concept06-wide-20261030.webp, 2172x724, 126728 bytes.
+- Replace the small auto-scaled/offset image with full-width cover positioning and remove both heavy side fades.
+- Preserve a compact 380–520px desktop stage; use larger heading, two-line description and bottom-right pill action.
+- Button retains readable 16px/600 type and 52px minimum height; mobile stacks with natural height.
+- Fine print matches the approved mockup wording without changing reward eligibility or €10 threshold.
+- Existing owner-specific dashboard destination and label remain; ordinary visitors see Get your invite link.
+- Homepage section order, footer and referral accounting are unchanged.
+- Cache version: invite-hero.css?v=20261030-concept06-fullbleed2.
+- Validation and deployment recorded after the final preview; earlier narrow-photo release below is superseded.
+
 ## Compact referral invitation, 2026-10-30
 
 - Owner selected concept 06, with a thinner section and legible button lettering.
