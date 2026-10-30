@@ -280,7 +280,7 @@ async function downloadSelected(){
  const blob=await makeZip(selected),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='PVLAB-Full-Editorial-'+new Date().toISOString().slice(0,10)+'.zip';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 $('editorial-start').addEventListener('click',()=>{go(1);status('')});
-$('step-back').addEventListener('click',()=>{if(!submitting){go(Math.max(1,step-1));status('')}});
+$('step-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-1));status('')}});
 $('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4){void reviewBatch();return}if(validateStep()){go(step+1);status('')}});
 $('review-credits').addEventListener('click',()=>void reviewBatch());
 $('editorial-reset').addEventListener('click',()=>{if(submitting){status('A paid generation is running. Open History before starting another.',true);return}resetAll()});
