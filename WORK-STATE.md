@@ -89,12 +89,13 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-30
-- Objective: unite the Siento story with the approved petals portrait; artist profile and Instagram images complete.
+- Objective complete: Siento story and petals portrait united in one photographic section; artist profile and Instagram images retained.
 - Artist URL: https://parallelvisionlabel.com/estero.html
 - Release URL: https://parallelvisionlabel.com/siento.html
-- Latest product source: `9f118cad44e79d529ab30c4d45ba7e4275660060`, PR #700.
-- Latest verified deployed merge: `ccb433accec55ad3a2fe0f7b50a12b85697a1e4d`.
-- GitHub Pages run 41137176120 completed successfully; public browser confirms reading-1 CSS, article-first order, new lead and 24px desktop body.
+- Latest product source: `ec5d85b1225251156731fd3367f1fbe78e0b48e2`, PR #701.
+- Feature merge: `3b188d374e37ec5497726a5af5ca9a14e95b381d`; verified deployed main: `ae1bd2d97328bd683377b40159676f1935911bfe`.
+- GitHub Pages run 41139867141 completed successfully. Its newer main includes the feature unchanged; the earlier run 41139546114 was superseded/cancelled.
+- Public browser confirms visual-story-1 CSS, decoded single petals photo, reading overlay and six-column metadata strip below. Final screenshot captured.
 - Owner authorized publication of the pages and supplied photographs. Repository owner/domain verified; native GitHub connector is the write route because shell Git lacks credentials.
 - Artist: Estero / Andrés Zendejas, Mexican producer and DJ; supplied biography is the source.
 - Release: Siento / PV016; Beatport 6 November 2026, all platforms 20 November 2026.
@@ -134,6 +135,7 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Image files were revised in place, preserving identity/history; no Instagram posting was requested or performed.
 - Animation slots remain documented in artist hero, release hero and story backdrop; preserve corresponding posters and reading overlay.
 - No verified listening/purchase/presave URLs supplied; no guessed destinations or empty players added.
-- Previous reading refinement: PR #700 deployed as ccb433ac; Pages 41137176120 succeeded. Current photographic refinement: local build/whitespace pass; 1920px and phone 390/320 preview checked, no horizontal overflow.
+- Previous reading refinement: PR #700 deployed as ccb433ac; Pages 41137176120 succeeded. Current photographic refinement: local build/whitespace and both PR static CI checks pass; 1920px, 1348px and phone 390/320 previews checked without horizontal overflow.
 - Read Estero’s words still targets #in-his-words; original paragraphs, Spanish interview, dates and photographs are retained. Only release-story/metadata presentation changes.
-- Current photographic refinement is implemented locally; publication and public verification pending. Next: publish, then await owner’s animation clips, final artwork and listening links.
+- Read Estero’s words was browser-checked at a 90px header offset. Mobile photo fades continuously into the reading area, with 375/305px content widths.
+- No publication blocker remains. Next: owner supplies animation clips, final artwork and verified listening links.
