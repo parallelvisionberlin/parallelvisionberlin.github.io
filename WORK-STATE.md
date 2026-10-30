@@ -141,3 +141,12 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - 03_FASHION_AFTER_FABRIC.png / libfile_dfbe986e44b481918a32c37697a348ea.
 - Updated carousel ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d. All five files are at version 1, original identities preserved.
 - Publication and file updates complete; animation clips and final listening links remain the previously agreed follow-up.
+
+### Hero framing and closing quote, 2026-10-30
+- Owner screenshot at approximately 1920px showed the Siento hero cropping the hair at its top edge; also requested a visual refinement pass.
+- Baseline: `db3d45ded19df08e8a2d83d4e4319051c012ce49`; branch `fix/siento-hero-headroom-20261030`.
+- `css/estero-editorial.css`: anchor only the release hero photo to its original top edge, including its mobile selector. Preserve the photograph, title size, hero height and all other sections.
+- Closing quote now caps at 64px across 1300px, with 1.12 leading and 96px maximum section padding. Original quote text retained.
+- `siento.html`: stylesheet cache refreshed. Static build (24 pages) and whitespace check pass.
+- Browser review: 1920x900 layout shows full hair/head margin; ending quote measures 1300x286.7px with 64px text. Mobile 390/320 frame layouts retain the full head and no horizontal overflow.
+- Publication pending validation and Pages deployment; next verify the new object position on the public page.
