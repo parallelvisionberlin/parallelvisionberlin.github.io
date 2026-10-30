@@ -27,6 +27,10 @@ const directionSets={
  ]
 };
 directionSets.location=[
+ {id:'hotel-room',name:'Hotel Room',eyebrow:'AFTER HOURS / DIRECT FLASH',
+  image:'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/b9ab95f1-0a8b-4bcb-96a3-23dd28bf41a8.png',
+  imageAlt:'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/c64dd11e-e681-48e3-8fb2-5b11aac9ca16.png',
+  prompt:'Photorealistic intimate hotel bedroom, modest lived-in interior with dark textured walls, practical black headboard, small warm bedside lamp and casually rumpled white cotton sheets. Natural material flaws, believable proportions, lived-in stillness and quietly cinematic framing. Where compatible with the selected time of day, mix intimate lamp light with candid direct-flash editorial photography, preserving real skin texture and analogue imperfections. The second photograph illustrates the atmosphere only: do not copy its woman, appearance, pose or identity. Keep the identity supplied by the user.'},
  {id:'studio-set',name:'Studio',image:'./visuals/studio-tools/image-ivory-suit.webp',prompt:'Fashion studio, controlled natural-light set, neutral architecture and believable shadows.'},
  {id:'brutalist',name:'Brutalist',image:'./visuals/fashion-replace/hero-model-oct24.jpg',prompt:'Monumental concrete architecture, real spatial depth, weathered surfaces and directional light.'},
  {id:'desert',name:'Desert',image:'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png',prompt:'Natural desert terrain, sculptural architectural intervention, warm dust and photographic sunlight.'},
@@ -140,11 +144,20 @@ function renderDirections(){
  const list=directionSets[directionTab],active=selectedDirections[directionTab];
  for(const dir of list){
   const selected=dir.id===active,card=document.createElement('button');
-  card.type='button';card.className='direction-card'+(selected?' is-selected':'');
+  card.type='button';card.className='direction-card'+(selected?' is-selected':'')+(dir.imageAlt?' direction-card--diptych':'');
   card.setAttribute('aria-pressed',String(selected));
+  card.setAttribute('aria-label',dir.imageAlt?dir.name+', illustrated by a room photograph and an editorial atmosphere photograph':dir.name);
   const img=document.createElement('img');img.src=dir.image;img.alt='';img.loading='lazy';
+  img.className='direction-primary-photo';
   const name=document.createElement('span');name.textContent=dir.name;
-  card.append(img,name);
+  card.append(img);
+  if(dir.imageAlt){
+   const atmosphere=document.createElement('img');atmosphere.src=dir.imageAlt;atmosphere.alt='';
+   atmosphere.className='direction-atmosphere-photo';atmosphere.loading='lazy';card.append(atmosphere);
+   const eyebrow=document.createElement('small');eyebrow.className='direction-diptych-eyebrow';eyebrow.textContent=dir.eyebrow;
+   card.append(eyebrow);
+  }
+  card.append(name);
   card.addEventListener('click',()=>{selectedDirections[directionTab]=selected&&directionTab!=='location'?null:dir.id;quote=null;renderDirections()});
   container.append(card);
  }
@@ -154,7 +167,9 @@ function renderDirections(){
   tab.setAttribute('aria-selected',String(selected));
  }
  const names=Object.entries(selectedDirections).map(([kind,id])=>directionSets[kind].find(d=>d.id===id)?.name).filter(Boolean);
- $('direction-summary').textContent=names.length?'Selected: '+names.join(' / '):'Choose an environment and optionally a mood or material.';
+ $('direction-summary').textContent=names.length?
+  'Selected: '+names.join(' / ')+(selectedDirections.location==='hotel-room'?' · The hotel portrait demonstrates atmosphere only; your selected model stays unchanged.':''):
+  'Choose an environment and optionally a mood or material.';
  updateSeriesSummary();
 }
 function validateStep(){if(step===1&&files.model.length+savedRefs.model.length<1){status('Add at least one photograph of your model.',true);$('model-drop').focus();return false;}
