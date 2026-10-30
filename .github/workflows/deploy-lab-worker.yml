@@ -156,4 +156,4 @@ jobs:
           set -euo pipefail
           curl --fail --silent --show-error --retry 4 --retry-delay 3 \
             https://parallel-vision-lab.parallelvision.workers.dev/api/music/public/status \
-            | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const x=JSON.parse(s);if(!x.ready||x.version!=='music-links-20261030-v2')process.exit(1);console.log(x);})"
+            | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const x=JSON.parse(s);if(!x.ready||x.version!=='music-links-20261030-v3')process.exit(1);console.log(x);})"

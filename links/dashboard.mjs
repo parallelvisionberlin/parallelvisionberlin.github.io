@@ -1,5 +1,5 @@
 import {API,SERVICES,slugify,releaseUrl,validateLinks,newId} from './shared.mjs';
-import {renderRelease} from './release-view.mjs?v=20261030-afterdark1';
+import {renderRelease} from './release-view.mjs?v=20261030-refined1';
 import {loadLabAccount} from '../lab/native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from '../lab/session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 const $=id=>document.getElementById(id),form=$('release-form'),editor=$('editor');
@@ -22,7 +22,7 @@ function preview(){const data=draft();for(const key of ['artworkUrl','audioUrl']
 function controls(){const busy=saving||uploading;$('save-release').disabled=busy;$('save-draft').disabled=busy;$('close-editor').disabled=busy;$('artwork-file').disabled=busy;$('audio-file').disabled=busy;}
 function openEditor(record=null){
   if(saving||uploading)return;editing=record;createId=newId();slugEdited=!!record;form.reset();
-  for(const name of ['title','artist','slug','catalogue','description','artworkUrl','audioUrl','releaseDate','pixelId','status','background'])field(name).value=record?.[name]||(name==='status'?'draft':name==='background'?'artwork':'');
+  for(const name of ['title','artist','slug','catalogue','description','artworkUrl','audioUrl','releaseDate','pixelId','status','background'])field(name).value=record?.[name]||(name==='status'?'draft':name==='background'?'blur':'');
   for(const link of record?.links||[])field('service-'+link.service).value=link.url;
   field('slug').readOnly=!!record;$('editor-title').textContent=record?'Edit smart link.':'New smart link.';
   $('slug-note').textContent=record?'This address is fixed so your existing links keep working.':'Choose a short name. Saved links stay fixed for your adverts.';

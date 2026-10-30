@@ -1,62 +1,52 @@
 # Parallel Vision Smart Links: current state
 Updated: 2026-10-30
-Objective: replace Hypeddit page creation and Meta click tracking on the existing label website.
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
-Published feature: d33636878743b52602a1d263331746fa25458565 (PR #671); initial deployment record 87dedd6.
-Published white dashboard: 9245740 (PR #673); After Dark and saved backgrounds: 99f443826ca4641c87c0819cc736e4b52e968ecb (PR #674).
+Feature baseline: d336368 (PR #671); white dashboard 9245740 (PR #673).
+Published After Dark/background service: 99f4438 (PR #674); deployment record 4db39d6.
 
-## Approved design and scope
-- White/black/cool-grey Smart Links dashboard, permanent left navigation; no orange interface accent.
-- Compact full-width rows with 144px desktop artwork (100px phones), prominent top metrics, black controls.
-- Approved reference: exec-0dccd0cb-3a18-48df-8349-609c2005bf51.png. Use actual catalogue artwork and configured platform links.
-- Sidebar opens working Smart Links, Performance, Tracking and Settings views; mobile navigation moves above content.
-- Smart Links replaces Releases in workspace navigation/actions. No decorative arrows.
-- Only Spotify, SoundCloud and YouTube; pre-saves deferred.
-- Public landing page approved: proposal 03 After Dark, with per-link cinematic artwork, blurred artwork or solid black background.
-- Approved landing reference: exec-6ebba67a-d71a-4c69-87b9-20f82f061253.png; attached reference libfile_41bedebeb9e481919955f5f62c04cc2a.
+## Approved direction
+- Private dashboard: white/black/cool grey, permanent sidebar, compact medium artwork rows, prominent metrics. Only Spotify, SoundCloud, YouTube.
+- Public layout now approved: artwork-first refinement exec-730d0f3b-081e-4845-8ec2-898a49b9378a.png.
+- Large sharp cover left, smaller title/artist and listening links grouped right; centred composition. Phone stacks artwork above details.
+- Spotify row: green brand identity on white, separate bordered Listen control. Whole row remains one accessible link.
+- Blurred artwork is default for new/unconfigured links. Explicit cinematic and black choices remain available and are preserved.
+- No decorative arrows, fabricated platform links, pre-saves or extra image generation for implementation.
 
-## Implemented behavior
-- Owner /links/ reuses Parallel Vision Clerk and server-verified OWNER_DB role; public /listen/?release=slug uses existing static hosting.
-- Creator supports title, artist, catalogue, date, description, artwork, MP3, platforms, publication and pixel override.
-- Draft/published/archived; immutable saved slugs; optimistic revisions prevent stale-tab overwrites.
-- Artwork up to 6MB, MP3 up to 12MB, isolated music-links R2 namespace, public media URLs, byte ranges, 500MB workspace cap.
-- Pixel 1746851780072706 matches label and previous Hypeddit music setup; PV LAB Pixel untouched.
-- Default custom event Hypeddit Smart Link Click preserves artist, track and music_service; optional MusicLinkClick for new campaigns.
-- Meta PageView/ViewContent/clicks require explicit consent. Decline/withdrawal preserve music access.
-- Anonymous page loads/clicks, 7/30/90/all-time totals, platform/source/campaign reports. Not unique listeners or streams.
-- UUID receipts deduplicate SQL aggregates; hourly HMAC rate limit stores no raw IP/ad identifiers. Daily receipt/rate-limit pruning.
-- Idempotent migration 0045 is in Worker deployment. Stay Low published with verified SoundCloud URL; Sube draft has artwork only.
-- Runtime: links/, listen/, lab-worker/music-links.mjs, music-links-shared.mjs, worker routing/maintenance, migration 0045.
-- Shared code lives within lab-worker for sparse CI checkouts; links/shared.mjs re-exports it.
+## Current refinement
+- Renderer: links/release-view.mjs. Public layout/styles: links/release.css. Matching creator preview: links/dashboard.css.
+- Creator HTML/JS and listen HTML/JS receive fresh module/style query versions 20261030-refined1.
+- Default background change only: lab-worker/music-links.mjs, frontend defaults, existing background round-trip tests.
+- Worker feature marker music-links-20261030-v3; deploy workflow verifies that marker. No new schema migration.
+- 32 focused music-links/auth tests passed. Default blur, explicit artwork/black, old-client omission and stale-save safeguards checked.
+- Local browser: phone 390x844 body width/scrollWidth 390px; desktop body 1363px with 460px sharp cover and no overflow.
+- Creator: 225px preview cover, all three modes checked; black has zero background images; three-platform preview fits 328px width.
+- Final syntax and whitespace checks passed. Commit/deployment pending; verify exact live files and v3 service.
 
-## Current landing-page update
-- After Dark layout: full-screen cover backdrop, sharp cover, bold title/artist and platform-icon listening dock; phone links stack.
-- Creator: Page background under Artwork & sound, live preview, persisted per-link choice. Existing links default to cinematic artwork.
-- Renderer and styles: links/release-view.mjs, release.css, dashboard.css; creator HTML/JS and listen module cache versions refreshed.
-- Backend: music-links.mjs and shared constants; idempotent migration 0046 stores designs separately. Workflow applies migration before Worker deploy.
-- Atomic create/update, revision protection, legacy omission preservation and invalid-background rejection tested.
-- 146 focused music/auth/Worker/owner/traffic tests passed. JS syntax and whitespace checks passed.
-- Browser fixture QA: phone public body width/scrollWidth 390px, creator dialog 375px; desktop body 1363px, no horizontal overflow.
-- UI verified blur/black live preview, black has no background image, save and reopen preserve selection; sharp artwork and platform links remain.
-- PR #674 merged; Pages run 41051220771 and Worker run 41051221193 / job 124047472352 succeeded, including migration 0046 and v2 readiness.
-- Eight live frontend assets returned 200 with exact committed bytes. Actual Sube page loaded cinematic artwork and owner-saved Spotify destination without overflow.
-- Relevant candidate checks passed; the separate video job was still running when checked after merge. No completed video pass claimed.
-- Dashboard PR #673 already live at 9245740; Pages run 41048180330 and exact dashboard HTML/CSS/JS verified.
+## Existing implementation
+- Owner /links/ uses existing Clerk with server-verified OWNER_DB role. Public /listen/?release=slug works on static hosting.
+- Title, artist, catalogue, date, description, artwork, MP3, links, publication and pixel override. Stable saved slugs and optimistic revisions.
+- Draft/published/archived. Artwork up to 6MB, MP3 up to 12MB; isolated public music-links R2 namespace and media byte ranges.
+- Pixel 1746851780072706 matches label/prior Hypeddit music setup; separate PV LAB pixel untouched.
+- Default custom click event Hypeddit Smart Link Click preserves artist, track and music_service; optional MusicLinkClick.
+- Meta PageView/ViewContent/clicks require explicit consent. Decline/withdrawal preserve listening. Events Manager attribution is unobserved.
+- Anonymous aggregate page loads/clicks, date ranges and platform/source/campaign reports. Not unique listeners or confirmed streams.
+- Deduplicated UUID receipts; hourly HMAC rate limits store no raw IP/ad identifiers. Daily short-lived receipt/rate-limit pruning.
+- Migration 0045 seeds verified Stay Low/SoundCloud; Sube originally draft. Owner has since published Sube with Spotify, verified in browser.
+- Idempotent 0046 creates music_link_designs. Release/design writes share one atomic D1 batch and revision guard; old clients preserve choices.
+- Canonical shared module in lab-worker/music-links-shared.mjs; links/shared.mjs re-exports it for sparse-checkout compatibility.
 
-## Verified original deployment
-- PR #671 frontend GitHub Pages run 41043602513 succeeded; six core frontend assets matched exact expected SHA256, JS MIME valid.
-- Worker run 41043602986 / job 124022121393 succeeded with migration 0045 and production health checks.
-- Worker version 2af2044f-c747-4124-b970-be71a3415d07; /health musicLinks and public status revision music-links-20261030-v1, ready:true.
-- Actual browser: owner gate/Clerk loaded, public Stay Low loaded D1 data, 900px artwork and verified SoundCloud destination.
-- Meta scripts absent before consent, loaded after Allow Meta; privacy decline afterwards preserved music access.
-- Original feature validation: 144 focused tests passed. Relevant release/static/security/partner/image/safety CI passed.
-- No production owner token used for QA; real owner create/upload/save not exercised by agent. User later supplied working owner screenshot.
+## Verified previous publication
+- PR #674: Pages run 41051220771 and Worker run 41051221193 / job 124047472352 succeeded, including migration 0046 and v2 readiness.
+- Eight frontend assets matched exact committed bytes; actual Sube loaded artwork/Spotify without horizontal overflow.
+- Original 146 music/auth/Worker/owner/traffic tests passed, including save rollback. No production owner token used in fixture QA.
+- Dashboard PR #673: Pages run 41048180330 and exact HTML/CSS/JS verified. Actual owner gate loads correctly while signed out.
+- Original Meta browser check: no scripts before consent, scripts loaded after Allow Meta, decline afterward preserved listening.
 
-## Limits and next action
-- Dashboard: https://parallelvisionlabel.com/links/ ; public example: https://parallelvisionlabel.com/listen/?release=stay-low .
-- After Dark is live. In /links/, edit a smart link, then Artwork & sound > Page background; save to apply its selection.
-- Meta Events Manager receipt/attribution remains unobserved; script loading does not prove attribution.
-- Hypeddit URL-restricted custom conversions require label-domain rules in Meta. Browser Pixel only, no CAPI.
-- No historical Hypeddit import, pre-save, auto metadata import or server-rendered per-link social cards.
-- Python workers.dev requests hit Cloudflare 1010 in executor; verified original health through deployment workflow and browser frontend.
-- Local dist/fixture auth/request mocks and .openai preview config are excluded from Git and must never ship.
+## Links / next action
+- Dashboard: https://parallelvisionlabel.com/links/ ; Sube: https://parallelvisionlabel.com/listen/?release=sube .
+- Publish approved refinement; verify frontend exact bytes, live layout and music-links-20261030-v3 readiness.
+- Owner edits background under Artwork & sound > Page background, then saves. Explicit existing choices are not overwritten.
+- No CAPI, historical Hypeddit import, pre-save, automatic metadata import or server-rendered per-link social cards.
+- Hypeddit URL-restricted conversions require label-domain rules in Meta. Script loading does not prove ad attribution.
+- Direct executor workers.dev requests previously hit Cloudflare 1010; use production workflow checks and actual frontend browser.
+- Local dist/, fixture modules and .openai preview config are excluded from Git and must not ship.

@@ -149,9 +149,11 @@ test('persisted decline stays declined and public content is still usable',async
 
 test('background choice survives create, public reads, dashboard and legacy saves without stale-tab overwrites',async t=>{
   const f=fixture(t);f.db.exec(readFileSync(new URL('../lab-worker/migrations/0046-music-link-designs.sql',import.meta.url),'utf8'));
-  assert.equal((await(await f.pub('/releases/stay-low')).json()).release.background,'artwork');
-  let saved=(await(await f.admin('/releases',{method:'POST',data:fixtureRelease({background:'blur',status:'published'})})).json()).release;
+  assert.equal((await(await f.pub('/releases/stay-low')).json()).release.background,'blur');
+  let saved=(await(await f.admin('/releases',{method:'POST',data:fixtureRelease({status:'published'})})).json()).release;
   assert.equal(saved.background,'blur');assert.equal((await(await f.pub('/releases/'+saved.slug)).json()).release.background,'blur');
+  saved=(await(await f.admin('/releases/'+saved.id,{method:'POST',data:{...saved,background:'artwork'}})).json()).release;
+  assert.equal((await(await f.pub('/releases/'+saved.slug)).json()).release.background,'artwork');
   const stale={...saved};saved=(await(await f.admin('/releases/'+saved.id,{method:'POST',data:{...saved,background:'black'}})).json()).release;
   await assert.rejects(()=>f.admin('/releases/'+saved.id,{method:'POST',data:{...stale,background:'artwork'}}),e=>e.status===409);
   assert.equal((await(await f.pub('/releases/'+saved.slug)).json()).release.background,'black');
