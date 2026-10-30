@@ -349,6 +349,12 @@ async function downloadSelected(){
  const selected=results.filter(r=>r.selected);if(!selected.length){status('Select one or more results first.',true);return}
  const blob=await makeZip(selected),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='PVLAB-Full-Editorial-'+new Date().toISOString().slice(0,10)+'.zip';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
+const mobileMenu=$('editorial-mobile-menu'),siteHeader=document.querySelector('.editorial-header');
+function closeMobileMenu(){siteHeader.classList.remove('menu-open');mobileMenu.setAttribute('aria-expanded','false');mobileMenu.setAttribute('aria-label','Open site navigation')}
+mobileMenu.addEventListener('click',()=>{const expanded=siteHeader.classList.toggle('menu-open');mobileMenu.setAttribute('aria-expanded',String(expanded));mobileMenu.setAttribute('aria-label',expanded?'Close site navigation':'Open site navigation')});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMobileMenu()});
+siteHeader.querySelector('nav').addEventListener('click',event=>{if(event.target.closest('a'))closeMobileMenu()});
+document.addEventListener('click',event=>{if(!siteHeader.contains(event.target))closeMobileMenu()});
 $('editorial-start').addEventListener('click',()=>{go(1);status('')});
 $('step-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-1));status('')}});
 $('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4){void reviewBatch();return}if(validateStep()){go(step+1);status('')}});
