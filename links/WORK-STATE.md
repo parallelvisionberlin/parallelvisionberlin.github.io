@@ -102,4 +102,4 @@ Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), indepen
 - Instagram circle below platform rows points to the verified existing homepage destination https://www.instagram.com/parallelvision.label/. It does not emit MusicLinkClick or inflate platform conversions. Creator preview mirrors CTA.
 - Checks: 23 music/transport tests passed, syntax and diff checks passed. Browser fixture: 390x844 phone and 1363px desktop, no horizontal overflow, real Sube artwork. Preview never ships.
 - Files: links/release.css, release-view.mjs, dashboard.css/mjs/index.html; listen/index.html and listen.mjs cache updates. Background and tracking delivery/event logic unchanged.
-- Publication pending.
+- Published 3b249c5d2075f9663913b9cac8ca82e3598f8b30. Pages run 41116572521 succeeded, static-site and Smart Links CI succeeded. All seven public runtime files match committed bytes exactly. Actual public Sube page shows the correct Instagram destination and preserved Spotify URL; no desktop overflow. Phone fixture also verified at 320px. Two QA landing loads occurred; no Spotify conversion click was made.
