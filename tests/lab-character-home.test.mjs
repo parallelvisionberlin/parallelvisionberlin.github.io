@@ -13,7 +13,7 @@ test('character invitation follows Studio cards and precedes pricing',()=>{
   const character=home.indexOf('id="create-your-character"');
   const pricing=home.indexOf('class="lab-plans" id="pricing"');
   assert.ok(tools>=0&&character>tools&&pricing>character);
-  assert.match(home,/<span>Your character\.<\/span><span>Every scene\.<\/span>/);
+  assert.match(home,/<span>Make room for your<\/span><span>character\.<\/span>/);
 });
 test('character invitation links to the exact create workflow',()=>{
   assert.match(home,/studio\.html\?tool=image&amp;createCharacter=1/);
@@ -22,16 +22,21 @@ test('character invitation links to the exact create workflow',()=>{
   assert.match(js,/createCharacterButton\.click\(\)/);
   assert.match(studio,/characterLanding=20261024v1/);
 });
-test('character invitation reuses local project images and responsive CSS',()=>{
-  for(const img of ['nina-silver-world.webp','nina-original-identity.webp']){
+test('casting invitation uses separate local portraits, loaded fonts and a contained phone rail',()=>{
+  for(const img of ['ivory.webp','sage.webp','oxblood.webp','chrome.webp','blonde-original.webp']){
     assert.match(home,new RegExp(img.replace('.','\\.')));
-    assert.ok(existsSync(path.join(root,'lab/visuals/character-studies',img)));
+    assert.ok(existsSync(path.join(root,'lab/visuals/character-casting',img)));
   }
-  assert.match(home,/character-home\.css\?v=20261030-character-editorial3/);
+  assert.match(home,/character-home\.css\?v=20261030-casting-concept03-1/);
   assert.match(css,/@media\(max-width:700px\)/);
-  assert.ok(css.includes('.lab-character-home__heading span:nth-child(2)'), 'second title line should be styled in an editorial italic');
+  assert.match(css,/font-family:PV Casting Display/);
   assert.ok(css.includes('border-radius:999px'), 'character CTA should be rounded');
-  assert.ok(css.includes('height:clamp(680px,84svh,840px)'), 'character stage should be compact');
+  assert.match(css,/overflow-x:auto/);
+  assert.match(css,/scroll-snap-type:x proximity/);
+  assert.doesNotMatch(css,/84svh|__world|font-style:italic/);
+  for(const file of ['russo-one-latin-v18.woff','rajdhani-medium-latin-v17.woff','rajdhani-semibold-latin-v17.woff']){
+    assert.ok(existsSync(path.join(root,'lab/fonts',file)));
+  }
   assert.doesNotMatch(css,/#studio-header|\.mc-home|\.pv-showcase/);
 });
 test('no billing or generation is performed by deep link',()=>{

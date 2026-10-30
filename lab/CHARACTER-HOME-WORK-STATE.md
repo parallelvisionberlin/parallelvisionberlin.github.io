@@ -1,42 +1,43 @@
-# PV LAB homepage / Cinematic character section
+# PV LAB homepage / Character casting invitation
 
-- Date: 2026-10-29, Europe/Berlin.
-- Objective: implement the owner's selected “02 / Cinematic World” mockup.
-- Starting main: `924325e14c403764d4fc4e998c8f2de62d40ce59`.
-- Selected reference: `libfile_b5791b3ea0c48191b8ff19da6bb95ff5`.
-- Generated concept: `libfile_06d2f7ea63e081918b25275d49dd8cda`.
-- Replaces only the existing character invitation before pricing.
-- Full-width photographic background with a dark left fade.
-- Live headline: “Your character. Every scene.”
-- Supporting copy: “Bring the same identity into new looks, places and stories.”
-- Main CTA: “Create your character” with a line SVG arrow.
-- Existing destination: `studio.html?tool=image&createCharacter=1`.
-- Original-identity portrait and caption remain at the lower left.
-- No numbered instructions, lime heading or mask-wall artwork.
-- No mockup proposal label is included in production.
-- Photography uses original project images, not the flattened mockup.
-- Source landscape: `libfile_360112da64e08191aea8a5fe74412e26`.
-- Source portrait: `libfile_ffcca4bbe6908191921695b67594823a`.
-- Optimized background: `lab/visuals/character-studies/nina-silver-world.webp` (81 KB).
-- Optimized portrait: `lab/visuals/character-studies/nina-original-identity.webp` (38 KB).
-- Styles: `lab/character-home.css`, isolated to the character section.
-- HTML/cache version: `lab/index.html`, `20261029-cinematic-world1`.
-- Existing source photographs and other homepage sections preserved.
-- Mobile uses the portrait above the live copy, CTA and identity inset.
-- CTA's SVG prevents iOS emoji substitution.
-- Existing authentication and character-creation behavior preserved.
-- No generation, billing, credits or provider logic changed.
-- Focused tests: 10 passed across character-home and approved Image UI contract.
-- Desktop browser: both photographs load; no horizontal overflow.
-- Mobile browser: checked 390px and 320px frames; no section overflow.
-- Final narrow CTA refinement keeps its label on one line.
-- Source: `2860d5323c1230e87b8cd094d1808c71835de45a`; PR #662 merged as `f385e97b8c99a95baa91940ba878ea3befcbf200`.
-- Cloudflare exact merge check `123704078521`: completed successfully.
-- Production homepage verifier: `LIVE_VERIFIED`, version `20261029-cinematic-world1`.
-- CSS SHA-256: `5d9777b844c868ad69b48e4833b2d1e0ea915fe28b748e72dc81e6bf89e02b7a`.
-- Production browser: expected headline, creation destination and both loaded images observed.
-- Production page width 1348px at viewport 1363px: no horizontal page overflow.
-- CI: approved Image UI, character tests, new landing check and core tests passed.
-- Inherited checks still fail on the removed Outfit card and an unrelated image decode; no gates changed.
-- Signed-in character creation was not re-exercised; its existing logic is unchanged.
-- Next action: complete. Preserve this selected design unless the owner requests a revision.
+- Date: 2026-10-30, Europe/Berlin.
+- Objective: implement and publish the owner's selected Concept 03, Fashion index.
+- Selected design: `libfile_bc78cf7aa1e88191a4d4afcfe3e2c17f`.
+- Selection is Concept 03, superseding the assistant's earlier preference for Concept 06.
+- Starting production source: `4db39d6`, fetched before implementation.
+- Isolated branch: `codex/character-casting-20261030`.
+- Replace only the character invitation between Creative Studios and pricing.
+- Keep dark section, strong uppercase angular headline, quiet tracked supporting copy.
+- Headline: “Make room for your character.”
+- Supporting copy: “Create an identity. Keep the story going.”
+- First ivory card: plus, “Your character goes here.”, black creation button.
+- Exact existing route: `studio.html?tool=image&createCharacter=1`.
+- Four character photographs: ivory, sage, oxblood, chrome.
+- Separate clean photographic assets reproduced from the selected mockup using image generation.
+- Generated source PNGs remain in the session `generated_images/` directory.
+- Ivory source: `exec-7c5b17cb-d997-4fb8-92df-8b038b9ee049.png`.
+- Sage source: `exec-5b0a6a1d-073c-4838-a136-70bbdea4d5c0.png`.
+- Oxblood source: `exec-c2648aa8-7321-4728-ba2b-f7a0c170e687.png`.
+- Chrome source: `exec-c28c5de3-0606-44ec-adfc-ea5c287f5a7b.png`.
+- Optimized production photos: `lab/visuals/character-casting/*.webp`, 251 KB combined.
+- Main portraits are 700x1050; original blonde proof photo is 480x640.
+- Proof strip pairs the original blonde black outfit with the new ivory portrait.
+- Self-hosted display and supporting fonts: Russo One and Rajdhani, Latin WOFF subsets.
+- Subset internal family names renamed PV Casting Display / PV Casting Text; OFL licenses retained.
+- Source font files downloaded from official Google Fonts; WOFF assets total about 44 KB.
+- Website files: `lab/index.html`, `lab/character-home.css`, new portraits/fonts.
+- HTML cache version: `20261030-casting-concept03-1`.
+- Desktop: five-card row; mobile: contained swipe rail with creation card first.
+- Button remains 16px and at least 52px tall on phones; tablet can wrap to 68px.
+- No decorative arrows or fake clickable example cards.
+- Existing account, character creation, wallet, pricing and generation logic untouched.
+- Tests: all 10 passed across character-home and approved Image UI contract.
+- Browser QA: desktop 1348px, phones 375/305px content widths, tablet 753px content width.
+- No horizontal page overflow at verified widths; all six character/proof image instances loaded.
+- Final phone button content width equals button width, without clipped letters.
+- Desktop screenshot inspected; loaded display/supporting font families confirmed.
+- Preview uses temporary untracked configuration, excluded from publication.
+- Deployment status: implementation complete; source commit and Cloudflare release pending.
+- Signed-in character creation not re-exercised; its route and logic are unchanged.
+- Next: commit, publish via normal main/Cloudflare path, verify exact asset bytes and live rendering.
+- Follow `RELEASE-PROTOCOL.md`; GitHub Pages success is not evidence of pvlab.studio publication.
