@@ -9,10 +9,10 @@ const NOW=Date.parse('2026-10-30T12:00:00Z'),BASE='https://parallel-vision-lab.p
 const fixtureRelease=(change={})=>({id:crypto.randomUUID(),title:'Test Release',artist:'Artist',slug:'test-release',catalogue:'PV999',description:'A new single.',artworkUrl:'https://parallelvisionlabel.com/cover.jpg',audioUrl:'',releaseDate:'2026-11-06',links:[{service:'spotify',url:'https://open.spotify.com/track/example'}],pixelId:'',status:'draft',...change});
 function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
-  const migration=readFileSync(new URL('../lab-worker/migrations/0045-music-links.sql',import.meta.url),'utf8');db.exec('PRAGMA foreign_keys=ON');db.exec(migration);
+  const migration=readFileSync(new URL('../lab-worker/migrations/0045-music-links.sql',import.meta.url),'utf8');db.exec('PRAGMA foreign_keys=ON');db.exec(migration);db.exec(readFileSync(new URL('../lab-worker/migrations/0046-music-link-designs.sql',import.meta.url),'utf8'));
   const binding={prepare(sql){return {bind(...values){const query=()=>db.prepare(sql);return {
     async first(){return query().get(...values)||null;},async all(){return {results:query().all(...values)};},async run(){return {meta:{changes:query().run(...values).changes}};}
-  };}};},async batch(items){return Promise.all(items.map(item=>item.run()));}};
+  };}};},async batch(items){db.exec('BEGIN');try{const results=[];for(const item of items)results.push(await item.run());db.exec('COMMIT');return results;}catch(error){db.exec('ROLLBACK');throw error;}}};
   const objects=new Map();
   const env={LAB_DB:binding,LAB_SECRET:'test-only-music-link-key-'.repeat(4),OWNER_DB:{prepare(){return {bind(owner){return {async first(){return owner==='owner'?{id:owner}:null;}};}};}},LAB_MEDIA:{
     async put(key,body,options){objects.set(key,{body,options});},async get(key,{range}={}){const o=objects.get(key);return o?{body:o.body.slice(range?.offset||0,range?range.offset+range.length:undefined)}:null;},async delete(key){objects.delete(key);}
@@ -145,4 +145,25 @@ test('actual public script loads no Meta code before consent, records anonymous 
 test('persisted decline stays declined and public content is still usable',async()=>{
   const browser=await publicBrowser({consent:'denied'});assert.equal(browser.scripts.length,0);assert.equal(browser.get('meta-consent').hidden,true);
   browser.click('spotify');assert.equal(browser.sent.length,2);
+});
+
+test('background choice survives create, public reads, dashboard and legacy saves without stale-tab overwrites',async t=>{
+  const f=fixture(t);f.db.exec(readFileSync(new URL('../lab-worker/migrations/0046-music-link-designs.sql',import.meta.url),'utf8'));
+  assert.equal((await(await f.pub('/releases/stay-low')).json()).release.background,'artwork');
+  let saved=(await(await f.admin('/releases',{method:'POST',data:fixtureRelease({background:'blur',status:'published'})})).json()).release;
+  assert.equal(saved.background,'blur');assert.equal((await(await f.pub('/releases/'+saved.slug)).json()).release.background,'blur');
+  const stale={...saved};saved=(await(await f.admin('/releases/'+saved.id,{method:'POST',data:{...saved,background:'black'}})).json()).release;
+  await assert.rejects(()=>f.admin('/releases/'+saved.id,{method:'POST',data:{...stale,background:'artwork'}}),e=>e.status===409);
+  assert.equal((await(await f.pub('/releases/'+saved.slug)).json()).release.background,'black');
+  const legacy={...saved};delete legacy.background;
+  saved=(await(await f.admin('/releases/'+saved.id,{method:'POST',data:legacy})).json()).release;
+  assert.equal(saved.background,'black');assert.equal((await(await f.admin('/dashboard')).json()).releases.find(r=>r.id===saved.id).background,'black');
+  for(const background of ['evil',null,{},'url(https://evil.example)'])await assert.rejects(()=>f.admin('/releases/'+saved.id,{method:'POST',data:{...saved,background}}),e=>e.status===400);
+});
+test('design and release changes roll back together on a failed release write',async t=>{
+  const f=fixture(t),saved=(await(await f.admin('/releases',{method:'POST',data:fixtureRelease({background:'blur'})})).json()).release;
+  f.db.exec("CREATE TRIGGER reject_test_update BEFORE UPDATE ON music_releases BEGIN SELECT RAISE(ABORT,'test write failure'); END;");
+  await assert.rejects(()=>f.admin('/releases/'+saved.id,{method:'POST',data:{...saved,background:'black',title:'Failed edit'}}),/test write failure/);
+  assert.equal(f.db.prepare('SELECT background FROM music_link_designs WHERE release_id=?').get(saved.id).background,'blur');
+  assert.equal(f.db.prepare('SELECT title FROM music_releases WHERE id=?').get(saved.id).title,'Test Release');
 });

@@ -1,6 +1,7 @@
 export const API = 'https://parallel-vision-lab.parallelvision.workers.dev';
 export const PUBLIC_ORIGIN = 'https://parallelvisionlabel.com';
 export const MUSIC_PIXEL = '1746851780072706';
+export const BACKGROUNDS = ['artwork','blur','black'];
 export const CLICK_EVENTS = ['Hypeddit Smart Link Click', 'MusicLinkClick'];
 export const SERVICES = [
   {id:'spotify',name:'Spotify',action:'Listen',hosts:['open.spotify.com','spotify.com','www.spotify.com','spotify.link']},

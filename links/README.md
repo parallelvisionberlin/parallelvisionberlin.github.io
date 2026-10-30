@@ -9,7 +9,7 @@ Public release URL: https://parallelvisionlabel.com/listen/?release=stay-low
 
 - Existing Parallel Vision Clerk sign-in; server-side existing `OWNER_DB` owner role is mandatory for every admin request.
 - Release data and aggregate counts use isolated `music_*` tables in the existing D1 database. No credit, payment or Nina tables are changed.
-- Migration `lab-worker/migrations/0045-music-links.sql` is idempotent and applied by the existing Worker deployment workflow.
+- Migrations `lab-worker/migrations/0045-music-links.sql` and `0046-music-link-designs.sql` are idempotent and applied by the existing Worker deployment workflow.
 - Shared validation: `lab-worker/music-links-shared.mjs` (re-exported by `links/shared.mjs`); API: `lab-worker/music-links.mjs`; public page: `listen/`; owner UI: `links/`.
 - Upload JPG/PNG/WebP artwork (6 MB), MP3 preview (12 MB), or use HTTPS URLs. Uploaded media is intentionally public through UUID URLs, isolated from Lab's private media records. A 500 MB release-media cap applies.
 - Only Spotify, SoundCloud and YouTube are offered, as requested. Stay Low is published with its verified SoundCloud URL and existing artwork; Sube is prepared as a draft with its artwork. Add its actual streaming links before publishing.
@@ -27,3 +27,6 @@ Public release URL: https://parallelvisionlabel.com/listen/?release=stay-low
 `node --test tests/music-links.test.mjs`
 
 Tests exercise real SQLite migrations, owner authorization, CRUD/revisions, public visibility, upload isolation, event idempotency, reporting, rate limits, consent behavior and platform URL validation. Worker changes also run the repository's existing deployment checks.
+
+## Landing-page design
+The After Dark renderer is shared by the public listener and the creator live preview. Each smart link stores `background`: `artwork` (cinematic, default), `blur` (same cover blurred behind the sharp cover), or `black`. Artwork URLs are assigned to image elements, never interpolated into CSS. Migration 0046 isolates presentation settings in `music_link_designs`; release and design writes share one atomic D1 batch and revision check. Old clients that omit `background` preserve the saved choice. No generated mockup pixels ship as page content.
