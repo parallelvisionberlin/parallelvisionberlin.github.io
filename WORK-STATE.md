@@ -89,12 +89,12 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-31
-- Objective: restore the owner’s preferred original question and full manifesto introduction on the page and in the post; retain the clear Siento heading and approved design.
+- Objective complete: owner’s exact original question and both full paragraphs restored on the page and in the caption; clear Siento heading and approved design retained.
 - Artist URL: https://parallelvisionlabel.com/estero.html
 - Release URL: https://parallelvisionlabel.com/siento.html
-- Latest product source: `f3c49e96e200607836229c42e06e2b1de9a311cd`, PR #707.
-- Feature merge and verified deployed main: `6cf17506b310c87b58a11b4edd56b9f239d25043`.
-- GitHub Pages run 41143150489 completed successfully; public browser confirms the new heading, explicit release/artist lead and streamlined paragraphs.
+- Latest product source: `9a22813bce29f777db07d43d3e5025ee53344cca`, PR #709.
+- Feature merge and verified deployed main: `aaf0179f7c4809413c2b0a93c164170c1963bbdc`.
+- GitHub Pages run 41146124749 completed successfully; public browser confirms the exact original question, full paragraphs and retained clear heading.
 - Interview typography was verified live in PR #706 / Pages 41141312323; its stylesheet and font assets are unchanged by this copy-only update. Final opening screenshot captured.
 - Owner authorized publication of the pages and supplied photographs. Repository owner/domain verified; native GitHub connector is the write route because shell Git lacks credentials.
 - Artist: Estero / Andrés Zendejas, Mexican producer and DJ; supplied biography is the source.
@@ -126,25 +126,25 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Current interview typography: locally hosted Barlow Condensed Medium for the uppercase title and sentence-case questions; normal sans retained for answers. Title uses a small connecting “on”.
 - Font asset: `assets/fonts/barlow-condensed/BarlowCondensed-Medium.woff` (49,876 bytes), from google/fonts; adjacent `OFL.txt` retains the original copyright and license.
 - Interview measure capped at 760px, answer lines at 62ch; desktop answer text 20px, phone 18px; questions 30–48px desktop / 32px phone.
-- Current website source change: `siento.html` plus this checkpoint; the carousel concept slide/caption will use the restored question and complete introduction. Original interview, facts and quote retained.
+- Current changes: `siento.html` and this checkpoint; carousel slide 03 uses the restored question, caption contains both complete paragraphs. Original interview, facts, quote and other five PNGs retained.
 - Validation: static build passes 24 maintained public pages; whitespace check passes; PR static CI passed.
 - Hero object-position remains 50% 0%; closing quote, shadow interview and artist page are unchanged by the current refinement.
 - Instagram edition 2026-10-31: six 1080x1350 PNGs matching the website’s photographic shadows and condensed typography; all use original supplied photographs.
 - Order: Siento, Estero, Feeling as resistance, In his own words, Fashion After Fabric, release dates/story link.
 - 01_SIENTO.png: libfile_2d62505da8848191bfab6f55e1c72694, version 2.
 - 02_ESTERO.png: libfile_bc8ca3f3c5188191b859d630c654ac6c, version 2.
-- 03_FEELING_AS_RESISTANCE.png: libfile_36a57017a0288191981e58d26ce3959e, version 0.
+- 03_FEELING_AS_RESISTANCE.png: libfile_36a57017a0288191981e58d26ce3959e, version 1; original question restored below headline.
 - 04_IN_HIS_OWN_WORDS.png: libfile_4b99efba9b28819196cc6f0208904d14, version 0.
 - 05_FASHION_AFTER_FABRIC.png: libfile_dfbe986e44b481918a32c37697a348ea, version 2; former slide 03 identity retained and renamed.
 - 06_RELEASE.png: libfile_e6100f66a0f881919c20bd90c1d0f534, version 0.
-- Carousel ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d; both version 2.
-- Caption TXT: libfile_0fa954c693f88191b0ae84a4927aa154, version 0; also included in ZIP with the six numbered PNGs.
-- All nine artifacts saved successfully with local identity metadata. PNG dimensions/opacity, release dates, text placement and ZIP integrity checked. No Instagram posting performed.
+- Carousel ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d; both version 3.
+- Caption TXT: libfile_0fa954c693f88191b0ae84a4927aa154, version 1; exact full owner-approved introduction, also included in ZIP.
+- Four corrected artifacts saved with identity/version guards and local metadata: slide 03, caption, ZIP and preview. Other five PNGs verified byte-identical; ZIP integrity and exact caption checked. No Instagram posting performed.
 - Animation slots remain documented in artist hero, release hero and story backdrop; preserve corresponding posters and reading overlay.
 - No verified listening/purchase/presave URLs supplied; no guessed destinations or empty players added.
 - Previous reading refinement: PR #700 deployed as ccb433ac; Pages 41137176120 succeeded. Current photographic refinement: local build/whitespace and both PR static CI checks pass; 1920px, 1348px and phone 390/320 previews checked without horizontal overflow.
 - Photographic story: PR #701 merged as 3b188d37; Pages 41139867141 succeeded. Original paragraphs, Spanish interview, dates and photographs remain intact; current type changes are scoped to the interview.
 - Read Estero’s words was browser-checked at a 90px header offset. Mobile photo fades continuously into the reading area, with 375/305px content widths.
 - Current interview refinement: local build/whitespace and source static CI pass; desktop 1920px/native 1348px plus 390/320 phone frames checked, no horizontal overflow. Font loading and Spanish glyphs confirmed.
-- Previous clear-heading copy: PR #707 / Pages 41143150489 succeeded. Current restoration: exact copy, static build, whitespace and responsive 1348px/390/320 review pass; publication and four artifact replacements pending.
+- Previous clear heading: PR #707 / Pages 41143150489. Current restoration: exact copy assertions, static build, whitespace and both source CI checks pass; 1348px/390/320 review and public verification complete.
 - No publication blocker remains. Next: owner supplies animation clips, final artwork and verified listening links.
