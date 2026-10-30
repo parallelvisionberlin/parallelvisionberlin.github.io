@@ -14,7 +14,13 @@
 - Checks: 14/14 existing Image contract, character and homepage showcase tests pass; whitespace diff passes.
 - Source comparison verifies the hero and tool-card markup remain byte-identical apart from section placement.
 - Files: lab/index.html, lab/home-creative-features.css and this checkpoint.
-- Commit requested; no production deployment is claimed. Browser preview review follows the source commit.
+- Reviewed source commit: c8aaa9ef4bdb337815c9036112fa8b41724080a7, PR #668.
+- Cloudflare preview 4eedb406.pvlab-studio.pages.dev succeeded; no production deployment performed.
+- Preview DOM confirms visible order hero/tools/Editorial/Creative Studios/Characters/pricing; hidden Fashion remains display:none.
+- Desktop preview inspected at 1363px: DM sans-serif, font-style normal, Editorial height 539px, no horizontal page overflow.
+- Existing homepage stability and Image contract CI pass. The old Studios five-vs-four landing assertion still fails as on baseline main.
+- No separate phone browser viewport was available for this scoped review; existing responsive rules retain the phone layout.
+- Request complete: edited, committed and preview-reviewed; production publication remains a separate step.
 
 ## Homepage Fashion feature visibility, 2026-10-30
 
