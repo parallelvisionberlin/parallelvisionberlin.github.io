@@ -481,7 +481,7 @@ test('Robin has independently verified access, referral URL, owner view, and str
    return fetcher(url,...args);
  });
  f.signup('user_Robin',email);
- f.db.exec(readFileSync(new URL('../lab-worker/migrations/0049-robin-partner-workspace.sql',import.meta.url),'utf8'));
+ f.db.exec('BEGIN');try{f.db.exec(readFileSync(new URL('../lab-worker/migrations/0049-robin-partner-workspace.sql',import.meta.url),'utf8'));f.db.exec('COMMIT');}catch(error){f.db.exec('ROLLBACK');throw error;}
  assert.deepEqual(await partnerWorkspace(f.env,'user_Robin'),{slug:'robin-studio',name:'Robin / König Media'});
  await assert.rejects(()=>partnerDashboardRoute(f.request('?workspace=bellini-studio'),f.env,'user_Robin'),{status:403});
  await assert.rejects(()=>partnerDashboardRoute(f.request('?workspace=robin-studio'),f.env,'user_Bellini'),{status:403});
