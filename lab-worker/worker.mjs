@@ -1,3 +1,4 @@
+import {musicPublicRoute,musicAdminRoute,pruneMusicEvents,MUSIC_LINKS_VERSION} from './music-links.mjs';
 import {refreshPartnerCostFx} from './partner-generation-costs.mjs';
 import {reconcileProviderSettlements} from './provider-settlement.mjs';
 import {agencyPublicRoute,agencyAdminRoute,processAgencyNotifications,pruneAgencyData} from './agency-enquiries.mjs';
@@ -1349,8 +1350,9 @@ async function route(request,env,ctx) {
   const url=new URL(request.url),origin=request.headers.get('origin')||'';
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client','Access-Control-Max-Age':'600'}});
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1'});
-  // This is the only unauthenticated analytics route. Origin and bounded payload are required.
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1',musicLinks:MUSIC_LINKS_VERSION});
+  if(url.pathname.startsWith('/api/music/public/'))return musicPublicRoute(request,env);
+  // PV LAB anonymous traffic uses its own origin-checked, bounded payload.
   if(url.pathname==='/api/public/traffic'&&request.method==='POST')return recordLabTraffic(request,env);
   if(url.pathname.startsWith('/api/public/agency/'))return agencyPublicRoute(request,env,ctx);
 
@@ -1378,6 +1380,7 @@ async function route(request,env,ctx) {
       status:409,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-PV-Lab-Onboarding':'required'}
     });
   }
+  if(path.startsWith('/api/music/admin/'))return musicAdminRoute(request,env,owner);
   if(path==='/api/admin/partner-payouts'||path.startsWith('/api/admin/partners/bellini-studio/payouts'))return partnerPayoutRoute(request,env,owner,{ownerView:true});
   if(/^\/api\/admin\/partners\/(vitolas-studio|bellini-studio)\//.test(path))return partnerVoucherRoute(request,env,owner,{ownerView:true});
   if(/^\/api\/admin\/partners\/(vitolas-studio|bellini-studio)$/.test(path))return ownerPartnerDashboardRoute(request,env,owner);
@@ -2209,6 +2212,7 @@ export default {
     const when=new Date(clock);
     if(when.getUTCHours()===3&&when.getUTCMinutes()<5)
       ctx.waitUntil(Promise.all([
+        pruneMusicEvents(env,{clock:()=>clock}),
         pruneLabTraffic(env,{clock:()=>clock}),
         pruneAgencyData(env,{clock:()=>clock}),
         pruneGenerationReviewAudit(env,{clock:()=>clock})

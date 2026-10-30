@@ -1,0 +1,25 @@
+name: Parallel Vision release links
+on:
+  push:
+    branches: [main]
+    paths: ['links/**','listen/**','lab-worker/music-links.mjs','lab-worker/worker.mjs','lab-worker/migrations/0045-music-links.sql','tests/music-links.test.mjs','.github/workflows/music-links.yml']
+  pull_request:
+    paths: ['links/**','listen/**','lab-worker/music-links.mjs','lab-worker/worker.mjs','lab-worker/migrations/0045-music-links.sql','tests/music-links.test.mjs','.github/workflows/music-links.yml']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/music-links.test.mjs tests/lab-auth.test.mjs
+      - run: |
+          node --check lab-worker/music-links.mjs
+          node --check lab-worker/worker.mjs
+          node --check links/shared.mjs
+          node --check links/release-view.mjs
+          node --check links/dashboard.mjs
+          node --check listen/listen.mjs
