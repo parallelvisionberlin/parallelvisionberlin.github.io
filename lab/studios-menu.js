@@ -41,10 +41,45 @@
    if(rect.bottom<0){close();return;}
    Object.assign(panel.style,{width:width+'px',left:left+'px',top:top+'px',maxHeight:Math.max(120,innerHeight-top-12)+'px'});
   }
-  function close(restore=false){panel.hidden=true;trigger.setAttribute('aria-expanded','false');if(restore)trigger.focus();}
-  function open(){for(const other of document.querySelectorAll('.pv-studios-trigger[aria-expanded="true"]'))if(other!==trigger)other.click();panel.hidden=false;trigger.setAttribute('aria-expanded','true');position();panel.querySelector('a,button')?.focus({preventScroll:true});}
-  trigger.addEventListener('click',()=>panel.hidden?open():close());
-  trigger.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();open();}});
+  // Hover is for fine pointers only. Keep keyboard/touch activation separate and accessible.
+  let hoverCloseTimer=0,openedByHover=false;
+  const fineHover=()=>window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const hoverPointer=event=>fineHover()&&(event.pointerType==='mouse'||event.pointerType==='pen');
+  function cancelHoverClose(){if(hoverCloseTimer){clearTimeout(hoverCloseTimer);hoverCloseTimer=0;}}
+  function close(restore=false){
+   cancelHoverClose();panel.hidden=true;openedByHover=false;
+   trigger.setAttribute('aria-expanded','false');if(restore)trigger.focus();
+  }
+  function open(focusFirst=false,fromHover=false){
+   cancelHoverClose();
+   if(panel.hidden){
+    for(const other of document.querySelectorAll('.pv-studios-trigger[aria-expanded="true"]'))
+     if(other!==trigger)other.dispatchEvent(new Event('pv-studios-close'));
+    panel.hidden=false;openedByHover=fromHover;trigger.setAttribute('aria-expanded','true');position();
+   }
+   // Opening on mouse hover must not steal keyboard focus or cause page scrolling.
+   if(focusFirst)panel.querySelector('a,button')?.focus({preventScroll:true});
+  }
+  function scheduleHoverClose(){
+   cancelHoverClose();
+   hoverCloseTimer=setTimeout(()=>{
+    hoverCloseTimer=0;
+    // A short grace interval lets the cursor cross the gap to the floating card panel.
+    if(!shell.matches(':hover')&&!panel.contains(document.activeElement))close();
+   },220);
+  }
+  trigger.addEventListener('pointerenter',event=>{if(hoverPointer(event))open(false,true);});
+  trigger.addEventListener('pointerleave',event=>{if(hoverPointer(event))scheduleHoverClose();});
+  panel.addEventListener('pointerenter',event=>{if(hoverPointer(event))cancelHoverClose();});
+  panel.addEventListener('pointerleave',event=>{if(hoverPointer(event))scheduleHoverClose();});
+  trigger.addEventListener('pv-studios-close',()=>close());
+  trigger.addEventListener('click',event=>{
+   // A first mouse click after auto-hover should not accidentally collapse the menu.
+   if(!panel.hidden&&openedByHover&&event.detail>0){openedByHover=false;return;}
+   if(panel.hidden)open(event.detail===0);
+   else close();
+  });
+  trigger.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();open(true);}});
   document.addEventListener('keydown',event=>{if(!panel.hidden&&event.key==='Escape'){event.preventDefault();close(true);}});
   document.addEventListener('pointerdown',event=>{if(!shell.contains(event.target))close();});
   document.addEventListener('focusin',event=>{if(!panel.hidden&&!shell.contains(event.target))close();});
