@@ -5,6 +5,7 @@ const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const html=read('lab/full-editorial.html');
 const js=read('lab/full-editorial.js');
 const css=read('lab/full-editorial.css');
+const atelier=read('lab/full-editorial-atelier.css');
 test('Full Editorial has the approved hero and real four-step navigation',()=>{
  assert.match(html,/aria-label="Full Editorial Studio"/);
  assert.match(html,/editorial-hero-art[^>]*><img src="\.\/visuals\/character-casting\/bronze-cast03\.webp"/,'Use original bronze casting photograph for the public hero');
@@ -68,4 +69,20 @@ test('Atelier references remain real and the creative steps feed real generation
  assert.match(html,/No credits are charged until you approve the actual server quote/);
  assert.match(html,/full-editorial-atelier\.css/);
  assert.match(html,/id="editorial-mobile-menu"/);
+});
+
+test('Hotel Room is one location with both authentic photograph references, not a second identity',()=>{
+ const room='b9ab95f1-0a8b-4bcb-96a3-23dd28bf41a8';
+ const portrait='c64dd11e-e681-48e3-8fb2-5b11aac9ca16';
+ assert.match(js,/id:'hotel-room',name:'Hotel Room'/);
+ assert.ok(js.includes(room),'Use the uploaded hotel room original');
+ assert.ok(js.includes(portrait),'Use the uploaded hotel atmosphere portrait');
+ assert.match(js,/imageAlt:.*cloudfront/);
+ assert.match(js,/do not copy its woman, appearance, pose or identity/);
+ assert.match(js,/card\.setAttribute\('aria-label',dir\.imageAlt/);
+ assert.match(js,/direction-atmosphere-photo/);
+ assert.match(js,/selectedDirections\.location==='hotel-room'/);
+ assert.match(atelier,/#panel-mood \.direction-card--diptych/);
+ assert.match(atelier,/#panel-mood \.direction-cards/);
+ assert.match(html,/20261031-hotel-room1/);
 });
