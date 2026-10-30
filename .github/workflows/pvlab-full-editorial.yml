@@ -34,3 +34,12 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: node_modules/playwright/index.mjs
         run: node tests/lab-full-editorial-browser.mjs
+
+      - name: Reviewable screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editorial-desktop-phone-screenshots
+          path: test-results/editorial/*.png
+          if-no-files-found: warn
+          retention-days: 1
