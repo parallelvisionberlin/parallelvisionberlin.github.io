@@ -125,3 +125,13 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Public homepage verified: Estero entry links to artist page; Siento card links to release; roster count is 12.
 - No outstanding publication blocker. Final artwork, listening links and animation clips remain owner-supplied follow-up assets.
 - Next: replace the documented stills with the supplied clips and keep their posters; add verified listening destinations when available.
+
+### Editorial shadow refinement, 2026-10-30
+- Owner requested a photograph in shadow behind the Siento interview and moving Siento to the first Instagram carousel position.
+- Source baseline: `b8ecc4d8d29940f107483afb041f53d7050e45ed`; isolated branch `feat/estero-shadow-editorial-20261030`.
+- `siento.html`: decorative existing silver portrait behind the interview; stylesheet cache refreshed.
+- `css/estero-editorial.css`: scoped photographic shadow layer, dark directional gradients, stronger answer contrast and subtler mobile opacity. No fixed background or new dependency.
+- All four questions/answers, metadata, page order, hero and artist profile retained.
+- Validation: static build passes 24 pages; diff whitespace check passes. Browser checks at desktop 1348px and phone 375/305px content widths: background decodes, body remains readable, no horizontal overflow.
+- Instagram revision: Siento, Estero, Fashion After Fabric; remove category numbering and repeated dividers, keep original photographs and the approved type family.
+- Publication pending GitHub validation and Pages deployment; verify the public interview before marking live.

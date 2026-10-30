@@ -63,7 +63,12 @@ figure,p,h1,h2,h3,blockquote,dl,dd { margin:0; }
 .film-still { position:relative; }
 .film-still img { height:auto; }
 .film-still figcaption { display:flex; justify-content:space-between; gap:20px; padding:16px var(--pad); border-bottom:1px solid var(--line); color:var(--muted); font-size:9px; line-height:1.5; letter-spacing:.1em; text-transform:uppercase; }
-.conversation { display:grid; grid-template-columns:minmax(0,.38fr) minmax(0,.62fr); gap:clamp(40px,7vw,110px); }
+.conversation { position:relative; isolation:isolate; display:grid; grid-template-columns:minmax(0,.38fr) minmax(0,.62fr); gap:clamp(40px,7vw,110px); background:#080909; }
+.conversation-backdrop { position:absolute; z-index:-1; inset:0; overflow:hidden; pointer-events:none; }
+.conversation-backdrop img { position:sticky; top:0; height:100svh; min-height:760px; width:100%; object-fit:cover; object-position:50% 35%; opacity:.48; filter:saturate(.35); }
+.conversation-backdrop::after { position:absolute; content:""; inset:0; background:linear-gradient(90deg,rgba(8,9,9,.12),rgba(8,9,9,.3) 28%,rgba(8,9,9,.76) 58%,rgba(8,9,9,.9)),linear-gradient(180deg,rgba(8,9,9,.25),transparent 15%,transparent 80%,#080909); }
+.conversation .conversation-note { color:#b4b6b0; }
+.conversation .qa p:not(.kicker) { color:#d2d4cd; }
 .conversation-heading { position:sticky; top:110px; align-self:start; }
 .conversation-heading h2 { margin:22px 0; font-size:clamp(40px,5vw,74px); font-weight:350; line-height:.95; letter-spacing:-.05em; }
 .conversation-note { max-width:300px; color:var(--muted); font-size:12px; line-height:1.6; }
@@ -102,6 +107,8 @@ figure,p,h1,h2,h3,blockquote,dl,dd { margin:0; }
  .feature-copy h3 { font-size:72px; }
  .release-data { margin-top:24px; }
  .conversation-heading { position:static; }
+ .conversation-backdrop img { height:100svh; min-height:680px; object-position:50% 30%; opacity:.3; }
+ .conversation-backdrop::after { background:linear-gradient(180deg,rgba(8,9,9,.3),rgba(8,9,9,.55) 28%,rgba(8,9,9,.8) 70%,#080909); }
  .conversation-note { max-width:440px; }
  .film-still img { aspect-ratio:4/5; object-fit:cover; object-position:51% 50%; }
  .film-still figcaption { flex-direction:column; gap:4px; }
