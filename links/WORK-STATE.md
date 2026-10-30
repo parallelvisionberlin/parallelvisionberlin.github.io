@@ -6,6 +6,7 @@ Published visual correction: c0349a9 (PR #677), included in successful Pages run
 Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), independent MusicLinkClick, existing label pixel and consent preserved.
 
 ## Approved direction
+- Smart Links is placed inside the existing Parallel Vision account menu below Profile for both signed-in owner and public accounts; no new main-navigation item. Public creator access remains owner-only and requires a separate access/isolation implementation. Browser fixture QA: 390px public menu and 1363px owner menu without horizontal overflow. Full local verifier blocked by missing sparse-checkout assets; use production CI. Publication pending.
 - Private dashboard: white/black/cool grey, permanent sidebar, compact medium artwork rows, prominent metrics. Only Spotify, SoundCloud, YouTube.
 - Public target: artwork-first refinement exec-730d0f3b-081e-4845-8ec2-898a49b9378a.png, re-supplied as libfile_a8746d7ea8b48191b6360f9930e777e8.
 - User rejected the live 62px blur and undersized composition; preserve visible blue/red light shapes and match target proportions.
