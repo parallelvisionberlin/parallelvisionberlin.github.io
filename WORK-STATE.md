@@ -89,33 +89,39 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-30
-- Objective: create Estero's artist profile and the Siento release page, using Tanzen Im Kreis as the release reference.
-- Source baseline: `132d8d948c6834920896796110e14b078693d231`; isolated branch `feat/estero-siento-pages-20261030`.
+- Objective complete: publish Estero's artist profile and Siento release page, using Tanzen Im Kreis as the release reference.
+- Live artist URL: https://parallelvisionlabel.com/estero.html
+- Live release URL: https://parallelvisionlabel.com/siento.html
+- Implementation branch: `feat/estero-siento-pages-20261030`; PR #690.
+- Published source commit: `1ba7c8c291aab20fc3f0bfd1c37085332df64428`.
+- Verified deployed merge: `9bb0866c0c876d4dc6d2d062cb885bd734713417`.
+- Current main before implementation was `e6a52eecd6632b9ec12ec326c8f37b350d3314f7`; relevant files were unchanged since the original baseline.
+- Owner authorized completion after reviewing both previews and the explicit public repository disclosure question.
+- Connected repository owner and domain verified: parallelvisionberlin / parallelvisionberlin.github.io; CNAME parallelvisionlabel.com.
+- Git shell write credentials unavailable; published through the authenticated GitHub connector. Original local commits remain unrevised.
 - Artist: Estero / Andrés Zendejas, Mexican producer and DJ; biography supplied by the owner.
-- Release: Siento, PV016; Beatport 6 November 2026, all platforms 20 November 2026.
-- `estero.html`: portrait hero, biography, Siento feature and Fashion After Fabric visual pair.
+- Release: Siento / PV016; Beatport 6 November 2026, all platforms 20 November 2026.
+- `estero.html`: metal portrait hero, biography with vertical portrait, Siento feature and Fashion After Fabric visual pair.
 - `siento.html`: night hero, release details, manifesto context, editorial still and four-question adaptation.
-- Q&A questions are editorial framing; Spanish answers are excerpts from the supplied manifesto, explicitly disclosed on the page.
-- `css/estero-editorial.css` and `js/estero-editorial.js`: shared responsive presentation and scroll header.
-- `index.html`: artist roster entry/count (12), plus Siento release card; existing entries preserved.
-- `sitemap.xml` and `scripts/verify-build.js`: both pages registered for discovery and existing static validation.
-- Optimized WebP images in `assets/estero/`, full supplied resolution, quality 90; no generative retouch or identity changes.
-- Source mapping: IMG_8214.jpeg = estero-metal-portrait.webp (artist hero).
-- IMG_8224.jpeg = siento-night.webp (release hero / homepage editorial image, not cover artwork).
+- Q&A questions frame excerpts from the supplied manifesto; original Spanish answers and editorial adaptation are explicitly disclosed.
+- `css/estero-editorial.css`, `js/estero-editorial.js`: shared responsive presentation and scroll header.
+- `index.html`: added Estero roster entry/count (12) and Siento release card, preserving existing entries.
+- `sitemap.xml`, `scripts/verify-build.js`: both pages registered for discovery and existing static validation.
+- Five full-resolution WebP assets in `assets/estero/`, quality 90; no generative retouch or identity changes.
+- IMG_8214.jpeg = estero-metal-portrait.webp (artist hero).
+- IMG_8224.jpeg = siento-night.webp (release hero / homepage editorial image, not final cover artwork).
 - IMG_8201.jpeg = estero-petals-full.webp (artist biography).
 - IMG_8202.jpeg = estero-petals-portrait.webp (artist gallery / release editorial film still).
 - IMG_8217.jpeg = estero-silver-portrait.webp (artist gallery).
-- Source images also remain in the owner's original uploaded files.
-- Animation slots documented in HTML: artist hero, release hero and release editorial still. Replace with supplied clips and retain corresponding posters.
-- No streaming, purchase or presave URLs supplied; no guessed destinations or empty players added.
-- Validation: npm run build passes all 24 maintained public pages; git diff --check passes.
-- Browser QA: actual responsive iframe viewports at nominal 390/320px (375/305 content width with browser scrollbars), hero crops, biography and Q&A inspected; document widths equal client widths.
-- Desktop artist and release heroes inspected at 1348px content width; no horizontal overflow. Release images decode correctly; section anchors work.
-- Implementation commit: `89b232cd03e336e5822f80a789daaa1ed1393761` (local).
-- Initial publication was blocked by automatic review; after the explicit disclosure question the owner authorized finishing publication in the next turn.
-- Verified connected user and repository owner: parallelvisionberlin; repository CNAME: parallelvisionlabel.com.
-- Current owner approval covers publishing these two pages and five supplied images to the verified public repository and site.
-- Publication in progress through connected GitHub tools; shell Git has read access but no write credentials.
-- Current main checked before publication: `e6a52eecd6632b9ec12ec326c8f37b350d3314f7`; no changes to the relevant files since the implementation baseline.
-- Next publication step: publish feature branch, review static CI, merge, then verify GitHub Pages and public content.
-- Next: owner supplies animation files, final artwork and verified listening links.
+- All remote asset blob hashes match the locally validated files; remote product text is identical to local source.
+- Animation slots documented in HTML: artist hero, release hero and release editorial still; retain corresponding images as posters.
+- No listening/purchase/presave links supplied; no guessed destinations or empty players added.
+- Local static validation passed all 24 maintained public HTML pages; diff whitespace check passed.
+- PR static validation passed: runs 41118972497 and 41118945023.
+- Main static validation passed: run 41119100824; approved Image contract also passed.
+- GitHub Pages build and deployment succeeded: run 41119099499 on the verified merge.
+- Browser QA before publication: desktop artist/release heroes, mobile 390/320 iframe layouts, biography/Q&A and section navigation; no horizontal overflow.
+- Public browser verification: both URLs load, hero images decode, dates match, four Q&A entries present, desktop width equals scroll width.
+- Public homepage verified: Estero entry links to artist page; Siento card links to release; roster count is 12.
+- No outstanding publication blocker. Final artwork, listening links and animation clips remain owner-supplied follow-up assets.
+- Next: replace the documented stills with the supplied clips and keep their posters; add verified listening destinations when available.
