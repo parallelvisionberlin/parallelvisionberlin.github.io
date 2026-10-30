@@ -223,3 +223,17 @@
  .editorial-account .credits-link span{width:17px;height:17px;font-size:15px}
  #editorial-mobile-menu{width:32px;height:32px;flex-basis:32px}
 }
+
+/* Final typographic cadence: editorial grotesk on working screens, expressive italic only on the arrival. */
+.stage-copy h2{font-family:DM,'Helvetica Neue',Arial,sans-serif;font-style:normal;font-weight:450;letter-spacing:-.092em;line-height:.94}
+.atelier-review-main h2{font-family:DM,'Helvetica Neue',Arial,sans-serif;font-weight:430;letter-spacing:-.087em;line-height:.98}
+.editorial-top-back{display:inline-flex;align-items:center;gap:10px;min-height:36px;padding:7px 10px 7px 0;background:none;border:none;color:#d9d7d4;font-size:12px;cursor:pointer}
+.editorial-top-back span{font-size:18px;line-height:1}
+.editorial-top-back:hover{color:#fff}
+.progress-top #progress-title{margin-left:4px;margin-right:auto}
+@media(max-width:520px){
+ .stage-copy h2{font-size:clamp(58px,12vw,75px)}
+ .atelier-review-main h2{font-size:clamp(46px,11vw,60px)}
+ .editorial-top-back{font-size:11px;gap:6px}
+ .progress-top #progress-title{font-size:9px}
+}
