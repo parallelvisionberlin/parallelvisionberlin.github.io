@@ -103,3 +103,26 @@ DROP TABLE lab_partner_payouts;
 ALTER TABLE lab_partner_payouts_robin RENAME TO lab_partner_payouts;
 CREATE UNIQUE INDEX IF NOT EXISTS lab_partner_one_pending_payout
  ON lab_partner_payouts(partner_customer_id) WHERE status='pending';
+
+-- Rebuild the immutable finance guard to recognize both authorized payout workspaces.
+DROP TRIGGER IF EXISTS lab_partner_payout_segment_guard;
+CREATE TRIGGER lab_partner_payout_segment_guard BEFORE INSERT ON lab_partner_payout_segments
+BEGIN
+ SELECT CASE WHEN NOT EXISTS(
+  SELECT 1 FROM lab_partner_payouts p JOIN lab_revenue_events e ON e.reference=NEW.reference
+  JOIN lab_referrals r ON r.referred_customer_id=e.customer_id AND r.referrer_customer_id=p.partner_customer_id
+  JOIN lab_partner_payment_facts f ON f.reference=e.reference
+  JOIN lab_partner_cost_snapshots c ON c.reference=e.reference AND c.partner_customer_id=p.partner_customer_id
+  WHERE p.id=NEW.payout_id AND p.workspace IN ('bellini-studio','robin-studio') AND p.status='pending'
+   AND f.amount_cents=NEW.amount_cents AND f.fee_cents=NEW.fee_cents AND f.tax_cents=NEW.tax_cents
+   AND NEW.base_cents=c.base_cents AND NEW.rate=c.rate AND NEW.nominal_cents=c.nominal_cents
+   AND NEW.adjustment_cents=c.adjustment_cents AND NEW.reserve_cents=c.reserve_cents
+   AND NEW.cost_cents IS c.cost_cents AND NEW.entitlement_cents=c.payable_cents
+   AND NEW.revision=c.revision AND c.revision=(SELECT revision FROM lab_partner_cost_revision WHERE id=1)
+   AND NEW.commission_cents=c.payable_cents-COALESCE((SELECT SUM(s.commission_cents)
+    FROM lab_partner_payout_segments s JOIN lab_partner_payouts q ON q.id=s.payout_id
+    WHERE s.reference=NEW.reference AND q.status IN ('pending','paid')),0)
+   AND NOT EXISTS(SELECT 1 FROM lab_partner_payout_claims old WHERE old.reference=NEW.reference)
+   AND NOT EXISTS(SELECT 1 FROM lab_billing_reviews b WHERE b.customer_id=e.customer_id)
+ ) THEN RAISE(ABORT,'Commission already reserved or accounting changed') END;
+END;
