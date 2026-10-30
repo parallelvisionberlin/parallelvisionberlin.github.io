@@ -12,7 +12,12 @@
 - Local passes: Fashion reference owner/customer/guest; landing responsive/pricing; complete Assets suite; public Studio visual/account/navigation/privacy at 1440/390/320; Studio layout; approved Image and targeted contracts (12); static build; diff check.
 - Broad Node 24 unit run: 864/865 pass. Existing unrelated Dream Blur upload timing fixture fails (setImmediate observes zero uploads); isolated rerun reproduces. No Mood/provider code changed or gate disabled. Existing CI uses Node 22 for the broad unit suite.
 - Live public observation: Runway sets aria-pressed=true while optional manual field stays empty. No private account, live quote, upload, payment or generation used.
-- Publication: branch/PR integration and exact Cloudflare check pending at this checkpoint; record the final source and hosting evidence after the normal workflow completes.
+- PR #683 merged as `4675bbb55ee3d4166a040240ddb5016dcda7d1fb`; reviewed source `9395de9ab06923f6c3ba9c986d255aa3f4ee7bbc`. Source tree bytes matched the tested local checkout.
+- Merged-commit CI passed Fashion, complete asset library, landing/pricing, independent public Studio visual regression, domain readiness, approved Image, Node 22 unit, gallery, queue, static and motion checks. The unrelated broad Video workflow was still finishing its final mock browser step at this record; its backend/history/customer/routing steps passed.
+- Cloudflare Pages app check `124177231662` confirmed success for pvlab-studio deployment `414026f1-25a4-4a7a-9d8c-7760bae4902c` at the exact merge SHA.
+- Scoped verifier returned `LIVE_VERIFIED` for lab.js?v=20261029-studio-reference-isolation1; production SHA-256 `b2528ecc36d08070e6faf62a1036c78480624f21fad84b6ba1c4dced4ea143f2` equals reviewed source.
+- Fresh post-deploy public browser: homepage poster complete at 1600x900; six pricing actions and zero pricing CTA vector arrows; Fashion Runway aria-pressed=true with empty manual styling field. Manual-text retention was also observed live before deployment and verified in mocked owner/customer/guest tests.
+- Requested investigation and publication complete. No production defect established in the reported Look/poster behavior; corrections are limited to obsolete tests/workflow checks. No real signed-in production generation or payment was used or claimed.
 
 ## Owner-supplied FLESH ZERO hero edit, 2026-10-28
 - User explicitly requested the newly attached `PVLAB FLESH ZERO HERO. .mp4` as the exact main PV LAB homepage hero video, replacing the prior Fashion After Fabric loop. No regeneration, video restyling or third-party stock substitution.
