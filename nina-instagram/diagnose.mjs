@@ -28,6 +28,15 @@ console.log('SCHEDULES',JSON.stringify(await api('/workers/scripts/nina-instagra
 await query('CONFIG','SELECT mode FROM ig_autoreply_config WHERE id=1');
 await query('VOICE',"SELECT status,stage,error_code,COUNT(*) AS n,MAX(updated_at) AS latest FROM ig_voice_receipts GROUP BY status,stage,error_code");
 await query('VOLUME',"SELECT direction,COUNT(*) AS n,MAX(created_at) AS latest FROM ig_messages WHERE created_at>=datetime('now','-1 day') GROUP BY direction");
+await query('STYLE_LAST_7_DAYS', `
+  SELECT direction, COUNT(*) AS messages, ROUND(AVG(length(body)),1) AS avg_chars,
+    MAX(length(body)) AS max_chars, SUM(length(body)>120) AS over_120,
+    SUM(length(body)>220) AS over_220,
+    SUM(instr(body,'?')>0 OR instr(body,'¿')>0) AS with_questions
+  FROM ig_messages WHERE created_at>=datetime('now','-7 days')
+  AND body NOT IN ('[Voice note awaiting transcription]','[Voice note could not be transcribed]')
+  GROUP BY direction
+`);
 await query('DRAFTS',"SELECT COUNT(*) AS n,MAX(created_at) AS latest FROM ig_drafts WHERE created_at>=datetime('now','-1 day')");
 await query('ATTEMPTS',"SELECT status,error_code,http_status,COUNT(*) AS n,MAX(updated_at) AS latest FROM ig_send_attempts WHERE created_at>=datetime('now','-1 day') GROUP BY status,error_code,http_status");
 await query('RECENT',"SELECT m.instagram_user_id,m.direction,m.created_at,p.status,p.last_error_code,CASE WHEN m.body='[Voice note awaiting transcription]' THEN 'voice_pending' WHEN m.body='[Voice note could not be transcribed]' THEN 'voice_failed' ELSE 'text_or_transcribed' END AS kind,EXISTS(SELECT 1 FROM ig_owner_links l WHERE l.instagram_user_id=m.instagram_user_id AND l.revoked_at IS NULL AND l.expires_at>CURRENT_TIMESTAMP) AS linked_owner FROM ig_messages m LEFT JOIN ig_processing p ON p.incoming_message_id=m.message_id ORDER BY m.rowid DESC LIMIT 24");
