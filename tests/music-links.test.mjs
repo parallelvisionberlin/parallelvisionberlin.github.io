@@ -9,7 +9,7 @@ const NOW=Date.parse('2026-10-30T12:00:00Z'),BASE='https://parallel-vision-lab.p
 const fixtureRelease=(change={})=>({id:crypto.randomUUID(),title:'Test Release',artist:'Artist',slug:'test-release',catalogue:'PV999',description:'A new single.',artworkUrl:'https://parallelvisionlabel.com/cover.jpg',audioUrl:'',releaseDate:'2026-11-06',links:[{service:'spotify',url:'https://open.spotify.com/track/example'}],pixelId:'',status:'draft',...change});
 function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
-  const migration=readFileSync(new URL('../lab-worker/migrations/0045-music-links.sql',import.meta.url),'utf8');db.exec('PRAGMA foreign_keys=ON');db.exec(migration);db.exec(readFileSync(new URL('../lab-worker/migrations/0046-music-link-designs.sql',import.meta.url),'utf8'));
+  const migration=readFileSync(new URL('../lab-worker/migrations/0045-music-links.sql',import.meta.url),'utf8');db.exec('PRAGMA foreign_keys=ON');db.exec(migration);db.exec(readFileSync(new URL('../lab-worker/migrations/0046-music-link-designs.sql',import.meta.url),'utf8'));db.exec(readFileSync(new URL('../lab-worker/migrations/0047-music-link-click-event.sql',import.meta.url),'utf8'));
   const binding={prepare(sql){return {bind(...values){const query=()=>db.prepare(sql);return {
     async first(){return query().get(...values)||null;},async all(){return {results:query().all(...values)};},async run(){return {meta:{changes:query().run(...values).changes}};}
   };}};},async batch(items){db.exec('BEGIN');try{const results=[];for(const item of items)results.push(await item.run());db.exec('COMMIT');return results;}catch(error){db.exec('ROLLBACK');throw error;}}};
@@ -26,6 +26,16 @@ test('idempotent migration seeds only a verified real release and the music pixe
   const result=await (await f.pub('/releases/stay-low')).json();assert.equal(result.release.artist,'Alejandro Molinari feat. Nina FOK');assert.equal(result.release.links.length,1);
   assert.equal(result.release.links[0].url,'https://soundcloud.com/parallelvisionlabel/stay-low');assert.equal(result.tracking.pixelId,MUSIC_PIXEL);
   const dash=await (await f.admin('/dashboard')).json();assert.deepEqual(dash.summary,{views:0,clicks:0,published:1});
+});
+test('event migration replaces legacy settings once, preserving pixel and preventing stale saves',async t=>{
+  const f=fixture(t),migration=readFileSync(new URL('../lab-worker/migrations/0047-music-link-click-event.sql',import.meta.url),'utf8');
+  f.db.exec("UPDATE music_link_settings SET pixel_id='987654321098765',click_event='Hypeddit Smart Link Click',revision=8 WHERE id=1");
+  f.db.exec(migration);f.db.exec(migration);
+  const config=(await(await f.pub('/releases/stay-low')).json()).tracking;
+  assert.deepEqual(config,{pixelId:'987654321098765',clickEvent:'MusicLinkClick'});
+  const settings=(await(await f.admin('/settings')).json()).settings;assert.equal(settings.revision,9);
+  await assert.rejects(()=>f.admin('/settings',{method:'POST',data:{...settings,revision:8}}),e=>e.status===409);
+  await assert.rejects(()=>f.admin('/settings',{method:'POST',data:{...settings,clickEvent:'Hypeddit Smart Link Click'}}),e=>e.status===400);
 });
 test('every admin route rejects customer, missing and forged owners before DB mutation',async t=>{
   const f=fixture(t);for(const owner of ['',null,'customer','forged'])for(const path of ['/dashboard','/settings','/media','/releases'])await assert.rejects(()=>f.admin(path,{owner,method:path==='/dashboard'?'GET':'POST',data:fixtureRelease()}),e=>e.status===403);
@@ -61,7 +71,7 @@ test('validates dates, publishing requirements, safe media URLs and platform ide
 });
 test('tracking settings use revisions and a per-release override wins',async t=>{
   const f=fixture(t),original=(await(await f.admin('/settings')).json()).settings;
-  assert.equal(original.clickEvent,'Hypeddit Smart Link Click');
+  assert.equal(original.clickEvent,'MusicLinkClick');
   await f.admin('/settings',{method:'POST',data:{pixelId:'123456789012345',clickEvent:'MusicLinkClick',revision:original.revision}});
   await assert.rejects(()=>f.admin('/settings',{method:'POST',data:{pixelId:MUSIC_PIXEL,clickEvent:'MusicLinkClick',revision:original.revision}}),e=>e.status===409);
   assert.equal((await(await f.pub('/releases/stay-low')).json()).tracking.pixelId,'123456789012345');

@@ -2,7 +2,8 @@
 Updated: 2026-10-30
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 Feature baseline: d336368 (PR #671); white dashboard 9245740 (PR #673).
-Published refinement: e354ffff1d5c6244052cf08312113d77af62b44d (PR #675); prior background service 99f4438 (PR #674).
+Published visual correction: c0349a9 (PR #677), included in successful Pages run 41057895772 at 9e1e617.
+Current task: replace legacy tracking event with independent MusicLinkClick, preserving label pixel and consent.
 
 ## Approved direction
 - Private dashboard: white/black/cool grey, permanent sidebar, compact medium artwork rows, prominent metrics. Only Spotify, SoundCloud, YouTube.
@@ -18,10 +19,10 @@ Published refinement: e354ffff1d5c6244052cf08312113d77af62b44d (PR #675); prior 
 - Background uses the same artwork, cropped to its photographic area; full cover remains sharp and complete in front.
 - Desktop columns grow up to 600/620px with larger title/artist; phone cover up to 310px. Existing Spotify row preserved.
 - Creator preview uses matching lighter blur and larger mobile proportions. Entry HTML cache queries updated to 20261030-match1.
-- No renderer, API, tracking, database or settings changes; backend remains music-links-20261030-v3.
+- Visual correction did not change tracking. Current tracking update advances backend to music-links-20261030-v4.
 - Browser QA: phone body width/scrollWidth 390px and height 844px; desktop widths 1363px and 1920px fit without horizontal overflow.
 - Desktop 1920x900 fixture fits without vertical overflow. Existing real artwork and Spotify destination unchanged.
-- Whitespace check passed. Publication pending; verify live CSS/HTML bytes and actual visual result before reporting done.
+- Visual checks passed; production Pages run 41057895772 succeeded. Live asset/visual verification in progress.
 - Prior refinement e354fff deployed: Pages run 41054184749, seven frontend assets exact; v3 readiness verified in actual browser.
 - Worker gate propagation fix c1f12ec verified by run 41055303256 / job 124061208029 success.
 
@@ -30,7 +31,9 @@ Published refinement: e354ffff1d5c6244052cf08312113d77af62b44d (PR #675); prior 
 - Title, artist, catalogue, date, description, artwork, MP3, links, publication and pixel override. Stable saved slugs and optimistic revisions.
 - Draft/published/archived. Artwork up to 6MB, MP3 up to 12MB; isolated public music-links R2 namespace and media byte ranges.
 - Pixel 1746851780072706 matches label/prior Hypeddit music setup; separate PV LAB pixel untouched.
-- Default custom click event Hypeddit Smart Link Click preserves artist, track and music_service; optional MusicLinkClick.
+- Custom click event MusicLinkClick preserves artist, track and music_service. Migration 0047 replaces legacy name once, preserving pixel and advancing settings revision.
+- Meta target: create Parallel Vision – Spotify Click custom conversion on ParallelVision_Music_Pixel, MusicLinkClick filtered by music_service equals spotify.
+- Dashboard no longer offers the legacy event. No Hypeddit service dependency exists.
 - Meta PageView/ViewContent/clicks require explicit consent. Decline/withdrawal preserve listening. Events Manager attribution is unobserved.
 - Anonymous aggregate page loads/clicks, date ranges and platform/source/campaign reports. Not unique listeners or confirmed streams.
 - Deduplicated UUID receipts; hourly HMAC rate limits store no raw IP/ad identifiers. Daily short-lived receipt/rate-limit pruning.
@@ -47,9 +50,9 @@ Published refinement: e354ffff1d5c6244052cf08312113d77af62b44d (PR #675); prior 
 
 ## Links / next action
 - Dashboard: https://parallelvisionlabel.com/links/ ; Sube: https://parallelvisionlabel.com/listen/?release=sube .
-- Publish corrected blur/proportions; Meta configuration stays Pixel 1746851780072706, event Hypeddit Smart Link Click, music_service equals spotify.
+- Deploy event migration and v4 Worker; verify public Sube tracking returns MusicLinkClick and correct pixel before claiming live.
 - Owner edits background under Artwork & sound > Page background, then saves. Explicit existing choices are not overwritten.
 - No CAPI, historical Hypeddit import, pre-save, automatic metadata import or server-rendered per-link social cards.
-- Hypeddit URL-restricted conversions require label-domain rules in Meta. Script loading does not prove ad attribution.
+- Create the new custom conversion in Meta. Existing legacy conversions are not renamed automatically. Meta receipt/attribution remains unobserved.
 - Direct executor workers.dev requests previously hit Cloudflare 1010; use production workflow checks and actual frontend browser.
 - Local dist/, fixture modules and .openai preview config are excluded from Git and must not ship.
