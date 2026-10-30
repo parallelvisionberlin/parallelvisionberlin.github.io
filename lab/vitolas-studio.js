@@ -1,7 +1,7 @@
 import {createPartnerPayoutUI} from './partner-payouts.js?v=20261028-cost1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
-import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
+import {createAccountMenu} from './account-menu.js?v=20261030-robin-partner1';
 const $=id=>document.getElementById(id);
 const workspaceSlug=document.body.dataset.partnerWorkspace||'vitolas-studio';
 const studioName=workspaceSlug==='robin-studio'?'Robin / König Media':workspaceSlug==='bellini-studio'?'Bellini Studios':'Vitolas Studio';
