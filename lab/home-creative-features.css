@@ -114,7 +114,7 @@
 
 
 /* FULL EDITORIAL 29 OCT 2026: photographic source contains NO baked typography.
-   Sits below the unchanged PV LAB hero; aligns title/button to hero's 3.5vw gutter. */
+   Follows the Image / Video / Upscaler cards; aligns copy to the hero gutter. */
 #featured-editorial{
   position:relative;
   isolation:isolate;
@@ -187,7 +187,7 @@
   background:#c8c5bf72;
 }
 #featured-editorial h2{
-  font:400 clamp(48px,3.75vw,68px)/.98 'Bodoni MT',Didot,Georgia,'Times New Roman',serif!important;
+  font:400 clamp(48px,3.75vw,68px)/1.02 DM,'Helvetica Neue',Arial,sans-serif!important;
   letter-spacing:-.056em!important;
   color:#f7f4ef;
   max-width:475px!important;
@@ -195,14 +195,8 @@
   white-space:normal!important;
   text-wrap:balance;
 }
-#featured-editorial h2 em{
-  display:inline!important;
-  font-weight:400;
-  font-style:italic;
-  letter-spacing:-.048em;
-}
 #featured-editorial .pv-editorial-feature-lead{
-  font:400 clamp(20px,1.55vw,26px)/1.24 Georgia,'Times New Roman',serif!important;
+  font:400 clamp(20px,1.55vw,26px)/1.24 DM,'Helvetica Neue',Arial,sans-serif!important;
   letter-spacing:-.02em;
   color:#f5f2ec;
   margin:0 0 10px!important;
@@ -241,10 +235,10 @@
 }
 #featured-editorial .pv-feature-button:hover{background:#fff!important;border-color:#fff!important}
 @media (min-width:1001px){
-  #featured-editorial{aspect-ratio:1916/821;min-height:580px;height:auto!important}
+  #featured-editorial{aspect-ratio:2.5;min-height:520px;height:auto!important}
 }
 @media (max-width:1000px){
-  #featured-editorial{height:clamp(520px,75vw,710px)!important;aspect-ratio:auto!important}
+  #featured-editorial{height:clamp(500px,65vw,650px)!important;aspect-ratio:auto!important}
   #featured-editorial .pv-editorial-feature-art{
     inset:0!important;width:100%!important;height:100%!important;
     background-position:65% center!important;
@@ -261,7 +255,7 @@
   #featured-editorial .pv-editorial-feature-copy p:not(.pv-editorial-feature-lead){margin-bottom:20px!important}
 }
 @media (max-width:520px){
-  #featured-editorial{height:630px!important}
+  #featured-editorial{height:580px!important}
   #featured-editorial .pv-editorial-feature-art{background-position:63% center!important}
   #featured-editorial h2{font-size:clamp(45px,11vw,57px)!important}
   #featured-editorial .pv-editorial-feature-copy{padding:22px 22px 28px!important}
