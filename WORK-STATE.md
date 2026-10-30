@@ -89,7 +89,7 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-30
-- Objective complete: artist profile, release page and three Instagram images; current reading-flow refinement published.
+- Objective: unite the Siento story with the approved petals portrait; artist profile and Instagram images complete.
 - Artist URL: https://parallelvisionlabel.com/estero.html
 - Release URL: https://parallelvisionlabel.com/siento.html
 - Latest product source: `9f118cad44e79d529ab30c4d45ba7e4275660060`, PR #700.
@@ -99,7 +99,7 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Artist: Estero / Andrés Zendejas, Mexican producer and DJ; supplied biography is the source.
 - Release: Siento / PV016; Beatport 6 November 2026, all platforms 20 November 2026.
 - `estero.html`: metal portrait hero, biography/vertical portrait, Siento feature and Fashion After Fabric visual pair.
-- `siento.html`: night hero, release metadata, manifesto context, editorial still, four-question adaptation and closing quote.
+- `siento.html`: night hero, photographic manifesto story, compact release strip, four-question adaptation and closing quote.
 - Questions are editorial framing around excerpts of the supplied manifesto; original Spanish answers and adaptation disclosed.
 - Shared presentation: `css/estero-editorial.css`, `js/estero-editorial.js`.
 - `index.html`: Estero entry in Artists (roster 12) and Siento card in Releases; original entries preserved.
@@ -108,30 +108,32 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - IMG_8214.jpeg -> estero-metal-portrait.webp (artist hero).
 - IMG_8224.jpeg -> siento-night.webp (release hero and homepage editorial image, not final cover artwork).
 - IMG_8201.jpeg -> estero-petals-full.webp (artist biography).
-- IMG_8202.jpeg -> estero-petals-portrait.webp (artist gallery and release editorial still).
+- IMG_8202.jpeg -> estero-petals-portrait.webp (artist gallery and release story backdrop, used once on the release page).
 - IMG_8217.jpeg -> estero-silver-portrait.webp (artist gallery and shadow interview backdrop).
 - Original page implementation: PR #690, deployed merge `9bb0866c0c876d4dc6d2d062cb885bd734713417`; Pages run 41119099499 succeeded.
 - Shadow interview: PR #694, merge `14a1032794b343d3933e1a4f9e9d9289ef3fc0d1`; Pages run 41123042606 succeeded.
 - Decorative silver portrait behind the interview has directional dark gradients, .48 desktop opacity and .30 mobile opacity; no fixed background.
 - Previous framing refinement anchors only the release hero to the source photo's top edge (50% 0% desktop / 51% 0% mobile), preventing hair cropping on wide screens. Original hero height and title size retained.
 - Closing quote caps at 64px and 1300px width with 1.12 leading, .035em negative tracking and 96px maximum vertical section padding; original wording retained.
-- Current release stylesheet cache: estero-editorial.css?v=20261030-reading-1.
-- Reading refinement: article first in the DOM and on screen; compact release details move to the right on desktop and below the story on mobile.
+- Current release stylesheet cache: estero-editorial.css?v=20261030-visual-story-1.
+- Approved visual refinement: merge the former paper story section and standalone petals photo into one dark photographic article; remove the independent duplicate image.
 - Added the English translation of the supplied manifesto’s opening question as a prominent lead; existing two context paragraphs retained.
-- Reading hierarchy: headline up to 96px, lead up to 34px, body up to 24px with 880px maximum reading width and darker ink; mobile body 18px and lead 24px.
+- Desktop: title, lead and both context paragraphs overlay a directional shadow on the left; portrait sits to the right with the face clear. Copy width capped at 680px; body 20–22px.
+- Mobile/tablet <=960px: title and lead overlay the portrait, then body continues on black; phone body 18px and lead 24px. Gradient fades the picture into the text.
+- Metadata retains all six fields in a compact strip below the article: 6 desktop columns, 3 tablet columns, 2 phone columns. Original visual-study credit retained.
 - Latest changed files: `css/estero-editorial.css`, `siento.html`, this checkpoint. Artist page and interview content retained.
 - Validation: static build passes 24 maintained public pages; whitespace check passes; PR static CI passed.
 - Previous hero framing checked at 1920x900 and phone 390/320 frames (375/305px content widths); full head remains visible.
 - At 1920px, revised closing quote measures 1300x286.7px with 64px text.
-- Hero object-position remains 50% 0%; the closing quote and shadow interview are unchanged by the reading update. Final public reading screenshot captured.
+- Hero object-position remains 50% 0%; closing quote, shadow interview and artist page are unchanged by the current refinement.
 - Instagram order: 01 Siento, 02 Estero, 03 Fashion After Fabric; 1080x1350 PNGs with original photographs and approved typography, repeated category numbers/dividers removed.
 - 01_SIENTO.png: libfile_2d62505da8848191bfab6f55e1c72694, version 1.
 - 02_ESTERO.png: libfile_bc8ca3f3c5188191b859d630c654ac6c, version 1.
 - 03_FASHION_AFTER_FABRIC.png: libfile_dfbe986e44b481918a32c37697a348ea, version 1.
 - Carousel ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d; both version 1.
 - Image files were revised in place, preserving identity/history; no Instagram posting was requested or performed.
-- Animation slots remain documented in artist hero, release hero and release editorial still; retain corresponding posters.
+- Animation slots remain documented in artist hero, release hero and story backdrop; preserve corresponding posters and reading overlay.
 - No verified listening/purchase/presave URLs supplied; no guessed destinations or empty players added.
-- Reading refinement: local static build/whitespace checks and source CI pass; browser checked at 1920px and 1348px plus 390/320 phone frames (375/305px content widths), without horizontal overflow.
-- Read Estero’s words reaches #in-his-words at the 90px header offset; story precedes metadata on phones. Changes are confined to release-intro selectors.
-- No publication blocker remains. Next: owner supplies animation clips, final artwork and verified listening links.
+- Previous reading refinement: PR #700 deployed as ccb433ac; Pages 41137176120 succeeded. Current photographic refinement: local build/whitespace pass; 1920px and phone 390/320 preview checked, no horizontal overflow.
+- Read Estero’s words still targets #in-his-words; original paragraphs, Spanish interview, dates and photographs are retained. Only release-story/metadata presentation changes.
+- Current photographic refinement is implemented locally; publication and public verification pending. Next: publish, then await owner’s animation clips, final artwork and listening links.
