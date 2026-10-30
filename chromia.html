@@ -5,11 +5,11 @@
 <meta property="og:description" content="Chromia imagines liquid metal clothing as a reactive second skin.">
 <meta property="og:url" content="https://parallelvisionlabel.com/chromia.html">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://parallelvisionlabel.com/assets/liquid-metal-hero.png">
+<meta property="og:image" content="https://parallelvisionlabel.com/assets/optimized/chromia-liquid-veil-hero-desktop.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Chromia / Parallel Vision">
 <meta name="twitter:description" content="Chromia imagines liquid metal clothing as a reactive second skin.">
-<meta name="twitter:image" content="https://parallelvisionlabel.com/assets/liquid-metal-hero.png"><link rel="stylesheet" href="./fashion.css"><style id="chromia-mobile-hero-type">
+<meta name="twitter:image" content="https://parallelvisionlabel.com/assets/optimized/chromia-liquid-veil-hero-desktop.jpg"><link rel="stylesheet" href="./fashion.css"><style id="chromia-mobile-hero-type">
 /* Chromia-specific correction: fit the full Michroma wordmark within narrow iPhone screens. */
 @media (max-width: 760px) {
   .chromia-page .collection-hero { min-height: 84svh; min-height: max(640px, 84svh); align-items: end; padding: 112px 20px max(56px, env(safe-area-inset-bottom)); }
@@ -22,8 +22,15 @@
 @media (max-width: 350px) {
   .chromia-page .collection-hero h1 { font-size: 31px; }
 }
+  .chromia-page .chromia-hero-picture { position:absolute; inset:0; width:100%; height:100%; display:block; overflow:hidden; }
+  .chromia-page .chromia-hero-picture img { display:block; position:absolute; inset:0; width:100%; height:100%; max-width:none; object-fit:cover; object-position:center center; filter:saturate(.82) brightness(.93) contrast(1.045); }
+  @media (max-width:760px) {
+    .chromia-page .collection-hero { padding-bottom:max(92px, calc(env(safe-area-inset-bottom) + 68px)); }
+    .chromia-page .chromia-hero-picture img { object-position:center top; }
+    .chromia-page .collection-hero::after { background:linear-gradient(to top,rgba(0,0,0,.90) 0%,rgba(0,0,0,.44) 25%,rgba(0,0,0,.02) 56%,rgba(0,0,0,.15) 100%); }
+  }
 </style><script src="./language.js" defer></script></head><body class="chromia-page">
-<header class="fashion-page-hero collection-hero"><nav aria-label="Primary navigation" class="archive-nav"><a href="./index.html">Parallel Vision</a><div class="archive-nav-links"><a href="./future-fashion.html">All Collections</a><a href="./index.html#contact">Contact</a></div></nav><img src="./assets/optimized/liquid-metal-hero.webp" alt="Chromia liquid metal campaign" decoding="async" loading="eager" width="1672" height="941" fetchpriority="high"><div class="fashion-page-hero-content"><div class="eyebrow">Collection 01 / Reactive Alloy</div><h1>Chromia</h1></div></header>
+<header class="fashion-page-hero collection-hero"><nav aria-label="Primary navigation" class="archive-nav"><a href="./index.html">Parallel Vision</a><div class="archive-nav-links"><a href="./future-fashion.html">All Collections</a><a href="./index.html#contact">Contact</a></div></nav><picture class="chromia-hero-picture"><source media="(max-width: 760px)" srcset="./assets/optimized/chromia-liquid-veil-hero-mobile.jpg"><img src="./assets/optimized/chromia-liquid-veil-hero-desktop.jpg" alt="Chromia Liquid Chrome Veil, translucent structural garment in an industrial Berlin 2063 scene" decoding="async" loading="eager" width="1672" height="941" fetchpriority="high"></picture><div class="fashion-page-hero-content"><div class="eyebrow">Collection 01 / Reactive Alloy</div><h1>Chromia</h1></div></header>
 <main class="archive-main">
   <section class="collection-intro"><div class="chapter-index">CHROMIA / 01</div><div><p>CHROMIA imagines liquid metal clothing as a second skin: monochrome alloy, mercury movement, chrome membranes and garments that react to heat, sound and pulse.</p><div class="material-tags"><span>Liquid metal</span><span>Reactive alloy</span><span>Body-interface</span><span>Berlin 2063 catwalk</span></div></div></section>
   <section class="collection-block"><div class="block-label">01 / Main campaign</div><figure class="campaign-main"><img src="./assets/optimized/fashion-hero.webp" alt="Chromia campaign runway" decoding="async" loading="lazy" width="1672" height="941"></figure></section>
