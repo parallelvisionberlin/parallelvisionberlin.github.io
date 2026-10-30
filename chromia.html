@@ -9,7 +9,20 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Chromia / Parallel Vision">
 <meta name="twitter:description" content="Chromia imagines liquid metal clothing as a reactive second skin.">
-<meta name="twitter:image" content="https://parallelvisionlabel.com/assets/liquid-metal-hero.png"><link rel="stylesheet" href="./fashion.css"><script src="./language.js" defer></script></head><body>
+<meta name="twitter:image" content="https://parallelvisionlabel.com/assets/liquid-metal-hero.png"><link rel="stylesheet" href="./fashion.css"><style id="chromia-mobile-hero-type">
+/* Chromia-specific correction: fit the full Michroma wordmark within narrow iPhone screens. */
+@media (max-width: 760px) {
+  .chromia-page .collection-hero { min-height: 84svh; min-height: max(640px, 84svh); align-items: end; padding: 112px 20px max(56px, env(safe-area-inset-bottom)); }
+  .chromia-page .fashion-page-hero-content { width: 100%; min-width: 0; max-width: 100%; }
+  .chromia-page .collection-hero h1 { display: block; max-width: 100%; width: 100%; font-size: clamp(34px, 9.2vw, 52px); line-height: 1.12; letter-spacing: .012em; white-space: nowrap; word-break: normal; overflow-wrap: normal; }
+  .chromia-page .collection-hero .eyebrow { max-width: 100%; margin-bottom: 18px; font-size: 9px; letter-spacing: .23em; line-height: 1.6; }
+  .chromia-page .collection-hero::after { background: linear-gradient(0deg, rgba(0,0,0,.83), rgba(0,0,0,.12) 48%, rgba(0,0,0,.12) 75%); }
+  .chromia-page .collection-hero > img { object-position: 58% center; }
+}
+@media (max-width: 350px) {
+  .chromia-page .collection-hero h1 { font-size: 31px; }
+}
+</style><script src="./language.js" defer></script></head><body class="chromia-page">
 <header class="fashion-page-hero collection-hero"><nav aria-label="Primary navigation" class="archive-nav"><a href="./index.html">Parallel Vision</a><div class="archive-nav-links"><a href="./future-fashion.html">All Collections</a><a href="./index.html#contact">Contact</a></div></nav><img src="./assets/optimized/liquid-metal-hero.webp" alt="Chromia liquid metal campaign" decoding="async" loading="eager" width="1672" height="941" fetchpriority="high"><div class="fashion-page-hero-content"><div class="eyebrow">Collection 01 / Reactive Alloy</div><h1>Chromia</h1></div></header>
 <main class="archive-main">
   <section class="collection-intro"><div class="chapter-index">CHROMIA / 01</div><div><p>CHROMIA imagines liquid metal clothing as a second skin: monochrome alloy, mercury movement, chrome membranes and garments that react to heat, sound and pulse.</p><div class="material-tags"><span>Liquid metal</span><span>Reactive alloy</span><span>Body-interface</span><span>Berlin 2063 catwalk</span></div></div></section>
