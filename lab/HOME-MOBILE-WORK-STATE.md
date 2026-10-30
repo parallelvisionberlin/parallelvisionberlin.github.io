@@ -1,3 +1,13 @@
+## Homepage header: editorial navigation fade, 2026-10-30
+- Owner selected mockup 01 / Initial Fade-In after approving a spaced editorial menu treatment.
+- Source baseline: main 3b188d374e37ec5497726a5af5ca9a14e95b381d; branch design/home-nav-editorial-fade-20261030.
+- Scope: homepage header only. Preserve existing SVG wordmark, hero media/crop, copy, all buttons, routes, Studios flyout and other pages.
+- Implemented a translucent near-black home header with restrained backdrop blur, lighter uppercase navigation tracking, and a single 500ms initial fade/5px rise staggered through the menu.
+- The Studios trigger participates without transforming its fixed-position dropdown container.
+- Desktop menu density is responsive at 901–1270px; mobile retains horizontal scrolling and its existing two-row layout; reduced-motion users see fully visible, nonanimated links.
+- Files: lab/homepage-unified.css, lab/index.html, this checkpoint. Cache: homepage-unified.css?v=20261030-nav-editorial-fade1.
+- Source and deployment verification to be recorded after PR checks and Cloudflare publication.
+
 # PV LAB phone homepage layout
 
 ## Referral original framing and placement, 2026-10-30
