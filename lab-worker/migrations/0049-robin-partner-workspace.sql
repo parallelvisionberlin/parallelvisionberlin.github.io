@@ -83,15 +83,24 @@ BEGIN
       WHERE r.customer_id=NEW.customer_id AND v.created_by=(SELECT created_by FROM lab_vouchers WHERE code=NEW.voucher_code COLLATE NOCASE))
     THEN RAISE(ABORT,'PV Lab account unavailable') END;
 END;
-INSERT OR IGNORE INTO lab_migrations(id,applied_at)
- VALUES('0049-robin-partner-workspace',CAST(strftime('%s','now') AS INTEGER)*1000);
 
--- Expand payouts to the approved Robin workspace while retaining immutable history.
--- Referencing triggers must be recreated around the parent table rebuild.
+
+
+-- Rebuild the payout ledger together with its three dependent tables in one D1 transaction.
+-- Preserve paid and pending records exactly, and restore every immutable accounting guard.
 DROP TRIGGER IF EXISTS lab_partner_payout_item_guard;
+DROP TRIGGER IF EXISTS lab_partner_payout_items_immutable;
 DROP TRIGGER IF EXISTS lab_partner_paid_claims_immutable;
 DROP TRIGGER IF EXISTS lab_partner_payout_segment_guard;
-CREATE TABLE IF NOT EXISTS lab_partner_payouts_robin (
+DROP TRIGGER IF EXISTS lab_partner_payout_segments_immutable;
+DROP TRIGGER IF EXISTS lab_partner_payout_segments_no_delete;
+CREATE TABLE lab_partner_payout_items_0049 AS SELECT * FROM lab_partner_payout_items;
+CREATE TABLE lab_partner_payout_claims_0049 AS SELECT * FROM lab_partner_payout_claims;
+CREATE TABLE lab_partner_payout_segments_0049 AS SELECT * FROM lab_partner_payout_segments;
+DROP TABLE lab_partner_payout_items;
+DROP TABLE lab_partner_payout_claims;
+DROP TABLE lab_partner_payout_segments;
+CREATE TABLE lab_partner_payouts_robin (
  id TEXT PRIMARY KEY,
  workspace TEXT NOT NULL CHECK(workspace IN ('bellini-studio','robin-studio')),
  partner_customer_id TEXT NOT NULL REFERENCES lab_customers(id),
@@ -107,7 +116,34 @@ DROP TABLE lab_partner_payouts;
 ALTER TABLE lab_partner_payouts_robin RENAME TO lab_partner_payouts;
 CREATE UNIQUE INDEX IF NOT EXISTS lab_partner_one_pending_payout
  ON lab_partner_payouts(partner_customer_id) WHERE status='pending';
-
+CREATE TABLE IF NOT EXISTS lab_partner_payout_items (
+ payout_id TEXT NOT NULL REFERENCES lab_partner_payouts(id),
+ reference TEXT NOT NULL REFERENCES lab_revenue_events(reference),
+ amount_cents INTEGER NOT NULL, fee_cents INTEGER NOT NULL, tax_cents INTEGER NOT NULL,
+ base_cents INTEGER NOT NULL CHECK(base_cents>=0),
+ rate INTEGER NOT NULL CHECK(rate IN (20,50)),
+ commission_cents INTEGER NOT NULL CHECK(commission_cents>0),
+ PRIMARY KEY(payout_id,reference)
+);
+CREATE TABLE IF NOT EXISTS lab_partner_payout_claims (
+ reference TEXT PRIMARY KEY REFERENCES lab_revenue_events(reference),
+ payout_id TEXT NOT NULL REFERENCES lab_partner_payouts(id)
+);
+CREATE TABLE IF NOT EXISTS lab_partner_payout_segments (
+ payout_id TEXT NOT NULL REFERENCES lab_partner_payouts(id),reference TEXT NOT NULL REFERENCES lab_revenue_events(reference),
+ amount_cents INTEGER NOT NULL,fee_cents INTEGER NOT NULL,tax_cents INTEGER NOT NULL,base_cents INTEGER NOT NULL,
+ rate INTEGER NOT NULL CHECK(rate IN (20,50)),commission_cents INTEGER NOT NULL CHECK(commission_cents>0),
+ nominal_cents INTEGER NOT NULL,adjustment_cents INTEGER NOT NULL,reserve_cents INTEGER NOT NULL,
+ cost_cents INTEGER,entitlement_cents INTEGER NOT NULL,revision INTEGER NOT NULL,
+ PRIMARY KEY(payout_id,reference)
+);
+CREATE INDEX IF NOT EXISTS lab_partner_payout_segments_reference ON lab_partner_payout_segments(reference);
+INSERT INTO lab_partner_payout_items SELECT * FROM lab_partner_payout_items_0049;
+DROP TABLE lab_partner_payout_items_0049;
+INSERT INTO lab_partner_payout_claims SELECT * FROM lab_partner_payout_claims_0049;
+DROP TABLE lab_partner_payout_claims_0049;
+INSERT INTO lab_partner_payout_segments SELECT * FROM lab_partner_payout_segments_0049;
+DROP TABLE lab_partner_payout_segments_0049;
 CREATE TRIGGER lab_partner_payout_item_guard BEFORE INSERT ON lab_partner_payout_items
 BEGIN
  SELECT CASE WHEN NOT EXISTS (
@@ -121,13 +157,12 @@ BEGIN
    AND NEW.commission_cents=CAST(ROUND(NEW.base_cents*NEW.rate/100.0) AS INTEGER)
    AND NOT EXISTS(SELECT 1 FROM lab_billing_reviews b WHERE b.customer_id=e.customer_id)
  ) THEN RAISE(ABORT,'Payout payment requires reconciliation') END;
-
+END;
+CREATE TRIGGER lab_partner_payout_items_immutable BEFORE UPDATE ON lab_partner_payout_items
+BEGIN SELECT RAISE(ABORT,'Payout items are immutable'); END;
 CREATE TRIGGER lab_partner_paid_claims_immutable BEFORE DELETE ON lab_partner_payout_claims
 WHEN EXISTS(SELECT 1 FROM lab_partner_payouts WHERE id=OLD.payout_id AND status<>'pending')
 BEGIN SELECT RAISE(ABORT,'Settled payments cannot be requested again'); END;
-
-
--- Rebuild the immutable finance guard to recognize both authorized payout workspaces.
 CREATE TRIGGER lab_partner_payout_segment_guard BEFORE INSERT ON lab_partner_payout_segments
 BEGIN
  SELECT CASE WHEN NOT EXISTS(
@@ -148,3 +183,8 @@ BEGIN
    AND NOT EXISTS(SELECT 1 FROM lab_billing_reviews b WHERE b.customer_id=e.customer_id)
  ) THEN RAISE(ABORT,'Commission already reserved or accounting changed') END;
 END;
+CREATE TRIGGER lab_partner_payout_segments_immutable BEFORE UPDATE ON lab_partner_payout_segments
+BEGIN SELECT RAISE(ABORT,'Payout allocation is immutable'); END;
+CREATE TRIGGER lab_partner_payout_segments_no_delete BEFORE DELETE ON lab_partner_payout_segments
+BEGIN SELECT RAISE(ABORT,'Payout history is immutable'); END;
+INSERT OR IGNORE INTO lab_migrations(id,applied_at) VALUES('0049-robin-partner-workspace',CAST(strftime('%s','now') AS INTEGER)*1000);
