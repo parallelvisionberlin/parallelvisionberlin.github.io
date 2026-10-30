@@ -6,11 +6,12 @@
 <meta name="theme-color" content="#090a0b">
 <meta name="description" content="Full Editorial Studio by PV LAB. Build an editorial series with your identity, styling, and visual direction.">
 <link rel="canonical" href="https://pvlab.studio/full-editorial.html">
-<link rel="preload" as="image" href="https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png" fetchpriority="high">
-<meta property="og:image" content="https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png">
+<link rel="preload" as="image" href="./visuals/character-casting/bronze-cast03.webp" fetchpriority="high">
+<meta property="og:image" content="https://pvlab.studio/visuals/character-casting/bronze-cast03.webp">
 <title>Full Editorial Studio | PV LAB</title>
 <link rel="icon" type="image/png" href="./branding/pv-mark.png">
 <link rel="stylesheet" href="./full-editorial.css?v=20261030-editorial-workspace2">
+<link rel="stylesheet" href="./full-editorial-atelier.css?v=20261030-atelier1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261030-editorial-motion1">
 </head>
 <body>
@@ -26,13 +27,13 @@
 </header>
 <main id="editorial-main">
 <section class="editorial-hero" id="editorial-hero" aria-labelledby="editorial-hero-heading">
-  <div class="editorial-hero-art" aria-hidden="true"><img src="https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png" alt=""></div>
+  <div class="editorial-hero-art" aria-hidden="true"><img src="./visuals/character-casting/bronze-cast03.webp" alt="" fetchpriority="high"></div>
   <div class="editorial-hero-overlay"></div>
   <div class="editorial-hero-copy">
     <div class="editorial-hero-intro"><span class="eyebrow">PV LAB / CREATIVE STUDIOS</span><span class="hero-intro-rule" aria-hidden="true"></span></div>
     <h1 id="editorial-hero-heading" aria-label="Full Editorial Studio"><span>Full</span><span>Editorial</span><span class="hero-title-italic">Studio.</span></h1>
-    <p class="hero-lead">A look becomes a world.</p>
-    <p class="hero-support">Build an entire fashion story through identity, styling and art direction.</p>
+    <p class="hero-lead">Model. Style. World. Series.</p>
+    <p class="hero-support">Build a complete fashion story with your own models, styling and visual worlds.</p>
     <button class="primary hero-start" type="button" id="editorial-start">Create your editorial <span class="line-arrow" aria-hidden="true"></span></button>
   </div>
   <div class="editorial-hero-process" aria-label="Editorial workflow">
@@ -41,7 +42,7 @@
 </section>
 
 <section class="editorial-flow" id="editorial-flow" aria-labelledby="flow-heading">
-  <div class="intro-rail">
+  <div class="intro-rail" aria-hidden="true">
    <div class="workflow-photo" aria-hidden="true"></div>
    <span class="eyebrow">FULL EDITORIAL / WORKFLOW</span><h2 id="flow-heading">Create your<br>editorial.</h2>
    <p>A simple flow to build a fashion series using existing PV LAB image models and your own references.</p>
@@ -52,7 +53,7 @@
   </div>
   <div class="flow-main">
    <div class="progress-top"><span class="eyebrow" id="progress-title">STEP 1 / 4</span><div class="step-track" aria-label="Progress"><i id="step-indicator"></i></div><button id="editorial-reset" type="button" class="text-action">Start over</button></div>
-   <div class="editorial-flow-rail" aria-label="Your editorial progress"><span data-flow-step="1"><small>01</small> Identity</span><span data-flow-step="2"><small>02</small> Styling</span><span data-flow-step="3"><small>03</small> Atmosphere</span><span data-flow-step="4"><small>04</small> The series</span></div>
+   <div class="editorial-flow-rail" aria-label="Your editorial progress"><span data-flow-step="1"><small>01</small> Identity</span><span data-flow-step="2"><small>02</small> Styling</span><span data-flow-step="3"><small>03</small> Location &amp; mood</span><span data-flow-step="4"><small>04</small> Generate</span></div>
    <section class="step-panel" id="panel-model" aria-labelledby="model-heading">
      <h2 id="model-heading">Model &amp; identity</h2><p class="step-intro">Upload your person and optional additional angles. Photos are used as identity references, not as a guarantee of exact likeness.</p>
      <div class="tabs" aria-label="Model source"><button class="tab is-selected" type="button" data-model-tab="photos"><span class="source-icon" aria-hidden="true">▧</span><strong>Upload photos</strong><small>Use your own images</small></button><button class="tab" id="saved-character" type="button"><span class="source-icon" aria-hidden="true">♙</span><strong>Saved character</strong><small>From your library</small></button><a class="tab" href="./studio.html?tool=image&createCharacter=1"><span class="source-icon" aria-hidden="true">✧</span><strong>Create a character</strong><small>Generate a new identity</small></a></div>
@@ -111,6 +112,6 @@
 <dialog id="saved-elements-dialog" aria-labelledby="saved-elements-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / ELEMENTS</span><h2 id="saved-elements-heading">Saved Elements</h2><p>Use existing private reference images from your Elements library.</p><div id="saved-elements-list" class="saved-elements-list"></div><button type="button" class="secondary" id="saved-elements-close">Close</button></div></dialog>
 <dialog id="editorial-confirm" aria-labelledby="confirm-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / CREDIT REVIEW</span><h2 id="confirm-heading">Confirm your editorial set</h2><p id="confirm-description">The server determines your exact credit price.</p><dl><div><dt>Images in this batch</dt><dd id="confirm-count"></dd></div><div><dt>Credits for this batch</dt><dd id="confirm-price"></dd></div><div><dt>Remaining planned images</dt><dd id="confirm-remaining"></dd></div></dl><div class="confirm-buttons"><button type="button" class="secondary" id="confirm-cancel">Cancel</button><button type="button" class="primary" id="confirm-submit">Generate · confirm credits</button></div><p class="fineprint">Only this confirmed batch is submitted and charged. Never automatically resubmitted after a network error.</p></div></dialog>
 <script src="./studios-menu.js?v=20261030-auto-hover1" defer></script>
-<script type="module" src="./full-editorial.js?v=20261030-editorial-back-scroll3"></script>
+<script type="module" src="./full-editorial.js?v=20261030-atelier1"></script>
 </body>
 </html>
