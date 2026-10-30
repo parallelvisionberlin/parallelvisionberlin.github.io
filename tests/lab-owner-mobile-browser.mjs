@@ -86,6 +86,13 @@ try{
       assert.match(await page.locator('#owner-provider-details').innerText(),/Balance unavailable/,'Unknown balances are not zeros');
       assert.match(await page.locator('#owner-customer-liability').innerText(),/250 PV LAB credits/,'Customer units are separate');
       assert.equal(await page.locator('a[data-owner-nav][href="#owner-providers-section"]').count(),1,'Dedicated Providers sidebar destination');
+      assert.equal(await page.locator('.owner-side-nav > a[data-owner-robin][href="./robin-studio.html"]').count(),1,'Robin has a dedicated Owner left-sidebar link');
+      assert.equal(await page.locator('.owner-side-bottom > a[data-owner-robin]').count(),0,'Robin is not buried in the utility footer');
+      if(width>920){
+        await page.locator('.owner-side-nav > a[data-owner-robin]').evaluate(el=>{el.hidden=false;});
+        assert.equal(await page.locator('.owner-side-nav > a[data-owner-robin]').isVisible(),true,'Owner can see Robin workspace in sidebar');
+        assert.equal(await page.locator('.owner-sidebar').evaluate(el=>getComputedStyle(el).overflowY),'auto','Short laptop sidebars remain scrollable');
+      }
 
       await page.evaluate(()=>paintTraffic({
         days:7,measured:true,firstTrackedDay:'2026-10-15',
