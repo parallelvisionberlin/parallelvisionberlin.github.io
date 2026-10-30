@@ -3,9 +3,10 @@
 (()=>{
  const script=document.currentScript,base=new URL('./',script?.src||location.href);
  const url=path=>new URL(path,base).href;
+ // Selected high-fashion editorial menu. Use full-resolution local photographs for portraits.
  const beautyHero=url('visuals/beauty/beauty-veil-editorial.webp');
- const sprite=url('visuals/beauty/studios-original-reference.svg');
- const retouchCard=url('visuals/beauty/retouch-studio-reference-card.svg');
+ const fashionHero=url('visuals/silver-image.webp');
+ const retouchHero=url('visuals/full-editorial-hero-clean-20261028.jpg');
  const editorialHero='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png';
  const arrow='<span class="pv-studios-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span>';
  const foot=caption=>'<div class="pv-studios-foot"><span class="pv-studios-foot-label">'+caption+'</span><span class="pv-studios-foot-rule" aria-hidden="true"></span>'+arrow+'</div>';
@@ -20,9 +21,9 @@
   panel.innerHTML='<div class="pv-studios-panel-head"><span class="pv-studios-kicker">STUDIOS</span><span class="pv-studios-heading">CREATIVE STUDIOS</span></div>'+
    '<div class="pv-studios-grid">'+
      '<section class="pv-studios-tile pv-studios-beauty"><div class="pv-studios-photo"><img class="pv-studios-beauty-artwork" alt="" loading="lazy" decoding="async" src="'+beautyHero+'"></div><div class="pv-studios-meta"><strong><span>Beauty</span><span>Studio</span></strong>'+foot('Portrait &amp; Beauty')+'</div><a aria-label="Beauty Studio" href="'+url('beauty.html')+'"></a></section>'+
-     '<section class="pv-studios-tile pv-studios-fashion"><div class="pv-studios-photo"><img class="pv-studios-fashion-artwork" alt="" loading="lazy" decoding="async" src="'+sprite+'"></div><div class="pv-studios-meta"><strong><span>Fashion</span><span>Studio</span></strong>'+foot('Style &amp; Campaign')+'</div></section>'+
+     '<section class="pv-studios-tile pv-studios-fashion"><div class="pv-studios-photo"><img class="pv-studios-fashion-artwork" alt="" loading="lazy" decoding="async" src="'+fashionHero+'"></div><div class="pv-studios-meta"><strong><span>Fashion</span><span>Studio</span></strong>'+foot('Style &amp; Campaign')+'</div></section>'+
      '<section class="pv-studios-tile pv-studios-editorial"><div class="pv-studios-photo"><img class="pv-studios-editorial-artwork" alt="" loading="lazy" decoding="async" src="'+editorialHero+'"></div><div class="pv-studios-editorial-copy"><strong><span>Full</span><span>Editorial</span></strong>'+foot('Complete Fashion Story')+'</div><a aria-label="Full Editorial" href="'+url('full-editorial.html')+'"></a></section>'+
-     '<section class="pv-studios-tile pv-studios-retouch"><div class="pv-studios-photo"><img class="pv-studios-retouch-artwork" alt="" loading="lazy" decoding="async" src="'+retouchCard+'"></div><div class="pv-studios-meta"><strong><span>Retouch</span><span>Studio</span></strong>'+foot('Precision Edits')+'</div><a class="pv-studios-retouch-link" aria-label="Retouch Studio" href="'+url('studio.html?tool=retouch')+'"></a></section>'+
+     '<section class="pv-studios-tile pv-studios-retouch"><div class="pv-studios-photo"><img class="pv-studios-retouch-artwork" alt="" loading="lazy" decoding="async" src="'+retouchHero+'"></div><div class="pv-studios-meta"><strong><span>Retouch</span><span>Studio</span></strong>'+foot('Precision Edits')+'</div><a class="pv-studios-retouch-link" aria-label="Retouch Studio" href="'+url('studio.html?tool=retouch')+'"></a></section>'+
    '</div>'+
    '<div class="pv-studios-secondary"><a class="pv-studios-character-link" href="'+url('studio.html?tool=image&createCharacter=1')+'">Character Studio</a></div>';
   original.before(shell);shell.append(trigger,panel);panel.querySelector('.pv-studios-fashion').append(original);
@@ -36,7 +37,7 @@
   new MutationObserver(active).observe(original,{attributes:true,attributeFilter:['aria-pressed']});
   if(existingRetouch?.tagName==='BUTTON')new MutationObserver(active).observe(existingRetouch,{attributes:true,attributeFilter:['aria-pressed']});
   function position(){
-   const rect=trigger.getBoundingClientRect(),wide=innerWidth>760,width=Math.min(wide?1300:520,innerWidth-28),left=Math.max(14,Math.min(rect.left-(wide?120:12),innerWidth-width-14)),top=Math.max(8,rect.bottom+12);
+   const rect=trigger.getBoundingClientRect(),wide=innerWidth>900,width=Math.min(wide?1210:620,innerWidth-28),left=Math.max(14,Math.min(rect.left-(wide?116:14),innerWidth-width-14)),top=Math.max(8,rect.bottom+9);
    if(rect.bottom<0){close();return;}
    Object.assign(panel.style,{width:width+'px',left:left+'px',top:top+'px',maxHeight:Math.max(120,innerHeight-top-12)+'px'});
   }
