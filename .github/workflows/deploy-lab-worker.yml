@@ -134,6 +134,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0046-music-link-designs.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0047-music-link-click-event.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0048-music-user-workspaces.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0049-robin-partner-workspace.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health
