@@ -41,6 +41,17 @@
 - Real browser mouse drag moved the rail and cleared dragging state on release.
 - Native iPhone touch feel cannot be observed directly in the desktop QA browser; pointer physics and vertical-gesture handling tested separately.
 - Preview-only config and QA iframe page excluded from publication.
-- Publication: pending reviewed commit, normal Cloudflare deployment and live verification.
-- Next: publish scoped source, verify exact Cloudflare commit, production CSS/JS/photo bytes and rendered carousel controls.
+- Published merge: `1052762f7327a9026db33a4fc7728c5b134ec8e6`, PR #688.
+- Reviewed final source: `ca2767f5c4f443716f6891a54f16f03f7f5a6f72`; uploaded tree matched the local tested tree.
+- Exact merged-commit Cloudflare Pages check `124233576321`: completed successfully.
+- Homepage read-only release verifier: LIVE_VERIFIED for CSS and JS version `20261030-casting-inertia-4`.
+- Live CSS SHA-256: `9bb67adbd3d5fae2b0fbc12433b732d3c501cd72d057e8d0412e367ec62e9757`.
+- Live carousel JS SHA-256: `617a8097879246cdf22056f5b8c3563aae6e0a6db6c39b8c4488993278d043f3`.
+- All three new production photos returned HTTP 200 and matched reviewed source bytes.
+- Final PR landing, approved Image UI, core tests and validation checks all passed.
+- Live browser: eight loaded portraits; no scrollbar; viewer-like lateral controls; next click moved 235px.
+- Live keyboard End reached exact 843px boundary; no horizontal page overflow.
+- Final phone QA at 375/305px content widths: arrows hidden, scrollbar none, eight characters and no overflow.
+- Live screenshot captured after final publication; signed-in character creation logic unchanged and not re-exercised.
+- Next: complete. Keep approved long cards, eight identities and clean inertial behavior.
 - Follow `lab/RELEASE-PROTOCOL.md`; GitHub Pages success is not proof of pvlab.studio publication.
