@@ -89,12 +89,12 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-30
-- Objective: artist profile, release page and three Instagram images complete; current refinement gives the release story stronger reading presence.
+- Objective complete: artist profile, release page and three Instagram images; current reading-flow refinement published.
 - Artist URL: https://parallelvisionlabel.com/estero.html
 - Release URL: https://parallelvisionlabel.com/siento.html
-- Latest product source: `e369a384320227e75fef345274cd955a854d7b74`, PR #695.
-- Latest verified deployed merge: `5de1bf5cabed1c1a2f09085ada02f67ac8aeaa29`.
-- GitHub Pages run 41124958994 completed successfully; public browser verification completed after deployment.
+- Latest product source: `9f118cad44e79d529ab30c4d45ba7e4275660060`, PR #700.
+- Latest verified deployed merge: `ccb433accec55ad3a2fe0f7b50a12b85697a1e4d`.
+- GitHub Pages run 41137176120 completed successfully; public browser confirms reading-1 CSS, article-first order, new lead and 24px desktop body.
 - Owner authorized publication of the pages and supplied photographs. Repository owner/domain verified; native GitHub connector is the write route because shell Git lacks credentials.
 - Artist: Estero / Andrés Zendejas, Mexican producer and DJ; supplied biography is the source.
 - Release: Siento / PV016; Beatport 6 November 2026, all platforms 20 November 2026.
@@ -113,7 +113,7 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Original page implementation: PR #690, deployed merge `9bb0866c0c876d4dc6d2d062cb885bd734713417`; Pages run 41119099499 succeeded.
 - Shadow interview: PR #694, merge `14a1032794b343d3933e1a4f9e9d9289ef3fc0d1`; Pages run 41123042606 succeeded.
 - Decorative silver portrait behind the interview has directional dark gradients, .48 desktop opacity and .30 mobile opacity; no fixed background.
-- Latest refinement anchors only the release hero to the source photo's top edge (50% 0% desktop / 51% 0% mobile), preventing hair cropping on wide screens. Original hero height and title size retained.
+- Previous framing refinement anchors only the release hero to the source photo's top edge (50% 0% desktop / 51% 0% mobile), preventing hair cropping on wide screens. Original hero height and title size retained.
 - Closing quote caps at 64px and 1300px width with 1.12 leading, .035em negative tracking and 96px maximum vertical section padding; original wording retained.
 - Current release stylesheet cache: estero-editorial.css?v=20261030-reading-1.
 - Reading refinement: article first in the DOM and on screen; compact release details move to the right on desktop and below the story on mobile.
@@ -121,9 +121,9 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Reading hierarchy: headline up to 96px, lead up to 34px, body up to 24px with 880px maximum reading width and darker ink; mobile body 18px and lead 24px.
 - Latest changed files: `css/estero-editorial.css`, `siento.html`, this checkpoint. Artist page and interview content retained.
 - Validation: static build passes 24 maintained public pages; whitespace check passes; PR static CI passed.
-- Responsive preview checked at 1920x900 and phone 390/320 frames (375/305px content widths); full head remains visible and no phone horizontal overflow.
+- Previous hero framing checked at 1920x900 and phone 390/320 frames (375/305px content widths); full head remains visible.
 - At 1920px, revised closing quote measures 1300x286.7px with 64px text.
-- Public browser confirms the new cache URL, decoded hero, object-position 50% 0%, and revised quote dimensions. Final screenshot captured from the public page.
+- Hero object-position remains 50% 0%; the closing quote and shadow interview are unchanged by the reading update. Final public reading screenshot captured.
 - Instagram order: 01 Siento, 02 Estero, 03 Fashion After Fabric; 1080x1350 PNGs with original photographs and approved typography, repeated category numbers/dividers removed.
 - 01_SIENTO.png: libfile_2d62505da8848191bfab6f55e1c72694, version 1.
 - 02_ESTERO.png: libfile_bc8ca3f3c5188191b859d630c654ac6c, version 1.
@@ -132,5 +132,6 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Image files were revised in place, preserving identity/history; no Instagram posting was requested or performed.
 - Animation slots remain documented in artist hero, release hero and release editorial still; retain corresponding posters.
 - No verified listening/purchase/presave URLs supplied; no guessed destinations or empty players added.
-- Reading refinement: local static build and whitespace checks pass; phone 390/320 content widths 375/305px have no horizontal overflow, and desktop 1920 preview reviewed. Publication pending.
-- Next: publish the reading refinement and verify public output; owner supplies animation clips, final artwork and verified listening links later.
+- Reading refinement: local static build/whitespace checks and source CI pass; browser checked at 1920px and 1348px plus 390/320 phone frames (375/305px content widths), without horizontal overflow.
+- Read Estero’s words reaches #in-his-words at the 90px header offset; story precedes metadata on phones. Changes are confined to release-intro selectors.
+- No publication blocker remains. Next: owner supplies animation clips, final artwork and verified listening links.
