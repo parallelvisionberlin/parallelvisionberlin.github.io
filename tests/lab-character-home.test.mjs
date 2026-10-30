@@ -23,16 +23,16 @@ test('character invitation links to the exact create workflow',()=>{
   assert.match(studio,/characterLanding=20261024v1/);
 });
 test('casting invitation uses separate local portraits, loaded fonts and a contained phone rail',()=>{
-  for(const img of ['night-cast03.webp','ivory-cast03.webp','chrome-cast03.webp','plum-cast03.webp','bronze-cast03.webp']){
+  for(const img of ['night-cast03.webp','ivory-cast03.webp','chrome-cast03.webp','plum-cast03.webp','bronze-cast03.webp','copper-inertia.webp','android-inertia.webp','curls-inertia.webp']){
     assert.match(home,new RegExp(img.replace('.','\\.')));
     assert.ok(existsSync(path.join(root,'lab/visuals/character-casting',img)));
   }
-  assert.match(home,/character-home\.css\?v=20261030-casting-compact03-2/);
+  assert.match(home,/character-home\.css\?v=20261030-casting-inertia-4/);
   assert.match(css,/@media\(max-width:700px\)/);
   assert.match(css,/font-family:PV Casting Display/);
   assert.ok(css.includes('border-radius:999px'), 'character CTA should be rounded');
   assert.match(css,/overflow-x:auto/);
-  assert.match(css,/scroll-snap-type:x proximity/);
+  assert.match(css,/scroll-snap-type:none/);
   assert.doesNotMatch(css,/84svh|__world|font-style:italic/);
   for(const file of ['russo-one-latin-v18.woff','rajdhani-medium-latin-v17.woff','rajdhani-semibold-latin-v17.woff']){
     assert.ok(existsSync(path.join(root,'lab/fonts',file)));
