@@ -42,14 +42,15 @@ export async function partnerPayoutRoute(request,env,actor,{ownerView=false}={})
    return json({requests:await all(env,`SELECT id,workspace,status,amount_cents AS amountCents,created_at AS createdAt
     FROM lab_partner_payouts WHERE status='pending' ORDER BY created_at,id LIMIT 100`)});
   }
-  if(!path.startsWith('/api/admin/partners/bellini-studio/payouts'))fail(404,'Unknown payout workspace.');
-  const partner=await resolveApprovedPartner(env,'bellini-studio');
-  if(!partner)fail(409,'Bellini debe iniciar sesión primero.');subject=partner.subject;
+  const slug=path.match(/^\/api\/admin\/partners\/(bellini-studio|robin-studio)\/payouts(?:\/|$)/)?.[1];
+  if(!slug)fail(404,'Unknown payout workspace.');
+  const partner=await resolveApprovedPartner(env,slug);
+  if(!partner)fail(409,'El partner debe iniciar sesión primero.');subject=partner.subject;
  }else{
   const workspace=await partnerWorkspace(env,subject,{verify:true});
-  if(workspace?.slug!=='bellini-studio')fail(403,'Esta cuenta no tiene acceso a los retiros de Bellini.');
+  if(!['bellini-studio','robin-studio'].includes(workspace?.slug))fail(403,'Esta cuenta no tiene acceso a los retiros de partners.');
  }
- const base=ownerView?'/api/admin/partners/bellini-studio/payouts':'/api/customer/partner/payouts';
+ const base=ownerView?'/api/admin/partners/'+path.split('/')[4]+'/payouts':'/api/customer/partner/payouts';
  const action=path.slice(base.length);
  if(!['','/prepare','/confirm','/cancel'].includes(action))fail(404,'Unknown payout endpoint.');
  if(request.method==='GET'&&action==='')return json((await report(env,subject)).view);
@@ -94,7 +95,7 @@ export async function partnerPayoutRoute(request,env,actor,{ownerView=false}={})
   }
   return json((await report(env,subject)).view);
  }
- if(ownerView)fail(403,'La solicitud debe enviarla Bellini desde su cuenta.');
+ if(ownerView)fail(403,'La solicitud debe enviarla el partner desde su cuenta.');
  if(typeof data.requestId!=='string'||!/^[a-f0-9-]{36}$/.test(data.requestId))fail(400,'Solicitud no válida.');
  const existing=await one(env,'SELECT id FROM lab_partner_payouts WHERE id=? AND partner_customer_id=?',data.requestId,subject);
  if(existing)return json((await report(env,subject)).view);
@@ -103,7 +104,7 @@ export async function partnerPayoutRoute(request,env,actor,{ownerView=false}={})
  if(view.availableCents<5000)fail(409,'El mínimo para solicitar un pago es de 50 € netos.');
  if(!Number.isSafeInteger(data.expectedAmountCents)||data.expectedAmountCents!==view.availableCents)fail(409,'El importe cambió. Actualiza el saldo y revisa el nuevo neto antes de solicitarlo.');
  const now=Date.now();const statements=[env.LAB_DB.prepare(`INSERT INTO lab_partner_payouts
-  (id,workspace,partner_customer_id,status,amount_cents,created_at,updated_at) VALUES(?,'bellini-studio',?,'pending',?,?,?)`).bind(data.requestId,subject,view.availableCents,now,now)];
+  (id,workspace,partner_customer_id,status,amount_cents,created_at,updated_at) VALUES(?,?,?,'pending',?,?,?)`).bind(data.requestId,workspace.slug,subject,view.availableCents,now,now)];
  const items=JSON.stringify(available.map(p=>[p.reference,p.amountCents,p.feeCents,p.taxCents,p.baseCents,p.rate,p.withdrawalCents,p.nominalCommissionCents??p.commissionCents,p.costAdjustmentCents||0,p.costReserveCents||0,p.generationCostCents??null,p.payableCents??p.commissionCents]));
  statements.push(costSnapshotStatement(env,subject,view.commissionReport.receipts,view.commissionReport.costRevision));
  statements.push(env.LAB_DB.prepare(`INSERT INTO lab_partner_payout_segments
