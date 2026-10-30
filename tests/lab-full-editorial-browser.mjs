@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {readFileSync,existsSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
@@ -33,18 +33,46 @@ const server=http.createServer(async(req,res)=>{
 });
 await new Promise(ok=>server.listen(4179,'127.0.0.1',ok));
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+mkdirSync('test-results/editorial',{recursive:true});
 try{
  for(const width of [1440,390]){
   const page=await browser.newPage({viewport:{width,height:900},acceptDownloads:true});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4179/lab/full-editorial.html',{waitUntil:'domcontentloaded'});
-  await page.locator('#editorial-start').click();await page.locator('#model-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
+  await page.locator('.editorial-hero-art img').evaluate(img=>img.decode().catch(()=>{}));
+  await page.screenshot({path:'test-results/editorial/'+width+'-hero.png',fullPage:width===390});
+  await page.locator('#editorial-start').click();
+  await page.locator('#editorial-top-back').click();
+  assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
+  await page.locator('#editorial-start').click();
+  await page.locator('#step-back').click();
+  assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Back returns from Identity to hero');
+  assert.equal(await page.locator('#editorial-flow').isVisible(),false);
+  await page.locator('#editorial-start').click();
+  await page.locator('#casting-reference-gallery .atelier-reference').first().click();
+  await page.locator('#model-thumbs .thumb').waitFor({state:'visible'});
+  await page.locator('.stage-visual--identity img').evaluate(img=>img.decode().catch(()=>{}));
+  await page.screenshot({path:'test-results/editorial/'+width+'-identity.png',fullPage:width===390});
+  assert.equal(await page.locator('#casting-reference-gallery .atelier-reference').first().getAttribute('aria-pressed'),'true');
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-style').isVisible(),true);
   await page.locator('#styling-direction').fill('Architectural black leather and natural tailoring.');
   await page.locator('#outfit-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
+  await page.locator('.stage-visual--style img').evaluate(img=>img.decode().catch(()=>{}));
+  await page.screenshot({path:'test-results/editorial/'+width+'-styling.png',fullPage:width===390});
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-mood').isVisible(),true);
   await page.locator('.direction-card').first().click();
+  assert.match(await page.locator('#direction-summary').textContent(),/Studio/);
+  await page.locator('[data-direction-tab="moods"]').click();
+  await page.locator('.direction-card').first().click();
+  await page.locator('[data-direction-tab="location"]').click();
+  assert.equal(await page.locator('.direction-card').first().getAttribute('aria-pressed'),'true','Location remains selected after switching category');
+  await page.locator('#editorial-atmosphere').selectOption('analogue');
+  await page.locator('.stage-visual--world img').evaluate(img=>img.decode().catch(()=>{}));
+  await page.screenshot({path:'test-results/editorial/'+width+'-world.png',fullPage:width===390});
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-generate').isVisible(),true);
+  assert.match(await page.locator('#review-model-text').textContent(),/1 model photograph/);
+  assert.match(await page.locator('#review-outfit-text').textContent(),/1 wardrobe reference/);
+  await page.screenshot({path:'test-results/editorial/'+width+'-review.png',fullPage:width===390});
   const before=jobCount;await page.locator('#review-credits').click();
   try{await page.locator('#editorial-confirm').waitFor({state:'visible',timeout:5500})}
   catch(error){
@@ -57,6 +85,7 @@ try{
   await page.locator('#confirm-submit').click();
   await page.locator('#editorial-results .result-card').last().waitFor({timeout:15000});
   assert.equal(await page.locator('#editorial-results .result-card').count(),4);
+  await page.screenshot({path:'test-results/editorial/'+width+'-results.png',fullPage:width===390});
   assert.equal(jobCount,before+4,'Four individually bound and confirmed jobs were submitted');
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2);
   assert.equal(overflow,false,'Full Editorial has no horizontal overflow at '+width);
