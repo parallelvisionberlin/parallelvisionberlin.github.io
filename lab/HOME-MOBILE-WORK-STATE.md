@@ -1,5 +1,16 @@
 # PV LAB phone homepage layout
 
+## Homepage Fashion feature visibility, 2026-10-30
+
+- Owner requested hiding the standalone Fashion Studio feature shown in image(20261030-093559).png.
+- Baseline: main 06755f1df7062d2153f4fb9052a9641c3ca4d29d.
+- Change: native `hidden` attribute on `.pv-fashion-feature` in `lab/index.html`.
+- Retain markup and artwork for reversal; hide on desktop and mobile without a layout gap.
+- Keep the Fashion Studio navigation link, Creative Studios card and destination available.
+- Other homepage sections, including Full Editorial and Characters, stay unchanged.
+- Validation: approved Image UI contract passes 5/5; final diff is one HTML attribute plus this checkpoint.
+- Publication and production rendering require independent verification after merge.
+
 - Updated: 2026-10-29, Europe/Berlin.
 - Source baseline: main d3c38fd.
 - Branch: fix/mobile-home-spacing.
