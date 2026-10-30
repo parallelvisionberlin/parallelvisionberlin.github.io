@@ -56,7 +56,7 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
   if(index===current)item.setAttribute('aria-current','step');else item.removeAttribute('aria-current');
  }
  $('step-next').textContent=next===4?'Review credits':'Next';
- if(next>0)document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});
+ if(next===0){window.scrollTo({top:0,left:0,behavior:'instant'});document.getElementById('editorial-hero').scrollIntoView({block:'start',behavior:'instant'});}else{document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});}
 }
 function updateOptions(){for(const b of $('count-options').querySelectorAll('button'))b.classList.toggle('is-selected',Number(b.dataset.count)===chosenCount);
  for(const b of $('ratio-options').querySelectorAll('button'))b.classList.toggle('is-selected',b.dataset.ratio===chosenRatio);}
