@@ -138,19 +138,29 @@ async function publicBrowser({consent=null}={}){
   const doc={getElementById:get,querySelector:s=>get(s),querySelectorAll:()=>buttons,createElement:()=>element(),head:{append(script){scripts.push(script);}},referrer:''};
   const release={id:crypto.randomUUID(),slug:'test',title:'Single',artist:'Artist',links:[{service:'spotify',url:'https://open.spotify.com/track/x'}],url:'https://parallelvisionlabel.com/listen/?release=test'};
   const win={};
-  const context={API:'https://api.example',SLUG:/^[a-z]+$/,metaDetails,newId,renderRelease(root,r,{onClick}){click=onClick;},document:doc,window:win,location:{search:'?release=test&utm_source=meta&utm_campaign=test',hostname:'parallelvisionlabel.com'},localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},navigator:{sendBeacon(url,data){sent.push({url,data});return true;}},crypto,URL,URLSearchParams,AbortSignal,Blob,Date,fetch:async()=>new Response(JSON.stringify({release,tracking:{pixelId:MUSIC_PIXEL,clickEvent:'Hypeddit Smart Link Click'}})),Response,Error};
+  const context={API:'https://api.example',SLUG:/^[a-z]+$/,metaDetails,newId,renderRelease(root,r,{onClick}){click=onClick;},document:doc,window:win,location:{search:'?release=test&utm_source=meta&utm_campaign=test',hostname:'parallelvisionlabel.com'},localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},navigator:{sendBeacon(url,data){sent.push({url,data});return true;}},crypto,URL,URLSearchParams,AbortSignal,Blob,Date,fetch:async()=>new Response(JSON.stringify({release,tracking:{pixelId:MUSIC_PIXEL,clickEvent:'MusicLinkClick'}})),Response,Error};
   let source=readFileSync(new URL('../listen/listen.mjs',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
   await vm.runInNewContext('(async()=>{'+source+'})()',context);
   return {elements,scripts,sent,stored,buttons,click,get,win,calls};
 }
-test('actual public script loads no Meta code before consent, records anonymous clicks, then revokes tracking',async()=>{
-  const browser=await publicBrowser();assert.equal(browser.scripts.length,0);assert.equal(browser.sent.length,1);
-  browser.click('spotify');assert.equal(browser.sent.length,2);assert.equal(browser.win.fbq,undefined);
-  browser.buttons[1].listeners.click();assert.equal(browser.scripts.length,1);assert.equal(browser.scripts[0].src,'https://connect.facebook.net/en_US/fbevents.js');
-  assert.equal(browser.stored.get('pv-music-meta-consent-v1'),'granted');assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='init').length,1);
-  browser.click('spotify');let events=browser.win.fbq.queue.filter(a=>a[0]==='trackSingleCustom');assert.equal(events.length,1);assert.equal(events[0][2],'Hypeddit Smart Link Click');assert.equal(events[0][3].music_service,'spotify');
-  browser.buttons[0].listeners.click();browser.click('spotify');assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='trackSingleCustom').length,1);
-  assert.equal(browser.win.fbq.queue.at(-1)[1],'revoke');assert.equal(browser.stored.get('pv-music-meta-consent-v1'),'denied');
+test('public listener starts Pixel without a prompt and does not invent a saved consent choice',async()=>{
+  const browser=await publicBrowser();assert.equal(browser.scripts.length,1);assert.equal(browser.sent.length,1);
+  assert.equal(browser.get('meta-consent').hidden,true);assert.equal(browser.stored.size,0);
+  assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='consent').length,0);
+  assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='init').length,1);
+  assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='trackSingle').length,2);
+  browser.click('spotify');const events=browser.win.fbq.queue.filter(a=>a[0]==='trackSingleCustom');
+  assert.equal(events.length,1);assert.equal(events[0][2],'MusicLinkClick');assert.equal(events[0][3].music_service,'spotify');
+});
+test('manual tracking settings revoke future Meta clicks and can re-enable without duplicate init',async()=>{
+  const browser=await publicBrowser();
+  browser.get('privacy-choices').listeners.click();assert.equal(browser.get('meta-consent').hidden,false);
+  browser.buttons[0].listeners.click();browser.click('spotify');
+  assert.equal(browser.get('meta-consent').hidden,true);assert.equal(browser.stored.get('pv-music-meta-consent-v1'),'denied');
+  assert.equal(browser.win.fbq.queue.at(-1)[1],'revoke');assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='trackSingleCustom').length,0);
+  browser.buttons[1].listeners.click();browser.click('spotify');
+  assert.equal(browser.stored.get('pv-music-meta-consent-v1'),'granted');assert.equal(browser.scripts.length,1);
+  assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='init').length,1);assert.equal(browser.win.fbq.queue.filter(a=>a[0]==='trackSingleCustom').length,1);
 });
 test('persisted decline stays declined and public content is still usable',async()=>{
   const browser=await publicBrowser({consent:'denied'});assert.equal(browser.scripts.length,0);assert.equal(browser.get('meta-consent').hidden,true);

@@ -2,14 +2,15 @@ import {API,SLUG,metaDetails,newId} from '../links/shared.mjs';
 import {renderRelease} from '../links/release-view.mjs?v=20261030-refined1';
 const root=document.getElementById('release'),params=new URLSearchParams(location.search);
 const slug=params.get('release')||'',consentKey='pv-music-meta-consent-v1';
-let release=null,tracking=null,initialized=false,choice='';
-try{choice=localStorage.getItem(consentKey)||'';}catch{}
+let release=null,tracking=null,initialized=false,choice='default';
+try{const stored=localStorage.getItem(consentKey);if(stored==='granted'||stored==='denied')choice=stored;}catch{}
 function bootMeta(){
-  if(choice!=='granted'||initialized||!/^\d{8,20}$/.test(tracking?.pixelId||''))return;
+  if(choice==='denied'||initialized||!/^\d{8,20}$/.test(tracking?.pixelId||''))return;
   initialized=true;
   if(!window.fbq){const fbq=window.fbq=function(){fbq.callMethod?fbq.callMethod.apply(fbq,arguments):fbq.queue.push(arguments);};window._fbq=fbq;fbq.push=fbq;fbq.loaded=true;fbq.version='2.0';fbq.queue=[];
     const script=document.createElement('script');script.async=true;script.src='https://connect.facebook.net/en_US/fbevents.js';document.head.append(script);}
-  window.fbq('consent','grant');window.fbq('init',tracking.pixelId);
+  if(choice==='granted')window.fbq('consent','grant');
+  window.fbq('init',tracking.pixelId);
   window.fbq('trackSingle',tracking.pixelId,'PageView');window.fbq('trackSingle',tracking.pixelId,'ViewContent',metaDetails(release));
 }
 function setConsent(next){
@@ -38,7 +39,7 @@ function measure(event,service=''){
 }
 function clicked(service){
   measure('click',service);
-  if(choice==='granted'&&initialized)window.fbq('trackSingleCustom',tracking.pixelId,tracking.clickEvent,metaDetails(release,service),{eventID:newId()});
+  if(choice!=='denied'&&initialized)window.fbq('trackSingleCustom',tracking.pixelId,tracking.clickEvent,metaDetails(release,service),{eventID:newId()});
 }
 try{
   if(slug.length>80||!SLUG.test(slug))throw Error('Choose a release link to listen.');
@@ -49,7 +50,7 @@ try{
   document.querySelector('meta[name="description"]').content='Listen to '+release.title+' by '+release.artist+'. Parallel Vision.';
   document.querySelector('link[rel="canonical"]').href=release.url;
   renderRelease(root,release,{onClick:clicked});measure('view');
-  bootMeta();if(!choice&&tracking.pixelId)document.getElementById('meta-consent').hidden=false;
+  bootMeta();
 }catch(error){
   root.className='release-error';root.replaceChildren();const title=document.createElement('h1');title.textContent='Release unavailable.';
   const message=document.createElement('p');message.textContent=error.message||'Please try again shortly.';
