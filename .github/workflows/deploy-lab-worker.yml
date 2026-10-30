@@ -154,6 +154,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --retry 4 --retry-delay 3 \
-            https://parallel-vision-lab.parallelvision.workers.dev/api/music/public/status \
-            | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const x=JSON.parse(s);if(!x.ready||x.version!=='music-links-20261030-v3')process.exit(1);console.log(x);})"
+          for attempt in 1 2 3 4 5 6 7 8; do
+            body="$(curl --fail --silent --show-error --connect-timeout 5 --max-time 20 \
+              https://parallel-vision-lab.parallelvision.workers.dev/api/music/public/status || true)"
+            printf '%s\n' "$body"
+            if printf '%s' "$body" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const x=JSON.parse(s);process.exit(x.ready&&x.version==='music-links-20261030-v3'?0:1);}catch{process.exit(1);}})"; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Release-link service did not report music-links-20261030-v3"
+          exit 1

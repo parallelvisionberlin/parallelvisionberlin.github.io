@@ -2,7 +2,7 @@
 Updated: 2026-10-30
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 Feature baseline: d336368 (PR #671); white dashboard 9245740 (PR #673).
-Published After Dark/background service: 99f4438 (PR #674); deployment record 4db39d6.
+Published refinement: e354ffff1d5c6244052cf08312113d77af62b44d (PR #675); prior background service 99f4438 (PR #674).
 
 ## Approved direction
 - Private dashboard: white/black/cool grey, permanent sidebar, compact medium artwork rows, prominent metrics. Only Spotify, SoundCloud, YouTube.
@@ -20,7 +20,10 @@ Published After Dark/background service: 99f4438 (PR #674); deployment record 4d
 - 32 focused music-links/auth tests passed. Default blur, explicit artwork/black, old-client omission and stale-save safeguards checked.
 - Local browser: phone 390x844 body width/scrollWidth 390px; desktop body 1363px with 460px sharp cover and no overflow.
 - Creator: 225px preview cover, all three modes checked; black has zero background images; three-platform preview fits 328px width.
-- Final syntax and whitespace checks passed. Commit/deployment pending; verify exact live files and v3 service.
+- Syntax/whitespace passed. Pages run 41054184749 succeeded; seven changed frontend assets match exact committed bytes.
+- Worker run 41054185064 deployed successfully (version ee7af2c5-2fbf-4be0-a237-28b70263d665), but immediate feature check still saw v2.
+- Actual browser subsequently verified ready:true/music-links-20261030-v3 and Sube JSON background:blur; live page shows refined layout and real Spotify link.
+- Follow-up gate retries revision mismatches during Cloudflare rollout. This fixes the observed false failure without changing application code.
 
 ## Existing implementation
 - Owner /links/ uses existing Clerk with server-verified OWNER_DB role. Public /listen/?release=slug works on static hosting.
@@ -44,7 +47,7 @@ Published After Dark/background service: 99f4438 (PR #674); deployment record 4d
 
 ## Links / next action
 - Dashboard: https://parallelvisionlabel.com/links/ ; Sube: https://parallelvisionlabel.com/listen/?release=sube .
-- Publish approved refinement; verify frontend exact bytes, live layout and music-links-20261030-v3 readiness.
+- Refinement is live. In Meta use Pixel 1746851780072706, event Hypeddit Smart Link Click, with music_service equals spotify for a Spotify custom conversion.
 - Owner edits background under Artwork & sound > Page background, then saves. Explicit existing choices are not overwritten.
 - No CAPI, historical Hypeddit import, pre-save, automatic metadata import or server-rendered per-link social cards.
 - Hypeddit URL-restricted conversions require label-domain rules in Meta. Script loading does not prove ad attribution.
