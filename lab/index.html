@@ -40,7 +40,7 @@
 <link rel="stylesheet" href="./pricing-mobile.css?v=20261016-mobile-editorial1">
 <link rel="stylesheet" href="./studio-credits.css?v=20261023-home-notice-stable-v6">
 <link rel="stylesheet" href="./home-showcase.css?v=20261024-editorial-triptych1">
-<link rel="stylesheet" href="./character-home.css?v=20261030-casting-compact03-2">
+<link rel="stylesheet" href="./character-home.css?v=20261030-casting-inertia-3">
 <link rel="stylesheet" href="./studios-menu.css?v=20261030-editorial-motion1">
 <link rel="stylesheet" href="./home-creative-features.css?v=20261030-tool-first-editorial-type1">
 </head>
@@ -212,7 +212,7 @@
       <h2 class="lab-character-home__heading" id="lab-character-home-title"><span>Make room for</span> <span>your character.</span></h2>
       <p class="lab-character-home__description">Create an identity. Keep the story going.</p>
     </header>
-    <div class="lab-character-home__rail" role="group" aria-label="Create your character and explore character styles">
+    <div class="lab-character-home__rail" id="character-carousel-track" role="group" tabindex="0" aria-label="Create your character and explore character styles" aria-describedby="character-carousel-help">
       <div class="lab-character-home__create">
         <span class="lab-character-home__plus" aria-hidden="true"></span>
         <p>Your character<br>goes here.</p>
@@ -223,8 +223,18 @@
       <figure class="lab-character-home__portrait lab-character-home__portrait--chrome"><img src="./visuals/character-casting/chrome-cast03.webp" alt="Long-haired character in reflective chrome couture with gold detail" width="900" height="1350" loading="lazy" decoding="async"><figcaption aria-hidden="true">03</figcaption></figure>
       <figure class="lab-character-home__portrait lab-character-home__portrait--plum"><img src="./visuals/character-casting/plum-cast03.webp" alt="Character with cropped silver hair and silver lashes in sculptural plum and cracked-silver fashion" width="900" height="1200" loading="lazy" decoding="async"><figcaption aria-hidden="true">04</figcaption></figure>
       <figure class="lab-character-home__portrait lab-character-home__portrait--bronze"><img src="./visuals/character-casting/bronze-cast03.webp" alt="Character wearing hammered bronze couture and a sculptural gold disc" width="900" height="1200" loading="lazy" decoding="async"><figcaption aria-hidden="true">05</figcaption></figure>
+      <figure class="lab-character-home__portrait lab-character-home__portrait--copper"><img src="./visuals/character-casting/copper-inertia.webp" alt="Copper-haired character in sculptural olive-green fashion at an industrial railing" width="900" height="1200" loading="lazy" decoding="async" draggable="false"><figcaption aria-hidden="true">06</figcaption></figure>
+      <figure class="lab-character-home__portrait lab-character-home__portrait--android"><img src="./visuals/character-casting/android-inertia.webp" alt="Pale ceramic humanoid android with chrome joints" width="1600" height="893" loading="lazy" decoding="async" draggable="false"><figcaption aria-hidden="true">07</figcaption></figure>
+      <figure class="lab-character-home__portrait lab-character-home__portrait--curls"><img src="./visuals/character-casting/curls-inertia.webp" alt="Dark curly-haired character with an expressive gaze in warm natural light" width="768" height="1376" loading="lazy" decoding="async" draggable="false"><figcaption aria-hidden="true">08</figcaption></figure>
     </div>
-    <p class="lab-character-home__proof">One identity. Different scenes.</p>
+    <p class="lab-character-home__help" id="character-carousel-help">Swipe or drag to explore. Use the left and right arrow keys when this carousel is focused.</p>
+    <div class="lab-character-home__footer">
+      <p class="lab-character-home__proof">One identity. Different scenes.</p>
+      <div class="lab-character-home__nav" aria-label="Character carousel controls">
+        <button type="button" data-character-nav="prev" aria-label="Previous characters" aria-controls="character-carousel-track" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+        <button type="button" data-character-nav="next" aria-label="Next characters" aria-controls="character-carousel-track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+      </div>
+    </div>
   </div>
 </section>
 <section class="lab-plans" id="pricing" aria-labelledby="lab-plans-title"><div class="lab-plans-inner">
@@ -331,6 +341,7 @@
 <script type="module" src="./customer-entry.js?v=20261023-home-notice-stable-v6&menu=20261014-editorial1&studioAuth=20261015-1&providerPolicy=20261015-google-only1&firstWelcome=1&steadyHeader=1&canonicalStudio=20261015-1&metaCheckout=20261015-1&accountEdge=20261016-24&closure=20261017-logout1&partner=20261024v1&partnerMenu=20261027-bellini1"></script>
 <script type="module" src="./traffic.js?v=20261015-traffic1"></script>
 <script defer src="./studios-menu.js?v=20261030-auto-hover1"></script>
+<script src="./character-home-carousel.js?v=20261030-casting-inertia-3" defer></script>
 </body>
 </html>
 

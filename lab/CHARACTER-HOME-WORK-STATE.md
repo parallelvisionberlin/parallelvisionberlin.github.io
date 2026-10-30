@@ -1,49 +1,44 @@
 # PV LAB homepage / Character casting invitation
 
 - Updated: 2026-10-30, Europe/Berlin.
-- Owner explicitly selected the latest 03 / Compact Cast mockup and requested publication with long cards.
-- Approved mockup source: `exec-f2ed83c8-633f-4f4b-8f38-214111e544fb.png`.
-- This supersedes the earlier four-portrait Fashion Index, published in PR #676 / `e18f0189`.
-- Starting main for this revision: `d57da74`, fetched once before implementation.
-- Isolated branch: `codex/character-compact03-20261030`.
-- Scope: only homepage character invitation, after Creative Studios and before pricing.
-- Preserve main hero, tools, editorial section, navigation, pricing and referral section.
-- Headline: “Make room for / your character.” in existing self-hosted PV Casting Display.
-- Supporting line: “Create an identity. Keep the story going.”
-- First ivory card: thin plus, “Your character goes here.” and clear sentence-case black button.
-- Existing create route remains `studio.html?tool=image&createCharacter=1`.
-- Long portrait row: creation card plus five static photographic examples.
-- Character order: dark-haired night portrait, blonde/ivory, man/chrome, silver-haired/plum, bronze goddess.
-- Owner-provided photos are used directly, not reconstructed from the generated mockup.
+- Owner selected Compact Cast 03, then explicitly requested more supplied characters and faster inertial browsing.
+- Preserve long cards, first ivory creation card, approved typography, copy, photo identities and exact creation route.
+- Starting main: `038bd0e`, fetched once before implementation.
+- Isolated branch: `codex/character-inertia-20261030`.
+- Prior verified release: PR #687 / `a4cb59dc565068c6adef87e90ced4c3ca20bb8bd`.
+- Scope: character invitation only, after Creative Studios and before pricing.
+- Main hero, navigation, editorial section, pricing, referrals and Image Studio logic unchanged.
+- Eight distinct portrait cards: night brunette, ivory blonde, chrome man, plum/silver-haired woman, bronze goddess, copper-haired/olive woman, ceramic android, dark curly-haired woman.
+- Owner-supplied originals reused; no image generations or model credits used.
+- Existing five photo assets remain `lab/visuals/character-casting/*-cast03.webp`.
 - Night source: `libfile_834841ab11c08191a8de4d19c9fec4ac`.
 - Ivory source: `libfile_5b704846db948191aeef1cc6e666700d`.
 - Chrome source: `libfile_7f31af4a80b08191a0eac11de99f3f63`.
 - Plum source: `libfile_ffb181f2645081918c7811773cea2846`.
 - Bronze source: `libfile_60ab3d8642d881918c530d80adf30291`.
-- Assets: five quality-90 WebP photos, about 878 KB combined, under `lab/visuals/character-casting/*-cast03.webp`.
-- Portrait images up to 900px wide; landscape night original retained at 1600px with CSS focal crop.
-- Bronze has a closer CSS crop so the face remains readable alongside the other characters.
-- Desktop: six-column row, card heights 410–530px, 4px corners, 10px gaps.
-- Phones/tablets: contained horizontal rail, 230x410px phone cards / 235x420px tablet cards.
-- Button uses DM Sans, minimum 52px outer height; mobile font 16px.
-- Quiet divider and “One identity. Different scenes.” caption; old proof thumbnails removed per approved mockup.
-- CSS cache version: `20261030-casting-compact03-2`.
-- Files: `lab/index.html`, `lab/character-home.css`, five new WebPs, focused test, this record.
-- Account, character creation, billing and generation logic unchanged.
-- No decorative arrows or fake clickable example cards.
-- Validation: approved Image contract and character-home tests passed 10/10 after final crop adjustment.
-- Browser QA: phone content widths 375/305px, tablet 753px, desktop 1348px; no page horizontal overflow.
-- Phone button text fits without clipping; 410px long cards retained.
-- Desktop: all five original photos loaded; card height about 450px; readable faces and button.
-- Preview-only files/config excluded from publication.
-- Published merge: `a4cb59dc565068c6adef87e90ced4c3ca20bb8bd`, PR #687.
-- Reviewed source: `453e664195c9b156123a832e698184f3bbccb218`; remote tree exactly matches the locally tested tree.
-- Exact merged-commit Cloudflare Pages check `124217784565`: completed successfully.
-- Read-only homepage release verifier: LIVE_VERIFIED for `20261030-casting-compact03-2`.
-- Live CSS SHA-256: `3a0fd73a396ef73f6736f8ff11d2c2daf6a14766ea1717eea8a3270d85f890fc`.
-- All five production photos returned HTTP 200 and matched reviewed source bytes.
-- Live browser verified five loaded photos, 448px portrait height, readable fitting button and no page horizontal overflow.
-- PR homepage landing checks and approved Image UI contract passed; unrelated full repository jobs were still running at publication.
-- Signed-in character creation was not re-exercised; its exact route and logic are unchanged.
-- Next: complete. Preserve Compact Cast 03 and the long cards unless the owner requests changes.
+- New copper/olive source: `libfile_730ac4a529d08191ac856b9253efec4b` / `hf_20261030_155915_2165937f-9147-4642-8f0c-f4cee12891b9(1).png`.
+- Android source: `libfile_73b80d2d4c6c819181023d994e2b2d1e` / `hf_20260312_145126_e4316d42-1a66-405d-b17c-a5b4e7df94d0.jpeg`.
+- Curly-haired source: `libfile_4a7b084647a0819194d32a0cb789d311` / `hf_20260424_115502_e1863369-1520-4653-8130-57d757962b40.png`.
+- New optimized photos: `copper-inertia.webp`, `android-inertia.webp`, `curls-inertia.webp`.
+- All viewports now use a horizontal rail; no forced card snapping.
+- Phone cards remain 230x410px; tablets 235x420px; desktop 210–280px wide / 410–530px tall.
+- Touch and mouse share axis-aware pointer dragging, 1.15x gesture travel and boosted capped release velocity.
+- Inertia uses requestAnimationFrame with exponential decay and hard finite bounds.
+- Vertical gestures remain native through `touch-action:pan-y pinch-zoom` and axis detection.
+- Wheel/trackpad behavior stays native; new input stops custom momentum.
+- No autoplay, looping, duplicated identities, hidden generation or account requests.
+- Reduced-motion preference disables release inertia.
+- Focused rail supports ArrowLeft/ArrowRight and Home/End; events stay scoped to this section.
+- Small functional previous/next controls appear on desktop; phone controls remain hidden.
+- Buttons disable at finite ends; creation CTA remains `studio.html?tool=image&createCharacter=1`.
+- Script: `lab/character-home-carousel.js`; CSS/JS version `20261030-casting-inertia-3`.
+- Focused tests exercise coast/decay, end bounds, vertical gestures, cancellation, held gestures, reduced motion, keyboard/buttons and creation-link safety.
+- Validation: 18/18 across carousel, character-home and approved Image UI tests.
+- Browser phone/tablet widths 375/305/753px: no page overflow, fitting CTA, eight portrait cards, snap none.
+- Desktop 1348px: all eight photos loaded, keyboard End reaches exact 843px boundary, next button disables.
+- Real browser mouse drag moved the rail and cleared dragging state on release.
+- Native iPhone touch feel cannot be observed directly in the desktop QA browser; pointer physics and vertical-gesture handling tested separately.
+- Preview-only config and QA iframe page excluded from publication.
+- Publication: pending reviewed commit, normal Cloudflare deployment and live verification.
+- Next: publish scoped source, verify exact Cloudflare commit, production CSS/JS/photo bytes and rendered carousel controls.
 - Follow `lab/RELEASE-PROTOCOL.md`; GitHub Pages success is not proof of pvlab.studio publication.
