@@ -25,6 +25,17 @@ const server=http.createServer((req,res)=>{
   assert.deepEqual(await page.locator('.studio-tool-link').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
   assert.deepEqual(await page.locator('.landing-header nav > a:not([hidden]),.landing-header nav > .pv-studios-menu > .pv-studios-trigger').allTextContents(),['Image','Video','Upscaler','Studios','Explore Moods','Pricing']);
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),false,'Studios is closed initially');
+  if(await page.evaluate(()=>matchMedia('(hover: hover) and (pointer: fine)').matches)){
+    await page.locator('.pv-studios-trigger').hover();
+    assert.equal(await page.locator('.pv-studios-panel').isVisible(),true,'Studios opens automatically on desktop hover');
+    assert.equal(await page.locator('.pv-studios-trigger').getAttribute('aria-expanded'),'true','Hover exposes the expanded state');
+    assert.equal(await page.locator('.pv-studios-panel').evaluate(el=>el.contains(document.activeElement)),false,'Hover does not move keyboard focus into the panel');
+    await page.locator('.pv-studios-beauty').hover();
+    assert.equal(await page.locator('.pv-studios-panel').isVisible(),true,'Studios stays open while moving from trigger to its cards');
+    await page.mouse.move(0,200);
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('.pv-studios-panel').isVisible(),false,'Studios closes after pointer leaves both trigger and cards');
+  }
   await page.locator('.pv-studios-trigger').click();
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),true,'Studios opens from the upper bar');
   assert.match(await page.getByRole('link',{name:'Beauty Studio',exact:true}).getAttribute('href'),/beauty\.html$/);
