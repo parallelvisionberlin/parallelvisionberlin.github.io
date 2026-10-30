@@ -1,5 +1,5 @@
-import {API,MUSIC_PIXEL,CLICK_EVENTS,SERVICES,SLUG,UUID,releaseUrl,safeUrl,validateLinks} from './music-links-shared.mjs';
-export const MUSIC_LINKS_VERSION='music-links-20261030-v1';
+import {API,MUSIC_PIXEL,CLICK_EVENTS,BACKGROUNDS,SERVICES,SLUG,UUID,releaseUrl,safeUrl,validateLinks} from './music-links-shared.mjs';
+export const MUSIC_LINKS_VERSION='music-links-20261030-v2';
 const PREFIX='/api/music',DAY=86400000,HOUR=3600000;
 const ORIGINS=new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const SOURCES=new Set(['direct','meta','instagram','facebook','google','youtube','soundcloud','email','other']);
@@ -8,6 +8,8 @@ function fail(status,message){throw Object.assign(Error(message),{status});}
 const stmt=(env,sql,...p)=>env.LAB_DB.prepare(sql).bind(...p);
 const one=(env,sql,...p)=>stmt(env,sql,...p).first();
 const all=async(env,sql,...p)=>(await stmt(env,sql,...p).all()).results;
+const releaseSelect='SELECT r.*,d.background FROM music_releases r LEFT JOIN music_link_designs d ON d.release_id=r.id';
+const releaseById=(env,id)=>one(env,releaseSelect+' WHERE r.id=?',id);
 async function bytes(request,max){
   if(Number(request.headers.get('content-length'))>max)fail(413,'This file is too large.');
   const reader=request.body?.getReader();if(!reader)fail(400,'A request body is required.');
@@ -35,10 +37,11 @@ export function validateRelease(data){
   let artworkUrl,audioUrl,links;
   try{artworkUrl=safeUrl(data.artworkUrl||'');audioUrl=safeUrl(data.audioUrl||'');links=validateLinks(data.links);}catch(e){fail(400,e.message);}
   if(data.status==='published'&&(!artworkUrl||!links.length))fail(400,'Add artwork and at least one platform link before publishing.');
-  return {slug,title,artist,catalogue,description,releaseDate,artworkUrl,audioUrl,links,pixelId:pixel(data.pixelId||''),status:data.status};
+  if(data.background!==undefined&&!BACKGROUNDS.includes(data.background))fail(400,'Choose a supported page background.');
+  return {background:data.background,slug,title,artist,catalogue,description,releaseDate,artworkUrl,audioUrl,links,pixelId:pixel(data.pixelId||''),status:data.status};
 }
 function view(row){return {id:row.id,slug:row.slug,title:row.title,artist:row.artist,catalogue:row.catalogue,description:row.description,
-  artworkUrl:row.artwork_url,audioUrl:row.audio_url,releaseDate:row.release_date,links:JSON.parse(row.links),pixelId:row.pixel_id,
+  background:row.background||'artwork',artworkUrl:row.artwork_url,audioUrl:row.audio_url,releaseDate:row.release_date,links:JSON.parse(row.links),pixelId:row.pixel_id,
   status:row.status,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at,url:releaseUrl(row.slug)};}
 async function settings(env){return await one(env,'SELECT pixel_id AS pixelId,click_event AS clickEvent,revision FROM music_link_settings WHERE id=1')||{pixelId:MUSIC_PIXEL,clickEvent:CLICK_EVENTS[0],revision:0};}
 async function allowedOwner(env,owner){
@@ -62,7 +65,7 @@ export async function musicAdminRoute(request,env,owner,{clock=Date.now}={}){
     const days=Number(url.searchParams.get('days')||30);if(![7,30,90,0].includes(days))fail(400,'Choose 7, 30, 90 days or all time.');
     const start=days?new Date(time-(days-1)*DAY).toISOString().slice(0,10):'0000-01-01';
     const [releases,counts,platforms,sources,campaigns,trend]=await Promise.all([
-      all(env,'SELECT * FROM music_releases ORDER BY created_at DESC,id DESC'),
+      all(env,releaseSelect+' ORDER BY r.created_at DESC,r.id DESC'),
       all(env,'SELECT release_id AS releaseId,event,SUM(count) AS count FROM music_link_daily WHERE day_utc>=? GROUP BY release_id,event',start),
       all(env,"SELECT service,SUM(count) AS count FROM music_link_daily WHERE day_utc>=? AND event='click' GROUP BY service ORDER BY count DESC",start),
       all(env,"SELECT source,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE day_utc>=? GROUP BY source ORDER BY views DESC",start),
@@ -102,16 +105,20 @@ export async function musicAdminRoute(request,env,owner,{clock=Date.now}={}){
       if(!UUID.test(data.id||''))fail(400,'Reload the creator and try again.');
       const existing=await one(env,'SELECT * FROM music_releases WHERE id=?',data.id);
       if(existing)fail(409,'This release was already saved. Refresh the dashboard before retrying.');
-      try{await stmt(env,'INSERT INTO music_releases(id,slug,title,artist,catalogue,description,artwork_url,audio_url,release_date,links,pixel_id,status,updated_at,created_at,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',data.id,r.slug,...values,time,owner).run();}
+      try{await env.LAB_DB.batch([stmt(env,'INSERT INTO music_releases(id,slug,title,artist,catalogue,description,artwork_url,audio_url,release_date,links,pixel_id,status,updated_at,created_at,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',data.id,r.slug,...values,time,owner),stmt(env,'INSERT INTO music_link_designs(release_id,background) VALUES(?,?)',data.id,r.background||'artwork')]);}
       catch(e){if(/unique/i.test(e.message))fail(409,'This release or link already exists. Refresh the dashboard.');throw e;}
-      return json({release:view(await one(env,'SELECT * FROM music_releases WHERE id=?',data.id))},201);
+      return json({release:view(await releaseById(env,data.id))},201);
     }
     const previous=await one(env,'SELECT * FROM music_releases WHERE id=?',id);if(!previous)fail(404,'Release not found.');
     if(previous.slug!==r.slug)fail(409,'Saved release links stay fixed so existing adverts keep working.');
     if(!Number.isSafeInteger(data.revision)||data.revision<1)fail(400,'Reload this release before saving.');
-    const changed=await one(env,'UPDATE music_releases SET title=?,artist=?,catalogue=?,description=?,artwork_url=?,audio_url=?,release_date=?,links=?,pixel_id=?,status=?,updated_at=?,revision=revision+1 WHERE id=? AND revision=? RETURNING id',...values,id,data.revision);
-    if(!changed)fail(409,'This release changed in another tab. Reload before saving.');
-    return json({release:view(await one(env,'SELECT * FROM music_releases WHERE id=?',id))});
+    // D1 batch is atomic. Match the original revision before either write so a stale tab cannot replace the design.
+    const writes=[];
+    if(r.background!==undefined)writes.push(stmt(env,'INSERT INTO music_link_designs(release_id,background) SELECT id,? FROM music_releases WHERE id=? AND revision=? ON CONFLICT(release_id) DO UPDATE SET background=excluded.background',r.background,id,data.revision));
+    writes.push(stmt(env,'UPDATE music_releases SET title=?,artist=?,catalogue=?,description=?,artwork_url=?,audio_url=?,release_date=?,links=?,pixel_id=?,status=?,updated_at=?,revision=revision+1 WHERE id=? AND revision=?',...values,id,data.revision));
+    const changed=await env.LAB_DB.batch(writes);
+    if(!changed.at(-1).meta.changes)fail(409,'This release changed in another tab. Reload before saving.');
+    return json({release:view(await releaseById(env,id))});
   }
   fail(405,'Unsupported music dashboard action.');
 }
@@ -123,7 +130,7 @@ async function digest(env,value){
 export async function musicPublicRoute(request,env,{clock=Date.now}={}){
   const url=new URL(request.url),path=url.pathname.slice((PREFIX+'/public').length),method=request.method,time=clock();
   if(path==='/status'&&method==='GET'){
-    await one(env,'SELECT id FROM music_releases LIMIT 1');return json({ready:true,version:MUSIC_LINKS_VERSION});
+    await one(env,'SELECT id FROM music_releases LIMIT 1');await one(env,'SELECT release_id FROM music_link_designs LIMIT 1');return json({ready:true,version:MUSIC_LINKS_VERSION});
   }
   if(path.startsWith('/media/')&&['GET','HEAD'].includes(method)){
     const id=path.slice('/media/'.length);if(!UUID.test(id))fail(404,'Media not found.');
@@ -137,7 +144,7 @@ export async function musicPublicRoute(request,env,{clock=Date.now}={}){
   }
   if(path.startsWith('/releases/')&&method==='GET'){
     const slug=path.slice('/releases/'.length);if(slug.length>80||!SLUG.test(slug))fail(404,'Release not found.');
-    const row=await one(env,"SELECT * FROM music_releases WHERE slug=? AND status='published'",slug);if(!row)fail(404,'This release is not available.');
+    const row=await one(env,releaseSelect+" WHERE r.slug=? AND r.status='published'",slug);if(!row)fail(404,'This release is not available.');
     const config=await settings(env);return json({release:view(row),tracking:{pixelId:row.pixel_id||config.pixelId,clickEvent:config.clickEvent},version:MUSIC_LINKS_VERSION});
   }
   if(path==='/events'&&method==='POST'){

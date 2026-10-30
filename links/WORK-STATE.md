@@ -11,7 +11,9 @@ Published white dashboard: 92457400122206f17d56b934d6440807031afa86 (PR #673).
 - Approved reference: exec-0dccd0cb-3a18-48df-8349-609c2005bf51.png. Use actual catalogue artwork and configured platform links.
 - Sidebar opens working Smart Links, Performance, Tracking and Settings views; mobile navigation moves above content.
 - Smart Links replaces Releases in workspace navigation/actions. No decorative arrows.
-- Only Spotify, SoundCloud and YouTube; pre-saves deferred. Public listener design remains unchanged.
+- Only Spotify, SoundCloud and YouTube; pre-saves deferred.
+- Public landing page approved: proposal 03 After Dark, with per-link cinematic artwork, blurred artwork or solid black background.
+- Approved landing reference: exec-6ebba67a-d71a-4c69-87b9-20f82f061253.png; attached reference libfile_41bedebeb9e481919955f5f62c04cc2a.
 
 ## Implemented behavior
 - Owner /links/ reuses Parallel Vision Clerk and server-verified OWNER_DB role; public /listen/?release=slug uses existing static hosting.
@@ -27,14 +29,17 @@ Published white dashboard: 92457400122206f17d56b934d6440807031afa86 (PR #673).
 - Runtime: links/, listen/, lab-worker/music-links.mjs, music-links-shared.mjs, worker routing/maintenance, migration 0045.
 - Shared code lives within lab-worker for sparse CI checkouts; links/shared.mjs re-exports it.
 
-## Latest dashboard update
-- Frontend-only: links/index.html, dashboard.css, dashboard.mjs. Backend/public listening pages unchanged.
-- Search, status tabs and archived filter retained; real per-link metrics and only configured service labels.
-- White creator retains its actual dark public-page preview. Auth, revision and upload request behavior preserved.
-- Local fixture QA: phone body/dialog scrollWidth equals 375px clientWidth; desktop body 1363px with no horizontal overflow.
-- Draft filtering, sidebar views, existing Sube editor, fixed slug, artwork/live preview exercised in browser.
-- Focused music-links + lab-auth suites: 30 passed. JS syntax and git whitespace checks passed.
-- PR #673 merged. Candidate 0745ec85: all four GitHub validation jobs passed.\n- GitHub Pages run 41048180330 succeeded. Live HTML, CSS and JS returned 200 and exact SHA256 bytes; JS MIME text/javascript.\n- Actual production browser loaded the white sidebar, Smart Links heading and enabled Clerk sign-in gate; signed-out data stays hidden.
+## Current landing-page update
+- After Dark layout: full-screen cover backdrop, sharp cover, bold title/artist and platform-icon listening dock; phone links stack.
+- Creator: Page background under Artwork & sound, live preview, persisted per-link choice. Existing links default to cinematic artwork.
+- Renderer and styles: links/release-view.mjs, release.css, dashboard.css; creator HTML/JS and listen module cache versions refreshed.
+- Backend: music-links.mjs and shared constants; idempotent migration 0046 stores designs separately. Workflow applies migration before Worker deploy.
+- Atomic create/update, revision protection, legacy omission preservation and invalid-background rejection tested.
+- 146 focused music/auth/Worker/owner/traffic tests passed. JS syntax and whitespace checks passed.
+- Browser fixture QA: phone public body width/scrollWidth 390px, creator dialog 375px; desktop body 1363px, no horizontal overflow.
+- UI verified blur/black live preview, black has no background image, save and reopen preserve selection; sharp artwork and platform links remain.
+- Publication pending. Verify Pages asset bytes and Worker ready:true revision music-links-20261030-v2 before reporting live.
+- Dashboard PR #673 already live at 9245740; Pages run 41048180330 and exact dashboard HTML/CSS/JS verified.
 
 ## Verified original deployment
 - PR #671 frontend GitHub Pages run 41043602513 succeeded; six core frontend assets matched exact expected SHA256, JS MIME valid.
@@ -43,12 +48,11 @@ Published white dashboard: 92457400122206f17d56b934d6440807031afa86 (PR #673).
 - Actual browser: owner gate/Clerk loaded, public Stay Low loaded D1 data, 900px artwork and verified SoundCloud destination.
 - Meta scripts absent before consent, loaded after Allow Meta; privacy decline afterwards preserved music access.
 - Original feature validation: 144 focused tests passed. Relevant release/static/security/partner/image/safety CI passed.
-- Old video-browser job was superseded/cancelled after merge, never reported as passed.
 - No production owner token used for QA; real owner create/upload/save not exercised by agent. User later supplied working owner screenshot.
 
 ## Limits and next action
 - Dashboard: https://parallelvisionlabel.com/links/ ; public example: https://parallelvisionlabel.com/listen/?release=stay-low .
-- Design is live at /links/. Owner can add real Sube platform links and publish through the existing creator.
+- Publish approved After Dark design and verify frontend plus backend; owner uses Page background in the creator for each smart link.
 - Meta Events Manager receipt/attribution remains unobserved; script loading does not prove attribution.
 - Hypeddit URL-restricted custom conversions require label-domain rules in Meta. Browser Pixel only, no CAPI.
 - No historical Hypeddit import, pre-save, auto metadata import or server-rendered per-link social cards.

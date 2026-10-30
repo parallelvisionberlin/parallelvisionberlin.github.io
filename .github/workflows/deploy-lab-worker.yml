@@ -131,6 +131,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0043-partner-payouts.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0044-partner-generation-costs.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0045-music-links.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0046-music-link-designs.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health
@@ -155,4 +156,4 @@ jobs:
           set -euo pipefail
           curl --fail --silent --show-error --retry 4 --retry-delay 3 \
             https://parallel-vision-lab.parallelvision.workers.dev/api/music/public/status \
-            | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const x=JSON.parse(s);if(!x.ready||x.version!=='music-links-20261030-v1')process.exit(1);console.log(x);})"
+            | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const x=JSON.parse(s);if(!x.ready||x.version!=='music-links-20261030-v2')process.exit(1);console.log(x);})"

@@ -1,5 +1,5 @@
 import {API,SERVICES,slugify,releaseUrl,validateLinks,newId} from './shared.mjs';
-import {renderRelease} from './release-view.mjs';
+import {renderRelease} from './release-view.mjs?v=20261030-afterdark1';
 import {loadLabAccount} from '../lab/native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from '../lab/session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 const $=id=>document.getElementById(id),form=$('release-form'),editor=$('editor');
@@ -17,12 +17,12 @@ async function call(path,{method='GET',data,headers,body}={}){
 function notice(message){$('status').textContent=message;}
 function field(name){return form.elements.namedItem(name);}
 for(const service of SERVICES){const label=el('label','',service.name),input=el('input');input.name='service-'+service.id;input.type='url';input.maxLength=2048;input.placeholder='https://…';label.append(input);$('platform-fields').append(label);}
-function draft(){return {id:editing?.id||createId,title:field('title').value.trim(),artist:field('artist').value.trim(),slug:field('slug').value.trim(),catalogue:field('catalogue').value.trim(),description:field('description').value.trim(),artworkUrl:field('artworkUrl').value.trim(),audioUrl:field('audioUrl').value.trim(),releaseDate:field('releaseDate').value,pixelId:field('pixelId').value.trim(),status:field('status').value,revision:editing?.revision,links:SERVICES.map(s=>({service:s.id,url:field('service-'+s.id).value.trim()})).filter(l=>l.url)};}
+function draft(){return {id:editing?.id||createId,background:field('background').value,title:field('title').value.trim(),artist:field('artist').value.trim(),slug:field('slug').value.trim(),catalogue:field('catalogue').value.trim(),description:field('description').value.trim(),artworkUrl:field('artworkUrl').value.trim(),audioUrl:field('audioUrl').value.trim(),releaseDate:field('releaseDate').value,pixelId:field('pixelId').value.trim(),status:field('status').value,revision:editing?.revision,links:SERVICES.map(s=>({service:s.id,url:field('service-'+s.id).value.trim()})).filter(l=>l.url)};}
 function preview(){const data=draft();for(const key of ['artworkUrl','audioUrl'])if(data[key]&&!/^https:\/\//i.test(data[key]))data[key]='';renderRelease($('release-preview'),data,{preview:true});}
 function controls(){const busy=saving||uploading;$('save-release').disabled=busy;$('save-draft').disabled=busy;$('close-editor').disabled=busy;$('artwork-file').disabled=busy;$('audio-file').disabled=busy;}
 function openEditor(record=null){
   if(saving||uploading)return;editing=record;createId=newId();slugEdited=!!record;form.reset();
-  for(const name of ['title','artist','slug','catalogue','description','artworkUrl','audioUrl','releaseDate','pixelId','status'])field(name).value=record?.[name]||(name==='status'?'draft':'');
+  for(const name of ['title','artist','slug','catalogue','description','artworkUrl','audioUrl','releaseDate','pixelId','status','background'])field(name).value=record?.[name]||(name==='status'?'draft':name==='background'?'artwork':'');
   for(const link of record?.links||[])field('service-'+link.service).value=link.url;
   field('slug').readOnly=!!record;$('editor-title').textContent=record?'Edit smart link.':'New smart link.';
   $('slug-note').textContent=record?'This address is fixed so your existing links keep working.':'Choose a short name. Saved links stay fixed for your adverts.';
