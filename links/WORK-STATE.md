@@ -3,7 +3,7 @@ Updated: 2026-10-30
 Objective: replace Hypeddit page creation and Meta click tracking on the existing label website.
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 Published feature: d33636878743b52602a1d263331746fa25458565 (PR #671); initial deployment record 87dedd6.
-Design source baseline: 89589f6; current main 5185762 only adds an unrelated referral handoff.
+Published white dashboard: 92457400122206f17d56b934d6440807031afa86 (PR #673).
 
 ## Approved design and scope
 - White/black/cool-grey Smart Links dashboard, permanent left navigation; no orange interface accent.
@@ -34,7 +34,7 @@ Design source baseline: 89589f6; current main 5185762 only adds an unrelated ref
 - Local fixture QA: phone body/dialog scrollWidth equals 375px clientWidth; desktop body 1363px with no horizontal overflow.
 - Draft filtering, sidebar views, existing Sube editor, fixed slug, artwork/live preview exercised in browser.
 - Focused music-links + lab-auth suites: 30 passed. JS syntax and git whitespace checks passed.
-- Design publication: focused PR pending; verify Pages deployment and exact three frontend assets before claiming live.
+- PR #673 merged. Candidate 0745ec85: all four GitHub validation jobs passed.\n- GitHub Pages run 41048180330 succeeded. Live HTML, CSS and JS returned 200 and exact SHA256 bytes; JS MIME text/javascript.\n- Actual production browser loaded the white sidebar, Smart Links heading and enabled Clerk sign-in gate; signed-out data stays hidden.
 
 ## Verified original deployment
 - PR #671 frontend GitHub Pages run 41043602513 succeeded; six core frontend assets matched exact expected SHA256, JS MIME valid.
@@ -48,7 +48,7 @@ Design source baseline: 89589f6; current main 5185762 only adds an unrelated ref
 
 ## Limits and next action
 - Dashboard: https://parallelvisionlabel.com/links/ ; public example: https://parallelvisionlabel.com/listen/?release=stay-low .
-- Publish approved design, verify live frontend bytes, then return dashboard link. Add real Sube platform links before publication.
+- Design is live at /links/. Owner can add real Sube platform links and publish through the existing creator.
 - Meta Events Manager receipt/attribution remains unobserved; script loading does not prove attribution.
 - Hypeddit URL-restricted custom conversions require label-domain rules in Meta. Browser Pixel only, no CAPI.
 - No historical Hypeddit import, pre-save, auto metadata import or server-rendered per-link social cards.
