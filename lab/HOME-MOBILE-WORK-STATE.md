@@ -15,7 +15,13 @@
 - Existing owner-specific dashboard destination and label remain; ordinary visitors see Get your invite link.
 - Homepage section order, footer and referral accounting are unchanged.
 - Cache version: invite-hero.css?v=20261030-concept06-fullbleed2.
-- Validation and deployment recorded after the final preview; earlier narrow-photo release below is superseded.
+- Validation: 11/11 existing Image/referral tests pass; approved Image UI, homepage stability and static CI checks pass. No gate weakened.
+- Source commit: 548abec67c8a2a19aaa583c23461478a28cc04e6; PR #670 merged as be71719fb468eb399f63c5e058ec2377b1b71191.
+- Cloudflare pvlab-studio check 124020564952 succeeded, deployment 7a040fa9-f1d7-4bb3-ac5d-4b57d9df9b0d.
+- Read-only verifier, explicitly using homepage HTML, returned LIVE_VERIFIED; CSS SHA-256 c4995f89738d4a5adf3a8cf7707a0dc4d4ea1f68f54deabab14e2c8537297446.
+- Production photo HTTP 200, exact 126728-byte committed match. Live 1363px browser: full-width cover/center photo, banner 382px, headline 61.335px, button 16px, no horizontal overflow.
+- Live screenshot inspected; no separate actual mobile or signed-in production session verified. Existing responsive layout CI passes.
+- Correction complete and live. Earlier narrow-photo implementation below is superseded.
 
 ## Compact referral invitation, 2026-10-30
 
