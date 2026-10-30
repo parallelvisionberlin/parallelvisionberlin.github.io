@@ -79,7 +79,7 @@ export function createOwnerPayoutNotice({root,api,isCurrent}){
   if(!root)return;const wanted=++serial;
   try{const data=await api('/api/admin/partner-payouts');if(wanted!==serial||!isCurrent(revision))return;
    root.replaceChildren();root.hidden=!data.requests?.length;
-   if(data.requests?.length){for(const [workspace,name,href] of [['bellini-studio','Bellini Studios','./bellini-studio.html#comisiones'],['robin-studio','Robin / König Media','./robin-studio.html#comisiones']]){const requests=data.requests.filter(p=>p.workspace===workspace);if(!requests.length)continue;const total=requests.reduce((n,p)=>n+p.amountCents,0),a=node('a',name+': '+money(total)+' pendientes de abono');a.href=href;root.append(a);}}
+   if(data.requests?.length){for(const [workspace,name,href] of [['bellini-studio','Bellini Studios','./bellini-studio.html#comisiones'],['robin-studio','Robin / König Media','./robin-studio.html#comisiones']]){const requests=data.requests.filter(p=>(p.workspace||'bellini-studio')===workspace);if(!requests.length)continue;const total=requests.reduce((n,p)=>n+p.amountCents,0),a=node('a',name+': '+money(total)+' pendientes de abono');a.href=href;root.append(a);}}
   }catch{if(wanted===serial&&isCurrent(revision)){root.hidden=false;root.textContent='No pudimos cargar las solicitudes de retiro.';}}
  }};
 }
