@@ -3,7 +3,7 @@ Updated: 2026-10-30
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 Feature baseline: d336368 (PR #671); white dashboard 9245740 (PR #673).
 Published visual correction: c0349a9 (PR #677), included in successful Pages run 41057895772 at 9e1e617.
-Current task: replace legacy tracking event with independent MusicLinkClick, preserving label pixel and consent.
+Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), independent MusicLinkClick, existing label pixel and consent preserved.
 
 ## Approved direction
 - Private dashboard: white/black/cool grey, permanent sidebar, compact medium artwork rows, prominent metrics. Only Spotify, SoundCloud, YouTube.
@@ -22,7 +22,7 @@ Current task: replace legacy tracking event with independent MusicLinkClick, pre
 - Visual correction did not change tracking. Current tracking update advances backend to music-links-20261030-v4.
 - Browser QA: phone body width/scrollWidth 390px and height 844px; desktop widths 1363px and 1920px fit without horizontal overflow.
 - Desktop 1920x900 fixture fits without vertical overflow. Existing real artwork and Spotify destination unchanged.
-- Visual checks passed; production Pages run 41057895772 succeeded. Live asset/visual verification in progress.
+- Visual correction verified live: four HTML/CSS assets exact, actual Sube screenshot and body width/scrollWidth 1363px. Screenshot: sube-reference-correction-live-20261030.jpg.
 - Prior refinement e354fff deployed: Pages run 41054184749, seven frontend assets exact; v3 readiness verified in actual browser.
 - Worker gate propagation fix c1f12ec verified by run 41055303256 / job 124061208029 success.
 
@@ -50,9 +50,9 @@ Current task: replace legacy tracking event with independent MusicLinkClick, pre
 
 ## Links / next action
 - Dashboard: https://parallelvisionlabel.com/links/ ; Sube: https://parallelvisionlabel.com/listen/?release=sube .
-- Deploy event migration and v4 Worker; verify public Sube tracking returns MusicLinkClick and correct pixel before claiming live.
+- Event correction live: Worker run 41059431989 / job 124075149204 succeeded; Pages run 41059430809 succeeded.\n- Five runtime assets matched exact source bytes. Public Sube API reports MusicLinkClick, pixel 1746851780072706, v4; actual listening page still loads.\n- 33 local music/auth tests passed, including migration idempotency, pixel preservation and stale-save rejection.
 - Owner edits background under Artwork & sound > Page background, then saves. Explicit existing choices are not overwritten.
 - No CAPI, historical Hypeddit import, pre-save, automatic metadata import or server-rendered per-link social cards.
-- Create the new custom conversion in Meta. Existing legacy conversions are not renamed automatically. Meta receipt/attribution remains unobserved.
+- Owner next: create Parallel Vision – Spotify Click in Meta using MusicLinkClick + music_service equals spotify. Confirm event receipt in Events Manager; this has not been observed here.
 - Direct executor workers.dev requests previously hit Cloudflare 1010; use production workflow checks and actual frontend browser.
 - Local dist/, fixture modules and .openai preview config are excluded from Git and must not ship.
