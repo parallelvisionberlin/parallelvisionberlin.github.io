@@ -36,6 +36,14 @@
 - Phone button text fits without clipping; 410px long cards retained.
 - Desktop: all five original photos loaded; card height about 450px; readable faces and button.
 - Preview-only files/config excluded from publication.
-- Publication: pending reviewed commit and normal Cloudflare Pages deployment.
-- Next: publish tested source, verify exact Cloudflare commit and custom-domain bytes, inspect live section.
+- Published merge: `a4cb59dc565068c6adef87e90ced4c3ca20bb8bd`, PR #687.
+- Reviewed source: `453e664195c9b156123a832e698184f3bbccb218`; remote tree exactly matches the locally tested tree.
+- Exact merged-commit Cloudflare Pages check `124217784565`: completed successfully.
+- Read-only homepage release verifier: LIVE_VERIFIED for `20261030-casting-compact03-2`.
+- Live CSS SHA-256: `3a0fd73a396ef73f6736f8ff11d2c2daf6a14766ea1717eea8a3270d85f890fc`.
+- All five production photos returned HTTP 200 and matched reviewed source bytes.
+- Live browser verified five loaded photos, 448px portrait height, readable fitting button and no page horizontal overflow.
+- PR homepage landing checks and approved Image UI contract passed; unrelated full repository jobs were still running at publication.
+- Signed-in character creation was not re-exercised; its exact route and logic are unchanged.
+- Next: complete. Preserve Compact Cast 03 and the long cards unless the owner requests changes.
 - Follow `lab/RELEASE-PROTOCOL.md`; GitHub Pages success is not proof of pvlab.studio publication.
