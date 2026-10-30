@@ -9,7 +9,12 @@
 - Keep the Fashion Studio navigation link, Creative Studios card and destination available.
 - Other homepage sections, including Full Editorial and Characters, stay unchanged.
 - Validation: approved Image UI contract passes 5/5; final diff is one HTML attribute plus this checkpoint.
-- Publication and production rendering require independent verification after merge.
+- Released via PR #667 as a16d662f452fcdf2a4080823499f578df8baa171.
+- Cloudflare Pages pvlab-studio check 123994717698 succeeded; production deployment f47404c1-ad69-40a0-aef9-56129f802851.
+- Live homepage DOM: hidden=true, computed display:none, height 0; following Characters top equals Creative Studios bottom (no gap). One visible Fashion Studio card link remains.
+- Production screenshot inspected at 1348px. Native hidden applies at every breakpoint; no separate mobile browser viewport was available.
+- Relevant homepage stability and approved Image checks passed. Legacy landing test still fails its existing five-vs-four Studios menu expectation, identical on baseline main; no gates changed.
+- Request complete; no further action.
 
 - Updated: 2026-10-29, Europe/Berlin.
 - Source baseline: main d3c38fd.
