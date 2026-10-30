@@ -38,6 +38,20 @@ const server=http.createServer((req,res)=>{
   }
   await page.locator('.pv-studios-trigger').click();
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),true,'Studios opens from the upper bar');
+  const studiosMotion=await page.locator('.pv-studios-panel').evaluate(el=>({
+    panelAnimation:getComputedStyle(el).animationName,
+    cardAnimation:getComputedStyle(el.querySelector('.pv-studios-tile')).animationName,
+    cardDelays:[...el.querySelectorAll('.pv-studios-tile')].map(card=>getComputedStyle(card).animationDelay),
+    reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches
+  }));
+  if(studiosMotion.reducedMotion){
+    assert.equal(studiosMotion.panelAnimation,'none','Reduced-motion users see an immediate Studios menu');
+    assert.equal(studiosMotion.cardAnimation,'none','Reduced-motion users see the cards immediately');
+  }else{
+    assert.equal(studiosMotion.panelAnimation,'pv-studios-panel-reveal','Studios panel has a restrained reveal');
+    assert.equal(studiosMotion.cardAnimation,'pv-studios-card-reveal','Studio cards share the editorial entrance');
+    assert.deepEqual(studiosMotion.cardDelays,['0.035s','0.06s','0.085s','0.11s'],'Four cards reveal in a short sequence');
+  }
   assert.match(await page.getByRole('link',{name:'Beauty Studio',exact:true}).getAttribute('href'),/beauty\.html$/);
   assert.equal(await page.getByRole('link',{name:'Fashion Studio',exact:true}).getAttribute('href'),'./studio.html?tool=fashion');
   assert.match(await page.getByRole('link',{name:'Retouch Studio',exact:true}).getAttribute('href'),/studio\.html\?tool=retouch$/);
