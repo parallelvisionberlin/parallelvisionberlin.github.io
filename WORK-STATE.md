@@ -89,13 +89,13 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-31
-- Objective: make the photographic story introduction immediately understandable; approved layout, interview typography, artist profile and Instagram images retained.
+- Objective complete: opening copy identifies Siento, Estero and the core concept directly; approved layout, interview typography, artist profile and Instagram images retained.
 - Artist URL: https://parallelvisionlabel.com/estero.html
 - Release URL: https://parallelvisionlabel.com/siento.html
-- Latest product source: `e9b61558187ebf06664d13f7d3231ebf590a9db2`, PR #706.
-- Feature merge: `6973f0750487059c3dea110fe0bfe31909299b6d`; verified deployed main: `4075ef16276b56cf7ff12892cc1a3c0f80efa585`.
-- GitHub Pages run 41141312323 completed successfully. Its newer main includes the feature unchanged; the earlier run 41141288508 was superseded/cancelled.
-- Public browser confirms interview-type-1 CSS, loaded PV Barlow Condensed face, 102px title / 38px question at native desktop width, and shorter answer measure. Final screenshot captured.
+- Latest product source: `f3c49e96e200607836229c42e06e2b1de9a311cd`, PR #707.
+- Feature merge and verified deployed main: `6cf17506b310c87b58a11b4edd56b9f239d25043`.
+- GitHub Pages run 41143150489 completed successfully; public browser confirms the new heading, explicit release/artist lead and streamlined paragraphs.
+- Interview typography was verified live in PR #706 / Pages 41141312323; its stylesheet and font assets are unchanged by this copy-only update. Final opening screenshot captured.
 - Owner authorized publication of the pages and supplied photographs. Repository owner/domain verified; native GitHub connector is the write route because shell Git lacks credentials.
 - Artist: Estero / Andrés Zendejas, Mexican producer and DJ; supplied biography is the source.
 - Release: Siento / PV016; Beatport 6 November 2026, all platforms 20 November 2026.
@@ -143,5 +143,5 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Photographic story: PR #701 merged as 3b188d37; Pages 41139867141 succeeded. Original paragraphs, Spanish interview, dates and photographs remain intact; current type changes are scoped to the interview.
 - Read Estero’s words was browser-checked at a 90px header offset. Mobile photo fades continuously into the reading area, with 375/305px content widths.
 - Current interview refinement: local build/whitespace and source static CI pass; desktop 1920px/native 1348px plus 390/320 phone frames checked, no horizontal overflow. Font loading and Spanish glyphs confirmed.
-- Current opening-copy refinement: static build and whitespace pass; 390/320 phone wrapping and native 1348px desktop reviewed without overflow; publication pending.
-- Next: publish and verify the clear introduction; owner supplies animation clips, final artwork and verified listening links later.
+- Opening-copy refinement: static build/whitespace and both source static CI checks pass; 390/320 phone wrapping and native 1348px desktop reviewed without overflow. Public text verified after deployment.
+- No publication blocker remains. Next: owner supplies animation clips, final artwork and verified listening links.
