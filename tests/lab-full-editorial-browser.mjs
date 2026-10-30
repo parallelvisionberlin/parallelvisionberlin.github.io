@@ -60,8 +60,15 @@ try{
   await page.locator('.stage-visual--style img').evaluate(img=>img.decode().catch(()=>{}));
   await page.screenshot({path:'test-results/editorial/'+width+'-styling.png',fullPage:width===390});
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-mood').isVisible(),true);
-  await page.locator('.direction-card').first().click();
-  assert.match(await page.locator('#direction-summary').textContent(),/Studio/);
+  const hotel=page.locator('.direction-card--diptych');
+  assert.equal(await hotel.count(),1,'Exactly one Hotel Room location card is shown');
+  assert.equal(await hotel.locator('img').count(),2,'Hotel card uses the room and portrait original photographs');
+  assert.match(await hotel.locator('.direction-diptych-eyebrow').textContent(),/AFTER HOURS/);
+  await hotel.click();
+  assert.equal(await hotel.getAttribute('aria-pressed'),'true','Hotel Room is selected as the environment');
+  assert.match(await page.locator('#direction-summary').textContent(),/Hotel Room/);
+  assert.match(await page.locator('#direction-summary').textContent(),/model stays unchanged/);
+  assert.equal(await page.locator('#model-thumbs .thumb').count(),1,'Hotel atmosphere does not introduce another model');
   await page.locator('[data-direction-tab="moods"]').click();
   await page.locator('.direction-card').first().click();
   await page.locator('[data-direction-tab="location"]').click();
