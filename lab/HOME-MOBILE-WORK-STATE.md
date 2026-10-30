@@ -1,3 +1,11 @@
+## Homepage navigation reverted to original, 2026-10-31
+- Owner disliked the editorial uppercase/tracking/translucent header and explicitly preferred the previous homepage navigation.
+- Revert PR #702 styling entirely. Preserve the exact earlier homepage-unified.css content (baseline 3b188d374e37ec5497726a5af5ca9a14e95b381d), previous solid header, mixed-case menu labels, font weight and no entrance animation.
+- Restore the original desktop font-weight parity assertion changed in PR #705.
+- Keep the PV LAB SVG logo, video hero, navigation routes, Studios flyout, credit/account controls, other UI files and previous responsive layout unchanged.
+- Cache-bust only the homepage stylesheet in lab/index.html: 20261031-original-nav-restored1.
+- Branch: revert/home-header-editorial-fade-20261031. Production status must be confirmed after checks and Cloudflare Pages deployment.
+
 ## Homepage header: editorial navigation fade, 2026-10-30
 - Owner selected mockup 01 / Initial Fade-In after approving a spaced editorial menu treatment.
 - Source baseline: main 3b188d374e37ec5497726a5af5ca9a14e95b381d; branch design/home-nav-editorial-fade-20261030.

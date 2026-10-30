@@ -202,8 +202,8 @@ try{
       if(route==='landing'&&width>900){
         assert.ok(Math.abs(geometry.firstNavX-studio.firstNav.x)<=6,
           'Home Image tab keeps the same horizontal starting position as Studio at '+width);
-        assert.equal(geometry.firstNavWeight,'400',
-          'Home creative menu retains the owner-approved lighter editorial weight on desktop');
+        assert.equal(geometry.firstNavWeight,studio.firstNavWeight,
+          'Home creative menu typography matches Studio on desktop');
       }
       if(width===1440||width===390)await page.screenshot({path:'test-results/pv-mood-icon-'+route+'-'+width+'.png'});
     }
