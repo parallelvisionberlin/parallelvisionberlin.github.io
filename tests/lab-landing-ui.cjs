@@ -12,6 +12,8 @@ const server=http.createServer((req,res)=>{
  await new Promise(r=>server.listen(8766,'127.0.0.1',r));
  const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox']});
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ // Decode the approved production asset locally; do not depend on its CDN.
+ await page.route('https://parallelvisionlabel.com/assets/optimized/video/heroafterfabricvideo-poster.webp',route=>route.fulfill({contentType:'image/webp',body:fs.readFileSync('assets/optimized/video/heroafterfabricvideo-poster.webp')}));
  await page.emulateMedia({reducedMotion:'reduce'});
  for(const [width,height] of [[1440,1000],[1753,832],[1440,800],[390,844],[320,740],[768,1024]]){
   await page.setViewportSize({width,height});await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);
@@ -78,7 +80,8 @@ const server=http.createServer((req,res)=>{
   await page.locator('#pricing').scrollIntoViewIfNeeded();
   await page.locator('.lab-pricing-mood img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
   assert.equal(await page.locator('.lab-pricing-mood').count(),3,'Three approved mood cards');
-  assert.equal(await page.locator('#pricing [data-lab-buy] svg.pv-arrow-svg').count(),6,'Every pricing CTA uses a vector arrow');
+  assert.equal(await page.locator('#pricing [data-lab-buy]').count(),6,'All pricing actions remain available');
+  assert.equal(await page.locator('#pricing [data-lab-buy] svg.pv-arrow-svg').count(),0,'Approved pricing actions remain text-only');
   assert.equal(await page.locator('#pricing [data-lab-buy]').evaluateAll(buttons=>buttons.every(b=>!b.textContent.includes('↗'))),true,'No emoji arrows inside pricing actions');
   if(width<=560)assert.equal(await page.locator('#lab-home-upgrade').isVisible(),false,'Mobile header keeps Upgrade out of the crowded top row');
   assert.deepEqual(await page.locator('#pricing [data-lab-buy]').evaluateAll(els=>els.map(el=>el.dataset.labBuy)),['starter','creator','studio','topup10','topup29','topup75'],'All existing checkout products remain connected');
@@ -117,14 +120,15 @@ const server=http.createServer((req,res)=>{
       innerTop:getComputedStyle(pricing.querySelector('.lab-plans-inner')).top,
       rowHeights:rows.map(row=>row.getBoundingClientRect().height),
       inviteBg:getComputedStyle(invite).backgroundImage,
+      inviteOverlay:getComputedStyle(invite,'::after').backgroundImage,
       inviteText:getComputedStyle(invite).color,
       inviteParagraph:getComputedStyle(invite.querySelector('.lab-invite-promo__description')).color,
       overflow:document.documentElement.scrollWidth>innerWidth
     };
   });
   assert.ok(details.sectionHeight>=details.visibleHeight-1,'Pricing occupies at least one viewport');
-  assert.match(details.inviteBg,/(?:invite-wet-editorial\.webp|invite-after-fabric-exact\.avif|invite-after-fabric-user-approved-20261014\.webp|invite-liquid-chrome-20261015\.jpg|invite-black-satin-20261015\.jpg)/,'Referral promotion uses an approved photographic editorial');
-  if(width<=760)assert.match(details.inviteBg,/gradient/,'Mobile adds a readable gradient over the editorial photo');
+  assert.match(details.inviteBg,/invite-concept06-original-20261030\.webp/,'Referral promotion uses an approved photographic editorial');
+  if(width<=720)assert.match(details.inviteOverlay,/gradient/,'Mobile adds a readable gradient over the editorial photo');
   const textRGB=(details.inviteText.match(/\d+/g)||[]).slice(0,3).map(Number);
   const paragraphRGB=(details.inviteParagraph.match(/\d+/g)||[]).slice(0,3).map(Number);
   assert.equal(textRGB.length,3,'Referral typography uses a valid color');

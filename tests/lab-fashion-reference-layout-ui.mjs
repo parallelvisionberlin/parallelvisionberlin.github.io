@@ -89,7 +89,7 @@ try{
    if(role==='owner')await page.screenshot({path:'test-results/fashion-reference-'+width+'.png',fullPage:true});
   }
   await page.setViewportSize({width:1440,height:900});
-  // Real Runway direction remains a Fashion control, not a decorative mockup.
+  // PR #648 keeps Look presets internal and manual styling text independent.
   const design=await fashion.evaluate(host=>{
     const root=host.shadowRoot,hero=root.querySelector('.fashion-backdrop img');
     const src=root.querySelector('#person-file');
@@ -111,10 +111,13 @@ try{
   assert.equal(design.actualUpload,'file','Original real upload is intact');
   assert.equal(design.realResult,true,'Examples never masquerade as generated results');
   await fashion.locator('[data-look="runway"]').click();
-  assert.match(await fashion.locator('#direction').inputValue(),/High-fashion runway/,'Selected look modifies real prompt');
+  assert.equal(await fashion.locator('#direction').inputValue(),'','A Look never populates the manual styling field');
   assert.equal(await fashion.locator('[data-look="runway"]').getAttribute('aria-pressed'),'true');
+  await fashion.locator('#direction').fill('Keep the silhouette.');
   await fashion.locator('[data-look="runway"]').click();
-  assert.equal(await fashion.locator('#direction').inputValue(),'','Toggling off restores a clean direction');
+  assert.equal(await fashion.locator('#direction').inputValue(),'Keep the silhouette.','Toggling off preserves manual styling');
+  assert.equal(await fashion.locator('[data-look="runway"]').getAttribute('aria-pressed'),'false');
+  await fashion.locator('#direction').fill('');
   assert.equal(calls.some(x=>x.path==='/api/fashion/quote'),false,'Looks alone cannot quote, upload or spend credits');
   assert.equal(await fashion.locator('#person-file').getAttribute('type'),'file');
   assert.equal(await fashion.locator('#person-file').inputValue(),'','Example photos are never upload values');
@@ -137,6 +140,17 @@ try{
    await context.close();continue;
   }
   assert.equal(await fashion.locator('#model-select option').count(),3);
+  const runway='Fit the supplied garment naturally with clean lines and a polished fashion presentation. Preserve the original person, pose, garment design and setting.';
+  await fashion.locator('#direction').fill('Keep the silhouette.');
+  const lookQuote=page.waitForRequest(req=>new URL(req.url()).pathname==='/api/fashion/quote'&&req.postDataJSON()?.prompt===runway+'\nKeep the silhouette.');
+  await fashion.locator('[data-look="runway"]').click();
+  await lookQuote;
+  assert.equal(await fashion.locator('#direction').inputValue(),'Keep the silhouette.');
+  const manualQuote=page.waitForRequest(req=>new URL(req.url()).pathname==='/api/fashion/quote'&&req.postDataJSON()?.prompt==='Keep the silhouette.');
+  await fashion.locator('[data-look="runway"]').click();
+  await manualQuote;
+  assert.equal(submits,0,'Look changes quote the composed direction without generating');
+  await fashion.locator('#direction').fill('');
   for(const model of ['fashnmax','fashn16','fluxvto']){
    await fashion.locator('#model-select').selectOption(model);
    await page.setViewportSize({width:390,height:844});

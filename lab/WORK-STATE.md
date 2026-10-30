@@ -1,3 +1,19 @@
+## CI Fashion, hero and visual checks, 2026-10-30
+- Investigation baseline: current main `7e5a6d1425a0d8f0810ca33cd30b3a970cd7a847`; reported commit `820a532e5bcf69eca41b3a6321b04a22cfcf118a`.
+- Reproduced original Runway field and hero decode failures on current main in mock-only browsers.
+- Fashion PR #648 (`32a68a48`) deliberately isolates internal Look directions from manual text. Keep production code and design unchanged. Browser coverage now checks selection/toggle, manual-text preservation and the real composed quote request, with no generation from Look selection.
+- Hero decode was caused by the asset test aborting the approved external poster request. Serve exact repository poster bytes in the test, retaining the real decode assertion. Live poster loads at 1600x900 on pvlab.studio.
+- Poster: `assets/optimized/video/heroafterfabricvideo-poster.webp`; desktop crop intentionally overscans 8% (approved October 27). Assert complete coverage instead of obsolete exact edges.
+- Homepage pricing CTAs stay text-only per root AGENTS.md and approved mobile work PR #663. Keep six purchase actions, zero CTA vector arrows. No application/pricing/credit changes.
+- Referral assertion now locks approved `visuals/invite-concept06-original-20261030.webp` from PR #672, with its mobile gradient on the pseudo-element.
+- Public visual reference previously mixed old HTML and incompatible current dependencies. Freeze matching Retouch and Video state modules per existing immutable baseline; retain every pixel tolerance and independent design reference.
+- Domain readiness compares versioned Image modules/styles against current source, instead of obsolete October 17/18 cache keys. Existing behavior/security checks remain intact. All direct-entry grep assertions passed against fetched production files.
+- Standalone Fashion fixture now expects approved Runway surfaces/radii and whitespace; real first-viewport layout remains protected by the mounted Studio suite. Missing-video actions match the approved Add a video picker, never a paid submission.
+- Local passes: Fashion reference owner/customer/guest; landing responsive/pricing; complete Assets suite; public Studio visual/account/navigation/privacy at 1440/390/320; Studio layout; approved Image and targeted contracts (12); static build; diff check.
+- Broad Node 24 unit run: 864/865 pass. Existing unrelated Dream Blur upload timing fixture fails (setImmediate observes zero uploads); isolated rerun reproduces. No Mood/provider code changed or gate disabled. Existing CI uses Node 22 for the broad unit suite.
+- Live public observation: Runway sets aria-pressed=true while optional manual field stays empty. No private account, live quote, upload, payment or generation used.
+- Publication: branch/PR integration and exact Cloudflare check pending at this checkpoint; record the final source and hosting evidence after the normal workflow completes.
+
 ## Owner-supplied FLESH ZERO hero edit, 2026-10-28
 - User explicitly requested the newly attached `PVLAB FLESH ZERO HERO. .mp4` as the exact main PV LAB homepage hero video, replacing the prior Fashion After Fabric loop. No regeneration, video restyling or third-party stock substitution.
 - Verified uploaded file: 21,925,850 bytes, H.264/AAC, 3380×1440 at 30fps, duration 32.879 seconds; SHA-256 `af375a488ff9bd2781d0edde248c7d975d49fe47d27c4d26ad718cf885958d9e`.
