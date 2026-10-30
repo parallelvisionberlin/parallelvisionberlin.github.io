@@ -26,7 +26,15 @@ const directionSets={
  {id:'tailoring',name:'Tailoring',image:'./visuals/studio-tools/image-ivory-suit.webp',prompt:'Architectural tailoring, precise seams, weighty fabric draping.'}
  ]
 };
-let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='moods',chosenDirection='studio';
+directionSets.location=[
+ {id:'studio-set',name:'Studio',image:'./visuals/studio-tools/image-ivory-suit.webp',prompt:'Fashion studio, controlled natural-light set, neutral architecture and believable shadows.'},
+ {id:'brutalist',name:'Brutalist',image:'./visuals/fashion-replace/hero-model-oct24.jpg',prompt:'Monumental concrete architecture, real spatial depth, weathered surfaces and directional light.'},
+ {id:'desert',name:'Desert',image:'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png',prompt:'Natural desert terrain, sculptural architectural intervention, warm dust and photographic sunlight.'},
+ {id:'industrial-interior',name:'Interior',image:'./visuals/character-casting/ivory-cast03.webp',prompt:'Industrial interior with plausible structural concrete, quiet shadows and real atmospheric scale.'},
+ {id:'abstract-space',name:'Abstract',image:'./visuals/studio-tools/video-liquid-dress.webp',prompt:'Minimal abstract installation of tangible sculptural materials in a grounded photographic environment.'},
+ {id:'urban',name:'Urban',image:'./mood-previews/hd/90s-cinema-clean-final-20261011.jpg',prompt:'Contemporary urban environment with natural perspective, lived-in details and credible architectural light.'}
+];
+let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='location',selectedDirections={location:null,moods:null,material:null};
 let chosenCount=4,chosenRatio='3:4',quote=null,quoteBusy=false,submitting=false,uncertain=false,pollTimeout=null;
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0;
 const objectUrls=new Map();
@@ -39,7 +47,7 @@ function resetAll(){revision++;clearTimeout(pollTimeout);quote=null;quoteBusy=fa
  for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
  $('identity-guide').value='80';$('garment-guide').value='70';$('mood-guide').value='60';
- chosenCount=4;chosenRatio='3:4';chosenDirection='studio';directionTab='moods';
+ chosenCount=4;chosenRatio='3:4';selectedDirections={location:null,moods:null,material:null};directionTab='location';for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).selectedIndex=0;
  for(const input of ['model-files','outfit-files','location-files'])$(input).value='';
  renderFiles();renderDirections();updateOptions();refreshSliderLabels();go(0);status('');
 }
@@ -82,12 +90,25 @@ function addFiles(kind,list){if(submitting)return;
 }
 function renderDirections(){
  const container=$('direction-cards');container.replaceChildren();
- const list=directionSets[directionTab];
- if(!list.some(d=>d.id===chosenDirection))chosenDirection=list[0].id;
- for(const dir of list){const card=document.createElement('button');card.type='button';card.className='direction-card'+(dir.id===chosenDirection?' is-selected':'');
-  card.setAttribute('aria-pressed',String(dir.id===chosenDirection));const img=document.createElement('img');img.src=dir.image;img.alt='';img.loading='lazy';
-  const name=document.createElement('span');name.textContent=dir.name;card.append(img,name);card.addEventListener('click',()=>{chosenDirection=dir.id;quote=null;renderDirections()});container.append(card);}
- for(const tab of document.querySelectorAll('[data-direction-tab]')){const active=tab.dataset.directionTab===directionTab;tab.classList.toggle('is-selected',active);tab.setAttribute('aria-selected',String(active));}
+ const list=directionSets[directionTab],active=selectedDirections[directionTab];
+ for(const dir of list){
+  const selected=dir.id===active,card=document.createElement('button');
+  card.type='button';card.className='direction-card'+(selected?' is-selected':'');
+  card.setAttribute('aria-pressed',String(selected));
+  const img=document.createElement('img');img.src=dir.image;img.alt='';img.loading='lazy';
+  const name=document.createElement('span');name.textContent=dir.name;
+  card.append(img,name);
+  card.addEventListener('click',()=>{selectedDirections[directionTab]=selected&&directionTab!=='location'?null:dir.id;quote=null;renderDirections()});
+  container.append(card);
+ }
+ for(const tab of document.querySelectorAll('[data-direction-tab]')){
+  const selected=tab.dataset.directionTab===directionTab;
+  tab.classList.toggle('is-selected',selected);tab.classList.toggle('has-choice',Boolean(selectedDirections[tab.dataset.directionTab]));
+  tab.setAttribute('aria-selected',String(selected));
+ }
+ const names=Object.entries(selectedDirections).map(([kind,id])=>directionSets[kind].find(d=>d.id===id)?.name).filter(Boolean);
+ $('direction-summary').textContent=names.length?'Selected: '+names.join(' / '):'Choose an environment and optionally a mood or material.';
+ updateSeriesSummary();
 }
 function validateStep(){if(step===1&&files.model.length+savedRefs.model.length<1){status('Add at least one photograph of your model.',true);$('model-drop').focus();return false;}
  if(step===2&&!files.outfit.length&&!savedRefs.outfit.length&&!$('styling-direction').value.trim()){status('Add a garment image or describe your styling.',true);$('styling-direction').focus();return false;}
@@ -102,14 +123,16 @@ async function api(path,{method='GET',body,headers={}}={}){
 }
 async function fetchBlob(path){const version=epoch;const response=await request(path);if(!response.ok)throw Error('Could not load the saved image.');const blob=await response.blob();if(version!==epoch)throw Error('Account changed');return blob;}
 function getSettings(){
- const selected=[...Object.values(directionSets).flat()].find(d=>d.id===chosenDirection);
- const moodText=selected?.prompt||'';
+ const moodText=Object.entries(selectedDirections).map(([kind,id])=>directionSets[kind].find(d=>d.id===id)?.prompt||'').filter(Boolean).join(' ');
+ const lighting={natural:'Natural daylight with plausible exposure.',golden:'Golden hour, long shadows and warm natural light.',overcast:'Overcast daylight, diffuse shadows.',blue:'Blue hour, believable mixed twilight.',night:'Night, physically plausible practical illumination.'}[$('editorial-time').value]||'';
+ const atmosphere={cinematic:'Cinematic contrast without artificial oversharpening.',analogue:'Analogue photographic texture, subtle organic grain.',soft:'Soft diffused contrast and restrained halation.',contrast:'Strong directional contrast, preserved shadow detail.'}[$('editorial-atmosphere').value]||'';
+ const palette={natural:'Natural desaturated tonal palette.',mono:'Monochrome photographic palette.',warm:'Warm earthy color relationships.',cool:'Cool mineral color relationships.'}[$('editorial-palette').value]||'';
  const identity=Number($('identity-guide').value),emphasis=Number($('garment-guide').value),mood=Number($('mood-guide').value);
  const parts=[
   'PV LAB Full Editorial series. Photorealistic high-fashion campaign photography, grounded natural skin texture, convincing fabric and plausible anatomy. Cohesive visual direction across the series, realistic lighting, non-plastic skin and restrained retouching.',
   'Preserve the recognizable facial identity from identity reference photographs as faithfully as the model can; use them for facial features, not the original pose or background. Identity importance '+identity+' percent as creative guidance.',
   'Translate garment references into the same person without copying a reference wearer. Prioritize believable cloth fit and material detail. Garment importance '+emphasis+' percent as creative guidance.',
-  'Editorial art direction: '+moodText+' Mood importance '+mood+' percent as creative guidance.',
+  'Editorial art direction: '+moodText+' '+lighting+' '+atmosphere+' '+palette+' Mood importance '+mood+' percent as creative guidance.',
   $('styling-direction').value.trim(),$('location-direction').value.trim(),$('editorial-prompt').value.trim(),
   'Frame one standalone photograph with a considered editorial pose. Maintain the same person, palette, materials and location language across the series; vary framing and body posture naturally between distinct images.'
  ];
@@ -299,7 +322,8 @@ for(const id of ['styling-direction','location-direction','editorial-prompt','ed
 for(const id of ['identity-guide','garment-guide','mood-guide'])$(id).addEventListener('input',()=>{quote=null;refreshSliderLabels()});
 $('count-options').addEventListener('click',event=>{const b=event.target.closest('[data-count]');if(!b)return;chosenCount=Number(b.dataset.count);quote=null;updateOptions()});
 $('ratio-options').addEventListener('click',event=>{const b=event.target.closest('[data-ratio]');if(!b)return;chosenRatio=b.dataset.ratio;quote=null;updateOptions()});
-for(const tab of document.querySelectorAll('[data-direction-tab]'))tab.addEventListener('click',()=>{directionTab=tab.dataset.directionTab;chosenDirection=directionSets[directionTab][0].id;quote=null;renderDirections()});
+for(const tab of document.querySelectorAll('[data-direction-tab]'))tab.addEventListener('click',()=>{directionTab=tab.dataset.directionTab;renderDirections()});
+for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).addEventListener('change',()=>{quote=null;updateSeriesSummary()});
 $('confirm-cancel').addEventListener('click',()=>$('editorial-confirm').close());
 $('confirm-submit').addEventListener('click',()=>void submitBatch());
 $('download-selected').addEventListener('click',()=>void downloadSelected().catch(e=>status(e.message,true)));
