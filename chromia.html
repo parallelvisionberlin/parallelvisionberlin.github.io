@@ -29,12 +29,75 @@
     .chromia-page .chromia-hero-picture img { object-position:center top; }
     .chromia-page .collection-hero::after { background:linear-gradient(to top,rgba(0,0,0,.90) 0%,rgba(0,0,0,.44) 25%,rgba(0,0,0,.02) 56%,rgba(0,0,0,.15) 100%); }
   }
+</style><style id="chromia-gallery-fit">
+/* Collection research sheets: preserve full compositions rather than clipping them into cards. */
+.chromia-page .collection-block .gallery { align-items:start; }
+.chromia-page .collection-block .gallery figure { min-width:0; min-height:0; height:auto; overflow:visible; background:transparent; }
+.chromia-page .collection-block .gallery .chromia-sheet-link { display:block; width:100%; background:#efefef; line-height:0; }
+.chromia-page .collection-block .gallery .chromia-sheet-link:focus-visible { outline:1px solid #fff; outline-offset:4px; }
+.chromia-page .collection-block .gallery img,
+.chromia-page .collection-block .gallery.contain img { display:block; width:100%; max-width:100%; height:auto; max-height:none; object-fit:contain; }
+.chromia-page .collection-block .gallery figcaption { position:static; display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px 18px; padding:13px 0 0; color:rgba(255,255,255,.75); font:10px/1.5 'Courier New',monospace; letter-spacing:.12em; text-transform:uppercase; }
+.chromia-page .chromia-sheet-action { color:rgba(255,255,255,.42); white-space:nowrap; }
+@media (max-width:760px) {
+ .chromia-page .collection-block { padding-top:72px; }
+ .chromia-page .collection-block .block-label { margin-bottom:25px; }
+ .chromia-page .collection-block .gallery { display:grid; grid-template-columns:minmax(0,1fr); gap:32px; width:100%; }
+ .chromia-page .collection-block .gallery .wide { grid-column:auto; }
+ .chromia-page .collection-block .gallery figure { width:100%; }
+ .chromia-page .collection-block .gallery figcaption { padding-top:11px; font-size:9px; letter-spacing:.11em; }
+}
+.chromia-sheet-viewer { width:min(96vw,1320px); max-width:96vw; height:min(94dvh,1000px); max-height:94dvh; padding:0; margin:auto; border:1px solid rgba(255,255,255,.25); background:#080808; color:#f4f4f4; overflow:hidden; }
+.chromia-sheet-viewer::backdrop { background:rgba(0,0,0,.93); }
+.chromia-sheet-toolbar { min-height:58px; display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,.18); }
+.chromia-sheet-toolbar p { min-width:0; color:rgba(255,255,255,.72); font:10px/1.5 'Courier New',monospace; letter-spacing:.12em; text-transform:uppercase; }
+.chromia-sheet-controls { display:flex; gap:5px; flex-shrink:0; }
+.chromia-sheet-controls button { min-width:39px; min-height:39px; border:1px solid rgba(255,255,255,.18); background:#111; color:#fff; font:20px/1 Arial,sans-serif; cursor:pointer; }
+.chromia-sheet-controls button:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+.chromia-sheet-stage { width:100%; height:calc(100% - 59px); overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+.chromia-sheet-stage img { display:block; width:100%; max-width:none; height:auto; margin:0 auto; }
+@media (max-width:760px) { .chromia-sheet-viewer { width:100vw; max-width:100vw; height:100dvh; max-height:100dvh; border:0; } .chromia-sheet-toolbar { padding:10px 12px; } .chromia-sheet-toolbar p { font-size:9px; } }
 </style><script src="./language.js" defer></script></head><body class="chromia-page">
 <header class="fashion-page-hero collection-hero"><nav aria-label="Primary navigation" class="archive-nav"><a href="./index.html">Parallel Vision</a><div class="archive-nav-links"><a href="./future-fashion.html">All Collections</a><a href="./index.html#contact">Contact</a></div></nav><picture class="chromia-hero-picture"><source media="(max-width: 760px)" srcset="./assets/optimized/chromia-liquid-veil-hero-mobile.jpg"><img src="./assets/optimized/chromia-liquid-veil-hero-desktop.jpg" alt="Chromia Liquid Chrome Veil, translucent structural garment in an industrial Berlin 2063 scene" decoding="async" loading="eager" width="1672" height="941" fetchpriority="high"></picture><div class="fashion-page-hero-content"><div class="eyebrow">Collection 01 / Reactive Alloy</div><h1>Chromia</h1></div></header>
 <main class="archive-main">
   <section class="collection-intro"><div class="chapter-index">CHROMIA / 01</div><div><p>CHROMIA imagines liquid metal clothing as a second skin: monochrome alloy, mercury movement, chrome membranes and garments that react to heat, sound and pulse.</p><div class="material-tags"><span>Liquid metal</span><span>Reactive alloy</span><span>Body-interface</span><span>Berlin 2063 catwalk</span></div></div></section>
   <section class="collection-block"><div class="block-label">01 / Main campaign</div><figure class="campaign-main"><img src="./assets/optimized/fashion-hero.webp" alt="Chromia campaign runway" decoding="async" loading="lazy" width="1672" height="941"></figure></section>
-  <section class="collection-block"><div class="block-label">02 / Gallery</div><div class="gallery"><figure class="wide"><img src="./assets/optimized/liquid-chroma-veil.webp" alt="Chromia liquid veil" decoding="async" loading="lazy" width="3070" height="2048"></figure><figure><img src="./assets/optimized/chromia-vessel-sheet.webp" alt="Chromia vessel study" decoding="async" loading="lazy" width="3072" height="2048"></figure><figure><img src="./assets/optimized/chromia-dermis-sheet.webp" alt="Chromia dermis study" decoding="async" loading="lazy" width="1672" height="941"></figure></div></section>
-  <section class="collection-block"><div class="block-label">03 / Lookbook sheets</div><div class="gallery contain"><figure class="wide"><img src="./assets/optimized/chromia-liquid-chrome-veil-look-01.jpg" alt="CHROMIA Look 01: Liquid Chrome Veil. Front, profile and back fashion design views with chrome material studies." decoding="async" loading="lazy" width="1235" height="821"></figure><figure><img src="./assets/optimized/chromia-phase-aureole-sheet.webp" alt="Chromia phase aureole sheet" decoding="async" loading="lazy" width="5504" height="3072"></figure><figure><img src="./assets/optimized/ether-shorud-sheet.webp" alt="Chromia ether shroud sheet" decoding="async" loading="lazy" width="3344" height="1882"></figure></div></section>
-  <section class="collection-block"><div class="block-label">04 / Material studies</div><div class="gallery contain"><figure><img src="./assets/optimized/chromia-vessel-sheet.webp" alt="Reactive vessel material close-up" decoding="async" loading="lazy" width="3072" height="2048"></figure><figure><img src="./assets/optimized/chromia-dermis-sheet.webp" alt="Reactive dermis material close-up" decoding="async" loading="lazy" width="1672" height="941"></figure></div></section>
-</main><footer class="archive-footer"><span>PV_ATELIER / CHROMIA</span><a href="./flesh-zero.html">Next: Flesh Zero →</a></footer></body></html>
+  <section class="collection-block"><div class="block-label">02 / Gallery</div><div class="gallery"><figure class="wide"><a class="chromia-sheet-link" href="./assets/optimized/liquid-chroma-veil.webp" target="_blank" rel="noopener" data-chromia-sheet aria-label="Enlarge Chromia liquid veil"><img src="./assets/optimized/liquid-chroma-veil.webp" alt="Chromia liquid veil" decoding="async" loading="lazy" width="3070" height="2048"></a><figcaption><span>LOOK 01 / LIQUID CHROME VEIL</span><span class="chromia-sheet-action">VIEW FULL SHEET ↗</span></figcaption></figure><figure><a class="chromia-sheet-link" href="./assets/optimized/chromia-vessel-sheet.webp" target="_blank" rel="noopener" data-chromia-sheet aria-label="Enlarge Chromia vessel study"><img src="./assets/optimized/chromia-vessel-sheet.webp" alt="Chromia vessel study" decoding="async" loading="lazy" width="3072" height="2048"></a><figcaption><span>LOOK 03 / CHROMIA VESSEL</span><span class="chromia-sheet-action">VIEW FULL SHEET ↗</span></figcaption></figure><figure><a class="chromia-sheet-link" href="./assets/optimized/chromia-dermis-sheet.webp" target="_blank" rel="noopener" data-chromia-sheet aria-label="Enlarge Chromia dermis study"><img src="./assets/optimized/chromia-dermis-sheet.webp" alt="Chromia dermis study" decoding="async" loading="lazy" width="1672" height="941"></a><figcaption><span>LOOK 02 / CHROMIA DERMIS</span><span class="chromia-sheet-action">VIEW FULL SHEET ↗</span></figcaption></figure></div></section>
+  <section class="collection-block"><div class="block-label">03 / Lookbook sheets</div><div class="gallery contain"><figure class="wide"><a class="chromia-sheet-link" href="./assets/optimized/chromia-liquid-chrome-veil-look-01.jpg" target="_blank" rel="noopener" data-chromia-sheet aria-label="Enlarge CHROMIA Look 01: Liquid Chrome Veil. Front, profile and back fashion design views with chrome material studies."><img src="./assets/optimized/chromia-liquid-chrome-veil-look-01.jpg" alt="CHROMIA Look 01: Liquid Chrome Veil. Front, profile and back fashion design views with chrome material studies." decoding="async" loading="lazy" width="1235" height="821"></a><figcaption><span>TECHNICAL SHEET / LIQUID CHROME VEIL</span><span class="chromia-sheet-action">VIEW FULL SHEET ↗</span></figcaption></figure><figure><a class="chromia-sheet-link" href="./assets/optimized/chromia-phase-aureole-sheet.webp" target="_blank" rel="noopener" data-chromia-sheet aria-label="Enlarge Chromia phase aureole sheet"><img src="./assets/optimized/chromia-phase-aureole-sheet.webp" alt="Chromia phase aureole sheet" decoding="async" loading="lazy" width="5504" height="3072"></a><figcaption><span>TECHNICAL SHEET / PHASE AUREOLE</span><span class="chromia-sheet-action">VIEW FULL SHEET ↗</span></figcaption></figure><figure><a class="chromia-sheet-link" href="./assets/optimized/ether-shorud-sheet.webp" target="_blank" rel="noopener" data-chromia-sheet aria-label="Enlarge Chromia ether shroud sheet"><img src="./assets/optimized/ether-shorud-sheet.webp" alt="Chromia ether shroud sheet" decoding="async" loading="lazy" width="3344" height="1882"></a><figcaption><span>TECHNICAL SHEET / ETHER SHROUD</span><span class="chromia-sheet-action">VIEW FULL SHEET ↗</span></figcaption></figure></div></section>
+  <section class="collection-block"><div class="block-label">04 / Material studies</div><div class="gallery contain"><figure><a class="chromia-sheet-link" href="./assets/optimized/chromia-vessel-sheet.webp" target="_blank" rel="noopener" data-chromia-sheet aria-label="Enlarge Reactive vessel material close-up"><img src="./assets/optimized/chromia-vessel-sheet.webp" alt="Reactive vessel material close-up" decoding="async" loading="lazy" width="3072" height="2048"></a><figcaption><span>MATERIAL STUDY / REACTIVE VESSEL</span><span class="chromia-sheet-action">VIEW FULL SHEET ↗</span></figcaption></figure><figure><a class="chromia-sheet-link" href="./assets/optimized/chromia-dermis-sheet.webp" target="_blank" rel="noopener" data-chromia-sheet aria-label="Enlarge Reactive dermis material close-up"><img src="./assets/optimized/chromia-dermis-sheet.webp" alt="Reactive dermis material close-up" decoding="async" loading="lazy" width="1672" height="941"></a><figcaption><span>MATERIAL STUDY / REACTIVE DERMIS</span><span class="chromia-sheet-action">VIEW FULL SHEET ↗</span></figcaption></figure></div></section>
+</main><dialog id="chromia-sheet-viewer" class="chromia-sheet-viewer" aria-label="Chromia image viewer">
+  <div class="chromia-sheet-toolbar"><p id="chromia-sheet-caption">CHROMIA / MATERIAL ARCHIVE</p><div class="chromia-sheet-controls"><button type="button" data-sheet-minus aria-label="Zoom out">−</button><button type="button" data-sheet-plus aria-label="Zoom in">+</button><button type="button" data-sheet-close aria-label="Close image">×</button></div></div>
+  <div class="chromia-sheet-stage"><img alt="" decoding="async"></div>
+</dialog><footer class="archive-footer"><span>PV_ATELIER / CHROMIA</span><a href="./flesh-zero.html">Next: Flesh Zero →</a></footer><script>
+(() => {
+  const viewer = document.getElementById('chromia-sheet-viewer');
+  if (!viewer || typeof viewer.showModal !== 'function') return;
+  const image = viewer.querySelector('.chromia-sheet-stage img');
+  const stage = viewer.querySelector('.chromia-sheet-stage');
+  const caption = document.getElementById('chromia-sheet-caption');
+  let zoom = 1;
+  const setZoom = (value) => {
+    zoom = Math.min(3, Math.max(1, value));
+    image.style.width = (zoom * 100) + '%';
+  };
+  document.querySelectorAll('a[data-chromia-sheet]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const figure = link.closest('figure');
+      const title = figure?.querySelector('figcaption span')?.textContent || 'CHROMIA / MATERIAL ARCHIVE';
+      image.src = link.getAttribute('href');
+      image.alt = link.querySelector('img')?.alt || title;
+      caption.textContent = title;
+      setZoom(1);
+      stage.scrollTop = 0;
+      stage.scrollLeft = 0;
+      viewer.showModal();
+    });
+  });
+  viewer.querySelector('[data-sheet-close]').addEventListener('click', () => viewer.close());
+  viewer.querySelector('[data-sheet-plus]').addEventListener('click', () => setZoom(zoom + .5));
+  viewer.querySelector('[data-sheet-minus]').addEventListener('click', () => setZoom(zoom - .5));
+  viewer.addEventListener('click', (event) => { if (event.target === viewer) viewer.close(); });
+  viewer.addEventListener('close', () => { image.removeAttribute('src'); });
+})();
+</script></body></html>
