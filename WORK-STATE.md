@@ -89,64 +89,44 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-30
-- Objective complete: publish Estero's artist profile and Siento release page, using Tanzen Im Kreis as the release reference.
-- Live artist URL: https://parallelvisionlabel.com/estero.html
-- Live release URL: https://parallelvisionlabel.com/siento.html
-- Implementation branch: `feat/estero-siento-pages-20261030`; PR #690.
-- Published source commit: `1ba7c8c291aab20fc3f0bfd1c37085332df64428`.
-- Verified deployed merge: `9bb0866c0c876d4dc6d2d062cb885bd734713417`.
-- Current main before implementation was `e6a52eecd6632b9ec12ec326c8f37b350d3314f7`; relevant files were unchanged since the original baseline.
-- Owner authorized completion after reviewing both previews and the explicit public repository disclosure question.
-- Connected repository owner and domain verified: parallelvisionberlin / parallelvisionberlin.github.io; CNAME parallelvisionlabel.com.
-- Git shell write credentials unavailable; published through the authenticated GitHub connector. Original local commits remain unrevised.
-- Artist: Estero / Andrés Zendejas, Mexican producer and DJ; biography supplied by the owner.
+- Objective complete: artist profile, release page and three Instagram images; subsequent framing refinements published.
+- Artist URL: https://parallelvisionlabel.com/estero.html
+- Release URL: https://parallelvisionlabel.com/siento.html
+- Latest product source: `e369a384320227e75fef345274cd955a854d7b74`, PR #695.
+- Latest verified deployed merge: `5de1bf5cabed1c1a2f09085ada02f67ac8aeaa29`.
+- GitHub Pages run 41124958994 completed successfully; public browser verification completed after deployment.
+- Owner authorized publication of the pages and supplied photographs. Repository owner/domain verified; native GitHub connector is the write route because shell Git lacks credentials.
+- Artist: Estero / Andrés Zendejas, Mexican producer and DJ; supplied biography is the source.
 - Release: Siento / PV016; Beatport 6 November 2026, all platforms 20 November 2026.
-- `estero.html`: metal portrait hero, biography with vertical portrait, Siento feature and Fashion After Fabric visual pair.
-- `siento.html`: night hero, release details, manifesto context, editorial still and four-question adaptation.
-- Q&A questions frame excerpts from the supplied manifesto; original Spanish answers and editorial adaptation are explicitly disclosed.
-- `css/estero-editorial.css`, `js/estero-editorial.js`: shared responsive presentation and scroll header.
-- `index.html`: added Estero roster entry/count (12) and Siento release card, preserving existing entries.
-- `sitemap.xml`, `scripts/verify-build.js`: both pages registered for discovery and existing static validation.
-- Five full-resolution WebP assets in `assets/estero/`, quality 90; no generative retouch or identity changes.
-- IMG_8214.jpeg = estero-metal-portrait.webp (artist hero).
-- IMG_8224.jpeg = siento-night.webp (release hero / homepage editorial image, not final cover artwork).
-- IMG_8201.jpeg = estero-petals-full.webp (artist biography).
-- IMG_8202.jpeg = estero-petals-portrait.webp (artist gallery / release editorial film still).
-- IMG_8217.jpeg = estero-silver-portrait.webp (artist gallery).
-- All remote asset blob hashes match the locally validated files; remote product text is identical to local source.
-- Animation slots documented in HTML: artist hero, release hero and release editorial still; retain corresponding images as posters.
-- No listening/purchase/presave links supplied; no guessed destinations or empty players added.
-- Local static validation passed all 24 maintained public HTML pages; diff whitespace check passed.
-- PR static validation passed: runs 41118972497 and 41118945023.
-- Main static validation passed: run 41119100824; approved Image contract also passed.
-- GitHub Pages build and deployment succeeded: run 41119099499 on the verified merge.
-- Browser QA before publication: desktop artist/release heroes, mobile 390/320 iframe layouts, biography/Q&A and section navigation; no horizontal overflow.
-- Public browser verification: both URLs load, hero images decode, dates match, four Q&A entries present, desktop width equals scroll width.
-- Public homepage verified: Estero entry links to artist page; Siento card links to release; roster count is 12.
-- No outstanding publication blocker. Final artwork, listening links and animation clips remain owner-supplied follow-up assets.
-- Next: replace the documented stills with the supplied clips and keep their posters; add verified listening destinations when available.
-
-### Editorial shadow refinement, 2026-10-30
-- Owner requested a photograph in shadow behind the Siento interview and moving Siento to the first Instagram carousel position.
-- Source baseline: `b8ecc4d8d29940f107483afb041f53d7050e45ed`; isolated branch `feat/estero-shadow-editorial-20261030`.
-- `siento.html`: decorative existing silver portrait behind the interview; stylesheet cache refreshed.
-- `css/estero-editorial.css`: scoped photographic shadow layer, dark directional gradients, stronger answer contrast and subtler mobile opacity. No fixed background or new dependency.
-- All four questions/answers, metadata, page order, hero and artist profile retained.
-- Validation: static build passes 24 pages; diff whitespace check passes. Browser checks at desktop 1348px and phone 375/305px content widths: background decodes, body remains readable, no horizontal overflow.
-- Instagram revision: Siento, Estero, Fashion After Fabric; remove category numbering and repeated dividers, keep original photographs and the approved type family.
-- Published in PR #694: source `00fad6393f5bbb308b67c78d4d1ab76404583bcc`, deployed merge `14a1032794b343d3933e1a4f9e9d9289ef3fc0d1`.
-- PR static validation passed; GitHub Pages run 41123042606 completed successfully.
-- Public browser verified the shadow image loaded at desktop opacity .48, all four Q&A entries, and no horizontal overflow.
-- Instagram revised PNGs saved as versions of the original files: 01_SIENTO.png / libfile_2d62505da8848191bfab6f55e1c72694; 02_ESTERO.png / libfile_bc8ca3f3c5188191b859d630c654ac6c.
-- 03_FASHION_AFTER_FABRIC.png / libfile_dfbe986e44b481918a32c37697a348ea.
-- Updated carousel ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d. All five files are at version 1, original identities preserved.
-- Publication and file updates complete; animation clips and final listening links remain the previously agreed follow-up.
-
-### Hero framing and closing quote, 2026-10-30
-- Owner screenshot at approximately 1920px showed the Siento hero cropping the hair at its top edge; also requested a visual refinement pass.
-- Baseline: `db3d45ded19df08e8a2d83d4e4319051c012ce49`; branch `fix/siento-hero-headroom-20261030`.
-- `css/estero-editorial.css`: anchor only the release hero photo to its original top edge, including its mobile selector. Preserve the photograph, title size, hero height and all other sections.
-- Closing quote now caps at 64px across 1300px, with 1.12 leading and 96px maximum section padding. Original quote text retained.
-- `siento.html`: stylesheet cache refreshed. Static build (24 pages) and whitespace check pass.
-- Browser review: 1920x900 layout shows full hair/head margin; ending quote measures 1300x286.7px with 64px text. Mobile 390/320 frame layouts retain the full head and no horizontal overflow.
-- Publication pending validation and Pages deployment; next verify the new object position on the public page.
+- `estero.html`: metal portrait hero, biography/vertical portrait, Siento feature and Fashion After Fabric visual pair.
+- `siento.html`: night hero, release metadata, manifesto context, editorial still, four-question adaptation and closing quote.
+- Questions are editorial framing around excerpts of the supplied manifesto; original Spanish answers and adaptation disclosed.
+- Shared presentation: `css/estero-editorial.css`, `js/estero-editorial.js`.
+- `index.html`: Estero entry in Artists (roster 12) and Siento card in Releases; original entries preserved.
+- `sitemap.xml` and `scripts/verify-build.js`: both pages included.
+- Assets in `assets/estero/`: full supplied resolution, WebP quality 90, no generative retouch or identity changes.
+- IMG_8214.jpeg -> estero-metal-portrait.webp (artist hero).
+- IMG_8224.jpeg -> siento-night.webp (release hero and homepage editorial image, not final cover artwork).
+- IMG_8201.jpeg -> estero-petals-full.webp (artist biography).
+- IMG_8202.jpeg -> estero-petals-portrait.webp (artist gallery and release editorial still).
+- IMG_8217.jpeg -> estero-silver-portrait.webp (artist gallery and shadow interview backdrop).
+- Original page implementation: PR #690, deployed merge `9bb0866c0c876d4dc6d2d062cb885bd734713417`; Pages run 41119099499 succeeded.
+- Shadow interview: PR #694, merge `14a1032794b343d3933e1a4f9e9d9289ef3fc0d1`; Pages run 41123042606 succeeded.
+- Decorative silver portrait behind the interview has directional dark gradients, .48 desktop opacity and .30 mobile opacity; no fixed background.
+- Latest refinement anchors only the release hero to the source photo's top edge (50% 0% desktop / 51% 0% mobile), preventing hair cropping on wide screens. Original hero height and title size retained.
+- Closing quote caps at 64px and 1300px width with 1.12 leading, .035em negative tracking and 96px maximum vertical section padding; original wording retained.
+- Current release stylesheet cache: estero-editorial.css?v=20261030-headroom-1.
+- Latest changed files: `css/estero-editorial.css`, `siento.html`, this checkpoint. Artist page and interview content retained.
+- Validation: static build passes 24 maintained public pages; whitespace check passes; PR static CI passed.
+- Responsive preview checked at 1920x900 and phone 390/320 frames (375/305px content widths); full head remains visible and no phone horizontal overflow.
+- At 1920px, revised closing quote measures 1300x286.7px with 64px text.
+- Public browser confirms the new cache URL, decoded hero, object-position 50% 0%, and revised quote dimensions. Final screenshot captured from the public page.
+- Instagram order: 01 Siento, 02 Estero, 03 Fashion After Fabric; 1080x1350 PNGs with original photographs and approved typography, repeated category numbers/dividers removed.
+- 01_SIENTO.png: libfile_2d62505da8848191bfab6f55e1c72694, version 1.
+- 02_ESTERO.png: libfile_bc8ca3f3c5188191b859d630c654ac6c, version 1.
+- 03_FASHION_AFTER_FABRIC.png: libfile_dfbe986e44b481918a32c37697a348ea, version 1.
+- Carousel ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d; both version 1.
+- Image files were revised in place, preserving identity/history; no Instagram posting was requested or performed.
+- Animation slots remain documented in artist hero, release hero and release editorial still; retain corresponding posters.
+- No verified listening/purchase/presave URLs supplied; no guessed destinations or empty players added.
+- No publication blocker remains. Next: owner supplies animation clips, final artwork and verified listening links.
