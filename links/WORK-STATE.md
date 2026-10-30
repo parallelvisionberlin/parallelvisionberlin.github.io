@@ -94,3 +94,12 @@ Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), indepen
 - New in-memory transport uses acknowledged keepalive fetch, up to three attempts with identical event UUID/body, plus pending pagehide beacon. No persistent visitor identifier. Permanent failures stop; failures reported in console.
 - Server now recognizes existing analytics receipts before applying rate limit, avoiding retry quota consumption; rate limit returns explicit 429 instead of indistinguishable 204. Meta event sending unchanged. Version v7.
 - 39 music/session/transport tests plus 107 Worker tests passed, including identical-payload retry, permanent failure, bounded attempts, unload fallback, SQL dedup and duplicate quota behavior. Published b5ed2c63df4e2d4c6fef19b404e68b57209a4f94. Worker run 41097748605 succeeded. Its Pages run was superseded by newer main 4f1d023; Pages run 41098026262 succeeded with unchanged tracking files. Actual Sube API reports v7 and the same Pixel/event. Three frontend delivery assets match production exactly. Full historical count reconciliation remains blocked by Meta reporting authorization.
+
+## Mobile listening CTA, 30 October
+- Reference: IMG_8242.jpeg (current) and IMG_8243.jpeg (Hypeddit). Preserve existing blurred background exactly.
+- Phone: cover up to 330px, compact 26px title/18px artist, reduced top spacing, hide catalogue/helper copy to bring Listen above the fold. Desktop composition preserved.
+- Spotify: compact green identity left with white icon curves, prominent bordered Listen control right (132x50 phone, 140x50 desktop), whole row remains one accessible link.
+- Instagram circle below platform rows points to the verified existing homepage destination https://www.instagram.com/parallelvision.label/. It does not emit MusicLinkClick or inflate platform conversions. Creator preview mirrors CTA.
+- Checks: 23 music/transport tests passed, syntax and diff checks passed. Browser fixture: 390x844 phone and 1363px desktop, no horizontal overflow, real Sube artwork. Preview never ships.
+- Files: links/release.css, release-view.mjs, dashboard.css/mjs/index.html; listen/index.html and listen.mjs cache updates. Background and tracking delivery/event logic unchanged.
+- Publication pending.

@@ -6,7 +6,7 @@ function serviceIcon(service){
   const shape=(tag,attrs)=>{const e=document.createElementNS(ns,tag);for(const [key,value] of Object.entries(attrs))e.setAttribute(key,value);svg.append(e);};
   if(service==='spotify'){
     shape('circle',{cx:12,cy:12,r:12,fill:'#1ed760'});
-    for(const [d,width] of [['M5.5 8.7c4.5-1.3 8.8-.9 13 1.3',2],['M6.3 12.1c3.8-1 7.5-.6 10.9 1.2',1.7],['M7 15.3c3.1-.8 6.1-.4 9 1',1.5]])shape('path',{d,fill:'none',stroke:'#111','stroke-width':width,'stroke-linecap':'round'});
+    for(const [d,width] of [['M5.5 8.7c4.5-1.3 8.8-.9 13 1.3',2],['M6.3 12.1c3.8-1 7.5-.6 10.9 1.2',1.7],['M7 15.3c3.1-.8 6.1-.4 9 1',1.5]])shape('path',{d,fill:'none',stroke:'#fff','stroke-width':width,'stroke-linecap':'round'});
   }else if(service==='youtube'){
     shape('rect',{x:0,y:3,width:24,height:18,rx:5,fill:'#ff0033'});shape('path',{d:'m10 8 7 4-7 4Z',fill:'#fff'});
   }else{
@@ -45,5 +45,12 @@ export function renderRelease(root,release,{onClick=()=>{},preview=false}={}) {
     button.append(name,node('span','platform-action',service.action));list.append(button);
   }
   if(!list.children.length)list.append(node('p','release-description','Add your music platform links.'));
-  dock.append(list);details.append(dock);frame.append(details);root.append(frame);
+  dock.append(list);
+  const socials=node('nav','release-socials');socials.setAttribute('aria-label','Follow Parallel Vision');
+  const instagram=node(preview?'button':'a','instagram-link');instagram.setAttribute('aria-label','Parallel Vision on Instagram');
+  if(preview)instagram.type='button';
+  else{instagram.href='https://www.instagram.com/parallelvision.label/';instagram.target='_blank';instagram.rel='noopener noreferrer';}
+  const ns='http://www.w3.org/2000/svg',icon=document.createElementNS(ns,'svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('aria-hidden','true');
+  for(const [tag,attrs] of [['rect',{x:3,y:3,width:18,height:18,rx:5,fill:'none',stroke:'currentColor','stroke-width':1.8}],['circle',{cx:12,cy:12,r:4,fill:'none',stroke:'currentColor','stroke-width':1.8}],['circle',{cx:17.5,cy:6.5,r:1.1,fill:'currentColor'}]]){const shape=document.createElementNS(ns,tag);for(const [key,value] of Object.entries(attrs))shape.setAttribute(key,value);icon.append(shape);}
+  instagram.append(icon);socials.append(instagram);dock.append(socials);details.append(dock);frame.append(details);root.append(frame);
 }

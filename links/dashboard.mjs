@@ -1,5 +1,5 @@
 import {API,SERVICES,slugify,releaseUrl,validateLinks,newId} from './shared.mjs';
-import {renderRelease} from './release-view.mjs?v=20261030-refined1';
+import {renderRelease} from './release-view.mjs?v=20261030-listen2';
 import {loadLabAccount} from '../lab/native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from '../lab/session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 const $=id=>document.getElementById(id),form=$('release-form'),editor=$('editor');
