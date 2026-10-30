@@ -89,7 +89,7 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-30
-- Objective complete: artist profile, release page and three Instagram images; subsequent framing refinements published.
+- Objective: artist profile, release page and three Instagram images complete; current refinement gives the release story stronger reading presence.
 - Artist URL: https://parallelvisionlabel.com/estero.html
 - Release URL: https://parallelvisionlabel.com/siento.html
 - Latest product source: `e369a384320227e75fef345274cd955a854d7b74`, PR #695.
@@ -115,7 +115,10 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Decorative silver portrait behind the interview has directional dark gradients, .48 desktop opacity and .30 mobile opacity; no fixed background.
 - Latest refinement anchors only the release hero to the source photo's top edge (50% 0% desktop / 51% 0% mobile), preventing hair cropping on wide screens. Original hero height and title size retained.
 - Closing quote caps at 64px and 1300px width with 1.12 leading, .035em negative tracking and 96px maximum vertical section padding; original wording retained.
-- Current release stylesheet cache: estero-editorial.css?v=20261030-headroom-1.
+- Current release stylesheet cache: estero-editorial.css?v=20261030-reading-1.
+- Reading refinement: article first in the DOM and on screen; compact release details move to the right on desktop and below the story on mobile.
+- Added the English translation of the supplied manifesto’s opening question as a prominent lead; existing two context paragraphs retained.
+- Reading hierarchy: headline up to 96px, lead up to 34px, body up to 24px with 880px maximum reading width and darker ink; mobile body 18px and lead 24px.
 - Latest changed files: `css/estero-editorial.css`, `siento.html`, this checkpoint. Artist page and interview content retained.
 - Validation: static build passes 24 maintained public pages; whitespace check passes; PR static CI passed.
 - Responsive preview checked at 1920x900 and phone 390/320 frames (375/305px content widths); full head remains visible and no phone horizontal overflow.
@@ -129,4 +132,5 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Image files were revised in place, preserving identity/history; no Instagram posting was requested or performed.
 - Animation slots remain documented in artist hero, release hero and release editorial still; retain corresponding posters.
 - No verified listening/purchase/presave URLs supplied; no guessed destinations or empty players added.
-- No publication blocker remains. Next: owner supplies animation clips, final artwork and verified listening links.
+- Reading refinement: local static build and whitespace checks pass; phone 390/320 content widths 375/305px have no horizontal overflow, and desktop 1920 preview reviewed. Publication pending.
+- Next: publish the reading refinement and verify public output; owner supplies animation clips, final artwork and verified listening links later.
