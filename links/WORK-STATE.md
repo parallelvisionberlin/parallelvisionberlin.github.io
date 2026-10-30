@@ -52,11 +52,11 @@ Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), indepen
 - Dashboard: https://parallelvisionlabel.com/links/ ; Sube: https://parallelvisionlabel.com/listen/?release=sube .
 - Event correction live: Worker run 41059431989 / job 124075149204 succeeded; Pages run 41059430809 succeeded.
 - Five runtime assets matched exact source bytes. Public Sube API reports MusicLinkClick, pixel 1746851780072706, v4; actual listening page still loads.
-- 33 local music/auth tests passed, including migration idempotency, pixel preservation and stale-save rejection.
+- 34 current music/auth tests passed, including default-on without fabricated saved consent, opt-out/re-enable and preserved previous rejection.
 - Owner edits background under Artwork & sound > Page background, then saves. Explicit existing choices are not overwritten.
 - No CAPI, historical Hypeddit import, pre-save, automatic metadata import or server-rendered per-link social cards.
 - Current blocker: user screenshots show MusicLinkClick absent in Meta selector. Website configuration is verified; Meta receipt is NOT verified. Next: Events Manager Test events before creating conversion.
-- Current update: remove automatic prompt, enable Pixel by default except saved opt-outs; keep manual Tracking settings and truthful privacy disclosure. Publication pending.
+- Current update: remove automatic prompt, enable Pixel by default except saved opt-outs; keep manual Tracking settings and truthful privacy disclosure. Published 8696dd8; Pages run 41068308536 succeeded. Three public runtime files exact; actual Sube page loads auto1 module with notice hidden. 34 music/auth tests passed.
 - One QA Spotify click made with consent enabled on 30 Oct, then consent declined again. Do not count that click as an acquired listener.
 - Direct executor workers.dev requests previously hit Cloudflare 1010; use production workflow checks and actual frontend browser.
 - Local dist/, fixture modules and .openai preview config are excluded from Git and must not ship.
