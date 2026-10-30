@@ -89,7 +89,7 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-30
-- Objective complete: Siento story and petals portrait united in one photographic section; artist profile and Instagram images retained.
+- Objective: retain the approved photographic story and strengthen the interview typography; artist profile and Instagram images retained.
 - Artist URL: https://parallelvisionlabel.com/estero.html
 - Release URL: https://parallelvisionlabel.com/siento.html
 - Latest product source: `ec5d85b1225251156731fd3367f1fbe78e0b48e2`, PR #701.
@@ -116,13 +116,16 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Decorative silver portrait behind the interview has directional dark gradients, .48 desktop opacity and .30 mobile opacity; no fixed background.
 - Previous framing refinement anchors only the release hero to the source photo's top edge (50% 0% desktop / 51% 0% mobile), preventing hair cropping on wide screens. Original hero height and title size retained.
 - Closing quote caps at 64px and 1300px width with 1.12 leading, .035em negative tracking and 96px maximum vertical section padding; original wording retained.
-- Current release stylesheet cache: estero-editorial.css?v=20261030-visual-story-1.
+- Current release stylesheet cache: estero-editorial.css?v=20261030-interview-type-1.
 - Approved visual refinement: merge the former paper story section and standalone petals photo into one dark photographic article; remove the independent duplicate image.
 - Added the English translation of the supplied manifesto’s opening question as a prominent lead; existing two context paragraphs retained.
 - Desktop: title, lead and both context paragraphs overlay a directional shadow on the left; portrait sits to the right with the face clear. Copy width capped at 680px; body 20–22px.
 - Mobile/tablet <=960px: title and lead overlay the portrait, then body continues on black; phone body 18px and lead 24px. Gradient fades the picture into the text.
 - Metadata retains all six fields in a compact strip below the article: 6 desktop columns, 3 tablet columns, 2 phone columns. Original visual-study credit retained.
-- Latest changed files: `css/estero-editorial.css`, `siento.html`, this checkpoint. Artist page and interview content retained.
+- Current interview typography: locally hosted Barlow Condensed Medium for the uppercase title and sentence-case questions; normal sans retained for answers. Title uses a small connecting “on”.
+- Font asset: `assets/fonts/barlow-condensed/BarlowCondensed-Medium.woff` (49,876 bytes), from google/fonts; adjacent `OFL.txt` retains the original copyright and license.
+- Interview measure capped at 760px, answer lines at 62ch; desktop answer text 20px, phone 18px; questions 30–48px desktop / 32px phone.
+- Latest changed files: `css/estero-editorial.css`, `siento.html`, the two font/license assets and this checkpoint. All original question/answer wording retained.
 - Validation: static build passes 24 maintained public pages; whitespace check passes; PR static CI passed.
 - Previous hero framing checked at 1920x900 and phone 390/320 frames (375/305px content widths); full head remains visible.
 - At 1920px, revised closing quote measures 1300x286.7px with 64px text.
@@ -138,4 +141,5 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Previous reading refinement: PR #700 deployed as ccb433ac; Pages 41137176120 succeeded. Current photographic refinement: local build/whitespace and both PR static CI checks pass; 1920px, 1348px and phone 390/320 previews checked without horizontal overflow.
 - Read Estero’s words still targets #in-his-words; original paragraphs, Spanish interview, dates and photographs are retained. Only release-story/metadata presentation changes.
 - Read Estero’s words was browser-checked at a 90px header offset. Mobile photo fades continuously into the reading area, with 375/305px content widths.
-- No publication blocker remains. Next: owner supplies animation clips, final artwork and verified listening links.
+- Current interview refinement: local build/whitespace pass; 390/320 phone preview confirms the font loads with Spanish accents and no horizontal overflow. Desktop review/publication pending.
+- Next: publish and verify interview typography; owner supplies animation clips, final artwork and verified listening links later.
