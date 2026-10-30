@@ -11,8 +11,10 @@ Verified code commit: ab4c7e2496ce73129d3a9a54e6f2e96a8f8a5c9a
 - Changed `berlin-2063.html`: world order is Hyperfuture Berlin, Berlin 2063, Organic Futures, After the Collapse.
 - Organic Futures is now 03; After the Collapse is now 04, including EN/DE labels.
 - Moved complete gallery sections with images, captions, controls, context and links intact.
-- Verification: exact section-preservation assertions and `git diff --check` passed. No CSS or JavaScript changes.
-- Publishing: ready to push to main; public propagation still requires verification.
+- Verification: exact section-preservation assertions, unique IDs, preserved links/assets and `git diff --check` passed. No CSS or JavaScript changes.
+- GitHub static site validation passed: run 41036183137.
+- Published source commit: ac77e531ff2a0d6c8ca916a077db96487dfd207f on main.
+- GitHub Pages deployment run 41036181910 is in progress; public verification remains pending.
 - Existing gallery and Chromia notes below describe the earlier recorded work, not a fresh asset audit.
 
 ## Completed
