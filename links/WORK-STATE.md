@@ -34,7 +34,7 @@ Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), indepen
 - Custom click event MusicLinkClick preserves artist, track and music_service. Migration 0047 replaces legacy name once, preserving pixel and advancing settings revision.
 - Meta target: create Parallel Vision – Spotify Click custom conversion on ParallelVision_Music_Pixel, MusicLinkClick filtered by music_service equals spotify.
 - Dashboard no longer offers the legacy event. No Hypeddit service dependency exists.
-- Owner explicitly requested no automatic cookie prompt, Pixel active by default. Explicit saved denied remains honored; manual Tracking settings can disable/re-enable. No consent choice is fabricated or stored for a new visitor. Meta receipt/attribution remains unobserved.
+- Owner explicitly requested no automatic cookie prompt, Pixel active by default. Explicit saved denied remains honored; manual Tracking settings can disable/re-enable. No consent choice is fabricated or stored for a new visitor. Meta Test Events receipt is now confirmed by owner screenshot; ad attribution remains unobserved.
 - Anonymous aggregate page loads/clicks, date ranges and platform/source/campaign reports. Not unique listeners or confirmed streams.
 - Deduplicated UUID receipts; hourly HMAC rate limits store no raw IP/ad identifiers. Daily short-lived receipt/rate-limit pruning.
 - Migration 0045 seeds verified Stay Low/SoundCloud; Sube originally draft. Owner has since published Sube with Spotify, verified in browser.
@@ -55,7 +55,8 @@ Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), indepen
 - 34 current music/auth tests passed, including default-on without fabricated saved consent, opt-out/re-enable and preserved previous rejection.
 - Owner edits background under Artwork & sound > Page background, then saves. Explicit existing choices are not overwritten.
 - No CAPI, historical Hypeddit import, pre-save, automatic metadata import or server-rendered per-link social cards.
-- Current blocker: user screenshots show MusicLinkClick absent in Meta selector. Website configuration is verified; Meta receipt is NOT verified. Next: Events Manager Test events before creating conversion.
+- Meta receipt confirmed 30 Oct: owner screenshot image(20261030-140917).png, libfile_b27c7f69d0a88191b3e96f356c7332dc shows MusicLinkClick, View content and PageView Processed via Browser on ParallelVision_Music_Pixel 1746851780072706, source parallelvisionlabel.com. Event parameters are collapsed and not yet visually verified.
+- Next: expand MusicLinkClick and verify music_service=spotify, then create/select the Spotify custom conversion. Test receipt does not establish ad attribution or selector availability.
 - Current update: remove automatic prompt, enable Pixel by default except saved opt-outs; keep manual Tracking settings and truthful privacy disclosure. Published 8696dd8; Pages run 41068308536 succeeded. Three public runtime files exact; actual Sube page loads auto1 module with notice hidden. 34 music/auth tests passed.
 - One QA Spotify click made with consent enabled on 30 Oct, then consent declined again. Do not count that click as an acquired listener.
 - Direct executor workers.dev requests previously hit Cloudflare 1010; use production workflow checks and actual frontend browser.
