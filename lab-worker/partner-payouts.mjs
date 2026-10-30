@@ -34,7 +34,7 @@ async function report(env,subject){
 }
 export async function partnerPayoutRoute(request,env,actor,{ownerView=false}={}){
  const path=new URL(request.url).pathname,adminQueue=path==='/api/admin/partner-payouts';
- let subject=actor;
+ let subject=actor,workspaceSlug=null;
  if(ownerView){
   await requireOwner(env,actor);
   if(adminQueue){
@@ -43,12 +43,12 @@ export async function partnerPayoutRoute(request,env,actor,{ownerView=false}={})
     FROM lab_partner_payouts WHERE status='pending' ORDER BY created_at,id LIMIT 100`)});
   }
   const slug=path.match(/^\/api\/admin\/partners\/(bellini-studio|robin-studio)\/payouts(?:\/|$)/)?.[1];
-  if(!slug)fail(404,'Unknown payout workspace.');
+  if(!slug)fail(404,'Unknown payout workspace.');workspaceSlug=slug;
   const partner=await resolveApprovedPartner(env,slug);
   if(!partner)fail(409,'El partner debe iniciar sesión primero.');subject=partner.subject;
  }else{
   const workspace=await partnerWorkspace(env,subject,{verify:true});
-  if(!['bellini-studio','robin-studio'].includes(workspace?.slug))fail(403,'Esta cuenta no tiene acceso a los retiros de partners.');
+  if(!['bellini-studio','robin-studio'].includes(workspace?.slug))fail(403,'Esta cuenta no tiene acceso a los retiros de partners.');workspaceSlug=workspace.slug;
  }
  const base=ownerView?'/api/admin/partners/'+path.split('/')[4]+'/payouts':'/api/customer/partner/payouts';
  const action=path.slice(base.length);
@@ -104,7 +104,7 @@ export async function partnerPayoutRoute(request,env,actor,{ownerView=false}={})
  if(view.availableCents<5000)fail(409,'El mínimo para solicitar un pago es de 50 € netos.');
  if(!Number.isSafeInteger(data.expectedAmountCents)||data.expectedAmountCents!==view.availableCents)fail(409,'El importe cambió. Actualiza el saldo y revisa el nuevo neto antes de solicitarlo.');
  const now=Date.now();const statements=[env.LAB_DB.prepare(`INSERT INTO lab_partner_payouts
-  (id,workspace,partner_customer_id,status,amount_cents,created_at,updated_at) VALUES(?,?,?,'pending',?,?,?)`).bind(data.requestId,workspace.slug,subject,view.availableCents,now,now)];
+  (id,workspace,partner_customer_id,status,amount_cents,created_at,updated_at) VALUES(?,?,?,'pending',?,?,?)`).bind(data.requestId,workspaceSlug,subject,view.availableCents,now,now)];
  const items=JSON.stringify(available.map(p=>[p.reference,p.amountCents,p.feeCents,p.taxCents,p.baseCents,p.rate,p.withdrawalCents,p.nominalCommissionCents??p.commissionCents,p.costAdjustmentCents||0,p.costReserveCents||0,p.generationCostCents??null,p.payableCents??p.commissionCents]));
  statements.push(costSnapshotStatement(env,subject,view.commissionReport.receipts,view.commissionReport.costRevision));
  statements.push(env.LAB_DB.prepare(`INSERT INTO lab_partner_payout_segments
