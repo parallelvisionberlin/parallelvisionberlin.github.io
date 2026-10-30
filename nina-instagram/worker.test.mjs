@@ -5,6 +5,39 @@ import { webcrypto, createHash } from 'node:crypto';
 import vm from 'node:vm';
 import test from 'node:test';
 
+test('a compliment receives concise, playful guidance with no forced question', async () => {
+  let prompt;
+  const h = harness({ AI: { async run(model, input) {
+    prompt=input.messages[0].content;
+    return { response: 'Tienes buen ojo.' };
+  } } });
+  await h.incoming('123456','Qué hermosa te ves hoy');
+  h.setTime(h.job('123456').due_at); await h.cron();
+  assert.match(prompt,/This is a compliment/);
+  assert.match(prompt,/3 to 12 words/);
+  assert.equal(h.effects.sends[0].message.text,'Tienes buen ojo.');
+});
+test('excessively long compliments are rewritten once before sending', async () => {
+  let calls=0;
+  const h=harness({AI:{async run(){return {response:++calls===1 ?
+    'Me encanta mucho que me digas eso, eres muy especial, maravilloso y fascinante, y me encantaría conversar contigo sobre todo lo que te hace sentir la belleza y la música.' : 'Eso fue directo.'};}}});
+  await h.incoming('123456','Me encanta tu música');
+  h.setTime(h.job('123456').due_at); await h.cron();
+  assert.equal(calls,2);
+  assert.equal(h.effects.sends[0].message.text,'Eso fue directo.');
+});
+test('even if the model ignores rewrite, the outgoing length stays bounded', async () => {
+  const h=harness({AI:{async run(){return {response:'Una frase innecesariamente larga '.repeat(25)};}}});
+  await h.incoming('123456','Me gustas');
+  h.setTime(h.job('123456').due_at);await h.cron();
+  assert(h.effects.sends[0].message.text.length<=105);
+});
+test('a factual question has enough room for a specific, useful reply', async () => {
+  const h=harness({AI:{async run(){return {response:'El Workroom es mi grupo de práctica de atención, separado del estudio donde produzco música.'};}}});
+  await h.incoming('123456','Qué es el Workroom?');
+  h.setTime(h.job('123456').due_at);await h.cron();
+  assert.match(h.effects.sends[0].message.text,/separado del estudio/);
+});
 test('unsupported age accusation on gentle affection is rewritten without inventing ages',async()=>{
   let calls=0,revision;
   const h=harness({AI:{async run(model,input){calls++;revision=input.messages[0].content;return {response:calls===1?'No puedo crear situaciones íntimas con menores de edad.':'Un abrazo largo con este frío suena bien.'};}}});

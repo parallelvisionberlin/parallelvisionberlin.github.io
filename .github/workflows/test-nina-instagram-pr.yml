@@ -1,0 +1,24 @@
+name: Nina Instagram PR checks
+on:
+  pull_request:
+    paths:
+      - 'nina-instagram/worker.mjs'
+      - 'nina-instagram/worker.test.mjs'
+      - 'nina-instagram/deploy.mjs'
+      - 'nina-instagram/deploy.test.mjs'
+      - 'nina-instagram/diagnose.mjs'
+      - '.github/workflows/test-nina-instagram-pr.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  worker-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check nina-instagram/worker.mjs
+      - run: node --test nina-instagram/worker.test.mjs nina-instagram/deploy.test.mjs
