@@ -6,24 +6,24 @@ Published refinement: e354ffff1d5c6244052cf08312113d77af62b44d (PR #675); prior 
 
 ## Approved direction
 - Private dashboard: white/black/cool grey, permanent sidebar, compact medium artwork rows, prominent metrics. Only Spotify, SoundCloud, YouTube.
-- Public layout now approved: artwork-first refinement exec-730d0f3b-081e-4845-8ec2-898a49b9378a.png.
+- Public target: artwork-first refinement exec-730d0f3b-081e-4845-8ec2-898a49b9378a.png, re-supplied as libfile_a8746d7ea8b48191b6360f9930e777e8.
+- User rejected the live 62px blur and undersized composition; preserve visible blue/red light shapes and match target proportions.
 - Large sharp cover left, smaller title/artist and listening links grouped right; centred composition. Phone stacks artwork above details.
 - Spotify row: green brand identity on white, separate bordered Listen control. Whole row remains one accessible link.
 - Blurred artwork is default for new/unconfigured links. Explicit cinematic and black choices remain available and are preserved.
 - No decorative arrows, fabricated platform links, pre-saves or extra image generation for implementation.
 
-## Current refinement
-- Renderer: links/release-view.mjs. Public layout/styles: links/release.css. Matching creator preview: links/dashboard.css.
-- Creator HTML/JS and listen HTML/JS receive fresh module/style query versions 20261030-refined1.
-- Default background change only: lab-worker/music-links.mjs, frontend defaults, existing background round-trip tests.
-- Worker feature marker music-links-20261030-v3; deploy workflow verifies that marker. No new schema migration.
-- 32 focused music-links/auth tests passed. Default blur, explicit artwork/black, old-client omission and stale-save safeguards checked.
-- Local browser: phone 390x844 body width/scrollWidth 390px; desktop body 1363px with 460px sharp cover and no overflow.
-- Creator: 225px preview cover, all three modes checked; black has zero background images; three-platform preview fits 328px width.
-- Syntax/whitespace passed. Pages run 41054184749 succeeded; seven changed frontend assets match exact committed bytes.
-- Worker run 41054185064 deployed successfully (version ee7af2c5-2fbf-4be0-a237-28b70263d665), but immediate feature check still saw v2.
-- Actual browser subsequently verified ready:true/music-links-20261030-v3 and Sube JSON background:blur; live page shows refined layout and real Spotify link.
-- Gate now retries revision mismatches during rollout; follow-up Worker run 41055303256 / job 124061208029 succeeded. Application code unchanged.
+## Current visual correction
+- CSS-only: release.css blur reduced 62px to 18px desktop and 38px to 14px phone, lighter dark overlay, saturation restored.
+- Background uses the same artwork, cropped to its photographic area; full cover remains sharp and complete in front.
+- Desktop columns grow up to 600/620px with larger title/artist; phone cover up to 310px. Existing Spotify row preserved.
+- Creator preview uses matching lighter blur and larger mobile proportions. Entry HTML cache queries updated to 20261030-match1.
+- No renderer, API, tracking, database or settings changes; backend remains music-links-20261030-v3.
+- Browser QA: phone body width/scrollWidth 390px and height 844px; desktop widths 1363px and 1920px fit without horizontal overflow.
+- Desktop 1920x900 fixture fits without vertical overflow. Existing real artwork and Spotify destination unchanged.
+- Whitespace check passed. Publication pending; verify live CSS/HTML bytes and actual visual result before reporting done.
+- Prior refinement e354fff deployed: Pages run 41054184749, seven frontend assets exact; v3 readiness verified in actual browser.
+- Worker gate propagation fix c1f12ec verified by run 41055303256 / job 124061208029 success.
 
 ## Existing implementation
 - Owner /links/ uses existing Clerk with server-verified OWNER_DB role. Public /listen/?release=slug works on static hosting.
@@ -47,7 +47,7 @@ Published refinement: e354ffff1d5c6244052cf08312113d77af62b44d (PR #675); prior 
 
 ## Links / next action
 - Dashboard: https://parallelvisionlabel.com/links/ ; Sube: https://parallelvisionlabel.com/listen/?release=sube .
-- Refinement is live. In Meta use Pixel 1746851780072706, event Hypeddit Smart Link Click, with music_service equals spotify for a Spotify custom conversion.
+- Publish corrected blur/proportions; Meta configuration stays Pixel 1746851780072706, event Hypeddit Smart Link Click, music_service equals spotify.
 - Owner edits background under Artwork & sound > Page background, then saves. Explicit existing choices are not overwritten.
 - No CAPI, historical Hypeddit import, pre-save, automatic metadata import or server-rendered per-link social cards.
 - Hypeddit URL-restricted conversions require label-domain rules in Meta. Script loading does not prove ad attribution.
