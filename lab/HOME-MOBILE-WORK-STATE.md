@@ -1,5 +1,21 @@
 # PV LAB phone homepage layout
 
+## Compact referral invitation, 2026-10-30
+
+- Owner selected concept 06, with a thinner section and legible button lettering.
+- Source baseline: main 3a6bcdcdc2ad04bdad0ff44c5d4a10049e94c878.
+- Branch: design/referral-concept06-20261030.
+- Reuse the original uploaded suspended-garment photograph, not the composite mockup.
+- Asset: visuals/invite-suspended-garment-20261030.webp, 2048x1152, 213654 bytes.
+- Photo reference: hf_20261028_225639_336cd24f-aa58-4840-bae8-7e871d3cf3ae(2).png.
+- Approved mockup: c7add702-4250-47fa-b7fe-3f39f3a185c4.png, Library libfile_1f7aeb19e6808191bd22952f9a6af9b4.
+- Desktop stage: 304–384px, copy left, bottom-aligned pill CTA right; mobile stacks naturally.
+- Button: centered 16px semibold DM Sans, at least 52px high, near-black text on ivory.
+- Keep existing referral wording, eligibility, customer/owner destinations and footer unchanged.
+- Code: invite-hero.css and its index.html cache key 20261030-suspended-compact1.
+- Validation: 11/11 existing Image contract and referral UI/account-panel tests pass; diff whitespace passes.
+- Commit and preview review requested. No production publication of this referral design is claimed.
+
 ## Homepage order and Editorial typography, 2026-10-30
 
 - Owner approved hero → Image/Video/Upscaler → Full Editorial → Creative Studios → Characters → pricing.
@@ -20,7 +36,9 @@
 - Desktop preview inspected at 1363px: DM sans-serif, font-style normal, Editorial height 539px, no horizontal page overflow.
 - Existing homepage stability and Image contract CI pass. The old Studios five-vs-four landing assertion still fails as on baseline main.
 - No separate phone browser viewport was available for this scoped review; existing responsive rules retain the phone layout.
-- Request complete: edited, committed and preview-reviewed; production publication remains a separate step.
+- PR #668 merged as 3a6bcdcdc2ad04bdad0ff44c5d4a10049e94c878; Cloudflare Pages pvlab-studio check 124006855474 succeeded.
+- Live pvlab.studio DOM verified: hero → tools → Editorial → Creative Studios → Characters → pricing, with DM Sans Editorial heading and stylesheet 20261030-tool-first-editorial-type1.
+- Homepage order request complete and live; referral design remains a separate change above.
 
 ## Homepage Fashion feature visibility, 2026-10-30
 
