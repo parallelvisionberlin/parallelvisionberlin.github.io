@@ -199,3 +199,27 @@
  #panel-results .results-grid{gap:7px}
 }
 @media(prefers-reduced-motion:reduce){.atelier-reference,.atelier-look,.atelier-tab{transition:none}}
+
+/* Compact, operable mobile navigation, including keyboard/escape handling. */
+#editorial-mobile-menu{display:none}
+#step-next:after{content:'→';font-size:18px;margin-left:12px;font-weight:400}
+@media(max-width:800px){
+ .editorial-header{height:68px;min-height:68px;flex-wrap:nowrap;padding:0 16px;gap:11px}
+ .editorial-brand{width:70px}
+ #editorial-mobile-menu{display:grid;place-items:center;order:4;margin-left:0;flex:0 0 34px;height:34px;background:transparent;border:1px solid #747577;border-radius:50%;color:#f4f4f2;font-size:15px;line-height:1}
+ .editorial-header nav{display:none;position:absolute;top:68px;left:0;right:0;z-index:101;background:#0b0c0df7;border-top:1px solid #343638;border-bottom:1px solid #343638;flex-direction:column;align-items:stretch;gap:0;padding:10px 17px 16px;width:auto;white-space:normal;overflow:visible;order:0}
+ .editorial-header.menu-open nav{display:flex}
+ .editorial-header nav a{display:block;padding:12px 6px;border-bottom:1px solid #27282a}
+ .editorial-account{gap:9px;order:3;margin-left:auto}
+ .editorial-account #editorial-balance{display:none}
+ .editorial-account .credits-link{font-size:11px}
+ .editorial-account .editorial-avatar{height:26px;width:26px;font-size:20px}
+ .editorial-account #editorial-signin{font-size:11px;padding:7px 10px}
+}
+@media(max-width:520px){
+ .editorial-header{padding:0 11px;gap:8px}
+ .editorial-brand{width:63px}
+ .editorial-account{gap:7px}
+ .editorial-account .credits-link span{width:17px;height:17px;font-size:15px}
+ #editorial-mobile-menu{width:32px;height:32px;flex-basis:32px}
+}
