@@ -9,7 +9,7 @@ DROP TRIGGER IF EXISTS lab_partner_voucher_budget_update;
 DROP TRIGGER IF EXISTS lab_partner_voucher_recipient;
 
 CREATE TABLE IF NOT EXISTS lab_partner_budgets_expanded (
- workspace TEXT PRIMARY KEY CHECK(workspace IN ('vitolas-studio','bellini-studio')),
+ workspace TEXT PRIMARY KEY CHECK(workspace IN ('vitolas-studio','bellini-studio','robin-studio')),
  partner_customer_id TEXT NOT NULL REFERENCES lab_customers(id),
  credit_limit INTEGER NOT NULL CHECK(credit_limit BETWEEN 0 AND 1000000),
  updated_at INTEGER NOT NULL, updated_by TEXT NOT NULL
@@ -19,7 +19,7 @@ INSERT OR REPLACE INTO lab_partner_budgets_expanded
 DROP TABLE lab_partner_budgets;
 ALTER TABLE lab_partner_budgets_expanded RENAME TO lab_partner_budgets;
 CREATE TABLE IF NOT EXISTS lab_partner_links_expanded (
- slug TEXT PRIMARY KEY CHECK(slug IN ('vitolas','bellini')),
+ slug TEXT PRIMARY KEY CHECK(slug IN ('vitolas','bellini','robin')),
  customer_id TEXT NOT NULL REFERENCES lab_customers(id), created_at INTEGER NOT NULL
 );
 INSERT OR REPLACE INTO lab_partner_links_expanded
