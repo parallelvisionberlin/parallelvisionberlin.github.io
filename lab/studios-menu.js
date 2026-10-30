@@ -3,7 +3,6 @@
 (()=>{
  const script=document.currentScript,base=new URL('./',script?.src||location.href);
  const url=path=>new URL(path,base).href;
- const arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
  const sprite=url('visuals/beauty/studios-original-reference.svg');
  const retouchCard=url('visuals/beauty/retouch-studio-reference-card.svg');
  const editorialHero='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png';
@@ -18,12 +17,12 @@
   const artwork='<img class="pv-studios-artwork" alt="" loading="lazy" decoding="async" src="'+sprite+'">';
   panel.innerHTML='<span class="pv-studios-kicker">STUDIOS</span>'+
    '<div class="pv-studios-grid">'+
-     '<section class="pv-studios-tile pv-studios-beauty">'+artwork+'<a aria-label="Beauty Studio" href="'+url('beauty.html')+'"></a></section>'+
-     '<section class="pv-studios-tile pv-studios-fashion">'+artwork+'</section>'+
-     '<section class="pv-studios-tile pv-studios-editorial"><img class="pv-studios-editorial-artwork" alt="" loading="lazy" decoding="async" src="'+editorialHero+'"><div class="pv-studios-editorial-copy"><strong>Full<br>Editorial</strong><p>Build a complete fashion story.</p><span class="pv-studios-editorial-go" aria-hidden="true">'+arrow+'</span></div><a aria-label="Full Editorial" href="'+url('full-editorial.html')+'"></a></section>'+
-     '<section class="pv-studios-tile pv-studios-retouch"><img class="pv-studios-retouch-artwork" alt="" loading="lazy" decoding="async" src="'+retouchCard+'"><a class="pv-studios-retouch-link" aria-label="Retouch Studio" href="'+url('studio.html?tool=retouch')+'"></a></section>'+
+     '<section class="pv-studios-tile pv-studios-beauty"><div class="pv-studios-photo">'+artwork+'</div><div class="pv-studios-meta"><strong>Beauty Studio</strong><span>Portrait &amp; beauty</span></div><a aria-label="Beauty Studio" href="'+url('beauty.html')+'"></a></section>'+
+     '<section class="pv-studios-tile pv-studios-fashion"><div class="pv-studios-photo">'+artwork+'</div><div class="pv-studios-meta"><strong>Fashion Studio</strong><span>Style &amp; campaign</span></div></section>'+
+     '<section class="pv-studios-tile pv-studios-editorial"><div class="pv-studios-photo"><img class="pv-studios-editorial-artwork" alt="" loading="lazy" decoding="async" src="'+editorialHero+'"></div><div class="pv-studios-editorial-copy"><strong>Full Editorial</strong><p>Build a complete fashion story.</p></div><a aria-label="Full Editorial" href="'+url('full-editorial.html')+'"></a></section>'+
+     '<section class="pv-studios-tile pv-studios-retouch"><div class="pv-studios-photo"><img class="pv-studios-retouch-artwork" alt="" loading="lazy" decoding="async" src="'+retouchCard+'"></div><div class="pv-studios-meta"><strong>Retouch Studio</strong><span>Precision edits</span></div><a class="pv-studios-retouch-link" aria-label="Retouch Studio" href="'+url('studio.html?tool=retouch')+'"></a></section>'+
    '</div>'+
-   '<div class="pv-studios-secondary"><a class="pv-studios-character-link" href="'+url('studio.html?tool=image&createCharacter=1')+'">Character Studio'+arrow+'</a></div>';
+   '<div class="pv-studios-secondary"><a class="pv-studios-character-link" href="'+url('studio.html?tool=image&createCharacter=1')+'">Character Studio</a></div>';
   original.before(shell);shell.append(trigger,panel);panel.querySelector('.pv-studios-fashion').append(original);
   // Keep the original live Fashion element so its ID, handlers and return-to-draft behavior survive.
   original.classList.add('pv-studios-fashion-link');original.textContent='';original.setAttribute('aria-label','Fashion Studio');
@@ -35,9 +34,9 @@
   new MutationObserver(active).observe(original,{attributes:true,attributeFilter:['aria-pressed']});
   if(existingRetouch?.tagName==='BUTTON')new MutationObserver(active).observe(existingRetouch,{attributes:true,attributeFilter:['aria-pressed']});
   function position(){
-   const rect=trigger.getBoundingClientRect(),width=Math.min(1400,innerWidth-28),left=Math.max(14,Math.min(rect.left-24,innerWidth-width-14)),top=Math.max(10,rect.bottom+16);
+   const rect=trigger.getBoundingClientRect(),wide=innerWidth>760,width=Math.min(wide?1100:520,innerWidth-24),left=Math.max(12,Math.min(rect.left-18,innerWidth-width-12)),top=Math.max(8,rect.bottom+10);
    if(rect.bottom<0){close();return;}
-   Object.assign(panel.style,{width:width+'px',left:left+'px',top:top+'px',maxHeight:Math.max(100,innerHeight-top-14)+'px'});
+   Object.assign(panel.style,{width:width+'px',left:left+'px',top:top+'px',maxHeight:wide?'none':Math.max(100,innerHeight-top-12)+'px'});
   }
   function close(restore=false){panel.hidden=true;trigger.setAttribute('aria-expanded','false');if(restore)trigger.focus();}
   function open(){for(const other of document.querySelectorAll('.pv-studios-trigger[aria-expanded="true"]'))if(other!==trigger)other.click();panel.hidden=false;trigger.setAttribute('aria-expanded','true');position();panel.querySelector('a,button')?.focus({preventScroll:true});}

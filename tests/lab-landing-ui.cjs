@@ -29,35 +29,20 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.getByRole('link',{name:'Fashion Studio',exact:true}).getAttribute('href'),'./studio.html?tool=fashion');
   assert.match(await page.getByRole('link',{name:'Retouch Studio',exact:true}).getAttribute('href'),/studio\.html\?tool=retouch$/);
   const studioTiles=page.locator('.pv-studios-tile');
-  assert.equal(await studioTiles.count(),5,'Studios shows Beauty, Fashion, Outfit, Editorial and Retouch photographic cards');
-  assert.equal(await studioTiles.evaluateAll(tiles=>tiles.map(tile=>[...tile.classList].find(name=>name.startsWith('pv-studios-')&&name!=='pv-studios-tile'))).then(names=>names.join(',')),'pv-studios-beauty,pv-studios-fashion,pv-studios-outfit,pv-studios-editorial,pv-studios-retouch');
-  assert.match(await page.getByRole('link',{name:'Outfit Studio',exact:true}).getAttribute('href'),/tool=fashion$/);
+  assert.equal(await studioTiles.count(),4,'Studios shows exactly four compact destinations');
+  assert.deepEqual(await studioTiles.evaluateAll(tiles=>tiles.map(tile=>[...tile.classList].find(name=>name.startsWith('pv-studios-')&&name!=='pv-studios-tile'))),['pv-studios-beauty','pv-studios-fashion','pv-studios-editorial','pv-studios-retouch']);
+  assert.equal(await page.getByRole('link',{name:'Outfit Studio',exact:true}).count(),0,'Outfit remains inside Fashion Studio');
   assert.match(await page.getByRole('link',{name:'Full Editorial',exact:true}).getAttribute('href'),/full-editorial\.html$/);
-  for(const tile of await studioTiles.all()){
-    const box=await tile.boundingBox();
-    assert.ok(box&&Math.abs(box.width/box.height-446/247)<0.04,'Original wide card proportions are retained at '+width);
-  }
-  assert.equal(await page.locator('.pv-studios-artwork').count(),2,'Beauty and Fashion retain their original artwork');
-   assert.equal(await page.locator('.pv-studios-editorial-artwork').count(),1,'Full Editorial uses its selected campaign photograph');
-   assert.match(await page.locator('.pv-studios-editorial-artwork').getAttribute('src'),/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a\.png/);
-   assert.equal(await page.locator('.pv-studios-editorial-copy p').textContent(),'Build a complete fashion story.');
-  assert.equal(await page.locator('.pv-studios-outfit-artwork').count(),1,'Outfit uses its own approved editorial card');
-  assert.equal((await page.locator('.pv-studios-outfit-artwork').getAttribute('src'))?.includes('outfit-studio-card-20261028.webp'),true);
-  assert.ok(await page.locator('.pv-studios-outfit-artwork').evaluate(async img=>{await img.decode();return img.naturalWidth===446&&img.naturalHeight===247;}),'Outfit artwork fits the existing card ratio without cropping text');
-  assert.equal((await page.locator('.pv-studios-artwork').first().getAttribute('src'))?.includes('studios-original-reference.svg'),true);
-  // Check the actual sprite artwork coordinates rather than splitting the
-  // source screenshot into three equal thirds (which includes its gutters).
-  await page.locator('.pv-studios-artwork').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
-  const crops=await page.locator('.pv-studios-tile:is(.pv-studios-beauty,.pv-studios-fashion)').evaluateAll(tiles=>tiles.map(tile=>{
-    const t=tile.getBoundingClientRect(),a=tile.querySelector('.pv-studios-artwork').getBoundingClientRect();
-    const scale=a.height/247;
-    return {sourceX:(t.left-a.left)/scale,sourceY:(t.top-a.top)/scale,sourceRatio:a.width/a.height};
-  }));
-  for(let i=0;i<2;i++){
-    assert.ok(Math.abs(crops[i].sourceX-[0,460,916][i])<2,'Studio image '+i+' starts on its own photo at '+width+': '+JSON.stringify(crops[i]));
-    assert.ok(Math.abs(crops[i].sourceY-14)<1,'Studio image '+i+' excludes the old top strip at '+width);
-    assert.ok(Math.abs(crops[i].sourceRatio-1337/247)<0.03,'Studio images keep the original photographic aspect ratio');
-  }
+  assert.equal(await page.locator('.pv-studios-photo').count(),4,'Each studio has its own cropped photo well');
+  assert.equal(await page.locator('.pv-studios-artwork').count(),2,'Beauty and Fashion retain their original photographic source');
+  assert.equal(await page.locator('.pv-studios-editorial-artwork').count(),1,'Editorial retains its approved image');
+  assert.match(await page.locator('.pv-studios-editorial-artwork').getAttribute('src'),/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a\.png/);
+  assert.equal(await page.locator('.pv-studios-editorial-copy p').textContent(),'Build a complete fashion story.');
+  assert.equal(await page.locator('.pv-studios-editorial-go').count(),0,'No oversized circular navigation arrows');
+  const photoBounds=await page.locator('.pv-studios-photo').first().boundingBox();
+  assert.ok(photoBounds&&photoBounds.height<210,'Photo wells are compact at '+width);
+  const gridColumns=await page.locator('.pv-studios-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);
+  assert.equal(gridColumns,width<=760?2:4,'Compact Studios grid responds without a tall desktop dropdown');
   assert.match(await page.locator('.pv-studios-character-link').getAttribute('href'),/createCharacter=1/);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('.pv-studios-panel').isVisible(),false,'Escape closes Studios');
