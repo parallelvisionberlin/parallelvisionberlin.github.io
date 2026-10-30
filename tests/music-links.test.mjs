@@ -90,6 +90,7 @@ test('event retries are deduplicated atomically and reports are real date-filter
   assert.equal(report.platforms[0].service,'soundcloud');assert.equal(report.sources[0].views,1);assert.equal(report.campaigns[0].campaign,'sube-berlin');
   assert.equal((await(await f.admin('/dashboard?days=30')).json()).summary.views,2);
   assert.equal((await(await f.admin('/dashboard?days=0')).json()).summary.clicks,1);
+  assert.equal(f.db.prepare('SELECT SUM(count) AS n FROM music_link_limits').get().n,3,'Duplicate receipts do not consume another rate-limit slot');
   await assert.rejects(()=>f.admin('/dashboard?days=-1'),e=>e.status===400);
   await pruneMusicEvents(f.env,{clock:()=>NOW+4*86400000});assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM music_link_receipts').get().n,0);
   assert.equal(f.db.prepare('SELECT SUM(count) AS n FROM music_link_daily').get().n,3);
@@ -140,7 +141,7 @@ async function publicBrowser({consent=null}={}){
   const doc={getElementById:get,querySelector:s=>get(s),querySelectorAll:()=>buttons,createElement:()=>element(),head:{append(script){scripts.push(script);}},referrer:''};
   const release={id:crypto.randomUUID(),slug:'test',title:'Single',artist:'Artist',links:[{service:'spotify',url:'https://open.spotify.com/track/x'}],url:'https://parallelvisionlabel.com/listen/?release=test'};
   const win={};
-  const context={API:'https://api.example',SLUG:/^[a-z]+$/,metaDetails,newId,renderRelease(root,r,{onClick}){click=onClick;},document:doc,window:win,location:{search:'?release=test&utm_source=meta&utm_campaign=test',hostname:'parallelvisionlabel.com'},localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},navigator:{sendBeacon(url,data){sent.push({url,data});return true;}},crypto,URL,URLSearchParams,AbortSignal,Blob,Date,fetch:async()=>new Response(JSON.stringify({release,tracking:{pixelId:MUSIC_PIXEL,clickEvent:'MusicLinkClick'}})),Response,Error};
+  const context={createMeasurementTransport:()=>({send(url,data){sent.push({url,data});},flush(){}}),API:'https://api.example',SLUG:/^[a-z]+$/,metaDetails,newId,renderRelease(root,r,{onClick}){click=onClick;},document:doc,window:win,location:{search:'?release=test&utm_source=meta&utm_campaign=test',hostname:'parallelvisionlabel.com'},localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},navigator:{sendBeacon(url,data){sent.push({url,data});return true;}},crypto,URL,URLSearchParams,AbortSignal,Blob,Date,fetch:async()=>new Response(JSON.stringify({release,tracking:{pixelId:MUSIC_PIXEL,clickEvent:'MusicLinkClick'}})),Response,Error};
   let source=readFileSync(new URL('../listen/listen.mjs',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
   await vm.runInNewContext('(async()=>{'+source+'})()',context);
   return {elements,scripts,sent,stored,buttons,click,get,win,calls};

@@ -2,9 +2,9 @@ name: Parallel Vision release links
 on:
   push:
     branches: [main]
-    paths: ['links/**','listen/**','lab-worker/music-links.mjs','lab-worker/music-analytics.mjs','lab-worker/migrations/0050-music-analytics.sql','lab-worker/music-links-shared.mjs','lab-worker/worker.mjs','lab-worker/migrations/0045-music-links.sql','lab-worker/migrations/0046-music-link-designs.sql','lab-worker/migrations/0047-music-link-click-event.sql','lab-worker/migrations/0048-music-user-workspaces.sql','tests/music-links.test.mjs','.github/workflows/music-links.yml']
+    paths: ['links/**','listen/**','lab-worker/music-links.mjs','lab-worker/music-analytics.mjs','lab-worker/migrations/0050-music-analytics.sql','lab-worker/music-links-shared.mjs','lab-worker/worker.mjs','lab-worker/migrations/0045-music-links.sql','lab-worker/migrations/0046-music-link-designs.sql','lab-worker/migrations/0047-music-link-click-event.sql','lab-worker/migrations/0048-music-user-workspaces.sql','tests/music-links.test.mjs','tests/music-measurement-transport.test.mjs','.github/workflows/music-links.yml']
   pull_request:
-    paths: ['links/**','listen/**','lab-worker/music-links.mjs','lab-worker/music-analytics.mjs','lab-worker/migrations/0050-music-analytics.sql','lab-worker/music-links-shared.mjs','lab-worker/worker.mjs','lab-worker/migrations/0045-music-links.sql','lab-worker/migrations/0046-music-link-designs.sql','lab-worker/migrations/0047-music-link-click-event.sql','lab-worker/migrations/0048-music-user-workspaces.sql','tests/music-links.test.mjs','.github/workflows/music-links.yml']
+    paths: ['links/**','listen/**','lab-worker/music-links.mjs','lab-worker/music-analytics.mjs','lab-worker/migrations/0050-music-analytics.sql','lab-worker/music-links-shared.mjs','lab-worker/worker.mjs','lab-worker/migrations/0045-music-links.sql','lab-worker/migrations/0046-music-link-designs.sql','lab-worker/migrations/0047-music-link-click-event.sql','lab-worker/migrations/0048-music-user-workspaces.sql','tests/music-links.test.mjs','tests/music-measurement-transport.test.mjs','.github/workflows/music-links.yml']
 permissions:
   contents: read
 jobs:
@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/music-links.test.mjs tests/lab-auth.test.mjs
+      - run: node --test tests/music-links.test.mjs tests/lab-auth.test.mjs tests/music-measurement-transport.test.mjs
       - run: |
           node --check lab-worker/music-links.mjs
           node --check lab-worker/worker.mjs

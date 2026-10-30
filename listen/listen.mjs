@@ -1,3 +1,4 @@
+import {createMeasurementTransport} from './measurement-transport.mjs?v=20261030-reliable1';
 import {API,SLUG,metaDetails,newId} from '../links/shared.mjs';
 import {renderRelease} from '../links/release-view.mjs?v=20261030-analytics1';
 const root=document.getElementById('release'),params=new URLSearchParams(location.search);
@@ -31,13 +32,13 @@ function source(){
   for(const name of ['instagram','facebook','google','youtube','soundcloud'])if(host===name+'.com'||host.endsWith('.'+name+'.com'))return name;
   return host===location.hostname?'direct':'other';
 }
-const openedAt=Date.now();
+const openedAt=Date.now(),measurement=createMeasurementTransport({onFailure:reason=>console.warn('Music measurement delivery failed:',reason)});
+window.addEventListener?.('pagehide',()=>measurement.flush());
 function measure(event,service=''){
   const campaign=(params.get('utm_campaign')||'').replace(/[^\p{L}\p{N} _.()\-]/gu,'').slice(0,64);
   const tag=name=>(params.get(name)||'').replace(/[^\p{L}\p{N} _.()\-]/gu,'').slice(0,64);
   const data={id:newId(),releaseId:release.id,event,service,source:source(),campaign,medium:tag('utm_medium'),content:tag('utm_content'),term:tag('utm_term'),seconds:Math.min(86400,Math.floor((Date.now()-openedAt)/1000))};
-  const payload=JSON.stringify(data),url=API+'/api/music/public/events';
-  if(!navigator.sendBeacon?.(url,new Blob([payload],{type:'text/plain;charset=UTF-8'})))fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:payload,keepalive:true,credentials:'omit'}).catch(()=>{});
+  void measurement.send(API+'/api/music/public/events',data);
 }
 function clicked(service){
   measure('click',service);

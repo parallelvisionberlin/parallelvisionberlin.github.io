@@ -1,6 +1,6 @@
 import {eventDimensions,analyticsReports} from './music-analytics.mjs';
 import {API,MUSIC_PIXEL,CLICK_EVENTS,BACKGROUNDS,SERVICES,SLUG,UUID,releaseUrl,safeUrl,validateLinks} from './music-links-shared.mjs';
-export const MUSIC_LINKS_VERSION='music-links-20261030-v6';
+export const MUSIC_LINKS_VERSION='music-links-20261030-v7';
 const PREFIX='/api/music',DAY=86400000,HOUR=3600000;
 const ORIGINS=new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const SOURCES=new Set(['direct','meta','instagram','facebook','google','youtube','soundcloud','email','other']);
@@ -170,9 +170,10 @@ export async function musicPublicRoute(request,env,{clock=Date.now}={}){
     const release=await one(env,"SELECT links,audio_url FROM music_releases WHERE id=? AND status='published'",data.releaseId);if(!release)fail(404,'Release not found.');
     if(data.event==='preview'&&!release.audio_url)fail(400,'No audio preview is configured.');
     if(data.event==='click'&&!JSON.parse(release.links).some(l=>l.service===data.service))fail(400,'Unknown platform link.');
+    if(await one(env,'SELECT id FROM music_analytics_receipts WHERE id=?',data.id))return new Response(null,{status:204});
     const bucket=Math.floor(time/HOUR),key=bucket+':'+await digest(env,bucket+':'+(request.headers.get('cf-connecting-ip')||'unknown'));
     const limited=await one(env,'INSERT INTO music_link_limits(key,count,expires_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 WHERE count<120 RETURNING count',key,(bucket+2)*HOUR);
-    if(!limited)return new Response(null,{status:204});
+    if(!limited)return json({error:'Music measurement rate limit reached.'},429);
     const writes=[];
     if(data.event!=='preview')writes.push(stmt(env,'INSERT OR IGNORE INTO music_link_receipts(id,release_id,event,service,source,campaign,day_utc,created_at) VALUES(?,?,?,?,?,?,?,?)',data.id,data.releaseId,data.event,data.service,data.source,data.campaign,new Date(time).toISOString().slice(0,10),time));
     writes.push(stmt(env,'INSERT OR IGNORE INTO music_analytics_receipts(id,release_id,event,service,source,campaign,hour_utc,country,region,city,device,browser,os,medium,content,term,delay_bucket,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',data.id,data.releaseId,data.event,data.service,data.source,data.campaign,...eventDimensions(request,data,time),time));
