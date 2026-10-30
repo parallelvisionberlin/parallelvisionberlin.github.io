@@ -237,3 +237,86 @@
  .editorial-top-back{font-size:11px;gap:6px}
  .progress-top #progress-title{font-size:9px}
 }
+
+/* Hotel Room / After Hours: one diptych scene card, not a second identity. */
+#panel-mood .direction-cards{
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:12px;
+}
+#panel-mood .direction-card--diptych{
+ grid-column:span 2;
+ aspect-ratio:1.64;
+ border:1px solid #55524c;
+ isolation:isolate;
+}
+#panel-mood .direction-card--diptych .direction-primary-photo{
+ position:absolute;
+ inset:0 auto 0 0;
+ width:63%;
+ height:100%;
+ object-fit:cover;
+ object-position:52% 54%;
+ filter:brightness(.88) saturate(.73);
+}
+#panel-mood .direction-card--diptych .direction-atmosphere-photo{
+ position:absolute;
+ inset:0 0 0 auto;
+ width:37%;
+ height:100%;
+ object-fit:cover;
+ object-position:52% 40%;
+ border-left:1px solid #d7cfbd44;
+ filter:brightness(.84) saturate(.72);
+}
+#panel-mood .direction-card--diptych:after{
+ inset:0;
+ background:linear-gradient(0deg,rgba(3,4,5,.86),rgba(3,4,5,.04) 58%),linear-gradient(90deg,transparent 50%,rgba(3,4,5,.2));
+}
+#panel-mood .direction-card--diptych>span{
+ bottom:0;
+ left:0;
+ right:0;
+ padding:37px 16px 15px;
+ font-size:clamp(19px,2vw,29px);
+ letter-spacing:-.055em;
+ font-weight:500;
+ line-height:1.05;
+ background:none;
+}
+#panel-mood .direction-card--diptych .direction-diptych-eyebrow{
+ position:absolute;
+ top:13px;
+ left:14px;
+ z-index:2;
+ font-size:9px;
+ font-weight:600;
+ letter-spacing:.16em;
+ color:#f4f1ec;
+ text-shadow:0 1px 4px #000c;
+ pointer-events:none;
+}
+#panel-mood .direction-card--diptych:hover{
+ border-color:#e5dfd3;
+}
+#panel-mood .direction-card--diptych.is-selected{
+ outline:2px solid #efeae0;
+ outline-offset:-2px;
+}
+@media(max-width:760px){
+ #panel-mood .direction-cards{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+ }
+ #panel-mood .direction-card--diptych{
+  aspect-ratio:1.62;
+  grid-column:span 2;
+ }
+}
+@media(max-width:520px){
+ #panel-mood .direction-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #panel-mood .direction-card--diptych{aspect-ratio:1.56}
+ #panel-mood .direction-card--diptych>span{font-size:23px;padding:26px 12px 12px}
+ #panel-mood .direction-card--diptych .direction-diptych-eyebrow{font-size:8px;top:10px;left:11px}
+ #panel-mood .direction-card--diptych .direction-primary-photo{width:61%;object-position:56% 50%}
+ #panel-mood .direction-card--diptych .direction-atmosphere-photo{width:39%;object-position:50% 43%}
+}
