@@ -99,15 +99,23 @@
      </div>
    </section>
    <section class="step-panel" id="panel-mood" aria-labelledby="mood-heading" hidden>
-     <h2 id="mood-heading">Mood &amp; location</h2><p class="step-intro">Choose an aesthetic direction. The selected style guides the image prompt; your saved Moods remain accessible in the main studio.</p>
-     <div class="tabs" role="tablist" aria-label="Creative direction"><button class="tab is-selected" role="tab" aria-selected="true" type="button" data-direction-tab="moods">Moods</button><button class="tab" role="tab" aria-selected="false" type="button" data-direction-tab="location">Location</button><button class="tab" role="tab" aria-selected="false" type="button" data-direction-tab="material">Materials</button></div>
-     <div id="direction-cards" class="direction-cards" aria-label="Aesthetic directions"></div>
-     <div class="mood-links"><a href="./moods" target="_blank" rel="noopener">Explore all Moods</a><span>Choose one direction for the set.</span></div>
-     <label class="field-name" for="location-direction">Location reference <small>(optional)</small></label>
-     <div class="thumb-row" id="location-thumbs"></div><button class="upload-compact" id="add-location" type="button"><span>+</span> Add location photo</button><button class="upload-compact" type="button" id="saved-location">Saved location</button><input type="file" id="location-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
-     <label class="field-name" for="location-direction">Environment direction <small>(optional)</small></label>
-     <textarea id="location-direction" rows="2" maxlength="500" placeholder="Abandoned concrete atelier, directional daylight, tangible materials..."></textarea>
-     <div class="control-row"><label for="mood-guide">Mood emphasis <output id="mood-value">60%</output></label><input id="mood-guide" type="range" min="20" max="100" value="60"></div>
+     <div class="stage-visual stage-visual--world"><img src="https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png" alt="" loading="lazy"><div class="stage-copy"><span class="stage-index">03 / 04 &nbsp; ART DIRECTION</span><h2 id="mood-heading">Location &amp; mood</h2><p>Build a world that belongs to your story.</p></div></div>
+     <div class="atelier-workspace">
+       <div class="atelier-section-top"><div><span class="step-kicker">WORLD / ENVIRONMENT</span><h3>Set the scene.</h3><p>Select a location, atmosphere and material direction. Each category contributes to the final editorial.</p></div></div>
+       <div class="atelier-source-tabs" role="tablist" aria-label="Creative direction"><button class="atelier-tab is-selected" role="tab" aria-selected="true" type="button" data-direction-tab="location">Environments</button><button class="atelier-tab" role="tab" aria-selected="false" type="button" data-direction-tab="moods">Mood</button><button class="atelier-tab" role="tab" aria-selected="false" type="button" data-direction-tab="material">Materials</button></div>
+       <div id="direction-cards" class="direction-cards" aria-label="Photographic environments and moods"></div>
+       <p class="atelier-reference-note" id="direction-summary" aria-live="polite">Reference selections guide the scene. These are not image outputs.</p>
+       <div class="world-controls">
+         <label>Time of day <select id="editorial-time"><option value="natural">Natural daylight</option><option value="golden">Golden hour</option><option value="overcast">Overcast daylight</option><option value="blue">Blue hour</option><option value="night">Night</option></select></label>
+         <label>Atmosphere <select id="editorial-atmosphere"><option value="cinematic">Cinematic</option><option value="analogue">Analogue &amp; raw</option><option value="soft">Soft and diffused</option><option value="contrast">Hard contrast</option></select></label>
+         <label>Color palette <select id="editorial-palette"><option value="natural">Natural / desaturated</option><option value="mono">Monochrome</option><option value="warm">Warm / earthy</option><option value="cool">Cool / mineral</option></select></label>
+       </div>
+       <div class="atelier-inline-actions"><button type="button" class="upload-compact" id="add-location"><span>+</span> Add a location photograph</button><button class="upload-compact" type="button" id="saved-location">Saved locations</button><a class="atelier-moods-link" href="./moods" target="_blank" rel="noopener">Explore all Moods ↗</a></div>
+       <input type="file" id="location-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
+       <div class="thumb-row" id="location-thumbs" aria-label="Your location references"></div>
+       <label class="field-name" for="location-direction">Other directions <small>(optional)</small></label><textarea id="location-direction" rows="2" maxlength="500" placeholder="Monumental concrete hall, hazy window light, subtle film grain..."></textarea>
+       <details class="identity-advanced"><summary>Mood emphasis <span>Advanced settings</span></summary><div class="control-row"><label for="mood-guide">Mood emphasis <output id="mood-value">60%</output></label><input id="mood-guide" type="range" min="20" max="100" value="60"></div></details>
+     </div>
    </section>
    <section class="step-panel" id="panel-generate" aria-labelledby="settings-heading" hidden>
      <h2 id="settings-heading">Generate your editorial</h2><p class="step-intro">Create one cohesive series. PV LAB quotes each group of four images separately, so no extra credits are charged without confirmation.</p>
