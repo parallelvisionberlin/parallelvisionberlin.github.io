@@ -3,7 +3,7 @@ Updated: 2026-10-30
 Objective: replace Hypeddit page creation and Meta click tracking on the existing label website.
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 Published feature: d33636878743b52602a1d263331746fa25458565 (PR #671); initial deployment record 87dedd6.
-Published white dashboard: 92457400122206f17d56b934d6440807031afa86 (PR #673).
+Published white dashboard: 9245740 (PR #673); After Dark and saved backgrounds: 99f443826ca4641c87c0819cc736e4b52e968ecb (PR #674).
 
 ## Approved design and scope
 - White/black/cool-grey Smart Links dashboard, permanent left navigation; no orange interface accent.
@@ -38,7 +38,9 @@ Published white dashboard: 92457400122206f17d56b934d6440807031afa86 (PR #673).
 - 146 focused music/auth/Worker/owner/traffic tests passed. JS syntax and whitespace checks passed.
 - Browser fixture QA: phone public body width/scrollWidth 390px, creator dialog 375px; desktop body 1363px, no horizontal overflow.
 - UI verified blur/black live preview, black has no background image, save and reopen preserve selection; sharp artwork and platform links remain.
-- Publication pending. Verify Pages asset bytes and Worker ready:true revision music-links-20261030-v2 before reporting live.
+- PR #674 merged; Pages run 41051220771 and Worker run 41051221193 / job 124047472352 succeeded, including migration 0046 and v2 readiness.
+- Eight live frontend assets returned 200 with exact committed bytes. Actual Sube page loaded cinematic artwork and owner-saved Spotify destination without overflow.
+- Relevant candidate checks passed; the separate video job was still running when checked after merge. No completed video pass claimed.
 - Dashboard PR #673 already live at 9245740; Pages run 41048180330 and exact dashboard HTML/CSS/JS verified.
 
 ## Verified original deployment
@@ -52,7 +54,7 @@ Published white dashboard: 92457400122206f17d56b934d6440807031afa86 (PR #673).
 
 ## Limits and next action
 - Dashboard: https://parallelvisionlabel.com/links/ ; public example: https://parallelvisionlabel.com/listen/?release=stay-low .
-- Publish approved After Dark design and verify frontend plus backend; owner uses Page background in the creator for each smart link.
+- After Dark is live. In /links/, edit a smart link, then Artwork & sound > Page background; save to apply its selection.
 - Meta Events Manager receipt/attribution remains unobserved; script loading does not prove attribution.
 - Hypeddit URL-restricted custom conversions require label-domain rules in Meta. Browser Pixel only, no CAPI.
 - No historical Hypeddit import, pre-save, auto metadata import or server-rendered per-link social cards.
