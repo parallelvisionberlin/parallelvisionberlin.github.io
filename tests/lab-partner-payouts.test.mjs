@@ -303,7 +303,7 @@ test('a corrected expense after final payment never rewrites a paid payout or cr
 test('Robin migration preserves Bellini payments and remains safe across repeated deployments',async t=>{
  const f=fixture(t);bellini(f,t);await sale(f);
  const id=crypto.randomUUID();await call(f,undefined,{requestId:id});
- const migrate=name=>f.db.exec(readFileSync(new URL('../lab-worker/migrations/'+name+'.sql',import.meta.url),'utf8'));
+ const migrate=name=>{const sql=readFileSync(new URL('../lab-worker/migrations/'+name+'.sql',import.meta.url),'utf8');if(name!=='0049-robin-partner-workspace')return f.db.exec(sql);f.db.exec('BEGIN');try{f.db.exec(sql);f.db.exec('COMMIT');}catch(error){f.db.exec('ROLLBACK');throw error;}};
  migrate('0049-robin-partner-workspace');
  assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payout_segments WHERE payout_id=?').get(id).n,1);
  assert.equal(f.db.prepare('SELECT workspace FROM lab_partner_payouts WHERE id=?').get(id).workspace,'bellini-studio');
