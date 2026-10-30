@@ -8,6 +8,7 @@ import {calculatePartnerCommissions,sixCalendarMonthsAfter,recordPartnerPaymentC
 import {stripeWebhook} from '../lab-worker/customer-billing.mjs';
 import {resolveVitolasLink} from '../lab/vitolas-link.js';
 import {resolveBelliniLink} from '../lab/bellini-link.js';
+import {resolveRobinLink} from '../lab/robin-link.js';
 
 test('the working desk keeps all bindings, current branding and full-page tools without modal windows',()=>{
   const html=readFileSync(new URL('../lab/vitolas-studio.html',import.meta.url),'utf8');
@@ -463,4 +464,39 @@ test('per-client earnings join immutable identities even with identical emails a
   f.db.prepare('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)').run('user_Three',start);
   const after=await (await partnerDashboardRoute(f.request('?q=same%40example'),f.env,'user_Victoria')).json();
   assert.equal(after.customers.length,2);assert.ok(after.customers.every(p=>!p.closed));
+});
+
+
+test('Robin has independently verified access, referral URL, owner view, and strict partner isolation',async t=>{
+ const f=fixture(t);bellini(f,t);
+ const email='robin@example.test',digest=crypto.subtle.digest.bind(crypto.subtle),fetcher=globalThis.fetch;
+ t.mock.method(crypto.subtle,'digest',async(algorithm,data)=>{
+   if(algorithm==='SHA-256'&&new TextDecoder().decode(data)===email)
+     return Uint8Array.from('b7cae886d711f0a9cbc38c5323cd744d9ac59c7d7a3b209869e202422d265248'.match(/../g),v=>parseInt(v,16)).buffer;
+   return digest(algorithm,data);
+ });
+ let verified=true;
+ t.mock.method(globalThis,'fetch',async(url,...args)=>{
+   if(new URL(url).pathname.endsWith('/user_Robin'))return Response.json({id:'user_Robin',primary_email_address_id:'primary',email_addresses:[{id:'primary',email_address:email,verification:{status:verified?'verified':'unverified'}}]});
+   return fetcher(url,...args);
+ });
+ f.signup('user_Robin',email);
+ f.db.exec(readFileSync(new URL('../lab-worker/migrations/0049-robin-partner-workspace.sql',import.meta.url),'utf8'));
+ assert.deepEqual(await partnerWorkspace(f.env,'user_Robin'),{slug:'robin-studio',name:'Robin / König Media'});
+ await assert.rejects(()=>partnerDashboardRoute(f.request('?workspace=bellini-studio'),f.env,'user_Robin'),{status:403});
+ await assert.rejects(()=>partnerDashboardRoute(f.request('?workspace=robin-studio'),f.env,'user_Bellini'),{status:403});
+ const data=await(await partnerDashboardRoute(f.request('?workspace=robin-studio'),f.env,'user_Robin')).json();
+ assert.equal(data.shareUrl,'https://pvlab.studio/robin');
+ assert.equal(data.totals.registered,0);
+ const url=await(await publicPartnerLink(new Request('https://worker.test/api/partners/robin/link'),f.env)).json();
+ assert.equal(url.url,data.referralUrl);
+ assert.equal((await(await ownerPartnerDashboardRoute(new Request('https://worker.test/api/admin/partners/robin-studio'),f.env,'user_Owner')).json()).workspace.slug,'robin-studio');
+ verified=false;await assert.rejects(()=>partnerDashboardRoute(f.request(),f.env,'user_Robin'),{status:403});
+});
+test('Robin referral redirect is bound to pvlab.studio and rejects malicious targets',async()=>{
+ let requested='';
+ const destination=await resolveRobinLink(async url=>{requested=url;return Response.json({url:'https://pvlab.studio/?ref=ABCDEFGH'});});
+ assert.equal(new URL(requested).pathname,'/api/partners/robin/link');
+ assert.equal(destination,'https://pvlab.studio/?ref=ABCDEFGH');
+ await assert.rejects(()=>resolveRobinLink(async()=>Response.json({url:'https://attacker.example/?ref=ABCDEFGH'})),/Invitación no válida/);
 });
