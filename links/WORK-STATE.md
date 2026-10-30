@@ -50,9 +50,13 @@ Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), indepen
 
 ## Links / next action
 - Dashboard: https://parallelvisionlabel.com/links/ ; Sube: https://parallelvisionlabel.com/listen/?release=sube .
-- Event correction live: Worker run 41059431989 / job 124075149204 succeeded; Pages run 41059430809 succeeded.\n- Five runtime assets matched exact source bytes. Public Sube API reports MusicLinkClick, pixel 1746851780072706, v4; actual listening page still loads.\n- 33 local music/auth tests passed, including migration idempotency, pixel preservation and stale-save rejection.
+- Event correction live: Worker run 41059431989 / job 124075149204 succeeded; Pages run 41059430809 succeeded.
+- Five runtime assets matched exact source bytes. Public Sube API reports MusicLinkClick, pixel 1746851780072706, v4; actual listening page still loads.
+- 33 local music/auth tests passed, including migration idempotency, pixel preservation and stale-save rejection.
 - Owner edits background under Artwork & sound > Page background, then saves. Explicit existing choices are not overwritten.
 - No CAPI, historical Hypeddit import, pre-save, automatic metadata import or server-rendered per-link social cards.
-- Owner next: create Parallel Vision – Spotify Click in Meta using MusicLinkClick + music_service equals spotify. Confirm event receipt in Events Manager; this has not been observed here.
+- Current blocker: user screenshots show MusicLinkClick absent in Meta selector. Website configuration is verified; Meta receipt is NOT verified. Next: Events Manager Test events before creating conversion.
+- Consent copy: compact Cookies notice, Accept/Reject, Cookie settings footer; Meta disclosure in expandable Cookie details and privacy policy. Tracking logic unchanged; publication pending.
+- One QA Spotify click made with consent enabled on 30 Oct, then consent declined again. Do not count that click as an acquired listener.
 - Direct executor workers.dev requests previously hit Cloudflare 1010; use production workflow checks and actual frontend browser.
 - Local dist/, fixture modules and .openai preview config are excluded from Git and must not ship.
