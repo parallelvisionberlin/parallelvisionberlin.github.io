@@ -7,7 +7,7 @@ const js=read('lab/full-editorial.js');
 const css=read('lab/full-editorial.css');
 test('Full Editorial has the approved hero and real four-step navigation',()=>{
  assert.match(html,/aria-label="Full Editorial Studio"/);
- assert.match(html,/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a\.png/,'Use owner-selected geometric sculpture and black couture image');
+ assert.match(html,/editorial-hero-art[^>]*><img src="\.\/visuals\/character-casting\/bronze-cast03\.webp"/,'Use original bronze casting photograph for the public hero');
  assert.doesNotMatch(html,/d6c51742-8079-4412-a063-25ed134cec95\.png/,'Old flattened composite must not remain in the hero');
  assert.doesNotMatch(html,/src="\.\/visuals\/full-editorial-hero-clean-20261028\.jpg"/,'Old chrome portrait must not render as hero');
  assert.match(css,/PVLAB_ANGULAR_EDITORIAL_20261029/,'Responsive editorial image art direction is present');
@@ -55,4 +55,17 @@ test('Upload inputs, confirmed pricing and private exports remain bounded',()=>{
  assert.match(js,/new Blob\(parts,\{type:'application\/zip'\}\)/);
  assert.match(html,/Each image is generated as its own result/);
  assert.match(html,/Only completed PV LAB jobs appear here/);
+});
+
+test('Atelier references remain real and the creative steps feed real generation settings',()=>{
+ for(const token of ['data-sample-kind="model"','data-sample-kind="outfit"','id="model-thumbs"','id="outfit-thumbs"','id="review-model-thumb"','id="review-outfit-thumb"','id="review-location-thumb"'])assert.ok(html.includes(token),token);
+ for(const token of ['id="editorial-time"','id="editorial-atmosphere"','id="editorial-palette"','id="direction-summary"'])assert.ok(html.includes(token),token);
+ assert.match(js,/async function toggleSample/);
+ assert.match(js,/new File\(/);
+ assert.match(js,/function updateSeriesSummary/);
+ assert.match(js,/selectedDirections=\{location:null,moods:null,material:null\}/);
+ assert.match(js,/const moodText=Object\.entries\(selectedDirections\)/);
+ assert.match(html,/No credits are charged until you approve the actual server quote/);
+ assert.match(html,/full-editorial-atelier\.css/);
+ assert.match(html,/id="editorial-mobile-menu"/);
 });
