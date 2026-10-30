@@ -38,13 +38,28 @@ try{
   const page=await browser.newPage({viewport:{width,height:900},acceptDownloads:true});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4179/lab/full-editorial.html',{waitUntil:'domcontentloaded'});
-  await page.locator('#editorial-start').click();await page.locator('#model-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
+  await page.locator('#editorial-start').click();
+  await page.locator('#step-back').click();
+  assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Back returns from Identity to hero');
+  assert.equal(await page.locator('#editorial-flow').isVisible(),false);
+  await page.locator('#editorial-start').click();
+  await page.locator('#casting-reference-gallery .atelier-reference').first().click();
+  await page.locator('#model-thumbs .thumb').waitFor({state:'visible'});
+  assert.equal(await page.locator('#casting-reference-gallery .atelier-reference').first().getAttribute('aria-pressed'),'true');
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-style').isVisible(),true);
   await page.locator('#styling-direction').fill('Architectural black leather and natural tailoring.');
   await page.locator('#outfit-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-mood').isVisible(),true);
   await page.locator('.direction-card').first().click();
+  assert.match(await page.locator('#direction-summary').textContent(),/Studio/);
+  await page.locator('[data-direction-tab="moods"]').click();
+  await page.locator('.direction-card').first().click();
+  await page.locator('[data-direction-tab="location"]').click();
+  assert.equal(await page.locator('.direction-card').first().getAttribute('aria-pressed'),'true','Location remains selected after switching category');
+  await page.locator('#editorial-atmosphere').selectOption('analogue');
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-generate').isVisible(),true);
+  assert.match(await page.locator('#review-model-text').textContent(),/1 model photograph/);
+  assert.match(await page.locator('#review-outfit-text').textContent(),/1 wardrobe reference/);
   const before=jobCount;await page.locator('#review-credits').click();
   try{await page.locator('#editorial-confirm').waitFor({state:'visible',timeout:5500})}
   catch(error){
