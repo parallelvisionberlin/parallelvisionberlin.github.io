@@ -77,14 +77,26 @@
      </div>
    </section>
    <section class="step-panel" id="panel-style" aria-labelledby="style-heading" hidden>
-     <h2 id="style-heading">Styling &amp; garments</h2><p class="step-intro">Add garment photographs, accessories or describe your styling. Use the same model across your series.</p>
-     <div class="tabs" aria-label="Styling reference"><button class="tab is-selected" type="button">Garments &amp; references</button></div>
-     <div class="thumb-row outfit-row" id="outfit-thumbs" aria-label="Selected garments"></div>
-     <button class="upload-compact" type="button" id="add-outfits"><span>+</span> Add garment or accessory</button><button class="upload-compact" type="button" id="saved-outfit">Saved outfit</button>
-     <input type="file" id="outfit-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
-     <label for="styling-direction" class="field-name">Style direction <small>(optional)</small></label>
-     <textarea id="styling-direction" maxlength="800" rows="4" placeholder="Black leather, metallic textures, deconstructed tailoring, Yohji Yamamoto-inspired silhouettes..."></textarea>
-     <div class="control-row"><label for="garment-guide">Garment emphasis <output id="garment-value">70%</output></label><input id="garment-guide" type="range" min="25" max="100" value="70"><small>Prompt emphasis for clothing details.</small></div>
+     <div class="stage-visual stage-visual--style"><img src="./visuals/character-casting/chrome-cast03.webp" alt="" loading="lazy"><div class="stage-copy"><span class="stage-index">02 / 04 &nbsp; WARDROBE</span><h2 id="style-heading">Styling</h2><p>Build the look through material, silhouette and clothing.</p></div></div>
+     <div class="atelier-workspace">
+       <div class="atelier-section-top"><div><span class="step-kicker">STYLE / LOOK</span><h3>What are they wearing?</h3><p>Choose an existing look, add your garment references or describe the wardrobe in your own words. Clothing references will not replace your model's identity.</p></div></div>
+       <div class="atelier-source-tabs" aria-label="Styling source"><button type="button" class="atelier-tab is-selected" data-style-view="reference" aria-pressed="true">Reference looks</button><button type="button" class="atelier-tab" data-style-view="upload" aria-pressed="false">My uploads</button><button type="button" class="atelier-tab" data-style-view="describe" aria-pressed="false">Describe</button><button type="button" class="atelier-tab" id="saved-outfit">Saved outfits</button></div>
+       <div id="outfit-gallery" class="atelier-outfit-gallery" aria-label="PV LAB styling reference looks">
+         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/character-casting/chrome-cast03.webp" data-sample-label="Reflective couture"><img src="./visuals/character-casting/chrome-cast03.webp" alt="Sculptural reflective couture silhouette" loading="lazy"><span>CHROME</span></button>
+         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/character-casting/bronze-cast03.webp" data-sample-label="Hammered bronze"><img src="./visuals/character-casting/bronze-cast03.webp" alt="Hammered bronze headpiece and collar" loading="lazy"><span>BRONZE</span></button>
+         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/character-casting/copper-inertia.webp" data-sample-label="Olive drapery"><img src="./visuals/character-casting/copper-inertia.webp" alt="Gathered olive green couture" loading="lazy"><span>DRAPED</span></button>
+         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/character-casting/ivory-cast03.webp" data-sample-label="Sculptural ivory"><img src="./visuals/character-casting/ivory-cast03.webp" alt="Architectural ivory couture" loading="lazy"><span>IVORY</span></button>
+         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/fashion-replace/hero-model-oct24.jpg" data-sample-label="Industrial black tailoring"><img src="./visuals/fashion-replace/hero-model-oct24.jpg" alt="Dark industrial tailoring" loading="lazy"><span>TAILORING</span></button>
+         <button type="button" class="atelier-look" data-sample-kind="outfit" data-sample-src="./visuals/studio-tools/image-ivory-suit.webp" data-sample-label="Contemporary suit"><img src="./visuals/studio-tools/image-ivory-suit.webp" alt="Clean editorial suit reference" loading="lazy"><span>SUIT</span></button>
+       </div>
+       <p class="atelier-reference-note">Select up to three garment references. Each defines wardrobe, not the person or their original location.</p>
+       <div class="thumb-row outfit-row" id="outfit-thumbs" aria-label="Your selected garments"></div>
+       <div class="atelier-inline-actions"><button class="upload-compact" type="button" id="add-outfits"><span>+</span> Add garment photographs</button></div>
+       <input type="file" id="outfit-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
+       <label for="styling-direction" class="field-name">Creative styling direction <small>(or describe without photographs)</small></label>
+       <textarea id="styling-direction" maxlength="800" rows="3" placeholder="Sculptural black tailoring, confident silhouette, tactile metal and real textile weight..."></textarea>
+       <details class="identity-advanced"><summary>Garment emphasis <span>Advanced settings</span></summary><div class="control-row"><label for="garment-guide">Garment emphasis <output id="garment-value">70%</output></label><input id="garment-guide" type="range" min="25" max="100" value="70"><small>Prompt emphasis for garments, not a guarantee of exact fit.</small></div></details>
+     </div>
    </section>
    <section class="step-panel" id="panel-mood" aria-labelledby="mood-heading" hidden>
      <h2 id="mood-heading">Mood &amp; location</h2><p class="step-intro">Choose an aesthetic direction. The selected style guides the image prompt; your saved Moods remain accessible in the main studio.</p>
