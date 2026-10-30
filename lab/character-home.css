@@ -9,7 +9,9 @@
 .lab-character-home__heading{font-family:'PV Casting Display',Impact,'Arial Narrow',sans-serif;font-size:clamp(35px,4.25vw,68px);font-weight:400;line-height:1.02;letter-spacing:-.025em;text-transform:uppercase;margin:20px 0 12px;max-width:1200px}
 .lab-character-home__heading span{display:block}
 .lab-character-home__description{font-size:clamp(17px,1.4vw,23px);font-weight:500;line-height:1.35;letter-spacing:.025em;color:#deded5;margin:0 0 26px}
-.lab-character-home__rail{display:flex;gap:10px;min-width:0;align-items:stretch;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:none;scrollbar-width:thin;scrollbar-color:#767a70 #171917;padding:3px 3px 12px;margin:-3px -3px 0;cursor:grab;touch-action:pan-y pinch-zoom}
+.lab-character-home__rail{display:flex;gap:10px;min-width:0;align-items:stretch;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:none;scrollbar-width:none;-ms-overflow-style:none;padding:3px;margin:-3px -3px 0;cursor:grab;touch-action:pan-y pinch-zoom}
+.lab-character-home__rail::-webkit-scrollbar{display:none;width:0;height:0}
+.lab-character-home__carousel{position:relative}
 .lab-character-home__rail:focus-visible{outline:1px solid #bdbeb9;outline-offset:5px}
 .lab-character-home__rail[data-dragging]{cursor:grabbing;user-select:none}
 .lab-character-home__rail img{-webkit-user-drag:none;user-select:none}
@@ -47,11 +49,14 @@
 
 .lab-character-home__portrait--android img{object-position:50% center}
 .lab-character-home__portrait--curls img{object-position:50% 24%}
-.lab-character-home__footer{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid #51554e;margin-top:22px;padding-top:16px}
-.lab-character-home__nav{display:flex;gap:8px}
-.lab-character-home__nav button{display:grid;place-items:center;width:40px;height:40px;border:1px solid #51554e;border-radius:50%;background:transparent;color:#f5f2e9;cursor:pointer}
-.lab-character-home__nav button:disabled{opacity:.3;cursor:default}
+.lab-character-home__footer{display:flex;align-items:center;justify-content:flex-end;gap:16px;border-top:1px solid #51554e;margin-top:22px;padding-top:16px}
+.lab-character-home__nav{position:absolute;inset:0 7px;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+.lab-character-home__nav button{display:grid;place-items:center;width:42px;height:42px;border:1px solid #ffffff40;border-radius:50%;background:#101211b3;backdrop-filter:blur(12px);color:#f5f2e9;cursor:pointer;pointer-events:auto;box-shadow:0 3px 14px #0003;transition:background-color .15s,opacity .15s}
+.lab-character-home__nav button:hover{background:#101211e6}
+.lab-character-home__nav button:disabled{opacity:0;pointer-events:none}
 .lab-character-home__nav button:focus-visible{outline:2px solid #f5f2e9;outline-offset:3px}
 .lab-character-home__nav svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5}
 .lab-character-home__help{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(max-width:700px){.lab-character-home__nav{display:none}.lab-character-home__footer{justify-content:flex-end;padding-top:14px;margin-top:20px}}
+
+@media(prefers-reduced-motion:reduce){.lab-character-home__nav button{transition:none}}

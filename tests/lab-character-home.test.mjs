@@ -27,7 +27,7 @@ test('casting invitation uses separate local portraits, loaded fonts and a conta
     assert.match(home,new RegExp(img.replace('.','\\.')));
     assert.ok(existsSync(path.join(root,'lab/visuals/character-casting',img)));
   }
-  assert.match(home,/character-home\.css\?v=20261030-casting-inertia-3/);
+  assert.match(home,/character-home\.css\?v=20261030-casting-inertia-4/);
   assert.match(css,/@media\(max-width:700px\)/);
   assert.match(css,/font-family:PV Casting Display/);
   assert.ok(css.includes('border-radius:999px'), 'character CTA should be rounded');

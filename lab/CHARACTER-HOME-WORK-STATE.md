@@ -29,9 +29,11 @@
 - No autoplay, looping, duplicated identities, hidden generation or account requests.
 - Reduced-motion preference disables release inertia.
 - Focused rail supports ArrowLeft/ArrowRight and Home/End; events stay scoped to this section.
-- Small functional previous/next controls appear on desktop; phone controls remain hidden.
+- Owner correction: no visible scrollbar. Preserve original section styling and caption alignment.
+- Functional viewer-like previous/next buttons overlay the lateral card edges on desktop; no footer control row.
+- Phone arrows stay hidden. Arrow keys work when carousel has focus; no WASD.
 - Buttons disable at finite ends; creation CTA remains `studio.html?tool=image&createCharacter=1`.
-- Script: `lab/character-home-carousel.js`; CSS/JS version `20261030-casting-inertia-3`.
+- Script: `lab/character-home-carousel.js`; CSS/JS version `20261030-casting-inertia-4`.
 - Focused tests exercise coast/decay, end bounds, vertical gestures, cancellation, held gestures, reduced motion, keyboard/buttons and creation-link safety.
 - Validation: 18/18 across carousel, character-home and approved Image UI tests.
 - Browser phone/tablet widths 375/305/753px: no page overflow, fitting CTA, eight portrait cards, snap none.
