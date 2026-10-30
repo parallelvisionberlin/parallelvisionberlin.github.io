@@ -4,8 +4,8 @@ import {createSessionRequest} from './session-request.js?v=20260927-auth1&studio
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
 const $=id=>document.getElementById(id);
 const workspaceSlug=document.body.dataset.partnerWorkspace||'vitolas-studio';
-const studioName=workspaceSlug==='bellini-studio'?'Bellini Studios':'Vitolas Studio';
-const studioAlias=workspaceSlug==='bellini-studio'?'bellini':'vitolas';
+const studioName=workspaceSlug==='robin-studio'?'Robin / König Media':['bellini-studio','robin-studio'].includes(workspaceSlug)?'Bellini Studios':'Vitolas Studio';
+const studioAlias=workspaceSlug==='robin-studio'?'robin':['bellini-studio','robin-studio'].includes(workspaceSlug)?'bellini':'vitolas';
 const menu=createAccountMenu($('account-menu'));
 let clerk=null,revision=0,nextOffset=null,loading=false;
 let dashboardPath='/api/customer/partner';
@@ -196,7 +196,7 @@ function drawCommissions(report){
   if(!commissionData){for(const id of ['partner-commission','partner-report-commission','partner-revenue','partner-overview-revenue','partner-commission-held'])$(id).textContent='No disponible';$('partner-commission-status').textContent='No pudimos cargar el informe de comisiones. Actualiza el panel.';$('partner-recent-purchases').textContent='Informe no disponible. Actualiza el panel.';return;}
   const totals=commissionData.totals;
   $('partner-commission').textContent=money(totals.commissionCents);$('partner-report-commission').textContent=money(totals.commissionCents);$('partner-revenue').textContent=money(totals.revenueCents);$('partner-overview-revenue').textContent=money(totals.revenueCents);$('partner-commission-held').textContent=money(totals.heldCommissionCents);
-  $('partner-commission-status').textContent=totals.needsReconciliation?totals.needsReconciliation+(workspaceSlug==='bellini-studio'?' pagos pendientes de conciliación.':' pagos sin fecha verificable pendientes de conciliación.'):'';
+  $('partner-commission-status').textContent=totals.needsReconciliation?totals.needsReconciliation+(['bellini-studio','robin-studio'].includes(workspaceSlug)?' pagos pendientes de conciliación.':' pagos sin fecha verificable pendientes de conciliación.'):'';
   activity('partner-recent-purchases',commissionData.recentPurchases||commissionData.receipts,'purchase');commissionRows();$('partner-export').disabled=!commissionData.receipts.length;
 }
 $('partner-commission-more').onclick=()=>{commissionLimit+=25;commissionRows();};
