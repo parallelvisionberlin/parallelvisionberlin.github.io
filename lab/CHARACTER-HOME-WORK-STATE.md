@@ -37,7 +37,17 @@
 - Final phone button content width equals button width, without clipped letters.
 - Desktop screenshot inspected; loaded display/supporting font families confirmed.
 - Preview uses temporary untracked configuration, excluded from publication.
-- Deployment status: implementation complete; source commit and Cloudflare release pending.
+- Published source: `e18f0189d8f0cb4379c668b884b814f8c0caf62d`, squash merge of PR #676.
+- Reviewed branch source: `b0a1c07c2d6d665920f4d62b2baf65e93ab2718b`; remote tree matched locally tested tree exactly.
+- Cloudflare Pages production check `124067445287`: completed successfully for the exact merged source.
+- Homepage read-only verifier returned LIVE_VERIFIED for `20261030-casting-concept03-1`.
+- Verification reused repository verifier with plugin-fetched Cloudflare evidence and homepage as the target, rather than its default Studio URL.
+- Production CSS SHA-256: `bb06770e2c6e3a003e0766a7b02c88d6f7e9b8ee614c7c2d135c919c8bd2e0db`.
+- All five WebP files and three WOFF files returned HTTP 200 with bytes matching merged source.
+- Live browser verified heading, loaded display font, existing create route, six loaded photo instances and no page overflow.
+- Live screenshot captured 2026-10-30; the selected casting design is visibly present on pvlab.studio.
+- Relevant CI: approved Image UI, core tests, current landing checks and validation passed.
+- Inspected inherited failures: old five-card Outfit assertion, unchanged hero-poster decode, Fashion form timeout. No gates changed.
 - Signed-in character creation not re-exercised; its route and logic are unchanged.
-- Next: commit, publish via normal main/Cloudflare path, verify exact asset bytes and live rendering.
+- Next: complete. Preserve the selected Concept 03 unless the owner requests a revision.
 - Follow `RELEASE-PROTOCOL.md`; GitHub Pages success is not evidence of pvlab.studio publication.
