@@ -13,7 +13,7 @@ test('character invitation follows Studio cards and precedes pricing',()=>{
   const character=home.indexOf('id="create-your-character"');
   const pricing=home.indexOf('class="lab-plans" id="pricing"');
   assert.ok(tools>=0&&character>tools&&pricing>character);
-  assert.match(home,/<span>Make room for your<\/span><span>character\.<\/span>/);
+  assert.match(home,/<span>Make room for<\/span> <span>your character\.<\/span>/);
 });
 test('character invitation links to the exact create workflow',()=>{
   assert.match(home,/studio\.html\?tool=image&amp;createCharacter=1/);
@@ -23,11 +23,11 @@ test('character invitation links to the exact create workflow',()=>{
   assert.match(studio,/characterLanding=20261024v1/);
 });
 test('casting invitation uses separate local portraits, loaded fonts and a contained phone rail',()=>{
-  for(const img of ['ivory.webp','sage.webp','oxblood.webp','chrome.webp','blonde-original.webp']){
+  for(const img of ['night-cast03.webp','ivory-cast03.webp','chrome-cast03.webp','plum-cast03.webp','bronze-cast03.webp']){
     assert.match(home,new RegExp(img.replace('.','\\.')));
     assert.ok(existsSync(path.join(root,'lab/visuals/character-casting',img)));
   }
-  assert.match(home,/character-home\.css\?v=20261030-casting-concept03-1/);
+  assert.match(home,/character-home\.css\?v=20261030-casting-compact03-2/);
   assert.match(css,/@media\(max-width:700px\)/);
   assert.match(css,/font-family:PV Casting Display/);
   assert.ok(css.includes('border-radius:999px'), 'character CTA should be rounded');
