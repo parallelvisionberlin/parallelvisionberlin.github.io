@@ -1,4 +1,4 @@
-import {API,MUSIC_PIXEL,CLICK_EVENTS,SERVICES,SLUG,UUID,releaseUrl,safeUrl,validateLinks} from '../links/shared.mjs';
+import {API,MUSIC_PIXEL,CLICK_EVENTS,SERVICES,SLUG,UUID,releaseUrl,safeUrl,validateLinks} from './music-links-shared.mjs';
 export const MUSIC_LINKS_VERSION='music-links-20261030-v1';
 const PREFIX='/api/music',DAY=86400000,HOUR=3600000;
 const ORIGINS=new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);

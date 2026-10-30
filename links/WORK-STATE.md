@@ -36,7 +36,8 @@ Baseline: c8e80057fe2a117583400b89bf999881051189bc; current main bfe79ed is a re
 - Fixture data, preview manifest and dist/ are local-only and excluded from git. No production owner token was used for testing.
 
 ## Deployment status
-- Source ready for commit. GitHub Pages/frontend and Cloudflare Worker publication pending.
+- PR #671, initial source c2ab38009f38d6007e4d3428331a882305a5448d. Frontend/Worker publication pending.
+- CI found existing Lab sparse checkouts omit links/: canonical shared module moved to lab-worker/music-links-shared.mjs; links/shared.mjs re-exports it. This keeps backend-only checkouts self-contained.
 - Do not claim production readiness until exact frontend files and /api/music/public/status + release seed are verified.
 - Real owner session, upload and save on the production account remain unverified until the owner signs in.
 - Meta event delivery to Events Manager is not yet observed; browser consent/event-call behavior is tested.
