@@ -11,7 +11,7 @@ const root=resolve('.');
 const headerGutterOnly=process.env.PV_HEADER_GUTTER_ONLY==='1';
 // Approved source before this fix, including the later locked Image and V28 Upscaler.
 const approvedRef='ac33d20c50bdd88e71547e96a70781efae4b5a11';
-const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
+const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/video-scene-states.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
 // Owner-approved Dream Blur cover replacement, PR #521. Update only the two
 // Image card image URLs in the independent baseline; retain every layout byte
 // and the original wallpaper. Pixel comparison still protects all other UI.
@@ -41,11 +41,12 @@ assert.equal(approvedCharacterHtml.split(approvedCharacterAnchor).length,2,'Orig
 approvedFiles.set('lab/studio.html',Buffer.from(approvedCharacterHtml
   .replace(approvedCharacterAnchor,'<div class="scene-image-library-wrap">'+approvedCharacterButton+'<button id="pv-guest-library"')
   .replace('</head>','<style>'+approvedCharacterStyles+'</style></head>')));
-// Owner-approved Runway Replace Outfit. This feature freezes its own new
-// Fashion visual source, while all Image/Video/Upscaler/Retouch baselines remain
+// Freeze each baseline’s matching Retouch/Video dependencies with its HTML.
+// Owner-approved Runway Replace Outfit freezes its own Fashion visual source,
+// while all Image/Video/Upscaler/Retouch baselines remain
 // the exact previously approved references and pixel tolerances.
 const fashionApprovedRef='45e63c19b612ee7ffef17b234b5c2ef23ea4724c';
-const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
+const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/precision-edit.js','lab/video-scene-states.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
 const fashionApprovedHtml=fashionApprovedFiles.get('lab/fashion.html').toString('utf8');
 const approvedFashionCss=fashionApprovedFiles.get('lab/fashion.css').toString('utf8');
 assert.ok(fashionApprovedHtml.includes('<span>Replace</span><em>outfit.</em>'),'Runway headline remains in approved Fashion reference');

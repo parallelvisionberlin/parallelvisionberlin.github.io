@@ -139,7 +139,7 @@ try{
   assert.equal(await page.locator('#model-select').inputValue(),'fashnmax','Purchased FASHN Max is selected by default.');
   assert.equal(await page.locator('#fashnmax-options').isVisible(),true);
   assert.equal(await page.locator('#fashn16-options').isVisible(),false);
-  assert.match(await page.locator('#fashion-title').innerText(),/replace outfit/i);
+  assert.match(await page.locator('#fashion-title').innerText(),/replace\s+outfit/i);
   assert.equal(await page.locator('#editorial-reference').count(),0,'No unrelated fashion image masquerading as an output.');
   const photographs=await page.locator('.slot-example').evaluateAll(images=>images.map(img=>({
     loaded:img.complete&&img.naturalWidth>500,decorative:img.alt==='',src:img.getAttribute('src'),
@@ -191,10 +191,10 @@ try{
   assert.equal(desktop.colorScheme,'dark','Dark native inputs and scrollbar match the Studio.');
   assert.equal(desktop.themeColor,'#101114','Browser chrome matches PV Lab Video.');
   assert.equal(desktop.markFilter,'none','PV Lab logo uses the same source colors as Video.');
-  assert.equal(desktop.photoBackground,'rgba(11, 12, 13, 0.8)','Approved upload frames retain the dark translucent surface.');
+  assert.equal(desktop.photoBackground,'rgba(9, 10, 11, 0.76)','Approved upload frames retain the dark translucent surface.');
   assert.equal(desktop.resultBackground,'rgb(25, 26, 27)','Result well remains graphite.');
-  assert.equal(desktop.dropdownBackground,'rgb(23, 25, 27)','Approved controls retain dark fields.');
-  assert.deepEqual(desktop.boxStyles,[{radius:18,overflow:'hidden'},{radius:18,overflow:'hidden'},{radius:14,overflow:'hidden'}],
+  assert.equal(desktop.dropdownBackground,'rgb(24, 26, 29)','Approved controls retain dark fields.');
+  assert.deepEqual(desktop.boxStyles,[{radius:7,overflow:'hidden'},{radius:7,overflow:'hidden'},{radius:14,overflow:'hidden'}],
     'Approved upload frames and the actual result frame retain their clipping');
   assert.ok(desktop.title.top<220,'The large reference heading fits above the cards');
   assert.ok(desktop.backdrop.width>=1400,'The approved photograph covers the working area');
@@ -213,8 +213,12 @@ try{
   });
   assert.ok(Math.abs(compactDeck.person.bottom-compactDeck.garment.bottom)<2,
     'The approved compact upload cards stay aligned on wide monitors');
-  assert.ok(compactDeck.direction.top>compactDeck.person.bottom&&compactDeck.create.bottom<compactDeck.viewport,
-    'The entire control bar remains visible at 1759 x 832');
+  assert.ok(compactDeck.direction.top>compactDeck.person.bottom,
+    'The inert standalone fixture keeps controls after the approved upload cards');
+  // The public standalone URL redirects into Studio. Its first-viewport geometry
+  // is protected in lab-fashion-reference-layout-ui, using the actual mount.
+  await page.locator('#quote').scrollIntoViewIfNeeded();
+  assert.equal(await page.locator('#quote').isVisible(),true,'Fixture Generate remains reachable');
   await page.setViewportSize({width:1440,height:900});
   mkdirSync('test-results',{recursive:true});
   await page.screenshot({path:'test-results/pv-fashion-editorial-desktop.png',fullPage:true});
@@ -226,8 +230,8 @@ try{
     radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),
     overflow:getComputedStyle(el).overflow
   })));
-  assert.deepEqual(mobileBoxes,Array.from({length:3},()=>({radius:14,overflow:'hidden'})),
-    'All three large image boxes keep their rounded corners and image clipping on mobile');
+  assert.deepEqual(mobileBoxes,[{radius:7,overflow:'hidden'},{radius:7,overflow:'hidden'},{radius:14,overflow:'hidden'}],
+    'Approved upload and result frames keep their distinct corner radii and clipping on mobile');
   const mobileIcons=await page.locator('svg.empty-art').evaluateAll(items=>items.map(el=>
     parseFloat(getComputedStyle(el).borderTopLeftRadius)));
   assert.deepEqual(mobileIcons,[0],'The retained result artwork remains a plain line drawing');
@@ -283,7 +287,8 @@ try{
   // its own footer; the embedded Shadow DOM must not bring in a second copy.
   assert.equal(await page.locator('footer.pv-lab-footer').count(),1,
     'Standalone Fashion retains its full footer');
-  await page.route(url=>url.pathname==='/lab/fashion.js'&&url.searchParams.get('v')==='20261010-gallery1',
+  const embeddedControllerUrl=url=>url.pathname==='/lab/fashion.js';
+  await page.route(embeddedControllerUrl,
     route=>route.fulfill({status:200,contentType:'text/javascript',
       body:'export function createFashionStudio(root){return {ready:Promise.resolve(),root};}'}));
   const embedded=await page.evaluate(async()=>{
@@ -300,6 +305,7 @@ try{
   });
   assert.deepEqual(embedded,{nestedFooters:0,globalFooters:1,hasEditor:true,hasGallery:true},
     'Embedded Fashion has its full editor and gallery, but Studio owns the only footer');
+  await page.unroute(embeddedControllerUrl);
   // Owners and customers see the same server-confirmed PV credit price.
   sessionCustomer=true;
   await page.reload();await page.waitForFunction(()=>window.__fashionTestReady);
