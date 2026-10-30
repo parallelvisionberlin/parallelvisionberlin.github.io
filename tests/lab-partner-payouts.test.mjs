@@ -298,3 +298,21 @@ test('a corrected expense after final payment never rewrites a paid payout or cr
  const receipt=v.commissionReport.receipts[0];assert.equal(receipt.costReviewRequired,true);assert.equal(receipt.commissionCents,10000);assert.equal(receipt.costAdjustmentCents,0);
  assert.equal(f.db.prepare('SELECT commission_cents n FROM lab_partner_payout_segments WHERE payout_id=?').get(id).n,10000);
 });
+
+
+test('Robin migration preserves Bellini payments and remains safe across repeated deployments',async t=>{
+ const f=fixture(t);bellini(f,t);await sale(f);
+ const id=crypto.randomUUID();await call(f,undefined,{requestId:id});
+ const migrate=name=>f.db.exec(readFileSync(new URL('../lab-worker/migrations/'+name+'.sql',import.meta.url),'utf8'));
+ migrate('0049-robin-partner-workspace');
+ assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payout_segments WHERE payout_id=?').get(id).n,1);
+ assert.equal(f.db.prepare('SELECT workspace FROM lab_partner_payouts WHERE id=?').get(id).workspace,'bellini-studio');
+ f.signup('user_Robin','robin@example.test');
+ f.db.prepare("INSERT INTO lab_partner_links(slug,customer_id,created_at) VALUES('robin','user_Robin',?)").run(Date.now());
+ f.db.prepare("INSERT INTO lab_partner_budgets(workspace,partner_customer_id,credit_limit,updated_at,updated_by) VALUES('robin-studio','user_Robin',0,?,'user_Owner')").run(Date.now());
+ for(const name of ['0042-partner-workspaces','0043-partner-payouts','0044-partner-generation-costs','0049-robin-partner-workspace'])migrate(name);
+ assert.equal(f.db.prepare("SELECT customer_id FROM lab_partner_links WHERE slug='robin'").get().customer_id,'user_Robin');
+ assert.equal(f.db.prepare("SELECT credit_limit FROM lab_partner_budgets WHERE workspace='robin-studio'").get().credit_limit,0);
+ assert.equal(f.db.prepare('SELECT COUNT(*) n FROM lab_partner_payout_segments WHERE payout_id=?').get(id).n,1);
+ assert.match(f.db.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='lab_partner_payout_segment_guard'").get().sql,/robin-studio/);
+});
