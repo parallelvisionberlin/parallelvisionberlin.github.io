@@ -2403,7 +2403,7 @@ test('Beauty Studio binds portrait edits to existing quotes and idempotent image
 
 test('Smart Links accepts a verified Parallel Vision public session without creating a Lab customer',async()=>{
   const {env}=fixture();
-  for(const file of ['0045-music-links.sql','0046-music-link-designs.sql','0047-music-link-click-event.sql','0048-music-user-workspaces.sql'])env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/'+file,import.meta.url),'utf8'));
+  for(const file of ['0045-music-links.sql','0046-music-link-designs.sql','0047-music-link-click-event.sql','0048-music-user-workspaces.sql','0050-music-analytics.sql'])env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/'+file,import.meta.url),'utf8'));
   const call=async (authorization,origin=ORIGIN)=>worker.fetch(new Request(BASE+'/api/music/admin/dashboard',{headers:{Origin:origin,Authorization:'Bearer '+authorization}}),env,{});
   const signed=await token('user_PublicMusic');
   const response=await call(signed);assert.equal(response.status,200);const data=await response.json();assert.deepEqual(data.releases,[]);assert.equal(data.settings.pixelId,'');

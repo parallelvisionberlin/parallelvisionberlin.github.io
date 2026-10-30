@@ -134,6 +134,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0046-music-link-designs.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0047-music-link-click-event.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0048-music-user-workspaces.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0050-music-analytics.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0049-robin-partner-workspace.sql --yes
           command: deploy --keep-vars
 
@@ -161,10 +162,10 @@ jobs:
             body="$(curl --fail --silent --show-error --connect-timeout 5 --max-time 20 \
               https://parallel-vision-lab.parallelvision.workers.dev/api/music/public/status || true)"
             printf '%s\n' "$body"
-            if printf '%s' "$body" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const x=JSON.parse(s);process.exit(x.ready&&x.version==='music-links-20261030-v5'?0:1);}catch{process.exit(1);}})"; then
+            if printf '%s' "$body" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const x=JSON.parse(s);process.exit(x.ready&&x.version==='music-links-20261030-v6'?0:1);}catch{process.exit(1);}})"; then
               exit 0
             fi
             sleep 5
           done
-          echo "Release-link service did not report music-links-20261030-v5"
+          echo "Release-link service did not report music-links-20261030-v6"
           exit 1

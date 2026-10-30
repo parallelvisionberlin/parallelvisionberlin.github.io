@@ -1,5 +1,5 @@
 import {API,SLUG,metaDetails,newId} from '../links/shared.mjs';
-import {renderRelease} from '../links/release-view.mjs?v=20261030-refined1';
+import {renderRelease} from '../links/release-view.mjs?v=20261030-analytics1';
 const root=document.getElementById('release'),params=new URLSearchParams(location.search);
 const slug=params.get('release')||'',consentKey='pv-music-meta-consent-v1';
 let release=null,tracking=null,initialized=false,choice='default';
@@ -31,9 +31,11 @@ function source(){
   for(const name of ['instagram','facebook','google','youtube','soundcloud'])if(host===name+'.com'||host.endsWith('.'+name+'.com'))return name;
   return host===location.hostname?'direct':'other';
 }
+const openedAt=Date.now();
 function measure(event,service=''){
   const campaign=(params.get('utm_campaign')||'').replace(/[^\p{L}\p{N} _.()\-]/gu,'').slice(0,64);
-  const data={id:newId(),releaseId:release.id,event,service,source:source(),campaign};
+  const tag=name=>(params.get(name)||'').replace(/[^\p{L}\p{N} _.()\-]/gu,'').slice(0,64);
+  const data={id:newId(),releaseId:release.id,event,service,source:source(),campaign,medium:tag('utm_medium'),content:tag('utm_content'),term:tag('utm_term'),seconds:Math.min(86400,Math.floor((Date.now()-openedAt)/1000))};
   const payload=JSON.stringify(data),url=API+'/api/music/public/events';
   if(!navigator.sendBeacon?.(url,new Blob([payload],{type:'text/plain;charset=UTF-8'})))fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:payload,keepalive:true,credentials:'omit'}).catch(()=>{});
 }
@@ -50,6 +52,7 @@ try{
   document.querySelector('meta[name="description"]').content='Listen to '+release.title+' by '+release.artist+'. Parallel Vision.';
   document.querySelector('link[rel="canonical"]').href=release.url;
   renderRelease(root,release,{onClick:clicked});measure('view');
+  root.querySelector?.('audio')?.addEventListener('play',()=>measure('preview'),{once:true});
   bootMeta();
 }catch(error){
   root.className='release-error';root.replaceChildren();const title=document.createElement('h1');title.textContent='Release unavailable.';

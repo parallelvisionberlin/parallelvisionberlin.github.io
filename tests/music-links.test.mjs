@@ -11,6 +11,7 @@ function fixture(t){
   const db=new DatabaseSync(':memory:');t.after(()=>db.close());
   const migration=readFileSync(new URL('../lab-worker/migrations/0045-music-links.sql',import.meta.url),'utf8');db.exec('PRAGMA foreign_keys=ON');db.exec(migration);db.exec(readFileSync(new URL('../lab-worker/migrations/0046-music-link-designs.sql',import.meta.url),'utf8'));db.exec(readFileSync(new URL('../lab-worker/migrations/0047-music-link-click-event.sql',import.meta.url),'utf8'));
   db.exec(readFileSync(new URL('../lab-worker/migrations/0048-music-user-workspaces.sql',import.meta.url),'utf8'));
+  db.exec(readFileSync(new URL('../lab-worker/migrations/0050-music-analytics.sql',import.meta.url),'utf8'));
   const binding={prepare(sql){return {bind(...values){const query=()=>db.prepare(sql);return {
     async first(){return query().get(...values)||null;},async all(){return {results:query().all(...values)};},async run(){return {meta:{changes:query().run(...values).changes}};}
   };}};},async batch(items){db.exec('BEGIN');try{const results=[];for(const item of items)results.push(await item.run());db.exec('COMMIT');return results;}catch(error){db.exec('ROLLBACK');throw error;}}};
@@ -213,4 +214,21 @@ test('public accounts create and publish isolated workspaces with independent tr
   assert.equal(updated.title,'My edit');
   f.db.exec(readFileSync(new URL('../lab-worker/migrations/0048-music-user-workspaces.sql',import.meta.url),'utf8'));
   assert.equal((await dash(a)).releases.length,1);
+});
+
+test('enriched analytics deduplicate retries, use server geography, filter by release and isolate accounts',async t=>{
+ const f=fixture(t),owner='user_Analytics',input=fixtureRelease({status:'published',audioUrl:'https://example.com/preview.mp3'});
+ const saved=(await(await f.admin('/releases',{owner,method:'POST',data:input})).json()).release;
+ const data={id:crypto.randomUUID(),releaseId:saved.id,event:'view',service:'',source:'meta',campaign:'Launch',medium:'paid_social',content:'ad42',term:'set7',country:'FAKE'};
+ const send=async d=>{const request=new Request(BASE+'/public/events',{method:'POST',headers:{Origin:'https://parallelvisionlabel.com','Content-Type':'text/plain','User-Agent':'Mozilla/5.0 (iPhone) Mobile Safari/605'},body:JSON.stringify(d)});Object.defineProperty(request,'cf',{value:{country:'DE',region:'Berlin',city:'Berlin',latitude:'SECRET'}});return musicPublicRoute(request,f.env,{clock:()=>NOW});};
+ await send(data);await send(data);await send({...data,id:crypto.randomUUID(),event:'click',service:'spotify',seconds:8});await send({...data,id:crypto.randomUUID(),event:'preview'});
+ const read=async (who,path='/dashboard')=>(await(await f.admin(path,{owner:who})).json());
+ const report=await read(owner);assert.equal(report.analytics.countries[0].country,'DE');assert.equal(report.analytics.countries[0].views,1);assert.equal(report.analytics.countries[0].clicks,1);assert.equal(report.analytics.coverage.previews,1);
+ assert.equal(report.analytics.cities[0].city,'Berlin');assert.equal(report.analytics.devices[0].device,'Mobile');assert.equal(report.analytics.systems[0].os,'iOS');assert.equal(report.analytics.delays[0].delay_bucket,'5–14s');assert.equal(report.analytics.ads[0].content,'ad42');assert.equal(report.analytics.ads[0].term,'set7');
+ assert.equal((await read('user_Another')).analytics.countries.length,0);assert.equal((await read('owner')).analytics.coverage.views,null);
+ assert.equal((await read(owner,'/dashboard?releaseId='+crypto.randomUUID())).summary.views,0);
+ assert.equal((await read(owner,'/dashboard?releaseId='+saved.id)).summary.views,1);
+ assert.equal((await read(owner,'/dashboard?days=7')).analytics.hours[0].hour_utc,'2026-10-30T12');
+ assert.equal(JSON.stringify(f.db.prepare('SELECT * FROM music_analytics_receipts').all()).includes('SECRET'),false);
+ await pruneMusicEvents(f.env,{clock:()=>NOW+4*86400000});assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM music_analytics_receipts').get().n,0);assert.equal((await read(owner)).analytics.countries[0].views,1);
 });

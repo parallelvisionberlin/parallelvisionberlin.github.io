@@ -86,9 +86,31 @@ document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListen
 
 function report(root,items,label,value,empty){root.replaceChildren();if(!items.length){root.append(el('p','empty',empty));return;}
   for(const item of items){const row=el('div','report-row');row.append(el('span','',label(item)),el('small','',value(item)));root.append(row);}}
+let analyticsData=null;
+function analyticsTable(root,labels,rows){
+ root.replaceChildren();if(!rows.length){root.append(el('p','empty','No data yet for this selection.'));return;}
+ const table=el('table','analytics-table'),head=el('tr');for(const label of labels)head.append(el('th','',label));table.append(head);
+ for(const cells of rows){const row=el('tr');for(const value of cells)row.append(el('td','',String(value)));table.append(row);}root.append(table);
+}
+function renderAnalytics(data){
+ const a=data.analytics||{},metrics=r=>[format(r.views),format(r.clicks),(r.views?100*r.clicks/r.views:0).toFixed(1)+'%'];
+ const keys={countries:r=>r.country,regions:r=>r.region+' / '+r.country,cities:r=>r.city+' / '+r.region+' / '+r.country,devices:r=>r.device,browsers:r=>r.browser,systems:r=>r.os,ads:r=>[r.source,r.medium,r.campaign,r.content,r.term].map(x=>x||'Not tagged').join(' / '),delays:r=>r.delay_bucket};
+ for(const [key,label] of Object.entries(keys))analyticsTable($('analytics-'+key),[key==='ads'?'Source / Medium / Campaign / Ad / Ad set':key==='delays'?'Time':'Breakdown','Visits','Clicks','Click rate'],(a[key]||[]).map(r=>[label(r),...metrics(r)]));
+ $('audio-previews').textContent=format(a.coverage?.previews)+' preview plays';
+ $('analytics-coverage').textContent='Detailed analytics: '+format(a.coverage?.views)+' visits and '+format(a.coverage?.clicks)+' clicks'+(a.coverage?.since?' since '+a.coverage.since.replace('T',' ')+':00 UTC':' from new activity')+'. Location is approximate. Earlier visits have no location or device data.';
+ const hourly=$('timeline-mode').value==='hourly';let rows;
+ if(hourly)rows=(a.hours||[]).slice().reverse().map(r=>({label:r.hour_utc.replace('T',' ')+':00',...r}));
+ else rows=(data.trend||[]).map(r=>({label:r.day,...r}));
+ const chart=$('activity-chart');chart.replaceChildren();const peak=Math.max(1,...rows.map(r=>Number(r.views)));
+ for(const row of rows.slice(-90)){const bar=el('div','activity-column');bar.title=row.label+': '+row.views+' visits / '+row.clicks+' clicks';const fill=el('span','activity-bar');fill.style.height=(Number(row.views)/peak*100)+'%';bar.append(fill);chart.append(bar);}
+ chart.setAttribute('aria-label','Page visits over time. Full counts in Timeline data.');
+ analyticsTable($('timeline-data'),[hourly?'Hour (UTC)':'Day (UTC)','Visits','Clicks'],rows.map(r=>[r.label,format(r.views),format(r.clicks)]));
+}
+$('report-release').addEventListener('change',()=>void refresh());$('timeline-mode').addEventListener('change',()=>{if(analyticsData)renderAnalytics(analyticsData);});
 async function refresh(){
   const serial=++fetchSerial;notice('Refreshing smart link performance…');$('refresh').disabled=true;
-  try{const data=await call('/dashboard?days='+$('days').value);if(serial!==fetchSerial)return;records=data.releases;settings=data.settings;updatePixelState();
+  try{const data=await call('/dashboard?days='+$('days').value+'&releaseId='+encodeURIComponent($('report-release').value));if(serial!==fetchSerial)return;records=data.releases;settings=data.settings;analyticsData=data;
+    const selection=$('report-release').value;$('report-release').replaceChildren();const all=el('option','','All smart links');all.value='';$('report-release').append(all);for(const r of data.availableReleases||data.releases){const option=el('option','',r.title+' / '+r.artist);option.value=r.id;$('report-release').append(option);}$('report-release').value=selection;renderAnalytics(data);updatePixelState();
     $('visits').textContent=format(data.summary.views);$('clicks').textContent=format(data.summary.clicks);$('published').textContent=format(data.summary.published);
     $('rate').textContent=(data.summary.views?100*data.summary.clicks/data.summary.views:0).toLocaleString('en-GB',{maximumFractionDigits:1})+'%';
     $('pixel-id').value=settings.pixelId;$('click-event').value=settings.clickEvent;renderRecords();
@@ -118,7 +140,7 @@ $('tracking-form').addEventListener('submit',async event=>{
 $('refresh').addEventListener('click',()=>void refresh());$('days').addEventListener('change',()=>void refresh());$('search').addEventListener('input',renderRecords);$('filter').addEventListener('change',renderRecords);
 $('signin').addEventListener('click',()=>{if(clerk?.session){void refresh();}else clerk?.openSignIn();});$('signout').addEventListener('click',()=>void clerk?.signOut());
 function authChanged(){
-  const next=clerk?.session?.id||'';if(next===sessionId)return;sessionId=next;generation++;fetchSerial++;records=[];settings=null;editing=null;
+  const next=clerk?.session?.id||'';if(next===sessionId)return;sessionId=next;generation++;fetchSerial++;analyticsData=null;$('report-release').value='';records=[];settings=null;editing=null;
   $('dashboard').hidden=true;$('gate').hidden=!!next;$('signin').textContent='Sign in';$('new-release').disabled=true;$('release-rows').replaceChildren();$('signout').hidden=!next;editor.close();
   if(!next){$('gate').querySelector('h2').textContent='Your smart links live here.';$('gate').querySelector('p:not(.eyebrow)').textContent='Sign in with your Parallel Vision account to create pages and see their performance.';notice('Sign in to manage your smart links.');return;}void refresh();
 }

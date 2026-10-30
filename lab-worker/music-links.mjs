@@ -1,5 +1,6 @@
+import {eventDimensions,analyticsReports} from './music-analytics.mjs';
 import {API,MUSIC_PIXEL,CLICK_EVENTS,BACKGROUNDS,SERVICES,SLUG,UUID,releaseUrl,safeUrl,validateLinks} from './music-links-shared.mjs';
-export const MUSIC_LINKS_VERSION='music-links-20261030-v5';
+export const MUSIC_LINKS_VERSION='music-links-20261030-v6';
 const PREFIX='/api/music',DAY=86400000,HOUR=3600000;
 const ORIGINS=new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const SOURCES=new Set(['direct','meta','instagram','facebook','google','youtube','soundcloud','email','other']);
@@ -72,18 +73,21 @@ export async function musicAdminRoute(request,env,owner,{clock=Date.now}={}){
   if(path==='/dashboard'&&method==='GET'){
     const days=Number(url.searchParams.get('days')||30);if(![7,30,90,0].includes(days))fail(400,'Choose 7, 30, 90 days or all time.');
     const start=days?new Date(time-(days-1)*DAY).toISOString().slice(0,10):'0000-01-01';
-    const visible="SELECT id FROM music_releases WHERE (?='' AND created_by NOT IN (SELECT account_id FROM music_user_settings)) OR created_by=?";
+    const selected=url.searchParams.get('releaseId')||'';if(selected&&!UUID.test(selected))fail(400,'Choose a valid smart link.');
+    const visible="SELECT id FROM music_releases WHERE ((?='' AND created_by NOT IN (SELECT account_id FROM music_user_settings)) OR created_by=?) AND (?='' OR id=?)";
     const [releases,counts,platforms,sources,campaigns,trend]=await Promise.all([
-      all(env,releaseSelect+' WHERE r.id IN ('+visible+') ORDER BY r.created_at DESC,r.id DESC',scope,scope),
-      all(env,'SELECT release_id AS releaseId,event,SUM(count) AS count FROM music_link_daily WHERE release_id IN ('+visible+') AND day_utc>=? GROUP BY release_id,event',scope,scope,start),
-      all(env,"SELECT service,SUM(count) AS count FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? AND event='click' GROUP BY service ORDER BY count DESC",scope,scope,start),
-      all(env,"SELECT source,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? GROUP BY source ORDER BY views DESC",scope,scope,start),
-      all(env,"SELECT campaign,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? AND campaign!='' GROUP BY campaign ORDER BY clicks DESC LIMIT 20",scope,scope,start),
-      all(env,"SELECT day_utc AS day,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? GROUP BY day_utc ORDER BY day_utc",scope,scope,days?start:new Date(time-89*DAY).toISOString().slice(0,10))
+      all(env,releaseSelect+' WHERE r.id IN ('+visible+') ORDER BY r.created_at DESC,r.id DESC',scope,scope,selected,selected),
+      all(env,'SELECT release_id AS releaseId,event,SUM(count) AS count FROM music_link_daily WHERE release_id IN ('+visible+') AND day_utc>=? GROUP BY release_id,event',scope,scope,selected,selected,start),
+      all(env,"SELECT service,SUM(count) AS count FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? AND event='click' GROUP BY service ORDER BY count DESC",scope,scope,selected,selected,start),
+      all(env,"SELECT source,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? GROUP BY source ORDER BY views DESC",scope,scope,selected,selected,start),
+      all(env,"SELECT campaign,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? AND campaign!='' GROUP BY campaign ORDER BY clicks DESC LIMIT 20",scope,scope,selected,selected,start),
+      all(env,"SELECT day_utc AS day,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? GROUP BY day_utc ORDER BY day_utc",scope,scope,selected,selected,days?start:new Date(time-89*DAY).toISOString().slice(0,10))
     ]);
+    const analytics=await analyticsReports(env,visible,[scope,scope,selected,selected],days?start:new Date(time-89*DAY).toISOString().slice(0,10));
+    const available=await all(env,releaseSelect+" WHERE (?='' AND r.created_by NOT IN (SELECT account_id FROM music_user_settings)) OR r.created_by=? ORDER BY r.created_at DESC",scope,scope);
     const records=releases.map(row=>{const metrics={views:0,clicks:0};for(const c of counts)if(c.releaseId===row.id)metrics[c.event==='view'?'views':'clicks']+=Number(c.count);return {...view(row),...metrics};});
     const total=records.reduce((s,r)=>({views:s.views+r.views,clicks:s.clicks+r.clicks}),{views:0,clicks:0});
-    return json({releases:records,summary:{...total,published:records.filter(r=>r.status==='published').length},platforms,sources,campaigns,trend,days,settings:await settings(env,scope),version:MUSIC_LINKS_VERSION});
+    return json({analytics,availableReleases:available.map(r=>({id:r.id,title:r.title,artist:r.artist})),releases:records,summary:{...total,published:records.filter(r=>r.status==='published').length},platforms,sources,campaigns,trend,days,settings:await settings(env,scope),version:MUSIC_LINKS_VERSION});
   }
   if(path==='/media'&&method==='POST'){
     const content=await bytes(request,12*1024*1024),head=new TextDecoder('latin1').decode(content.subarray(0,16));
@@ -139,7 +143,7 @@ async function digest(env,value){
 export async function musicPublicRoute(request,env,{clock=Date.now}={}){
   const url=new URL(request.url),path=url.pathname.slice((PREFIX+'/public').length),method=request.method,time=clock();
   if(path==='/status'&&method==='GET'){
-    await one(env,'SELECT id FROM music_releases LIMIT 1');await one(env,'SELECT release_id FROM music_link_designs LIMIT 1');await one(env,'SELECT account_id FROM music_user_settings LIMIT 1');return json({ready:true,version:MUSIC_LINKS_VERSION});
+    await one(env,'SELECT id FROM music_releases LIMIT 1');await one(env,'SELECT release_id FROM music_link_designs LIMIT 1');await one(env,'SELECT account_id FROM music_user_settings LIMIT 1');await one(env,'SELECT release_id FROM music_analytics_hourly LIMIT 1');return json({ready:true,version:MUSIC_LINKS_VERSION});
   }
   if(path.startsWith('/media/')&&['GET','HEAD'].includes(method)){
     const id=path.slice('/media/'.length);if(!UUID.test(id))fail(404,'Media not found.');
@@ -159,20 +163,24 @@ export async function musicPublicRoute(request,env,{clock=Date.now}={}){
   if(path==='/events'&&method==='POST'){
     if(!ORIGINS.has(request.headers.get('origin')||''))fail(403,'Use the Parallel Vision release page.');
     if(/bot\b|crawler|spider|preview|headless|curl|wget/i.test(request.headers.get('user-agent')||'')||request.cf?.botManagement?.verifiedBot)return new Response(null,{status:204});
-    const data=await body(request,1024,{plain:true});
-    if(!UUID.test(data.id||'')||!UUID.test(data.releaseId||'')||!['view','click'].includes(data.event)||!SOURCES.has(data.source)||
+    const data=await body(request,2048,{plain:true});
+    if(!UUID.test(data.id||'')||!UUID.test(data.releaseId||'')||!['view','click','preview'].includes(data.event)||!SOURCES.has(data.source)||
       typeof data.campaign!=='string'||data.campaign.length>64||!/^[\p{L}\p{N} _.()\-]*$/u.test(data.campaign)||
-      data.event==='view'&&data.service!==''||data.event==='click'&&!SERVICES.some(s=>s.id===data.service))fail(400,'Invalid music event.');
-    const release=await one(env,"SELECT links FROM music_releases WHERE id=? AND status='published'",data.releaseId);if(!release)fail(404,'Release not found.');
+      data.event!=='click'&&data.service!==''||data.event==='click'&&!SERVICES.some(s=>s.id===data.service))fail(400,'Invalid music event.');
+    const release=await one(env,"SELECT links,audio_url FROM music_releases WHERE id=? AND status='published'",data.releaseId);if(!release)fail(404,'Release not found.');
+    if(data.event==='preview'&&!release.audio_url)fail(400,'No audio preview is configured.');
     if(data.event==='click'&&!JSON.parse(release.links).some(l=>l.service===data.service))fail(400,'Unknown platform link.');
     const bucket=Math.floor(time/HOUR),key=bucket+':'+await digest(env,bucket+':'+(request.headers.get('cf-connecting-ip')||'unknown'));
     const limited=await one(env,'INSERT INTO music_link_limits(key,count,expires_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 WHERE count<120 RETURNING count',key,(bucket+2)*HOUR);
     if(!limited)return new Response(null,{status:204});
-    await stmt(env,'INSERT OR IGNORE INTO music_link_receipts(id,release_id,event,service,source,campaign,day_utc,created_at) VALUES(?,?,?,?,?,?,?,?)',data.id,data.releaseId,data.event,data.service,data.source,data.campaign,new Date(time).toISOString().slice(0,10),time).run();
+    const writes=[];
+    if(data.event!=='preview')writes.push(stmt(env,'INSERT OR IGNORE INTO music_link_receipts(id,release_id,event,service,source,campaign,day_utc,created_at) VALUES(?,?,?,?,?,?,?,?)',data.id,data.releaseId,data.event,data.service,data.source,data.campaign,new Date(time).toISOString().slice(0,10),time));
+    writes.push(stmt(env,'INSERT OR IGNORE INTO music_analytics_receipts(id,release_id,event,service,source,campaign,hour_utc,country,region,city,device,browser,os,medium,content,term,delay_bucket,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',data.id,data.releaseId,data.event,data.service,data.source,data.campaign,...eventDimensions(request,data,time),time));
+    await env.LAB_DB.batch(writes);
     return new Response(null,{status:204});
   }
   fail(404,'Music link not found.');
 }
 export async function pruneMusicEvents(env,{clock=Date.now}={}){
-  await env.LAB_DB.batch([stmt(env,'DELETE FROM music_link_receipts WHERE created_at<?',clock()-2*DAY),stmt(env,'DELETE FROM music_link_limits WHERE expires_at<?',clock())]);
+  await env.LAB_DB.batch([stmt(env,'DELETE FROM music_link_receipts WHERE created_at<?',clock()-2*DAY),stmt(env,'DELETE FROM music_link_limits WHERE expires_at<?',clock()),stmt(env,'DELETE FROM music_analytics_receipts WHERE created_at<?',clock()-2*DAY)]);
 }

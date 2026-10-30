@@ -75,3 +75,12 @@ Tracking correction: 5ad5fe6365228ac27186d36adb5fdd58f995f2bb (PR #678), indepen
 - Live browser: actual /links/ loads new account copy/sidebar and Sign in opens Parallel Vision Clerk modal (Google/email). Actual Sube API returns v5 with existing Spotify destination, label Pixel 1746851780072706 and MusicLinkClick preserved.
 - Browser fixture: phone workspace and creator have no horizontal overflow, desktop New/save draft/sign-out/sign-in work. Screenshot smart-links-public-creator-check-20261030.jpg is fixture QA, not an authenticated production account.
 - Actual signed-in production customer creation was not exercised because no customer credential was used. Signed RSA customer requests, tenant CRUD and reports were verified in tests; owner should refresh their already-signed-in /links/ page.
+
+## Expanded analytics, 30 October
+- Base a76cfcf, preserves unrelated Robin partner work. Adds 0050 music analytics migration, module and deployment v6 readiness marker.
+- Captures server-derived approximate country/region/city, UA category only, source/medium/campaign/content/term, UTC hour, preview plays and grouped click delay. No GPS, raw IP/UA, persistent visitor IDs or fabricated historical locations.
+- Additive hourly aggregates preserve existing counts. Receipts deduplicate retries; pruning clears receipts after two days and keeps aggregates. Per-account and selected-release predicates apply to all reports.
+- Performance adds release/timeline controls, bar chart with accessible table, geography, device/browser/OS, ad tags, preview count and click timing. Detail tables top 100 groups; timelines 90-day maximum.
+- Meta event and label/customer pixels remain unchanged. Meta spend/CPA requires a separate connection and is not claimed.
+- Checks: 36 music/session tests, 107 full Worker tests pass. New test covers geography spoof resistance, retry dedupe, previews, per-release filtering, cross-account isolation and pruning.
+- Browser: actual dashboard code with simulated account/API, phone 390px iframe (body375px with scrollbar, no horizontal overflow), release and hourly controls work. Desktop 1363px also fits without horizontal overflow. Publication verification pending. Fixture data does not ship.
