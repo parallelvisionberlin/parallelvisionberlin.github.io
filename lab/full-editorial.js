@@ -37,14 +37,14 @@ directionSets.location=[
 let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='location',selectedDirections={location:null,moods:null,material:null};
 let chosenCount=4,chosenRatio='3:4',quote=null,quoteBusy=false,submitting=false,uncertain=false,pollTimeout=null;
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0;
-const objectUrls=new Map();
+const objectUrls=new Map(),sampleFiles=new Map();
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 const status=(text='',error=false)=>{$('editorial-status').textContent=text;$('editorial-status').classList.toggle('error',error)};
 function preview(file){if(!objectUrls.has(file))objectUrls.set(file,URL.createObjectURL(file));return objectUrls.get(file);}
 function pruneFile(file){const url=objectUrls.get(file);if(url){URL.revokeObjectURL(url);objectUrls.delete(file)} uploaded.delete(file);}
 function wipeResults(){for(const r of results)if(r.url)URL.revokeObjectURL(r.url);results=[];activeJobs=[];renderResults();}
 function resetAll(){revision++;clearTimeout(pollTimeout);quote=null;quoteBusy=false;submitting=false;uncertain=false;wipeResults();
- for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
+ for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};sampleFiles.clear();for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
  $('identity-guide').value='80';$('garment-guide').value='70';$('mood-guide').value='60';
  chosenCount=4;chosenRatio='3:4';selectedDirections={location:null,moods:null,material:null};directionTab='location';for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).selectedIndex=0;
@@ -63,7 +63,8 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
   item.classList.toggle('is-complete',index<current);
   if(index===current)item.setAttribute('aria-current','step');else item.removeAttribute('aria-current');
  }
- $('step-next').textContent=next===4?'Review credits':'Next';
+ $('step-next').textContent=next===4?'Review credits':({1:'Continue to styling',2:'Continue to location',3:'Continue to review'}[next]||'Next');
+ if(next===4)updateSeriesSummary();
  if(next===0){window.scrollTo({top:0,left:0,behavior:'instant'});document.getElementById('editorial-hero').scrollIntoView({block:'start',behavior:'instant'});}else{document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});}
 }
 function updateOptions(){for(const b of $('count-options').querySelectorAll('button'))b.classList.toggle('is-selected',Number(b.dataset.count)===chosenCount);
@@ -77,6 +78,8 @@ function renderFiles(){
     const remove=document.createElement('button');remove.type='button';remove.setAttribute('aria-label','Remove '+nameFor(file));remove.textContent='×';remove.addEventListener('click',()=>{if(submitting)return;files[kind]=files[kind].filter(f=>f!==file);pruneFile(file);quote=null;renderFiles();});item.append(remove);box.append(item);}
   for(const ref of savedRefs[kind]){const item=document.createElement('div');item.className='thumb saved-thumb';const img=document.createElement('img');img.alt=ref.name;img.src=ref.url||'./visuals/studio-tools/image-ivory-suit.webp';item.append(img);const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove saved '+ref.name);remove.addEventListener('click',()=>{if(submitting)return;savedRefs[kind]=savedRefs[kind].filter(r=>r!==ref);if(ref.url)URL.revokeObjectURL(ref.url);quote=null;renderFiles()});item.append(remove);const badge=document.createElement('small');badge.className='saved-badge';badge.textContent='ELEMENT';item.append(badge);box.append(item);}
  }
+ updateSeriesSummary();
+ refreshSampleStates();
 }
 function addFiles(kind,list){if(submitting)return;
  const incoming=Array.from(list||[]);const limit={model:4,outfit:3,location:2}[kind];
@@ -87,6 +90,50 @@ function addFiles(kind,list){if(submitting)return;
  files[kind].push(...accept.slice(0,allowed));
  if(accept.length>allowed)status('Reference limit reached. Keep up to 4 model, 3 garment and 2 location images.',true);
  quote=null;renderFiles();
+}
+function updateSeriesSummary(){
+ const model=$('review-model-text');if(!model)return;
+ const source=kind=>files[kind][0]?preview(files[kind][0]):savedRefs[kind][0]?.url||null;
+ function showImage(id,url){
+  const el=$(id);if(!el)return;el.replaceChildren();
+  if(url){const img=document.createElement('img');img.src=url;img.alt='';el.append(img)}
+  else{const span=document.createElement('span');span.textContent='+';el.append(span)}
+ }
+ const count=kind=>files[kind].length+savedRefs[kind].length;
+ showImage('review-model-thumb',source('model'));
+ model.textContent=count('model')?count('model')+' model photograph'+(count('model')===1?'':'s'):'No model selected';
+ showImage('review-outfit-thumb',source('outfit'));
+ $('review-outfit-text').textContent=count('outfit')?count('outfit')+' wardrobe reference'+(count('outfit')===1?'':'s'):$('styling-direction').value.trim()?'Described wardrobe':'No wardrobe selected';
+ const picks=Object.entries(selectedDirections).map(([k,id])=>directionSets[k].find(d=>d.id===id)).filter(Boolean);
+ showImage('review-location-thumb',source('location')||picks[0]?.image||null);
+ $('review-location-text').textContent=picks.length?picks.map(d=>d.name).join(' / '):count('location')?count('location')+' uploaded location reference'+(count('location')===1?'':'s'):$('location-direction').value.trim()?'Custom location direction':'Unspecified / natural';
+}
+function refreshSampleStates(){
+ for(const button of document.querySelectorAll('[data-sample-kind]')){
+  const file=sampleFiles.get(button),active=Boolean(file&&files[button.dataset.sampleKind]?.includes(file));
+  button.classList.toggle('is-selected',active);button.setAttribute('aria-pressed',String(active));
+ }
+}
+async function toggleSample(button){
+ if(submitting||button.disabled)return;
+ const kind=button.dataset.sampleKind,existing=sampleFiles.get(button);
+ if(existing&&files[kind]?.includes(existing)){
+  files[kind]=files[kind].filter(f=>f!==existing);pruneFile(existing);
+  quote=null;renderFiles();status('Reference removed.');return;
+ }
+ const limit={model:4,outfit:3}[kind],num=files[kind].length+savedRefs[kind].length;
+ if(num>=limit){status('You can use up to '+limit+' '+(kind==='model'?'model':'wardrobe')+' references.',true);return}
+ button.disabled=true;
+ try{
+  const response=await fetch(new URL(button.dataset.sampleSrc,location.href),{credentials:'same-origin'});
+  if(!response.ok)throw Error('Reference photograph is unavailable.');
+  const blob=await response.blob();
+  const type=['image/jpeg','image/png','image/webp'].includes(blob.type)?blob.type:(button.dataset.sampleSrc.endsWith('.jpg')?'image/jpeg':'image/webp');
+  const file=new File([blob],kind+'-reference-'+Date.now()+'.'+(type==='image/jpeg'?'jpg':type==='image/png'?'png':'webp'),{type});
+  const before=files[kind].length;addFiles(kind,[file]);
+  if(files[kind].includes(file)&&files[kind].length>before){sampleFiles.set(button,file);status('Added to '+(kind==='model'?'model':'wardrobe')+' references.');}
+ }catch(err){status(err.message,true)}
+ finally{button.disabled=false;refreshSampleStates()}
 }
 function renderDirections(){
  const container=$('direction-cards');container.replaceChildren();
@@ -307,6 +354,19 @@ $('step-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-
 $('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4){void reviewBatch();return}if(validateStep()){go(step+1);status('')}});
 $('review-credits').addEventListener('click',()=>void reviewBatch());
 $('editorial-reset').addEventListener('click',()=>{if(submitting){status('A paid generation is running. Open History before starting another.',true);return}resetAll()});
+for(const b of document.querySelectorAll('[data-sample-kind]'))b.addEventListener('click',()=>void toggleSample(b));
+for(const b of document.querySelectorAll('[data-source-view]'))b.addEventListener('click',()=>{
+ $('panel-model').dataset.modelMode=b.dataset.sourceView;
+ for(const t of document.querySelectorAll('[data-source-view]')){const active=t===b;t.classList.toggle('is-selected',active);t.setAttribute('aria-pressed',String(active))}
+ if(b.dataset.sourceView==='upload')$('model-drop').scrollIntoView({block:'nearest',behavior:'smooth'});
+});
+for(const b of document.querySelectorAll('[data-style-view]'))b.addEventListener('click',()=>{
+ $('panel-style').dataset.styleMode=b.dataset.styleView;
+ for(const t of document.querySelectorAll('[data-style-view]')){const active=t===b;t.classList.toggle('is-selected',active);t.setAttribute('aria-pressed',String(active))}
+ if(b.dataset.styleView==='upload')$('add-outfits').focus();
+ if(b.dataset.styleView==='describe')$('styling-direction').focus();
+});
+for(const b of document.querySelectorAll('[data-edit-step]'))b.addEventListener('click',()=>{if(!submitting)go(Number(b.dataset.editStep))});
 $('model-drop').addEventListener('click',()=>$('model-files').click());
 $('model-drop').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();$('model-files').click()}});
 $('model-drop').addEventListener('dragover',event=>event.preventDefault());
@@ -318,7 +378,7 @@ $('saved-location').addEventListener('click',()=>void openSaved('location'));
 $('saved-elements-close').addEventListener('click',()=>$('saved-elements-dialog').close());
 $('add-location').addEventListener('click',()=>$('location-files').click());
 for(const [kind,id] of [['model','model-files'],['outfit','outfit-files'],['location','location-files']])$(id).addEventListener('change',event=>{addFiles(kind,event.target.files);event.target.value=''});
-for(const id of ['styling-direction','location-direction','editorial-prompt','editorial-model','editorial-resolution'])$(id).addEventListener('input',()=>{quote=null});
+for(const id of ['styling-direction','location-direction','editorial-prompt','editorial-model','editorial-resolution'])$(id).addEventListener('input',()=>{quote=null;updateSeriesSummary()});
 for(const id of ['identity-guide','garment-guide','mood-guide'])$(id).addEventListener('input',()=>{quote=null;refreshSliderLabels()});
 $('count-options').addEventListener('click',event=>{const b=event.target.closest('[data-count]');if(!b)return;chosenCount=Number(b.dataset.count);quote=null;updateOptions()});
 $('ratio-options').addEventListener('click',event=>{const b=event.target.closest('[data-ratio]');if(!b)return;chosenRatio=b.dataset.ratio;quote=null;updateOptions()});
@@ -332,5 +392,5 @@ $('edit-selection').addEventListener('click',()=>{location.assign('./studio.html
 $('progress-history').addEventListener('click',()=>location.assign('./studio.html?tool=image'));
 $('editorial-signin').addEventListener('click',()=>void signIn().catch(e=>status(e.message,true)));
 window.addEventListener('pagehide',()=>{for(const url of objectUrls.values())URL.revokeObjectURL(url);for(const r of results)if(r.url)URL.revokeObjectURL(r.url)});
-renderDirections();renderFiles();updateOptions();refreshSliderLabels();go(0);
+renderDirections();renderFiles();updateOptions();refreshSliderLabels();updateSeriesSummary();go(0);
 try{clerk=await loadLabAccount();await sync();clerk.addListener(()=>void sync())}catch(error){status('The account service is temporarily unavailable. You can still build your concept. '+error.message,true)}
