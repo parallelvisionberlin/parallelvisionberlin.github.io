@@ -14,7 +14,13 @@
 - Keep existing referral wording, eligibility, customer/owner destinations and footer unchanged.
 - Code: invite-hero.css and its index.html cache key 20261030-suspended-compact1.
 - Validation: 11/11 existing Image contract and referral UI/account-panel tests pass; diff whitespace passes.
-- Commit and preview review requested. No production publication of this referral design is claimed.
+- Reviewed application source: 76e1e1bd19a8918595592a668d6af6b446b9b673, PR #669.
+- Published merge: c8e80057fe2a117583400b89bf999881051189bc; Cloudflare pvlab-studio check 124011069370 succeeded, deployment 7eeabd10-be77-4b75-85a9-d6c60894cdcc.
+- Read-only verifier returned LIVE_VERIFIED for invite-hero.css using the homepage HTML; SHA-256 e5dd768b9e8e5c6416b6d3dd39573a725f4dee7e0384c98a428a8a681510bfba.
+- Production photo returned HTTP 200 and exactly matches the committed 213654-byte WebP.
+- Live browser at 1363px: banner 327px high; button 52px high, 16px/600; no page horizontal overflow. Photo shifted clear of the button after preview inspection.
+- Existing homepage stability, Image contract and static checks pass in CI. Separate actual mobile and signed-in production sessions were not inspected.
+- Both homepage order and referral invitation are live; no remaining action for this request.
 
 ## Homepage order and Editorial typography, 2026-10-30
 
