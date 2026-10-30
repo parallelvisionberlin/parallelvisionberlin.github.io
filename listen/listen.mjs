@@ -1,5 +1,5 @@
 import {API,SLUG,metaDetails,newId} from '../links/shared.mjs';
-import {renderRelease} from '../links/release-view.mjs?v=20261030-afterdark1';
+import {renderRelease} from '../links/release-view.mjs?v=20261030-refined1';
 const root=document.getElementById('release'),params=new URLSearchParams(location.search);
 const slug=params.get('release')||'',consentKey='pv-music-meta-consent-v1';
 let release=null,tracking=null,initialized=false,choice='';

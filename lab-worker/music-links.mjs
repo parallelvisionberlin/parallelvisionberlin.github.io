@@ -1,5 +1,5 @@
 import {API,MUSIC_PIXEL,CLICK_EVENTS,BACKGROUNDS,SERVICES,SLUG,UUID,releaseUrl,safeUrl,validateLinks} from './music-links-shared.mjs';
-export const MUSIC_LINKS_VERSION='music-links-20261030-v2';
+export const MUSIC_LINKS_VERSION='music-links-20261030-v3';
 const PREFIX='/api/music',DAY=86400000,HOUR=3600000;
 const ORIGINS=new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const SOURCES=new Set(['direct','meta','instagram','facebook','google','youtube','soundcloud','email','other']);
@@ -41,7 +41,7 @@ export function validateRelease(data){
   return {background:data.background,slug,title,artist,catalogue,description,releaseDate,artworkUrl,audioUrl,links,pixelId:pixel(data.pixelId||''),status:data.status};
 }
 function view(row){return {id:row.id,slug:row.slug,title:row.title,artist:row.artist,catalogue:row.catalogue,description:row.description,
-  background:row.background||'artwork',artworkUrl:row.artwork_url,audioUrl:row.audio_url,releaseDate:row.release_date,links:JSON.parse(row.links),pixelId:row.pixel_id,
+  background:row.background||'blur',artworkUrl:row.artwork_url,audioUrl:row.audio_url,releaseDate:row.release_date,links:JSON.parse(row.links),pixelId:row.pixel_id,
   status:row.status,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at,url:releaseUrl(row.slug)};}
 async function settings(env){return await one(env,'SELECT pixel_id AS pixelId,click_event AS clickEvent,revision FROM music_link_settings WHERE id=1')||{pixelId:MUSIC_PIXEL,clickEvent:CLICK_EVENTS[0],revision:0};}
 async function allowedOwner(env,owner){
@@ -105,7 +105,7 @@ export async function musicAdminRoute(request,env,owner,{clock=Date.now}={}){
       if(!UUID.test(data.id||''))fail(400,'Reload the creator and try again.');
       const existing=await one(env,'SELECT * FROM music_releases WHERE id=?',data.id);
       if(existing)fail(409,'This release was already saved. Refresh the dashboard before retrying.');
-      try{await env.LAB_DB.batch([stmt(env,'INSERT INTO music_releases(id,slug,title,artist,catalogue,description,artwork_url,audio_url,release_date,links,pixel_id,status,updated_at,created_at,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',data.id,r.slug,...values,time,owner),stmt(env,'INSERT INTO music_link_designs(release_id,background) VALUES(?,?)',data.id,r.background||'artwork')]);}
+      try{await env.LAB_DB.batch([stmt(env,'INSERT INTO music_releases(id,slug,title,artist,catalogue,description,artwork_url,audio_url,release_date,links,pixel_id,status,updated_at,created_at,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',data.id,r.slug,...values,time,owner),stmt(env,'INSERT INTO music_link_designs(release_id,background) VALUES(?,?)',data.id,r.background||'blur')]);}
       catch(e){if(/unique/i.test(e.message))fail(409,'This release or link already exists. Refresh the dashboard.');throw e;}
       return json({release:view(await releaseById(env,data.id))},201);
     }

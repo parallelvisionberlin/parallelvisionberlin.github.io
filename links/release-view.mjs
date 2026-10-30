@@ -17,7 +17,7 @@ function serviceIcon(service){
 }
 export function renderRelease(root,release,{onClick=()=>{},preview=false}={}) {
   root.replaceChildren();
-  const mode=['artwork','blur','black'].includes(release.background)?release.background:'artwork';
+  const mode=['artwork','blur','black'].includes(release.background)?release.background:'blur';
   const frame=node('article','release-frame background-'+mode),url=artwork(release.artworkUrl);
   const backdrop=node('div','release-backdrop');backdrop.setAttribute('aria-hidden','true');
   if(url&&mode!=='black'){const image=node('img');image.src=url;image.alt='';image.decoding='async';image.referrerPolicy='no-referrer';backdrop.append(image);}
@@ -26,26 +26,24 @@ export function renderRelease(root,release,{onClick=()=>{},preview=false}={}) {
   if(url){const image=node('img');image.src=url;image.alt=(release.title||'Release')+' artwork';image.width=800;image.height=800;image.decoding='async';image.referrerPolicy='no-referrer';art.append(image);}
   else art.append(node('span','art-placeholder','PARALLEL\nVISION'));
   frame.append(art);
-  const copy=node('div','release-copy');
-  copy.append(node('p','eyebrow','PARALLEL VISION'));
+  const details=node('div','release-details'),copy=node('div','release-copy');
+  const future=release.releaseDate&&Date.parse(release.releaseDate+'T00:00:00Z')>Date.now();
+  const timing=release.releaseDate?(future?'OUT '+new Date(release.releaseDate+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}):'OUT NOW'):'';
+  copy.append(node('p','eyebrow',[release.catalogue,timing].filter(Boolean).join(' / ')||'PARALLEL VISION'));
   copy.append(node(preview?'h2':'h1','release-title',release.title||'Release title'));
   copy.append(node('p','release-artist',release.artist||'Artist name'));
   if(release.description)copy.append(node('p','release-description',release.description));
-  const metadata=node('div','release-metadata');
-  if(release.catalogue)metadata.append(node('span','release-catalogue',release.catalogue));
-  if(release.releaseDate){const future=Date.parse(release.releaseDate+'T00:00:00Z')>Date.now();metadata.append(node('span','release-date',(future?'OUT ':'RELEASED ')+new Date(release.releaseDate+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'})));}
-  copy.append(metadata);
   if(release.audioUrl){const audio=node('audio','release-audio');audio.controls=true;audio.preload='none';audio.src=release.audioUrl;audio.setAttribute('aria-label','Preview '+(release.title||'this release'));copy.append(audio);}
-  frame.append(copy);
-  const dock=node('section','listening-dock');dock.setAttribute('aria-label','Listen to '+(release.title||'this release'));dock.append(node('p','dock-label','Choose where to listen'));
+  details.append(copy);
+  const dock=node('section','listening-dock');dock.setAttribute('aria-label','Listen to '+(release.title||'this release'));dock.append(node('p','dock-label','Listen to the release.'));
   const list=node('div','platform-list');list.setAttribute('aria-label','Music platforms');
   for(const link of release.links||[]){const service=SERVICES.find(s=>s.id===link.service);if(!service)continue;
     const button=node(preview?'button':'a','platform-button platform-'+service.id);
     if(preview){button.type='button';button.setAttribute('aria-label','Preview button for '+service.name);}
-    else{button.href=link.url;button.rel='noopener noreferrer';button.target='_blank';button.addEventListener('click',()=>onClick(link.service));}
+    else{button.href=link.url;button.rel='noopener noreferrer';button.target='_blank';button.setAttribute('aria-label',service.action+' on '+service.name);button.addEventListener('click',()=>onClick(link.service));}
     const name=node('span','platform-identity');name.append(serviceIcon(service.id),node('span','platform-name',service.name));
     button.append(name,node('span','platform-action',service.action));list.append(button);
   }
   if(!list.children.length)list.append(node('p','release-description','Add your music platform links.'));
-  dock.append(list);frame.append(dock);root.append(frame);
+  dock.append(list);details.append(dock);frame.append(details);root.append(frame);
 }
