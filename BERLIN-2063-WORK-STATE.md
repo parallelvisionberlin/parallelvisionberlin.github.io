@@ -1,9 +1,19 @@
 # Berlin 2063 / Gallery work state
 
-Date: 2026-10-29
+Date: 2026-10-30
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
 Branch: main
 Verified code commit: ab4c7e2496ce73129d3a9a54e6f2e96a8f8a5c9a
+
+## Gallery order update, 2026-10-30
+- Objective: place Organic Futures before After the Collapse on the Berlin 2063 overview.
+- Base verified: bf65ef6 on main; this entry is committed with the page change.
+- Changed `berlin-2063.html`: world order is Hyperfuture Berlin, Berlin 2063, Organic Futures, After the Collapse.
+- Organic Futures is now 03; After the Collapse is now 04, including EN/DE labels.
+- Moved complete gallery sections with images, captions, controls, context and links intact.
+- Verification: exact section-preservation assertions and `git diff --check` passed. No CSS or JavaScript changes.
+- Publishing: ready to push to main; public propagation still requires verification.
+- Existing gallery and Chromia notes below describe the earlier recorded work, not a fresh asset audit.
 
 ## Completed
 - Removed the Organic Futures slide with dark futuristic vehicle at `assets/optimized/2063/organic-futures/night-transit.webp` from `berlin-2063.html`.
