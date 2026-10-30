@@ -134,4 +134,10 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - All four questions/answers, metadata, page order, hero and artist profile retained.
 - Validation: static build passes 24 pages; diff whitespace check passes. Browser checks at desktop 1348px and phone 375/305px content widths: background decodes, body remains readable, no horizontal overflow.
 - Instagram revision: Siento, Estero, Fashion After Fabric; remove category numbering and repeated dividers, keep original photographs and the approved type family.
-- Publication pending GitHub validation and Pages deployment; verify the public interview before marking live.
+- Published in PR #694: source `00fad6393f5bbb308b67c78d4d1ab76404583bcc`, deployed merge `14a1032794b343d3933e1a4f9e9d9289ef3fc0d1`.
+- PR static validation passed; GitHub Pages run 41123042606 completed successfully.
+- Public browser verified the shadow image loaded at desktop opacity .48, all four Q&A entries, and no horizontal overflow.
+- Instagram revised PNGs saved as versions of the original files: 01_SIENTO.png / libfile_2d62505da8848191bfab6f55e1c72694; 02_ESTERO.png / libfile_bc8ca3f3c5188191b859d630c654ac6c.
+- 03_FASHION_AFTER_FABRIC.png / libfile_dfbe986e44b481918a32c37697a348ea.
+- Updated carousel ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d. All five files are at version 1, original identities preserved.
+- Publication and file updates complete; animation clips and final listening links remain the previously agreed follow-up.
