@@ -1,3 +1,15 @@
+## 2026-10-30 / image-led Full Editorial Studio flow (PR #704)
+- Approved visual direction: fashion photographic atelier, not a technical form, futuristic UI or decorative sci-fi scene. Full-screen responsive photo stages, clear Who/Identity > Wear/Styling > World/Location & Mood > Series/Generate.
+- Reuses published original user-supplied casting assets: bronze-cast03 hero, plum-cast03 Identity, chrome-cast03 Styling, ivory-cast03 review, plus approved angular desert artwork in the World stage. No synthetic mockups are used as selectable assets.
+- Public casting photos are labeled as sample references, never passed off as a user's saved private characters. Selecting an example constructs a real browser File, enters the existing bounded reference array, and is uploaded via the existing secure upload route only when the user requests the actual quote. The resulting job uses the identity/outfit/room role mapping.
+- My characters, saved outfits and saved locations keep the existing authenticated PVSCENE1 Elements / private asset retrieval. Uploading user photos and describing looks are separate first-class inputs.
+- Location, mood and material are independently remembered, with one choice per category. Time of day, atmosphere and color palette are real prompt directions. No invented AI preview, fixed credit estimate or fake result gallery.
+- Review shows actual chosen reference thumbnails/text, output model, resolution, count, ratio, and explicit live server quote. Paid generation stays four quotes per user-approved batch, using original confirmed-job and refund handling. Only completed jobs enter the results gallery.
+- Mobile navigation is accessible, editorial progress stays legible, top/footer Back share the same state-preserving action. Stage typography combines a restrained grotesk and a single expressive hero italic, avoiding generic luxury or cyberpunk decoration.
+- Existing main studio, other pages, payment routes, models and history unchanged.
+- Tests: static, visual/asset, Image UI, public search and dedicated 1440/390 browser flow with Back, reference selection, world persistence, real server quote, explicit confirmation, result cards and phone overflow. Workflow captures 12 reviewable desktop/phone screenshots (artifact kept one day).
+- Production confirmation must be checked after merge and deploy. Reference portraits and photo crops are illustration, not model-likeness guarantees.
+
 ## 2026-10-29 / editorial hero and Studios card cohesion
 - Owner accepts the angular bronze sculpture hero and editorial typography. Requested stronger hero CTA, same photograph in Full Editorial Studios card, concise card description and subtle four-stage progress feedback.
 - Card now displays same owner-supplied angular desert image via previously approved CDN URL, with title, 'Build a complete fashion story.' and understated round arrow. Beauty, Fashion, Outfit and Retouch images remain unchanged.
