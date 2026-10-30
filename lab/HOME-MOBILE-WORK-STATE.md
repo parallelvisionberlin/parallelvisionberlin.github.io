@@ -17,7 +17,14 @@
 - Supporting text scales to 21px; mobile stacks naturally without a fixed height.
 - Referral terms, routing, accounting, homepage order and footer remain unchanged.
 - Cache: invite-hero.css?v=20261030-concept06-original3.
-- Existing Image and referral tests pass 11/11; final preview/deployment recorded after inspection.
+- Validation: 11/11 existing Image/referral tests pass; final-head approved Image, homepage stability and static CI checks pass.
+- Reviewed source: 9d52e4ac1e13fb54de5cdfee25a8d1ebbea098a2; PR #672 merged as 89589f6f5212ba96f5ef1d5cbeef64a11fa3dd45.
+- Cloudflare pvlab-studio check 124034106895 succeeded, deployment 6d06608a-a259-4d59-afbb-25a37e737bf6.
+- Homepage-scoped verifier returned LIVE_VERIFIED; CSS SHA-256 30146475f0ba1aee3e4458dc580024a65ebb13ded847c36d78975df36f08bde0.
+- Production photo HTTP 200, exact 106216-byte committed match.
+- Live 1363px browser: stage 422.5px; headline offset 155.7px; description two lines; button 16px/52px; no horizontal overflow. Screenshot inspected.
+- Mobile stacking covered by existing responsive CI; no separate actual mobile or signed-in production session inspected.
+- Request complete and live. Preserve this framing and lower placement on future refinements.
 
 ## Referral composition correction, 2026-10-30
 
