@@ -357,6 +357,7 @@ siteHeader.querySelector('nav').addEventListener('click',event=>{if(event.target
 document.addEventListener('click',event=>{if(!siteHeader.contains(event.target))closeMobileMenu()});
 $('editorial-start').addEventListener('click',()=>{go(1);status('')});
 $('step-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-1));status('')}});
+$('editorial-top-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-1));status('')}});
 $('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4){void reviewBatch();return}if(validateStep()){go(step+1);status('')}});
 $('review-credits').addEventListener('click',()=>void reviewBatch());
 $('editorial-reset').addEventListener('click',()=>{if(submitting){status('A paid generation is running. Open History before starting another.',true);return}resetAll()});
