@@ -301,7 +301,7 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 
 /* Editorial Control Room v2, approved left-sidebar concept, neutral PV LAB palette. */
 :root{--owner-ink:#eeede9;--owner-muted:#969894;--owner-line:#323332;--owner-surface:#141414;--owner-sidebar-width:202px}
-.owner-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:20;display:flex;flex-direction:column;width:var(--owner-sidebar-width);padding:27px 13px 25px;background:#0d0d0d;border-right:1px solid #292929}
+.owner-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:20;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;width:var(--owner-sidebar-width);padding:27px 13px 25px;background:#0d0d0d;border-right:1px solid #292929}
 .owner-sidebar-brand{display:flex;flex-direction:column;gap:9px;padding:0 17px 31px}
 .owner-side-wordmark{font-size:20px;font-weight:400;letter-spacing:-.055em;color:#f1f0ec}
 .owner-sidebar-brand>span{font-size:10px;letter-spacing:.16em;color:#858585}
