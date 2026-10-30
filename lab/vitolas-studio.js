@@ -4,8 +4,8 @@ import {createSessionRequest} from './session-request.js?v=20260927-auth1&studio
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
 const $=id=>document.getElementById(id);
 const workspaceSlug=document.body.dataset.partnerWorkspace||'vitolas-studio';
-const studioName=workspaceSlug==='robin-studio'?'Robin / König Media':['bellini-studio','robin-studio'].includes(workspaceSlug)?'Bellini Studios':'Vitolas Studio';
-const studioAlias=workspaceSlug==='robin-studio'?'robin':['bellini-studio','robin-studio'].includes(workspaceSlug)?'bellini':'vitolas';
+const studioName=workspaceSlug==='robin-studio'?'Robin / König Media':workspaceSlug==='bellini-studio'?'Bellini Studios':'Vitolas Studio';
+const studioAlias=workspaceSlug==='robin-studio'?'robin':workspaceSlug==='bellini-studio'?'bellini':'vitolas';
 const menu=createAccountMenu($('account-menu'));
 let clerk=null,revision=0,nextOffset=null,loading=false;
 let dashboardPath='/api/customer/partner';
