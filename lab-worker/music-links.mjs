@@ -83,7 +83,7 @@ export async function musicAdminRoute(request,env,owner,{clock=Date.now}={}){
       all(env,"SELECT campaign,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? AND campaign!='' GROUP BY campaign ORDER BY clicks DESC LIMIT 20",scope,scope,selected,selected,start),
       all(env,"SELECT day_utc AS day,SUM(CASE WHEN event='view' THEN count ELSE 0 END) AS views,SUM(CASE WHEN event='click' THEN count ELSE 0 END) AS clicks FROM music_link_daily WHERE release_id IN ("+visible+") AND day_utc>=? GROUP BY day_utc ORDER BY day_utc",scope,scope,selected,selected,days?start:new Date(time-89*DAY).toISOString().slice(0,10))
     ]);
-    const analytics=await analyticsReports(env,visible,[scope,scope,selected,selected],days?start:new Date(time-89*DAY).toISOString().slice(0,10));
+    const analytics=await analyticsReports(env,visible,[scope,scope,selected,selected],start,new Date(Math.max(days?Date.parse(start):0,time-89*DAY)).toISOString().slice(0,10));
     const available=await all(env,releaseSelect+" WHERE (?='' AND r.created_by NOT IN (SELECT account_id FROM music_user_settings)) OR r.created_by=? ORDER BY r.created_at DESC",scope,scope);
     const records=releases.map(row=>{const metrics={views:0,clicks:0};for(const c of counts)if(c.releaseId===row.id)metrics[c.event==='view'?'views':'clicks']+=Number(c.count);return {...view(row),...metrics};});
     const total=records.reduce((s,r)=>({views:s.views+r.views,clicks:s.clicks+r.clicks}),{views:0,clicks:0});

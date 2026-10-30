@@ -231,4 +231,5 @@ test('enriched analytics deduplicate retries, use server geography, filter by re
  assert.equal((await read(owner,'/dashboard?days=7')).analytics.hours[0].hour_utc,'2026-10-30T12');
  assert.equal(JSON.stringify(f.db.prepare('SELECT * FROM music_analytics_receipts').all()).includes('SECRET'),false);
  await pruneMusicEvents(f.env,{clock:()=>NOW+4*86400000});assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM music_analytics_receipts').get().n,0);assert.equal((await read(owner)).analytics.countries[0].views,1);
+ f.db.exec("UPDATE music_analytics_hourly SET hour_utc='2026-07-01T12'");const historic=await read(owner,'/dashboard?days=0');assert.equal(historic.analytics.countries[0].views,1);assert.equal(historic.analytics.hours.length,0);
 });
