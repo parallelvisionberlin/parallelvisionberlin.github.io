@@ -3,8 +3,8 @@ export function createAssetLibrary({api,notify,archive,app,selected,selectMode,r
   let active=false,filter='all',media='all',folders=[],revision=0;
   const panel=$('assets-workspace'),sidebar=$('assets-folders'),dialog=$('asset-folder-dialog');
   const safe=fn=>async()=>{try{await fn();}catch(e){notify(e.message,true);}};
-  function query(){const q=new URLSearchParams({library:'1'});if(!active)q.set('unfiled','1');const type=active?media:kind();if(['image','video','upscale'].includes(type))q.set('kind',type==='upscale'?'image':type);if(type==='upscale')q.set('mode','upscale');if(active&&filter==='favorites')q.set('favorite','1');else if(active&&filter!=='all')q.set('folder',filter);return q;}
-  function heading(){archive.querySelector('h2').textContent=active?(filter==='favorites'?'Favorites':filter==='all'?'Assets':folders.find(f=>f.id===filter)?.name||'Folder'):kind()==='upscale'?'Upscaled images':'History';}
+  function query(){const q=new URLSearchParams({library:'1'});if(!active)q.set('unfiled','1');const type=active?media:kind();if(['image','video','upscale','video-upscale'].includes(type))q.set('kind',type==='upscale'?'image':type==='video-upscale'?'video':type);if(type==='upscale'||type==='video-upscale')q.set('mode','upscale');if(active&&filter==='favorites')q.set('favorite','1');else if(active&&filter!=='all')q.set('folder',filter);return q;}
+  function heading(){archive.querySelector('h2').textContent=active?(filter==='favorites'?'Favorites':filter==='all'?'Assets':folders.find(f=>f.id===filter)?.name||'Folder'):kind()==='upscale'?'Upscaled images':kind()==='video-upscale'?'Upscaled videos':'History';}
   function renderFolders(){
     sidebar.replaceChildren();
     for(const f of folders){const b=document.createElement('button');b.type='button';b.className='asset-folder';b.textContent=f.name;const n=document.createElement('span');n.textContent=f.count||0;b.append(n);b.classList.toggle('active',filter===f.id);b.onclick=safe(()=>navigate(f.id));sidebar.append(b);}
