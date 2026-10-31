@@ -60,10 +60,10 @@
 /* Extend-only vertical rhythm: bring the clip input directly beneath the
    two reference cards. Avoid empty lists reserving space before the prompt. */
 #app.video-studio-active.video-extend-active #reference-mode:not([hidden]):has(> #reference-drop){
-  row-gap:5px!important;
+  row-gap:10px!important;
 }
 #app.video-studio-active.video-extend-active #reference-mode #reference-media:not([hidden]){
-  gap:5px!important;
+  gap:10px!important;
 }
 #app.video-studio-active.video-extend-active #reference-mode #reference-media .video-media-heading{
   margin:0!important;
@@ -80,4 +80,13 @@
 }
 #app.video-studio-active.video-extend-active .workspace.video-layout .controls-body>#pv-video-prompt-head{
   margin-top:0!important;
+}
+
+/* Video Upscaler mounts its controls in the shared inspector. Those controls
+   should never leak into Video creation, Image or another studio route.
+   Keep them available exclusively to Upscaler when video mode is active. */
+#app:not(.upscale-studio-active) .pv-video-upscale-inline-resolution,
+#app:not(.upscale-studio-active) .pv-video-upscale-quote,
+#app:not(.upscale-studio-active) .pv-video-upscale-message{
+  display:none!important;
 }
