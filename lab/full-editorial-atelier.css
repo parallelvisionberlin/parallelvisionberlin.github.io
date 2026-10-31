@@ -16,7 +16,7 @@
 .editorial-hero .hero-start:hover:not(:disabled){background:#fff;border-color:#fff;transform:translateY(-3px);box-shadow:0 20px 50px #0008}
 .editorial-hero-process{z-index:2}
 .editorial-hero-process>span{font-size:10px;color:#f1eee8}
-.editorial-flow{display:block;max-width:none;min-height:calc(100svh - 78px);padding:34px clamp(18px,3vw,57px) 95px;background:#08090a}
+.editorial-flow{display:block;max-width:none;min-height:calc(100svh - 78px);padding:34px clamp(18px,3vw,57px) 95px;background:#08090a;scroll-margin-top:78px}
 .intro-rail{display:none!important}
 .flow-main{position:relative;max-width:1620px;min-height:600px;margin:auto;padding:0;background:transparent;border:0;box-shadow:none;border-radius:0}
 .progress-top{display:flex;justify-content:space-between;align-items:center;padding:7px 0 12px;margin-bottom:11px}
@@ -238,16 +238,29 @@
  .progress-top #progress-title{font-size:9px}
 }
 
-/* 2026-10-31: Restore the approved photo composition and step rail above it.
-   Only the identity workspace is slightly condensed to reveal casting portraits sooner. */
+/* The photograph contains navigation so casting appears higher in the viewport. */
 @media (min-width:801px){
+ .editorial-flow{padding-top:12px}
+ .stage-visual>.stage-navigation{position:absolute;inset:0;z-index:3;pointer-events:none}
+ .stage-visual>.stage-navigation .progress-top{position:absolute;top:10px;left:24px;right:24px;margin:0;padding:0;pointer-events:auto}
+ .stage-visual>.stage-navigation .editorial-flow-rail{position:absolute;bottom:0;left:0;right:0;margin:0;background:#08090ab8;border-top-color:#ffffff38;border-bottom:0;pointer-events:auto}
+ .stage-visual>.stage-navigation .editorial-flow-rail>span{padding:13px 24px;color:#c0c0c2}
+ .stage-visual>.stage-navigation .editorial-flow-rail>span.is-current{color:#fff}
+ .stage-visual>.stage-navigation .editorial-top-back,.stage-visual>.stage-navigation .text-action{color:#f1efeb}
+ .stage-copy{bottom:78px}
+ .stage-copy h2{font-size:clamp(69px,7vw,116px)}
  #panel-model .stage-visual{height:clamp(350px,43svh,520px)}
  #panel-model .atelier-workspace{padding-top:clamp(18px,2vw,30px)}
  #panel-model .atelier-section-top{margin-bottom:16px}
+ #panel-model .atelier-section-top>div{flex-shrink:0}
+ #panel-model .atelier-section-top h3{margin-bottom:0}
+ #panel-model .atelier-section-top>p{max-width:530px;margin:0 0 3px}
  #panel-model .atelier-source-tabs{margin-bottom:16px}
 }
 
 /* Mobile: the photograph carries the step label; remove repeated navigation above it. */
 @media(max-width:800px){
- .flow-main>.progress-top,.flow-main>.editorial-flow-rail{display:none}
+ .stage-navigation{display:none}
+ .editorial-flow{scroll-margin-top:68px}
+ #panel-model .atelier-section-top{display:block}
 }

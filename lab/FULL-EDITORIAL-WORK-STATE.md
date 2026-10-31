@@ -1,3 +1,19 @@
+## 2026-10-31 / navigation inside the working hero
+- Owner request: raise the working hero, place the four-stage rail inside the photograph, compact Back / Step / Start over, and move the Identity source description beside Choose a model.
+- Baseline main: `1098236b0a44dd7457b59e4e278e75e27c76be1c`; isolated branch `fix/editorial-hero-navigation-20261031`. No open PR overlaps Full Editorial in the checked recent PR list.
+- Desktop hero begins 12 px below the sticky header. Shared navigation is moved by go() into each visible photographic stage; review/results retain normal in-flow navigation. Back / Step / Start over overlay the upper edge, four-stage progress overlays the lower edge.
+- Identity source description is a sibling of the title group, aligned at the right on desktop; phone keeps a readable stacked layout and the previously approved hidden duplicate navigation.
+- Added scroll margin so stage entry does not hide the hero controls behind the sticky site header. Existing photograph, references, source tabs, quotes, generation and payment behavior retained.
+- Files: `full-editorial.html`, `full-editorial-atelier.css`, `full-editorial.js`, `tests/lab-full-editorial-browser.mjs`, and this checkpoint. CSS and JS cache key: `20261031-inside-hero1`.
+- Local checks: JS syntax, 10/10 approved Image UI + Full Editorial source tests, and whitespace checks passed. Existing browser suite now asserts rail/control containment, compact top gap, side-by-side description and casting visibility; its complete mocked billing flow subsequently passed in CI at both 1440 and 390 px.
+- Actual preview inspected through the supported browser at 1363 px desktop and 390/1920 px iframe viewports. At 1920x914, hero top is 90 px (78 px header + 12 px gap), cards top 662 px; description is beside heading. Phone has 68 px header + 12 px gap, hidden repeated navigation, and scrollWidth equals clientWidth (375 px excluding scrollbar).
+- Preview account loading reports the existing production Clerk key origin restriction on terminal.local. Local checks cover public layout only; no real sign-in, purchase or paid generation performed.
+- Published: PR #730, reviewed source `dedb9dc08d65246278ad82f61e615896226e6d48`, merge `94261765d3ea81ae0b9b48c4f1c9856253e0f0e5`. Dedicated Full Editorial, approved Image, static validation, gallery and backend test checks passed. Broader Video checks failed on unchanged video-model-control visual comparison and Seedance panel overflow (726 vs 690 px); inspected without weakening gates or expanding scope.
+- Production: superseding main `37829812bc1d52d50303cbdf646c2b4268bcad6c` contains the merge and identical Full Editorial source. Cloudflare pvlab-studio deployment `6be13010-722a-49b0-a0c7-62093aad516b` succeeded; original merge check still reported building when the newer verified release was observed.
+- Exact custom-domain bytes verified: CSS SHA-256 `9a888fe2329eb1dc03cb7e812f456320ac077c3aeb8bb9eb7a388426828f5f86`; JS `a6051657ae86f617a72bf146c1ff110a16d6de02ab0965c7607808a2a9a8428b`. Both return HTTP 200 and match reviewed source with cache key `20261031-inside-hero1`.
+- Production public browser at https://pvlab.studio/full-editorial confirms hero top 90 px, header bottom 78 px, navigation inside the hero, rail flush with hero bottom, description beside Choose a model, cards starting at 668 px at 1363x936, and no horizontal overflow. No signed-in production or paid generation claim.
+- Next: this layout request is complete. Unrelated Video failures belong to separate work.
+
 ## 2026-10-31 / mobile hero without repeated navigation
 - Owner request: remove clutter above the phone Identity photograph; use the existing small label inside the hero.
 - Baseline main: `9342379bc07fbefbf892c31c42830553b5b83e9e`; no concurrent head change observed before commit.

@@ -55,6 +55,8 @@ function resetAll(){revision++;clearTimeout(pollTimeout);quote=null;quoteBusy=fa
 function go(next){step=next;const panels=['model','style','mood','generate','progress','results'];
  for(let i=0;i<panels.length;i++)$('panel-'+panels[i]).hidden=i!==Math.max(0,next-1);
  $('editorial-hero').hidden=next!==0;$('editorial-flow').hidden=next===0;
+ const navigation=$('stage-navigation'),stage=$('panel-'+panels[Math.max(0,next-1)])?.querySelector('.stage-visual');
+ if(stage)stage.append(navigation);else document.querySelector('.flow-main').prepend(navigation);
  $('step-footer').hidden=next>=5||next<=0;
  $('progress-title').textContent=next>=1&&next<=4?'STEP '+next+' / 4':next===5?'GENERATING':next===6?'YOUR EDITORIAL':'GET STARTED';
  $('step-indicator').style.width=Math.min(100,Math.max(25,(next>=5?4:next)*25))+'%';

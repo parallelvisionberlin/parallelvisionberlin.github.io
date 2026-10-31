@@ -43,6 +43,14 @@ try{
   await page.screenshot({path:'test-results/editorial/'+width+'-hero.png',fullPage:width===390});
   await page.locator('#editorial-start').click();
   if(width>800){
+   const layout=await page.evaluate(()=>{
+    const rect=selector=>document.querySelector(selector).getBoundingClientRect();
+    const hero=rect('#panel-model .stage-visual'),header=rect('.editorial-header'),rail=rect('.editorial-flow-rail'),back=rect('.progress-top'),title=rect('#panel-model .atelier-section-top h3'),description=rect('#panel-model .atelier-section-top>p'),cards=rect('#casting-reference-gallery');
+    return {heroBelowHeader:hero.top>=header.bottom,topGap:hero.top-header.bottom,railInside:rail.top>=hero.top&&rail.bottom<=hero.bottom+1,backInside:back.top>=hero.top&&back.bottom<=hero.bottom,descriptionBeside:description.left>title.right&&description.top<title.bottom,cardsVisible:cards.top<innerHeight-100};
+   });
+   assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
+   assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
+   for(const key of ['railInside','backInside','descriptionBeside','cardsVisible'])assert.equal(layout[key],true,key);
    await page.locator('#editorial-top-back').click();
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
    await page.locator('#editorial-start').click();
