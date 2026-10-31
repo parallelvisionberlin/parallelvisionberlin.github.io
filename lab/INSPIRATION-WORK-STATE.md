@@ -1,3 +1,24 @@
+# Active: primary Inspiration entry, 2026-10-31
+
+- User: Inspiration was too easy to miss among the upper-right utility buttons.
+- Starting main: `807548d838e1f502d543f125ef4f635e841b47df`.
+- Inspiration is now a silver primary button at the left edge of the gallery bar.
+- Select, Refresh, View and Discreet Mode remain at the right edge.
+- The full Inspiration label is visible at 320px, 390px, 768px and 1440px.
+- Existing Inspiration/History toggle, saved results and privacy behavior remain.
+- Native app, prompt deck, models, pricing and generation are outside this change.
+- Files: `image-moods-return.css`, its version in `studio.html`, this checkpoint.
+- Approved Image UI contract: 5 passed.
+- Existing gallery layout/view controls suite: 50 checks passed.
+- Real mocked Studio: owner/customer comparison passed at all four widths.
+- Toggling Inspiration and returning preserved saved results; no horizontal overflow.
+- Desktop and 320px toolbar screenshots visually inspected.
+- No upload, quote or generation was submitted by the visual check.
+- Source: prepared locally; release checks and production verification pending.
+- Next action: publish the reviewed CSS, inspect relevant CI, merge and verify Cloudflare and production bytes.
+
+Previous Inspiration and preset work is preserved below.
+
 # Chrome Couture Qwen Signature Preset, 2026-10-31
 
 - Owner approved the original sensual silver-corset, crystal mesh, chrome blade, glimmering/dreamy starburst editorial concept. Qwen Image 3.0 was preferred in the supplied side-by-side outputs.
