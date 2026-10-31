@@ -378,3 +378,93 @@
     text-shadow:0 1px 3px #000a;
   }
 }
+
+
+/* Compact moderation History tile for touch phones. A justified gallery row may
+   be only ~110px tall; do not force the desktop's 175px editorial panel into it.
+   The full reason and Reuse action remain in the existing image detail viewer.
+   Desktop browser styling and the full-screen notice are deliberately unchanged. */
+@media (max-width:640px) and (hover:none){
+  #app #history .card:has(>.history-no-result.is-content-restricted){
+    container-type:inline-size;
+  }
+  #app #history .history-no-result.is-content-restricted{
+    position:relative!important;
+    box-sizing:border-box!important;
+    min-height:0!important;
+    height:100%!important;
+    overflow:hidden!important;
+    padding:8px 11px!important;
+    justify-content:center!important;
+  }
+  #app #history .history-no-result.is-content-restricted .content-restriction-kicker{
+    display:block!important;
+    font-size:8px!important;
+    line-height:1.15!important;
+    letter-spacing:.045em!important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  #app #history .history-no-result.is-content-restricted strong{
+    margin:4px 0 0!important;
+    font-size:16px!important;
+    line-height:1.06!important;
+    letter-spacing:-.03em!important;
+    max-height:2.12em;
+    overflow:hidden;
+  }
+  #app #history .history-no-result.is-content-restricted .content-restriction-copy{
+    display:-webkit-box!important;
+    -webkit-box-orient:vertical!important;
+    -webkit-line-clamp:2!important;
+    max-height:2.5em!important;
+    overflow:hidden!important;
+    margin:4px 0 0!important;
+    font-size:10px!important;
+    line-height:1.25!important;
+  }
+  #app #history .history-no-result.is-content-restricted button.content-restriction-edit{
+    margin:5px 0 0!important;
+    min-height:17px!important;
+    padding:1px 0!important;
+    font-size:10px!important;
+    line-height:1.25!important;
+    flex-shrink:0!important;
+  }
+  /* The saved-prompt explanation is available on tap. Keep refunded-credit
+     status visible without spending a second row of vertical space. */
+  #app #history .history-no-result.is-content-restricted .content-restriction-foot{
+    display:none!important;
+  }
+  #app #history .history-no-result.is-content-restricted .content-restriction-foot:has(.content-restriction-credits){
+    display:flex!important;
+    position:absolute;
+    right:8px;
+    bottom:8px;
+    gap:0;
+    margin:0!important;
+  }
+  #app #history .history-no-result.is-content-restricted .content-restriction-credits{
+    font-size:8px!important;
+    line-height:1.15!important;
+    padding:2px 5px!important;
+  }
+  /* Portrait-ratio failures can get a much narrower column. The whole card
+     is still tappable to see the full reason and restore the saved prompt. */
+  @container (max-width:150px){
+    #app #history .history-no-result.is-content-restricted .content-restriction-kicker{
+      display:none!important;
+    }
+    #app #history .history-no-result.is-content-restricted strong{
+      font-size:14px!important;
+    }
+    #app #history .history-no-result.is-content-restricted .content-restriction-copy{
+      -webkit-line-clamp:1!important;
+      max-height:1.25em!important;
+    }
+    #app #history .history-no-result.is-content-restricted:has(.content-restriction-credits) button.content-restriction-edit{
+      display:none!important;
+    }
+  }
+}
