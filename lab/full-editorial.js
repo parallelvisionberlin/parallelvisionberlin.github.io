@@ -508,8 +508,10 @@ $('edit-selection').addEventListener('click',()=>{location.assign('./studio.html
 $('progress-history').addEventListener('click',()=>location.assign('./studio.html?tool=image'));
 $('editorial-signin').addEventListener('click',()=>void signIn().catch(e=>status(e.message,true)));
 window.addEventListener('pagehide',()=>{for(const url of objectUrls.values())URL.revokeObjectURL(url);for(const r of results)if(r.url)URL.revokeObjectURL(r.url)});
-renderDirections();renderFiles();updateOptions();refreshSliderLabels();updateSeriesSummary();go(0);
 const entryUrl=new URL(location.href),modelPhoto=entryUrl.searchParams.get('modelPhoto');
+const directStart=entryUrl.searchParams.get('start')==='1';
+if(directStart){entryUrl.searchParams.delete('start');history.replaceState(history.state,'',entryUrl.href)}
+renderDirections();renderFiles();updateOptions();refreshSliderLabels();updateSeriesSummary();go(directStart?1:0);
 if(modelPhoto){
  entryUrl.searchParams.delete('modelPhoto');history.replaceState(history.state,'',entryUrl.href);
  try{

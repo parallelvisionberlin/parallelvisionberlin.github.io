@@ -202,6 +202,21 @@ try{
  }
  for(const width of [1440,390]){
   const page=await browser.newPage({viewport:{width,height:900}});
+  const beforeEntry={uploads:uploadCount,jobs:jobCount,quotes:quoteCount};
+  await page.goto('http://127.0.0.1:4179/lab/index.html',{waitUntil:'domcontentloaded'});
+  await page.locator('#featured-editorial .pv-feature-button').click();
+  await page.locator('#editorial-flow').waitFor({state:'visible'});
+  assert.equal(await page.locator('#panel-model').isVisible(),true,'Homepage CTA opens Identity directly');
+  assert.equal(await page.locator('#editorial-hero').isVisible(),false,'No second arrival hero');
+  assert.equal(new URL(page.url()).searchParams.has('start'),false,'Entry flag is consumed');
+  assert.equal(await page.locator('[data-source-view="casting"]').getAttribute('aria-pressed'),'true','Casting remains the initial source');
+  assert.deepEqual({uploads:uploadCount,jobs:jobCount,quotes:quoteCount},beforeEntry,'Opening Identity performs no paid preparation or generation');
+  await page.locator('#step-back').click();
+  assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Direct entry retains Back to the arrival hero');
+  await page.close();
+ }
+ for(const width of [1440,390]){
+  const page=await browser.newPage({viewport:{width,height:900}});
   await page.goto('http://127.0.0.1:4179/lab/index.html',{waitUntil:'domcontentloaded'});
   const startUploads=uploadCount,startJobs=jobCount,startQuotes=quoteCount;
   const picker=page.waitForEvent('filechooser');
