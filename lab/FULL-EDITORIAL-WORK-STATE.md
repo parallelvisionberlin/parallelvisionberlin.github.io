@@ -1,3 +1,12 @@
+## 2026-11-01 / homepage editorial button typography
+- Owner requested the approved mixed-type Create your editorial treatment on the homepage featured Editorial CTA as well.
+- Baseline main `e5ca45d369f91d518b2ac35419683dd2a719583b`; branch `fix/home-editorial-button-type-20261101`.
+- Scoped label uses existing DM Sans weight 500 and Georgia italic, matching the approved arrival CTA. Accessible name and destination retained. Existing cream pill styling, featured media, section copy and other controls retained.
+- Product files: `index.html` and `home-creative-features.css`; stylesheet cache key `20261101-editorial-button1`. Also this checkpoint. No JavaScript or generation changes.
+- Verification: 9/9 existing approved Image and homepage showcase checks pass; whitespace clean. Browser preview inspected on desktop; phone 390 and 320 px frames have no horizontal overflow and the 219 px CTA fits. Desktop label 20.99 px with italic 29.99 px, CTA 246.78x48.98 px.
+- Optional Zencreator source suite needs image/sitemap fixtures omitted from this sparse checkout; no test changed. Full-checkout CI remains the release authority.
+- Release: pending reviewed-source CI, merge, Cloudflare and actual production verification.
+
 ## 2026-10-31 / coherent phone Generate layout
 - Owner screenshot `IMG_8312.png` (`libfile_67b285fcf8b0819183a8f545a02e1027`) shows the large inspiration photograph and heading pushing settings down, while sticky Back covers the reference summary.
 - Baseline main `2643f64cde8cd24e832aa7897b4b61ea53c9d78c`; branch `fix/editorial-phone-generate-layout-20261031`.
