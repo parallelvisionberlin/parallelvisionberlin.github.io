@@ -104,7 +104,7 @@ try{
       upload:document.querySelector('#pv-video-upscale-choose').textContent.trim(),
       action:document.querySelector('#pv-video-upscale-action').textContent.trim()};
   });
-  assert.match(video.photo,/reptare-detail\.webp/,label+': Video uses original Image photo');
+  assert.match(video.photo,/upscaler-chrome-wool-option-1\.jpg/,label+': Video uses original Image photo');
   assert.match(video.art,/upscaler-model-bytedance\.webp/,label+': same model-card art');
   assert.equal(video.modelLayout,'grid',label+': same model-card layout');
   assert.equal(video.upload,'Upload video',label+': only stage has video upload CTA');
