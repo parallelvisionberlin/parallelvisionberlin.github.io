@@ -59,6 +59,22 @@ approvedFiles.set('lab/studio.html',Buffer.from(approvedChromeHtml
 // the exact previously approved references and pixel tolerances.
 const fashionApprovedRef='45e63c19b612ee7ffef17b234b5c2ef23ea4724c';
 const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js','lab/precision-edit.js','lab/video-scene-states.js','lab/lab.js','lab/studio.html','lab/studio-guest-image.css','lab/studio-guest-image.js','lab/studio-public-preview.js'].map(path=>[path,execFileSync('git',['show',fashionApprovedRef+':'+path])]));
+// Update only the immutable Fashion photo reference for the October 31 owner-approved
+// image. Every other surface, geometric assertion, and pixel tolerance remains strict.
+const fashionHeroPath='./visuals/fashion-replace/hero-approved-fabric-20261031.svg';
+const currentFashionHtml=readFileSync('lab/fashion.html','utf8');
+const currentFashionCss=readFileSync('lab/fashion.css','utf8');
+assert.equal(currentFashionHtml.split(fashionHeroPath).length,3,'Approved fabric photo must be used in hero and Runway look');
+const fashionHeroMarker='/* Owner-approved sculptural fabric hero, Oct 31 2026.';
+const fashionHeroOverride=currentFashionCss.slice(currentFashionCss.indexOf(fashionHeroMarker));
+assert.ok(fashionHeroOverride.startsWith(fashionHeroMarker),'Owner-approved responsive Fashion crop must be present');
+const archivedFashionHtml=fashionApprovedFiles.get('lab/fashion.html').toString('utf8');
+assert.equal(archivedFashionHtml.split('./visuals/fashion-replace/hero-model-oct24.jpg').length,3,'Old reference has precisely two wet-look images');
+fashionApprovedFiles.set('lab/fashion.html',Buffer.from(archivedFashionHtml
+  .replaceAll('./visuals/fashion-replace/hero-model-oct24.jpg',fashionHeroPath)
+  .replace('width="1672" height="941" fetchpriority','width="985" height="603" fetchpriority')));
+fashionApprovedFiles.set('lab/fashion.css',Buffer.from(fashionApprovedFiles.get('lab/fashion.css').toString('utf8')+'\n'+fashionHeroOverride));
+
 const fashionApprovedHtml=fashionApprovedFiles.get('lab/fashion.html').toString('utf8');
 const approvedFashionCss=fashionApprovedFiles.get('lab/fashion.css').toString('utf8');
 assert.ok(fashionApprovedHtml.includes('<span>Replace</span><em>outfit.</em>'),'Runway headline remains in approved Fashion reference');
