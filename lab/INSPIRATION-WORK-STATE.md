@@ -14,8 +14,14 @@
 - Toggling Inspiration and returning preserved saved results; no horizontal overflow.
 - Desktop and 320px toolbar screenshots visually inspected.
 - No upload, quote or generation was submitted by the visual check.
-- Source: prepared locally; release checks and production verification pending.
-- Next action: publish the reviewed CSS, inspect relevant CI, merge and verify Cloudflare and production bytes.
+- PR #742 merged; source: `3b91d413d86a2976eeff3588bcb4dfbb0aef0eb2`.
+- GitHub approved-image-ui, private-lab, gallery-browser, appearance, compact-image-prompt and image-prompt-paste passed.
+- First-image retains the previously reproduced Inspiration background mismatch; the unrelated landing check expects the old Beauty Studio link.
+- Cloudflare Pages check `124618587337` completed successfully.
+- Scoped release verifier: `LIVE_VERIFIED` at `https://pvlab.studio/studio`.
+- Production CSS SHA-256: `c89512539c7ba4fc7339570e869af2a3fa58caac9ae0d0d9d0c6fad27460ae92`.
+- Real signed-in appearance was tested with mocked authentication, not a paid production session.
+- Next action: reload Studio to use the prominent Inspiration entry.
 
 Previous Inspiration and preset work is preserved below.
 
