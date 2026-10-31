@@ -82,6 +82,7 @@ try{
   await page.screenshot({path:'test-results/editorial/'+width+'-identity.png',fullPage:width===390});
   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference').first().getAttribute('aria-pressed'),'true');
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .thumb').length===2);
   assert.equal(await page.locator('#editorial-cast-mode').inputValue(),'cast','Two casting photographs default to distinct models');
   assert.equal(await page.locator('#editorial-cast-composition').isVisible(),true,'Multi-model composition is available');
   await page.locator('#editorial-cast-mode').selectOption('one');
@@ -89,6 +90,7 @@ try{
   await page.locator('#editorial-cast-mode').selectOption('cast');
   await page.locator('#editorial-cast-composition-select').selectOption('alternating');
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .thumb').length===1);
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'Cast controls disappear with one reference');
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-style').isVisible(),true);
   await page.locator('#styling-direction').fill('Architectural black leather and natural tailoring.');
