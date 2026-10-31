@@ -9,7 +9,14 @@
 - Verification: JS syntax, 25/25 focused tests (approved Image, carousel, invitation, Full Editorial, original-byte transfer, tab binding, one-time consumption, expiry and invalid files), and git diff checks pass. Browser CI and production pending. Existing carousel and unrelated interfaces unchanged.
 - Real browser confirmed the + opens a picker and selecting night-cast03.webp arrives directly at Identity with Upload photos selected and the original model thumbnail visible. Account loading on preview is restricted by the production Clerk origin, so no authenticated generation attempted.
 - PR #731 source `56388f607daaa6fe84f23a0cc10e5c96a8987e75`; verified upload tree exactly matches local tested files. Main advanced with hero-navigation PR #730; integrated that required overlap, preserving its hero layout and this new photo entry.
-- Next: inspect required browser CI, merge, verify Cloudflare and production assets.
+- Final source: `2a55d2feb773f1d58095b57122842d2996508164`; merge PR #731: `ed7227e9acda590c7968cffb6546fd14b8ae87d7`.
+- Dedicated Full Editorial 1440/390 browser flow passed, including homepage picker to loaded Identity, continuation/Back, zero uploads/quotes/jobs on entry. Approved Image, unit/core, landing stability, account, gallery and ALTER checks passed.
+- Inspected unrelated failures: pricing-browser still expects old Beauty Studio link; public-studio compares untouched Video control pixels; video suite reports untouched settings scroll. These files/behaviors were not changed or tests weakened.
+- Cloudflare production deployment `6ed61c8c-06a0-452f-8e47-e3e0353ca5aa` for the exact merged SHA succeeded, check `124518758096`.
+- Production browser at pvlab.studio verified the versioned homepage upload module, native picker, direct Identity entry, Upload photos selected and night-cast03.webp model thumbnail loaded. This is public upload/UI verification, not a real signed-in paid generation.
+- Local browser also verified Styling continuation and Back retain the model. Phone iframe client/scroll width both 375 px, with uploaded model visible.
+- Direct executor asset hash fetch was unavailable (HTTP 403); production browser plus exact Cloudflare app check provide release evidence.
+- Next: complete. Keep the card styling and casting carousel unchanged.
 
 # PV LAB homepage / Character casting invitation
 
