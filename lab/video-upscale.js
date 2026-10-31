@@ -94,8 +94,14 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      heroHint.textContent=originalCopy.hint;
      originalHero.setAttribute('aria-label','Upload an image to upscale');
      if(sourceControlLabel)sourceControlLabel.textContent=originalCopy.sourceLabel;
-     // The Image sidebar controller owns its source filename and thumbnail.
+     const imageThumb=document.getElementById('pv-upscale-source-thumb');
+     const hasImage=!!imageThumb&&!imageThumb.hidden&&!!imageThumb.getAttribute('src');
+     if(sourceControlTitle)sourceControlTitle.textContent=hasImage?'Replace image':'Choose image';
+     if(sourceControlFilename)sourceControlFilename.textContent=hasImage?
+       (imageThumb.dataset.filename||'Original image')+(imageThumb.dataset.dimensions?' · '+imageThumb.dataset.dimensions:''):
+       'PNG, JPEG or WebP · up to 20 MB';
    }
+   picker.setAttribute('aria-label',videoMode?'Video upscaling model':'Upscaler model');
    for(const tab of bar.querySelectorAll('[data-video-upscale-tab]')){const yes=tab.dataset.videoUpscaleTab===media;tab.setAttribute('aria-selected',String(yes));tab.tabIndex=yes?0:-1;}
    for(const b of videoCards){b.setAttribute('aria-checked',String(b.dataset.videoUpscaleModel===model));b.disabled=loading;}
    for(const option of res.options)option.disabled=!variants[model].allowed.includes(option.value);
