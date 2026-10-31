@@ -860,8 +860,8 @@ textarea::placeholder{white-space:nowrap}
 .source-section{grid-area:1/1;width:min(720px,43vw);max-width:100%}
 .image-pair{gap:clamp(14px,1.25vw,23px)}
 .image-slot{
-  border-color:rgba(238,233,223,.31);border-radius:6px;
-  background:rgba(9,10,11,.68);
+  border-color:rgba(238,233,223,.31);border-radius:7px;
+  background:rgba(9,10,11,.76);
 }
 .image-slot:before{border-color:rgba(237,233,226,.22)}
 .slot-invite{justify-content:flex-end;gap:7px;padding:0 8px 34px}
