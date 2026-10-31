@@ -127,6 +127,7 @@ try{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Completed result does not widen the page');
   await page.screenshot({path:'test-results/beauty-result-'+options.role+'-'+options.width+'.png',fullPage:true});
   assert.equal(await page.locator('#beauty-download').getAttribute('href').then(v=>v.startsWith('blob:')),true);
+   assert.equal(await page.locator('#beauty-result').getAttribute('data-before-source-id'),'photo-1','Before image belongs to the actual generated job source');
   await page.evaluate(()=>window.__beautyAccount.signOut());
   await page.waitForFunction(()=>document.querySelector('#beauty-result').hidden&&document.querySelector('#beauty-photo-preview').hidden);
   assert.equal(await page.locator('#beauty-history').textContent(),'');assert.equal(await page.locator('#beauty-direction').inputValue(),'');assert.equal(await page.locator('#beauty-photo-preview').getAttribute('src'),null);
@@ -158,13 +159,15 @@ try{
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
   await page.locator('#beauty-generate').click();await page.locator('#beauty-result').waitFor({state:'visible'});
   await page.locator('#beauty-generate').waitFor({state:'visible'});await page.waitForFunction(()=>!document.querySelector('#beauty-generate').disabled);
-  await page.locator('#beauty-direction').fill('Another look');
+  await page.locator('#beauty-photo').setInputFiles(input);
+   await page.locator('#beauty-direction').fill('Another look');
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
   await page.locator('#beauty-generate').click();await page.waitForFunction(()=>document.querySelectorAll('#beauty-history button').length===2);
   await page.locator('#beauty-generate').click({trial:true});
   s.delayOldResult();await page.locator('#beauty-history button').nth(1).click();await page.locator('#beauty-history button').nth(0).click();
   await page.waitForTimeout(1300);
   assert.match(await page.locator('#beauty-download').getAttribute('download'),/job-2/,'A delayed older image cannot replace the newer selection');
+   assert.equal(await page.locator('#beauty-result').getAttribute('data-before-source-id'),'photo-2','History comparison must keep the new job original rather than the previously selected job original');
   assert.equal(s.submits,2,'History selection never generates');await s.context.close();
  }
  // The homepage uses the real new menu, retaining its original Fashion URL.
