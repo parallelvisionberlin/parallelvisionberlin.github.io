@@ -121,4 +121,8 @@
 - Rendered local preview inspected at 1348px: four portrait cards share one row at their original proportions. No paid generation or account mutation.
 - Local implementation commit: `9fc1be8`. All four preview images loaded and the browser confirmed their stored proportions. Responsive tests also use actual matching viewport widths.
 - Owner explicitly approved push and publication in the follow-up message. Shell Git push has no usable authentication; publication uses the connected GitHub integration with the exact reviewed local bytes. Current main was integrated to preserve its separate studio.html update; no gallery source conflict. Real signed-in history remains unverified.
-- Next action: complete PR checks, merge, Cloudflare evidence and exact production-byte verification for gallery-layout.js and image-studio.css.
+- Release complete: PR #737 merged as `a09d043b49b69b7440948a83ef93df8f56b70c3e`. Cloudflare Pages check `124590586757` confirms successful deployment to project pvlab-studio.
+- Production verifier returned LIVE_VERIFIED for both `gallery-layout.js` and `image-studio.css`, version `20261031-four-image-rows1`. SHA-256: JS `3a16535a689d26cd152c691526333366365487ac5ebfab8d1e58814fa5f3d1b0`; CSS `8e85b5ee07679f84679faff9aab2ce43e4c4de5036599f5e2e1c3b124e7002c5`.
+- PR checks passed: gallery, gallery-browser, approved-image-ui, unit, static validation. Broader Video Extend and Upscaler visual failures were compared against main and are identical. First-image Inspiration background and legacy Beauty Studio link checks also fail outside this gallery scope.
+- Final release checkpoint is retained on `codex/image-history-four-columns` to avoid an additional production deployment for documentation alone. Main contains the implementation and its pre-release checkpoint.
+- Next action: no further implementation work. Real signed-in History observation remains separate from source, synthetic browser and production-byte verification.
