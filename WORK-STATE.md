@@ -89,7 +89,7 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-31
-- Current task: replace the homepage Sube feature with Siento, final cover, shadow portrait and article link. Publication pending after preview checks.
+- Complete: homepage Sube feature replaced with Siento, final cover, shadow portrait and article link; published and browser-verified on the public domain.
 - Product scope: `index.html`, five Siento mappings in `language.js`, `assets/estero/siento-artwork-final.webp`; this checkpoint also updated.
 - Final cover supplied as ARTWORK FINAL.png (2048 square); web derivative preserves full frame, 2048x2048 WebP quality 92, 464670 bytes, no generative edits.
 - Homepage: full square cover at left, original metal portrait in shadow behind the text, Featured release / Siento / Estero, original manifesto question, Read the story.
@@ -99,8 +99,10 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Mobile <=700px stacks cover above copy with a softer portrait shadow; cover frame is never cropped or zoomed.
 - English/German translations updated and language script cache version is `20261031-siento-feature`.
 - Source-extracted preview verified at 390px, 320px, 1363px and 1920px, no horizontal overflow; EN/DE switch, decoded final cover and portrait confirmed.
-- Local `npm run build` passed 24 maintained public pages; whitespace check passed. Source CI/public verification pending.
-- Baseline main before publication: `13324d6008b6df49f45a994d24f435ef72867a89`; concurrent Studios changes preserved.
+- Local `npm run build` passed 24 maintained public pages; whitespace check and both source static CI checks passed, along with the other source checks. Public browser verified the complete cover, decoded images, unchanged original article copy, correct article navigation and final cover in Releases.
+- Source commit `62155eae198c7f0f1cf4a83f386a3eb967b39849`, PR #715, merge `83c5418a8f15969e5a48fb160b33ed84f3bffdab`; baseline 13324d60. Concurrent Studios changes preserved.
+- Pages 41151513665 build, report and deploy jobs succeeded at main 5a566c0a16b08f5356a5c5f5976a0a7520c4e849. Feature unchanged in this newer main (ancestor/diff checked); earlier runs cancelled by concurrent main updates.
+- Public homepage anchor: https://parallelvisionlabel.com/#featured-release. Browser confirms full final cover plus shadowed metal portrait, correct question, both links to siento.html#release, and no desktop horizontal overflow. Screenshot captured.
 - Artist URL: https://parallelvisionlabel.com/estero.html
 - Release/article URL: https://parallelvisionlabel.com/siento.html#release
 - Owner authorized publication and supplied photographs. Native GitHub connector is the write route because shell Git lacks credentials.
@@ -138,4 +140,4 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Corrected artifacts saved with identity/version guards; other five PNGs byte-identical; ZIP CRC/inventory and exact caption verified. No Instagram posting performed.
 - Use native Library download links if sandbox ZIP fails; do not invent an unverified cause. Carousel is unchanged by the homepage task.
 - Animation slots remain in artist hero, release hero and story backdrop; preserve posters and reading overlay.
-- No verified listening/purchase/presave URLs supplied. Next after homepage publication: owner supplies animation clips and listening links.
+- No verified listening/purchase/presave URLs supplied. No publication blocker remains. Next: owner supplies animation clips and listening links.
