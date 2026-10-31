@@ -6,7 +6,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
 let uploadCount=0,jobCount=0,quoteCount=0,quoteDelay=0,quoteTTL=300000,failSubmission=false;
-const quoted=new Map(),submitted=new Set();
+const quoted=new Map(),submitted=new Set(),quotedPrompts=[];
 const mockAuth="export async function loadLabAccount(){return {isSignedIn:true,session:{id:'sess-editorial-mock',getToken:async()=> 'token'},user:{id:'user-editorial-mock'},addListener(){},openSignIn(){throw Error('Sign in should not be opened in mock');}}}";
 const mockSession="export function createSessionRequest(){return async (path,init)=>fetch('http://127.0.0.1:4179'+path,init)}";
 const image=readFileSync('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
@@ -20,7 +20,8 @@ const server=http.createServer(async(req,res)=>{
  if(u.pathname==='/api/quotes'){
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
   const input=JSON.parse(Buffer.concat(chunks).toString());quoteCount++;
-  assert.equal(input.count,4);assert.equal(input.referenceSourceIds.length,2);
+  assert.equal(input.count,1);assert.equal(input.referenceSourceIds.length,2);
+  quotedPrompts.push(input.settings.prompt);
   const list=Array.from({length:input.count},(_,i)=>({id:'quote-'+quoteCount+'-'+i,settings:input.settings,expiresAt:Date.now()+quoteTTL,creditCost:input.settings.resolution==='2k'?70:35}));
   for(const q of list)quoted.set(q.id,q);
   if(quoteDelay)await new Promise(ok=>setTimeout(ok,quoteDelay));
@@ -80,6 +81,15 @@ try{
   await page.locator('.stage-visual--identity img').evaluate(img=>img.decode().catch(()=>{}));
   await page.screenshot({path:'test-results/editorial/'+width+'-identity.png',fullPage:width===390});
   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference').first().getAttribute('aria-pressed'),'true');
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
+  assert.equal(await page.locator('#editorial-cast-mode').inputValue(),'cast','Two casting photographs default to distinct models');
+  assert.equal(await page.locator('#editorial-cast-composition').isVisible(),true,'Multi-model composition is available');
+  await page.locator('#editorial-cast-mode').selectOption('one');
+  assert.equal(await page.locator('#editorial-cast-composition').isVisible(),false,'One model with multiple photographs stays supported');
+  await page.locator('#editorial-cast-mode').selectOption('cast');
+  await page.locator('#editorial-cast-composition-select').selectOption('alternating');
+  await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'Cast controls disappear with one reference');
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-style').isVisible(),true);
   await page.locator('#styling-direction').fill('Architectural black leather and natural tailoring.');
   await page.locator('#outfit-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
@@ -162,6 +172,7 @@ try{
   await page.locator('#editorial-results .result-card').last().waitFor({timeout:15000});
   assert.equal(await page.locator('#progress-results .generation-frame.is-ready').count(),4,'Actual photographs fill each reserved frame');
   assert.equal(await page.locator('#editorial-results .result-card').count(),4);
+  assert.equal(new Set(quotedPrompts.slice(-4)).size,4,'Four distinct prompts generate four editorial compositions');
   await page.screenshot({path:'test-results/editorial/'+width+'-results.png',fullPage:width===390});
   assert.equal(jobCount,before+4,'Double-click submits exactly four individually bound jobs');
   const geometry=await page.evaluate(()=>({font:parseFloat(getComputedStyle(document.getElementById('results-heading')).fontSize),gap:document.getElementById('editorial-results').getBoundingClientRect().top-document.getElementById('panel-results').getBoundingClientRect().top}));
