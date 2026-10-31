@@ -304,7 +304,7 @@ function updateGenerationProgress(phase='working'){
  $('generation-progress').textContent=phase==='submitting'?'Preparing your photographs':ready===progressBatchSize?'Your photographs are ready':ready===0?'Creating your photographs':ready+' of '+progressBatchSize+' photographs ready';
 }
 function renderResults(){
- const holder=$('editorial-results'),strip=$('progress-results');holder.replaceChildren();strip.replaceChildren();
+ const holder=$('editorial-results'),strip=$('progress-results');holder.replaceChildren();
  for(const [index,result] of results.entries()){
   const box=document.createElement('div');box.className='result-card'+(result.selected?' is-selected':'');
   const img=document.createElement('img');img.alt='Editorial image '+(index+1);img.src=result.url;img.loading='lazy';box.append(img);
@@ -314,13 +314,17 @@ function renderResults(){
  }
  const batch=results.slice(progressBatchStart,progressBatchStart+progressBatchSize);
  for(let index=0;index<progressBatchSize;index++){
-  const result=batch[index],frame=document.createElement('div');
+  const result=batch[index],jobId=result?.jobId||'pending';
+  if(strip.children[index]?.dataset.jobId===jobId)continue;
+  const frame=document.createElement('div');frame.dataset.jobId=jobId;
   frame.className='generation-frame'+(result?' is-ready':'');
   frame.setAttribute('aria-label',result?'Photograph '+(index+1)+' ready':'Photograph '+(index+1)+' pending');
   if(result){const photo=document.createElement('img');photo.src=result.url;photo.alt='';photo.loading='lazy';frame.append(photo)}
   else{const pending=document.createElement('span');pending.className='generation-frame-number';pending.textContent=String(index+1).padStart(2,'0');frame.append(pending)}
-  const label=document.createElement('small');label.textContent=String(index+1).padStart(2,'0');frame.append(label);strip.append(frame);
+  const label=document.createElement('small');label.textContent=String(index+1).padStart(2,'0');frame.append(label);
+  if(strip.children[index])strip.children[index].replaceWith(frame);else strip.append(frame);
  }
+ while(strip.children.length>progressBatchSize)strip.lastElementChild.remove();
  strip.setAttribute('aria-label',batch.length+' of '+progressBatchSize+' editorial photographs ready');
  if(step===5)updateGenerationProgress();
  $('result-summary').textContent=results.length+' of '+chosenCount+' editorial images created. '+(results.length<chosenCount?'You can generate another set of four after reviewing its credit cost.':'Series complete.');
