@@ -10,6 +10,7 @@ on:
       - 'tests/lab-upscale-ui.mjs'
       - 'tests/lab-video-upscale-layout.mjs'
       - 'lab/video-upscale.css'
+      - 'lab/upscale-single-editor.css'
       - 'lab/video-upscale.js'
       - 'lab/assets.js'
       - '.github/workflows/pv-lab-upscale-assets.yml'
@@ -30,6 +31,11 @@ jobs:
         run: |
           npm install --prefix /tmp/pv-upscale-visibility --no-save playwright@1.62.1
           node /tmp/pv-upscale-visibility/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify mobile and desktop Image/Video Upscaler parity
+        if: ${{ !cancelled() }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
+        run: node tests/lab-video-upscale-layout.mjs
       - name: Verify Upscaler UI, Assets visibility and no paid calls
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
@@ -45,11 +51,6 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
         run: node tests/lab-upscale-ui.mjs
-      - name: Verify mobile and desktop Image/Video Upscaler parity
-        if: ${{ !cancelled() }}
-        env:
-          PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
-        run: node tests/lab-video-upscale-layout.mjs
       - name: Keep desktop and mobile screenshots for review
         if: always()
         uses: actions/upload-artifact@v4
