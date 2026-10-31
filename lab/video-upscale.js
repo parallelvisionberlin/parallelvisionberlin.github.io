@@ -45,6 +45,9 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  const heroButtonText=originalHero.querySelector('span');
  const heroHint=originalEmpty.querySelector('.pv-upscale-drop-hint');
  const sourceControl=document.querySelector('.pv-upscale-source-control');
+ const dropzone=document.getElementById('pv-upscale-dropzone');
+ const emptySection=originalEmpty.querySelector('.pv-upscale-empty-drop');
+ const sourceUpload=document.getElementById('pv-upscale-source-upload');
  const sourceControlTitle=document.getElementById('pv-upscale-source-upload-title');
  const sourceControlFilename=document.getElementById('pv-upscale-source-filename');
  const sourceControlLabel=sourceControl?.querySelector('.pv-upscale-field-label');
@@ -84,6 +87,9 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      heroButtonText.textContent='Upload video';
      heroHint.textContent='MP4 · up to 30 seconds · 20 MB';
      originalHero.setAttribute('aria-label','Upload a source video for upscaling');
+     dropzone?.setAttribute('aria-label','Drop a source video here or choose an MP4 file');
+     emptySection?.setAttribute('aria-label','Upload a video to upscale');
+     sourceUpload?.setAttribute('aria-label',file?'Replace source video for upscaling':'Choose source video for upscaling');
      if(sourceControlLabel)sourceControlLabel.textContent='Source video';
      if(sourceControlTitle)sourceControlTitle.textContent=file?'Replace video':'Choose video';
      if(sourceControlFilename)sourceControlFilename.textContent=file?file.name:'MP4 · up to 30 seconds · 20 MB';
@@ -94,6 +100,9 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      heroButtonText.textContent=originalCopy.button;
      heroHint.textContent=originalCopy.hint;
      originalHero.setAttribute('aria-label','Upload an image to upscale');
+     dropzone?.setAttribute('aria-label','Drop a photo here or choose a file to upload');
+     emptySection?.setAttribute('aria-label','Upload a photo to upscale');
+     sourceUpload?.setAttribute('aria-label','Choose source image for upscaling');
      if(sourceControlLabel)sourceControlLabel.textContent=originalCopy.sourceLabel;
      const imageThumb=document.getElementById('pv-upscale-source-thumb');
      const hasImage=!!imageThumb&&!imageThumb.hidden&&!!imageThumb.getAttribute('src');
