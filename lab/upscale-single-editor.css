@@ -110,6 +110,10 @@
  display:none!important;
 }
 /* Same original photo canvas and plus, with native video playback overlay. */
+/* Loaded Image previews have a stronger :has() display:block rule in
+   upscale-loaded-workspace.css. Override it so a saved photograph cannot
+   bleed into the Video source stage during a mode switch. */
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas:has(> #preview:not([hidden]))>img#preview:not([hidden]),
 #app.upscale-studio-active.video-upscale-active #upscale-canvas>#preview,
 #app.upscale-studio-active.video-upscale-active #upscale-canvas>#video,
 #app.upscale-studio-active.video-upscale-active #upscale-canvas>#video-job-stage{
