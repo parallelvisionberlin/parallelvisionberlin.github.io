@@ -57,7 +57,7 @@
  display:none!important;
 }
 #app.upscale-studio-active.video-upscale-active .pv-video-upscale-inline-resolution{
- box-sizing:border-box!important;display:flex!important;grid-column:1/-1!important;
+ box-sizing:border-box!important;display:flex!important;flex-direction:row!important;grid-column:1/-1!important;
  width:100%!important;align-items:center!important;justify-content:space-between!important;
  height:41px!important;min-height:41px!important;max-height:41px!important;
  gap:12px!important;margin:0!important;padding:0!important;
