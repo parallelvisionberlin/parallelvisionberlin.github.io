@@ -1,6 +1,44 @@
 // PV LAB first-image Inspiration: photographic subjects are examples, never hidden reference images.
 // The selected curated Mood supplies the aesthetic. Existing user text and uploaded images are authoritative.
 const ROTATION_KEY='pv-lab-inspiration-rotation-v1';
+// Chrome Couture signature preset: original Pinterest-derived first shot, then nineteen
+// controlled adult editorial variations. It is not a separate server Mood.
+export const CHROME_COUTURE_DEFAULTS=Object.freeze({engine:'qwen3',resolution:'2k',aspectRatio:'16:9',count:1});
+const CHROME_COUTURE_ORIGINAL_PROMPT="High-fashion futuristic editorial, portrait of a woman in a silver metallic corset and sheer crystal mesh bodysuit, covered in reflective beadwork and shimmering details. She is posed in a crouched, intimate stance, partially hiding her face behind a sharp chrome blade resting against her shoulder. Long dark hair styled in soft vintage waves contrasts with the cold, futuristic materials. Spiked gloves and sculptural metallic accessories add a sense of danger and elegance. Deep black background, dramatic studio lighting with sparkling highlights, high contrast shadows, cinematic mood. Dark couture, sci-fi fantasy, femme warrior aesthetic, ultra-detailed textures, editorial realism. Add restrained vintage optical starburst diffraction and sparkling four-, six- or eight-point glints to genuine bright reflections, with delicate halation and believable direct-flash falloff.";
+const CHROME_COUTURE_MASTER_PROMPT="High-fashion photographic editorial of an adult woman in a silver metallic corset and sheer crystal-mesh couture bodysuit, with fine reflective beadwork, delicate jewelry, sculptural chrome accents and spiked gloves. A polished chrome blade is an elegant fashion accessory, not a violent gesture. Long dark hair in soft vintage waves, individual facial features, believable skin and anatomy, tactile fabrics and precisely constructed metal. Deep black studio negative space, seductive yet sophisticated attitude, direct-flash fashion photography, dreamy glimmering crystal highlights, restrained real four-, six- and eight-point optical starbursts, halation and luminous sparkle. Darkly glamorous, sensual, cinematic, editorially realistic; never cosplay, plastic rendering, gore or cheesy sci-fi.";
+const CHROME_COUTURE_SHOTS=Object.freeze([
+  null,
+  "Three-quarter portrait, a sensual low crouch, with the polished blade resting beside her shoulder and her eyes looking directly into the camera; deep velvet shadows.",
+  "Seated sideways on a low black plinth with one leg folded, looking back over her bare shoulder, the chrome blade angled away from her face; soft controlled sparkle.",
+  "Kneeling with one knee raised, back gently arched and chrome glove at her collarbone; the sculpted corset catches real flash starbursts against black.",
+  "Intimate face-and-shoulder crop, gaze through loose vintage waves, the polished blade near the jawline as a nonthreatening couture prop; tiny crystal glints.",
+  "Three-quarter body, one hand resting on the thigh, weight shifted into a fluid fashion pose, metal corset sharply defined and skin naturally textured.",
+  "Low-angle full-body crouch, powerful and sensual rather than aggressive, long silhouette and chrome gloves reflecting isolated studio highlights.",
+  "Elegant side profile, blade forming a clean diagonal silhouette in front of dark negative space, crystal-mesh sleeve sparkling across the shoulders.",
+  "Front-facing symmetrical crouch with shoulders relaxed and knees angled outward naturally, direct eye contact and subtle star-filter highlights.",
+  "Leaning forward over a low studio block, intense magnetic gaze, one arm extended, soft curls falling toward the face; corset and silver mesh remain precise.",
+  "Seated on the studio floor with legs folded asymmetrically and one arm resting behind her, a relaxed intimate gaze and controlled chrome reflections.",
+  "Waist-up fashion detail concentrating on the physically made silver corset, shimmering beadwork and collarbone, with the face partly in frame.",
+  "Over-the-shoulder three-quarter pose with a slow twist of the torso, soft confident expression, fitted chrome silhouette and detailed natural skin.",
+  "Diagonal composition with one gloved arm extended into shadow and the blade held down away from the body; intimate direct-flash editorial tension.",
+  "One chrome glove holds the blade vertically as an accessory while the other rests on her collarbone; direct sensual gaze, crisp material detail.",
+  "Side-body seated pose with a gentle twist at the waist, the silver corset and sheer beaded mesh skimming the natural silhouette, soft smoky blacks.",
+  "A closer beauty portrait with starburst glints on real crystals, subtle dreamy lens diffusion and seductive expression; skin detail stays tactile, not airbrushed.",
+  "Wide full-body fashion crouch surrounded by generous negative space; pointed chrome accessory balanced with natural limbs, a physically believable silhouette.",
+  "Soft, self-possessed intimate expression, sitting upright with one knee drawn in, luxurious reflective mesh and a delicately glimmering silver corset.",
+  "Bold front-facing three-quarter pose, one bent arm framing the face with the chrome blade held safely beside the shoulder; dramatic silver sparkle and a poised stare."
+]);
+const CHROME_COUTURE_OLD_EXAMPLES=Object.freeze([
+  "High-fashion futuristic editorial, portrait of a woman in a silver metallic corset and sheer crystal mesh bodysuit, covered in reflective beadwork and shimmering details. She is posed in a crouched, intimate stance, partially hiding her face behind a sharp chrome blade resting against her shoulder. Long dark hair styled in soft vintage waves contrasts with the cold, futuristic materials. Spiked gloves and sculptural metallic accessories add a sense of danger and elegance. Deep black background, dramatic studio lighting with sparkling highlights, high contrast shadows, cinematic mood. Dark couture, sci-fi fantasy, femme warrior aesthetic, ultra-detailed textures, editorial realism. Add restrained vintage optical starburst diffraction and sparkling four-, six- or eight-point glints to genuine bright reflections, with delicate halation and believable direct-flash falloff.",
+  "An adult Black male model in his thirties wears sculptural brushed-silver tailoring and black wide-leg trousers against a nearly black studio backdrop. Direct camera flash, tiny eight-point starbursts at real metal fasteners, natural skin pores, deep textured shadows, accurate fabric folds and fine chrome surface wear.",
+  "Two adult models with distinct faces and body types are backstage wearing architectural metallic couture, one adjusting a crystal-covered sleeve in a dressing-room mirror. Restrained tungsten ambience with hard flash, scattered optical star glints on genuine crystal highlights, unretouched skin, detailed garment seams and candid magazine reportage.",
+  "An older woman in her sixties with close-cropped grey hair wears a sharply tailored silver lamé coat outside a weathered concrete building at night. Hard off-axis flash catches individual threads, a few realistic starburst sparkles on buckles, natural hands and facial texture, black negative space, European couture editorial.",
+  "A precision macro photograph of an adult hand fastening a jewel-studded chrome clasp to engineered mesh couture. Authentic weave, tiny scratches on metal, fine crystal dispersion and isolated six-point optical diffraction around the brightest glints, photographic depth of field and no artificial glitter overlay.",
+  "An androgynous adult model in a sculptural mirror-metal dress stands against a graphite studio wall, full-length fashion portrait. Actual garment construction, natural fabric weight, a single controlled hard photographic light, subtle analog grain, restrained retro star-filter sparkles, detailed eyes and believable skin.",
+  "A male model with natural curly hair moves through a dim industrial corridor in brushed titanium tailoring and silver jewelry, captured mid-stride with direct flash. Real skin texture and shadow falloff, worn metal reflections, one imperfect eight-point optical star on a bright chrome fixture, no generic futuristic props.",
+  "Experimental haute couture still life of an empty crystal-beaded metal-mesh coat hanging from a simple rail against black velvet. Physical weight, fine threading, convincing chrome reflections, studio flash sculpting the deep blacks, a few delicate starburst diffraction points and analog photographic realism."
+]);
+
 export const INSPIRATION_VARIATIONS=Object.freeze({
   // Reuse the approved Fisheye recipe. This direction also works on a Base
   // preserving the Base people while letting the requested Y2K world scale with intensity.
@@ -37,16 +75,7 @@ export const INSPIRATION_VARIATIONS=Object.freeze({
     "An androgynous adult with cropped hair leaning against a stairwell window in an oversized vintage leather jacket, pale midday light, strong negative space, quiet off-center fashion composition.",
     "Experimental high-fashion photograph of two adults crossing a narrow corridor in leather and tailoring, one caught sharply by a direct flash while the other leaves a slight shutter-drag trace, natural movement and film texture."
   ],
-  "chrome-couture": [
-    "High-fashion futuristic editorial, portrait of a woman in a silver metallic corset and sheer crystal mesh bodysuit, covered in reflective beadwork and shimmering details. She is posed in a crouched, intimate stance, partially hiding her face behind a sharp chrome blade resting against her shoulder. Long dark hair styled in soft vintage waves contrasts with the cold, futuristic materials. Spiked gloves and sculptural metallic accessories add a sense of danger and elegance. Deep black background, dramatic studio lighting with sparkling highlights, high contrast shadows, cinematic mood. Dark couture, sci-fi fantasy, femme warrior aesthetic, ultra-detailed textures, editorial realism. Add restrained vintage optical starburst diffraction and sparkling four-, six- or eight-point glints to genuine bright reflections, with delicate halation and believable direct-flash falloff.",
-    "An adult Black male model in his thirties wears sculptural brushed-silver tailoring and black wide-leg trousers against a nearly black studio backdrop. Direct camera flash, tiny eight-point starbursts at real metal fasteners, natural skin pores, deep textured shadows, accurate fabric folds and fine chrome surface wear.",
-    "Two adult models with distinct faces and body types are backstage wearing architectural metallic couture, one adjusting a crystal-covered sleeve in a dressing-room mirror. Restrained tungsten ambience with hard flash, scattered optical star glints on genuine crystal highlights, unretouched skin, detailed garment seams and candid magazine reportage.",
-    "An older woman in her sixties with close-cropped grey hair wears a sharply tailored silver lamé coat outside a weathered concrete building at night. Hard off-axis flash catches individual threads, a few realistic starburst sparkles on buckles, natural hands and facial texture, black negative space, European couture editorial.",
-    "A precision macro photograph of an adult hand fastening a jewel-studded chrome clasp to engineered mesh couture. Authentic weave, tiny scratches on metal, fine crystal dispersion and isolated six-point optical diffraction around the brightest glints, photographic depth of field and no artificial glitter overlay.",
-    "An androgynous adult model in a sculptural mirror-metal dress stands against a graphite studio wall, full-length fashion portrait. Actual garment construction, natural fabric weight, a single controlled hard photographic light, subtle analog grain, restrained retro star-filter sparkles, detailed eyes and believable skin.",
-    "A male model with natural curly hair moves through a dim industrial corridor in brushed titanium tailoring and silver jewelry, captured mid-stride with direct flash. Real skin texture and shadow falloff, worn metal reflections, one imperfect eight-point optical star on a bright chrome fixture, no generic futuristic props.",
-    "Experimental haute couture still life of an empty crystal-beaded metal-mesh coat hanging from a simple rail against black velvet. Physical weight, fine threading, convincing chrome reflections, studio flash sculpting the deep blacks, a few delicate starburst diffraction points and analog photographic realism."
-  ],
+  "chrome-couture": CHROME_COUTURE_SHOTS.map((shot,index)=>index===0?CHROME_COUTURE_ORIGINAL_PROMPT:CHROME_COUTURE_MASTER_PROMPT+' '+shot),
   "dreamcore": [
     "An empty indoor swimming pool with faded aqua tiles under a peach-colored evening sky seen through enormous windows, quiet reflections, believable architecture and soft opalescent light.",
     "An older woman in a simple cotton shirt stands beside an almost-empty spa pool, mist drifting past real tile and glass, pale lilac daylight, gentle editorial portrait with natural skin.",
@@ -86,7 +115,7 @@ export const LEGACY_INSPIRATION_PROMPTS=Object.freeze({
   "hong-kong-nights": "Rainy East Asian street at night. A jade-green-lit corner shop with a red sign, one distant pedestrian and an older dark sedan; wet asphalt, deep shadows, humid emerald haze and realistic 35mm film grain.",
   "80s-film": "A quiet golden sunset over a wide ocean beach, ripples breaking on wet sand, a distant dark rocky island, deep orange dusk, tactile analog color, soft warm film grain, peaceful natural landscape photography."
 });
-const examples=new Set([...Object.values(INSPIRATION_VARIATIONS).flat(),...Object.values(LEGACY_INSPIRATION_PROMPTS)].map(text=>text.trim()));
+const examples=new Set([...Object.values(INSPIRATION_VARIATIONS).flat(),...Object.values(LEGACY_INSPIRATION_PROMPTS),...CHROME_COUTURE_OLD_EXAMPLES].map(text=>text.trim()));
 export function isInspirationExample(text){return examples.has(String(text||'').trim());}
 export function createInspirationRotation(storage=null){
   const positions=Object.create(null);
@@ -94,7 +123,7 @@ export function createInspirationRotation(storage=null){
     const stored=JSON.parse(storage?.getItem(ROTATION_KEY)||'{}');
     if(stored&&typeof stored==='object'&&!Array.isArray(stored))
       for(const [id,variants] of Object.entries(INSPIRATION_VARIATIONS))
-        if(Number.isSafeInteger(stored[id])&&stored[id]>=0)positions[id]=stored[id]%variants.length;
+        if(Number.isSafeInteger(stored[id])&&stored[id]>=0&&(id!=='chrome-couture'||stored.chromeCoutureRecipeVersion===2))positions[id]=stored[id]%variants.length;
   }catch{/* Private browsing or disabled session storage must never block Inspiration. */}
   return Object.freeze({
     select(id,currentPrompt=''){
@@ -106,7 +135,7 @@ export function createInspirationRotation(storage=null){
         return {prompt:existing,preserved:true};
       const index=positions[id]||0;
       positions[id]=(index+1)%variants.length;
-      try{storage?.setItem(ROTATION_KEY,JSON.stringify(positions));}catch{/* Selection works without storage. */}
+      try{storage?.setItem(ROTATION_KEY,JSON.stringify({...positions,chromeCoutureRecipeVersion:2}));}catch{/* Selection works without storage. */}
       return {prompt:variants[index],preserved:false,index};
     }
   });

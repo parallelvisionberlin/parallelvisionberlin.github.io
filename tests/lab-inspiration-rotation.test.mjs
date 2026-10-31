@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {
-  INSPIRATION_VARIATIONS,LEGACY_INSPIRATION_PROMPTS,
+  INSPIRATION_VARIATIONS,LEGACY_INSPIRATION_PROMPTS,CHROME_COUTURE_DEFAULTS,
   createInspirationRotation,isInspirationExample
 } from '../lab/inspiration-looks.js';
 
@@ -15,12 +15,12 @@ function memoryStorage(){
   };
 }
 
-test('the original seven looks retain eight examples and Fisheye reuses its approved recipe',()=>{
+test('existing looks keep eight examples; Chrome Couture has twenty and Fisheye keeps its recipe',()=>{
   const names=['fisheye-2000','dream-blur','90s-cinema','fashion-editorial','chrome-couture','dreamcore','hong-kong-nights','80s-film'];
   assert.deepEqual(Object.keys(INSPIRATION_VARIATIONS).sort(),names.sort());
   const all=[];
   for(const [id,scenes] of Object.entries(INSPIRATION_VARIATIONS)){
-    assert.equal(scenes.length,id==='fisheye-2000'?1:8,id+' has the expected example count');
+    assert.equal(scenes.length,id==='fisheye-2000'?1:id==='chrome-couture'?20:8,id+' has the expected example count');
     assert.equal(new Set(scenes).size,scenes.length,id+' includes duplicate scenarios');
     for(const scene of scenes){
       assert.ok(scene.length>85&&scene.length<1100,id+' scene is implausibly short/long');
@@ -28,7 +28,7 @@ test('the original seven looks retain eight examples and Fisheye reuses its appr
       all.push(scene);
     }
   }
-  assert.equal(new Set(all).size,57,'No repeated scenes across different Moods');
+  assert.equal(new Set(all).size,69,'No repeated scenes across different Moods');
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/older woman/i.test(scene)));
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/male fashion model/i.test(scene)));
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/two adult models/i.test(scene)));
@@ -129,10 +129,27 @@ test('Chrome Couture preserves the original non-explicit editorial scene and add
   assert.match(sample,/sharp chrome blade resting against her shoulder/);
   assert.match(sample,/vintage optical starburst diffraction/);
   assert.match(sample,/believable direct-flash falloff/);
+  assert.equal(INSPIRATION_VARIATIONS['chrome-couture'].length,20);
+  assert.equal(new Set(INSPIRATION_VARIATIONS['chrome-couture']).size,20);
   const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   assert.match(lab,/id==='chrome-couture'\?'fashion-editorial':id/);
   assert.match(lab,/draft.mood==='chrome-couture'\?'fashion-editorial':draft.mood/);
   assert.match(lab,/inspirationMoodId=underlyingMood/);
   const moods=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   assert.doesNotMatch(moods,/"id": "chrome-couture"/,'Do not alter the fixed curated Mood catalog');
+});
+
+test('Chrome Couture rotates twenty sensual Qwen editorial shots and keeps manual directions',()=>{
+  assert.deepEqual(CHROME_COUTURE_DEFAULTS,{engine:'qwen3',resolution:'2k',aspectRatio:'16:9',count:1});
+  const scenes=INSPIRATION_VARIATIONS['chrome-couture'];
+  assert.ok(scenes.slice(1).every(prompt=>/sensual|seductive/.test(prompt)));
+  const rotation=createInspirationRotation(memoryStorage());
+  for(let i=0;i<20;i++)assert.equal(rotation.select('chrome-couture',i?scenes[i-1]:'').prompt,scenes[i]);
+  assert.equal(rotation.select('chrome-couture',scenes[19]).prompt,scenes[0]);
+  assert.equal(rotation.select('chrome-couture','My own couture concept').preserved,true);
+  const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const guest=readFileSync(new URL('../lab/studio-guest-image.js',import.meta.url),'utf8');
+  assert.match(lab,/const preferredEngine=id==='chrome-couture'\?CHROME_COUTURE_DEFAULTS\.engine:'seedream'/);
+  assert.match(lab,/draft\.mood==='chrome-couture'\?CHROME_COUTURE_DEFAULTS\.engine:'seedream'/);
+  assert.match(guest,/Qwen Image 3\.0/);
 });
