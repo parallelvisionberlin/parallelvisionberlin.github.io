@@ -72,6 +72,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    bar.hidden=!active;panel.hidden=true;
    const videoMode=active&&media==='video';
    app.classList.toggle('video-upscale-active',videoMode);
+   app.classList.toggle('video-upscale-has-source',videoMode&&!!file);
    if(lastSyncedMode!==media){
      if(media==='video')imageEmptyHidden=originalEmpty.hidden;
      else originalEmpty.hidden=imageEmptyHidden;
