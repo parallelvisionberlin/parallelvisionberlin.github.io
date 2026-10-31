@@ -977,12 +977,26 @@ document.addEventListener('click',event=>{
  <svg class="pv-motion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
 </button>
 <div id="reference-media" hidden>
-<div class="upload-heading video-media-heading"><span class="label" id="video-media-label">Video references</span><span class="micro" id="video-ref-count">0 / 10 · 0 / 30s</span></div>
-<label id="video-media-drop" class="drop compact-drop"><span id="video-media-title">Add motion or camera references</span><small>MP4 / MOV · 20 MiB each · 2 to 30 seconds</small><input id="video-references" type="file" multiple accept="video/mp4,video/quicktime"></label>
-<div id="video-reference-list" class="reference-media-list"></div>
-<div class="upload-heading audio-media-heading"><span class="label">Audio references</span><span class="micro" id="audio-ref-count">0 / 10 · 0 / 30s</span></div>
-<label class="drop compact-drop audio-media-drop"><span>Add sound or music references</span><small>MP3 / WAV · 15 MiB each · 2 to 30 seconds</small><input id="audio-references" type="file" multiple accept="audio/mpeg,audio/wav,audio/x-wav"></label>
-<div id="audio-reference-list" class="reference-media-list"></div>
+<section class="pv-media-ref-group pv-media-ref-group-video" aria-label="Video reference uploads">
+  <div class="upload-heading video-media-heading"><span class="label" id="video-media-label">Video references</span><span class="micro" id="video-ref-count">0 / 10 · 0 / 30s</span></div>
+  <label id="video-media-drop" class="drop compact-drop pv-media-ref-drop" aria-label="Drop video references or browse files">
+    <svg class="pv-media-drop-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="12" height="12" rx="2"/><path d="m15 10 6-3v10l-6-3"/></svg>
+    <span id="video-media-title">Drop video or browse</span>
+    <small>MP4 / MOV · 2–30s · 20 MiB each</small>
+    <input id="video-references" type="file" multiple accept="video/mp4,video/quicktime,.mov">
+  </label>
+  <div id="video-reference-list" class="reference-media-list"></div>
+</section>
+<section class="pv-media-ref-group pv-media-ref-group-audio" aria-label="Audio reference uploads">
+  <div class="upload-heading audio-media-heading"><span class="label">Audio references</span><span class="micro" id="audio-ref-count">0 / 10 · 0 / 30s</span></div>
+  <label class="drop compact-drop audio-media-drop pv-media-ref-drop" aria-label="Drop audio references or browse files">
+    <svg class="pv-media-drop-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 10v4m4-7v10m4-14v18m4-14v10m4-7v4"/></svg>
+    <span>Drop audio or browse</span>
+    <small>MP3 / WAV · 2–30s · 15 MiB each</small>
+    <input id="audio-references" type="file" multiple accept="audio/mpeg,audio/wav,audio/x-wav,.wav,.mp3">
+  </label>
+  <div id="audio-reference-list" class="reference-media-list"></div>
+</section>
 <p class="fine">Up to 30 seconds combined per media type. Video references may add billable seconds; the live quote controls the maximum charge. History and Reuse retain every reference. Named packs below save images only.</p>
 </div>
 <p class="fine compact-fine" id="reference-help">Reference numbers, filenames, roles and notes are added to your generation prompt. They guide the model; they do not guarantee identity matching.</p>
