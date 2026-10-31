@@ -107,7 +107,7 @@
  content:"";position:absolute;inset:0;pointer-events:none;
 }
 #app .pv-video-upscale-blank::before{
- z-index:-2;background:url('./visuals/reptare-detail.webp') 50% 47%/cover no-repeat;
+ z-index:-2;background:url('./visuals/upscaler-chrome-wool-option-1.jpg') 50% 47%/cover no-repeat;
  filter:brightness(.62) contrast(1.17) sepia(.11) saturate(1.08);
 }
 #app .pv-video-upscale-blank::after{
