@@ -67,6 +67,8 @@ try {
         if(long)await page.waitForFunction(()=>document.getElementById('image-composer-prompt').getBoundingClientRect().height>=(innerWidth>=900?150:95));
         else await page.waitForFunction(()=>document.getElementById('image-composer-prompt').getBoundingClientRect().height<=65);
         const g=await geometry();
+        const label=await page.locator('.composer-generate-label').evaluate(el=>{const r=el.getBoundingClientRect();return {center:r.y+r.height/2}});
+        assert.ok(Math.abs(label.center-(g.generate.y+g.generate.height/2))<3,'Empty-price Generate label stays centered');
         assert.equal(g.overflow,false,'No horizontal overflow '+JSON.stringify({viewport,attached,long,g}));
         assert.ok(g.deck.y>=0&&g.deck.bottom<=viewport.height+2,'Dock remains in viewport');
         for(const box of [g.generate,g.character,g.prompt,g.controls])assert.ok(box.x>=g.deck.x&&box.right<=g.deck.right+1&&box.bottom<=g.deck.bottom+1,'All controls remain in deck '+JSON.stringify({viewport,attached,long,g}));
