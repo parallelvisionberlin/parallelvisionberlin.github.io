@@ -98,6 +98,12 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  download.onclick=()=>{if(!resultURL)return;const a=document.createElement('a');a.href=resultURL;a.download='pv-lab-upscaled-'+(currentJob?.id||'video')+'.mp4';document.body.append(a);a.click();a.remove();};
  async function openJob(job){
    if(job?.settings?.engine!=='video-upscale'||job.status!=='completed'||!job.outputId)throw Error('Choose a completed video upscale result.');
+   // Keep Original/Result comparison bound to the SAME History source clip.
+   if(job.sourceId&&assetId!==job.sourceId){
+     const original=await api('/api/assets/'+job.sourceId,{blob:true});
+     if(original.type==='video/mp4'&&original.size)
+       chooseFile(new File([original],'source-'+job.sourceId+'.mp4',{type:'video/mp4'}),job.sourceId);
+   }
    const token=++revision;media='video';currentJob=job;quote=null;sync();
    const blob=await api('/api/assets/'+job.outputId,{blob:true});
    if(token!==revision)return;
