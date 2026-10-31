@@ -131,7 +131,15 @@ try{
   });
   assert.ok(Math.abs(original.canvas.width-video.canvas.width)<=2,label+': identical source width');
   assert.ok(Math.abs(original.canvas.height-video.canvas.height)<=2,label+': identical source height');
-  console.log('ACTION_PARITY',label,JSON.stringify({image:original.action,video:video.action}));
+  const stageDiag=await page.evaluate(()=>{
+    const rect=sel=>{const el=document.querySelector(sel),r=el?.getBoundingClientRect();
+      return {display:el?getComputedStyle(el).display:null,top:r?.top,bottom:r?.bottom,height:r?.height,scrollHeight:el?.scrollHeight};};
+    return {workspace:rect('#app>.workspace'),stage:rect('#app>.workspace>.stage'),
+      head:rect('#app>.workspace>.stage>.stagehead'),foot:rect('#app>.workspace>.stage>.stagefoot'),
+      controls:rect('#app>.workspace>.controls'),body:rect('#app>.workspace>.controls>.controls-body'),
+      canvas:rect('#upscale-canvas'),file:rect('#pv-video-upscale-file')};
+  });
+  console.log('ACTION_PARITY',label,JSON.stringify({image:original.action,video:video.action,stageDiag}));
   assert.ok(Math.abs(original.action.top-video.action.top)<=2,label+': same Upscale button position');
   assert.ok(Math.abs(original.picker.left-video.picker.left)<=2,label+': model cards stay in place');
   assert.match(video.photo,/upscaler-chrome-wool-option-1\.jpg/,label+': exact Image photograph remains');
