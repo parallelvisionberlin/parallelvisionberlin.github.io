@@ -7,7 +7,14 @@
 - At <=900 px hide the panel header and size each of the two grid rows to half the available visible viewport, capped at the existing 322 px maximum. Retain original artwork, filters, crops, fonts, captions, routes, joined edges and rounded outer panel.
 - Positioning uses visualViewport height/offset when available, with innerHeight fallback, and responds to visual viewport resize/scroll so iOS browser chrome cannot hide the lower row. Desktop card dimensions/header are unchanged.
 - Cache version `20261101-phone-fit1` for shared menu CSS/JS on the five existing entry pages. No account, generation, billing or model changes.
-- Validation and publication pending. Next: check all four labels fit at actual short phone viewport sizes, preserve desktop and keyboard interactions, publish exact reviewed source, verify Cloudflare and production assets.
+- Files: shared menu CSS/JS, menu cache versions on index/studio/beauty/moods/Full Editorial, new `tests/lab-studios-menu-ui.mjs`, existing Beauty workflow and this checkpoint. The menu check runs before the unchanged Beauty role/billing suite; no gates weakened.
+- Checks: local syntax, five approved Image contracts and whitespace pass. Final source CI passes the menu matrix (390x844/visual 666, 320x700/visual 520, 768x1024/visual 820, 1440x900), visual-viewport shrink/offset changes, full card/title/caption containment, no internal scrolling and ArrowDown/Escape/focus. Full Beauty guest/customer/owner/billing/navigation suite passes, as do approved Image, Editorial, landing stability and static validation.
+- Preserved concurrent homepage CTA (#749) and cinematic Editorial progress from main `888e098` after an overlapping-cache-key merge conflict. Resolved only the shared HTML version lines; own menu code remains unchanged. Final reviewed source `4134935a321edb3369cfe650d07d523282b4afe0`, PR #750, merge `029992b82610252887b7fe0988229f95f7bd0f77`.
+- Broader checks are not globally green: legacy landing still waits for the removed Beauty Studio label; an Assets assertion concerns unchanged Video reference-drop state. These were inspected without expanding scope or weakening checks.
+- LIVE: exact merge Cloudflare pvlab-studio deployment `31547ab9-cc81-47e5-a49c-8d29b5e5539d` succeeded, check `124688971837`.
+- Scoped read-only verifier returns LIVE_VERIFIED for both `20261101-phone-fit1` assets, exact reviewed production bytes: CSS SHA-256 `351e57d80ae69cb64171811db82e0aaa00c74b5ea622a2e1fa9f8016b4b31e6d`; JS `418097a6eca9615ceaf057661bb3cb0f4aefbf79111516f95b30f8b70880b0aa`.
+- Public production browser confirms the new stylesheet, original desktop header, four menu cards and all original images loaded (1448/2048/2048/1122 px widths). Local phone preview panel ends at 653.98 px in a 666 px viewport, with 544 px scrollHeight/clientHeight, so no lower captions are clipped. Phone/browser-bar behavior is tested in Chromium, not a physical iPhone Safari session. No sign-in, paid generation or purchase performed.
+- Complete and verified live. Keep phone header hidden and two card rows constrained to the visible viewport.
 
 ## Tall connected Studios cards correction, 2026-10-31
 

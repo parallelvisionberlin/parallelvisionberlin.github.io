@@ -52,10 +52,11 @@ test('Generation is server quoted, confirmed once, and attached to real jobs',()
 test('Upload inputs, confirmed pricing and private exports remain bounded',()=>{
  assert.match(js,/20\*1024\*1024/);
  assert.match(js,/10-used/,'No more than ten photo references');
- assert.match(js,/count:Math\.min\(4,remain\)/);
+ assert.match(js,/count:1/,'Every art-directed image is quoted individually');
+ assert.match(js,/editorialShotPlan/,'Distinct shot prompts and cast references are built for each image');
  assert.match(js,/function crc32/,'ZIP download is made from actual generated assets');
  assert.match(js,/new Blob\(parts,\{type:'application\/zip'\}\)/);
- assert.match(html,/Each image is generated individually/);
+ assert.match(html,/Each photograph receives its own shot direction/);
  assert.match(html,/Only completed PV LAB jobs appear here/);
 });
 
@@ -67,6 +68,9 @@ test('Atelier references remain real and the creative steps feed real generation
  assert.match(js,/function updateSeriesSummary/);
  assert.match(js,/selectedDirections=\{location:null,moods:null,material:null\}/);
  assert.match(js,/const moodText=Object\.entries\(selectedDirections\)/);
+ assert.match(html,/id="editorial-cast-mode"/);
+ assert.match(html,/id="editorial-cast-composition-select"/);
+ assert.match(js,/effectiveCastMode/);
  assert.match(html,/Generate starts the set at the credit cost shown below/);
  assert.match(html,/full-editorial-atelier\.css/);
  assert.match(html,/id="editorial-mobile-menu"/);
