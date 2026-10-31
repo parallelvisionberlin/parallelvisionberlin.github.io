@@ -328,3 +328,16 @@
  #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active) .pv-video-upscale-sidebar,
  #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active) .pv-video-upscale-preview{animation:none}
 }
+
+
+/* The V28 fullscreen rule used :has() to force .stage display:block.
+   In a bounded-height editor that collapses the flex canvas to 0px.
+   Match its specificity and restore the shared flex preview column. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #empty:not([hidden]))>.stage,
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #preview:not([hidden]))>.stage{
+   display:flex!important;flex-direction:column!important;
+   height:100%!important;min-height:0!important;max-height:100%!important;
+   overflow:hidden!important;
+ }
+}
