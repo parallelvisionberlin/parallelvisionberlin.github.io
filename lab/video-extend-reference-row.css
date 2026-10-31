@@ -1,7 +1,7 @@
 /* PV LAB Video / Extend: match the two compact reference actions used in Create.
    Presentation only. The existing upload, saved Elements, clip, History and quote
    handlers remain unchanged. These rules intentionally apply to Extend only. */
-#app.video-studio-active.video-extend-active:is(.pv-video-ergonomic,.pv-video-approved-ready) #reference-mode:not([hidden]){
+#app.video-studio-active.video-extend-active #reference-mode:not([hidden]):has(> #reference-drop){
   display:grid!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
   column-gap:8px!important;
@@ -18,7 +18,7 @@
   min-width:0!important;
   box-sizing:border-box!important;
 }
-#app.video-studio-active.video-extend-active:is(.pv-video-ergonomic,.pv-video-approved-ready) #reference-mode>.scene-video-access{
+#app.video-studio-active.video-extend-active #reference-mode:has(> #reference-drop)>.scene-video-access{
   display:flex!important;
   grid-column:2!important;
   width:100%!important;
@@ -48,7 +48,7 @@
   grid-column:1/-1!important;
 }
 @media(max-width:440px){
-  #app.video-studio-active.video-extend-active:is(.pv-video-ergonomic,.pv-video-approved-ready) #reference-mode:not([hidden]){
+  #app.video-studio-active.video-extend-active #reference-mode:not([hidden]):has(> #reference-drop){
     column-gap:6px!important;
   }
   #app.video-studio-active.video-extend-active #reference-mode #reference-drop,
