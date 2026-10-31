@@ -131,7 +131,12 @@ if(looks){
   const lookPreviewTitle=looks.ownerDocument.createElement('span');
   lookPreview.append(lookPreviewImage,lookPreviewTitle);
   looks.parentElement.appendChild(lookPreview);
-  const closeLookPreview=()=>lookPreview.classList.remove('is-visible');
+  // A short hover-intent pause prevents previews flashing while traversing the row.
+  let previewDelay=null;
+  const closeLookPreview=()=>{
+    if(previewDelay!==null){clearTimeout(previewDelay);previewDelay=null;}
+    lookPreview.classList.remove('is-visible');
+  };
   function openLookPreview(card){
     if(!card||card.disabled)return;
     const view=looks.ownerDocument.defaultView;
@@ -141,7 +146,7 @@ if(looks){
     const sectionRect=looks.parentElement.getBoundingClientRect();
     const cardRect=card.getBoundingClientRect();
     const imgRect=img.getBoundingClientRect();
-    const width=Math.min(254,Math.max(190,cardRect.width*1.7));
+    const width=Math.min(342,Math.max(256,cardRect.width*1.65));
     const x=Math.max(0,Math.min(sectionRect.width-width,cardRect.left-sectionRect.left+(cardRect.width-width)/2));
     const y=imgRect.bottom-sectionRect.top-width/1.68;
     lookPreview.style.left=x+'px';
@@ -153,7 +158,9 @@ if(looks){
   }
   for(const card of looks.querySelectorAll('[data-look]')){
     card.addEventListener('pointerenter',event=>{
-      if(event.pointerType==='mouse')openLookPreview(card);
+      if(event.pointerType!=='mouse')return;
+      if(previewDelay!==null)clearTimeout(previewDelay);
+      previewDelay=setTimeout(()=>{previewDelay=null;openLookPreview(card);},105);
     });
     card.addEventListener('pointerleave',closeLookPreview);
     card.addEventListener('focus',()=>openLookPreview(card));

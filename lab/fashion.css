@@ -537,16 +537,16 @@ textarea::placeholder{white-space:nowrap}
 .look-card{
   box-sizing:border-box;display:flex;flex:none;flex-direction:column;
   align-items:center;gap:7px;min-width:0;
-  width:clamp(118px,10.1vw,165px);
+  width:clamp(150px,11.4vw,192px);
   border:0;background:none;color:#d6d6d6;
   font:400 13px/1.25 var(--display);padding:0 0 2px;
   cursor:pointer;scroll-snap-align:start;
 }
 .look-card img{
-  display:block;width:100%;height:clamp(78px,6.45vw,104px);
+  display:block;width:100%;height:clamp(96px,7.3vw,120px);
   object-fit:cover;object-position:center;border:1px solid #eeeeee23;
   border-radius:4px;filter:grayscale(.46) contrast(1.05) brightness(.74);
-  transition:filter .2s,border-color .2s;
+  transition:filter .42s cubic-bezier(.22,1,.36,1),border-color .42s ease;
 }
 .look-card:hover img,.look-card[aria-pressed="true"] img{
   filter:grayscale(.18) brightness(.98);border-color:#ebe9e1;
@@ -564,12 +564,13 @@ textarea::placeholder{white-space:nowrap}
   position:absolute;z-index:6;display:flex;flex-direction:column;
   align-items:center;gap:7px;pointer-events:none;
   margin:0;padding:0;opacity:0;visibility:hidden;
-  transform:translateY(10px) scale(.84);
+  transform:translateY(18px) scale(.88);
   transform-origin:center bottom;
-  transition:opacity .16s ease,transform .23s cubic-bezier(.16,1,.3,1),visibility .16s;
+  transition:opacity .20s ease-in,transform .29s ease-in,visibility .20s;
 }
 .look-hover-preview.is-visible{
   visibility:visible;opacity:1;transform:translateY(0) scale(1);
+  transition:opacity .43s ease-out,transform .64s cubic-bezier(.22,1,.36,1),visibility 0s;
 }
 .look-hover-preview img{
   display:block;width:100%;aspect-ratio:1.68/1;height:auto;
@@ -586,7 +587,7 @@ textarea::placeholder{white-space:nowrap}
   .look-hover-preview{display:none}
 }
 @media(prefers-reduced-motion:reduce){
-  .look-hover-preview{transition:none;transform:none}
+  .look-hover-preview,.look-hover-preview.is-visible{transition:none;transform:none}
 }
 
 /* Same quote engine, dressed as a restrained bottom dock. */
@@ -679,7 +680,7 @@ textarea::placeholder{white-space:nowrap}
   .intro-description{margin-top:9px;font-size:15px;line-height:1.2}
   .fashion-workspace{grid-template-rows:clamp(137px,11.5vw,160px);gap:12px}
   .looks-heading{margin-bottom:6px;min-height:24px}
-  .look-card img{height:73px}
+  .look-card img{height:94px}
   .look-card{gap:4px;font-size:12px}
   .engine-section{padding-top:11px;padding-bottom:11px}
   .fashion-details>summary{bottom:11px}
@@ -712,8 +713,8 @@ textarea::placeholder{white-space:nowrap}
   .slot-invite small,#garment-hint small{font-size:10px}
   .looks-section{grid-area:2/1;min-width:0}
   .looks-heading h2{font-size:9px;letter-spacing:.24em}
-  .look-card{width:130px}
-  .look-card img{height:88px}
+  .look-card{width:150px}
+  .look-card img{height:101px}
   .engine-section{grid-area:3/1;margin:0;padding:18px 17px;border-radius:16px}
   .engine-section .action-block{padding-right:55px}
   .engine-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
@@ -748,8 +749,8 @@ textarea::placeholder{white-space:nowrap}
   .looks-controls{gap:5px}
   .looks-controls #looks-view-all{padding:0 6px;font-size:9px}
   #looks-support{font-size:9px;max-width:112px;line-height:1.15}
-  .look-card{width:115px;gap:5px;font-size:12px}
-  .look-card img{height:78px}
+  .look-card{width:139px;gap:5px;font-size:12px}
+  .look-card img{height:95px}
   .engine-section{padding:16px 15px 17px}
   .engine-grid{gap:13px}
   .engine-section .action-block{grid-column:1/-1}
@@ -758,7 +759,7 @@ textarea::placeholder{white-space:nowrap}
 }
 @media(max-width:360px){
   .page-intro h1{font-size:49px}
-  .look-card{width:108px}
+  .look-card{width:125px}
   .engine-section{padding:14px 12px 15px}
   .slot-invite strong{font-size:14px}
   .slot-invite small,#garment-hint small{font-size:8px}
@@ -781,7 +782,7 @@ textarea::placeholder{white-space:nowrap}
   .page-intro h1{font-size:clamp(64px,5.8vw,91px)}
   .intro-description{margin-top:12px;font-size:16px;line-height:1.25}
   .fashion-workspace{grid-template-rows:clamp(145px,10.2vw,170px);gap:16px}
-  .look-card img{height:84px}
+  .look-card img{height:94px}
   .look-card{gap:5px;font-size:12px}
   .engine-section{padding-top:14px;padding-bottom:14px}
   .fashion-details>summary{bottom:14px}
