@@ -9,8 +9,13 @@
 - Results heading now 34-56 px instead of 50-104 px, with 12 px top padding instead of up to 44 px. Original result images and gallery structure retained.
 - Files: `full-editorial.js`, `full-editorial.html`, `full-editorial-atelier.css`, two existing Full Editorial tests, this checkpoint. JS/CSS cache key `20261031-direct-generate1`.
 - Local verification: JS/browser-test syntax, 13/13 approved Image + Full Editorial/handoff source checks, whitespace pass. Expanded existing mocked browser flow checks desktop/phone, automatic no-charge pricing, stale/expired quotes, double-clicks, four-image batching, uncertain submission lock and compact results.
-- Release status: implementation complete; browser CI, merge and exact Cloudflare/live evidence pending. No real paid generation or purchase performed.
-- Next: run dedicated mocked browser CI, inspect relevant checks, merge reviewed source and verify exact Cloudflare deployment/custom-domain assets.
+- Published PR #747: reviewed source `d22a053557fcf9faf8f0e26420494a0f4a3311f5`, merge `b3df2eca0e26768bb5b87aeff2a9220ee8157719`. Dedicated Editorial 1440/390 browser flow passed, including stale/expired quotes, duplicate-click guard, no ambiguous retries and compact results. Approved Image, backend, gallery, static validation and indexing passed.
+- Broader public Studio failure was inspected and matches baseline main `34eb841`: unchanged Upscaler intro dimensions 334 vs 302 px at test line 261. No assertion or gate weakened. Video is an independent broader suite; no global-green claim.
+- Exact merged-commit Cloudflare pvlab-studio deployment `069804f1-50b5-4082-8bbd-16269dd79014` succeeded, check `124657804423`.
+- Custom-domain HTML loads cache key `20261031-direct-generate1`, contains one Generate action and no credit-review dialog. Both production assets return HTTP 200 and equal reviewed bytes: JS SHA-256 `9df6576477e2479c7efe8b5c3e62f0f54095831be117cfa31bd36baf36620670`; CSS `48d1cc37b36dfef837325332cdd9adaa89cf6a0fadba1af24e6357c80920e256`.
+- Actual public production browser confirms one Generate node, old dialog absent, correct ivory-film source, results heading 46.342 px at 1363 px viewport and 12 px results top padding. Local phone/desktop visual previews inspected, film readyState 4 and playing, phone title 34 px. Real authenticated production generation was not run; no paid job or purchase performed.
+- The scoped release verifier was run and correctly reported Cloudflare pending. Its fixed /studio HTML cannot verify Full Editorial; after the app check succeeded, equivalent direct /full-editorial HTML and exact asset-byte checks above completed publication verification.
+- Next: complete and verified live. Keep the server quote as pricing authority, with distinct Generate clicks for further batches.
 
 ## 2026-10-31 / approved hero button typography only
 - Owner approved the mixed-type CTA and explicitly requested only the button change: clean Create your, expressive italic editorial.
