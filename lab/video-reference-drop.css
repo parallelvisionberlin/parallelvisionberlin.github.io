@@ -1,0 +1,23 @@
+/* PV LAB Video / real drop affordance. Only desktop pointer drag changes
+   the compact reference card; mobile and the Image composer remain unchanged. */
+@media (hover:hover) and (pointer:fine){
+  html body #app.video-studio-active #reference-mode #reference-drop>small:after{
+    content:"Drop here or browse"!important;
+    font-size:10px!important;
+  }
+}
+html body #app.video-studio-active #reference-mode #reference-drop.is-file-over{
+  border:1px dashed #dce5e8!important;
+  background:#273541!important;
+  box-shadow:inset 0 0 0 1px #dce5e82b,0 0 0 2px #becbd016!important;
+  filter:none!important;
+  cursor:copy!important;
+}
+html body #app.video-studio-active #reference-mode #reference-drop.is-file-over>span:after{
+  content:"Drop images here"!important;
+  color:#fff!important;
+}
+html body #app.video-studio-active #reference-mode #reference-drop.is-file-over>small:after{
+  content:"Release to attach"!important;
+  color:#d4e1e7!important;
+}
