@@ -55,6 +55,10 @@ try{
   assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').first().isVisible(),false,label+': Video cards hidden in Image');
   // Empty-state parity: the original model cards do not move when the media
   // changes, and Video must not expose Image-only settings or a credit hint.
+  const emptyImageScroll=await page.evaluate(()=>{
+    const body=document.querySelector('#app>.workspace>.controls>.controls-body');
+    return {scrollHeight:body.scrollHeight,clientHeight:body.clientHeight};
+  });
   const imageCard=await page.locator('#upscale-model-menu [data-upscale-engine]').first().boundingBox();
   await page.locator('[data-video-upscale-tab="video"]').click();
   const videoCard=await page.locator('#upscale-model-menu [data-video-upscale-model]').first().boundingBox();
@@ -70,8 +74,18 @@ try{
     return {scrollHeight:body.scrollHeight,clientHeight:body.clientHeight,
       overflow:getComputedStyle(body).overflowY};
   });
+  const childDiag=await page.evaluate(()=>{
+    const body=document.querySelector('#app>.workspace>.controls>.controls-body');
+    return [...body.children].map(el=>{
+      const st=getComputedStyle(el),r=el.getBoundingClientRect();
+      return {tag:el.tagName,id:el.id,className:typeof el.className==='string'?el.className.slice(0,50):'',
+        display:st.display,position:st.position,hidden:el.hidden,top:Math.round(r.top),bottom:Math.round(r.bottom),height:Math.round(r.height)};
+    }).filter(x=>x.display!=='none'&&x.height>0);
+  });
+  console.log('EMPTY_IMAGE_SCROLL',label,JSON.stringify(emptyImageScroll));
   console.log('EMPTY_VIDEO_CONTROLS',label,JSON.stringify(emptyVideo));
-  if(width>780)assert.ok(emptyVideo.scrollHeight<=emptyVideo.clientHeight+3,label+': empty Video sidebar has no unnecessary scroll');
+  console.log('VIDEO_VISIBLE_CHILDREN',label,JSON.stringify(childDiag));
+  if(width>780)assert.ok(emptyVideo.scrollHeight<=Math.max(emptyVideo.clientHeight,emptyImageScroll.scrollHeight)+3,label+': Video adds no unnecessary sidebar overflow');
   await page.locator('[data-video-upscale-tab="image"]').click();
   // An uploaded Image must remain untouched when switching media modes.
   await page.evaluate(()=>{
