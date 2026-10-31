@@ -31,6 +31,12 @@ try{
    const app=document.getElementById('app');app.hidden=false;
    document.getElementById('gate').hidden=true;
    app.classList.add('upscale-studio-active');
+   // lab.js is intentionally mocked in this test. Mirror setTool('upscale')
+   // hiding of unrelated Video Studio inputs, otherwise their offscreen
+   // content creates a fake scrollbar in BOTH Image and Video modes.
+   for(const id of ['video-model-control','video-modes','prompt']){
+     document.getElementById(id)?.style.setProperty('display','none','important');
+   }
    document.getElementById('upscale-model-display').hidden=false;
    document.getElementById('upscale-model-menu').hidden=false;
    const {createVideoUpscaler}=await import('/lab/video-upscale.js');
