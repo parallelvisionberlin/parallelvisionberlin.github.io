@@ -5,8 +5,13 @@
 - Heading 30-38 px, tighter intentional spacing, separate >=80 px reference rows, 44 px Edit targets, 52 px Generate. Back footer is static on this step and cannot overlay controls during scrolling.
 - Desktop, arrival/Identity/Styling/World, results, generation JavaScript, model options, quotes and billing remain unchanged.
 - Files: `full-editorial-atelier.css`, CSS cache key in `full-editorial.html`, geometry assertions in existing `tests/lab-full-editorial-browser.mjs`, and this checkpoint. CSS version `20261031-phone-generate1`.
-- Validation/release: pending source checks, supported browser phone/desktop preview, dedicated existing mocked flow CI and Cloudflare production verification. No paid generation or purchase planned.
-- Next: verify phone ordering, reference visibility/spacing and non-overlapping Back; publish exact CSS/HTML after relevant checks.
+- Verification: 13/13 source checks, syntax and whitespace pass. Dedicated existing mocked 1440/390 flow passes with added phone ordering, all three visible reference summaries, >=80 px rows, 44 px Edit targets, no footer/reference intersection and narrow 320 px ratio/overflow checks. Source tests and relevant approved Image, gallery, private Lab, validation and indexing checks pass.
+- Supported browser preview: heading begins at 100 px and is 31.98 px at 390 px; 320 px phone has five equal 51.8 px ratio targets on one row and a static Back footer. Desktop retains the original two-column layout. These visual previews use presentation-only fixtures; no real production generation was performed.
+- Broader public Studio failure inspected: identical pre-existing Upscaler dimensions 334 vs 302 px at test line 261. No gate weakened or unrelated product change.
+- Published PR #748, reviewed source `b39162252483d68f5885e0cbda16d77cb3b01c9d`, merge `2fa086da334911831899daa64f51c5f3a61ff9a1`.
+- Exact merged-commit Cloudflare pvlab-studio deployment `cd87849d-315b-4941-a866-30d8ed74b054` succeeded, check `124672976717`.
+- Production /full-editorial HTML and CSS return HTTP 200; expected cache key is present and CSS equals reviewed source, SHA-256 `fa78a2588a63f74cbcfdfc962cbad6fe7cb0d0db0d9e288403bdfa5943a7b19c`. Actual public production browser confirms the new stylesheet reference. No paid job or purchase performed.
+- Next: complete and verified live. Keep Generate phone controls first and Back in normal flow on this step.
 
 ## 2026-10-31 / direct Generate, ivory progress film, compact results
 - Owner request: remove both Review credits CTAs and the separate credit confirmation. One Generate action, exact credit cost below, matching Image Studio. Reuse the homepage white-fabric film during generation. Reduce and raise the results title to reveal photographs.
