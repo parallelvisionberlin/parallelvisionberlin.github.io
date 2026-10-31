@@ -344,3 +344,13 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
  #panel-progress .generation-frame{width:min(20vw,76px)}
 }
 @media(prefers-reduced-motion:reduce){#panel-progress .generation-frame img{animation:none}}
+
+/* Full Editorial: compact casting semantics, visible only with 2+ identity photos.
+   No changes to approved cards, gallery images, hero or progress UI. */
+.editorial-casting-controls{max-width:650px;margin:15px 0 8px;padding:14px 16px;border:1px solid #3c3d3e;background:#171819;border-radius:10px}
+.editorial-casting-controls[hidden],#editorial-cast-composition[hidden]{display:none!important}
+.editorial-casting-controls label{display:block;margin:0 0 7px;color:#dfdfdb;font-size:12px;font-weight:600}
+.editorial-casting-controls select{display:block;width:100%;min-height:43px;background:#242526;color:#f4f4f0;border:1px solid #4a4b4c;border-radius:7px;padding:8px 11px;font-size:13px}
+#editorial-cast-composition{margin-top:13px}
+.editorial-casting-controls p{margin:10px 0 0;color:#a9a9a7;font-size:11px;line-height:1.5}
+@media(max-width:520px){.editorial-casting-controls{padding:12px;margin:12px 0 8px}.editorial-casting-controls select{font-size:12px}}
