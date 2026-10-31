@@ -5,7 +5,7 @@ import {beautySettings,validateBeautyQuote,BEAUTY_PROMPT_PREFIX,beautyAutoRatio}
 const API='https://parallel-vision-lab.parallelvision.workers.dev',$=id=>document.getElementById(id);
 const activeStates=new Set(['submitting','queued','running','saving','uncertain']);
 const menu=createAccountMenu($('beauty-account')),pendingKey='pvlab-beauty-pending';
-let clerk=null,profile=null,sessionId='',epoch=0,revision=0,syncing=false,file=null,source=null,photoUrl='',resultUrl='',quote=null,photoWidth=0,photoHeight=0;
+let clerk=null,profile=null,sessionId='',epoch=0,revision=0,syncing=false,file=null,source=null,photoUrl='',resultUrl='',quote=null,photoWidth=0,photoHeight=0,compareUrl='';
 let preparing=false,submitting=false,activeId='',uncertain=false,quoteTimer=null,expiryTimer=null,pollTimer=null,resultRevision=0,historyRevision=0;
 const blobs=new Map();
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
@@ -95,10 +95,19 @@ async function generate(event){
  finally{if(version===epoch){submitting=false;update();}}
 }
 async function showResult(job){
- if(!job.outputId)return;const version=epoch,selection=++resultRevision,blob=await imageBlob(job.outputId,version);
+ if(!job.outputId)return;
+ const version=epoch,selection=++resultRevision,sourceId=job.settings?.referenceSourceIds?.[0]||'';
+ const blob=await imageBlob(job.outputId,version);
+ // History must compare against the source of THIS job, never whatever happens to be in the upload tile.
+ let historicalSource=null;
+ if(sourceId&&sourceId!==source?.id){try{historicalSource=await imageBlob(sourceId,version);}catch{}}
  if(version!==epoch||selection!==resultRevision)return;
  if(resultUrl)URL.revokeObjectURL(resultUrl);resultUrl=URL.createObjectURL(blob);
- $('beauty-result-image').src=resultUrl;$('beauty-result').hidden=false;$('beauty-download').href=resultUrl;
+ if(compareUrl)URL.revokeObjectURL(compareUrl);compareUrl=historicalSource?URL.createObjectURL(historicalSource):'';
+ const beforeUrl=sourceId&&sourceId===source?.id?photoUrl:compareUrl;
+ const resultNode=$('beauty-result');
+ resultNode.dataset.beforeUrl=beforeUrl||'';resultNode.dataset.beforeSourceId=beforeUrl?sourceId:'';
+ $('beauty-result-image').src=resultUrl;resultNode.hidden=false;$('beauty-download').href=resultUrl;
  $('beauty-download').download='pvlab-beauty-'+job.id+(blob.type==='image/jpeg'?'.jpg':blob.type==='image/webp'?'.webp':'.png');
  $('beauty-example-label').hidden=true;$('beauty-workspace').classList.add('has-result');
 }
@@ -144,7 +153,7 @@ async function loadHistory(){
 async function refreshProfile(){if(!profile)return;try{const next=await api('/api/session');profile=next;menu.update({signed:true,user:clerk.user,profile});syncHeaderAccess();}catch{} }
 function clearPrivate(){
  epoch++;revision++;clearQuote();clearTimeout(pollTimer);file=null;source=null;photoWidth=0;photoHeight=0;activeId='';submitting=false;uncertain=false;profile=null;preparing=false;
- if(photoUrl)URL.revokeObjectURL(photoUrl);if(resultUrl)URL.revokeObjectURL(resultUrl);photoUrl='';resultUrl='';
+ if(photoUrl)URL.revokeObjectURL(photoUrl);if(resultUrl)URL.revokeObjectURL(resultUrl);if(compareUrl)URL.revokeObjectURL(compareUrl);photoUrl='';resultUrl='';compareUrl='';$('beauty-result').dataset.beforeUrl='';$('beauty-result').dataset.beforeSourceId='';
  for(const value of blobs.values())URL.revokeObjectURL(value);blobs.clear();$('beauty-history').replaceChildren();
  $('beauty-form').reset();$('beauty-ratio').querySelector('option[value="auto"]').textContent='Auto';$('beauty-photo-preview').removeAttribute('src');$('beauty-photo-preview').hidden=true;$('beauty-photo-empty').hidden=false;$('beauty-change-photo').textContent='Add photo';
  $('beauty-result-image').removeAttribute('src');$('beauty-download').removeAttribute('href');$('beauty-result').hidden=true;$('beauty-example-label').hidden=false;$('beauty-workspace').classList.remove('has-result');$('beauty-empty-results').hidden=false;
