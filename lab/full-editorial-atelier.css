@@ -13,6 +13,8 @@
 .editorial-hero .hero-lead{font-size:clamp(16px,1.4vw,21px);letter-spacing:-.03em;color:#f6f2e9;margin-bottom:9px}
 .editorial-hero .hero-support{font-size:clamp(13px,1vw,16px);line-height:1.6;color:#dbd9d6;max-width:355px;margin-bottom:29px}
 .editorial-hero .hero-start{background:#f4f1e9;border-color:#f4f1e9;color:#0b0c0c;min-width:clamp(280px,24vw,365px);min-height:65px;padding:19px 29px;border-radius:999px;font-size:15px;font-weight:650;justify-content:space-between;gap:26px;letter-spacing:-.025em}
+.editorial-hero .hero-start-label{font-family:DM,'Helvetica Neue',Arial,sans-serif;font-size:clamp(17px,1.54vw,21px);font-weight:500;line-height:1;letter-spacing:-.04em;white-space:nowrap}
+.editorial-hero .hero-start-label em{font-family:Georgia,'Times New Roman',serif;font-size:1.428571em;font-weight:400;font-style:italic;line-height:0;letter-spacing:-.055em;margin-left:3px}
 .editorial-hero .hero-start:hover:not(:disabled){background:#fff;border-color:#fff;transform:translateY(-3px);box-shadow:0 20px 50px #0008}
 .editorial-hero-process{z-index:2}
 .editorial-hero-process>span{font-size:10px;color:#f1eee8}
@@ -153,6 +155,7 @@
  .editorial-hero-copy{top:auto;bottom:115px;left:24px;right:18px;transform:none}
  .editorial-hero h1{font-size:clamp(64px,15vw,82px);letter-spacing:-.09em;line-height:.93}
  .editorial-hero .hero-start{min-width:0;width:min(100%,310px);min-height:58px;padding:16px 22px;font-size:13px}
+ .editorial-hero .hero-start-label{font-size:18px}
  .editorial-hero .hero-support{font-size:12px;max-width:275px}
  .editorial-hero-process{gap:6px;bottom:20px}
  .editorial-hero-process>span{font-size:8px}
