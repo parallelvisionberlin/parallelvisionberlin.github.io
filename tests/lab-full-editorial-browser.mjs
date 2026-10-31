@@ -106,5 +106,27 @@ try{
   assert.deepEqual(errors,[],'No browser errors at '+width);
   await page.close();
  }
+ for(const width of [1440,390]){
+  const page=await browser.newPage({viewport:{width,height:900}});
+  await page.goto('http://127.0.0.1:4179/lab/index.html',{waitUntil:'domcontentloaded'});
+  const startUploads=uploadCount,startJobs=jobCount,startQuotes=quoteCount;
+  const picker=page.waitForEvent('filechooser');
+  await page.locator('.lab-character-home__plus').click();
+  await (await picker).setFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
+  await page.waitForURL('**/full-editorial.html**');
+  await page.locator('#model-thumbs img').waitFor({state:'visible'});
+  assert.equal(await page.locator('#panel-model').isVisible(),true,'Picker opens Identity directly');
+  assert.equal(await page.locator('#editorial-hero').isVisible(),false,'Arrival hero is skipped');
+  assert.equal(await page.locator('[data-source-view="upload"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('#model-thumbs img').getAttribute('alt'),'pvlab-industrial-fashion-20261027.jpg');
+  assert.equal(new URL(page.url()).searchParams.has('modelPhoto'),false,'Consumed token removed from URL');
+  await page.locator('#step-next').click();
+  assert.equal(await page.locator('#panel-style').isVisible(),true,'Loaded model satisfies Identity');
+  await page.locator('#step-back').click();
+  assert.equal(await page.locator('#model-thumbs img').count(),1,'Back keeps the model photo');
+  assert.equal(uploadCount,startUploads,'Transfer stays local until explicit credit review');
+  assert.equal(jobCount,startJobs);assert.equal(quoteCount,startQuotes);
+  await page.close();
+ }
  console.log('PASS Full Editorial 1440/390 steps, uploads, bound credit quote, confirm gate, real result assets and overflow');
 }finally{await browser.close();server.close()}

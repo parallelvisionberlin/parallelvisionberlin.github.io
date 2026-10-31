@@ -15,19 +15,20 @@ test('character invitation follows Studio cards and precedes pricing',()=>{
   assert.ok(tools>=0&&character>tools&&pricing>character);
   assert.match(home,/<span>Make room for<\/span> <span>your character\.<\/span>/);
 });
-test('character invitation links to the exact create workflow',()=>{
-  assert.match(home,/studio\.html\?tool=image&amp;createCharacter=1/);
-  assert.match(js,/if\(owner&&tool==='image'&&requestedRoute==='image'&&/);
-  assert.match(js,/sceneLibrary\.open\('characters'\)/);
-  assert.match(js,/createCharacterButton\.click\(\)/);
-  assert.match(studio,/characterLanding=20261024v1/);
+test('character invitation opens a model photo picker for Full Editorial',()=>{
+  assert.match(home,/<button class="lab-character-home__plus"[^>]*data-model-upload/);
+  assert.match(home,/<input id="home-model-photo" type="file" accept="image\/jpeg,image\/png,image\/webp" hidden>/);
+  const upload=readFileSync(path.join(root,'lab/character-home-upload.js'),'utf8');
+  assert.match(upload,/input\.click\(\)/);
+  assert.match(upload,/saveModelPhoto\(file\)/);
+  assert.match(upload,/full-editorial\.html/);
 });
 test('casting invitation uses separate local portraits, loaded fonts and a contained phone rail',()=>{
   for(const img of ['night-cast03.webp','ivory-cast03.webp','chrome-cast03.webp','plum-cast03.webp','bronze-cast03.webp','copper-inertia.webp','android-inertia.webp','curls-inertia.webp']){
     assert.match(home,new RegExp(img.replace('.','\\.')));
     assert.ok(existsSync(path.join(root,'lab/visuals/character-casting',img)));
   }
-  assert.match(home,/character-home\.css\?v=20261030-casting-inertia-4/);
+  assert.match(home,/character-home\.css\?v=20261031-model-upload1/);
   assert.match(css,/@media\(max-width:700px\)/);
   assert.match(css,/font-family:PV Casting Display/);
   assert.ok(css.includes('border-radius:999px'), 'character CTA should be rounded');
@@ -46,6 +47,6 @@ test('no billing or generation is performed by deep link',()=>{
 });
 
 test('character CTA follows the owner-approved text-only action design',()=>{
-  const cta=home.match(/<a class="lab-character-home__action"[^>]*>(.*?)<\/a>/s)?.[1];
+  const cta=home.match(/<button class="lab-character-home__action"[^>]*>(.*?)<\/button>/s)?.[1];
   assert.equal(cta,'Create your character');
 });

@@ -1,3 +1,4 @@
+import {takeModelPhoto} from './editorial-model-handoff.js?v=20261031-model-upload1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
 
@@ -402,4 +403,16 @@ $('progress-history').addEventListener('click',()=>location.assign('./studio.htm
 $('editorial-signin').addEventListener('click',()=>void signIn().catch(e=>status(e.message,true)));
 window.addEventListener('pagehide',()=>{for(const url of objectUrls.values())URL.revokeObjectURL(url);for(const r of results)if(r.url)URL.revokeObjectURL(r.url)});
 renderDirections();renderFiles();updateOptions();refreshSliderLabels();updateSeriesSummary();go(0);
+const entryUrl=new URL(location.href),modelPhoto=entryUrl.searchParams.get('modelPhoto');
+if(modelPhoto){
+ entryUrl.searchParams.delete('modelPhoto');history.replaceState(history.state,'',entryUrl.href);
+ try{
+  const file=await takeModelPhoto(modelPhoto);addFiles('model',[file]);
+  $('panel-model').dataset.modelMode='upload';
+  for(const tab of document.querySelectorAll('[data-source-view]')){
+   const active=tab.dataset.sourceView==='upload';tab.classList.toggle('is-selected',active);tab.setAttribute('aria-pressed',String(active));
+  }
+  go(1);status('Model photograph loaded.');
+ }catch(error){go(1);status(error.message,true)}
+}
 try{clerk=await loadLabAccount();await sync();clerk.addListener(()=>void sync())}catch(error){status('The account service is temporarily unavailable. You can still build your concept. '+error.message,true)}
