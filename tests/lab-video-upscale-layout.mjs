@@ -70,6 +70,15 @@ try{
   assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine]').first().isVisible(),false,label+': Image model cards hidden');
   assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').first().isVisible(),true,label+': Video models in SAME picker');
   assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').count(),3,label+': three Video models');
+  const resolutionDiag=await page.evaluate(()=>{
+    const el=document.querySelector('.pv-video-upscale-inline-resolution');
+    const st=getComputedStyle(el),rect=el.getBoundingClientRect();
+    return {outer:el.outerHTML.slice(0,250),parent:el.parentElement?.className,hidden:el.hidden,
+      display:st.display,visibility:st.visibility,rect:{width:rect.width,height:rect.height,top:rect.top},
+      parentDisplay:getComputedStyle(el.parentElement).display,
+      grandparent:el.parentElement?.parentElement?.className};
+  });
+  console.log('VIDEO_RESOLUTION_DIAG',label,JSON.stringify(resolutionDiag));
   assert.equal(await page.locator('.pv-video-upscale-inline-resolution').isVisible(),true,label+': Video resolution replaces Image controls');
   assert.equal(await page.locator('.parameter-grid').isVisible(),false,label+': Image-specific enlargement hidden');
   assert.equal(await page.locator('#empty .pv-upscale-empty-center h2').textContent(),'Insert a source video.',label+': exact Video source label');
