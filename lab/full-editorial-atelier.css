@@ -237,3 +237,76 @@
  .editorial-top-back{font-size:11px;gap:6px}
  .progress-top #progress-title{font-size:9px}
 }
+
+/* 31 Oct 2026: truthful taxonomy, location-only covers and retained look/material selections. */
+#panel-mood .stage-visual--world{height:clamp(245px,33svh,425px);min-height:0}
+#panel-mood .stage-visual--world>img{object-position:center 58%;filter:brightness(.68) saturate(.72)}
+#panel-mood .stage-visual--world .stage-copy{bottom:clamp(20px,3vw,45px)}
+#panel-mood .stage-visual--world h2{font-size:clamp(49px,6.2vw,88px);margin:10px 0 10px;line-height:.97}
+#panel-mood .atelier-workspace{padding-top:clamp(18px,2.4vw,32px)}
+#panel-mood .atelier-section-top h3{font-size:clamp(28px,3.4vw,42px)}
+#panel-mood .atelier-section-top p{max-width:630px}
+#panel-mood .direction-cards{align-items:stretch;gap:11px}
+#panel-mood .direction-cards[data-gallery="location"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+#panel-mood .direction-cards[data-gallery="moods"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+#panel-mood .direction-cards[data-gallery="material"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+#panel-mood .direction-card{min-width:0;aspect-ratio:1.18;border-radius:2px;border:1px solid #454547;transition:border-color .17s ease,transform .17s ease}
+#panel-mood .direction-card:hover{border-color:#e3e0db;transform:translateY(-2px)}
+#panel-mood .direction-cards[data-gallery="moods"] .direction-card{aspect-ratio:1.07}
+#panel-mood .direction-cards[data-gallery="material"] .direction-card{aspect-ratio:1.16}
+#panel-mood .direction-card img{object-fit:cover;object-position:center;filter:brightness(.8) saturate(.75)}
+#panel-mood .direction-card:after{inset:32% 0 0;background:linear-gradient(0deg,rgba(1,2,3,.89),rgba(1,2,3,.05) 83%)}
+#panel-mood .direction-card .direction-card-copy{
+ position:absolute;bottom:0;left:0;right:0;z-index:2;display:flex;flex-direction:column;
+ align-items:flex-start;gap:4px;text-align:left;padding:14px 13px;pointer-events:none;
+ background:none;letter-spacing:normal;line-height:1.2;
+}
+#panel-mood .direction-card-copy strong{font-weight:600;font-size:clamp(13px,1.2vw,18px);letter-spacing:-.035em;line-height:1.13;color:#fff}
+#panel-mood .direction-card-copy small{font-size:clamp(10px,.8vw,12px);line-height:1.42;color:#d6d5d3;letter-spacing:0;font-weight:400;max-width:240px}
+#panel-mood .direction-card.is-selected{outline:2px solid #f6f3ec;outline-offset:-2px;border-color:#f6f3ec}
+#panel-mood .direction-card--hotel{grid-column:span 2;aspect-ratio:2.55!important}
+#panel-mood .direction-card--hotel img{object-position:center 48%;filter:brightness(.9) saturate(.79)}
+#panel-mood .direction-card--hotel .direction-card-copy{padding:17px 20px}
+#panel-mood .direction-card--hotel .direction-card-copy strong{font-size:clamp(20px,2vw,30px)}
+#panel-mood .direction-card--hotel .direction-card-copy small{max-width:330px}
+#panel-mood .direction-cards[data-gallery="moods"] .direction-card img{object-position:center 26%}
+#panel-mood .direction-cards[data-gallery="material"] .direction-card img{object-position:center}
+#panel-mood .atelier-reference-note{margin-top:13px;margin-bottom:16px}
+.scene-reference-preview{display:block;border-top:1px solid #353638;border-bottom:1px solid #353638;padding:16px 0;margin:10px 0 19px}
+.scene-reference-preview[hidden]{display:none!important}
+.scene-preview-title{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:12px}
+.scene-preview-title strong{font-size:12px;font-weight:650;letter-spacing:.01em;color:#f1eee9}
+.scene-preview-title small{font-size:11px;color:#999a9d}
+.scene-preview-rail{display:flex;gap:11px;overflow-x:auto;padding:0 0 2px;scrollbar-width:none}
+.scene-preview-item{min-width:0;flex:0 0 clamp(115px,15vw,205px);margin:0;border:1px solid #333537;background:#111316}
+.scene-preview-item img{display:block;width:100%;aspect-ratio:1.77;object-fit:cover}
+.scene-preview-item figcaption{padding:7px 8px;font-size:9px;font-weight:650;letter-spacing:.07em;color:#bbb9b5}
+@media(max-width:950px){
+ #panel-mood .direction-cards[data-gallery="location"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ #panel-mood .direction-cards[data-gallery="location"],#panel-mood .direction-cards[data-gallery="moods"],#panel-mood .direction-cards[data-gallery="material"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #panel-mood .direction-card{aspect-ratio:1.06}
+ #panel-mood .direction-card--hotel{grid-column:span 2;aspect-ratio:2.15!important}
+ #panel-mood .direction-card .direction-card-copy{padding:12px 10px}
+ #panel-mood .direction-card-copy strong{font-size:14px}
+ #panel-mood .direction-card-copy small{font-size:10px;line-height:1.33}
+ #panel-mood .stage-visual--world{height:clamp(205px,30svh,285px)}
+ #panel-mood .stage-visual--world h2{font-size:clamp(44px,9vw,67px)}
+ .scene-preview-item{flex-basis:132px}
+}
+@media(max-width:520px){
+ #panel-mood .stage-visual--world{height:215px;min-height:0}
+ #panel-mood .stage-visual--world h2{font-size:46px;letter-spacing:-.068em}
+ #panel-mood .stage-visual--world .stage-copy{bottom:18px}
+ #panel-mood .atelier-workspace{padding-top:18px}
+ #panel-mood .atelier-section-top h3{font-size:28px}
+ #panel-mood .direction-cards[data-gallery="location"] .direction-card{aspect-ratio:1.05}
+ #panel-mood .direction-card--hotel{aspect-ratio:2.07!important}
+ #panel-mood .direction-card--hotel .direction-card-copy{padding:13px 13px}
+ #panel-mood .direction-card--hotel .direction-card-copy strong{font-size:24px}
+ #panel-mood .direction-card-copy small{font-size:10px}
+ #panel-mood .direction-card .direction-card-copy{gap:3px;padding:10px 9px}
+ .scene-preview-title small{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){#panel-mood .direction-card{transition:none}}
