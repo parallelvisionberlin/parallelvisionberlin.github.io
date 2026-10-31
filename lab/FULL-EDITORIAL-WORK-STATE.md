@@ -1,3 +1,15 @@
+## 2026-10-31 / approved compact casting mockup
+- Owner approved the visual mockup and requested implementation on the website.
+- Baseline main `fb06a7bc7f3775edfd9bfb5dd937387c3637c5e4`; branch `fix/editorial-compact-casting-20261031`. Existing model-photo handoff and latest Video changes are preserved.
+- Approved reference: generated mockup `PV LAB identity casting interface.png`, Library ID `libfile_062f94a74b508191ab160b5ec2b71faa`; the mockup is a layout reference, not a replacement for original photographs.
+- Identity desktop hero is 280 px, title 64-84 px, original photo reframed at 58% / 26% so eyes are visible. Shared progress rail is 38 px; repeated step text inside photographic navigation is hidden. Removed Identity / Source eyebrow.
+- Choose a model and its description use adjacent desktop grid columns. Compact heading/tab spacing and square original casting photographs with captions below match the approved mockup. Phone retains its existing portrait cards, stacked source copy and hidden duplicate navigation.
+- Only `full-editorial-atelier.css`, stylesheet cache key in `full-editorial.html`, existing geometry checks in `tests/lab-full-editorial-browser.mjs`, and this checkpoint changed. No generation JavaScript, model handoff, pricing or billing changes.
+- Local 10/10 approved Image / Full Editorial source tests and whitespace checks passed. Actual supported-browser preview at 1363x936: cards 500-767 px, no overflow. At 1920x914: cards 503-840 px and note ends at 870 px, so all five captions fit. Phone 390x844 iframe: no horizontal overflow, navigation hidden, source copy stacked.
+- Existing complete mocked desktop/phone generation workflow now asserts a 280 px hero, nearby description and full card-row visibility; its CI result is pending. No paid generation or purchase performed.
+- Release status: local implementation/visual verification complete; source commit, PR, CI and production verification pending.
+- Next: publish the scoped branch, inspect relevant CI, merge and verify Cloudflare plus live asset bytes and layout.
+
 ## 2026-10-31 / navigation inside the working hero
 - Owner request: raise the working hero, place the four-stage rail inside the photograph, compact Back / Step / Start over, and move the Identity source description beside Choose a model.
 - Baseline main: `1098236b0a44dd7457b59e4e278e75e27c76be1c`; isolated branch `fix/editorial-hero-navigation-20261031`. No open PR overlaps Full Editorial in the checked recent PR list.
