@@ -8,6 +8,10 @@ on:
       - 'lab/studio.css'
       - 'tests/lab-upscale-assets-visibility.mjs'
       - 'tests/lab-upscale-ui.mjs'
+      - 'tests/lab-video-upscale-layout.mjs'
+      - 'lab/video-upscale.css'
+      - 'lab/video-upscale.js'
+      - 'lab/assets.js'
       - '.github/workflows/pv-lab-upscale-assets.yml'
   workflow_dispatch:
 permissions:
@@ -41,6 +45,11 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
         run: node tests/lab-upscale-ui.mjs
+      - name: Verify mobile and desktop Image/Video Upscaler parity
+        if: ${{ !cancelled() }}
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
+        run: node tests/lab-video-upscale-layout.mjs
       - name: Keep desktop and mobile screenshots for review
         if: always()
         uses: actions/upload-artifact@v4
