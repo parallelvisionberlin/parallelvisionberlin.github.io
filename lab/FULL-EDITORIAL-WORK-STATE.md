@@ -5,7 +5,11 @@
 - Product files: `index.html` and `home-creative-features.css`; stylesheet cache key `20261101-editorial-button1`. Also this checkpoint. No JavaScript or generation changes.
 - Verification: 9/9 existing approved Image and homepage showcase checks pass; whitespace clean. Browser preview inspected on desktop; phone 390 and 320 px frames have no horizontal overflow and the 219 px CTA fits. Desktop label 20.99 px with italic 29.99 px, CTA 246.78x48.98 px.
 - Optional Zencreator source suite needs image/sitemap fixtures omitted from this sparse checkout; no test changed. Full-checkout CI remains the release authority.
-- Release: pending reviewed-source CI, merge, Cloudflare and actual production verification.
+- Published PR #749; reviewed source `253977a040bddb94338140bc2d6aa5f92a8b3342`, merge `e6d770b60b27108a1e15f14750377f1477dc263b`. Approved Image, landing stability, core, gallery, static validation and indexing checks passed. Inspected legacy landing failure expects old Beauty Studio menu name while unchanged source names it ALTER; broader Studio retains pre-existing Upscaler 334 vs 302 px failure. No gate or unrelated source changed.
+- Exact merged-source Cloudflare pvlab-studio deployment `7b072d27-1751-497a-92e7-e73d96219115` succeeded, check `124686413627`.
+- Production homepage HTML and CSS return HTTP 200; expected version is present and CSS equals reviewed bytes, SHA-256 `06b23b6ae451ac327de85a11c6d4e2b753f228eda299f7441e3a4c18c57848e0`. Actual public production browser confirms the mixed typography, retained link and correct stylesheet. Saved visual inspected. No paid or signed-in generation performed.
+- Read-only release verifier was run; its fixed /studio HTML reports LIVE_VERSION_MISMATCH for this homepage-only asset. Direct homepage version and exact-byte checks above complete equivalent publication verification.
+- Next: complete and verified live; product scope stays the homepage featured Editorial button.
 
 ## 2026-10-31 / coherent phone Generate layout
 - Owner screenshot `IMG_8312.png` (`libfile_67b285fcf8b0819183a8f545a02e1027`) shows the large inspiration photograph and heading pushing settings down, while sticky Back covers the reference summary.
