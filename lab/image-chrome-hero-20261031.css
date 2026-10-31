@@ -1,0 +1,51 @@
+/* PV LAB | Approved Image Studio chrome editorial, 2026-10-31.
+   Only the first-image and public Image inspiration surfaces are affected.
+   History, hidden previews, mood selection, prompt and provider workflows stay intact. */
+
+#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])::before{
+  background:url("./visuals/image-hero-chrome-editorial-20261031.jpg") 52% 24%/cover no-repeat!important;
+  background-attachment:scroll!important;
+  opacity:1!important;filter:none!important;transform:none!important;
+}
+#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])::after{
+  background:
+    linear-gradient(90deg,rgba(4,5,7,.26) 0%,rgba(4,5,7,.09) 42%,transparent 72%),
+    linear-gradient(180deg,rgba(2,4,6,.15) 0%,rgba(2,4,6,.03) 42%,rgba(2,4,6,.11) 75%,rgba(2,3,5,.27) 100%)!important;
+}
+html:not(.pv-image-previews-hidden) #app.image-studio-active
+  .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::before{
+  inset:0!important;height:100%!important;
+  background:url("./visuals/image-hero-chrome-editorial-20261031.jpg") 52% 24%/cover no-repeat!important;
+  opacity:1!important;filter:none!important;transform:none!important;
+}
+html:not(.pv-image-previews-hidden) #app.image-studio-active
+  .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::after{
+  background:
+    linear-gradient(90deg,rgba(4,5,7,.26) 0%,rgba(4,5,7,.09) 42%,transparent 72%),
+    linear-gradient(180deg,rgba(2,4,6,.15) 0%,rgba(2,4,6,.03) 42%,rgba(2,4,6,.11) 75%,rgba(2,3,5,.27) 100%)!important;
+}
+
+/* Line the headline up with the first inspiration card. Do not move the cards,
+   composer, hidden status copy or the existing vertical positions. */
+@media(min-width:681px){
+  #gate.pv-guest-image[data-guest-tool="image"] .pv-guest-content > #pv-guest-title,
+  #app.image-studio-active #lab-welcome-start > #lab-welcome-title{
+    box-sizing:border-box!important;
+    width:100%!important;max-width:1610px!important;
+    align-self:center!important;text-align:left!important;
+  }
+}
+@media(max-width:680px){
+  #gate.pv-guest-image[data-guest-tool="image"]:not([hidden])::before{
+    background-position:60% top!important;
+  }
+  html:not(.pv-image-previews-hidden) #app.image-studio-active
+    .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::before{
+    background-position:60% top!important;
+  }
+  #gate.pv-guest-image[data-guest-tool="image"]:not([hidden])::after,
+  html:not(.pv-image-previews-hidden) #app.image-studio-active
+    .image-gallery-shell:has(#image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden]))::after{
+    background:linear-gradient(180deg,rgba(2,3,5,.50) 0%,rgba(2,3,5,.23) 27%,rgba(2,3,5,.38) 78%,rgba(2,3,5,.72) 100%)!important;
+  }
+}
