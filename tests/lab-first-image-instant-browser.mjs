@@ -98,7 +98,7 @@ try{
         const image=new Image();image.src=src;await image.decode();
       });
       const art=await p.locator('#gate').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
-      assert.match(art,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,'Public entrance uses the approved cobalt/copper artwork');
+      assert.match(art,/\/visuals\/image-hero-chrome-editorial-20261031\.jpg/,'Public entrance uses the approved chrome editorial photograph');
       async function entranceGeometry(guest){
         return p.evaluate(guest=>{
           const rect=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};};
@@ -108,6 +108,8 @@ try{
         },guest);
       }
       const publicGeometry=await entranceGeometry(true);
+      assert.ok(Math.abs(publicGeometry.title.x-publicGeometry.cards[0].x)<4,
+        'Desktop headline aligns left with the first Inspiration card');
       const clip={x:16,y:110,width:Math.floor(viewport.width/4),height:120},options={clip,animations:'disabled',caret:'hide'};
       const before=await p.screenshot(options);
       async function assertBackdropStill(label){
@@ -242,7 +244,7 @@ try{
       assert.deepEqual(Object.keys(a.controls).sort(),Object.keys(b.controls).sort(),label+' same visible controls');
       for(const key of ['x','y','w','h'])assert.ok(Math.abs(a[key]-b[key])<2,label+' same deck '+key+': '+JSON.stringify({a,b}));
       assert.equal(a.background,b.background,label+' same graphite surface');assert.equal(a.radius,b.radius);
-      assert.match(a.backdrop.image,/\/visuals\/pvlab-subtle-cinematic-background-20261017\.webp/,label+' uses approved entrance art');
+      assert.match(a.backdrop.image,/\/visuals\/image-hero-chrome-editorial-20261031\.jpg/,label+' uses approved entrance art');
       assert.deepEqual(a.backdrop,b.backdrop,label+' entrance artwork and treatment match');
       for(const name of ['stage','title'])for(const key of ['x','y','w','h','font','weight','line','color','radius'])
         assert.equal(a.entrance[name][key],b.entrance[name][key],label+' canonical '+name+' '+key);
@@ -467,11 +469,11 @@ try{
   assert.ok(Math.abs(welcomeSurface.backgroundHeight-welcomeSurface.shellHeight)<3,
     'The photographic background must cover the full welcome viewport: '+JSON.stringify(welcomeSurface));
   assert.ok(Number(welcomeSurface.opacity)>=.99 && welcomeSurface.filter==='none',
-    'Clean blue/copper plate must not have a heavily blurred saturation filter: '+JSON.stringify(welcomeSurface));
-  assert.ok(welcomeSurface.image.includes('pvlab-subtle-cinematic-background-20261017.webp'),
-    'Welcome must use its own clean 01/Subtle & Cinematic backdrop, not a complete UI screenshot');
-  assert.ok(existsSync(resolve(root,'lab/visuals/pvlab-subtle-cinematic-background-20261017.webp')),
-    'The clean background asset must ship with the deployed site');
+    'Chrome photograph must not have an artificial blur/saturation filter: '+JSON.stringify(welcomeSurface));
+  assert.ok(welcomeSurface.image.includes('image-hero-chrome-editorial-20261031.jpg'),
+    'Welcome must use the approved standalone chrome portrait, not a screenshot of the interface');
+  assert.ok(existsSync(resolve(root,'lab/visuals/image-hero-chrome-editorial-20261031.jpg')),
+    'The approved chrome background asset must ship with the deployed site');
   const moodCard=page.locator('[data-welcome-mood="dream-blur"]');
   const idleShadow=await moodCard.evaluate(el=>getComputedStyle(el).boxShadow);
   const oldMoodGeometry=await moodCard.evaluate(el=>{
@@ -852,10 +854,10 @@ try{
     'Mobile Inspiration must not reserve the old viewport + 200px height: '+JSON.stringify(mobileSurface));
   assert.ok(mobileSurface.shellHeight<=mobileSurface.contentHeight+8,
     'Gallery height must follow actual visible content, without a black trailing void: '+JSON.stringify(mobileSurface));
-  assert.match(mobileSurface.backgroundImage,/pvlab-subtle-cinematic-background-20261017\.webp/,
-    'Keep the approved original photographic plate');
-  assert.match(mobileSurface.backgroundSize,/100% 100%/,
-    'On narrow phones show the complete cobalt/copper image, not the black center crop');
+  assert.match(mobileSurface.backgroundImage,/image-hero-chrome-editorial-20261031\.jpg/,
+    'Keep the approved chrome editorial photograph');
+  assert.match(mobileSurface.backgroundSize,/cover/,
+    'On narrow phones crop the approved chrome portrait naturally rather than stretching it');
   assert.ok(Math.abs(mobileSurface.backdropHeight-mobileSurface.shellHeight)<4,
     'Mobile backdrop must cover the whole actual gallery: '+JSON.stringify(mobileSurface));
   assert.equal(mobileSurface.footer,'none',

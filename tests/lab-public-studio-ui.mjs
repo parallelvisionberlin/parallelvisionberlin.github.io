@@ -14,7 +14,7 @@ const approvedRef='ac33d20c50bdd88e71547e96a70781efae4b5a11';
 const approvedFiles=new Map(['lab/lab.js','lab/studio.html','lab/studio-guest-image.js','lab/studio-guest-image.css','lab/precision-edit.js','lab/video-scene-states.js','lab/fashion-studio.js','lab/fashion.js'].map(path=>[path,execFileSync('git',['show',approvedRef+':'+path]) ]));
 // Owner-approved Dream Blur cover replacement, PR #521. Update only the two
 // Image card image URLs in the independent baseline; retain every layout byte
-// and the original wallpaper. Pixel comparison still protects all other UI.
+// and their previously approved wallpaper until the independently approved\n// October 31 chrome background refinement below. All other pixel checks remain strict.
 const approvedImageHtml=approvedFiles.get('lab/studio.html').toString('utf8');
 const originalDreamBlurCard='src="./mood-previews/dream-blur-20261015.jpg"';
 assert.equal(approvedImageHtml.split(originalDreamBlurCard).length,3,'Approved public and signed-in Dream Blur card anchors remain identifiable');
@@ -41,6 +41,18 @@ assert.equal(approvedCharacterHtml.split(approvedCharacterAnchor).length,2,'Orig
 approvedFiles.set('lab/studio.html',Buffer.from(approvedCharacterHtml
   .replace(approvedCharacterAnchor,'<div class="scene-image-library-wrap">'+approvedCharacterButton+'<button id="pv-guest-library"')
   .replace('</head>','<style>'+approvedCharacterStyles+'</style></head>')));
+
+// Owner-approved chrome editorial background, left headline and Chrome Couture
+// photograph (October 31). Update only the independent Image visual reference
+// with these expressly changed elements. All other baseline sources and
+// strict pixel tolerances remain unchanged.
+const approvedChromeHtml=approvedFiles.get('lab/studio.html').toString('utf8');
+const previousChromeSrc='src="./mood-previews/chrome-couture-20261019.avif"';
+assert.equal(approvedChromeHtml.split(previousChromeSrc).length,3,
+  'Approved public and signed-in Chrome Couture card anchors remain identifiable');
+approvedFiles.set('lab/studio.html',Buffer.from(approvedChromeHtml
+  .replaceAll(previousChromeSrc,'src="./mood-previews/chrome-couture-metal-editorial-20261031.jpg"')
+  .replace('</head>','<link rel="stylesheet" href="./image-chrome-hero-20261031.css?v=1"></head>')));
 // Freeze each baseline’s matching Retouch/Video dependencies with its HTML.
 // Owner-approved Runway Replace Outfit freezes its own Fashion visual source,
 // while all Image/Video/Upscaler/Retouch baselines remain
@@ -174,8 +186,21 @@ try{
       assert.equal(await page.locator('#studio-account-menu').isVisible(),false,'account');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,route+' overflow');
       assert.equal(await page.evaluate(()=>window.__publicAccount.signins.length),0,'browse without auth');
-      if(route==='image')assert.equal(await page.locator('#pv-guest-characters').isVisible(),true,
-        'The approved Characters shortcut is directly accessible');
+      if(route==='image'){
+        assert.equal(await page.locator('#pv-guest-characters').isVisible(),true,
+          'The approved Characters shortcut is directly accessible');
+        const photo=await page.locator('#gate').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
+        assert.match(photo,/image-hero-chrome-editorial-20261031\.jpg/,
+          'The approved chrome portrait is the Image background');
+        const chrome=page.locator('#pv-guest-cards [data-guest-mood="chrome-couture"] img');
+        assert.match(await chrome.getAttribute('src'),/chrome-couture-metal-editorial-20261031\.jpg/,
+          'Chrome Couture displays the approved new image');
+        if(width>=700){
+          const titleX=await page.locator('#pv-guest-title').evaluate(el=>el.getBoundingClientRect().left);
+          const firstX=await page.locator('#pv-guest-cards .pv-guest-card').first().evaluate(el=>el.getBoundingClientRect().left);
+          assert.ok(Math.abs(titleX-firstX)<4,'The title starts at the first Inspiration card edge');
+        }
+      }
       assert.deepEqual(requests,[],'guests must make no private API requests');
       // Compare the actual editorial regions with the approved implementation
       // recovered from Git, independently booted through its original auth path.
