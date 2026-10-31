@@ -98,6 +98,11 @@ export function createVideoStartFrameMaker({
   }
   function sync(){
     const c=context(),ready=c.allowed&&c.references.length>0&&c.providerReady;
+    // Show this optional Seedream composition workflow only after the user
+    // has selected reference photographs in a supported Reference mode.
+    // Never make it look like a Wan input or required setup step.
+    const maker=$('start-frame-maker');
+    if(maker)maker.hidden=!(c.allowed&&c.references.length>0);
     const activeJob=!!pendingJobId&&['submitting','queued','running','saving','uncertain'].includes(stage);
     openButton.disabled=!ready||c.busy;
     openButton.title=!c.references.length?'Add at least one reference photograph first.':
