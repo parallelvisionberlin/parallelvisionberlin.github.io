@@ -31,4 +31,4 @@ jobs:
       - name: Validate model allowlist, private media and credit quoting
         run: node --test tests/lab-video-upscale.test.mjs
       - name: Guard image/video upscaling and billing against regressions
-        run: node --test tests/lab-worker.test.mjs tests/lab-upscale-ui.mjs
+        run: node --test tests/lab-worker.test.mjs tests/lab-new-models-pricing.test.mjs
