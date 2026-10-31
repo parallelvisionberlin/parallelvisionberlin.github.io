@@ -246,3 +246,8 @@
  #panel-model .atelier-section-top{margin-bottom:16px}
  #panel-model .atelier-source-tabs{margin-bottom:16px}
 }
+
+/* Mobile: the photograph carries the step label; remove repeated navigation above it. */
+@media(max-width:800px){
+ .flow-main>.progress-top,.flow-main>.editorial-flow-rail{display:none}
+}

@@ -1,3 +1,12 @@
+## 2026-10-31 / mobile hero without repeated navigation
+- Owner request: remove clutter above the phone Identity photograph; use the existing small label inside the hero.
+- Baseline main: `9342379bc07fbefbf892c31c42830553b5b83e9e`; no concurrent head change observed before commit.
+- At widths up to 800 px, hide the top Back / Step / Start over row and the four-stage rail. Existing hero label, title and description remain; footer Back / Continue stays available. Desktop navigation remains visible.
+- Files: `full-editorial-atelier.css`, cache key in `full-editorial.html`, updated mobile expectations in `tests/lab-full-editorial-browser.mjs`, and this checkpoint. No generation JavaScript changed.
+- Verified: 10/10 existing Image UI contract and Full Editorial source tests pass. Browser inspection of actual page markup/styles at phone and desktop iframe widths confirms hidden mobile rows, hero 12 px below header, preserved desktop navigation and no phone horizontal overflow.
+- Local visual fixture is presentation-only, with published images. Dedicated complete authenticated/mock billing browser suite was updated but not executed locally; CI remains required. No paid generation was run.
+- Publication: this change is prepared for main; Cloudflare exact-commit status and production asset remain to be checked after commit. Do not infer live publication from the commit.
+
 ## 2026-10-30 / image-led Full Editorial Studio flow (PR #704)
 - Approved visual direction: fashion photographic atelier, not a technical form, futuristic UI or decorative sci-fi scene. Full-screen responsive photo stages, clear Who/Identity > Wear/Styling > World/Location & Mood > Series/Generate.
 - Reuses published original user-supplied casting assets: bronze-cast03 hero, plum-cast03 Identity, chrome-cast03 Styling, ivory-cast03 review, plus approved angular desert artwork in the World stage. No synthetic mockups are used as selectable assets.
