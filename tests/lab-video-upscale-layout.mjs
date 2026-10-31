@@ -27,124 +27,82 @@ try{
   await page.route('https://**/*',route=>route.abort());
   await page.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=upscale',{waitUntil:'domcontentloaded'});
   await page.evaluate(async()=>{
-    document.body.classList.add('lab-ready');
-    const app=document.getElementById('app');app.hidden=false;
-    document.getElementById('gate').hidden=true;
-    app.classList.add('upscale-studio-active');
-    document.getElementById('upscale-model-menu').hidden=false;
-    const {createVideoUpscaler}=await import('/lab/video-upscale.js');
-    window.__videoLayoutTest=createVideoUpscaler({
-      api:async()=>{throw Error('Unexpected provider request during layout test');},
-      access:()=>({signedIn:true,falEnabled:true,generationReady:true}),
-      onJob:()=>{throw Error('Unexpected paid job');},
-      onModeChange:()=>{}
-    });
-    window.__videoLayoutTest.sync();
+   document.body.classList.add('lab-ready');
+   const app=document.getElementById('app');app.hidden=false;
+   document.getElementById('gate').hidden=true;
+   app.classList.add('upscale-studio-active');
+   document.getElementById('upscale-model-display').hidden=false;
+   document.getElementById('upscale-model-menu').hidden=false;
+   const {createVideoUpscaler}=await import('/lab/video-upscale.js');
+   window.__videoLayoutTest=createVideoUpscaler({
+    api:async()=>{throw Error('Unexpected provider request during layout test');},
+    access:()=>({signedIn:true,falEnabled:true,generationReady:true}),
+    onJob:()=>{throw Error('Unexpected paid job');},
+    onModeChange:()=>{}
+   });
+   window.__videoLayoutTest.sync();
   });
-  const initial=await page.evaluate(()=>{
-    const app=document.getElementById('app'),ws=app.querySelector(':scope > .workspace');
-    const controls=ws.querySelector(':scope > .controls'),stage=ws.querySelector(':scope > .stage');
-    const b=el=>{const r=el.getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
-    return {workspace:b(ws),stage:b(stage),controls:b(controls),bar:b(document.getElementById('pv-video-upscale-mode')),
-      single:app.querySelectorAll(':scope > .workspace').length,
-      barInside:ws.contains(document.getElementById('pv-video-upscale-mode')),
-      sidebarInside:controls.contains(document.querySelector('.pv-video-upscale-sidebar')),
-      videoInside:stage.contains(document.querySelector('.pv-video-upscale-preview'))};
+  const original=await page.evaluate(()=>{
+   const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
+   return {canvas:rect('#upscale-canvas'),action:rect('#generate'),picker:rect('#upscale-model-menu'),
+    workspaceCount:document.querySelectorAll('#app>.workspace').length,
+    title:document.querySelector('#empty .pv-upscale-empty-center h2').textContent};
   });
-  assert.equal(initial.single,1,label+': exactly one Upscaler workspace');
-  assert.equal(initial.barInside,true,label+': media switch is inside the workspace');
-  assert.equal(initial.sidebarInside,true,label+': video model cards reuse original inspector');
-  assert.equal(initial.videoInside,true,label+': video preview reuses original stage');
-  const diag=await page.evaluate(()=>{
-    const x=sel=>{const el=document.querySelector(sel);const r=el?.getBoundingClientRect();return {display:el?getComputedStyle(el).display:null,visibility:el?getComputedStyle(el).visibility:null,hidden:el?.hidden,rect:r?{top:r.top,bottom:r.bottom,height:r.height,width:r.width}:null};};
-    return {classes:document.getElementById('app').className,workspace:x('#app>.workspace'),stage:x('#app>.workspace>.stage'),canvas:x('#upscale-canvas'),controls:x('#app>.workspace>.controls'),body:x('.controls-body'),bar:x('#pv-video-upscale-mode'),preview:x('.pv-video-upscale-preview')};
-  });
-  console.log('LAYOUT_DIAG',label,JSON.stringify(diag));
-  assert.equal(await page.locator('.controls-body').isVisible(),true,label+': Image controls initially visible');
-  assert.equal(await page.locator('#upscale-canvas').isVisible(),true,label+': Image preview initially visible');
-  assert.equal(await page.locator('.pv-video-upscale-preview').isVisible(),false,label+': Video stage hidden initially');
-  if(width>780){
-    assert.ok(initial.workspace.bottom<=height+2,label+': original editor fits browser viewport');
-    assert.ok(initial.controls.bottom<=height+2,label+': image inspector fits viewport');
-    assert.ok(initial.stage.bottom<=height+2,label+': image stage fits viewport');
-    assert.ok(initial.bar.left<initial.controls.right,label+': switch stays in left inspector');
-  }else assert.ok(initial.bar.bottom<=initial.stage.top+3,label+': phone switch appears before preview');
-  const imageEmpty=await page.evaluate(()=>{
-    const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
-    return {canvas:rect('#upscale-canvas'),frame:rect('#upscale-canvas .pv-upscale-empty-center'),stage:rect('#app>.workspace>.stage')};
-  });
-  // Upload simulation: keep the real image editor source and verify no
-  // vertical expansion or aspect-ratio cropping of the original.
+  assert.equal(original.workspaceCount,1,label+': only one Upscaler editor');
+  assert.equal(original.title,'Use a source frame.',label+': original Image title');
+  assert.equal(await page.locator('#upscale-canvas').isVisible(),true,label+': Image canvas visible');
+  assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine]').first().isVisible(),true,label+': original Image model cards');
+  assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').first().isVisible(),false,label+': Video cards hidden in Image');
+  // An uploaded Image must remain untouched when switching media modes.
   await page.evaluate(()=>{
-    const c=document.createElement('canvas');c.width=1254;c.height=1254;
-    const ctx=c.getContext('2d');ctx.fillStyle='#282a2f';ctx.fillRect(0,0,1254,1254);
-    const img=document.getElementById('preview');img.src=c.toDataURL('image/png');
-    img.hidden=false;document.getElementById('empty').hidden=true;
-    document.getElementById('app').classList.add('pv-upscale-source-ready');
+   const c=document.createElement('canvas');c.width=400;c.height=400;
+   c.getContext('2d').fillRect(0,0,400,400);
+   const img=document.getElementById('preview');img.src=c.toDataURL('image/png');img.hidden=false;
+   document.getElementById('empty').hidden=true;
+   document.getElementById('app').classList.add('pv-upscale-source-ready');
   });
   await page.locator('#preview').waitFor({state:'visible'});
-  if(width>780){
-    const loaded=await page.evaluate(()=>{
-      const rect=selector=>document.querySelector(selector).getBoundingClientRect();
-      return {workspace:rect('#app>.workspace'),stage:rect('#app>.workspace>.stage'),
-        canvas:rect('#upscale-canvas'),image:rect('#preview'),imageFit:getComputedStyle(document.getElementById('preview')).objectFit};
-    });
-    assert.ok(loaded.workspace.bottom<=height+2,label+': uploaded image does not extend workspace below viewport');
-    assert.ok(loaded.stage.bottom<=height+2,label+': uploaded image does not extend stage below viewport');
-    assert.ok(loaded.canvas.bottom<=height+2,label+': loaded canvas remains contained');
-    assert.equal(loaded.imageFit,'contain',label+': original image stays uncropped');
-  }
-  await page.screenshot({path:'test-results/upscaler-shared-image-'+label+'.png',fullPage:false});
   await page.locator('[data-video-upscale-tab="video"]').click();
-  assert.equal(await page.locator('#app>.workspace').isVisible(),true,label+': Video uses SAME visible workspace');
-  assert.equal(await page.locator('.controls-body').isVisible(),false,label+': Image settings hidden in Video');
-  assert.equal(await page.locator('#upscale-canvas').isVisible(),false,label+': original Image stage hidden in Video');
-  assert.equal(await page.locator('.pv-video-upscale-sidebar').isVisible(),true,label+': Video model cards visible');
-  assert.equal(await page.locator('.pv-video-upscale-preview').isVisible(),true,label+': Video preview visible');
-  assert.equal(await page.locator('#pv-video-upscale-panel').isVisible(),false,label+': old separate Video deck stays unmounted');
-  assert.equal(await page.locator('.archive').isVisible(),true,label+': private History remains available');
-  assert.equal(await page.locator('[data-video-upscale-model]').count(),3,label+': all three Video models remain');
+  assert.equal(await page.locator('#upscale-canvas').isVisible(),true,label+': SAME source canvas remains');
+  assert.equal(await page.locator('#app>.workspace').count(),1,label+': no second Video workspace');
+  assert.equal(await page.locator('.pv-video-upscale-preview').isVisible(),false,label+': duplicate Video deck stays hidden');
+  assert.equal(await page.locator('.pv-video-upscale-sidebar').isVisible(),false,label+': duplicate Video sidebar stays hidden');
+  assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine]').first().isVisible(),false,label+': Image model cards hidden');
+  assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').first().isVisible(),true,label+': Video models in SAME picker');
+  assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').count(),3,label+': three Video models');
+  assert.equal(await page.locator('.pv-video-upscale-inline-resolution').isVisible(),true,label+': Video resolution replaces Image controls');
+  assert.equal(await page.locator('.parameter-grid').isVisible(),false,label+': Image-specific enlargement hidden');
+  assert.equal(await page.locator('#empty .pv-upscale-empty-center h2').textContent(),'Insert a source video.',label+': exact Video source label');
+  assert.equal(await page.locator('#pv-upscale-hero-upload span').textContent(),'Upload video',label+': SAME upload button');
+  assert.equal(await page.locator('#preview').isVisible(),false,label+': saved Image preview hidden, not deleted');
   const video=await page.evaluate(()=>{
-    const b=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
-    return {workspace:b('#app>.workspace'),preview:b('.pv-video-upscale-preview'),sidebar:b('.pv-video-upscale-sidebar'),
-      photo:getComputedStyle(document.querySelector('#pv-video-upscale-blank'),'::before').backgroundImage,
-      art:getComputedStyle(document.querySelector('.pv-video-upscale-model .pv-upscale-model-art')).backgroundImage,
-      modelLayout:getComputedStyle(document.querySelector('.pv-video-upscale-model')).display,
-      upload:document.querySelector('#pv-video-upscale-choose').textContent.trim(),
-      action:document.querySelector('#pv-video-upscale-action').textContent.trim()};
+   const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
+   return {canvas:rect('#upscale-canvas'),action:rect('#generate'),picker:rect('#upscale-model-menu'),
+    photo:getComputedStyle(document.querySelector('#empty .pv-upscale-dropzone'),'::before').backgroundImage};
   });
-  assert.match(video.photo,/upscaler-chrome-wool-option-1\.jpg/,label+': Video uses original Image photo');
-  assert.match(video.art,/upscaler-model-bytedance\.webp/,label+': same model-card art');
-  assert.equal(video.modelLayout,'grid',label+': same model-card layout');
-  assert.equal(video.upload,'Upload video',label+': only stage has video upload CTA');
-  assert.equal(video.action,'Upscale',label+': disabled generation CTA matches Image');
+  assert.ok(Math.abs(original.canvas.width-video.canvas.width)<=2,label+': identical source width');
+  assert.ok(Math.abs(original.canvas.height-video.canvas.height)<=2,label+': identical source height');
+  assert.ok(Math.abs(original.action.top-video.action.top)<=2,label+': same Upscale button position');
+  assert.ok(Math.abs(original.picker.left-video.picker.left)<=2,label+': model cards stay in place');
+  assert.match(video.photo,/upscaler-chrome-wool-option-1\.jpg/,label+': exact Image photograph remains');
+  if(width>780)assert.ok(video.canvas.bottom<=height+2,label+': desktop stays within viewport');
+  // Real native MP4 picker must open from the SAME image upload button.
   const chooser=page.waitForEvent('filechooser');
-  await page.locator('#pv-video-upscale-choose').click();
-  assert.equal((await chooser).isMultiple(),false,label+': Video stage opens native single-file MP4 picker');
-
-  if(width<=780){
-    const mobile=await page.evaluate(()=>{
-      const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
-      return {canvas:rect('.pv-video-upscale-stage'),frame:rect('.pv-video-upscale-blank-center'),header:rect('.pv-video-upscale-preview-head'),footVisible:getComputedStyle(document.querySelector('.pv-video-upscale-preview-foot')).display!=='none'};
-    });
-    console.log('UPSCALE_MOBILE_PARITY',JSON.stringify({image:imageEmpty,video:mobile}));
-    assert.ok(Math.abs(mobile.canvas.height-imageEmpty.canvas.height)<=8,label+': Image and Video mobile canvases have equal height');
-    assert.ok(Math.abs(mobile.frame.width-imageEmpty.frame.width)<=8,label+': Image and Video upload frames have equal width');
-    assert.ok(Math.abs(mobile.frame.height-imageEmpty.frame.height)<=12,label+': Image and Video upload frames have equal height');
-    assert.equal(mobile.footVisible,false,label+': empty Video has no extra bottom bar');
-    assert.ok(mobile.header.height>=34&&mobile.header.height<=44,label+': Video header matches Image source bar');
-  }
-  if(width>780){
-    assert.ok(video.workspace.bottom<=height+2,label+': Video stage fits browser viewport');
-    assert.ok(video.preview.left>=video.sidebar.right-2,label+': same desktop side-by-side columns');
-  }else assert.ok(video.preview.top<video.sidebar.top,label+': phone preview before settings');
-  await page.screenshot({path:'test-results/upscaler-shared-video-'+label+'.png',fullPage:false});
+  await page.locator('#pv-upscale-hero-upload').click();
+  const picker=await chooser;
+  assert.equal(picker.isMultiple(),false,label+': single video file chooser');
+  await picker.setFiles({name:'sample.mp4',mimeType:'video/mp4',buffer:Buffer.alloc(256,1)});
+  assert.equal(await page.locator('#pv-video-upscale-source').isVisible(),true,label+': Video renders in original source canvas');
+  assert.equal(await page.locator('#pv-upscale-hero-upload').isVisible(),false,label+': plus replaced by video preview');
+  await page.screenshot({path:'test-results/upscaler-single-video-'+label+'.png',fullPage:false});
   await page.locator('[data-video-upscale-tab="image"]').click();
-  assert.equal(await page.locator('#preview').isVisible(),true,label+': original uploaded image survives mode switch');
-  assert.equal(await page.locator('.pv-video-upscale-preview').isVisible(),false,label+': Video preview hidden again');
-  assert.equal(await page.locator('.controls-body').isVisible(),true,label+': Image settings return without remount');
-  assert.deepEqual(errors,[],label+': no JavaScript page errors');
-  console.log('PASS '+label+' single Upscaler workspace, switch, source retention and viewport');
+  assert.equal(await page.locator('#preview').isVisible(),true,label+': Image preview restored without reupload');
+  assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine]').first().isVisible(),true,label+': original Image models restored');
+  assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').first().isVisible(),false,label+': Video models hidden');
+  assert.equal(await page.locator('.pv-video-upscale-inline-resolution').isVisible(),false,label+': Video resolution hidden in Image');
+  assert.equal(await page.locator('#empty .pv-upscale-empty-center h2').textContent(),'Use a source frame.',label+': Image title restored');
+  assert.deepEqual(errors,[],label+': no page errors');
+  console.log('PASS '+label+' one Upscaler DOM, stable dimensions, real MP4 upload and image preservation');
   await context.close();
  }
 }finally{await browser.close();await new Promise(done=>server.close(done));}
