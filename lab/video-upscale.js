@@ -32,6 +32,8 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  if(!outputSettings)throw Error('Upscaler output settings row unavailable.');
  outputSettings.after(resolutionField);
  resolutionField.after(quoteField,messageField);
+ // The shared editor must never expose the Video Upscaler inputs on other routes.
+ resolutionField.hidden=true;quoteField.hidden=true;messageField.hidden=true;
  const preview=panel.querySelector('.pv-video-upscale-preview');
  for(const id of ['pv-video-upscale-source','pv-video-upscale-result','pv-video-upscale-working'])
    canvas.append(document.getElementById(id));
@@ -80,6 +82,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    const active=app.classList.contains('upscale-studio-active')&&!app.classList.contains('assets-active')&&!app.classList.contains('fashion-studio-active');
    bar.hidden=!active;panel.hidden=true;
    const videoMode=active&&media==='video';
+   resolutionField.hidden=!videoMode;quoteField.hidden=!videoMode;messageField.hidden=!videoMode;
    app.classList.toggle('video-upscale-active',videoMode);
    app.classList.toggle('video-upscale-has-source',videoMode&&!!file);
    if(lastSyncedMode!==media){
