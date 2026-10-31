@@ -121,6 +121,46 @@ for(const id of ['model-select','fashn16-category','fashn16-quality','max-resolu
 $('direction').addEventListener('input',()=>change());
 const looks=$('looks-scroller');
 if(looks){
+  // The carousel itself clips overflowing thumbnails. An inert preview layer
+  // lets a hovered Look grow above the strip while scroll, selection and layout stay put.
+  const lookPreview=looks.ownerDocument.createElement('div');
+  lookPreview.className='look-hover-preview';
+  lookPreview.setAttribute('aria-hidden','true');
+  const lookPreviewImage=looks.ownerDocument.createElement('img');
+  lookPreviewImage.alt='';
+  const lookPreviewTitle=looks.ownerDocument.createElement('span');
+  lookPreview.append(lookPreviewImage,lookPreviewTitle);
+  looks.parentElement.appendChild(lookPreview);
+  const closeLookPreview=()=>lookPreview.classList.remove('is-visible');
+  function openLookPreview(card){
+    if(!card||card.disabled)return;
+    const view=looks.ownerDocument.defaultView;
+    if(!view?.matchMedia?.('(hover: hover) and (pointer: fine)')?.matches)return;
+    const img=card.querySelector('img'),label=card.querySelector('span');
+    if(!img||!label)return;
+    const sectionRect=looks.parentElement.getBoundingClientRect();
+    const cardRect=card.getBoundingClientRect();
+    const imgRect=img.getBoundingClientRect();
+    const width=Math.min(254,Math.max(190,cardRect.width*1.7));
+    const x=Math.max(0,Math.min(sectionRect.width-width,cardRect.left-sectionRect.left+(cardRect.width-width)/2));
+    const y=imgRect.bottom-sectionRect.top-width/1.68;
+    lookPreview.style.left=x+'px';
+    lookPreview.style.top=y+'px';
+    lookPreview.style.width=width+'px';
+    lookPreviewImage.src=img.currentSrc||img.src;
+    lookPreviewTitle.textContent=label.textContent;
+    lookPreview.classList.add('is-visible');
+  }
+  for(const card of looks.querySelectorAll('[data-look]')){
+    card.addEventListener('pointerenter',event=>{
+      if(event.pointerType==='mouse')openLookPreview(card);
+    });
+    card.addEventListener('pointerleave',closeLookPreview);
+    card.addEventListener('focus',()=>openLookPreview(card));
+    card.addEventListener('blur',closeLookPreview);
+  }
+  looks.addEventListener('scroll',closeLookPreview,{passive:true});
+  looks.ownerDocument.defaultView?.addEventListener('resize',closeLookPreview);
   looks.addEventListener('click',event=>{
     const card=event.target.closest('[data-look]');if(!card||card.disabled)return;
     const next=activeLook===card.dataset.look?'':card.dataset.look;
