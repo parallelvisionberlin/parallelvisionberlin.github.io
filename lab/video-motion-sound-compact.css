@@ -1,0 +1,238 @@
+/* PV LAB Video / Motion & sound. Compact, media-led reference rows.
+ * This styles Seedance 2.5 Reference Set only. No provider, quoting,
+ * attachment metadata, upload validation or paid generation changes. */
+
+/* Remove the second boxed panel and the large empty gap above Video references. */
+html body #app.video-studio-active:not(.video-extend-active).pv-video-deck-ready #reference-mode[data-pv-motion-open="true"] #reference-media:not([hidden]){
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:10px!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:1px 0 0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media>.pv-media-ref-group{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:5px!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media>.pv-media-ref-group-video{
+  padding-bottom:10px!important;
+  border-bottom:1px solid #2a2d30!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-group>.upload-heading{
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:row!important;
+  justify-content:space-between!important;
+  align-items:baseline!important;
+  flex-wrap:nowrap!important;
+  gap:6px!important;
+  min-height:18px!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0 1px!important;
+  line-height:1.25!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-group>.upload-heading .label{
+  color:#f0f0f1!important;
+  font:550 12px/1.3 'DM Sans',Arial,sans-serif!important;
+  margin:0!important;
+  white-space:nowrap!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-group>.upload-heading .micro{
+  color:#91969c!important;
+  font:450 10px/1.3 'DM Sans',Arial,sans-serif!important;
+  letter-spacing:0!important;
+  margin:0!important;
+  text-align:right!important;
+  white-space:nowrap!important;
+  font-variant-numeric:tabular-nums;
+}
+/* Each upload target is a quiet, full-width row. The icon and two text lines
+ * make click-to-browse and drag-and-drop equally discoverable. */
+html body #app.video-studio-active:not(.video-extend-active) #reference-mode #reference-media .pv-media-ref-drop{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:23px minmax(0,1fr)!important;
+  grid-template-rows:17px 14px!important;
+  align-content:center!important;
+  align-items:center!important;
+  justify-items:start!important;
+  column-gap:9px!important;
+  row-gap:1px!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:48px!important;
+  height:48px!important;
+  margin:0!important;
+  padding:6px 10px!important;
+  border:1px dashed #444951!important;
+  border-radius:8px!important;
+  background:#1a1c1f!important;
+  box-shadow:none!important;
+  color:#e8eaed!important;
+  text-align:left!important;
+  cursor:pointer!important;
+  transition:border-color .15s ease,background .15s ease!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-drop .pv-media-drop-symbol{
+  grid-column:1!important;
+  grid-row:1/3!important;
+  width:22px!important;
+  height:22px!important;
+  color:#bdc5cf!important;
+  display:block!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-drop>span{
+  grid-column:2!important;
+  grid-row:1!important;
+  display:block!important;
+  width:100%!important;
+  margin:0!important;
+  color:#f0f0f1!important;
+  font:550 11px/1.3 'DM Sans',Arial,sans-serif!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-drop>small{
+  grid-column:2!important;
+  grid-row:2!important;
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  color:#939aa3!important;
+  font:400 9px/1.3 'DM Sans',Arial,sans-serif!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-drop:hover,
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-drop:focus-within,
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-drop.is-media-drag-over{
+  border-color:#a4b3be!important;
+  background:#252b31!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-drop.is-media-drag-over>span{
+  color:#fff!important;
+}
+/* Uploaded media grows only its own row. Preserve real playback controls,
+ * filename, guidance input, removal and reordering. */
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .reference-media-list:empty{
+  display:none!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .reference-media-list:not(:empty){
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:5px!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:3px 0 0!important;
+  padding:0!important;
+  max-height:252px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  scrollbar-width:thin;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .reference-media-item{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:5px 8px!important;
+  padding:7px 8px!important;
+  margin:0!important;
+  min-width:0!important;
+  border:1px solid #34383c!important;
+  border-radius:8px!important;
+  background:#171a1d!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .reference-media-item strong{
+  grid-column:1!important;grid-row:1!important;
+  align-self:center!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+  color:#c8cdd2!important;
+  font:500 10px/1.3 'DM Sans',Arial,sans-serif!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .reference-media-item :is(video,audio){
+  grid-column:1/-1!important;grid-row:2!important;
+  display:block!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  max-height:90px!important;
+  min-height:36px!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:6px!important;
+  background:#0e1012!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .reference-media-item audio{
+  height:36px!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .reference-media-item input{
+  grid-column:1/-1!important;grid-row:3!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:28px!important;
+  height:28px!important;
+  margin:0!important;
+  padding:4px 7px!important;
+  border:1px solid #33383d!important;
+  border-radius:6px!important;
+  background:#202327!important;
+  color:#ebedf0!important;
+  font:400 11px/1.35 'DM Sans',Arial,sans-serif!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .reference-media-item .reference-actions{
+  grid-column:2!important;grid-row:1!important;
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  gap:5px!important;
+  align-items:center!important;
+  margin:0!important;
+  padding:0!important;
+  width:auto!important;
+}
+html body #app.video-studio-active:not(.video-extend-active) #reference-media .reference-media-item .reference-actions button{
+  min-width:0!important;
+  min-height:23px!important;
+  height:23px!important;
+  padding:2px 6px!important;
+  border-radius:5px!important;
+  border:1px solid #41464c!important;
+  color:#d6d9dd!important;
+  background:#25282c!important;
+  font:500 10px/1 'DM Sans',Arial,sans-serif!important;
+}
+/* Extend continues to use its dedicated full-width source clip layout;
+ * the new wrapper must not create a phantom Audio section or nested card. */
+#app.video-studio-active.video-extend-active #reference-mode #reference-media>.pv-media-ref-group-video{
+  display:contents!important;
+}
+#app.video-studio-active.video-extend-active #reference-mode #reference-media>.pv-media-ref-group-audio{
+  display:none!important;
+}
+@media(max-width:440px){
+  html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-group>.upload-heading .label{font-size:11.5px!important}
+  html body #app.video-studio-active:not(.video-extend-active) #reference-media .pv-media-ref-drop>small{font-size:8.5px!important}
+}
