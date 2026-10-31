@@ -4,8 +4,10 @@
 - Removed that one paragraph on desktop and phone; simplified the Identity heading container and removed its obsolete desktop paragraph rules. Existing compact spacing, hero, tabs, cards and upload flow retained.
 - Files: `full-editorial.html`, `full-editorial-atelier.css`, existing geometry assertions in `tests/lab-full-editorial-browser.mjs`, and this checkpoint. The browser suite no longer measures the removed paragraph; all flow, hero, visibility and credit checks remain.
 - Cache key: `20261031-source-copy-clean1`. No generation/account JavaScript changes.
-- Verification and release: pending.
-- Next: scoped checks, browser inspection, publish and verify production.
+- Verification: 10/10 local source checks passed. Phone/desktop preview confirmed removal and no overflow at 375/1905 px. Dedicated Editorial desktop/phone CI, approved Image UI, core tests and gallery passed. The inspected broader Studio failure concerns unchanged Upscaler intro dimensions (334 vs 302 px).
+- Published PR #735: source `dab30a1e4482fa744c8c65bda35e07ea7ade6f00`, merge `81194b4843dc2160607e5de9cefd7d7176f6bb0e`. Exact Cloudflare deployment `891bfcfb-7bc4-4963-8b1f-1f4e79f0adfd` succeeded, check `124539386413`.
+- Production browser confirms CSS `20261031-source-copy-clean1`, heading directly above tabs, paragraph absent and no overflow at 1348 px. No authenticated or paid generation performed. Direct asset-byte checks remain unavailable; exact Cloudflare and production DOM/CSS fallback used.
+- Next: complete. Keep the redundant sentence removed.
 
 ## 2026-10-31 / tighter Identity source strip
 - Owner request: make the Choose a model heading, description and source tabs slightly more compact, using the supplied cropped strip and current desktop page.
