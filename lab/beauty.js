@@ -6,7 +6,7 @@ const API='https://parallel-vision-lab.parallelvision.workers.dev',$=id=>documen
 const activeStates=new Set(['submitting','queued','running','saving','uncertain']);
 const menu=createAccountMenu($('beauty-account')),pendingKey='pvlab-beauty-pending';
 let clerk=null,profile=null,sessionId='',epoch=0,revision=0,syncing=false,file=null,source=null,photoUrl='',resultUrl='',quote=null,photoWidth=0,photoHeight=0,compareUrl='';
-let preparing=false,submitting=false,activeId='',uncertain=false,quoteTimer=null,expiryTimer=null,pollTimer=null,resultRevision=0,historyRevision=0;
+let photoSelectionRevision=0,preparing=false,submitting=false,activeId='',uncertain=false,quoteTimer=null,expiryTimer=null,pollTimer=null,resultRevision=0,historyRevision=0;
 const blobs=new Map();
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 // The main Studio exposes Effects only to the server-verified owner account.
@@ -46,9 +46,9 @@ function scheduleQuote(){clearTimeout(quoteTimer);if(profile&&file&&!busy())quot
 async function setPhoto(selected){
  if(!selected||busy())return;
  if(!['image/jpeg','image/png','image/webp'].includes(selected.type)||!selected.size||selected.size>10*1024*1024){status('Choose a JPG, PNG or WebP photograph up to 10 MiB.',true);$('beauty-photo').value='';return;}
- const at=++revision,version=epoch,url=URL.createObjectURL(selected),image=new Image();file=null;source=null;clearQuote();update();image.src=url;
- try{await image.decode();if(!image.naturalWidth||!image.naturalHeight)throw Error();}catch{URL.revokeObjectURL(url);if(at===revision)status('That photograph could not be read. Please choose another image.',true);return;}
- if(at!==revision||version!==epoch){URL.revokeObjectURL(url);return;}
+ const at=++photoSelectionRevision,version=epoch,url=URL.createObjectURL(selected),image=new Image();file=null;source=null;clearQuote();update();revision++;image.src=url;
+ try{await image.decode();if(!image.naturalWidth||!image.naturalHeight)throw Error();}catch{URL.revokeObjectURL(url);if(at===photoSelectionRevision)status('That photograph could not be read. Please choose another image.',true);return;}
+ if(at!==photoSelectionRevision||version!==epoch){URL.revokeObjectURL(url);return;}
  if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=url;file=selected;photoWidth=image.naturalWidth;photoHeight=image.naturalHeight;source=null;clearQuote();
   $('beauty-ratio').querySelector('option[value="auto"]').textContent='Auto · '+beautyAutoRatio(photoWidth,photoHeight);
  $('beauty-photo-preview').src=url;$('beauty-photo-preview').hidden=false;$('beauty-photo-empty').hidden=true;
@@ -152,7 +152,7 @@ async function loadHistory(){
 }
 async function refreshProfile(){if(!profile)return;try{const next=await api('/api/session');profile=next;menu.update({signed:true,user:clerk.user,profile});syncHeaderAccess();}catch{} }
 function clearPrivate(){
- epoch++;revision++;clearQuote();clearTimeout(pollTimer);file=null;source=null;photoWidth=0;photoHeight=0;activeId='';submitting=false;uncertain=false;profile=null;preparing=false;
+ epoch++;revision++;photoSelectionRevision++;clearQuote();clearTimeout(pollTimer);file=null;source=null;photoWidth=0;photoHeight=0;activeId='';submitting=false;uncertain=false;profile=null;preparing=false;
  if(photoUrl)URL.revokeObjectURL(photoUrl);if(resultUrl)URL.revokeObjectURL(resultUrl);if(compareUrl)URL.revokeObjectURL(compareUrl);photoUrl='';resultUrl='';compareUrl='';$('beauty-result').dataset.beforeUrl='';$('beauty-result').dataset.beforeSourceId='';
  for(const value of blobs.values())URL.revokeObjectURL(value);blobs.clear();$('beauty-history').replaceChildren();
  $('beauty-form').reset();$('beauty-ratio').querySelector('option[value="auto"]').textContent='Auto';$('beauty-photo-preview').removeAttribute('src');$('beauty-photo-preview').hidden=true;$('beauty-photo-empty').hidden=false;$('beauty-change-photo').textContent='Add photo';
