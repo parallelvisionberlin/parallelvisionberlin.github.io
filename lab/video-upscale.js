@@ -60,6 +60,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    sourceTitle:sourceControlTitle?.textContent,sourceFilename:sourceControlFilename?.textContent,
    sourceLabel:sourceControlLabel?.textContent};
  let imageEmptyHidden=originalEmpty.hidden;
+ let imagePreviewHidden=imagePreview.hidden;
  const pick=$('pv-video-upscale-file'),src=$('pv-video-upscale-source'),result=$('pv-video-upscale-result');
  const stage=canvas,blank=originalEmpty,price=$('pv-video-upscale-price');
  const action=$('pv-video-upscale-action'),message=$('pv-video-upscale-message'),res=$('pv-video-upscale-resolution');
@@ -81,11 +82,20 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    app.classList.toggle('video-upscale-active',videoMode);
    app.classList.toggle('video-upscale-has-source',videoMode&&!!file);
    if(lastSyncedMode!==media){
-     if(media==='video')imageEmptyHidden=originalEmpty.hidden;
-     else originalEmpty.hidden=imageEmptyHidden;
+     if(media==='video'){
+       imageEmptyHidden=originalEmpty.hidden;
+       imagePreviewHidden=imagePreview.hidden;
+       imagePreview.hidden=true;
+     }else{
+       originalEmpty.hidden=imageEmptyHidden;
+       imagePreview.hidden=imagePreviewHidden;
+     }
      lastSyncedMode=media;
    }
    if(videoMode){
+     // Keep Image's real source and settings mounted, but mark its preview
+     // hidden so loaded-photo :has() rules cannot resize the Video canvas.
+     imagePreview.hidden=true;
      if(introKicker)introKicker.textContent='PV LAB / VIDEO ENHANCEMENT';
      heroTitle.textContent='Insert a source video.';
      heroDescription.textContent='Upload a video to begin the upscale process.';
