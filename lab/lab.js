@@ -3235,7 +3235,7 @@ function configureVideoControls(){
   }
   $('reference-drop').querySelector('small').textContent=tool==='image'&&imageEngine==='zspicy'?'Text-only model · no reference photos':'JPG / PNG / WebP · up to '+referenceLimit()+' photos';
   $('reference-drop').querySelector('span').textContent=isVideo?'Upload images':'Add identity, wardrobe or set references';
-  $('reference-drop').setAttribute('aria-label',isVideo?'Upload images':'Add reference images, drop or browse');
+  $('reference-drop').setAttribute('aria-label',isVideo?'Drop JPG, PNG or WebP images here, or click to browse':'Add reference images, drop or browse');
   $('ref-count').textContent=references.length+' / '+referenceLimit();
   videoModelPicker.sync();
 }
