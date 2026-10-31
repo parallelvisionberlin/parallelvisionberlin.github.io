@@ -1,5 +1,21 @@
 # Beauty Studio and Studios navigation
 
+## Approved connected Studios menu, 2026-10-31
+
+- Owner approved the connected photographic strip mockup, then removed its lower bar. Implementation is strictly the menu's presentation.
+- Baseline main `72e585c`; preserve concurrent Soul and Inspiration releases.
+- Four original image URLs, filters, focal positions, labels and Studio destinations remain unchanged. No ALTER application or other tool implementation is edited.
+- Edge-to-edge photographs, no separate card borders or gaps, shorter desktop height, single-line titles and quiet subtitles.
+- Move the original Character Studio link into the top-right header; remove the lower bar and decorative card arrows/rules, as in the approved mockup.
+- Retain existing keyboard, pointer, touch, reduced-motion and original Fashion/Retouch event handlers; ArrowDown still focuses the first photographic destination.
+- Phone keeps the two-column layout with joined photographs; outer panel clips its corners.
+- Entry-page changes only refresh shared menu CSS/JS cache versions to `20261031-connected-strip1`.
+- Approved reference: generated `exec-157d55af-4402-44dc-818e-b5790f32e7c5.png`, Library `libfile_766a73ee4b7081919072fd6f1d754efd`.
+- PASS: all five approved Image contracts, menu JS syntax and diff checks.
+- PASS: desktop and 390px browser menu geometry, original decoded artwork, header Character link, ArrowDown first-card focus, Escape dismissal and no title/page overflow.
+- PASS: exact original image URLs, focal positions and filters; all five entry-page changes contain only menu cache versions.
+- Deployment pending at commit preparation.
+
 ## Studios menu corners and Fashion crop, 2026-10-31
 
 - Owner asked to soften the square cards and centre the second (Fashion Studio) photograph.
