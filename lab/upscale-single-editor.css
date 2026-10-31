@@ -30,7 +30,7 @@
 #app.upscale-studio-active.video-upscale-active #upscale-model-menu>[data-video-upscale-model]{
  box-sizing:border-box!important;display:grid!important;
  width:100%!important;max-width:none!important;min-width:0!important;
- grid-template-columns:36px minmax(0,1fr) 18px!important;
+ /* Inherit the canonical Image card grid (38px / 1fr / 16px) exactly. */
  align-items:center!important;gap:10px!important;
 }
 #app.upscale-studio-active.video-upscale-active #upscale-model-menu>[data-video-upscale-model][aria-checked="true"]{
@@ -47,9 +47,12 @@
 #app.upscale-studio-active:not(.video-upscale-active) .pv-video-upscale-message{
  display:none!important;
 }
-#app.upscale-studio-active.video-upscale-active .controls-body>.parameter-grid,
-#app.upscale-studio-active.video-upscale-active .controls-body>#format-control,
-#app.upscale-studio-active.video-upscale-active .controls-body>#upscale-info,
+/* Higher specificity than the original Image editor's desktop !important
+   display:flex rules. In Video, output resolution REPLACES Image enlargement
+   and format rather than stacking underneath them. */
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body>.parameter-grid,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body>#format-control,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body>#upscale-info,
 #app.upscale-studio-active.video-upscale-active .generate-zone>#upscale-price,
 #app.upscale-studio-active.video-upscale-active .generate-zone>#save,
 #app.upscale-studio-active.video-upscale-active .generate-zone>#generation-help,
@@ -74,6 +77,12 @@
  padding:8px 12px!important;border:1px solid #343b46!important;border-radius:7px!important;
  background:#1b2027!important;color:#f2f1ee!important;
  font:500 12px/1.2 'DM Sans',Arial,sans-serif!important;
+}
+/* Do not show an instructional credit message before an MP4 exists.
+   The quote and any actionable error return after source selection. */
+#app.upscale-studio-active.video-upscale-active:not(.video-upscale-has-source) .pv-video-upscale-quote,
+#app.upscale-studio-active.video-upscale-active:not(.video-upscale-has-source) .pv-video-upscale-message{
+ display:none!important;
 }
 #app.upscale-studio-active.video-upscale-active .pv-video-upscale-quote{
  box-sizing:border-box!important;display:block!important;grid-column:1/-1!important;
@@ -101,6 +110,10 @@
  display:none!important;
 }
 /* Same original photo canvas and plus, with native video playback overlay. */
+/* Loaded Image previews have a stronger :has() display:block rule in
+   upscale-loaded-workspace.css. Override it so a saved photograph cannot
+   bleed into the Video source stage during a mode switch. */
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas:has(> #preview:not([hidden]))>img#preview:not([hidden]),
 #app.upscale-studio-active.video-upscale-active #upscale-canvas>#preview,
 #app.upscale-studio-active.video-upscale-active #upscale-canvas>#video,
 #app.upscale-studio-active.video-upscale-active #upscale-canvas>#video-job-stage{
@@ -146,6 +159,11 @@
 @media(max-width:780px){
  #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
   display:grid!important;
+ }
+ /* The single Video resolution row replaces two Image fields. Keep the
+    bottom of the empty inspector and its shared Upscale button stationary. */
+ #app.upscale-studio-active.video-upscale-active:not(.video-upscale-has-source):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+  padding-bottom:4px!important;
  }
  #app.upscale-studio-active.video-upscale-active #upscale-canvas #empty .pv-upscale-empty-center{
   width:calc(100% - 26px)!important;min-height:350px!important;
