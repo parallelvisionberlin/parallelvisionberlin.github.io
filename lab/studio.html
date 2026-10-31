@@ -210,6 +210,7 @@ document.addEventListener('click',event=>{
 <link rel="stylesheet" href="./video-frame-actions.css?v=20261027-frame-remove-gloss1">
 <link rel="stylesheet" href="./reference-library.css?v=20261027-compact-f1">
 <link rel="stylesheet" href="./upscale-loaded-workspace.css?v=20261027-source-chip-full-stage1">
+<link rel="stylesheet" href="./video-upscale.css?v=20261031-models1">
 </head>
 <body class="lab-booting">
 <div id="pv-credit-toast" class="pv-credit-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
@@ -824,6 +825,52 @@ document.addEventListener('click',event=>{
   <p id="effect-gallery-picker-status" role="status">Loading your saved images…</p>
   <div id="effect-gallery-picker-grid" aria-label="Saved images"></div>
 </dialog>
+<div id="pv-video-upscale-mode" class="pv-video-upscale-mode" hidden>
+  <span class="pv-video-upscale-mode-label">UPSCALE MEDIA</span>
+  <div role="tablist" aria-label="Choose image or video upscaling" class="pv-video-upscale-tabs">
+    <button type="button" data-video-upscale-tab="image" role="tab" aria-selected="true">Image</button>
+    <button type="button" data-video-upscale-tab="video" role="tab" aria-selected="false">Video</button>
+  </div>
+</div>
+<section id="pv-video-upscale-panel" class="pv-video-upscale-panel" aria-label="Video Upscaler" hidden>
+  <aside class="pv-video-upscale-sidebar">
+    <header><span class="pv-video-upscale-kicker">PV LAB / VIDEO ENHANCEMENT</span><h2>Video Upscaler.</h2><p>Restore clarity while keeping the movement.</p></header>
+    <div class="pv-video-upscale-field">
+      <span class="pv-video-upscale-label">MODEL</span>
+      <div class="pv-video-upscale-models" role="radiogroup" aria-label="Video enhancement model">
+        <button class="pv-video-upscale-model" type="button" data-video-upscale-model="bytedance" role="radio" aria-checked="true"><span><strong>ByteDance Standard</strong><small>Clean footage · Everyday</small></span><i aria-hidden="true"></i></button>
+        <button class="pv-video-upscale-model" type="button" data-video-upscale-model="proteus" role="radio" aria-checked="false"><span><strong>Topaz Proteus</strong><small>Natural detail · Faithful</small></span><i aria-hidden="true"></i></button>
+        <button class="pv-video-upscale-model" type="button" data-video-upscale-model="starlight" role="radio" aria-checked="false"><span><strong>Topaz Starlight</strong><small>Generative restoration · Premium</small></span><i aria-hidden="true"></i></button>
+      </div>
+    </div>
+    <label class="pv-video-upscale-field" for="pv-video-upscale-resolution"><span class="pv-video-upscale-label">OUTPUT RESOLUTION</span>
+      <select id="pv-video-upscale-resolution"><option value="1080p">1080p · Full HD</option><option value="2k">2K</option><option value="4k">4K · Ultra HD</option></select>
+    </label>
+    <div class="pv-video-upscale-quote"><p id="pv-video-upscale-price" role="status" aria-live="polite">Select a video to calculate credits.</p><small>Video duration and FPS checked on the server. Original preserved.</small></div>
+    <button type="button" id="pv-video-upscale-action" class="pv-video-upscale-submit" disabled>Choose video</button>
+    <p id="pv-video-upscale-message" class="pv-video-upscale-message" role="status" aria-live="polite"></p>
+  </aside>
+  <div class="pv-video-upscale-preview">
+    <div class="pv-video-upscale-preview-head"><span>ORIGINAL / ENHANCED</span><button type="button" id="pv-video-upscale-remove" hidden>Remove video</button></div>
+    <div id="pv-video-upscale-stage" class="pv-video-upscale-stage">
+      <div id="pv-video-upscale-blank" class="pv-video-upscale-blank">
+        <span class="pv-video-upscale-blank-icon" aria-hidden="true">↗</span>
+        <h3>Bring the footage.</h3><p>Keep the atmosphere. Recover the detail.</p>
+        <button type="button" id="pv-video-upscale-choose">Choose video</button>
+        <small>MP4 · up to 30 seconds · 20 MB</small>
+      </div>
+      <video id="pv-video-upscale-source" controls playsinline preload="metadata" hidden></video>
+      <video id="pv-video-upscale-result" controls playsinline preload="metadata" hidden></video>
+      <div id="pv-video-upscale-working" class="pv-video-upscale-working" hidden><span class="pv-video-upscale-spinner" aria-hidden="true"></span><strong>Enhancing video</strong><small>Processing in private History. You can leave this studio.</small></div>
+    </div>
+    <div class="pv-video-upscale-preview-foot"><span id="pv-video-upscale-info">Original media is preserved.</span><div>
+      <button id="pv-video-upscale-original-button" type="button" hidden>Original</button>
+      <button id="pv-video-upscale-result-button" type="button" hidden>Result</button>
+      <button id="pv-video-upscale-download" type="button" hidden>Download MP4 ↓</button>
+    </div></div>
+  </div>
+  <input id="pv-video-upscale-file" type="file" accept="video/mp4,.mp4" hidden aria-label="Choose MP4 to upscale">
+</section>
 <div class="workspace">
 <section class="controls" aria-label="Generation settings">
 <div class="controls-body">
