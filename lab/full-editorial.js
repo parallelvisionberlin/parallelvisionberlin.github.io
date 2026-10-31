@@ -36,10 +36,27 @@ directionSets.location=[
  {id:'urban',name:'Urban',image:'./mood-previews/hd/90s-cinema-clean-final-20261011.jpg',prompt:'Contemporary urban environment with natural perspective, lived-in details and credible architectural light.'}
 ];
 let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='location',selectedDirections={location:null,moods:null,material:null};
-let chosenCount=4,chosenRatio='3:4',quote=null,quoteBusy=false,quoteError=false,quoteTimer=null,quoteExpiryTimer=null,submitting=false,uncertain=false,pollTimeout=null;
+let chosenCount=4,chosenRatio='3:4',castMode='auto',castComposition='mixed',quote=null,quoteBusy=false,quoteError=false,quoteTimer=null,quoteExpiryTimer=null,submitting=false,uncertain=false,pollTimeout=null;
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0,progressBatchStart=0,progressBatchSize=4;
 const objectUrls=new Map(),sampleFiles=new Map();
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
+function effectiveCastMode(){
+ const count=files.model.length+savedRefs.model.length;
+ if(count<2)return 'one';
+ if(castMode!=='auto')return castMode;
+ const examples=Array.from(sampleFiles.entries()).filter(([b,f])=>b.dataset.sampleKind==='model'&&files.model.includes(f)).length;
+ return examples>1?'cast':'one';
+}
+function renderCastingControls(){
+ const count=files.model.length+savedRefs.model.length;
+ const region=$('editorial-casting-controls'),composition=$('editorial-cast-composition');
+ if(!region||!composition)return;
+ region.hidden=count<2;
+ const mode=effectiveCastMode();
+ $('editorial-cast-mode').value=mode;
+ composition.hidden=mode!=='cast'||count<2;
+ $('editorial-cast-composition-select').value=castComposition;
+}
 const status=(text='',error=false)=>{$('editorial-status').textContent=text;$('editorial-status').classList.toggle('error',error)};
 function preview(file){if(!objectUrls.has(file))objectUrls.set(file,URL.createObjectURL(file));return objectUrls.get(file);}
 function pruneFile(file){const url=objectUrls.get(file);if(url){URL.revokeObjectURL(url);objectUrls.delete(file)} uploaded.delete(file);}
@@ -48,7 +65,7 @@ function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false
  for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};sampleFiles.clear();for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
  $('identity-guide').value='80';$('garment-guide').value='70';$('mood-guide').value='60';
- chosenCount=4;chosenRatio='3:4';selectedDirections={location:null,moods:null,material:null};directionTab='location';for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).selectedIndex=0;
+ chosenCount=4;chosenRatio='3:4';castMode='auto';castComposition='mixed';selectedDirections={location:null,moods:null,material:null};directionTab='location';for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).selectedIndex=0;
  for(const input of ['model-files','outfit-files','location-files'])$(input).value='';
  renderFiles();renderDirections();updateOptions();refreshSliderLabels();go(0);status('');
 }
@@ -84,6 +101,7 @@ function renderFiles(){
     const remove=document.createElement('button');remove.type='button';remove.setAttribute('aria-label','Remove '+nameFor(file));remove.textContent='×';remove.addEventListener('click',()=>{if(submitting)return;files[kind]=files[kind].filter(f=>f!==file);pruneFile(file);invalidateQuote();renderFiles();});item.append(remove);box.append(item);}
   for(const ref of savedRefs[kind]){const item=document.createElement('div');item.className='thumb saved-thumb';const img=document.createElement('img');img.alt=ref.name;img.src=ref.url||'./visuals/studio-tools/image-ivory-suit.webp';item.append(img);const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove saved '+ref.name);remove.addEventListener('click',()=>{if(submitting)return;savedRefs[kind]=savedRefs[kind].filter(r=>r!==ref);if(ref.url)URL.revokeObjectURL(ref.url);invalidateQuote();renderFiles()});item.append(remove);const badge=document.createElement('small');badge.className='saved-badge';badge.textContent='ELEMENT';item.append(badge);box.append(item);}
  }
+ renderCastingControls();
  updateSeriesSummary();
  refreshSampleStates();
 }
@@ -107,7 +125,7 @@ function updateSeriesSummary(){
  }
  const count=kind=>files[kind].length+savedRefs[kind].length;
  showImage('review-model-thumb',source('model'));
- model.textContent=count('model')?count('model')+' model photograph'+(count('model')===1?'':'s'):'No model selected';
+ model.textContent=count('model')?(effectiveCastMode()==='cast'?count('model')+' distinct models':count('model')+' model photograph'+(count('model')===1?'':'s')):'No model selected';
  showImage('review-outfit-thumb',source('outfit'));
  $('review-outfit-text').textContent=count('outfit')?count('outfit')+' wardrobe reference'+(count('outfit')===1?'':'s'):$('styling-direction').value.trim()?'Described wardrobe':'No wardrobe selected';
  const picks=Object.entries(selectedDirections).map(([k,id])=>directionSets[k].find(d=>d.id===id)).filter(Boolean);
@@ -184,15 +202,49 @@ function getSettings(){
  const parts=[
   'PV LAB Full Editorial series. Photorealistic high-fashion campaign photography, grounded natural skin texture, convincing fabric and plausible anatomy. Cohesive visual direction across the series, realistic lighting, non-plastic skin and restrained retouching.',
   'Preserve the recognizable facial identity from identity reference photographs as faithfully as the model can; use them for facial features, not the original pose or background. Identity importance '+identity+' percent as creative guidance.',
-  'Translate garment references into the same person without copying a reference wearer. Prioritize believable cloth fit and material detail. Garment importance '+emphasis+' percent as creative guidance.',
+  'Translate garment references onto the selected person or cast without copying the original reference wearer. Prioritize believable cloth fit and material detail. Garment importance '+emphasis+' percent as creative guidance.',
   'Editorial art direction: '+moodText+' '+lighting+' '+atmosphere+' '+palette+' Mood importance '+mood+' percent as creative guidance.',
   $('styling-direction').value.trim(),$('location-direction').value.trim(),$('editorial-prompt').value.trim(),
   'Frame one standalone photograph with a considered editorial pose. Maintain the same person, palette, materials and location language across the series; vary framing and body posture naturally between distinct images.'
  ];
  const prompt=parts.filter(Boolean).join('\n');
- if(prompt.length>4400)throw Error('The combined editorial direction is too long. Shorten your custom text.');
+ if(prompt.length>($('editorial-model').value==='seedreamlite'?2250:3850))throw Error('The editorial direction is too long for distinct shot briefs. Shorten your custom text.');
  return {type:'image',engine:$('editorial-model').value,processing:'normal',mode:'image',referenceMode:'references',
   prompt,resolution:$('editorial-resolution').value,aspectRatio:chosenRatio,outputFormat:'png',referenceRoles:[],exactPrompt:false};
+}
+const editorialShots=[
+ 'Wide environmental establishing photograph: reveal the location and architectural scale, with the model clearly visible and natural negative space.',
+ 'Full-length silhouette: show the whole garment, material behavior and precise tailoring, with a grounded fashion pose.',
+ 'Mid-shot editorial composition: expressive body language, interaction with the setting and distinctive off-center framing.',
+ 'Close portrait and couture craft: natural facial expression, credible skin detail, seams and garment texture.',
+ 'Fashion in motion: a natural walking or turning moment, physically realistic fabric movement and perspective.',
+ 'Seated or leaning fashion composition: grounded contact with the architecture and asymmetric framing.',
+ 'Material study: deliberate close framing of folds, texture and construction, with recognizable human context.',
+ 'Environmental perspective: new camera elevation and architectural geometry without repeating an earlier composition.',
+ 'Three-quarter full-body angle: show another side of the fashion silhouette with believable fit.',
+ 'Profile portrait: natural expression, dramatic but physically plausible light and strong background geometry.',
+ 'Low-angle fashion photograph: architectural scale without distorting bodies or clothing.',
+ 'Closing campaign hero: a memorable composition unifying the wardrobe, visual world and atmosphere.'
+];
+// One immutable shot direction and reference subset per quote, not four
+// provider calls sharing the same prompt.
+function editorialShotPlan(index,total,references,base){
+ const identities=references.filter(r=>r.role==='identity'),other=references.filter(r=>r.role!=='identity');
+ const cast=effectiveCastMode()==='cast'&&identities.length>1;
+ let selected=identities;
+ if(cast){
+  const first=index%identities.length;
+  const paired=castComposition==='together'||(castComposition==='mixed'&&index%4===2);
+  selected=paired?[identities[first],identities[(first+1)%identities.length]]:[identities[first]];
+ }
+ const personInstruction=cast?(selected.length>1
+  ?'Exactly two distinct adult models appear together. Preserve each individual facial identity from its corresponding selected reference. Never blend or swap identities.'
+  :'Exactly one adult model appears. Preserve the selected facial identity. No second figure or blended facial features.')
+  :'Exactly one adult model appears. All identity photographs are reference views of that same person, not separate people.';
+ const shotReferences=[...selected,...other];
+ const prompt=base.prompt+'\nCAMPAIGN SHOT '+(index+1)+' OF '+total+': '+editorialShots[index%editorialShots.length]+' '+personInstruction+' Keep the same creative world, wardrobe, location, palette, lighting and photographic treatment across this series. One photograph only, never a collage or contact sheet.';
+ if(prompt.length>(base.engine==='seedreamlite'?3000:5000))throw Error('The combined shot brief exceeds the selected model prompt limit. Shorten the creative text.');
+ return {references:shotReferences,settings:{...base,prompt,referenceRoles:shotReferences.map(({file,role})=>({role,name:nameFor(file),note:''}))}};
 }
 async function signIn(){if(!clerk)clerk=await loadLabAccount();const href=location.href;clerk.openSignIn({forceRedirectUrl:href,signInForceRedirectUrl:href,signUpForceRedirectUrl:href})}
 async function sync(){
@@ -267,11 +319,15 @@ async function prepareBatch(){
  const revisionId=revision;quoteBusy=true;quoteError=false;syncGenerateAction();
  try{
   const settings=getSettings();const references=await uploadReferences();if(revisionId!==revision)return;
-  settings.referenceRoles=references.map(({file,role})=>({role,name:nameFor(file),note:''}));
-  const response=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:references.map(r=>r.id),settings,count:Math.min(4,remain)}});
+  const plans=Array.from({length:Math.min(4,remain)},(_,i)=>editorialShotPlan(results.length+i,chosenCount,references,settings));
+  // Preflight is non-billable. No paid job is submitted until the user presses Generate.
+  const quotes=await Promise.all(plans.map(async plan=>{
+   const response=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:plan.references.map(r=>r.id),settings:plan.settings,count:1}});
+   if(Array.isArray(response.quotes)&&response.quotes.length!==1)throw Error('Expected one quote per campaign photograph.');
+   return Array.isArray(response.quotes)?response.quotes[0]:response;
+  }));
   if(revisionId!==revision)return;
-  const quotes=Array.isArray(response.quotes)?response.quotes:[response];
-  if(quotes.length!==Math.min(4,remain)||quotes.some(q=>!validQuote(q)||q.settings.engine!==settings.engine||q.settings.resolution!==settings.resolution||q.settings.aspectRatio!==settings.aspectRatio))throw Error('The server did not return a complete, matching credit quote.');
+  if(quotes.length!==plans.length||quotes.some((q,i)=>!validQuote(q)||q.settings.engine!==plans[i].settings.engine||q.settings.resolution!==plans[i].settings.resolution||q.settings.aspectRatio!==plans[i].settings.aspectRatio||q.settings.prompt!==plans[i].settings.prompt))throw Error('The server did not return a complete, matching credit quote.');
   quote={quotes,remaining:remain,settings,revision:revisionId};
   quoteExpiryTimer=setTimeout(invalidateQuote,Math.max(0,Math.min(...quotes.map(q=>Number(q.expiresAt)))-Date.now()));
   status('');
@@ -440,6 +496,8 @@ $('add-location').addEventListener('click',()=>$('location-files').click());
 for(const [kind,id] of [['model','model-files'],['outfit','outfit-files'],['location','location-files']])$(id).addEventListener('change',event=>{addFiles(kind,event.target.files);event.target.value=''});
 for(const id of ['styling-direction','location-direction','editorial-prompt','editorial-model','editorial-resolution'])$(id).addEventListener('input',()=>{invalidateQuote();updateSeriesSummary()});
 for(const id of ['identity-guide','garment-guide','mood-guide'])$(id).addEventListener('input',()=>{invalidateQuote();refreshSliderLabels()});
+$('editorial-cast-mode').addEventListener('change',event=>{castMode=event.target.value;invalidateQuote();renderCastingControls();updateSeriesSummary()});
+$('editorial-cast-composition-select').addEventListener('change',event=>{castComposition=event.target.value;invalidateQuote()});
 $('count-options').addEventListener('click',event=>{const b=event.target.closest('[data-count]');if(!b)return;chosenCount=Number(b.dataset.count);invalidateQuote();updateOptions()});
 $('ratio-options').addEventListener('click',event=>{const b=event.target.closest('[data-ratio]');if(!b)return;chosenRatio=b.dataset.ratio;invalidateQuote();updateOptions()});
 for(const tab of document.querySelectorAll('[data-direction-tab]'))tab.addEventListener('click',()=>{directionTab=tab.dataset.directionTab;renderDirections()});
