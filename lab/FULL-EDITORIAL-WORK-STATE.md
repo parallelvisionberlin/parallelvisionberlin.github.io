@@ -1,3 +1,13 @@
+## 2026-10-31 / coherent phone Generate layout
+- Owner screenshot `IMG_8312.png` (`libfile_67b285fcf8b0819183a8f545a02e1027`) shows the large inspiration photograph and heading pushing settings down, while sticky Back covers the reference summary.
+- Baseline main `2643f64cde8cd24e832aa7897b4b61ea53c9d78c`; branch `fix/editorial-phone-generate-layout-20261031`.
+- Phone/tablet up to 800 px, Generate step only: title, reference rows and settings appear first; existing inspiration photo follows Generate/cost as a 148 px strip. Retained original photograph and caption.
+- Heading 30-38 px, tighter intentional spacing, separate >=80 px reference rows, 44 px Edit targets, 52 px Generate. Back footer is static on this step and cannot overlay controls during scrolling.
+- Desktop, arrival/Identity/Styling/World, results, generation JavaScript, model options, quotes and billing remain unchanged.
+- Files: `full-editorial-atelier.css`, CSS cache key in `full-editorial.html`, geometry assertions in existing `tests/lab-full-editorial-browser.mjs`, and this checkpoint. CSS version `20261031-phone-generate1`.
+- Validation/release: pending source checks, supported browser phone/desktop preview, dedicated existing mocked flow CI and Cloudflare production verification. No paid generation or purchase planned.
+- Next: verify phone ordering, reference visibility/spacing and non-overlapping Back; publish exact CSS/HTML after relevant checks.
+
 ## 2026-10-31 / direct Generate, ivory progress film, compact results
 - Owner request: remove both Review credits CTAs and the separate credit confirmation. One Generate action, exact credit cost below, matching Image Studio. Reuse the homepage white-fabric film during generation. Reduce and raise the results title to reveal photographs.
 - Baseline main `158731c57369a2ebe4c4f4bcbdb6e2ae56db4a79`; isolated branch `fix/editorial-direct-generate-fabric-20261031`.
