@@ -109,3 +109,16 @@
 - Keep original image/action state, reference navigation, Download, video handoff, prompt control geometry, mobile and native layouts unchanged. No backend, credits or model changes.
 - Files: `lab/image-result-deck.css`, stylesheet cache version in `lab/studio.html`, this checkpoint.
 - Verify Image UI contract, image viewer browser/desktop responsiveness, and live Cloudflare deployment before claiming publication. No paid generation required.
+
+
+## Image history: four results per row, 2026-10-31
+- Request: match the supplied Higgsfield screenshots with four results in each desktop row and full 9:16 portraits. References: image(20261031-155916).png (PV LAB), image(20261031-160011).png and image(20261031-160051).png (Higgsfield).
+- Source baseline: main `9802d76cb2fc1c78449e0b72b226a4bd286c5a57`; branch `codex/image-history-four-columns`.
+- `lab/gallery-layout.js`: Image rows group four results above 1020px, three at tablet widths, two at 740px or below. Each row shares a height, with widths following stored image proportions. Existing 2px seams, chronological order and uncropped media are retained.
+- A partial last row does not enlarge its remaining images. Native, Assets and Upscaler layouts retain their previous behavior. Composer, models, credits and generation logic are unchanged.
+- `lab/image-studio.css`: align the pre-JavaScript fallback to four desktop columns. `lab/studio.html`: refresh only those two asset versions.
+- `tests/lab-gallery-layout-ui.mjs`: 34 browser cases pass, including 320/390px phones, tablet boundaries, desktop, fractional zoom widths, mixed ratios, full 9:16 rows, partial rows and native isolation. Approved Image UI contract: 5/5. JavaScript syntax and diff whitespace checks pass.
+- Rendered local preview inspected at 1348px: four portrait cards share one row at their original proportions. No paid generation or account mutation.
+- Local implementation commit: `9fc1be8`. All four preview images loaded and the browser confirmed their stored proportions. Responsive tests also use actual matching viewport widths.
+- Owner explicitly approved push and publication in the follow-up message. Shell Git push has no usable authentication; publication uses the connected GitHub integration with the exact reviewed local bytes. Current main was integrated to preserve its separate studio.html update; no gallery source conflict. Real signed-in history remains unverified.
+- Next action: complete PR checks, merge, Cloudflare evidence and exact production-byte verification for gallery-layout.js and image-studio.css.
