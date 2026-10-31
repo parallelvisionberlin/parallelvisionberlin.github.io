@@ -6,7 +6,7 @@
  // Selected high-fashion editorial menu. Use full-resolution local photographs for portraits.
  const beautyHero=url('visuals/beauty/beauty-veil-editorial.webp');
  const fashionHero=url('visuals/silver-image.webp');
- const retouchHero=url('visuals/full-editorial-hero-clean-20261028.jpg');
+ const retouchHero='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/1904c918-0012-4c9c-9784-f2f14adc2b5a.png';
  const editorialHero='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png';
  const arrow='<span class="pv-studios-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span>';
  const foot=caption=>'<div class="pv-studios-foot"><span class="pv-studios-foot-label">'+caption+'</span><span class="pv-studios-foot-rule" aria-hidden="true"></span>'+arrow+'</div>';
