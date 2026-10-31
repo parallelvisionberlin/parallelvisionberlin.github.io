@@ -160,7 +160,8 @@ document.addEventListener('click',event=>{
 <link rel="stylesheet" href="./video-start-frame-maker.css?v=20261016-wan-drop1">
 <script type="module" src="./gallery-layout.js?v=20261031-four-image-rows1"></script>
 <link rel="stylesheet" href="./image-detail-mobile.css?v=20261012-flow1">
-<link rel="stylesheet" href="./image-result-deck.css?v=20261029-immersive-canvas1&contentNotice=20261031-phone-compact1&moderationNotice=1">
+<link rel="stylesheet" href="./image-result-deck.css?v=20261031-photo-backdrop1&contentNotice=20261031-phone-compact1&moderationNotice=1">
+<script type="module" src="./image-result-presentation.js?v=20261031-photo-backdrop1"></script>
 <link rel="stylesheet" href="./public-header.css?v=20261022-studio-wordmark1">
 <link rel="stylesheet" href="./account-menu.css?v=20261022-bold-consistent1">
 <link rel="stylesheet" href="./studio-credits.css?v=20261023-unified-banner-v3">
@@ -695,6 +696,7 @@ document.addEventListener('click',event=>{
         </div>
       </div>
       <div class="image-lightbox-stage" id="image-lightbox-stage">
+        <div id="image-result-backdrop" aria-hidden="true" hidden></div>
         <button id="image-detail-prev" type="button" class="image-detail-arrow is-prev" aria-label="Previous image" aria-keyshortcuts="ArrowLeft" hidden><span aria-hidden="true">‹</span></button>
         <img id="image-lightbox-img" alt="Generated image, full-size preview" />
         <div id="image-lightbox-content-notice" class="image-content-notice" aria-live="polite" hidden>
@@ -715,7 +717,7 @@ document.addEventListener('click',event=>{
         <span class="detail-state" id="image-detail-status">Completed</span>
       </div>
       <div class="image-detail-inspector-scroll">
-        <section class="image-detail-card image-detail-prompt-card" aria-label="Creative direction and source image">
+        <section class="image-detail-card image-detail-prompt-card" aria-label="Creative direction">
           <div id="image-detail-mood-feature" class="image-detail-mood-feature" hidden>
             <div><span class="image-detail-mood-kicker">MOOD</span><strong id="image-detail-mood-name"></strong></div>
             <span id="image-detail-mood-strength" class="image-detail-mood-strength"></span>
@@ -726,18 +728,22 @@ document.addEventListener('click',event=>{
           </div>
           <p id="image-detail-prompt" class="image-detail-prompt"></p>
           <button id="image-detail-expand" class="image-detail-expand" type="button" aria-expanded="false" hidden>Show more <span aria-hidden="true">⌄</span></button>
-          <div id="image-detail-reference-wrap" class="image-detail-reference-wrap" hidden>
-            <span id="image-detail-reference-caption">Source image</span>
-            <div id="image-detail-reference-strip" class="image-detail-reference-strip" role="group" aria-labelledby="image-detail-reference-caption"></div>
-          </div>
         </section>
+        <div id="image-detail-reference-wrap" class="image-detail-reference-wrap" hidden>
+          <div id="image-detail-reference-strip" class="image-detail-reference-strip" role="group" aria-labelledby="image-detail-reference-caption"></div>
+          <div class="image-detail-reference-copy">
+            <span id="image-detail-reference-caption">Source image</span>
+            <span id="image-detail-reference-count"></span>
+          </div>
+        </div>
         <section id="image-film-finish" class="image-detail-card" hidden></section>
         <details id="image-detail-metadata" class="image-detail-card image-detail-data" open>
           <summary>Details <span aria-hidden="true">⌄</span></summary>
           <dl>
             <div><dt>Model</dt><dd id="image-detail-model"></dd></div>
             <div id="image-detail-mood-row" hidden><dt>Mood</dt><dd id="image-detail-mood-value"></dd></div>
-            <div><dt>Resolution</dt><dd><span id="image-detail-resolution"></span><span id="image-detail-pixels" class="image-detail-pixels"></span></dd></div>
+            <div><dt>Quality</dt><dd id="image-detail-resolution"></dd></div>
+            <div id="image-detail-size-row"><dt>Size</dt><dd id="image-detail-pixels" class="image-detail-pixels"></dd></div>
             <div><dt>Ratio</dt><dd id="image-detail-ratio"></dd></div>
           </dl>
           <details class="image-detail-secondary-data"><summary>More details <span aria-hidden="true">⌄</span></summary><dl>

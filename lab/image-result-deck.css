@@ -468,3 +468,81 @@
     }
   }
 }
+
+/* Approved 31 October mockup: photographic side fill and a compact inspector.
+   The lower action deck keeps its existing markup, sizing and behavior. */
+#image-lightbox #image-result-backdrop{
+  position:absolute;inset:-56px;z-index:0;pointer-events:none;
+  background-position:center;background-size:cover;background-repeat:no-repeat;
+  filter:blur(48px) brightness(.42) saturate(.85);
+}
+#image-lightbox #image-result-backdrop[hidden]{display:none!important}
+#image-lightbox #image-lightbox-stage{isolation:isolate}
+#image-lightbox #image-lightbox-img{position:relative;z-index:1;background:transparent}
+#image-lightbox .image-lightbox-stage.is-zoomed #image-result-backdrop{display:none}
+#image-lightbox #image-lightbox-unavailable{position:relative;z-index:1}
+html.pv-native-lab #image-lightbox #image-result-backdrop{display:none!important}
+html:not(.pv-native-lab) #image-lightbox .image-detail-inspector-scroll{
+  gap:12px;padding:14px 16px 16px;
+}
+html:not(.pv-native-lab) #image-lightbox .image-detail-prompt-card{
+  flex:none;margin:0;padding:0;border:1px solid #ffffff09;border-radius:12px;
+  background:#242728;overflow:hidden;
+}
+html:not(.pv-native-lab) #image-lightbox .detail-card-header{
+  padding:9px 12px;margin:0;border-bottom:1px solid #ffffff0b;
+}
+html:not(.pv-native-lab) #image-lightbox .detail-card-header .detail-label{
+  font-size:11px;line-height:1.4;letter-spacing:.045em;text-transform:uppercase;color:#b7bbb6;
+}
+html:not(.pv-native-lab) #image-lightbox .image-detail-prompt{
+  margin:0;padding:12px 13px 0;font-size:14px;line-height:1.5;color:#e3e5df;
+}
+html:not(.pv-native-lab) #image-lightbox .image-detail-prompt.is-collapsible:not(.is-expanded){
+  -webkit-line-clamp:4;max-height:calc(6em + 12px);
+}
+html:not(.pv-native-lab) #image-lightbox .image-detail-expand{
+  margin:5px 13px 9px;min-height:30px;
+}
+html:not(.pv-native-lab) #image-lightbox .image-detail-prompt-card:has(#image-detail-expand[hidden]) .image-detail-prompt{padding-bottom:13px}
+html:not(.pv-native-lab) #image-lightbox .image-detail-prompt-card:has(#image-detail-prompt[hidden]):has(#image-detail-mood-feature[hidden]){display:none}
+html:not(.pv-native-lab) #image-lightbox .image-detail-mood-feature{padding:12px 13px;margin:0}
+#image-lightbox #image-detail-reference-wrap[hidden]{display:none!important}
+html:not(.pv-native-lab) #image-lightbox .image-detail-reference-wrap{
+  flex:none;display:grid;grid-template-columns:58px minmax(0,1fr);align-items:center;
+  gap:13px;margin:0;padding:9px 10px;min-height:0;
+  border:1px solid #ffffff0c;border-radius:12px;background:#202324;
+}
+html:not(.pv-native-lab) #image-lightbox .image-detail-reference-strip{padding:0;gap:8px;min-width:0}
+html:not(.pv-native-lab) #image-lightbox #image-detail-reference-caption{margin:0;font-size:13px;line-height:1.4;color:#e1e3dd}
+html:not(.pv-native-lab) #image-lightbox #image-detail-reference-count{display:block;margin-top:3px;font-size:12px;color:#a3a8a3}
+html:not(.pv-native-lab) #image-lightbox #image-detail-reference-count[hidden]{display:none}
+html:not(.pv-native-lab) #image-lightbox .image-detail-reference-wrap.has-multiple-references{grid-template-columns:minmax(0,1fr);gap:9px}
+html:not(.pv-native-lab) #image-lightbox .has-multiple-references .image-detail-reference-copy{grid-row:1}
+html:not(.pv-native-lab) #image-lightbox .image-detail-reference-item{width:58px;flex-basis:58px;height:68px;min-height:68px}
+html:not(.pv-native-lab) #image-lightbox #image-detail-reference-thumb{width:100%;min-width:0;height:100%;object-fit:contain}
+html:not(.pv-native-lab) #image-lightbox #image-detail-metadata{
+  flex:none;margin:0;padding:13px 0 0;border:0;border-top:1px solid var(--result-line);
+}
+html:not(.pv-native-lab) #image-lightbox #image-detail-metadata>summary{
+  padding:0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.045em;color:#b7bbb6;
+}
+html:not(.pv-native-lab) #image-lightbox .image-detail-data dl{margin:8px 10px 0}
+html:not(.pv-native-lab) #image-lightbox .image-detail-data dl>div{padding:5px 0;gap:10px}
+html:not(.pv-native-lab) #image-lightbox .image-detail-data dt,
+html:not(.pv-native-lab) #image-lightbox .image-detail-data dd{font-size:13px;line-height:1.45}
+html:not(.pv-native-lab) #image-lightbox .image-detail-secondary-data{margin:12px 10px 0}
+html:not(.pv-native-lab) #image-lightbox .image-detail-secondary-data dl{margin-inline:0}
+#image-lightbox #image-detail-size-row:has(#image-detail-pixels:empty){display:none}
+@media(min-width:961px){
+  html:not(.pv-native-lab) #image-lightbox .image-detail-layout{
+    grid-template-columns:minmax(0,1fr) clamp(336px,20vw,360px);
+    gap:12px;padding:10px;box-sizing:border-box;
+  }
+  html:not(.pv-native-lab) #image-lightbox .image-detail-media,
+  html:not(.pv-native-lab) #image-lightbox .image-detail-inspector{
+    border:1px solid var(--result-line);border-radius:16px;overflow:hidden;
+  }
+  html:not(.pv-native-lab) #image-lightbox #image-lightbox-close{top:20px;right:22px}
+  html:not(.pv-native-lab) #image-lightbox .image-detail-inspector-head{padding-left:18px}
+}

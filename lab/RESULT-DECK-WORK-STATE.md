@@ -122,3 +122,15 @@
 - Local implementation commit: `9fc1be8`. All four preview images loaded and the browser confirmed their stored proportions. Responsive tests also use actual matching viewport widths.
 - Owner explicitly approved push and publication in the follow-up message. Shell Git push has no usable authentication; publication uses the connected GitHub integration with the exact reviewed local bytes. Current main was integrated to preserve its separate studio.html update; no gallery source conflict. Real signed-in history remains unverified.
 - Next action: complete PR checks, merge, Cloudflare evidence and exact production-byte verification for gallery-layout.js and image-studio.css.
+
+
+## Compact inspector and photographic backdrop, 2026-10-31
+- Owner approved exact implementation of the visual proposal in this conversation, retaining the lower buttons. Baseline main: `a09d043b49b69b7440948a83ef93df8f56b70c3e`. Branch: `codex/image-viewer-blurred-backdrop`.
+- Approved mockup: `exec-22c7ec47-55cf-41b2-8b70-d4d412b0ab01.png`, Library `libfile_9f04f76fca308191b3d5b0d8d71ece52`. Input screenshots: `image(20261031-163122).png` and `image(20261031-163140).png`. No further image generation needed.
+- `lab/image-result-deck.css`: softened, darkened duplicate of the displayed image behind the uncropped original; compact prompt card, horizontal single-source preview, tighter metadata, rounded desktop viewer panels. Lower action CSS stays unchanged.
+- `lab/studio.html`: separate source strip from prompt card; retain existing control IDs and handlers; show Quality and actual pixel Size on separate rows. Lower action markup SHA-256 is unchanged: `2cfa9b5c4713bfa731ad508584d424f463fa0d5d9f1d97c5383d5c5fe5cff825`.
+- `lab/image-result-presentation.js`: presentation-only observer follows the current preview URL and reference count. No API calls, image generation, new object URLs or storage. Clears private backdrop on source removal, hidden image, error and close; native backdrop disabled; normal zoom retained.
+- `tests/lab-image-viewer-browser.mjs`: adds backdrop source/close/sign-out assertions and real source count; checks the newly approved desktop Close inset precisely.
+- Validation: all six desktop/mobile viewer cases passed for landscape/portrait/square, including 1920/1440/768/390/320px layouts, actual-size zoom, rapid navigation and late responses, original downloads, reference downloads, video handoff, close and sign-out. Approved Image UI contract: 5/5. Syntax and diff checks clean.
+- Rendered real CSS/HTML preview inspected at 1365px with an existing portrait asset. Full original stays sharp and the same photograph supplies the side fill; upper panel fits without a scrollbar. No paid generation or account mutation.
+- Publication pending: upload exact reviewed files, relevant CI, merge, Cloudflare Pages confirmation and exact production-byte verification. Real signed-in account observation is separate.
