@@ -14,14 +14,16 @@ function installUpscaleSidebar(){
   for(const button of [upload,document.getElementById('pv-upscale-hero-upload')].filter(Boolean)){
     button.addEventListener('click',()=>{
       if(!app.classList.contains('upscale-studio-active'))return;
-      input.click();
+      if(app.classList.contains('video-upscale-active'))document.getElementById('pv-video-upscale-file')?.click();
+      else input.click();
     });
   }
   const zone=document.getElementById('pv-upscale-dropzone');
   zone?.addEventListener('click',event=>{
     if(!app.classList.contains('upscale-studio-active')||
       event.target.closest('button,.pv-upscale-benefits'))return;
-    input.click();
+    if(app.classList.contains('video-upscale-active'))document.getElementById('pv-video-upscale-file')?.click();
+    else input.click();
   });
   // Visual feedback only. Existing drop/upload validation remains in lab.js.
   const canvas=document.getElementById('upscale-canvas');
@@ -45,7 +47,7 @@ function installUpscaleSidebar(){
   }
   const sync=()=>{
     const active=app.classList.contains('upscale-studio-active');
-    if(!active)return;
+    if(!active||app.classList.contains('video-upscale-active'))return;
     // The actual selected source is owned by lab.js, not by the result image
     // (which changes to an upscale output after generation).
     const hasSource=!thumb.hidden&&Boolean(thumb.getAttribute('src'));
