@@ -9,8 +9,13 @@
 - Refresh stylesheet cache version to `20261031-soft-centred1` on index, studio, beauty, moods and Full Editorial.
 - Preserve card sizes, responsive column counts, typography, labels, routes and menu interactions.
 - PASS: all five approved Image UI contracts; diff whitespace check.
-- Desktop browser renders all four cards at 8px radius, panel at 12px and Fashion crop at 50% 50%.
-- Deployment pending at commit preparation.
+- PASS desktop and 390px browser checks: 8px cards, 12px panel, centred Fashion crop, two phone columns and zero horizontal overflow.
+- Reviewed source `6d41edb3d27faefc936f7ebd774f826d71bfda84`; PR #740 merged as `283996fdc9d5b14c50fb84d689a7b10fc3dcbc65`. Source tree matches the locally tested bytes.
+- PASS GitHub approved Image UI, landing stability and static validation. Separate legacy landing suite still expects Beauty Studio instead of approved ALTER; public visual suite fails unchanged Upscaler intro dimensions; first-image suite fails unchanged Inspiration backdrop parity. No test or unrelated flow changed.
+- LIVE: Cloudflare Pages check `124605057076` succeeded for merge SHA; deployment `1b3c949d-570b-435c-a2dd-90f7abede66c`.
+- Read-only verifier returned LIVE_VERIFIED; production stylesheet SHA-256 `957f02234f9e1f9892862e28d21912b8b3f8adb0003567339d384f523ff3654a` matches reviewed source.
+- Live public browser confirms `20261031-soft-centred1`, all four 8px corners, 12px panel and Fashion crop 50% 50%. No sign-in or paid generation involved.
+- Complete; no release action remains for this menu change.
 
 ## ALTER functional corrections, 2026-10-31
 
