@@ -59,6 +59,52 @@ export function attachVideoReferenceBrowserDrop({doc,target,input,enabled,onFile
   return {clear};
 }
 
+
+/* A dedicated drop target for the Video Reference card. Browser file drops are
+ * handled on the card itself, before the nested file input's native behavior.
+ * The caller keeps ownership of image validation, upload and reference state. */
+export function attachVideoReferenceTileDrop({target,enabled,onFiles,onInvalid}){
+  const isFileDrag=event=>{
+    const transfer=event.dataTransfer;
+    return !!transfer&&(
+      Array.from(transfer.types||[]).includes('Files')||
+      Array.from(transfer.items||[]).some(item=>item.kind==='file')||
+      !!transfer.files?.length
+    );
+  };
+  const reset=()=>target.classList.remove('is-file-over');
+  const highlight=event=>{
+    if(!isFileDrag(event))return;
+    event.preventDefault();
+    event.stopPropagation();
+    const allow=enabled();
+    if(event.dataTransfer)event.dataTransfer.dropEffect=allow?'copy':'none';
+    target.classList.toggle('is-file-over',allow);
+  };
+  target.addEventListener('dragenter',highlight,true);
+  target.addEventListener('dragover',highlight,true);
+  target.addEventListener('dragleave',event=>{
+    if(event.relatedTarget&&target.contains(event.relatedTarget))return;
+    reset();
+  },true);
+  target.addEventListener('drop',event=>{
+    if(!isFileDrag(event))return;
+    event.preventDefault();
+    event.stopPropagation();
+    reset();
+    if(!enabled())return;
+    const files=Array.from(event.dataTransfer?.files||[]);
+    if(!files.length)return;
+    if(files.some(file=>!['image/jpeg','image/png','image/webp'].includes(file.type))){
+      onInvalid?.('Drop JPG, PNG or WebP images only.');
+      return;
+    }
+    onFiles(files);
+  },true);
+  target.addEventListener('dragend',reset);
+  return {clear:reset};
+}
+
 export function createVideoStartFrameMaker({
   element,context,session,active,action,ensureReferences,prepareQuoteInputs,
   referenceRoles,compilePrompt,validateReferences,api,onAccepted,loadPreview,useFrame,
