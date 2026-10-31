@@ -1,3 +1,12 @@
+## 2026-10-31 / remove detached model-source sentence
+- Owner approved removing the sentence beginning Start from a PV LAB casting reference. Keep Choose a model directly above the source tabs.
+- Baseline main: `f98916c043a4c9bb2e673c4874aaf23fb24ac4c4`; isolated branch `fix/editorial-remove-source-copy-20261031`.
+- Removed that one paragraph on desktop and phone; simplified the Identity heading container and removed its obsolete desktop paragraph rules. Existing compact spacing, hero, tabs, cards and upload flow retained.
+- Files: `full-editorial.html`, `full-editorial-atelier.css`, existing geometry assertions in `tests/lab-full-editorial-browser.mjs`, and this checkpoint. The browser suite no longer measures the removed paragraph; all flow, hero, visibility and credit checks remain.
+- Cache key: `20261031-source-copy-clean1`. No generation/account JavaScript changes.
+- Verification and release: pending.
+- Next: scoped checks, browser inspection, publish and verify production.
+
 ## 2026-10-31 / tighter Identity source strip
 - Owner request: make the Choose a model heading, description and source tabs slightly more compact, using the supplied cropped strip and current desktop page.
 - Baseline main: `d541ac1ba395745c4a71f72f210155d51a1a83ad`; isolated branch `fix/editorial-source-spacing-20261031`.

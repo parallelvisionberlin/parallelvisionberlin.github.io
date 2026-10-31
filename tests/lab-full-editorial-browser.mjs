@@ -45,14 +45,13 @@ try{
   if(width>800){
    const layout=await page.evaluate(()=>{
     const rect=selector=>document.querySelector(selector).getBoundingClientRect();
-    const hero=rect('#panel-model .stage-visual'),header=rect('.editorial-header'),rail=rect('.editorial-flow-rail'),back=rect('.progress-top'),title=rect('#panel-model .atelier-section-top h3'),description=rect('#panel-model .atelier-section-top>p'),cards=rect('#casting-reference-gallery');
-    return {heroBelowHeader:hero.top>=header.bottom,topGap:hero.top-header.bottom,heroHeight:hero.height,railInside:rail.top>=hero.top&&rail.bottom<=hero.bottom+1,backInside:back.top>=hero.top&&back.bottom<=hero.bottom,descriptionBeside:description.left>title.right&&description.top<title.bottom,descriptionGap:description.left-title.right,cardsVisible:cards.bottom<=innerHeight-12};
+    const hero=rect('#panel-model .stage-visual'),header=rect('.editorial-header'),rail=rect('.editorial-flow-rail'),back=rect('.progress-top'),cards=rect('#casting-reference-gallery');
+    return {heroBelowHeader:hero.top>=header.bottom,topGap:hero.top-header.bottom,heroHeight:hero.height,railInside:rail.top>=hero.top&&rail.bottom<=hero.bottom+1,backInside:back.top>=hero.top&&back.bottom<=hero.bottom,cardsVisible:cards.bottom<=innerHeight-12};
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
    assert.equal(layout.heroHeight,280,'Approved compact Identity hero');
-   assert.ok(layout.descriptionGap<=190,'Description stays beside the heading');
-   for(const key of ['railInside','backInside','descriptionBeside','cardsVisible'])assert.equal(layout[key],true,key);
+   for(const key of ['railInside','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    await page.locator('#editorial-top-back').click();
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
    await page.locator('#editorial-start').click();
