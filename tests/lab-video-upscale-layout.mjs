@@ -80,7 +80,7 @@ try{
   });
   console.log('VIDEO_RESOLUTION_DIAG',label,JSON.stringify(resolutionDiag));
   assert.equal(await page.locator('.pv-video-upscale-inline-resolution').isVisible(),true,label+': Video resolution replaces Image controls');
-  assert.equal(await page.locator('.parameter-grid').isVisible(),false,label+': Image-specific enlargement hidden');
+  assert.equal(await page.locator('.controls-body > .parameter-grid').isVisible(),false,label+': Image-specific enlargement hidden');
   assert.equal(await page.locator('#empty .pv-upscale-empty-center h2').textContent(),'Insert a source video.',label+': exact Video source label');
   assert.equal(await page.locator('#pv-upscale-hero-upload span').textContent(),'Upload video',label+': SAME upload button');
   assert.equal(await page.locator('#preview').isVisible(),false,label+': saved Image preview hidden, not deleted');
