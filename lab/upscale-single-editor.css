@@ -22,6 +22,14 @@
 #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>.stagefoot{
  display:none!important;
 }
+/* Only the Video Upscaler owns this 1080p/2K/4K picker and its quote.
+   In Video Create/Extend the regular Output settings select is authoritative. */
+#app:not(.video-upscale-active)>.workspace>.controls>.controls-body>.pv-video-upscale-inline-resolution,
+#app:not(.video-upscale-active)>.workspace>.controls>.controls-body>label:has(#pv-video-upscale-resolution),
+#app:not(.video-upscale-active)>.workspace>.controls>.controls-body>.pv-video-upscale-quote,
+#app:not(.video-upscale-active)>.workspace>.controls>.controls-body>.pv-video-upscale-message{
+  display:none!important;
+}
 /* The same Image model picker receives the three Video model buttons.
    Image choices are hidden rather than unmounted, preserving their state. */
 #app.upscale-studio-active.video-upscale-active #upscale-model-menu>:not([data-video-upscale-model]){
