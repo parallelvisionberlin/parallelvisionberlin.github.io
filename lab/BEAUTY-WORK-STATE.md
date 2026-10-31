@@ -1,5 +1,14 @@
 # Beauty Studio and Studios navigation
 
+## Phone Studios menu fit, 2026-11-01
+
+- Owner supplied current/desired phone screenshots `IMG_8313.jpeg` / `IMG_8314.jpeg` (`libfile_6f680364225481918e2bb6512df08db2`, `libfile_906df4efaa208191843d12a0f04d30b8`). Remove the extra mobile Studios/Character Studio header and show all four cards including bottom labels.
+- Baseline main `e5ca45d369f91d518b2ac35419683dd2a719583b`; branch `fix/studios-phone-fit-20261101`.
+- At <=900 px hide the panel header and size each of the two grid rows to half the available visible viewport, capped at the existing 322 px maximum. Retain original artwork, filters, crops, fonts, captions, routes, joined edges and rounded outer panel.
+- Positioning uses visualViewport height/offset when available, with innerHeight fallback, and responds to visual viewport resize/scroll so iOS browser chrome cannot hide the lower row. Desktop card dimensions/header are unchanged.
+- Cache version `20261101-phone-fit1` for shared menu CSS/JS on the five existing entry pages. No account, generation, billing or model changes.
+- Validation and publication pending. Next: check all four labels fit at actual short phone viewport sizes, preserve desktop and keyboard interactions, publish exact reviewed source, verify Cloudflare and production assets.
+
 ## Tall connected Studios cards correction, 2026-10-31
 
 - Owner likes the new joined design but explicitly wants the previous tall portrait card format from screenshot 1.
