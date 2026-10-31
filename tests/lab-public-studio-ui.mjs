@@ -62,7 +62,7 @@ const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fa
 // Owner-approved October 31 Replace Outfit redesign. Freeze only Fashion's
 // own HTML/CSS/controller reference at the reviewed commit. Independent
 // Image/Video/Upscaler/Retouch baselines and pixel tolerances remain untouched.
-const focusedFashionRef='0e679b2b045eb7f517db998d12b9fa309bb1f76f';
+const focusedFashionRef='6c2d5df3e7de574c49de4fb497729902489a2b39';
 // GitHub Actions checks out a shallow PR merge commit; retrieve the immutable
 // reviewed Fashion reference before comparing pixels.
 try{execFileSync('git',['cat-file','-e',focusedFashionRef+'^{commit}'],{stdio:'pipe'});}
