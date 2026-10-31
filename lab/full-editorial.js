@@ -205,7 +205,7 @@ function getSettings(){
   'Translate garment references onto the selected person or cast without copying the original reference wearer. Prioritize believable cloth fit and material detail. Garment importance '+emphasis+' percent as creative guidance.',
   'Editorial art direction: '+moodText+' '+lighting+' '+atmosphere+' '+palette+' Mood importance '+mood+' percent as creative guidance.',
   $('styling-direction').value.trim(),$('location-direction').value.trim(),$('editorial-prompt').value.trim(),
-  'Frame one standalone photograph with a considered editorial pose. Maintain the same person, palette, materials and location language across the series; vary framing and body posture naturally between distinct images.'
+  'Frame one standalone photograph with a considered editorial pose. Maintain the same selected identity or cast, palette, materials and location language across the series; vary framing and body posture naturally between distinct images.'
  ];
  const prompt=parts.filter(Boolean).join('\n');
  if(prompt.length>($('editorial-model').value==='seedreamlite'?2250:3850))throw Error('The editorial direction is too long for distinct shot briefs. Shorten your custom text.');
