@@ -11,7 +11,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    proteus:{name:'Topaz Proteus',allowed:['1080p','4k']},
    starlight:{name:'Topaz Starlight',allowed:['1080p','4k']}};
  let media='image',model='bytedance',file=null,assetId=null,sourceURL=null,resultURL=null,quote=null;
- let currentJob=null,loading=false,revision=0,showResult=false;
+ let currentJob=null,loading=false,revision=0,showResult=false,submissionUncertain=false;
  const revoke=url=>{if(url)URL.revokeObjectURL(url);};
  const notice=(s,error=false)=>{message.textContent=s||'';message.classList.toggle('error',error);};
  const ready=()=>{const a=access();return !!a.signedIn&&!!a.falEnabled&&!!a.generationReady;};
@@ -33,6 +33,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    if(!file){price.textContent='Select a video to calculate credits.';action.textContent='Choose video';action.disabled=!access().signedIn||loading;}
    else if(!ready()){price.textContent='Generation unavailable.';action.textContent='Provider unavailable';action.disabled=true;}
    else if(loading){action.textContent='Processing…';action.disabled=true;}
+   else if(submissionUncertain){price.textContent='The last submission is unconfirmed. Check History before starting another paid job.';action.textContent='Review submission in History';action.disabled=true;}
    else if(currentJob&&['submitting','queued','running','saving','uncertain'].includes(currentJob.status)){price.textContent='See this request in private History.';action.textContent='Processing in History';action.disabled=true;}
    else if(quote){price.textContent='Estimated price: '+quote.creditCost+' credits · '+quote.settings.duration.toFixed(1)+'s. Provider billing may differ.';action.textContent='Confirm & upscale · '+quote.creditCost+' credits';action.disabled=false;}
    else{price.textContent='Review credits before the paid request.';action.textContent='Review credits';action.disabled=false;}
@@ -40,7 +41,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  function changeTab(name){if(!['image','video'].includes(name)||media===name||loading)return;media=name;sync();onModeChange?.();}
  for(const tab of bar.querySelectorAll('[data-video-upscale-tab]'))tab.addEventListener('click',()=>changeTab(tab.dataset.videoUpscaleTab));
  function resetSource(){
-   stale();revoke(sourceURL);revoke(resultURL);sourceURL=null;resultURL=null;file=null;assetId=null;currentJob=null;showResult=false;
+   stale();revoke(sourceURL);revoke(resultURL);sourceURL=null;resultURL=null;file=null;assetId=null;currentJob=null;showResult=false;submissionUncertain=false;
    for(const video of [src,result]){video.pause();video.removeAttribute('src');video.load();}
  }
  function chooseFile(candidate,id=null){
@@ -82,13 +83,13 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
          throw Error('No valid bound upscaling price. No job submitted.');
        quote=q;notice('Credits checked. Confirm to start one paid enhancement.');
      }else{
-       const approved=quote;quote=null;notice('Submitting the confirmed job…');
+       const approved=quote;quote=null;submissionUncertain=true;notice('Submitting the confirmed job…');
        const submitted=await api('/api/jobs',{method:'POST',body:{quoteId:approved.id,confirm:true}});
        if(!submitted?.job)throw Error('Submission acknowledgement missing. Check History before retrying.');
-       currentJob=submitted.job;onJob?.(currentJob);
+       submissionUncertain=false;currentJob=submitted.job;onJob?.(currentJob);
        notice(currentJob.status==='uncertain'?'Status uncertain. Check the provider in History before retrying.':'Enhancement queued in History.',currentJob.status==='uncertain');
      }
-   }catch(error){if(token===revision){notice(error.message||'Upscaling could not be started.',true);if(/expired/i.test(error.message||''))quote=null;}}
+   }catch(error){if(token===revision){notice(submissionUncertain?'Submission response unconfirmed. Check History before starting another job. '+(error.message||''):error.message||'Upscaling could not be started.',true);if(/expired/i.test(error.message||''))quote=null;}}
    finally{loading=false;sync();}
  };
  function viewOriginal(){showResult=false;result.pause();sync();}
