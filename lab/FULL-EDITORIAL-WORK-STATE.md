@@ -5,7 +5,12 @@
 - Hero, progress rail, card images/sizing, text, phone layout and uploaded-model flow retained. No generation or account JavaScript changes.
 - Files: `full-editorial-atelier.css`, cache key in `full-editorial.html`, this checkpoint.
 - Local checks: 10/10 existing approved Image and Full Editorial tests plus whitespace checks pass. Actual desktop browser: source strip 105.47 px, tab height 36 px, hero still 280 px, cards start at 475.47 px and no horizontal overflow at 1348 px. Production/CI pending.
-- Next: run existing scoped checks, inspect desktop/phone layout, publish and verify Cloudflare plus production CSS.
+- Supported-browser wide desktop (1905 px content): source strip 106.19 px, cards start 476.19 px, heading 32 px and tabs 36 px. Phone content/scroll width both 375 px; heading remains 27 px and duplicate progress stays hidden.
+- Published PR #733, reviewed source `e4aba598e25de53bbf79f179ed4df0738324c27b`, merge `750af71b38d18ee0f82a6aed810dd7bedeb0d32b`. Dedicated Editorial desktop/phone browser, approved Image UI, gallery, static validation and private Lab checks passed.
+- Exact merged-commit Cloudflare pvlab-studio deployment `a44cd635-a47d-4314-b4ba-7815d2a69303` succeeded (check `124537123629`).
+- Production browser at pvlab.studio/full-editorial confirms CSS version `20261031-source-spacing1`, 105.47 px source strip, 36 px tabs, 280 px hero, cards at 475.47 px and no overflow at 1348 px. Public visual verification only; no paid generation.
+- Direct executor asset-byte verification was unavailable; use Cloudflare exact-commit and production DOM/CSS evidence. Reviewed CSS SHA-256 `d04af9a045ac360bbae449d7e89b0fcc929349f6e448bd9216beedbd129f6424`.
+- Next: complete. Keep this change limited to desktop Identity source-strip spacing.
 
 ## 2026-10-31 / approved compact casting mockup
 - Owner approved the visual mockup and requested implementation on the website.
