@@ -123,3 +123,54 @@
  #app .pv-video-upscale-preview-foot{align-items:flex-start;flex-direction:column}
  #app .pv-video-upscale-working{flex-wrap:wrap;bottom:8px;left:8px;right:8px}
 }
+
+
+/* Video / Image parity, 31 Oct. The original Image controls and photo stage
+   are siblings of this panel, not children of it. Hide that entire workspace,
+   never the separate History archive. */
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace{display:none!important}
+#app .pv-video-upscale-mode{width:100%;max-width:none;margin:0;padding:16px 24px;box-sizing:border-box}
+#app .pv-video-upscale-panel{
+  box-sizing:border-box;display:grid;grid-template-columns:minmax(330px,26%) minmax(0,1fr);
+  width:100%;max-width:none;margin:0 0 16px;gap:0;align-items:stretch;
+}
+#app .pv-video-upscale-sidebar{
+  box-sizing:border-box;min-width:0;min-height:clamp(680px,calc(100dvh - 104px),980px);
+  border:1px solid #353a44;border-right:0;border-radius:0;
+  padding:35px 26px 36px;gap:18px;
+  background:linear-gradient(160deg,#15191f,#12161b);
+}
+#app .pv-video-upscale-sidebar header{gap:6px;padding:0 0 19px;margin:0 0 3px;border-bottom:1px solid #2d3239}
+#app .pv-video-upscale-kicker{color:#858e9b;font-size:9px;font-weight:650;letter-spacing:.15em}
+#app .pv-video-upscale-sidebar h2{font-size:27px;font-weight:350;letter-spacing:-.067em;line-height:1.1}
+#app .pv-video-upscale-sidebar header p{color:#919aa4;font-size:11px;line-height:1.6}
+#app .pv-video-upscale-field{gap:9px}
+#app .pv-video-upscale-label{color:#aab1bb;font-size:10px;letter-spacing:.035em;text-transform:none}
+#app .pv-video-upscale-models{gap:7px}
+#app .pv-video-upscale-models .pv-upscale-model-card{min-width:0;width:100%}
+#app .pv-video-upscale-models .pv-upscale-model-card .upscale-model-selected{opacity:0}
+#app .pv-video-upscale-models .pv-upscale-model-card[aria-checked="true"] .upscale-model-selected{opacity:1}
+#app .pv-video-upscale-field select{height:45px;min-height:45px;background:#1b2027;border-color:#353c45}
+#app .pv-video-upscale-quote{border-top:1px solid #2c3239}
+#app .pv-video-upscale-submit{min-height:48px;background:#f2efeb;color:#151515;border-radius:9px}
+#app .pv-video-upscale-submit:disabled{background:#414043;color:#bcb7b9;opacity:1}
+#app .pv-video-upscale-preview{
+  box-sizing:border-box;min-width:0;min-height:clamp(680px,calc(100dvh - 104px),980px);
+  padding:0;gap:0;border:1px solid #303741;border-radius:0;
+  background:#0e1218;overflow:hidden;
+}
+#app .pv-video-upscale-preview-head{
+  box-sizing:border-box;flex:0 0 42px;min-height:42px;
+  padding:0 16px;border-bottom:1px solid #262e38;
+  background:#12161c;color:#adb5bf;letter-spacing:.025em;
+}
+#app .pv-video-upscale-stage{
+  box-sizing:border-box;flex:1;min-height:560px;border:0;border-radius:0;
+  background:#0b0e12;overflow:hidden;
+}
+#app .pv-video-upscale-preview-foot{
+  box-sizing:border-box;min-height:46px;padding:8px 16px;
+  border-top:1px solid #262e38;background:#12161c;
+}
+#app .pv-video-upscale-preview-foot button[aria-pressed="true"]{color:#f2efeb}
+#app .pv-video-upscale-history-symbol{display:grid;place-items:center;min-height:140px;color:#ddd;font-size:32px}
