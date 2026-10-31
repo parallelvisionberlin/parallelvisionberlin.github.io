@@ -2,7 +2,7 @@
 export function beautyAutoRatio(sourceWidth,sourceHeight){
  const width=Number(sourceWidth),height=Number(sourceHeight);
  if(!(width>0&&height>0&&Number.isFinite(width)&&Number.isFinite(height)))return '16:9';
- const ratios=['1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21'];
+ const ratios=['1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3'];
  return ratios.reduce((best,ratio)=>{
   const [w,h]=ratio.split(':').map(Number),[bw,bh]=best.split(':').map(Number);
   return Math.abs(Math.log(width/height/(w/h)))<Math.abs(Math.log(width/height/(bw/bh)))?ratio:best;

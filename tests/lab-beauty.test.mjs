@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {beautySettings,beautyAutoRatio,validateBeautyQuote} from '../lab/beauty-settings.js';
+import {FLASH_RATIOS} from '../lab-worker/seedream-flash.mjs';
 test('Beauty controls compile an identity-preserving edit and never borrow the example styling',()=>{
  const p=beautySettings({makeup:'bold',hair:'waves',skin:'dewy',strength:75,direction:'Copper eyes, soft gloss.'});
  assert.equal(p.engine,'seedream');assert.equal(p.mode,'image');assert.equal(p.resolution,'1k');assert.equal(p.referenceRoles[0].role,'identity');
@@ -22,6 +23,13 @@ test('Beauty Auto derives provider-supported aspect ratio from uploaded photo',(
  assert.equal(beautyAutoRatio(1920,1080),'16:9');
  assert.equal(beautyAutoRatio(4000,3000),'4:3');
  assert.equal(beautyAutoRatio(3000,4000),'3:4');
+ for(const ratio of FLASH_RATIOS){
+  const [w,h]=ratio.split(':').map(Number);
+  assert.equal(beautyAutoRatio(w*600,h*600),ratio,'An exactly supported photograph shape must not be approximated');
+ }
+ assert.equal(beautyAutoRatio(810,1200),'2:3','A nonstandard portrait uses the nearest proportional match');
+ assert.equal(beautyAutoRatio(1200,810),'3:2','Rotation produces the reciprocal match');
+ for(const [w,h] of [[NaN,100],[100,Infinity],[-1,100],[100,0]])assert.equal(beautyAutoRatio(w,h),'16:9');
  assert.equal(beautyAutoRatio(0,0),'16:9','Unloaded photo uses a safe reference fallback');
  for(const ratio of ['4:5','1:1','3:4','9:16'])assert.equal(beautySettings({aspectRatio:ratio}).aspectRatio,ratio,'Explicit aspect ratio must remain unchanged');
 });

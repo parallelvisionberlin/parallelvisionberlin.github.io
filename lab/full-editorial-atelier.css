@@ -23,7 +23,7 @@
 .progress-top .eyebrow{font-size:10px;letter-spacing:.22em}
 .progress-top .step-track{display:none}
 .progress-top .text-action{text-transform:uppercase;font-size:10px;letter-spacing:.08em}
-.editorial-flow-rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:0 0 26px;border-top:1px solid #444;border-bottom:1px solid #303235}
+.editorial-flow-rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:0 0 20px;border-top:1px solid #444;border-bottom:1px solid #303235}
 .editorial-flow-rail>span{display:flex;align-items:center;gap:13px;min-width:0;white-space:normal;padding:14px 8px;border-top:2px solid transparent;color:#86888b;font-size:clamp(10px,1vw,13px);font-weight:600;letter-spacing:.02em;text-transform:uppercase}
 .editorial-flow-rail small{font-size:10px;font-weight:400;color:inherit}
 .editorial-flow-rail>span.is-current{border-top:2px solid #f4f2eb;padding-top:14px;color:#f6f5f2}
@@ -236,4 +236,18 @@
  .atelier-review-main h2{font-size:clamp(46px,11vw,60px)}
  .editorial-top-back{font-size:11px;gap:6px}
  .progress-top #progress-title{font-size:9px}
+}
+
+/* 2026-10-31: Restore the approved photo composition and step rail above it.
+   Only the identity workspace is slightly condensed to reveal casting portraits sooner. */
+@media (min-width:801px){
+ #panel-model .stage-visual{height:clamp(350px,43svh,520px)}
+ #panel-model .atelier-workspace{padding-top:clamp(18px,2vw,30px)}
+ #panel-model .atelier-section-top{margin-bottom:16px}
+ #panel-model .atelier-source-tabs{margin-bottom:16px}
+}
+
+/* Mobile: the photograph carries the step label; remove repeated navigation above it. */
+@media(max-width:800px){
+ .flow-main>.progress-top,.flow-main>.editorial-flow-rail{display:none}
 }

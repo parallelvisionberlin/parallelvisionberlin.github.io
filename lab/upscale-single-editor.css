@@ -1,0 +1,174 @@
+/* PV LAB Upscaler: one real editor DOM, two media types.
+ * Keep Image's original inspector, photographic stage, central +, model cards,
+ * action and dimensions. Only provider-specific controls swap in place.
+ * Loaded after the legacy Video CSS to override its second-deck rules.
+ */
+#app.upscale-studio-active:not(.video-upscale-active) #upscale-model-menu>[data-video-upscale-model]{
+ display:none!important;
+}
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+ display:flex!important;flex-direction:column!important;
+}
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>.stagehead{
+ display:flex!important;
+}
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas{
+ display:flex!important;position:relative!important;min-height:0!important;
+ flex:1 1 auto!important;overflow:hidden!important;
+}
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>.stagefoot{
+ display:none!important;
+}
+/* The same Image model picker receives the three Video model buttons.
+   Image choices are hidden rather than unmounted, preserving their state. */
+#app.upscale-studio-active.video-upscale-active #upscale-model-menu>:not([data-video-upscale-model]){
+ display:none!important;
+}
+#app.upscale-studio-active.video-upscale-active #upscale-model-menu>[data-video-upscale-model]{
+ box-sizing:border-box!important;display:grid!important;
+ width:100%!important;max-width:none!important;min-width:0!important;
+ /* Inherit the canonical Image card grid (38px / 1fr / 16px) exactly. */
+ align-items:center!important;gap:10px!important;
+}
+#app.upscale-studio-active.video-upscale-active #upscale-model-menu>[data-video-upscale-model][aria-checked="true"]{
+ border-color:#97928c!important;background:#292a2e!important;
+}
+#app.upscale-studio-active.video-upscale-active #upscale-model-menu>[data-video-upscale-model] .upscale-model-selected{
+ opacity:0!important;
+}
+#app.upscale-studio-active.video-upscale-active #upscale-model-menu>[data-video-upscale-model][aria-checked="true"] .upscale-model-selected{
+ opacity:1!important;
+}
+#app.upscale-studio-active:not(.video-upscale-active) .pv-video-upscale-inline-resolution,
+#app.upscale-studio-active:not(.video-upscale-active) .pv-video-upscale-quote,
+#app.upscale-studio-active:not(.video-upscale-active) .pv-video-upscale-message{
+ display:none!important;
+}
+/* Higher specificity than the original Image editor's desktop !important
+   display:flex rules. In Video, output resolution REPLACES Image enlargement
+   and format rather than stacking underneath them. */
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body>.parameter-grid,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body>#format-control,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body>#upscale-info,
+#app.upscale-studio-active.video-upscale-active .generate-zone>#upscale-price,
+#app.upscale-studio-active.video-upscale-active .generate-zone>#save,
+#app.upscale-studio-active.video-upscale-active .generate-zone>#generation-help,
+#app.upscale-studio-active.video-upscale-active .generate-zone>#upscale-notice-slot{
+ display:none!important;
+}
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-inline-resolution{
+ box-sizing:border-box!important;display:flex!important;flex-direction:row!important;grid-column:1/-1!important;
+ width:100%!important;align-items:center!important;justify-content:space-between!important;
+ height:41px!important;min-height:41px!important;max-height:41px!important;
+ gap:12px!important;margin:0!important;padding:0!important;
+ color:#d1cecb!important;font:600 11px/1.4 'DM Sans',Arial,sans-serif!important;
+}
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-inline-resolution .pv-video-upscale-label{
+ flex:0 0 104px!important;color:#d1cecb!important;font:600 11px/1.4 'DM Sans',Arial,sans-serif!important;
+ letter-spacing:0!important;
+}
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-inline-resolution select{
+ box-sizing:border-box!important;flex:1 1 auto!important;
+ width:auto!important;max-width:70%!important;min-width:0!important;
+ height:41px!important;min-height:41px!important;
+ padding:8px 12px!important;border:1px solid #343b46!important;border-radius:7px!important;
+ background:#1b2027!important;color:#f2f1ee!important;
+ font:500 12px/1.2 'DM Sans',Arial,sans-serif!important;
+}
+/* Do not show an instructional credit message before an MP4 exists.
+   The quote and any actionable error return after source selection. */
+#app.upscale-studio-active.video-upscale-active:not(.video-upscale-has-source) .pv-video-upscale-quote,
+#app.upscale-studio-active.video-upscale-active:not(.video-upscale-has-source) .pv-video-upscale-message{
+ display:none!important;
+}
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-quote{
+ box-sizing:border-box!important;display:block!important;grid-column:1/-1!important;
+ width:100%!important;margin:0!important;padding:10px 0 0!important;
+ border-top:1px solid #2c3239!important;
+}
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-quote p{
+ margin:0 0 5px!important;color:#e3e4e6!important;
+ font:550 11px/1.4 'DM Sans',Arial,sans-serif!important;
+}
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-quote small{
+ color:#9b9fa7!important;font:400 10px/1.4 'DM Sans',Arial,sans-serif!important;
+}
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-message{
+ display:block!important;grid-column:1/-1!important;
+ margin:0!important;min-height:0!important;
+ color:#adb4bd;font:400 11px/1.4 'DM Sans',Arial,sans-serif;
+}
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-message.error{color:#ffb7b7!important}
+#app.upscale-studio-active.video-upscale-active .pv-upscale-source-control{display:none!important}
+#app.upscale-studio-active.video-upscale-active.video-upscale-has-source .pv-upscale-source-control{
+ display:flex!important;grid-column:1/-1!important;
+}
+#app.upscale-studio-active.video-upscale-active .pv-upscale-source-control #pv-upscale-source-thumb{
+ display:none!important;
+}
+/* Same original photo canvas and plus, with native video playback overlay. */
+/* Loaded Image previews have a stronger :has() display:block rule in
+   upscale-loaded-workspace.css. Override it so a saved photograph cannot
+   bleed into the Video source stage during a mode switch. */
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas:has(> #preview:not([hidden]))>img#preview:not([hidden]),
+#app.upscale-studio-active.video-upscale-active #upscale-canvas>#preview,
+#app.upscale-studio-active.video-upscale-active #upscale-canvas>#video,
+#app.upscale-studio-active.video-upscale-active #upscale-canvas>#video-job-stage{
+ display:none!important;
+}
+#app.upscale-studio-active.video-upscale-active #upscale-canvas>#empty[hidden]{display:none!important}
+#app.upscale-studio-active.video-upscale-active #upscale-canvas>#empty:not([hidden]){display:flex!important}
+#app.upscale-studio-active.video-upscale-active #upscale-canvas>.pv-video-upscale-source,
+#app.upscale-studio-active.video-upscale-active #upscale-canvas>#pv-video-upscale-source:not([hidden]),
+#app.upscale-studio-active.video-upscale-active #upscale-canvas>#pv-video-upscale-result:not([hidden]){
+ box-sizing:border-box!important;position:absolute!important;inset:0!important;
+ z-index:3!important;display:block!important;
+ width:100%!important;height:100%!important;
+ object-fit:contain!important;background:#0c0e12!important;
+}
+#app.upscale-studio-active #upscale-canvas>#pv-video-upscale-source[hidden],
+#app.upscale-studio-active #upscale-canvas>#pv-video-upscale-result[hidden],
+#app.upscale-studio-active #upscale-canvas>#pv-video-upscale-working[hidden]{
+ display:none!important;
+}
+#app.upscale-studio-active #upscale-canvas>#pv-video-upscale-working:not([hidden]){
+ position:absolute;z-index:5;left:15px;right:15px;bottom:15px;
+ display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+ padding:12px;border:1px solid #444;border-radius:8px;
+ background:rgba(20,21,23,.94);color:#eee;
+}
+#app.upscale-studio-active .stagehead>#pv-video-upscale-original-button,
+#app.upscale-studio-active .stagehead>#pv-video-upscale-result-button,
+#app.upscale-studio-active .stagehead>#pv-video-upscale-download{
+ border:1px solid #444850;border-radius:6px;background:transparent;color:#e3e3e3;
+ padding:6px 9px;font:500 11px 'DM Sans',Arial,sans-serif;cursor:pointer;
+}
+#app.upscale-studio-active .stagehead>#pv-video-upscale-original-button[hidden],
+#app.upscale-studio-active .stagehead>#pv-video-upscale-result-button[hidden],
+#app.upscale-studio-active .stagehead>#pv-video-upscale-download[hidden]{display:none!important}
+#app.upscale-studio-active.video-upscale-active .pv-upscale-empty-drop{
+ width:100%!important;height:100%!important;
+}
+#app.upscale-studio-active.video-upscale-active #upscale-canvas #empty .pv-upscale-empty-center{
+ /* Exactly the same Image inner frame, without independent Video geometry. */
+ width:min(91%,1100px)!important;min-height:81%!important;
+}
+@media(max-width:780px){
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+  display:grid!important;
+ }
+ /* The single Video resolution row replaces two Image fields. Keep the
+    bottom of the empty inspector and its shared Upscale button stationary. */
+ #app.upscale-studio-active.video-upscale-active:not(.video-upscale-has-source):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+  padding-bottom:4px!important;
+ }
+ #app.upscale-studio-active.video-upscale-active #upscale-canvas #empty .pv-upscale-empty-center{
+  width:calc(100% - 26px)!important;min-height:350px!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-inline-resolution .pv-video-upscale-label{
+  flex:0 0 100px!important;
+ }
+}

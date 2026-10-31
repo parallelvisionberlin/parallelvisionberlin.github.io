@@ -111,7 +111,7 @@
 .beauty-looks{border-top:1px solid #ffffff2b;margin:16px 0 15px;padding-top:13px;}
 .beauty-looks-heading{display:flex;align-items:baseline;justify-content:space-between;gap:18px;margin-bottom:12px;}
 .beauty-looks-heading strong{font-size:17px;font-weight:500;letter-spacing:-.02em;}
-.beauty-looks-heading span{font-size:11px;color:#989a98;}
+.beauty-looks-heading span{display:block;font-size:11px;color:#989a98;}
 .beauty-looks-list{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;}
 .beauty-looks-list>button{
  position:relative;isolation:isolate;display:block;overflow:hidden;width:100%;height:clamp(140px,17vh,186px);
@@ -180,7 +180,8 @@
  .beauty-edit-panel{grid-column:1;grid-row:3;display:flex;padding:16px;gap:13px;}
  .beauty-choice-photo{height:55px;}
  .beauty-choice-name{font-size:11px;}
- .beauty-looks-heading span{display:none;}
+ .beauty-looks-heading{flex-direction:column;align-items:flex-start;gap:5px;}
+ .beauty-looks-heading span{display:block;}
  .beauty-looks-list{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(165px,48vw);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;}
  .beauty-looks-list>button{height:165px;scroll-snap-align:start;}
  .beauty-results{margin-top:12px;}

@@ -119,7 +119,7 @@
 #app.video-studio-active .reference-media-item{padding:7px;border-radius:8px}
 #app.video-studio-active .reference-media-item strong{font-size:10px}
 #app.video-studio-active .reference-media-item video{max-height:145px;border-radius:6px}
-#app.video-extend-active #reference-mode>.upload-heading,#app.video-extend-active #reference-drop,#app.video-extend-active #reference-list,#app.video-extend-active #reference-progress,#app.video-extend-active .audio-media-heading,#app.video-extend-active .audio-media-drop,#app.video-extend-active #audio-reference-list{display:none!important}
+#app.video-extend-active .audio-media-heading,#app.video-extend-active .audio-media-drop,#app.video-extend-active #audio-reference-list{display:none!important}
 #app.video-extend-active #extend-help{font:400 12px/1.5 'DM Sans',sans-serif;color:#b8bbc1;margin:0 0 12px}
 #app.video-extend-active #video-media-drop{min-height:94px!important}
 #app.video-studio-active [hidden]{display:none!important}

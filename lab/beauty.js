@@ -1,7 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
 import {createAccountMenu} from './account-menu.js?v=20261030-robin-partner1';
-import {beautySettings,validateBeautyQuote,BEAUTY_PROMPT_PREFIX,beautyAutoRatio} from './beauty-settings.js?v=20261031-photo-ratio1';
+import {beautySettings,validateBeautyQuote,BEAUTY_PROMPT_PREFIX,beautyAutoRatio} from './beauty-settings.js?v=20261031-photo-ratio2';
 const API='https://parallel-vision-lab.parallelvision.workers.dev',$=id=>document.getElementById(id);
 const activeStates=new Set(['submitting','queued','running','saving','uncertain']);
 const menu=createAccountMenu($('beauty-account')),pendingKey='pvlab-beauty-pending';
@@ -97,14 +97,15 @@ async function generate(event){
 async function showResult(job){
  if(!job.outputId)return;
  const version=epoch,selection=++resultRevision,sourceId=job.settings?.referenceSourceIds?.[0]||'';
+ // Keep the original bytes for this selection, independently of the mutable upload tile.
+ let original=sourceId&&sourceId===source?.id?source.file:null;
  const blob=await imageBlob(job.outputId,version);
  // History must compare against the source of THIS job, never whatever happens to be in the upload tile.
- let historicalSource=null;
- if(sourceId&&sourceId!==source?.id){try{historicalSource=await imageBlob(sourceId,version);}catch{}}
+ if(sourceId&&!original){try{original=await imageBlob(sourceId,version);}catch{}}
  if(version!==epoch||selection!==resultRevision)return;
  if(resultUrl)URL.revokeObjectURL(resultUrl);resultUrl=URL.createObjectURL(blob);
- if(compareUrl)URL.revokeObjectURL(compareUrl);compareUrl=historicalSource?URL.createObjectURL(historicalSource):'';
- const beforeUrl=sourceId&&sourceId===source?.id?photoUrl:compareUrl;
+ if(compareUrl)URL.revokeObjectURL(compareUrl);compareUrl=original?URL.createObjectURL(original):'';
+ const beforeUrl=compareUrl;
  const resultNode=$('beauty-result');
  resultNode.dataset.beforeUrl=beforeUrl||'';resultNode.dataset.beforeSourceId=beforeUrl?sourceId:'';
  $('beauty-result-image').src=resultUrl;resultNode.hidden=false;$('beauty-download').href=resultUrl;

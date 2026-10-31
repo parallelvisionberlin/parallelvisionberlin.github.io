@@ -1,3 +1,15 @@
+## 2026-10-31 / mobile hero without repeated navigation
+- Owner request: remove clutter above the phone Identity photograph; use the existing small label inside the hero.
+- Baseline main: `9342379bc07fbefbf892c31c42830553b5b83e9e`; no concurrent head change observed before commit.
+- At widths up to 800 px, hide the top Back / Step / Start over row and the four-stage rail. Existing hero label, title and description remain; footer Back / Continue stays available. Desktop navigation remains visible.
+- Files: `full-editorial-atelier.css`, cache key in `full-editorial.html`, updated mobile expectations in `tests/lab-full-editorial-browser.mjs`, and this checkpoint. No generation JavaScript changed.
+- Verified: 10/10 existing Image UI contract and Full Editorial source tests pass. Browser inspection of actual page markup/styles at phone and desktop iframe widths confirms hidden mobile rows, hero 12 px below header, preserved desktop navigation and no phone horizontal overflow.
+- Local visual fixture is presentation-only, with published images. Dedicated complete authenticated/mock billing browser suite was updated but not executed locally; CI remains required. No paid generation was run.
+- Published source: `4878477628ca482e489d05da3bc208bc5d8af938`. Cloudflare `pvlab-studio` check succeeded, deployment `76498b1b-f270-4463-a787-2a9523c8b079`.
+- Production browser verified at pvlab.studio: `full-editorial-atelier.css?v=20261031-mobile-hero-clean1` loaded, mobile top controls/rail compute to `display:none`, inside-hero label and footer Back remain; Back returns to arrival and Create reopens Identity. Phone scrollWidth equals clientWidth (375 px with iframe scrollbar); desktop top navigation remains visible. This was signed-out public UI, not an authenticated generation test. Direct asset hash verification was unavailable in the restricted executor; used the documented GitHub-check plus production DOM/CSS fallback.
+- Broader CI failures were inspected: public Studio visual comparison reports a Video model-control height of 125 vs 124 px, and reference-preview stability expects an old lab.js script-tag shape in studio.html. Neither failure touches the files changed for this task; do not weaken these tests or change those interfaces in this mobile layout task.
+- Next: no further layout work required for this request. Separate work may address those unrelated CI failures; dedicated Full Editorial billing browser suite remains unexecuted locally.
+
 ## 2026-10-30 / image-led Full Editorial Studio flow (PR #704)
 - Approved visual direction: fashion photographic atelier, not a technical form, futuristic UI or decorative sci-fi scene. Full-screen responsive photo stages, clear Who/Identity > Wear/Styling > World/Location & Mood > Series/Generate.
 - Reuses published original user-supplied casting assets: bronze-cast03 hero, plum-cast03 Identity, chrome-cast03 Styling, ivory-cast03 review, plus approved angular desert artwork in the World stage. No synthetic mockups are used as selectable assets.

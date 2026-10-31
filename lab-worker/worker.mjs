@@ -12,7 +12,7 @@ import {processSignupWelcomeEmails} from './signup-welcome-email.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
 import {linkedStudioIdentity,migrationRoute} from './clerk-migration.mjs';
-import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
+import {prepareVideoExtension,quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
 import {klingHfParameters,quoteKlingHf,submitKlingHf} from './kling-hf.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
 import {canCustomerGenerate} from './customer-rollout.mjs';
@@ -98,7 +98,7 @@ const first = (env,sql,...p) => stmt(env,sql,...p).first();
 const run = (env,sql,...p) => stmt(env,sql,...p).run();
 const rows = async (env,sql,...p) => (await stmt(env,sql,...p).all()).results;
 const uid = value => UUID.test(value || '') ? value : fail(400,'Invalid record identifier.');
-const hfDeps = () => ({fail,now,body,first,run,rows,config,source,sources,signedInput,jobView,copyResult,safeVideoUrl,storedImageDimensions,isLabCustomer});
+const hfDeps = () => ({fail,now,body,first,run,rows,config,source,sources,signedInput,assembledPrompt,jobView,copyResult,safeVideoUrl,storedImageDimensions,isLabCustomer});
 const soulDeps = () => ({fail,now,body,limitedBody,first,run,rows,uid,derived,base,unbase});
 function unbase(s) { return Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(s.length/4)*4,'=')),c=>c.charCodeAt(0)); }
 function base(b) { let s=''; for(const n of new Uint8Array(b))s+=String.fromCharCode(n); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
@@ -388,6 +388,7 @@ function assembledPrompt(p) {
   return prompt;
 }
 async function prepareInput(env,owner,data,p,url) {
+  if(p.engine==='seedance'&&p.mode==='extend')return prepareVideoExtension(env,owner,data,p,{fail,source,sources});
   if(p.engine==='kling'){if(url)fail(400,'Use the Kling image generation route.');const ids=data.referenceSourceIds||[],refs=ids.length?await sources(env,owner,ids,1):[];p.referenceSourceIds=refs.map(a=>a.id);return {primary:refs[0]||null,input:{}};}
   if(p.provider==='higgsfield'&&p.mode==='extend'){const primary=await source(env,owner,data.sourceId);if(!['video/mp4','video/quicktime'].includes(primary.mime))fail(400,'Choose a video to extend.');p.referenceVideoIds=[primary.id];return {primary,input:{}};}
   if(p.provider==='higgsfield'){if(url)fail(400,'Use the Soul 2 generation route.');const primary=await source(env,owner,data.sourceId);return {primary,input:{}};}

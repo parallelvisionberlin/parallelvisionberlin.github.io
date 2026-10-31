@@ -42,9 +42,15 @@ try{
   await page.locator('.editorial-hero-art img').evaluate(img=>img.decode().catch(()=>{}));
   await page.screenshot({path:'test-results/editorial/'+width+'-hero.png',fullPage:width===390});
   await page.locator('#editorial-start').click();
-  await page.locator('#editorial-top-back').click();
-  assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
-  await page.locator('#editorial-start').click();
+  if(width>800){
+   await page.locator('#editorial-top-back').click();
+   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
+   await page.locator('#editorial-start').click();
+  }else{
+   assert.equal(await page.locator('.progress-top').isVisible(),false,'Mobile removes duplicate top controls');
+   assert.equal(await page.locator('.editorial-flow-rail').isVisible(),false,'Mobile removes duplicate step rail');
+   assert.equal(await page.locator('#panel-model .stage-index').isVisible(),true,'Step label remains inside the photograph');
+  }
   await page.locator('#step-back').click();
   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Back returns from Identity to hero');
   assert.equal(await page.locator('#editorial-flow').isVisible(),false);
