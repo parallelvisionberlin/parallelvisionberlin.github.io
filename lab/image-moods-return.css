@@ -160,3 +160,52 @@ html.pv-image-previews-hidden #app.image-studio-active.pv-moods-discovery-open
   body:has(#app.image-studio-active.pv-moods-discovery-open:not([hidden]) #lab-welcome-start:not([hidden]))
     > footer.pv-lab-footer{display:none!important}
 }
+
+/* Inspiration is a primary gallery destination. Keep utility controls at the
+   opposite edge, with the full label visible even on narrow phones. */
+html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead{
+  min-height:48px;box-sizing:border-box;
+}
+html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead>div:last-child{
+  flex:1;width:100%;margin-left:0;
+}
+html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead .history-head-actions{
+  width:100%;grid-template-columns:minmax(148px,1fr) 54px 62px 74px 12px 34px;
+  align-items:center;
+}
+html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #history-preview-toggle{grid-column:6;grid-row:1}
+html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #history-moods-toggle{
+  justify-self:start;width:auto;min-width:148px;height:36px;min-height:36px;
+  padding:0 16px;gap:8px;border-color:#e1e2dc;border-radius:8px;
+  background:#e1e2dc;color:#171917;box-shadow:none;
+  font-size:14px;line-height:1;font-weight:600;letter-spacing:-.015em;
+}
+html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #history-moods-toggle .mood-view-label{
+  display:inline;font-size:inherit;
+}
+html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #history-moods-toggle .mood-view-label::after{content:none}
+html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #history-moods-toggle svg{width:16px;height:16px}
+html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #history-moods-toggle:hover{
+  background:#f5f5ee;border-color:#f5f5ee;color:#101210;box-shadow:none;
+}
+html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #history-moods-toggle:focus-visible{
+  outline:2px solid #f5f5ee;outline-offset:4px;box-shadow:none;
+}
+html:not(.pv-native-lab) #app.image-studio-active.pv-moods-discovery-open .image-studio .archivehead #history-moods-toggle{
+  background:#292c29;border-color:#777d74;color:#f0f1e9;
+}
+@media(max-width:700px){
+  html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead .history-head-actions{
+    grid-template-columns:minmax(106px,1fr) 40px 48px 32px 0 30px;gap:4px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #history-moods-toggle{
+    min-width:106px;max-width:148px;height:34px;min-height:34px;padding:0 7px;gap:5px;font-size:12px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #history-moods-toggle svg{width:14px;height:14px}
+  html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead :is(#history-select,#refresh){
+    min-width:0;padding:5px 3px;font-size:10px;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #history-preview-toggle{width:30px;min-width:30px}
+  html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #image-gallery-view>summary{width:32px}
+  html:not(.pv-native-lab) #app.image-studio-active .image-studio .archivehead #image-gallery-view .image-gallery-view-panel{right:-38px}
+}
