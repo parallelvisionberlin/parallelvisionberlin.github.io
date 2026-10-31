@@ -128,14 +128,19 @@ if(looks){
   lookPreview.setAttribute('aria-hidden','true');
   const lookPreviewImage=looks.ownerDocument.createElement('img');
   lookPreviewImage.alt='';
-  const lookPreviewTitle=looks.ownerDocument.createElement('span');
-  lookPreview.append(lookPreviewImage,lookPreviewTitle);
+  lookPreview.append(lookPreviewImage);
   looks.parentElement.appendChild(lookPreview);
   // A short hover-intent pause prevents previews flashing while traversing the row.
   let previewDelay=null;
+  let activePreviewCard=null;
   const closeLookPreview=()=>{
     if(previewDelay!==null){clearTimeout(previewDelay);previewDelay=null;}
     lookPreview.classList.remove('is-visible');
+    if(activePreviewCard){
+      activePreviewCard.classList.remove('is-look-preview-active');
+      activePreviewCard.style.removeProperty('--look-title-shift');
+      activePreviewCard=null;
+    }
   };
   function openLookPreview(card){
     if(!card||card.disabled)return;
@@ -153,7 +158,17 @@ if(looks){
     lookPreview.style.top=y+'px';
     lookPreview.style.width=width+'px';
     lookPreviewImage.src=img.currentSrc||img.src;
-    lookPreviewTitle.textContent=label.textContent;
+    // One real title only: it remains below its card, enlarged and centered
+    // underneath the hover image instead of duplicating text in the overlay.
+    if(activePreviewCard&&activePreviewCard!==card){
+      activePreviewCard.classList.remove('is-look-preview-active');
+      activePreviewCard.style.removeProperty('--look-title-shift');
+    }
+    const cardCenter=cardRect.left-sectionRect.left+cardRect.width/2;
+    const previewCenter=x+width/2;
+    card.style.setProperty('--look-title-shift',(previewCenter-cardCenter)+'px');
+    card.classList.add('is-look-preview-active');
+    activePreviewCard=card;
     lookPreview.classList.add('is-visible');
   }
   for(const card of looks.querySelectorAll('[data-look]')){

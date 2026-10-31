@@ -189,7 +189,8 @@
 /* Viewport-fidelity corrections: all controls remain visible above the card deck. */
 @media(min-width:1001px){
  .beauty-editorial-heading .beauty-back{display:none!important;}
- .beauty-editor-grid::before{background-position:center,center,45% 5%;}
+ /* Absolute negative background offset moves the portrait even when background-size:cover fits exactly to the hero width. The concealed right strip sits under the opaque Edit Look panel. */
+  .beauty-editor-grid::before{background-position:center,center,clamp(-180px,-11vw,-110px) 5%;background-repeat:no-repeat;}
  .beauty-editorial-heading .beauty-intro{margin-bottom:13px;}
  .beauty-editorial-heading .beauty-description{margin-bottom:13px;}
  .beauty-left-settings{padding-top:12px;gap:9px;}
