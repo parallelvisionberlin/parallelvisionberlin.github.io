@@ -55,6 +55,11 @@ try{
   assert.equal(initial.barInside,true,label+': media switch is inside the workspace');
   assert.equal(initial.sidebarInside,true,label+': video model cards reuse original inspector');
   assert.equal(initial.videoInside,true,label+': video preview reuses original stage');
+  const diag=await page.evaluate(()=>{
+    const x=sel=>{const el=document.querySelector(sel);const r=el?.getBoundingClientRect();return {display:el?getComputedStyle(el).display:null,visibility:el?getComputedStyle(el).visibility:null,hidden:el?.hidden,rect:r?{top:r.top,bottom:r.bottom,height:r.height,width:r.width}:null};};
+    return {classes:document.getElementById('app').className,workspace:x('#app>.workspace'),stage:x('#app>.workspace>.stage'),canvas:x('#upscale-canvas'),controls:x('#app>.workspace>.controls'),body:x('.controls-body'),bar:x('#pv-video-upscale-mode'),preview:x('.pv-video-upscale-preview')};
+  });
+  console.log('LAYOUT_DIAG',label,JSON.stringify(diag));
   assert.equal(await page.locator('.controls-body').isVisible(),true,label+': Image controls initially visible');
   assert.equal(await page.locator('#upscale-canvas').isVisible(),true,label+': Image preview initially visible');
   assert.equal(await page.locator('.pv-video-upscale-preview').isVisible(),false,label+': Video stage hidden initially');
