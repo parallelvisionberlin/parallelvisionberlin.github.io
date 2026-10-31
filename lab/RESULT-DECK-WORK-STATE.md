@@ -133,4 +133,8 @@
 - `tests/lab-image-viewer-browser.mjs`: adds backdrop source/close/sign-out assertions and real source count; checks the newly approved desktop Close inset precisely.
 - Validation: all six desktop/mobile viewer cases passed for landscape/portrait/square, including 1920/1440/768/390/320px layouts, actual-size zoom, rapid navigation and late responses, original downloads, reference downloads, video handoff, close and sign-out. Approved Image UI contract: 5/5. Syntax and diff checks clean.
 - Rendered real CSS/HTML preview inspected at 1365px with an existing portrait asset. Full original stays sharp and the same photograph supplies the side fill; upper panel fits without a scrollbar. No paid generation or account mutation.
-- Publication pending: upload exact reviewed files, relevant CI, merge, Cloudflare Pages confirmation and exact production-byte verification. Real signed-in account observation is separate.
+- Published: PR #738 merged as `e4c375df3b75cebf222f561a3dd42ebe6fc3020b`. Cloudflare Pages project pvlab-studio check `124597380721` succeeded.
+- The production verifier returned LIVE_VERIFIED for `image-result-deck.css` and `image-result-presentation.js`, version `20261031-photo-backdrop1`. SHA-256: CSS `4b825fcf48e5e5122662477bcc95757f0ffdded48c6fc5a55b650a2dfd7407ba`; JS `7b16b310306fee0bf9fbf0a85f3a3e1cf3d8a98fae9203c815f82e163fdfe9b5`.
+- PR checks passed: queue-smoke (complete viewer suite), gallery-browser, approved-image-ui, private-lab, unit, validation and Cloudflare preview. Broader first-image, public-studio, legacy landing and Video Extend checks retain failures outside this viewer scope.
+- Final release checkpoint retained on `codex/image-viewer-blurred-backdrop` to avoid a documentation-only production deployment. Main contains the implementation and its pre-release checkpoint.
+- Complete. Real signed-in account observation remains separate from the synthetic browser tests and exact production-byte verification.
