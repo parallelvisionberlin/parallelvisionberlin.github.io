@@ -56,3 +56,28 @@
     min-width:0!important;
   }
 }
+
+/* Extend-only vertical rhythm: bring the clip input directly beneath the
+   two reference cards. Avoid empty lists reserving space before the prompt. */
+#app.video-studio-active.video-extend-active #reference-mode:not([hidden]):has(> #reference-drop){
+  row-gap:5px!important;
+}
+#app.video-studio-active.video-extend-active #reference-mode #reference-media:not([hidden]){
+  gap:5px!important;
+}
+#app.video-studio-active.video-extend-active #reference-mode #reference-media .video-media-heading{
+  margin:0!important;
+  padding:0 1px!important;
+}
+#app.video-studio-active.video-extend-active #reference-mode #video-media-drop{
+  min-height:74px!important;
+  height:74px!important;
+  padding:9px!important;
+}
+#app.video-studio-active.video-extend-active #reference-mode #reference-list:empty,
+#app.video-studio-active.video-extend-active #reference-mode #video-reference-list:empty{
+  display:none!important;
+}
+#app.video-studio-active.video-extend-active .workspace.video-layout .controls-body>#pv-video-prompt-head{
+  margin-top:0!important;
+}
