@@ -136,3 +136,79 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer #image-compose
   box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 0 15px rgba(241,239,234,.16),0 4px 16px rgba(0,0,0,.12)!important;
   cursor:not-allowed;
 }
+
+/* PV Soul shares the Image instrument's shell and baseline. Soul-only source,
+   identity and output controls retain their existing handlers and visibility. */
+html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul {
+  box-sizing:border-box!important;height:auto!important;min-height:0!important;max-height:none!important;
+  border:1px solid rgba(215,219,218,.24)!important;border-radius:19px!important;
+  background:linear-gradient(115deg,rgba(255,255,255,.035),rgba(255,255,255,.009) 24%,transparent 55%),linear-gradient(180deg,rgba(30,32,34,.985),rgba(16,18,21,.99))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.085),0 22px 64px rgba(0,0,0,.48)!important;
+  font-family:'DM Sans',Arial,sans-serif!important;
+
+  & .image-composer-top {display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:7px!important;min-width:0;min-height:64px!important;height:auto!important;max-height:none!important;padding:0!important}
+  & #image-composer-prompt {box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:54px!important;max-height:176px!important;margin:0!important;padding:7px 4px!important;flex:0 0 auto!important;font:420 15.5px/1.48 'DM Sans',Arial,sans-serif!important;letter-spacing:-.019em!important;white-space:pre-wrap!important;overflow-x:hidden!important;resize:none!important}
+  & .image-composer-references:not([hidden]) {display:flex!important;flex:0 0 56px!important;width:100%!important;max-width:100%!important;height:56px!important;max-height:56px!important;gap:7px!important;padding:2px 3px!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important}
+  & .composer-reference-tile {flex:0 0 51px!important;width:51px!important;min-width:51px!important;height:52px!important;min-height:52px!important}
+  & .composer-controls {gap:6px!important;align-items:center!important;min-width:0!important}
+  & .composer-model-wrap {flex:0 1 165px!important;min-width:100px!important;max-width:165px!important}
+  & .composer-model-pill {width:100%!important;min-width:0!important;padding:7px 8px!important;font-size:14px!important}
+  & #image-composer-model-label {min-width:0!important;max-width:none!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+  & :is(.composer-settings-pill,.composer-select-pill,.composer-model-pill) {box-sizing:border-box!important;height:40px!important;min-height:40px!important;border-radius:9px!important;background:#242625!important;border-color:#393d39!important}
+  & :is(#image-composer-edit-area,#image-composer-moods) {font-size:13px!important;font-weight:700!important}
+  & .composer-mood-control {flex:0 1 104px!important;min-width:78px!important;max-width:104px!important}
+  & .hf-bar-control select {height:38px!important;min-height:38px!important;font-size:12px!important}
+  & #composer-character {box-sizing:border-box!important;align-self:end!important;min-height:40px!important;height:40px!important;width:84px!important;border-radius:9px!important}
+  & #composer-character-photo {font-size:0!important}
+  & #composer-character-name {font-size:9px!important;padding:13px 3px 3px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  & #hf-bar-source {box-sizing:border-box!important;min-height:54px!important;height:54px!important;width:84px!important;align-self:center!important;border-radius:9px!important}
+  & .hf-source-label {padding:12px 4px 4px!important;font-size:9px!important}
+  & .composer-generate {display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;align-self:end!important;width:144px!important;min-width:144px!important;height:84px!important;min-height:84px!important;max-height:84px!important;padding:10px 12px!important;border-radius:13px!important;font:600 15px/1.17 'DM Sans',Arial,sans-serif!important;letter-spacing:-.015em!important}
+  & .composer-generate:not(.is-submitting) {flex-direction:column!important;gap:3px!important}
+  & .composer-generate-label {align-self:center!important;margin-inline:auto!important;font:inherit!important;letter-spacing:inherit!important}
+  & .composer-generate:not(.is-submitting):is([data-credits=""],:not([data-credits]))::after {content:none!important;display:none!important;min-height:0!important}
+}
+@media(min-width:900px) {
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul {
+    display:grid!important;width:min(1120px,calc(100vw - 52px))!important;
+    grid-template-columns:minmax(0,1fr) 84px 144px!important;
+    grid-template-rows:minmax(64px,max-content) 41px!important;
+    gap:7px 12px!important;padding:14px 20px!important;
+    & .image-composer-top {grid-area:1 / 1 / 2 / 3!important}
+    &:not(.has-soul-source) .image-composer-top {grid-column:1!important}
+    & .composer-controls {grid-area:2 / 1!important;height:41px!important;min-height:41px!important;flex-wrap:nowrap!important}
+    & #composer-character {grid-area:2 / 2!important}
+    & #hf-bar-source {grid-area:1 / 2!important}
+    & .composer-generate {grid-area:1 / 3 / 3 / 4!important}
+  }
+}
+@media(min-width:900px) and (min-height:680px) {
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul {position:fixed!important;top:auto!important;bottom:max(30px,env(safe-area-inset-bottom))!important}
+}
+@media(min-width:900px) and (max-width:1159px) {
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul {
+    grid-template-rows:minmax(64px,max-content) 83px!important;
+    & .composer-controls {height:83px!important;min-height:83px!important;flex-wrap:wrap!important;align-content:center!important}
+  }
+}
+@media(max-width:899px) {
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul {
+    display:grid!important;grid-template-columns:minmax(0,1fr) 84px!important;grid-template-rows:auto auto auto!important;gap:7px 8px!important;padding:10px!important;
+    & .image-composer-top {grid-area:1 / 1 / 2 / 3!important;min-height:59px!important}
+    &:not(.has-soul-source) .image-composer-top {grid-column:1!important}
+    & #image-composer-prompt {min-height:47px!important;max-height:122px!important;font-size:16px!important}
+    & .composer-controls {grid-area:2 / 1 / 3 / 3!important;flex-wrap:wrap!important;height:auto!important}
+    & #composer-character {grid-area:3 / 2!important}
+    & #hf-bar-source {grid-area:1 / 2!important}
+    & .composer-generate {grid-area:3 / 1!important;justify-self:stretch!important;width:100%!important;min-width:0!important;height:40px!important;min-height:40px!important;max-height:40px!important;font-size:13px!important}
+  }
+}
+
+/* Reference-guided Image uses its existing larger action label. Share that
+   treatment with Soul rather than carrying over its former button typography. */
+@media(min-width:900px) {
+  html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul:has(#image-composer-references:not([hidden]) .composer-reference-tile) {
+    & .composer-generate {font-weight:650!important}
+    & .composer-generate:not(.is-long-label):not(.is-submitting) .composer-generate-label {font-size:18px!important;font-weight:700!important;letter-spacing:-.025em!important;line-height:1.12!important}
+  }
+}
