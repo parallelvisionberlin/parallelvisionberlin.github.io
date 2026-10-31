@@ -114,6 +114,10 @@ try{
   assert.equal(video.modelLayout,'grid',label+': same model-card layout');
   assert.equal(video.upload,'Upload video',label+': only stage has video upload CTA');
   assert.equal(video.action,'Upscale',label+': disabled generation CTA matches Image');
+  const chooser=page.waitForEvent('filechooser');
+  await page.locator('#pv-video-upscale-choose').click();
+  assert.equal((await chooser).isMultiple(),false,label+': Video stage opens native single-file MP4 picker');
+
   if(width>780){
     assert.ok(video.workspace.bottom<=height+2,label+': Video stage fits browser viewport');
     assert.ok(video.preview.left>=video.sidebar.right-2,label+': same desktop side-by-side columns');
