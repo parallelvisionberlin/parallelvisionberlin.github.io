@@ -57,12 +57,6 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
  $('step-footer').hidden=next>=5||next<=0;
  $('progress-title').textContent=next>=1&&next<=4?'STEP '+next+' / 4':next===5?'GENERATING':next===6?'YOUR EDITORIAL':'GET STARTED';
  $('step-indicator').style.width=Math.min(100,Math.max(25,(next>=5?4:next)*25))+'%';
- // Keep one accessible progress rail. It lives on the photograph for creative steps,
- // and returns above the review panel when the photograph is absent.
- const rail=document.querySelector('.editorial-flow-rail');
- const activeStage=next>=1&&next<=3?$('panel-'+panels[next-1]).querySelector('.stage-visual'):null;
- if(activeStage)activeStage.append(rail);
- else document.querySelector('.flow-main').insertBefore(rail,$('panel-model'));
  for(const item of document.querySelectorAll('[data-flow-step]')){
   const index=Number(item.dataset.flowStep),current=next>=5?4:next;
   item.classList.toggle('is-current',index===current);
