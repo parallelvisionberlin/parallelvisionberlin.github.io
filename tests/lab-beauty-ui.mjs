@@ -1,5 +1,6 @@
 // Synthetic accounts and intercepted APIs only. No provider or payment requests.
 import assert from 'node:assert/strict';
+import {beautyAutoRatio} from '../lab/beauty-settings.js';
 import http from 'node:http';
 import {readFileSync,existsSync,statSync,mkdirSync} from 'node:fs';
 import {resolve,extname,relative} from 'node:path';
@@ -95,7 +96,7 @@ try{
   assert.equal(await header.getByRole('link',{name:'Credits'}).count(),0,'Credit controls stay in the account menu');
   await page.locator('.pv-studios-trigger').click();
   await page.locator('.pv-studios-panel').waitFor({state:'visible'});
-  assert.equal(await page.getByRole('link',{name:'Beauty Studio',exact:true}).isVisible(),true);
+  assert.equal(await page.getByRole('link',{name:'Alter',exact:true}).isVisible(),true);
    assert.equal(await page.getByRole('link',{name:'Retouch Studio',exact:true}).isVisible(),true);
   assert.equal(await page.getByRole('link',{name:'Outfit Studio',exact:true}).count(),0);
   assert.equal(await page.locator('.pv-studios-tile').count(),4);
@@ -115,7 +116,9 @@ try{
   assert.equal(await page.locator('#beauty-account').isVisible(),true,'Signed-in account menu is visible on Beauty');
   await page.locator('#beauty-photo').setInputFiles(input);
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
-  assert.equal(s.quotes[0].settings.aspectRatio,'16:9','Auto is priced as the Worker canonical 16:9 reference ratio');
+  const dims=await page.locator('#beauty-photo-preview').evaluate(el=>({width:el.naturalWidth,height:el.naturalHeight}));
+   assert.equal(s.quotes[0].settings.aspectRatio,beautyAutoRatio(dims.width,dims.height),'Auto quotes the uploaded photo\'s closest supported aspect ratio');
+   assert.match(await page.locator('#beauty-ratio option[value="auto"]').textContent(),new RegExp(beautyAutoRatio(dims.width,dims.height).replace(':','\\:')));
   assert.equal(await page.locator('#beauty-ratio').inputValue(),'auto','Auto remains selected in the approved UI');
   assert.equal(s.submits,0,'Quoting does not generate');assert.equal(s.uploads,1);
   await page.evaluate(()=>{document.querySelector('#beauty-form').requestSubmit();document.querySelector('#beauty-form').requestSubmit()});
@@ -174,7 +177,7 @@ try{
  {
   const s=await scenario({role:'guest',width:390});await s.page.goto(base+'/lab/moods.html');
   await s.page.locator('.pv-studios-trigger').click();
-  await s.page.getByRole('link',{name:'Beauty Studio',exact:true}).click();
+  await s.page.getByRole('link',{name:'Alter',exact:true}).click();
   await s.page.waitForURL('**/lab/beauty.html');
   assert.equal(await s.page.locator('h1').textContent(),'Beauty Studio.');await s.context.close();
  }
