@@ -7,19 +7,52 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  if(!bar||!panel)throw Error('Video Upscaler markup missing.');
  const workspace=app.querySelector(':scope > .workspace');
  const controls=workspace?.querySelector(':scope > .controls'),stageShell=workspace?.querySelector(':scope > .stage');
- const sidebar=panel.querySelector('.pv-video-upscale-sidebar'),preview=panel.querySelector('.pv-video-upscale-preview');
- if(!controls||!stageShell||!sidebar||!preview)throw Error('Shared Upscaler workspace is unavailable.');
- // Reuse the actual Image Upscaler columns, never a second stacked deck.
- // The original Image controls stay mounted and return on mode switch.
+ const sidebar=panel.querySelector('.pv-video-upscale-sidebar');
+ const controlBody=controls?.querySelector(':scope > .controls-body');
+ const canvas=stageShell?.querySelector('#upscale-canvas');
+ const picker=document.getElementById('upscale-model-menu');
+ const originalEmpty=document.getElementById('empty');
+ const imagePreview=document.getElementById('preview');
+ const originalHero=document.getElementById('pv-upscale-hero-upload');
+ const sharedGenerate=document.getElementById('generate');
+ const sharedClear=document.getElementById('clear');
+ if(!controls||!stageShell||!sidebar||!controlBody||!canvas||!picker||!originalEmpty||!originalHero||!sharedGenerate||!sharedClear)
+   throw Error('Shared Upscaler editor is unavailable.');
+ // There is ONE source stage and ONE model picker. Video inserts only the
+ // controls that actually differ. Image nodes remain mounted and untouched.
  workspace.prepend(bar);
- controls.append(sidebar);
- stageShell.append(preview);
- // Keep the native MP4 picker outside the hidden legacy wrapper. This is
- // important for iOS Safari's user-gesture file chooser behavior.
+ const videoCards=[...sidebar.querySelectorAll('[data-video-upscale-model]')];
+ for(const card of videoCards)picker.append(card);
+ const resolutionField=sidebar.querySelector('.pv-video-upscale-resolution')||sidebar.querySelector('label.pv-video-upscale-field');
+ const quoteField=sidebar.querySelector('.pv-video-upscale-quote');
+ const messageField=sidebar.querySelector('#pv-video-upscale-message');
+ if(!resolutionField||!quoteField||!messageField)throw Error('Video Upscaler options are unavailable.');
+ resolutionField.classList.add('pv-video-upscale-inline-resolution');
+ controlBody.querySelector('.parameter-grid')?.after(resolutionField);
+ resolutionField.after(quoteField,messageField);
+ const preview=panel.querySelector('.pv-video-upscale-preview');
+ for(const id of ['pv-video-upscale-source','pv-video-upscale-result','pv-video-upscale-working'])
+   canvas.append(document.getElementById(id));
+ const stageHead=stageShell.querySelector('.stagehead');
+ for(const id of ['pv-video-upscale-original-button','pv-video-upscale-result-button','pv-video-upscale-download'])
+   stageHead.append(document.getElementById(id));
  const filePicker=panel.querySelector('#pv-video-upscale-file');
  if(!filePicker)throw Error('Video source picker unavailable.');
  stageShell.append(filePicker);
  panel.hidden=true;
+ const heroTitle=originalEmpty.querySelector('.pv-upscale-empty-center h2');
+ const heroDescription=originalEmpty.querySelector('.pv-upscale-empty-center p');
+ const heroButtonText=originalHero.querySelector('span');
+ const heroHint=originalEmpty.querySelector('.pv-upscale-drop-hint');
+ const sourceControl=document.querySelector('.pv-upscale-source-control');
+ const sourceControlTitle=document.getElementById('pv-upscale-source-upload-title');
+ const sourceControlFilename=document.getElementById('pv-upscale-source-filename');
+ const sourceControlLabel=sourceControl?.querySelector('.pv-upscale-field-label');
+ const originalCopy={title:heroTitle?.textContent,description:heroDescription?.textContent,
+   button:heroButtonText?.textContent,hint:heroHint?.textContent,
+   sourceTitle:sourceControlTitle?.textContent,sourceFilename:sourceControlFilename?.textContent,
+   sourceLabel:sourceControlLabel?.textContent};
+ let imageEmptyHidden=originalEmpty.hidden;
  const pick=$('pv-video-upscale-file'),src=$('pv-video-upscale-source'),result=$('pv-video-upscale-result');
  const stage=$('pv-video-upscale-stage'),blank=$('pv-video-upscale-blank'),price=$('pv-video-upscale-price');
  const action=$('pv-video-upscale-action'),message=$('pv-video-upscale-message'),res=$('pv-video-upscale-resolution');
