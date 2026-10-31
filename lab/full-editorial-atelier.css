@@ -244,18 +244,26 @@
  .stage-visual>.stage-navigation{position:absolute;inset:0;z-index:3;pointer-events:none}
  .stage-visual>.stage-navigation .progress-top{position:absolute;top:10px;left:24px;right:24px;margin:0;padding:0;pointer-events:auto}
  .stage-visual>.stage-navigation .editorial-flow-rail{position:absolute;bottom:0;left:0;right:0;margin:0;background:#08090ab8;border-top-color:#ffffff38;border-bottom:0;pointer-events:auto}
- .stage-visual>.stage-navigation .editorial-flow-rail>span{padding:13px 24px;color:#c0c0c2}
+ .stage-visual>.stage-navigation .editorial-flow-rail>span{padding:9px 24px;color:#c0c0c2}
  .stage-visual>.stage-navigation .editorial-flow-rail>span.is-current{color:#fff}
  .stage-visual>.stage-navigation .editorial-top-back,.stage-visual>.stage-navigation .text-action{color:#f1efeb}
  .stage-copy{bottom:78px}
  .stage-copy h2{font-size:clamp(69px,7vw,116px)}
- #panel-model .stage-visual{height:clamp(350px,43svh,520px)}
- #panel-model .atelier-workspace{padding-top:clamp(18px,2vw,30px)}
- #panel-model .atelier-section-top{margin-bottom:16px}
+ .stage-visual .progress-top #progress-title{display:none}
+ #panel-model .stage-visual{height:280px}
+ #panel-model .stage-visual>img{object-position:58% 26%}
+ #panel-model .stage-copy{bottom:64px}
+ #panel-model .stage-copy h2{font-size:clamp(64px,5.2vw,84px);margin:12px 0 10px}
+ #panel-model .stage-copy p{font-size:16px;max-width:430px}
+ #panel-model .atelier-workspace{padding-top:22px}
+ #panel-model .atelier-section-top{display:grid;grid-template-columns:minmax(0,330px) minmax(0,650px);justify-content:start;align-items:center;gap:clamp(24px,3.3vw,64px);margin-bottom:12px}
  #panel-model .atelier-section-top>div{flex-shrink:0}
- #panel-model .atelier-section-top h3{margin-bottom:0}
- #panel-model .atelier-section-top>p{max-width:530px;margin:0 0 3px}
+ #panel-model .atelier-section-top h3{font-size:clamp(28px,2.5vw,36px);margin:0;white-space:nowrap}
+ #panel-model .atelier-section-top>p{max-width:650px;margin:0}
  #panel-model .atelier-source-tabs{margin-bottom:16px}
+ #panel-model .atelier-reference{aspect-ratio:auto;overflow:visible;border:0;border-radius:0;background:transparent}
+ #panel-model .atelier-reference img{height:auto;aspect-ratio:1;object-fit:cover;border:1px solid #303235;border-radius:2px}
+ #panel-model .atelier-reference>span{position:static;display:block;padding:10px 0 0;background:none}
 }
 
 /* Mobile: the photograph carries the step label; remove repeated navigation above it. */
