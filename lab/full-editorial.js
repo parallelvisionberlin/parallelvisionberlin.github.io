@@ -1,50 +1,24 @@
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
+import {SCENE_LIBRARY,LOOK_LIBRARY,MATERIAL_LIBRARY,selectInjectedReferences} from './full-editorial-scene-library.js?v=20261031-scene-taxonomy1';
 
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id);
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 const activeStates=new Set(['submitting','queued','running','saving']);
 const mockupUrl='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/d6c51742-8079-4412-a063-25ed134cec95.png';
-const directionSets={
- moods:[
- {id:'studio',name:'Studio Fashion',image:'./mood-previews/hd/fashion-editorial-20261011.jpg',prompt:'A restrained studio fashion editorial, sculptural tailoring, believable materials, precise photographic lighting.'},
- {id:'hongkong',name:'Hong Kong Nights',image:'./mood-references/hong-kong-nights/supervalu.jpg',prompt:'Moody nocturnal city atmosphere, wet natural reflections, deep shadows, restrained cinematic halation, no neon clichés.'},
- {id:'industrial',name:'Industrial',image:'./visuals/fashion-replace/hero-model-oct24.jpg',prompt:'Industrial concrete architecture, dark editorial contrast, real atmospheric depth, textured surfaces and cinematic photography.'},
- {id:'sumi',name:'Japanese Sumi-e',image:'./mood-previews/hd/japanese-sumi-e-20261011.jpg',prompt:'Minimal ink wash influence, Yohji Yamamoto-inspired draping, neutral washi texture, realism with generous negative space.'},
- {id:'dreamblur',name:'Dream Blur',image:'./mood-previews/dream-blur-cover-20261024.webp',prompt:'Soft natural lens diffusion and gentle halation with believable faces and tactile analogue detail.'},
- {id:'fisheye',name:'Fish Eye 2000',image:'./mood-references/fisheye-2000/01-analog-daylight.webp',prompt:'Optical fisheye lens, direct flash, grounded early-2000s street fashion styling, realistic skin and materials.'}
- ],
- location:[
- {id:'industrial-room',name:'Industrial interior',image:'./visuals/fashion-replace/hero-model-oct24.jpg',prompt:'Concrete loft interior, weathered structural surfaces and natural urban light.'},
- {id:'night-street',name:'Night street',image:'./mood-previews/hd/90s-cinema-clean-final-20261011.jpg',prompt:'Night street with practical ambient lighting, reflective asphalt and natural perspective.'},
- {id:'studio-wall',name:'Studio set',image:'./visuals/studio-tools/image-ivory-suit.webp',prompt:'Neutral fashion studio, architectural shadows, purposeful controlled lighting.'}
- ],
- material:[
- {id:'leather',name:'Black leather',image:'./visuals/fashion-replace/hero-model-oct24.jpg',prompt:'Tactile genuine leather, hand-stitched details, naturally creasing fabric.'},
- {id:'chrome',name:'Chrome & glass',image:'./visuals/studio-tools/video-liquid-dress.webp',prompt:'Physically plausible sculptural chrome and translucent glass integrated into real fashion.'},
- {id:'tailoring',name:'Tailoring',image:'./visuals/studio-tools/image-ivory-suit.webp',prompt:'Architectural tailoring, precise seams, weighty fabric draping.'}
- ]
-};
-directionSets.location=[
- {id:'studio-set',name:'Studio',image:'./visuals/studio-tools/image-ivory-suit.webp',prompt:'Fashion studio, controlled natural-light set, neutral architecture and believable shadows.'},
- {id:'brutalist',name:'Brutalist',image:'./visuals/fashion-replace/hero-model-oct24.jpg',prompt:'Monumental concrete architecture, real spatial depth, weathered surfaces and directional light.'},
- {id:'desert',name:'Desert',image:'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png',prompt:'Natural desert terrain, sculptural architectural intervention, warm dust and photographic sunlight.'},
- {id:'industrial-interior',name:'Interior',image:'./visuals/character-casting/ivory-cast03.webp',prompt:'Industrial interior with plausible structural concrete, quiet shadows and real atmospheric scale.'},
- {id:'abstract-space',name:'Abstract',image:'./visuals/studio-tools/video-liquid-dress.webp',prompt:'Minimal abstract installation of tangible sculptural materials in a grounded photographic environment.'},
- {id:'urban',name:'Urban',image:'./mood-previews/hd/90s-cinema-clean-final-20261011.jpg',prompt:'Contemporary urban environment with natural perspective, lived-in details and credible architectural light.'}
-];
+const directionSets={location:SCENE_LIBRARY,moods:LOOK_LIBRARY,material:MATERIAL_LIBRARY};
 let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='location',selectedDirections={location:null,moods:null,material:null};
 let chosenCount=4,chosenRatio='3:4',quote=null,quoteBusy=false,submitting=false,uncertain=false,pollTimeout=null;
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0;
-const objectUrls=new Map(),sampleFiles=new Map();
+const objectUrls=new Map(),sampleFiles=new Map(),sceneSourceCache=new Map();
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 const status=(text='',error=false)=>{$('editorial-status').textContent=text;$('editorial-status').classList.toggle('error',error)};
 function preview(file){if(!objectUrls.has(file))objectUrls.set(file,URL.createObjectURL(file));return objectUrls.get(file);}
 function pruneFile(file){const url=objectUrls.get(file);if(url){URL.revokeObjectURL(url);objectUrls.delete(file)} uploaded.delete(file);}
 function wipeResults(){for(const r of results)if(r.url)URL.revokeObjectURL(r.url);results=[];activeJobs=[];renderResults();}
 function resetAll(){revision++;clearTimeout(pollTimeout);quote=null;quoteBusy=false;submitting=false;uncertain=false;wipeResults();
- for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};sampleFiles.clear();for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
+ for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};sampleFiles.clear();sceneSourceCache.clear();for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
  $('identity-guide').value='80';$('garment-guide').value='70';$('mood-guide').value='60';
  chosenCount=4;chosenRatio='3:4';selectedDirections={location:null,moods:null,material:null};directionTab='location';for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).selectedIndex=0;
@@ -138,14 +112,21 @@ async function toggleSample(button){
 function renderDirections(){
  const container=$('direction-cards');container.replaceChildren();
  const list=directionSets[directionTab],active=selectedDirections[directionTab];
+ container.dataset.gallery=directionTab;
  for(const dir of list){
   const selected=dir.id===active,card=document.createElement('button');
-  card.type='button';card.className='direction-card'+(selected?' is-selected':'');
+  card.type='button';card.className='direction-card direction-card--'+directionTab+(selected?' is-selected':'')+(dir.id==='hotel-room'?' direction-card--hotel':'');
   card.setAttribute('aria-pressed',String(selected));
+  card.setAttribute('aria-label',dir.name+' · '+dir.summary);
   const img=document.createElement('img');img.src=dir.image;img.alt='';img.loading='lazy';
-  const name=document.createElement('span');name.textContent=dir.name;
-  card.append(img,name);
-  card.addEventListener('click',()=>{selectedDirections[directionTab]=selected&&directionTab!=='location'?null:dir.id;quote=null;renderDirections()});
+  const copy=document.createElement('span');copy.className='direction-card-copy';
+  const name=document.createElement('strong');name.textContent=dir.name;
+  const summary=document.createElement('small');summary.textContent=dir.summary||'';
+  copy.append(name,summary);card.append(img,copy);
+  card.addEventListener('click',()=>{
+   if(submitting||quoteBusy){status('Finish the current price review before changing references.',true);return}
+   selectedDirections[directionTab]=selected?null:dir.id;quote=null;revision++;renderDirections();status('');
+  });
   container.append(card);
  }
  for(const tab of document.querySelectorAll('[data-direction-tab]')){
@@ -153,9 +134,31 @@ function renderDirections(){
   tab.classList.toggle('is-selected',selected);tab.classList.toggle('has-choice',Boolean(selectedDirections[tab.dataset.directionTab]));
   tab.setAttribute('aria-selected',String(selected));
  }
- const names=Object.entries(selectedDirections).map(([kind,id])=>directionSets[kind].find(d=>d.id===id)?.name).filter(Boolean);
- $('direction-summary').textContent=names.length?'Selected: '+names.join(' / '):'Choose an environment and optionally a mood or material.';
- updateSeriesSummary();
+ const names=[['location','Environment'],['moods','Look'],['material','Material']].map(([kind,title])=>{
+  const item=directionSets[kind].find(d=>d.id===selectedDirections[kind]);
+  return item?title+': '+item.name:null;
+ }).filter(Boolean);
+ $('direction-summary').textContent=names.length?names.join(' · '):'Select an environment, a photographic look and a material. Each choice stays independent.';
+ renderCuratedScenePreview();updateSeriesSummary();
+}
+function renderCuratedScenePreview(){
+ const holder=$('scene-reference-preview');if(!holder)return;
+ const scene=SCENE_LIBRARY.find(x=>x.id===selectedDirections.location),look=LOOK_LIBRARY.find(x=>x.id===selectedDirections.moods);
+ const planned=selectInjectedReferences({sceneId:scene?.id,lookId:look?.id,time:$('editorial-time').value,atmosphere:$('editorial-atmosphere').value,available:3});
+ holder.replaceChildren();holder.hidden=!planned.length;
+ if(!planned.length)return;
+ const title=document.createElement('div');title.className='scene-preview-title';
+ const heading=document.createElement('strong');heading.textContent='Reference selection';
+ const note=document.createElement('small');note.textContent='Added only when you review credits. Your model identity stays separate.';
+ title.append(heading,note);holder.append(title);
+ const rail=document.createElement('div');rail.className='scene-preview-rail';
+ for(const ref of planned){
+  const item=document.createElement('figure');item.className='scene-preview-item';
+  const img=document.createElement('img');img.src=ref.src;img.loading='lazy';img.alt='';
+  const cap=document.createElement('figcaption');cap.textContent=ref.role==='room'?'ENVIRONMENT':'PHOTOGRAPHIC LOOK';
+  item.append(img,cap);rail.append(item);
+ }
+ holder.append(rail);
 }
 function validateStep(){if(step===1&&files.model.length+savedRefs.model.length<1){status('Add at least one photograph of your model.',true);$('model-drop').focus();return false;}
  if(step===2&&!files.outfit.length&&!savedRefs.outfit.length&&!$('styling-direction').value.trim()){status('Add a garment image or describe your styling.',true);$('styling-direction').focus();return false;}
@@ -191,21 +194,44 @@ function getSettings(){
 async function signIn(){if(!clerk)clerk=await loadLabAccount();const href=location.href;clerk.openSignIn({forceRedirectUrl:href,signInForceRedirectUrl:href,signUpForceRedirectUrl:href})}
 async function sync(){
  const prev=sessionKey;const next=clerk?.session?.id||'';
- if(prev&&prev!==next){epoch++;uploaded.clear();quote=null;uncertain=false;submitting=false;wipeResults();resetAll();}
+ if(prev&&prev!==next){epoch++;uploaded.clear();sceneSourceCache.clear();quote=null;uncertain=false;submitting=false;wipeResults();resetAll();}
  sessionKey=next;
  if(!clerk?.isSignedIn||!next){profile=null;$('editorial-signin').hidden=false;$('editorial-balance').textContent='';return;}
  try{profile=await api('/api/session');$('editorial-signin').hidden=true;const credits=profile?.credits?.balance??profile?.balanceCredits??profile?.wallet?.balance;if(Number.isSafeInteger(credits))$('editorial-balance').textContent=credits.toLocaleString()+' credits';}catch(error){profile=null;status('Your account could not be checked: '+error.message,true);}
 }
-async function uploadReferences(){
+async function uploadReferences(engine){
  const selected=[...files.model.map(file=>({file,role:'identity'})),...files.outfit.map(file=>({file,role:'outfit'})),...files.location.map(file=>({file,role:'room'}))];
  const ids=[];
  for(const item of selected){
   let id=uploaded.get(item.file);
   if(!id){const response=await api('/api/uploads',{method:'POST',body:item.file,headers:{'Content-Type':item.file.type,'X-Filename':encodeURIComponent(item.file.name)}});
    if(!response?.id)throw Error('PV LAB did not confirm the uploaded photograph.');id=response.id;uploaded.set(item.file,id);}
-  ids.push({id,role:item.role,file:item.file});
+  ids.push({id,role:item.role,file:item.file,note:''});
  }
- for(const [kind,role] of [['model','identity'],['outfit','outfit'],['location','room']])for(const ref of savedRefs[kind])ids.push({id:ref.id,role,file:{name:ref.name}});
+ for(const [kind,role] of [['model','identity'],['outfit','outfit'],['location','room']])
+  for(const ref of savedRefs[kind])ids.push({id:ref.id,role,file:{name:ref.name},note:''});
+ // Curated site references are fetched and uploaded only during a user-requested quote.
+ // Never allocate new identities from environment/look samples.
+ const capacity=engine==='krea3'?4:10;
+ const planned=selectInjectedReferences({sceneId:selectedDirections.location,lookId:selectedDirections.moods,
+  time:$('editorial-time').value,atmosphere:$('editorial-atmosphere').value,available:Math.max(0,capacity-ids.length)});
+ for(const ref of planned){
+  let id=sceneSourceCache.get(ref.src);
+  if(!id){
+   const response=await fetch(new URL(ref.src,location.href),{credentials:'same-origin'});
+   if(!response.ok)throw Error('The selected '+ref.name+' reference is unavailable. Change your selection or try again.');
+   const blob=await response.blob();
+   const mime=blob.type.toLowerCase().split(';')[0];
+   if(!['image/jpeg','image/png','image/webp'].includes(mime)||!blob.size||blob.size>20*1024*1024)
+    throw Error('The selected '+ref.name+' reference is not a supported image.');
+   const safe=ref.src.split('/').pop().replace(/[^a-zA-Z0-9._-]/g,'').slice(0,100);
+   const file=new File([blob],safe,{type:mime});
+   const data=await api('/api/uploads',{method:'POST',body:file,headers:{'Content-Type':mime,'X-Filename':encodeURIComponent(file.name)}});
+   if(!data?.id)throw Error('PV LAB did not confirm the '+ref.name+' reference upload.');
+   id=data.id;sceneSourceCache.set(ref.src,id);
+  }
+  ids.push({id,role:ref.role,file:{name:ref.name+' / '+ref.src.split('/').pop()},note:ref.note});
+ }
  return ids;
 }
 
@@ -249,8 +275,8 @@ async function reviewBatch(){
  const revisionId=++revision;quoteBusy=true;status('Uploading references and checking the live credit price…');
  $('review-credits').disabled=true;
  try{
-  const settings=getSettings();const references=await uploadReferences();if(revisionId!==revision)return;
-  settings.referenceRoles=references.map(({file,role})=>({role,name:nameFor(file),note:''}));
+  const settings=getSettings();const references=await uploadReferences(settings.engine);if(revisionId!==revision)return;
+  settings.referenceRoles=references.map(({file,role,note})=>({role,name:nameFor(file),note:note||''}));
   const response=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:references.map(r=>r.id),settings,count:Math.min(4,remain)}});
   if(revisionId!==revision)return;
   const quotes=Array.isArray(response.quotes)?response.quotes:[response];
@@ -390,7 +416,7 @@ for(const id of ['identity-guide','garment-guide','mood-guide'])$(id).addEventLi
 $('count-options').addEventListener('click',event=>{const b=event.target.closest('[data-count]');if(!b)return;chosenCount=Number(b.dataset.count);quote=null;updateOptions()});
 $('ratio-options').addEventListener('click',event=>{const b=event.target.closest('[data-ratio]');if(!b)return;chosenRatio=b.dataset.ratio;quote=null;updateOptions()});
 for(const tab of document.querySelectorAll('[data-direction-tab]'))tab.addEventListener('click',()=>{directionTab=tab.dataset.directionTab;renderDirections()});
-for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).addEventListener('change',()=>{quote=null;updateSeriesSummary()});
+for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).addEventListener('change',()=>{quote=null;revision++;renderCuratedScenePreview();updateSeriesSummary()});
 $('confirm-cancel').addEventListener('click',()=>$('editorial-confirm').close());
 $('confirm-submit').addEventListener('click',()=>void submitBatch());
 $('download-selected').addEventListener('click',()=>void downloadSelected().catch(e=>status(e.message,true)));
