@@ -89,62 +89,53 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Publication: main branch update initiated; confirm GitHub Pages build and public HTML before claiming live.
 
 ## Estero / Siento, 2026-10-31
-- Objective complete: owner’s exact original question and both full paragraphs restored on the page and in the caption; clear Siento heading and approved design retained.
+- Current task: replace the homepage Sube feature with Siento, final cover, shadow portrait and article link. Publication pending after preview checks.
+- Product scope: `index.html`, five Siento mappings in `language.js`, `assets/estero/siento-artwork-final.webp`; this checkpoint also updated.
+- Final cover supplied as ARTWORK FINAL.png (2048 square); web derivative preserves full frame, 2048x2048 WebP quality 92, 464670 bytes, no generative edits.
+- Homepage: full square cover at left, original metal portrait in shadow behind the text, Featured release / Siento / Estero, original manifesto question, Read the story.
+- Both feature links target `./siento.html#release`; existing Siento Releases card now uses the final cover too.
+- Featured release avoids implying the forthcoming release is already available; no guessed music-platform link.
+- Homepage typography remains existing Michroma/Inter; feature CSS scoped to `.current-release`, portrait fades to black and keeps its top edge visible.
+- Mobile <=700px stacks cover above copy with a softer portrait shadow; cover frame is never cropped or zoomed.
+- English/German translations updated and language script cache version is `20261031-siento-feature`.
+- Source-extracted preview verified at 390px, 320px, 1363px and 1920px, no horizontal overflow; EN/DE switch, decoded final cover and portrait confirmed.
+- Local `npm run build` passed 24 maintained public pages; whitespace check passed. Source CI/public verification pending.
+- Baseline main before publication: `13324d6008b6df49f45a994d24f435ef72867a89`; concurrent Studios changes preserved.
 - Artist URL: https://parallelvisionlabel.com/estero.html
-- Release URL: https://parallelvisionlabel.com/siento.html
-- Latest product source: `9a22813bce29f777db07d43d3e5025ee53344cca`, PR #709.
-- Feature merge and verified deployed main: `aaf0179f7c4809413c2b0a93c164170c1963bbdc`.
-- GitHub Pages run 41146124749 completed successfully; public browser confirms the exact original question, full paragraphs and retained clear heading.
-- Interview typography was verified live in PR #706 / Pages 41141312323; its stylesheet and font assets are unchanged by this copy-only update. Final opening screenshot captured.
-- Owner authorized publication of the pages and supplied photographs. Repository owner/domain verified; native GitHub connector is the write route because shell Git lacks credentials.
+- Release/article URL: https://parallelvisionlabel.com/siento.html#release
+- Owner authorized publication and supplied photographs. Native GitHub connector is the write route because shell Git lacks credentials.
 - Artist: Estero / Andrés Zendejas, Mexican producer and DJ; supplied biography is the source.
 - Release: Siento / PV016; Beatport 6 November 2026, all platforms 20 November 2026.
-- `estero.html`: metal portrait hero, biography/vertical portrait, Siento feature and Fashion After Fabric visual pair.
-- `siento.html`: night hero, photographic manifesto story, compact release strip, four-question adaptation and closing quote.
-- Questions are editorial framing around excerpts of the supplied manifesto; original Spanish answers and adaptation disclosed.
-- Shared presentation: `css/estero-editorial.css`, `js/estero-editorial.js`.
-- `index.html`: Estero entry in Artists (roster 12) and Siento card in Releases; original entries preserved.
-- `sitemap.xml` and `scripts/verify-build.js`: both pages included.
-- Assets in `assets/estero/`: full supplied resolution, WebP quality 90, no generative retouch or identity changes.
-- IMG_8214.jpeg -> estero-metal-portrait.webp (artist hero).
-- IMG_8224.jpeg -> siento-night.webp (release hero and homepage editorial image, not final cover artwork).
+- Artist page: metal portrait hero, biography/vertical portrait, Siento feature and Fashion After Fabric visual pair.
+- Release page: night hero, photographic manifesto story, compact six-field release strip, four-question adaptation and closing quote.
+- Questions frame supplied manifesto excerpts editorially; original Spanish answers and adaptation disclosed.
+- Shared presentation: `css/estero-editorial.css`, `js/estero-editorial.js`; stylesheet version `20261030-interview-type-1`.
+- Original pages PR #690, deployed merge `9bb0866c0c876d4dc6d2d062cb885bd734713417`; Pages 41119099499 succeeded.
+- Homepage Artists includes Estero (roster 12); original roster/release entries retained; sitemap and build verifier include both pages.
+- Original photos in assets/estero, full supplied resolution WebP quality 90, no generative retouch or identity changes.
+- IMG_8214.jpeg -> estero-metal-portrait.webp (artist hero and new homepage shadow).
+- IMG_8224.jpeg -> siento-night.webp (release hero, formerly homepage editorial thumbnail).
 - IMG_8201.jpeg -> estero-petals-full.webp (artist biography).
-- IMG_8202.jpeg -> estero-petals-portrait.webp (artist gallery and release story backdrop, used once on the release page).
+- IMG_8202.jpeg -> estero-petals-portrait.webp (artist gallery and release story backdrop).
 - IMG_8217.jpeg -> estero-silver-portrait.webp (artist gallery and shadow interview backdrop).
-- Original page implementation: PR #690, deployed merge `9bb0866c0c876d4dc6d2d062cb885bd734713417`; Pages run 41119099499 succeeded.
-- Shadow interview: PR #694, merge `14a1032794b343d3933e1a4f9e9d9289ef3fc0d1`; Pages run 41123042606 succeeded.
-- Decorative silver portrait behind the interview has directional dark gradients, .48 desktop opacity and .30 mobile opacity; no fixed background.
-- Previous framing refinement anchors only the release hero to the source photo's top edge (50% 0% desktop / 51% 0% mobile), preventing hair cropping on wide screens. Original hero height and title size retained.
-- Closing quote caps at 64px and 1300px width with 1.12 leading, .035em negative tracking and 96px maximum vertical section padding; original wording retained.
-- Current release stylesheet cache: estero-editorial.css?v=20261030-interview-type-1.
-- Approved visual refinement: merge the former paper story section and standalone petals photo into one dark photographic article; remove the independent duplicate image.
-- Owner correction: retain “Siento: feeling as resistance” but restore the exact question “What makes us human: our biology, or our capacity to feel?” and both original context paragraphs.
-- Full opening paragraphs begin “In the manifesto for Siento…” and “Against this backdrop…” exactly as supplied; do not shorten them again without the owner’s instruction.
-- Desktop: title, lead and both context paragraphs overlay a directional shadow on the left; portrait sits to the right with the face clear. Copy width capped at 680px; body 20–22px.
-- Mobile/tablet <=960px: title and lead overlay the portrait, then body continues on black; phone body 18px and lead 24px. Gradient fades the picture into the text.
-- Metadata retains all six fields in a compact strip below the article: 6 desktop columns, 3 tablet columns, 2 phone columns. Original visual-study credit retained.
-- Current interview typography: locally hosted Barlow Condensed Medium for the uppercase title and sentence-case questions; normal sans retained for answers. Title uses a small connecting “on”.
-- Font asset: `assets/fonts/barlow-condensed/BarlowCondensed-Medium.woff` (49,876 bytes), from google/fonts; adjacent `OFL.txt` retains the original copyright and license.
-- Interview measure capped at 760px, answer lines at 62ch; desktop answer text 20px, phone 18px; questions 30–48px desktop / 32px phone.
-- Current changes: `siento.html` and this checkpoint; carousel slide 03 uses the restored question, caption contains both complete paragraphs. Original interview, facts, quote and other five PNGs retained.
-- Validation: static build passes 24 maintained public pages; whitespace check passes; PR static CI passed.
-- Hero object-position remains 50% 0%; closing quote, shadow interview and artist page are unchanged by the current refinement.
-- Instagram edition 2026-10-31: six 1080x1350 PNGs matching the website’s photographic shadows and condensed typography; all use original supplied photographs.
-- Order: Siento, Estero, Feeling as resistance, In his own words, Fashion After Fabric, release dates/story link.
-- 01_SIENTO.png: libfile_2d62505da8848191bfab6f55e1c72694, version 2.
-- 02_ESTERO.png: libfile_bc8ca3f3c5188191b859d630c654ac6c, version 2.
-- 03_FEELING_AS_RESISTANCE.png: libfile_36a57017a0288191981e58d26ce3959e, version 1; original question restored below headline.
-- 04_IN_HIS_OWN_WORDS.png: libfile_4b99efba9b28819196cc6f0208904d14, version 0.
-- 05_FASHION_AFTER_FABRIC.png: libfile_dfbe986e44b481918a32c37697a348ea, version 2; former slide 03 identity retained and renamed.
-- 06_RELEASE.png: libfile_e6100f66a0f881919c20bd90c1d0f534, version 0.
-- Carousel ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d; both version 3.
-- Caption TXT: libfile_0fa954c693f88191b0ae84a4927aa154, version 1; exact full owner-approved introduction, also included in ZIP.
-- Four corrected artifacts saved with identity/version guards and local metadata: slide 03, caption, ZIP and preview. Other five PNGs verified byte-identical; ZIP integrity and exact caption checked. No Instagram posting performed.
-- Animation slots remain documented in artist hero, release hero and story backdrop; preserve corresponding posters and reading overlay.
-- No verified listening/purchase/presave URLs supplied; no guessed destinations or empty players added.
-- Previous reading refinement: PR #700 deployed as ccb433ac; Pages 41137176120 succeeded. Current photographic refinement: local build/whitespace and both PR static CI checks pass; 1920px, 1348px and phone 390/320 previews checked without horizontal overflow.
-- Photographic story: PR #701 merged as 3b188d37; Pages 41139867141 succeeded. Original paragraphs, Spanish interview, dates and photographs remain intact; current type changes are scoped to the interview.
-- Read Estero’s words was browser-checked at a 90px header offset. Mobile photo fades continuously into the reading area, with 375/305px content widths.
-- Current interview refinement: local build/whitespace and source static CI pass; desktop 1920px/native 1348px plus 390/320 phone frames checked, no horizontal overflow. Font loading and Spanish glyphs confirmed.
-- Previous clear heading: PR #707 / Pages 41143150489. Current restoration: exact copy assertions, static build, whitespace and both source CI checks pass; 1348px/390/320 review and public verification complete.
-- No publication blocker remains. Next: owner supplies animation clips, final artwork and verified listening links.
+- Release hero top anchored 50% 0% desktop / 51% 0% mobile; original height/title retained; closing quote capped at 64px / 1300px.
+- Photographic story PR #701, merge 3b188d37, Pages 41139867141 succeeded; former paper section and duplicate photo merged into one dark photographic article.
+- Clear story heading: “Siento: feeling as resistance”. Exact original question and both full original context paragraphs are locked; do not shorten without owner instruction.
+- Lead: “What makes us human: our biology, or our capacity to feel?”
+- Full paragraphs begin “In the manifesto for Siento…” and “Against this backdrop…” exactly as supplied; restored PR #709 source 9a22813bce29f777db07d43d3e5025ee53344cca, deployed aaf0179f7c4809413c2b0a93c164170c1963bbdc.
+- Pages 41146124749 succeeded; browser verified exact original copy, retained heading and photographic design.
+- Story desktop: copy over left directional shadow, portrait right, 680px measure, 20–22px body; mobile title/lead over photo, then 18px body on black.
+- Metadata: six desktop columns, three tablet, two phone; original visual-study credit retained.
+- Shadow interview PR #694 / Pages 41123042606: silver portrait directional gradients, .48 desktop / .30 mobile opacity, no fixed background.
+- Interview type PR #706 / Pages 41141312323: local Barlow Condensed Medium for uppercase title and questions, small connecting “on”; body normal sans 20px/18px, 62ch measure.
+- Font: `assets/fonts/barlow-condensed/BarlowCondensed-Medium.woff`, 49876 bytes, google/fonts, adjacent OFL.txt retained.
+- Instagram edition: six 1080x1350 PNGs from original photos; order Siento, Estero, Feeling as resistance, In his own words, Fashion After Fabric, release dates/link.
+- 01_SIENTO.png: libfile_2d62505da8848191bfab6f55e1c72694 v2; 02_ESTERO.png: libfile_bc8ca3f3c5188191b859d630c654ac6c v2.
+- 03_FEELING_AS_RESISTANCE.png: libfile_36a57017a0288191981e58d26ce3959e v1, original question restored; 04_IN_HIS_OWN_WORDS.png: libfile_4b99efba9b28819196cc6f0208904d14 v0.
+- 05_FASHION_AFTER_FABRIC.png: libfile_dfbe986e44b481918a32c37697a348ea v2; 06_RELEASE.png: libfile_e6100f66a0f881919c20bd90c1d0f534 v0.
+- ZIP: libfile_7bd2cfdb533481919d47674c7dc9052a v3; preview: libfile_86be1ab9d8808191a5a54839e5bd7a9d v3.
+- Caption: libfile_0fa954c693f88191b0ae84a4927aa154 v1; exact original lead and both complete paragraphs; also in ZIP.
+- Corrected artifacts saved with identity/version guards; other five PNGs byte-identical; ZIP CRC/inventory and exact caption verified. No Instagram posting performed.
+- Use native Library download links if sandbox ZIP fails; do not invent an unverified cause. Carousel is unchanged by the homepage task.
+- Animation slots remain in artist hero, release hero and story backdrop; preserve posters and reading overlay.
+- No verified listening/purchase/presave URLs supplied. Next after homepage publication: owner supplies animation clips and listening links.
