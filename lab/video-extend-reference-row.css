@@ -62,7 +62,7 @@
 #app.video-studio-active.video-extend-active #reference-mode:not([hidden]):has(> #reference-drop){
   row-gap:10px!important;
 }
-#app.video-studio-active.video-extend-active #reference-mode #reference-media:not([hidden]){
+#app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #reference-mode #reference-media:not([hidden]){
   gap:10px!important;
 }
 #app.video-studio-active.video-extend-active #reference-mode #reference-media .video-media-heading{
