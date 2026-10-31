@@ -159,8 +159,9 @@ try{
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
   await page.locator('#beauty-generate').click();await page.locator('#beauty-result').waitFor({state:'visible'});
   await page.locator('#beauty-generate').waitFor({state:'visible'});await page.waitForFunction(()=>!document.querySelector('#beauty-generate').disabled);
-  await page.locator('#beauty-photo').setInputFiles(input);
-   await page.locator('#beauty-direction').fill('Another look');
+  await page.locator('#beauty-photo').setInputFiles({...input,name:'second-portrait.webp'});
+  await page.locator('#beauty-photo-preview').waitFor({state:'visible'});
+  await page.locator('#beauty-direction').fill('Another look');
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
   await page.locator('#beauty-generate').click();await page.waitForFunction(()=>document.querySelectorAll('#beauty-history button').length===2);
   await page.locator('#beauty-generate').click({trial:true});
