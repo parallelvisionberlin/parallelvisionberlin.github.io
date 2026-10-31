@@ -1,271 +1,343 @@
-/* PV LAB / Upscaler media modes, 2026-10-31.
- * Isolated from the approved image Upscaler stage and controls. */
-#app .pv-video-upscale-mode[hidden],#app .pv-video-upscale-panel[hidden]{display:none!important}
+/* PV LAB: ONE Upscaler workspace, two media modes.
+   Video controls and preview are mounted inside Image's original columns.
+   No duplicate deck or independent Video workspace. */
+#app .pv-video-upscale-panel[hidden],#app .pv-video-upscale-mode[hidden],
+#app .pv-video-upscale-sidebar[hidden],#app .pv-video-upscale-preview[hidden],
+#app .pv-video-upscale-preview [hidden]{display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{position:relative!important}
 #app .pv-video-upscale-mode{
-  box-sizing:border-box;max-width:1250px;width:calc(100% - 44px);margin:27px auto 0;
-  display:flex;justify-content:space-between;align-items:center;gap:16px;
+ position:absolute;z-index:12;top:16px;left:22px;
+ box-sizing:border-box;display:flex;align-items:center;
+ width:auto;margin:0;padding:0;background:transparent;border:0;
 }
-#app .pv-video-upscale-mode-label{
-  font:500 10px/1.3 'DM Sans',Arial,sans-serif;letter-spacing:.14em;color:#888a8d;
-}
-#app .pv-video-upscale-tabs{display:flex;gap:4px;padding:4px;background:#222326;border:1px solid #353639;border-radius:10px}
+#app .pv-video-upscale-mode-label{display:none}
+#app .pv-video-upscale-tabs{display:flex;gap:3px;padding:3px;border:1px solid #414148;border-radius:9px;background:#222329}
 #app .pv-video-upscale-tabs button{
-  border:0;background:transparent;color:#a8a9ae;border-radius:7px;padding:9px 22px;
-  font:500 12px/1.2 'DM Sans',Arial,sans-serif;cursor:pointer;transition:background .2s,color .2s;
+ box-sizing:border-box;min-width:66px;min-height:29px;padding:6px 12px;
+ border:0;border-radius:6px;background:transparent;color:#b7b5b5;
+ font:550 11px/1.2 'DM Sans',Arial,sans-serif;cursor:pointer;
+ transition:background .16s,color .16s;
 }
-#app .pv-video-upscale-tabs button[aria-selected="true"]{background:#ececec;color:#171819;font-weight:600}
-#app .pv-video-upscale-tabs button:focus-visible,#app .pv-video-upscale-model:focus-visible,
-#app .pv-video-upscale-panel button:focus-visible,#app .pv-video-upscale-panel select:focus-visible{outline:2px solid #f0eee7;outline-offset:2px}
-#app .pv-video-upscale-panel{
-  box-sizing:border-box;display:grid;grid-template-columns:minmax(290px,344px) minmax(0,1fr);gap:14px;
-  max-width:1250px;width:calc(100% - 44px);margin:18px auto 26px;
-  color:#e9e9e9;font-family:'DM Sans',Arial,sans-serif;
-}
-#app.upscale-studio-active.video-upscale-active>.workspace{
-  display:block!important;max-width:1250px!important;margin:0 auto 40px!important;
-  width:calc(100% - 44px)!important;padding:0!important;
-}
-#app.upscale-studio-active.video-upscale-active>.workspace>.controls,
-#app.upscale-studio-active.video-upscale-active>.workspace>.stage{display:none!important}
-#app.upscale-studio-active.video-upscale-active>.workspace>.archive{
-  display:block!important;width:100%!important;max-width:none!important;grid-column:1/-1!important;
-  padding:0!important;margin:0!important;
-}
-#app .pv-video-upscale-sidebar,#app .pv-video-upscale-preview{
-  border:1px solid #343438;border-radius:13px;background:#1b1b1d;min-width:0;overflow:hidden;
-}
-#app .pv-video-upscale-sidebar{display:flex;flex-direction:column;padding:26px 22px 20px;gap:21px}
-#app .pv-video-upscale-sidebar header{display:flex;flex-direction:column;gap:10px}
-#app .pv-video-upscale-kicker{font:600 10px/1.3 'DM Sans',Arial,sans-serif;letter-spacing:.16em;color:#94969b}
-#app .pv-video-upscale-sidebar h2{font:500 clamp(28px,2.4vw,36px)/1.08 'DM Sans',Arial,sans-serif;letter-spacing:-.065em;color:#f1f1f1;margin:0}
-#app .pv-video-upscale-sidebar header p{font:400 12px/1.6 'DM Sans',Arial,sans-serif;color:#a0a0a3;margin:0;max-width:260px}
-#app .pv-video-upscale-field{display:flex;flex-direction:column;gap:9px;min-width:0}
-#app .pv-video-upscale-label{font:600 10px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.13em;color:#8d8d91}
-#app .pv-video-upscale-models{display:flex;flex-direction:column;gap:6px}
-#app .pv-video-upscale-model{
-  display:flex;align-items:center;justify-content:space-between;text-align:left;
-  gap:12px;min-height:63px;padding:12px 13px;background:#222225;border:1px solid #37373a;border-radius:8px;
-  color:#dfdfe1;cursor:pointer;transition:border-color .16s,background .16s;
-}
-#app .pv-video-upscale-model[aria-checked="true"]{background:#2d2d30;border-color:#b2b2b3}
-#app .pv-video-upscale-model:hover{border-color:#89898d}
-#app .pv-video-upscale-model span{display:flex;flex-direction:column;gap:4px}
-#app .pv-video-upscale-model strong{font:550 13px/1.25 'DM Sans',Arial,sans-serif;letter-spacing:-.015em}
-#app .pv-video-upscale-model small{font:400 10px/1.35 'DM Sans',Arial,sans-serif;color:#98989c}
-#app .pv-video-upscale-model i{box-sizing:border-box;flex-shrink:0;width:15px;height:15px;border:1px solid #5e5e63;border-radius:50%}
-#app .pv-video-upscale-model[aria-checked="true"] i{border:4px solid #e5e5e6;background:#252525}
-#app .pv-video-upscale-field select{
-  width:100%;min-height:43px;border:1px solid #424247;background:#262629;border-radius:8px;color:#eee;
-  font:500 12px/1.35 'DM Sans',Arial,sans-serif;padding:8px 12px;
-}
-#app .pv-video-upscale-quote{padding:15px 0 0;border-top:1px solid #363639;margin-top:auto}
-#app .pv-video-upscale-quote p{font:550 12px/1.5 'DM Sans',Arial,sans-serif;color:#e6e6e6;margin:0 0 7px}
-#app .pv-video-upscale-quote small{font:400 10px/1.5 'DM Sans',Arial,sans-serif;color:#9999a0}
-#app .pv-video-upscale-submit{
-  width:100%;border:0;border-radius:9px;min-height:47px;background:#eee;color:#1a1a1b;
-  font:650 12px/1.3 'DM Sans',Arial,sans-serif;cursor:pointer;transition:opacity .18s,background .18s;
-}
-#app .pv-video-upscale-submit:hover:not(:disabled){background:#fff}
-#app .pv-video-upscale-submit:disabled{cursor:not-allowed;opacity:.5}
-#app .pv-video-upscale-message{font:400 11px/1.5 'DM Sans',Arial,sans-serif;color:#bdbdbf;min-height:16px;margin:-12px 0 0}
-#app .pv-video-upscale-message.error{color:#ffb7b7}
-#app .pv-video-upscale-preview{display:flex;flex-direction:column;padding:20px;gap:12px;background:#171719}
-#app .pv-video-upscale-preview-head,#app .pv-video-upscale-preview-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
-#app .pv-video-upscale-preview-head{color:#97979b;font-size:10px;font-weight:600;letter-spacing:.13em}
-#app .pv-video-upscale-preview-head button,#app .pv-video-upscale-preview-foot button{
-  border:0;background:transparent;color:#dbdbdf;font:500 11px/1.3 'DM Sans',Arial,sans-serif;cursor:pointer;padding:6px;
-}
-#app .pv-video-upscale-preview-foot{font:400 11px/1.4 'DM Sans',Arial,sans-serif;color:#97979c}
-#app .pv-video-upscale-preview-foot>div{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-#app .pv-video-upscale-preview-foot button[hidden],#app .pv-video-upscale-preview-head button[hidden]{display:none!important}
-#app .pv-video-upscale-preview-foot #pv-video-upscale-download{border:1px solid #444449;border-radius:6px;padding:9px 12px}
-#app .pv-video-upscale-stage{
-  position:relative;flex:1;min-height:400px;background:#101011;border:1px solid #333337;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
-}
-#app .pv-video-upscale-stage.dragging{border:1px solid #e3e3e4;background:#242427}
-#app .pv-video-upscale-stage video:not([hidden]){position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1}
-#app .pv-video-upscale-stage video[hidden]{display:none!important}
-#app .pv-video-upscale-blank{
-  display:flex;flex-direction:column;gap:13px;align-items:center;justify-content:center;text-align:center;
-  padding:30px;min-height:330px;
-}
-#app .pv-video-upscale-blank[hidden],#app .pv-video-upscale-working[hidden]{display:none!important}
-#app .pv-video-upscale-blank-icon{display:grid;place-items:center;width:62px;height:62px;border:1px solid #464648;border-radius:11px;color:#ccc;font-size:32px;line-height:1}
-#app .pv-video-upscale-blank h3{font:500 30px/1.15 'DM Sans',Arial,sans-serif;letter-spacing:-.06em;margin:4px 0 0;color:#ededed}
-#app .pv-video-upscale-blank p{font:400 13px/1.4 'DM Sans',Arial,sans-serif;color:#a7a7ac;margin:0}
-#app .pv-video-upscale-blank button{margin:10px 0 0;min-width:140px;border:1px solid #d6d6d7;border-radius:7px;background:#e8e8e8;color:#181818;padding:11px 18px;font:600 12px 'DM Sans',Arial,sans-serif;cursor:pointer}
-#app .pv-video-upscale-blank small{font:400 10px/1.5 'DM Sans',Arial,sans-serif;color:#77777d}
-#app .pv-video-upscale-working{
-  position:absolute;bottom:17px;left:17px;right:17px;z-index:2;background:rgba(22,22,24,.95);
-  border:1px solid #3a3a3d;border-radius:8px;padding:14px;display:flex;align-items:center;gap:10px;
-}
-#app .pv-video-upscale-working strong{font-size:12px;font-weight:550}
-#app .pv-video-upscale-working small{font-size:10px;color:#aaa;margin-left:auto}
-#app .pv-video-upscale-spinner{display:inline-block;border:2px solid #5a5a60;border-top-color:#f0f0f0;border-radius:50%;width:14px;height:14px;animation:pv-video-upscale-spin 1s linear infinite}
-@keyframes pv-video-upscale-spin{to{transform:rotate(360deg)}}
-@media(max-width:850px){
- #app .pv-video-upscale-panel{grid-template-columns:minmax(0,1fr);gap:12px}
- #app .pv-video-upscale-sidebar{padding:22px 20px}
- #app .pv-video-upscale-preview{min-height:320px}
- #app .pv-video-upscale-stage{min-height:310px}
-}
-@media(max-width:560px){
- #app .pv-video-upscale-mode,#app .pv-video-upscale-panel{width:calc(100% - 28px);margin-left:14px;margin-right:14px}
- #app.upscale-studio-active.video-upscale-active>.workspace{width:calc(100% - 28px)!important;margin:0 14px 30px!important}
- #app .pv-video-upscale-mode{margin-top:18px}
- #app .pv-video-upscale-tabs button{padding:10px 17px}
- #app .pv-video-upscale-sidebar{padding:20px 16px;gap:18px}
- #app .pv-video-upscale-sidebar h2{font-size:31px}
- #app .pv-video-upscale-preview{padding:12px}
- #app .pv-video-upscale-stage{min-height:290px}
- #app .pv-video-upscale-blank h3{font-size:26px}
- #app .pv-video-upscale-preview-foot{align-items:flex-start;flex-direction:column}
- #app .pv-video-upscale-working{flex-wrap:wrap;bottom:8px;left:8px;right:8px}
-}
-
-
-/* Video / Image parity, 31 Oct. The original Image controls and photo stage
-   are siblings of this panel, not children of it. Hide that entire workspace,
-   never the separate History archive. */
-#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace{display:none!important}
-#app .pv-video-upscale-mode{width:100%;max-width:none;margin:0;padding:16px 24px;box-sizing:border-box}
-#app .pv-video-upscale-panel{
-  box-sizing:border-box;display:grid;grid-template-columns:minmax(330px,26%) minmax(0,1fr);
-  width:100%;max-width:none;margin:0 0 16px;gap:0;align-items:stretch;
-}
+#app .pv-video-upscale-tabs button[aria-selected="true"]{background:#f2efeb;color:#161617;font-weight:650}
+#app .pv-video-upscale-tabs button:focus-visible,
+#app .pv-video-upscale-sidebar button:focus-visible,
+#app .pv-video-upscale-sidebar select:focus-visible,
+#app .pv-video-upscale-preview button:focus-visible{outline:2px solid #f4f0eb;outline-offset:2px}
+/* The original Image stage and settings stay mounted but are hidden when
+   the Video mode is selected. The SAME .workspace and archive remain. */
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace{display:grid!important}
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>.stagehead,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>.stagefoot{display:none!important}
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.pv-video-upscale-sidebar,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>.pv-video-upscale-preview{display:flex!important}
 #app .pv-video-upscale-sidebar{
-  box-sizing:border-box;min-width:0;min-height:clamp(680px,calc(100dvh - 104px),980px);
-  border:1px solid #353a44;border-right:0;border-radius:0;
-  padding:35px 26px 36px;gap:18px;
-  background:linear-gradient(160deg,#15191f,#12161b);
+ box-sizing:border-box;display:flex;flex:1 1 auto;flex-direction:column;
+ min-height:0;min-width:0;gap:16px;overflow:auto;padding:75px 20px 20px;
+ background:transparent;border:0;border-radius:0;color:#f1f0ef;
+ font-family:'DM Sans',Arial,sans-serif;
+ scrollbar-width:thin;scrollbar-color:#42434b transparent;
 }
-#app .pv-video-upscale-sidebar header{gap:6px;padding:0 0 19px;margin:0 0 3px;border-bottom:1px solid #2d3239}
-#app .pv-video-upscale-kicker{color:#858e9b;font-size:9px;font-weight:650;letter-spacing:.15em}
-#app .pv-video-upscale-sidebar h2{font-size:27px;font-weight:350;letter-spacing:-.067em;line-height:1.1}
-#app .pv-video-upscale-sidebar header p{color:#919aa4;font-size:11px;line-height:1.6}
-#app .pv-video-upscale-field{gap:9px}
-#app .pv-video-upscale-label{color:#aab1bb;font-size:10px;letter-spacing:.035em;text-transform:none}
-#app .pv-video-upscale-models{gap:7px}
-#app .pv-video-upscale-models .pv-upscale-model-card{min-width:0;width:100%}
+#app .pv-video-upscale-sidebar header{
+ display:flex;flex-direction:column;gap:5px;
+ margin:0 0 3px;padding:0 0 17px;border-bottom:1px solid #2d3239;
+}
+#app .pv-video-upscale-kicker{color:#929aa6;font:650 9px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.145em}
+#app .pv-video-upscale-sidebar h2{margin:0;color:#f1f2f3;font:350 27px/1.1 'DM Sans',Arial,sans-serif;letter-spacing:-.067em}
+#app .pv-video-upscale-sidebar header p{margin:3px 0 0;color:#a0a5ae;font:400 11px/1.6 'DM Sans',Arial,sans-serif}
+#app .pv-video-upscale-field{display:flex;flex-direction:column;gap:8px;min-width:0}
+#app .pv-video-upscale-label{color:#aab1bb;font:600 10px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.035em}
+#app .pv-video-upscale-models{display:flex;flex-direction:column;gap:7px;min-width:0}
+#app .pv-video-upscale-models .pv-upscale-model-card{width:100%;min-width:0;min-height:57px!important}
 #app .pv-video-upscale-models .pv-upscale-model-card .upscale-model-selected{opacity:0}
 #app .pv-video-upscale-models .pv-upscale-model-card[aria-checked="true"] .upscale-model-selected{opacity:1}
-#app .pv-video-upscale-field select{height:45px;min-height:45px;background:#1b2027;border-color:#353c45}
-#app .pv-video-upscale-quote{border-top:1px solid #2c3239}
-#app .pv-video-upscale-submit{min-height:48px;background:#f2efeb;color:#151515;border-radius:9px}
-#app .pv-video-upscale-submit:disabled{background:#414043;color:#bcb7b9;opacity:1}
+#app .pv-video-upscale-models .pv-upscale-model-card:disabled{opacity:.6;cursor:default}
+#app .pv-video-upscale-field select{
+ box-sizing:border-box;width:100%;min-height:42px;padding:8px 12px;
+ border:1px solid #353c45;border-radius:8px;background:#1b2027;
+ color:#f1f2f4;font:500 12px/1.35 'DM Sans',Arial,sans-serif;
+}
+#app .pv-video-upscale-quote{margin:0;padding:12px 0 0;border-top:1px solid #2c3239}
+#app .pv-video-upscale-quote p{margin:0 0 5px;color:#e4e6e9;font:550 11px/1.5 'DM Sans',Arial,sans-serif}
+#app .pv-video-upscale-quote small{color:#939ba6;font:400 10px/1.45 'DM Sans',Arial,sans-serif}
+#app .pv-video-upscale-submit{
+ box-sizing:border-box;flex:0 0 auto;width:100%;min-height:45px;padding:10px 14px;
+ border:1px solid rgba(255,255,255,.1);border-radius:8px;
+ background:#f2efeb;color:#151515;font:600 12px/1.3 'DM Sans',Arial,sans-serif;cursor:pointer;
+}
+#app .pv-video-upscale-submit:hover:not(:disabled){background:#fff}
+#app .pv-video-upscale-submit:disabled{background:#414043;color:#bcb7b9;cursor:not-allowed;opacity:1}
+#app .pv-video-upscale-message{min-height:0;margin:-7px 0 0;color:#a8afb9;font:400 11px/1.45 'DM Sans',Arial,sans-serif}
+#app .pv-video-upscale-message.error{color:#ffb7b7}
+
+
+/* Video preview is a child of the SAME .stage as the original image preview. */
 #app .pv-video-upscale-preview{
-  box-sizing:border-box;min-width:0;min-height:clamp(680px,calc(100dvh - 104px),980px);
-  padding:0;gap:0;border:1px solid #303741;border-radius:0;
-  background:#0e1218;overflow:hidden;
+ box-sizing:border-box;display:flex;flex:1 1 auto;flex-direction:column;
+ min-height:0;min-width:0;gap:0;overflow:hidden;padding:0;
+ background:#0e1218;border:0;border-radius:0;
 }
 #app .pv-video-upscale-preview-head{
-  box-sizing:border-box;flex:0 0 42px;min-height:42px;
-  padding:0 16px;border-bottom:1px solid #262e38;
-  background:#12161c;color:#adb5bf;letter-spacing:.025em;
+ box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;
+ flex:0 0 42px;min-height:42px;gap:12px;padding:0 16px;
+ border-bottom:1px solid #262e38;background:#12161c;color:#adb5bf;
+ font:600 11px/1.3 'DM Sans',Arial,sans-serif;letter-spacing:.025em;
+}
+#app .pv-video-upscale-preview-head button,#app .pv-video-upscale-preview-foot button{
+ border:0;background:transparent;color:#d1d5da;padding:6px;
+ font:500 11px/1.3 'DM Sans',Arial,sans-serif;cursor:pointer;
 }
 #app .pv-video-upscale-stage{
-  box-sizing:border-box;flex:1;min-height:560px;border:0;border-radius:0;
-  background:#0b0e12;overflow:hidden;
+ box-sizing:border-box;position:relative;flex:1 1 auto;
+ width:100%;min-height:0;overflow:hidden;border:0;border-radius:0;background:#0b0e12;
 }
+#app .pv-video-upscale-stage.dragging{outline:2px solid #f2efeb;outline-offset:-4px}
+#app .pv-video-upscale-stage video:not([hidden]){
+ position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;background:#0b0e12;
+}
+#app .pv-video-upscale-stage video[hidden]{display:none!important}
+#app .pv-video-upscale-blank{
+ box-sizing:border-box;position:absolute;inset:0;isolation:isolate;
+ display:flex;align-items:center;justify-content:center;
+ width:100%;height:100%;padding:22px 20px;background:#0b0e12;
+}
+#app .pv-video-upscale-blank::before,#app .pv-video-upscale-blank::after{
+ content:"";position:absolute;inset:0;pointer-events:none;
+}
+#app .pv-video-upscale-blank::before{
+ z-index:-2;background:url('./visuals/upscaler-chrome-wool-option-1.jpg') 50% 47%/cover no-repeat;
+ filter:brightness(.62) contrast(1.17) sepia(.11) saturate(1.08);
+}
+#app .pv-video-upscale-blank::after{
+ z-index:-1;background:
+ radial-gradient(ellipse 36% 42% at 51% 51%,rgba(4,3,4,.36),rgba(5,4,5,.05) 83%,transparent),
+ linear-gradient(90deg,rgba(4,3,4,.45),rgba(6,4,5,.14) 53%,rgba(5,3,4,.29)),
+ linear-gradient(0deg,rgba(4,3,4,.31),transparent 39%,rgba(4,3,4,.23));
+}
+#app .pv-video-upscale-blank-center{
+ box-sizing:border-box;position:relative;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ width:min(91%,1100px);min-height:81%;padding:26px 20px;
+ border:1px solid rgba(248,242,237,.67);border-radius:7px;text-align:center;color:#f7f7f7;
+}
+#app .pv-video-upscale-blank-icon{
+ box-sizing:border-box;position:relative;display:block;width:84px;height:84px;
+ margin:0 0 18px;border:1px solid rgba(245,240,236,.7);border-radius:13px;
+ background:rgba(4,4,5,.66);
+}
+#app .pv-video-upscale-blank-icon::before,#app .pv-video-upscale-blank-icon::after{
+ content:"";position:absolute;top:50%;left:50%;
+ background:#f6f1eb;transform:translate(-50%,-50%);
+}
+#app .pv-video-upscale-blank-icon::before{width:29px;height:1px}
+#app .pv-video-upscale-blank-icon::after{width:1px;height:29px}
+#app .pv-video-upscale-blank h3{
+ margin:0 0 14px;color:#f7f7f7;
+ font:350 clamp(30px,2.6vw,43px)/1.18 'DM Sans',Arial,sans-serif;letter-spacing:-.055em;
+}
+#app .pv-video-upscale-blank p{
+ max-width:405px;margin:0 0 23px;color:#e4ded9;
+ font:350 clamp(12px,1.12vw,17px)/1.55 'DM Sans',Arial,sans-serif;
+}
+#app .pv-video-upscale-blank button{
+ display:flex;align-items:center;justify-content:center;gap:11px;
+ min-width:190px;min-height:46px;margin:0 0 14px;padding:11px 18px;
+ border:1px solid #e8e9ea;border-radius:9px;background:#fbfbfb;color:#111317;
+ font:650 13px/1.3 'DM Sans',Arial,sans-serif;cursor:pointer;
+}
+#app .pv-video-upscale-blank button:hover{background:#e5e8eb}
+#app .pv-video-upscale-blank button svg{width:19px;height:19px}
+#app .pv-video-upscale-blank small{
+ color:#d2c9c5;font:400 10px/1.5 'DM Sans',Arial,sans-serif;
+ letter-spacing:.1em;text-transform:uppercase;
+}
+#app .pv-video-upscale-working{
+ position:absolute;bottom:14px;left:14px;right:14px;z-index:2;
+ display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+ padding:14px;border:1px solid #3a3a3d;border-radius:8px;background:rgba(22,22,24,.95);
+}
+#app .pv-video-upscale-working strong{font-size:12px;font-weight:550}
+#app .pv-video-upscale-working small{font-size:10px;color:#aaa}
+#app .pv-video-upscale-spinner{
+ display:inline-block;width:14px;height:14px;border:2px solid #5a5a60;
+ border-top-color:#f0f0f0;border-radius:50%;animation:pv-video-upscale-spin 1s linear infinite;
+}
+@keyframes pv-video-upscale-spin{to{transform:rotate(360deg)}}
 #app .pv-video-upscale-preview-foot{
-  box-sizing:border-box;min-height:46px;padding:8px 16px;
-  border-top:1px solid #262e38;background:#12161c;
+ box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;
+ gap:12px;min-height:42px;padding:8px 16px;border-top:1px solid #262e38;
+ background:#12161c;color:#979da6;font:400 11px/1.4 'DM Sans',Arial,sans-serif;
+}
+#app .pv-video-upscale-preview-foot>div{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+#app .pv-video-upscale-preview-foot #pv-video-upscale-download{
+ border:1px solid #464b54;border-radius:7px;padding:8px 11px;
 }
 #app .pv-video-upscale-preview-foot button[aria-pressed="true"]{color:#f2efeb}
 #app .pv-video-upscale-history-symbol{display:grid;place-items:center;min-height:140px;color:#ddd;font-size:32px}
 
 
-/* Same photographed source-upload stage as Image, with a real MP4 picker. */
-#app .pv-video-upscale-blank{
-  position:absolute;inset:0;box-sizing:border-box;isolation:isolate;
-  display:flex;align-items:center;justify-content:center;
-  width:100%;height:100%;min-height:0;padding:24px 20px;
-  background:#0b0e12;overflow:hidden;
+/* Desktop: Image and Video must both end inside the visible browser viewport.
+   The original loaded-photo rules forced a 680px minimum and an expanding
+   sidebar. Contain the workspace and scroll controls internally if needed. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+   box-sizing:border-box!important;display:grid!important;
+   grid-template-columns:minmax(330px,26%) minmax(0,1fr)!important;
+   grid-template-rows:minmax(0,1fr)!important;
+   height:calc(100dvh - 102px)!important;
+   min-height:0!important;max-height:none!important;
+   width:100%!important;max-width:none!important;
+   margin:0!important;padding:0!important;gap:0!important;
+   align-items:stretch!important;overflow:hidden!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls,
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{
+   box-sizing:border-box!important;
+   position:relative!important;top:auto!important;bottom:auto!important;
+   display:flex!important;flex-direction:column!important;
+   grid-row:1!important;align-self:stretch!important;
+   width:100%!important;height:100%!important;
+   min-height:0!important;max-height:100%!important;
+   margin:0!important;overflow:hidden!important;
+   border-radius:0!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{grid-column:1!important}
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{grid-column:2!important}
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+   box-sizing:border-box!important;flex:1 1 auto!important;
+   min-height:0!important;max-height:none!important;
+   padding:76px 20px 12px!important;
+   overflow-x:hidden!important;overflow-y:auto!important;
+   scrollbar-width:thin;scrollbar-color:#42434b transparent;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+   box-sizing:border-box!important;
+   position:relative!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
+   flex:0 0 auto!important;width:100%!important;height:auto!important;min-height:0!important;
+   margin:auto 0 0!important;padding:12px 20px 18px!important;
+   border:0!important;border-top:1px solid #2c3239!important;
+   border-radius:0!important;background:#12161c!important;
+   z-index:1!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate{
+   display:block!important;box-sizing:border-box!important;width:100%!important;
+   height:47px!important;min-height:47px!important;max-height:47px!important;
+   margin:0!important;border-radius:8px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas{
+   box-sizing:border-box!important;display:flex!important;
+   flex:1 1 auto!important;width:100%!important;
+   height:auto!important;min-height:0!important;max-height:none!important;
+   overflow:hidden!important;margin:0!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas:has(> #preview:not([hidden])),
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas:has(> #empty:not([hidden])){
+   flex:1 1 auto!important;height:auto!important;
+   min-height:0!important;max-height:none!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas>img#preview:not([hidden]){
+   box-sizing:border-box!important;width:100%!important;height:100%!important;
+   max-width:100%!important;max-height:100%!important;
+   object-fit:contain!important;object-position:center center!important;
+ }
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas{display:none!important}
 }
-#app .pv-video-upscale-blank::before,#app .pv-video-upscale-blank::after{
-  content:"";position:absolute;inset:0;pointer-events:none;
-}
-#app .pv-video-upscale-blank::before{
-  z-index:-2;background:url('./visuals/reptare-detail.webp') 50% 47%/cover no-repeat;
-  filter:brightness(.62) contrast(1.17) sepia(.11) saturate(1.08);
-}
-#app .pv-video-upscale-blank::after{
-  z-index:-1;background:
-    radial-gradient(ellipse 36% 42% at 51% 51%,rgba(4,3,4,.36),rgba(5,4,5,.05) 83%,transparent),
-    linear-gradient(90deg,rgba(4,3,4,.45),rgba(6,4,5,.14) 53%,rgba(5,3,4,.29)),
-    linear-gradient(0deg,rgba(4,3,4,.31),transparent 39%,rgba(4,3,4,.23));
-}
-#app .pv-video-upscale-blank-center{
-  box-sizing:border-box;position:relative;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:0;width:min(91%,1100px);min-height:81%;padding:28px 22px;
-  border:1px solid rgba(248,242,237,.67);border-radius:7px;
-  text-align:center;color:#f7f7f7;
-}
-#app .pv-video-upscale-blank-icon{
-  box-sizing:border-box;position:relative;display:block;
-  width:95px;height:95px;margin:0 0 23px;
-  border:1px solid rgba(245,240,236,.7);border-radius:13px;
-  background:rgba(4,4,5,.66);
-}
-#app .pv-video-upscale-blank-icon::before,#app .pv-video-upscale-blank-icon::after{
-  content:"";position:absolute;top:50%;left:50%;
-  background:#f6f1eb;transform:translate(-50%,-50%);
-}
-#app .pv-video-upscale-blank-icon::before{width:29px;height:1px}
-#app .pv-video-upscale-blank-icon::after{width:1px;height:29px}
-#app .pv-video-upscale-blank h3{
-  margin:0 0 17px;color:#f7f7f7;
-  font:350 clamp(32px,2.6vw,43px)/1.18 'DM Sans',Arial,sans-serif;
-  letter-spacing:-.055em;
-}
-#app .pv-video-upscale-blank p{
-  max-width:405px;margin:0 0 28px;color:#e4ded9;
-  font:350 clamp(13px,1.12vw,17px)/1.55 'DM Sans',Arial,sans-serif;
-}
-#app .pv-video-upscale-blank button{
-  display:flex;align-items:center;justify-content:center;gap:11px;
-  min-width:216px;min-height:51px;margin:0 0 18px;padding:12px 19px;
-  border:1px solid #e8e9ea;border-radius:9px;
-  color:#111317;background:#fbfbfb;cursor:pointer;
-  font:650 15px/1.3 'DM Sans',Arial,sans-serif;
-}
-#app .pv-video-upscale-blank button:hover{background:#e5e8eb}
-#app .pv-video-upscale-blank button svg{width:19px;height:19px}
-#app .pv-video-upscale-blank small{
-  color:#d2c9c5;font:400 11px/1.5 'DM Sans',Arial,sans-serif;
-  letter-spacing:.11em;text-transform:uppercase;
-}
+/* Phone: switch first, then a single preview, then the SAME inspector.
+   Keep the natural phone scroll rather than imposing desktop viewport height. */
 @media(max-width:780px){
-  #app .pv-video-upscale-mode{padding:14px 0 16px;width:100%;margin:0}
-  #app .pv-video-upscale-panel{
-    display:flex;flex-direction:column;gap:12px;
-    width:100%;max-width:none;margin:0 0 14px;
-  }
-  #app .pv-video-upscale-preview{
-    order:0;min-height:0;border:1px solid #303741;border-radius:13px;
-  }
-  #app .pv-video-upscale-stage{min-height:420px;height:clamp(420px,55dvh,590px);flex:none}
-  #app .pv-video-upscale-sidebar{
-    order:1;min-height:0;padding:20px 15px 17px;gap:15px;
-    border:1px solid #353a44;border-radius:11px;
-  }
-  #app .pv-video-upscale-sidebar header{padding-bottom:14px;margin-bottom:1px}
-  #app .pv-video-upscale-sidebar h2{font-size:25px}
-  #app .pv-video-upscale-blank{padding:14px 12px}
-  #app .pv-video-upscale-blank-center{width:91%;min-height:81%;padding:16px 13px}
-  #app .pv-video-upscale-blank-icon{width:72px;height:72px;margin-bottom:14px}
-  #app .pv-video-upscale-blank h3{font-size:clamp(25px,7vw,33px);margin-bottom:12px}
-  #app .pv-video-upscale-blank p{font-size:12px;margin-bottom:20px}
-  #app .pv-video-upscale-blank button{min-width:190px;min-height:46px;margin-bottom:12px;font-size:13px}
-  #app .pv-video-upscale-blank small{font-size:9px}
-  #app .pv-video-upscale-preview-foot{flex-wrap:wrap}
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+   box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
+   height:auto!important;min-height:0!important;max-height:none!important;
+   width:100%!important;margin:0 auto 14px!important;
+   padding:0!important;gap:12px!important;overflow:visible!important;
+ }
+ #app .pv-video-upscale-mode{
+   box-sizing:border-box;position:relative;top:auto;left:auto;right:auto;
+   order:-2;align-self:flex-start;width:auto;margin:8px 14px 0;padding:0;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{
+   order:0!important;width:100%!important;min-height:0!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+   order:1!important;width:100%!important;min-height:0!important;height:auto!important;
+ }
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace{display:flex!important}
+ #app .pv-video-upscale-sidebar{flex:0 0 auto;overflow:visible;padding:20px 15px 17px;gap:15px}
+ #app .pv-video-upscale-sidebar header{padding-bottom:14px;margin-bottom:1px}
+ #app .pv-video-upscale-sidebar h2{font-size:25px}
+ #app .pv-video-upscale-preview{flex:0 0 auto;min-height:0}
+ #app .pv-video-upscale-stage{flex:0 0 auto;height:clamp(390px,55dvh,590px);min-height:390px}
+ #app .pv-video-upscale-blank{padding:14px 12px}
+ #app .pv-video-upscale-blank-center{width:91%;min-height:81%;padding:16px 13px}
+ #app .pv-video-upscale-blank-icon{width:72px;height:72px;margin-bottom:14px}
+ #app .pv-video-upscale-blank h3{font-size:clamp(25px,7vw,33px);margin-bottom:12px}
+ #app .pv-video-upscale-blank p{font-size:12px;margin-bottom:20px}
+ #app .pv-video-upscale-blank button{min-width:190px;min-height:46px;margin-bottom:12px;font-size:13px}
+ #app .pv-video-upscale-blank small{font-size:9px}
+ #app .pv-video-upscale-preview-foot{flex-wrap:wrap}
 }
 @media(max-width:420px){
-  #app .pv-video-upscale-stage{height:420px;min-height:420px}
-  #app .pv-video-upscale-blank-center{min-height:81%}
+ #app .pv-video-upscale-stage{height:420px;min-height:420px}
 }
 @media(prefers-reduced-motion:reduce){
-  #app .pv-video-upscale-tabs button,#app .pv-video-upscale-model{transition:none}
+ #app .pv-video-upscale-tabs button,#app .pv-video-upscale-model{transition:none}
+}
+
+
+/* Override the older, more-specific :has() loaded/empty Image rules.
+   They previously forced the editor to extend below the browser viewport. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #empty:not([hidden])),
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #preview:not([hidden])){
+   box-sizing:border-box!important;
+   height:calc(100dvh - 102px)!important;
+   min-height:0!important;max-height:none!important;overflow:hidden!important;
+ }
+ #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+   height:100%!important;min-height:0!important;max-height:100%!important;
+   overflow:hidden!important;display:flex!important;flex-direction:column!important;
+ }
+ #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+   flex:1 1 auto!important;height:auto!important;min-height:0!important;
+   max-height:none!important;overflow-x:hidden!important;overflow-y:auto!important;
+   padding:76px 20px 12px!important;
+ }
+ #app.upscale-studio-active:is(.pv-upscale-source-ready,:has(#upscale-canvas #preview:not([hidden]))):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+   box-sizing:border-box!important;position:relative!important;
+   top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
+   flex:0 0 auto!important;width:100%!important;height:auto!important;min-height:0!important;
+   margin:auto 0 0!important;padding:12px 20px 18px!important;
+   border-top:1px solid #2c3239!important;background:#12161c!important;
+ }
+}
+
+
+/* A short, restrained content transition. The frame, columns and editor
+   position remain fixed while the mode-specific content changes. */
+@keyframes pv-upscale-mode-enter{
+ from{opacity:.65;transform:translateY(3px)}
+ to{opacity:1;transform:translateY(0)}
+}
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active) .pv-video-upscale-sidebar,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active) .pv-video-upscale-preview{
+ animation:pv-upscale-mode-enter .16s ease-out both;
+}
+@media(prefers-reduced-motion:reduce){
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active) .pv-video-upscale-sidebar,
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active) .pv-video-upscale-preview{animation:none}
+}
+
+
+/* The V28 fullscreen rule used :has() to force .stage display:block.
+   In a bounded-height editor that collapses the flex canvas to 0px.
+   Match its specificity and restore the shared flex preview column. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #empty:not([hidden]))>.stage,
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace:has(#upscale-canvas #preview:not([hidden]))>.stage{
+   display:flex!important;flex-direction:column!important;
+   height:100%!important;min-height:0!important;max-height:100%!important;
+   overflow:hidden!important;
+ }
 }
