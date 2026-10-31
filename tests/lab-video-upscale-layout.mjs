@@ -7,6 +7,13 @@ import {resolve,extname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
+const assetsSource=readFileSync('lab/assets.js','utf8');
+const studioSource=readFileSync('lab/lab.js','utf8');
+assert.match(assetsSource,/type==='video-upscale'\?'video'/,'Video Upscaler History must request video assets');
+assert.match(assetsSource,/type==='video-upscale'\)q\.set\('mode','upscale'\)/,'Video Upscaler History must filter upscale jobs');
+assert.match(assetsSource,/Upscaled videos/,'Video mode has its own History heading');
+assert.match(studioSource,/videoUpscaler\?\.mode\(\)==='video'\?'video-upscale':'upscale'/,'Studio passes the correct History media type');
+
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
   const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));
