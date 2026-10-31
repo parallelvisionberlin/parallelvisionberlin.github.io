@@ -1,5 +1,18 @@
 # Beauty Studio and Studios navigation
 
+## Tall connected Studios cards correction, 2026-10-31
+
+- Owner likes the new joined design but explicitly wants the previous tall portrait card format from screenshot 1.
+- Baseline `7dfcf1e`; restore only the two desktop card-height declarations to the original `clamp(365px,50.4vh,475px)` and intermediate `clamp(330px,45vh,420px)`.
+- Preserve joined borderless photos, current type, Character Studio in the header and no lower bar. Phone card dimensions are unchanged.
+- No image URLs, assets, filters, crop positions, JavaScript, ALTER behavior or generation flow changed.
+- Refresh only shared menu CSS cache version to `20261031-tall-connected1` on its five entry pages.
+- Owner references: `libfile_beab327c6984819182b1bb79c5de1c50` (desired tall proportions), `libfile_a9545c4c102081918f46380c79a0b1a2` (keep new styling).
+- PASS: five approved Image UI contracts, diff review and whitespace checks.
+- PASS desktop preview: four tall cards ~472px high, no gaps, no lower bar and no clipped titles.
+- PASS 390px phone preview: unchanged two-column layout, ~304px card height, no horizontal overflow.
+- Deployment pending at commit preparation.
+
 ## Approved connected Studios menu, 2026-10-31
 
 - Owner approved the connected photographic strip mockup, then removed its lower bar. Implementation is strictly the menu's presentation.

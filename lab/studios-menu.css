@@ -47,7 +47,7 @@
 .pv-studios-heading{color:#b6b7b7;font-size:9px;letter-spacing:.24em}
 .pv-studios-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
 .pv-studios-tile{
- position:relative;display:block;min-width:0;height:clamp(285px,38vh,400px);
+ position:relative;display:block;min-width:0;height:clamp(365px,50.4vh,475px);
  isolation:isolate;background:#111214;border:0;
  border-radius:0;overflow:hidden
 }
@@ -108,7 +108,7 @@
 .studio-header .pv-studios-menu{color:inherit}
 .studio-header:has(.pv-studios-trigger[aria-expanded=true]){z-index:101!important}
 @media(min-width:901px) and (max-width:1140px){
- .pv-studios-tile{height:clamp(280px,38vh,365px)}
+ .pv-studios-tile{height:clamp(330px,45vh,420px)}
  .pv-studios-meta,.pv-studios-editorial-copy{inset:auto 11px 13px!important;gap:13px;width:calc(100% - 22px)!important}
  .pv-studios-meta strong,.pv-studios-editorial-copy strong{font-size:clamp(25px,2.7vw,30px)!important}
  .pv-studios-foot{gap:6px}
