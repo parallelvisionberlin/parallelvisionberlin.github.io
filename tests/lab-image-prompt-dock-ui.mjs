@@ -284,9 +284,12 @@ try{
         'PV Soul controls must not overflow or wrap: '+JSON.stringify(positions));
       assert.ok(positions.prompt.height>=140&&positions.prompt.height<=178,
         'Soul prompt continues using the original bounded scroll editor');
-      assert.ok(Math.abs(positions.identity.bottom-positions.generate.bottom)<10 &&
-        Math.abs(positions.source.bottom-positions.generate.bottom)<10,
-        'Both Soul cards must remain anchored beside Generate');
+      assert.ok(Math.abs(positions.identity.bottom-positions.generate.bottom)<10,
+        'Compact Soul ID stays anchored beside Generate');
+      assert.equal(positions.identity.height,40,'Soul ID shares the standard toolbar height');
+      assert.equal(positions.source.height,54,'Source upload uses the compact prompt row');
+      assert.ok(positions.source.bottom<=positions.identity.top && positions.source.right<positions.generate.left,
+        'Source upload stays above Soul ID and clear of Generate');
       assert.ok(positions.dock.height<360,
         'Soul prompt and selector row should not turn into a giant modal: '+positions.dock.height);
     }finally{await context.close();}

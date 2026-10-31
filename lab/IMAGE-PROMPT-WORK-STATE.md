@@ -9,7 +9,9 @@
 - `studio.html` refreshes only the shared surface cache key to `20261031-soul-parity1`. New browser test compares desktop geometry with standard Image and checks 20 combinations across five widths, source/no-source and empty/long text. Existing gallery workflow runs it.
 - Local checks passed: Image contract 5/5; prompt paste; Studio layout; Soul parity 20/20; gallery 50/50; syntax and diff whitespace. Desktop/phone screenshots inspected. No real account mutations or paid calls.
 - First-image browser suite fails its Inspiration backdrop expectation on both unchanged baseline HTML/CSS and candidate. Entry/role geometry passes. The unrelated expectation was not changed or weakened.
-- Publication: pending PR, relevant CI, Cloudflare and custom-domain verification. Real signed-in Soul behavior and provider results are not claimed.
+- PR #743. Final local compact-prompt suite passes after updating its old 84px Soul-card expectation to 40px identity / 54px source geometry; overflow, alignment and matching Seedream Generate typography remain asserted. Empty quote labels stay centered.
+- Relevant previous-head CI passed approved Image, prompt paste, gallery/Soul, account, pricing/upscale and Cloudflare preview. Separate public-studio Upscaler baseline and Image welcome fixture assertions failed outside Soul selectors; first-image backdrop failure was reproduced on unchanged HTML/CSS. No unrelated expectations were weakened.
+- Publication: pending final-head relevant CI, merge, Cloudflare and custom-domain verification. Real signed-in Soul behavior and provider results are not claimed.
 
 
 ## Exact Prompt tooltip compact spacing (2026-10-28)
