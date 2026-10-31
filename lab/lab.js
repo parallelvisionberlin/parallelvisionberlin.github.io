@@ -38,6 +38,7 @@ import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageD
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1&qwen3-zimage=1&nano21=1';
 import {createImageSubmitHandoff} from './image-submit-handoff.js?v=20261011-fast-queue1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow2';
+import {createVideoUpscaler} from './video-upscale.js?v=20261031-models1';
 import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
 import {createReferencePackStudio} from './reference-pack-studio.js?v=20261018-gallery-create2';
 import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop} from './video-start-frame-maker.js?v=20261016-wan-startframe-drop1';
@@ -356,7 +357,7 @@ function prewarmSeedreamDeck(){
   for(const item of references)prewarmSeedreamReference(item);
 }
 let upscaleQuote=null,upscaleQuoteNeedsCheck=false,upscaleQuoteTimer=null,upscalePriceMessage='',upscaleManualReviewRequired=false,upscaleManualReviewKey='';
-let upscaleEngine='seedvr2';
+let upscaleEngine='seedvr2',videoUpscaler=null;
 // UI-only: collapsed Precision retains its selected engine and version.
 let upscalePrecisionExpanded=false;
 const UPSCALE_MODELS=Object.freeze({
@@ -1057,7 +1058,7 @@ function syncUpscaleSourceChip(){
   }
   $('app').classList.toggle('pv-upscale-source-ready',ready);
 }
-function update(){syncReferenceRemovalState();syncVideoFrameCards();syncUpscaleSourceChip();$('app').classList.toggle('extension-loaded',tool==='video'&&mode==='extend'&&mediaRefs.labels('video').length>0);if(tool==='video'&&mode==='extend')$('video-ref-count').textContent=mediaRefs.labels('video').length+' / 1';$('save').textContent=tool==='video'?'Save draft':tool==='upscale'?'Save upscale draft':'Save draft';$('clear').textContent=tool==='image'?'Reset editor':'Clear';if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':imageModelLabel(p),resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${videoLabel(p)} / ${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='openrouter'?config.openrouterEnabled:provider==='higgsfield'?config.higgsfieldEnabled:provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&references.length>0))||busy||imageSubmissionPending||customerPriceIntentPending||(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))||submissionBlocked()||soulBlocked||(tool==='image'&&moodUI.invalid(imageEngine,$('prompt').value,imageInputReferences().length,imageEngine==='zspicy'?'base':imageReferenceMode))||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?'Generate':tool==='upscale'?'Upscale':'Generate'):(provider==='openrouter'?'Connect OpenRouter':provider==='higgsfield'?'Higgsfield API not connected':provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=tool==='image'&&imageEngine==='qwen3'?'Qwen Image 3.0 · text or up to 3 image references · 2K by default. SpicyAPI returns a bound quote including references.':tool==='image'&&imageEngine==='zspicy'?'Z-Image Spicy · text-to-image only · up to 1536 pixels per side. A bound SpicyAPI quote appears before generation.':tool==='image'&&imageEngine==='seedreamlite'?'Seedream 5 Lite · 2K · up to 10 photo references · live SpicyAPI quote.':tool==='image'&&imageEngine==='flash'?'Seedream Flash · $0.018 estimated per image · OpenRouter. '+(config.openrouterEnabled?'':'Add OPENROUTER_API_KEY in the Worker secrets to connect. '):tool==='image'&&imageEngine==='kling'?'Kling V3 · $0.028 estimated per image · FAL. Text or one base image; 1K / 2K.':isSoul2()?'PV Soul uses one base image and an optional trained Soul ID, NOT multiple reference photos. '+(hf.current()?'Selected identity: '+hf.current().name+'. ':'NO SOUL ID: results will not preserve Nina. ')+(customerMode?'Soul 2 uses PV Lab credits at its confirmed live quote.':'Review the live Higgsfield price and confirm before any generation; provider billing is authoritative.'):tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Some providers may charge content refusals; check the model billing terms. Final settlement is authoritative. Inputs over 10 MiB need a working copy; the Lab prepares it automatically and keeps the original. Saving a draft does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();applyCustomerVideoAccess();applyVideoCreditPrice();applyVideoInputAction();applyCustomerImagePriceToGenerate();syncImageComposer();videoModelPicker.sync();frameMaker?.sync();}
+function update(){syncReferenceRemovalState();syncVideoFrameCards();syncUpscaleSourceChip();$('app').classList.toggle('extension-loaded',tool==='video'&&mode==='extend'&&mediaRefs.labels('video').length>0);if(tool==='video'&&mode==='extend')$('video-ref-count').textContent=mediaRefs.labels('video').length+' / 1';$('save').textContent=tool==='video'?'Save draft':tool==='upscale'?'Save upscale draft':'Save draft';$('clear').textContent=tool==='image'?'Reset editor':'Clear';if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':imageModelLabel(p),resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${videoLabel(p)} / ${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='openrouter'?config.openrouterEnabled:provider==='higgsfield'?config.higgsfieldEnabled:provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&references.length>0))||busy||imageSubmissionPending||customerPriceIntentPending||(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))||submissionBlocked()||soulBlocked||(tool==='image'&&moodUI.invalid(imageEngine,$('prompt').value,imageInputReferences().length,imageEngine==='zspicy'?'base':imageReferenceMode))||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?'Generate':tool==='upscale'?'Upscale':'Generate'):(provider==='openrouter'?'Connect OpenRouter':provider==='higgsfield'?'Higgsfield API not connected':provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=tool==='image'&&imageEngine==='qwen3'?'Qwen Image 3.0 · text or up to 3 image references · 2K by default. SpicyAPI returns a bound quote including references.':tool==='image'&&imageEngine==='zspicy'?'Z-Image Spicy · text-to-image only · up to 1536 pixels per side. A bound SpicyAPI quote appears before generation.':tool==='image'&&imageEngine==='seedreamlite'?'Seedream 5 Lite · 2K · up to 10 photo references · live SpicyAPI quote.':tool==='image'&&imageEngine==='flash'?'Seedream Flash · $0.018 estimated per image · OpenRouter. '+(config.openrouterEnabled?'':'Add OPENROUTER_API_KEY in the Worker secrets to connect. '):tool==='image'&&imageEngine==='kling'?'Kling V3 · $0.028 estimated per image · FAL. Text or one base image; 1K / 2K.':isSoul2()?'PV Soul uses one base image and an optional trained Soul ID, NOT multiple reference photos. '+(hf.current()?'Selected identity: '+hf.current().name+'. ':'NO SOUL ID: results will not preserve Nina. ')+(customerMode?'Soul 2 uses PV Lab credits at its confirmed live quote.':'Review the live Higgsfield price and confirm before any generation; provider billing is authoritative.'):tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Some providers may charge content refusals; check the model billing terms. Final settlement is authoritative. Inputs over 10 MiB need a working copy; the Lab prepares it automatically and keeps the original. Saving a draft does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();applyCustomerVideoAccess();applyVideoCreditPrice();applyVideoInputAction();applyCustomerImagePriceToGenerate();syncImageComposer();videoModelPicker.sync();frameMaker?.sync();videoUpscaler?.sync();}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v==='source'?'Source':v.toUpperCase(),v)));$(id).value=value;}
 function syncDefaultRatio(force=false){
   const select=$('ratio'),values=[...select.options].map(o=>o.value);
@@ -3006,6 +3007,11 @@ const upscaleResultUI=createUpscaleResultUI({
   },
   loadSource:id=>assetBlob(id)
 });
+videoUpscaler=createVideoUpscaler({api,
+  access:()=>({signedIn:owner,falEnabled:!!config.falEnabled,generationReady:!customerMode||customerGenerationReady}),
+  onJob:job=>{setActive(job);surfaceHistoryJob(job);refreshHistorySoon();},
+  onModeChange:()=>{if(owner)void loadHistory().catch(e=>notify(e.message,true));}
+});
 function clearResult(){$('video-job-stage').hidden=true;upscaleResultUI.clear();previewRevision++;if(resultUrl){$('preview').removeAttribute('src');$('preview').hidden=true;}release(resultUrl);resultUrl=null;resultId=null;resultSettings=null;$('video').pause();$('video').removeAttribute('src');$('video').load();$('video').hidden=true;$('download').hidden=true;}
 function resetPreview(){
   clearResult();
@@ -3593,7 +3599,7 @@ function setActiveJobs(list){
   }
   schedulePoll();update();
 }
-function setActive(job){if(!job)return;setActiveJobs([...activeJobs.filter(j=>j.id!==job.id),job]);frameMaker?.onJob(job);}
+function setActive(job){if(!job)return;setActiveJobs([...activeJobs.filter(j=>j.id!==job.id),job]);frameMaker?.onJob(job);videoUpscaler?.onJob(job);}
 async function poll(){
   if(!owner||!activeJobs.length||polling)return;
   const startedEpoch=epoch,snapshot=activeJobs.filter(j=>j.status!=='uncertain');
@@ -3638,6 +3644,10 @@ document.addEventListener('keydown',event=>{
 function button(text,fn,run=action){const b=document.createElement('button');b.className='quiet';b.textContent=text;b.onclick=()=>run(fn);return b;}
 async function assetFile(id,name='source'){const blob=await api('/api/assets/'+id,{blob:true}),ext=({'image/jpeg':'jpg','video/quicktime':'mov','audio/mpeg':'mp3','audio/x-wav':'wav'})[blob.type]||blob.type.split('/')[1];return new File([blob],name+'.'+ext,{type:blob.type});}
 async function restore(job){
+  if(job?.settings?.engine==='video-upscale'){
+    if(tool!=='upscale')setTool('upscale');
+    await videoUpscaler.restore(job);return;
+  }
   const p=job.settings||{};
   const destination=p.mode==='upscale'?'upscale':p.type||'video';
   if(tool!==destination)setTool(destination);
@@ -4682,7 +4692,7 @@ function setHistorySelectMode(on){
   historySelectMode=!!on;if(!historySelectMode)historySelected.clear();updateHistorySelectionUi();
 }
 function cleanupHistoryCard(card){if(!card)return;for(const img of card.querySelectorAll('img')){observer.unobserve(img);const u=img.dataset.objectUrl;if(u){release(u);cardUrls.delete(u);}}}
-function historyJobVisible(job){return !!assetLibrary?.active()||(tool==='upscale'?job.settings?.mode==='upscale':job.settings?.type===tool);}
+function historyJobVisible(job){return !!assetLibrary?.active()||(tool==='upscale'?job.settings?.mode==='upscale'&&job.settings?.type===(videoUpscaler?.mode()==='video'?'video':'image'):job.settings?.type===tool);}
 function renderCards(jobs,{upsert=false}={}){
   const items=upsert?[...jobs].reverse():jobs;
   for(const j of items){
@@ -4696,7 +4706,7 @@ function renderCards(jobs,{upsert=false}={}){
     const openCard=()=>{
       if(!owner||historySelectMode)return;
       if(j.settings.type==='image')void viewMedia(()=>openImageRecord(j));
-      else if(assetLibrary?.active())void viewMedia(()=>openVideo(j));else if(tool==='video')showVideoHistoryRecord(j,{play:true,reveal:true});
+      else if(assetLibrary?.active())void viewMedia(()=>openVideo(j));else if(tool==='upscale'&&j.settings.engine==='video-upscale')void viewMedia(()=>videoUpscaler.openJob(j));else if(tool==='video')showVideoHistoryRecord(j,{play:true,reveal:true});
     };
     card.addEventListener('click',event=>{
       if(historySelectMode||event.target.closest('button,input,select,textarea,a,label'))return;
@@ -4731,6 +4741,11 @@ function renderCards(jobs,{upsert=false}={}){
       });
       figure.addEventListener('dragend',()=>imageComposer.classList.remove('is-dragging'));
       img.onclick=e=>{e.stopPropagation();openCard();};img.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();img.click();}};
+     }else if(ready&&j.settings.engine==='video-upscale'){
+      const figure=document.createElement('figure');figure.className='history-video-thumb pv-video-upscale-history';
+      const still=document.createElement('div');still.className='pv-video-upscale-history-symbol';still.textContent='▶';
+      const label=document.createElement('strong');label.textContent='ENHANCED VIDEO';
+      figure.append(still,label);card.append(figure);
     }else if(ready&&j.sourceId){
       const {figure,img}=historyImage(j.sourceId,'Original start frame thumbnail, not the video');previews.push(img);
       figure.classList.add('history-video-thumb');
@@ -4769,7 +4784,7 @@ function renderCards(jobs,{upsert=false}={}){
     }
     const body=document.createElement('div');body.className='cardbody';
     const meta=document.createElement('div');meta.className='cardmeta';
-    const imageLabel=image?(j.settings.mode==='upscale'?'UPSCALE':j.settings.mode==='soul-id-training'?'SOUL ID TRAINING':j.settings.mode==='reinterpret'?'IMAGE · REINTERPRET':'IMAGE'):videoLabel(j.settings)+' / '+j.settings.duration+'s';
+    const imageLabel=image?(j.settings.mode==='upscale'?'UPSCALE':j.settings.mode==='soul-id-training'?'SOUL ID TRAINING':j.settings.mode==='reinterpret'?'IMAGE · REINTERPRET':'IMAGE'):j.settings.engine==='video-upscale'?'VIDEO UPSCALE / '+({bytedance:'ByteDance Standard',proteus:'Topaz Proteus',starlight:'Topaz Starlight'}[j.settings.videoUpscaleEngine]||'Video')+' / '+j.settings.duration+'s':videoLabel(j.settings)+' / '+j.settings.duration+'s';
     const modelLabel=image?galleryImageModelName(j).toUpperCase():null;
     const resolutionLabel=j.settings.mode==='upscale'?upscaleSize(j.settings):j.settings.resolution;
     meta.textContent=[j.status.toUpperCase(),imageLabel,modelLabel,resolutionLabel,new Date(j.createdAt).toLocaleDateString()].filter(Boolean).join(' / ');
@@ -4778,7 +4793,7 @@ function renderCards(jobs,{upsert=false}={}){
     const actions=document.createElement('div');actions.className='cardactions';
     if(ready){
       const download=button(image?'Download image':'Download video',()=>downloadJob(j));download.classList.add('result-download');actions.append(download);
-      actions.append(button(image?'View image':'View video',()=>image?openImageRecord(j):openVideo(j),viewMedia));
+      actions.append(button(image?'View image':'View video',()=>image?openImageRecord(j):tool==='upscale'&&j.settings.engine==='video-upscale'?videoUpscaler.openJob(j):openVideo(j),viewMedia));
     }else{
       const download=button(image?'Download image':'Download video',async()=>{});download.disabled=true;download.title='Available only when a completed output file exists.';actions.append(download);
     }
@@ -4794,7 +4809,7 @@ function renderCards(jobs,{upsert=false}={}){
       if(data.job&&hasResult(data.job))await openVideo(data.job,{scroll:false});
       notify(data.job&&hasResult(data.job)?'Recovered the existing fal.ai output into private History.':'No recoverable fal.ai output was found.',!(data.job&&hasResult(data.job)));
     }));
-    const canReconcile=j.status==='uncertain'&&j.settings.provider==='fal'&&!j.providerTaskId&&(j.settings.engine==='soulpro'&&['inline-data-uri','fal-cdn'].includes(j.settings.inputTransport)||j.settings.mode==='upscale');
+    const canReconcile=j.status==='uncertain'&&j.settings.provider==='fal'&&!j.providerTaskId&&(j.settings.engine==='soulpro'&&['inline-data-uri','fal-cdn'].includes(j.settings.inputTransport)||j.settings.type==='image'&&j.settings.mode==='upscale');
     if(canReconcile)actions.append(button('Check FAL status',async()=>{
       notify('Checking FAL for the original request. No generation will be submitted.');
       await api('/api/jobs/'+j.id+'/reconcile',{method:'POST',body:{}});
@@ -4815,7 +4830,7 @@ function renderCards(jobs,{upsert=false}={}){
     cost.textContent=customerMode?(j.estimatedUsd==null?'Draft / no credits used':j.status==='failed'?'Credits refunded after confirmed failure: '+wallet.jobCharge(j):j.status==='uncertain'?'Credits reserved, provider status unknown: '+wallet.jobCharge(j):'PV Lab charge: '+wallet.jobCharge(j)):j.settledUsd!=null?'Provider settled: '+money(j.settledUsd):falEstimate&&j.status==='failed'?'Lab estimate released: '+money(j.estimatedUsd)+' · provider billing not reported':falEstimate&&j.status==='uncertain'?'Lab estimate reserved: '+money(j.estimatedUsd)+' · provider status unknown':falEstimate?'Lab estimate reserved: '+money(j.estimatedUsd):j.estimatedUsd!=null?'Budget reserved: '+money(j.estimatedUsd):'Draft / no generation charge';
     body.append(meta,p,actions,cost);if(canReconcile){const help=document.createElement('p');help.className='fine';help.textContent='Find the original request; never submits a generation.';body.append(help);}if(j.settings.transferNotes?.length){const note=document.createElement('p');note.className='fine history-error';note.textContent=j.settings.transferNotes.join(' ');body.append(note);}
     if(j.error&&!contentRestricted){const error=document.createElement('p');error.className='fine history-error';error.textContent=j.error;body.append(error);}
-    if(!ready&&j.sourceId){
+    if(!ready&&j.sourceId&&j.settings.engine!=='video-upscale'){
       const refs=document.createElement('details');refs.className='history-source';const summary=document.createElement('summary');summary.textContent='Uploaded reference / not a result';
       const {figure,img}=historyImage(j.sourceId,'Original uploaded reference');previews.push(img);refs.append(summary,figure);body.append(refs);
     }
