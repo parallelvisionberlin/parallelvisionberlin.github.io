@@ -829,3 +829,141 @@ textarea::placeholder{white-space:nowrap}
       linear-gradient(0deg,#090a0b,rgba(9,10,11,.80) 17%,transparent 68%)
   }
 }
+
+
+/* Fashion Studio / Replace Outfit focus, approved 31 October 2026.
+   Two real uploads and the existing Generate dock; Style & Looks is retired
+   from the visible workflow. No changes to provider, credits or uploads. */
+#content{padding-inline:clamp(18px,3.5vw,70px);background:#090a0b}
+.page-intro{
+  display:grid;grid-template-columns:max-content minmax(180px,270px);
+  align-items:center;justify-content:start;column-gap:clamp(26px,2.8vw,52px);
+  max-width:none;min-height:0;
+  padding:clamp(25px,3.6vh,42px) 0 clamp(14px,2vh,23px);
+}
+.page-intro .eyebrow{margin-bottom:15px}
+.page-intro h1{font-size:clamp(76px,6.1vw,108px);line-height:.91}
+.intro-description{
+  display:flex;flex-direction:column;align-items:flex-start;
+  margin:20px 0 0;padding:0 0 0 26px;max-width:300px;
+  border-left:1px solid rgba(230,226,217,.29);letter-spacing:-.025em;
+}
+.intro-lead{display:block;color:#f1ede7;font:italic 400 clamp(17px,1.38vw,22px)/1.18 var(--display)}
+.intro-support{
+  display:block;margin-top:12px;color:#c5c4c1;
+  font:400 clamp(12px,.85vw,14px)/1.45 var(--font);letter-spacing:-.01em;
+}
+.fashion-workspace{
+  grid-template-rows:clamp(260px,39vh,360px) auto auto auto;
+  gap:clamp(17px,2.2vh,23px) 0;padding-bottom:58px;
+}
+.source-section{grid-area:1/1;width:min(720px,43vw);max-width:100%}
+.image-pair{gap:clamp(14px,1.25vw,23px)}
+.image-slot{
+  border-color:rgba(238,233,223,.31);border-radius:6px;
+  background:rgba(9,10,11,.68);
+}
+.image-slot:before{border-color:rgba(237,233,226,.22)}
+.slot-invite{justify-content:flex-end;gap:7px;padding:0 8px 34px}
+.slot-invite:after{
+  background:linear-gradient(0deg,rgba(4,5,6,.94) 0%,rgba(4,5,6,.53) 34%,rgba(4,5,6,.06) 76%);
+}
+.image-slot .slot-example{
+  filter:grayscale(.22) brightness(.8) contrast(1.04);
+  opacity:.87;transition:opacity .35s ease,filter .35s ease;
+}
+.image-slot:hover .slot-example{filter:grayscale(.1) brightness(.92);opacity:.95}
+.image-slot .person-example{object-position:55% 32%}
+.slot-plus{width:48px;height:48px;border-radius:50%;margin-bottom:7px}
+.slot-invite strong{font-size:clamp(20px,1.55vw,25px)}
+.slot-invite small,#garment-hint small{font-size:clamp(11px,.8vw,13px)}
+.looks-section{display:none!important}
+.engine-section{
+  grid-area:2/1;margin:0;padding:17px 77px 18px 23px;
+  border-radius:22px;
+  background:linear-gradient(160deg,rgba(9,10,11,.93),rgba(12,13,14,.96));
+}
+.fashion-gallery{grid-area:3/1}
+.fashion-workspace:has(#result-image:not([hidden])) .result-panel{grid-area:3/1}
+.fashion-workspace:has(#result-image:not([hidden])) .fashion-gallery{grid-area:4/1}
+.fashion-backdrop{height:clamp(660px,93svh,940px)}
+.fashion-backdrop img{
+  top:0;right:0;width:62%;height:100%;max-height:none;
+  object-fit:cover;object-position:48% 28%;
+  filter:brightness(.98) contrast(1.045) saturate(.91);
+}
+.fashion-backdrop:after{
+  background:
+    linear-gradient(90deg,#090a0b 0%,#090a0b 26%,rgba(9,10,11,.86) 39%,rgba(9,10,11,.12) 62%,rgba(9,10,11,.02) 100%),
+    linear-gradient(0deg,#090a0b 0%,rgba(9,10,11,.7) 9%,transparent 34%);
+}
+@media(min-width:801px) and (max-height:800px){
+  .page-intro{padding-top:20px;padding-bottom:10px}
+  .page-intro h1{font-size:clamp(64px,5.5vw,90px)}
+  .fashion-workspace{grid-template-rows:clamp(245px,37vh,295px);gap:14px}
+  .slot-invite{padding-bottom:22px}
+  .engine-section{padding-top:12px;padding-bottom:12px}
+}
+@media(min-width:801px) and (min-height:801px) and (max-height:950px){
+  .page-intro{padding-top:clamp(24px,3.3vh,35px);padding-bottom:16px}
+  .page-intro h1{font-size:clamp(72px,5.8vw,100px)}
+  .fashion-workspace{grid-template-rows:clamp(265px,39vh,350px);gap:19px}
+  .engine-section{padding-top:15px;padding-bottom:16px}
+}
+@media(max-width:800px){
+  #content{padding-inline:22px}
+  .page-intro{
+    display:flex;flex-direction:column;align-items:flex-start;
+    max-width:100%;padding:32px 0 20px;
+  }
+  .page-intro h1{font-size:clamp(58px,9vw,78px)}
+  .intro-description{margin:15px 0 0;padding:0;max-width:340px;border:0}
+  .intro-lead{font-size:17px;line-height:1.2}
+  .intro-lead br,.intro-support br{display:none}
+  .intro-support{font-size:12px;margin-top:5px}
+  .fashion-workspace{
+    display:grid;grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto auto auto;gap:20px;
+  }
+  .source-section{grid-area:1/1;width:min(100%,530px)}
+  .image-pair{gap:12px}
+  .image-slot{min-height:170px;aspect-ratio:1.14/1}
+  .slot-invite{padding:0 4px 19px}
+  .slot-plus{width:42px;height:42px;margin-bottom:2px}
+  .engine-section{grid-area:2/1;margin:0;padding:18px 17px;border-radius:16px}
+  .fashion-gallery{grid-area:3/1}
+  .fashion-workspace:has(#result-image:not([hidden])) .result-panel{grid-area:3/1}
+  .fashion-workspace:has(#result-image:not([hidden])) .fashion-gallery{grid-area:4/1}
+  .fashion-backdrop{height:clamp(560px,80svh,740px)}
+  .fashion-backdrop img{
+    top:0;right:-12%;width:113%;height:100%;
+    object-fit:cover;object-position:39% top;
+    filter:brightness(.66) contrast(1.04) saturate(.85);
+  }
+  .fashion-backdrop:after{
+    background:
+      linear-gradient(90deg,rgba(9,10,11,.87),rgba(9,10,11,.4) 65%,rgba(9,10,11,.23)),
+      linear-gradient(0deg,#090a0b 0%,rgba(9,10,11,.82) 18%,transparent 74%);
+  }
+}
+@media(max-width:560px){
+  #content{padding-inline:16px}
+  .page-intro{padding-top:28px;padding-bottom:17px}
+  .page-intro h1{font-size:clamp(52px,13vw,68px)}
+  .page-intro .eyebrow{margin-bottom:12px}
+  .intro-description{margin-top:12px}
+  .intro-lead{font-size:15px}
+  .intro-support{font-size:11px}
+  .image-pair{gap:9px}
+  .image-slot{aspect-ratio:1/1.1;min-height:0}
+  .slot-invite{gap:5px;padding:0 3px 15px}
+  .slot-plus{width:37px;height:37px}
+  .slot-invite strong{font-size:16px}
+  .slot-invite small,#garment-hint small{font-size:9px}
+  .engine-section{padding:16px 15px 17px}
+  .fashion-backdrop img{right:-19%;width:122%;object-position:35% top}
+}
+@media(max-width:360px){
+  .page-intro h1{font-size:49px}
+  .slot-invite strong{font-size:14px}
+}
