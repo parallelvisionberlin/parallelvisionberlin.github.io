@@ -162,7 +162,12 @@ try{
   await page.locator('#beauty-photo').setInputFiles({...input,name:'second-portrait.webp'});
   await page.locator('#beauty-photo-preview').waitFor({state:'visible'});
   await page.locator('#beauty-direction').fill('Another look');
-  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
+  const secondQuoted=await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'),null,{timeout:8000}).then(()=>true).catch(()=>false);
+  if(!secondQuoted){
+   const debug=await page.evaluate(()=>({button:document.querySelector('#beauty-generate').textContent,disabled:document.querySelector('#beauty-generate').disabled,status:document.querySelector('#beauty-status').textContent,photoSrc:document.querySelector('#beauty-photo-preview').getAttribute('src')?.slice(0,45),inputValue:document.querySelector('#beauty-photo').value,ratio:document.querySelector('#beauty-ratio').value,direction:document.querySelector('#beauty-direction').value}));
+   console.error('ALTER second-quote debug',JSON.stringify({debug,calls:s.calls,quotes:s.quotes.map(q=>({id:q.id,ratio:q.settings.aspectRatio,sourceIds:q.settings.referenceSourceIds})),uploads:s.uploads,submits:s.submits,errors:s.errors}));
+  }
+  assert.equal(secondQuoted,true,'Second source quote should settle after uploading a new photograph');
   await page.locator('#beauty-generate').click();await page.waitForFunction(()=>document.querySelectorAll('#beauty-history button').length===2);
   await page.locator('#beauty-generate').click({trial:true});
   s.delayOldResult();await page.locator('#beauty-history button').nth(1).click();await page.locator('#beauty-history button').nth(0).click();
