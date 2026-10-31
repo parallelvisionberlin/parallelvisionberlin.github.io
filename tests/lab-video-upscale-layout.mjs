@@ -51,6 +51,7 @@ try{
   const original=await page.evaluate(()=>{
    const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
    return {canvas:rect('#upscale-canvas'),action:rect('#generate'),picker:rect('#upscale-model-menu'),
+    stage:rect('#app>.workspace>.stage'),head:rect('#app>.workspace>.stage>.stagehead'),foot:rect('#app>.workspace>.stage>.stagefoot'),
     workspaceCount:document.querySelectorAll('#app>.workspace').length,
     title:document.querySelector('#empty .pv-upscale-empty-center h2').textContent};
   });
@@ -139,7 +140,7 @@ try{
       controls:rect('#app>.workspace>.controls'),body:rect('#app>.workspace>.controls>.controls-body'),
       canvas:rect('#upscale-canvas'),file:rect('#pv-video-upscale-file')};
   });
-  console.log('ACTION_PARITY',label,JSON.stringify({image:original.action,video:video.action,stageDiag}));
+  console.log('ACTION_PARITY',label,JSON.stringify({image:original,video:video.action,stageDiag}));
   assert.ok(Math.abs(original.action.top-video.action.top)<=2,label+': same Upscale button position');
   assert.ok(Math.abs(original.picker.left-video.picker.left)<=2,label+': model cards stay in place');
   assert.match(video.photo,/upscaler-chrome-wool-option-1\.jpg/,label+': exact Image photograph remains');
