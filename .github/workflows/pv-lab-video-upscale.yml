@@ -1,0 +1,34 @@
+name: PV LAB Video Upscaler validation
+on:
+  pull_request:
+    paths:
+      - 'lab-worker/video-upscale.mjs'
+      - 'lab-worker/worker.mjs'
+      - 'lab/video-upscale.js'
+      - 'lab/video-upscale.css'
+      - 'lab/lab.js'
+      - 'lab/studio.html'
+      - 'tests/lab-video-upscale.test.mjs'
+      - '.github/workflows/pv-lab-video-upscale.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  video-upscale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate all new JavaScript and the existing Worker
+        run: |
+          node --check lab/video-upscale.js
+          node --check lab/lab.js
+          node --check lab-worker/video-upscale.mjs
+          node --check lab-worker/worker.mjs
+      - name: Validate model allowlist, private media and credit quoting
+        run: node --test tests/lab-video-upscale.test.mjs
+      - name: Guard image/video upscaling and billing against regressions
+        run: node --test tests/lab-worker.test.mjs tests/lab-upscale-ui.mjs
