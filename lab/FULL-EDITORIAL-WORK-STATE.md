@@ -1,3 +1,14 @@
+## 2026-10-31 / approved hero button typography only
+- Owner approved the mixed-type CTA and explicitly requested only the button change: clean Create your, expressive italic editorial.
+- Baseline main `158731c57369a2ebe4c4f4bcbdb6e2ae56db4a79`; isolated branch `fix/editorial-button-typography-20261031`. Recent open PRs do not overlap Full Editorial.
+- Added a scoped label span and em inside the existing editorial-start button. Existing local DM Sans at weight 500 plus Georgia italic at weight 400; label sizes 17-21 px desktop / 18 px phone, italic 1.428571em. No new font downloads.
+- Existing accessible name and wording retained. Original pill geometry, fill, arrow, hover, click handler, hero photograph, other typography, source strip, cards and generation code retained.
+- Product files: `full-editorial.html` (button markup / stylesheet cache key) and `full-editorial-atelier.css` (three scoped typography rules). Cache key `20261031-button-editorial1`. Also this scoped checkpoint.
+- Verified locally: 12/12 existing approved Image UI, Full Editorial and model-handoff source tests; whitespace check passed. Actual browser preview and before/after comparisons: 1440 px button 345.59x65 px in both versions; 390 px button 310x58 px in both; 320 px button 278x58 px with clear space before arrow and no horizontal overflow. Desktop visual inspected against approved mixed-type direction.
+- No JavaScript, workflow, test, pricing, account or provider changes. No paid job or purchase performed.
+- Release status: local button-only implementation complete; PR, CI and live evidence pending.
+- Next: publish exact reviewed files, inspect relevant checks, merge, then verify Cloudflare and exact production CSS plus rendered button.
+
 ## 2026-10-31 / remove detached model-source sentence
 - Owner approved removing the sentence beginning Start from a PV LAB casting reference. Keep Choose a model directly above the source tabs.
 - Baseline main: `f98916c043a4c9bb2e673c4874aaf23fb24ac4c4`; isolated branch `fix/editorial-remove-source-copy-20261031`.
