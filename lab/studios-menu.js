@@ -35,9 +35,12 @@
   new MutationObserver(active).observe(original,{attributes:true,attributeFilter:['aria-pressed']});
   if(existingRetouch?.tagName==='BUTTON')new MutationObserver(active).observe(existingRetouch,{attributes:true,attributeFilter:['aria-pressed']});
   function position(){
-   const rect=trigger.getBoundingClientRect(),wide=innerWidth>900,width=Math.min(wide?1210:620,innerWidth-28),left=Math.max(14,Math.min(rect.left-(wide?116:14),innerWidth-width-14)),top=Math.max(8,rect.bottom+9);
-   if(rect.bottom<0){close();return;}
-   Object.assign(panel.style,{width:width+'px',left:left+'px',top:top+'px',maxHeight:Math.max(120,innerHeight-top-12)+'px'});
+   const rect=trigger.getBoundingClientRect(),wide=innerWidth>900,width=Math.min(wide?1210:620,innerWidth-28),left=Math.max(14,Math.min(rect.left-(wide?116:14),innerWidth-width-14));
+   const viewport=window.visualViewport,visibleTop=viewport?.offsetTop||0,visibleHeight=viewport?.height||innerHeight;
+   const top=Math.max(visibleTop+8,rect.bottom+9),available=Math.max(0,visibleTop+visibleHeight-top-12);
+   if(rect.bottom<visibleTop){close();return;}
+   panel.style.setProperty('--pv-studios-available-height',available+'px');
+   Object.assign(panel.style,{width:width+'px',left:left+'px',top:top+'px',maxHeight:available+'px'});
   }
   // Hover is for fine pointers only. Keep keyboard/touch activation separate and accessible.
   let hoverCloseTimer=0,openedByHover=false;
@@ -84,5 +87,6 @@
   panel.addEventListener('click',event=>{if(event.target.closest('a,button'))close();});
   window.addEventListener('resize',()=>{if(!panel.hidden)position();},{passive:true});
   document.addEventListener('scroll',()=>{if(!panel.hidden)position();},{capture:true,passive:true});
+  for(const event of ['resize','scroll'])window.visualViewport?.addEventListener(event,()=>{if(!panel.hidden)position();},{passive:true});
  }
 })();

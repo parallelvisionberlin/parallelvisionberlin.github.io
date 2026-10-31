@@ -1,10 +1,10 @@
 name: PV LAB Beauty Studio
 on:
   pull_request:
-    paths: ['lab/beauty*', 'lab/studios-menu*', 'lab/visuals/beauty/**', 'lab/index.html', 'lab/studio.html', 'tests/lab-beauty*', '.github/workflows/pv-lab-beauty.yml']
+    paths: ['lab/beauty*', 'lab/studios-menu*', 'lab/visuals/beauty/**', 'lab/index.html', 'lab/studio.html', 'tests/lab-beauty*', 'tests/lab-studios-menu*', '.github/workflows/pv-lab-beauty.yml']
   push:
     branches: [main]
-    paths: ['lab/beauty*', 'lab/studios-menu*', 'lab/visuals/beauty/**', 'lab/index.html', 'lab/studio.html', 'tests/lab-beauty*', '.github/workflows/pv-lab-beauty.yml']
+    paths: ['lab/beauty*', 'lab/studios-menu*', 'lab/visuals/beauty/**', 'lab/index.html', 'lab/studio.html', 'tests/lab-beauty*', 'tests/lab-studios-menu*', '.github/workflows/pv-lab-beauty.yml']
 permissions:
   contents: read
 jobs:
@@ -24,6 +24,10 @@ jobs:
         run: |
           npm install --prefix /tmp/pv-beauty --no-audit --no-fund playwright@1.57.0
           node /tmp/pv-beauty/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Studios menu phone fit and visual viewport checks
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-beauty/node_modules/playwright/index.mjs
+        run: node tests/lab-studios-menu-ui.mjs
       - name: Beauty role, billing, navigation and responsive checks
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-beauty/node_modules/playwright/index.mjs
