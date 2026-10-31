@@ -155,7 +155,7 @@ async function toggleSample(button){
   const type=['image/jpeg','image/png','image/webp'].includes(blob.type)?blob.type:(button.dataset.sampleSrc.endsWith('.jpg')?'image/jpeg':'image/webp');
   const file=new File([blob],kind+'-reference-'+Date.now()+'.'+(type==='image/jpeg'?'jpg':type==='image/png'?'png':'webp'),{type});
   const before=files[kind].length;addFiles(kind,[file]);
-  if(files[kind].includes(file)&&files[kind].length>before){sampleFiles.set(button,file);status('Added to '+(kind==='model'?'model':'wardrobe')+' references.');}
+  if(files[kind].includes(file)&&files[kind].length>before){sampleFiles.set(button,file);renderCastingControls();updateSeriesSummary();status('Added to '+(kind==='model'?'model':'wardrobe')+' references.');}
  }catch(err){status(err.message,true)}
  finally{button.disabled=false;refreshSampleStates()}
 }
