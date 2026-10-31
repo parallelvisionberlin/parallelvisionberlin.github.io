@@ -11,7 +11,7 @@
 <title>Full Editorial Studio | PV LAB</title>
 <link rel="icon" type="image/png" href="./branding/pv-mark.png">
 <link rel="stylesheet" href="./full-editorial.css?v=20261030-editorial-workspace2">
-<link rel="stylesheet" href="./full-editorial-atelier.css?v=20261101-cinematic-progress1">
+<link rel="stylesheet" href="./full-editorial-atelier.css?v=20261101-campaign-shots1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261031-tall-connected1">
 </head>
 <body>
@@ -76,6 +76,22 @@
        <div class="upload-large" id="model-drop" role="button" tabindex="0" aria-label="Choose model reference photographs"><span class="upload-plus" aria-hidden="true">+</span><strong>Add your own model photographs</strong><small>Click or drop · JPG, PNG, WebP · up to four photographs</small></div>
        <input type="file" id="model-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
        <div class="thumb-row" id="model-thumbs" aria-label="Your selected model references"></div>
+       <div class="editorial-casting-controls" id="editorial-casting-controls" hidden>
+         <label for="editorial-cast-mode">How are these references related?</label>
+         <select id="editorial-cast-mode">
+           <option value="one">One model, different photographs</option>
+           <option value="cast">Different models, one campaign</option>
+         </select>
+         <div id="editorial-cast-composition" hidden>
+           <label for="editorial-cast-composition-select">Campaign composition</label>
+           <select id="editorial-cast-composition-select">
+             <option value="mixed">Solo portraits + photographs together</option>
+             <option value="together">Two models in every photograph</option>
+             <option value="alternating">Solo portraits, alternating models</option>
+           </select>
+         </div>
+         <p>PV LAB keeps each identity separate and varies the shots across your series.</p>
+       </div>
        <details class="identity-advanced"><summary>Identity guidance <span>Advanced settings</span></summary><div class="control-row"><label for="identity-guide">Identity emphasis <output id="identity-value">80%</output></label><input id="identity-guide" type="range" min="25" max="100" value="80"><small>Prompt emphasis only. Exact likeness depends on the chosen model.</small></div></details>
      </div>
    </section>
@@ -138,7 +154,7 @@
            <div class="field-grid"><label>Model <select id="editorial-model"><option value="seedream">Seedream 5 Pro</option><option value="seedreamlite">Seedream 5 Lite</option><option value="flash">Seedream Flash</option></select></label><label>Resolution <select id="editorial-resolution"><option value="1k">1K</option><option value="2k">2K</option></select></label></div>
            <label class="field-name" for="editorial-prompt">Final creative direction <small>(optional)</small></label><textarea id="editorial-prompt" rows="3" maxlength="1500" placeholder="Photographic direction for the complete series..."></textarea>
          </details>
-         <div class="setting-note"><span class="mini-indicator" aria-hidden="true">◎</span> Each image is generated individually. Identity and garments are guided by references, not guaranteed.</div>
+         <div class="setting-note"><span class="mini-indicator" aria-hidden="true">◎</span> Each photograph receives its own shot direction within one consistent campaign. Identity and garment accuracy depend on the model.</div>
          <div class="editorial-generate-action">
            <button id="editorial-generate" type="button" class="primary full" aria-describedby="editorial-cost editorial-batch-note" disabled>Generate</button>
            <p id="editorial-cost" class="editorial-cost" role="status" aria-live="polite">Checking credits…</p>
@@ -167,6 +183,6 @@
 </main>
 <dialog id="saved-elements-dialog" aria-labelledby="saved-elements-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / ELEMENTS</span><h2 id="saved-elements-heading">Saved Elements</h2><p>Use existing private reference images from your Elements library.</p><div id="saved-elements-list" class="saved-elements-list"></div><button type="button" class="secondary" id="saved-elements-close">Close</button></div></dialog>
 <script src="./studios-menu.js?v=20261031-connected-strip1" defer></script>
-<script type="module" src="./full-editorial.js?v=20261101-cinematic-progress1"></script>
+<script type="module" src="./full-editorial.js?v=20261101-campaign-shots1"></script>
 </body>
 </html>
