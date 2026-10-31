@@ -395,13 +395,6 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     const title=document.createElement('h3');title.textContent=item.title;
     const summary=document.createElement('p');
     summary.textContent=item.refs.length+' saved photograph'+(item.refs.length===1?'':'s')+' · Reusable visual reference, not a trained model.';
-    const use=document.createElement('button');use.type='button';
-    use.className='scene-feature-attach';use.dataset.sceneUse='';
-    const attached=getReferences().some(r=>r.elementId===item.id)||
-      item.refs.every(ref=>getReferences().some(r=>r.id===ref.id));
-    use.textContent=attached?'Already in scene':'Use in scene';
-    use.disabled=attached||working;
-    use.onclick=()=>{void useItem(item);};
     const actions=document.createElement('div');actions.className='scene-feature-action-row';
     if(!item.profile){
       const retry=document.createElement('button');retry.type='button';
@@ -410,8 +403,18 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
       retry.disabled=working||pendingProfiles.has(item.id);
       retry.onclick=()=>{setStatus('Analyzing @'+item.title+'…');void analyzeSavedElement(item,true);};
       actions.append(retry);
+    }else{
+      // The attach action replaces Analyze in the same slot, only after
+      // the saved visual profile is actually ready.
+      const use=document.createElement('button');use.type='button';
+      use.className='scene-feature-attach';use.dataset.sceneUse='';
+      const attached=getReferences().some(r=>r.elementId===item.id)||
+        item.refs.every(ref=>getReferences().some(r=>r.id===ref.id));
+      use.textContent=attached?'Already in scene':'Use in scene';
+      use.disabled=attached||working;
+      use.onclick=()=>{void useItem(item);};
+      actions.append(use);
     }
-    actions.append(use);
     content.append(eyebrow,title,profileSignal(item),summary,actions);
     const details=document.createElement('div');details.className='scene-feature-expanded';
     const photos=document.createElement('div');photos.className='scene-feature-photos';
@@ -518,14 +521,18 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
       select.append(top,details);
       select.onclick=()=>{selectedId=item.id;selectedPhotoIndex=0;featuredExpanded=false;render();};
       const actions=document.createElement('div');actions.className='scene-card-actions';
-      const use=document.createElement('button');use.type='button';use.className='scene-use';
-      const already=getReferences().some(active=>active.elementId===item.id)||item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
-      use.textContent=already?'Added ✓':'Use in scene';use.disabled=already||working;
-      use.dataset.sceneUse='';use.onclick=()=>{void useItem(item);};
+      // Unanalyzed Elements can be opened for analysis, but cannot attach yet.
+      if(item.profile){
+        const use=document.createElement('button');use.type='button';use.className='scene-use';
+        const already=getReferences().some(active=>active.elementId===item.id)||item.refs.every(ref=>getReferences().some(active=>active.id===ref.id));
+        use.textContent=already?'Added ✓':'Use in scene';use.disabled=already||working;
+        use.dataset.sceneUse='';use.onclick=()=>{void useItem(item);};
+        actions.append(use);
+      }
       const remove=document.createElement('button');remove.type='button';remove.className='scene-delete';
       remove.textContent='···';remove.title='Delete '+item.title;remove.setAttribute('aria-label','Delete '+item.title);
       remove.dataset.sceneDelete='';remove.onclick=()=>{void deleteItem(item);};
-      actions.append(use,remove);card.append(select,actions);grid.append(card);
+      actions.append(remove);card.append(select,actions);grid.append(card);
     }
     const empty=$('scene-empty');
     empty.hidden=!!list.length;
@@ -584,6 +591,10 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
   }
   async function useItem(item){
     if(working)return;
+    if(!item.profile){
+      setStatus('Analyze @'+item.title+' before using it in a scene.',true);
+      return;
+    }
     const context=getContext();
     if(context.tool==='video'&&context.mode!=='reference'){setStatus('Open Saved References from Video → Reference set.',true);return;}
     if(context.tool==='image'&&!context.supportsReferences){setStatus('Choose an Image model that supports image references.',true);return;}
@@ -597,12 +608,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     setWorking(true);setStatus('Preparing @'+item.title+' as one Element…');
     try{
       await runTask(async()=>{
-        // Build the visual profile once, then reuse it on later insertions.
-        // An unavailable analysis never destroys or changes the saved pack.
-        if(context.tool==='image'&&!item.profile){
-          const profile=await analyzeSavedElement(item);
-          if(profile)item.profile=profile;
-        }
+        // The saved visual profile was checked before attachment.
         // Two relevant views at most: one Element, not an uncontrolled stack.
         const count=Math.min(capacity,item.category==='props'?1:2);
         const indices=selectElementViews(item,context.prompt||'',count);
