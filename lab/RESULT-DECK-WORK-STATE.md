@@ -121,7 +121,7 @@
 - Rendered local preview inspected at 1348px: four portrait cards share one row at their original proportions. No paid generation or account mutation.
 - Local implementation commit: `9fc1be8`. All four preview images loaded and the browser confirmed their stored proportions. Responsive tests also use actual matching viewport widths.
 - Owner explicitly approved push and publication in the follow-up message. Shell Git push has no usable authentication; publication uses the connected GitHub integration with the exact reviewed local bytes. Current main was integrated to preserve its separate studio.html update; no gallery source conflict. Real signed-in history remains unverified.
-- Next action: complete PR checks, merge, Cloudflare evidence and exact production-byte verification for gallery-layout.js and image-studio.css.
+- Published through PR #737, main `a09d043b49b69b7440948a83ef93df8f56b70c3e`. Both gallery-layout.js and image-studio.css passed exact production-byte verification. Final release details are also retained on `codex/image-history-four-columns`.
 
 
 ## Compact inspector and photographic backdrop, 2026-10-31
@@ -133,4 +133,18 @@
 - `tests/lab-image-viewer-browser.mjs`: adds backdrop source/close/sign-out assertions and real source count; checks the newly approved desktop Close inset precisely.
 - Validation: all six desktop/mobile viewer cases passed for landscape/portrait/square, including 1920/1440/768/390/320px layouts, actual-size zoom, rapid navigation and late responses, original downloads, reference downloads, video handoff, close and sign-out. Approved Image UI contract: 5/5. Syntax and diff checks clean.
 - Rendered real CSS/HTML preview inspected at 1365px with an existing portrait asset. Full original stays sharp and the same photograph supplies the side fill; upper panel fits without a scrollbar. No paid generation or account mutation.
-- Publication pending: upload exact reviewed files, relevant CI, merge, Cloudflare Pages confirmation and exact production-byte verification. Real signed-in account observation is separate.
+- Published through PR #738, main `e4c375df3b75cebf222f561a3dd42ebe6fc3020b`. Cloudflare Pages check 124597380721 succeeded; image-result-deck.css and image-result-presentation.js returned LIVE_VERIFIED for 20261031-photo-backdrop1. Real signed-in account observation remains separate.
+
+
+## Gallery View menu and visible heading cleanup, 2026-10-31
+- Owner requested removing the visible History title and adding a photo-size control, referencing PV LAB `image(20261031-164528).png` and Higgsfield `image(20261031-164705).png`.
+- Baseline: main `e4c375df3b75cebf222f561a3dd42ebe6fc3020b`. Branch: `codex/image-gallery-view-size`.
+- Integrated concurrent Generate-flow PR #739, main `af37ed2e27ac6e7e7151f70fa94dcba3a3a1fbc8`, before upload. Its source, cache version, cooldown and repeated-variation behavior are retained; the gallery and Image contract checks passed again after integration.
+- `lab/image-studio.css`: visually hide only Image Studio's archive title while retaining an accessible heading; right-align the existing actions. Add a compact View panel with Small, Medium and Large buttons, fitting 320px phones and retaining the eye position.
+- `lab/studio.html`: add the View control in the existing toolbar; refresh only image-studio.css and gallery-layout.js asset revisions.
+- `lab/gallery-layout.js`: desktop counts Small 6 / Medium 4 / Large 3; tablet 4 / 3 / 2; phone 3 / 2 / 1. Medium remains default. Keep original image proportions, narrow seams, chronological order and partial-row behavior.
+- Store only the nonprivate size preference in browser localStorage; blocked storage does not prevent switching. Escape, choice and outside-click close the menu; Inspiration, native, Video, Assets and Upscaler do not acquire this control.
+- No provider, generation resolution, original files, credits, prompt composer or account behavior changes. No date grouping or additional layout modes.
+- Validation: 50 gallery browser cases passed, including real Studio styles at 320/390/768/1440px and fractional widths, every size, unchanged chronological order, saved choice after reload, invalid preference, blocked storage, menu closure, Inspiration isolation, native isolation, existing Assets/Upscaler geometry and no horizontal overflow.
+- Desktop and 320px menu screenshots inspected from those browser cases. The managed preview fixture was truncated by its route; the direct test server renders the real full styles without that limitation. No paid generations or live account mutations.
+- Next action: upload exact reviewed files, relevant CI, merge, then verify Cloudflare Pages and exact production bytes. Signed-in production observation remains separate.

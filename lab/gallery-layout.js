@@ -1,11 +1,38 @@
-// Image history groups four results per desktop row, preserving proportions.
+// Image history uses the selected responsive card size, preserving proportions.
 // Assets and Upscale retain their existing target-height justified rows.
 const gallery=document.getElementById('history');
+const view=document.getElementById('image-gallery-view');
+const sizeKey='pv.lab.imageGallery.cardSize.v1';
+const sizes=['small','medium','large'];
+let cardSize='medium';
+try{const saved=localStorage.getItem(sizeKey);if(sizes.includes(saved))cardSize=saved;}catch{}
 let pending=false;
 function schedule(){if(!pending){pending=true;requestAnimationFrame(layout);}}
+function syncSize(){
+  gallery.dataset.cardSize=cardSize;
+  view?.querySelectorAll('[data-gallery-size]').forEach(button=>{
+    button.setAttribute('aria-pressed',String(button.dataset.gallerySize===cardSize));
+  });
+  schedule();
+}
+view?.addEventListener('click',event=>{
+  const button=event.target.closest('[data-gallery-size]');
+  if(!button||!sizes.includes(button.dataset.gallerySize))return;
+  cardSize=button.dataset.gallerySize;
+  try{localStorage.setItem(sizeKey,cardSize);}catch{}
+  syncSize();view.open=false;
+  view.querySelector('summary').focus({preventScroll:true});
+});
+view?.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&view.open){
+    event.preventDefault();view.open=false;view.querySelector('summary').focus({preventScroll:true});
+  }
+});
+if(view)document.addEventListener('pointerdown',event=>{if(!view.contains(event.target))view.open=false;});
 function layout(){
   pending=false;
   const native=document.documentElement.classList.contains('pv-native-lab');
+  if(view&&(native||!gallery.closest('.image-studio')||document.getElementById('app').classList.contains('pv-moods-discovery-open')))view.open=false;
   const enabled=!native&&!!gallery.closest('.image-studio,#assets-gallery,#app.upscale-studio-active');
   gallery.classList.toggle('justified-gallery',enabled);
   const cards=[...gallery.children];
@@ -27,7 +54,8 @@ function layout(){
   // Browser zoom can make the real row fractional; clientWidth rounds up and
   // forces the final card onto another flex line. Stay inside the measured row.
   const width=Math.floor(gallery.getBoundingClientRect().width);if(!width)return;
-  const imageColumns=gallery.closest('.image-studio')?(width<=740?2:width<=1020?3:4):0;
+  const counts=width<=740?[3,2,1]:width<=1020?[4,3,2]:[6,4,3];
+  const imageColumns=gallery.closest('.image-studio')?counts[sizes.indexOf(cardSize)]:0;
   const gap=2,target=width<640?160:Math.min(320,width/5.8);
   let row=[],sum=0;
   const place=(full)=>{
@@ -63,4 +91,4 @@ new MutationObserver(schedule).observe(gallery,{childList:true});
 new MutationObserver(schedule).observe(document.getElementById('app'),{attributes:true,attributeFilter:['class']});
 new MutationObserver(schedule).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
 // Image decoding never changes geometry. The API supplies stored dimensions.
-schedule();
+syncSize();
