@@ -48,6 +48,7 @@ import {NANO21_MODEL,NANO21_STANDARD_MICROS,nano21Request,nano21ImagePart} from 
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUpscaleEstimateMicros,buildFalUpscaleInput} from './fal-upscale.mjs';
+import {videoUpscaleParameters,inspectUpscaleMp4,quotedVideoUpscale,videoUpscaleEstimateMicros,buildVideoUpscaleInput,VIDEO_UPSCALE_MAX_BYTES} from './video-upscale.mjs';
 import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
@@ -281,6 +282,7 @@ function imageMoodMetadata(value){
 }
 function parseParameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
+  if(value.type==='video'&&value.engine==='video-upscale'&&value.mode==='upscale')return videoUpscaleParameters(value,{fail});
   if(value.type==='image'&&value.mode==='upscale'){
     const upscaleEngine=value.upscaleEngine??'seedvr2';
     if(upscaleEngine!=='spicy')return falUpscaleParameters({...value,upscaleEngine},{fail});
@@ -1870,7 +1872,30 @@ async function route(request,env,ctx) {
       if(customer)fail(403,'Higgsfield Kling Pro is currently owner-only. No video submitted.');
       return json(await quoteKlingHf(env,owner,data,p,url,hfDeps()));
     }
-    if(p.provider==='fal'&&p.mode==='upscale'){
+    if(p.provider==='fal'&&p.engine==='video-upscale'){
+      if(!env.FAL_KEY)fail(503,'fal.ai video upscaling is not configured on this Worker.');
+      if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)
+        fail(400,'Choose one original video, without extra references.');
+      const primary=await source(env,owner,data.sourceId);
+      if(primary.mime!=='video/mp4'||!primary.bytes||primary.bytes>VIDEO_UPSCALE_MAX_BYTES)
+        fail(400,'Choose an MP4 video no larger than 20 MiB.');
+      const object=await env.LAB_MEDIA.get(primary.object_key);
+      if(!object)fail(404,'Source video is missing from private storage.');
+      const bytes=new Uint8Array(await object.arrayBuffer());
+      if(bytes.length!==primary.bytes)fail(409,'Source video changed. Upload again.');
+      let metadata;try{metadata=inspectUpscaleMp4(bytes);}catch(e){fail(400,String(e.message).slice(0,300));}
+      const quoted=quotedVideoUpscale(p,metadata,{fail});
+      const estimate=videoUpscaleEstimateMicros(quoted),creditCost=creditsForJobUsd(estimate/1000000,quoted);
+      const input=buildVideoUpscaleInput(quoted,await signedInput(env,url,primary.id,7200));
+      const id=crypto.randomUUID(),expires=now()+290000;
+      await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
+        id,owner,primary.id,JSON.stringify({...quoted,customerChargeCredits:creditCost}),estimate,expires,
+        'fal-video-upscale-v1',String(estimate/1000000),JSON.stringify({model:quoted.model,input,source:{id:primary.id,bytes:primary.bytes}}));
+      return json({id,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,creditCost,expiresAt:expires,
+        settings:quoted,provider:'fal.ai',priceIsEstimate:true,requiresPriceReview:true,
+        notice:'Estimated from verified MP4 duration, frame timing and output resolution. Includes provider-rounding allowance. No upscaling job has been submitted.'});
+    }
+    if(p.provider==='fal'&&p.type==='image'&&p.mode==='upscale'){
       if(!env.FAL_KEY)fail(503,'fal.ai upscaling is not configured on this Worker.');
       const {primary,input,prepared}=await prepareInput(env,owner,data,p,url),estimate=falUpscaleEstimateMicros(p),id=crypto.randomUUID(),expires=now()+290000;
       const payload={model:p.model,input,source:{id:primary.id,mime:primary.mime,bytes:prepared.bytes.length,sha256:prepared.sha256}};
@@ -1992,7 +2017,7 @@ async function route(request,env,ctx) {
       if(customer)fail(403,'Higgsfield Kling Pro is currently owner-only. No video submitted.');
       return json({job:jobView(await submitKlingHf(env,owner,q,params,savedPayload,hfDeps()))},202);
     }
-    if(params.provider==='fal'&&params.mode==='upscale')return json({job:jobView(await submitFalUpscaleQuote(env,owner,q,params,savedPayload))},202);
+    if(params.provider==='fal'&&params.type==='image'&&params.mode==='upscale')return json({job:jobView(await submitFalUpscaleQuote(env,owner,q,params,savedPayload))},202);
     if(params.provider==='fal'&&params.type==='video'){
       if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');
       for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);
