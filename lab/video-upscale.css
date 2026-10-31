@@ -341,3 +341,139 @@
    overflow:hidden!important;
  }
 }
+
+
+/* Final Image/Video visual parity, 2026-10-31.
+ * The existing Image Upscaler is the canonical layout. This patch only
+ * adjusts Video's presentation, not its media, billing or provider logic. */
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.pv-video-upscale-sidebar{
+ box-sizing:border-box!important;width:100%!important;max-width:none!important;
+ min-width:0!important;align-self:stretch!important;margin:0!important;
+ overflow-x:hidden!important;
+}
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-sidebar header,
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-field,
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-models,
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-quote,
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-submit{
+ box-sizing:border-box!important;align-self:stretch!important;
+ width:100%!important;min-width:0!important;max-width:none!important;
+}
+#app.upscale-studio-active.video-upscale-active .pv-video-upscale-models .pv-upscale-model-card{
+ box-sizing:border-box!important;width:100%!important;max-width:none!important;
+ min-width:0!important;
+}
+@media(min-width:781px){
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.pv-video-upscale-sidebar{
+  padding:75px 20px 18px!important;gap:15px!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-sidebar h2{
+  font-size:clamp(42px,3.1vw,58px)!important;
+  font-weight:350!important;line-height:1.07!important;letter-spacing:-.065em!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-sidebar header p{
+  font-size:clamp(15px,1.12vw,18px)!important;line-height:1.45!important;
+  max-width:320px!important;margin:8px 0 0!important;
+ }
+ /* The empty Video hero occupies the full photographic stage, without
+    permanent header/footer strips that reduce the visible picture. */
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-preview:has(#pv-video-upscale-blank:not([hidden]))>.pv-video-upscale-preview-head,
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-preview:has(#pv-video-upscale-blank:not([hidden]))>.pv-video-upscale-preview-foot{
+  display:none!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-preview:has(#pv-video-upscale-blank:not([hidden]))>.pv-video-upscale-stage{
+  flex:1 1 auto!important;height:100%!important;min-height:0!important;
+ }
+}
+/* Mobile matches Image: header (38px) + photographic canvas (450px).
+   The empty-state Video footer is removed, leaving identical proportions. */
+@media(max-width:780px){
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{
+  box-sizing:border-box!important;width:100%!important;
+  min-width:0!important;margin:0!important;padding:0!important;
+  overflow:hidden!important;border-radius:13px!important;
+ }
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>.pv-video-upscale-preview{
+  box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
+  flex:0 0 auto!important;width:100%!important;
+  height:490px!important;min-height:490px!important;max-height:490px!important;
+  margin:0!important;padding:0!important;gap:0!important;
+  overflow:hidden!important;border:1px solid #303741!important;border-radius:13px!important;
+  background:#0e1218!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-preview:has(#pv-video-upscale-blank:not([hidden]))>.pv-video-upscale-preview-head,
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-preview>.pv-video-upscale-preview-head{
+  box-sizing:border-box!important;display:flex!important;position:relative!important;
+  inset:auto!important;flex:0 0 38px!important;
+  width:100%!important;height:38px!important;min-height:38px!important;
+  padding:0 15px!important;margin:0!important;
+  border:0!important;border-bottom:1px solid #262e38!important;
+  border-radius:0!important;background:#12161c!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-preview:has(#pv-video-upscale-blank:not([hidden]))>.pv-video-upscale-preview-foot{
+  display:none!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-preview>.pv-video-upscale-stage{
+  box-sizing:border-box!important;position:relative!important;
+  flex:1 1 auto!important;width:100%!important;
+  height:450px!important;min-height:0!important;max-height:none!important;
+  margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  overflow:hidden!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-blank{
+  box-sizing:border-box!important;position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;min-height:0!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-blank::before{
+  background:url('./visuals/upscaler-chrome-wool-option-1.jpg') center 48%/cover no-repeat!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-blank-center{
+  box-sizing:border-box!important;display:flex!important;
+  flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  width:calc(100% - 70px)!important;max-width:none!important;
+  height:calc(100% - 56px)!important;min-height:0!important;
+  margin:0 auto!important;padding:12px 10px!important;gap:0!important;
+  border:1px solid rgba(248,242,237,.67)!important;border-radius:7px!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-blank-icon{
+  box-sizing:border-box!important;width:72px!important;height:72px!important;
+  min-width:72px!important;min-height:72px!important;
+  margin:0 0 14px!important;border-radius:12px!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-blank h3{
+  width:min(100%,230px)!important;max-width:230px!important;
+  margin:0 0 12px!important;font-size:30px!important;
+  font-weight:350!important;line-height:1.13!important;
+  letter-spacing:-.055em!important;text-align:center!important;text-wrap:balance;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-blank p{
+  width:min(100%,265px)!important;max-width:265px!important;
+  margin:0 0 19px!important;font-size:12px!important;line-height:1.5!important;
+  text-align:center!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-blank button{
+  box-sizing:border-box!important;display:flex!important;align-items:center!important;
+  justify-content:center!important;gap:8px!important;
+  width:166px!important;min-width:166px!important;max-width:166px!important;
+  height:41px!important;min-height:41px!important;max-height:41px!important;
+  margin:0 0 13px!important;padding:8px 12px!important;
+  border-radius:24px!important;font-size:13px!important;line-height:1.1!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-blank button svg{
+  width:17px!important;height:17px!important;flex:0 0 auto!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-blank small{
+  max-width:100%!important;font-size:9px!important;line-height:1.35!important;
+  letter-spacing:.1em!important;text-align:center!important;
+ }
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.pv-video-upscale-sidebar{
+  padding:20px 15px 17px!important;gap:15px!important;overflow:visible!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-sidebar h2{
+  font-size:35px!important;line-height:1.1!important;
+ }
+ #app.upscale-studio-active.video-upscale-active .pv-video-upscale-sidebar header p{
+  font-size:13px!important;line-height:1.5!important;
+ }
+}
