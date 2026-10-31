@@ -11,7 +11,11 @@
 - PASS: five approved Image UI contracts, diff review and whitespace checks.
 - PASS desktop preview: four tall cards ~472px high, no gaps, no lower bar and no clipped titles.
 - PASS 390px phone preview: unchanged two-column layout, ~304px card height, no horizontal overflow.
-- Deployment pending at commit preparation.
+- Reviewed source `26bb016350aae6bb967b64ce7e643e06e8b3612b`; PR #745 merged as `a46a7c5e7820552bbecd85cb71ccdd04c9d15f74`.
+- PASS GitHub approved Image UI, landing stability and both static validators. Legacy landing still expects Beauty Studio; no assertions or labels changed.
+- LIVE: exact merge Cloudflare Pages check `124646795426` succeeded; release verifier returned LIVE_VERIFIED for `20261031-tall-connected1`.
+- Production CSS SHA-256 `8e772916d81127c8d1afcbcbfc1552a2cbd67cda873001fd73d8e40e90b7af57` matches reviewed bytes.
+- Live public browser confirms ~472px tall cards, zero gaps, Character Studio in the header and no lower bar. Complete; no remaining release action.
 
 ## Approved connected Studios menu, 2026-10-31
 
