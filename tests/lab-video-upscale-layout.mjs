@@ -53,6 +53,26 @@ try{
   assert.equal(await page.locator('#upscale-canvas').isVisible(),true,label+': Image canvas visible');
   assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine]').first().isVisible(),true,label+': original Image model cards');
   assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').first().isVisible(),false,label+': Video cards hidden in Image');
+  // Empty-state parity: the original model cards do not move when the media
+  // changes, and Video must not expose Image-only settings or a credit hint.
+  const imageCard=await page.locator('#upscale-model-menu [data-upscale-engine]').first().boundingBox();
+  await page.locator('[data-video-upscale-tab="video"]').click();
+  const videoCard=await page.locator('#upscale-model-menu [data-video-upscale-model]').first().boundingBox();
+  assert.ok(imageCard&&videoCard,label+': both modes have a real model card');
+  assert.ok(Math.abs(imageCard.y-videoCard.y)<=2,label+': model cards retain their vertical position');
+  assert.ok(Math.abs(imageCard.height-videoCard.height)<=2,label+': model cards retain their height');
+  assert.equal(await page.locator('.controls-body > .parameter-grid').isVisible(),false,label+': no Image enlargement row in Video');
+  assert.equal(await page.locator('.controls-body > #format-control').isVisible(),false,label+': no Image format row in Video');
+  assert.equal(await page.locator('.pv-video-upscale-quote').isVisible(),false,label+': no credit prompt before a source video');
+  assert.equal(await page.locator('.pv-video-upscale-inline-resolution').isVisible(),true,label+': resolution replaces Image controls');
+  const emptyVideo=await page.evaluate(()=>{
+    const body=document.querySelector('#app>.workspace>.controls>.controls-body');
+    return {scrollHeight:body.scrollHeight,clientHeight:body.clientHeight,
+      overflow:getComputedStyle(body).overflowY};
+  });
+  console.log('EMPTY_VIDEO_CONTROLS',label,JSON.stringify(emptyVideo));
+  if(width>780)assert.ok(emptyVideo.scrollHeight<=emptyVideo.clientHeight+3,label+': empty Video sidebar has no unnecessary scroll');
+  await page.locator('[data-video-upscale-tab="image"]').click();
   // An uploaded Image must remain untouched when switching media modes.
   await page.evaluate(()=>{
    const c=document.createElement('canvas');c.width=400;c.height=400;
