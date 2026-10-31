@@ -964,9 +964,8 @@ document.addEventListener('click',event=>{
 <div class="upload-heading"><span class="label">Reference images</span><span class="micro" id="ref-count">0 / 10</span></div>
 <label class="drop reference-drop" id="reference-drop" aria-label="Add reference images, drop or browse"><svg viewBox="0 0 24 24" class="pv-reference-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="15" height="14" rx="2"/><circle cx="8.5" cy="9.5" r="1.3"/><path d="m5 16 4-4 3.2 2.5 2.1-2"/><path d="M19 15v7m-3.5-3.5h7"/></svg><span>Upload images</span><small>JPG / PNG / WebP · up to 10 photos</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
 <div class="scene-video-access" aria-label="Browse saved characters, outfits, props and locations"><span>Characters, outfits, props and locations</span><button id="scene-video-open" type="button"><svg viewBox="0 0 24 24" class="pv-scene-card-icon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg><span>Saved References</span><small>Characters, outfits &amp; more</small></button></div>
-<div id="start-frame-maker" class="generate-zone">
-<button id="create-start-frame" class="secondary full" type="button">Create opening image</button>
-<p class="fine">Optional · Seedream image credits charged separately after review.</p>
+<div id="start-frame-maker" class="generate-zone" hidden>
+<button id="create-start-frame" class="secondary full" type="button">Compose start frame</button>
 </div>
 <div id="scene-video-selected" hidden aria-label="Attached saved scene items"></div>
 <p id="reference-progress" class="fine" role="status" aria-live="polite"></p>
