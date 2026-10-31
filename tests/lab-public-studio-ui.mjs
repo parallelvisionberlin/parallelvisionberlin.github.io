@@ -63,6 +63,10 @@ const fashionApprovedFiles=new Map(['lab/fashion.html','lab/fashion.css','lab/fa
 // own HTML/CSS/controller reference at the reviewed commit. Independent
 // Image/Video/Upscaler/Retouch baselines and pixel tolerances remain untouched.
 const focusedFashionRef='c304ea0ac8090db3a8901887663159c1c069f0bd';
+// GitHub Actions checks out a shallow PR merge commit; retrieve the immutable
+// reviewed Fashion reference before comparing pixels.
+try{execFileSync('git',['cat-file','-e',focusedFashionRef+'^{commit}'],{stdio:'pipe'});}
+catch{execFileSync('git',['fetch','--depth=1','origin',focusedFashionRef],{stdio:'pipe'});}
 for(const path of ['lab/fashion.html','lab/fashion.css','lab/fashion-studio.js','lab/fashion.js']){
   fashionApprovedFiles.set(path,execFileSync('git',['show',focusedFashionRef+':'+path]));
 }
