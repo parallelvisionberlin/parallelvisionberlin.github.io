@@ -29,7 +29,15 @@
 - Mock browser: three deliberate clicks produce exactly three independent jobs.
 - Mock browser: preparation reservations enforce the queue limit.
 - Worker, generation finance and customer image quotes: 120 passed.
-- Required prompt, first-image and Studio layout browser checks: in progress.
-- Release: not yet pushed or deployed.
+- Prompt-paste and desktop/mobile Studio layout browser checks: passed.
+- GitHub: full private-lab, queue-smoke, approved-image-ui, Generate, appearance,
+  compact-image-prompt and image-prompt-paste checks passed.
+- First-image suite: existing Inspiration backdrop mismatch reproduced on unchanged main.
+- Other inspected CI failures concern Video Extend visibility and an obsolete Beauty Studio link.
+- PR #739 merged; production source: `af37ed2e27ac6e7e7151f70fa94dcba3a3a1fbc8`.
+- Cloudflare Pages check `124604690295`: completed successfully for this source.
+- Scoped release verifier: `LIVE_VERIFIED` at `https://pvlab.studio/studio`.
+- Production `lab.js` SHA-256: `9a10db39053444e32d33aeccc391755fce2b704de2edbf6700e6dade9c76200f`.
 - Real signed-in paid generation: not performed.
-- Next action: finish browser checks, publish reviewed source, verify Cloudflare and production assets.
+- Next action: owner can reload Studio and use deliberate repeated Generate clicks.
+- Queue capacity and uncertain-job review may still disable Generate for their existing reasons.
