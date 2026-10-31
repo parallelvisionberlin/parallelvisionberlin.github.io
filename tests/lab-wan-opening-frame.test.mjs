@@ -79,7 +79,7 @@ test('Wan browser drop accepts files outside the label, not duplicates inside',(
 
 test('Seedream quote requires explicit confirmation; approved image switches to Wan Start mode',async()=>{
   const ids=[
-    'start-frame-dialog','create-start-frame','start-frame-direction','start-frame-aspect',
+    'start-frame-dialog','start-frame-maker','create-start-frame','start-frame-direction','start-frame-aspect',
     'start-frame-review','start-frame-quote-info','start-frame-price',
     'start-frame-price-note','start-frame-confirm','start-frame-status',
     'start-frame-result','start-frame-result-image','start-frame-apply',
@@ -121,6 +121,13 @@ test('Seedream quote requires explicit confirmation; approved image switches to 
     imageQueueAvailable:()=>true,
     describePrice:q=>q.creditCost+' credits'
   });
+  assert.equal(nodes['start-frame-maker'].hidden,false,'Wan helper appears after references are attached');
+  const savedReference=refs.pop();
+  maker.sync();
+  assert.equal(nodes['start-frame-maker'].hidden,true,'empty reference state hides optional composition');
+  refs.push(savedReference);
+  maker.sync();
+  assert.equal(nodes['start-frame-maker'].hidden,false,'helper returns when references are restored');
   nodes['create-start-frame'].click();
   assert.equal(nodes['start-frame-dialog'].open,true);
   assert.equal(nodes['start-frame-direction'].value,'','Video motion direction is not copied to the Seedream image prompt');
