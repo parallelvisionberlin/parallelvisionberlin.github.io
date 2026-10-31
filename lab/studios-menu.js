@@ -8,8 +8,7 @@
  const fashionHero='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/7cb87d27-a1f0-41a8-8e27-42f6432362e7.png';
  const retouchHero='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/1904c918-0012-4c9c-9784-f2f14adc2b5a.png';
  const editorialHero='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/0e71ba24-0b09-4eaf-b9d7-dec03b803e7a.png';
- const arrow='<span class="pv-studios-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span>';
- const foot=caption=>'<div class="pv-studios-foot"><span class="pv-studios-foot-label">'+caption+'</span><span class="pv-studios-foot-rule" aria-hidden="true"></span>'+arrow+'</div>';
+ const foot=caption=>'<div class="pv-studios-foot"><span class="pv-studios-foot-label">'+caption+'</span></div>';
  const headers=document.querySelectorAll('.landing-header,.studio-header,.beauty-header');
  for(const header of headers){
   if(header.querySelector('.pv-studios-trigger'))continue;
@@ -18,14 +17,13 @@
   const shell=document.createElement('span');shell.className='pv-studios-menu';
   const trigger=document.createElement('button');trigger.type='button';trigger.className='pv-studios-trigger';trigger.innerHTML='Studios<svg viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5"/></svg>';trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','pv-studios-panel');
   const panel=document.createElement('div');panel.id='pv-studios-panel';panel.className='pv-studios-panel';panel.hidden=true;panel.setAttribute('role','region');panel.setAttribute('aria-label','Studios');
-  panel.innerHTML='<div class="pv-studios-panel-head"><span class="pv-studios-kicker">STUDIOS</span><span class="pv-studios-heading">CREATIVE STUDIOS</span></div>'+
+  panel.innerHTML='<div class="pv-studios-panel-head"><span class="pv-studios-kicker">STUDIOS</span><div class="pv-studios-secondary"><a class="pv-studios-character-link" href="'+url('studio.html?tool=image&createCharacter=1')+'">Character Studio</a></div></div>'+
    '<div class="pv-studios-grid">'+
      '<section class="pv-studios-tile pv-studios-beauty"><div class="pv-studios-photo"><img class="pv-studios-beauty-artwork" alt="" loading="lazy" decoding="async" src="'+beautyHero+'"></div><div class="pv-studios-meta"><strong><span>ALTER</span></strong>'+foot('Portrait &amp; Transformation')+'</div><a aria-label="Alter" href="'+url('beauty.html')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-fashion"><div class="pv-studios-photo"><img class="pv-studios-fashion-artwork" alt="" loading="lazy" decoding="async" src="'+fashionHero+'"></div><div class="pv-studios-meta"><strong><span>Fashion</span><span>Studio</span></strong>'+foot('Style &amp; Campaign')+'</div></section>'+
      '<section class="pv-studios-tile pv-studios-editorial"><div class="pv-studios-photo"><img class="pv-studios-editorial-artwork" alt="" loading="lazy" decoding="async" src="'+editorialHero+'"></div><div class="pv-studios-editorial-copy"><strong><span>Full</span><span>Editorial</span></strong>'+foot('Complete Fashion Story')+'</div><a aria-label="Full Editorial" href="'+url('full-editorial.html')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-retouch"><div class="pv-studios-photo"><img class="pv-studios-retouch-artwork" alt="" loading="lazy" decoding="async" src="'+retouchHero+'"></div><div class="pv-studios-meta"><strong><span>Retouch</span><span>Studio</span></strong>'+foot('Precision Edits')+'</div><a class="pv-studios-retouch-link" aria-label="Retouch Studio" href="'+url('studio.html?tool=retouch')+'"></a></section>'+
-   '</div>'+
-   '<div class="pv-studios-secondary"><a class="pv-studios-character-link" href="'+url('studio.html?tool=image&createCharacter=1')+'">Character Studio</a></div>';
+   '</div>';
   original.before(shell);shell.append(trigger,panel);panel.querySelector('.pv-studios-fashion').append(original);
   // Keep the original live Fashion element so its ID, handlers and return-to-draft behavior survive.
   original.classList.add('pv-studios-fashion-link');original.textContent='';original.setAttribute('aria-label','Fashion Studio');
@@ -58,7 +56,7 @@
     panel.hidden=false;openedByHover=fromHover;trigger.setAttribute('aria-expanded','true');position();
    }
    // Opening on mouse hover must not steal keyboard focus or cause page scrolling.
-   if(focusFirst)panel.querySelector('a,button')?.focus({preventScroll:true});
+   if(focusFirst)panel.querySelector('.pv-studios-tile a,.pv-studios-tile button')?.focus({preventScroll:true});
   }
   function scheduleHoverClose(){
    cancelHoverClose();
