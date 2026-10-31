@@ -34,7 +34,7 @@ try{
    // lab.js is intentionally mocked in this test. Mirror setTool('upscale')
    // hiding of unrelated Video Studio inputs, otherwise their offscreen
    // content creates a fake scrollbar in BOTH Image and Video modes.
-   for(const id of ['video-model-control','video-modes','prompt']){
+   for(const id of ['video-model-control','video-modes','prompt','save','generation-help','upscale-price','upscale-notice-slot']){
      document.getElementById(id)?.style.setProperty('display','none','important');
    }
    document.getElementById('upscale-model-display').hidden=false;
@@ -131,6 +131,7 @@ try{
   });
   assert.ok(Math.abs(original.canvas.width-video.canvas.width)<=2,label+': identical source width');
   assert.ok(Math.abs(original.canvas.height-video.canvas.height)<=2,label+': identical source height');
+  console.log('ACTION_PARITY',label,JSON.stringify({image:original.action,video:video.action}));
   assert.ok(Math.abs(original.action.top-video.action.top)<=2,label+': same Upscale button position');
   assert.ok(Math.abs(original.picker.left-video.picker.left)<=2,label+': model cards stay in place');
   assert.match(video.photo,/upscaler-chrome-wool-option-1\.jpg/,label+': exact Image photograph remains');
