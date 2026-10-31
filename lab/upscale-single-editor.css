@@ -30,7 +30,7 @@
 #app.upscale-studio-active.video-upscale-active #upscale-model-menu>[data-video-upscale-model]{
  box-sizing:border-box!important;display:grid!important;
  width:100%!important;max-width:none!important;min-width:0!important;
- grid-template-columns:36px minmax(0,1fr) 16px!important;
+ /* Inherit the canonical Image card grid (38px / 1fr / 16px) exactly. */
  align-items:center!important;gap:10px!important;
 }
 #app.upscale-studio-active.video-upscale-active #upscale-model-menu>[data-video-upscale-model][aria-checked="true"]{
@@ -159,6 +159,11 @@
 @media(max-width:780px){
  #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
   display:grid!important;
+ }
+ /* The single Video resolution row replaces two Image fields. Keep the
+    bottom of the empty inspector and its shared Upscale button stationary. */
+ #app.upscale-studio-active.video-upscale-active:not(.video-upscale-has-source):not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+  padding-bottom:4px!important;
  }
  #app.upscale-studio-active.video-upscale-active #upscale-canvas #empty .pv-upscale-empty-center{
   width:calc(100% - 26px)!important;min-height:350px!important;
