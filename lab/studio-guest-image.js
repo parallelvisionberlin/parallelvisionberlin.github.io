@@ -1,4 +1,4 @@
-import {INSPIRATION_VARIATIONS,createInspirationRotation} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1&fisheyeY2K=20261024v1';
+import {INSPIRATION_VARIATIONS,createInspirationRotation,CHROME_COUTURE_DEFAULTS} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1&fisheyeY2K=20261024v1&chromeQwen20=20261031v1';
 // Public-only Image Studio preview. No authentication, wallet or generation API calls.
 const gate=document.getElementById('gate');
 const composer=document.getElementById('pv-guest-composer');
@@ -11,6 +11,14 @@ const inspirationRotation=createInspirationRotation(sessionStorage);
 let selected='';
 function showSelection(){
   for(const button of cards)button.setAttribute('aria-pressed',String(button.dataset.guestMood===selected));
+  // Guest UI only previews the authenticated model and does not submit a job.
+  const chrome=selected==='chrome-couture';
+  const model=composer?.querySelector('.pv-guest-model-label');
+  const logo=composer?.querySelector('.pv-guest-model-symbol img');
+  const resolution=document.getElementById('pv-guest-resolution');
+  if(model)model.textContent=chrome?'Qwen Image 3.0':'Seedream 5 Pro';
+  if(logo)logo.src=chrome?'./branding/qwen.svg':'./branding/bytedance.svg';
+  if(resolution?.firstChild?.nodeType===3)resolution.firstChild.nodeValue=chrome?CHROME_COUTURE_DEFAULTS.resolution.toUpperCase()+' ':'1K ';
 }
 function storeDraft(){
   try{sessionStorage.setItem(draftKey,JSON.stringify({prompt:prompt.value.slice(0,5000),mood:selected,at:Date.now()}));}catch{}

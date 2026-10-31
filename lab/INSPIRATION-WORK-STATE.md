@@ -1,3 +1,14 @@
+# Chrome Couture Qwen Signature Preset, 2026-10-31
+
+- Owner approved the original sensual silver-corset, crystal mesh, chrome blade, glimmering/dreamy starburst editorial concept. Qwen Image 3.0 was preferred in the supplied side-by-side outputs.
+- Scope: Chrome Couture Inspiration card only; keep the 16 curated Moods, with Fashion Editorial as its underlying compatible Mood. No automatic image references, Mood Creator changes, backend pricing changes or hidden generations.
+- Default for a new Chrome selection: Qwen Image 3.0, 2K, 16:9, one image. Respect current user-written prompt, references and compatible user-chosen model.
+- 20 adult-woman sensual editorial scenes: first retains the original Pinterest-derived prompt verbatim; 19 share an editorial master with controlled pose/camera/angle changes. Repeated taps cycle through scenes; user edits are preserved.
+- Old Chrome example text is recognized for legacy draft migration, and only Chrome's old rotation position resets on this recipe upgrade.
+- Guest shows Qwen/2K only as a preview; sign-in handoff restores the actual Qwen choice without starting or charging for generation.
+- Changed files: lab/inspiration-looks.js, lab/lab.js, lab/studio-guest-image.js, lab/studio.html, tests/lab-inspiration-rotation.test.mjs, lab/INSPIRATION-WORK-STATE.md.
+- Tests, pull request, merge SHA, Cloudflare check and independent live verification: pending.
+
 # Dream Blur cover replacement, 2026-10-24
 
 - User selected the tilted-face blue light-trail artwork for Dream Blur.
