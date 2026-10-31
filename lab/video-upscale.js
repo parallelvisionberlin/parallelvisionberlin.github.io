@@ -7,44 +7,127 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  if(!bar||!panel)throw Error('Video Upscaler markup missing.');
  const workspace=app.querySelector(':scope > .workspace');
  const controls=workspace?.querySelector(':scope > .controls'),stageShell=workspace?.querySelector(':scope > .stage');
- const sidebar=panel.querySelector('.pv-video-upscale-sidebar'),preview=panel.querySelector('.pv-video-upscale-preview');
- if(!controls||!stageShell||!sidebar||!preview)throw Error('Shared Upscaler workspace is unavailable.');
- // Reuse the actual Image Upscaler columns, never a second stacked deck.
- // The original Image controls stay mounted and return on mode switch.
+ const sidebar=panel.querySelector('.pv-video-upscale-sidebar');
+ const controlBody=controls?.querySelector(':scope > .controls-body');
+ const canvas=stageShell?.querySelector('#upscale-canvas');
+ const picker=document.getElementById('upscale-model-menu');
+ const originalEmpty=document.getElementById('empty');
+ const imagePreview=document.getElementById('preview');
+ const originalHero=document.getElementById('pv-upscale-hero-upload');
+ const sharedGenerate=document.getElementById('generate');
+ const sharedClear=document.getElementById('clear');
+ if(!controls||!stageShell||!sidebar||!controlBody||!canvas||!picker||!originalEmpty||!originalHero||!sharedGenerate||!sharedClear)
+   throw Error('Shared Upscaler editor is unavailable.');
+ // There is ONE source stage and ONE model picker. Video inserts only the
+ // controls that actually differ. Image nodes remain mounted and untouched.
  workspace.prepend(bar);
- controls.append(sidebar);
- stageShell.append(preview);
- // Keep the native MP4 picker outside the hidden legacy wrapper. This is
- // important for iOS Safari's user-gesture file chooser behavior.
+ const videoCards=[...sidebar.querySelectorAll('[data-video-upscale-model]')];
+ for(const card of videoCards)picker.append(card);
+ const resolutionField=sidebar.querySelector('.pv-video-upscale-resolution')||sidebar.querySelector('label.pv-video-upscale-field');
+ const quoteField=sidebar.querySelector('.pv-video-upscale-quote');
+ const messageField=sidebar.querySelector('#pv-video-upscale-message');
+ if(!resolutionField||!quoteField||!messageField)throw Error('Video Upscaler options are unavailable.');
+ resolutionField.classList.add('pv-video-upscale-inline-resolution');
+ const outputSettings=controlBody.querySelector('#resolution-control')?.closest('.parameter-grid');
+ if(!outputSettings)throw Error('Upscaler output settings row unavailable.');
+ outputSettings.after(resolutionField);
+ resolutionField.after(quoteField,messageField);
+ const preview=panel.querySelector('.pv-video-upscale-preview');
+ for(const id of ['pv-video-upscale-source','pv-video-upscale-result','pv-video-upscale-working'])
+   canvas.append(document.getElementById(id));
+ const stageHead=stageShell.querySelector('.stagehead');
+ for(const id of ['pv-video-upscale-original-button','pv-video-upscale-result-button','pv-video-upscale-download'])
+   stageHead.append(document.getElementById(id));
  const filePicker=panel.querySelector('#pv-video-upscale-file');
  if(!filePicker)throw Error('Video source picker unavailable.');
  stageShell.append(filePicker);
  panel.hidden=true;
+ const introKicker=controlBody.querySelector('.pv-upscale-workspace-intro .pv-upscale-kicker');
+ const imageIntroKicker=introKicker?.textContent;
+ const heroTitle=originalEmpty.querySelector('.pv-upscale-empty-center h2');
+ const heroDescription=originalEmpty.querySelector('.pv-upscale-empty-center p');
+ const heroButtonText=originalHero.querySelector('span');
+ const heroHint=originalEmpty.querySelector('.pv-upscale-drop-hint');
+ const sourceControl=document.querySelector('.pv-upscale-source-control');
+ const dropzone=document.getElementById('pv-upscale-dropzone');
+ const emptySection=originalEmpty.querySelector('.pv-upscale-empty-drop');
+ const sourceUpload=document.getElementById('pv-upscale-source-upload');
+ const sourceControlTitle=document.getElementById('pv-upscale-source-upload-title');
+ const sourceControlFilename=document.getElementById('pv-upscale-source-filename');
+ const sourceControlLabel=sourceControl?.querySelector('.pv-upscale-field-label');
+ const originalCopy={title:heroTitle?.textContent,description:heroDescription?.textContent,
+   button:heroButtonText?.textContent,hint:heroHint?.textContent,
+   sourceTitle:sourceControlTitle?.textContent,sourceFilename:sourceControlFilename?.textContent,
+   sourceLabel:sourceControlLabel?.textContent};
+ let imageEmptyHidden=originalEmpty.hidden;
  const pick=$('pv-video-upscale-file'),src=$('pv-video-upscale-source'),result=$('pv-video-upscale-result');
- const stage=$('pv-video-upscale-stage'),blank=$('pv-video-upscale-blank'),price=$('pv-video-upscale-price');
+ const stage=canvas,blank=originalEmpty,price=$('pv-video-upscale-price');
  const action=$('pv-video-upscale-action'),message=$('pv-video-upscale-message'),res=$('pv-video-upscale-resolution');
- const clear=$('pv-video-upscale-remove'),download=$('pv-video-upscale-download');
+ const clear=sharedClear,download=$('pv-video-upscale-download');
  const variants={bytedance:{name:'ByteDance Standard',allowed:['1080p','2k','4k']},
    proteus:{name:'Topaz Proteus',allowed:['1080p','4k']},
    starlight:{name:'Topaz Starlight',allowed:['1080p','4k']}};
  let media='image',model='bytedance',file=null,assetId=null,sourceURL=null,resultURL=null,quote=null;
  let currentJob=null,loading=false,revision=0,showResult=false,submissionUncertain=false;
+ let lastSyncedMode='image';
  const revoke=url=>{if(url)URL.revokeObjectURL(url);};
  const notice=(s,error=false)=>{message.textContent=s||'';message.classList.toggle('error',error);};
  const ready=()=>{const a=access();return !!a.signedIn&&!!a.falEnabled&&!!a.generationReady;};
  const stale=()=>{revision++;quote=null;};
  function sync(){
    const active=app.classList.contains('upscale-studio-active')&&!app.classList.contains('assets-active')&&!app.classList.contains('fashion-studio-active');
-   bar.hidden=!active;sidebar.hidden=!active||media!=='video';preview.hidden=!active||media!=='video';panel.hidden=true;app.classList.toggle('video-upscale-active',active&&media==='video');
+   bar.hidden=!active;panel.hidden=true;
+   const videoMode=active&&media==='video';
+   app.classList.toggle('video-upscale-active',videoMode);
+   app.classList.toggle('video-upscale-has-source',videoMode&&!!file);
+   if(lastSyncedMode!==media){
+     if(media==='video')imageEmptyHidden=originalEmpty.hidden;
+     else originalEmpty.hidden=imageEmptyHidden;
+     lastSyncedMode=media;
+   }
+   if(videoMode){
+     if(introKicker)introKicker.textContent='PV LAB / VIDEO ENHANCEMENT';
+     heroTitle.textContent='Insert a source video.';
+     heroDescription.textContent='Upload a video to begin the upscale process.';
+     heroButtonText.textContent='Upload video';
+     heroHint.textContent='MP4 · up to 30 seconds · 20 MB';
+     originalHero.setAttribute('aria-label','Upload a source video for upscaling');
+     dropzone?.setAttribute('aria-label','Drop a source video here or choose an MP4 file');
+     emptySection?.setAttribute('aria-label','Upload a video to upscale');
+     sourceUpload?.setAttribute('aria-label',file?'Replace source video for upscaling':'Choose source video for upscaling');
+     if(sourceControlLabel)sourceControlLabel.textContent='Source video';
+     if(sourceControlTitle)sourceControlTitle.textContent=file?'Replace video':'Choose video';
+     if(sourceControlFilename)sourceControlFilename.textContent=file?file.name:'MP4 · up to 30 seconds · 20 MB';
+     originalEmpty.hidden=!!file||!!resultURL;
+   }else{
+     if(introKicker)introKicker.textContent=imageIntroKicker;
+     heroTitle.textContent=originalCopy.title;
+     heroDescription.textContent=originalCopy.description;
+     heroButtonText.textContent=originalCopy.button;
+     heroHint.textContent=originalCopy.hint;
+     originalHero.setAttribute('aria-label','Upload an image to upscale');
+     dropzone?.setAttribute('aria-label','Drop a photo here or choose a file to upload');
+     emptySection?.setAttribute('aria-label','Upload a photo to upscale');
+     sourceUpload?.setAttribute('aria-label','Choose source image for upscaling');
+     if(sourceControlLabel)sourceControlLabel.textContent=originalCopy.sourceLabel;
+     const imageThumb=document.getElementById('pv-upscale-source-thumb');
+     const hasImage=!!imageThumb&&!imageThumb.hidden&&!!imageThumb.getAttribute('src');
+     if(sourceControlTitle)sourceControlTitle.textContent=hasImage?'Replace image':'Choose image';
+     if(sourceControlFilename)sourceControlFilename.textContent=hasImage?
+       (imageThumb.dataset.filename||'Original image')+(imageThumb.dataset.dimensions?' · '+imageThumb.dataset.dimensions:''):
+       'PNG, JPEG or WebP · up to 20 MB';
+   }
+   picker.setAttribute('aria-label',videoMode?'Video upscaling model':'Upscaler model');
    for(const tab of bar.querySelectorAll('[data-video-upscale-tab]')){const yes=tab.dataset.videoUpscaleTab===media;tab.setAttribute('aria-selected',String(yes));tab.tabIndex=yes?0:-1;}
-   for(const b of sidebar.querySelectorAll('[data-video-upscale-model]')){b.setAttribute('aria-checked',String(b.dataset.videoUpscaleModel===model));b.disabled=loading;}
+   for(const b of videoCards){b.setAttribute('aria-checked',String(b.dataset.videoUpscaleModel===model));b.disabled=loading;}
    for(const option of res.options)option.disabled=!variants[model].allowed.includes(option.value);
-   res.disabled=loading;pick.disabled=loading;clear.hidden=!file||loading;
-   src.hidden=!file||showResult;result.hidden=!showResult||!resultURL;blank.hidden=!!file||!!resultURL;
-   $('pv-video-upscale-working').hidden=!currentJob||!['submitting','queued','running','saving'].includes(currentJob.status);
-   $('pv-video-upscale-original-button').hidden=!resultURL;
-   $('pv-video-upscale-result-button').hidden=!resultURL;
-   download.hidden=!resultURL;
+   res.disabled=loading;pick.disabled=loading;
+   if(videoMode){clear.disabled=!file||loading;clear.textContent='Clear';}
+   src.hidden=!videoMode||!file||showResult;result.hidden=!videoMode||!showResult||!resultURL;
+   $('pv-video-upscale-working').hidden=!videoMode||!currentJob||!['submitting','queued','running','saving'].includes(currentJob.status);
+   $('pv-video-upscale-original-button').hidden=!videoMode||!resultURL;
+   $('pv-video-upscale-result-button').hidden=!videoMode||!resultURL;
+   download.hidden=!videoMode||!resultURL;
    $('pv-video-upscale-info').textContent=file?file.name+' · '+(file.size/1048576).toFixed(1)+' MB':'Original media is preserved.';
    if(quote&&quote.expiresAt<=Date.now()){stale();notice('The estimate expired. Review credits again.',true);}
    if(!file){price.textContent='Select a video to calculate credits.';action.textContent='Upscale';action.disabled=true;}
@@ -54,6 +137,12 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    else if(currentJob&&['submitting','queued','running','saving','uncertain'].includes(currentJob.status)){price.textContent='See this request in private History.';action.textContent='Processing in History';action.disabled=true;}
    else if(quote){price.textContent='Estimated price: '+quote.creditCost+' credits · '+quote.settings.duration.toFixed(1)+'s. Provider billing may differ.';action.textContent='Confirm & upscale · '+quote.creditCost+' credits';action.disabled=false;}
    else{price.textContent='Review credits before the paid request.';action.textContent='Review credits';action.disabled=false;}
+   if(videoMode){
+     sharedGenerate.textContent=action.textContent;
+     sharedGenerate.disabled=action.disabled;
+     if(sourceControlTitle)sourceControlTitle.textContent=file?'Replace video':'Choose video';
+     if(sourceControlFilename)sourceControlFilename.textContent=file?file.name:'MP4 · up to 30 seconds · 20 MB';
+   }
  }
  function changeTab(name){if(!['image','video'].includes(name)||media===name||loading)return;media=name;sync();onModeChange?.();}
  for(const tab of bar.querySelectorAll('[data-video-upscale-tab]'))tab.addEventListener('click',()=>changeTab(tab.dataset.videoUpscaleTab));
@@ -71,15 +160,47 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  const choose=()=>{if(!loading)pick.click();};
  $('pv-video-upscale-choose').onclick=choose;
  pick.onchange=()=>{const f=pick.files?.[0];pick.value='';if(!f)return;try{chooseFile(f);onModeChange?.();}catch(e){notice(e.message,true);}};
- for(const b of sidebar.querySelectorAll('[data-video-upscale-model]'))b.onclick=()=>{
+ for(const b of videoCards)b.onclick=()=>{
    if(loading||model===b.dataset.videoUpscaleModel)return;
    model=b.dataset.videoUpscaleModel;if(!variants[model].allowed.includes(res.value))res.value='1080p';stale();notice('');sync();
  };
  res.onchange=()=>{stale();notice('');sync();};
- clear.onclick=()=>{if(loading)return;resetSource();notice('');sync();};
- stage.addEventListener('dragover',e=>{if(e.dataTransfer?.types?.includes('Files')&&!loading){e.preventDefault();stage.classList.add('dragging');}});
- stage.addEventListener('dragleave',()=>stage.classList.remove('dragging'));
- stage.addEventListener('drop',e=>{stage.classList.remove('dragging');if(loading||!e.dataTransfer?.files?.length)return;e.preventDefault();try{chooseFile(e.dataTransfer.files[0]);onModeChange?.();}catch(error){notice(error.message,true);}});
+ clear.addEventListener('click',event=>{
+   if(media!=='video'||!app.classList.contains('upscale-studio-active'))return;
+   event.preventDefault();event.stopImmediatePropagation();
+   if(loading)return;resetSource();notice('');sync();
+ },true);
+ stage.addEventListener('dragover',e=>{
+   if(media!=='video'||!app.classList.contains('upscale-studio-active'))return;
+   e.preventDefault();e.stopImmediatePropagation();
+   if(e.dataTransfer?.types?.includes('Files')&&!loading)stage.classList.add('dragging');
+ },true);
+ stage.addEventListener('dragleave',()=>stage.classList.remove('dragging'),true);
+ stage.addEventListener('drop',e=>{
+   if(media!=='video'||!app.classList.contains('upscale-studio-active'))return;
+   e.preventDefault();e.stopImmediatePropagation();stage.classList.remove('dragging');
+   if(loading||!e.dataTransfer?.files?.length)return;
+   try{chooseFile(e.dataTransfer.files[0]);onModeChange?.();}catch(error){notice(error.message,true);}
+ },true);
+ // The existing Upscale button remains the only action in both modes.
+ // Capture before the Image handler so a Video click can never submit an
+ // Image quote using the wrong media type.
+ sharedGenerate.addEventListener('click',event=>{
+   if(media!=='video'||!app.classList.contains('upscale-studio-active'))return;
+   event.preventDefault();event.stopImmediatePropagation();
+   if(!action.disabled)void action.onclick();
+ },true);
+ const routePicker=event=>{
+   if(media!=='video'||!app.classList.contains('upscale-studio-active'))return;
+   event.preventDefault();event.stopImmediatePropagation();choose();
+ };
+ originalHero.addEventListener('click',routePicker,true);
+ document.getElementById('pv-upscale-source-upload')?.addEventListener('click',routePicker,true);
+ document.getElementById('pv-upscale-dropzone')?.addEventListener('click',event=>{
+   if(media!=='video'||!app.classList.contains('upscale-studio-active'))return;
+   if(event.target.closest('button'))return;
+   routePicker(event);
+ },true);
  action.onclick=async()=>{
    if(!file){choose();return;}if(loading||!ready())return;
    const token=revision,original=file;loading=true;sync();
