@@ -5064,7 +5064,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
 $('studio-invite-friends').onclick=()=>location.assign('./account.html#referrals');
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn({forceRedirectUrl:location.href,signUpForceRedirectUrl:location.href});$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 $('pv-guest-closed-signout').onclick=()=>$('logout').click();
-assetLibrary=createAssetLibrary({api,notify,archive,app:$('app'),selected:()=>historySelected,selectMode:setHistorySelectMode,reload:()=>loadHistory(),restoreStudio:()=>{syncImageStudioMode();syncVideoStudioMode();syncStudioNav();},beforeOpen:()=>{++previewRevision;$('video').pause();if(retouchActive)leaveRetouch();setFashionActive(false);syncStudioRoute('assets');},kind:()=>tool==='upscale'?'upscale':tool==='video'?'video':'image',ready:()=>owner});
+assetLibrary=createAssetLibrary({api,notify,archive,app:$('app'),selected:()=>historySelected,selectMode:setHistorySelectMode,reload:()=>loadHistory(),restoreStudio:()=>{syncImageStudioMode();syncVideoStudioMode();syncStudioNav();},beforeOpen:()=>{++previewRevision;$('video').pause();if(retouchActive)leaveRetouch();setFashionActive(false);syncStudioRoute('assets');},kind:()=>tool==='upscale'?(videoUpscaler?.mode()==='video'?'video-upscale':'upscale'):tool==='video'?'video':'image',ready:()=>owner});
 setTool(['fashion','assets','retouch'].includes(studioRoute())?'image':studioRoute());
 const publicPreview=createStudioPublicPreview({app:$('app'),gate:$('gate'),authorized:()=>owner,
   setTool,retouch:{close:leaveRetouch,preview:()=>{
