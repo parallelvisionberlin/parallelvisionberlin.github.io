@@ -61,6 +61,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    sourceLabel:sourceControlLabel?.textContent};
  let imageEmptyHidden=originalEmpty.hidden;
  let imagePreviewHidden=imagePreview.hidden;
+ let imageSourceReady=app.classList.contains('pv-upscale-source-ready');
  const pick=$('pv-video-upscale-file'),src=$('pv-video-upscale-source'),result=$('pv-video-upscale-result');
  const stage=canvas,blank=originalEmpty,price=$('pv-video-upscale-price');
  const action=$('pv-video-upscale-action'),message=$('pv-video-upscale-message'),res=$('pv-video-upscale-resolution');
@@ -85,10 +86,12 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      if(media==='video'){
        imageEmptyHidden=originalEmpty.hidden;
        imagePreviewHidden=imagePreview.hidden;
+       imageSourceReady=app.classList.contains('pv-upscale-source-ready');
        imagePreview.hidden=true;
      }else{
        originalEmpty.hidden=imageEmptyHidden;
        imagePreview.hidden=imagePreviewHidden;
+       app.classList.toggle('pv-upscale-source-ready',imageSourceReady);
      }
      lastSyncedMode=media;
    }
@@ -96,6 +99,9 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      // Keep Image's real source and settings mounted, but mark its preview
      // hidden so loaded-photo :has() rules cannot resize the Video canvas.
      imagePreview.hidden=true;
+     // Image's loaded-source CSS must not resize the Video editor.
+     // Restore the saved class as soon as Image is selected again.
+     app.classList.remove('pv-upscale-source-ready');
      if(introKicker)introKicker.textContent='PV LAB / VIDEO ENHANCEMENT';
      heroTitle.textContent='Insert a source video.';
      heroDescription.textContent='Upload a video to begin the upscale process.';
