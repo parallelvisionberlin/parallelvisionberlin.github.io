@@ -28,7 +28,9 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  const messageField=sidebar.querySelector('#pv-video-upscale-message');
  if(!resolutionField||!quoteField||!messageField)throw Error('Video Upscaler options are unavailable.');
  resolutionField.classList.add('pv-video-upscale-inline-resolution');
- controlBody.querySelector('.parameter-grid')?.after(resolutionField);
+ const outputSettings=controlBody.querySelector('#resolution-control')?.closest('.parameter-grid');
+ if(!outputSettings)throw Error('Upscaler output settings row unavailable.');
+ outputSettings.after(resolutionField);
  resolutionField.after(quoteField,messageField);
  const preview=panel.querySelector('.pv-video-upscale-preview');
  for(const id of ['pv-video-upscale-source','pv-video-upscale-result','pv-video-upscale-working'])
