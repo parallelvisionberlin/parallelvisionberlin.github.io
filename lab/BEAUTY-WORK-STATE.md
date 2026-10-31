@@ -14,7 +14,12 @@
 - PASS: all five approved Image contracts, menu JS syntax and diff checks.
 - PASS: desktop and 390px browser menu geometry, original decoded artwork, header Character link, ArrowDown first-card focus, Escape dismissal and no title/page overflow.
 - PASS: exact original image URLs, focal positions and filters; all five entry-page changes contain only menu cache versions.
-- Deployment pending at commit preparation.
+- Reviewed source `00475cbe09de3e41dde8da7198ce654112997bde`; PR #744 merged as `d91b4696c865f52e6851ca27ff3398ceb17930a7`. Uploaded tree matches the local validated tree.
+- PASS GitHub approved Image UI, landing stability and both static validators. The separate legacy landing suite still expects Beauty Studio; no labels or test gates were changed.
+- LIVE: exact merge Cloudflare Pages check `124624659006` succeeded; deployment `4edb516b-9da8-4a8b-845d-61aa21b1e25b`.
+- Release verifier returned LIVE_VERIFIED for CSS and JS at `20261031-connected-strip1`. CSS SHA-256 `d3e126dcd6ff9fd7a8a397625416bf0ade8482f749db4d7ef490cabe8132b511`; JS `7e489944bd0e8e28e60cbe41f603e856efdafadd4c84b88bfce19e5dfeba896c`.
+- Live public browser confirms four decoded original photos, zero card borders/gaps, Character Studio in the header, no lower bar and no title overflow.
+- Complete. No changes to ALTER internals, any original media or generation behavior; no real sign-in or paid generation used.
 
 ## Studios menu corners and Fashion crop, 2026-10-31
 
