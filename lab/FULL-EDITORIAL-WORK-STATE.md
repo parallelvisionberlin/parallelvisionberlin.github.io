@@ -6,9 +6,11 @@
 - Choose a model and its description use adjacent desktop grid columns. Compact heading/tab spacing and square original casting photographs with captions below match the approved mockup. Phone retains its existing portrait cards, stacked source copy and hidden duplicate navigation.
 - Only `full-editorial-atelier.css`, stylesheet cache key in `full-editorial.html`, existing geometry checks in `tests/lab-full-editorial-browser.mjs`, and this checkpoint changed. No generation JavaScript, model handoff, pricing or billing changes.
 - Local 10/10 approved Image / Full Editorial source tests and whitespace checks passed. Actual supported-browser preview at 1363x936: cards 500-767 px, no overflow. At 1920x914: cards 503-840 px and note ends at 870 px, so all five captions fit. Phone 390x844 iframe: no horizontal overflow, navigation hidden, source copy stacked.
-- Existing complete mocked desktop/phone generation workflow now asserts a 280 px hero, nearby description and full card-row visibility; its CI result is pending. No paid generation or purchase performed.
-- Release status: local implementation/visual verification complete; source commit, PR, CI and production verification pending.
-- Next: publish the scoped branch, inspect relevant CI, merge and verify Cloudflare plus live asset bytes and layout.
+- Existing complete mocked desktop/phone generation workflow passed at 1440 and 390 px, including a 280 px hero, nearby description, full card-row visibility, Back, reference selection and confirmed mocked generation. Approved Image UI, gallery, backend and static validation checks also passed. A broader public Studio check fails on unchanged Upscaler intro width (334 vs 302 px); inspected without expanding scope or weakening tests. No paid generation or purchase performed.
+- Published PR #732: reviewed source `3d7168c1caf6aa271876a0496f467f5c902c5da4`, merge `e53b43e785b85dec2699dccf000641c13348ed21`. Cloudflare pvlab-studio deployment `580e4b0f-eb1a-485f-812a-23bbb24d3612` succeeded for the exact merged commit.
+- Exact production CSS returned HTTP 200 and matches reviewed source, SHA-256 `1fc050a19251b2d04b5c32f919c052e762c8623d560092b74d3204ff75e868f7`; cache key `20261031-compact-casting1`. Production HTML loads that version.
+- Actual signed-out production browser at https://pvlab.studio/full-editorial: hero 90-370 px (280 px high), complete casting row 500-767 px and its note ends 797 px at 1363x936, no horizontal overflow. Original photography and full caption row confirmed visually. Real signed-in generation was not performed.
+- Next: approved compact layout is complete and verified live; no remaining work for this request.
 
 ## 2026-10-31 / navigation inside the working hero
 - Owner request: raise the working hero, place the four-stage rail inside the photograph, compact Back / Step / Start over, and move the Identity source description beside Choose a model.
