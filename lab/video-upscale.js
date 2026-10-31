@@ -54,30 +54,58 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    sourceLabel:sourceControlLabel?.textContent};
  let imageEmptyHidden=originalEmpty.hidden;
  const pick=$('pv-video-upscale-file'),src=$('pv-video-upscale-source'),result=$('pv-video-upscale-result');
- const stage=$('pv-video-upscale-stage'),blank=$('pv-video-upscale-blank'),price=$('pv-video-upscale-price');
+ const stage=canvas,blank=originalEmpty,price=$('pv-video-upscale-price');
  const action=$('pv-video-upscale-action'),message=$('pv-video-upscale-message'),res=$('pv-video-upscale-resolution');
- const clear=$('pv-video-upscale-remove'),download=$('pv-video-upscale-download');
+ const clear=sharedClear,download=$('pv-video-upscale-download');
  const variants={bytedance:{name:'ByteDance Standard',allowed:['1080p','2k','4k']},
    proteus:{name:'Topaz Proteus',allowed:['1080p','4k']},
    starlight:{name:'Topaz Starlight',allowed:['1080p','4k']}};
  let media='image',model='bytedance',file=null,assetId=null,sourceURL=null,resultURL=null,quote=null;
  let currentJob=null,loading=false,revision=0,showResult=false,submissionUncertain=false;
+ let lastSyncedMode='image';
  const revoke=url=>{if(url)URL.revokeObjectURL(url);};
  const notice=(s,error=false)=>{message.textContent=s||'';message.classList.toggle('error',error);};
  const ready=()=>{const a=access();return !!a.signedIn&&!!a.falEnabled&&!!a.generationReady;};
  const stale=()=>{revision++;quote=null;};
  function sync(){
    const active=app.classList.contains('upscale-studio-active')&&!app.classList.contains('assets-active')&&!app.classList.contains('fashion-studio-active');
-   bar.hidden=!active;sidebar.hidden=!active||media!=='video';preview.hidden=!active||media!=='video';panel.hidden=true;app.classList.toggle('video-upscale-active',active&&media==='video');
+   bar.hidden=!active;panel.hidden=true;
+   const videoMode=active&&media==='video';
+   app.classList.toggle('video-upscale-active',videoMode);
+   if(lastSyncedMode!==media){
+     if(media==='video')imageEmptyHidden=originalEmpty.hidden;
+     else originalEmpty.hidden=imageEmptyHidden;
+     lastSyncedMode=media;
+   }
+   if(videoMode){
+     heroTitle.textContent='Insert a source video.';
+     heroDescription.textContent='Upload a video to begin the upscale process.';
+     heroButtonText.textContent='Upload video';
+     heroHint.textContent='MP4 · up to 30 seconds · 20 MB';
+     originalHero.setAttribute('aria-label','Upload a source video for upscaling');
+     if(sourceControlLabel)sourceControlLabel.textContent='Source video';
+     if(sourceControlTitle)sourceControlTitle.textContent=file?'Replace video':'Choose video';
+     if(sourceControlFilename)sourceControlFilename.textContent=file?file.name:'MP4 · up to 30 seconds · 20 MB';
+     originalEmpty.hidden=!!file||!!resultURL;
+   }else{
+     heroTitle.textContent=originalCopy.title;
+     heroDescription.textContent=originalCopy.description;
+     heroButtonText.textContent=originalCopy.button;
+     heroHint.textContent=originalCopy.hint;
+     originalHero.setAttribute('aria-label','Upload an image to upscale');
+     if(sourceControlLabel)sourceControlLabel.textContent=originalCopy.sourceLabel;
+     // The Image sidebar controller owns its source filename and thumbnail.
+   }
    for(const tab of bar.querySelectorAll('[data-video-upscale-tab]')){const yes=tab.dataset.videoUpscaleTab===media;tab.setAttribute('aria-selected',String(yes));tab.tabIndex=yes?0:-1;}
-   for(const b of sidebar.querySelectorAll('[data-video-upscale-model]')){b.setAttribute('aria-checked',String(b.dataset.videoUpscaleModel===model));b.disabled=loading;}
+   for(const b of videoCards){b.setAttribute('aria-checked',String(b.dataset.videoUpscaleModel===model));b.disabled=loading;}
    for(const option of res.options)option.disabled=!variants[model].allowed.includes(option.value);
-   res.disabled=loading;pick.disabled=loading;clear.hidden=!file||loading;
-   src.hidden=!file||showResult;result.hidden=!showResult||!resultURL;blank.hidden=!!file||!!resultURL;
-   $('pv-video-upscale-working').hidden=!currentJob||!['submitting','queued','running','saving'].includes(currentJob.status);
-   $('pv-video-upscale-original-button').hidden=!resultURL;
-   $('pv-video-upscale-result-button').hidden=!resultURL;
-   download.hidden=!resultURL;
+   res.disabled=loading;pick.disabled=loading;
+   if(videoMode){clear.disabled=!file||loading;clear.textContent='Clear';}
+   src.hidden=!videoMode||!file||showResult;result.hidden=!videoMode||!showResult||!resultURL;
+   $('pv-video-upscale-working').hidden=!videoMode||!currentJob||!['submitting','queued','running','saving'].includes(currentJob.status);
+   $('pv-video-upscale-original-button').hidden=!videoMode||!resultURL;
+   $('pv-video-upscale-result-button').hidden=!videoMode||!resultURL;
+   download.hidden=!videoMode||!resultURL;
    $('pv-video-upscale-info').textContent=file?file.name+' · '+(file.size/1048576).toFixed(1)+' MB':'Original media is preserved.';
    if(quote&&quote.expiresAt<=Date.now()){stale();notice('The estimate expired. Review credits again.',true);}
    if(!file){price.textContent='Select a video to calculate credits.';action.textContent='Upscale';action.disabled=true;}
@@ -87,6 +115,12 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    else if(currentJob&&['submitting','queued','running','saving','uncertain'].includes(currentJob.status)){price.textContent='See this request in private History.';action.textContent='Processing in History';action.disabled=true;}
    else if(quote){price.textContent='Estimated price: '+quote.creditCost+' credits · '+quote.settings.duration.toFixed(1)+'s. Provider billing may differ.';action.textContent='Confirm & upscale · '+quote.creditCost+' credits';action.disabled=false;}
    else{price.textContent='Review credits before the paid request.';action.textContent='Review credits';action.disabled=false;}
+   if(videoMode){
+     sharedGenerate.textContent=action.textContent;
+     sharedGenerate.disabled=action.disabled;
+     if(sourceControlTitle)sourceControlTitle.textContent=file?'Replace video':'Choose video';
+     if(sourceControlFilename)sourceControlFilename.textContent=file?file.name:'MP4 · up to 30 seconds · 20 MB';
+   }
  }
  function changeTab(name){if(!['image','video'].includes(name)||media===name||loading)return;media=name;sync();onModeChange?.();}
  for(const tab of bar.querySelectorAll('[data-video-upscale-tab]'))tab.addEventListener('click',()=>changeTab(tab.dataset.videoUpscaleTab));
@@ -104,7 +138,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  const choose=()=>{if(!loading)pick.click();};
  $('pv-video-upscale-choose').onclick=choose;
  pick.onchange=()=>{const f=pick.files?.[0];pick.value='';if(!f)return;try{chooseFile(f);onModeChange?.();}catch(e){notice(e.message,true);}};
- for(const b of sidebar.querySelectorAll('[data-video-upscale-model]'))b.onclick=()=>{
+ for(const b of videoCards)b.onclick=()=>{
    if(loading||model===b.dataset.videoUpscaleModel)return;
    model=b.dataset.videoUpscaleModel;if(!variants[model].allowed.includes(res.value))res.value='1080p';stale();notice('');sync();
  };
