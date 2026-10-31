@@ -1,5 +1,17 @@
 # Image composer prompt: current state
 
+## PV Soul deck alignment, 2026-10-31
+- Request: match Soul to the Seedream Image deck while retaining Soul's features and options. References: image(20261031-181837).png and image(20261031-181931).png.
+- Baseline main: `09ca94200e6ed50056473e12b96df0a3a5725de1`; isolated branch `codex/soul-deck-parity`. No open Soul/deck writer found in current PRs.
+- `image-deck-surface.css`: shared graphite frame, 19px corners, 1120px width, 30px desktop clearance, 40px controls and 144×84px Generate. Compact desktop height matches Seedream at 142px.
+- Soul ID remains an 84×40px control beside the toolbar; optional source upload sits above it. Attached photographs have a thumbnail strip. Long prompts expand upward and scroll internally; phone controls wrap without horizontal overflow.
+- All existing Soul options, input elements, uploads, selected identity, prompt copy, provider and quote/generation handlers remain unchanged. Native layouts retain their rules.
+- `studio.html` refreshes only the shared surface cache key to `20261031-soul-parity1`. New browser test compares desktop geometry with standard Image and checks 20 combinations across five widths, source/no-source and empty/long text. Existing gallery workflow runs it.
+- Local checks passed: Image contract 5/5; prompt paste; Studio layout; Soul parity 20/20; gallery 50/50; syntax and diff whitespace. Desktop/phone screenshots inspected. No real account mutations or paid calls.
+- First-image browser suite fails its Inspiration backdrop expectation on both unchanged baseline HTML/CSS and candidate. Entry/role geometry passes. The unrelated expectation was not changed or weakened.
+- Publication: pending PR, relevant CI, Cloudflare and custom-domain verification. Real signed-in Soul behavior and provider results are not claimed.
+
+
 ## Exact Prompt tooltip compact spacing (2026-10-28)
 - Owner screenshot identified oversized negative space from tooltip text to its border. Request is to keep existing typography and deck size while reducing only tooltip dimensions.
 - Branch `fix/exact-prompt-tooltip-compact-20261028`: in `assets.css`, width 235 → 225px, vertical/horizontal padding 11/12 → 6/8px, internal gap 5 → 3px; retain title 12px, explanation 11px, hover/focus behavior, alignment and position.

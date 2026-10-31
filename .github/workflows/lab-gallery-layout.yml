@@ -1,10 +1,10 @@
 name: PV LAB gallery row fit
 on:
   pull_request:
-    paths: ['lab/gallery-layout.js', 'lab/assets.css', 'lab/image-studio.css', 'tests/lab-gallery-layout-ui.mjs', '.github/workflows/lab-gallery-layout.yml']
+    paths: ['lab/image-deck-surface.css', 'tests/lab-soul-deck-parity-ui.mjs', 'lab/gallery-layout.js', 'lab/assets.css', 'lab/image-studio.css', 'tests/lab-gallery-layout-ui.mjs', '.github/workflows/lab-gallery-layout.yml']
   push:
     branches: [main]
-    paths: ['lab/gallery-layout.js', 'lab/assets.css', 'lab/image-studio.css', 'tests/lab-gallery-layout-ui.mjs', '.github/workflows/lab-gallery-layout.yml']
+    paths: ['lab/image-deck-surface.css', 'tests/lab-soul-deck-parity-ui.mjs', 'lab/gallery-layout.js', 'lab/assets.css', 'lab/image-studio.css', 'tests/lab-gallery-layout-ui.mjs', '.github/workflows/lab-gallery-layout.yml']
 permissions:
   contents: read
 jobs:
@@ -27,3 +27,7 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-gallery-browser/node_modules/playwright/index.mjs
         run: node tests/lab-gallery-layout-ui.mjs
+      - name: Verify Soul uses the shared Image deck geometry
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-gallery-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-soul-deck-parity-ui.mjs
