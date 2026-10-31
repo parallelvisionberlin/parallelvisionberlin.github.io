@@ -173,7 +173,7 @@ async function sync(){
  finally{syncing=false;update();if(version!==epoch)void sync();}
 }
 $('beauty-change-photo').addEventListener('click',()=>$('beauty-photo').click());
-$('beauty-photo').addEventListener('change',event=>void setPhoto(event.target.files?.[0]));
+$('beauty-photo').addEventListener('change',event=>{const chosen=event.target.files?.[0];event.target.value='';void setPhoto(chosen);});
 for(const name of ['dragenter','dragover'])$('beauty-photo-drop').addEventListener(name,event=>{event.preventDefault();if(!busy())$('beauty-photo-drop').classList.add('is-dragging');});
 $('beauty-photo-drop').addEventListener('dragleave',event=>{if(!event.currentTarget.contains(event.relatedTarget))event.currentTarget.classList.remove('is-dragging');});
 $('beauty-photo-drop').addEventListener('drop',event=>{event.preventDefault();event.currentTarget.classList.remove('is-dragging');void setPhoto(event.dataTransfer?.files?.[0]);});
