@@ -125,6 +125,7 @@ try{
   assert.equal(await page.locator('#empty .pv-upscale-empty-center h2').textContent(),'Insert a source video.',label+': exact Video source label');
   assert.equal(await page.locator('#pv-upscale-hero-upload span').textContent(),'Upload video',label+': SAME upload button');
   assert.equal(await page.locator('#preview').isVisible(),false,label+': saved Image preview hidden, not deleted');
+  assert.equal(await page.locator('#app').evaluate(el=>el.classList.contains('pv-upscale-source-ready')),false,label+': Video does not inherit loaded Image layout');
   const video=await page.evaluate(()=>{
    const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
    return {canvas:rect('#upscale-canvas'),action:rect('#generate'),picker:rect('#upscale-model-menu'),
@@ -156,6 +157,7 @@ try{
   await page.screenshot({path:'test-results/upscaler-single-video-'+label+'.png',fullPage:false});
   await page.locator('[data-video-upscale-tab="image"]').click();
   assert.equal(await page.locator('#preview').isVisible(),true,label+': Image preview restored without reupload');
+  assert.equal(await page.locator('#app').evaluate(el=>el.classList.contains('pv-upscale-source-ready')),true,label+': loaded Image layout restored');
   assert.equal(await page.locator('#upscale-model-menu [data-upscale-engine]').first().isVisible(),true,label+': original Image models restored');
   assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').first().isVisible(),false,label+': Video models hidden');
   assert.equal(await page.locator('.pv-video-upscale-inline-resolution').isVisible(),false,label+': Video resolution hidden in Image');
