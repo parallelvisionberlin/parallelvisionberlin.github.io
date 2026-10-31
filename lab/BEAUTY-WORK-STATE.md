@@ -1,5 +1,17 @@
 # Beauty Studio and Studios navigation
 
+## Studios menu corners and Fashion crop, 2026-10-31
+
+- Owner asked to soften the square cards and centre the second (Fashion Studio) photograph.
+- Baseline: main `e4c375d`, following the approved four-card navigation.
+- Shared `studios-menu.css`: 8px card corners, 12px panel corners on desktop and mobile; image layers remain clipped by each card.
+- Fashion photograph uses `object-position: center center`; keep the exact approved photograph, filters and hover zoom.
+- Refresh stylesheet cache version to `20261031-soft-centred1` on index, studio, beauty, moods and Full Editorial.
+- Preserve card sizes, responsive column counts, typography, labels, routes and menu interactions.
+- PASS: all five approved Image UI contracts; diff whitespace check.
+- Desktop browser renders all four cards at 8px radius, panel at 12px and Fashion crop at 50% 50%.
+- Deployment pending at commit preparation.
+
 ## ALTER functional corrections, 2026-10-31
 
 - Objective: finish PR #726 without changing the approved art direction, identity prompt, prices or other Studios.
