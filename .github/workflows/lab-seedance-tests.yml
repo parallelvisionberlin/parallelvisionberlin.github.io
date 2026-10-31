@@ -50,6 +50,7 @@ jobs:
         run: |
           node tests/lab-studio-layout-ui.mjs
           node tests/lab-seedance-ui.mjs
+          node tests/lab-extend-character-ui.mjs
           node tests/lab-soul-reinterpret-ui.mjs
           node tests/lab-image-oneclick-ui.mjs
           node tests/lab-upscale-ui.mjs

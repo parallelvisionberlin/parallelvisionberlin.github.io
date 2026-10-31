@@ -1,3 +1,14 @@
+## Extend with character identity references, 2026-10-31
+- User requested saved Alma character in Extend, real image delivery with the source clip, and retention through History/Reuse.
+- Base inspected: 64ed58529ad849cb692d9a8650aa1aa355e2601d. Publication status below must be verified independently.
+- Root causes: Extend hid the existing image/library controls, Scene Library rejected Extend, ensureInputs omitted all images, and the Worker rejected image IDs and cleared their roles. Reuse restored images only in Reference mode.
+- Extend now uses the existing optional image uploads and Saved References, retaining one required source video. Owned image IDs, roles and grouped character metadata reach the provider as signed image_urls plus the compiled reference instructions. The priced payload is submitted unchanged.
+- Shared preparation validates both generation and Save draft. History retains originals and character metadata; Reuse restores the original clip and grouped character. Current-scene inspector also shows the attached images.
+- No model, pricing, account, spending-limit or confirmation changes. No paid generation performed. Reference-mode generation already forwards multiple images; the specific failed result cannot prove which references the provider received. Reference guidance does not guarantee identity adherence.
+- Focused server tests cover signed image delivery, private access, invalid references, immutable quote submission, video-only compatibility, Save draft and generated History. Browser regression covers actual saved Alma attachment, quoted IDs/roles, Save draft, History/Reuse and no horizontal overflow at 390px and 1440px.
+- Relevant files: lab-worker/higgsfield-video.mjs, worker.mjs; lab/lab.js, scene-library.js, video-scene-states.js, studio.html and three existing Video CSS layers; tests/lab-seedance.test.mjs, lab-extend-character-ui.mjs. Browser test added to the existing Video integration workflow.
+- Local checks and publication evidence: pending final review. Real-account generated identity fidelity remains unverified; fixtures use intercepted APIs only.
+
 ## Missing input and duplicate draft prompt, 2026-10-30
 - Screenshot has Reference set, typed prompt, and no reference attached. Existing hasInput correctly prevents generation; Text mode accepts prompt-only generation.
 - Replaces the unexplained disabled action with Add a reference / Add a start frame / Add a video for signed-in eligible accounts with a prompt but missing media. It opens the existing picker, never a quote/job. Existing account/balance/busy guards remain; attached media restores Generate.

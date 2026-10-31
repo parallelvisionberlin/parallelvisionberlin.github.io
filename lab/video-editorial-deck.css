@@ -357,7 +357,6 @@
 #app.video-studio-active.video-extend-active #reference-mode:not([hidden]){
   display:block;padding:11px!important;
 }
-#app.video-studio-active.video-extend-active #reference-mode>.scene-video-access,
 #app.video-studio-active.video-extend-active #video-motion-toggle{display:none!important}
 #app.video-studio-active.video-extend-active #reference-mode #reference-media:not([hidden]){
   display:block!important;padding:0;border:0;background:transparent;

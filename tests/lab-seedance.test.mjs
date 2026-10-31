@@ -107,7 +107,7 @@ test('Reference media survive shared drafts and are removed only when unreferenc
  assert.equal((await req(env,'/api/jobs/'+j2.id,{method:'DELETE'})).status,200);assert.equal((await req(env,'/api/assets/'+a)).status,404);
 });
 test('Seedance extension quotes Higgsfield, binds one owned video, submits once and archives video output',async()=>{
- const {env}=fixture();env.HF_CREDENTIALS='test:secret';await setup(env);const video=await reference(env);
+ const {env}=fixture();env.HF_CREDENTIALS='test:secret';const image=await setup(env),video=await reference(env);
  const archived=env.LAB_DB.db.prepare("INSERT INTO jobs(id,owner_id,params,state,created_at,updated_at) VALUES(?,'owner-internal','{}','completed',1,1)");
  for(let i=0;i<509;i++)archived.run(crypto.randomUUID());
  const previous=globalThis.fetch;let estimates=0,submits=0,lastInput,status='queued';const task=crypto.randomUUID();
@@ -118,16 +118,30 @@ test('Seedance extension quotes Higgsfield, binds one owned video, submits once 
   return Response.json({status,video:{url:'https://cdn.spicyapi.ai/extension.mp4'}});
  }return previous(url,opts);};
  try{
-  const settings={...sd('extend'),referenceVideos:[{name:'camera.mp4',seconds:3}]},data={sourceId:video,referenceVideoIds:[video],settings};
+  const roles=[{name:'alma.png',role:'identity',note:'Use Alma only.',elementId:crypto.randomUUID(),elementName:'Alma',elementCategory:'characters'}];
+  const settings={...sd('extend'),referenceRoles:roles,referenceVideos:[{name:'camera.mp4',seconds:3}]},data={sourceId:video,referenceVideoIds:[video],referenceSourceIds:[image],settings};
+  const draft=await req(env,'/api/drafts',{method:'POST',data});assert.equal(draft.status,201,await draft.clone().text());const savedDraft=(await draft.json()).job;assert.deepEqual(savedDraft.settings.referenceSourceIds,[image]);assert.deepEqual(savedDraft.settings.referenceVideoIds,[video]);assert.equal(estimates,0);
   const r=await req(env,'/api/quotes',{method:'POST',data});assert.equal(r.status,200,await r.clone().text());const q=await r.json();
   assert.equal(q.provider,'Higgsfield');assert.equal(q.priceIsEstimate,true);assert.equal(submits,0);assert.equal(estimates,1);
+  assert.deepEqual(q.settings.referenceSourceIds,[image]);assert.equal(q.settings.referenceRoles[0].elementName,'Alma');
+  assert.equal(lastInput.image_urls.length,1);assert.match(lastInput.prompt,/@Image1.*identity/);assert.match(lastInput.prompt,/Use Alma only/);
+  const signedImage=new URL(lastInput.image_urls[0]);assert.equal((await req(env,signedImage.pathname+signedImage.search,{authToken:null,headers:{Origin:''}})).status,200);
+  assert.equal((await req(env,'/api/assets/'+image,{authToken:guest})).status,403);
   assert.equal(lastInput.duration,5);assert.equal(lastInput.duration_seconds,undefined);assert.equal(lastInput.aspect_ratio,undefined);assert.equal(lastInput.output_format,'mp4');assert.match(lastInput.video_url,/\/input\// );
   assert.equal((await req(env,'/api/quotes',{method:'POST',data:{...data,referenceVideoIds:[]}})).status,400);assert.equal(estimates,1);
+  for(const badIds of [[video],[image,image],Array(31).fill(image),[crypto.randomUUID()]]){
+   const bad=await req(env,'/api/quotes',{method:'POST',data:{...data,referenceSourceIds:badIds}});assert.ok([400,404].includes(bad.status));
+  }
+  assert.equal(estimates,1,'Invalid references fail before contacting the provider');
   env.LAB_DB.db.prepare('UPDATE settings SET daily_limit_microusd=1000000').run();assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).status,409);assert.equal(submits,0);
   env.LAB_DB.db.prepare('UPDATE settings SET daily_limit_microusd=10000000').run();
   const j=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;assert.equal(j.status,'queued');assert.equal(j.settings.provider,'higgsfield');assert.equal(submits,1);
   await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});assert.equal(submits,1);
+  const clipOnly=await req(env,'/api/quotes',{method:'POST',data:{...data,referenceSourceIds:[],settings:{...settings,referenceRoles:[]}}});assert.equal(clipOnly.status,200);assert.equal(lastInput.image_urls,undefined);
   status='completed';env.LAB_DB.db.prepare('UPDATE jobs SET last_poll=0 WHERE id=?').run(j.id);
   const completed=(await(await req(env,'/api/jobs/'+j.id)).json()).job;assert.equal(completed.status,'completed');assert.ok(completed.outputId);assert.equal(completed.settings.type,'video');
+  assert.deepEqual(completed.settings.referenceSourceIds,[image]);assert.deepEqual(completed.settings.referenceRoles,q.settings.referenceRoles);
+  const history=await(await req(env,'/api/jobs')).json();const stored=history.jobs.find(entry=>entry.id===j.id);
+  assert.deepEqual(stored.settings.referenceSourceIds,[image]);assert.equal(stored.settings.referenceRoles[0].elementName,'Alma');
  }finally{globalThis.fetch=previous;}
 });

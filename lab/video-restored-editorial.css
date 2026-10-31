@@ -224,19 +224,11 @@
  margin:0!important;padding:0!important;flex:1 1 150px!important;
  line-height:1.4!important;font-size:10px!important;color:#adb7c3!important;
 }
-/* Extend is a clip-only task. Hide reference-image utilities that the actual
-   Extend provider does not consume, but retain its original upload & history. */
+/* Extend accepts optional image and character references alongside its clip. */
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #reference-mode:not([hidden]){
  display:flex!important;flex-direction:column!important;
  gap:9px!important;padding:0!important;background:transparent!important;
 }
-#app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #reference-mode>.upload-heading,
-#app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #reference-drop,
-#app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #reference-mode>.scene-video-access,
-#app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #scene-video-selected,
-#app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #reference-progress,
-#app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #pv-video-ref-title,
-#app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #reference-list,
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #video-motion-toggle,
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #reference-guidance,
 #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.video-extend-active #start-frame-maker,
