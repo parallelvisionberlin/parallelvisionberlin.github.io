@@ -2383,13 +2383,18 @@ test('confirmed customer DELETE waits for Clerk deletion before immediate new-ac
 test('Beauty Studio binds portrait edits to existing quotes and idempotent image jobs',async()=>{
   // The synthetic vendor returns a fixed quote ID, so each distinct priced input
   // needs an independent store. Never reuse a provider quote across different jobs.
-  for(const [engine,aspectRatio] of [['seedream','4:5'],['flash','4:5'],['seedream','auto'],['flash','auto']]){
+  for(const [engine,aspectRatio,sourceWidth,sourceHeight,expectedRatio] of [
+    ['seedream','4:5',800,1200,'4:5'],['flash','4:5',800,1200,'4:5'],
+    ...['seedream','flash'].flatMap(engine=>[
+      [engine,'auto',800,1200,'2:3'],[engine,'auto',1200,800,'3:2'],
+      [engine,'auto',800,800,'1:1'],[engine,'auto',2000,1000,'2:1'],
+      [engine,'auto',1000,3000,'1:3']])]){
     const {env}=fixture();await setup(env);createMode='ok';providerState='queued';createCount=0;
     const id=await uploadGuidanceReference(env,'beauty-person.png',42);
-    const settings=beautySettings({model:engine,direction:'Subtle copper eye makeup.',aspectRatio});
+    const settings=beautySettings({model:engine,direction:'Subtle copper eye makeup.',aspectRatio,sourceWidth,sourceHeight});
     const response=await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,referenceSourceIds:[id],settings}});
     assert.equal(response.status,200);const quote=await response.json();
-    if(aspectRatio==='auto')assert.equal(quote.settings.aspectRatio,'16:9','Worker and UI use the same reference-edit Auto ratio');
+    assert.equal(quote.settings.aspectRatio,expectedRatio,'The Worker preserves the photo-derived ratio in the priced settings');
     validateBeautyQuote(quote,settings,id);
     const before=createCount;
     const first=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quote.id,confirm:true}});

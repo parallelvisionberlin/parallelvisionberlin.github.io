@@ -1,5 +1,6 @@
 // Synthetic accounts and intercepted APIs only. No provider or payment requests.
 import assert from 'node:assert/strict';
+import {beautyAutoRatio} from '../lab/beauty-settings.js';
 import http from 'node:http';
 import {readFileSync,existsSync,statSync,mkdirSync} from 'node:fs';
 import {resolve,extname,relative} from 'node:path';
@@ -17,9 +18,10 @@ await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const base='http://127.0.0.1:'+server.address().port,browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox']});
 mkdirSync('test-results',{recursive:true});
 async function scenario({role='customer',width=1448,height=1086,malformed=false,delayed=false,submitFailure=false}={}){
- const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'}),page=await context.newPage();
+ const context=await browser.newContext({viewport:{width,height},hasTouch:width<=390,reducedMotion:'reduce'}),page=await context.newPage();
+ page.setDefaultTimeout(10000);
  await context.addInitScript(value=>{window.__beautyRole=value},role);
- const calls=[],quotes=[],jobs=[],errors=[];let submits=0,uploads=0,delayOldResult=false;
+ const calls=[],quotes=[],jobs=[],errors=[],sources=new Map(),missingSources=new Set();let submits=0,uploads=0,delayOldResult=false;
  page.on('pageerror',error=>errors.push(error.message));
  await page.route('https://**/*',async route=>{
   const request=route.request(),url=new URL(request.url());
@@ -28,7 +30,7 @@ async function scenario({role='customer',width=1448,height=1086,malformed=false,
   assert.equal(request.headers().authorization,'Bearer synthetic-token');
   let result={};
   if(url.pathname==='/api/session')result={owner:role==='owner',customer:role!=='owner',balanceCredits:500,generationReady:true,billingReady:true,config:{enabled:true}};
-  else if(url.pathname==='/api/uploads'){uploads++;result={id:'photo-'+uploads};}
+  else if(url.pathname==='/api/uploads'){uploads++;result={id:'photo-'+uploads};sources.set(result.id,{body:request.postDataBuffer(),contentType:request.headers()['content-type']});}
   else if(url.pathname==='/api/quotes'){
    const body=request.postDataJSON(),number=quotes.length+1;
    const quoted={id:'quote-'+number,creditCost:malformed?'23':number===1?23:31,expiresAt:Date.now()+240000,settings:{...body.settings,aspectRatio:body.settings.referenceMode==='references'&&body.settings.aspectRatio==='auto'?'16:9':body.settings.aspectRatio,referenceSourceIds:body.referenceSourceIds}};quotes.push(quoted);
@@ -38,14 +40,23 @@ async function scenario({role='customer',width=1448,height=1086,malformed=false,
    if(submitFailure)return route.abort('failed');
    const job={id:'job-'+submits,status:'completed',outputId:'output-'+submits,createdAt:Date.now(),settings:q.settings};jobs.unshift(job);result={job};
   }else if(url.pathname==='/api/jobs')result={jobs,activeJobs:[]};
-  else if(url.pathname.startsWith('/api/assets/')){if(delayOldResult&&url.pathname==='/api/assets/output-1')await new Promise(done=>setTimeout(done,1100));return route.fulfill({status:200,contentType:'image/webp',body:photo});}
+  else if(url.pathname.startsWith('/api/assets/')){
+   const id=url.pathname.split('/').pop();
+   if(delayOldResult&&id==='photo-1')await new Promise(done=>setTimeout(done,1100));
+   if(missingSources.has(id))return route.fulfill({status:404,contentType:'application/json',body:'{}'});
+   return route.fulfill({status:200,...(sources.get(id)||{contentType:'image/webp',body:photo})});
+  }
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});
  });
  await page.goto(base+'/lab/beauty.html');await page.waitForFunction(()=>!!window.__beautyAccount);
  if(role!=='guest')await page.locator('#beauty-account').waitFor({state:'visible'});
- return {context,page,calls,quotes,jobs,errors,delayOldResult:()=>{delayOldResult=true},get submits(){return submits},get uploads(){return uploads}};
+ return {context,page,calls,quotes,jobs,errors,missingSources,delayOldResult:()=>{delayOldResult=true},get submits(){return submits},get uploads(){return uploads}};
 }
 const input={name:'portrait.webp',mimeType:'image/webp',buffer:photo};
+async function testPhoto(page,width,height,colour){
+ const data=await page.evaluate(({width,height,colour})=>{const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d');ctx.fillStyle=colour;ctx.fillRect(0,0,width,height);return canvas.toDataURL('image/png').split(',')[1];},{width,height,colour});
+ return {name:`source-${width}x${height}.png`,mimeType:'image/png',buffer:Buffer.from(data,'base64')};
+}
 try{
  for(const [width,height] of [[1920,900],[1440,800],[1366,768],[1280,720],[1024,768]]){
   const s=await scenario({role:'guest',width,height}),{page}=s;
@@ -95,7 +106,7 @@ try{
   assert.equal(await header.getByRole('link',{name:'Credits'}).count(),0,'Credit controls stay in the account menu');
   await page.locator('.pv-studios-trigger').click();
   await page.locator('.pv-studios-panel').waitFor({state:'visible'});
-  assert.equal(await page.getByRole('link',{name:'Beauty Studio',exact:true}).isVisible(),true);
+  assert.equal(await page.getByRole('link',{name:'Alter',exact:true}).isVisible(),true);
    assert.equal(await page.getByRole('link',{name:'Retouch Studio',exact:true}).isVisible(),true);
   assert.equal(await page.getByRole('link',{name:'Outfit Studio',exact:true}).count(),0);
   assert.equal(await page.locator('.pv-studios-tile').count(),4);
@@ -115,7 +126,9 @@ try{
   assert.equal(await page.locator('#beauty-account').isVisible(),true,'Signed-in account menu is visible on Beauty');
   await page.locator('#beauty-photo').setInputFiles(input);
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
-  assert.equal(s.quotes[0].settings.aspectRatio,'16:9','Auto is priced as the Worker canonical 16:9 reference ratio');
+  const dims=await page.locator('#beauty-photo-preview').evaluate(el=>({width:el.naturalWidth,height:el.naturalHeight}));
+   assert.equal(s.quotes[0].settings.aspectRatio,beautyAutoRatio(dims.width,dims.height),'Auto quotes the uploaded photo\'s closest supported aspect ratio');
+   assert.match(await page.locator('#beauty-ratio option[value="auto"]').textContent(),new RegExp(beautyAutoRatio(dims.width,dims.height).replace(':','\\:')));
   assert.equal(await page.locator('#beauty-ratio').inputValue(),'auto','Auto remains selected in the approved UI');
   assert.equal(s.submits,0,'Quoting does not generate');assert.equal(s.uploads,1);
   await page.evaluate(()=>{document.querySelector('#beauty-form').requestSubmit();document.querySelector('#beauty-form').requestSubmit()});
@@ -124,6 +137,7 @@ try{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Completed result does not widen the page');
   await page.screenshot({path:'test-results/beauty-result-'+options.role+'-'+options.width+'.png',fullPage:true});
   assert.equal(await page.locator('#beauty-download').getAttribute('href').then(v=>v.startsWith('blob:')),true);
+   assert.equal(await page.locator('#beauty-result').getAttribute('data-before-source-id'),'photo-1','Before image belongs to the actual generated job source');
   await page.evaluate(()=>window.__beautyAccount.signOut());
   await page.waitForFunction(()=>document.querySelector('#beauty-result').hidden&&document.querySelector('#beauty-photo-preview').hidden);
   assert.equal(await page.locator('#beauty-history').textContent(),'');assert.equal(await page.locator('#beauty-direction').inputValue(),'');assert.equal(await page.locator('#beauty-photo-preview').getAttribute('src'),null);
@@ -150,18 +164,69 @@ try{
   await page.reload();await page.locator('#beauty-check-history').waitFor({state:'visible'});assert.equal(s.submits,1,'Reload cannot submit or reprice an ambiguous request');
   await s.context.close();
  }
- {
-  const s=await scenario(),{page}=s;await page.locator('#beauty-photo').setInputFiles(input);
+ for(const width of [1448,390]){
+  console.log('ALTER comparison checks at '+width+'px');
+  const s=await scenario({width,height:844}),{page}=s;
+  const portrait=await testPhoto(page,600,900,'#a52020'),landscape=await testPhoto(page,900,600,'#206030');
+  await page.locator('#beauty-photo').setInputFiles(portrait);
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('23 credits'));
+  assert.equal(s.quotes.at(-1).settings.aspectRatio,'2:3');
+  assert.deepEqual(await page.locator('#beauty-model option').allTextContents(),['Seedream 5 Pro','Seedream Flash']);
+  const illustrative=page.getByText('Illustrative directions. Actual results may vary.',{exact:true});
+  await illustrative.scrollIntoViewIfNeeded();assert.equal(await illustrative.isVisible(),true);
   await page.locator('#beauty-generate').click();await page.locator('#beauty-result').waitFor({state:'visible'});
+  const originalUrl=await page.locator('.beauty-before-image').getAttribute('src');
+  assert.notEqual(originalUrl,await page.locator('#beauty-photo-preview').getAttribute('src'),'Comparison owns a URL independent of the upload tile');
+  await page.locator('.beauty-before-image').evaluate(image=>image.decode());
+  const slider=page.getByRole('slider',{name:'Before and after image comparison'});
+  await slider.press('End');assert.equal(await slider.getAttribute('aria-valuenow'),'100');
+  await slider.press('Home');await slider.press('ArrowRight');assert.equal(await slider.getAttribute('aria-valuenow'),'5');
+  if(width===390){
+   const box=await page.locator('#beauty-result').boundingBox();
+   const handle=await slider.boundingBox(),cdp=await page.context().newCDPSession(page);
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:handle.x+handle.width/2,y:box.y+20}]});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:box.x+box.width*.75,y:box.y+20}]});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+   assert.ok(Math.abs(Number(await slider.getAttribute('aria-valuenow'))-75)<=1,'Touch comparison uses the image position');
+  }
   await page.locator('#beauty-generate').waitFor({state:'visible'});await page.waitForFunction(()=>!document.querySelector('#beauty-generate').disabled);
+  await page.locator('#beauty-photo').setInputFiles(landscape);
+  await page.locator('#beauty-photo-preview').waitFor({state:'visible'});
+  assert.equal(await page.evaluate(async url=>(await fetch(url)).ok,originalUrl),true,'New upload must not revoke the displayed job original');
   await page.locator('#beauty-direction').fill('Another look');
+  const secondQuoted=await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'),null,{timeout:8000}).then(()=>true).catch(()=>false);
+  if(!secondQuoted){
+   const debug=await page.evaluate(()=>({button:document.querySelector('#beauty-generate').textContent,disabled:document.querySelector('#beauty-generate').disabled,status:document.querySelector('#beauty-status').textContent,photoSrc:document.querySelector('#beauty-photo-preview').getAttribute('src')?.slice(0,45),inputValue:document.querySelector('#beauty-photo').value,ratio:document.querySelector('#beauty-ratio').value,direction:document.querySelector('#beauty-direction').value}));
+   console.error('ALTER second-quote debug',JSON.stringify({debug,calls:s.calls,quotes:s.quotes.map(q=>({id:q.id,ratio:q.settings.aspectRatio,sourceIds:q.settings.referenceSourceIds})),uploads:s.uploads,submits:s.submits,errors:s.errors}));
+  }
+  assert.equal(secondQuoted,true,'Second source quote should settle after uploading a new photograph');
+  assert.equal(s.quotes.at(-1).settings.aspectRatio,'3:2');
+  await page.locator('#beauty-model').selectOption('flash');
   await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
+  assert.equal(s.quotes.at(-1).settings.engine,'flash','Visible Flash choice selects the Flash engine');
+  await page.locator('#beauty-ratio').selectOption('1:1');
+  await page.waitForFunction(()=>document.querySelector('#beauty-generate').textContent.includes('31 credits'));
+  assert.equal(s.quotes.at(-1).settings.aspectRatio,'1:1','Explicit ratio overrides the photo shape');
   await page.locator('#beauty-generate').click();await page.waitForFunction(()=>document.querySelectorAll('#beauty-history button').length===2);
   await page.locator('#beauty-generate').click({trial:true});
-  s.delayOldResult();await page.locator('#beauty-history button').nth(1).click();await page.locator('#beauty-history button').nth(0).click();
+  await page.locator('#beauty-history button').nth(1).click();
+  await page.waitForFunction(()=>document.querySelector('#beauty-result').dataset.beforeSourceId==='photo-1');
+  assert.equal(await page.locator('#beauty-photo-preview').evaluate(image=>image.naturalWidth),900,'History must not replace the current upload');
+  await page.locator('.beauty-before-image').evaluate(image=>image.decode());
+  assert.deepEqual(await page.locator('.beauty-before-image').evaluate(image=>[image.naturalWidth,image.naturalHeight]),[600,900],'History fetches the actual original photograph');
+  const oldSourceRequest=page.waitForRequest('**/api/assets/photo-1');
+  s.delayOldResult();await page.locator('#beauty-history button').nth(1).click();await oldSourceRequest;
+  await page.locator('#beauty-history button').nth(0).click();
   await page.waitForTimeout(1300);
   assert.match(await page.locator('#beauty-download').getAttribute('download'),/job-2/,'A delayed older image cannot replace the newer selection');
+   assert.equal(await page.locator('#beauty-result').getAttribute('data-before-source-id'),'photo-2','History comparison must keep the new job original rather than the previously selected job original');
+  s.missingSources.add('photo-1');
+  await page.locator('#beauty-history button').nth(1).click();
+  await page.waitForFunction(()=>document.querySelector('#beauty-download').download.includes('job-1'));
+  assert.equal(await slider.isVisible(),false,'Unavailable original hides the comparison without substituting another person');
+  assert.equal(await page.locator('#beauty-result-image').isVisible(),true,'Saved output remains available without its original');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.screenshot({path:'test-results/beauty-missing-original-'+width+'.png',fullPage:true});
   assert.equal(s.submits,2,'History selection never generates');await s.context.close();
  }
  // The homepage uses the real new menu, retaining its original Fashion URL.
@@ -174,7 +239,7 @@ try{
  {
   const s=await scenario({role:'guest',width:390});await s.page.goto(base+'/lab/moods.html');
   await s.page.locator('.pv-studios-trigger').click();
-  await s.page.getByRole('link',{name:'Beauty Studio',exact:true}).click();
+  await s.page.getByRole('link',{name:'Alter',exact:true}).click();
   await s.page.waitForURL('**/lab/beauty.html');
   assert.equal(await s.page.locator('h1').textContent(),'Beauty Studio.');await s.context.close();
  }

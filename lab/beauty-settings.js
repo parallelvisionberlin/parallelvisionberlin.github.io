@@ -1,8 +1,18 @@
+// Auto follows the uploaded photo's shape using the nearest supported provider aspect ratio.
+export function beautyAutoRatio(sourceWidth,sourceHeight){
+ const width=Number(sourceWidth),height=Number(sourceHeight);
+ if(!(width>0&&height>0&&Number.isFinite(width)&&Number.isFinite(height)))return '16:9';
+ const ratios=['1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3'];
+ return ratios.reduce((best,ratio)=>{
+  const [w,h]=ratio.split(':').map(Number),[bw,bh]=best.split(':').map(Number);
+  return Math.abs(Math.log(width/height/(w/h)))<Math.abs(Math.log(width/height/(bw/bh)))?ratio:best;
+ },'1:1');
+}
 export const BEAUTY_PROMPT_PREFIX='Beauty Studio portrait edit.';
 const makeup={editorial:'Editorial makeup with a considered, photographic finish.',natural:'Subtle natural makeup.', 'soft-glam':'Soft glam makeup, softly defined eyes and restrained gloss.',bold:'Bold fashion makeup with intentional colour and definition.',keep:'Keep the original makeup.'};
 const hair={keep:'Keep the original hairstyle and hair colour.',sleek:'Style the hair into a sleek finish without changing its colour.',waves:'Style the hair into soft waves without changing its colour.',wet:'Give the existing hair a wet-look finish.',updo:'Style the existing hair into an elegant updo.'};
 const skin={natural:'Preserve natural skin texture, pores, freckles and distinctive marks.',dewy:'Give the skin a subtle dewy finish while preserving pores and natural texture.',matte:'Give the skin a soft matte finish while preserving pores and natural texture.',keep:'Keep the original skin finish and texture.'};
-export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',skin:skinId='natural',strength=50,direction='',model='seedream',resolution='1k',aspectRatio='4:5',filename='Your photo'}={}){
+export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',skin:skinId='natural',strength=50,direction='',model='seedream',resolution='1k',aspectRatio='4:5',sourceWidth=0,sourceHeight=0,filename='Your photo'}={}){
  const value=Number(strength);
  if(!makeup[makeupId]||!hair[hairId]||!skin[skinId]||!Number.isInteger(value)||value<0||value>100)throw Error('Choose valid beauty settings.');
  if(!['seedream','seedream-pro','flash'].includes(model)||!['1k','2k'].includes(resolution)||!['4:5','1:1','3:4','9:16','auto'].includes(aspectRatio))throw Error('Choose valid image settings.');
@@ -10,8 +20,8 @@ export function beautySettings({makeup:makeupId='editorial',hair:hairId='keep',s
  const prompt=[BEAUTY_PROMPT_PREFIX,'Edit the supplied photograph of this same person. Preserve their identity, facial structure, age, skin tone, body proportions, pose and background. Make only the requested beauty changes. Do not add a veil, clothing, jewellery or props unless explicitly requested.',
  value===0?'Keep the original look without an intentional transformation.':[makeup[makeupId],hair[hairId],skin[skinId],`Look intensity: ${value}/100; scale the beauty changes accordingly.`].join(' '),
  'Believable fashion photography, realistic skin and hair; no plastic smoothing or reshaped anatomy.',extra?`Additional direction: ${extra}`:''].filter(Boolean).join('\n');
- // The Worker normalizes Auto to 16:9 for reference edits. Bind the live quote to that exact ratio.
- const quotedAspectRatio=aspectRatio==='auto'?'16:9':aspectRatio;
+ // Resolve Auto before quoting so the provider's reference-edit fallback cannot silently force 16:9.
+ const quotedAspectRatio=aspectRatio==='auto'?beautyAutoRatio(sourceWidth,sourceHeight):aspectRatio;
  return {type:'image',mode:'image',engine:model==='seedream-pro'?'seedream':model,referenceMode:'references',prompt,resolution,aspectRatio:quotedAspectRatio,outputFormat:'png',referenceRoles:[{name:String(filename).slice(0,160),role:'identity',note:'Preserve the identity and distinctive facial features of this person.'}]};
 }
 export function validateBeautyQuote(quote,settings,sourceId,at=Date.now()){

@@ -91,10 +91,10 @@
   slider.setAttribute('aria-valuenow',String(Math.round(n)));
  };
  const showComparison=()=>{
-  const valid=!result.hidden&&!source.hidden&&source.hasAttribute('src')&&resultImage.hasAttribute('src');
+  const valid=!result.hidden&&!!result.dataset.beforeUrl&&resultImage.hasAttribute('src');
   before.hidden=!valid;
   slider.hidden=l1.hidden=l2.hidden=!valid;
-  if(valid){before.src=source.src;setSplit(50);}
+  if(valid){before.src=result.dataset.beforeUrl;setSplit(50);}
   else{before.removeAttribute('src');setSplit(0);}
  };
  const resize=e=>{
@@ -109,7 +109,7 @@
   const v=Number(slider.getAttribute('aria-valuenow'))||0;
   setSplit(event.key==='Home'?0:event.key==='End'?100:v+(event.key==='ArrowRight'?5:-5));
  });
- const observed={attributes:true,attributeFilter:['hidden','src']};
+ const observed={attributes:true,attributeFilter:['hidden','src','data-before-url']};
  new MutationObserver(showComparison).observe(result,observed);
  new MutationObserver(showComparison).observe(source,observed);
  new MutationObserver(showComparison).observe(resultImage,observed);

@@ -1,5 +1,36 @@
 # Beauty Studio and Studios navigation
 
+## ALTER functional corrections, 2026-10-31
+
+- Objective: finish PR #726 without changing the approved art direction, identity prompt, prices or other Studios.
+- Integration baseline: main `a6a59ed2152c74dec1d023bdc332149266cc1378`.
+- Subsequent main through `1098236b0a44dd7457b59e4e278e75e27c76be1c` changes only Video Extend CSS and its HTML version; preserve those changes at merge.
+- PR original head: `68100b36b9eeb70792cb8caee3ed7a17535664b5`.
+- Auto uses decoded photo dimensions and the smallest logarithmic proportional distance across all 15 ratios accepted by the existing Seedream/Flash contracts.
+- Exact supported shapes stay exact, including 2:1, 1:2, 3:1 and 1:3 omitted by the original PR.
+- Explicit ratios override Auto; the resolved ratio is visible in the Auto option and bound to the server quote.
+- The visible model list is Seedream 5 Pro and Seedream Flash. The legacy seedream-pro input alias remains accepted.
+- Editorial photographs are labelled illustrative on desktop and mobile. A pre-existing phone rule hid the label; only that heading layout is adjusted.
+- Each displayed result owns an independent URL for its original image. Changing the upload cannot revoke the displayed comparison.
+- History fetches the original belonging to that job. Missing originals hide comparison controls while retaining the saved output.
+- Result/account revisions reject delayed output/source responses and clear private comparison URLs on sign-out.
+- Relevant source: beauty.html, beauty.js, beauty-settings.js, beauty-approved-20261029.js/.css.
+- Relevant tests: lab-beauty.test.mjs, lab-beauty-ui.mjs, and the existing Beauty Worker quote/idempotency case.
+- PASS: all 884 Lab tests under the CI Node 22.16.0 runtime, including quote binding, credits, refunds, privacy and identity guards.
+- PASS: all 8 approved Image/Beauty unit contracts and all 141 image-reference/Worker checks under Node 24.
+- PASS: Beauty browser layout at 1920/1440/1366/1280/1024px; guest/menu/owner/customer checks at 1448/1024/390/320px.
+- PASS: 1448/390px model selection, photo-derived/explicit ratios, visible illustration label, independent originals, history retrieval/races and missing originals.
+- PASS: keyboard comparison and a real dispatched touch gesture at 390px; no horizontal overflow.
+- PASS: saved Alma Extend references, payload, History/Reuse and layout at 390/1440px; its files are identical to baseline.
+- PASS: static build validation, syntax checks and git diff whitespace checks.
+- Original PR's seven unit failures no longer reproduce on current main. Its image-reference asset-regex failure also passes now.
+- Node 24 alone fails the existing Dream Blur parallel-upload test after one setImmediate; unchanged main reproduces it. Node 22 passes all 884.
+- Existing main public Studio visual CI fails Video model comparison; existing Video CI fails an image-input scroll assertion. Neither workflow nor its assertions is weakened here.
+- Local Upscaler layout test reaches an existing mobile button-position mismatch under Chromium 153; all source files it exercises are byte-identical to baseline main.
+- Validation uses synthetic accounts/media and intercepted provider APIs only. No real paid generation or payment is authorized or performed.
+- Publication: pending updated PR checks, merge, exact Cloudflare production check and custom-domain byte/behavior verification.
+- Next action: publish the reviewed PR candidate, retain unrelated Video/Upscaler improvements, then record exact deployment evidence here.
+
 ## Retouch image card in shared Studios menu, 2026-10-28
 - Scope: Replace the existing secondary Retouch text entry with a fifth photographic tile inside the same Studios dropdown, preserving its existing Retouch route; keep Character Studio as the secondary text link.
 - Approved artwork: exact owner-selected Retouch Studio card composition based on the supplied fully clothed editorial photograph; optimized and packaged as `visuals/beauty/retouch-studio-reference-card.svg` with self-contained WebP pixels (400×218), no regenerated face or external image dependencies. The committed 400px image's base64 checksum 1210898344 matched the original optimized file and its self-contained SVG rasterized successfully.
