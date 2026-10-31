@@ -41,7 +41,34 @@ export function createMediaReferences({element,owner,busy,epoch,action,changed,u
     }
   }
   for(const kind of ['video','audio']){
-    element(kind+'-references').onchange=e=>action(async()=>{try{await add(e.target.files,kind);}finally{e.target.value='';}});
+    const input=element(kind+'-references');
+    input.onchange=e=>action(async()=>{try{await add(e.target.files,kind);}finally{e.target.value='';}});
+    const drop=input.closest('label');
+    if(!drop)continue;
+    const hasFiles=e=>Array.from(e.dataTransfer?.types||[]).includes('Files');
+    const canDrop=()=>owner()&&!busy()&&!input.disabled&&!drop.closest('[hidden]');
+    const clear=()=>drop.classList.remove('is-media-drag-over');
+    for(const name of ['dragenter','dragover'])drop.addEventListener(name,e=>{
+      if(!hasFiles(e))return;
+      e.preventDefault();e.stopPropagation();
+      const enabled=canDrop();
+      e.dataTransfer.dropEffect=enabled?'copy':'none';
+      drop.classList.toggle('is-media-drag-over',enabled);
+    },true);
+    drop.addEventListener('dragleave',e=>{
+      if(e.relatedTarget&&drop.contains(e.relatedTarget))return;
+      clear();
+    },true);
+    drop.addEventListener('drop',e=>{
+      if(!hasFiles(e))return;
+      e.preventDefault();e.stopPropagation();
+      clear();
+      if(!canDrop())return;
+      const files=[...e.dataTransfer.files];
+      if(!files.length)return;
+      void action(async()=>{await add(files,kind);input.value='';});
+    },true);
+    drop.addEventListener('dragend',clear);
   }
   return {
     identity:()=>['video','audio'].map(kind=>groups[kind].map(r=>r.url)),
