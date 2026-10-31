@@ -1,8 +1,20 @@
-/* PV LAB / Video enhancement. Separate from existing image upscaling.
+/* PV LAB / One Upscaler workspace, two media modes.
+   Video shares the Image editor's real control and preview columns. The
+   existing image controls stay mounted, preserving their inputs and results.
    One server quote, one explicit payment confirmation, no automatic retries. */
 export function createVideoUpscaler({api,access,onJob,onModeChange}){
  const $=id=>document.getElementById(id),app=$('app'),bar=$('pv-video-upscale-mode'),panel=$('pv-video-upscale-panel');
  if(!bar||!panel)throw Error('Video Upscaler markup missing.');
+ const workspace=app.querySelector(':scope > .workspace');
+ const controls=workspace?.querySelector(':scope > .controls'),stageShell=workspace?.querySelector(':scope > .stage');
+ const sidebar=panel.querySelector('.pv-video-upscale-sidebar'),preview=panel.querySelector('.pv-video-upscale-preview');
+ if(!controls||!stageShell||!sidebar||!preview)throw Error('Shared Upscaler workspace is unavailable.');
+ // Reuse the actual Image Upscaler columns, never a second stacked deck.
+ // The original Image controls stay mounted and return on mode switch.
+ workspace.prepend(bar);
+ controls.append(sidebar);
+ stageShell.append(preview);
+ panel.hidden=true;
  const pick=$('pv-video-upscale-file'),src=$('pv-video-upscale-source'),result=$('pv-video-upscale-result');
  const stage=$('pv-video-upscale-stage'),blank=$('pv-video-upscale-blank'),price=$('pv-video-upscale-price');
  const action=$('pv-video-upscale-action'),message=$('pv-video-upscale-message'),res=$('pv-video-upscale-resolution');
@@ -18,9 +30,9 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  const stale=()=>{revision++;quote=null;};
  function sync(){
    const active=app.classList.contains('upscale-studio-active')&&!app.classList.contains('assets-active')&&!app.classList.contains('fashion-studio-active');
-   bar.hidden=!active;panel.hidden=!active||media!=='video';app.classList.toggle('video-upscale-active',active&&media==='video');
+   bar.hidden=!active;sidebar.hidden=!active||media!=='video';preview.hidden=!active||media!=='video';panel.hidden=true;app.classList.toggle('video-upscale-active',active&&media==='video');
    for(const tab of bar.querySelectorAll('[data-video-upscale-tab]')){const yes=tab.dataset.videoUpscaleTab===media;tab.setAttribute('aria-selected',String(yes));tab.tabIndex=yes?0:-1;}
-   for(const b of panel.querySelectorAll('[data-video-upscale-model]')){b.setAttribute('aria-checked',String(b.dataset.videoUpscaleModel===model));b.disabled=loading;}
+   for(const b of sidebar.querySelectorAll('[data-video-upscale-model]')){b.setAttribute('aria-checked',String(b.dataset.videoUpscaleModel===model));b.disabled=loading;}
    for(const option of res.options)option.disabled=!variants[model].allowed.includes(option.value);
    res.disabled=loading;pick.disabled=loading;clear.hidden=!file||loading;
    src.hidden=!file||showResult;result.hidden=!showResult||!resultURL;blank.hidden=!!file||!!resultURL;
@@ -54,7 +66,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  const choose=()=>{if(!loading)pick.click();};
  $('pv-video-upscale-choose').onclick=choose;
  pick.onchange=()=>{const f=pick.files?.[0];pick.value='';if(!f)return;try{chooseFile(f);onModeChange?.();}catch(e){notice(e.message,true);}};
- for(const b of panel.querySelectorAll('[data-video-upscale-model]'))b.onclick=()=>{
+ for(const b of sidebar.querySelectorAll('[data-video-upscale-model]'))b.onclick=()=>{
    if(loading||model===b.dataset.videoUpscaleModel)return;
    model=b.dataset.videoUpscaleModel;if(!variants[model].allowed.includes(res.value))res.value='1080p';stale();notice('');sync();
  };
