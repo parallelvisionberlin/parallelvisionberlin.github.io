@@ -189,7 +189,8 @@
 /* Viewport-fidelity corrections: all controls remain visible above the card deck. */
 @media(min-width:1001px){
  .beauty-editorial-heading .beauty-back{display:none!important;}
- .beauty-editor-grid::before{background-position:center,center,45% 5%;}
+ /* Shift the desktop portrait left so the face stays clear of the Edit Look panel. Mobile/tablet retain their own framing. */
+  .beauty-editor-grid::before{background-position:center,center,calc(50% - clamp(85px,8.5vw,150px)) 5%;background-repeat:no-repeat;}
  .beauty-editorial-heading .beauty-intro{margin-bottom:13px;}
  .beauty-editorial-heading .beauty-description{margin-bottom:13px;}
  .beauty-left-settings{padding-top:12px;gap:9px;}
