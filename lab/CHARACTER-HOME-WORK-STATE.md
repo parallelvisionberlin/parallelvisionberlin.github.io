@@ -1,3 +1,14 @@
+## 2026-10-31 / homepage model photo to Identity
+- Owner request: keep the casting invitation; + opens a model-photo picker and proceeds to Full Editorial Identity with that photograph loaded.
+- Baseline main: `0736757f656e32d3cf9a10a2d41802d1de7ea382`. Isolated branch `fix/home-model-upload-20261031`.
+- Both + and existing Create your character CTA open the same native picker, preserving the card design.
+- JPG, PNG, WebP up to 20 MB, matching Full Editorial input limits. Cancel keeps the homepage; failures display inside the card.
+- Original File transfers through a separate local IndexedDB store and tab token, expires after ten minutes, is consumed once and removed from the URL. No backend upload, credits or generation on selection.
+- Identity opens directly with Upload photos active, the model thumbnail loaded and existing continuation/removal/quote paths intact.
+- Files: `index.html`, `character-home.css`, `character-home-upload.js`, `editorial-model-handoff.js`, `full-editorial.js`, `full-editorial.html`; focused source/browser tests updated.
+- Verification: JS syntax, 25/25 focused tests (approved Image, carousel, invitation, Full Editorial, original-byte transfer, tab binding, one-time consumption, expiry and invalid files), and git diff checks pass. Browser CI and production pending. Existing carousel and unrelated interfaces unchanged.
+- Next: run focused checks, inspect CI, publish through normal Cloudflare workflow and verify production assets.
+
 # PV LAB homepage / Character casting invitation
 
 - Updated: 2026-10-30, Europe/Berlin.

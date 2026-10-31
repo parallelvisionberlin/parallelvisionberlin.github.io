@@ -40,7 +40,7 @@
 <link rel="stylesheet" href="./pricing-mobile.css?v=20261016-mobile-editorial1">
 <link rel="stylesheet" href="./studio-credits.css?v=20261023-home-notice-stable-v6">
 <link rel="stylesheet" href="./home-showcase.css?v=20261024-editorial-triptych1">
-<link rel="stylesheet" href="./character-home.css?v=20261030-casting-inertia-4">
+<link rel="stylesheet" href="./character-home.css?v=20261031-model-upload1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261030-editorial-motion1">
 <link rel="stylesheet" href="./home-creative-features.css?v=20261030-tool-first-editorial-type1">
 </head>
@@ -215,9 +215,11 @@
     <div class="lab-character-home__carousel">
     <div class="lab-character-home__rail" id="character-carousel-track" role="group" tabindex="0" aria-label="Create your character and explore character styles" aria-describedby="character-carousel-help">
       <div class="lab-character-home__create">
-        <span class="lab-character-home__plus" aria-hidden="true"></span>
+        <button class="lab-character-home__plus" type="button" data-model-upload aria-label="Upload a model photo"></button>
+        <input id="home-model-photo" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+        <span id="home-model-status" role="status" hidden></span>
         <p>Your character<br>goes here.</p>
-        <a class="lab-character-home__action" href="./studio.html?tool=image&amp;createCharacter=1">Create your character</a>
+        <button class="lab-character-home__action" type="button" data-model-upload>Create your character</button>
       </div>
       <figure class="lab-character-home__portrait lab-character-home__portrait--night"><img src="./visuals/character-casting/night-cast03.webp" alt="Dark-haired character in an off-shoulder black garment photographed at night" width="1600" height="900" loading="lazy" decoding="async"><figcaption aria-hidden="true">01</figcaption></figure>
       <figure class="lab-character-home__portrait lab-character-home__portrait--ivory"><img src="./visuals/character-casting/ivory-cast03.webp" alt="Blonde character in sculptural ivory protective fashion" width="900" height="1350" loading="lazy" decoding="async"><figcaption aria-hidden="true">02</figcaption></figure>
@@ -344,6 +346,7 @@
 <script type="module" src="./customer-entry.js?v=20261023-home-notice-stable-v6&menu=20261014-editorial1&studioAuth=20261015-1&providerPolicy=20261015-google-only1&firstWelcome=1&steadyHeader=1&canonicalStudio=20261015-1&metaCheckout=20261015-1&accountEdge=20261016-24&closure=20261017-logout1&partner=20261024v1&partnerMenu=20261027-bellini1"></script>
 <script type="module" src="./traffic.js?v=20261015-traffic1"></script>
 <script defer src="./studios-menu.js?v=20261030-auto-hover1"></script>
+<script type="module" src="./character-home-upload.js?v=20261031-model-upload1"></script>
 <script src="./character-home-carousel.js?v=20261030-casting-inertia-4" defer></script>
 </body>
 </html>

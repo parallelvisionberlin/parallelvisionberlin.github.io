@@ -4,6 +4,8 @@ on:
     paths:
       - 'lab/full-editorial.html'
       - 'lab/full-editorial.js'
+      - 'lab/editorial-model-handoff.js'
+      - 'lab/character-home-upload.js'
       - 'lab/full-editorial.css'
       - 'lab/studios-menu.js'
       - 'lab/studio.html'
@@ -24,7 +26,7 @@ jobs:
       - name: Syntax and contract checks
         run: |
           node --check lab/full-editorial.js
-          node --test tests/lab-full-editorial.test.mjs
+          node --test tests/lab-full-editorial.test.mjs tests/lab-full-editorial-handoff.test.mjs
           node --test tests/lab-approved-image-ui-contract.test.mjs
       - name: Install browser
         run: |
