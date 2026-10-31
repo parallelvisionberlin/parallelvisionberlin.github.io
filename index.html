@@ -102,7 +102,7 @@ src="https://ct.pinterest.com/v3/?event=init&tid=2613417397136&noscript=1" />
   rel="stylesheet"
 >
 
-<script src="./language.js?v=20261025-agency1" defer></script>
+<script src="./language.js?v=20261031-siento-feature" defer></script>
 
 <link rel="stylesheet" href="./css/base.css?v=20260814-1">
   <link rel="stylesheet" href="./css/home.css?v=20261024-faf-shadow-final">
@@ -316,20 +316,53 @@ body.pv-home #contact .contact-socials a::after { content: none; display: none; 
 </style>
 <style id="current-release-refinement">
 body.pv-home .current-release {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: block;
+  width: 100%;
+  margin: 32px 0 48px;
+  padding: clamp(48px, 5vw, 80px) 32px;
+  background: #050606;
+}
+body.pv-home .current-release-inner {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(32px, 5vw, 72px);
   align-items: center;
-  margin-bottom: 56px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+body.pv-home .current-release-backdrop {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 27%;
+  pointer-events: none;
+}
+body.pv-home .current-release-backdrop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0%;
+  opacity: .5;
+  filter: saturate(.35);
+}
+body.pv-home .current-release-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #050606, rgba(5,6,6,.78) 22%, rgba(5,6,6,.26) 64%, rgba(5,6,6,.62)), linear-gradient(180deg, rgba(5,6,6,.5), transparent 20%, transparent 75%, #050606);
 }
 body.pv-home .current-release-media { aspect-ratio: 1; border: 0; border-radius: 0; }
-/* Crop the rounded edge printed into the cover for a square presentation. */
-body.pv-home .current-release-media img { border-radius: 0; transform: scale(1.035); }
+body.pv-home .current-release-media img { border-radius: 0; object-fit: contain; transform: none; filter: none; transition: opacity .2s ease; }
 body.pv-home .current-release-media:hover img,
-body.pv-home .current-release-media:focus-visible img { transform: scale(1.05); }
+body.pv-home .current-release-media:focus-visible img { transform: none; filter: none; opacity: .94; }
 body.pv-home .current-release-copy { min-width: 0; padding: 0; }
 body.pv-home .current-release-label { font-size: 11px; letter-spacing: .16em; }
 body.pv-home .current-release h2 { margin: 16px 0 12px; font-size: clamp(32px, 4vw, 54px); }
 body.pv-home .current-release-artist { font-size: clamp(17px, 1.5vw, 20px); line-height: 1.5; }
+body.pv-home .current-release-note { max-width: 420px; margin: 22px 0 0; color: #c1c5bd; font-size: 18px; line-height: 1.6; }
 body.pv-home .current-release .pv-text-link {
   width: fit-content;
   min-height: 44px;
@@ -350,22 +383,19 @@ body.pv-home .current-release .pv-text-link .current-release-cta-label {
   font: inherit;
   letter-spacing: inherit;
 }
-body.pv-home .current-release .pv-text-link > span[aria-hidden="true"] {
-  font: 400 15px/1 var(--pv-body);
-  transition: transform .2s ease;
-}
 body.pv-home .current-release .pv-text-link:hover {
   border-color: rgba(255, 255, 255, .88);
   background: transparent;
   color: #fff;
 }
-body.pv-home .current-release .pv-text-link:hover > span[aria-hidden="true"] {
-  transform: translate(2px, -2px);
-}
 body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline-offset: 5px; }
 @media (max-width: 700px) {
-  body.pv-home .current-release { width: calc(100% - 40px); grid-template-columns: minmax(0, 1fr); gap: 0; margin-bottom: 32px; }
-  body.pv-home .current-release-copy { padding: 24px 0 0; }
+  body.pv-home .current-release { padding: 36px 20px 44px; margin-bottom: 32px; }
+  body.pv-home .current-release-inner { max-width: 440px; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  body.pv-home .current-release-backdrop { inset: 38% 0 0; }
+  body.pv-home .current-release-backdrop img { opacity: .36; object-position: 52% 0%; }
+  body.pv-home .current-release-backdrop::after { background: linear-gradient(180deg, #050606, rgba(5,6,6,.3) 25%, rgba(5,6,6,.38) 70%, #050606); }
+  body.pv-home .current-release-copy { padding: 0; }
   body.pv-home .current-release h2 { margin: 14px 0 10px; font-size: clamp(30px, 8.5vw, 42px); }
   body.pv-home .current-release-artist { font-size: 17px; }
   body.pv-home .current-release .pv-text-link { margin-top: 24px; }
@@ -646,15 +676,19 @@ body.pv-home #berlin.berlin-entry .berlin-entry-content { position:relative; z-i
   <span>Talk to Nina</span>
 </button>
 
-<section class="current-release" aria-labelledby="current-release-title">
-  <a class="current-release-media" href="https://www.beatport.com/track/sube/30977403" target="_blank" rel="noopener noreferrer" aria-label="Find Sube by BadWolf and Jenn LSS on Beatport">
-    <img src="./assets/optimized/artworks/sube-pv015.jpg" alt="Sube single artwork by BadWolf and Jenn LSS, Parallel Vision PV015" decoding="async" loading="lazy" width="800" height="800">
-  </a>
-  <div class="current-release-copy">
-    <p class="current-release-label">Current release / Parallel Vision</p>
-    <h2 id="current-release-title">Sube</h2>
-    <p class="current-release-artist">BadWolf &amp; Jenn LSS</p>
-    <a class="pv-text-link" href="https://www.beatport.com/track/sube/30977403" target="_blank" rel="noopener noreferrer"><span class="current-release-cta-label">Find on Beatport</span> <span aria-hidden="true">↗︎</span></a>
+<section class="current-release" id="featured-release" aria-labelledby="current-release-title">
+  <div class="current-release-backdrop" aria-hidden="true"><img src="./assets/estero/estero-metal-portrait.webp" alt="" decoding="async" loading="lazy" width="1600" height="900"></div>
+  <div class="current-release-inner">
+    <a class="current-release-media" href="./siento.html#release" aria-label="Read the story behind Siento by Estero">
+      <img src="./assets/estero/siento-artwork-final.webp" alt="Siento by Estero, Parallel Vision PV016: translucent flowers framed by the release title" decoding="async" loading="lazy" width="2048" height="2048">
+    </a>
+    <div class="current-release-copy">
+      <p class="current-release-label">Featured release / Parallel Vision</p>
+      <h2 id="current-release-title">Siento</h2>
+      <p class="current-release-artist">Estero</p>
+      <p class="current-release-note">What makes us human: our biology, or our capacity to feel?</p>
+      <a class="pv-text-link" href="./siento.html#release"><span class="current-release-cta-label">Read the story</span></a>
+    </div>
   </div>
 </section>
 
@@ -822,7 +856,7 @@ body.pv-home #berlin.berlin-entry .berlin-entry-content { position:relative; z-i
     <div class="release-grid">
 
       <a class="release-card" href="./siento.html" aria-label="Discover Siento by Estero, PV016">
-        <img src="./assets/estero/siento-night.webp" alt="Siento editorial image: Estero in a sculptural black outfit at night" decoding="async" loading="lazy" width="1600" height="900">
+        <img src="./assets/estero/siento-artwork-final.webp" alt="Siento final artwork by Estero, Parallel Vision PV016" decoding="async" loading="lazy" width="2048" height="2048">
         <span class="release-title">Siento</span>
         <span class="release-meta">Estero</span>
         <span class="release-meta">PV016 / 2026</span>
