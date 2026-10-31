@@ -37,13 +37,13 @@ directionSets.location=[
 ];
 let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='location',selectedDirections={location:null,moods:null,material:null};
 let chosenCount=4,chosenRatio='3:4',quote=null,quoteBusy=false,quoteError=false,quoteTimer=null,quoteExpiryTimer=null,submitting=false,uncertain=false,pollTimeout=null;
-let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0;
+let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0,progressBatchStart=0,progressBatchSize=4;
 const objectUrls=new Map(),sampleFiles=new Map();
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 const status=(text='',error=false)=>{$('editorial-status').textContent=text;$('editorial-status').classList.toggle('error',error)};
 function preview(file){if(!objectUrls.has(file))objectUrls.set(file,URL.createObjectURL(file));return objectUrls.get(file);}
 function pruneFile(file){const url=objectUrls.get(file);if(url){URL.revokeObjectURL(url);objectUrls.delete(file)} uploaded.delete(file);}
-function wipeResults(){for(const r of results)if(r.url)URL.revokeObjectURL(r.url);results=[];activeJobs=[];renderResults();}
+function wipeResults(){for(const r of results)if(r.url)URL.revokeObjectURL(r.url);results=[];activeJobs=[];progressBatchStart=0;progressBatchSize=4;renderResults();}
 function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false;uncertain=false;wipeResults();
  for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};sampleFiles.clear();for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
@@ -55,6 +55,7 @@ function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false
 function go(next){step=next;const panels=['model','style','mood','generate','progress','results'];
  for(let i=0;i<panels.length;i++)$('panel-'+panels[i]).hidden=i!==Math.max(0,next-1);
  $('editorial-hero').hidden=next!==0;$('editorial-flow').hidden=next===0;
+ document.body.classList.toggle('editorial-is-generating',next===5);
  const navigation=$('stage-navigation'),stage=$('panel-'+panels[Math.max(0,next-1)])?.querySelector('.stage-visual');
  if(stage)stage.append(navigation);else document.querySelector('.flow-main').prepend(navigation);
  $('step-footer').hidden=next>=5||next<=0;
@@ -298,6 +299,10 @@ function updateGenerationMotion(){
 }
 document.addEventListener('visibilitychange',updateGenerationMotion);
 reducedMotion.addEventListener('change',updateGenerationMotion);
+function updateGenerationProgress(phase='working'){
+ const ready=Math.max(0,Math.min(progressBatchSize,results.length-progressBatchStart));
+ $('generation-progress').textContent=phase==='submitting'?'Preparing your photographs':ready===progressBatchSize?'Your photographs are ready':ready===0?'Creating your photographs':ready+' of '+progressBatchSize+' photographs ready';
+}
 function renderResults(){
  const holder=$('editorial-results'),strip=$('progress-results');holder.replaceChildren();strip.replaceChildren();
  for(const [index,result] of results.entries()){
@@ -305,8 +310,19 @@ function renderResults(){
   const img=document.createElement('img');img.alt='Editorial image '+(index+1);img.src=result.url;img.loading='lazy';box.append(img);
   const toggle=document.createElement('button');toggle.type='button';toggle.textContent=result.selected?'✓':'○';toggle.setAttribute('aria-label',(result.selected?'Deselect':'Select')+' editorial image '+(index+1));toggle.addEventListener('click',()=>{result.selected=!result.selected;renderResults()});box.append(toggle);
   const info=document.createElement('div');info.className='result-caption';info.textContent='Editorial '+String(index+1).padStart(2,'0');box.append(info);holder.append(box);
-  const smaller=document.createElement('img');smaller.src=result.url;smaller.alt='Generated image '+(index+1);strip.append(smaller);
+  // The generation contact sheet shows only photographs from the active batch.
  }
+ const batch=results.slice(progressBatchStart,progressBatchStart+progressBatchSize);
+ for(let index=0;index<progressBatchSize;index++){
+  const result=batch[index],frame=document.createElement('div');
+  frame.className='generation-frame'+(result?' is-ready':'');
+  frame.setAttribute('aria-label',result?'Photograph '+(index+1)+' ready':'Photograph '+(index+1)+' pending');
+  if(result){const photo=document.createElement('img');photo.src=result.url;photo.alt='';photo.loading='lazy';frame.append(photo)}
+  else{const pending=document.createElement('span');pending.className='generation-frame-number';pending.textContent=String(index+1).padStart(2,'0');frame.append(pending)}
+  const label=document.createElement('small');label.textContent=String(index+1).padStart(2,'0');frame.append(label);strip.append(frame);
+ }
+ strip.setAttribute('aria-label',batch.length+' of '+progressBatchSize+' editorial photographs ready');
+ if(step===5)updateGenerationProgress();
  $('result-summary').textContent=results.length+' of '+chosenCount+' editorial images created. '+(results.length<chosenCount?'You can generate another set of four after reviewing its credit cost.':'Series complete.');
  $('create-variations').textContent=results.length<chosenCount?'Generate next '+Math.min(4,chosenCount-results.length)+' images':'Generate variations';
 }
@@ -325,7 +341,6 @@ async function pollJob(id,version){
   const {job}=await api('/api/jobs/'+encodeURIComponent(id));if(!job||job.id!==id)throw Error('Job record is unavailable. Check Image Studio History.');
   if(job.status==='completed'||job.status==='failed'||job.status==='resolved'||job.status==='uncertain'){await showJob(job);return}
   if(!activeStates.has(job.status))throw Error('Generation state '+job.status+' needs review in History.');
-  $('generation-progress').textContent='Creating image '+(results.length+1)+' of '+chosenCount;
   if(++tries>120)throw Error('The job is still processing. Open History to check the result; do not submit it again.');
   await sleep(4000);
  }
@@ -335,13 +350,13 @@ async function submitBatch(){
  const frozen=quote;quote=null;
  if(frozen.revision!==revision||frozen.quotes.some(q=>!validQuote(q))){invalidateQuote();status('The credit cost is refreshing. Check it before generating.',true);return}
  if(!profile){status('Sign in again to confirm the charge.',true);return}
- submitting=true;clearTimeout(quoteExpiryTimer);go(5);const version=epoch;
+ submitting=true;clearTimeout(quoteExpiryTimer);progressBatchStart=results.length;progressBatchSize=frozen.quotes.length;go(5);renderResults();updateGenerationProgress('submitting');const version=epoch;
  try{
   const started=[];
   // Submit the four distinct bound quotes promptly before any one image
   // finishes, so the remaining quotes do not expire while the first runs.
   for(const [index,q] of frozen.quotes.entries()){
-   $('generation-progress').textContent='Submitting image '+(index+1)+' of '+frozen.quotes.length;
+   updateGenerationProgress('submitting');
    $('batch-status').textContent='Submitting '+(index+1)+' of '+frozen.quotes.length+' confirmed images.';
    let response;
    // Never retry a paid submission. On uncertainty, stop and send the user to History.
@@ -350,11 +365,11 @@ async function submitBatch(){
    if(!response.job?.id){uncertain=true;throw Error('No job receipt. Check Image Studio History before continuing.');}
    activeJobs.push(response.job.id);started.push(response.job.id);
   }
-  $('batch-status').textContent='All '+started.length+' jobs submitted. Loading each completed image…';
+  $('batch-status').textContent='All '+started.length+' jobs submitted. Each photograph will appear below as it finishes.';
+  updateGenerationProgress();
   // Poll accepted IDs only. No paid submission can be repeated by polling.
   await Promise.all(started.map(id=>pollJob(id,version)));
   activeJobs=[];
-  $('generation-progress').textContent='Your current set is ready';
   go(6);status('Editorial images are saved to your PV LAB account.');
  }catch(error){
   // A request may have reached the provider even when polling or network I/O fails.
