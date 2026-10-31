@@ -11,7 +11,7 @@
 <title>Full Editorial Studio | PV LAB</title>
 <link rel="icon" type="image/png" href="./branding/pv-mark.png">
 <link rel="stylesheet" href="./full-editorial.css?v=20261030-editorial-workspace2">
-<link rel="stylesheet" href="./full-editorial-atelier.css?v=20261031-button-editorial1">
+<link rel="stylesheet" href="./full-editorial-atelier.css?v=20261031-direct-generate1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261031-tall-connected1">
 </head>
 <body>
@@ -50,7 +50,7 @@
    <ol class="intro-steps"><li><b>01</b><span><strong>Model</strong><small>Choose a photograph or reference identity.</small></span></li>
    <li><b>02</b><span><strong>Styling</strong><small>Add garments, accessories or describe the look.</small></span></li>
    <li><b>03</b><span><strong>Mood &amp; location</strong><small>Set atmosphere, material and environment.</small></span></li>
-   <li><b>04</b><span><strong>Generate</strong><small>Review the real credit cost before creating.</small></span></li></ol>
+   <li><b>04</b><span><strong>Generate</strong><small>See the credit cost and create your series.</small></span></li></ol>
   </div>
   <div class="flow-main">
    <div class="stage-navigation" id="stage-navigation">
@@ -123,8 +123,8 @@
    <section class="step-panel" id="panel-generate" aria-labelledby="settings-heading" hidden>
      <div class="atelier-review-layout">
        <div class="atelier-review-main">
-         <span class="stage-index">04 / 04 &nbsp; REVIEW</span><h2 id="settings-heading">Generate your editorial.</h2>
-         <p class="step-intro">Review the references and the series settings before creating. No credits are charged until you approve the actual server quote.</p>
+         <span class="stage-index">04 / 04 &nbsp; GENERATE</span><h2 id="settings-heading">Generate your editorial.</h2>
+         <p class="step-intro">Review your references and settings. Generate starts the set at the credit cost shown below.</p>
          <div class="selection-summary" aria-label="Your actual selected references">
            <div class="selection-item"><div class="selection-image" id="review-model-thumb" aria-hidden="true"></div><div class="selection-info"><span>IDENTITY</span><strong id="review-model-text">No model selected</strong><button type="button" data-edit-step="1">Edit</button></div></div>
            <div class="selection-item"><div class="selection-image" id="review-outfit-thumb" aria-hidden="true"></div><div class="selection-info"><span>STYLING</span><strong id="review-outfit-text">No garments selected</strong><button type="button" data-edit-step="2">Edit</button></div></div>
@@ -138,16 +138,19 @@
            <div class="field-grid"><label>Model <select id="editorial-model"><option value="seedream">Seedream 5 Pro</option><option value="seedreamlite">Seedream 5 Lite</option><option value="flash">Seedream Flash</option></select></label><label>Resolution <select id="editorial-resolution"><option value="1k">1K</option><option value="2k">2K</option></select></label></div>
            <label class="field-name" for="editorial-prompt">Final creative direction <small>(optional)</small></label><textarea id="editorial-prompt" rows="3" maxlength="1500" placeholder="Photographic direction for the complete series..."></textarea>
          </details>
-         <p class="atelier-cost-note">Real price appears in the next confirmation. For 8 or 12 images, each batch of four is quoted and approved separately.</p>
          <div class="setting-note"><span class="mini-indicator" aria-hidden="true">◎</span> Each image is generated individually. Identity and garments are guided by references, not guaranteed.</div>
-         <button id="review-credits" type="button" class="primary full">Review credit cost <span class="line-arrow" aria-hidden="true"></span></button>
+         <div class="editorial-generate-action">
+           <button id="editorial-generate" type="button" class="primary full" aria-describedby="editorial-cost editorial-batch-note" disabled>Generate</button>
+           <p id="editorial-cost" class="editorial-cost" role="status" aria-live="polite">Checking credits…</p>
+           <p id="editorial-batch-note" class="editorial-batch-note"></p>
+         </div>
        </div>
        <aside class="atelier-review-photo"><img src="./visuals/character-casting/ivory-cast03.webp" alt="Illustrative sculptural ivory fashion photograph, not a generated result"><span>PHOTOGRAPHIC INSPIRATION / NOT A PREVIEW</span></aside>
      </div>
    </section>
    <section class="step-panel" id="panel-progress" aria-labelledby="generating-heading" hidden>
      <h2 id="generating-heading">Creating your editorial...</h2><p class="step-intro" id="batch-status">Preparing images using your selected model and references.</p>
-     <div class="generation-visual"><div class="visual-reference"><img src="./visuals/beauty/studios-original-reference.svg" alt="Editorial creative reference"></div><div class="generation-overlay"><span class="spinner" aria-hidden="true"></span><strong id="generation-progress">Waiting for the first result</strong><small id="generation-subtext">Your results are saved privately to your account.</small></div></div>
+     <div class="generation-visual"><div class="visual-reference" aria-hidden="true"><video id="editorial-generation-film" muted loop playsinline preload="none" tabindex="-1" poster="https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/3daa34c8-f368-472d-944f-26ff306905c5.jpg" data-src="https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/8437296a-8370-4d34-951c-b4e78c56d55d.mp4"></video></div><div class="generation-overlay"><span class="spinner" aria-hidden="true"></span><strong id="generation-progress">Waiting for the first result</strong><small id="generation-subtext">Editorial film / Your results are saved privately to your account.</small></div></div>
      <div class="result-strip" id="progress-results"></div><button type="button" id="progress-history" class="secondary">Open Image Studio history</button>
    </section>
    <section class="step-panel" id="panel-results" aria-labelledby="results-heading" hidden>
@@ -163,8 +166,7 @@
 </section>
 </main>
 <dialog id="saved-elements-dialog" aria-labelledby="saved-elements-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / ELEMENTS</span><h2 id="saved-elements-heading">Saved Elements</h2><p>Use existing private reference images from your Elements library.</p><div id="saved-elements-list" class="saved-elements-list"></div><button type="button" class="secondary" id="saved-elements-close">Close</button></div></dialog>
-<dialog id="editorial-confirm" aria-labelledby="confirm-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / CREDIT REVIEW</span><h2 id="confirm-heading">Confirm your editorial set</h2><p id="confirm-description">The server determines your exact credit price.</p><dl><div><dt>Images in this batch</dt><dd id="confirm-count"></dd></div><div><dt>Credits for this batch</dt><dd id="confirm-price"></dd></div><div><dt>Remaining planned images</dt><dd id="confirm-remaining"></dd></div></dl><div class="confirm-buttons"><button type="button" class="secondary" id="confirm-cancel">Cancel</button><button type="button" class="primary" id="confirm-submit">Generate · confirm credits</button></div><p class="fineprint">Only this confirmed batch is submitted and charged. Never automatically resubmitted after a network error.</p></div></dialog>
 <script src="./studios-menu.js?v=20261031-connected-strip1" defer></script>
-<script type="module" src="./full-editorial.js?v=20261031-model-upload1"></script>
+<script type="module" src="./full-editorial.js?v=20261031-direct-generate1"></script>
 </body>
 </html>

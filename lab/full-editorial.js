@@ -36,7 +36,7 @@ directionSets.location=[
  {id:'urban',name:'Urban',image:'./mood-previews/hd/90s-cinema-clean-final-20261011.jpg',prompt:'Contemporary urban environment with natural perspective, lived-in details and credible architectural light.'}
 ];
 let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='location',selectedDirections={location:null,moods:null,material:null};
-let chosenCount=4,chosenRatio='3:4',quote=null,quoteBusy=false,submitting=false,uncertain=false,pollTimeout=null;
+let chosenCount=4,chosenRatio='3:4',quote=null,quoteBusy=false,quoteError=false,quoteTimer=null,quoteExpiryTimer=null,submitting=false,uncertain=false,pollTimeout=null;
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0;
 const objectUrls=new Map(),sampleFiles=new Map();
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
@@ -44,7 +44,7 @@ const status=(text='',error=false)=>{$('editorial-status').textContent=text;$('e
 function preview(file){if(!objectUrls.has(file))objectUrls.set(file,URL.createObjectURL(file));return objectUrls.get(file);}
 function pruneFile(file){const url=objectUrls.get(file);if(url){URL.revokeObjectURL(url);objectUrls.delete(file)} uploaded.delete(file);}
 function wipeResults(){for(const r of results)if(r.url)URL.revokeObjectURL(r.url);results=[];activeJobs=[];renderResults();}
-function resetAll(){revision++;clearTimeout(pollTimeout);quote=null;quoteBusy=false;submitting=false;uncertain=false;wipeResults();
+function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false;uncertain=false;wipeResults();
  for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};sampleFiles.clear();for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
  $('identity-guide').value='80';$('garment-guide').value='70';$('mood-guide').value='60';
@@ -66,7 +66,9 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
   item.classList.toggle('is-complete',index<current);
   if(index===current)item.setAttribute('aria-current','step');else item.removeAttribute('aria-current');
  }
- $('step-next').textContent=next===4?'Review credits':({1:'Continue to styling',2:'Continue to location',3:'Continue to review'}[next]||'Next');
+ $('step-next').hidden=next===4;
+ $('step-next').textContent=({1:'Continue to styling',2:'Continue to location',3:'Continue to review'}[next]||'Next');
+ invalidateQuote();updateGenerationMotion();
  if(next===4)updateSeriesSummary();
  if(next===0){window.scrollTo({top:0,left:0,behavior:'instant'});document.getElementById('editorial-hero').scrollIntoView({block:'start',behavior:'instant'});}else{document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});}
 }
@@ -78,8 +80,8 @@ function renderFiles(){
   const box=$(id);box.replaceChildren();
   for(const file of files[kind]){const item=document.createElement('div');item.className='thumb';
     const img=document.createElement('img');img.src=preview(file);img.alt=nameFor(file);item.append(img);
-    const remove=document.createElement('button');remove.type='button';remove.setAttribute('aria-label','Remove '+nameFor(file));remove.textContent='×';remove.addEventListener('click',()=>{if(submitting)return;files[kind]=files[kind].filter(f=>f!==file);pruneFile(file);quote=null;renderFiles();});item.append(remove);box.append(item);}
-  for(const ref of savedRefs[kind]){const item=document.createElement('div');item.className='thumb saved-thumb';const img=document.createElement('img');img.alt=ref.name;img.src=ref.url||'./visuals/studio-tools/image-ivory-suit.webp';item.append(img);const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove saved '+ref.name);remove.addEventListener('click',()=>{if(submitting)return;savedRefs[kind]=savedRefs[kind].filter(r=>r!==ref);if(ref.url)URL.revokeObjectURL(ref.url);quote=null;renderFiles()});item.append(remove);const badge=document.createElement('small');badge.className='saved-badge';badge.textContent='ELEMENT';item.append(badge);box.append(item);}
+    const remove=document.createElement('button');remove.type='button';remove.setAttribute('aria-label','Remove '+nameFor(file));remove.textContent='×';remove.addEventListener('click',()=>{if(submitting)return;files[kind]=files[kind].filter(f=>f!==file);pruneFile(file);invalidateQuote();renderFiles();});item.append(remove);box.append(item);}
+  for(const ref of savedRefs[kind]){const item=document.createElement('div');item.className='thumb saved-thumb';const img=document.createElement('img');img.alt=ref.name;img.src=ref.url||'./visuals/studio-tools/image-ivory-suit.webp';item.append(img);const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove saved '+ref.name);remove.addEventListener('click',()=>{if(submitting)return;savedRefs[kind]=savedRefs[kind].filter(r=>r!==ref);if(ref.url)URL.revokeObjectURL(ref.url);invalidateQuote();renderFiles()});item.append(remove);const badge=document.createElement('small');badge.className='saved-badge';badge.textContent='ELEMENT';item.append(badge);box.append(item);}
  }
  updateSeriesSummary();
  refreshSampleStates();
@@ -92,7 +94,7 @@ function addFiles(kind,list){if(submitting)return;
  const allowed=Math.min(Math.max(0,limit-files[kind].length-savedRefs[kind].length),Math.max(0,10-used));
  files[kind].push(...accept.slice(0,allowed));
  if(accept.length>allowed)status('Reference limit reached. Keep up to 4 model, 3 garment and 2 location images.',true);
- quote=null;renderFiles();
+ invalidateQuote();renderFiles();
 }
 function updateSeriesSummary(){
  const model=$('review-model-text');if(!model)return;
@@ -122,7 +124,7 @@ async function toggleSample(button){
  const kind=button.dataset.sampleKind,existing=sampleFiles.get(button);
  if(existing&&files[kind]?.includes(existing)){
   files[kind]=files[kind].filter(f=>f!==existing);pruneFile(existing);
-  quote=null;renderFiles();status('Reference removed.');return;
+  invalidateQuote();renderFiles();status('Reference removed.');return;
  }
  const limit={model:4,outfit:3}[kind],num=files[kind].length+savedRefs[kind].length;
  if(num>=limit){status('You can use up to '+limit+' '+(kind==='model'?'model':'wardrobe')+' references.',true);return}
@@ -148,7 +150,7 @@ function renderDirections(){
   const img=document.createElement('img');img.src=dir.image;img.alt='';img.loading='lazy';
   const name=document.createElement('span');name.textContent=dir.name;
   card.append(img,name);
-  card.addEventListener('click',()=>{selectedDirections[directionTab]=selected&&directionTab!=='location'?null:dir.id;quote=null;renderDirections()});
+  card.addEventListener('click',()=>{selectedDirections[directionTab]=selected&&directionTab!=='location'?null:dir.id;invalidateQuote();renderDirections()});
   container.append(card);
  }
  for(const tab of document.querySelectorAll('[data-direction-tab]')){
@@ -197,7 +199,7 @@ async function sync(){
  if(prev&&prev!==next){epoch++;uploaded.clear();quote=null;uncertain=false;submitting=false;wipeResults();resetAll();}
  sessionKey=next;
  if(!clerk?.isSignedIn||!next){profile=null;$('editorial-signin').hidden=false;$('editorial-balance').textContent='';return;}
- try{profile=await api('/api/session');$('editorial-signin').hidden=true;const credits=profile?.credits?.balance??profile?.balanceCredits??profile?.wallet?.balance;if(Number.isSafeInteger(credits))$('editorial-balance').textContent=credits.toLocaleString()+' credits';}catch(error){profile=null;status('Your account could not be checked: '+error.message,true);}
+ try{profile=await api('/api/session');$('editorial-signin').hidden=true;if(step===4)invalidateQuote();const credits=profile?.credits?.balance??profile?.balanceCredits??profile?.wallet?.balance;if(Number.isSafeInteger(credits))$('editorial-balance').textContent=credits.toLocaleString()+' credits';}catch(error){profile=null;status('Your account could not be checked: '+error.message,true);}
 }
 async function uploadReferences(){
  const selected=[...files.model.map(file=>({file,role:'identity'})),...files.outfit.map(file=>({file,role:'outfit'})),...files.location.map(file=>({file,role:'room'}))];
@@ -236,21 +238,32 @@ async function openSaved(kind){
      const record={id:r.id,name:r.name||name.textContent,role:kind,url:null};savedRefs[kind].push(record);
      void fetchBlob('/api/assets/'+encodeURIComponent(r.id)+'/thumbnail').then(blob=>{if(!savedRefs[kind].includes(record))return;record.url=URL.createObjectURL(blob);renderFiles()}).catch(()=>{});
     }
-    quote=null;renderFiles();dlg.close();status(refs.length?'Added '+refs.length+' saved reference image'+(refs.length===1?'':'s')+'.':'No new views were available.');
+    invalidateQuote();renderFiles();dlg.close();status(refs.length?'Added '+refs.length+' saved reference image'+(refs.length===1?'':'s')+'.':'No new views were available.');
    });
   }
  }catch(error){container.textContent=error.message;}
 }
 
 function validQuote(q){return q&&typeof q.id==='string'&&q.id&&Number.isSafeInteger(q.creditCost)&&q.creditCost>0&&Number(q.expiresAt)>Date.now()&&q.settings?.type==='image';}
-async function reviewBatch(){
- if(quoteBusy||submitting||uncertain)return;
- if(!profile){status('Sign in to review a live credit price.');await signIn();return}
+function syncGenerateAction(){
+ const ready=quote&&quote.revision===revision&&quote.quotes.every(validQuote);
+ $('editorial-generate').disabled=Boolean(submitting||uncertain||(profile&&!ready&&!quoteError));
+ $('editorial-generate').setAttribute('aria-busy',String(quoteBusy));
+ $('editorial-cost').textContent=ready?quote.quotes.reduce((sum,q)=>sum+q.creditCost,0).toLocaleString()+' credits':!profile?'Sign in to see credit cost':quoteError?'Credit cost unavailable. Click Generate to try again.':'Checking credits…';
+ const remaining=Math.max(0,chosenCount-results.length);
+ $('editorial-batch-note').textContent=remaining>4?'Next 4 of '+remaining+' images. Generate each set separately.':'';
+}
+function invalidateQuote(){
+ revision++;quote=null;quoteError=false;clearTimeout(quoteTimer);clearTimeout(quoteExpiryTimer);
+ syncGenerateAction();
+ if(step===4&&profile&&!submitting&&!uncertain)quoteTimer=setTimeout(()=>void prepareBatch(),250);
+}
+async function prepareBatch(){
+ if(quoteBusy||submitting||uncertain||step!==4||!profile)return;
  if(!files.model.length&&!savedRefs.model.length){status('Add a model photograph or select a saved Character.',true);go(1);return}
  const remain=Math.max(0,chosenCount-results.length);
  if(!remain){go(6);return}
- const revisionId=++revision;quoteBusy=true;status('Uploading references and checking the live credit price…');
- $('review-credits').disabled=true;
+ const revisionId=revision;quoteBusy=true;quoteError=false;syncGenerateAction();
  try{
   const settings=getSettings();const references=await uploadReferences();if(revisionId!==revision)return;
   settings.referenceRoles=references.map(({file,role})=>({role,name:nameFor(file),note:''}));
@@ -259,14 +272,32 @@ async function reviewBatch(){
   const quotes=Array.isArray(response.quotes)?response.quotes:[response];
   if(quotes.length!==Math.min(4,remain)||quotes.some(q=>!validQuote(q)||q.settings.engine!==settings.engine||q.settings.resolution!==settings.resolution||q.settings.aspectRatio!==settings.aspectRatio))throw Error('The server did not return a complete, matching credit quote.');
   quote={quotes,remaining:remain,settings,revision:revisionId};
-  const total=quotes.reduce((sum,q)=>sum+q.creditCost,0);
-  $('confirm-count').textContent=quotes.length+' images';$('confirm-price').textContent=total.toLocaleString()+' credits';
-  $('confirm-remaining').textContent=Math.max(0,remain-quotes.length)+' after this batch';
-  $('confirm-description').textContent='Each image is priced by PV LAB. This confirmation covers the next '+quotes.length+' images only.';
-  $('confirm-submit').textContent='Generate · '+total.toLocaleString()+' credits';$('editorial-confirm').showModal();status('');
- }catch(error){quote=null;status(error.message,true)}
- finally{quoteBusy=false;$('review-credits').disabled=false}
+  quoteExpiryTimer=setTimeout(invalidateQuote,Math.max(0,Math.min(...quotes.map(q=>Number(q.expiresAt)))-Date.now()));
+  status('');
+ }catch(error){if(revisionId===revision){quote=null;quoteError=true;status(error.message,true)}}
+ finally{
+  quoteBusy=false;syncGenerateAction();
+  if(revisionId!==revision&&step===4&&profile&&!submitting&&!uncertain){clearTimeout(quoteTimer);quoteTimer=setTimeout(()=>void prepareBatch(),250)}
+ }
 }
+async function generateEditorial(){
+ if(submitting||quoteBusy||uncertain)return;
+ if(!profile){await signIn();return}
+ if(!quote||quote.revision!==revision||!quote.quotes.every(validQuote)){
+  invalidateQuote();clearTimeout(quoteTimer);await prepareBatch();return;
+ }
+ await submitBatch();
+}
+const generationVideo=$('editorial-generation-film');
+const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+function updateGenerationMotion(){
+ const play=step===5&&!document.hidden&&!reducedMotion.matches&&!navigator.connection?.saveData;
+ if(!play){generationVideo.pause();return}
+ if(!generationVideo.src){generationVideo.src=generationVideo.dataset.src;generationVideo.load()}
+ generationVideo.play()?.catch(()=>{});
+}
+document.addEventListener('visibilitychange',updateGenerationMotion);
+reducedMotion.addEventListener('change',updateGenerationMotion);
 function renderResults(){
  const holder=$('editorial-results'),strip=$('progress-results');holder.replaceChildren();strip.replaceChildren();
  for(const [index,result] of results.entries()){
@@ -302,9 +333,9 @@ async function pollJob(id,version){
 async function submitBatch(){
  if(submitting||uncertain||!quote)return;
  const frozen=quote;quote=null;
- if(frozen.quotes.some(q=>!validQuote(q))){status('The quote expired. Review the credit cost again.',true);$('editorial-confirm').close();return}
+ if(frozen.revision!==revision||frozen.quotes.some(q=>!validQuote(q))){invalidateQuote();status('The credit cost is refreshing. Check it before generating.',true);return}
  if(!profile){status('Sign in again to confirm the charge.',true);return}
- $('editorial-confirm').close();go(5);submitting=true;const version=epoch;
+ submitting=true;clearTimeout(quoteExpiryTimer);go(5);const version=epoch;
  try{
   const started=[];
   // Submit the four distinct bound quotes promptly before any one image
@@ -331,7 +362,7 @@ async function submitBatch(){
   if(activeJobs.length)uncertain=true;
   status(error.message,true);$('batch-status').textContent=error.message;renderResults();
   if(results.length){go(6);status(error.message,true)}
- }finally{submitting=false}
+ }finally{submitting=false;generationVideo.pause();syncGenerateAction()}
 }
 function pushZipPart(parts,values){parts.push(new Uint8Array(values))}
 function crc32(bytes){let c=0xffffffff;for(const byte of bytes){c^=byte;for(let i=0;i<8;i++)c=(c>>>1)^(0xedb88320&-(c&1))}return(c^0xffffffff)>>>0}
@@ -361,8 +392,8 @@ document.addEventListener('click',event=>{if(!siteHeader.contains(event.target))
 $('editorial-start').addEventListener('click',()=>{go(1);status('')});
 $('step-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-1));status('')}});
 $('editorial-top-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-1));status('')}});
-$('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4){void reviewBatch();return}if(validateStep()){go(step+1);status('')}});
-$('review-credits').addEventListener('click',()=>void reviewBatch());
+$('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4)return;if(validateStep()){go(step+1);status('')}});
+$('editorial-generate').addEventListener('click',()=>void generateEditorial().catch(error=>status(error.message,true)));
 $('editorial-reset').addEventListener('click',()=>{if(submitting){status('A paid generation is running. Open History before starting another.',true);return}resetAll()});
 for(const b of document.querySelectorAll('[data-sample-kind]'))b.addEventListener('click',()=>void toggleSample(b));
 for(const b of document.querySelectorAll('[data-source-view]'))b.addEventListener('click',()=>{
@@ -388,14 +419,12 @@ $('saved-location').addEventListener('click',()=>void openSaved('location'));
 $('saved-elements-close').addEventListener('click',()=>$('saved-elements-dialog').close());
 $('add-location').addEventListener('click',()=>$('location-files').click());
 for(const [kind,id] of [['model','model-files'],['outfit','outfit-files'],['location','location-files']])$(id).addEventListener('change',event=>{addFiles(kind,event.target.files);event.target.value=''});
-for(const id of ['styling-direction','location-direction','editorial-prompt','editorial-model','editorial-resolution'])$(id).addEventListener('input',()=>{quote=null;updateSeriesSummary()});
-for(const id of ['identity-guide','garment-guide','mood-guide'])$(id).addEventListener('input',()=>{quote=null;refreshSliderLabels()});
-$('count-options').addEventListener('click',event=>{const b=event.target.closest('[data-count]');if(!b)return;chosenCount=Number(b.dataset.count);quote=null;updateOptions()});
-$('ratio-options').addEventListener('click',event=>{const b=event.target.closest('[data-ratio]');if(!b)return;chosenRatio=b.dataset.ratio;quote=null;updateOptions()});
+for(const id of ['styling-direction','location-direction','editorial-prompt','editorial-model','editorial-resolution'])$(id).addEventListener('input',()=>{invalidateQuote();updateSeriesSummary()});
+for(const id of ['identity-guide','garment-guide','mood-guide'])$(id).addEventListener('input',()=>{invalidateQuote();refreshSliderLabels()});
+$('count-options').addEventListener('click',event=>{const b=event.target.closest('[data-count]');if(!b)return;chosenCount=Number(b.dataset.count);invalidateQuote();updateOptions()});
+$('ratio-options').addEventListener('click',event=>{const b=event.target.closest('[data-ratio]');if(!b)return;chosenRatio=b.dataset.ratio;invalidateQuote();updateOptions()});
 for(const tab of document.querySelectorAll('[data-direction-tab]'))tab.addEventListener('click',()=>{directionTab=tab.dataset.directionTab;renderDirections()});
-for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).addEventListener('change',()=>{quote=null;updateSeriesSummary()});
-$('confirm-cancel').addEventListener('click',()=>$('editorial-confirm').close());
-$('confirm-submit').addEventListener('click',()=>void submitBatch());
+for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).addEventListener('change',()=>{invalidateQuote();updateSeriesSummary()});
 $('download-selected').addEventListener('click',()=>void downloadSelected().catch(e=>status(e.message,true)));
 $('create-variations').addEventListener('click',()=>{if(submitting||uncertain)return;if(results.length>=chosenCount&&chosenCount<12){chosenCount+=4;updateOptions()}go(4);status('Review the next set of four and its real credit price before generating.')});
 $('edit-selection').addEventListener('click',()=>{location.assign('./studio.html?tool=retouch');});

@@ -1,3 +1,17 @@
+## 2026-10-31 / direct Generate, ivory progress film, compact results
+- Owner request: remove both Review credits CTAs and the separate credit confirmation. One Generate action, exact credit cost below, matching Image Studio. Reuse the homepage white-fabric film during generation. Reduce and raise the results title to reveal photographs.
+- Baseline main `158731c57369a2ebe4c4f4bcbdb6e2ae56db4a79`; isolated branch `fix/editorial-direct-generate-fabric-20261031`.
+- PR #746 arrival hero CTA typography landed during this task. Integrated main `34eb84172c5e6c6ef649f11bbd626701a8366a90` once to preserve the new button. Conflicts were limited to the shared cache key and adjacent checkpoint entries.
+- Step 4 prepares a live bound server quote and displays its summed credit cost. Generate submits only that displayed, unexpired batch. Removed duplicate footer action and credit-review dialog. No hardcoded 80-credit price.
+- 8/12 selections retain four-image batches and explicitly label the next set. Each set needs another Generate click. Settings, references, account changes and expiry invalidate stale pricing. Preparing quotes never submits jobs.
+- Preserved per-quote confirm:true, server credit checks, no duplicate click submissions and no retry after ambiguous paid requests. Backend, ledger and pricing unchanged.
+- Progress uses exact homepage ivory film `8437296a-8370-4d34-951c-b4e78c56d55d.mp4`, poster `3daa34c8-f368-472d-944f-26ff306905c5.jpg`, existing CDN. Loaded only during generation; paused on completion, hidden tabs and reduced-motion/data-saving preferences. Poster remains fallback. Film is explicitly labeled editorial, not a generated output.
+- Results heading now 34-56 px instead of 50-104 px, with 12 px top padding instead of up to 44 px. Original result images and gallery structure retained.
+- Files: `full-editorial.js`, `full-editorial.html`, `full-editorial-atelier.css`, two existing Full Editorial tests, this checkpoint. JS/CSS cache key `20261031-direct-generate1`.
+- Local verification: JS/browser-test syntax, 13/13 approved Image + Full Editorial/handoff source checks, whitespace pass. Expanded existing mocked browser flow checks desktop/phone, automatic no-charge pricing, stale/expired quotes, double-clicks, four-image batching, uncertain submission lock and compact results.
+- Release status: implementation complete; browser CI, merge and exact Cloudflare/live evidence pending. No real paid generation or purchase performed.
+- Next: run dedicated mocked browser CI, inspect relevant checks, merge reviewed source and verify exact Cloudflare deployment/custom-domain assets.
+
 ## 2026-10-31 / approved hero button typography only
 - Owner approved the mixed-type CTA and explicitly requested only the button change: clean Create your, expressive italic editorial.
 - Baseline main `158731c57369a2ebe4c4f4bcbdb6e2ae56db4a79`; isolated branch `fix/editorial-button-typography-20261031`. Recent open PRs do not overlap Full Editorial.

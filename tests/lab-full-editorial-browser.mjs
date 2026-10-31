@@ -5,7 +5,8 @@ import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
-let uploadCount=0,jobCount=0,quoteCount=0;
+let uploadCount=0,jobCount=0,quoteCount=0,quoteDelay=0,quoteTTL=300000,failSubmission=false;
+const quoted=new Map(),submitted=new Set();
 const mockAuth="export async function loadLabAccount(){return {isSignedIn:true,session:{id:'sess-editorial-mock',getToken:async()=> 'token'},user:{id:'user-editorial-mock'},addListener(){},openSignIn(){throw Error('Sign in should not be opened in mock');}}}";
 const mockSession="export function createSessionRequest(){return async (path,init)=>fetch('http://127.0.0.1:4179'+path,init)}";
 const image=readFileSync('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
@@ -20,10 +21,20 @@ const server=http.createServer(async(req,res)=>{
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
   const input=JSON.parse(Buffer.concat(chunks).toString());quoteCount++;
   assert.equal(input.count,4);assert.equal(input.referenceSourceIds.length,2);
-  const list=Array.from({length:input.count},(_,i)=>({id:'quote-'+quoteCount+'-'+i,settings:input.settings,expiresAt:Date.now()+300000,creditCost:35}));
+  const list=Array.from({length:input.count},(_,i)=>({id:'quote-'+quoteCount+'-'+i,settings:input.settings,expiresAt:Date.now()+quoteTTL,creditCost:input.settings.resolution==='2k'?70:35}));
+  for(const q of list)quoted.set(q.id,q);
+  if(quoteDelay)await new Promise(ok=>setTimeout(ok,quoteDelay));
   json({quotes:list});return;
  }
- if(u.pathname==='/api/jobs'&&req.method==='POST'){jobCount++;json({job:{id:'job-'+jobCount,status:'completed',outputId:'test-output-'+jobCount}});return}
+ if(u.pathname==='/api/jobs'&&req.method==='POST'){
+  const chunks=[];for await(const chunk of req)chunks.push(chunk);
+  const input=JSON.parse(Buffer.concat(chunks).toString());
+  assert.equal(input.confirm,true);assert.ok(quoted.has(input.quoteId));
+  assert.equal(submitted.has(input.quoteId),false,'A paid quote is submitted only once');
+  submitted.add(input.quoteId);jobCount++;
+  if(failSubmission){res.statusCode=503;json({error:'Mock interrupted submission'});return}
+  json({job:{id:'job-'+jobCount,status:'completed',outputId:'test-output-'+jobCount}});return;
+ }
  if(/^\/api\/assets\/test-output-/.test(u.pathname)){res.setHeader('Content-Type','image/jpeg');res.end(image);return}
  if(/^\/api\/jobs\/job-/.test(u.pathname)){const id=u.pathname.split('/').pop();json({job:{id,status:'completed',outputId:'test-output-'+id.slice(4)}});return}
  const path=resolve(root,'.'+u.pathname+(u.pathname.endsWith('/')?'index.html':''));
@@ -88,20 +99,58 @@ try{
   assert.match(await page.locator('#review-model-text').textContent(),/1 model photograph/);
   assert.match(await page.locator('#review-outfit-text').textContent(),/1 wardrobe reference/);
   await page.screenshot({path:'test-results/editorial/'+width+'-review.png',fullPage:width===390});
-  const before=jobCount;await page.locator('#review-credits').click();
-  try{await page.locator('#editorial-confirm').waitFor({state:'visible',timeout:5500})}
-  catch(error){
-   const diagnostics=await page.evaluate(()=>({status:document.getElementById('editorial-status')?.textContent,profile:document.getElementById('editorial-balance')?.textContent,buttonDisabled:document.getElementById('review-credits')?.disabled,body:document.getElementById('panel-generate')?.innerText?.slice(0,550)}));
-   console.error('EDITORIAL_QUOTE_DIAGNOSTICS',JSON.stringify({uploadCount,quoteCount,jobCount,width,diagnostics}));
-   throw error;
-  }
-  assert.equal(jobCount,before,'No paid job is made before explicit credit confirmation');
-  assert.equal(await page.locator('#confirm-price').textContent(),'140 credits');
-  await page.locator('#confirm-submit').click();
+  const before=jobCount;
+  await page.waitForFunction(()=>document.getElementById('editorial-cost').textContent==='140 credits');
+  assert.equal(jobCount,before,'Automatic quote preparation never submits a paid job');
+  assert.equal(await page.locator('#editorial-confirm').count(),0,'No duplicate confirmation dialog');
+  assert.equal(await page.locator('#step-next').isVisible(),false,'No duplicate footer Generate/review action');
+  assert.equal(await page.locator('#editorial-generate').textContent(),'Generate');
+  assert.equal(await page.locator('#editorial-generation-film').getAttribute('src'),null,'Film is not loaded during setup');
+  // A delayed response for old settings must never re-enable a stale purchase.
+  quoteDelay=350;
+  await page.locator('.atelier-generate-advanced').evaluate(el=>el.open=true);
+  const staleResponse=page.waitForResponse(r=>r.url().endsWith('/api/quotes'));
+  await page.locator('#editorial-resolution').selectOption('2k');
+  const staleRequest=page.waitForRequest(r=>r.url().endsWith('/api/quotes'));
+  await staleRequest;
+  await page.locator('#editorial-resolution').selectOption('1k');
+  await staleResponse;
+  await page.waitForFunction(()=>document.getElementById('editorial-cost').textContent==='140 credits'&&!document.getElementById('editorial-generate').disabled);
+  quoteDelay=0;
+  assert.equal(jobCount,before,'Changing settings only requotes');
+  // Expiry refreshes the displayed price, without ever creating a job.
+  quoteTTL=700;
+  await page.locator('[data-ratio="4:3"]').click();
+  await page.waitForFunction(()=>document.getElementById('editorial-cost').textContent==='140 credits');
+  const expiringCount=quoteCount;quoteTTL=300000;
+  await page.waitForFunction(n=>document.getElementById('editorial-cost').textContent==='Checking credits…',null,{timeout:4000});
+  await page.waitForFunction(()=>document.getElementById('editorial-cost').textContent==='140 credits');
+  assert.ok(quoteCount>expiringCount);assert.equal(jobCount,before);
+  await page.locator('.atelier-generate-advanced').evaluate(el=>el.open=false);
+  await page.screenshot({path:'test-results/editorial/'+width+'-direct-generate.png',fullPage:width===390});
+  await page.locator('#editorial-generate').evaluate(button=>{button.click();button.click()});
   await page.locator('#editorial-results .result-card').last().waitFor({timeout:15000});
   assert.equal(await page.locator('#editorial-results .result-card').count(),4);
   await page.screenshot({path:'test-results/editorial/'+width+'-results.png',fullPage:width===390});
-  assert.equal(jobCount,before+4,'Four individually bound and confirmed jobs were submitted');
+  assert.equal(jobCount,before+4,'Double-click submits exactly four individually bound jobs');
+  const geometry=await page.evaluate(()=>({font:parseFloat(getComputedStyle(document.getElementById('results-heading')).fontSize),gap:document.getElementById('editorial-results').getBoundingClientRect().top-document.getElementById('panel-results').getBoundingClientRect().top}));
+  assert.ok(geometry.font<=56,'Compact results title');assert.ok(geometry.gap<230,'Photos follow a compact results header');
+  assert.equal(await page.locator('#editorial-generation-film').evaluate(video=>video.paused),true,'Film stops when results appear');
+  await page.locator('#create-variations').click();
+  await page.waitForFunction(()=>document.getElementById('editorial-cost').textContent==='140 credits');
+  assert.match(await page.locator('#editorial-batch-note').textContent(),/^$/);
+  assert.equal(jobCount,before+4,'Next batch waits for a new explicit Generate click');
+  await page.locator('[data-count="12"]').click();
+  await page.waitForFunction(()=>document.getElementById('editorial-cost').textContent==='140 credits');
+  assert.match(await page.locator('#editorial-batch-note').textContent(),/Next 4 of 8/);
+  // A network-ambiguous paid submission freezes further generation and is not retried.
+  failSubmission=true;
+  await page.locator('#editorial-generate').click();
+  await page.waitForFunction(()=>document.getElementById('editorial-status').textContent.includes('Submission was not confirmed'));
+  assert.equal(jobCount,before+5,'One failed submission, no automatic retry');
+  await page.locator('#editorial-top-back').evaluate(button=>{button.click();button.click()});
+  assert.equal(await page.locator('#editorial-generate').isDisabled(),true,'Uncertain submission blocks another purchase');
+  failSubmission=false;
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2);
   assert.equal(overflow,false,'Full Editorial has no horizontal overflow at '+width);
   assert.deepEqual(errors,[],'No browser errors at '+width);
@@ -129,5 +178,5 @@ try{
   assert.equal(jobCount,startJobs);assert.equal(quoteCount,startQuotes);
   await page.close();
  }
- console.log('PASS Full Editorial 1440/390 steps, uploads, bound credit quote, confirm gate, real result assets and overflow');
+ console.log('PASS Full Editorial 1440/390 steps, uploads, inline live quote, stale/expired quote guards, one-click batch, no ambiguous retries, real result assets and overflow');
 }finally{await browser.close();server.close()}

@@ -21,7 +21,8 @@ test('Full Editorial has the approved hero and real four-step navigation',()=>{
  assert.match(read('lab/studios-menu.js'),/pv-studios-editorial-artwork/);
  assert.match(read('lab/studios-menu.css'),/pv-studios-editorial-copy/);
  for(const step of ['model','style','mood','generate','progress','results'])assert.match(html,new RegExp('id="panel-'+step+'"'));
- assert.match(html,/id="editorial-confirm"/);
+ assert.doesNotMatch(html,/id="editorial-confirm"/);
+ assert.match(html,/id="editorial-generate"/);
  assert.match(html,/id="model-files"[^>]+multiple/);
  assert.match(html,/id="outfit-files"[^>]+multiple/);
  assert.match(html,/id="location-files"[^>]+multiple/);
@@ -36,7 +37,8 @@ test('Navigation routes Full Editorial to its own real page, including legacy li
 test('Generation is server quoted, confirmed once, and attached to real jobs',()=>{
  assert.match(js,/\/api\/uploads/);
  assert.match(js,/\/api\/quotes/);
- assert.match(js,/\$\('review-credits'\)\.addEventListener\('click',\(\)=>void reviewBatch\(\)\)/,'Visible primary review button must open real credit review');
+ assert.match(js,/\$\('editorial-generate'\)\.addEventListener/,'One visible Generate action submits the displayed bound quote');
+ assert.match(js,/frozen\.revision!==revision/,'Changed settings cannot submit an old quote');
  assert.match(js,/\/api\/jobs/);
  assert.match(js,/\/api\/assets\//);
  assert.match(js,/confirm:true/);
@@ -65,7 +67,16 @@ test('Atelier references remain real and the creative steps feed real generation
  assert.match(js,/function updateSeriesSummary/);
  assert.match(js,/selectedDirections=\{location:null,moods:null,material:null\}/);
  assert.match(js,/const moodText=Object\.entries\(selectedDirections\)/);
- assert.match(html,/No credits are charged until you approve the actual server quote/);
+ assert.match(html,/Generate starts the set at the credit cost shown below/);
  assert.match(html,/full-editorial-atelier\.css/);
  assert.match(html,/id="editorial-mobile-menu"/);
+});
+
+test('Progress reuses the homepage ivory film and keeps results prominent',()=>{
+ const film=html.match(/id="editorial-generation-film"[^>]*data-src="([^"]+)"/)[1];
+ assert.ok(read('lab/index.html').includes('data-src="'+film+'"'),'Exact homepage Full Editorial film is reused');
+ assert.doesNotMatch(html,/studios-original-reference.svg/);
+ assert.match(js,/generationVideo.pause\(\)/);
+ assert.match(js,/prefers-reduced-motion/);
+ assert.match(read('lab/full-editorial-atelier.css'),/font-size:clamp\(34px,3.4vw,56px\)/);
 });

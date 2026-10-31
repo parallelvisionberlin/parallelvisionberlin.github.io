@@ -110,18 +110,20 @@
 .atelier-settings .segmented button{min-height:45px;border-radius:2px}
 .atelier-generate-advanced{margin:20px 0}
 .atelier-cost-note{color:#bebec0;font-size:11px;line-height:1.55;margin:16px 0 8px}
-.atelier-review-main #review-credits{border-radius:999px;min-height:60px;font-size:14px;font-weight:650}
+.atelier-review-main #editorial-generate{border-radius:999px;min-height:60px;font-size:14px;font-weight:650}
 .flow-footer{display:flex;justify-content:space-between;gap:15px;padding:23px 0;margin:23px 0 0;border-top:1px solid #3d3e40}
 .flow-footer button{min-height:53px;border-radius:3px;font-weight:550}
 #step-back{background:#121314;border-color:#515252}
 #step-next{min-width:232px;background:#f4f1e9;border-color:#f4f1e9;color:#111}
-#panel-results{padding:clamp(10px,2.8vw,44px) 0}
-#panel-results h2{font-family:Georgia,serif;font-weight:400;font-size:clamp(50px,6vw,104px);line-height:1.02}
+#panel-results{padding:12px 0}
+#panel-results h2{font-family:Georgia,serif;font-weight:400;font-size:clamp(34px,3.4vw,56px);line-height:1.05;margin:0 0 8px}
 #panel-results .results-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 #panel-results .result-card{border-radius:2px}
 #panel-results .result-card:first-child{grid-column:span 2;grid-row:span 2}
 #panel-results .result-card:first-child img{aspect-ratio:3/4;height:100%}
 #panel-results .result-card img{aspect-ratio:3/4}
+#panel-results .step-intro{margin-bottom:14px}
+#panel-results .result-actions{margin:12px 0 18px}
 #panel-results .result-actions button{border-radius:2px;min-height:48px}
 @media(max-width:1100px){
  .atelier-cast-gallery{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
@@ -274,3 +276,16 @@
  .editorial-flow{scroll-margin-top:68px}
  #panel-model .atelier-section-top{display:block}
 }
+
+/* Direct generation: one action, authoritative cost, existing ivory editorial film. */
+.editorial-generate-action{margin-top:30px;text-align:center}
+.editorial-cost{font-size:12px;color:#c5c3bf;margin:10px 0 0;min-height:18px}
+.editorial-batch-note{font-size:11px;line-height:1.5;color:#a6a5a2;margin:5px 0 0}
+.editorial-batch-note:empty{display:none}
+#panel-progress .generation-visual{border-radius:4px;background:#171715}
+#panel-progress .visual-reference{opacity:1}
+#panel-progress .visual-reference video{width:100%;height:100%;object-fit:cover}
+#panel-progress .generation-overlay{min-height:clamp(360px,45vw,620px);padding:30px 20px;background:linear-gradient(0deg,#080909b3,#08090930 70%,#08090920)}
+#panel-progress .generation-overlay small{color:#dedbd4;max-width:300px;line-height:1.6}
+@media(max-width:800px){#panel-progress .generation-overlay{min-height:420px}}
+@media(prefers-reduced-motion:reduce){#panel-progress .spinner{animation:none}}
