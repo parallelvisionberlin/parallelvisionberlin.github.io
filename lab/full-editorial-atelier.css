@@ -316,3 +316,31 @@
  #panel-generate .atelier-review-photo>span{bottom:12px;left:12px;right:12px;font-size:8px;line-height:1.5;letter-spacing:.12em}
  #panel-generate:not([hidden])~#step-footer{position:static;bottom:auto;z-index:auto;background:transparent;margin-top:20px;padding:16px 0 max(16px,env(safe-area-inset-bottom))}
 }
+
+/* Generating is a cinematic result stage, not another wizard step. */
+body.editorial-is-generating #stage-navigation{display:none!important}
+body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
+#panel-progress{padding:0}
+#panel-progress h2{margin:0 0 8px;font-size:clamp(34px,3.3vw,54px);font-weight:450;letter-spacing:-.06em}
+#panel-progress .step-intro{margin:0 0 18px;color:#b7b6b3}
+#panel-progress .generation-visual{border:1px solid #30312f}
+#panel-progress .generation-overlay{gap:12px}
+#panel-progress .generation-overlay .spinner{width:30px;height:30px;border-width:1.5px}
+#panel-progress .generation-overlay strong{font-size:clamp(16px,1.45vw,22px);font-weight:550;letter-spacing:-.035em}
+#panel-progress .result-strip{display:flex;justify-content:center;gap:clamp(8px,1vw,14px);padding:18px 0 6px;margin:0;overflow:visible}
+#panel-progress .generation-frame{width:clamp(67px,7.5vw,96px);flex:none;aspect-ratio:3/4;position:relative;overflow:hidden;border:1px solid #454644;border-radius:2px;background:#151616;display:grid;place-items:center;transition:border-color .28s,background .28s}
+#panel-progress .generation-frame-number{font-size:20px;font-weight:350;letter-spacing:-.06em;color:#656665}
+#panel-progress .generation-frame img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;animation:editorial-image-reveal .6s ease-out both}
+#panel-progress .generation-frame.is-ready{border-color:#d7d4cb;background:#20201e}
+#panel-progress .generation-frame small{position:absolute;left:7px;bottom:7px;z-index:1;font-size:9px;letter-spacing:.13em;color:#fff;text-shadow:0 1px 4px #000}
+#panel-progress .generation-frame:not(.is-ready) small{display:none}
+@keyframes editorial-image-reveal{from{opacity:0;filter:blur(10px);transform:scale(1.035)}to{opacity:1;filter:blur(0);transform:scale(1)}}
+@media(max-width:520px){
+ body.editorial-is-generating .editorial-flow{padding:12px 12px 40px}
+ #panel-progress h2{font-size:clamp(29px,8vw,38px)}
+ #panel-progress .step-intro{font-size:12px;margin-bottom:13px}
+ #panel-progress .generation-overlay{min-height:clamp(350px,51svh,440px)}
+ #panel-progress .result-strip{gap:9px;padding-top:14px}
+ #panel-progress .generation-frame{width:min(20vw,76px)}
+}
+@media(prefers-reduced-motion:reduce){#panel-progress .generation-frame img{animation:none}}
