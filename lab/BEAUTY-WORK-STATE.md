@@ -28,8 +28,16 @@
 - Existing main public Studio visual CI fails Video model comparison; existing Video CI fails an image-input scroll assertion. Neither workflow nor its assertions is weakened here.
 - Local Upscaler layout test reaches an existing mobile button-position mismatch under Chromium 153; all source files it exercises are byte-identical to baseline main.
 - Validation uses synthetic accounts/media and intercepted provider APIs only. No real paid generation or payment is authorized or performed.
-- Publication: pending updated PR checks, merge, exact Cloudflare production check and custom-domain byte/behavior verification.
-- Next action: publish the reviewed PR candidate, retain unrelated Video/Upscaler improvements, then record exact deployment evidence here.
+- MERGED: PR #726, reviewed source `388a5306d5816becaeb534e25871369864e1ef24`, production merge `4432ec6827b3ec8e51f133bff41b66b966a0b144`.
+- The merge includes latest main `1098236b0a44dd7457b59e4e278e75e27c76be1c`; its Video/Extend/Upscaler files remain byte-identical after integration.
+- PASS in updated GitHub CI: Beauty, private-lab, approved Image, image-reference test, gallery, account, search, static validation and Motion Effects.
+- Other completed failures match main: public Video visual, Video input scrolling, Assets assertion at lab-assets-ui.cjs:423, and landing menu expecting the obsolete Beauty Studio name. No gate was disabled or weakened.
+- LIVE: exact merge SHA Cloudflare Pages app check `124515141103`, project pvlab-studio, success; deployment `6cdcf9f9-8689-49e9-9d64-e302f356953e`.
+- Read-only release verifier returned LIVE_VERIFIED against https://pvlab.studio/beauty for controller, comparison JS and CSS, using the Beauty entry instead of its default Studio entry.
+- Custom-domain SHA-256 matches reviewed source: beauty.js `6be0abd596e110e1164904c617d9303d13e116a0a1f0d365d37895c74023b36f`; comparison JS `81480c47ea98638465f21e4b83a2e40b4b10145e6ca09056d85124f4fe3b19db`.
+- Also matched: approved CSS `384dcd33cec0b72dd9a1b45c15dec744c53ba75d45f457e3eac980dc6319f4cd`; HTML `6fdec97e08ad43aa5b7daf405fa6af764200ee16295c7c7bc2e0a3bed9a30104`; settings JS `c5441931e65f39beec814bfdd86df9c4fd795eb1e875b18971bb04146df92039`.
+- PASS on the custom domain at 1448/390px: model/ratio selection, visible illustrative label, independent original URL, keyboard/touch comparison, actual per-job originals, delayed source races and missing-source fallback. These use deployed client assets with synthetic accounts and intercepted APIs, not a real signed-in generation.
+- Status: corrected behavior is deployed and verified; no paid image generation or real-account output-quality claim. No ALTER release action remains.
 
 ## Retouch image card in shared Studios menu, 2026-10-28
 - Scope: Replace the existing secondary Retouch text entry with a fifth photographic tile inside the same Studios dropdown, preserving its existing Retouch route; keep Character Studio as the secondary text link.
