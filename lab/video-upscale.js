@@ -14,6 +14,11 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  workspace.prepend(bar);
  controls.append(sidebar);
  stageShell.append(preview);
+ // Keep the native MP4 picker outside the hidden legacy wrapper. This is
+ // important for iOS Safari's user-gesture file chooser behavior.
+ const filePicker=panel.querySelector('#pv-video-upscale-file');
+ if(!filePicker)throw Error('Video source picker unavailable.');
+ stageShell.append(filePicker);
  panel.hidden=true;
  const pick=$('pv-video-upscale-file'),src=$('pv-video-upscale-source'),result=$('pv-video-upscale-result');
  const stage=$('pv-video-upscale-stage'),blank=$('pv-video-upscale-blank'),price=$('pv-video-upscale-price');
