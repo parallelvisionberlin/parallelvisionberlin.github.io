@@ -11,7 +11,7 @@
 <title>Full Editorial Studio | PV LAB</title>
 <link rel="icon" type="image/png" href="./branding/pv-mark.png">
 <link rel="stylesheet" href="./full-editorial.css?v=20261030-editorial-workspace2">
-<link rel="stylesheet" href="./full-editorial-atelier.css?v=20261030-atelier2">
+<link rel="stylesheet" href="./full-editorial-atelier.css?v=20261031-scene-taxonomy1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261030-editorial-motion1">
 </head>
 <body>
@@ -100,18 +100,19 @@
      </div>
    </section>
    <section class="step-panel" id="panel-mood" aria-labelledby="mood-heading" hidden>
-     <div class="stage-visual stage-visual--world"><img src="https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png" alt="" loading="lazy"><div class="stage-copy"><span class="stage-index">03 / 04 &nbsp; ART DIRECTION</span><h2 id="mood-heading">Location &amp; mood</h2><p>Build a world that belongs to your story.</p></div></div>
+     <div class="stage-visual stage-visual--world"><img src="./visuals/editorial-scene-library/platform-12.webp" alt="" loading="lazy"><div class="stage-copy"><span class="stage-index">03 / 04 &nbsp; VISUAL WORLD</span><h2 id="mood-heading">Set the scene.</h2><p>Choose a place. Shape the atmosphere.</p></div></div>
      <div class="atelier-workspace">
-       <div class="atelier-section-top"><div><span class="step-kicker">WORLD / ENVIRONMENT</span><h3>Set the scene.</h3><p>Select a location, atmosphere and material direction. Each category contributes to the final editorial.</p></div></div>
-       <div class="atelier-source-tabs" role="tablist" aria-label="Creative direction"><button class="atelier-tab is-selected" role="tab" aria-selected="true" type="button" data-direction-tab="location">Environments</button><button class="atelier-tab" role="tab" aria-selected="false" type="button" data-direction-tab="moods">Mood</button><button class="atelier-tab" role="tab" aria-selected="false" type="button" data-direction-tab="material">Materials</button></div>
-       <div id="direction-cards" class="direction-cards" aria-label="Photographic environments and moods"></div>
-       <p class="atelier-reference-note" id="direction-summary" aria-live="polite">Reference selections guide the scene. These are not image outputs.</p>
+       <div class="atelier-section-top"><div><span class="step-kicker">THE WORLD / THREE DISTINCT CHOICES</span><h3>Place. Look. Material.</h3><p>First choose where the image happens. Then choose its photographic treatment and optional material. Each card shows its actual category.</p></div></div>
+       <div class="atelier-source-tabs" role="tablist" aria-label="Creative direction"><button class="atelier-tab is-selected" role="tab" aria-selected="true" type="button" data-direction-tab="location">Environments</button><button class="atelier-tab" role="tab" aria-selected="false" type="button" data-direction-tab="moods">Looks</button><button class="atelier-tab" role="tab" aria-selected="false" type="button" data-direction-tab="material">Materials</button></div>
+       <div id="direction-cards" class="direction-cards" aria-label="Photo references for environments, photographic looks and materials"></div>
+       <div id="scene-reference-preview" class="scene-reference-preview" hidden aria-label="Curated references included at generation"></div>
+       <p class="atelier-reference-note" id="direction-summary" aria-live="polite">Choose any environment, photographic look and material. These are independent visual references, not generated results.</p>
        <div class="world-controls">
          <label>Time of day <select id="editorial-time"><option value="natural">Natural daylight</option><option value="golden">Golden hour</option><option value="overcast">Overcast daylight</option><option value="blue">Blue hour</option><option value="night">Night</option></select></label>
          <label>Atmosphere <select id="editorial-atmosphere"><option value="cinematic">Cinematic</option><option value="analogue">Analogue &amp; raw</option><option value="soft">Soft and diffused</option><option value="contrast">Hard contrast</option></select></label>
          <label>Color palette <select id="editorial-palette"><option value="natural">Natural / desaturated</option><option value="mono">Monochrome</option><option value="warm">Warm / earthy</option><option value="cool">Cool / mineral</option></select></label>
        </div>
-       <div class="atelier-inline-actions"><button type="button" class="upload-compact" id="add-location"><span>+</span> Add a location photograph</button><button class="upload-compact" type="button" id="saved-location">Saved locations</button><a class="atelier-moods-link" href="./moods" target="_blank" rel="noopener">Explore all Moods ↗</a></div>
+       <div class="atelier-inline-actions"><button type="button" class="upload-compact" id="add-location"><span>+</span> Add a location photograph</button><button class="upload-compact" type="button" id="saved-location">Saved locations</button><a class="atelier-moods-link" href="./moods" target="_blank" rel="noopener">Explore other Moods ↗</a></div>
        <input type="file" id="location-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
        <div class="thumb-row" id="location-thumbs" aria-label="Your location references"></div>
        <label class="field-name" for="location-direction">Other directions <small>(optional)</small></label><textarea id="location-direction" rows="2" maxlength="500" placeholder="Monumental concrete hall, hazy window light, subtle film grain..."></textarea>
@@ -163,6 +164,6 @@
 <dialog id="saved-elements-dialog" aria-labelledby="saved-elements-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / ELEMENTS</span><h2 id="saved-elements-heading">Saved Elements</h2><p>Use existing private reference images from your Elements library.</p><div id="saved-elements-list" class="saved-elements-list"></div><button type="button" class="secondary" id="saved-elements-close">Close</button></div></dialog>
 <dialog id="editorial-confirm" aria-labelledby="confirm-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / CREDIT REVIEW</span><h2 id="confirm-heading">Confirm your editorial set</h2><p id="confirm-description">The server determines your exact credit price.</p><dl><div><dt>Images in this batch</dt><dd id="confirm-count"></dd></div><div><dt>Credits for this batch</dt><dd id="confirm-price"></dd></div><div><dt>Remaining planned images</dt><dd id="confirm-remaining"></dd></div></dl><div class="confirm-buttons"><button type="button" class="secondary" id="confirm-cancel">Cancel</button><button type="button" class="primary" id="confirm-submit">Generate · confirm credits</button></div><p class="fineprint">Only this confirmed batch is submitted and charged. Never automatically resubmitted after a network error.</p></div></dialog>
 <script src="./studios-menu.js?v=20261030-auto-hover1" defer></script>
-<script type="module" src="./full-editorial.js?v=20261030-atelier2"></script>
+<script type="module" src="./full-editorial.js?v=20261031-scene-taxonomy1"></script>
 </body>
 </html>
