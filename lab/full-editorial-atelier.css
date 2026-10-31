@@ -289,3 +289,30 @@
 #panel-progress .generation-overlay small{color:#dedbd4;max-width:300px;line-height:1.6}
 @media(max-width:800px){#panel-progress .generation-overlay{min-height:420px}}
 @media(prefers-reduced-motion:reduce){#panel-progress .spinner{animation:none}}
+
+/* Phone Generate: controls first, clear rows, and no floating Back overlay. */
+@media(max-width:800px){
+ #panel-generate .atelier-review-layout{min-height:0;gap:20px}
+ #panel-generate .atelier-review-main{grid-row:1;padding:0}
+ #panel-generate .stage-index{font-size:9px;letter-spacing:.16em}
+ #panel-generate .atelier-review-main h2{font-size:clamp(30px,8.2vw,38px);line-height:1.06;letter-spacing:-.055em;margin:8px 0 10px}
+ #panel-generate .step-intro{font-size:12px;line-height:1.5;margin:0 0 18px}
+ #panel-generate .selection-summary{margin:0 0 20px}
+ #panel-generate .selection-item{gap:12px;padding:12px 0;min-height:80px}
+ #panel-generate .selection-image{flex-basis:52px;height:56px;overflow:hidden}
+ #panel-generate .selection-info{column-gap:8px;row-gap:4px}
+ #panel-generate .selection-info strong{font-size:12px;line-height:1.45}
+ #panel-generate .selection-info button{min-width:44px;min-height:44px;padding:8px 0 8px 8px}
+ #panel-generate .atelier-settings{gap:16px}
+ #panel-generate .atelier-settings .field-name{margin:0 0 8px}
+ #panel-generate #ratio-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+ #panel-generate #ratio-options button{min-width:0;padding:8px 2px;font-size:12px}
+ #panel-generate .atelier-generate-advanced{margin:18px 0}
+ #panel-generate .setting-note{align-items:flex-start;line-height:1.5;margin:16px 0;padding:0}
+ #panel-generate .editorial-generate-action{margin-top:20px}
+ #panel-generate #editorial-generate{min-height:52px}
+ #panel-generate .atelier-review-photo{grid-row:2;height:148px;min-height:0;max-height:none}
+ #panel-generate .atelier-review-photo img{object-position:center 38%}
+ #panel-generate .atelier-review-photo>span{bottom:12px;left:12px;right:12px;font-size:8px;line-height:1.5;letter-spacing:.12em}
+ #panel-generate:not([hidden])~#step-footer{position:static;bottom:auto;z-index:auto;background:transparent;margin-top:20px;padding:16px 0 max(16px,env(safe-area-inset-bottom))}
+}

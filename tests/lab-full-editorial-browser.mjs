@@ -98,6 +98,31 @@ try{
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-generate').isVisible(),true);
   assert.match(await page.locator('#review-model-text').textContent(),/1 model photograph/);
   assert.match(await page.locator('#review-outfit-text').textContent(),/1 wardrobe reference/);
+  if(width<=800){
+   const layout=await page.evaluate(()=>{
+    const rect=id=>document.getElementById(id).getBoundingClientRect();
+    const heading=rect('settings-heading'),summary=document.querySelector('.selection-summary').getBoundingClientRect(),photo=document.querySelector('.atelier-review-photo').getBoundingClientRect(),action=rect('editorial-generate');
+    return {headingTop:heading.top,summaryBottom:summary.bottom,photoAfterAction:photo.top>action.bottom,titleSize:parseFloat(getComputedStyle(document.getElementById('settings-heading')).fontSize),footerPosition:getComputedStyle(document.getElementById('step-footer')).position,rows:Array.from(document.querySelectorAll('.selection-item')).map(el=>({height:el.getBoundingClientRect().height,editHeight:el.querySelector('button').getBoundingClientRect().height}))};
+   });
+   assert.ok(layout.headingTop<160,'Phone begins with a compact functional heading');
+   assert.ok(layout.summaryBottom<650,'All three reference summaries are visible near the top');
+   assert.equal(layout.photoAfterAction,true,'Inspiration stays below the functional controls');
+   assert.ok(layout.titleSize<=38,'Phone Generate heading is compact');
+   assert.equal(layout.footerPosition,'static','Back cannot float over reference rows');
+   for(const row of layout.rows){assert.ok(row.height>=80,'Reference rows have independent spacing');assert.ok(row.editHeight>=44,'Edit remains a usable phone target')}
+   for(const id of ['review-model-text','review-outfit-text','review-location-text']){
+    await page.locator('#'+id).scrollIntoViewIfNeeded();
+    assert.equal(await page.locator('#'+id).evaluate(el=>{const r=el.getBoundingClientRect(),footer=document.getElementById('step-footer').getBoundingClientRect();return r.bottom>footer.top&&r.top<footer.bottom}),false,'Back does not cover '+id);
+   }
+   await page.setViewportSize({width:320,height:900});
+   const narrow=await page.locator('#ratio-options button').evaluateAll(buttons=>buttons.map(b=>({top:b.getBoundingClientRect().top,width:b.getBoundingClientRect().width})));
+   assert.ok(narrow.every(b=>Math.abs(b.top-narrow[0].top)<1&&b.width>=44),'All five ratios remain separate usable targets on one row at 320 px');
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'No narrow-phone horizontal overflow');
+   await page.screenshot({path:'test-results/editorial/320-phone-generate.png',fullPage:true});
+   await page.setViewportSize({width,height:900});
+   await page.locator('#settings-heading').scrollIntoViewIfNeeded();
+  }
+
   await page.screenshot({path:'test-results/editorial/'+width+'-review.png',fullPage:width===390});
   const before=jobCount;
   await page.waitForFunction(()=>document.getElementById('editorial-cost').textContent==='140 credits');
