@@ -136,6 +136,9 @@ try{
     await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth===840&&!document.querySelector('#image-lightbox-download').disabled);
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).result,'out-2');
     const fullFrame=await paintedFrame(page);assertFitted(fullFrame);
+    assert.equal(await page.locator('#image-result-backdrop').evaluate(el=>
+      !el.hidden&&el.style.backgroundImage.includes(document.querySelector('#image-lightbox-img').src)),true,
+      'The side fill reuses the current full image without a separate asset request');
     for(const key of ['x','y','width','height'])assert.ok(Math.abs(previewFrame[key]-fullFrame[key])<2,
       'Original must replace preview without moving or resizing: '+JSON.stringify({key,previewFrame,fullFrame}));
     await page.click('#image-lightbox-fit');
@@ -154,6 +157,8 @@ try{
     held.get('out-3')();held.get('out-4')();
     await page.waitForFunction(()=>window.__viewerTest.state().prefetch===0);
     assert.equal(await page.locator('#image-lightbox').evaluate(el=>el.open),false);
+    assert.equal(await page.locator('#image-result-backdrop').evaluate(el=>el.hidden&&el.style.backgroundImage===''),true,
+      'Closing a pending selection clears the private backdrop even after late responses');
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).result,null);
     assert.ok([...reads.values()].every(n=>n===1),'Concurrent selection and prefetch share each request');
     await page.evaluate(()=>window.__viewerTest.flush());
@@ -206,7 +211,8 @@ try{
             const main=document.querySelector('#image-detail-video');
             const buttons=[...actions.querySelectorAll(':scope>button,.image-detail-action-grid>button,.image-detail-mood-actions>button,.image-detail-utility-row>button,.image-detail-utility-row summary')];
             const close=document.querySelector('#image-lightbox-close').getBoundingClientRect();
-            return {closeFits:close.right<=innerWidth&&close.right>=innerWidth-16&&close.top>=0&&close.bottom<=64, fits:panel.scrollWidth<=panel.clientWidth+1,buttonFits:buttons.every(b=>{const r=b.getBoundingClientRect();return r.x>=0&&r.right<=innerWidth+1&&r.height>=42;}),color:getComputedStyle(main).backgroundColor};
+            const closeInset=innerWidth>960?22:innerWidth<=720?8:12;
+            return {closeFits:Math.abs(close.right-(innerWidth-closeInset))<2&&close.top>=0&&close.bottom<=64, fits:panel.scrollWidth<=panel.clientWidth+1,buttonFits:buttons.every(b=>{const r=b.getBoundingClientRect();return r.x>=0&&r.right<=innerWidth+1&&r.height>=42;}),color:getComputedStyle(main).backgroundColor};
           });
           await page.screenshot({path:'test-results/result-deck/result-'+layoutWidth+'.png'});
           assert.equal(layout.closeFits,true,'Close remains at the complete viewer top-right at '+layoutWidth);
@@ -224,6 +230,7 @@ try{
       await page.waitForFunction(()=>document.querySelector('#image-lightbox').open&&
         document.querySelectorAll('.image-detail-reference-item').length===1);
       assert.equal(await page.locator('#image-detail-reference-caption').innerText(),'Source image');
+      assert.equal(await page.locator('#image-detail-reference-count').innerText(),'1 reference');
       await page.click('#image-lightbox-close');
       await page.locator('#history .card').nth(3).evaluate(el=>el.click());
       await page.waitForFunction(()=>document.querySelector('#image-lightbox').open&&
@@ -356,6 +363,8 @@ try{
     await page.evaluate(()=>window.__viewerTest.lock());
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).cache,0,'Sign out clears private original cache');
     assert.equal(await page.locator('.image-detail-reference-item').count(),0,'Sign out clears all private reference thumbnails');
+    assert.equal(await page.locator('#image-result-backdrop').evaluate(el=>el.hidden&&el.style.backgroundImage===''),true,
+      'Sign out does not leave a private backdrop behind');
     assert.deepEqual(errors,[]);
     console.log(JSON.stringify({width,shape,previewWidth:Math.round(previewFrame.width),fullWidth:Math.round(fullFrame.width),rapidTwoArrowMs:Math.round(navigation.ms),passed:'stable fitted preview, unchanged frame on original upgrade, native zoom, nonblocking arrows, prefetch, stale responses, correct download, close, sign-out'}));
     await context.close();
