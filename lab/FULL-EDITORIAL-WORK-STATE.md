@@ -6,8 +6,10 @@
 - Product files: `full-editorial.html` (button markup / stylesheet cache key) and `full-editorial-atelier.css` (three scoped typography rules). Cache key `20261031-button-editorial1`. Also this scoped checkpoint.
 - Verified locally: 12/12 existing approved Image UI, Full Editorial and model-handoff source tests; whitespace check passed. Actual browser preview and before/after comparisons: 1440 px button 345.59x65 px in both versions; 390 px button 310x58 px in both; 320 px button 278x58 px with clear space before arrow and no horizontal overflow. Desktop visual inspected against approved mixed-type direction.
 - No JavaScript, workflow, test, pricing, account or provider changes. No paid job or purchase performed.
-- Release status: local button-only implementation complete; PR, CI and live evidence pending.
-- Next: publish exact reviewed files, inspect relevant checks, merge, then verify Cloudflare and exact production CSS plus rendered button.
+- Published PR #746: reviewed source `8f10a2f6616d3b35f9d1aed2fc6475dd1438dad7`, merge `525d8c04260333ccabd8e38e27c324ea680b4a92`. Full Editorial desktop/phone flow, approved Image, core tests, gallery and static validation passed. Broader public Studio check retains the unchanged Upscaler intro-width failure (334 vs 302 px), inspected without expanding scope.
+- Exact merged-commit Cloudflare pvlab-studio deployment `697910a3-cd73-42e3-9adc-e9d8e188d741` succeeded. Production CSS returned HTTP 200 and matches reviewed bytes, SHA-256 `914a498f3c6322af724a6bc604c03fba05bed20ac644e140dd4b0bfc38afd106`.
+- Actual public production browser at https://pvlab.studio/full-editorial confirms cache key `20261031-button-editorial1`, DM weight 500 label plus italic editorial, unchanged 327.11x65 px desktop button at the observed viewport, and the intended visual treatment. No signed-in generation claim.
+- Next: complete and verified live. Product change remains limited to the hero button typography.
 
 ## 2026-10-31 / remove detached model-source sentence
 - Owner approved removing the sentence beginning Start from a PV LAB casting reference. Keep Choose a model directly above the source tabs.
