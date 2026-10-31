@@ -40,6 +40,8 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
  if(!filePicker)throw Error('Video source picker unavailable.');
  stageShell.append(filePicker);
  panel.hidden=true;
+ const introKicker=controlBody.querySelector('.pv-upscale-workspace-intro .pv-upscale-kicker');
+ const imageIntroKicker=introKicker?.textContent;
  const heroTitle=originalEmpty.querySelector('.pv-upscale-empty-center h2');
  const heroDescription=originalEmpty.querySelector('.pv-upscale-empty-center p');
  const heroButtonText=originalHero.querySelector('span');
@@ -82,6 +84,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      lastSyncedMode=media;
    }
    if(videoMode){
+     if(introKicker)introKicker.textContent='PV LAB / VIDEO ENHANCEMENT';
      heroTitle.textContent='Insert a source video.';
      heroDescription.textContent='Upload a video to begin the upscale process.';
      heroButtonText.textContent='Upload video';
@@ -95,6 +98,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
      if(sourceControlFilename)sourceControlFilename.textContent=file?file.name:'MP4 · up to 30 seconds · 20 MB';
      originalEmpty.hidden=!!file||!!resultURL;
    }else{
+     if(introKicker)introKicker.textContent=imageIntroKicker;
      heroTitle.textContent=originalCopy.title;
      heroDescription.textContent=originalCopy.description;
      heroButtonText.textContent=originalCopy.button;
