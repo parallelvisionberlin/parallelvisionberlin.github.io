@@ -11,7 +11,7 @@
 - First-image browser suite fails its Inspiration backdrop expectation on both unchanged baseline HTML/CSS and candidate. Entry/role geometry passes. The unrelated expectation was not changed or weakened.
 - PR #743. Final local compact-prompt suite passes after updating its old 84px Soul-card expectation to 40px identity / 54px source geometry; overflow, alignment and matching Seedream Generate typography remain asserted. Empty quote labels stay centered.
 - Relevant previous-head CI passed approved Image, prompt paste, gallery/Soul, account, pricing/upscale and Cloudflare preview. Separate public-studio Upscaler baseline and Image welcome fixture assertions failed outside Soul selectors; first-image backdrop failure was reproduced on unchanged HTML/CSS. No unrelated expectations were weakened.
-- Publication: pending final-head relevant CI, merge, Cloudflare and custom-domain verification. Real signed-in Soul behavior and provider results are not claimed.
+- Published through PR #743, main `72e585cddc0b75d397a95faf57685718782b8234`. Final-head approved Image, compact Soul prompt, prompt-paste and gallery/Soul checks passed. Cloudflare production succeeded. The scoped verifier returned `LIVE_VERIFIED` for `/studio` and `image-deck-surface.css?v=20261031-soul-parity1`, SHA-256 `a548d5ff8ab3e22ca7bb581532dec269ec1fa35e89a50640fbba8b5ddc2963dd`. Exact live asset bytes match reviewed source. Real signed-in Soul behavior and provider results are not claimed.
 
 
 ## Exact Prompt tooltip compact spacing (2026-10-28)
