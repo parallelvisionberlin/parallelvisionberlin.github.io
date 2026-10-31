@@ -1,3 +1,11 @@
+## 2026-11-01 / homepage CTA opens Identity directly
+- Owner requested homepage Create your editorial open the creation flow immediately, skipping the second arrival hero.
+- Baseline `029992b82610252887b7fe0988229f95f7bd0f77`; branch `fix/home-editorial-direct-entry-20261101`. No overlapping open Full Editorial PR observed. Preserved current cinematic-progress work.
+- Homepage featured CTA passes start=1; Full Editorial consumes this flag and enters existing Identity state. Address returns to the clean page URL. Plain page entry, Back and local modelPhoto handoff retained.
+- Files: `index.html`, `full-editorial.js`, JS cache key in `full-editorial.html` (`20261101-direct-entry1`), existing browser suite and this checkpoint. No styling, generation, pricing or account logic changes.
+- Verification: 13 approved Image, Full Editorial and handoff source checks pass. Added existing-browser-suite coverage for actual homepage click at desktop/phone, hidden arrival hero, casting default, clean URL, Back and zero upload/quote/job side effects.
+- Next: reviewed-source CI, merge, exact Cloudflare deployment and actual public homepage-click verification pending.
+
 ## 2026-11-01 / homepage editorial button typography
 - Owner requested the approved mixed-type Create your editorial treatment on the homepage featured Editorial CTA as well.
 - Baseline main `e5ca45d369f91d518b2ac35419683dd2a719583b`; branch `fix/home-editorial-button-type-20261101`.
