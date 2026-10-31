@@ -1,4 +1,5 @@
-// Justified rows preserve media proportions and chronological order.
+// Image history groups four results per desktop row, preserving proportions.
+// Assets and Upscale retain their existing target-height justified rows.
 const gallery=document.getElementById('history');
 let pending=false;
 function schedule(){if(!pending){pending=true;requestAnimationFrame(layout);}}
@@ -26,16 +27,26 @@ function layout(){
   // Browser zoom can make the real row fractional; clientWidth rounds up and
   // forces the final card onto another flex line. Stay inside the measured row.
   const width=Math.floor(gallery.getBoundingClientRect().width);if(!width)return;
+  const imageColumns=gallery.closest('.image-studio')?(width<=740?2:width<=1020?3:4):0;
   const gap=2,target=width<640?160:Math.min(320,width/5.8);
   let row=[],sum=0;
   const place=(full)=>{
-    const height=full?(width-gap*(row.length-1))/sum:Math.min(target,(width-gap*(row.length-1))/sum);
+    const rowHeight=(width-gap*(row.length-1))/sum;
+    // A partial last row keeps normal tile widths instead of enlarging its
+    // remaining images to fill the screen.
+    const partialHeight=imageColumns?((width-gap*(imageColumns-1))/imageColumns)*row.length/sum:target;
+    const height=full?rowHeight:Math.min(partialHeight,rowHeight);
     for(const {card,ratio} of row){card.style.width=`${ratio*height}px`;card.style.height=`${height}px`;}
     row=[];sum=0;
   };
   for(const card of cards){
     if(getComputedStyle(card).display==='none')continue;
     const ratio=Number(card.dataset.ratio)||16/9;
+    if(imageColumns){
+      row.push({card,ratio});sum+=ratio;
+      if(row.length===imageColumns)place(true);
+      continue;
+    }
     // End the row nearest the target height, without stretching a lone portrait.
     if(row.length&&sum*target+gap*(row.length-1)<width&&(sum+ratio)*target+gap*row.length>=width){
       const before=(width-gap*(row.length-1))/sum;

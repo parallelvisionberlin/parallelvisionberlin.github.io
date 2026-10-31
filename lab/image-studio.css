@@ -415,9 +415,6 @@ dialog.image-lightbox::backdrop {background:rgba(4,5,7,.86);backdrop-filter:blur
 }
 
 /* Smaller gallery screens: retain the floating composer but allow chips to scroll. */
-@media(max-width:1400px){
-  .image-studio #history {grid-template-columns:repeat(3,minmax(0,1fr))}
-}
 @media(max-width:1020px){
   .image-studio #history {grid-template-columns:repeat(3,minmax(0,1fr))}
   #image-composer {width:calc(100vw - 28px);padding:11px 13px;border-radius:19px}
