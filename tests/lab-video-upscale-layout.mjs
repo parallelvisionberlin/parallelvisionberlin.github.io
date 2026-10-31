@@ -69,6 +69,10 @@ try{
     assert.ok(initial.stage.bottom<=height+2,label+': image stage fits viewport');
     assert.ok(initial.bar.left<initial.controls.right,label+': switch stays in left inspector');
   }else assert.ok(initial.bar.bottom<=initial.stage.top+3,label+': phone switch appears before preview');
+  const imageEmpty=await page.evaluate(()=>{
+    const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
+    return {canvas:rect('#upscale-canvas'),frame:rect('#upscale-canvas .pv-upscale-empty-center'),stage:rect('#app>.workspace>.stage')};
+  });
   // Upload simulation: keep the real image editor source and verify no
   // vertical expansion or aspect-ratio cropping of the original.
   await page.evaluate(()=>{
@@ -118,6 +122,18 @@ try{
   await page.locator('#pv-video-upscale-choose').click();
   assert.equal((await chooser).isMultiple(),false,label+': Video stage opens native single-file MP4 picker');
 
+  if(width<=780){
+    const mobile=await page.evaluate(()=>{
+      const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
+      return {canvas:rect('.pv-video-upscale-stage'),frame:rect('.pv-video-upscale-blank-center'),header:rect('.pv-video-upscale-preview-head'),footVisible:getComputedStyle(document.querySelector('.pv-video-upscale-preview-foot')).display!=='none'};
+    });
+    console.log('UPSCALE_MOBILE_PARITY',JSON.stringify({image:imageEmpty,video:mobile}));
+    assert.ok(Math.abs(mobile.canvas.height-imageEmpty.canvas.height)<=8,label+': Image and Video mobile canvases have equal height');
+    assert.ok(Math.abs(mobile.frame.width-imageEmpty.frame.width)<=8,label+': Image and Video upload frames have equal width');
+    assert.ok(Math.abs(mobile.frame.height-imageEmpty.frame.height)<=12,label+': Image and Video upload frames have equal height');
+    assert.equal(mobile.footVisible,false,label+': empty Video has no extra bottom bar');
+    assert.ok(mobile.header.height>=34&&mobile.header.height<=44,label+': Video header matches Image source bar');
+  }
   if(width>780){
     assert.ok(video.workspace.bottom<=height+2,label+': Video stage fits browser viewport');
     assert.ok(video.preview.left>=video.sidebar.right-2,label+': same desktop side-by-side columns');
