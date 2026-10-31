@@ -36,7 +36,7 @@ const server=http.createServer(async(req,res)=>{
   json({job:{id:'job-'+jobCount,status:'completed',outputId:'test-output-'+jobCount}});return;
  }
  if(/^\/api\/assets\/test-output-/.test(u.pathname)){res.setHeader('Content-Type','image/jpeg');res.end(image);return}
- if(/^\/api\/jobs\/job-/.test(u.pathname)){const id=u.pathname.split('/').pop();json({job:{id,status:'completed',outputId:'test-output-'+id.slice(4)}});return}
+ if(/^\/api\/jobs\/job-/.test(u.pathname)){await new Promise(ok=>setTimeout(ok,400));const id=u.pathname.split('/').pop();json({job:{id,status:'completed',outputId:'test-output-'+id.slice(4)}});return}
  const path=resolve(root,'.'+u.pathname+(u.pathname.endsWith('/')?'index.html':''));
  if(!path.startsWith(root+'/')||!existsSync(path)){res.statusCode=404;res.end();return}
  res.setHeader('Content-Type',({'.html':'text/html','.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.woff2':'font/woff2'})[extname(path)]||'application/octet-stream');
@@ -154,7 +154,13 @@ try{
   await page.locator('.atelier-generate-advanced').evaluate(el=>el.open=false);
   await page.screenshot({path:'test-results/editorial/'+width+'-direct-generate.png',fullPage:width===390});
   await page.locator('#editorial-generate').evaluate(button=>{button.click();button.click()});
+  await page.locator('#panel-progress').waitFor({state:'visible'});
+  assert.equal(await page.locator('#stage-navigation').isVisible(),false,'Wizard controls disappear during cinematic generation');
+  assert.equal(await page.locator('#progress-results .generation-frame').count(),4,'Four photo frames are reserved while generating');
+  assert.match(await page.locator('#generation-progress').textContent(),/Preparing your photographs|Creating your photographs|photographs ready/);
+  await page.screenshot({path:'test-results/editorial/'+width+'-generating.png',fullPage:width===390});
   await page.locator('#editorial-results .result-card').last().waitFor({timeout:15000});
+  assert.equal(await page.locator('#progress-results .generation-frame.is-ready').count(),4,'Actual photographs fill each reserved frame');
   assert.equal(await page.locator('#editorial-results .result-card').count(),4);
   await page.screenshot({path:'test-results/editorial/'+width+'-results.png',fullPage:width===390});
   assert.equal(jobCount,before+4,'Double-click submits exactly four individually bound jobs');
