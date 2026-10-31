@@ -38,7 +38,7 @@ import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageD
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1&qwen3-zimage=1&nano21=1';
 import {createImageSubmitHandoff} from './image-submit-handoff.js?v=20261011-fast-queue1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow2';
-import {createVideoUpscaler} from './video-upscale.js?v=20261031-shared-workspace1';
+import {createVideoUpscaler} from './video-upscale.js?v=20261031-single-editor1';
 import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
 import {createReferencePackStudio} from './reference-pack-studio.js?v=20261018-gallery-create2';
 import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop} from './video-start-frame-maker.js?v=20261016-wan-startframe-drop1';
@@ -3010,7 +3010,7 @@ const upscaleResultUI=createUpscaleResultUI({
 videoUpscaler=createVideoUpscaler({api,
   access:()=>({signedIn:owner,falEnabled:!!config.falEnabled,generationReady:!customerMode||customerGenerationReady}),
   onJob:job=>{setActive(job);surfaceHistoryJob(job);refreshHistorySoon();},
-  onModeChange:()=>{if(owner)void loadHistory().catch(e=>notify(e.message,true));}
+  onModeChange:()=>{update();if(owner)void loadHistory().catch(e=>notify(e.message,true));}
 });
 function clearResult(){$('video-job-stage').hidden=true;upscaleResultUI.clear();previewRevision++;if(resultUrl){$('preview').removeAttribute('src');$('preview').hidden=true;}release(resultUrl);resultUrl=null;resultId=null;resultSettings=null;$('video').pause();$('video').removeAttribute('src');$('video').load();$('video').hidden=true;$('download').hidden=true;}
 function resetPreview(){
@@ -3313,7 +3313,7 @@ $('reference-images').onchange=e=>action(async()=>{if(e.target.files.length)awai
 function bindDrop(zone,input,handler,enabled=()=>true){for(const name of ['dragenter','dragover'])$(zone).addEventListener(name,e=>{if(!enabled())return;e.preventDefault();$(zone).classList.add('drag');});for(const name of ['dragleave','drop'])$(zone).addEventListener(name,e=>{if(!enabled())return;e.preventDefault();$(zone).classList.remove('drag');});$(zone).addEventListener('drop',e=>{if(!enabled())return;return action(async()=>{await handler(e.dataTransfer.files);$(input).value='';});});}
 bindDrop('soul-base-drop','soul-base-image',async files=>{if(files.length!==1)throw new Error('Choose exactly one base image.');await setImage(files[0]);});
 bindDrop('drop','image',async files=>{if(files[0])await setImage(files[0]);});
-bindDrop('upscale-canvas','image',async files=>{if(tool==='upscale'&&files[0])await setImage(files[0]);},()=>tool==='upscale');
+bindDrop('upscale-canvas','image',async files=>{if(tool==='upscale'&&videoUpscaler?.mode()!=='video'&&files[0])await setImage(files[0]);},()=>tool==='upscale'&&videoUpscaler?.mode()!=='video');
 bindDrop('last-drop','last-image',async files=>{if(files[0])await setLastImage(files[0]);});
 bindDrop('reference-drop','reference-images',async files=>{if(files.length)await addReferences(files);});
 // The photographic Video canvas and its plus use the same native inputs as the
