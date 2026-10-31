@@ -1,3 +1,16 @@
+## 2026-10-31 / navigation inside the working hero
+- Owner request: raise the working hero, place the four-stage rail inside the photograph, compact Back / Step / Start over, and move the Identity source description beside Choose a model.
+- Baseline main: `1098236b0a44dd7457b59e4e278e75e27c76be1c`; isolated branch `fix/editorial-hero-navigation-20261031`. No open PR overlaps Full Editorial in the checked recent PR list.
+- Desktop hero begins 12 px below the sticky header. Shared navigation is moved by go() into each visible photographic stage; review/results retain normal in-flow navigation. Back / Step / Start over overlay the upper edge, four-stage progress overlays the lower edge.
+- Identity source description is a sibling of the title group, aligned at the right on desktop; phone keeps a readable stacked layout and the previously approved hidden duplicate navigation.
+- Added scroll margin so stage entry does not hide the hero controls behind the sticky site header. Existing photograph, references, source tabs, quotes, generation and payment behavior retained.
+- Files: `full-editorial.html`, `full-editorial-atelier.css`, `full-editorial.js`, `tests/lab-full-editorial-browser.mjs`, and this checkpoint. CSS and JS cache key: `20261031-inside-hero1`.
+- Local checks: JS syntax, 10/10 approved Image UI + Full Editorial source tests, and whitespace checks passed. Existing browser suite now asserts rail/control containment, compact top gap, side-by-side description and casting visibility; its complete mocked billing flow will run in CI.
+- Actual preview inspected through the supported browser at 1363 px desktop and 390/1920 px iframe viewports. At 1920x914, hero top is 90 px (78 px header + 12 px gap), cards top 662 px; description is beside heading. Phone has 68 px header + 12 px gap, hidden repeated navigation, and scrollWidth equals clientWidth (375 px excluding scrollbar).
+- Preview account loading reports the existing production Clerk key origin restriction on terminal.local. Local checks cover public layout only; no real sign-in, purchase or paid generation performed.
+- Release status: implementation and local layout checks complete; PR, CI and production evidence pending. Do not claim live until Cloudflare and production asset verification succeed.
+- Next: open PR, inspect dedicated Full Editorial and approved Image checks, merge this scoped change, verify Cloudflare and exact production CSS/JS bytes, then inspect production layout.
+
 ## 2026-10-31 / mobile hero without repeated navigation
 - Owner request: remove clutter above the phone Identity photograph; use the existing small label inside the hero.
 - Baseline main: `9342379bc07fbefbf892c31c42830553b5b83e9e`; no concurrent head change observed before commit.
