@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {
   openingFrameSettings,
   attachVideoReferenceBrowserDrop,
+  attachVideoReferenceTileDrop,
   createVideoStartFrameMaker
 } from '../lab/video-start-frame-maker.js';
 
@@ -75,6 +76,40 @@ test('Wan browser drop accepts files outside the label, not duplicates inside',(
   target.dispatch('keydown',{target,key:'Enter',preventDefault(){}});
   assert.equal(opened,1,'keyboard works as click-to-browse');
   drop.clear();
+});
+
+test('Video reference tile accepts direct image drops exactly once and keeps click upload',()=>{
+  const target=node(),accepted=[],rejected=[];
+  let enabled=true,prevented=0,stopped=0;
+  const helper=attachVideoReferenceTileDrop({
+    target,enabled:()=>enabled,onFiles:files=>accepted.push(files),
+    onInvalid:message=>rejected.push(message)
+  });
+  const file={name:'look.jpg',type:'image/jpeg'};
+  const event=files=>({
+    dataTransfer:{types:['Files'],files,dropEffect:''},
+    preventDefault(){prevented++;},stopPropagation(){stopped++;}
+  });
+  const first=event([file]);
+  target.dispatch('dragenter',first);
+  assert.equal(target.classList.contains('is-file-over'),true);
+  assert.equal(first.dataTransfer.dropEffect,'copy');
+  target.dispatch('dragover',first);
+  target.dispatch('drop',first);
+  assert.equal(target.classList.contains('is-file-over'),false);
+  assert.deepEqual(accepted,[[file]],'one drop attaches files only once');
+  assert.equal(prevented,3);assert.equal(stopped,3);
+  assert.equal(rejected.length,0);
+  target.dispatch('drop',event([{name:'movie.mp4',type:'video/mp4'}]));
+  assert.deepEqual(rejected,['Drop JPG, PNG or WebP images only.']);
+  assert.equal(accepted.length,1,'wrong formats are not attached');
+  enabled=false;
+  const disabled=event([file]);
+  target.dispatch('dragover',disabled);
+  assert.equal(disabled.dataTransfer.dropEffect,'none');
+  target.dispatch('drop',disabled);
+  assert.equal(accepted.length,1,'disabled state cannot attach new references');
+  helper.clear();
 });
 
 test('Seedream quote requires explicit confirmation; approved image switches to Wan Start mode',async()=>{
