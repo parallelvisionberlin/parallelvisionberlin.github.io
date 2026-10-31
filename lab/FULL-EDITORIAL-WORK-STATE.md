@@ -1,3 +1,12 @@
+## 2026-10-31 / tighter Identity source strip
+- Owner request: make the Choose a model heading, description and source tabs slightly more compact, using the supplied cropped strip and current desktop page.
+- Baseline main: `d541ac1ba395745c4a71f72f210155d51a1a83ad`; isolated branch `fix/editorial-source-spacing-20261031`.
+- Desktop Identity only: workspace top padding 22 to 14 px, heading maximum 36 to 32 px, heading-to-tabs gap 12 to 8 px, tab height 42 to 36 px, tabs-to-cards gap 16 to 12 px. Expected card-row rise about 26 px at 1920 px.
+- Hero, progress rail, card images/sizing, text, phone layout and uploaded-model flow retained. No generation or account JavaScript changes.
+- Files: `full-editorial-atelier.css`, cache key in `full-editorial.html`, this checkpoint.
+- Local checks: 10/10 existing approved Image and Full Editorial tests plus whitespace checks pass. Actual desktop browser: source strip 105.47 px, tab height 36 px, hero still 280 px, cards start at 475.47 px and no horizontal overflow at 1348 px. Production/CI pending.
+- Next: run existing scoped checks, inspect desktop/phone layout, publish and verify Cloudflare plus production CSS.
+
 ## 2026-10-31 / approved compact casting mockup
 - Owner approved the visual mockup and requested implementation on the website.
 - Baseline main `fb06a7bc7f3775edfd9bfb5dd937387c3637c5e4`; branch `fix/editorial-compact-casting-20261031`. Existing model-photo handoff and latest Video changes are preserved.
