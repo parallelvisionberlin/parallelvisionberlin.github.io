@@ -312,3 +312,19 @@
    border-top:1px solid #2c3239!important;background:#12161c!important;
  }
 }
+
+
+/* A short, restrained content transition. The frame, columns and editor
+   position remain fixed while the mode-specific content changes. */
+@keyframes pv-upscale-mode-enter{
+ from{opacity:.65;transform:translateY(3px)}
+ to{opacity:1;transform:translateY(0)}
+}
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active) .pv-video-upscale-sidebar,
+#app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active) .pv-video-upscale-preview{
+ animation:pv-upscale-mode-enter .16s ease-out both;
+}
+@media(prefers-reduced-motion:reduce){
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active) .pv-video-upscale-sidebar,
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active) .pv-video-upscale-preview{animation:none}
+}
