@@ -36,7 +36,7 @@ import { createSessionRequest } from './session-request.js?v=20261015-canonical-
 import { createSoulController } from './soul.js?v=20261014-krea2-training1';
 import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20261011-reference-prewarm1';
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1&qwen3-zimage=1&nano21=1';
-import {createImageSubmitHandoff} from './image-submit-handoff.js?v=20261011-fast-queue1';
+import {createImageSubmitHandoff,IMAGE_SUBMIT_COOLDOWN_MS} from './image-submit-handoff.js?v=20261031-repeat-cooldown1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow2';
 import {createVideoUpscaler} from './video-upscale.js?v=20261031-video-route-guard1';
 import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
@@ -190,7 +190,7 @@ function beginImageFeedback(count,selected,ratio){
   return {
     detachButton(){drivesComposerButton=false;},
     phase(title,detail=''){
-      const publicTitle=['Uploading references','Preparing provider files','Optimizing references'].includes(title)?'Preparing image':title;
+      const publicTitle=title==='Preparing provider files'?'Preparing image':title;
       for(const id of ids){const entry=pendingImageCards.get(id);if(entry){entry.title=publicTitle;entry.detail='';}}
       if(drivesComposerButton&&imageSubmissionPending){
         imageSubmissionStage=publicTitle+'…';
@@ -2028,7 +2028,7 @@ function syncImageComposer(){
     progressLine.hidden=!progress||/^Checking price(?:\.{3}|…)?$/i.test(progress.trim());
   }
   if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))
-    generate.title='This exact request is already preparing. Change the direction or wait for confirmation.';
+    generate.title='Request started. You can generate another variation in a moment.';
   else generate.removeAttribute('title');
   const block=$('composer-generation-block'),reason=$('composer-generation-reason'),review=$('composer-review-queue');
   const queueBlocked=!busy&&owner&&submissionBlocked();
@@ -2040,7 +2040,7 @@ function syncImageComposer(){
     else if(busy)message='';
     else if(!owner)message='Sign in to generate.';
     else if(queueBlocked)message=activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider())?'A previous request has an unknown status. Review it before generating again.':'The active generation limit has been reached. Wait for a job to finish.';
-    else if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))message='This exact request is already preparing. Change the direction, or wait for confirmation before submitting the same settings again.';
+    else if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))message='Request started. You can generate another variation in a moment.';
     else if(imageEngine==='soulpro'&&!file)message=isSoul2()?'':'Add a base image.';
     else if(isSoul2()&&!config.higgsfieldEnabled)message='Connect your Higgsfield API credential in Cloudflare. Open Identity strength for setup details.';
     else if(isSoul2()&&!hf.ready())message='Choose or create a completed Soul ID using the identity photo tile.';
@@ -5227,11 +5227,13 @@ async function submitImageSnapshot(){
     feedback=beginImageFeedback(['higgsfield','fal'].includes(provider)&&!['flash','kling','krea3'].includes(selected.engine)?1:requested,selected,ratio);
     if(fastEligible){
       fastTicket=fastImageHandoff.reserve(requestKey,provider,requested);
-      if(!fastTicket)throw new Error('This exact request is already preparing. No duplicate generation submitted.');
+      if(!fastTicket)throw new Error('Please wait a moment before generating another variation.');
       detached=true;feedback.detachButton();
-      // The frozen request proceeds asynchronously, but the editor can now
-      // accept a different prompt. Preparing remains visible in History.
+      // Each deliberate click owns a frozen request and a separate slot.
+      // A matching draft becomes available after the double-click cooldown,
+      // even if uploads or provider acknowledgement are still pending.
       imageSubmissionPending=false;imageSubmissionStage='Sending…';update();
+      setTimeout(()=>{if(owner&&epoch===sessionEpoch)update();},IMAGE_SUBMIT_COOLDOWN_MS);
     }
     // Upload up to three original references at once, retaining snapshot order
     // and successful IDs for reuse. No paid call starts before every upload succeeds.
