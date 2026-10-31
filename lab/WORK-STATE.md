@@ -1,3 +1,18 @@
+## Fashion Studio focused Replace Outfit design, 2026-10-31
+
+- Owner approved the final dark two-model translucent-fabric mockup without the Style & Looks strip.
+- Scope: Fashion Studio visual presentation only, at /lab/studio.html?tool=fashion.
+- Keep existing approved two-model fabric hero asset, Bodoni headline, person and garment upload sources, FASHN models, price review, Generate, history and result flow.
+- Move "One photograph / Endless possibilities" beside the desktop headline with a fine editorial divider; stack under the title on mobile.
+- Make Add person and Add garment the only large visual choices; taller desktop cards and clear photographic examples. They remain true file inputs, not example selections.
+- Hide the old Style & Looks section from display and accessibility; retain the code for compatibility and potential future rollback.
+- Bring the existing model/resolution/quality/styling/Generate dock directly below the uploads.
+- Responsive rules adapt the same two-card workflow to tablets and phones without horizontal overflow.
+- Asset caches versioned through fashion.html, fashion-studio.js, lab.js and studio.html.
+- Regression updates: Fashion browser layout now checks hidden Looks, description placement and manual prompt quotes; public visual baseline freezes only the approved Fashion changes, leaving other tool baselines intact.
+- No provider calls, uploads, charges or real user sessions were initiated during implementation.
+- Publication requires relevant CI, merge, Cloudflare Pages exact SHA and production verification; do not claim live solely from GitHub.
+
 ## CI Fashion, hero and visual checks, 2026-10-30
 - Investigation baseline: current main `7e5a6d1425a0d8f0810ca33cd30b3a970cd7a847`; reported commit `820a532e5bcf69eca41b3a6321b04a22cfcf118a`.
 - Reproduced original Runway field and hero decode failures on current main in mock-only browsers.

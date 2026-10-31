@@ -159,8 +159,8 @@ try{
   assert.equal(resultArtwork.radius,0,'Result artwork is not rounded into a badge');
   assert.equal(await page.locator('#result-placeholder svg.empty-art-result rect[rx="8"]').count(),0);
   assert.equal(await page.locator('.upload-icon').count(),0,'No generic upload glyph replaces the photographs');
-  assert.match(await page.locator('#person-hint').innerText(),/Portrait or full-body photo/);
-  assert.match(await page.locator('#garment-hint').innerText(),/Flat garment or outfit reference/);
+  assert.match(await page.locator('#person-hint').innerText(),/Upload a photograph/);
+  assert.match(await page.locator('#garment-hint').innerText(),/Upload your outfit/);
   assert.equal(await page.locator('#result-placeholder').isVisible(),false,'Result remains hidden until an archived output is opened');
   const desktop=await page.evaluate(()=>{
     const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width}};

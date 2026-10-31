@@ -93,10 +93,13 @@ try{
   const design=await fashion.evaluate(host=>{
     const root=host.shadowRoot,hero=root.querySelector('.fashion-backdrop img');
     const src=root.querySelector('#person-file');
-    const cards=[...root.querySelectorAll('#looks-scroller .look-card')];
+    const looks=root.querySelector('.looks-section');
+    const copy=root.querySelector('.intro-description').getBoundingClientRect();
+    const heading=root.querySelector('#fashion-title').getBoundingClientRect();
     return {
       title:root.querySelector('#fashion-title').textContent,
-      cards:cards.map(card=>({id:card.dataset.look,label:card.textContent.trim()})),
+      looksHidden:looks.hidden&&getComputedStyle(looks).display==='none',
+      descriptionBeside:copy.left>heading.right-8,
       plus:getComputedStyle(root.querySelector('#person-hint .slot-plus'),':after').content,
       photoOpacity:getComputedStyle(root.querySelector('.person-example')).opacity,
       heroFilter:getComputedStyle(hero).filter,
@@ -105,20 +108,12 @@ try{
     };
   });
   assert.match(design.title,/Replace\s*outfit\./);
-  assert.equal(design.cards.length,8,'Eight labeled editorial Looks are available');
-  assert.deepEqual(new Set(design.cards.map(x=>x.id)).size,8,'No duplicate look options');
+  assert.equal(design.looksHidden,true,'Style & Looks is removed from the visible Replace Outfit workflow');
+  assert.equal(design.descriptionBeside,true,'Editorial description sits beside the desktop headline');
   assert.match(design.heroFilter,/brightness\(/,'Runway portrait is intentionally shadowed');
   assert.equal(design.actualUpload,'file','Original real upload is intact');
   assert.equal(design.realResult,true,'Examples never masquerade as generated results');
-  await fashion.locator('[data-look="runway"]').click();
-  assert.equal(await fashion.locator('#direction').inputValue(),'','A Look never populates the manual styling field');
-  assert.equal(await fashion.locator('[data-look="runway"]').getAttribute('aria-pressed'),'true');
-  await fashion.locator('#direction').fill('Keep the silhouette.');
-  await fashion.locator('[data-look="runway"]').click();
-  assert.equal(await fashion.locator('#direction').inputValue(),'Keep the silhouette.','Toggling off preserves manual styling');
-  assert.equal(await fashion.locator('[data-look="runway"]').getAttribute('aria-pressed'),'false');
-  await fashion.locator('#direction').fill('');
-  assert.equal(calls.some(x=>x.path==='/api/fashion/quote'),false,'Looks alone cannot quote, upload or spend credits');
+  assert.equal(calls.some(x=>x.path==='/api/fashion/quote'),false,'Presentation alone cannot quote, upload or spend credits');
   assert.equal(await fashion.locator('#person-file').getAttribute('type'),'file');
   assert.equal(await fashion.locator('#person-file').inputValue(),'','Example photos are never upload values');
   const [picker]=await Promise.all([page.waitForEvent('filechooser'),fashion.locator('#person-slot').click()]);
@@ -140,16 +135,13 @@ try{
    await context.close();continue;
   }
   assert.equal(await fashion.locator('#model-select option').count(),3);
-  const runway='Fit the supplied garment naturally with clean lines and a polished fashion presentation. Preserve the original person, pose, garment design and setting.';
-  await fashion.locator('#direction').fill('Keep the silhouette.');
-  const lookQuote=page.waitForRequest(req=>new URL(req.url()).pathname==='/api/fashion/quote'&&req.postDataJSON()?.prompt===runway+'\nKeep the silhouette.');
-  await fashion.locator('[data-look="runway"]').click();
-  await lookQuote;
-  assert.equal(await fashion.locator('#direction').inputValue(),'Keep the silhouette.');
   const manualQuote=page.waitForRequest(req=>new URL(req.url()).pathname==='/api/fashion/quote'&&req.postDataJSON()?.prompt==='Keep the silhouette.');
-  await fashion.locator('[data-look="runway"]').click();
+  await fashion.locator('#direction').fill('Keep the silhouette.');
   await manualQuote;
-  assert.equal(submits,0,'Look changes quote the composed direction without generating');
+  const revisedQuote=page.waitForRequest(req=>new URL(req.url()).pathname==='/api/fashion/quote'&&req.postDataJSON()?.prompt==='Keep the silhouette. Open the jacket.');
+  await fashion.locator('#direction').fill('Keep the silhouette. Open the jacket.');
+  await revisedQuote;
+  assert.equal(submits,0,'Optional styling only prepares a quote, without generating');
   await fashion.locator('#direction').fill('');
   for(const model of ['fashnmax','fashn16','fluxvto']){
    await fashion.locator('#model-select').selectOption(model);
@@ -163,7 +155,7 @@ try{
   }
   await page.setViewportSize({width:1440,height:900});
   await fashion.locator('#model-select').selectOption('fashn16');
-  assert.equal(await fashion.locator('[data-look="runway"]').isDisabled(),true,'v1.6 cannot use styling prompts');
+  assert.equal(await fashion.locator('.looks-section').isVisible(),false,'Look presets stay hidden for every model');
   assert.equal(await fashion.locator('#fashn16-options').isVisible(),true);
   assert.equal(await fashion.locator('#fashnmax-options').isVisible(),false);
   await page.setViewportSize({width:1900,height:900});
