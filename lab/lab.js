@@ -41,7 +41,7 @@ import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow2';
 import {createVideoUpscaler} from './video-upscale.js?v=20261031-video-route-guard1';
 import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
 import {createReferencePackStudio} from './reference-pack-studio.js?v=20261018-gallery-create2';
-import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop} from './video-start-frame-maker.js?v=20261031-reference-context1';
+import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop,attachVideoReferenceTileDrop} from './video-start-frame-maker.js?v=20261031-reference-tile-drop1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']), slotStates=new Set(['submitting','queued','running','uncertain']);
@@ -3319,7 +3319,17 @@ bindDrop('soul-base-drop','soul-base-image',async files=>{if(files.length!==1)th
 bindDrop('drop','image',async files=>{if(files[0])await setImage(files[0]);});
 bindDrop('upscale-canvas','image',async files=>{if(tool==='upscale'&&videoUpscaler?.mode()!=='video'&&files[0])await setImage(files[0]);},()=>tool==='upscale'&&videoUpscaler?.mode()!=='video');
 bindDrop('last-drop','last-image',async files=>{if(files[0])await setLastImage(files[0]);});
-bindDrop('reference-drop','reference-images',async files=>{if(files.length)await addReferences(files);});
+// Image keeps the shared upload handler. Video gets a dedicated tile drop
+// handler below, so one drop cannot create duplicate reference attachments.
+bindDrop('reference-drop','reference-images',async files=>{if(files.length)await addReferences(files);},()=>tool!=='video');
+attachVideoReferenceTileDrop({
+  target:$('reference-drop'),
+  enabled:()=>owner&&!busy&&!selectedVideoJob&&!$('start-frame-dialog').open&&
+    tool==='video'&&['reference','extend'].includes(mode)&&!$('reference-mode').hidden&&
+    VIDEO_MODELS[engine].maxImages>0,
+  onFiles:files=>{void action(async()=>{await addReferences(files);});},
+  onInvalid:message=>notify(message,true)
+});
 // The photographic Video canvas and its plus use the same native inputs as the
 // settings tiles. Preserve their validation, session checks and price review.
 const videoCanvas=$('empty').closest('.canvas');
