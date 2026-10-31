@@ -1,5 +1,16 @@
 # PV LAB Saved References / compact F
 
+## Active creation-form update, 2026-10-31
+- Owner explicitly requested implementation and commit of the new layout after the audit distinguished the collection redesign from the old Save reference form.
+- Base: `d541ac1ba395745c4a71f72f210155d51a1a83ad`; isolated branch `fix/reference-create-layout-20261031`.
+- `lab/studio.html`: existing photo controls in a dedicated panel, existing settings in a second column, action footer outside the scrolling content.
+- `lab/reference-library.css`: create-only layout, hidden category sidebar while creating, larger native upload target, compact radio controls; single-column mobile adaptation.
+- Existing control IDs/types/names, upload inputs, appearance values, notes, analysis and consent controls preserved. No JavaScript, API, credits or stored-data changes.
+- Checks: approved Image UI contract 5/5; all scene-control IDs/types/names preserved with no duplicate IDs; git diff check clean.
+- Browser rendering and signed-in behavior have not been verified for this commit. No production deployment claimed.
+- Next: review desktop/mobile rendering and run affected library browser checks before merge/publication.
+
+
 ## Active release, 2026-10-27
 - Owner approved F / Compact box and requested implementation and publication.
 - Approved mock: `3352c270-443a-4584-afe0-68701d02ce7d.png`, Library `libfile_4abcb7ed43688191b33c0eba1284d0e6`.

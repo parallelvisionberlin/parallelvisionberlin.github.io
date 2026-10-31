@@ -208,7 +208,7 @@ document.addEventListener('click',event=>{
 <link rel="stylesheet" href="./image-deck-surface.css?v=20261027-library-row1&generatePearl=20261023-neutral1">
 <link rel="stylesheet" href="./studios-menu.css?v=20261030-editorial-motion1">
 <link rel="stylesheet" href="./video-frame-actions.css?v=20261027-frame-remove-gloss1">
-<link rel="stylesheet" href="./reference-library.css?v=20261027-compact-f1">
+<link rel="stylesheet" href="./reference-library.css?v=20261031-create-layout1">
 <link rel="stylesheet" href="./upscale-loaded-workspace.css?v=20261027-source-chip-full-stage1">
 <link rel="stylesheet" href="./video-upscale.css?v=20261031-parity-final2">
 <link rel="stylesheet" href="./image-chrome-hero-20261031.css?v=20261031-approved1">
@@ -1439,11 +1439,8 @@ document.addEventListener('click',event=>{
    </section>
   <section id="scene-create" hidden aria-label="Save a new scene item">
    <div class="scene-create-heading"><h3>Save reference</h3><button id="scene-back" class="scene-back" type="button">← Your library</button></div>
-   <div class="scene-form-grid">
-    <label class="scene-field"><span>Name</span><input id="scene-name" type="text" maxlength="70" autocomplete="off" placeholder="e.g. Nina FOK, silver coat or metro"></label>
-    <label class="scene-field"><span>Type</span><select id="scene-category"><option value="characters">Characters</option><option value="outfits">Outfits</option><option value="props">Props</option><option value="locations">Locations</option></select></label>
-   </div>
-   <p id="scene-create-description" class="scene-form-note">Save reusable photographs for future scenes.</p>
+   <div class="scene-create-layout">
+    <div class="scene-create-photos">
    <div class="scene-photo-source">
     <label class="scene-upload-label">+ Upload photos<input id="scene-files" type="file" accept="image/*" multiple></label>
     <button id="scene-attached" class="scene-muted-button" type="button">Use attached photos</button>
@@ -1451,6 +1448,13 @@ document.addEventListener('click',event=>{
    </div>
    <div id="scene-photos" aria-label="Images to save"></div>
    <p id="scene-photo-hint">Select 1 to 8 images. For a character, different views of the same person work best.</p>
+    </div>
+    <div class="scene-create-settings">
+   <div class="scene-form-grid">
+    <label class="scene-field"><span>Name</span><input id="scene-name" type="text" maxlength="70" autocomplete="off" placeholder="e.g. Nina FOK, silver coat or metro"></label>
+    <label class="scene-field"><span>Type</span><select id="scene-category"><option value="characters">Characters</option><option value="outfits">Outfits</option><option value="props">Props</option><option value="locations">Locations</option></select></label>
+   </div>
+   <p id="scene-create-description" class="scene-form-note">Save reusable photographs for future scenes.</p>
    <div id="scene-identity-options" class="scene-identity-options">
     <label><input type="radio" name="scene-appearance" id="scene-appearance" value="identity" checked><span><strong>Identity only</strong><small>Face and recognizable features, not the original outfit or setting.</small></span></label>
     <label><input type="radio" name="scene-appearance" value="full"><span><strong>Full appearance</strong><small>Ask the model to reuse the person, hair and outfit.</small></span></label>
@@ -1468,6 +1472,8 @@ document.addEventListener('click',event=>{
    </div>
    <label class="scene-smart-profile"><input id="scene-smart-analyze" type="checkbox" checked><span>Build a visual profile once <small>Google Gemini analyzes reduced previews to identify consistent details and viewpoints. Photos stay private. No generation credits used.</small></span></label>
     <label id="scene-consent-wrap" class="scene-consent"><input id="scene-consent" type="checkbox">I confirm I have the rights or permission to use these character photographs.</label>
+    </div>
+   </div>
    <div class="scene-foot"><p id="scene-library-status" role="status" aria-live="polite"></p><div class="scene-create-action-row"><button id="scene-cancel" class="scene-muted-button" type="button">Cancel</button><button id="scene-save" class="scene-primary" type="button">Save item</button></div></div>
   </section>
   <div id="scene-browser-foot" class="scene-foot"><p id="scene-browse-status" role="status" aria-live="polite"></p><button id="scene-done" class="scene-muted-button" type="button">Done</button></div>
