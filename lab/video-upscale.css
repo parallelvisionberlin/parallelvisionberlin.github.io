@@ -176,3 +176,111 @@
 }
 #app .pv-video-upscale-preview-foot button[aria-pressed="true"]{color:#f2efeb}
 #app .pv-video-upscale-history-symbol{display:grid;place-items:center;min-height:140px;color:#ddd;font-size:32px}
+
+
+/* Desktop: Image and Video must both end inside the visible browser viewport.
+   The original loaded-photo rules forced a 680px minimum and an expanding
+   sidebar. Contain the workspace and scroll controls internally if needed. */
+@media(min-width:781px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+   box-sizing:border-box!important;display:grid!important;
+   grid-template-columns:minmax(330px,26%) minmax(0,1fr)!important;
+   grid-template-rows:minmax(0,1fr)!important;
+   height:calc(100dvh - 102px)!important;
+   min-height:0!important;max-height:none!important;
+   width:100%!important;max-width:none!important;
+   margin:0!important;padding:0!important;gap:0!important;
+   align-items:stretch!important;overflow:hidden!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls,
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{
+   box-sizing:border-box!important;
+   position:relative!important;top:auto!important;bottom:auto!important;
+   display:flex!important;flex-direction:column!important;
+   grid-row:1!important;align-self:stretch!important;
+   width:100%!important;height:100%!important;
+   min-height:0!important;max-height:100%!important;
+   margin:0!important;overflow:hidden!important;
+   border-radius:0!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{grid-column:1!important}
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{grid-column:2!important}
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
+   box-sizing:border-box!important;flex:1 1 auto!important;
+   min-height:0!important;max-height:none!important;
+   padding:76px 20px 12px!important;
+   overflow-x:hidden!important;overflow-y:auto!important;
+   scrollbar-width:thin;scrollbar-color:#42434b transparent;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+   box-sizing:border-box!important;
+   position:relative!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
+   flex:0 0 auto!important;width:100%!important;height:auto!important;min-height:0!important;
+   margin:auto 0 0!important;padding:12px 20px 18px!important;
+   border:0!important;border-top:1px solid #2c3239!important;
+   border-radius:0!important;background:#12161c!important;
+   z-index:1!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #generate{
+   display:block!important;box-sizing:border-box!important;width:100%!important;
+   height:47px!important;min-height:47px!important;max-height:47px!important;
+   margin:0!important;border-radius:8px!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas{
+   box-sizing:border-box!important;display:flex!important;
+   flex:1 1 auto!important;width:100%!important;
+   height:auto!important;min-height:0!important;max-height:none!important;
+   overflow:hidden!important;margin:0!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas:has(> #preview:not([hidden])),
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas:has(> #empty:not([hidden])){
+   flex:1 1 auto!important;height:auto!important;
+   min-height:0!important;max-height:none!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas>img#preview:not([hidden]){
+   box-sizing:border-box!important;width:100%!important;height:100%!important;
+   max-width:100%!important;max-height:100%!important;
+   object-fit:contain!important;object-position:center center!important;
+ }
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage>#upscale-canvas{display:none!important}
+}
+/* Phone: switch first, then a single preview, then the SAME inspector.
+   Keep the natural phone scroll rather than imposing desktop viewport height. */
+@media(max-width:780px){
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+   box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
+   height:auto!important;min-height:0!important;max-height:none!important;
+   width:100%!important;margin:0 auto 14px!important;
+   padding:0!important;gap:12px!important;overflow:visible!important;
+ }
+ #app .pv-video-upscale-mode{
+   box-sizing:border-box;position:relative;top:auto;left:auto;right:auto;
+   order:-2;align-self:flex-start;width:auto;margin:8px 14px 0;padding:0;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{
+   order:0!important;width:100%!important;min-height:0!important;
+ }
+ #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+   order:1!important;width:100%!important;min-height:0!important;height:auto!important;
+ }
+ #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace{display:flex!important}
+ #app .pv-video-upscale-sidebar{flex:0 0 auto;overflow:visible;padding:20px 15px 17px;gap:15px}
+ #app .pv-video-upscale-sidebar header{padding-bottom:14px;margin-bottom:1px}
+ #app .pv-video-upscale-sidebar h2{font-size:25px}
+ #app .pv-video-upscale-preview{flex:0 0 auto;min-height:0}
+ #app .pv-video-upscale-stage{flex:0 0 auto;height:clamp(390px,55dvh,590px);min-height:390px}
+ #app .pv-video-upscale-blank{padding:14px 12px}
+ #app .pv-video-upscale-blank-center{width:91%;min-height:81%;padding:16px 13px}
+ #app .pv-video-upscale-blank-icon{width:72px;height:72px;margin-bottom:14px}
+ #app .pv-video-upscale-blank h3{font-size:clamp(25px,7vw,33px);margin-bottom:12px}
+ #app .pv-video-upscale-blank p{font-size:12px;margin-bottom:20px}
+ #app .pv-video-upscale-blank button{min-width:190px;min-height:46px;margin-bottom:12px;font-size:13px}
+ #app .pv-video-upscale-blank small{font-size:9px}
+ #app .pv-video-upscale-preview-foot{flex-wrap:wrap}
+}
+@media(max-width:420px){
+ #app .pv-video-upscale-stage{height:420px;min-height:420px}
+}
+@media(prefers-reduced-motion:reduce){
+ #app .pv-video-upscale-tabs button,#app .pv-video-upscale-model{transition:none}
+}
