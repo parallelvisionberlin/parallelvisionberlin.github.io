@@ -3,7 +3,7 @@
  * action and dimensions. Only provider-specific controls swap in place.
  * Loaded after the legacy Video CSS to override its second-deck rules.
  */
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-menu>[data-video-upscale-model]{
+#app.upscale-studio-active:not(.video-upscale-active) #upscale-model-menu>[data-video-upscale-model]{
  display:none!important;
 }
 #app.upscale-studio-active.video-upscale-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body{
