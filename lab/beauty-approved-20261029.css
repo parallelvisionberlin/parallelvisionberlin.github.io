@@ -16,7 +16,7 @@
  content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
  background-image:linear-gradient(90deg,#090a0af2 0%,#090a0acc 17%,#12121155 40%,#08090914 64%,#0809098c 95%),
  linear-gradient(0deg,#090a0a44 0%,transparent 24%,#090a0a15 80%),
- url('./visuals/beauty/beauty-sculptural-fabric-clean-20261029.jpg');
+ url('./visuals/beauty/beauty-hero-refined-20261031.jpg');
  background-position:center,center,45% 39%;background-size:cover;
 }
 .beauty-editorial-heading{grid-column:1;padding:14px 0 14px clamp(0px,0.4vw,8px);position:relative;z-index:2;min-width:0;}
