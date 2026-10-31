@@ -130,7 +130,7 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    download.hidden=!videoMode||!resultURL;
    $('pv-video-upscale-info').textContent=file?file.name+' · '+(file.size/1048576).toFixed(1)+' MB':'Original media is preserved.';
    if(quote&&quote.expiresAt<=Date.now()){stale();notice('The estimate expired. Review credits again.',true);}
-   if(!file){price.textContent='Select a video to calculate credits.';action.textContent='Upscale';action.disabled=true;}
+   if(!file){price.textContent='';action.textContent='Upscale';action.disabled=true;}
    else if(!ready()){price.textContent='Generation unavailable.';action.textContent='Provider unavailable';action.disabled=true;}
    else if(loading){action.textContent='Processing…';action.disabled=true;}
    else if(submissionUncertain){price.textContent='The last submission is unconfirmed. Check History before starting another paid job.';action.textContent='Review submission in History';action.disabled=true;}
