@@ -140,5 +140,8 @@ test('Elements UI offers retry for existing packs and clears failed in-flight pr
   assert.match(ui,/pendingProfiles\.delete\(item\.id\)/);
   assert.match(ui,/void analyzeSavedElement\(savedElement,true\)/);
   assert.match(ui,/retry\.textContent=pendingProfiles\.has\(item\.id\)/);
-  assert.match(ui,/const profile=await analyzeSavedElement\(item\)/);
+  const attach=ui.slice(ui.indexOf('async function useItem(item)'),ui.indexOf('async function useItem(item)')+3500);
+  assert.match(attach,/if\(!item\.profile\)\{[\s\S]*?setStatus\([\s\S]*?return;/,'An unanalyzed saved item cannot attach or silently start analysis');
+  assert.ok(attach.indexOf('if(!item.profile)')<attach.indexOf('await addReferences('),'The saved visual profile is required before attachment');
+  assert.match(attach,/context\.tool==='video'&&!\['reference','extend'\]\.includes\(context\.mode\)/,'Saved visual profiles can attach in Reference set and Extend only');
 });

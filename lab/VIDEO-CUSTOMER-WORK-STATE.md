@@ -8,7 +8,8 @@
 - Focused server tests cover signed image delivery, private access, invalid references, immutable quote submission, video-only compatibility, Save draft and generated History. Browser regression covers actual saved Alma attachment, quoted IDs/roles, Save draft, History/Reuse and no horizontal overflow at 390px and 1440px.
 - Relevant files: lab-worker/higgsfield-video.mjs, worker.mjs; lab/lab.js, scene-library.js, video-scene-states.js, studio.html and three existing Video CSS layers; tests/lab-seedance.test.mjs, lab-extend-character-ui.mjs. Browser test added to the existing Video integration workflow.
 - Local checks: 33 focused checks passed; saved-character/Extend browser regression passed at both widths. CI exposed an existing lab.js query-order contract from the earlier Video Upscale cache marker; v now stays first and all cache markers are retained. Real-account generated identity fidelity remains unverified; fixtures use intercepted APIs only.
-- Publication: PR #728, implementation d8f1006801ec57e16278ab236fedc9ffdc75d1bd, CI/deployment verification in progress.
+- CI also exposed an outdated existing Element recovery assertion expecting analysis during attachment. The test now enforces the current profile-before-attachment requirement and permits only Reference/Extend for video; retry/in-flight cleanup assertions remain intact.
+- Publication: PR #728, implementation d8f1006801ec57e16278ab236fedc9ffdc75d1bd plus validation fixes, CI/deployment verification in progress.
 
 ## Missing input and duplicate draft prompt, 2026-10-30
 - Screenshot has Reference set, typed prompt, and no reference attached. Existing hasInput correctly prevents generation; Text mode accepts prompt-only generation.
