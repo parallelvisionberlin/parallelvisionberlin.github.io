@@ -128,7 +128,7 @@ test('Saved video model and actions are lightweight and Delete is not red',()=>{
   const footer=html.slice(html.indexOf('class="pv-video-primary-actions"'),html.indexOf('</div>',html.indexOf('class="pv-video-primary-actions"')));
   assert.equal((footer.match(/id="video-detail-delete"/g)||[]).length,1);
   assert.match(footer,/aria-label="Delete video record"/);
-  assert.match(footer,/id="video-detail-reuse"[^>]*[\s\S]*?<span>Reuse settings<\/span>/);
+  assert.match(footer,/id="video-detail-reuse"[^>]*aria-label="Reuse saved video settings"[^>]*[\s\S]*?<span>Reuse<\/span>/);
   assert.match(footer,/id="video-detail-download"[^>]*[\s\S]*?<span>Download<\/span>/);
   assert.match(css,/\.video-detail-model:before\{/);
   assert.match(css,/\.pv-video-primary-actions #video-detail-reuse\{\s*justify-self:start!important/);
