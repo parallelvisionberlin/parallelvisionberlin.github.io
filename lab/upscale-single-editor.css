@@ -86,6 +86,13 @@
  background:#1b2027!important;color:#f2f1ee!important;
  font:500 12px/1.2 'DM Sans',Arial,sans-serif!important;
 }
+/* A rejected upload must report why it was rejected even before a
+   source exists. The source-free instructional credit hint stays hidden. */
+#app.upscale-studio-active.video-upscale-active:not(.video-upscale-has-source) .pv-video-upscale-message.error:not(:empty){
+ display:block!important;grid-column:1/-1!important;
+ margin:8px 0 0!important;min-height:0!important;
+ color:#ffb7b7!important;
+}
 /* Do not show an instructional credit message before an MP4 exists.
    The quote and any actionable error return after source selection. */
 #app.upscale-studio-active.video-upscale-active:not(.video-upscale-has-source) .pv-video-upscale-quote,
