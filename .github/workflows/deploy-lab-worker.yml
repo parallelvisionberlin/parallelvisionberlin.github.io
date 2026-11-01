@@ -6,6 +6,8 @@ on:
     branches: [main]
     paths:
       - 'lab-worker/**'
+      - 'tests/lab-first-image-trial.test.mjs'
+      - 'tests/lab-spicy-image-credit-steps.test.mjs'
       - 'links/shared.mjs'
       - 'lab/reference-guidance.js'
       - 'lab/prompt-quality.js'
