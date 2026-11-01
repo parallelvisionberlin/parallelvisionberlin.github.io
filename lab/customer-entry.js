@@ -1,5 +1,5 @@
 import {createAccountMenu} from './account-menu.js?v=20261030-robin-partner1';
-import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261015-standalone1';
+import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261015-standalone1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
 import {createSessionRequest} from './session-request.js?v=20261021-home-signin1';
@@ -182,7 +182,7 @@ async function purchase(button){
     if(profile.accountClosed||profile.billingReview)throw new Error('Purchases are paused for this account. Open Credits & billing for details.');
     if(!profile.billingReady)throw new Error('Purchases are not available yet. No payment has been taken.');
     purchaseStatus(button,'Opening secure checkout…');
-    const data=await call('/api/billing/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(metaConsentGranted()?{sku,metaConsent:true}:{sku})});
+    const data=await call('/api/billing/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(metaConsentGranted()?{sku,metaConsent:true,...metaPixelIdentifiers()}:{sku})});
     if(!clerk.isSignedIn||clerk.session?.id!==sessionId)throw new Error('Your account changed. Select a plan again.');
     const url=new URL(data.url);
     if(url.protocol!=='https:'||url.username||url.password||!(url.hostname==='stripe.com'||url.hostname.endsWith('.stripe.com')))throw new Error('Unverified checkout link. Please try again.');
