@@ -40,8 +40,6 @@ let chosenCount=4,chosenRatio='3:4',castComposition='mixed',quote=null,quoteBusy
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0,progressBatchStart=0,progressBatchSize=4;
 const objectUrls=new Map(),sampleFiles=new Map(),savedCharacterThumbnails=new Map();
 let modelGroups=[],modelGroupSerial=0,modelUploadTarget=null,charactersLoadSequence=0;
-// The approved two-model casting example is seeded once on fresh entry only.
-let initialExampleSeeded=false,initialExampleVersion=0;
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
 function renderCastingControls(){
@@ -112,7 +110,7 @@ const status=(text='',error=false)=>{$('editorial-status').textContent=text;$('e
 function preview(file){if(!objectUrls.has(file))objectUrls.set(file,URL.createObjectURL(file));return objectUrls.get(file);}
 function pruneFile(file){const url=objectUrls.get(file);if(url){URL.revokeObjectURL(url);objectUrls.delete(file)} uploaded.delete(file);}
 function wipeResults(){for(const r of results)if(r.url)URL.revokeObjectURL(r.url);results=[];activeJobs=[];progressBatchStart=0;progressBatchSize=4;renderResults();}
-function resetAll(){initialExampleSeeded=true;initialExampleVersion++;invalidateQuote();clearTimeout(pollTimeout);submitting=false;uncertain=false;wipeResults();
+function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false;uncertain=false;wipeResults();
  for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};sampleFiles.clear();modelGroups=[];modelUploadTarget=null;charactersLoadSequence++;
  for(const url of savedCharacterThumbnails.values())URL.revokeObjectURL(url);savedCharacterThumbnails.clear();for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
@@ -244,35 +242,6 @@ function refreshSampleStates(){
   const file=sampleFiles.get(button),active=Boolean(file&&files[button.dataset.sampleKind]?.includes(file));
   button.classList.toggle('is-selected',active);button.setAttribute('aria-pressed',String(active));
  }
-}
-async function seedApprovedExampleCast(){
- if(initialExampleSeeded||modelGroups.length||step!==1)return;
- initialExampleSeeded=true;
- const version=++initialExampleVersion;
- const names=['Bronze portrait','Copper portrait'];
- for(const label of names){
-  if(version!==initialExampleVersion||step!==1)return;
-  const button=Array.from(document.querySelectorAll('#casting-reference-gallery [data-sample-kind="model"]')).find(b=>b.dataset.sampleLabel===label);
-  if(!button)return;
-  try{
-   // The casting photos are public, local reference assets. No upload, quote or paid job runs here.
-   const response=await fetch(new URL(button.dataset.sampleSrc,location.href),{credentials:'same-origin'});
-   if(!response.ok)throw Error('Example casting reference unavailable.');
-   const blob=await response.blob();
-   if(version!==initialExampleVersion||step!==1)return;
-   if(modelGroups.length>=2||files.model.length+savedRefs.model.length>=4)return;
-   const type=['image/jpeg','image/png','image/webp'].includes(blob.type)?blob.type:'image/webp';
-   const file=new File([blob],label.toLowerCase().replace(/\s+/g,'-')+'.'+(type==='image/jpeg'?'jpg':type==='image/png'?'png':'webp'),{type});
-   addFiles('model',[file],null,label.replace(/ portrait$/i,''));
-   if(!files.model.includes(file))return;
-   sampleFiles.set(button,file);
-   refreshSampleStates();
-  }catch(error){
-   if(version===initialExampleVersion)status('Choose a casting model to continue. '+error.message,true);
-   return;
-  }
- }
- if(version===initialExampleVersion)status('');
 }
 async function toggleSample(button){
  if(submitting||button.disabled)return;
@@ -685,13 +654,13 @@ mobileMenu.addEventListener('click',()=>{const expanded=siteHeader.classList.tog
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMobileMenu()});
 siteHeader.querySelector('nav').addEventListener('click',event=>{if(event.target.closest('a'))closeMobileMenu()});
 document.addEventListener('click',event=>{if(!siteHeader.contains(event.target))closeMobileMenu()});
-$('editorial-start').addEventListener('click',()=>{go(1);status('');void seedApprovedExampleCast()});
+$('editorial-start').addEventListener('click',()=>{go(1);status('')});
 $('step-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-1));status('')}});
 $('editorial-top-back').addEventListener('click',()=>{if(!submitting){go(Math.max(0,step-1));status('')}});
 $('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4)return;if(validateStep()){go(step+1);status('')}});
 $('editorial-generate').addEventListener('click',()=>void generateEditorial().catch(error=>status(error.message,true)));
 $('editorial-reset').addEventListener('click',()=>{if(submitting){status('A paid generation is running. Open History before starting another.',true);return}resetAll()});
-for(const b of document.querySelectorAll('[data-sample-kind]'))b.addEventListener('click',()=>{if(b.dataset.sampleKind==='model')initialExampleVersion++;void toggleSample(b)});
+for(const b of document.querySelectorAll('[data-sample-kind]'))b.addEventListener('click',()=>void toggleSample(b));
 for(const b of document.querySelectorAll('[data-source-view]'))b.addEventListener('click',()=>setIdentitySource(b.dataset.sourceView));
 for(const b of document.querySelectorAll('[data-style-view]'))b.addEventListener('click',()=>{
  $('panel-style').dataset.styleMode=b.dataset.styleView;
@@ -700,19 +669,19 @@ for(const b of document.querySelectorAll('[data-style-view]'))b.addEventListener
  if(b.dataset.styleView==='describe')$('styling-direction').focus();
 });
 for(const b of document.querySelectorAll('[data-edit-step]'))b.addEventListener('click',()=>{if(!submitting)go(Number(b.dataset.editStep))});
-$('model-drop').addEventListener('click',()=>{initialExampleVersion++;openModelPicker()});
+$('model-drop').addEventListener('click',()=>openModelPicker());
 $('model-drop').addEventListener('dragover',event=>event.preventDefault());
-$('model-drop').addEventListener('drop',event=>{event.preventDefault();initialExampleVersion++;addFiles('model',event.dataTransfer.files)});
+$('model-drop').addEventListener('drop',event=>{event.preventDefault();addFiles('model',event.dataTransfer.files)});
 
 $('add-outfits').addEventListener('click',()=>$('outfit-files').click());
 for(const button of document.querySelectorAll('[data-cast-composition]'))button.addEventListener('click',()=>{if(submitting)return;castComposition=button.dataset.castComposition;invalidateQuote();renderCastingControls();updateSeriesSummary()});
 $('editorial-cast-search').addEventListener('input',filterCastingGallery);
-$('editorial-clear-cast').addEventListener('click',()=>{if(submitting)return;initialExampleVersion++;for(const group of [...modelGroups])removeModelGroup(group.id);status('')});
+$('editorial-clear-cast').addEventListener('click',()=>{if(submitting)return;for(const group of [...modelGroups])removeModelGroup(group.id);status('')});
 $('saved-outfit').addEventListener('click',()=>void openSaved('outfit'));
 $('saved-location').addEventListener('click',()=>void openSaved('location'));
 $('saved-elements-close').addEventListener('click',()=>$('saved-elements-dialog').close());
 $('add-location').addEventListener('click',()=>$('location-files').click());
-$('model-files').addEventListener('change',event=>{initialExampleVersion++;const target=modelUploadTarget;modelUploadTarget=null;addFiles('model',event.target.files,target);event.target.value=''});
+$('model-files').addEventListener('change',event=>{const target=modelUploadTarget;modelUploadTarget=null;addFiles('model',event.target.files,target);event.target.value=''});
 for(const [kind,id] of [['outfit','outfit-files'],['location','location-files']])$(id).addEventListener('change',event=>{addFiles(kind,event.target.files);event.target.value=''});
 for(const id of ['styling-direction','location-direction','editorial-prompt','editorial-model','editorial-resolution'])$(id).addEventListener('input',()=>{invalidateQuote();updateSeriesSummary()});
 for(const id of ['garment-guide','mood-guide'])$(id).addEventListener('input',()=>{invalidateQuote();refreshSliderLabels()});
@@ -731,7 +700,6 @@ const entryUrl=new URL(location.href),modelPhoto=entryUrl.searchParams.get('mode
 const directStart=entryUrl.searchParams.get('start')==='1';
 if(directStart){entryUrl.searchParams.delete('start');history.replaceState(history.state,'',entryUrl.href)}
 renderDirections();renderFiles();updateOptions();refreshSliderLabels();updateSeriesSummary();go(directStart?1:0);
-if(directStart&&!modelPhoto)void seedApprovedExampleCast();
 if(modelPhoto){
  entryUrl.searchParams.delete('modelPhoto');history.replaceState(history.state,'',entryUrl.href);
  try{
