@@ -1,0 +1,92 @@
+/* PV LAB Video: wider playback stage and slim scene inspector.
+   Presentation only. Keep History, downloads, job state, pricing and
+   controls connected to their existing handlers. */
+@media (min-width:1161px){
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact > .workspace.video-layout{
+    grid-template-columns:clamp(310px,21vw,350px) minmax(0,1fr) clamp(204px,12.7vw,220px)!important;
+    gap:10px!important;
+    min-width:0!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .workspace.video-layout > .video-inspector{
+    min-width:0!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .video-inspector-heading{
+    padding:12px 13px 10px!important;
+    min-height:44px!important;
+    font-size:13px!important;
+    line-height:1.25!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .pv-video-create-inspector{
+    padding:11px 13px!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .video-inspector-body{
+    padding:13px!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .pv-video-scene-model{
+    min-height:64px!important;gap:7px!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .pv-video-sidebar-section{
+    margin-top:17px!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .pv-video-sidebar-section h3{
+    font-size:11.5px!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .pv-video-sidebar-section p,
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .pv-video-current-settings > div{
+    font-size:11.5px!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact .pv-video-current-settings{
+    gap:7px!important;
+  }
+}
+@media(min-width:821px){
+  /* Preserve the video player, canvas dimensions, source-frame controls and
+     independent gallery scroll. Only the working area's presentation changes. */
+  html body #app.video-studio-active .video-feed-center > .stage{
+    min-width:0;
+    overflow:hidden;
+  }
+}
+#app.video-studio-active .video-job-stage[hidden]{display:none!important}
+#app.video-studio-active .video-job-stage{
+  padding:18px 20px 17px;
+  background:#17191b;
+}
+#app.video-studio-active .video-job-stage-status{
+  gap:9px;
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid #373a3e;
+  background:#242629;
+  color:#e6e8e9;
+  font-size:11.5px;
+  font-weight:600;
+  letter-spacing:0;
+  box-shadow:0 1px 9px #0002;
+}
+#app.video-studio-active .video-job-stage-indicator{
+  width:12px;height:12px;
+  border:2px solid #737a7e;
+  border-top-color:#f1f2ef;
+}
+#app.video-studio-active .video-job-stage-meta{
+  align-self:flex-end;
+  max-width:90%;
+  text-align:right;
+  color:#85898f;
+  font-size:10px;
+}
+/* The compact status pill is the primary live feedback for active jobs.
+   Keep full live-region copy available to assistive technology. */
+#app.video-studio-active .video-job-stage:is([data-phase="submitting"],[data-phase="queued"],[data-phase="running"],[data-phase="saving"]) .video-job-stage-main{
+  position:absolute;
+  width:1px;height:1px;
+  padding:0;margin:-1px;
+  overflow:hidden;
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+@media(max-width:820px){
+  #app.video-studio-active .video-job-stage{padding:13px}
+  #app.video-studio-active .video-job-stage-status{padding:7px 10px}
+}
