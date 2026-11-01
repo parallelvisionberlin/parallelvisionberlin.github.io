@@ -2666,6 +2666,13 @@ function updateVideoInspector(job){
   const back=$('pv-video-history-back');if(back)back.hidden=!isSelected;
   $('video-inspector-empty').hidden=!!job;
   $('video-inspector-selected').hidden=!job;
+  const actionsMenu=$('pv-video-scene-actions');
+  if(actionsMenu){
+    const key=job?.id||'';
+    if(actionsMenu.dataset.record!==key)actionsMenu.open=false;
+    actionsMenu.dataset.record=key;
+    actionsMenu.hidden=!job;
+  }
   updateVideoInspectorReferences(job);
   if(!job){
     videoDetailPromptKey='';videoDetailPromptExpanded=false;
