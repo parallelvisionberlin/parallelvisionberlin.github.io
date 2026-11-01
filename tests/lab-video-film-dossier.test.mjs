@@ -61,3 +61,36 @@ test('original Video History gallery stays a wrapped card grid without horizonta
     'old automatic History pagination and original card markup are restored');
   assert.match(script,/\$\('more'\)\.onclick=loadEarlierHistory/,'manual older History still works');
 });
+
+test('Reuse settings and Download remain permanently visible beneath selected film details',()=>{
+  const selected=html.slice(html.indexOf('<div id="video-inspector-selected"'),html.indexOf('</aside>',html.indexOf('<div id="video-inspector-selected"')));
+  const menu=selected.indexOf('id="pv-video-scene-actions"');
+  assert.equal(menu,-1,'the action menu stays outside selected film body');
+  const footer=selected.indexOf('class="pv-video-primary-actions"');
+  assert.ok(footer>=0,'a persistent, visibly styled footer exists in the saved-film panel');
+  assert.ok(selected.indexOf('id="video-detail-download"')>footer);
+  assert.ok(selected.indexOf('id="video-detail-reuse"')>footer);
+  assert.ok(selected.indexOf('id="video-detail-date"')<footer,'buttons appear below the created date');
+  assert.match(css,/\.pv-video-primary-actions\{\s*display:grid!important/,
+    'the visible action footer has a proper layout');
+  assert.match(css,/\.pv-video-primary-actions #video-detail-reuse\{/,
+    'the reusable settings action remains primary');
+  assert.match(css,/\.pv-video-primary-actions #video-detail-download\{/,
+    'download is independently visible');
+  assert.match(script,/\$\('video-detail-reuse'\)\.onclick=/,
+    'the original Reuse settings click handler remains connected');
+  assert.match(script,/\$\('video-detail-download'\)\.onclick=/,
+    'the authenticated download handler remains connected');
+});
+
+test('scene metadata is typography-led with no generic status icons',()=>{
+  const area=html.slice(html.indexOf('<dl class="video-detail-data"'),html.indexOf('</dl>',html.indexOf('<dl class="video-detail-data"')));
+  assert.doesNotMatch(area,/<svg|<img/,'video specs do not use generic pictogram icons');
+  for(const value of ['Resolution','Duration','Aspect ratio']){
+    assert.match(area,new RegExp('<span>'+value+'</span>'),'spec values retain accessible labels');
+  }
+  assert.match(css,/\.video-detail-data>div\+div\{\s*border-left:1px solid/,
+    'hairline separators replace badges');
+  assert.match(css,/\.video-detail-data>div\{[\s\S]*?background:transparent!important/,
+    'technical spec cells have a quiet editorial finish');
+});
