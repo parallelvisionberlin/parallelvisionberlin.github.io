@@ -2585,7 +2585,7 @@ function showVideoJobStage(job){
   const states={
     submitting:['Submitting','Starting your video','Your confirmed request is being submitted.'],
     queued:['Queued','Video queued','Waiting for the video model to begin processing.'],
-    running:['Processing','Generating video','Your video is being created. You can leave this page and return to History.'],
+    running:['Generating','Generating video','Your video is being created. You can leave this page and return to History.'],
     saving:['Finalizing','Finishing your video','Saving your result to private History.'],
     uncertain:['Review needed','Status unconfirmed','Check History before submitting another paid generation.'],
     failed:['Failed','Video generation failed','No video was returned. Review this record in History before trying again.'],
