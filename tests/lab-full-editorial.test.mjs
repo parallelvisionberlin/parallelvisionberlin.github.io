@@ -129,7 +129,7 @@ test('Multi-model composition is not a dead control for single-model users',()=>
 test('Styling matches Identity rhythm while keeping real wardrobe references and direction',()=>{
  const stage=html.slice(html.indexOf('id="panel-style"'),html.indexOf('id="panel-mood"'));
  const styleCss=read('lab/full-editorial-atelier.css');
- assert.match(html,/full-editorial-atelier\.css\?v=20261101-composition-185px1/);
+ assert.match(html,/full-editorial-atelier\.css\?v=20261101-compact-cta2/);
  assert.match(stage,/class="atelier-section-top editorial-styling-top"/);
  assert.match(stage,/id="outfit-gallery"/);
  assert.match(stage,/id="outfit-files"/);
@@ -153,4 +153,19 @@ test('Campaign composition portraits have the approved 185px fashion-editorial t
  assert.match(c,/brightness\(\.83\) saturate\(\.82\)/,'Photography is visibly brighter');
  assert.match(c,/\.editorial-composition-option::after/,'Gradient remains readable over photography');
  assert.match(c,/height:172px;min-height:172px/,'The mobile carousel maintains a comfortable card height');
+});
+
+test('Empty Identity fits compactly and final Generate has editorial visual hierarchy',()=>{
+ const atelier=read('lab/full-editorial-atelier.css');
+ assert.match(atelier,/PVLAB_EDITORIAL_COMPACT_EMPTY_AND_CTA_20261101/);
+ assert.match(atelier,/:has\(#editorial-cast-empty:not\(\[hidden\]\)\)/,'Compact presentation applies only with no selected cast');
+ assert.match(atelier,/height:clamp\(154px,20svh,190px\)/);
+ assert.match(html,/id="editorial-generate"[^>]*class="primary full editorial-final-cta"/);
+ assert.match(html,/class="editorial-final-cta-label"/);
+ assert.match(html,/Generate editorial/);
+ assert.match(html,/class="editorial-final-cta-icon"/);
+ assert.match(atelier,/\.editorial-final-cta-icon/);
+ assert.match(atelier,/border-radius:3px;background:#f1eee6/);
+ assert.match(atelier,/#step-next:disabled/);
+ assert.match(js,/\$\('editorial-generate'\)\.addEventListener/,'Original paid generation action remains intact');
 });

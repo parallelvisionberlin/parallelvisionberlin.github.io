@@ -999,3 +999,110 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
  #panel-model .editorial-composition-copy strong{font-size:13px}
  #panel-model .editorial-composition-copy small{font-size:10px}
 }
+
+/* PVLAB_EDITORIAL_COMPACT_EMPTY_AND_CTA_20261101
+   Compact only the fresh empty-cast view. As soon as a user selects a model,
+   restore the approved taller casting gallery and normal multi-model flow. */
+@media(min-width:801px) and (max-height:950px){
+ .editorial-flow:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])){
+  padding-top:8px;padding-bottom:0;
+ }
+ .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])){
+  min-height:calc(100svh - 78px - 44px);
+ }
+ .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .stage-visual{
+  height:clamp(154px,20svh,190px);
+ }
+ .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .stage-copy{
+  bottom:48px;
+ }
+ .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .stage-copy h2{
+  font-size:clamp(54px,4.6vw,72px);margin:7px 0 8px;
+ }
+ .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .atelier-workspace{
+  padding-top:9px;padding-bottom:0;
+ }
+ .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .atelier-cast-gallery .atelier-reference,
+ .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .atelier-cast-gallery .editorial-own-cast{
+  height:clamp(216px,27svh,252px);
+ }
+ .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .editorial-cast-selection{
+  min-height:46px;margin-top:8px;padding:7px 14px;
+ }
+ .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #step-footer{
+  min-height:60px;margin-top:auto;padding:8px 0 max(8px,env(safe-area-inset-bottom));
+ }
+}
+@media(min-width:801px){
+ /* This is a locked editorial step, not a grey system-form button. */
+ .flow-main:has(#panel-model:not([hidden])) #step-next{
+  background:#f2efe7;border:1px solid #f2efe7;color:#111213;
+  font-size:13px;font-weight:600;letter-spacing:-.02em;min-height:50px;
+  min-width:235px;border-radius:3px;
+  justify-content:space-between;gap:18px;box-shadow:none;
+ }
+ .flow-main:has(#panel-model:not([hidden])) #step-next:disabled{
+  background:transparent;border-color:#48494a;color:#a5a4a0;
+  opacity:1;cursor:not-allowed;
+ }
+ .flow-main:has(#panel-model:not([hidden])) #step-next:hover:not(:disabled){
+  background:#fff;border-color:#fff;transform:translateY(-1px);
+ }
+}
+@media(max-width:800px){
+ .flow-main:has(#panel-model:not([hidden])) #step-next:disabled{
+  background:transparent;border:1px solid #48494a;color:#a5a4a0;
+  opacity:1;border-radius:3px;cursor:not-allowed;
+ }
+}
+/* The actual paid Generate action, consistent with the PV LAB fashion-editorial
+   language. Its existing id, disabled state, credit cost, and paid job flow remain. */
+#panel-generate .editorial-generate-action{text-align:left;margin-top:24px}
+#panel-generate .editorial-review-main{min-width:0}
+#panel-generate .atelier-review-main #editorial-generate.editorial-final-cta{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;min-height:78px;height:auto;padding:12px 14px 12px 23px;
+  border:1px solid #ebe7df;border-radius:3px;background:#f1eee6;color:#111213;
+  box-shadow:none;letter-spacing:normal;text-align:left;
+  transition:transform .18s ease,background .18s ease,border-color .18s ease;
+}
+#panel-generate .editorial-final-cta-label{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+#panel-generate .editorial-final-cta-eyebrow{
+  font-size:9px;letter-spacing:.19em;font-weight:650;line-height:1.2;
+  color:#64615b
+}
+#panel-generate .editorial-final-cta-label strong{
+  font-size:clamp(18px,1.65vw,23px);line-height:1.16;
+  font-weight:550;letter-spacing:-.052em;color:#161717
+}
+#panel-generate .editorial-final-cta-icon{
+  display:grid;place-items:center;flex:0 0 48px;
+  width:48px;height:48px;border:1px solid #121313;border-radius:2px;
+  background:#151515;color:#f6f3ec;font-size:23px;font-weight:400;
+  line-height:1;transition:transform .18s ease,background .18s ease;
+}
+#panel-generate .atelier-review-main #editorial-generate.editorial-final-cta:hover:not(:disabled){
+ background:#fff;border-color:#fff;transform:translateY(-1px)
+}
+#panel-generate .editorial-final-cta:hover:not(:disabled) .editorial-final-cta-icon{
+ background:#303030;transform:translate(1px,-1px)
+}
+#panel-generate .atelier-review-main #editorial-generate.editorial-final-cta:disabled{
+ background:#1a1b1b;border-color:#4a4b4b;color:#8e8f8b;opacity:1;cursor:wait;
+}
+#panel-generate .editorial-final-cta:disabled .editorial-final-cta-eyebrow,
+#panel-generate .editorial-final-cta:disabled .editorial-final-cta-label strong{color:#969791}
+#panel-generate .editorial-final-cta:disabled .editorial-final-cta-icon{
+ background:#282a29;border-color:#454746;color:#999b98
+}
+#panel-generate .editorial-cost{margin-top:12px;text-align:left;font-size:12px}
+@media(max-width:800px){
+ #panel-generate .atelier-review-main #editorial-generate.editorial-final-cta{
+  min-height:70px;padding:10px 11px 10px 17px;
+ }
+ #panel-generate .editorial-final-cta-label strong{font-size:19px}
+ #panel-generate .editorial-final-cta-icon{flex-basis:44px;width:44px;height:44px}
+}
+@media(prefers-reduced-motion:reduce){
+ #panel-generate .editorial-final-cta,#panel-generate .editorial-final-cta-icon{transition:none}
+}
