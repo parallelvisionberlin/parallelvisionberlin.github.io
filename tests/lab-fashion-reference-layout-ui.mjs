@@ -123,6 +123,7 @@ try{
   if(role!=='guest'){
    await fashion.locator('#fashion-wardrobe-open').click();
    await fashion.locator('#fashion-wardrobe').waitFor({state:'visible'});
+   await fashion.locator('.wardrobe-item').first().waitFor({state:'visible'});
    assert.equal(await fashion.locator('.wardrobe-item').count(),1,'One saved Elements outfit is available');
    await fashion.locator('.wardrobe-item').click();
    assert.equal(await fashion.locator('.wardrobe-item').count(),2,'Multiple saved views are available');
