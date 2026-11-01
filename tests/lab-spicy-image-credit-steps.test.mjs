@@ -51,7 +51,10 @@ test('UI uses the same verified retail quote for owner and public, never hides p
  const client=readFileSync(new URL('../lab/app-mood-generation.js',import.meta.url),'utf8');
  const explore=readFileSync(new URL('../lab/explore-moods.js',import.meta.url),'utf8');
  const mobile=readFileSync(new URL('../lab/app-moods.js',import.meta.url),'utf8');
- assert.match(client,/pricedBoundQuotes\(quote,1,'SpicyAPI'\)\.credits\+' credits'/);
+ assert.match(client,/const imageCredits=pricedBoundQuotes\(quote,1,'SpicyAPI'\)\.credits/);
+ assert.match(client,/const label=imageCredits\+' credits'/);
+ assert.match(client,/imageCredits>session\.balanceCredits/);
+ assert.match(client,/error\.code='INSUFFICIENT_CREDITS'/);
  assert.doesNotMatch(client,/session\.customer\?pricedBoundQuotes/);
  assert.doesNotMatch(explore,/Checking price/);
  assert.doesNotMatch(mobile,/Checking price/);
