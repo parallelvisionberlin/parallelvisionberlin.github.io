@@ -72,8 +72,17 @@ try{
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.ok(layout.heroHeight>=210&&layout.heroHeight<=255,'Compact Identity hero responds to viewport height');
+   assert.ok(layout.heroHeight>=153&&layout.heroHeight<=191,'Empty Identity hero exposes full casting page');
    for(const key of ['railInside','backInside','cardsVisible'])assert.equal(layout[key],true,key);
+   const emptyBounds=await page.evaluate(()=>{
+    const r=selector=>document.querySelector(selector).getBoundingClientRect();
+    return {footerBottom:r('#step-footer').bottom,viewportHeight:innerHeight,
+     cardHeight:r('#casting-reference-gallery .atelier-reference').height,
+     buttonBackground:getComputedStyle(document.getElementById('step-next')).backgroundColor};
+   });
+   assert.ok(emptyBounds.footerBottom<=emptyBounds.viewportHeight-8,'Empty Identity action and cast all fit on the initial desktop screen');
+   assert.ok(emptyBounds.cardHeight>=224&&emptyBounds.cardHeight<=268,'Portraits remain useful in compact empty state');
+   assert.match(emptyBounds.buttonBackground,/rgba?\(\s*(?:0|1\d|2\d|3\d)/,'Disabled Continue uses dark editorial styling');
    await page.locator('#editorial-top-back').click();
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
    await page.locator('#editorial-start').click();
@@ -206,7 +215,19 @@ try{
   assert.equal(jobCount,before,'Automatic quote preparation never submits a paid job');
   assert.equal(await page.locator('#editorial-confirm').count(),0,'No duplicate confirmation dialog');
   assert.equal(await page.locator('#step-next').isVisible(),false,'No duplicate footer Generate/review action');
-  assert.equal(await page.locator('#editorial-generate').textContent(),'Generate');
+  assert.match(await page.locator('#editorial-generate').textContent(),/Generate editorial/);
+  const generateDesign=await page.locator('#editorial-generate').evaluate(button=>{
+   const r=button.getBoundingClientRect(),style=getComputedStyle(button);
+   const arrow=button.querySelector('.editorial-final-cta-icon');
+   return {height:r.height,radius:style.borderRadius,display:style.display,
+    arrowWidth:arrow.getBoundingClientRect().width,
+    label:button.querySelector('.editorial-final-cta-label strong')?.textContent};
+  });
+  assert.ok(generateDesign.height>=69,'Generate has a substantial touch target');
+  assert.equal(generateDesign.radius,'3px','Generate is a sharp editorial rectangle, not a pill');
+  assert.equal(generateDesign.display,'flex','Generate splits the title from its arrow');
+  assert.ok(generateDesign.arrowWidth>=42,'Generate arrow has its own action block');
+  assert.equal(generateDesign.label,'Generate editorial');
   assert.equal(await page.locator('#editorial-generation-film').getAttribute('src'),null,'Film is not loaded during setup');
   // A delayed response for old settings must never re-enable a stale purchase.
   quoteDelay=350;
