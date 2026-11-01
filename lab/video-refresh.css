@@ -254,6 +254,7 @@
   pointer-events:none;backdrop-filter:blur(9px);
 }
 #app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardbody{
+  position:relative;overflow:visible;
   flex:1 1 auto;min-height:77px;padding:10px 11px 11px;
 }
 #app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardmeta{
@@ -263,9 +264,11 @@
   display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
   overflow:hidden;max-height:none;min-height:2.6em;font-size:11px;line-height:1.3;
 }
-/* Keep the existing saved-output download directly available on ready cards. */
+/* Anchor Download to the thumbnail's lower-right corner, opposite Play Video.
+   The card body starts immediately below the 16:9 thumbnail, so a negative
+   top offset stays aligned at every card width without covering the heart. */
 #app.video-studio-active .video-feed-center #history:not(.is-selecting) .card[data-kind="video"] .cardbody .cardactions:has(>.result-download){
-  position:absolute;top:4px;right:4px;z-index:3;
+  position:absolute;top:-49px;right:4px;z-index:3;
   display:flex;margin:0;
 }
 #app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardactions>button:not(.result-download){
@@ -309,10 +312,8 @@
   #app.video-studio-active .video-feed-center>.stage:has(#empty:not([hidden])):not(:has(#pv-video-reference-preview[data-illustrative="false"]:not([hidden]))):not(:has(#video-job-stage:not([hidden]))){display:none!important}
 }
 
-/* Phone History: one play affordance, with favorite and download in separate corners. */
+/* Phone History: keep the play and download controls at opposite bottom corners. */
 @media(max-width:640px){
-  #app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardbody{position:relative}
-  #app.video-studio-active .video-feed-center #history:not(.is-selecting) .card[data-kind="video"] .cardbody .cardactions:has(>.result-download){top:-44px;right:4px}
   #app.video-studio-active .video-feed-center #history .card[data-kind="video"]>.asset-video-badge{display:none!important}
 }
 
