@@ -1,0 +1,19 @@
+name: Verify PV LAB first-image trial
+on:
+  pull_request:
+    paths:
+      - 'lab-worker/**'
+      - 'tests/lab-first-image-trial.test.mjs'
+      - '.github/workflows/lab-first-image-trial.yml'
+jobs:
+  verify-trial:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Existing welcome and protection tests
+        run: node --test tests/lab-welcome-credits.test.mjs tests/lab-trial-pause.test.mjs tests/lab-promo-generation-holds.test.mjs
+      - name: 40-credit single-image tests
+        run: node --test tests/lab-first-image-trial.test.mjs
