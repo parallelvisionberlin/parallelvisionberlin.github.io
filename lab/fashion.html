@@ -17,8 +17,8 @@ location.replace(fashionStudioUrl.href);
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./fashion.css?v=20261101-dropglow1">
-<script type="module" src="./fashion.js?v=20261031-single-label3&prior=20261011-no-emoji1&studioAuth=20261015-1&optionalFastReady=20261015-1&creditCurrency=20261024v1&publicLabels=20261026&fashionPrice=20261026-inline1"></script>
+<link rel="stylesheet" href="./fashion.css?v=20261101-wardrobe1">
+<script type="module" src="./fashion.js?v=20261101-wardrobe1&prior=20261011-no-emoji1&studioAuth=20261015-1&optionalFastReady=20261015-1&creditCurrency=20261024v1&publicLabels=20261026&fashionPrice=20261026-inline1"></script>
 <link rel="stylesheet" href="/lab/site-footer.css?v=20261023-focused-tools1">
 </head>
 <body>
@@ -76,6 +76,11 @@ location.replace(fashionStudioUrl.href);
       </span>
       <span class="slot-caption">GARMENT </span>
      </label>
+     <button id="fashion-wardrobe-open" class="wardrobe-launch" type="button" aria-haspopup="dialog" aria-controls="fashion-wardrobe" title="Choose a saved outfit from Elements">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5a2 2 0 1 0-2-2"/><path d="m12 5 9 8a1.5 1.5 0 0 1-1 2.6H4A1.5 1.5 0 0 1 3 13l9-8Z"/></svg>
+      <span>Wardrobe</span>
+     </button>
+     <span id="fashion-wardrobe-selected" class="wardrobe-selected" hidden></span>
     </div>
     <p class="source-note">JPG, PNG, WEBP <span aria-hidden="true">·</span> 20 MB MAX EACH <span aria-hidden="true">·</span> USE IMAGES YOU HAVE RIGHTS TO EDIT</p>
    </section>
@@ -145,6 +150,20 @@ location.replace(fashionStudioUrl.href);
     <p id="status" class="status" role="status" aria-live="polite"></p>
    </section>
   </form>
+  <dialog id="fashion-wardrobe" class="fashion-wardrobe" aria-labelledby="fashion-wardrobe-title">
+   <div class="wardrobe-dialog-head">
+    <div><p class="wardrobe-eyebrow">PV LAB / ELEMENTS</p><h2 id="fashion-wardrobe-title">Wardrobe</h2>
+     <p class="wardrobe-subtitle">Saved Outfits. Select a garment reference to use here.</p>
+    </div>
+    <button type="button" id="fashion-wardrobe-close" class="wardrobe-close" aria-label="Close Wardrobe">×</button>
+   </div>
+   <div class="wardrobe-dialog-tools">
+    <button id="fashion-wardrobe-back" type="button" class="wardrobe-back" hidden>‹ All outfits</button>
+    <input id="fashion-wardrobe-search" type="search" placeholder="Search outfits" aria-label="Search saved outfits" maxlength="80">
+   </div>
+   <div id="fashion-wardrobe-items" class="wardrobe-items" role="region" aria-label="Saved outfits" aria-live="polite"></div>
+   <p class="wardrobe-footer">Synced with Elements / Outfits. Browsing uses no credits.</p>
+  </dialog>
   <aside class="result-panel" aria-label="Generation result">
    <div class="section-header result-header"><h2>02 <span>/</span> Result</h2><span>OUTPUT PHOTOGRAPH</span></div>
    <div id="result-stage" class="result-stage">
