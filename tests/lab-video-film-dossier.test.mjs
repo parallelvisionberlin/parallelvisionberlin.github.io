@@ -111,3 +111,29 @@ test('Video composer fits laptop height without forcing an unnecessary scrollbar
   assert.match(html,/video-film-dossier\.css\?v=20261101-compact-deck1/,
     'the browser gets an updated stylesheet URL');
 });
+
+test('Saved video prompt has a hover and keyboard copy action for its full source',()=>{
+  assert.equal((html.match(/id="video-detail-copy-prompt"/g)||[]).length,1);
+  assert.match(html,/class="pv-video-saved-prompt" aria-label="Saved motion prompt"/);
+  assert.match(html,/id="video-detail-copy-prompt"[^>]+aria-label="Copy prompt"/);
+  assert.match(script,/fullPrompt=job\?\.settings\?\.prompt/);
+  assert.match(script,/navigator\.clipboard\.writeText\(fullPrompt\)/);
+  assert.match(script,/control\.dataset\.tip='Copied'/);
+  assert.match(script,/if\(selectedVideoJob\?\.id!==job\.id\)return/);
+  assert.match(css,/\.pv-video-saved-prompt:hover \.pv-video-copy-prompt/);
+  assert.match(css,/\.pv-video-saved-prompt:focus-within \.pv-video-copy-prompt/);
+  assert.match(css,/@media\(hover:none\)/,'touch devices can always access Copy');
+});
+test('Saved video model and actions are lightweight and Delete is not red',()=>{
+  const footer=html.slice(html.indexOf('class="pv-video-primary-actions"'),html.indexOf('</div>',html.indexOf('class="pv-video-primary-actions"')));
+  assert.equal((footer.match(/id="video-detail-delete"/g)||[]).length,1);
+  assert.match(footer,/aria-label="Delete video record"/);
+  assert.match(footer,/id="video-detail-reuse"[^>]*[\s\S]*?<span>Reuse settings<\/span>/);
+  assert.match(footer,/id="video-detail-download"[^>]*[\s\S]*?<span>Download<\/span>/);
+  assert.match(css,/\.video-detail-model:before\{/);
+  assert.match(css,/\.pv-video-primary-actions #video-detail-reuse\{\s*justify-self:start!important/);
+  assert.match(css,/\.pv-video-primary-actions #video-detail-delete\{[\s\S]*?color:#a9adb3!important/);
+  assert.match(css,/\.pv-video-primary-actions #video-detail-delete:hover:not\(:disabled\)\{[\s\S]*?color:#e2e3e5!important/);
+  assert.doesNotMatch(footer,/class="(primary|detail-primary)"/);
+  assert.match(script,/\$\('video-detail-delete'\)\.onclick/,'original confirmed deletion survives');
+});
