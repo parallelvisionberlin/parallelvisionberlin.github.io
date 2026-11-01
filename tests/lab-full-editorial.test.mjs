@@ -91,3 +91,17 @@ test('Progress reuses the homepage ivory film and keeps results prominent',()=>{
  assert.match(js,/prefers-reduced-motion/);
  assert.match(read('lab/full-editorial-atelier.css'),/font-size:clamp\(34px,3.4vw,56px\)/);
 });
+
+test('Identity casting uses the approved photographic layout rather than standalone form rows',()=>{
+ const stage=html.slice(html.indexOf('id="panel-model"'),html.indexOf('id="panel-style"'));
+ const top=stage.slice(stage.indexOf('editorial-casting-top'),stage.indexOf('id="casting-reference-gallery"'));
+ assert.match(top,/atelier-source-tabs/,'Casting source tabs share the title row');
+ assert.match(top,/id="editorial-cast-search"/,'Search remains in the same casting toolbar');
+ assert.match(stage,/id="editorial-cast-selection"/);
+ assert.match(stage,/id="editorial-casting-controls"/);
+ assert.ok(stage.indexOf('id="model-thumbs"')<stage.indexOf('id="model-selection-count"'),'Thumbnails appear before count and Clear all');
+ assert.match(js,/editorial-footer-add/,'Footer + adds another model using existing picker');
+ assert.match(css,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
+ assert.match(css,/#panel-model \.editorial-composition-option/);
+ assert.match(css,/:has\(#panel-model:not\(\[hidden\]\)\)/,'Identity footer fills the remaining viewport height');
+});
