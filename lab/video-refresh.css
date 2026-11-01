@@ -245,14 +245,27 @@
   object-fit:contain;
 }
 #app.video-studio-active .video-feed-center #history .history-video-thumb figcaption{display:none}
+/* Quiet play marker in the thumbnail's top-left corner.
+   The entire card remains the existing accessible play target. */
 #app.video-studio-active .video-feed-center #history .history-video-play{
-  position:absolute;bottom:10px;left:10px;
-  display:inline-flex;align-items:center;gap:7px;
-  max-width:calc(100% - 20px);padding:7px 11px;border:1px solid #ffffff52;
-  border-radius:7px;background:#111317c9;color:#f7f7f5;
-  font-size:10px;font-weight:600;letter-spacing:.035em;line-height:1;
-  pointer-events:none;backdrop-filter:blur(9px);
+  position:absolute;top:10px;left:10px;bottom:auto;z-index:3;
+  display:grid;place-items:center;gap:0;
+  width:35px;height:35px;min-width:35px;min-height:35px;max-width:none;
+  box-sizing:border-box;padding:0;border:1px solid #ffffff73;
+  border-radius:8px;background:#111317c9;color:#f7f7f5;
+  line-height:1;pointer-events:none;
+  backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+  transition:background .16s ease,border-color .16s ease,color .16s ease;
 }
+#app.video-studio-active .video-feed-center #history .history-video-play svg{
+  width:16px;height:16px;display:block;fill:currentColor;stroke-width:1.25;
+}
+#app.video-studio-active .video-feed-center #history .history-video-play>span{display:none}
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"]:hover .history-video-play,
+#app.video-studio-active .video-feed-center #history .card[data-kind="video"]:focus-visible .history-video-play{
+  background:#f3f3f1;border-color:#f3f3f1;color:#121315;
+}
+#app.video-studio-active .video-feed-center #history.is-selecting .history-video-play{display:none}
 #app.video-studio-active .video-feed-center #history .card[data-kind="video"] .cardbody{
   position:relative;overflow:visible;
   flex:1 1 auto;min-height:77px;padding:10px 11px 11px;
