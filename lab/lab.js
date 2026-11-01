@@ -2676,6 +2676,7 @@ function updateVideoInspector(job){
   updateVideoInspectorReferences(job);
   if(!job){
     videoDetailPromptKey='';videoDetailPromptExpanded=false;
+    $('video-detail-copy-prompt').hidden=true;
     $('video-detail-prompt-toggle').hidden=true;
     $('video-detail-prompt').classList.remove('is-expanded');
     $('video-detail-status').textContent=videoStartFrameHandoff&&file?'Start frame':'';
@@ -2689,7 +2690,14 @@ function updateVideoInspector(job){
   $('video-detail-model').textContent=videoLabel(settings);
   const savedPrompt=settings.prompt||'No motion direction saved.';
   const promptKey=String(job.id||'')+'\n'+savedPrompt;
-  if(promptKey!==videoDetailPromptKey){videoDetailPromptKey=promptKey;videoDetailPromptExpanded=false;}
+  if(promptKey!==videoDetailPromptKey){
+    videoDetailPromptKey=promptKey;videoDetailPromptExpanded=false;
+    const copy=$('video-detail-copy-prompt');
+    copy.dataset.tip='Copy prompt';copy.title='Copy prompt';
+    copy.setAttribute('aria-label','Copy prompt');copy.classList.remove('is-copied');
+  }
+  const copy=$('video-detail-copy-prompt');
+  copy.hidden=!(typeof settings.prompt==='string'&&settings.prompt.trim());
   $('video-detail-prompt').textContent=savedPrompt;
   $('video-detail-prompt').classList.toggle('is-expanded',videoDetailPromptExpanded);
   const seconds=Number(settings.duration);
@@ -2818,6 +2826,41 @@ $('video-detail-prompt-toggle').onclick=()=>{
   videoDetailPromptExpanded=!videoDetailPromptExpanded;
   $('video-detail-prompt').classList.toggle('is-expanded',videoDetailPromptExpanded);
   syncVideoDetailPromptToggle();
+};
+// The saved prompt is copied verbatim, never the visually clamped preview.
+$('video-detail-copy-prompt').onclick=async()=>{
+  const job=selectedVideoJob,fullPrompt=job?.settings?.prompt;
+  if(typeof fullPrompt!=='string'||!fullPrompt.trim())return;
+  const control=$('video-detail-copy-prompt');
+  try{
+    if(navigator.clipboard?.writeText){
+      await navigator.clipboard.writeText(fullPrompt);
+    }else{
+      const temporary=document.createElement('textarea');
+      temporary.value=fullPrompt;
+      temporary.setAttribute('readonly','');
+      temporary.style.cssText='position:fixed;left:-9999px;opacity:0';
+      document.body.append(temporary);
+      temporary.select();
+      let copied=false;
+      try{copied=document.execCommand('copy');}finally{temporary.remove();}
+      if(!copied)throw new Error('Copy unavailable');
+    }
+    if(selectedVideoJob?.id!==job.id)return;
+    control.dataset.tip='Copied';
+    control.title='Copied';
+    control.setAttribute('aria-label','Prompt copied');
+    control.classList.add('is-copied');
+    setTimeout(()=>{
+      if(selectedVideoJob?.id!==job.id)return;
+      control.dataset.tip='Copy prompt';
+      control.title='Copy prompt';
+      control.setAttribute('aria-label','Copy prompt');
+      control.classList.remove('is-copied');
+    },1500);
+  }catch{
+    if(selectedVideoJob?.id===job.id)notify('Could not copy the prompt. Check clipboard permission.',true);
+  }
 };
 window.addEventListener('resize',()=>requestAnimationFrame(syncVideoDetailPromptToggle),{passive:true});
 $('video-detail-watch').onclick=()=>{
