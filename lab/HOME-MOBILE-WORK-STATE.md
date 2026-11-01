@@ -7,7 +7,12 @@
 - Preserved card images, labels, routes and all other homepage sections.
 - Files: lab/index.html, lab/home-creative-features.css, this checkpoint.
 - Cache: home-creative-features.css?v=20261101-studios-no-cta1.
-- Validation: approved Image UI contract passes 5/5; diff reviewed for isolated changes. Production and rendered verification pending; no paid generation or account change.
+- Validation: approved Image UI contract passes 5/5; homepage stability and static CI pass. Exact HTML comparison confirms only CTA removal and cache version changed; four card blocks are byte-identical.
+- Published via PR #756 as 2cd3738ee57eeba14dbfec6242d7682312f38627. Cloudflare pvlab-studio app check 124782117490 succeeded, deployment 3c8eec17-0c71-4e9d-b0a3-39c38126c93c.
+- Live DOM: expected stylesheet version, zero intro links, four original card routes, desktop cover rgb(9,10,11), no horizontal overflow at 1363px. Screenshot confirms artwork visible and old button fully covered.
+- Phone 390px isolated layout checked; no separate real-device production session inspected. Native HTML removal applies at all breakpoints.
+- Direct production HTTP from executor returned 403; publication verified using exact-commit Cloudflare evidence plus production DOM/CSS and screenshot per release fallback.
+- Existing unrelated CI failures concern Moods vs Explore Moods labels; no tests or gates changed. No paid generation or account change. Request complete.
 
 ## Homepage navigation reverted to original, 2026-10-31
 - Owner disliked the editorial uppercase/tracking/translucent header and explicitly preferred the previous homepage navigation.
