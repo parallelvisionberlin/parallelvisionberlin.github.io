@@ -50,6 +50,9 @@
     track.addEventListener('pointerdown', event => {
       stop();
       suppressClick = false;
+      // Let touch/pen scrolling and release momentum run natively, including
+      // swipes starting on the creation buttons. Only mouse needs custom drag.
+      if (event.pointerType !== 'mouse') return;
       if (!event.isPrimary || event.button !== 0 || event.target.closest('a,button')) return;
       gesture = {id: event.pointerId, x: event.clientX, y: event.clientY, lastX: event.clientX, time: performance.now(), velocity: 0, axis: null};
     });
