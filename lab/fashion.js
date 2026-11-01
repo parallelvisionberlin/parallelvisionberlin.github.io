@@ -138,9 +138,9 @@ function wClose(){
   if(wDialog.open)wDialog.close();
 }
 function wMessage(title,copy){
-  const box=root.ownerDocument.createElement('div');box.className='wardrobe-empty';
-  const strong=root.ownerDocument.createElement('strong');strong.textContent=title;box.append(strong);
-  if(copy){const p=root.ownerDocument.createElement('p');p.textContent=copy;box.append(p)}
+  const box=document.createElement('div');box.className='wardrobe-empty';
+  const strong=document.createElement('strong');strong.textContent=title;box.append(strong);
+  if(copy){const p=document.createElement('p');p.textContent=copy;box.append(p)}
   wItems.replaceChildren(box);
 }
 async function wThumb(ref,frame,version){
@@ -155,7 +155,7 @@ async function wThumb(ref,frame,version){
       url=URL.createObjectURL(blob);wThumbs.set(ref.id,url);
     }
     if(version!==wSequence||!wDialog.open||!frame.isConnected)return;
-    const img=root.ownerDocument.createElement('img');img.alt='';img.loading='lazy';img.src=url;
+    const img=document.createElement('img');img.alt='';img.loading='lazy';img.src=url;
     frame.replaceChildren(img);
   }catch{/* Missing preview does not block using an Outfit. */}
 }
@@ -174,13 +174,13 @@ function wRender(){
     const refs=pack.refs.filter(r=>typeof r?.id==='string'&&r.id);
     for(const [index,ref] of (detail?refs:[refs[0]]).entries()){
       if(!ref)continue;
-      const button=root.ownerDocument.createElement('button');button.type='button';
+      const button=document.createElement('button');button.type='button';
       button.className='wardrobe-item';
       button.setAttribute('aria-label',detail?'Use '+wName(pack)+' view '+(index+1):'Choose '+wName(pack));
-      const frame=root.ownerDocument.createElement('span');frame.className='wardrobe-item-photo';frame.textContent='PV LAB';
-      const info=root.ownerDocument.createElement('span');info.className='wardrobe-item-info';
-      const title=root.ownerDocument.createElement('strong');title.textContent=wName(pack);
-      const caption=root.ownerDocument.createElement('small');caption.textContent=detail?'View '+(index+1):refs.length+' view'+(refs.length===1?'':'s');
+      const frame=document.createElement('span');frame.className='wardrobe-item-photo';frame.textContent='PV LAB';
+      const info=document.createElement('span');info.className='wardrobe-item-info';
+      const title=document.createElement('strong');title.textContent=wName(pack);
+      const caption=document.createElement('small');caption.textContent=detail?'View '+(index+1):refs.length+' view'+(refs.length===1?'':'s');
       info.append(title,caption);button.append(frame,info);wItems.append(button);
       void wThumb(ref,frame,version);
       button.addEventListener('click',()=>{
