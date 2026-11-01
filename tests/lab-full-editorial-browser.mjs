@@ -80,7 +80,7 @@ try{
      cardHeight:r('#casting-reference-gallery .atelier-reference').height,
      buttonBackground:getComputedStyle(document.getElementById('step-next')).backgroundColor};
    });
-   assert.ok(emptyBounds.footerBottom<=emptyBounds.viewportHeight-8,'Empty Identity action and cast all fit on the initial desktop screen');
+   assert.ok(emptyBounds.footerBottom<=emptyBounds.viewportHeight-8,'Empty Identity action and cast all fit on the initial desktop screen: '+JSON.stringify(emptyBounds));
    assert.ok(emptyBounds.cardHeight>=224&&emptyBounds.cardHeight<=268,'Portraits remain useful in compact empty state');
    assert.match(emptyBounds.buttonBackground,/rgba?\(\s*(?:0|1\d|2\d|3\d)/,'Disabled Continue uses dark editorial styling');
    await page.locator('#editorial-top-back').click();
