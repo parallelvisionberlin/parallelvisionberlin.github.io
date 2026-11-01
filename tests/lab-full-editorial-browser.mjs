@@ -64,7 +64,14 @@ try{
    assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true);
    assert.equal(await page.locator('#step-next').isDisabled(),true);
   for(const label of ['Bronze portrait','Copper portrait'])assert.equal(await page.locator('[data-sample-label="'+label+'"]').getAttribute('aria-pressed'),'false');
+  let baselineCastSizes=null;
   if(width>800){
+   baselineCastSizes=await page.evaluate(()=>{
+    const r=selector=>document.querySelector(selector).getBoundingClientRect();
+    return {hero:r('#panel-model .stage-visual').height,
+     galleryCard:r('#casting-reference-gallery .atelier-reference').height,
+     strip:r('#editorial-cast-selection').height};
+   });
    const layout=await page.evaluate(()=>{
     const rect=selector=>document.querySelector(selector).getBoundingClientRect();
     const hero=rect('#panel-model .stage-visual'),header=rect('.editorial-header'),rail=rect('.editorial-flow-rail'),back=rect('.progress-top'),cards=rect('#casting-reference-gallery');
@@ -97,6 +104,16 @@ try{
   await page.locator('#editorial-start').click();
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
   await page.locator('#model-thumbs .thumb').waitFor({state:'visible'});
+  if(width>800){
+   const sizes=await page.evaluate(()=>{
+    const r=selector=>document.querySelector(selector).getBoundingClientRect();
+    return {hero:r('#panel-model .stage-visual').height,
+     galleryCard:r('#casting-reference-gallery .atelier-reference').height,
+     strip:r('#editorial-cast-selection').height};
+   });
+   assert.deepEqual(sizes,baselineCastSizes,'Selecting a model cannot resize the hero, portraits or strip');
+  }
+  assert.equal(await page.locator('#editorial-status').textContent(),'','Model click does not add redundant below-footer copy');
    assert.equal(await page.locator('#editorial-cast-empty').isVisible(),false);
    assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'No inactive group-composition buttons with one model');
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true,'One model is not multi-cast');
@@ -115,6 +132,15 @@ try{
   // Selecting another casting portrait creates a distinct model, not another view.
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
+  if(width>800){
+   const sizes=await page.evaluate(()=>{
+    const r=selector=>document.querySelector(selector).getBoundingClientRect();
+    return {hero:r('#panel-model .stage-visual').height,
+     galleryCard:r('#casting-reference-gallery .atelier-reference').height,
+     strip:r('#editorial-cast-selection').height};
+   });
+   assert.deepEqual(sizes,baselineCastSizes,'Two models retain the exact same Identity hero and portrait dimensions');
+  }
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true);
   const compositionLayout=await page.locator('#editorial-casting-controls').evaluate(root=>{
    const cards=Array.from(root.querySelectorAll('[data-cast-composition]'));

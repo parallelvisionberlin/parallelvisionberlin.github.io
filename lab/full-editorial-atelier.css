@@ -1001,35 +1001,35 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
 }
 
 /* PVLAB_EDITORIAL_COMPACT_EMPTY_AND_CTA_20261101
-   Compact only the fresh empty-cast view. As soon as a user selects a model,
-   restore the approved taller casting gallery and normal multi-model flow. */
+   Keep identical image, hero and footer geometry with zero, one or more selected models.
+   Only the selected-cast contents and optional composition section may change. */
 @media(min-width:801px) and (max-height:950px){
- .editorial-flow:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])){
+ .editorial-flow:has(#panel-model:not([hidden])){
   padding-top:8px;padding-bottom:0;
  }
- .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])){
+ .flow-main:has(#panel-model:not([hidden])){
   min-height:calc(100svh - 78px - 44px);
  }
- .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .stage-visual{
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .stage-visual{
   height:clamp(154px,20svh,190px);
  }
- .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .stage-copy{
-  bottom:48px;
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .stage-copy{
+  bottom:35px;
  }
- .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .stage-copy h2{
-  font-size:clamp(54px,4.6vw,72px);margin:7px 0 8px;
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .stage-copy h2{
+  font-size:clamp(54px,4.3vw,64px);margin:4px 0 5px;
  }
- .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .atelier-workspace{
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .atelier-workspace{
   padding-top:9px;padding-bottom:0;
  }
- .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .atelier-cast-gallery .atelier-reference,
- .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .atelier-cast-gallery .editorial-own-cast{
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .atelier-cast-gallery .atelier-reference,
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .atelier-cast-gallery .editorial-own-cast{
   height:clamp(216px,27svh,252px);
  }
- .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #panel-model .editorial-cast-selection{
-  min-height:46px;margin-top:8px;padding:7px 14px;
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .editorial-cast-selection{
+  min-height:71px;margin-top:8px;padding:7px 14px;
  }
- .flow-main:has(#panel-model:not([hidden])):has(#editorial-cast-empty:not([hidden])) #step-footer{
+ .flow-main:has(#panel-model:not([hidden])) #step-footer{
   min-height:60px;margin-top:auto;padding:8px 0 max(8px,env(safe-area-inset-bottom));
  }
 }
@@ -1105,4 +1105,11 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
 }
 @media(prefers-reduced-motion:reduce){
  #panel-generate .editorial-final-cta,#panel-generate .editorial-final-cta-icon{transition:none}
+}
+
+/* Stable first-step layout: no geometry depends on the cast count.
+   The populated strip uses the same reserved 71px height as the empty strip. */
+@media(min-width:801px) and (max-height:950px){
+ #panel-model .editorial-cast-selection{min-height:71px}
+ #panel-model .editorial-cast-selection[hidden]{display:none!important}
 }
