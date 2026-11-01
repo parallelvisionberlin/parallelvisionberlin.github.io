@@ -88,7 +88,7 @@ try{
      buttonBackground:getComputedStyle(document.getElementById('step-next')).backgroundColor};
    });
    assert.ok(emptyBounds.footerBottom<=emptyBounds.viewportHeight-8,'Empty Identity action and cast all fit on the initial desktop screen: '+JSON.stringify(emptyBounds));
-   assert.ok(emptyBounds.cardHeight>=224&&emptyBounds.cardHeight<=268,'Portraits retain their size');
+   assert.ok(emptyBounds.cardHeight>=271&&emptyBounds.cardHeight<=296,'Portraits use the restored taller editorial format');
    const textClearance=await page.evaluate(()=>{
     const box=selector=>document.querySelector(selector).getBoundingClientRect();
     const button=document.getElementById('step-next');
