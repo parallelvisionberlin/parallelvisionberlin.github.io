@@ -149,7 +149,7 @@ function initialize(){
     }).catch(error=>{serviceLoading=null;throw error;}));
   }
   function hasGenerationInput(){return !!mood&&!!file;}
-  const accessCodes=new Set(['TRIAL_PAUSED','ACCOUNT_REVIEW','BILLING_REVIEW','ACCOUNT_CLOSED','GENERATION_UNAVAILABLE']);
+  const accessCodes=new Set(['TRIAL_PAUSED','INSUFFICIENT_CREDITS','ACCOUNT_REVIEW','BILLING_REVIEW','ACCOUNT_CLOSED','GENERATION_UNAVAILABLE']);
   function clearAccessNotice(){
     blockedCode=null;
     dialog.classList.remove('is-generation-blocked');
