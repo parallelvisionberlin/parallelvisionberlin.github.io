@@ -129,7 +129,7 @@ test('Multi-model composition is not a dead control for single-model users',()=>
 test('Styling matches Identity rhythm while keeping real wardrobe references and direction',()=>{
  const stage=html.slice(html.indexOf('id="panel-style"'),html.indexOf('id="panel-mood"'));
  const styleCss=read('lab/full-editorial-atelier.css');
- assert.match(html,/full-editorial-atelier\.css\?v=20261101-identity-copy-cta5/);
+ assert.match(html,/full-editorial-atelier\.css\?v=20261101-tall-cast6/);
  assert.match(stage,/class="atelier-section-top editorial-styling-top"/);
  assert.match(stage,/id="outfit-gallery"/);
  assert.match(stage,/id="outfit-files"/);
@@ -176,7 +176,7 @@ test('Selecting or removing a model never changes Identity hero or portrait dime
  const compact=atelier.slice(atelier.indexOf('PVLAB_EDITORIAL_COMPACT_EMPTY_AND_CTA_20261101'),atelier.indexOf('/* The actual paid Generate action'));
  assert.doesNotMatch(compact, /:has\(#editorial-cast-empty:not\(\[hidden\]\)\)/);
  assert.match(compact, /\.flow-main:has\(#panel-model:not\(\[hidden\]\)\) #panel-model \.stage-visual/);
- assert.match(compact, /height:clamp\(216px,27svh,252px\)/);
+ assert.match(compact, /height:clamp\(272px,33svh,295px\)/);
  assert.match(compact, /min-height:71px;margin-top:8px;padding:7px 14px/,'Strip reserves identical space before and after selection');
  assert.doesNotMatch(js, /status\('Added to '\+\(kind==='model'/,'Casting no longer inserts a below-footer success message');
  assert.match(js, /status\(kind==='model'\?'':'Reference removed\.'\)/);
