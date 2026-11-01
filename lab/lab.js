@@ -4855,17 +4855,6 @@ function renderCards(jobs,{upsert=false}={}){
       quickDownload.onclick=event=>{event.preventDefault();event.stopPropagation();if(!historySelectMode)void viewMedia(()=>downloadJob(j));};
       card.append(quickDownload);
     }
-    if(!image&&ready){
-      const seconds=Number(j.settings?.duration);
-      if(Number.isFinite(seconds)&&seconds>0){
-        const duration=document.createElement('span');
-        duration.className='pv-film-duration';
-        const whole=Math.round(seconds);
-        duration.textContent=Math.floor(whole/60)+':'+String(whole%60).padStart(2,'0');
-        duration.title='Requested duration: '+seconds+' seconds';
-        card.append(duration);
-      }
-    }
     const body=document.createElement('div');body.className='cardbody';
     const meta=document.createElement('div');meta.className='cardmeta';
     const imageLabel=image?(j.settings.mode==='upscale'?'UPSCALE':j.settings.mode==='soul-id-training'?'SOUL ID TRAINING':j.settings.mode==='reinterpret'?'IMAGE · REINTERPRET':'IMAGE'):j.settings.engine==='video-upscale'?'VIDEO UPSCALE / '+({bytedance:'ByteDance Standard',proteus:'Topaz Proteus',starlight:'Topaz Starlight'}[j.settings.videoUpscaleEngine]||'Video')+' / '+j.settings.duration+'s':videoLabel(j.settings)+' / '+j.settings.duration+'s';
@@ -4936,12 +4925,9 @@ function updateHistoryPagination(){
   more.hidden=!owner||!next;more.disabled=historyLoading;
   more.textContent=historyLoading?'Loading earlier work…':historyAutoLoadPaused?'Retry loading earlier work':'Load earlier work';
   more.setAttribute('aria-busy',String(historyLoading));
-  // The desktop Video filmstrip is horizontally scrollable but Load earlier
-  // lives below it. Auto-observing that always-visible button would fetch the
-  // entire private library in a loop. The button remains available manually.
-  const desktopVideoFilmstrip=tool==='video'&&!assetLibrary?.active()&&window.matchMedia?.('(min-width:821px)')?.matches===true;
-  if(owner&&next&&!historyLoading&&!historyAutoLoadPaused&&!desktopVideoFilmstrip){
-    // Other galleries keep the existing lazy pagination behavior.
+  if(owner&&next&&!historyLoading&&!historyAutoLoadPaused){
+    // Recheck after the gallery has laid out the appended cards, including short
+    // pages that still leave the end of the gallery inside the viewport.
     historyPaginationFrame=requestAnimationFrame(()=>historyPageObserver.observe(more));
   }
 }
