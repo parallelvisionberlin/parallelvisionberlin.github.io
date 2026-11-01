@@ -64,7 +64,7 @@ try{
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.equal(layout.heroHeight,280,'Approved compact Identity hero');
+   assert.ok(layout.heroHeight>=210&&layout.heroHeight<=255,'Compact Identity hero responds to viewport height');
    for(const key of ['railInside','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    await page.locator('#editorial-top-back').click();
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
