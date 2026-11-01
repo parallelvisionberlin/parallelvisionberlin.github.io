@@ -4925,9 +4925,12 @@ function updateHistoryPagination(){
   more.hidden=!owner||!next;more.disabled=historyLoading;
   more.textContent=historyLoading?'Loading earlier work…':historyAutoLoadPaused?'Retry loading earlier work':'Load earlier work';
   more.setAttribute('aria-busy',String(historyLoading));
-  if(owner&&next&&!historyLoading&&!historyAutoLoadPaused){
-    // Recheck after the gallery has laid out the appended cards, including short
-    // pages that still leave the end of the gallery inside the viewport.
+  // The desktop Video filmstrip is horizontally scrollable but Load earlier
+  // lives below it. Auto-observing that always-visible button would fetch the
+  // entire private library in a loop. The button remains available manually.
+  const desktopVideoFilmstrip=tool==='video'&&!assetLibrary?.active()&&window.matchMedia('(min-width:821px)').matches;
+  if(owner&&next&&!historyLoading&&!historyAutoLoadPaused&&!desktopVideoFilmstrip){
+    // Other galleries keep the existing lazy pagination behavior.
     historyPaginationFrame=requestAnimationFrame(()=>historyPageObserver.observe(more));
   }
 }
