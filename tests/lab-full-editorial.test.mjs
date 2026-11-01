@@ -105,3 +105,13 @@ test('Identity casting uses the approved photographic layout rather than standal
  assert.match(css,/#panel-model \.editorial-composition-option/);
  assert.match(css,/:has\(#panel-model:not\(\[hidden\]\)\)/,'Identity footer fills the remaining viewport height');
 });
+
+test('Fresh Identity opens the approved two-person demonstration without billable side effects',()=>{
+ assert.match(html,/full-editorial\.js\?v=20261101-approved-cast4/);
+ assert.match(js,/async function seedApprovedExampleCast/);
+ assert.match(js,/const names=\['Bronze portrait','Copper portrait'\]/);
+ assert.match(js,/if\(directStart&&!modelPhoto\)void seedApprovedExampleCast\(\)/);
+ assert.match(js,/initialExampleVersion\+\+;for\(const group of \[\.\.\.modelGroups\]\)removeModelGroup/);
+ assert.match(js,/if\(modelPhoto\)\{/,'Transferred user model is not overwritten');
+ assert.match(js,/initialExampleSeeded=true;initialExampleVersion\+\+;invalidateQuote/,'Start over leaves the cast cleared');
+});
