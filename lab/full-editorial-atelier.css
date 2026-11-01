@@ -772,3 +772,20 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
 #panel-model .editorial-model-extra-thumb{position:relative}
 #panel-model .editorial-model-extra-thumb button{z-index:6}
 @media(min-width:801px){#panel-model .editorial-selected-cast{overflow:visible;max-width:none}}
+
+/* Selected reference removal: the whole tiny additional-view photograph is the
+   hit target. Keep the visible close glyph at the top right of that photograph. */
+#panel-model .editorial-model-extra-thumb{position:relative;isolation:isolate;overflow:hidden}
+#panel-model .editorial-model-extra-thumb button{
+ position:absolute;inset:0;top:0;left:0;right:0;bottom:0;display:block;
+ width:100%;height:100%;padding:0;margin:0;border:0;border-radius:0;
+ background:transparent;color:transparent;font-size:0;z-index:10;
+ cursor:pointer;pointer-events:auto
+}
+#panel-model .editorial-model-extra-thumb button::after{
+ content:'×';position:absolute;top:0;right:0;display:grid;place-items:center;
+ width:19px;height:19px;background:#070808ed;color:#fff;font-size:15px;
+ font-weight:500;border-bottom-left-radius:4px
+}
+#panel-model .editorial-model-extra-thumb button:hover{background:#07080822}
+#panel-model .editorial-model-extra-thumb button:focus-visible{outline:2px solid #fff;outline-offset:-2px}
