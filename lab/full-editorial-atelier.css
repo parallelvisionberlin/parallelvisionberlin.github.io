@@ -864,3 +864,104 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
  #panel-model .editorial-composition-grid{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity}
  #panel-model .editorial-composition-option{flex:0 0 min(70vw,335px)}
 }
+
+/* PVLAB_STYLING_IDENTITY_PARITY_20261101
+   Preserve original casting and wardrobe photography, model controls and quote logic.
+   Identity and Styling share the same visual cadence. Only workspace presentation changes. */
+@media(min-width:801px){
+ /* Slightly longer casting photographs, same number and arrangement. */
+ #panel-model .atelier-cast-gallery .atelier-reference,
+ #panel-model .atelier-cast-gallery .editorial-own-cast{
+  height:clamp(285px,34svh,322px);
+ }
+ /* The wardrobe hero was 350–630px, hiding the first row of clothing.
+    Use the compact identity-stage footprint and identical hero rhythm. */
+ #panel-style .stage-visual{height:clamp(220px,26svh,266px)}
+ #panel-style .stage-visual>img{object-position:center 32%}
+ #panel-style .stage-copy{bottom:64px;max-width:550px}
+ #panel-style .stage-copy h2{
+  font-size:clamp(64px,5.2vw,84px);
+  line-height:.94;margin:10px 0 10px;letter-spacing:-.09em;
+ }
+ #panel-style .stage-copy p{font-size:16px;line-height:1.5;max-width:455px}
+ #panel-style .atelier-workspace{padding-top:15px;padding-bottom:8px}
+ #panel-style .editorial-styling-top{display:block;margin:0 0 8px}
+ #panel-style .editorial-styling-top h3{
+  font-size:clamp(27px,2.4vw,34px);letter-spacing:-.055em;
+  font-weight:510;line-height:1.17;margin:0 0 5px
+ }
+ #panel-style .editorial-styling-top p{
+  max-width:760px;font-size:12px;line-height:1.45;margin:0;color:#a9aaad
+ }
+ #panel-style .atelier-source-tabs{
+  gap:clamp(18px,2.1vw,30px);margin:0 0 13px;
+  min-height:36px;border-bottom:1px solid #363738
+ }
+ #panel-style .atelier-tab{min-height:36px;font-size:12px;padding:8px 0 10px}
+ #panel-style .atelier-outfit-gallery{
+  display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px
+ }
+ #panel-style .atelier-look{
+  height:clamp(300px,36svh,350px);aspect-ratio:auto;
+  min-width:0;border-radius:4px;overflow:hidden;transform:none;
+ }
+ #panel-style .atelier-look img{
+  display:block;width:100%;height:100%;object-fit:cover;
+  object-position:center 29%;filter:saturate(.85)
+ }
+ #panel-style .atelier-look span{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:35px 10px 10px;letter-spacing:.1em;
+  background:linear-gradient(0deg,#070808de,transparent);font-size:10px
+ }
+ #panel-style .atelier-reference-note{margin:12px 0 12px;font-size:11px}
+ #panel-style .atelier-inline-actions{margin:12px 0}
+ #panel-style .field-name{margin:12px 0 8px}
+ #panel-style #styling-direction{min-height:88px}
+ /* This step includes uploads and optional direction below the cards.
+    The action bar belongs after the content, never over it. */
+ .flow-main:has(#panel-style:not([hidden])){min-height:0}
+ .flow-main:has(#panel-style:not([hidden])) #step-footer{
+  position:relative;bottom:auto;z-index:1;
+  margin-top:16px;padding:18px 0 12px;
+  background:transparent;backdrop-filter:none
+ }
+}
+@media(min-width:801px) and (max-height:880px){
+ #panel-style .stage-visual{height:clamp(188px,24svh,214px)}
+ #panel-style .stage-copy{bottom:59px}
+ #panel-style .stage-copy h2{font-size:clamp(60px,4.9vw,76px)}
+ #panel-style .atelier-workspace{padding-top:9px}
+ #panel-style .editorial-styling-top{margin-bottom:6px}
+ #panel-style .editorial-styling-top p{font-size:11px}
+ #panel-style .atelier-source-tabs{margin-bottom:10px}
+ #panel-style .atelier-look{height:clamp(275px,35svh,320px)}
+ #panel-model .atelier-cast-gallery .atelier-reference,
+ #panel-model .atelier-cast-gallery .editorial-own-cast{height:clamp(263px,34svh,295px)}
+}
+@media(max-width:800px){
+ #panel-style .stage-visual{height:clamp(290px,44svh,420px)}
+ #panel-style .stage-visual>img{object-position:center 32%}
+ #panel-style .stage-copy h2{font-size:clamp(58px,10vw,78px)}
+ #panel-style .atelier-workspace{padding-top:18px}
+ #panel-style .editorial-styling-top{margin:0 0 12px;display:block}
+ #panel-style .editorial-styling-top h3{margin:0 0 7px;font-size:clamp(25px,5.8vw,32px)}
+ #panel-style .editorial-styling-top p{font-size:12px;line-height:1.5}
+ #panel-style .atelier-source-tabs{margin:0 0 13px}
+ #panel-style .atelier-outfit-gallery{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ #panel-style .atelier-look{aspect-ratio:.71}
+ #panel-style .atelier-look img{height:100%;width:100%;object-fit:cover}
+ #panel-style .atelier-inline-actions{margin:14px 0}
+ .flow-main:has(#panel-style:not([hidden])) #step-footer{
+  position:relative;bottom:auto;z-index:1;background:transparent;
+  margin-top:15px;padding:16px 0 max(14px,env(safe-area-inset-bottom));
+  backdrop-filter:none
+ }
+}
+@media(max-width:520px){
+ #panel-style .stage-visual{height:clamp(300px,43svh,395px)}
+ #panel-style .editorial-styling-top h3{font-size:27px}
+ #panel-style .atelier-outfit-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #panel-style .atelier-look{aspect-ratio:.73}
+ #panel-style #styling-direction{min-height:100px}
+}
