@@ -1162,7 +1162,6 @@ document.addEventListener('click',event=>{
     <summary aria-label="Saved video actions" title="Saved video actions"><span aria-hidden="true">···</span></summary>
     <div class="video-inspector-actions">
       <button id="video-detail-watch" class="detail-primary" type="button">▹ View video</button>
-      <button id="video-detail-delete" type="button">Delete record</button>
       <details id="video-detail-extra" class="detail-extra" hidden>
         <summary>More actions</summary><div id="video-detail-extra-list" class="detail-extra-list"></div>
       </details>
@@ -1195,9 +1194,14 @@ document.addEventListener('click',event=>{
   <div id="video-inspector-selected" hidden>
     <div class="video-inspector-body">
       <span id="video-detail-model" class="video-detail-model"></span>
-      <h3 class="pv-video-dossier-label">Prompt</h3>
-      <p id="video-detail-prompt" class="video-detail-prompt"></p>
-      <button id="video-detail-prompt-toggle" class="video-detail-prompt-toggle" type="button" aria-controls="video-detail-prompt" aria-expanded="false" hidden>Show more</button>
+      <section class="pv-video-saved-prompt" aria-label="Saved motion prompt">
+        <h3 class="pv-video-dossier-label">Prompt</h3>
+        <button id="video-detail-copy-prompt" class="pv-video-copy-prompt" type="button" aria-label="Copy prompt" title="Copy prompt" data-tip="Copy prompt">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="1.8"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></svg>
+        </button>
+        <p id="video-detail-prompt" class="video-detail-prompt"></p>
+        <button id="video-detail-prompt-toggle" class="video-detail-prompt-toggle" type="button" aria-controls="video-detail-prompt" aria-expanded="false" hidden>Show more</button>
+      </section>
       <section id="pv-video-detail-references" class="pv-video-detail-references" hidden aria-label="Video source references">
         <h3>Attached images</h3><div id="pv-video-detail-reference-strip" class="pv-video-detail-reference-strip"></div>
       </section>
@@ -1210,8 +1214,9 @@ document.addEventListener('click',event=>{
       <p class="video-detail-created"><span id="video-detail-date"></span></p>
     </div>
     <div class="pv-video-primary-actions" role="group" aria-label="Selected video actions">
-      <button id="video-detail-reuse" type="button">Reuse settings</button>
-      <button id="video-detail-download" type="button">Download</button>
+      <button id="video-detail-reuse" type="button" title="Load these settings into the editor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.5 6.3"/><path d="M3 4v7h7"/></svg><span>Reuse settings</span></button>
+      <button id="video-detail-download" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v4h16v-4"/></svg><span>Download</span></button>
+      <button id="video-detail-delete" type="button" aria-label="Delete video record" title="Delete video record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6m4-6v6"/></svg></button>
     </div>
   </div>
 </aside>
