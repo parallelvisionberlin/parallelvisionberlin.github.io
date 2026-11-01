@@ -36,38 +36,68 @@ directionSets.location=[
  {id:'urban',name:'Urban',image:'./mood-previews/hd/90s-cinema-clean-final-20261011.jpg',prompt:'Contemporary urban environment with natural perspective, lived-in details and credible architectural light.'}
 ];
 let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='location',selectedDirections={location:null,moods:null,material:null};
-let chosenCount=4,chosenRatio='3:4',castMode='auto',castComposition='mixed',quote=null,quoteBusy=false,quoteError=false,quoteTimer=null,quoteExpiryTimer=null,submitting=false,uncertain=false,pollTimeout=null;
+let chosenCount=4,chosenRatio='3:4',castComposition='mixed',quote=null,quoteBusy=false,quoteError=false,quoteTimer=null,quoteExpiryTimer=null,submitting=false,uncertain=false,pollTimeout=null;
 let files={model:[],outfit:[],location:[]},savedRefs={model:[],outfit:[],location:[]},uploaded=new Map(),results=[],targetCount=4,activeJobs=[],revision=0,progressBatchStart=0,progressBatchSize=4;
-const objectUrls=new Map(),sampleFiles=new Map();
+const objectUrls=new Map(),sampleFiles=new Map(),savedCharacterThumbnails=new Map();
+let modelGroups=[],modelGroupSerial=0,modelUploadTarget=null,charactersLoadSequence=0;
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
-function effectiveCastMode(){
- const count=files.model.length+savedRefs.model.length;
- if(count<2)return 'one';
- if(castMode!=='auto')return castMode;
- const examples=Array.from(sampleFiles.entries()).filter(([b,f])=>b.dataset.sampleKind==='model'&&files.model.includes(f)).length;
- return examples>1?'cast':'one';
-}
+function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
 function renderCastingControls(){
- const count=files.model.length+savedRefs.model.length;
- const region=$('editorial-casting-controls'),composition=$('editorial-cast-composition');
- if(!region||!composition)return;
- region.hidden=count<2;
- const mode=effectiveCastMode();
- $('editorial-cast-mode').value=mode;
- composition.hidden=mode!=='cast'||count<2;
- $('editorial-cast-composition-select').value=castComposition;
+ const region=$('editorial-casting-controls'),toggle=$('editorial-photograph-together');
+ region.hidden=modelGroups.length<2;
+ toggle.checked=castComposition==='mixed';
+ $('editorial-cast-summary').textContent=modelGroups.length+' selected models';
 }
+function createModelGroup(name,origin='upload'){
+ const group={id:'cast-'+(++modelGroupSerial),name:name||'Your model',origin,files:[],saved:[]};
+ modelGroups.push(group);return group;
+}
+function findModelGroup(id){return modelGroups.find(group=>group.id===id)}
+function forgetModelFile(file){
+ files.model=files.model.filter(x=>x!==file);
+ for(const [button,sample] of sampleFiles)if(sample===file)sampleFiles.delete(button);
+ pruneFile(file);
+}
+function removeModelGroup(id){
+ if(submitting)return;
+ const group=findModelGroup(id);if(!group)return;
+ for(const file of group.files)forgetModelFile(file);
+ for(const ref of group.saved){
+  savedRefs.model=savedRefs.model.filter(x=>x!==ref);
+  if(ref.url)URL.revokeObjectURL(ref.url);
+ }
+ modelGroups=modelGroups.filter(g=>g!==group);
+ invalidateQuote();renderFiles();
+}
+function removeModelReference(groupId,reference){
+ if(submitting)return;
+ const group=findModelGroup(groupId);if(!group)return;
+ if(group.files.includes(reference)){group.files=group.files.filter(f=>f!==reference);forgetModelFile(reference)}
+ else if(group.saved.includes(reference)){
+  group.saved=group.saved.filter(r=>r!==reference);savedRefs.model=savedRefs.model.filter(r=>r!==reference);
+  if(reference.url)URL.revokeObjectURL(reference.url);
+ }
+ if(!group.files.length&&!group.saved.length)modelGroups=modelGroups.filter(g=>g!==group);
+ invalidateQuote();renderFiles();
+}
+function modelGroupReferences(group){return [...group.saved.map(ref=>({kind:'saved',value:ref})),...group.files.map(file=>({kind:'file',value:file}))]}
+function groupCover(group){
+ const refs=modelGroupReferences(group),first=refs[0];
+ return first?(first.kind==='saved'?first.value.url:preview(first.value))||null:null;
+}
+
 const status=(text='',error=false)=>{$('editorial-status').textContent=text;$('editorial-status').classList.toggle('error',error)};
 function preview(file){if(!objectUrls.has(file))objectUrls.set(file,URL.createObjectURL(file));return objectUrls.get(file);}
 function pruneFile(file){const url=objectUrls.get(file);if(url){URL.revokeObjectURL(url);objectUrls.delete(file)} uploaded.delete(file);}
 function wipeResults(){for(const r of results)if(r.url)URL.revokeObjectURL(r.url);results=[];activeJobs=[];progressBatchStart=0;progressBatchSize=4;renderResults();}
 function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false;uncertain=false;wipeResults();
- for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};sampleFiles.clear();for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
+ for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};sampleFiles.clear();modelGroups=[];modelUploadTarget=null;charactersLoadSequence++;
+ for(const url of savedCharacterThumbnails.values())URL.revokeObjectURL(url);savedCharacterThumbnails.clear();for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
  $('identity-guide').value='80';$('garment-guide').value='70';$('mood-guide').value='60';
- chosenCount=4;chosenRatio='3:4';castMode='auto';castComposition='mixed';selectedDirections={location:null,moods:null,material:null};directionTab='location';for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).selectedIndex=0;
+ chosenCount=4;chosenRatio='3:4';castComposition='mixed';selectedDirections={location:null,moods:null,material:null};directionTab='location';for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).selectedIndex=0;
  for(const input of ['model-files','outfit-files','location-files'])$(input).value='';
- renderFiles();renderDirections();updateOptions();refreshSliderLabels();go(0);status('');
+ renderFiles();renderDirections();updateOptions();refreshSliderLabels();setIdentitySource('casting');go(0);status('');
 }
 function go(next){step=next;const panels=['model','style','mood','generate','progress','results'];
  for(let i=0;i<panels.length;i++)$('panel-'+panels[i]).hidden=i!==Math.max(0,next-1);
@@ -93,28 +123,83 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
 function updateOptions(){for(const b of $('count-options').querySelectorAll('button'))b.classList.toggle('is-selected',Number(b.dataset.count)===chosenCount);
  for(const b of $('ratio-options').querySelectorAll('button'))b.classList.toggle('is-selected',b.dataset.ratio===chosenRatio);}
 function refreshSliderLabels(){for(const [input,id] of [['identity-guide','identity-value'],['garment-guide','garment-value'],['mood-guide','mood-value']])$(id).value=$(input).value+'%'}
-function renderFiles(){
- for(const [kind,id] of [['model','model-thumbs'],['outfit','outfit-thumbs'],['location','location-thumbs']]){
-  const box=$(id);box.replaceChildren();
-  for(const file of files[kind]){const item=document.createElement('div');item.className='thumb';
-    const img=document.createElement('img');img.src=preview(file);img.alt=nameFor(file);item.append(img);
-    const remove=document.createElement('button');remove.type='button';remove.setAttribute('aria-label','Remove '+nameFor(file));remove.textContent='×';remove.addEventListener('click',()=>{if(submitting)return;files[kind]=files[kind].filter(f=>f!==file);pruneFile(file);invalidateQuote();renderFiles();});item.append(remove);box.append(item);}
-  for(const ref of savedRefs[kind]){const item=document.createElement('div');item.className='thumb saved-thumb';const img=document.createElement('img');img.alt=ref.name;img.src=ref.url||'./visuals/studio-tools/image-ivory-suit.webp';item.append(img);const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove saved '+ref.name);remove.addEventListener('click',()=>{if(submitting)return;savedRefs[kind]=savedRefs[kind].filter(r=>r!==ref);if(ref.url)URL.revokeObjectURL(ref.url);invalidateQuote();renderFiles()});item.append(remove);const badge=document.createElement('small');badge.className='saved-badge';badge.textContent='ELEMENT';item.append(badge);box.append(item);}
+function renderModelGroups(){
+ const box=$('model-thumbs');box.replaceChildren();
+ $('model-selection-heading').hidden=modelGroups.length===0;
+ $('model-selection-count').textContent=modelGroups.length+' selected';
+ for(const [index,group] of modelGroups.entries()){
+  const card=document.createElement('article');card.className='editorial-model-card thumb';
+  const hero=document.createElement('div');hero.className='editorial-model-cover';
+  const cover=groupCover(group);
+  if(cover){const img=document.createElement('img');img.src=cover;img.alt=group.name;hero.append(img)}
+  else{const blank=document.createElement('span');blank.textContent='Photo';hero.append(blank)}
+  const remove=document.createElement('button');remove.type='button';remove.className='editorial-model-remove';
+  remove.textContent='×';remove.setAttribute('aria-label','Remove '+group.name);
+  remove.addEventListener('click',()=>removeModelGroup(group.id));hero.append(remove);
+  const copy=document.createElement('div');copy.className='editorial-model-info';
+  const name=document.createElement('strong');name.textContent=String(index+1).padStart(2,'0')+' / '+group.name;
+  const count=document.createElement('small');count.textContent=(group.files.length+group.saved.length)+' reference photo'+(group.files.length+group.saved.length===1?'':'s');
+  copy.append(name,count);
+  const refs=document.createElement('div');refs.className='editorial-model-extra';
+  for(const [i,ref] of modelGroupReferences(group).entries()){
+   if(i===0)continue;
+   const tile=document.createElement('div');tile.className='editorial-model-extra-thumb';
+   const img=document.createElement('img');img.alt='Additional view of '+group.name;
+   img.src=ref.kind==='saved'?ref.value.url||'./visuals/studio-tools/image-ivory-suit.webp':preview(ref.value);
+   tile.append(img);
+   const rm=document.createElement('button');rm.type='button';rm.textContent='×';rm.setAttribute('aria-label','Remove extra view of '+group.name);
+   rm.addEventListener('click',()=>removeModelReference(group.id,ref.value));tile.append(rm);refs.append(tile);
+  }
+  const add=document.createElement('button');add.type='button';add.className='editorial-add-view';
+  add.textContent='+ Add reference';add.disabled=submitting||files.model.length+savedRefs.model.length>=4;
+  add.setAttribute('aria-label','Add another photograph of '+group.name);
+  add.addEventListener('click',()=>openModelPicker(group.id));
+  card.append(hero,copy,refs,add);box.append(card);
  }
  renderCastingControls();
- updateSeriesSummary();
- refreshSampleStates();
+ for(const card of document.querySelectorAll('#saved-character-gallery .editorial-saved-cast')){
+  const selected=modelGroups.some(group=>group.origin===card.dataset.savedPack);
+  card.classList.toggle('is-selected',selected);card.setAttribute('aria-pressed',String(selected));
+ }
 }
-function addFiles(kind,list){if(submitting)return;
- const incoming=Array.from(list||[]);const limit={model:4,outfit:3,location:2}[kind];
+function renderFiles(){
+ renderModelGroups();
+ for(const [kind,id] of [['outfit','outfit-thumbs'],['location','location-thumbs']]){
+  const box=$(id);box.replaceChildren();
+  for(const file of files[kind]){const item=document.createElement('div');item.className='thumb';
+   const img=document.createElement('img');img.src=preview(file);img.alt=nameFor(file);item.append(img);
+   const remove=document.createElement('button');remove.type='button';remove.setAttribute('aria-label','Remove '+nameFor(file));remove.textContent='×';
+   remove.addEventListener('click',()=>{if(submitting)return;files[kind]=files[kind].filter(f=>f!==file);pruneFile(file);invalidateQuote();renderFiles()});item.append(remove);box.append(item)}
+  for(const ref of savedRefs[kind]){const item=document.createElement('div');item.className='thumb saved-thumb';
+   const img=document.createElement('img');img.alt=ref.name;img.src=ref.url||'./visuals/studio-tools/image-ivory-suit.webp';item.append(img);
+   const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove saved '+ref.name);
+   remove.addEventListener('click',()=>{if(submitting)return;savedRefs[kind]=savedRefs[kind].filter(r=>r!==ref);if(ref.url)URL.revokeObjectURL(ref.url);invalidateQuote();renderFiles()});item.append(remove);
+   const badge=document.createElement('small');badge.className='saved-badge';badge.textContent='ELEMENT';item.append(badge);box.append(item)}
+ }
+ updateSeriesSummary();refreshSampleStates();
+}
+function openModelPicker(target=null){
+ if(submitting)return;
+ modelUploadTarget=target;$('model-files').click();
+}
+function addFiles(kind,list,groupId=null,label=null){
+ if(submitting)return;
+ const incoming=Array.from(list||[]),limit={model:4,outfit:3,location:2}[kind];
  const accept=incoming.filter(file=>['image/jpeg','image/png','image/webp'].includes(file.type)&&file.size<=20*1024*1024&&file.size>0);
- if(accept.length!==incoming.length){status('Use JPG, PNG or WebP photographs under 20 MB each.',true)}
+ if(accept.length!==incoming.length)status('Use JPG, PNG or WebP photographs under 20 MB each.',true);
  const used=Object.values(files).reduce((n,part)=>n+part.length,0)+Object.values(savedRefs).reduce((n,part)=>n+part.length,0);
  const allowed=Math.min(Math.max(0,limit-files[kind].length-savedRefs[kind].length),Math.max(0,10-used));
- files[kind].push(...accept.slice(0,allowed));
- if(accept.length>allowed)status('Reference limit reached. Keep up to 4 model, 3 garment and 2 location images.',true);
+ const accepted=accept.slice(0,allowed);
+ if(kind==='model'&&accepted.length){
+  const group=groupId?findModelGroup(groupId):createModelGroup(label||'Your model '+(modelGroups.length+1));
+  if(!group){status('The selected model is unavailable. Choose it again.',true);return}
+  group.files.push(...accepted);
+ }
+ files[kind].push(...accepted);
+ if(accept.length>allowed)status('Reference limit reached: four model photos total, three garments and two locations.',true);
  invalidateQuote();renderFiles();
 }
+
 function updateSeriesSummary(){
  const model=$('review-model-text');if(!model)return;
  const source=kind=>files[kind][0]?preview(files[kind][0]):savedRefs[kind][0]?.url||null;
@@ -125,7 +210,7 @@ function updateSeriesSummary(){
  }
  const count=kind=>files[kind].length+savedRefs[kind].length;
  showImage('review-model-thumb',source('model'));
- model.textContent=count('model')?(effectiveCastMode()==='cast'?count('model')+' distinct models':count('model')+' model photograph'+(count('model')===1?'':'s')):'No model selected';
+ model.textContent=modelGroups.length?(modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' / '+count('model')+' reference photo'+(count('model')===1?'':'s')):'No model selected';
  showImage('review-outfit-thumb',source('outfit'));
  $('review-outfit-text').textContent=count('outfit')?count('outfit')+' wardrobe reference'+(count('outfit')===1?'':'s'):$('styling-direction').value.trim()?'Described wardrobe':'No wardrobe selected';
  const picks=Object.entries(selectedDirections).map(([k,id])=>directionSets[k].find(d=>d.id===id)).filter(Boolean);
@@ -142,11 +227,16 @@ async function toggleSample(button){
  if(submitting||button.disabled)return;
  const kind=button.dataset.sampleKind,existing=sampleFiles.get(button);
  if(existing&&files[kind]?.includes(existing)){
-  files[kind]=files[kind].filter(f=>f!==existing);pruneFile(existing);
-  invalidateQuote();renderFiles();status('Reference removed.');return;
+  if(kind==='model'){
+   const group=modelGroups.find(g=>g.files.includes(existing));
+   if(group)removeModelGroup(group.id);
+  }else{
+   files[kind]=files[kind].filter(f=>f!==existing);pruneFile(existing);invalidateQuote();renderFiles();
+  }
+  status('Reference removed.');return;
  }
  const limit={model:4,outfit:3}[kind],num=files[kind].length+savedRefs[kind].length;
- if(num>=limit){status('You can use up to '+limit+' '+(kind==='model'?'model':'wardrobe')+' references.',true);return}
+ if(num>=limit){status('You can select up to '+limit+' '+(kind==='model'?'model photos':'wardrobe references')+'.',true);return}
  button.disabled=true;
  try{
   const response=await fetch(new URL(button.dataset.sampleSrc,location.href),{credentials:'same-origin'});
@@ -154,9 +244,9 @@ async function toggleSample(button){
   const blob=await response.blob();
   const type=['image/jpeg','image/png','image/webp'].includes(blob.type)?blob.type:(button.dataset.sampleSrc.endsWith('.jpg')?'image/jpeg':'image/webp');
   const file=new File([blob],kind+'-reference-'+Date.now()+'.'+(type==='image/jpeg'?'jpg':type==='image/png'?'png':'webp'),{type});
-  const before=files[kind].length;addFiles(kind,[file]);
-  if(files[kind].includes(file)&&files[kind].length>before){sampleFiles.set(button,file);renderCastingControls();updateSeriesSummary();status('Added to '+(kind==='model'?'model':'wardrobe')+' references.');}
- }catch(err){status(err.message,true)}
+  const before=files[kind].length;addFiles(kind,[file],null,kind==='model'?button.dataset.sampleLabel.replace(/ portrait$/i,''):null);
+  if(files[kind].includes(file)&&files[kind].length>before){sampleFiles.set(button,file);renderFiles();status('Added to '+(kind==='model'?'your cast':'your styling')+'.')}
+ }catch(error){status(error.message,true)}
  finally{button.disabled=false;refreshSampleStates()}
 }
 function renderDirections(){
@@ -181,7 +271,7 @@ function renderDirections(){
  $('direction-summary').textContent=names.length?'Selected: '+names.join(' / '):'Choose an environment and optionally a mood or material.';
  updateSeriesSummary();
 }
-function validateStep(){if(step===1&&files.model.length+savedRefs.model.length<1){status('Add at least one photograph of your model.',true);$('model-drop').focus();return false;}
+function validateStep(){if(step===1&&modelGroups.length<1){status('Add at least one photograph of your model.',true);$('model-drop').focus();return false;}
  if(step===2&&!files.outfit.length&&!savedRefs.outfit.length&&!$('styling-direction').value.trim()){status('Add a garment image or describe your styling.',true);$('styling-direction').focus();return false;}
  return true;}
 async function api(path,{method='GET',body,headers={}}={}){
@@ -229,17 +319,14 @@ const editorialShots=[
 // One immutable shot direction and reference subset per quote, not four
 // provider calls sharing the same prompt.
 function editorialShotPlan(index,total,references,base){
- const identities=references.filter(r=>r.role==='identity'),other=references.filter(r=>r.role!=='identity');
- const cast=effectiveCastMode()==='cast'&&identities.length>1;
- let selected=identities;
- if(cast){
-  const first=index%identities.length;
-  const paired=castComposition==='together'||(castComposition==='mixed'&&index%4===2);
-  selected=paired?[identities[first],identities[(first+1)%identities.length]]:[identities[first]];
- }
- const personInstruction=cast?(selected.length>1
-  ?'Exactly two distinct adult models appear together. Preserve each individual facial identity from its corresponding selected reference. Never blend or swap identities.'
-  :'Exactly one adult model appears. Preserve the selected facial identity. No second figure or blended facial features.')
+ const other=references.filter(r=>r.role!=='identity');
+ const cast=modelGroups.length>1;
+ const grouped=modelGroups.map(group=>references.filter(r=>r.role==='identity'&&r.groupId===group.id));
+ const first=index%grouped.length,paired=cast&&castComposition==='mixed'&&index%4===2;
+ const selected=paired?[...grouped[first],...grouped[(first+1)%grouped.length]]:grouped[first];
+ const personInstruction=cast?(paired
+  ?'Exactly two distinct adult models appear together. Each model may have multiple reference views. Preserve each individual identity without blending or swapping faces.'
+  :'Exactly one adult model appears using all selected views of the same person. No second figure or blended facial features.')
   :'Exactly one adult model appears. All identity photographs are reference views of that same person, not separate people.';
  const shotReferences=[...selected,...other];
  const prompt=base.prompt+'\nCAMPAIGN SHOT '+(index+1)+' OF '+total+': '+editorialShots[index%editorialShots.length]+' '+personInstruction+' Keep the same creative world, wardrobe, location, palette, lighting and photographic treatment across this series. One photograph only, never a collage or contact sheet.';
@@ -252,19 +339,90 @@ async function sync(){
  if(prev&&prev!==next){epoch++;uploaded.clear();quote=null;uncertain=false;submitting=false;wipeResults();resetAll();}
  sessionKey=next;
  if(!clerk?.isSignedIn||!next){profile=null;$('editorial-signin').hidden=false;$('editorial-balance').textContent='';return;}
- try{profile=await api('/api/session');$('editorial-signin').hidden=true;if(step===4)invalidateQuote();const credits=profile?.credits?.balance??profile?.balanceCredits??profile?.wallet?.balance;if(Number.isSafeInteger(credits))$('editorial-balance').textContent=credits.toLocaleString()+' credits';}catch(error){profile=null;status('Your account could not be checked: '+error.message,true);}
+ try{profile=await api('/api/session');$('editorial-signin').hidden=true;if(step===4)invalidateQuote();if($('panel-model').dataset.modelMode==='saved')void showSavedCharacters();const credits=profile?.credits?.balance??profile?.balanceCredits??profile?.wallet?.balance;if(Number.isSafeInteger(credits))$('editorial-balance').textContent=credits.toLocaleString()+' credits';}catch(error){profile=null;status('Your account could not be checked: '+error.message,true);}
 }
 async function uploadReferences(){
- const selected=[...files.model.map(file=>({file,role:'identity'})),...files.outfit.map(file=>({file,role:'outfit'})),...files.location.map(file=>({file,role:'room'}))];
+ const selected=[...modelGroups.flatMap(group=>group.files.map(file=>({file,role:'identity',groupId:group.id}))),...files.outfit.map(file=>({file,role:'outfit'})),...files.location.map(file=>({file,role:'room'}))];
  const ids=[];
  for(const item of selected){
   let id=uploaded.get(item.file);
   if(!id){const response=await api('/api/uploads',{method:'POST',body:item.file,headers:{'Content-Type':item.file.type,'X-Filename':encodeURIComponent(item.file.name)}});
    if(!response?.id)throw Error('PV LAB did not confirm the uploaded photograph.');id=response.id;uploaded.set(item.file,id);}
-  ids.push({id,role:item.role,file:item.file});
+  ids.push({id,role:item.role,groupId:item.groupId||null,file:item.file});
  }
- for(const [kind,role] of [['model','identity'],['outfit','outfit'],['location','room']])for(const ref of savedRefs[kind])ids.push({id:ref.id,role,file:{name:ref.name}});
+ for(const [kind,role] of [['model','identity'],['outfit','outfit'],['location','room']])for(const ref of savedRefs[kind])ids.push({id:ref.id,role,groupId:kind==='model'?modelGroups.find(g=>g.saved.includes(ref))?.id||null:null,file:{name:ref.name}});
  return ids;
+}
+
+function setIdentitySource(source){
+ const saved=source==='saved';
+ $('casting-reference-gallery').hidden=saved;
+ $('saved-character-gallery').hidden=!saved;
+ $('panel-model').dataset.modelMode=saved?'saved':'casting';
+ for(const button of document.querySelectorAll('[data-source-view]')){
+  const active=button.dataset.sourceView===source;
+  button.classList.toggle('is-selected',active);button.setAttribute('aria-pressed',String(active));
+ }
+ if(saved)void showSavedCharacters();
+}
+async function showSavedCharacters(){
+ const container=$('saved-character-gallery');container.replaceChildren();
+ if(!profile){
+  const note=document.createElement('span');note.textContent='Sign in to browse your private characters.';
+  const button=document.createElement('button');button.type='button';button.textContent='Sign in';
+  button.className='secondary editorial-character-signin';
+  button.addEventListener('click',()=>void signIn().catch(e=>status(e.message,true)));
+  container.append(note,button);return;
+ }
+ const version=++charactersLoadSequence,session=epoch;
+ container.textContent='Loading your saved characters…';
+ try{
+  const response=await api('/api/packs');
+  if(version!==charactersLoadSequence||session!==epoch)return;
+  const packs=(response.packs||[]).filter(p=>typeof p.name==='string'&&p.name.startsWith('PVSCENE1|characters|')&&Array.isArray(p.refs)&&p.refs.length);
+  container.replaceChildren();
+  if(!packs.length){container.textContent='No saved characters yet. Choose a casting model or add your own photograph.';return}
+  for(const pack of packs){
+   const card=document.createElement('button');card.type='button';card.className='editorial-saved-cast atelier-reference';card.setAttribute('aria-pressed',String(modelGroups.some(g=>g.origin===pack.name)));card.dataset.savedPack=pack.name;
+   if(modelGroups.some(g=>g.origin===pack.name))card.classList.add('is-selected');
+   const key=pack.name+'|'+pack.refs[0].id,photo=document.createElement('img');
+   photo.alt='';photo.loading='lazy';
+   const cached=savedCharacterThumbnails.get(key);
+   if(cached)photo.src=cached;
+   const label=document.createElement('span');label.textContent=pack.name.split('|').slice(2).join('|');
+   card.append(photo,label);container.append(card);
+   const valid=pack.refs.filter(r=>typeof r.id==='string'&&r.id);
+   card.addEventListener('click',()=>addSavedCharacter(pack,valid));
+   if(!cached){
+    void fetchBlob('/api/assets/'+encodeURIComponent(pack.refs[0].id)+'/thumbnail').then(blob=>{
+     if(version!==charactersLoadSequence||session!==epoch)return;
+     const url=URL.createObjectURL(blob);savedCharacterThumbnails.set(key,url);
+     if(card.isConnected)photo.src=url;
+    }).catch(()=>{});
+   }
+  }
+ }catch(error){if(version===charactersLoadSequence&&session===epoch)container.textContent=error.message}
+}
+function addSavedCharacter(pack,refs){
+ if(submitting)return;
+ const name=pack.name.split('|').slice(2).join('|');
+ if(modelGroups.some(group=>group.origin===pack.name)){status('That character is already in your cast. Use Add reference for another photo.',true);return}
+ const available=4-files.model.length-savedRefs.model.length;
+ const used=Object.values(files).reduce((n,part)=>n+part.length,0)+Object.values(savedRefs).reduce((n,part)=>n+part.length,0);
+ if(Math.min(available,10-used)<=0){status('Four model reference photos maximum. Remove one before adding another model.',true);return}
+ const count=Math.min(available,10-used,2);
+ const selected=refs.filter(ref=>!Object.values(savedRefs).flat().some(x=>x.id===ref.id)).slice(0,count);
+ if(!selected.length){status('These saved views are already selected.',true);return}
+ const group=createModelGroup(name,pack.name);
+ for(const ref of selected){
+  const record={id:ref.id,name:ref.name||name,role:'model',url:null};
+  savedRefs.model.push(record);group.saved.push(record);
+  void fetchBlob('/api/assets/'+encodeURIComponent(ref.id)+'/thumbnail').then(blob=>{
+   if(!group.saved.includes(record))return;
+   record.url=URL.createObjectURL(blob);renderFiles();
+  }).catch(()=>{});
+ }
+ invalidateQuote();renderFiles();status('Added '+name+' to your cast.');
 }
 
 const elementTypes={model:'characters',outfit:'outfits',location:'locations'};
@@ -313,7 +471,7 @@ function invalidateQuote(){
 }
 async function prepareBatch(){
  if(quoteBusy||submitting||uncertain||step!==4||!profile)return;
- if(!files.model.length&&!savedRefs.model.length){status('Add a model photograph or select a saved Character.',true);go(1);return}
+ if(!modelGroups.length){status('Choose a model or select a saved Character.',true);go(1);return}
  const remain=Math.max(0,chosenCount-results.length);
  if(!remain){go(6);return}
  const revisionId=revision;quoteBusy=true;quoteError=false;syncGenerateAction();
@@ -471,11 +629,7 @@ $('step-next').addEventListener('click',()=>{if(submitting)return;if(step===4)re
 $('editorial-generate').addEventListener('click',()=>void generateEditorial().catch(error=>status(error.message,true)));
 $('editorial-reset').addEventListener('click',()=>{if(submitting){status('A paid generation is running. Open History before starting another.',true);return}resetAll()});
 for(const b of document.querySelectorAll('[data-sample-kind]'))b.addEventListener('click',()=>void toggleSample(b));
-for(const b of document.querySelectorAll('[data-source-view]'))b.addEventListener('click',()=>{
- $('panel-model').dataset.modelMode=b.dataset.sourceView;
- for(const t of document.querySelectorAll('[data-source-view]')){const active=t===b;t.classList.toggle('is-selected',active);t.setAttribute('aria-pressed',String(active))}
- if(b.dataset.sourceView==='upload')$('model-drop').scrollIntoView({block:'nearest',behavior:'smooth'});
-});
+for(const b of document.querySelectorAll('[data-source-view]'))b.addEventListener('click',()=>setIdentitySource(b.dataset.sourceView));
 for(const b of document.querySelectorAll('[data-style-view]'))b.addEventListener('click',()=>{
  $('panel-style').dataset.styleMode=b.dataset.styleView;
  for(const t of document.querySelectorAll('[data-style-view]')){const active=t===b;t.classList.toggle('is-selected',active);t.setAttribute('aria-pressed',String(active))}
@@ -483,21 +637,21 @@ for(const b of document.querySelectorAll('[data-style-view]'))b.addEventListener
  if(b.dataset.styleView==='describe')$('styling-direction').focus();
 });
 for(const b of document.querySelectorAll('[data-edit-step]'))b.addEventListener('click',()=>{if(!submitting)go(Number(b.dataset.editStep))});
-$('model-drop').addEventListener('click',()=>$('model-files').click());
-$('model-drop').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();$('model-files').click()}});
+$('model-drop').addEventListener('click',()=>openModelPicker());
 $('model-drop').addEventListener('dragover',event=>event.preventDefault());
 $('model-drop').addEventListener('drop',event=>{event.preventDefault();addFiles('model',event.dataTransfer.files)});
+
 $('add-outfits').addEventListener('click',()=>$('outfit-files').click());
-$('saved-character').addEventListener('click',()=>void openSaved('model'));
+$('editorial-photograph-together').addEventListener('change',event=>{castComposition=event.target.checked?'mixed':'alternating';invalidateQuote();renderCastingControls()});
 $('saved-outfit').addEventListener('click',()=>void openSaved('outfit'));
 $('saved-location').addEventListener('click',()=>void openSaved('location'));
 $('saved-elements-close').addEventListener('click',()=>$('saved-elements-dialog').close());
 $('add-location').addEventListener('click',()=>$('location-files').click());
-for(const [kind,id] of [['model','model-files'],['outfit','outfit-files'],['location','location-files']])$(id).addEventListener('change',event=>{addFiles(kind,event.target.files);event.target.value=''});
+$('model-files').addEventListener('change',event=>{const target=modelUploadTarget;modelUploadTarget=null;addFiles('model',event.target.files,target);event.target.value=''});
+for(const [kind,id] of [['outfit','outfit-files'],['location','location-files']])$(id).addEventListener('change',event=>{addFiles(kind,event.target.files);event.target.value=''});
 for(const id of ['styling-direction','location-direction','editorial-prompt','editorial-model','editorial-resolution'])$(id).addEventListener('input',()=>{invalidateQuote();updateSeriesSummary()});
 for(const id of ['identity-guide','garment-guide','mood-guide'])$(id).addEventListener('input',()=>{invalidateQuote();refreshSliderLabels()});
-$('editorial-cast-mode').addEventListener('change',event=>{castMode=event.target.value;invalidateQuote();renderCastingControls();updateSeriesSummary()});
-$('editorial-cast-composition-select').addEventListener('change',event=>{castComposition=event.target.value;invalidateQuote()});
+
 $('count-options').addEventListener('click',event=>{const b=event.target.closest('[data-count]');if(!b)return;chosenCount=Number(b.dataset.count);invalidateQuote();updateOptions()});
 $('ratio-options').addEventListener('click',event=>{const b=event.target.closest('[data-ratio]');if(!b)return;chosenRatio=b.dataset.ratio;invalidateQuote();updateOptions()});
 for(const tab of document.querySelectorAll('[data-direction-tab]'))tab.addEventListener('click',()=>{directionTab=tab.dataset.directionTab;renderDirections()});
@@ -507,7 +661,7 @@ $('create-variations').addEventListener('click',()=>{if(submitting||uncertain)re
 $('edit-selection').addEventListener('click',()=>{location.assign('./studio.html?tool=retouch');});
 $('progress-history').addEventListener('click',()=>location.assign('./studio.html?tool=image'));
 $('editorial-signin').addEventListener('click',()=>void signIn().catch(e=>status(e.message,true)));
-window.addEventListener('pagehide',()=>{for(const url of objectUrls.values())URL.revokeObjectURL(url);for(const r of results)if(r.url)URL.revokeObjectURL(r.url)});
+window.addEventListener('pagehide',()=>{for(const url of savedCharacterThumbnails.values())URL.revokeObjectURL(url);for(const url of objectUrls.values())URL.revokeObjectURL(url);for(const r of results)if(r.url)URL.revokeObjectURL(r.url)});
 const entryUrl=new URL(location.href),modelPhoto=entryUrl.searchParams.get('modelPhoto');
 const directStart=entryUrl.searchParams.get('start')==='1';
 if(directStart){entryUrl.searchParams.delete('start');history.replaceState(history.state,'',entryUrl.href)}
@@ -516,10 +670,7 @@ if(modelPhoto){
  entryUrl.searchParams.delete('modelPhoto');history.replaceState(history.state,'',entryUrl.href);
  try{
   const file=await takeModelPhoto(modelPhoto);addFiles('model',[file]);
-  $('panel-model').dataset.modelMode='upload';
-  for(const tab of document.querySelectorAll('[data-source-view]')){
-   const active=tab.dataset.sourceView==='upload';tab.classList.toggle('is-selected',active);tab.setAttribute('aria-pressed',String(active));
-  }
+  setIdentitySource('casting');
   go(1);status('Model photograph loaded.');
  }catch(error){go(1);status(error.message,true)}
 }
