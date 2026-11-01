@@ -56,7 +56,16 @@ export async function preserveClosedWelcomeClaim(env,subject){
 }
 
 export async function grantVerifiedWelcome(env,subject){
-  if(env.LAB_WELCOME_CREDITS_ENABLED!=='true'||!subjectPattern.test(subject))return false;
+  const imageTrial=env.LAB_IMAGE_TRIAL_ENABLED==='true';
+  if((env.LAB_WELCOME_CREDITS_ENABLED!=='true'&&!imageTrial)||!subjectPattern.test(subject))return false;
+  if(imageTrial&&env.LAB_WELCOME_CREDITS_ENABLED!=='true'){
+    // The trial is strictly for accounts created after migration 0051, not
+    // previously registered wallets with retained promotional balances.
+    const eligible=await first(env,`SELECT 1 AS eligible FROM lab_customers c
+      JOIN lab_image_trial_controls t ON t.id=1
+      WHERE c.id=? AND c.created_at>=t.started_at`,subject);
+    if(!eligible)return false;
+  }
   const contact=await first(env,`SELECT email FROM lab_customer_contacts
     WHERE customer_id=? AND email IS NOT NULL AND verified_at IS NOT NULL`,subject);
   const normalized=normalizeWelcomeEmail(contact?.email);

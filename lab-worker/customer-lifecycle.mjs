@@ -38,7 +38,14 @@ export async function customerPromotionalReview(env,id){
   // Keep the temporary welcome/free-trial pause for unpaid accounts without a
   // voucher. An explicit abuse hold or flagged email still blocks free spending.
   const hasOwnerVoucher=!!account.hasOwnerVoucher;
-  const held=!hasPaid&&(explicitHold||flaggedEmail||(trialPaused&&!hasOwnerVoucher));
+  // A freshly awarded 40-credit wallet may fund exactly one normal image.
+  // Old 200-credit promotional balances remain blocked. Failed attempts can retry.
+  const trial=await one(env,`SELECT
+    EXISTS(SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=?
+      AND e.reference='welcome:'||e.customer_id AND e.delta_credits=40) AS granted,
+    EXISTS(SELECT 1 FROM lab_generation_finance j WHERE j.customer_id=? AND j.last_state<>'failed') AS used`,id,id);
+  const firstImageAvailable=!!trial?.granted&&!trial?.used;
+  const held=!hasPaid&&(explicitHold||flaggedEmail||(trialPaused&&!hasOwnerVoucher&&!firstImageAvailable));
   return {
     held,hasPaid,
     reason:held?(explicitHold||flaggedEmail?'disposable-email':'trial-paused'):null
