@@ -69,18 +69,34 @@ function showChoices() {
     if (button.dataset.choice === 'granted') button.style.cssText+=';background:#f0f0ec;color:#171819';
     button.addEventListener('click', () => applyChoice(button.dataset.choice));
   }
-  document.body.append(dialog);
+  // The campaign opens a native Mood dialog. Insert consent inside it so it
+  // remains clickable in the top layer, without obstructing upload or Generate.
+  const landing=isLabCampaignLanding(location.pathname,location.hostname,location.search);
+  const body=landing?document.querySelector('#mc-look-dialog .mc-look-dialog-body'):null;
+  if(body){
+    dialog.classList.add('pv-campaign-consent');
+    dialog.removeAttribute('style');
+    dialog.querySelectorAll('p, div, button, a').forEach(element=>element.removeAttribute('style'));
+    body.insertBefore(dialog,body.querySelector('#mc-look-result'));
+  }else document.body.append(dialog);
 }
 export function isLabMarketingLanding(pathname, hostname) {
   const host = String(hostname || '').toLowerCase();
   const standalone = host === 'pvlab.studio' || host === 'www.pvlab.studio' || host === 'pvlab-studio.pages.dev';
   return /^\/lab\/(?:index\.html)?$/.test(pathname) || (standalone && /^\/(?:index\.html)?$/.test(pathname));
 }
+export function isLabCampaignLanding(pathname,hostname,search='') {
+  const host=String(hostname||'').toLowerCase();
+  const standalone=host==='pvlab.studio'||host==='www.pvlab.studio'||host==='pvlab-studio.pages.dev';
+  if(!standalone||!/^\/moods\/?$/.test(String(pathname||'')))return false;
+  const params=new URLSearchParams(search);
+  return params.get('mood')==='berlin-rave'&&params.get('campaign')==='berlin-rave';
+}
 function init() {
   if (choice === 'granted') bootPixel();
   // The old /lab/ path and standalone pvlab.studio / are marketing entry points.
   // Ask once there, never cover Studio controls or consent by default.
-  else if (!choice && isLabMarketingLanding(location.pathname, location.hostname)) showChoices();
+  else if (!choice && (isLabMarketingLanding(location.pathname, location.hostname) || isLabCampaignLanding(location.pathname, location.hostname, location.search))) showChoices();
   // A lasting preference control permits changing consent later, including withdrawing it.
   const anchor = document.querySelector('.pv-lab-footer__group[aria-label="Legal"]') || document.querySelector('footer nav') || document.querySelector('footer');
   const preferences = document.createElement('button');

@@ -1,0 +1,34 @@
+/* Berlin Rave paid campaign entry. Other Mood photobooths are untouched. */
+#mc-look-dialog.mc-photobooth:not(.is-result-view).is-berlin-rave-campaign #mc-look-description{display:none!important}
+#mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-campaign-proof:not([hidden]){
+ display:block;margin:15px 0 0;max-width:95%;
+ font:500 clamp(9px,1.05cqw,11px)/1.55 'DM Sans',Arial,sans-serif;
+ letter-spacing:.06em;color:#e8e6e2;
+}
+#mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-campaign-offer:not([hidden]){
+ display:block;flex:0 0 auto;margin:1px 0 0;padding:0;text-align:center;
+ font:400 clamp(9px,1.05cqw,11px)/1.4 'DM Sans',Arial,sans-serif;
+ color:#bfc4ca;
+}
+#mc-look-dialog.mc-photobooth.is-result-view :is(.mc-look-campaign-proof,.mc-look-campaign-offer){display:none!important}
+/* Optional Meta measurement consent is embedded, never over the photograph or Generate. */
+#mc-look-dialog .pv-campaign-consent{
+ box-sizing:border-box;max-width:100%;margin:2px 0 0;
+ padding:7px 9px;background:rgba(30,33,38,.9);border:1px solid #555b61;border-radius:6px;
+ color:#e5e8e9;font:400 10px/1.4 'DM Sans',Arial,sans-serif;
+}
+#mc-look-dialog .pv-campaign-consent p{margin:0 0 5px}
+#mc-look-dialog .pv-campaign-consent div{display:flex;gap:6px;flex-wrap:wrap}
+#mc-look-dialog .pv-campaign-consent button{
+ border:1px solid #707780;border-radius:4px;padding:4px 8px;font:500 10px/1.1 'DM Sans',Arial,sans-serif;
+ background:#262a30;color:#f1f2f3;cursor:pointer;
+}
+#mc-look-dialog .pv-campaign-consent button[data-choice="granted"]{background:#eaeaea;color:#17191b}
+@media(max-width:600px){
+ #mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-campaign-proof:not([hidden]){
+  font:500 9px/1.3 'DM Sans',Arial,sans-serif;max-width:100%;margin:4px 0 9px;
+ }
+ #mc-look-dialog.mc-photobooth:not(.is-result-view) .mc-look-campaign-offer:not([hidden]){
+  font-size:9px;line-height:1.35;margin:0;
+ }
+}
