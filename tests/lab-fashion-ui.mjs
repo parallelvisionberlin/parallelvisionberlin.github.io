@@ -190,7 +190,7 @@ try{
   assert.equal(desktop.colorScheme,'dark','Dark native inputs and scrollbar match the Studio.');
   assert.equal(desktop.themeColor,'#101114','Browser chrome matches PV Lab Video.');
   assert.equal(desktop.markFilter,'none','PV Lab logo uses the same source colors as Video.');
-  assert.equal(desktop.photoBackground,'rgba(9, 10, 11, 0.76)','Approved upload frames retain the dark translucent surface.');
+  assert.equal(desktop.photoBackground,'rgba(12, 13, 15, 0.46)','The approved minimal drop zones retain their translucent surface.');
   assert.equal(desktop.resultBackground,'rgb(25, 26, 27)','Result well remains graphite.');
   assert.equal(desktop.dropdownBackground,'rgb(24, 26, 29)','Approved controls retain dark fields.');
   assert.deepEqual(desktop.boxStyles,[{radius:7,overflow:'hidden'},{radius:7,overflow:'hidden'},{radius:14,overflow:'hidden'}],
