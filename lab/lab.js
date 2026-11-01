@@ -2419,6 +2419,9 @@ const mainWorkspace=document.querySelector('#app>.workspace');
 const mediaStage=mainWorkspace.querySelector('.stage');
 const videoJobCache=new Map();
 let selectedVideoJob=null;
+// Clear and explicit Create mode changes keep the invitation visible until the
+// user chooses a saved video or starts a new generation. Never bill or submit here.
+let videoHistoryAutoSuppressed=false;
 let videoStartFrameHandoff=false;
 let videoSelectionRevision=0;
 let videoLoadJobId=null,videoLoadErrorJobId=null;
@@ -2676,6 +2679,8 @@ function updateVideoInspector(job){
 }
 function showVideoHistoryRecord(job,{play=true,reveal=false}={}){
   if(!job||!owner)return;
+  if(selectedVideoJob?.id&&selectedVideoJob.id!==job.id)++previewRevision;
+  videoHistoryAutoSuppressed=false;
   videoStartFrameHandoff=false;
   selectedVideoJob=job;
   const selection=++videoSelectionRevision;
@@ -2706,10 +2711,12 @@ function showVideoHistoryRecord(job,{play=true,reveal=false}={}){
     });
   }
 }
-// Keep a creation workspace until a user explicitly selects History or submits
-// a new generation. Merely loading/refreshing History must not hijack the stage.
-function clearVideoHistorySelection({reset=true}={}){
+// History opens the latest completed video by default, without autoplay.
+// A manually chosen video stays selected across refreshes; Clear/Back restores
+// the original creation artwork until another video is selected or generated.
+function clearVideoHistorySelection({reset=true,suppressAuto=false}={}){
   ++videoSelectionRevision;videoLoadJobId=null;videoLoadErrorJobId=null;
+  if(suppressAuto)videoHistoryAutoSuppressed=true;
   selectedVideoJob=null;updateVideoInspector(null);
   $('video-job-stage').hidden=true;
   if(reset&&tool==='video')resetPreview();
@@ -2724,11 +2731,22 @@ function restoreLatestVideoSelection(){
   if(selectedVideoJob&&videoJobCache.has(selectedVideoJob.id)){
     selectedVideoJob=videoJobCache.get(selectedVideoJob.id);
     updateVideoInspector(selectedVideoJob);
-    showVideoJobStage(selectedVideoJob);
+    if(hasResult(selectedVideoJob)&&resultId!==selectedVideoJob.outputId&&
+       videoLoadJobId!==selectedVideoJob.id&&videoLoadErrorJobId!==selectedVideoJob.id){
+      showVideoHistoryRecord(selectedVideoJob,{play:true});
+    }else showVideoJobStage(selectedVideoJob);
     return;
   }
-  if(selectedVideoJob&&historyLoading)return; // a refresh is still restoring its records
-  if(selectedVideoJob){clearVideoHistorySelection();return;}
+  // Wait for the complete History page before choosing a latest result.
+  // Intermediate card renders must not launch competing asset downloads.
+  if(historyLoading)return;
+  if(selectedVideoJob)clearVideoHistorySelection();
+  if(!videoHistoryAutoSuppressed){
+    const latest=available.filter(job=>job.settings?.type==='video'&&
+      job.settings?.engine!=='video-upscale'&&job.status==='completed'&&hasResult(job))
+      .sort((a,b)=>(Date.parse(b.createdAt)||0)-(Date.parse(a.createdAt)||0))[0];
+    if(latest){showVideoHistoryRecord(latest,{play:true,reveal:false});return;}
+  }
   updateVideoInspector(null);
   $('video-job-stage').hidden=true;
 }
@@ -2760,7 +2778,7 @@ function syncVideoStudioMode(){
 }
 $('pv-video-history-back').onclick=()=>{
   if(tool!=='video'||busy)return;
-  clearVideoHistorySelection();
+  clearVideoHistorySelection({suppressAuto:true});
   videoFeedCenter.scrollTo({top:0,behavior:'instant'});
 };
 $('video-detail-watch').onclick=()=>{
@@ -3240,7 +3258,7 @@ function configureVideoControls(){
   videoModelPicker.sync();
 }
 function setMode(nextMode){
-  if(tool==='video'&&selectedVideoJob)clearVideoHistorySelection({reset:false});
+  if(tool==='video'&&selectedVideoJob)clearVideoHistorySelection({reset:false,suppressAuto:true});
   const modes=VIDEO_MODELS[engine].modes;mode=modes.includes(nextMode)?nextMode:modes[0];
   if(mode!=='extend'&&['text','start','reference'].includes(mode))lastVideoCreateMode=mode;
   if(mode!=='start')activeVideoEffect=null;
@@ -3401,7 +3419,7 @@ frameMaker=createVideoStartFrameMaker({
 });
 $('remove-start-frame').onclick=()=>removeVideoFrame('start');
 $('remove-end-frame').onclick=()=>removeVideoFrame('end');
-$('clear').onclick=()=>{moodUI.clear(true);clearMedia();notify('Editor cleared. Saved work is unchanged.');};
+$('clear').onclick=()=>{if(tool==='video')clearVideoHistorySelection({reset:false,suppressAuto:true});moodUI.clear(true);clearMedia();notify('Editor cleared. Saved work is unchanged.');};
 $('video-camera-lock').addEventListener('change',()=>{autoPreview=null;update();});
 for(const id of ['prompt','duration','resolution','ratio','seed','audio','output-format','image-count','pose-strength','identity-strength','controlled-pose-seed'])$(id).addEventListener('input',()=>{if(id==='resolution'&&tool==='video'&&engine==='seedance15'){const hd=$('resolution').value==='1080p';$('seed').closest('details').hidden=hd;if(hd)$('seed').value='';}autoPreview=null;if(id==='ratio'&&tool==='image')imageRatioExplicit=true;if(id==='pose-strength')$('pose-strength-value').textContent=Number($('pose-strength').value).toFixed(2);if(id==='identity-strength')$('identity-strength-value').textContent=Number($('identity-strength').value).toFixed(2);update();});
 $('preview-pose').onclick=()=>action(async()=>{
@@ -3551,6 +3569,8 @@ $('confirm-generation').onclick=async()=>{
   $('confirm-generation').disabled=true;
   const isVideo=q.settings?.type==='video'&&tool==='video';
   if(isVideo){
+    // Do not briefly re-open a previous result while the new paid job submits.
+    videoHistoryAutoSuppressed=true;
     autoPreview=null;selectedVideoJob=null;videoStartFrameHandoff=false;
     if(resultUrl)clearResult();
     showVideoJobStage({settings:q.settings,status:'submitting'});
@@ -4916,7 +4936,7 @@ async function loadHistory(append=false,incremental=false){
     if(append&&rev===historyRevision&&loadId===historyLoadId)historyAutoLoadPaused=true;
     throw error;
   }finally{
-    if(loadId===historyLoadId){historyLoading=false;updateHistoryPagination();}
+    if(loadId===historyLoadId){historyLoading=false;updateHistoryPagination();if(owner&&tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();}
   }
 }
 async function syncHistory(){return loadHistory(false,true);}
@@ -4954,7 +4974,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();document.documentElement.classList.remove('pv-studio-route-pending');}
-function lock(){videoUpscaler?.reset();videoPricing?.reset();$('app').removeAttribute('data-guest-preview');const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';syncImagePreviewAccount();soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();clearStoredToolSources();clearStoredToolReferences();mediaRefs.clear();frameMaker?.clear();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
+function lock(){videoUpscaler?.reset();videoPricing?.reset();$('app').removeAttribute('data-guest-preview');const pvStrip=$('pv-video-detail-reference-strip');if(pvStrip){pvStrip.replaceChildren();pvStrip.dataset.key='';}const pvRefPanel=$('pv-video-detail-references');if(pvRefPanel)pvRefPanel.hidden=true;sceneLibrary?.reset();setMoodDiscoveryOpen(false);customerPriceIntentPending=false;customerImagePricing?.reset();packStudio.forceClose();newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerVideoProfile={};customerCreditBalance=0;customerGenerationReady=false;customerTrialGenerationPaused=false;customerBillingReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;ownerAccount=false;updateHistoryPagination();userId='';syncImagePreviewAccount();soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();clearStoredToolSources();clearStoredToolReferences();mediaRefs.clear();frameMaker?.clear();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;videoHistoryAutoSuppressed=false;effectViewOpen=false;activeVideoEffect=null;closeEffectPicker();syncVideoStudioMode();refreshEffectsView();$('pv-guest-closed-state').hidden=true;finishLabBoot();}
 const pricingOverlay=createPricingOverlay({
   buy:(sku,report)=>wallet.buyPlan(sku,report),
   getAccount:()=>({signedIn:owner,customer:customerMode}),
