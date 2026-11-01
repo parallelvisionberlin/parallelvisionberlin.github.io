@@ -393,3 +393,43 @@ html body #app.video-studio-active .pv-video-scene-actions #video-detail-delete{
 @media(prefers-reduced-motion:reduce){
   html body #app.video-studio-active #history .card{transition:none!important}
 }
+
+/* Processing pill remains legible and unobstructed below the overlaid header. */
+@media(min-width:821px){
+  html body #app.video-studio-active.pv-video-history-selected
+  .stage:has(#video-job-stage:not([hidden])) .stagehead .eyebrow{
+    visibility:hidden!important;
+  }
+}
+/* No saved movie: same model-neutral dossier across all providers. The actual
+   model label, enabled input modes, duration and resolution remain live data. */
+html body #app.video-studio-active .pv-video-create-inspector .pv-video-scene-model{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:100%;
+  min-height:45px!important;
+  height:auto!important;
+  padding:7px 0!important;
+  margin:0!important;
+  border:0!important;
+  border-bottom:1px solid #2c2e31!important;
+  border-radius:0!important;
+  background:transparent!important;
+  text-align:left;
+}
+html body #app.video-studio-active .pv-video-create-inspector .pv-video-scene-model img{
+  display:none!important;
+}
+html body #app.video-studio-active .pv-video-create-inspector .pv-video-scene-model-copy{
+  flex:1!important;
+  min-width:0!important;
+}
+html body #app.video-studio-active .pv-video-create-inspector .pv-video-current-model{
+  color:#ededed!important;
+  font-size:13px!important;
+}
+html body #app.video-studio-active .pv-video-create-inspector .pv-video-current-settings{
+  gap:10px!important;
+}
