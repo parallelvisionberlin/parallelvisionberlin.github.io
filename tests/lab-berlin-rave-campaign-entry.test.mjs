@@ -22,10 +22,13 @@ test('existing Mood photobooth, input, generation and deep-link remain intact',(
   assert.match(script,/if\(requested&&moodById\(requested\)\)showMood\(moodById\(requested\)\)/);
   assert.match(script,/selected\.id==='berlin-rave'&&new URLSearchParams\(location\.search\)\.get\('campaign'\)==='berlin-rave'/);
 });
-test('PV LAB consent is opt-in for direct campaign entry, never silently granted',()=>{
+test('PV LAB Meta tracking is opt-in, and the campaign has no automatic consent banner',()=>{
   const pixel=read('lab/meta-pixel.js');
-  assert.match(pixel,/isLabCampaignLanding\(location\.pathname, location\.hostname, location\.search\)/);
-  assert.match(pixel,/choice === 'granted'\) bootPixel/);
-  assert.match(pixel,/dialog\.classList\.add\('pv-campaign-consent'\)/);
+  assert.match(pixel,/if \(choice === 'granted'\) bootPixel\(\)/);
+  assert.doesNotMatch(pixel,/else if \(!choice &&.*showChoices\(\)/);
+  assert.doesNotMatch(pixel,/body\.insertBefore\(dialog/);
+  assert.match(pixel,/preferences\.addEventListener\('click', \(\) => \{/);
+  assert.match(pixel,/showChoices\(\);/);
   assert.match(pixel,/data-choice="denied"/);
+  assert.match(pixel,/data-choice="granted"/);
 });
