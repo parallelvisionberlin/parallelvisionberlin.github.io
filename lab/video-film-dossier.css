@@ -338,3 +338,100 @@ html body #app.video-studio-active .pv-video-create-inspector .pv-video-current-
 html body #app.video-studio-active .pv-video-create-inspector .pv-video-current-settings{
   gap:10px!important;
 }
+
+/* Saved-film actions return to the inspector footer, always visible.
+   Preserve the existing authenticated Reuse and Download handlers. */
+html body #app.video-studio-active #video-inspector-selected{
+  display:flex!important;
+  flex-direction:column!important;
+  min-height:0!important;
+}
+html body #app.video-studio-active #video-inspector-selected .video-inspector-body{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+}
+html body #app.video-studio-active #video-inspector-selected .pv-video-primary-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:8px!important;
+  flex:0 0 auto;
+  padding:12px 13px 13px!important;
+  border-top:1px solid #292b30!important;
+  background:#101113!important;
+}
+html body #app.video-studio-active #video-inspector-selected .pv-video-primary-actions button{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  min-height:39px!important;
+  margin:0!important;
+  padding:9px 11px!important;
+  font:600 11.5px/1.3 'DM Sans',Arial,sans-serif!important;
+  border-radius:7px!important;
+  box-shadow:none!important;
+  cursor:pointer;
+}
+html body #app.video-studio-active #video-inspector-selected .pv-video-primary-actions #video-detail-reuse{
+  background:#e8e8e6!important;
+  border:1px solid #e8e8e6!important;
+  color:#171819!important;
+}
+html body #app.video-studio-active #video-inspector-selected .pv-video-primary-actions #video-detail-reuse:hover:not(:disabled){
+  background:#fff!important;
+  border-color:#fff!important;
+}
+html body #app.video-studio-active #video-inspector-selected .pv-video-primary-actions #video-detail-download{
+  background:#222428!important;
+  border:1px solid #3b3e44!important;
+  color:#eeeef0!important;
+}
+html body #app.video-studio-active #video-inspector-selected .pv-video-primary-actions #video-detail-download:hover:not(:disabled){
+  background:#303237!important;
+  border-color:#686b72!important;
+}
+html body #app.video-studio-active #video-inspector-selected .pv-video-primary-actions button:disabled{
+  opacity:.42!important;
+  cursor:not-allowed!important;
+}
+html body #app.video-studio-active #video-inspector-selected .pv-video-primary-actions button:focus-visible{
+  outline:2px solid #f4f4f4!important;
+  outline-offset:2px;
+}
+/* More distinctive editorial technical metadata, without stock-style icons
+   or faux badges: the three authentic output values and hairline separators. */
+html body #app.video-studio-active.pv-video-approved-ready #video-inspector-selected .video-detail-data{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:0!important;
+  margin:16px 0 7px!important;
+  padding:0!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready #video-inspector-selected .video-detail-data>div{
+  display:inline-flex!important;
+  justify-content:flex-start!important;
+  align-items:center!important;
+  flex:0 0 auto!important;
+  min-height:24px!important;
+  width:auto!important;
+  margin:0!important;
+  padding:0 10px!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready #video-inspector-selected .video-detail-data>div:first-child{
+  padding-left:0!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready #video-inspector-selected .video-detail-data>div+div{
+  border-left:1px solid #45484d!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready #video-inspector-selected .video-detail-data dd{
+  font:650 12px/1.3 'DM Sans',Arial,sans-serif!important;
+  letter-spacing:.015em!important;
+  color:#dadcdf!important;
+  text-transform:uppercase!important;
+}
