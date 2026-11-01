@@ -38,7 +38,7 @@ import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageD
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1&qwen3-zimage=1&nano21=1';
 import {createImageSubmitHandoff,IMAGE_SUBMIT_COOLDOWN_MS} from './image-submit-handoff.js?v=20261031-repeat-cooldown1';
 import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow2';
-import {createVideoUpscaler} from './video-upscale.js?v=20261031-video-route-guard1';
+import {createVideoUpscaler} from './video-upscale.js?v=20261102-upload-validation1';
 import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
 import {createReferencePackStudio} from './reference-pack-studio.js?v=20261018-gallery-create2';
 import {createVideoStartFrameMaker,attachVideoReferenceBrowserDrop,attachVideoReferenceTileDrop} from './video-start-frame-maker.js?v=20261031-reference-tile-drop1';

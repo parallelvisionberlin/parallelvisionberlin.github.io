@@ -117,6 +117,16 @@
  color:#adb4bd;font:400 11px/1.4 'DM Sans',Arial,sans-serif;
 }
 #app.upscale-studio-active.video-upscale-active .pv-video-upscale-message.error{color:#ffb7b7!important}
+#app.upscale-studio-active.video-upscale-active .pv-upscale-empty-center>.pv-video-upscale-message.error{
+ max-width:360px!important;margin:10px auto 0!important;
+ font:400 12px/1.45 'DM Sans',Arial,sans-serif!important;
+ letter-spacing:0!important;text-transform:none!important;
+}
+#app.upscale-studio-active.video-upscale-active #upscale-canvas>.pv-video-upscale-message.error{
+ position:absolute!important;z-index:6!important;left:16px!important;right:16px!important;bottom:60px!important;
+ box-sizing:border-box!important;padding:12px!important;border-radius:7px!important;
+ background:rgba(20,21,23,.94)!important;font:400 12px/1.45 'DM Sans',Arial,sans-serif!important;
+}
 #app.upscale-studio-active.video-upscale-active .pv-upscale-source-control{display:none!important}
 #app.upscale-studio-active.video-upscale-active.video-upscale-has-source .pv-upscale-source-control{
  display:flex!important;grid-column:1/-1!important;

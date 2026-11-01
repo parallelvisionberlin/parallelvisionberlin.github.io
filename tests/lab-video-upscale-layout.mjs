@@ -153,12 +153,36 @@ try{
   assert.equal(await page.locator('#pv-video-upscale-message').isVisible(),true,label+': rejected upload has a visible message');
   assert.match(await page.locator('#pv-video-upscale-message').innerText(),/MP4/,label+': rejected upload explains accepted format');
   assert.equal(await page.locator('#pv-video-upscale-source').isVisible(),false,label+': invalid input did not load');
+  // Rejections must be actionable before a source exists and never call APIs.
+  async function selectVideo(payload){
+    const pending=page.waitForEvent('filechooser');
+    await page.locator('#pv-upscale-hero-upload').click();
+    const chooser=await pending;
+    assert.equal(chooser.isMultiple(),false,label+': one source per selection');
+    await chooser.setFiles(payload);
+  }
+  await selectVideo({name:'large.mp4',mimeType:'video/mp4',buffer:Buffer.alloc(21*1024*1024)});
+  assert.match(await page.locator('#pv-video-upscale-message').innerText(),/21.0 MB.*20 MB/);
+  const uploadError=await page.locator('#pv-video-upscale-message').boundingBox();
+  assert.ok(uploadError&&uploadError.y>=0&&uploadError.y+uploadError.height<=height,label+': upload error is inside viewport without scrolling');
+  assert.equal(await page.locator('#generate').isEnabled(),false,label+': oversized source cannot review credits');
+  await selectVideo({name:'broken.mp4',mimeType:'video/mp4',buffer:Buffer.alloc(256,1)});
+  await page.waitForFunction(()=>document.getElementById('pv-video-upscale-message').classList.contains('error'));
+  assert.match(await page.locator('#pv-video-upscale-message').innerText(),/read|preview/);
+  assert.equal(await page.locator('#generate').isEnabled(),false,label+': unreadable MP4 cannot review credits');
+  assert.equal(await page.locator('#pv-upscale-hero-upload').isVisible(),true,label+': failed preview offers another file');
+  await selectVideo('tests/fixtures/video-upscale/overlong-31s.mp4');
+  await page.waitForFunction(()=>document.getElementById('pv-video-upscale-message').classList.contains('error'));
+  assert.match(await page.locator('#pv-video-upscale-message').innerText(),/0.5 and 30 seconds/);
+  assert.equal(await page.locator('#generate').isEnabled(),false,label+': invalid duration cannot review credits');
   // Real native MP4 picker must open from the SAME image upload button.
   const chooser=page.waitForEvent('filechooser');
   await page.locator('#pv-upscale-hero-upload').click();
   const picker=await chooser;
   assert.equal(picker.isMultiple(),false,label+': single video file chooser');
-  await picker.setFiles({name:'sample.mp4',mimeType:'video/mp4',buffer:Buffer.alloc(256,1)});
+  await picker.setFiles('tests/fixtures/video-upscale/valid-1s.mp4');
+  await page.waitForFunction(()=>document.getElementById('pv-video-upscale-source').duration===1&&document.getElementById('generate').disabled===false);
+  assert.equal(await page.locator('#pv-video-upscale-message').textContent(),'',label+': valid source clears the previous rejection');
   assert.equal(await page.locator('#pv-video-upscale-source').isVisible(),true,label+': Video renders in original source canvas');
   assert.equal(await page.locator('#pv-upscale-hero-upload').isVisible(),false,label+': plus replaced by video preview');
   await page.screenshot({path:'test-results/upscaler-single-video-'+label+'.png',fullPage:false});
@@ -169,6 +193,32 @@ try{
   assert.equal(await page.locator('#upscale-model-menu [data-video-upscale-model]').first().isVisible(),false,label+': Video models hidden');
   assert.equal(await page.locator('.pv-video-upscale-inline-resolution').isVisible(),false,label+': Video resolution hidden in Image');
   assert.equal(await page.locator('#empty .pv-upscale-empty-center h2').textContent(),'Use a source frame.',label+': Image title restored');
+  await page.locator('[data-video-upscale-tab="video"]').click();
+  assert.equal(await page.locator('#pv-video-upscale-source').isVisible(),true,label+': Video preview restored');
+  assert.equal(await page.locator('#generate').isEnabled(),true,label+': validated video survives mode switching');
+  await page.locator('#clear').click();
+  assert.equal(await page.locator('#pv-upscale-hero-upload').isVisible(),true,label+': clear restores picker');
+  // Drop uses the same validation and preview lifecycle as the picker.
+  const mp4=[...readFileSync('tests/fixtures/video-upscale/valid-1s.mp4')];
+  await page.evaluate(bytes=>{
+    const data=new DataTransfer();data.items.add(new File([new Uint8Array(bytes)],'dropped.mp4',{type:'video/mp4'}));
+    document.getElementById('upscale-canvas').dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:data}));
+  },mp4);
+  await page.waitForFunction(()=>document.getElementById('pv-video-upscale-source').duration===1&&!document.getElementById('generate').disabled);
+  assert.equal(await page.locator('#pv-video-upscale-source').isVisible(),true,label+': dropped MP4 preview');
+  const droppedURL=await page.locator('#pv-video-upscale-source').getAttribute('src');
+  await page.evaluate(()=>{
+    const data=new DataTransfer();data.items.add(new File([new Uint8Array(256)],'unsupported.mov',{type:'video/quicktime'}));
+    document.getElementById('upscale-canvas').dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:data}));
+  });
+  assert.match(await page.locator('#pv-video-upscale-message').innerText(),/MP4/);
+  assert.equal(await page.locator('#pv-video-upscale-source').getAttribute('src'),droppedURL,label+': rejected drop preserves original');
+  await page.locator('#clear').click();
+  await selectVideo('tests/fixtures/video-upscale/valid-1s.mp4');
+  await page.waitForFunction(()=>document.getElementById('pv-video-upscale-source').duration===1&&!document.getElementById('generate').disabled);
+  assert.equal(await page.locator('#pv-video-upscale-message').textContent(),'',label+': same file can be selected again');
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
+  assert.equal(overflow,false,label+': no horizontal overflow');
   assert.deepEqual(errors,[],label+': no page errors');
   console.log('PASS '+label+' one Upscaler DOM, stable dimensions, real MP4 upload and image preservation');
   await context.close();

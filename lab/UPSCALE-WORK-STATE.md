@@ -1,5 +1,30 @@
 # PV LAB Premium Upscale work state
 
+## Video upload repair / 2026-11-02
+- Objective: diagnose inactive-looking Video Upscaler uploads and preserve the shared editor/billing flow.
+- Verified base: main `8c149f2fcb2a33b7705dca1e0cc56e666cf1080a`.
+- Live desktop reproduction: upload button opens the single MP4 picker; 21 MiB is rejected visibly.
+- The current base already contains the November 1 source-free CSS error visibility fix.
+- Verified remaining bugs: valid selection retains old rejection text; unreadable MP4 has no error handler and enables Review credits.
+- Frontend size limit: 20 MiB in lab/video-upscale.js.
+- Backend upload limit: /api/reference-uploads buffers at MAX_IMAGE (20 MiB).
+- Backend quote limit: VIDEO_UPSCALE_MAX_BYTES = 20 MiB in lab-worker/video-upscale.mjs.
+- MAX_VIDEO = 150 MiB is for provider outputs, not uploads. Raising only the frontend is invalid.
+- Larger inputs remain unsupported; a separate bounded/streamed upload and metadata pipeline is needed before expanding support.
+- Fix: distinct format/size/incomplete-file errors, fresh selection clears stale feedback.
+- Phone reproduction: sidebar upload errors sit below the fold; upload-only messages now use the existing source stage, adjacent to the CTA (or over the preview for rejected drops).
+- Additional changed CSS: lab/upscale-single-editor.css; no empty-state geometry or model changes.
+- File selection waits for finite 0.5–30s video metadata before credit review.
+- Decode errors and a 15s metadata timeout reset to the existing upload CTA with visible export guidance.
+- Selection/drop do not upload, quote or submit automatically. Server pricing and explicit confirmation unchanged.
+- Files: lab/video-upscale.js, lab/lab.js (import cache), lab/studio.html (entry cache).
+- Regression: tests/lab-video-upscale-layout.mjs uses real H.264 fixtures for picker/drop/preview/mode checks on desktop 1440×900 and phone 390×844.
+- Local checks: approved Image contract 5/5; video/backend/pricing suites 121/121.
+- Local Playwright executable unavailable; browser suite will run in existing GitHub CI.
+- Browser preview uses the managed preview service with provider/API calls disabled.
+- Deployment: pending branch validation and production release verification.
+- No paid generation initiated.
+
 ## Active checkpoint / 2026-10-23
 - Objective: simplify the confusing nested Upscaler model menu after owner feedback.
 - Base: main a10eb030babb66bb1dc79cd944c945d137926db7.
