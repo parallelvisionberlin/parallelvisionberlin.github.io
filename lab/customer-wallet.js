@@ -1,6 +1,6 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
 import {referralsAvailable} from './account-menu.js?v=20261030-robin-partner1';
-import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent} from './meta-pixel.js?v=20261013-a1';
+import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent} from './meta-pixel.js?v=20261101-cookies1';
 export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{},openPricing=()=>{window.location.assign('./#pricing');}}){
   const $=id=>document.getElementById(id);
   let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0,trialGenerationPaused=false;
