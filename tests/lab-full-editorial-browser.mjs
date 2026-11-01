@@ -107,6 +107,17 @@ try{
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true);
+  const compositionLayout=await page.locator('#editorial-casting-controls').evaluate(root=>{
+   const cards=Array.from(root.querySelectorAll('[data-cast-composition]'));
+   const rects=cards.map(card=>card.getBoundingClientRect());
+   const firstImg=cards[0].querySelector('.editorial-composition-art img');
+   return {heights:rects.map(r=>r.height),tops:rects.map(r=>r.top),
+    columns:getComputedStyle(root.querySelector('.editorial-composition-grid')).gridTemplateColumns,
+    filter:getComputedStyle(firstImg).filter};
+  });
+  assert.ok(compositionLayout.heights.every(h=>Math.abs(h-(width>800?185:172))<2),'Three composition cards have the approved taller dimensions');
+  if(width>800)assert.ok(compositionLayout.tops.every(t=>Math.abs(t-compositionLayout.tops[0])<1),'Desktop choices share one row');
+  assert.match(compositionLayout.filter,/brightness\(0\.83\)/,'Composition photos are brighter');
   assert.equal(await page.locator('[data-cast-composition="mixed"]').isEnabled(),true,'Second model enables composition');
   assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected');
   assert.equal(await page.locator('#editorial-footer-cast img').count(),2,'Footer shows the selected models');
