@@ -1135,6 +1135,7 @@ function setTool(value){
   if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
   const toolChanged=tool!==nextTool;
   if(toolChanged){
+    if(nextTool==='video')videoHistoryAutoSuppressed=false;
     swapToolReferences(nextTool);
     swapToolSource(nextTool);
     if(tool==='upscale'||nextTool==='upscale')clearUpscalePrice();
@@ -2722,7 +2723,7 @@ function clearVideoHistorySelection({reset=true,suppressAuto=false}={}){
   if(reset&&tool==='video')resetPreview();
 }
 function restoreLatestVideoSelection(){
-  if(tool!=='video'||!owner)return;
+  if(tool!=='video'||!owner||assetLibrary?.active())return;
   const available=[...videoJobCache.values()];
   $('video-feed-empty').hidden=available.length>0;
   if(videoStartFrameHandoff&&!resultId){
@@ -2744,7 +2745,7 @@ function restoreLatestVideoSelection(){
   if(!videoHistoryAutoSuppressed){
     const latest=available.filter(job=>job.settings?.type==='video'&&
       job.settings?.engine!=='video-upscale'&&job.status==='completed'&&hasResult(job))
-      .sort((a,b)=>(Date.parse(b.createdAt)||0)-(Date.parse(a.createdAt)||0))[0];
+      .sort((a,b)=>(new Date(b.createdAt||0).getTime()||0)-(new Date(a.createdAt||0).getTime()||0))[0];
     if(latest){showVideoHistoryRecord(latest,{play:true,reveal:false});return;}
   }
   updateVideoInspector(null);
