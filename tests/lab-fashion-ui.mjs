@@ -141,15 +141,14 @@ try{
   assert.equal(await page.locator('#fashn16-options').isVisible(),false);
   assert.match(await page.locator('#fashion-title').innerText(),/replace\s+outfit/i);
   assert.equal(await page.locator('#editorial-reference').count(),0,'No unrelated fashion image masquerading as an output.');
-  const photographs=await page.locator('.slot-example').evaluateAll(images=>images.map(img=>({
-    loaded:img.complete&&img.naturalWidth>500,decorative:img.alt==='',src:img.getAttribute('src'),
-    radius:parseFloat(getComputedStyle(img).borderTopLeftRadius),
-    pointerEvents:getComputedStyle(img.closest('.slot-invite')).pointerEvents
+  const dropzoneIcons=await page.locator('#person-hint .slot-glyph, #garment-hint .slot-glyph').evaluateAll(icons=>icons.map(icon=>({
+    hidden:icon.getAttribute('aria-hidden'),paths:icon.querySelectorAll('path,circle').length,
+    pointerEvents:getComputedStyle(icon.closest('.slot-invite')).pointerEvents
   })));
-  assert.equal(photographs.length,2,'Approved person and garment photographs remain distinct');
-  assert.ok(photographs.every(photo=>photo.loaded),'Both clean photographic assets decode');
-  assert.ok(photographs.every(photo=>photo.decorative&&photo.pointerEvents==='none'),'Decorative photos cannot intercept the real upload inputs');
-  assert.notEqual(photographs[0].src,photographs[1].src,'Person and garment keep separate photographic assets');
+  assert.equal(dropzoneIcons.length,2,'Person and garment have two minimal outline icons');
+  assert.ok(dropzoneIcons.every(icon=>icon.hidden==='true'&&icon.paths>=2&&icon.pointerEvents==='none'),
+    'Icons are decorative and cannot intercept real uploads');
+  assert.equal(await page.locator('.slot-example').count(),0,'No decorative example photos in upload tiles');
   const resultArtwork=await page.locator('#result-placeholder svg.empty-art-result').evaluate(svg=>({
     hidden:svg.getAttribute('aria-hidden'),paths:svg.querySelectorAll('path').length,
     stroke:parseFloat(getComputedStyle(svg).strokeWidth),radius:parseFloat(getComputedStyle(svg).borderTopLeftRadius)
@@ -158,9 +157,9 @@ try{
   assert.ok(resultArtwork.paths>=2&&resultArtwork.stroke<=1.4,'The original delicate result artwork remains intact');
   assert.equal(resultArtwork.radius,0,'Result artwork is not rounded into a badge');
   assert.equal(await page.locator('#result-placeholder svg.empty-art-result rect[rx="8"]').count(),0);
-  assert.equal(await page.locator('.upload-icon').count(),0,'No generic upload glyph replaces the photographs');
-  assert.match(await page.locator('#person-hint').innerText(),/Upload a photograph/);
-  assert.match(await page.locator('#garment-hint').innerText(),/Upload your outfit/);
+  assert.equal(await page.locator('.upload-icon').count(),0,'No generic upload icons appear');
+  assert.match(await page.locator('#person-hint').innerText(),/Drop a photo or browse/);
+  assert.match(await page.locator('#garment-hint').innerText(),/Drop a garment photo or browse/);
   assert.equal(await page.locator('#result-placeholder').isVisible(),false,'Result remains hidden until an archived output is opened');
   const desktop=await page.evaluate(()=>{
     const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width}};
@@ -223,8 +222,8 @@ try{
   mkdirSync('test-results',{recursive:true});
   await page.screenshot({path:'test-results/pv-fashion-editorial-desktop.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});
-  assert.equal(await page.locator('#person-hint .slot-example').isVisible(),true,'Person photograph remains visible on mobile');
-  assert.equal(await page.locator('#garment-hint .slot-example').isVisible(),true,'Garment photograph remains visible on mobile');
+  assert.equal(await page.locator('#person-hint .slot-glyph').isVisible(),true,'Person outline icon remains visible on mobile');
+  assert.equal(await page.locator('#garment-hint .slot-glyph').isVisible(),true,'Garment outline icon remains visible on mobile');
   assert.equal(await page.locator('#result-placeholder svg.empty-art').isVisible(),false,'Mobile never confuses the hero with a completed result');
   const mobileBoxes=await page.locator('#person-slot, #garment-slot, #result-stage').evaluateAll(items=>items.map(el=>({
     radius:parseFloat(getComputedStyle(el).borderTopLeftRadius),
@@ -242,8 +241,8 @@ try{
   const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xfy8AAAAASUVORK5CYII=','base64');
   await page.setInputFiles('#person-file',{name:'synthetic-person.png',mimeType:'image/png',buffer:png});
   await page.setInputFiles('#garment-file',{name:'synthetic-jacket.png',mimeType:'image/png',buffer:png});
-  assert.equal(await page.locator('#person-hint').isVisible(),false,'Decorative person photograph disappears after upload');
-  assert.equal(await page.locator('#garment-hint').isVisible(),false,'Decorative garment photograph disappears after upload');
+  assert.equal(await page.locator('#person-hint').isVisible(),false,'Person invitation disappears after upload');
+  assert.equal(await page.locator('#garment-hint').isVisible(),false,'Garment invitation disappears after upload');
   assert.equal(await page.locator('#person-preview').isVisible(),true);
   assert.equal(await page.locator('#garment-preview').isVisible(),true);
   await page.waitForFunction(()=>document.querySelector('#quote').textContent==='Generate · 222 credits');
