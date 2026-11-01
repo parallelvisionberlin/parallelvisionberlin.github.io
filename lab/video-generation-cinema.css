@@ -177,7 +177,7 @@ html body #app.video-studio-active .video-job-stage:is([data-phase="submitting"]
 html body #app.video-studio-active .video-job-stage:is([data-phase="submitting"],[data-phase="queued"],[data-phase="running"],[data-phase="saving"]) .video-job-stage-motion{
   display:none!important;
 }
-html body #app.video-studio-active .video-job-stage:is([data-phase="submitting"],[data-phase="queued"],[data-phase="running"],[data-phase="saving"]) .video-job-stage-title{
+html body #app.video-studio-active .video-job-stage:is([data-phase="submitting"],[data-phase="queued"],[data-phase="running"],[data-phase="saving"]) #video-job-stage-title{
   margin:0!important;
   font:550 clamp(23px,2.2vw,32px)/1.15 'DM Sans',Arial,sans-serif!important;
   letter-spacing:-.043em!important;
@@ -239,7 +239,7 @@ html body #app.video-studio-active .video-job-stage-meta{
     height:clamp(140px,21vh,203px);
     margin-bottom:18px;
   }
-  html body #app.video-studio-active .video-job-stage:is([data-phase="submitting"],[data-phase="queued"],[data-phase="running"],[data-phase="saving"]) .video-job-stage-title{
+  html body #app.video-studio-active .video-job-stage:is([data-phase="submitting"],[data-phase="queued"],[data-phase="running"],[data-phase="saving"]) #video-job-stage-title{
     font-size:clamp(20px,5vw,26px)!important;
   }
 }
