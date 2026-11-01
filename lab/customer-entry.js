@@ -1,5 +1,5 @@
 import {createAccountMenu} from './account-menu.js?v=20261030-robin-partner1';
-import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261015-standalone1';
+import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261101-cookies1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
 import {createSessionRequest} from './session-request.js?v=20261021-home-signin1';
