@@ -70,13 +70,13 @@ function applyChoice(next) {
   dialog?.remove();
   dialog = null;
 }
-function showChoices() {
+function showChoices(fromFooter=false) {
   if (dialog) return;
   dialog = document.createElement('section');
   dialog.id = 'pv-lab-meta-consent';
   dialog.setAttribute('aria-label','Cookies');
   dialog.setAttribute('role','region');
-  const standalone = /^(?:www\\.)?pvlab\\.studio$/.test(location.hostname.toLowerCase()) || location.hostname.toLowerCase() === 'pvlab-studio.pages.dev';
+  const standalone = /^(?:www\.)?pvlab\.studio$/.test(location.hostname.toLowerCase()) || location.hostname.toLowerCase() === 'pvlab-studio.pages.dev';
   const privacyPath = standalone ? '/privacy/' : '/lab/privacy/';
   dialog.innerHTML = '<strong>Cookies</strong><p>Optional cookies help us measure ads. <a href="' + privacyPath + '">Privacy</a></p><div class="pv-cookie-actions"><button type="button" data-choice="denied">Reject</button><button type="button" data-settings aria-expanded="false">Settings</button><button type="button" data-choice="granted">Accept</button></div><p class="pv-cookie-details" hidden>Required storage keeps accounts working. With your permission, Meta Pixel measures visits, registrations and checkout starts. Verified purchases may be measured through Meta Conversions API. Rejecting does not limit PV LAB.</p>';
   dialog.style.cssText='position:fixed;bottom:16px;left:16px;z-index:2147483000;box-sizing:border-box;max-width:min(370px,calc(100vw - 32px));padding:13px 15px;background:#17191c;color:#f0f0ec;border:1px solid #494e53;border-radius:11px;box-shadow:0 12px 35px #0007;font:12px/1.4 "DM Sans",Arial,sans-serif';
@@ -96,7 +96,7 @@ function showChoices() {
   });
   // A native modal is top-layer; a cookie choice on the page behind it is inaccessible.
   // The campaign uses a compact cookie strip in the empty header space, not in Generate.
-  const moodDialog=isLabCampaignLanding(location.pathname,location.hostname,location.search)
+  const moodDialog=!fromFooter && isLabCampaignLanding(location.pathname,location.hostname,location.search)
     ? document.getElementById('mc-look-dialog') : null;
   if (moodDialog) {
     dialog.classList.add('pv-cookies-on-deck');
@@ -128,7 +128,7 @@ function init() {
   preferences.style.cssText=anchor?.classList?.contains('pv-lab-footer__group') ? 'border:0;background:transparent;color:#b7b3ac;font:400 13px/1.3 "DM Sans",Arial,sans-serif;cursor:pointer;text-align:left;padding:0' : 'border:0;background:transparent;color:inherit;font:inherit;font-size:11px;cursor:pointer;text-decoration:underline;padding:5px';
   preferences.addEventListener('click', () => {
     if (dialog) return;
-    showChoices();
+    showChoices(true);
   });
   if (anchor) anchor.append(preferences);
   else {
