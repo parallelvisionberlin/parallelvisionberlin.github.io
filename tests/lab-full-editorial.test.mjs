@@ -129,7 +129,7 @@ test('Multi-model composition is not a dead control for single-model users',()=>
 test('Styling matches Identity rhythm while keeping real wardrobe references and direction',()=>{
  const stage=html.slice(html.indexOf('id="panel-style"'),html.indexOf('id="panel-mood"'));
  const styleCss=read('lab/full-editorial-atelier.css');
- assert.match(html,/full-editorial-atelier\.css\?v=20261101-compact-cta1/);
+ assert.match(html,/full-editorial-atelier\.css\?v=20261101-compact-cta2/);
  assert.match(stage,/class="atelier-section-top editorial-styling-top"/);
  assert.match(stage,/id="outfit-gallery"/);
  assert.match(stage,/id="outfit-files"/);
