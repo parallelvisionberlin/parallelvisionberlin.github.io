@@ -965,3 +965,37 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
  #panel-style .atelier-look{aspect-ratio:.73}
  #panel-style #styling-direction{min-height:100px}
 }
+
+/* PVLAB_EDITORIAL_COMPOSITION_185PX_20261101
+   Owner-approved visual refinement of the three campaign choice cards only.
+   Preserve the original artwork, 3-column composition and active check state. */
+@media(min-width:801px){
+ #panel-model .editorial-composition-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+ }
+ #panel-model .editorial-composition-option{
+  height:185px;min-height:185px;border-radius:5px;
+ }
+}
+#panel-model .editorial-composition-art img{
+ object-position:center 30%;
+ filter:brightness(.83) saturate(.82) contrast(1.02);
+}
+#panel-model .editorial-composition-option::after{
+ background:linear-gradient(0deg,rgba(5,6,7,.83) 0%,rgba(5,6,7,.34) 41%,rgba(5,6,7,.08) 82%);
+}
+#panel-model .editorial-composition-copy{
+ left:16px;right:34px;bottom:15px;gap:5px;
+}
+#panel-model .editorial-composition-copy strong{font-size:14px;font-weight:600}
+#panel-model .editorial-composition-copy small{font-size:11px;line-height:1.4;color:#e4e3e0}
+@media(max-width:800px){
+ #panel-model .editorial-composition-option{
+  height:172px;min-height:172px;
+ }
+}
+@media(max-width:520px){
+ #panel-model .editorial-composition-copy{left:12px;right:24px;bottom:12px}
+ #panel-model .editorial-composition-copy strong{font-size:13px}
+ #panel-model .editorial-composition-copy small{font-size:10px}
+}
