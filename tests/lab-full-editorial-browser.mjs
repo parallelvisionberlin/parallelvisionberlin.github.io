@@ -129,6 +129,22 @@ try{
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
   await page.locator('[data-source-view="casting"]').click();
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-style').isVisible(),true);
+  const stylingLayout=await page.evaluate(()=>{
+   const hero=document.querySelector('#panel-style .stage-visual').getBoundingClientRect();
+   const cards=Array.from(document.querySelectorAll('#outfit-gallery .atelier-look'));
+   const first=cards[0].getBoundingClientRect(),footer=document.querySelector('#step-footer').getBoundingClientRect();
+   return {heroHeight:hero.height,firstCardTop:first.top,firstCardHeight:first.height,
+    cardCount:cards.length,viewportHeight:innerHeight,footerPosition:getComputedStyle(document.querySelector('#step-footer')).position,
+    footerBelowCards:footer.top>=first.bottom};
+  });
+  assert.equal(stylingLayout.cardCount,6,'Styling keeps six original photographic wardrobe cards');
+  assert.equal(stylingLayout.footerBelowCards,true,'Action footer cannot hide wardrobe photographs');
+  assert.notEqual(stylingLayout.footerPosition,'sticky','Styling action rail follows its content');
+  if(width>800){
+   assert.ok(stylingLayout.heroHeight<=267,'Styling has the same compact stage hero as Identity');
+   assert.ok(stylingLayout.firstCardTop<stylingLayout.viewportHeight-100,'Wardrobe cards begin inside the first desktop viewport');
+   assert.ok(stylingLayout.firstCardHeight>=290,'Wardrobe cards retain a taller portrait format');
+  }
   await page.locator('#styling-direction').fill('Architectural black leather and natural tailoring.');
   await page.locator('#outfit-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
   await page.locator('.stage-visual--style img').evaluate(img=>img.decode().catch(()=>{}));

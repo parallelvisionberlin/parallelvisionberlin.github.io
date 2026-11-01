@@ -125,3 +125,20 @@ test('Visible composition preview does not imply preselected people',()=>{
  assert.match(js,/button\.disabled=!ready/);
  assert.match(read('lab/full-editorial-atelier.css'),/PVLAB_COMPOSITION_VISIBLE_NO_PRESELECT_20261101/);
 });
+
+test('Styling matches Identity rhythm while keeping real wardrobe references and direction',()=>{
+ const stage=html.slice(html.indexOf('id="panel-style"'),html.indexOf('id="panel-mood"'));
+ const styleCss=read('lab/full-editorial-atelier.css');
+ assert.match(html,/full-editorial-atelier\.css\?v=20261101-styling-parity1/);
+ assert.match(stage,/class="atelier-section-top editorial-styling-top"/);
+ assert.match(stage,/id="outfit-gallery"/);
+ assert.match(stage,/id="outfit-files"/);
+ assert.match(stage,/id="styling-direction"/);
+ assert.match(stage,/id="garment-guide"/);
+ assert.equal((stage.match(/data-sample-kind="outfit"/g)||[]).length,6,'Original six real wardrobe cards are preserved');
+ assert.match(styleCss,/PVLAB_STYLING_IDENTITY_PARITY_20261101/);
+ assert.match(styleCss,/#panel-style \.stage-visual\{height:clamp\(220px,26svh,266px\)\}/);
+ assert.match(styleCss,/#panel-style \.atelier-look\{[\s\S]*?height:clamp\(300px,36svh,350px\)/);
+ assert.match(styleCss,/:has\(#panel-style:not\(\[hidden\]\)\) #step-footer/);
+ assert.match(styleCss,/#panel-model \.atelier-cast-gallery \.atelier-reference/,'Casting card height changed without modifying Identity data');
+});
