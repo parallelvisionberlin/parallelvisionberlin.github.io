@@ -789,3 +789,21 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
 }
 #panel-model .editorial-model-extra-thumb button:hover{background:#07080822}
 #panel-model .editorial-model-extra-thumb button:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+
+/* Non-shrinking additional view thumbnail: prevent zero-sized remove targets
+   inside the compact flex casting strip on desktop and mobile. */
+#panel-model .editorial-model-extra-thumb{
+ flex:0 0 32px!important;min-width:32px!important;width:32px!important;
+ height:44px!important;min-height:44px!important;overflow:visible!important;
+}
+#panel-model .editorial-model-extra-thumb img{
+ display:block;width:32px!important;height:44px!important;object-fit:cover;
+}
+#panel-model .editorial-model-extra-thumb button{
+ position:absolute!important;left:0!important;top:0!important;right:auto!important;bottom:auto!important;
+ display:block!important;width:32px!important;height:44px!important;
+ min-width:32px!important;min-height:44px!important;
+ visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+ z-index:25!important;background:#0a0b0b08!important;border:1px solid #ffffff24!important;
+ font-size:0!important;color:transparent!important;
+}
