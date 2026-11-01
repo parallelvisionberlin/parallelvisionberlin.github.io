@@ -22,13 +22,23 @@ test('existing Mood photobooth, input, generation and deep-link remain intact',(
   assert.match(script,/if\(requested&&moodById\(requested\)\)showMood\(moodById\(requested\)\)/);
   assert.match(script,/selected\.id==='berlin-rave'&&new URLSearchParams\(location\.search\)\.get\('campaign'\)==='berlin-rave'/);
 });
-test('PV LAB Meta tracking is opt-in, and the campaign has no automatic consent banner',()=>{
-  const pixel=read('lab/meta-pixel.js');
-  assert.match(pixel,/if \(choice === 'granted'\) bootPixel\(\)/);
-  assert.doesNotMatch(pixel,/else if \(!choice &&.*showChoices\(\)/);
+test('Berlin Rave offers a compact Cookies choice without shifting the editor controls',()=>{
+  const pixel=read('lab/meta-pixel.js'),css=read('lab/berlin-rave-campaign.css');
+  assert.match(pixel,/isLabCampaignLanding\(location\.pathname, location\.hostname, location\.search\)\)\) showChoices\(\)/);
+  assert.match(pixel,/data-choice="denied">Reject/);
+  assert.match(pixel,/data-choice="granted">Accept/);
+  assert.match(pixel,/data-settings aria-expanded="false">Settings/);
+  assert.match(pixel,/moodDialog\.append\(dialog\)/);
   assert.doesNotMatch(pixel,/body\.insertBefore\(dialog/);
-  assert.match(pixel,/preferences\.addEventListener\('click', \(\) => \{/);
-  assert.match(pixel,/showChoices\(\);/);
-  assert.match(pixel,/data-choice="denied"/);
-  assert.match(pixel,/data-choice="granted"/);
+  assert.match(css,/#mc-look-dialog \.pv-cookies-on-deck/);
+  assert.match(pixel,/preferences\.addEventListener\('click'/);
+  assert.match(pixel,/showChoices\(true\)/);
+  assert.match(pixel,/if \(choice === 'granted'\) bootPixel\(\)/);
+});
+test('fresh registration can be reported when cookies were accepted after signup',()=>{
+  const pixel=read('lab/meta-pixel.js');
+  assert.match(pixel,/pendingRegistration=\{subject,createdAt\}/);
+  assert.match(pixel,/if \(next === 'granted' && pendingRegistration\)/);
+  assert.match(pixel,/trackLabRegistration\(registration\.subject,registration\.createdAt\)/);
+  assert.match(pixel,/localStorage\.setItem\(key, 'sent'\)/);
 });
