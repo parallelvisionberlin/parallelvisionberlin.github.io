@@ -2420,6 +2420,7 @@ const mainWorkspace=document.querySelector('#app>.workspace');
 const mediaStage=mainWorkspace.querySelector('.stage');
 const videoJobCache=new Map();
 let selectedVideoJob=null;
+let videoDetailPromptKey='',videoDetailPromptExpanded=false;
 // Clear and explicit Create mode changes keep the invitation visible until the
 // user chooses a saved video or starts a new generation. Never bill or submit here.
 let videoHistoryAutoSuppressed=false;
@@ -2648,6 +2649,16 @@ function updateVideoInspectorReferences(job){
     composerAssetPhoto(tile,ids[i]);
   }
 }
+function syncVideoDetailPromptToggle(){
+  const prompt=$('video-detail-prompt'),toggle=$('video-detail-prompt-toggle');
+  if(!selectedVideoJob||$('video-inspector-selected').hidden){
+    toggle.hidden=true;
+    return;
+  }
+  toggle.hidden=!(videoDetailPromptExpanded||prompt.scrollHeight>prompt.clientHeight+2);
+  toggle.textContent=videoDetailPromptExpanded?'Show less':'Show more';
+  toggle.setAttribute('aria-expanded',String(videoDetailPromptExpanded));
+}
 function updateVideoInspector(job){
   if(!videoInspector)return;
   const isSelected=tool==='video'&&!!job;
@@ -2657,6 +2668,9 @@ function updateVideoInspector(job){
   $('video-inspector-selected').hidden=!job;
   updateVideoInspectorReferences(job);
   if(!job){
+    videoDetailPromptKey='';videoDetailPromptExpanded=false;
+    $('video-detail-prompt-toggle').hidden=true;
+    $('video-detail-prompt').classList.remove('is-expanded');
     $('video-detail-status').textContent=videoStartFrameHandoff&&file?'Start frame':'';
     const sceneFoot=$('video-inspector-empty').querySelector('.pv-video-sidebar-footnote');
     if(sceneFoot)sceneFoot.textContent=tool==='video'&&mode==='start'&&!!file?'Start frame ready. Describe its motion to generate a video.':'Settings for your next video. Nothing has been generated.';
@@ -2666,11 +2680,19 @@ function updateVideoInspector(job){
   const settings=job.settings||{},ready=hasResult(job);
   $('video-detail-status').textContent=jobCreditNotice(job)|| (job.status==='failed'&&isContentRestriction(job.error)?'Restricted':String(job.status||'').replace(/^./,c=>c.toUpperCase()));
   $('video-detail-model').textContent=videoLabel(settings);
-  $('video-detail-prompt').textContent=settings.prompt||'No motion direction saved.';
-  $('video-detail-duration').textContent=settings.duration?settings.duration+' s':'Not set';
-  $('video-detail-resolution').textContent=String(settings.resolution||'Not set').toUpperCase();
+  const savedPrompt=settings.prompt||'No motion direction saved.';
+  const promptKey=String(job.id||'')+'\n'+savedPrompt;
+  if(promptKey!==videoDetailPromptKey){videoDetailPromptKey=promptKey;videoDetailPromptExpanded=false;}
+  $('video-detail-prompt').textContent=savedPrompt;
+  $('video-detail-prompt').classList.toggle('is-expanded',videoDetailPromptExpanded);
+  const seconds=Number(settings.duration);
+  $('video-detail-duration').textContent=Number.isFinite(seconds)&&seconds>0?seconds.toFixed(1)+'s':'Not set';
+  $('video-detail-resolution').textContent=String(settings.resolution||'Not set').toLowerCase();
   $('video-detail-ratio').textContent=String(settings.aspectRatio||'Source');
   $('video-detail-date').textContent=detailDate(job.createdAt);
+  requestAnimationFrame(()=>{
+    if(selectedVideoJob?.id===job.id&&videoDetailPromptKey===promptKey)syncVideoDetailPromptToggle();
+  });
   $('video-detail-watch').disabled=!ready;
   $('video-detail-download').disabled=!ready;
   $('video-detail-delete').disabled=activeStates.has(job.status);
@@ -2784,6 +2806,13 @@ $('pv-video-history-back').onclick=()=>{
   clearVideoHistorySelection({suppressAuto:true});
   videoFeedCenter.scrollTo({top:0,behavior:'instant'});
 };
+$('video-detail-prompt-toggle').onclick=()=>{
+  if(!selectedVideoJob)return;
+  videoDetailPromptExpanded=!videoDetailPromptExpanded;
+  $('video-detail-prompt').classList.toggle('is-expanded',videoDetailPromptExpanded);
+  syncVideoDetailPromptToggle();
+};
+window.addEventListener('resize',()=>requestAnimationFrame(syncVideoDetailPromptToggle),{passive:true});
 $('video-detail-watch').onclick=()=>{
   if(selectedVideoJob&&hasResult(selectedVideoJob))
     void viewMedia(()=>openVideo(selectedVideoJob,{scroll:false}));
