@@ -9,6 +9,16 @@
 - Cache: 20261101-editorial-phone-composition1.
 - Validation: approved Image UI 5/5; 320/390/680px browser checks show no overflow and CTA within the section; 1200px metrics match baseline. Source HTML changes only the cache version. Production verification pending.
 
+## Invitation mobile breathing room, 2026-11-01
+- Owner reports the referral section feels boxed in on phone while desktop works well.
+- Baseline main `778cdd306bef9a1ba945f2f7aa6df77a92948d6d`; branch `fix/invite-mobile-spacing`.
+- Scope: <=720px only. 500px minimum stage, 52/44px vertical padding, larger section gap, two-line reward headline, 16px description, 240px minimum content-width CTA and separated fine print.
+- Preserve desktop rules, approved photograph/framing, copy, referral routing, credit/accounting behavior and other sections.
+- Files: `lab/invite-hero.css`, stylesheet version in `lab/index.html`, this checkpoint.
+- Cache: `20261101-phone-air1`.
+- Approved Image UI contract 5/5 and diff checks passed. Mobile browser at 390px iframe: stage 500px, headline two lines, CTA 240px; screenshot inspected.
+- Source, Cloudflare deployment and production verification pending.
+
 ## Creative Studios direct card navigation, 2026-11-01
 - Owner requested removing the white Explore all studios button on desktop and phone.
 - Baseline main: bba094e99085ad03b5edece24c93cdd73f6952f8.
