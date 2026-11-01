@@ -17,7 +17,12 @@
 - Files: `lab/invite-hero.css`, stylesheet version in `lab/index.html`, this checkpoint.
 - Cache: `20261101-phone-air1`.
 - Approved Image UI contract 5/5 and diff checks passed. Mobile browser at 390px iframe: stage 500px, headline two lines, CTA 240px; screenshot inspected.
-- Source, Cloudflare deployment and production verification pending.
+- Referral UI 3/3 also passed. PR #758 source `13a6d94a4427bc5fdaf658d0614bc79c0a7ed491`; merged `50650245db064b01b4eae3d6cabcc428f6793a3b`.
+- Cloudflare pvlab-studio app check `124784948357` succeeded; deployment `f27fb150-f129-4f30-915c-b0f2b82fba4a`.
+- Production homepage references `invite-hero.css?v=20261101-phone-air1`; exact reviewed bytes verified, SHA-256 `abbf49a6dde69d95af2f3ca443037c7f3853341bdb8e54cbc8e8d42725b70abd`.
+- Live desktop browser: original two-column layout, stage 422.5px. Mobile composition inspected in preview; no physical iPhone session tested.
+- Landing stability, approved Image, account, gallery, validation and focused tests passed. Unrelated existing Moods-label and browser-suite failures remain; no gates changed.
+- Next: complete and live.
 
 ## Creative Studios direct card navigation, 2026-11-01
 - Owner requested removing the white Explore all studios button on desktop and phone.
