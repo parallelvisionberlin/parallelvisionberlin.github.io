@@ -3,7 +3,7 @@
    controls connected to their existing handlers. */
 @media (min-width:1161px){
   html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact > .workspace.video-layout{
-    grid-template-columns:clamp(310px,21vw,350px) minmax(0,1fr) clamp(204px,12.7vw,220px)!important;
+    grid-template-columns:clamp(310px,21vw,350px) minmax(0,1fr) clamp(224px,13.2vw,245px)!important;
     gap:10px!important;
     min-width:0!important;
   }
