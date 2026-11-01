@@ -55,6 +55,7 @@ function renderCastingControls(){
  $('editorial-cast-summary').textContent=!ready
   ? modelGroups.length===1?'Add one more model to choose how they appear together.':'Select two or more models to choose how they appear together.'
   : modelGroups.length+' models selected · '+({mixed:'Solo + together',alternating:'Individual portraits',together:'Together in every photograph'}[castComposition]);
+ if(step===1)$('step-next').disabled=modelGroups.length===0;
 }
 function renderIdentityFooter(){
  const footer=$('editorial-footer-cast');footer.hidden=step!==1;
@@ -142,6 +143,7 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
  }
  $('step-next').hidden=next===4;
  $('step-next').textContent=({1:'Continue to styling',2:'Continue to location',3:'Continue to review'}[next]||'Next');
+ $('step-next').disabled=next===1&&modelGroups.length===0;
  renderIdentityFooter();invalidateQuote();updateGenerationMotion();
  if(next===4)updateSeriesSummary();
  if(next===0){window.scrollTo({top:0,left:0,behavior:'instant'});document.getElementById('editorial-hero').scrollIntoView({block:'start',behavior:'instant'});}else{document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});}
