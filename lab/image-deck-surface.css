@@ -25,7 +25,7 @@
       min-height:54px!important;max-height:176px;align-self:center!important;
       margin:0!important;padding:7px 4px!important;white-space:pre-wrap!important;
       border:0!important;outline:none!important;box-shadow:none!important;background:transparent!important;
-      color:#f5f3ef!important;font:420 15.5px/1.48 'DM Sans',Arial,sans-serif!important;
+      color:#f5f3ef!important;font:420 14px/1.53 'DM Sans',Arial,sans-serif!important;
       letter-spacing:-.019em!important;resize:none!important;overflow-x:hidden!important;
     }
     & :is(#image-composer-prompt,#pv-guest-prompt)::placeholder{color:#b9bbb9!important;opacity:1!important}
@@ -147,7 +147,7 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.is-pv-soul {
   font-family:'DM Sans',Arial,sans-serif!important;
 
   & .image-composer-top {display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:7px!important;min-width:0;min-height:64px!important;height:auto!important;max-height:none!important;padding:0!important}
-  & #image-composer-prompt {box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:54px!important;max-height:176px!important;margin:0!important;padding:7px 4px!important;flex:0 0 auto!important;font:420 15.5px/1.48 'DM Sans',Arial,sans-serif!important;letter-spacing:-.019em!important;white-space:pre-wrap!important;overflow-x:hidden!important;resize:none!important}
+  & #image-composer-prompt {box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:54px!important;max-height:176px!important;margin:0!important;padding:7px 4px!important;flex:0 0 auto!important;font:420 14px/1.53 'DM Sans',Arial,sans-serif!important;letter-spacing:-.019em!important;white-space:pre-wrap!important;overflow-x:hidden!important;resize:none!important}
   & .image-composer-references:not([hidden]) {display:flex!important;flex:0 0 56px!important;width:100%!important;max-width:100%!important;height:56px!important;max-height:56px!important;gap:7px!important;padding:2px 3px!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important}
   & .composer-reference-tile {flex:0 0 51px!important;width:51px!important;min-width:51px!important;height:52px!important;min-height:52px!important}
   & .composer-controls {gap:6px!important;align-items:center!important;min-width:0!important}
