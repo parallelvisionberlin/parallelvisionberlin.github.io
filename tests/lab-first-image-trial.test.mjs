@@ -87,6 +87,31 @@ test('old 200 credit accounts stay blocked, old accounts are never backfilled',a
   assert.throws(()=>f.addJob(id,'legacy_blocked'),/complimentary generation is paused/i);
 });
 
+test('campaign signups made before the deployment on November 1 still receive 40',async t=>{
+  const f=fixture(t),id='user_CampaignAlreadySignedUp';
+  // Account existed on the campaign day before migration 0051 could deploy.
+  const signup=Date.parse('2026-11-01T15:00:00Z');
+  f.run('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)',
+    id,id,signup,signup);
+  f.verify(id,'campaign-first@example.com');
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,0);
+  await ensureCustomer(f.env,id);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,40);
+  f.addJob(id,'campaign_image');
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,5);
+});
+
+test('previous-day signups are excluded even if the email verifies after launch',async t=>{
+  const f=fixture(t),id='user_CampaignYesterday';
+  const yesterday=Date.parse('2026-10-31T20:00:00Z');
+  f.run('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)',
+    id,id,yesterday,yesterday);
+  f.verify(id,'yesterday@example.com');
+  await ensureCustomer(f.env,id);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,0);
+  assert.equal((await customerSession(f.env,id)).generationReady,false);
+});
+
 test('Gmail aliases cannot claim another image; paid customers retain generation',async t=>{
   const f=fixture(t),a='user_ClaimOne',b='user_ClaimTwo';
   await ensureCustomer(f.env,a);await ensureCustomer(f.env,b);
