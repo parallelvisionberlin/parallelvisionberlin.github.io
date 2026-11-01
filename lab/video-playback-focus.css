@@ -90,3 +90,133 @@
   #app.video-studio-active .video-job-stage{padding:13px}
   #app.video-studio-active .video-job-stage-status{padding:7px 10px}
 }
+
+/* Saved-video details: readable short prompt and compact output metadata.
+   The Create inspector, player, gallery and generation controls are untouched. */
+html body #app.video-studio-active #video-inspector-selected .video-inspector-body{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  min-width:0;
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-prompt{
+  flex:0 0 auto;
+  margin:12px 0 0!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+  color:#adb3bb!important;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-prompt:not(.is-expanded){
+  max-height:7.75em;
+  overflow:hidden!important;
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-prompt.is-expanded{
+  max-height:none!important;
+  overflow:visible!important;
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-prompt-toggle{
+  align-self:flex-start;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  min-height:26px;
+  margin:3px 0 1px;
+  padding:1px 0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#d1d5da!important;
+  font:600 11px/1.4 'DM Sans',Arial,sans-serif!important;
+  cursor:pointer;
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-prompt-toggle:after{
+  content:"⌄";
+  display:inline-block;
+  font-size:14px;
+  line-height:1;
+  transition:transform .16s ease;
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-prompt-toggle[aria-expanded="true"]:after{
+  transform:rotate(180deg);
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-prompt-toggle:hover{
+  color:#fff!important;
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-prompt-toggle:focus-visible{
+  outline:2px solid #b5bbc2;
+  outline-offset:3px;
+  border-radius:2px;
+}
+html body #app.video-studio-active #video-inspector-selected .pv-video-details-section-title{
+  display:none!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready #video-inspector-selected .video-detail-data{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center;
+  justify-content:flex-start;
+  flex-wrap:wrap;
+  gap:5px!important;
+  width:100%;
+  min-width:0;
+  margin:14px 0 0!important;
+  padding:0!important;
+  border:0!important;
+}
+html body #app.video-studio-active.pv-video-approved-ready #video-inspector-selected .video-detail-data>div{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  flex:0 0 auto;
+  width:auto!important;
+  min-width:0;
+  min-height:27px;
+  margin:0!important;
+  padding:5px 7px!important;
+  border:1px solid #373a3f!important;
+  border-radius:7px!important;
+  background:#232528!important;
+  white-space:nowrap;
+}
+html body #app.video-studio-active.pv-video-approved-ready #video-inspector-selected .video-detail-data dt{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin:0!important;
+  color:#9da4ad!important;
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-data dt svg{
+  display:block;
+  width:12px;
+  height:12px;
+  flex:0 0 12px;
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-data dt span{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  margin:-1px!important;
+  padding:0!important;
+  overflow:hidden!important;
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+html body #app.video-studio-active.pv-video-approved-ready #video-inspector-selected .video-detail-data dd{
+  margin:0!important;
+  color:#d8dce2!important;
+  font-size:10.5px!important;
+  font-weight:600!important;
+  line-height:1.2!important;
+}
+html body #app.video-studio-active #video-inspector-selected .video-detail-created{
+  margin:0;
+  margin-top:auto;
+  padding:17px 0 0;
+  color:#8f969f;
+  font:400 10px/1.5 'DM Sans',Arial,sans-serif;
+}
+@media(prefers-reduced-motion:reduce){
+  html body #app.video-studio-active #video-inspector-selected .video-detail-prompt-toggle:after{transition:none}
+}
