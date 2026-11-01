@@ -1,3 +1,4 @@
+<!-- Wordmark visual identity handoff: see BRANDING-WORK-STATE.md for the 2026-11-01 cinematic logo revision. -->
 > Beauty Studio and shared Studios header navigation: [BEAUTY-WORK-STATE.md](./BEAUTY-WORK-STATE.md).
 > Current Chrome Couture + Image Inspiration carousel implementation: [INSPIRATION-WORK-STATE.md](./INSPIRATION-WORK-STATE.md).
 
