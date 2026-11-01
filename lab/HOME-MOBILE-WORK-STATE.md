@@ -1,3 +1,14 @@
+## Creative Studios direct card navigation, 2026-11-01
+- Owner requested removing the white Explore all studios button on desktop and phone.
+- Baseline main: bba094e99085ad03b5edece24c93cdd73f6952f8.
+- Removed the misleading Image Studio link from lab/index.html.
+- Removed its breakpoint-specific CSS; phone introduction now flows directly into the cards.
+- Desktop artwork contains its own printed CTA: cover only the intro's lower 24%, preserving its title, description and all four card panels.
+- Preserved card images, labels, routes and all other homepage sections.
+- Files: lab/index.html, lab/home-creative-features.css, this checkpoint.
+- Cache: home-creative-features.css?v=20261101-studios-no-cta1.
+- Validation: approved Image UI contract passes 5/5; diff reviewed for isolated changes. Production and rendered verification pending; no paid generation or account change.
+
 ## Homepage navigation reverted to original, 2026-10-31
 - Owner disliked the editorial uppercase/tracking/translucent header and explicitly preferred the previous homepage navigation.
 - Revert PR #702 styling entirely. Preserve the exact earlier homepage-unified.css content (baseline 3b188d374e37ec5497726a5af5ca9a14e95b381d), previous solid header, mixed-case menu labels, font weight and no entrance animation.
