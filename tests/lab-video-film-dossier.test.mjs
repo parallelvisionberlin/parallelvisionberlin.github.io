@@ -46,15 +46,18 @@ test('real generated videos retain original aspect ratio and create states retai
   assert.match(html,/id="video-job-stage"/,'live generation state remains');
 });
 
-test('Video History becomes a genuine horizontal filmstrip without forcing full-library loads',()=>{
-  assert.match(css,/grid-auto-flow:column!important/);
-  assert.match(css,/overflow-x:auto!important/);
-  assert.match(css,/scroll-snap-type:x proximity/);
-  assert.match(css,/\.card\.is-current-video/,'selected film remains distinct');
+test('original Video History gallery stays a wrapped card grid without horizontal scrolling',()=>{
+  const originalGrid=file('video-refresh.css');
+  assert.match(originalGrid,/grid-template-columns:repeat\(auto-fill,minmax\(min\(100%,245px\),1fr\)\)/,
+    'original responsive grid and thumbnail sizing remain');
+  assert.doesNotMatch(css,/grid-auto-flow:column!important|grid-auto-columns:|scroll-snap-type:x|overflow-x:auto!important/,
+    'Film Dossier does not replace the gallery with a horizontal filmstrip');
+  assert.match(css,/Preserve the original Video History grid/,
+    'the new editorial style explicitly leaves the original gallery alone');
   assert.match(html,/id="history-select"/);
   assert.match(html,/id="refresh"/);
   assert.match(html,/id="more"/);
-  assert.match(script,/const desktopVideoFilmstrip=tool==='video'/);
-  assert.match(script,/!desktopVideoFilmstrip/,'desktop filmstrip disables automatic bottom-edge pagination');
+  assert.doesNotMatch(script,/desktopVideoFilmstrip|pv-film-duration/,
+    'old automatic History pagination and original card markup are restored');
   assert.match(script,/\$\('more'\)\.onclick=loadEarlierHistory/,'manual older History still works');
 });
