@@ -313,6 +313,12 @@ function initialize(){
     $('mc-look-title').textContent=selected.name;
     $('mc-look-mood-note').textContent='See it in '+selected.name+'.';
     $('mc-look-description').textContent=selected.description.replace(/\.?$/,'.');
+    // Only the intentional campaign deep link adds first-use context.
+    // Keep all 17 standard Mood cards and the approved editor unchanged.
+    const campaignEntry=selected.id==='berlin-rave'&&new URLSearchParams(location.search).get('campaign')==='berlin-rave';
+    dialog.classList.toggle('is-berlin-rave-campaign',campaignEntry);
+    $('mc-look-campaign-proof').hidden=!campaignEntry;
+    $('mc-look-campaign-offer').hidden=!campaignEntry;
     if(!dialog.open)dialog.showModal();
     // The responsive photobooth defines a stable editor size in CSS.
     if(photo)attachPhoto(photo);
