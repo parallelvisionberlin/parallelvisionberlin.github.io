@@ -694,3 +694,8 @@ html body #app.video-studio-active #video-inspector-selected .pv-video-primary-a
   html body #app.video-studio-active #video-inspector-selected .pv-video-copy-prompt,
   html body #app.video-studio-active #video-inspector-selected .pv-video-copy-prompt:after{transition:none}
 }
+
+/* The explicit selection state must beat the inspector's flex layout. */
+html body #app.video-studio-active #video-inspector-selected[hidden]{
+  display:none!important;
+}
