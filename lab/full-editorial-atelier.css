@@ -1113,3 +1113,99 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
  #panel-model .editorial-cast-selection{min-height:71px}
  #panel-model .editorial-cast-selection[hidden]{display:none!important}
 }
+
+/* PVLAB_IDENTITY_HERO_TEXT_CTA_20261101
+   The former 173px short hero placed the step kicker under Back and the subtitle
+   across the progress rail. Keep one stable stage height regardless of cast size. */
+@media(min-width:801px) and (max-height:950px){
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .stage-visual{
+  height:210px;
+ }
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .stage-copy{
+  bottom:54px;
+ }
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .stage-copy h2{
+  margin:4px 0 5px;
+  font-size:clamp(54px,4.3vw,64px);
+ }
+ .flow-main:has(#panel-model:not([hidden])) #panel-model .stage-copy p{
+  font-size:14px;
+  line-height:1.4;
+ }
+}
+/* Quieter PV LAB navigation: dark editorial surface rather than a large cream slab.
+   The existing button action, keyboard behavior, and label remain unchanged. */
+.flow-main:has(#panel-model:not([hidden])) #step-next{
+ display:inline-flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:23px;
+ min-width:214px;
+ min-height:48px;
+ padding:7px 10px 7px 17px;
+ border:1px solid #5d5d5b;
+ border-radius:2px;
+ background:#131414;
+ color:#eeeae3;
+ font-size:12px;
+ font-weight:550;
+ letter-spacing:-.015em;
+ box-shadow:none;
+ transition:background .18s ease,border-color .18s ease,color .18s ease;
+}
+.flow-main:has(#panel-model:not([hidden])) #step-next::after{
+ content:'↗';
+ display:grid;
+ place-items:center;
+ flex:0 0 28px;
+ width:28px;height:28px;
+ margin:0;
+ border:1px solid #555653;
+ border-radius:1px;
+ background:#212222;
+ color:#eeeae3;
+ font-size:18px;
+ line-height:1;
+ font-weight:400;
+}
+.flow-main:has(#panel-model:not([hidden])) #step-next:hover:not(:disabled){
+ background:#1c1d1d;
+ color:#fff;
+ border-color:#dad7d0;
+ transform:none;
+}
+.flow-main:has(#panel-model:not([hidden])) #step-next:hover:not(:disabled)::after{
+ border-color:#ccc;
+ background:#323333;
+}
+.flow-main:has(#panel-model:not([hidden])) #step-next:focus-visible{
+ outline:2px solid #f2efea;
+ outline-offset:4px;
+}
+.flow-main:has(#panel-model:not([hidden])) #step-next:disabled{
+ background:#111212;
+ color:#838480;
+ border:1px solid #383a3a;
+ opacity:1;
+ cursor:default;
+}
+.flow-main:has(#panel-model:not([hidden])) #step-next:disabled::after{
+ background:#171818;
+ color:#72736f;
+ border-color:#353737;
+}
+@media(max-width:800px){
+ .flow-main:has(#panel-model:not([hidden])) #step-next{
+  min-width:0;
+  min-height:49px;
+  padding:8px 10px 8px 14px;
+  gap:12px;
+  border-radius:2px;
+  background:#131414;
+  border-color:#5d5d5b;
+  color:#eeeae3;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .flow-main:has(#panel-model:not([hidden])) #step-next{transition:none}
+}
