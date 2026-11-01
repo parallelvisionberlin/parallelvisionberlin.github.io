@@ -129,7 +129,7 @@ test('Multi-model composition is not a dead control for single-model users',()=>
 test('Styling matches Identity rhythm while keeping real wardrobe references and direction',()=>{
  const stage=html.slice(html.indexOf('id="panel-style"'),html.indexOf('id="panel-mood"'));
  const styleCss=read('lab/full-editorial-atelier.css');
- assert.match(html,/full-editorial-atelier\.css\?v=20261101-cast-stable4/);
+ assert.match(html,/full-editorial-atelier\.css\?v=20261101-identity-copy-cta5/);
  assert.match(stage,/class="atelier-section-top editorial-styling-top"/);
  assert.match(stage,/id="outfit-gallery"/);
  assert.match(stage,/id="outfit-files"/);
@@ -180,4 +180,17 @@ test('Selecting or removing a model never changes Identity hero or portrait dime
  assert.match(compact, /min-height:71px;margin-top:8px;padding:7px 14px/,'Strip reserves identical space before and after selection');
  assert.doesNotMatch(js, /status\('Added to '\+\(kind==='model'/,'Casting no longer inserts a below-footer success message');
  assert.match(js, /status\(kind==='model'\?'':'Reference removed\.'\)/);
+});
+
+test('Identity typography clears Back and progress rail; Continue uses a subdued dark action',()=>{
+ const c=read('lab/full-editorial-atelier.css');
+ assert.match(c,/PVLAB_IDENTITY_HERO_TEXT_CTA_20261101/);
+ assert.match(c,/height:210px/);
+ assert.match(c,/bottom:54px/);
+ assert.match(c,/\.flow-main:has\(#panel-model:not\(\[hidden\]\)\) #step-next\{/);
+ assert.match(c,/background:#131414/);
+ assert.match(c,/content:'↗'/);
+ assert.match(c,/#step-next:disabled/);
+ assert.doesNotMatch(c.slice(c.indexOf('PVLAB_IDENTITY_HERO_TEXT_CTA_20261101')),/#editorial-cast-empty:not/,'No state-dependent hero geometry');
+ assert.match(html,/id="step-next" class="primary"/,'Existing continue action and semantics unchanged');
 });
