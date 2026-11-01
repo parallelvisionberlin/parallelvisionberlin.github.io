@@ -107,12 +107,10 @@ test('Identity casting uses the approved photographic layout rather than standal
  assert.match(atelierCss,/:has\(#panel-model:not\(\[hidden\]\)\)/,'Identity footer fills the remaining viewport height');
 });
 
-test('Fresh Identity opens the approved two-person demonstration without billable side effects',()=>{
- assert.match(html,/full-editorial\.js\?v=20261101-approved-cast4/);
- assert.match(js,/async function seedApprovedExampleCast/);
- assert.match(js,/const names=\['Bronze portrait','Copper portrait'\]/);
- assert.match(js,/if\(directStart&&!modelPhoto\)void seedApprovedExampleCast\(\)/);
- assert.match(js,/initialExampleVersion\+\+;for\(const group of \[\.\.\.modelGroups\]\)removeModelGroup/);
- assert.match(js,/if\(modelPhoto\)\{/,'Transferred user model is not overwritten');
- assert.match(js,/initialExampleSeeded=true;initialExampleVersion\+\+;invalidateQuote/,'Start over leaves the cast cleared');
+test('Identity starts empty and casting is always a deliberate selection',()=>{
+ assert.match(html,/full-editorial\.js\?v=20261101-empty-cast5/);
+ assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
+ assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);go\(directStart\?1:0\)/);
+ assert.match(js,/region\.hidden=modelGroups\.length<2/,'Composition appears only for two or more user-selected models');
+ assert.match(js,/if\(modelPhoto\)\{/,'User-provided model photo still loads when supplied');
 });
