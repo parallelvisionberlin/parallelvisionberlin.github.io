@@ -51,15 +51,22 @@ function renderCastingControls(){
  $('editorial-cast-summary').textContent=modelGroups.length<2?'':modelGroups.length+' models selected · '+({mixed:'Solo + together',alternating:'Individual portraits',together:'Together in every photograph'}[castComposition]);
 }
 function renderIdentityFooter(){
- const footer=$('editorial-footer-cast');footer.hidden=step!==1||modelGroups.length===0;
+ const footer=$('editorial-footer-cast');footer.hidden=step!==1;
  footer.replaceChildren();if(footer.hidden)return;
+ const count=document.createElement('span');count.className='editorial-footer-count';
+ count.textContent=modelGroups.length?modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' selected':'Choose a model to begin';
+ footer.append(count);
+ if(!modelGroups.length)return;
  const thumbs=document.createElement('span');thumbs.className='editorial-footer-thumbs';
  for(const group of modelGroups){
   const cover=groupCover(group);if(!cover)continue;
-  const img=document.createElement('img');img.src=cover;img.alt=group.name;thumbs.append(img);
+  const img=document.createElement('img');img.src=cover;img.alt=group.name;img.title=group.name;thumbs.append(img);
  }
- const count=document.createElement('span');count.textContent=modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' selected';
- footer.append(thumbs,count);
+ const add=document.createElement('button');add.type='button';add.className='editorial-footer-add';
+ add.textContent='+';add.setAttribute('aria-label','Add another model');
+ add.disabled=submitting||files.model.length+savedRefs.model.length>=4;
+ add.addEventListener('click',()=>openModelPicker());
+ footer.append(thumbs,add);
 }
 function createModelGroup(name,origin='upload'){
  const group={id:'cast-'+(++modelGroupSerial),name:name||'Your model',origin,files:[],saved:[]};
@@ -141,7 +148,7 @@ function renderModelGroups(){
  $('editorial-cast-selection').hidden=modelGroups.length===0;
  $('model-selection-count').textContent=modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' selected';
  for(const [index,group] of modelGroups.entries()){
-  const card=document.createElement('article');card.className='editorial-model-card thumb';
+  const card=document.createElement('article');card.className='editorial-model-card thumb';card.title=group.name;
   const hero=document.createElement('div');hero.className='editorial-model-cover';
   const cover=groupCover(group);
   if(cover){const img=document.createElement('img');img.src=cover;img.alt=group.name;hero.append(img)}
@@ -164,7 +171,7 @@ function renderModelGroups(){
    rm.addEventListener('click',()=>removeModelReference(group.id,ref.value));tile.append(rm);refs.append(tile);
   }
   const add=document.createElement('button');add.type='button';add.className='editorial-add-view';
-  add.textContent='+ Add reference';add.disabled=submitting||files.model.length+savedRefs.model.length>=4;
+  add.textContent='+';add.title='Add reference photograph of '+group.name;add.disabled=submitting||files.model.length+savedRefs.model.length>=4;
   add.setAttribute('aria-label','Add another photograph of '+group.name);
   add.addEventListener('click',()=>openModelPicker(group.id));
   card.append(hero,copy,refs,add);box.append(card);
