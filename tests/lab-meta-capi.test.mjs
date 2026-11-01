@@ -35,3 +35,44 @@ test('Only sends to PV LAB dataset with token in bearer header',async()=>{
   assert.equal(options.headers.Authorization,'Bearer private-token');
   assert.equal(JSON.stringify(JSON.parse(options.body)).includes('private-token'),false);
 });
+
+test('consented Meta browser IDs improve Purchase matching, invalid IDs are excluded',async()=>{
+  const purchase={subject:'user_Test123',transactionId:'cs_live_Ab123',amountCents:1000,consented:true,
+    fbp:'fb.1.1791843760000.123456789123456789',fbc:'fb.1.1791843760000.ABCdef123xyz'};
+  const ok=await labMetaPurchasePayload(purchase,1791843760000);
+  assert.equal(ok.data[0].user_data.fbp,purchase.fbp);
+  assert.equal(ok.data[0].user_data.fbc,purchase.fbc);
+  const bad=await labMetaPurchasePayload({...purchase,fbp:'unsafe',fbc:'fb.invalid'},1791843760000);
+  assert.equal(Object.hasOwn(bad.data[0].user_data,'fbp'),false);
+  assert.equal(Object.hasOwn(bad.data[0].user_data,'fbc'),false);
+  assert.equal(await labMetaPurchasePayload({...purchase,consented:false}),null);
+});
+
+test('Meta CAPI retries temporary failure once with the same event ID',async()=>{
+  const calls=[];
+  const fetcher=async(url,init)=>{
+    calls.push({url,body:JSON.parse(init.body)});
+    return calls.length===1?{ok:false,status:503}:{ok:true,status:200};
+  };
+  const result=await sendLabMetaPurchase({LAB_META_CAPI_ACCESS_TOKEN:'test'},
+    {subject:'user_Test123',transactionId:'cs_live_Ab123',amountCents:1000,consented:true},fetcher);
+  assert.deepEqual(result,{sent:true});
+  assert.equal(calls.length,2);
+  assert.equal(calls[0].body.data[0].event_id,calls[1].body.data[0].event_id);
+  assert.equal(calls[0].url,calls[1].url);
+});
+
+test('PV LAB checkout only forwards Meta IDs with accepted cookies',()=>{
+  const files=['lab/customer-entry.js','lab/customer-wallet.js','lab/account.js'];
+  // Check the three independent checkout entry points and their shared bridge.
+  for(const path of files) {
+    const code=readFileSync(new URL('../'+path,import.meta.url),'utf8');
+    assert.match(code,/metaConsentGranted\(\)/);
+    assert.match(code,/metaPixelIdentifiers\(\)/);
+  }
+  const billing=readFileSync(new URL('../lab-worker/customer-billing.mjs',import.meta.url),'utf8');
+  assert.match(billing,/const metaFbp=metaConsent&&/);
+  assert.match(billing,/const metaFbc=metaConsent&&/);
+  assert.match(billing,/lab_meta_fbc/);
+  assert.match(billing,/lab_meta_fbp/);
+});
