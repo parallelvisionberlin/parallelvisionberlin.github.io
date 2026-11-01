@@ -45,7 +45,7 @@ function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
 function renderCastingControls(){
  const ready=modelGroups.length>=2;
  const region=$('editorial-casting-controls');
- region.hidden=false;region.classList.toggle('is-awaiting-cast',!ready);
+ region.hidden=!ready;region.classList.remove('is-awaiting-cast');
  for(const button of document.querySelectorAll('[data-cast-composition]')){
   const active=ready&&button.dataset.castComposition===castComposition;
   button.disabled=!ready;

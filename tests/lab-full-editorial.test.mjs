@@ -109,21 +109,21 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261101-composition-visible1/);
+ assert.match(html,/full-editorial\.js\?v=20261101-two-model-gate2/);
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);go\(directStart\?1:0\)/);
- assert.match(js,/region\.hidden=false/,'Composition layout visible from entry');
+ assert.match(js,/region\.hidden=!ready/,'Composition only appears with two selected models');
  assert.match(js,/button\.disabled=!ready/,'Composition requires at least two models');
  assert.match(js,/\$\('editorial-cast-empty'\)\.hidden=modelGroups\.length>0/,'Cast strip has explicit empty state');
  assert.match(js,/if\(modelPhoto\)\{/,'User-provided model photo still loads when supplied');
 });
 
-test('Visible composition preview does not imply preselected people',()=>{
- assert.match(html,/id="editorial-casting-controls"[^>]*aria-labelledby="editorial-composition-title"/);
- assert.doesNotMatch(html,/id="editorial-casting-controls"[^>]*hidden/);
- assert.match(html,/id="editorial-cast-empty"/);
+test('Multi-model composition is not a dead control for single-model users',()=>{
+ assert.match(html,/id="editorial-casting-controls"[^>]*aria-labelledby="editorial-composition-title"[^>]*hidden/);
+ assert.match(html,/id="editorial-cast-empty"/,'The selected-cast strip keeps the empty state');
+ assert.match(js,/region\.hidden=!ready/);
  assert.match(js,/button\.disabled=!ready/);
- assert.match(read('lab/full-editorial-atelier.css'),/PVLAB_COMPOSITION_VISIBLE_NO_PRESELECT_20261101/);
+ assert.match(js,/button\.setAttribute\('aria-pressed',String\(active\)\)/);
 });
 
 test('Styling matches Identity rhythm while keeping real wardrobe references and direction',()=>{

@@ -57,7 +57,7 @@ try{
   await page.screenshot({path:'test-results/editorial/'+width+'-hero.png',fullPage:width===390});
   await page.locator('#editorial-start').click();
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Fresh casting opens without a selected model');
-  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Composition preview appears without preselecting models');
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'No inactive composition cards for an empty cast');
    assert.equal(await page.locator('#editorial-cast-selection').isVisible(),true,'Selected cast strip remains in the layout');
    assert.equal(await page.locator('#editorial-cast-empty').isVisible(),true,'Empty cast has guidance');
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true);
@@ -89,6 +89,7 @@ try{
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
   await page.locator('#model-thumbs .thumb').waitFor({state:'visible'});
    assert.equal(await page.locator('#editorial-cast-empty').isVisible(),false);
+   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'No inactive group-composition buttons with one model');
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true,'One model is not multi-cast');
    assert.equal(await page.locator('#step-next').isDisabled(),false,'One model can continue');
   await page.locator('.stage-visual--identity img').evaluate(img=>img.decode().catch(()=>{}));
@@ -106,6 +107,7 @@ try{
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true);
+  assert.equal(await page.locator('[data-cast-composition="mixed"]').isEnabled(),true,'Second model enables composition');
   assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected');
   assert.equal(await page.locator('#editorial-footer-cast img').count(),2,'Footer shows the selected models');
   assert.equal(await page.locator('.editorial-footer-add').isVisible(),true,'Footer plus can add another model');
@@ -117,7 +119,7 @@ try{
   await page.locator('[data-cast-composition="alternating"]').click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
-  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true);
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'Composition hides when second model removed');
    assert.equal(await page.locator('[data-cast-composition="alternating"]').isDisabled(),true);
    // Saved Characters is a real source tab; one saved pack produces one person.
   await page.locator('#saved-character').click();
@@ -260,7 +262,7 @@ try{
   await page.locator('#editorial-flow').waitFor({state:'visible'});
   assert.equal(await page.locator('#panel-model').isVisible(),true,'Homepage CTA opens Identity directly');
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Homepage also opens with an empty cast');
-  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Composition preview visible without models');
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'Homepage has no inactive group composition');
   assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true,'Not selectable until two models');
   assert.equal(await page.locator('#editorial-hero').isVisible(),false,'No second arrival hero');
   assert.equal(new URL(page.url()).searchParams.has('start'),false,'Entry flag is consumed');
