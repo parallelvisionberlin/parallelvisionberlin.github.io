@@ -8,7 +8,12 @@
 - 19/19 focused tests passed: carousel gesture/cancellation/coast/keyboard, character invitation, approved Image UI contract. Syntax and diff checks passed.
 - Preview browser: desktop next control advances 235px. Phone iframe at 390px: 230px cards, overflow contained in 341px rail, touch-action auto, snap none, phone controls hidden.
 - Physical iPhone fling feel cannot be measured in this desktop browser. Native iOS momentum is delegated to Safari.
-- Source publication and exact Cloudflare/production verification pending.
+- Published PR #757: reviewed source `0ef31cc34a09d8c7df1e836f40e5e59c34dea9e8`; merged `e01b4e7b2ee35bc26860e9fde20b078d981a2263`.
+- Exact production Cloudflare check `124782887442` succeeded, deployment `79eafc4d-ce3a-44cb-a4ca-08c855099312`.
+- Homepage https://pvlab.studio/ returns both new versioned assets; HTTP 200 and exact reviewed bytes verified. CSS SHA-256 `f03b1f1cc53ac1949fd423ca51f442c91576fe575103d31b367f8d026507be70`; JS `5d911182d913a61869232a598f080e024e319c1a10bd8547b1ddc8052ba953ee`.
+- Release helper targets /studio, so homepage verification used the same version/hash checks explicitly at /. Live browser confirmed touch-action auto, scroll behavior auto, no snapping and eight portraits.
+- Approved Image, validation, account, gallery, focused tests and landing stability passed. Existing Moods-label unit/landing assertions and other unrelated browser checks also fail on baseline main; not weakened or changed.
+- Next: complete. Physical iPhone fling feel remains unmeasured; native Safari handles it.
 
 ## 2026-10-31 / homepage model photo to Identity
 - Owner request: keep the casting invitation; + opens a model-photo picker and proceeds to Full Editorial Identity with that photograph loaded.
