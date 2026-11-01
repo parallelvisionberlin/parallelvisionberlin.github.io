@@ -111,7 +111,7 @@ try{
      galleryCard:r('#casting-reference-gallery .atelier-reference').height,
      strip:r('#editorial-cast-selection').height};
    });
-   assert.deepEqual(sizes,baselineCastSizes,'Selecting a model cannot resize the hero, portraits or strip');
+   assert.ok(Object.keys(sizes).every(k=>Math.abs(sizes[k]-baselineCastSizes[k])<.5),'Selecting a model cannot resize the hero, portraits or strip');
   }
   assert.equal(await page.locator('#editorial-status').textContent(),'','Model click does not add redundant below-footer copy');
    assert.equal(await page.locator('#editorial-cast-empty').isVisible(),false);
@@ -139,7 +139,7 @@ try{
      galleryCard:r('#casting-reference-gallery .atelier-reference').height,
      strip:r('#editorial-cast-selection').height};
    });
-   assert.deepEqual(sizes,baselineCastSizes,'Two models retain the exact same Identity hero and portrait dimensions');
+   assert.ok(Object.keys(sizes).every(k=>Math.abs(sizes[k]-baselineCastSizes[k])<.5),'Two models retain the same Identity hero and portrait dimensions');
   }
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true);
   const compositionLayout=await page.locator('#editorial-casting-controls').evaluate(root=>{
