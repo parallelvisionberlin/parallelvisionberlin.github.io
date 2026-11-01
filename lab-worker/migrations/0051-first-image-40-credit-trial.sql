@@ -1,13 +1,15 @@
 -- PV LAB: narrowly scoped, one-image / 40-credit acquisition trial.
 -- The old 200-credit promotion and global unpaid pause stay disabled.
 -- Activation additionally requires LAB_IMAGE_TRIAL_ENABLED=true in the Worker.
--- The first deployment records a cohort start, never backfills old signups.
+-- Include campaign signups from 1 November 2026, 00:00 Berlin time,
+-- even if they registered before this migration deploys. Earlier signups
+-- and previous 200-credit receipts do not qualify. No bulk wallet credits.
 CREATE TABLE IF NOT EXISTS lab_image_trial_controls (
   id INTEGER PRIMARY KEY CHECK(id=1),
   started_at INTEGER NOT NULL
 );
 INSERT OR IGNORE INTO lab_image_trial_controls(id,started_at)
-VALUES(1,CAST(strftime('%s','now') AS INTEGER)*1000);
+VALUES(1,1793487600000);
 
 -- Existing welcome claims and hashed verified-email protections are reused.
 -- Old customer identities cannot start a new 40-credit trial.
