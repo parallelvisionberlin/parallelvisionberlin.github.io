@@ -1,4 +1,4 @@
-import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
+import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
 import {readProviderPolicyDetails,setProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1&closure=20261021-immediate1';
@@ -177,7 +177,7 @@ async function openPayment(path,body){
   paymentPending=true;const current=revision;status('Opening secure billing…');$('account-portal').disabled=true;
   try{
     const checkout=path.endsWith('/checkout');
-    const payload=checkout&&metaConsentGranted()?{...body,metaConsent:true}:body;
+    const payload=checkout&&metaConsentGranted()?{...body,metaConsent:true,...metaPixelIdentifiers()}:body;
     const data=await api(path,{method:'POST',body:payload});if(current!==revision)return;
     const destination=stripeDestination(data.url);
     // A short flush window prevents Stripe navigation interrupting Meta's browser request.
