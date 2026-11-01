@@ -131,6 +131,7 @@ try{
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true,'One model is not multi-cast');
    assert.equal(await page.locator('#step-next').isDisabled(),false,'One model can continue');
    if(width>800){
+    await page.waitForFunction(()=>getComputedStyle(document.querySelector('#step-next')).backgroundColor==='rgb(19, 20, 20)');
     const surface=await page.locator('#step-next').evaluate(el=>({
      background:getComputedStyle(el).backgroundColor,
      border:getComputedStyle(el).borderColor,
