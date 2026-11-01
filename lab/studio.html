@@ -1156,7 +1156,20 @@ document.addEventListener('click',event=>{
 <div id="video-feed-center" class="video-feed-center" hidden>
 </div>
 <aside id="video-inspector" class="video-inspector" hidden aria-label="Selected video information">
-  <div class="video-inspector-heading"><span>Scene details</span><span id="video-detail-status" class="video-detail-status">Ready</span></div>
+  <div class="video-inspector-heading"><span>Scene details</span><span id="video-detail-status" class="video-detail-status">Ready</span>
+  <details id="pv-video-scene-actions" class="pv-video-scene-actions" hidden>
+    <summary aria-label="Saved video actions" title="Saved video actions"><span aria-hidden="true">···</span></summary>
+    <div class="video-inspector-actions">
+      <button id="video-detail-watch" class="detail-primary" type="button">▹ View video</button>
+      <button id="video-detail-reuse" type="button">Reuse settings</button>
+      <button id="video-detail-download" type="button">Download</button>
+      <button id="video-detail-delete" type="button">Delete record</button>
+      <details id="video-detail-extra" class="detail-extra" hidden>
+        <summary>More actions</summary><div id="video-detail-extra-list" class="detail-extra-list"></div>
+      </details>
+    </div>
+  </details>
+</div>
   <div id="video-inspector-empty" class="video-inspector-empty pv-video-create-inspector">
   <span class="pv-video-sidebar-kicker">CURRENT SCENE</span>
   <button id="pv-video-scene-model" class="pv-video-scene-model" type="button" aria-label="Change current scene video model"><img src="./visuals/leather-editorial/hero-desktop.webp" alt="" width="58" height="58" loading="lazy"><span class="pv-video-scene-model-copy"><strong id="pv-video-current-model" class="pv-video-current-model">Video model</strong><small id="pv-video-current-model-description"></small></span><span aria-hidden="true">›</span></button>
@@ -1183,6 +1196,7 @@ document.addEventListener('click',event=>{
   <div id="video-inspector-selected" hidden>
     <div class="video-inspector-body">
       <span id="video-detail-model" class="video-detail-model"></span>
+      <h3 class="pv-video-dossier-label">Prompt</h3>
       <p id="video-detail-prompt" class="video-detail-prompt"></p>
       <button id="video-detail-prompt-toggle" class="video-detail-prompt-toggle" type="button" aria-controls="video-detail-prompt" aria-expanded="false" hidden>Show more</button>
       <section id="pv-video-detail-references" class="pv-video-detail-references" hidden aria-label="Video source references">
@@ -1195,15 +1209,6 @@ document.addEventListener('click',event=>{
         <div><dt><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="4.5" y="1.7" width="7" height="12.6" rx="1.3"/></svg><span>Aspect ratio</span></dt><dd id="video-detail-ratio"></dd></div>
       </dl>
       <p class="video-detail-created"><span id="video-detail-date"></span></p>
-    </div>
-    <div class="video-inspector-actions">
-      <button id="video-detail-watch" class="detail-primary" type="button">▹ View video</button>
-      <button id="video-detail-reuse" type="button">Reuse settings</button>
-      <button id="video-detail-download" type="button">Download</button>
-      <button id="video-detail-delete" type="button">Delete record</button>
-      <details id="video-detail-extra" class="detail-extra" hidden>
-        <summary>More actions</summary><div id="video-detail-extra-list" class="detail-extra-list"></div>
-      </details>
     </div>
   </div>
 </aside>
