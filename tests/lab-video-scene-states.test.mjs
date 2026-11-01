@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const file=name=>readFileSync(new URL('../lab/'+name,import.meta.url),'utf8');
-const html=file('studio.html'),app=file('lab.js'),js=file('video-scene-states.js'),css=file('video-scene-states.css');
+const html=file('studio.html'),app=file('lab.js'),js=file('video-scene-states.js'),css=file('video-scene-states.css'),detailCss=file('video-playback-focus.css');
 
 test('all four Video modes keep the production inputs and original two-frame interaction',()=>{
   for(const id of ['mode-text','mode-start','mode-reference','mode-extend',
@@ -96,4 +96,31 @@ test('live Scene details and empty-state illustration are not fake generated res
     'presentation never initiates generation, billing or private API access');
   assert.doesNotThrow(()=>new Function(js));
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
+});
+
+test('Saved result details use expandable prompts and verified metadata chips',()=>{
+  assert.match(html,/id="video-detail-prompt-toggle"[^>]*aria-controls="video-detail-prompt"[^>]*aria-expanded="false"[^>]*hidden/,
+    'prompt disclosure is a real accessible control, closed by default');
+  assert.match(app,/function syncVideoDetailPromptToggle\(\)/,
+    'disclosure is updated from actual overflow');
+  assert.match(app,/prompt\.scrollHeight>prompt\.clientHeight\+2/,
+    'short prompts do not get a meaningless expand button');
+  assert.match(app,/videoDetailPromptExpanded=!videoDetailPromptExpanded/,
+    'the Show more control toggles existing saved text');
+  assert.match(app,/if\(promptKey!==videoDetailPromptKey\)/,
+    'selecting another saved video resets expansion');
+  assert.match(detailCss,/video-detail-prompt:not\(\.is-expanded\)/,
+    'saved prompts are visually shortened without truncating their source');
+  assert.match(detailCss,/max-height:7\.75em/,
+    'the collapsed prompt uses approximately five lines');
+  for(const id of ['video-detail-resolution','video-detail-duration','video-detail-ratio']){
+    assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,
+      'the existing saved-video data field remains uniquely bound: '+id);
+  }
+  assert.match(detailCss,/video-detail-data>div/,
+    'metadata is rendered as small chips');
+  assert.match(html,/class="video-detail-created"/,
+    'the original saved date remains accessible at the foot of the details');
+  assert.doesNotMatch(detailCss,/\/api\/jobs|creditCost|confirm:true/,
+    'presentation changes cannot generate or bill');
 });
