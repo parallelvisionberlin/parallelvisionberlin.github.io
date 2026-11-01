@@ -74,7 +74,7 @@ try{
    assert.equal(await page.locator('.editorial-flow-rail').isVisible(),false,'Mobile removes duplicate step rail');
    assert.equal(await page.locator('#panel-model .stage-index').isVisible(),true,'Step label remains inside the photograph');
   }
-  await page.locator('#step-back').click();
+  await page.locator(width>800?'#editorial-top-back':'#step-back').click();
   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Back returns from Identity to hero');
   assert.equal(await page.locator('#editorial-flow').isVisible(),false);
   await page.locator('#editorial-start').click();
@@ -95,9 +95,12 @@ try{
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true);
-  assert.equal(await page.locator('#editorial-photograph-together').isChecked(),true,'Together is enabled by default');
-  await page.locator('#editorial-photograph-together').uncheck();
-  assert.equal(await page.locator('#editorial-photograph-together').isChecked(),false);
+  assert.equal(await page.locator('[data-cast-composition="mixed"]').getAttribute('aria-pressed'),'true','Mixed editorial is the default');
+  await page.locator('[data-cast-composition="alternating"]').click();
+  assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true');
+  await page.locator('[data-cast-composition="together"]').click();
+  assert.equal(await page.locator('[data-cast-composition="together"]').getAttribute('aria-pressed'),'true');
+  await page.locator('[data-cast-composition="alternating"]').click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false);
@@ -106,7 +109,7 @@ try{
   await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
   await page.locator('#saved-character-gallery .editorial-saved-cast').first().click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
-  assert.equal(await page.locator('#editorial-photograph-together').isChecked(),false,'Composition choice survives changes to the cast');
+  assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true','Composition choice survives changes to the cast');
   await page.getByRole('button',{name:'Remove Test Actor'}).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
   await page.locator('[data-source-view="casting"]').click();
