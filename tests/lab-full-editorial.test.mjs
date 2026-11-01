@@ -129,7 +129,7 @@ test('Multi-model composition is not a dead control for single-model users',()=>
 test('Styling matches Identity rhythm while keeping real wardrobe references and direction',()=>{
  const stage=html.slice(html.indexOf('id="panel-style"'),html.indexOf('id="panel-mood"'));
  const styleCss=read('lab/full-editorial-atelier.css');
- assert.match(html,/full-editorial-atelier\.css\?v=20261101-styling-parity1/);
+ assert.match(html,/full-editorial-atelier\.css\?v=20261101-composition-185px1/);
  assert.match(stage,/class="atelier-section-top editorial-styling-top"/);
  assert.match(stage,/id="outfit-gallery"/);
  assert.match(stage,/id="outfit-files"/);
@@ -141,4 +141,16 @@ test('Styling matches Identity rhythm while keeping real wardrobe references and
  assert.match(styleCss,/#panel-style \.atelier-look\{[\s\S]*?height:clamp\(300px,36svh,350px\)/);
  assert.match(styleCss,/:has\(#panel-style:not\(\[hidden\]\)\) #step-footer/);
  assert.match(styleCss,/#panel-model \.atelier-cast-gallery \.atelier-reference/,'Casting card height changed without modifying Identity data');
+});
+
+test('Campaign composition portraits have the approved 185px fashion-editorial treatment',()=>{
+ const c=read('lab/full-editorial-atelier.css');
+ const options=html.match(/data-cast-composition="(?:mixed|alternating|together)"/g)||[];
+ assert.equal(options.length,3,'The existing three composition actions remain unchanged');
+ assert.match(c,/PVLAB_EDITORIAL_COMPOSITION_185PX_20261101/);
+ assert.match(c,/height:185px;min-height:185px/,'All three desktop choices have the full 185px height');
+ assert.match(c,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/,'Desktop keeps three equal columns');
+ assert.match(c,/brightness\(\.83\) saturate\(\.82\)/,'Photography is visibly brighter');
+ assert.match(c,/\.editorial-composition-option::after/,'Gradient remains readable over photography');
+ assert.match(c,/height:172px;min-height:172px/,'The mobile carousel maintains a comfortable card height');
 });
