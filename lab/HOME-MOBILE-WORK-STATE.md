@@ -7,7 +7,12 @@
 - Center the existing still and film on phones to match the approved focal point; top/bottom shading follows the separated text blocks. Desktop/tablet composition remains unchanged.
 - Files: lab/home-creative-features.css, lab/index.html (stylesheet version only), this checkpoint.
 - Cache: 20261101-editorial-phone-composition1.
-- Validation: approved Image UI 5/5; 320/390/680px browser checks show no overflow and CTA within the section; 1200px metrics match baseline. Source HTML changes only the cache version. Production verification pending.
+- Validation: approved Image UI 5/5; homepage stability and static CI pass. Temporary 320/390/680px browser checks show no overflow and CTA within the section; 1200px metrics match baseline. Source HTML changes only the cache version.
+- PR #759 merged as 29fe41ec7aef77642a95f8d47083ad3d3b05e0e8, preserving concurrent invitation spacing. Latest deployed descendant 0237e4b637d77a9009de7df045b84a4ab4e34d68 changes only this checkpoint afterward.
+- Cloudflare pvlab-studio check 124785701836 succeeded; deployment dd561c84-f50b-43b2-a402-c44e635bbfa0.
+- Production DOM/CSS confirms 20261101-editorial-phone-composition1, the complete <=680px grid/centered film rules, unchanged CTA and original muted looping video. Desktop remains flex, 539px stage at 1363px; no horizontal overflow.
+- No separate real phone production session inspected; widths above were isolated section fixtures. Shared preview was subsequently used by another task, so it was left untouched.
+- Existing unrelated Moods-label and Video Extend CI failures were inspected; no gates changed. No paid generation. Request complete.
 
 ## Invitation mobile breathing room, 2026-11-01
 - Owner reports the referral section feels boxed in on phone while desktop works well.
