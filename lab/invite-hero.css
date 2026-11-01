@@ -17,13 +17,16 @@
  #pricing + .lab-invite-promo > .lab-invite-promo__inner{grid-template-columns:minmax(0,1fr) 240px;column-gap:24px}
 }
 @media(max-width:720px){
- #pricing + .lab-invite-promo{height:auto;min-height:0;padding:32px 24px;background-position:75% center;background-size:cover}
+ #pricing + .lab-invite-promo{height:auto;min-height:500px;padding:52px 24px 44px;background-position:75% center;background-size:cover}
  #pricing + .lab-invite-promo::after{background:linear-gradient(90deg,#080b0deb,#080b0d99 60%,#080b0d40),linear-gradient(0deg,#080b0df5 0%,#080b0da6 45%,transparent)}
- #pricing + .lab-invite-promo > .lab-invite-promo__inner{grid-template-columns:minmax(0,1fr);row-gap:24px;min-height:0;height:auto}
+ #pricing + .lab-invite-promo > .lab-invite-promo__inner{grid-template-columns:minmax(0,1fr);row-gap:36px;min-height:0;height:auto}
  #pricing + .lab-invite-promo .lab-invite-promo__copy{padding:0}
- #pricing + .lab-invite-promo h2{font-size:clamp(36px,8vw,48px);margin-bottom:18px}
- #pricing + .lab-invite-promo .lab-invite-promo__description{margin-top:0;font-size:15px;max-width:410px}
- #pricing + .lab-invite-promo .lab-invite-promo__actions{width:100%;max-width:320px;margin-bottom:0}
+ #pricing + .lab-invite-promo .lab-invite-promo__eyebrow{margin-bottom:24px}
+ #pricing + .lab-invite-promo h2{font-size:clamp(42px,10.5vw,54px);max-width:8ch;margin-bottom:24px;text-wrap:initial}
+ #pricing + .lab-invite-promo .lab-invite-promo__description{margin-top:0;font-size:16px;max-width:30ch}
+ #pricing + .lab-invite-promo .lab-invite-promo__actions{width:100%;max-width:none;margin-bottom:0;gap:16px}
+ #pricing + .lab-invite-promo .lab-invite-promo__cta{align-self:flex-start;width:auto;max-width:100%;min-width:min(240px,100%);padding-inline:28px}
+ #pricing + .lab-invite-promo .lab-invite-promo__fineprint{max-width:34ch}
 }
 @media(max-width:390px){
  #pricing + .lab-invite-promo{padding-inline:20px}
