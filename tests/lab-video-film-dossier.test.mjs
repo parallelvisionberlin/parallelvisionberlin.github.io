@@ -108,7 +108,7 @@ test('Video composer fits laptop height without forcing an unnecessary scrollbar
     'desktop controls do not show a persistent scrollbar rail');
   assert.match(css,/overflow-y:auto!important/,
     'smaller windows and populated reference lists can still scroll');
-  assert.match(html,/video-film-dossier\.css\?v=20261101-compact-deck1/,
+  assert.match(html,/video-film-dossier\.css\?v=20261101-scene-utilities1/,
     'the browser gets an updated stylesheet URL');
 });
 
