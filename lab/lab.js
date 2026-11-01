@@ -4928,7 +4928,7 @@ function updateHistoryPagination(){
   // The desktop Video filmstrip is horizontally scrollable but Load earlier
   // lives below it. Auto-observing that always-visible button would fetch the
   // entire private library in a loop. The button remains available manually.
-  const desktopVideoFilmstrip=tool==='video'&&!assetLibrary?.active()&&window.matchMedia('(min-width:821px)').matches;
+  const desktopVideoFilmstrip=tool==='video'&&!assetLibrary?.active()&&window.matchMedia?.('(min-width:821px)')?.matches===true;
   if(owner&&next&&!historyLoading&&!historyAutoLoadPaused&&!desktopVideoFilmstrip){
     // Other galleries keep the existing lazy pagination behavior.
     historyPaginationFrame=requestAnimationFrame(()=>historyPageObserver.observe(more));
