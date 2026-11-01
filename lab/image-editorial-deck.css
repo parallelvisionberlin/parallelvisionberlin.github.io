@@ -160,8 +160,8 @@ html:not(.pv-native-lab) #app.image-studio-active #image-composer.pv-editorial-d
   }
   html:not(.pv-native-lab) #app.image-studio-active
     #image-composer.pv-editorial-deck:not(.is-pv-soul) #image-composer-prompt{
-    font-size:15.5px!important;
-    line-height:1.48!important;
+    font-size:14px!important;
+    line-height:1.53!important;
   }
   html:not(.pv-native-lab) #app.image-studio-active
     #image-composer.pv-editorial-deck:not(.is-pv-soul):not(.is-text-only):has(#image-composer-references:not([hidden]) .composer-reference-tile)
