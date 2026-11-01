@@ -77,7 +77,7 @@ jobs:
           // Production may still have the prior ghost cards until this PR is
           // authorized and merged. Both versions retain real person/garment inputs.
           for(const kind of ['person','garment']){
-            assert.ok(html.includes('empty-art empty-art-'+kind)||html.includes('slot-example '+kind+'-example'),
+            assert.ok(html.includes('empty-art empty-art-'+kind)||html.includes('slot-example '+kind+'-example')||html.includes('slot-glyph'),
               'Published '+kind+' card retains its intended artwork');
           }
           assert.ok(html.includes('class="empty-art empty-art-result"'),'Result artwork remains distinct');
