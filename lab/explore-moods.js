@@ -134,7 +134,7 @@ function initialize(){
   }
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?hkRealPhotos=20261018v2&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?hkRealPhotos=20261018v2&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&trialBalance=20261102').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{
@@ -149,7 +149,7 @@ function initialize(){
     }).catch(error=>{serviceLoading=null;throw error;}));
   }
   function hasGenerationInput(){return !!mood&&!!file;}
-  const accessCodes=new Set(['TRIAL_PAUSED','ACCOUNT_REVIEW','BILLING_REVIEW','ACCOUNT_CLOSED','GENERATION_UNAVAILABLE']);
+  const accessCodes=new Set(['TRIAL_PAUSED','INSUFFICIENT_CREDITS','ACCOUNT_REVIEW','BILLING_REVIEW','ACCOUNT_CLOSED','GENERATION_UNAVAILABLE']);
   function clearAccessNotice(){
     blockedCode=null;
     dialog.classList.remove('is-generation-blocked');
@@ -164,7 +164,7 @@ function initialize(){
     dialog.classList.add('is-generation-blocked');
     status.classList.add('is-access-notice');
     status.textContent=error.message;
-    const payment=error.code==='TRIAL_PAUSED';
+    const payment=error.code==='TRIAL_PAUSED'||error.code==='INSUFFICIENT_CREDITS';
     const support=error.code==='ACCOUNT_REVIEW'||error.code==='BILLING_REVIEW';
     accessAction.hidden=!(payment||support);
     if(payment){
