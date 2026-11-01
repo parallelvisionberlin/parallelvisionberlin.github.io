@@ -641,9 +641,9 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
  #panel-model .editorial-model-extra-thumb img{width:29px;height:42px;border-radius:3px}
  #panel-model .editorial-model-extra-thumb button{border-radius:50%}
  #panel-model .editorial-add-view{
-  position:static;min-height:29px;width:29px;margin:0;
-  padding:0;border-radius:50%;font-size:16px;font-weight:400;
-  opacity:0;transition:opacity .15s;background:#1e1f21
+  position:absolute;bottom:-3px;left:-4px;min-height:23px;width:23px;
+  margin:0;padding:0;border-radius:50%;font-size:16px;font-weight:400;
+  opacity:0;z-index:4;transition:opacity .15s;background:#1e1f21
  }
  #panel-model .editorial-model-card:hover .editorial-add-view,
  #panel-model .editorial-model-card:focus-within .editorial-add-view{opacity:1}
