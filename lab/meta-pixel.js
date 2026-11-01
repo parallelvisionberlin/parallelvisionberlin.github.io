@@ -69,16 +69,9 @@ function showChoices() {
     if (button.dataset.choice === 'granted') button.style.cssText+=';background:#f0f0ec;color:#171819';
     button.addEventListener('click', () => applyChoice(button.dataset.choice));
   }
-  // The campaign opens a native Mood dialog. Insert consent inside it so it
-  // remains clickable in the top layer, without obstructing upload or Generate.
-  const landing=isLabCampaignLanding(location.pathname,location.hostname,location.search);
-  const body=landing?document.querySelector('#mc-look-dialog .mc-look-dialog-body'):null;
-  if(body){
-    dialog.classList.add('pv-campaign-consent');
-    dialog.removeAttribute('style');
-    dialog.querySelectorAll('p, div, button, a').forEach(element=>element.removeAttribute('style'));
-    body.insertBefore(dialog,body.querySelector('#mc-look-result'));
-  }else document.body.append(dialog);
+  // Consent choices are shown only when the visitor explicitly opens Privacy choices.
+  // Never inject a consent panel into the Mood editor or over its controls.
+  document.body.append(dialog);
 }
 export function isLabMarketingLanding(pathname, hostname) {
   const host = String(hostname || '').toLowerCase();
@@ -94,9 +87,8 @@ export function isLabCampaignLanding(pathname,hostname,search='') {
 }
 function init() {
   if (choice === 'granted') bootPixel();
-  // The old /lab/ path and standalone pvlab.studio / are marketing entry points.
-  // Ask once there, never cover Studio controls or consent by default.
-  else if (!choice && (isLabMarketingLanding(location.pathname, location.hostname) || isLabCampaignLanding(location.pathname, location.hostname, location.search))) showChoices();
+  // No automatic consent banner on marketing pages, campaigns or the Studio.
+  // Privacy choices below is the persistent, visitor-initiated opt-in/out control.
   // A lasting preference control permits changing consent later, including withdrawing it.
   const anchor = document.querySelector('.pv-lab-footer__group[aria-label="Legal"]') || document.querySelector('footer nav') || document.querySelector('footer');
   const preferences = document.createElement('button');
