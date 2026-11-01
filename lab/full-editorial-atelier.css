@@ -816,3 +816,11 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
  margin:0 0 0 3px!important;padding:0!important;min-width:24px!important;min-height:30px!important;
  align-self:center!important;z-index:1!important;
 }
+
+/* Topmost controls belong to their photographs, never the adjacent add-view.
+   This explicitly prevents an invisible hover + from taking their pointer events. */
+#panel-model .editorial-model-cover{position:relative;z-index:30!important}
+#panel-model .editorial-model-extra{position:relative;z-index:40!important}
+#panel-model .editorial-model-extra-thumb{position:relative;z-index:41!important}
+#panel-model .editorial-model-extra-thumb button{z-index:42!important}
+#panel-model .editorial-model-card.thumb .editorial-add-view{z-index:0!important}
