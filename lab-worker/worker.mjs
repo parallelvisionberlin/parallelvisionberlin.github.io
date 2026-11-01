@@ -1400,7 +1400,7 @@ async function route(request,env,ctx) {
     // Only an enabled welcome campaign needs Clerk email verification before
     // returning /api/session. Contact sync remains independent of free gifts:
     // paused campaigns still refresh verified emails without delaying login.
-    if(env.LAB_WELCOME_CREDITS_ENABLED==='true'){
+    if(env.LAB_WELCOME_CREDITS_ENABLED==='true'||env.LAB_IMAGE_TRIAL_ENABLED==='true'){
       const granted=await first(env,"SELECT 1 AS ok FROM lab_credit_entries WHERE customer_id=? AND reference=?",owner,'welcome:'+owner);
       if(!granted)await syncCustomerEmail(env,owner).catch(()=>false);
       else if(ctx?.waitUntil)ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
