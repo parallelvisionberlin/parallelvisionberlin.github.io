@@ -335,9 +335,9 @@ function editorialShotPlan(index,total,references,base){
  const other=references.filter(r=>r.role!=='identity');
  const cast=modelGroups.length>1;
  const grouped=modelGroups.map(group=>references.filter(r=>r.role==='identity'&&r.groupId===group.id));
- const first=index%grouped.length,groupShot=cast&&(castComposition==='together'||(castComposition==='mixed'&&index%4===2));
- const selected=groupShot?(castComposition==='together'?grouped.flat():[...grouped[first],...grouped[(first+1)%grouped.length]]):grouped[first];
- const groupSize=castComposition==='together'?grouped.length:2;
+ const first=index%grouped.length,groupShot=cast&&(castComposition==='together'||(castComposition==='mixed'&&index%4===3));
+ const selected=groupShot?grouped.flat():grouped[first];
+ const groupSize=grouped.length;
  const personInstruction=cast?(groupShot
   ?'Exactly '+groupSize+' distinct adult models appear together in the same coherent photograph. Each model may have multiple reference views. Preserve each individual identity without blending, adding, or swapping faces.'
   :'Exactly one adult model appears using all selected views of the same person. No second figure or blended facial features.')
