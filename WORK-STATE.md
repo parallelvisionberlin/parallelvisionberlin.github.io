@@ -141,3 +141,17 @@ Repository: parallelvisionberlin/parallelvisionberlin.github.io
 - Use native Library download links if sandbox ZIP fails; do not invent an unverified cause. Carousel is unchanged by the homepage task.
 - Animation slots remain in artist hero, release hero and story backdrop; preserve posters and reading overlay.
 - No verified listening/purchase/presave URLs supplied. No publication blocker remains. Next: owner supplies animation clips and listening links.
+
+## Estero / Siento purchase-link verification, 2026-11-02
+- Objective: connect the existing release page and homepage feature to an official, verified Beatport purchase/preorder destination without altering the approved editorial design.
+- Source baseline inspected: main `8c149f2fcb2a33b7705dca1e0cc56e666cf1080a`; `siento.html` blob `fd69267a8f100f62aa8a8a11dd979c958337d33e`, `index.html` blob `c7227aaad5d5a5637b03cb3bd8237da8521ff4c8`.
+- Authenticated Symphonic release overview inspected: release 3605028, Approved; Siento, primary artist Estero, songwriter Andrés Zendejas, label Parallel Vision, catalog PV016, UPC 708208396092, ISRC QZWDE2643267.
+- Beatport partner status is Delivered; displayed delivery timestamp 2026-10-27 18:43:47 (timezone not specified by the UI). Delivery does not verify a live listing, preorder or purchase availability.
+- Symphonic overview and its linked listening page show general release 2026-11-20. The visible overview timeline does not separately show the planned 2026-11-06 Beatport date; this check does not establish that the early date is configured or missing elsewhere.
+- No Beatport destination was exposed in either inspected distributor page. The listening page is a promotional player, not a purchase destination.
+- Public web searches for Estero/Siento, PV016 and UPC did not identify a verified matching Beatport purchase/preorder listing. Direct Beatport catalog inspection was blocked by a persistent browser security challenge after one reload; no bypass attempted.
+- Existing page dates preserved: Beatport 6 November 2026; all platforms 20 November 2026. Artwork, biography, manifesto, article copy and layout unchanged.
+- No storefront URL invented; no purchase CTA, Smart Link or availability claim published. No frontend files changed and no new desktop/mobile CTA behavior exists to test.
+- Homepage feature currently keeps its cover and Read the story action pointing to `./siento.html#release`.
+- Once a matching official destination is verified against artist, label, catalog and date, add a discreet text-only action near the release facts and a secondary homepage action while retaining Read the story. Use preorder wording only for a verified preorder; buy wording only for verified purchase availability.
+- Exact next action: obtain the official Beatport release/preorder URL and verify the 6 November early date through Symphonic or Beatport; then implement and check phone first, desktop second. Do not edit or pull back the approved distributor release merely to inspect it.
