@@ -4855,6 +4855,17 @@ function renderCards(jobs,{upsert=false}={}){
       quickDownload.onclick=event=>{event.preventDefault();event.stopPropagation();if(!historySelectMode)void viewMedia(()=>downloadJob(j));};
       card.append(quickDownload);
     }
+    if(!image&&ready){
+      const seconds=Number(j.settings?.duration);
+      if(Number.isFinite(seconds)&&seconds>0){
+        const duration=document.createElement('span');
+        duration.className='pv-film-duration';
+        const whole=Math.round(seconds);
+        duration.textContent=Math.floor(whole/60)+':'+String(whole%60).padStart(2,'0');
+        duration.title='Requested duration: '+seconds+' seconds';
+        card.append(duration);
+      }
+    }
     const body=document.createElement('div');body.className='cardbody';
     const meta=document.createElement('div');meta.className='cardmeta';
     const imageLabel=image?(j.settings.mode==='upscale'?'UPSCALE':j.settings.mode==='soul-id-training'?'SOUL ID TRAINING':j.settings.mode==='reinterpret'?'IMAGE · REINTERPRET':'IMAGE'):j.settings.engine==='video-upscale'?'VIDEO UPSCALE / '+({bytedance:'ByteDance Standard',proteus:'Topaz Proteus',starlight:'Topaz Starlight'}[j.settings.videoUpscaleEngine]||'Video')+' / '+j.settings.duration+'s':videoLabel(j.settings)+' / '+j.settings.duration+'s';
