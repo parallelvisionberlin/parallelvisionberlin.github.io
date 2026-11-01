@@ -97,7 +97,7 @@ try{
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true);
   assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected');
   assert.equal(await page.locator('#editorial-footer-cast img').count(),2,'Footer shows the selected models');
-  assert.equal(await page.locator('#editorial-footer-add').isVisible(),true,'Footer plus can add another model');
+  assert.equal(await page.locator('.editorial-footer-add').isVisible(),true,'Footer plus can add another model');
   assert.equal(await page.locator('[data-cast-composition="mixed"]').getAttribute('aria-pressed'),'true','Mixed editorial is the default');
   await page.locator('[data-cast-composition="alternating"]').click();
   assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true');
