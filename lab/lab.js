@@ -3639,8 +3639,8 @@ async function poll(){
        if(show&&hasResult(chosen))await openVideo(chosen,{scroll:false,justFinished:chosen.settings?.mode==='upscale'});
       const ready=finished.filter(hasResult).length,failed=finished.filter(j=>j.status==='failed');
       if(failed.length)notify(isContentRestriction(failed[0].error)?'This model declined the request under its content guidelines. Your prompt is saved in History. Edit it or explore another model.':'Generation failed: '+(failed.length>1?failed.length+' jobs failed. ':'')+(failed[0].error||'The provider did not return an image. Check History.'),true);
-      else if(ready)notify(ready===1?'Result saved. View or download it from History.':ready+' results saved. View or download them from History.');
-      else notify(isContentRestriction(finished[0].error)?'This model declined the request under its content guidelines. Edit the prompt or choose another model in History.':finished[0].error||'No output file was returned. Nothing is available to download.',true);
+      // Successful results are already available in the viewer and History; avoid a redundant toast.
+      else if(!ready)notify(isContentRestriction(finished[0].error)?'This model declined the request under its content guidelines. Edit the prompt or choose another model in History.':finished[0].error||'No output file was returned. Nothing is available to download.',true);
     }
     if(error)notify(error.message,true);
   }catch(e){if(owner&&startedEpoch===epoch)notify(e.message,true);}
