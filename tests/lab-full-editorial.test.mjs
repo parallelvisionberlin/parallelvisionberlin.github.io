@@ -68,9 +68,13 @@ test('Atelier references remain real and the creative steps feed real generation
  assert.match(js,/function updateSeriesSummary/);
  assert.match(js,/selectedDirections=\{location:null,moods:null,material:null\}/);
  assert.match(js,/const moodText=Object\.entries\(selectedDirections\)/);
- assert.match(html,/id="editorial-cast-mode"/);
- assert.match(html,/id="editorial-cast-composition-select"/);
- assert.match(js,/effectiveCastMode/);
+ assert.match(html,/id="model-drop" class="editorial-own-cast"/,'First casting slot is the upload card');
+ assert.match(html,/id="saved-character-gallery"/,'Saved characters are available inline');
+ assert.match(html,/id="editorial-photograph-together"/,'Two-model composition is one clear toggle');
+ assert.doesNotMatch(html,/id="editorial-cast-mode"/,'Old identity dropdown is removed');
+ assert.match(js,/function createModelGroup/,'Additional photos are grouped per model');
+ assert.match(js,/function addSavedCharacter/,'Saved Character packs can join the cast');
+ assert.match(js,/groupId===group.id/,'Shot references stay assigned to their person');
  assert.match(html,/Generate starts the set at the credit cost shown below/);
  assert.match(html,/full-editorial-atelier\.css/);
  assert.match(html,/id="editorial-mobile-menu"/);
