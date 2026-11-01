@@ -43,12 +43,18 @@ let modelGroups=[],modelGroupSerial=0,modelUploadTarget=null,charactersLoadSeque
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
 function renderCastingControls(){
- const region=$('editorial-casting-controls');region.hidden=modelGroups.length<2;
+ const ready=modelGroups.length>=2;
+ const region=$('editorial-casting-controls');
+ region.hidden=false;region.classList.toggle('is-awaiting-cast',!ready);
  for(const button of document.querySelectorAll('[data-cast-composition]')){
-  const active=button.dataset.castComposition===castComposition;
-  button.classList.toggle('is-selected',active);button.setAttribute('aria-pressed',String(active));
+  const active=ready&&button.dataset.castComposition===castComposition;
+  button.disabled=!ready;
+  button.classList.toggle('is-selected',active);
+  button.setAttribute('aria-pressed',String(active));
  }
- $('editorial-cast-summary').textContent=modelGroups.length<2?'':modelGroups.length+' models selected · '+({mixed:'Solo + together',alternating:'Individual portraits',together:'Together in every photograph'}[castComposition]);
+ $('editorial-cast-summary').textContent=!ready
+  ? modelGroups.length===1?'Add one more model to choose how they appear together.':'Select two or more models to choose how they appear together.'
+  : modelGroups.length+' models selected · '+({mixed:'Solo + together',alternating:'Individual portraits',together:'Together in every photograph'}[castComposition]);
 }
 function renderIdentityFooter(){
  const footer=$('editorial-footer-cast');footer.hidden=step!==1;
@@ -145,7 +151,9 @@ function updateOptions(){for(const b of $('count-options').querySelectorAll('but
 function refreshSliderLabels(){for(const [input,id] of [['garment-guide','garment-value'],['mood-guide','mood-value']])$(id).value=$(input).value+'%'}
 function renderModelGroups(){
  const box=$('model-thumbs');box.replaceChildren();
- $('editorial-cast-selection').hidden=modelGroups.length===0;
+ $('editorial-cast-selection').hidden=false;
+ $('editorial-cast-empty').hidden=modelGroups.length>0;
+ $('model-selection-heading').hidden=modelGroups.length===0;
  $('model-selection-count').textContent=modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' selected';
  for(const [index,group] of modelGroups.entries()){
   const card=document.createElement('article');card.className='editorial-model-card thumb';card.title=group.name;
