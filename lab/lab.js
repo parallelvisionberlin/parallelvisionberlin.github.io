@@ -2659,6 +2659,34 @@ function syncVideoDetailPromptToggle(){
   toggle.textContent=videoDetailPromptExpanded?'Show less':'Show more';
   toggle.setAttribute('aria-expanded',String(videoDetailPromptExpanded));
 }
+// Display the aspect of the actual saved file when its dimensions are known.
+// An "auto" generation setting alone does not describe a finished portrait film.
+function displaySavedVideoRatio(job){
+  const video=$('video');
+  let width=0,height=0;
+  if(job?.outputId&&resultId===job.outputId&&video?.videoWidth>0&&video?.videoHeight>0){
+    width=video.videoWidth;height=video.videoHeight;
+  }else{
+    const geometry=job?.settings?.galleryDimensions;
+    if(geometry?.assetId===job?.outputId&&geometry.width>0&&geometry.height>0){
+      width=geometry.width;height=geometry.height;
+    }
+  }
+  if(width>0&&height>0){
+    const actual=width/height;
+    const common=[[16,9],[9,16],[1,1],[4,3],[3,4],[3,2],[2,3],[21,9]];
+    let closest=null,difference=Infinity;
+    for(const [w,h] of common){
+      const error=Math.abs(Math.log(actual/(w/h)));
+      if(error<difference){closest=w+':'+h;difference=error;}
+    }
+    if(difference<0.045)return closest;
+    const gcd=(a,b)=>b?gcd(b,a%b):a;
+    const divisor=gcd(Math.round(width),Math.round(height));
+    return Math.round(width)/divisor+':'+Math.round(height)/divisor;
+  }
+  return String(job?.settings?.aspectRatio||'Source');
+}
 function updateVideoInspector(job){
   if(!videoInspector)return;
   const isSelected=tool==='video'&&!!job;
@@ -2703,7 +2731,7 @@ function updateVideoInspector(job){
   const seconds=Number(settings.duration);
   $('video-detail-duration').textContent=Number.isFinite(seconds)&&seconds>0?seconds.toFixed(1)+'s':'Not set';
   $('video-detail-resolution').textContent=String(settings.resolution||'Not set').toLowerCase();
-  $('video-detail-ratio').textContent=String(settings.aspectRatio||'Source');
+  $('video-detail-ratio').textContent=displaySavedVideoRatio(job);
   $('video-detail-date').textContent=detailDate(job.createdAt);
   requestAnimationFrame(()=>{
     if(selectedVideoJob?.id===job.id&&videoDetailPromptKey===promptKey)syncVideoDetailPromptToggle();
@@ -2821,6 +2849,10 @@ $('pv-video-history-back').onclick=()=>{
   clearVideoHistorySelection({suppressAuto:true});
   videoFeedCenter.scrollTo({top:0,behavior:'instant'});
 };
+$('video').addEventListener('loadedmetadata',()=>{
+  if(tool!=='video'||!selectedVideoJob||resultId!==selectedVideoJob.outputId)return;
+  $('video-detail-ratio').textContent=displaySavedVideoRatio(selectedVideoJob);
+});
 $('video-detail-prompt-toggle').onclick=()=>{
   if(!selectedVideoJob)return;
   videoDetailPromptExpanded=!videoDetailPromptExpanded;
