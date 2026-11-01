@@ -24,7 +24,7 @@ test('Cinema restores the formerly hidden center only for active jobs',()=>{
     'older layout hid the central progress surface');
   assert.match(css,/\.video-job-stage:is\(\[data-phase="submitting"\],\[data-phase="queued"\],\[data-phase="running"\],\[data-phase="saving"\]\) \.video-job-stage-main\{[\s\S]*?clip-path:none!important/,
     'the newer layer restores the meaningful status for active work');
-  assert.match(css,/ #video-job-stage-title\\{/, 'real generated-status heading is styled by ID');
+  assert.match(css,/ #video-job-stage-title\{/, 'real generated-status heading is styled by ID');
   assert.match(css,/\.video-job-stage \.pv-motion-visual\{\s*display:none/,
     'the artwork is hidden for failures and saved media');
   assert.match(css,/\.video-job-stage:is\(\[data-phase="submitting"\],\[data-phase="queued"\],\[data-phase="running"\],\[data-phase="saving"\]\) \.pv-motion-visual/,
