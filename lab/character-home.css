@@ -9,7 +9,7 @@
 .lab-character-home__heading{font-family:'PV Casting Display',Impact,'Arial Narrow',sans-serif;font-size:clamp(35px,4.25vw,68px);font-weight:400;line-height:1.02;letter-spacing:-.025em;text-transform:uppercase;margin:20px 0 12px;max-width:1200px}
 .lab-character-home__heading span{display:block}
 .lab-character-home__description{font-size:clamp(17px,1.4vw,23px);font-weight:500;line-height:1.35;letter-spacing:.025em;color:#deded5;margin:0 0 26px}
-.lab-character-home__rail{display:flex;gap:10px;min-width:0;align-items:stretch;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:none;scrollbar-width:none;-ms-overflow-style:none;padding:3px;margin:-3px -3px 0;cursor:grab;touch-action:pan-y pinch-zoom}
+.lab-character-home__rail{display:flex;gap:10px;min-width:0;align-items:stretch;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:none;scroll-behavior:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;padding:3px;margin:-3px -3px 0;cursor:grab;touch-action:auto}
 .lab-character-home__rail::-webkit-scrollbar{display:none;width:0;height:0}
 .lab-character-home__carousel{position:relative}
 .lab-character-home__rail:focus-visible{outline:1px solid #bdbeb9;outline-offset:5px}

@@ -1,3 +1,15 @@
+## 2026-11-01 / mobile carousel native momentum
+- Owner reports sticky/slow character browsing on iPhone; restore fast inertial swiping.
+- Baseline main: `bba094e`. Branch: `fix/characters-mobile-momentum`.
+- `character-home.css`: native touch panning, explicit nonanimated scroll writes, iOS momentum, no snapping.
+- `character-home-carousel.js`: custom drag/coast handles mouse only; touch/pen remain native, including gestures starting on creation buttons.
+- Existing cards, size, imagery, copy, upload flow, desktop controls and mouse momentum preserved.
+- Both homepage asset references use `20261101-native-momentum1`.
+- 19/19 focused tests passed: carousel gesture/cancellation/coast/keyboard, character invitation, approved Image UI contract. Syntax and diff checks passed.
+- Preview browser: desktop next control advances 235px. Phone iframe at 390px: 230px cards, overflow contained in 341px rail, touch-action auto, snap none, phone controls hidden.
+- Physical iPhone fling feel cannot be measured in this desktop browser. Native iOS momentum is delegated to Safari.
+- Source publication and exact Cloudflare/production verification pending.
+
 ## 2026-10-31 / homepage model photo to Identity
 - Owner request: keep the casting invitation; + opens a model-photo picker and proceeds to Full Editorial Identity with that photograph loaded.
 - Baseline main: `0736757f656e32d3cf9a10a2d41802d1de7ea382`. Isolated branch `fix/home-model-upload-20261031`.

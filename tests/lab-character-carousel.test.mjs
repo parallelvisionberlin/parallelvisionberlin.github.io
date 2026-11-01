@@ -11,11 +11,24 @@ function setup(reduced=false){
  const section={querySelector:s=>s.includes('__rail')?track:s.includes('prev')?prev:next,addEventListener:(t,f)=>sectionHandlers.set(t,f)};
  const context={document:{querySelectorAll:()=>[section],addEventListener(){}},window:{addEventListener(){}},matchMedia:()=>({matches:reduced,addEventListener(){}}),getComputedStyle:()=>({gap:'10px'}),performance:{now:()=>now},requestAnimationFrame:f=>{frames.set(++id,f);return id},cancelAnimationFrame:i=>frames.delete(i)};
  vm.runInNewContext(script,context);
- const emit=(type,props={},sectionEvent=false)=>{const e={isPrimary:true,button:0,pointerId:1,clientX:400,clientY:100,target:{closest:()=>null},preventDefault(){this.prevented=true},stopPropagation(){this.stopped=true},...props};(sectionEvent?sectionHandlers:handlers).get(type)?.(e);return e;};
+ const emit=(type,props={},sectionEvent=false)=>{const e={isPrimary:true,button:0,pointerType:'mouse',pointerId:1,clientX:400,clientY:100,target:{closest:()=>null},preventDefault(){this.prevented=true},stopPropagation(){this.stopped=true},...props};(sectionEvent?sectionHandlers:handlers).get(type)?.(e);return e;};
  const advance=ms=>{now+=ms;const queued=[...frames.values()];frames.clear();for(const f of queued)f(now)};
  const flick=()=>{emit('pointerdown');advance(16);emit('pointermove',{clientX:330});advance(16);emit('pointermove',{clientX:250});emit('pointerup',{clientX:250});};
- return {track,prev,next,emit,advance,flick,frames,attributes};
+ return {track,prev,next,emit,advance,flick,frames,attributes,captures};
 }
+test('touch swipes stay native on portraits and creation buttons',()=>{
+ for(const target of [{closest:()=>null},{closest:()=>({tagName:'BUTTON'})}]){
+  const s=setup();
+  s.emit('pointerdown',{pointerType:'touch',target});
+  const move=s.emit('pointermove',{pointerType:'touch',clientX:200,target});
+  s.emit('pointercancel',{pointerType:'touch',target});
+  assert.equal(move.prevented,undefined);
+  assert.equal(s.captures.size,0);
+  assert.equal(s.attributes.has('data-dragging'),false);
+  assert.equal(s.frames.size,0);
+  assert.equal(s.emit('click',{target}).prevented,undefined);
+ }
+});
 test('horizontal release coasts, slows down, and settles without snapping',()=>{const s=setup();s.flick();const release=s.track.scrollLeft;s.advance(16);const first=s.track.scrollLeft-release;assert.ok(first>0);s.advance(16);const second=s.track.scrollLeft-release-first;assert.ok(second>0&&second<first);for(let i=0;i<220;i++)s.advance(16);assert.equal(s.frames.size,0);assert.ok(s.track.scrollLeft>release);assert.ok(s.track.scrollLeft<=1600);});
 test('coasting stops at the end without wrapping',()=>{const s=setup();s.track.scrollLeft=1550;s.flick();for(let i=0;i<30;i++)s.advance(16);assert.equal(s.track.scrollLeft,1600);assert.equal(s.next.disabled,true);assert.equal(s.frames.size,0);});
 test('vertical gestures are left to page scrolling',()=>{const s=setup();s.emit('pointerdown');const e=s.emit('pointermove',{clientX:397,clientY:150});s.emit('pointerup');assert.equal(s.track.scrollLeft,0);assert.equal(e.prevented,undefined);assert.equal(s.frames.size,0);});
