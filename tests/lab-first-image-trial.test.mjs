@@ -12,7 +12,9 @@ function fixture(t){
   db.exec(read('schema.sql'));
   for(const name of [
     '0006-customers-billing','0011-customer-lifecycle','0015-lab-promotional-credits',
-    '0023-welcome-guard','0025-promo-generation-holds','0029-pause-welcome-promotion',
+    '0021-spicy-image-credit-steps',
+    '0023-welcome-guard','0025-promo-generation-holds','0028-generation-finance-ledger',
+    '0029-pause-welcome-promotion',
     '0033-owner-voucher-generation'
   ])db.exec(read('migrations/'+name+'.sql'));
   db.prepare('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,1,1)')
