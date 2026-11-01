@@ -20,9 +20,21 @@
 - Files: lab/video-upscale.js, lab/lab.js (import cache), lab/studio.html (entry cache).
 - Regression: tests/lab-video-upscale-layout.mjs uses real H.264 fixtures for picker/drop/preview/mode checks on desktop 1440×900 and phone 390×844.
 - Local checks: approved Image contract 5/5; video/backend/pricing suites 121/121.
-- Local Playwright executable unavailable; browser suite will run in existing GitHub CI.
+- Local Playwright executable unavailable; existing GitHub CI completed the browser verification.
 - Browser preview uses the managed preview service with provider/API calls disabled.
-- Deployment: pending branch validation and production release verification.
+- PR #785 merged as `04fe701979240eecc4f1d13f7f85e79484265eee`.
+- Validated implementation head: `0af942299b29b929f1e4fcb1961c8e1428b9674d`; current main integrated once before final validation.
+- CI: Video Upscaler validation run 41361449380 passed (model/private-input/quote and 121 backend/pricing tests).
+- CI: full Upscaler/Assets run 41361449389 passed: desktop + mobile upload regression, 7 Assets checks, 43 Image Upscaler model/quote/history checks.
+- Browser regression includes isolated quote review, one mocked submission and retained uncertain-response lock after a later playback error.
+- Approved Image UI contract and static validation passed on the final implementation.
+- General Lab suite has the same 3 failures as main 38321ac: accepted-cookie Meta checkout, Explore Moods header, ZenCreator comparison. No test weakened.
+- Cloudflare Pages pvlab-studio check 125013414281 succeeded for the exact production merge.
+- Read-only release verifier returned LIVE_VERIFIED for upscale-single-editor.css?v=20261102-upload-feedback1 and lab.js.
+- Production video-upscale.js?v=20261102-upload-validation1 matches reviewed source bytes (SHA-256 a958e733984761b20ff0351fed738c40b18fd47eb628e7c09496efacde337e0c).
+- Signed-in production browser confirmed native picker, visible oversized/unreadable rejection, blocked credit review for invalid media, 1s H.264 preview, cleared old errors and Video/Image mode restoration.
+- No live quote or paid-generation action was clicked; file selection stayed local.
+- Completed: deployed and verified. Next action: none for this repair; larger-input support requires a separate backend design.
 - No paid generation initiated.
 
 ## Active checkpoint / 2026-10-23
