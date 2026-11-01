@@ -127,3 +127,17 @@ test('switching accounts rejects stale initial History and publishes only the cu
   assert.equal(r.state().next,null);
   assert.equal(r.observations.length,0);
 });
+
+test('desktop Video filmstrip keeps pagination manual instead of loading all History pages',async()=>{
+  const r=fixture();
+  r.window.matchMedia=()=>({matches:true});
+  const first=r.changeKind('video');
+  r.requests[0].resolve(page('film-1',cursor));
+  await first;r.paint();
+  assert.equal(r.elements.more.hidden,false,'older records remain available');
+  assert.equal(r.observations.length,0,'always-visible filmstrip footer does not trigger automatic pagination');
+  const second=r.loadEarlierHistory();
+  assert.equal(r.requests.length,2,'manual Load earlier still fetches the next saved page');
+  r.requests[1].resolve(page('film-2'));
+  await second;
+});
