@@ -435,3 +435,11 @@ html body #app.video-studio-active.pv-video-approved-ready #video-inspector-sele
   color:#dadcdf!important;
   text-transform:uppercase!important;
 }
+
+/* Mobile returns to its original document flow, not a nested inspector scroll. */
+@media(max-width:820px){
+  html body #app.video-studio-active #video-inspector-selected .video-inspector-body{
+    flex:0 0 auto!important;
+    overflow:visible!important;
+  }
+}
