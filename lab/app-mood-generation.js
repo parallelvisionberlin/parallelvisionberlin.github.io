@@ -97,7 +97,13 @@ export function createAppMoodGeneration(){
       if(!quote?.id||quote.settings?.engine!=='seedream'||quote.settings?.moodId!==mood.id||quote.settings?.moodVariant!==recipe.metadata.moodVariant||!Number.isFinite(quote.expiresAt)||quote.expiresAt<=Date.now()||!Number.isFinite(quote.maxUsd))throw Error('Could not verify the generation price. Try again.');
       // Owner and customer see the exact same server-bound retail credit cost.
       // Owner testing is not a wallet charge; the label previews customer pricing.
-      const label=pricedBoundQuotes(quote,1,'SpicyAPI').credits+' credits';
+      const imageCredits=pricedBoundQuotes(quote,1,'SpicyAPI').credits;
+      if(session.customer&&Number.isSafeInteger(session.balanceCredits)&&imageCredits>session.balanceCredits){
+        const error=Error('You have '+session.balanceCredits+' credits. This image costs '+imageCredits+'. Add credits to continue. Your remaining balance is saved.');
+        error.code='INSUFFICIENT_CREDITS';
+        throw error;
+      }
+      const label=imageCredits+' credits';
       let submitted=false;
       const preparationMs=Math.round(performance.now()-preparationStarted);
       return {label,expiresAt:quote.expiresAt,handoff(){check();if(submitted)throw Error('This request was already sent. Check Image.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');return {userId:user.user.id,quote,sourceId:original?.id||null};},async submit(){

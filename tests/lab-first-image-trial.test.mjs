@@ -20,6 +20,7 @@ function fixture(t){
   db.prepare('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,1,1)')
     .run('user_LegacyTrial','user_LegacyTrial');
   db.exec(read('migrations/0051-first-image-40-credit-trial.sql'));
+  db.exec(read('migrations/0052-spend-all-image-trial-credits.sql'));
   const env={
     LAB_WELCOME_CREDITS_ENABLED:'false',
     LAB_IMAGE_TRIAL_ENABLED:'true',
@@ -46,7 +47,7 @@ function fixture(t){
   return {db,env,run,one,verify,addJob};
 }
 
-test('40-credit trial grants once to new verified identities and one 2K image leaves 5',async t=>{
+test('40-credit trial grants once and lets customers keep their unspent 2K-image balance',async t=>{
   const f=fixture(t),id='user_ImageTrial';
   await ensureCustomer(f.env,id);
   f.verify(id,'image.trial+main@gmail.com');
@@ -57,10 +58,45 @@ test('40-credit trial grants once to new verified identities and one 2K image le
   assert.equal((await customerSession(f.env,id)).generationReady,true);
   f.addJob(id,'image_first');
   assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,5);
-  assert.equal((await customerSession(f.env,id)).generationReady,false);
-  assert.throws(()=>f.addJob(id,'image_second'),/complimentary generation is paused/i);
+  assert.equal((await customerSession(f.env,id)).generationReady,true);
+  assert.throws(()=>f.addJob(id,'image_second'),/Insufficient PV Lab credits/i);
   assert.throws(()=>f.addJob(id,'video_after',{type:'video',mode:'image-to-video'},36000),
     /complimentary generation is paused/i);
+});
+
+test('Two affordable 1K photos spend the entire 40-credit balance without a second award',async t=>{
+  const f=fixture(t),id='user_TwoImages';
+  await ensureCustomer(f.env,id);f.verify(id,'twoimages@example.com');await ensureCustomer(f.env,id);
+  const image={type:'image',mode:'image',provider:'spicy',engine:'seedream',
+    model:'bytedance/seedream-5.0-pro/edit',resolution:'1k'};
+  f.addJob(id,'first_1k',image,36000);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,20);
+  assert.equal((await customerSession(f.env,id)).generationReady,true);
+  assert.throws(()=>f.addJob(id,'trial_video_between',{type:'video',mode:'image-to-video'},10000),
+    /complimentary generation is paused/i);
+  f.addJob(id,'second_1k',image,36000);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,0);
+  assert.equal((await customerSession(f.env,id)).generationReady,false);
+  assert.throws(()=>f.addJob(id,'third_1k',image,36000),/Insufficient PV Lab credits/i);
+  assert.equal(f.one('SELECT COUNT(*) AS n FROM lab_welcome_claims WHERE customer_id=?',id).n,1);
+});
+
+test('The paid wallet remains additive and other free generation modes never consume trial credits',async t=>{
+  const f=fixture(t),id='user_TopupAfterTrial';
+  await ensureCustomer(f.env,id);f.verify(id,'topuptrial@example.com');await ensureCustomer(f.env,id);
+  const image={type:'image',mode:'image',provider:'spicy',engine:'seedream',
+    model:'bytedance/seedream-5.0-pro/edit',resolution:'1k'};
+  f.addJob(id,'topup_first',image,36000);
+  const balance=f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits;
+  assert.equal(balance,20);
+  assert.throws(()=>f.addJob(id,'trial_upscale',{type:'image',mode:'upscale',provider:'fal'},10000),
+    /complimentary generation is paused/i);
+  f.run('INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES(?,?,?,?,?,?)',
+    'checkout:trial',id,1000,'purchase','checkout:trial',2000);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,1020);
+  assert.equal((await customerSession(f.env,id)).generationReady,true);
+  f.addJob(id,'paid_after_40',image,36000);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,1000);
 });
 
 test('video cannot spend trial before the first image; failed image can retry after refund',async t=>{
@@ -123,4 +159,12 @@ test('Gmail aliases cannot claim another image; paid customers retain generation
     'checkout:testpaid',b,1000,'purchase','checkout:testpaid',100);
   assert.equal((await customerSession(f.env,b)).generationReady,true);
   f.addJob(b,'paid_image');
+});
+
+test('Berlin Rave quote shows exact balance and Add credits instead of unusable credits',()=>{
+  const quote=read('..'+'/lab/app-mood-generation.js');
+  const moods=read('..'+'/lab/explore-moods.js');
+  assert.match(quote,/imageCredits>session\.balanceCredits/);
+  assert.match(quote,/error\.code='INSUFFICIENT_CREDITS'/);
+  assert.match(moods,/error\.code==='INSUFFICIENT_CREDITS'/);
 });
