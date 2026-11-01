@@ -109,7 +109,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261101-two-model-gate2/);
+ assert.match(html,/full-editorial\.js\?v=20261101-cast-feedback3/);
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=!ready/,'Composition only appears with two selected models');
@@ -129,7 +129,7 @@ test('Multi-model composition is not a dead control for single-model users',()=>
 test('Styling matches Identity rhythm while keeping real wardrobe references and direction',()=>{
  const stage=html.slice(html.indexOf('id="panel-style"'),html.indexOf('id="panel-mood"'));
  const styleCss=read('lab/full-editorial-atelier.css');
- assert.match(html,/full-editorial-atelier\.css\?v=20261101-compact-cta2/);
+ assert.match(html,/full-editorial-atelier\.css\?v=20261101-cast-stable3/);
  assert.match(stage,/class="atelier-section-top editorial-styling-top"/);
  assert.match(stage,/id="outfit-gallery"/);
  assert.match(stage,/id="outfit-files"/);
@@ -158,7 +158,8 @@ test('Campaign composition portraits have the approved 185px fashion-editorial t
 test('Empty Identity fits compactly and final Generate has editorial visual hierarchy',()=>{
  const atelier=read('lab/full-editorial-atelier.css');
  assert.match(atelier,/PVLAB_EDITORIAL_COMPACT_EMPTY_AND_CTA_20261101/);
- assert.match(atelier,/:has\(#editorial-cast-empty:not\(\[hidden\]\)\)/,'Compact presentation applies only with no selected cast');
+ assert.doesNotMatch(atelier.slice(atelier.indexOf('PVLAB_EDITORIAL_COMPACT_EMPTY_AND_CTA_20261101')),
+  /:has\(#editorial-cast-empty:not\(\[hidden\]\)\)/,'No state-dependent casting geometry');
  assert.match(atelier,/height:clamp\(154px,20svh,190px\)/);
  assert.match(html,/id="editorial-generate"[^>]*class="primary full editorial-final-cta"/);
  assert.match(html,/class="editorial-final-cta-label"/);
@@ -168,4 +169,15 @@ test('Empty Identity fits compactly and final Generate has editorial visual hier
  assert.match(atelier,/border-radius:3px;background:#f1eee6/);
  assert.match(atelier,/#step-next:disabled/);
  assert.match(js,/\$\('editorial-generate'\)\.addEventListener/,'Original paid generation action remains intact');
+});
+
+test('Selecting or removing a model never changes Identity hero or portrait dimensions',()=>{
+ const atelier=read('lab/full-editorial-atelier.css');
+ const compact=atelier.slice(atelier.indexOf('PVLAB_EDITORIAL_COMPACT_EMPTY_AND_CTA_20261101'),atelier.indexOf('/* The actual paid Generate action'));
+ assert.doesNotMatch(compact, /:has\(#editorial-cast-empty:not\(\[hidden\]\)\)/);
+ assert.match(compact, /\.flow-main:has\(#panel-model:not\(\[hidden\]\)\) #panel-model \.stage-visual/);
+ assert.match(compact, /height:clamp\(216px,27svh,252px\)/);
+ assert.match(compact, /min-height:68px;margin-top:8px;padding:7px 14px/,'Strip reserves identical space before and after selection');
+ assert.doesNotMatch(js, /status\('Added to '\+\(kind==='model'/,'Casting no longer inserts a below-footer success message');
+ assert.match(js, /status\(kind==='model'\?'':'Reference removed\.'\)/);
 });
