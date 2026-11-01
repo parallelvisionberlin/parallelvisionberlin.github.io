@@ -52,6 +52,7 @@ jobs:
           node --check lab-worker/agency-enquiries.mjs
           node --test tests/lab-smart-prompts.test.mjs tests/lab-smart-prompt-ui.test.mjs tests/lab-krea3-fashion.test.mjs
           node --test tests/lab-spicy-image-credit-steps.test.mjs tests/lab-pricing-integrity.test.mjs
+          node --test tests/lab-first-image-trial.test.mjs
           node --test tests/lab-auth.test.mjs tests/lab-worker.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-sandbox-billing.test.mjs tests/lab-live-pilot.test.mjs tests/lab-new-models-pricing.test.mjs tests/lab-video-euro-pricing.test.mjs tests/lab-welcome-credits.test.mjs tests/lab-trial-pause.test.mjs
           node --test tests/lab-owner-providers.test.mjs tests/lab-promotions.test.mjs tests/lab-traffic.test.mjs tests/lab-traffic-ui.test.mjs tests/lab-promo-generation-holds.test.mjs tests/lab-owner-generation-review.test.mjs tests/lab-generation-finance.test.mjs
           node --test tests/lab-partner-dashboard.test.mjs
@@ -136,6 +137,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0048-music-user-workspaces.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0050-music-analytics.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0049-robin-partner-workspace.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0051-first-image-40-credit-trial.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health
