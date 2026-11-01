@@ -37,7 +37,7 @@ test('Video History, main editor controls and original actions are retained',()=
   assert.match(history,/grid-template-columns:repeat\(auto-fill,minmax\(min\(100%,245px\),1fr\)\)/);
   for(const id of ['video-detail-reuse','video-detail-download','video-detail-delete','video-detail-copy-prompt']){
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1);
-    assert.match(js,new RegExp("\\\$\\\\('"+id.replaceAll('-','-')+"'\\\\)\\\\.onclick="));
+    assert.ok(js.includes("$('"+id+"').onclick="),'original '+id+' click handler stays connected');
   }
   assert.match(html,/id="pv-video-primary-actions"|class="pv-video-primary-actions"/);
   assert.match(html,/id="video-model-control"/);
