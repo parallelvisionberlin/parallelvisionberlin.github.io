@@ -362,3 +362,68 @@
     background:linear-gradient(180deg,rgba(9,10,11,.84) 0%,rgba(9,10,11,.6) 22%,rgba(9,10,11,.08) 40%,transparent 54%,rgba(9,10,11,.5) 73%,rgba(9,10,11,.9) 87%,#090a0bfc 100%)!important;
   }
 }
+
+/* FULL EDITORIAL MOBILE REFINEMENT 2026-11-01
+   Bring the previously approved cinematic feature back into the homepage
+   rhythm on phones. Preserve the film, still source, wording, CTA, and
+   desktop/tablet compositions. A new native vertical master is still
+   required to materially increase motion detail; CSS cannot add pixels. */
+@media(max-width:680px){
+  #featured-editorial{
+    min-height:clamp(555px,145vw,650px)!important;
+    border-top-color:rgba(245,241,232,.075)!important;
+    border-bottom:1px solid rgba(245,241,232,.065);
+  }
+  #featured-editorial .pv-editorial-feature-copy{
+    grid-template-rows:auto auto minmax(150px,1fr) auto auto auto!important;
+    padding:23px 22px 29px!important;
+  }
+  #featured-editorial .pv-feature-kicker{
+    margin-bottom:13px!important;
+    font-size:9px!important;
+    letter-spacing:.19em!important;
+  }
+  #featured-editorial h2{
+    font-size:clamp(43px,11.1vw,58px)!important;
+    line-height:.98!important;
+    margin:0!important;
+    letter-spacing:-.053em!important;
+  }
+  #featured-editorial .pv-editorial-feature-lead{
+    font-size:clamp(19px,5vw,24px)!important;
+    line-height:1.18!important;
+    margin:0 0 9px!important;
+  }
+  #featured-editorial .pv-editorial-feature-copy p:not(.pv-editorial-feature-lead){
+    font-size:13px!important;
+    line-height:1.48!important;
+    margin:0 0 20px!important;
+    max-width:390px!important;
+  }
+  #featured-editorial .pv-feature-button{
+    min-height:48px!important;
+    padding:11px 20px!important;
+  }
+  #featured-editorial .pv-editorial-feature-art{
+    background-position:center 47%!important;
+  }
+  #featured-editorial .pv-editorial-feature-video{
+    object-position:center 47%!important;
+  }
+  #featured-editorial .pv-editorial-feature-shade{
+    background:linear-gradient(180deg,
+      rgba(9,10,11,.86) 0%,
+      rgba(9,10,11,.44) 23%,
+      rgba(9,10,11,.03) 43%,
+      rgba(9,10,11,.08) 60%,
+      rgba(9,10,11,.57) 76%,
+      rgba(9,10,11,.95) 93%,
+      #090a0b 100%)!important;
+  }
+}
+@media(max-width:360px){
+  #featured-editorial{min-height:550px!important}
+  #featured-editorial .pv-editorial-feature-copy{padding:21px 18px 26px!important}
+  #featured-editorial h2{font-size:clamp(41px,12vw,46px)!important}
+  #featured-editorial .pv-feature-button .pv-feature-button-label{font-size:17px!important}
+}
