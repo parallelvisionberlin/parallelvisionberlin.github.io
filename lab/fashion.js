@@ -125,6 +125,125 @@ function choosePhoto(id,slot,img,hint){
 }
 choosePhoto('person-file','person-slot','person-preview','person-hint');
 choosePhoto('garment-file','garment-slot','garment-preview','garment-hint');
+// Wardrobe uses the existing private Elements/Outfits packs, not a second collection.
+const wDialog=$('fashion-wardrobe'),wOpen=$('fashion-wardrobe-open'),wItems=$('fashion-wardrobe-items'),
+  wSearch=$('fashion-wardrobe-search'),wBack=$('fashion-wardrobe-back'),
+  wSelected=$('fashion-wardrobe-selected'),wFooter=wDialog.querySelector('.wardrobe-footer');
+const wFooterDefault=wFooter.textContent,wThumbs=new Map();
+let wPacks=[],wPack=null,wSequence=0,wChoosing=false;
+const wName=p=>String(p.name||'').split('|').slice(2).join('|')||'Untitled outfit';
+function wClearThumbs(){for(const url of wThumbs.values())URL.revokeObjectURL(url);wThumbs.clear();}
+function wClose(){
+  wSequence++;wPacks=[];wPack=null;wChoosing=false;wClearThumbs();
+  if(wDialog.open)wDialog.close();
+}
+function wMessage(title,copy){
+  const box=root.ownerDocument.createElement('div');box.className='wardrobe-empty';
+  const strong=root.ownerDocument.createElement('strong');strong.textContent=title;box.append(strong);
+  if(copy){const p=root.ownerDocument.createElement('p');p.textContent=copy;box.append(p)}
+  wItems.replaceChildren(box);
+}
+async function wThumb(ref,frame,version){
+  try{
+    let url=wThumbs.get(ref.id);
+    if(!url){
+      const res=await request('/api/assets/'+encodeURIComponent(ref.id)+'/thumbnail');
+      if(!res.ok)throw Error('Unavailable image');
+      const blob=await res.blob();
+      if(!blob.type.startsWith('image/'))throw Error('Invalid image');
+      if(version!==wSequence||!wDialog.open)return;
+      url=URL.createObjectURL(blob);wThumbs.set(ref.id,url);
+    }
+    if(version!==wSequence||!wDialog.open||!frame.isConnected)return;
+    const img=root.ownerDocument.createElement('img');img.alt='';img.loading='lazy';img.src=url;
+    frame.replaceChildren(img);
+  }catch{/* Missing preview does not block using an Outfit. */}
+}
+function wRender(){
+  const version=wSequence,detail=!!wPack;
+  wBack.hidden=!detail;wSearch.hidden=detail;wItems.replaceChildren();
+  wFooter.classList.remove('is-error');wFooter.textContent=wFooterDefault;
+  const query=wSearch.value.trim().toLowerCase();
+  const packs=detail?[wPack]:wPacks.filter(p=>wName(p).toLowerCase().includes(query));
+  if(!packs.length){
+    wMessage(wPacks.length?'No matching outfits':'Your Wardrobe is empty',
+      wPacks.length?'Try another search.':'Save an Outfit in Elements to see it here. You can still drop a garment photograph directly.');
+    return;
+  }
+  for(const pack of packs){
+    const refs=pack.refs.filter(r=>typeof r?.id==='string'&&r.id);
+    for(const [index,ref] of (detail?refs:[refs[0]]).entries()){
+      if(!ref)continue;
+      const button=root.ownerDocument.createElement('button');button.type='button';
+      button.className='wardrobe-item';
+      button.setAttribute('aria-label',detail?'Use '+wName(pack)+' view '+(index+1):'Choose '+wName(pack));
+      const frame=root.ownerDocument.createElement('span');frame.className='wardrobe-item-photo';frame.textContent='PV LAB';
+      const info=root.ownerDocument.createElement('span');info.className='wardrobe-item-info';
+      const title=root.ownerDocument.createElement('strong');title.textContent=wName(pack);
+      const caption=root.ownerDocument.createElement('small');caption.textContent=detail?'View '+(index+1):refs.length+' view'+(refs.length===1?'':'s');
+      info.append(title,caption);button.append(frame,info);wItems.append(button);
+      void wThumb(ref,frame,version);
+      button.addEventListener('click',()=>{
+        if(wChoosing)return;
+        if(!detail&&refs.length>1){wPack=pack;wRender();return}
+        void wSelect(pack,ref,button,caption);
+      });
+    }
+  }
+}
+async function wSelect(pack,ref,button,caption){
+  if(wChoosing||!authenticated)return;
+  wChoosing=true;button.disabled=true;
+  const oldCaption=caption.textContent;caption.textContent='Opening…';
+  const version=wSequence,auth=authVersion;
+  try{
+    const blob=await assetBlob(ref.id);
+    if(version!==wSequence||auth!==authVersion||!authenticated||!wDialog.open)return;
+    const type=String(blob.type||'').split(';')[0].toLowerCase();
+    if(!['image/jpeg','image/png','image/webp'].includes(type))throw Error('This Outfit must be a JPG, PNG or WebP photograph.');
+    if(!blob.size||blob.size>20*1024*1024)throw Error('This saved photo exceeds the 20 MB Fashion limit. Upload a smaller copy.');
+    const suffix=type==='image/jpeg'?'jpg':type==='image/png'?'png':'webp';
+    const name=wName(pack).replace(/[^a-z0-9_-]+/gi,'-').slice(0,55)||'outfit';
+    const file=new File([blob],name+'.'+suffix,{type}),transfer=new DataTransfer();
+    transfer.items.add(file);
+    const input=$('garment-file');input.files=transfer.files;
+    input.dispatchEvent(new Event('change',{bubbles:true}));
+    // Reuse the user's existing private asset rather than creating a duplicate upload.
+    fileKeys.set('garment-file',{file,assetId:ref.id});
+    wSelected.textContent='WARDROBE / '+wName(pack);wSelected.hidden=false;
+    wClose();
+  }catch(e){
+    if(version===wSequence&&auth===authVersion&&wDialog.open){
+      wFooter.textContent=e.message||'Could not open Outfit image.';wFooter.classList.add('is-error');
+    }
+  }finally{
+    wChoosing=false;
+    if(button.isConnected){button.disabled=false;caption.textContent=oldCaption}
+  }
+}
+wOpen.addEventListener('click',async()=>{
+  if(!authenticated){clerk?.openSignIn();return}
+  if(busy||preparing){status('Finish the current Fashion operation first.',true);return}
+  if(wDialog.open)return;
+  wPacks=[];wPack=null;wSearch.value='';wClearThumbs();
+  const version=++wSequence,auth=authVersion;
+  wDialog.showModal();wMessage('Opening Wardrobe','Loading your saved Outfits from Elements…');
+  wFooter.textContent=wFooterDefault;wFooter.classList.remove('is-error');
+  try{
+    const response=await api('/api/packs');
+    if(version!==wSequence||auth!==authVersion||!wDialog.open)return;
+    wPacks=(response.packs||[]).filter(p=>typeof p.name==='string'&&
+      p.name.startsWith('PVSCENE1|outfits|')&&Array.isArray(p.refs)&&p.refs.some(r=>typeof r?.id==='string'&&r.id));
+    wPacks.sort((a,b)=>wName(a).localeCompare(wName(b)));wRender();
+  }catch(e){if(version===wSequence&&wDialog.open)wMessage('Wardrobe unavailable',e.message||'Could not load Outfits.')}
+});
+$('fashion-wardrobe-close').addEventListener('click',wClose);
+wBack.addEventListener('click',()=>{wPack=null;wRender()});
+wSearch.addEventListener('input',()=>{if(!wPack)wRender()});
+wDialog.addEventListener('close',()=>{wSequence++;wPacks=[];wPack=null;wClearThumbs()});
+// A manual replacement always clears the saved Outfit badge.
+$('garment-file').addEventListener('change',()=>{wSelected.hidden=true;wSelected.textContent=''});
+
 for(const id of ['model-select','fashn16-category','fashn16-quality','max-resolution','max-mode']){
   $(id).addEventListener('change',()=>{change();status('');});
 }
@@ -457,6 +576,7 @@ $('download').addEventListener('click',()=>{
 $('signin').addEventListener('click',()=>clerk?.openSignIn());
 $('reload').addEventListener('click',()=>location.reload());
 function lock(){
+  wClose();wSelected.hidden=true;wSelected.textContent='';
   authVersion++;clearGalleryPreviews();galleryCursor=null;galleryItems=[];selectedGalleryJob='';$('fashion-history').replaceChildren();$('fashion-gallery-count').textContent='';$('fashion-more').hidden=true;models=[];
   authenticated=false;sessionId='';clearTimeout(pollTimeout);pollTimeout=null;activeJobId='';busy=false;clearQuote();revokeResult();
   for(const url of previews.values())URL.revokeObjectURL(url);
