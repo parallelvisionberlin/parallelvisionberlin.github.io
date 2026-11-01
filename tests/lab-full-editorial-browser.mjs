@@ -16,6 +16,8 @@ const server=http.createServer(async(req,res)=>{
  if(u.pathname==='/lab/session-request.js'){res.setHeader('Content-Type','text/javascript');res.end(mockSession);return}
  const json=obj=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(obj));};
  if(u.pathname==='/api/session'){json({config:{enabled:true},credits:{balance:5000}});return}
+ if(u.pathname==='/api/packs'){json({packs:[{name:'PVSCENE1|characters|Test Actor',refs:[{id:'saved-actor-1',name:'Saved actor front'}]}]});return}
+ if(u.pathname==='/api/assets/saved-actor-1/thumbnail'){res.setHeader('Content-Type','image/jpeg');res.end(image);return}
  if(u.pathname==='/api/uploads'){for await(const _chunk of req){}json({id:'upload-'+(++uploadCount)});return}
  if(u.pathname==='/api/quotes'){
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
@@ -81,17 +83,33 @@ try{
   await page.locator('.stage-visual--identity img').evaluate(img=>img.decode().catch(()=>{}));
   await page.screenshot({path:'test-results/editorial/'+width+'-identity.png',fullPage:width===390});
   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference').first().getAttribute('aria-pressed'),'true');
+  // Multiple photographs of one person remain one selected model.
+  const pickExtra=page.waitForEvent('filechooser');
+  await page.locator('#model-thumbs .editorial-add-view').click();
+  await (await pickExtra).setFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-extra-thumb').length===1);
+  assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),1,'Extra identity photo does not add a person');
+  await page.locator('#model-thumbs .editorial-model-extra-thumb button').click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-extra-thumb').length===0);
+  // Selecting another casting portrait creates a distinct model, not another view.
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
-  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .thumb').length===2);
-  assert.equal(await page.locator('#editorial-cast-mode').inputValue(),'cast','Two casting photographs default to distinct models');
-  assert.equal(await page.locator('#editorial-cast-composition').isVisible(),true,'Multi-model composition is available');
-  await page.locator('#editorial-cast-mode').selectOption('one');
-  assert.equal(await page.locator('#editorial-cast-composition').isVisible(),false,'One model with multiple photographs stays supported');
-  await page.locator('#editorial-cast-mode').selectOption('cast');
-  await page.locator('#editorial-cast-composition-select').selectOption('alternating');
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true);
+  assert.equal(await page.locator('#editorial-photograph-together').isChecked(),true,'Together is enabled by default');
+  await page.locator('#editorial-photograph-together').uncheck();
+  assert.equal(await page.locator('#editorial-photograph-together').isChecked(),false);
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
-  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .thumb').length===1);
-  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'Cast controls disappear with one reference');
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false);
+  // Saved Characters is a real source tab; one saved pack produces one person.
+  await page.locator('#saved-character').click();
+  await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
+  await page.locator('#saved-character-gallery .editorial-saved-cast').first().click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
+  assert.equal(await page.locator('#editorial-photograph-together').isChecked(),false,'Composition choice survives changes to the cast');
+  await page.getByRole('button',{name:'Remove Test Actor'}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
+  await page.locator('[data-source-view="casting"]').click();
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-style').isVisible(),true);
   await page.locator('#styling-direction').fill('Architectural black leather and natural tailoring.');
   await page.locator('#outfit-files').setInputFiles('lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg');
@@ -226,8 +244,8 @@ try{
   await page.locator('#model-thumbs img').waitFor({state:'visible'});
   assert.equal(await page.locator('#panel-model').isVisible(),true,'Picker opens Identity directly');
   assert.equal(await page.locator('#editorial-hero').isVisible(),false,'Arrival hero is skipped');
-  assert.equal(await page.locator('[data-source-view="upload"]').getAttribute('aria-pressed'),'true');
-  assert.equal(await page.locator('#model-thumbs img').getAttribute('alt'),'pvlab-industrial-fashion-20261027.jpg');
+  assert.equal(await page.locator('[data-source-view="casting"]').getAttribute('aria-pressed'),'true','Uploaded model appears within the same casting workflow');
+  assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),1,'Handoff creates one selected model');
   assert.equal(new URL(page.url()).searchParams.has('modelPhoto'),false,'Consumed token removed from URL');
   await page.locator('#step-next').click();
   assert.equal(await page.locator('#panel-style').isVisible(),true,'Loaded model satisfies Identity');
