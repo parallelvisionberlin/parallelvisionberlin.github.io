@@ -1024,7 +1024,7 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
  }
  .flow-main:has(#panel-model:not([hidden])) #panel-model .atelier-cast-gallery .atelier-reference,
  .flow-main:has(#panel-model:not([hidden])) #panel-model .atelier-cast-gallery .editorial-own-cast{
-  height:clamp(216px,27svh,252px);
+  height:clamp(272px,33svh,295px);
  }
  .flow-main:has(#panel-model:not([hidden])) #panel-model .editorial-cast-selection{
   min-height:71px;margin-top:8px;padding:7px 14px;
