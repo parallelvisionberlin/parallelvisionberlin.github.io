@@ -56,6 +56,14 @@ try{
   await page.locator('.editorial-hero-art img').evaluate(img=>img.decode().catch(()=>{}));
   await page.screenshot({path:'test-results/editorial/'+width+'-hero.png',fullPage:width===390});
   await page.locator('#editorial-start').click();
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
+  assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected','Fresh casting shows approved two-person example');
+  assert.equal(await page.locator('[data-sample-label="Bronze portrait"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('[data-sample-label="Copper portrait"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Composition choices appear on first entry');
+  await page.locator('#editorial-clear-cast').click();
+  assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Clear all removes the example cast');
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'Compositions hide for an empty cast');
   if(width>800){
    const layout=await page.evaluate(()=>{
     const rect=selector=>document.querySelector(selector).getBoundingClientRect();
@@ -230,12 +238,14 @@ try{
   await page.goto('http://127.0.0.1:4179/lab/index.html',{waitUntil:'domcontentloaded'});
   await page.locator('#featured-editorial .pv-feature-button').click();
   await page.locator('#editorial-flow').waitFor({state:'visible'});
+  await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
   assert.equal(await page.locator('#panel-model').isVisible(),true,'Homepage CTA opens Identity directly');
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Compositions appear after homepage CTA');
   assert.equal(await page.locator('#editorial-hero').isVisible(),false,'No second arrival hero');
   assert.equal(new URL(page.url()).searchParams.has('start'),false,'Entry flag is consumed');
   assert.equal(await page.locator('[data-source-view="casting"]').getAttribute('aria-pressed'),'true','Casting remains the initial source');
   assert.deepEqual({uploads:uploadCount,jobs:jobCount,quotes:quoteCount},beforeEntry,'Opening Identity performs no paid preparation or generation');
-  await page.locator('#step-back').click();
+  await page.locator(width>800?'#editorial-top-back':'#step-back').click();
   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Direct entry retains Back to the arrival hero');
   await page.close();
  }
