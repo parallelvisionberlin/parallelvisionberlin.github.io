@@ -43,12 +43,19 @@ let modelGroups=[],modelGroupSerial=0,modelUploadTarget=null,charactersLoadSeque
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
 function renderCastingControls(){
- const region=$('editorial-casting-controls');region.hidden=modelGroups.length<2;
+ const ready=modelGroups.length>=2;
+ const region=$('editorial-casting-controls');
+ region.hidden=false;region.classList.toggle('is-awaiting-cast',!ready);
  for(const button of document.querySelectorAll('[data-cast-composition]')){
-  const active=button.dataset.castComposition===castComposition;
-  button.classList.toggle('is-selected',active);button.setAttribute('aria-pressed',String(active));
+  const active=ready&&button.dataset.castComposition===castComposition;
+  button.disabled=!ready;
+  button.classList.toggle('is-selected',active);
+  button.setAttribute('aria-pressed',String(active));
  }
- $('editorial-cast-summary').textContent=modelGroups.length<2?'':modelGroups.length+' models selected · '+({mixed:'Solo + together',alternating:'Individual portraits',together:'Together in every photograph'}[castComposition]);
+ $('editorial-cast-summary').textContent=!ready
+  ? modelGroups.length===1?'Add one more model to choose how they appear together.':'Select two or more models to choose how they appear together.'
+  : modelGroups.length+' models selected · '+({mixed:'Solo + together',alternating:'Individual portraits',together:'Together in every photograph'}[castComposition]);
+ if(step===1)$('step-next').disabled=modelGroups.length===0;
 }
 function renderIdentityFooter(){
  const footer=$('editorial-footer-cast');footer.hidden=step!==1;
@@ -136,6 +143,7 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
  }
  $('step-next').hidden=next===4;
  $('step-next').textContent=({1:'Continue to styling',2:'Continue to location',3:'Continue to review'}[next]||'Next');
+ $('step-next').disabled=next===1&&modelGroups.length===0;
  renderIdentityFooter();invalidateQuote();updateGenerationMotion();
  if(next===4)updateSeriesSummary();
  if(next===0){window.scrollTo({top:0,left:0,behavior:'instant'});document.getElementById('editorial-hero').scrollIntoView({block:'start',behavior:'instant'});}else{document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});}
@@ -145,7 +153,9 @@ function updateOptions(){for(const b of $('count-options').querySelectorAll('but
 function refreshSliderLabels(){for(const [input,id] of [['garment-guide','garment-value'],['mood-guide','mood-value']])$(id).value=$(input).value+'%'}
 function renderModelGroups(){
  const box=$('model-thumbs');box.replaceChildren();
- $('editorial-cast-selection').hidden=modelGroups.length===0;
+ $('editorial-cast-selection').hidden=false;
+ $('editorial-cast-empty').hidden=modelGroups.length>0;
+ $('model-selection-heading').hidden=modelGroups.length===0;
  $('model-selection-count').textContent=modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' selected';
  for(const [index,group] of modelGroups.entries()){
   const card=document.createElement('article');card.className='editorial-model-card thumb';card.title=group.name;

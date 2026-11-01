@@ -57,8 +57,12 @@ try{
   await page.screenshot({path:'test-results/editorial/'+width+'-hero.png',fullPage:width===390});
   await page.locator('#editorial-start').click();
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Fresh casting opens without a selected model');
-  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'Composition choices stay hidden until two models are chosen');
-  assert.equal(await page.locator('#editorial-cast-selection').isVisible(),false,'Empty cast has no selected-model strip');
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Composition preview appears without preselecting models');
+   assert.equal(await page.locator('#editorial-cast-selection').isVisible(),true,'Selected cast strip remains in the layout');
+   assert.equal(await page.locator('#editorial-cast-empty').isVisible(),true,'Empty cast has guidance');
+   assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true);
+   assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true);
+   assert.equal(await page.locator('#step-next').isDisabled(),true);
   for(const label of ['Bronze portrait','Copper portrait'])assert.equal(await page.locator('[data-sample-label="'+label+'"]').getAttribute('aria-pressed'),'false');
   if(width>800){
    const layout=await page.evaluate(()=>{
@@ -84,6 +88,9 @@ try{
   await page.locator('#editorial-start').click();
   await page.locator('#casting-reference-gallery .atelier-reference').first().click();
   await page.locator('#model-thumbs .thumb').waitFor({state:'visible'});
+   assert.equal(await page.locator('#editorial-cast-empty').isVisible(),false);
+   assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true,'One model is not multi-cast');
+   assert.equal(await page.locator('#step-next').isDisabled(),false,'One model can continue');
   await page.locator('.stage-visual--identity img').evaluate(img=>img.decode().catch(()=>{}));
   await page.screenshot({path:'test-results/editorial/'+width+'-identity.png',fullPage:width===390});
   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference').first().getAttribute('aria-pressed'),'true');
@@ -110,8 +117,9 @@ try{
   await page.locator('[data-cast-composition="alternating"]').click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
-  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false);
-  // Saved Characters is a real source tab; one saved pack produces one person.
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true);
+   assert.equal(await page.locator('[data-cast-composition="alternating"]').isDisabled(),true);
+   // Saved Characters is a real source tab; one saved pack produces one person.
   await page.locator('#saved-character').click();
   await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
   await page.locator('#saved-character-gallery .editorial-saved-cast').first().click();
@@ -236,7 +244,8 @@ try{
   await page.locator('#editorial-flow').waitFor({state:'visible'});
   assert.equal(await page.locator('#panel-model').isVisible(),true,'Homepage CTA opens Identity directly');
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Homepage also opens with an empty cast');
-  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'No composition controls without two selected models');
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Composition preview visible without models');
+  assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true,'Not selectable until two models');
   assert.equal(await page.locator('#editorial-hero').isVisible(),false,'No second arrival hero');
   assert.equal(new URL(page.url()).searchParams.has('start'),false,'Entry flag is consumed');
   assert.equal(await page.locator('[data-source-view="casting"]').getAttribute('aria-pressed'),'true','Casting remains the initial source');

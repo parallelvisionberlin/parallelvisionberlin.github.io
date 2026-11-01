@@ -95,7 +95,8 @@ test('Progress reuses the homepage ivory film and keeps results prominent',()=>{
 test('Identity casting uses the approved photographic layout rather than standalone form rows',()=>{
  const stage=html.slice(html.indexOf('id="panel-model"'),html.indexOf('id="panel-style"'));
  const top=stage.slice(stage.indexOf('editorial-casting-top'),stage.indexOf('id="casting-reference-gallery"'));
- assert.match(top,/atelier-source-tabs/,'Casting source tabs share the title row');
+ assert.match(top,/id="editorial-cast-search"/,'Search shares casting heading');
+ assert.match(stage,/class="atelier-source-tabs editorial-casting-tabs"/,'Casting tabs are below the heading');
  assert.match(top,/id="editorial-cast-search"/,'Search remains in the same casting toolbar');
  assert.match(stage,/id="editorial-cast-selection"/);
  assert.match(stage,/id="editorial-casting-controls"/);
@@ -108,9 +109,19 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261101-empty-cast5/);
+ assert.match(html,/full-editorial\.js\?v=20261101-composition-visible1/);
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);go\(directStart\?1:0\)/);
- assert.match(js,/region\.hidden=modelGroups\.length<2/,'Composition appears only for two or more user-selected models');
+ assert.match(js,/region\.hidden=false/,'Composition layout visible from entry');
+ assert.match(js,/button\.disabled=!ready/,'Composition requires at least two models');
+ assert.match(js,/\$\('editorial-cast-empty'\)\.hidden=modelGroups\.length>0/,'Cast strip has explicit empty state');
  assert.match(js,/if\(modelPhoto\)\{/,'User-provided model photo still loads when supplied');
+});
+
+test('Visible composition preview does not imply preselected people',()=>{
+ assert.match(html,/id="editorial-casting-controls"[^>]*aria-labelledby="editorial-composition-title"/);
+ assert.doesNotMatch(html,/id="editorial-casting-controls"[^>]*hidden/);
+ assert.match(html,/id="editorial-cast-empty"/);
+ assert.match(js,/button\.disabled=!ready/);
+ assert.match(read('lab/full-editorial-atelier.css'),/PVLAB_COMPOSITION_VISIBLE_NO_PRESELECT_20261101/);
 });
