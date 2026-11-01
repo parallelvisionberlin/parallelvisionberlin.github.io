@@ -14,9 +14,9 @@
 @media(min-width:1001px){
  .pv-creative{display:grid;grid-template-columns:21.9% 78.1%;gap:0;width:100%;height:auto;min-height:0;aspect-ratio:1536/269;padding:0;margin:0;border:0;background:#090a0b url('https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/af319909-fa96-4c90-a9c1-cb140ae71f70.png') left top/100% auto no-repeat}
  .pv-creative-intro{position:relative;min-width:0;min-height:0;height:100%;padding:0;margin:0}
- .pv-creative-intro>:not(.pv-feature-button){position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important}
- .pv-creative-intro .pv-feature-button{position:absolute;left:26%;top:78%;width:48%;height:14%;min-height:0;padding:0 5%;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:#f5f0e8!important;color:#121212!important;font-size:clamp(7px,.67vw,13px)!important;white-space:nowrap;box-shadow:none;transform:none!important}
- .pv-creative-intro .pv-feature-button span{opacity:0}
+ .pv-creative-intro>*{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important}
+ /* Remove the old CTA printed in the desktop artwork, keeping all four panels intact. */
+ .pv-creative-intro:after{content:"";position:absolute;inset:76% 0 0;background:#090a0b;pointer-events:none}
  .pv-creative-cards{min-width:0;min-height:0;display:grid;grid-template-columns:21.1% 24.1% 29.4% 25.4%;gap:0;height:100%;padding:0}
  .pv-creative-card{display:block;position:relative;min-width:0;min-height:0;height:100%;aspect-ratio:auto;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none}
  .pv-creative-card:after,.pv-creative-card>img,.pv-creative-card .pv-card-copy,.pv-creative-card .pv-circle-arrow{display:none!important}
@@ -43,7 +43,6 @@
  .pv-creative{display:block;min-height:0;aspect-ratio:auto;padding:48px clamp(16px,4vw,34px);background:#08090a;border-top:1px solid #28282b}
  .pv-creative-intro{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);column-gap:clamp(18px,4vw,40px);row-gap:22px;max-width:740px;min-height:0;margin:0 0 30px;align-items:start}
  .pv-creative-intro .pv-feature-kicker{grid-column:1/-1}
- .pv-creative-intro .pv-feature-button{grid-column:1/-1;justify-self:start;justify-content:center;gap:0}
  .pv-creative-intro h2{grid-column:1;grid-row:2;font:400 clamp(36px,6.4vw,62px)/.98 Georgia,'Times New Roman',serif;letter-spacing:-.065em;margin:0}
  .pv-creative-intro p{grid-column:2;grid-row:2;font-size:clamp(16px,2.2vw,22px);line-height:1.45;color:#d6d3ce;max-width:380px;margin:0;text-wrap:pretty}
  .pv-creative-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
