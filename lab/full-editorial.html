@@ -11,7 +11,7 @@
 <title>Full Editorial Studio | PV LAB</title>
 <link rel="icon" type="image/png" href="./branding/pv-mark.png">
 <link rel="stylesheet" href="./full-editorial.css?v=20261030-editorial-workspace2">
-<link rel="stylesheet" href="./full-editorial-atelier.css?v=20261101-identity-cast1">
+<link rel="stylesheet" href="./full-editorial-atelier.css?v=20261101-campaign-composition2">
 <link rel="stylesheet" href="./studios-menu.css?v=20261101-phone-fit1">
 </head>
 <body>
@@ -63,7 +63,7 @@
        <div class="stage-copy"><span class="stage-index">01 / 04 &nbsp; THE SUBJECT</span><h2 id="model-heading">Identity</h2><p>Choose the people for your editorial campaign.</p></div>
      </div>
      <div class="atelier-workspace">
-       <div class="atelier-section-top"><div><h3>Choose a model</h3></div></div>
+       <div class="atelier-section-top editorial-casting-top"><div><h3>Choose your cast</h3></div><label class="editorial-cast-search"><span aria-hidden="true">⌕</span><input type="search" id="editorial-cast-search" placeholder="Search models or characters" autocomplete="off" aria-label="Search models or saved characters"></label></div>
        <div class="atelier-source-tabs" aria-label="Model source"><button type="button" class="atelier-tab is-selected" data-source-view="casting" aria-pressed="true">Casting references</button><button type="button" class="atelier-tab" id="saved-character" data-source-view="saved" aria-pressed="false">My characters</button><a class="atelier-tab" href="./studio.html?tool=image&amp;createCharacter=1">Create new <span aria-hidden="true">↗</span></a></div>
        <div id="casting-reference-gallery" class="atelier-cast-gallery" aria-label="PV LAB example character references">
          <button type="button" id="model-drop" class="editorial-own-cast" aria-label="Add your own model photographs. Click or drop images."><span class="editorial-own-plus" aria-hidden="true">+</span><strong>Add yours</strong><small>Upload or drop photos</small></button>
@@ -74,16 +74,21 @@
          <button type="button" class="atelier-reference" data-sample-kind="model" data-sample-src="./visuals/character-casting/night-cast03.webp" data-sample-label="Nocturnal portrait"><img src="./visuals/character-casting/night-cast03.webp" alt="Model in dark nocturnal couture" loading="lazy"><span>05 / NIGHT</span></button>
        </div>
        <div id="saved-character-gallery" class="atelier-cast-gallery editorial-private-gallery" hidden aria-live="polite" aria-label="Your private saved characters"></div>
-       <p class="atelier-reference-note">Select a casting model, browse your private characters, or upload your own. Extra views of the same person are added below.</p>
+
        <input type="file" id="model-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
-       <div class="editorial-selected-cast-heading" id="model-selection-heading" hidden><strong>Your cast</strong><span id="model-selection-count"></span></div>
-       <div id="model-thumbs" class="editorial-selected-cast" aria-label="Your selected models and their reference photographs"></div>
-       <div class="editorial-casting-controls" id="editorial-casting-controls" hidden>
-         <div class="editorial-together-copy"><strong>Photograph models together</strong><small>Include individual portraits and photographs together.</small></div>
-         <label class="editorial-together-switch"><input id="editorial-photograph-together" type="checkbox" checked aria-label="Photograph selected models together"><span aria-hidden="true"></span></label>
-         <p id="editorial-cast-summary" class="editorial-cast-hint" aria-live="polite"></p>
+       <div class="editorial-cast-selection" id="editorial-cast-selection" hidden>
+         <div class="editorial-selected-cast-heading" id="model-selection-heading"><strong>Selected cast</strong><span id="model-selection-count"></span><button type="button" id="editorial-clear-cast">Clear all</button></div>
+         <div id="model-thumbs" class="editorial-selected-cast" aria-label="Your selected models and their reference photographs"></div>
        </div>
-       <details class="identity-advanced"><summary>Identity guidance <span>Advanced settings</span></summary><div class="control-row"><label for="identity-guide">Identity emphasis <output id="identity-value">80%</output></label><input id="identity-guide" type="range" min="25" max="100" value="80"><small>Prompt emphasis only. Exact likeness depends on the chosen model.</small></div></details>
+       <section class="editorial-casting-controls" id="editorial-casting-controls" aria-labelledby="editorial-composition-title" hidden>
+         <div class="editorial-composition-heading"><h4 id="editorial-composition-title">Campaign composition</h4><p>Choose how your selected models appear in the series.</p></div>
+         <div class="editorial-composition-grid" role="group" aria-label="Campaign composition">
+           <button type="button" class="editorial-composition-option is-selected" data-cast-composition="mixed" aria-pressed="true"><span class="editorial-composition-art" aria-hidden="true"><img src="./visuals/character-casting/plum-cast03.webp" alt=""><img src="./visuals/character-casting/ivory-cast03.webp" alt=""></span><span class="editorial-composition-copy"><strong>Mixed editorial</strong><small>Individual portraits and group photographs.</small></span><span class="editorial-composition-check" aria-hidden="true"></span></button>
+           <button type="button" class="editorial-composition-option" data-cast-composition="alternating" aria-pressed="false"><span class="editorial-composition-art" aria-hidden="true"><img src="./visuals/character-casting/copper-inertia.webp" alt=""></span><span class="editorial-composition-copy"><strong>Individual portraits</strong><small>Each model photographed separately.</small></span><span class="editorial-composition-check" aria-hidden="true"></span></button>
+           <button type="button" class="editorial-composition-option" data-cast-composition="together" aria-pressed="false"><span class="editorial-composition-art" aria-hidden="true"><img src="./visuals/character-casting/bronze-cast03.webp" alt=""><img src="./visuals/character-casting/plum-cast03.webp" alt=""></span><span class="editorial-composition-copy"><strong>Together</strong><small>All models appear in the same scene.</small></span><span class="editorial-composition-check" aria-hidden="true"></span></button>
+         </div>
+         <p id="editorial-cast-summary" class="editorial-cast-hint" aria-live="polite"></p>
+       </section>
      </div>
    </section>
    <section class="step-panel" id="panel-style" aria-labelledby="style-heading" hidden>
@@ -167,13 +172,13 @@
      <p class="result-disclaimer">Only completed PV LAB jobs appear here. Downloaded files are the originals returned by the generator.</p>
      <a class="secondary inline-link" href="./studio.html?tool=video">Continue in Video Studio</a>
    </section>
-   <div class="flow-footer" id="step-footer"><button id="step-back" class="secondary" type="button">Back</button><button id="step-next" class="primary" type="button">Next <span class="line-arrow" aria-hidden="true"></span></button></div>
+   <div class="flow-footer" id="step-footer"><button id="step-back" class="secondary" type="button">Back</button><div class="editorial-footer-cast" id="editorial-footer-cast" hidden aria-live="polite"></div><button id="step-next" class="primary" type="button">Next <span class="line-arrow" aria-hidden="true"></span></button></div>
    <p id="editorial-status" class="editorial-status" role="status" aria-live="polite"></p>
   </div>
 </section>
 </main>
 <dialog id="saved-elements-dialog" aria-labelledby="saved-elements-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / ELEMENTS</span><h2 id="saved-elements-heading">Saved Elements</h2><p>Use existing private reference images from your Elements library.</p><div id="saved-elements-list" class="saved-elements-list"></div><button type="button" class="secondary" id="saved-elements-close">Close</button></div></dialog>
 <script src="./studios-menu.js?v=20261101-phone-fit1" defer></script>
-<script type="module" src="./full-editorial.js?v=20261101-identity-cast1"></script>
+<script type="module" src="./full-editorial.js?v=20261101-campaign-composition2"></script>
 </body>
 </html>

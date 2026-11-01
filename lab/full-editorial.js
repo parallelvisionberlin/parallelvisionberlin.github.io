@@ -43,10 +43,23 @@ let modelGroups=[],modelGroupSerial=0,modelUploadTarget=null,charactersLoadSeque
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
 function renderCastingControls(){
- const region=$('editorial-casting-controls'),toggle=$('editorial-photograph-together');
- region.hidden=modelGroups.length<2;
- toggle.checked=castComposition==='mixed';
- $('editorial-cast-summary').textContent=modelGroups.length+' selected models';
+ const region=$('editorial-casting-controls');region.hidden=modelGroups.length<2;
+ for(const button of document.querySelectorAll('[data-cast-composition]')){
+  const active=button.dataset.castComposition===castComposition;
+  button.classList.toggle('is-selected',active);button.setAttribute('aria-pressed',String(active));
+ }
+ $('editorial-cast-summary').textContent=modelGroups.length<2?'':modelGroups.length+' models selected · '+({mixed:'Solo + together',alternating:'Individual portraits',together:'Together in every photograph'}[castComposition]);
+}
+function renderIdentityFooter(){
+ const footer=$('editorial-footer-cast');footer.hidden=step!==1||modelGroups.length===0;
+ footer.replaceChildren();if(footer.hidden)return;
+ const thumbs=document.createElement('span');thumbs.className='editorial-footer-thumbs';
+ for(const group of modelGroups){
+  const cover=groupCover(group);if(!cover)continue;
+  const img=document.createElement('img');img.src=cover;img.alt=group.name;thumbs.append(img);
+ }
+ const count=document.createElement('span');count.textContent=modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' selected';
+ footer.append(thumbs,count);
 }
 function createModelGroup(name,origin='upload'){
  const group={id:'cast-'+(++modelGroupSerial),name:name||'Your model',origin,files:[],saved:[]};
@@ -94,7 +107,7 @@ function resetAll(){invalidateQuote();clearTimeout(pollTimeout);submitting=false
  for(const collection of Object.values(files))collection.forEach(pruneFile);files={model:[],outfit:[],location:[]};sampleFiles.clear();modelGroups=[];modelUploadTarget=null;charactersLoadSequence++;
  for(const url of savedCharacterThumbnails.values())URL.revokeObjectURL(url);savedCharacterThumbnails.clear();for(const ref of Object.values(savedRefs).flat())if(ref.url)URL.revokeObjectURL(ref.url);savedRefs={model:[],outfit:[],location:[]};
  for(const id of ['styling-direction','location-direction','editorial-prompt'])$(id).value='';
- $('identity-guide').value='80';$('garment-guide').value='70';$('mood-guide').value='60';
+ $('garment-guide').value='70';$('mood-guide').value='60';
  chosenCount=4;chosenRatio='3:4';castComposition='mixed';selectedDirections={location:null,moods:null,material:null};directionTab='location';for(const id of ['editorial-time','editorial-atmosphere','editorial-palette'])$(id).selectedIndex=0;
  for(const input of ['model-files','outfit-files','location-files'])$(input).value='';
  renderFiles();renderDirections();updateOptions();refreshSliderLabels();setIdentitySource('casting');go(0);status('');
@@ -116,17 +129,17 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
  }
  $('step-next').hidden=next===4;
  $('step-next').textContent=({1:'Continue to styling',2:'Continue to location',3:'Continue to review'}[next]||'Next');
- invalidateQuote();updateGenerationMotion();
+ renderIdentityFooter();invalidateQuote();updateGenerationMotion();
  if(next===4)updateSeriesSummary();
  if(next===0){window.scrollTo({top:0,left:0,behavior:'instant'});document.getElementById('editorial-hero').scrollIntoView({block:'start',behavior:'instant'});}else{document.getElementById('editorial-flow').scrollIntoView({block:'start',behavior:'instant'});}
 }
 function updateOptions(){for(const b of $('count-options').querySelectorAll('button'))b.classList.toggle('is-selected',Number(b.dataset.count)===chosenCount);
  for(const b of $('ratio-options').querySelectorAll('button'))b.classList.toggle('is-selected',b.dataset.ratio===chosenRatio);}
-function refreshSliderLabels(){for(const [input,id] of [['identity-guide','identity-value'],['garment-guide','garment-value'],['mood-guide','mood-value']])$(id).value=$(input).value+'%'}
+function refreshSliderLabels(){for(const [input,id] of [['garment-guide','garment-value'],['mood-guide','mood-value']])$(id).value=$(input).value+'%'}
 function renderModelGroups(){
  const box=$('model-thumbs');box.replaceChildren();
- $('model-selection-heading').hidden=modelGroups.length===0;
- $('model-selection-count').textContent=modelGroups.length+' selected';
+ $('editorial-cast-selection').hidden=modelGroups.length===0;
+ $('model-selection-count').textContent=modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' selected';
  for(const [index,group] of modelGroups.entries()){
   const card=document.createElement('article');card.className='editorial-model-card thumb';
   const hero=document.createElement('div');hero.className='editorial-model-cover';
@@ -156,7 +169,7 @@ function renderModelGroups(){
   add.addEventListener('click',()=>openModelPicker(group.id));
   card.append(hero,copy,refs,add);box.append(card);
  }
- renderCastingControls();
+ renderCastingControls();renderIdentityFooter();
  for(const card of document.querySelectorAll('#saved-character-gallery .editorial-saved-cast')){
   const selected=modelGroups.some(group=>group.origin===card.dataset.savedPack);
   card.classList.toggle('is-selected',selected);card.setAttribute('aria-pressed',String(selected));
@@ -210,7 +223,7 @@ function updateSeriesSummary(){
  }
  const count=kind=>files[kind].length+savedRefs[kind].length;
  showImage('review-model-thumb',source('model'));
- model.textContent=modelGroups.length?(modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' / '+count('model')+' reference photo'+(count('model')===1?'':'s')):'No model selected';
+ model.textContent=modelGroups.length?(modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' / '+count('model')+' reference photo'+(count('model')===1?'':'s')+(modelGroups.length>1?' / '+({mixed:'Mixed editorial',alternating:'Individual portraits',together:'Together'}[castComposition]):'')):'No model selected';
  showImage('review-outfit-thumb',source('outfit'));
  $('review-outfit-text').textContent=count('outfit')?count('outfit')+' wardrobe reference'+(count('outfit')===1?'':'s'):$('styling-direction').value.trim()?'Described wardrobe':'No wardrobe selected';
  const picks=Object.entries(selectedDirections).map(([k,id])=>directionSets[k].find(d=>d.id===id)).filter(Boolean);
@@ -288,7 +301,7 @@ function getSettings(){
  const lighting={natural:'Natural daylight with plausible exposure.',golden:'Golden hour, long shadows and warm natural light.',overcast:'Overcast daylight, diffuse shadows.',blue:'Blue hour, believable mixed twilight.',night:'Night, physically plausible practical illumination.'}[$('editorial-time').value]||'';
  const atmosphere={cinematic:'Cinematic contrast without artificial oversharpening.',analogue:'Analogue photographic texture, subtle organic grain.',soft:'Soft diffused contrast and restrained halation.',contrast:'Strong directional contrast, preserved shadow detail.'}[$('editorial-atmosphere').value]||'';
  const palette={natural:'Natural desaturated tonal palette.',mono:'Monochrome photographic palette.',warm:'Warm earthy color relationships.',cool:'Cool mineral color relationships.'}[$('editorial-palette').value]||'';
- const identity=Number($('identity-guide').value),emphasis=Number($('garment-guide').value),mood=Number($('mood-guide').value);
+ const identity=80,emphasis=Number($('garment-guide').value),mood=Number($('mood-guide').value);
  const parts=[
   'PV LAB Full Editorial series. Photorealistic high-fashion campaign photography, grounded natural skin texture, convincing fabric and plausible anatomy. Cohesive visual direction across the series, realistic lighting, non-plastic skin and restrained retouching.',
   'Preserve the recognizable facial identity from identity reference photographs as faithfully as the model can; use them for facial features, not the original pose or background. Identity importance '+identity+' percent as creative guidance.',
@@ -322,10 +335,11 @@ function editorialShotPlan(index,total,references,base){
  const other=references.filter(r=>r.role!=='identity');
  const cast=modelGroups.length>1;
  const grouped=modelGroups.map(group=>references.filter(r=>r.role==='identity'&&r.groupId===group.id));
- const first=index%grouped.length,paired=cast&&castComposition==='mixed'&&index%4===2;
- const selected=paired?[...grouped[first],...grouped[(first+1)%grouped.length]]:grouped[first];
- const personInstruction=cast?(paired
-  ?'Exactly two distinct adult models appear together. Each model may have multiple reference views. Preserve each individual identity without blending or swapping faces.'
+ const first=index%grouped.length,groupShot=cast&&(castComposition==='together'||(castComposition==='mixed'&&index%4===3));
+ const selected=groupShot?grouped.flat():grouped[first];
+ const groupSize=grouped.length;
+ const personInstruction=cast?(groupShot
+  ?'Exactly '+groupSize+' distinct adult models appear together in the same coherent photograph. Each model may have multiple reference views. Preserve each individual identity without blending, adding, or swapping faces.'
   :'Exactly one adult model appears using all selected views of the same person. No second figure or blended facial features.')
   :'Exactly one adult model appears. All identity photographs are reference views of that same person, not separate people.';
  const shotReferences=[...selected,...other];
@@ -364,6 +378,16 @@ function setIdentitySource(source){
   button.classList.toggle('is-selected',active);button.setAttribute('aria-pressed',String(active));
  }
  if(saved)void showSavedCharacters();
+ filterCastingGallery();
+}
+function filterCastingGallery(){
+ const query=$('editorial-cast-search').value.trim().toLocaleLowerCase();
+ for(const card of document.querySelectorAll('#casting-reference-gallery .atelier-reference')){
+  card.hidden=Boolean(query&&!String(card.dataset.sampleLabel||'').toLocaleLowerCase().includes(query));
+ }
+ for(const card of document.querySelectorAll('#saved-character-gallery .editorial-saved-cast')){
+  card.hidden=Boolean(query&&!card.textContent.toLocaleLowerCase().includes(query));
+ }
 }
 async function showSavedCharacters(){
  const container=$('saved-character-gallery');container.replaceChildren();
@@ -401,7 +425,8 @@ async function showSavedCharacters(){
     }).catch(()=>{});
    }
   }
- }catch(error){if(version===charactersLoadSequence&&session===epoch)container.textContent=error.message}
+   filterCastingGallery();
+  }catch(error){if(version===charactersLoadSequence&&session===epoch)container.textContent=error.message}
 }
 function addSavedCharacter(pack,refs){
  if(submitting)return;
@@ -642,7 +667,9 @@ $('model-drop').addEventListener('dragover',event=>event.preventDefault());
 $('model-drop').addEventListener('drop',event=>{event.preventDefault();addFiles('model',event.dataTransfer.files)});
 
 $('add-outfits').addEventListener('click',()=>$('outfit-files').click());
-$('editorial-photograph-together').addEventListener('change',event=>{castComposition=event.target.checked?'mixed':'alternating';invalidateQuote();renderCastingControls()});
+for(const button of document.querySelectorAll('[data-cast-composition]'))button.addEventListener('click',()=>{if(submitting)return;castComposition=button.dataset.castComposition;invalidateQuote();renderCastingControls();updateSeriesSummary()});
+$('editorial-cast-search').addEventListener('input',filterCastingGallery);
+$('editorial-clear-cast').addEventListener('click',()=>{if(submitting)return;for(const group of [...modelGroups])removeModelGroup(group.id);status('')});
 $('saved-outfit').addEventListener('click',()=>void openSaved('outfit'));
 $('saved-location').addEventListener('click',()=>void openSaved('location'));
 $('saved-elements-close').addEventListener('click',()=>$('saved-elements-dialog').close());
@@ -650,7 +677,7 @@ $('add-location').addEventListener('click',()=>$('location-files').click());
 $('model-files').addEventListener('change',event=>{const target=modelUploadTarget;modelUploadTarget=null;addFiles('model',event.target.files,target);event.target.value=''});
 for(const [kind,id] of [['outfit','outfit-files'],['location','location-files']])$(id).addEventListener('change',event=>{addFiles(kind,event.target.files);event.target.value=''});
 for(const id of ['styling-direction','location-direction','editorial-prompt','editorial-model','editorial-resolution'])$(id).addEventListener('input',()=>{invalidateQuote();updateSeriesSummary()});
-for(const id of ['identity-guide','garment-guide','mood-guide'])$(id).addEventListener('input',()=>{invalidateQuote();refreshSliderLabels()});
+for(const id of ['garment-guide','mood-guide'])$(id).addEventListener('input',()=>{invalidateQuote();refreshSliderLabels()});
 
 $('count-options').addEventListener('click',event=>{const b=event.target.closest('[data-count]');if(!b)return;chosenCount=Number(b.dataset.count);invalidateQuote();updateOptions()});
 $('ratio-options').addEventListener('click',event=>{const b=event.target.closest('[data-ratio]');if(!b)return;chosenRatio=b.dataset.ratio;invalidateQuote();updateOptions()});

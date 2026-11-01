@@ -70,8 +70,11 @@ test('Atelier references remain real and the creative steps feed real generation
  assert.match(js,/const moodText=Object\.entries\(selectedDirections\)/);
  assert.match(html,/id="model-drop" class="editorial-own-cast"/,'First casting slot is the upload card');
  assert.match(html,/id="saved-character-gallery"/,'Saved characters are available inline');
- assert.match(html,/id="editorial-photograph-together"/,'Two-model composition is one clear toggle');
- assert.doesNotMatch(html,/id="editorial-cast-mode"/,'Old identity dropdown is removed');
+ assert.match(html,/data-cast-composition="mixed"/,'Mixed editorial composition is available');
+ assert.match(html,/data-cast-composition="alternating"/,'Individual portraits composition is available');
+ assert.match(html,/data-cast-composition="together"/,'Together composition is available');
+ assert.match(js,/castComposition==='together'/,'Together selection changes real shot references');
+ assert.doesNotMatch(html,/id="identity-guide"/,'Redundant identity slider removed from casting step');
  assert.match(js,/function createModelGroup/,'Additional photos are grouped per model');
  assert.match(js,/function addSavedCharacter/,'Saved Character packs can join the cast');
  assert.match(js,/groupId===group.id/,'Shot references stay assigned to their person');
