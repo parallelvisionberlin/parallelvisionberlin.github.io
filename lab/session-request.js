@@ -121,8 +121,10 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
       // /studio URL. Both forms represent the same authenticated workspace.
       // Never redirect /studio back to /studio.html on a 409.
       const homepage=browser.pathname==='/'||browser.pathname==='/index.html';
-      if(!homepage&&browser.pathname!=='/studio'&&browser.pathname!=='/studio.html') {
+      const moodEditor=browser.pathname==='/moods'||browser.pathname==='/moods/';
+      if(!homepage&&!moodEditor&&browser.pathname!=='/studio'&&browser.pathname!=='/studio.html') {
         // Preserve the existing setup destination for other account pages.
+        // Moods stays in place so the campaign user's uploaded photo survives.
         window.location.replace(new URL('/studio?tool=image',browser.origin).href);
         return response;
       }
