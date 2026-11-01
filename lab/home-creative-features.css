@@ -328,3 +328,37 @@
 @media(prefers-reduced-motion:reduce){
   #featured-editorial .pv-editorial-feature-video{display:none!important;transition:none!important}
 }
+
+/* Approved phone composition: headline above, film in the middle, invitation below. */
+@media(max-width:680px){
+  #featured-editorial{
+    height:auto!important;
+    min-height:clamp(640px,175vw,760px)!important;
+  }
+  #featured-editorial .pv-editorial-feature-copy{
+    position:relative!important;
+    inset:auto!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto minmax(220px,1fr) auto auto auto;
+    align-items:start;
+    align-content:stretch;
+    justify-content:normal!important;
+    min-height:inherit;
+    height:auto!important;
+    padding:30px 22px 28px!important;
+  }
+  #featured-editorial .pv-feature-kicker{grid-row:1}
+  #featured-editorial h2{grid-row:2;margin:0!important}
+  #featured-editorial .pv-editorial-feature-lead{grid-row:4}
+  #featured-editorial .pv-editorial-feature-copy p:not(.pv-editorial-feature-lead){
+    grid-row:5;
+    margin:0 0 22px!important;
+  }
+  #featured-editorial .pv-feature-button{grid-row:6;justify-self:start;max-width:100%}
+  #featured-editorial .pv-editorial-feature-art{background-position:center center!important}
+  #featured-editorial .pv-editorial-feature-video{object-position:center center!important}
+  #featured-editorial .pv-editorial-feature-shade{
+    background:linear-gradient(180deg,rgba(9,10,11,.84) 0%,rgba(9,10,11,.6) 22%,rgba(9,10,11,.08) 40%,transparent 54%,rgba(9,10,11,.5) 73%,rgba(9,10,11,.9) 87%,#090a0bfc 100%)!important;
+  }
+}

@@ -1,3 +1,14 @@
+## Full Editorial phone composition, 2026-11-01
+- Owner approved mockup exec-8eed8ae8-6b84-4bfa-960b-36eae296bb2f.png: kicker/title above, clear central film, supporting copy and existing CTA below.
+- Source baseline: 778cdd306bef9a1ba945f2f7aa6df77a92948d6d.
+- Scope: homepage #featured-editorial at widths up to 680px only.
+- CSS grid reserves a minimum 220px central opening; section grows naturally on narrow phones or larger text.
+- Preserve all exact wording, font rules, existing video/still assets, playback logic and CTA destination.
+- Center the existing still and film on phones to match the approved focal point; top/bottom shading follows the separated text blocks. Desktop/tablet composition remains unchanged.
+- Files: lab/home-creative-features.css, lab/index.html (stylesheet version only), this checkpoint.
+- Cache: 20261101-editorial-phone-composition1.
+- Validation: approved Image UI 5/5; 320/390/680px browser checks show no overflow and CTA within the section; 1200px metrics match baseline. Source HTML changes only the cache version. Production verification pending.
+
 ## Creative Studios direct card navigation, 2026-11-01
 - Owner requested removing the white Explore all studios button on desktop and phone.
 - Baseline main: bba094e99085ad03b5edece24c93cdd73f6952f8.
