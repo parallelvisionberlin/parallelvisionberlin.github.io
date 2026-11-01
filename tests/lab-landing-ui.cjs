@@ -49,12 +49,13 @@ const server=http.createServer((req,res)=>{
     assert.equal(studiosMotion.cardAnimation,'none','Reduced-motion users see the cards immediately');
   }else{
     assert.equal(studiosMotion.panelAnimation,'pv-studios-panel-reveal','Studios panel has a restrained reveal');
-    assert.equal(studiosMotion.cardAnimation,'pv-studios-card-reveal','Studio cards share the editorial entrance');
-    assert.deepEqual(studiosMotion.cardDelays,['0.035s','0.06s','0.085s','0.11s'],'Four cards reveal in a short sequence');
+    assert.equal(studiosMotion.cardAnimation,'none','All four Studio cards appear together without independent movement');
+    assert.deepEqual(studiosMotion.cardDelays,['0s','0s','0s','0s'],'No delayed image or card entrance');
   }
   assert.match(await page.getByRole('link',{name:'Beauty Studio',exact:true}).getAttribute('href'),/beauty\.html$/);
   assert.equal(await page.getByRole('link',{name:'Fashion Studio',exact:true}).getAttribute('href'),'./studio.html?tool=fashion');
   assert.match(await page.getByRole('link',{name:'Retouch Studio',exact:true}).getAttribute('href'),/studio\.html\?tool=retouch$/);
+  assert.deepEqual(await page.locator('.pv-studios-photo img').evaluateAll(images=>images.map(img=>img.loading)),['eager','eager','eager','eager'],'All Studio photographs are requested before the menu opens');
   const studioTiles=page.locator('.pv-studios-tile');
   assert.equal(await studioTiles.count(),4,'Studios presents four approved editorial destinations');
   assert.deepEqual(await studioTiles.evaluateAll(tiles=>tiles.map(tile=>[...tile.classList].find(name=>name.startsWith('pv-studios-')&&name!=='pv-studios-tile'))),['pv-studios-beauty','pv-studios-fashion','pv-studios-editorial','pv-studios-retouch']);
