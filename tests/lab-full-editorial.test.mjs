@@ -101,7 +101,18 @@ test('Identity casting uses the approved photographic layout rather than standal
  assert.match(stage,/id="editorial-casting-controls"/);
  assert.ok(stage.indexOf('id="model-thumbs"')<stage.indexOf('id="model-selection-count"'),'Thumbnails appear before count and Clear all');
  assert.match(js,/editorial-footer-add/,'Footer + adds another model using existing picker');
- assert.match(css,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
- assert.match(css,/#panel-model \.editorial-composition-option/);
- assert.match(css,/:has\(#panel-model:not\(\[hidden\]\)\)/,'Identity footer fills the remaining viewport height');
+ const atelierCss=read('lab/full-editorial-atelier.css');
+ assert.match(atelierCss,/PVLAB_IDENTITY_REFERENCE_MATCH_20261101/);
+ assert.match(atelierCss,/#panel-model \.editorial-composition-option/);
+ assert.match(atelierCss,/:has\(#panel-model:not\(\[hidden\]\)\)/,'Identity footer fills the remaining viewport height');
+});
+
+test('Fresh Identity opens the approved two-person demonstration without billable side effects',()=>{
+ assert.match(html,/full-editorial\.js\?v=20261101-approved-cast4/);
+ assert.match(js,/async function seedApprovedExampleCast/);
+ assert.match(js,/const names=\['Bronze portrait','Copper portrait'\]/);
+ assert.match(js,/if\(directStart&&!modelPhoto\)void seedApprovedExampleCast\(\)/);
+ assert.match(js,/initialExampleVersion\+\+;for\(const group of \[\.\.\.modelGroups\]\)removeModelGroup/);
+ assert.match(js,/if\(modelPhoto\)\{/,'Transferred user model is not overwritten');
+ assert.match(js,/initialExampleSeeded=true;initialExampleVersion\+\+;invalidateQuote/,'Start over leaves the cast cleared');
 });
