@@ -49,6 +49,7 @@ try{
     path==='/api/fashion/models'?{models:['fashnmax','fashn16','fluxvto'].map(id=>({id,available:true}))}:
     path==='/api/fashion/balance'?{connected:true,credits:{total:100,onDemand:100,subscription:0}}:
     path==='/api/jobs'?{jobs:[job],next:null}:
+    path==='/api/packs'?{packs:[{name:'PVSCENE1|outfits|Atelier Coat',refs:[{id:sourceIds[1],name:'Front'},{id:'44444444-4444-4444-8444-444444444444',name:'Detail'}]}]}:
     path==='/api/uploads'?{id:sourceIds[uploads++]}:
     path==='/api/fashion/quote'?{id:quoteId,estimatedUsd:.15,creditCost:20,expiresAt:Date.now()+600000,notice:'Confirm one generation.'}:
     path==='/api/fashion/submit'?(submits++,{job}):{items:[],jobs:[],packs:[],boards:[],models:[]};
@@ -118,6 +119,21 @@ try{
   assert.equal(calls.some(x=>x.path==='/api/fashion/quote'),false,'Presentation alone cannot quote, upload or spend credits');
   assert.equal(await fashion.locator('#person-file').getAttribute('type'),'file');
   assert.equal(await fashion.locator('#person-file').inputValue(),'','Example photos are never upload values');
+  // Saved Outfit selection uses the same garment field, without navigation or charging credits.
+  if(role!=='guest'){
+   await fashion.locator('#fashion-wardrobe-open').click();
+   await fashion.locator('#fashion-wardrobe').waitFor({state:'visible'});
+   await fashion.locator('.wardrobe-item').first().waitFor({state:'visible'});
+   assert.equal(await fashion.locator('.wardrobe-item').count(),1,'One saved Elements outfit is available');
+   await fashion.locator('.wardrobe-item').click();
+   assert.equal(await fashion.locator('.wardrobe-item').count(),2,'Multiple saved views are available');
+   await fashion.locator('.wardrobe-item').first().click();
+   await fashion.locator('#fashion-wardrobe').waitFor({state:'hidden'});
+   assert.equal(await fashion.locator('#garment-preview').isVisible(),true,'Outfit populates original garment field');
+   assert.match(await fashion.locator('#fashion-wardrobe-selected').textContent(),/WARDROBE \/ Atelier Coat/);
+   assert.equal(calls.some(x=>x.path==='/api/uploads'),false,'No duplicate upload for existing private asset');
+   assert.equal(calls.some(x=>x.path==='/api/fashion/submit'),false,'Wardrobe cannot generate');
+  }
   const [picker]=await Promise.all([page.waitForEvent('filechooser'),fashion.locator('#person-slot').click()]);
   await picker.setFiles({name:'synthetic-person.webp',mimeType:'image/webp',buffer:image});
   // Drop onto the garment card uses the original production drop handler.
@@ -129,6 +145,7 @@ try{
   assert.equal(await fashion.locator('#garment-preview').isVisible(),true);
   assert.equal(await fashion.locator('#person-hint').isVisible(),false);
   assert.equal(await fashion.locator('#garment-hint').isVisible(),false);
+  assert.equal(await fashion.locator('#fashion-wardrobe-selected').isVisible(),false,'Manual upload replaces Wardrobe selection');
   if(role==='guest'){
    assert.equal(calls.length,0,'Guest previews make no private API requests');
    await fashion.locator('#quote').click();
