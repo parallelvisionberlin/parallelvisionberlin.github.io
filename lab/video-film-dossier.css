@@ -433,3 +433,20 @@ html body #app.video-studio-active .pv-video-create-inspector .pv-video-current-
 html body #app.video-studio-active .pv-video-create-inspector .pv-video-current-settings{
   gap:10px!important;
 }
+
+/* Only completed files receive their real requested-duration label. */
+@media(min-width:821px){
+  html body #app.video-studio-active .video-feed-center #history .pv-film-duration{
+    position:absolute;
+    z-index:4;
+    right:7px;
+    bottom:7px;
+    padding:2px 5px;
+    border-radius:4px;
+    background:#08090ac9;
+    color:#fff;
+    font:550 10px/1.4 'DM Sans',Arial,sans-serif;
+    letter-spacing:.01em;
+    pointer-events:none;
+  }
+}
