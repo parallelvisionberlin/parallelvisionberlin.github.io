@@ -157,6 +157,10 @@ function renderModelGroups(){
   card.append(hero,copy,refs,add);box.append(card);
  }
  renderCastingControls();
+ for(const card of document.querySelectorAll('#saved-character-gallery .editorial-saved-cast')){
+  const selected=modelGroups.some(group=>group.origin===card.dataset.savedPack);
+  card.classList.toggle('is-selected',selected);card.setAttribute('aria-pressed',String(selected));
+ }
 }
 function renderFiles(){
  renderModelGroups();
@@ -335,7 +339,7 @@ async function sync(){
  if(prev&&prev!==next){epoch++;uploaded.clear();quote=null;uncertain=false;submitting=false;wipeResults();resetAll();}
  sessionKey=next;
  if(!clerk?.isSignedIn||!next){profile=null;$('editorial-signin').hidden=false;$('editorial-balance').textContent='';return;}
- try{profile=await api('/api/session');$('editorial-signin').hidden=true;if(step===4)invalidateQuote();const credits=profile?.credits?.balance??profile?.balanceCredits??profile?.wallet?.balance;if(Number.isSafeInteger(credits))$('editorial-balance').textContent=credits.toLocaleString()+' credits';}catch(error){profile=null;status('Your account could not be checked: '+error.message,true);}
+ try{profile=await api('/api/session');$('editorial-signin').hidden=true;if(step===4)invalidateQuote();if($('panel-model').dataset.modelMode==='saved')void showSavedCharacters();const credits=profile?.credits?.balance??profile?.balanceCredits??profile?.wallet?.balance;if(Number.isSafeInteger(credits))$('editorial-balance').textContent=credits.toLocaleString()+' credits';}catch(error){profile=null;status('Your account could not be checked: '+error.message,true);}
 }
 async function uploadReferences(){
  const selected=[...modelGroups.flatMap(group=>group.files.map(file=>({file,role:'identity',groupId:group.id}))),...files.outfit.map(file=>({file,role:'outfit'})),...files.location.map(file=>({file,role:'room'}))];
@@ -363,7 +367,13 @@ function setIdentitySource(source){
 }
 async function showSavedCharacters(){
  const container=$('saved-character-gallery');container.replaceChildren();
- if(!profile){container.textContent='Sign in to browse your private characters.';return}
+ if(!profile){
+  const note=document.createElement('span');note.textContent='Sign in to browse your private characters.';
+  const button=document.createElement('button');button.type='button';button.textContent='Sign in';
+  button.className='secondary editorial-character-signin';
+  button.addEventListener('click',()=>void signIn().catch(e=>status(e.message,true)));
+  container.append(note,button);return;
+ }
  const version=++charactersLoadSequence,session=epoch;
  container.textContent='Loading your saved characters…';
  try{
@@ -373,7 +383,8 @@ async function showSavedCharacters(){
   container.replaceChildren();
   if(!packs.length){container.textContent='No saved characters yet. Choose a casting model or add your own photograph.';return}
   for(const pack of packs){
-   const card=document.createElement('button');card.type='button';card.className='editorial-saved-cast atelier-reference';
+   const card=document.createElement('button');card.type='button';card.className='editorial-saved-cast atelier-reference';card.setAttribute('aria-pressed',String(modelGroups.some(g=>g.origin===pack.name)));card.dataset.savedPack=pack.name;
+   if(modelGroups.some(g=>g.origin===pack.name))card.classList.add('is-selected');
    const key=pack.name+'|'+pack.refs[0].id,photo=document.createElement('img');
    photo.alt='';photo.loading='lazy';
    const cached=savedCharacterThumbnails.get(key);
