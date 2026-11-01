@@ -43,7 +43,7 @@ export async function customerPromotionalReview(env,id){
   const trial=await one(env,`SELECT
     EXISTS(SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=?
       AND e.reference='welcome:'||e.customer_id AND e.delta_credits=40) AS granted,
-    EXISTS(SELECT 1 FROM jobs j WHERE j.owner_id=? AND j.state<>'failed') AS used`,id,id);
+    EXISTS(SELECT 1 FROM lab_generation_finance j WHERE j.customer_id=? AND j.last_state<>'failed') AS used`,id,id);
   const firstImageAvailable=!!trial?.granted&&!trial?.used;
   const held=!hasPaid&&(explicitHold||flaggedEmail||(trialPaused&&!hasOwnerVoucher&&!firstImageAvailable));
   return {
