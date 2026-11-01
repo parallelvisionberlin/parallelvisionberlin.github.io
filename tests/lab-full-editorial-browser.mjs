@@ -79,7 +79,7 @@ try{
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.ok(layout.heroHeight>=153&&layout.heroHeight<=191,'Empty Identity hero exposes full casting page');
+   assert.ok(layout.heroHeight>=209&&layout.heroHeight<=211,'Hero has enough vertical space for readable copy and navigation');
    for(const key of ['railInside','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    const emptyBounds=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
@@ -88,7 +88,19 @@ try{
      buttonBackground:getComputedStyle(document.getElementById('step-next')).backgroundColor};
    });
    assert.ok(emptyBounds.footerBottom<=emptyBounds.viewportHeight-8,'Empty Identity action and cast all fit on the initial desktop screen: '+JSON.stringify(emptyBounds));
-   assert.ok(emptyBounds.cardHeight>=224&&emptyBounds.cardHeight<=268,'Portraits remain useful in compact empty state');
+   assert.ok(emptyBounds.cardHeight>=224&&emptyBounds.cardHeight<=268,'Portraits retain their size');
+   const textClearance=await page.evaluate(()=>{
+    const box=selector=>document.querySelector(selector).getBoundingClientRect();
+    const button=document.getElementById('step-next');
+    return {backBottom:box('#editorial-top-back').bottom,kickerTop:box('#panel-model .stage-index').top,
+     subtitleBottom:box('#panel-model .stage-copy p').bottom,railTop:box('.editorial-flow-rail').top,
+     buttonRadius:getComputedStyle(button).borderRadius,
+     disabledBackground:getComputedStyle(button).backgroundColor};
+   });
+   assert.ok(textClearance.kickerTop>=textClearance.backBottom+4,'Stage kicker must clear Back: '+JSON.stringify(textClearance));
+   assert.ok(textClearance.subtitleBottom<=textClearance.railTop-8,'Subtitle must clear the progress rail: '+JSON.stringify(textClearance));
+   assert.equal(textClearance.buttonRadius,'2px','Continue has clean angular corners');
+   assert.equal(textClearance.disabledBackground,'rgb(17, 18, 18)','Disabled Continue uses dark surface');
    assert.match(emptyBounds.buttonBackground,/rgba?\(\s*(?:0|1\d|2\d|3\d)/,'Disabled Continue uses dark editorial styling');
    await page.locator('#editorial-top-back').click();
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
@@ -118,6 +130,16 @@ try{
    assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'No inactive group-composition buttons with one model');
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true,'One model is not multi-cast');
    assert.equal(await page.locator('#step-next').isDisabled(),false,'One model can continue');
+   if(width>800){
+    await page.waitForFunction(()=>getComputedStyle(document.querySelector('#step-next')).backgroundColor==='rgb(19, 20, 20)');
+    const surface=await page.locator('#step-next').evaluate(el=>({
+     background:getComputedStyle(el).backgroundColor,
+     border:getComputedStyle(el).borderColor,
+     arrow:getComputedStyle(el,'::after').content
+    }));
+    assert.equal(surface.background,'rgb(19, 20, 20)','Continue stays dark after model selection');
+    assert.match(surface.arrow,/↗/,'Continue uses the editorial arrow');
+   }
   await page.locator('.stage-visual--identity img').evaluate(img=>img.decode().catch(()=>{}));
   await page.screenshot({path:'test-results/editorial/'+width+'-identity.png',fullPage:width===390});
   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference').first().getAttribute('aria-pressed'),'true');
