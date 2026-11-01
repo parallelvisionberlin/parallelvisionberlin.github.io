@@ -443,3 +443,69 @@ html body #app.video-studio-active.pv-video-approved-ready #video-inspector-sele
     overflow:visible!important;
   }
 }
+
+/* Desktop composer fit, 2026-11-01.
+   The old flex:1 0 auto prompt plus 64px Generate footer forced a scrollbar
+   at ordinary laptop heights. Let the writing area use the remaining room.
+   On genuinely short windows, independent controls scrolling still works. */
+@media(min-width:821px){
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
+  .workspace.video-layout>.controls{
+    display:flex!important;
+    flex-direction:column!important;
+    min-height:0!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
+  .workspace.video-layout .controls-body{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    gap:7px!important;
+    padding:10px 11px 6px!important;
+    overflow-y:auto!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
+  #pv-video-prompt-box{
+    flex:1 1 0!important;
+    min-height:106px!important;
+    max-height:none!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
+  .workspace.video-layout .controls #pv-video-prompt-box textarea#prompt{
+    flex:1 1 0!important;
+    height:auto!important;
+    min-height:69px!important;
+    max-height:none!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
+  .workspace.video-layout>.controls>.generate-zone{
+    flex:0 0 54px!important;
+    height:54px!important;
+    min-height:54px!important;
+    padding:0 11px 8px!important;
+    box-sizing:border-box!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
+  .workspace.video-layout #generate{
+    height:45px!important;
+    min-height:45px!important;
+    border-radius:12px!important;
+  }
+  /* No persistent Windows scrollbar rail: wheel, keyboard and touch scrolling
+     stay available whenever attached references or expanded fields need it. */
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
+  .workspace.video-layout .controls-body{
+    scrollbar-width:none!important;
+    -ms-overflow-style:none!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
+  .workspace.video-layout .controls-body::-webkit-scrollbar{display:none!important}
+}
+@media(min-width:821px) and (max-height:900px){
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
+  #video-model-control{
+    height:110px!important;
+    min-height:110px!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
+  .workspace.video-layout .controls-body{gap:6px!important;padding-top:8px!important}
+}
