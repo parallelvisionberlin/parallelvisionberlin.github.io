@@ -762,3 +762,13 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
  .editorial-footer-cast{gap:9px}
  .flow-main:has(#panel-model:not([hidden])) #step-next{min-width:170px}
 }
+
+/* 2026-11-01: keep selected-cast controls clickable with the bottom action rail.
+   Flex-column already anchors the footer when the content is short. Sticky overlays
+   intercept thumbnail controls when campaign composition needs more vertical space. */
+.flow-main:has(#panel-model:not([hidden])) #step-footer{position:relative;bottom:auto;z-index:1}
+#panel-model .editorial-cast-selection{position:relative;z-index:2}
+#panel-model .editorial-model-card.thumb{position:relative;z-index:2}
+#panel-model .editorial-model-extra-thumb{position:relative}
+#panel-model .editorial-model-extra-thumb button{z-index:6}
+@media(min-width:801px){#panel-model .editorial-selected-cast{overflow:visible;max-width:none}}
