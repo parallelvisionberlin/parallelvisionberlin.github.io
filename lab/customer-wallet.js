@@ -1,6 +1,6 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
 import {referralsAvailable} from './account-menu.js?v=20261030-robin-partner1';
-import {metaConsentGranted,trackLabEvent} from './meta-pixel.js?v=20261013-a1';
+import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent} from './meta-pixel.js?v=20261013-a1';
 export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{},openPricing=()=>{window.location.assign('./#pricing');}}){
   const $=id=>document.getElementById(id);
   let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0,trialGenerationPaused=false;
@@ -54,7 +54,7 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     try{
       // Only forward voluntary analytics consent; Stripe remains the payment authority.
       const consent=metaConsentGranted();
-      const data=await api('/api/billing/checkout',{method:'POST',body:consent?{sku,metaConsent:true}:{sku}});
+      const data=await api('/api/billing/checkout',{method:'POST',body:consent?{sku,metaConsent:true,...metaPixelIdentifiers()}:{sku}});
       if(!account||current!==accountEpoch)return false;
       const uri=new URL(data.url);
       if(uri.protocol!=='https:'||!(uri.hostname==='stripe.com'||uri.hostname.endsWith('.stripe.com')))throw new Error('Unverified checkout link.');
