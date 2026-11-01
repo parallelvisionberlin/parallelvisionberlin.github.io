@@ -111,6 +111,9 @@ export async function customerRoute(request,env,subject){
     if(!enabled(env,subject))fail(503,'Checkout is not enabled yet for this account. No payment was initiated.');
     const data=await request.json().catch(()=>null),sku=String(data?.sku||''),item=PACKS[sku];
     const metaConsent=labMetaOptIn(data?.metaConsent);
+    // Meta identifiers are only forwarded when the visitor explicitly accepts cookies.
+    const metaFbp=metaConsent&&/^fb\.1\.\d{10,16}\.\d{1,30}$/.test(String(data?.fbp||''))?data.fbp:'';
+    const metaFbc=metaConsent&&/^fb\.1\.\d{10,16}\.[A-Za-z0-9._-]{5,256}$/.test(String(data?.fbc||''))?data.fbc:'';
     if(!item)fail(400,'Choose an available credit pack or subscription.');
     // Post-payment invoices carry an additional Stripe fee. Enable explicitly
     // per environment, after the merchant approves its fee and tax wording.
@@ -143,6 +146,8 @@ export async function customerRoute(request,env,subject){
       'metadata[lab_customer_id]':subject,
       'metadata[lab_sku]':sku,
       'metadata[lab_meta_consent]':metaConsent?'1':'0',
+      ...(metaFbp?{'metadata[lab_meta_fbp]':metaFbp}:{}),
+      ...(metaFbc?{'metadata[lab_meta_fbc]':metaFbc}:{}),
       'line_items[0][price_data][currency]':'eur',
       'line_items[0][price_data][unit_amount]':String(item.cents),
       'line_items[0][price_data][product_data][name]':item.title,
@@ -161,6 +166,8 @@ export async function customerRoute(request,env,subject){
       form['subscription_data[metadata][lab_customer_id]']=subject;
       form['subscription_data[metadata][lab_sku]']=sku;
       form['subscription_data[metadata][lab_meta_consent]']=metaConsent?'1':'0';
+      if(metaFbp)form['subscription_data[metadata][lab_meta_fbp]']=metaFbp;
+      if(metaFbc)form['subscription_data[metadata][lab_meta_fbc]']=metaFbc;
     } else {
       form['payment_intent_data[metadata][lab_customer_id]']=subject;
       form['payment_intent_data[metadata][lab_sku]']=sku;
@@ -274,7 +281,7 @@ export async function stripeWebhook(request,env,ctx){
           VALUES(?,?,?,?)`,'checkout:'+data.id,subject,item.cents,now());
         await recordPartnerPaymentContext(env,{reference:'checkout:'+data.id,paidAt:Number.isSafeInteger(event.created)?event.created*1000:null,kind:'purchase'});
         await rewardQualifiedReferral(env,subject,'checkout:'+data.id,item.cents);
-        if(data.metadata?.lab_meta_consent==='1')metaPurchase={subject,transactionId:data.id,amountCents:item.cents,consented:true};
+        if(data.metadata?.lab_meta_consent==='1')metaPurchase={subject,transactionId:data.id,amountCents:item.cents,consented:true,fbp:data.metadata?.lab_meta_fbp,fbc:data.metadata?.lab_meta_fbc};
       } else if(data.mode==='subscription'&&item.type==='subscription'&&data.subscription){
         const sub=await subscriptionDetails(env,typeof data.subscription==='string'?data.subscription:data.subscription.id);
         await syncSubscription(env,sub);
@@ -299,7 +306,7 @@ export async function stripeWebhook(request,env,ctx){
         const paidSeconds=data.status_transitions?.paid_at??event.created;
         await recordPartnerPaymentContext(env,{reference:'invoice:'+data.id,paidAt:Number.isSafeInteger(paidSeconds)?paidSeconds*1000:null,kind:'subscription',subscriptionId:id});
         await rewardQualifiedReferral(env,meta.subject,'invoice:'+data.id,Number(data.amount_paid));
-        if(data.billing_reason==='subscription_create'&&sub.metadata?.lab_meta_consent==='1')metaPurchase={subject:meta.subject,transactionId:data.id,amountCents:Number(data.amount_paid),consented:true};
+        if(data.billing_reason==='subscription_create'&&sub.metadata?.lab_meta_consent==='1')metaPurchase={subject:meta.subject,transactionId:data.id,amountCents:Number(data.amount_paid),consented:true,fbp:sub.metadata?.lab_meta_fbp,fbc:sub.metadata?.lab_meta_fbc};
       }
     }
   } else if(['customer.subscription.updated','customer.subscription.deleted','customer.subscription.created'].includes(event.type)){
