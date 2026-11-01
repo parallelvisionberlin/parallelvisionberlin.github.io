@@ -33,6 +33,28 @@ test('Fresh homepage sign-ins finish setup in place and preserve the current URL
   });
  }
 });
+test('Berlin Rave campaign signs up in place and keeps the Mood and photo editor',async()=>{
+ for(const pathname of ['/moods','/moods/'])await inBrowser('pvlab.studio',pathname,async current=>{
+  current.location.search='?mood=berlin-rave&campaign=berlin-rave';
+  let initialized=false;const calls=[];
+  const fetchImpl=async(url,init)=>{
+   const route=new URL(url).pathname;calls.push(route);
+   if(route==='/api/migration/new'){assert.equal(init.method,'POST');initialized=true;return Response.json({linked:true},{status:201});}
+   if(route==='/api/session')return initialized
+    ? Response.json({customer:true,owner:false,balanceCredits:40,generationReady:true,ownerId:'user_PvLabV2Campaign'})
+    :needsSetup();
+   throw Error('Unexpected route '+route);
+  };
+  const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl});
+  const result=await request('/api/session');
+  assert.equal(result.status,200);
+  assert.equal((await result.json()).balanceCredits,40);
+  assert.deepEqual(calls,['/api/session','/api/migration/new','/api/session']);
+  assert.deepEqual(current.replaced,[],'must not redirect to Studio and lose the selected photograph');
+  assert.equal(current.location.search,'?mood=berlin-rave&campaign=berlin-rave');
+ });
+});
+
 test('Other account pages retain Studio setup routing, while unrelated hosts cannot auto-provision',async()=>{
  for(const pathname of ['/account','/account.html'])await inBrowser('pvlab.studio',pathname,async current=>{
   const request=createSessionRequest({baseUrl:'https://lab.example',getSession:()=>session,fetchImpl:async()=>needsSetup()});
