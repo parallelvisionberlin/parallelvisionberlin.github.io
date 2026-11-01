@@ -1,4 +1,4 @@
-import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
+import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261101-cookies1';
 import {readProviderPolicyDetails,setProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1&closure=20261021-immediate1';
