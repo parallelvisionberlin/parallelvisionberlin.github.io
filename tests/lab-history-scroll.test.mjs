@@ -128,16 +128,18 @@ test('switching accounts rejects stale initial History and publishes only the cu
   assert.equal(r.observations.length,0);
 });
 
-test('desktop Video filmstrip keeps pagination manual instead of loading all History pages',async()=>{
+
+test('desktop Video History grid retains normal lazy pagination',async()=>{
   const r=fixture();
   r.window.matchMedia=()=>({matches:true});
   const first=r.changeKind('video');
-  r.requests[0].resolve(page('film-1',cursor));
+  r.requests[0].resolve(page('video-1',cursor));
   await first;r.paint();
-  assert.equal(r.elements.more.hidden,false,'older records remain available');
-  assert.equal(r.observations.length,0,'always-visible filmstrip footer does not trigger automatic pagination');
-  const second=r.loadEarlierHistory();
-  assert.equal(r.requests.length,2,'manual Load earlier still fetches the next saved page');
-  r.requests[1].resolve(page('film-2'));
-  await second;
+  assert.equal(r.elements.more.hidden,false,'older records remain accessible');
+  assert.equal(r.observations.length,1,'the grid uses its original automatic pagination observer');
+  r.near();
+  assert.equal(r.requests.length,2,'scrolling near the end loads the next page');
+  r.requests[1].resolve(page('video-2'));
+  await settle();r.paint();
+  assert.deepEqual(r.elements.history.children.map(job=>job.id),['video-1','video-2']);
 });
