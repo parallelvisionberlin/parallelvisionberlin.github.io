@@ -164,7 +164,7 @@ function initialize(){
     dialog.classList.add('is-generation-blocked');
     status.classList.add('is-access-notice');
     status.textContent=error.message;
-    const payment=error.code==='TRIAL_PAUSED';
+    const payment=error.code==='TRIAL_PAUSED'||error.code==='INSUFFICIENT_CREDITS';
     const support=error.code==='ACCOUNT_REVIEW'||error.code==='BILLING_REVIEW';
     accessAction.hidden=!(payment||support);
     if(payment){
