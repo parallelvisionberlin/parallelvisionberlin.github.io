@@ -126,7 +126,7 @@ try{
   await page.locator('.stage-visual--world img').evaluate(img=>img.decode().catch(()=>{}));
   await page.screenshot({path:'test-results/editorial/'+width+'-world.png',fullPage:width===390});
   await page.locator('#step-next').click();assert.equal(await page.locator('#panel-generate').isVisible(),true);
-  assert.match(await page.locator('#review-model-text').textContent(),/1 model photograph/);
+  assert.match(await page.locator('#review-model-text').textContent(),/1 model \/ 1 reference photo/);
   assert.match(await page.locator('#review-outfit-text').textContent(),/1 wardrobe reference/);
   if(width<=800){
    const layout=await page.evaluate(()=>{
