@@ -94,3 +94,20 @@ test('scene metadata is typography-led with no generic status icons',()=>{
   assert.match(css,/\.video-detail-data>div\{[\s\S]*?background:transparent!important/,
     'technical spec cells have a quiet editorial finish');
 });
+
+test('Video composer fits laptop height without forcing an unnecessary scrollbar',()=>{
+  assert.match(css,/Desktop composer fit, 2026-11-01/,
+    'the compact desktop fix is in the final Video layer');
+  assert.match(css,/#pv-video-prompt-box\{\s*flex:1 1 0!important/,
+    'the prompt container can shrink rather than forcing panel overflow');
+  assert.match(css,/#pv-video-prompt-box textarea#prompt\{\s*flex:1 1 0!important/,
+    'only the writing area uses spare height');
+  assert.match(css, /\.workspace\.video-layout #generate\{\s*height:45px!important/,
+    'Generate is no longer oversized');
+  assert.match(css, /\.controls-body::-webkit-scrollbar\{display:none!important\}/,
+    'desktop controls do not show a persistent scrollbar rail');
+  assert.match(css,/overflow-y:auto!important/,
+    'smaller windows and populated reference lists can still scroll');
+  assert.match(html,/video-film-dossier\.css\?v=20261101-compact-deck1/,
+    'the browser gets an updated stylesheet URL');
+});
