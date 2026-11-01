@@ -93,6 +93,16 @@ function update(){
 }
 function choosePhoto(id,slot,img,hint){
   const input=$(id),container=$(slot),preview=$(img),invitation=$(hint);
+  // Pointer-local halo only, no change to the real file input or drop events.
+  container.addEventListener('pointermove',e=>{
+    if(e.pointerType==='touch')return;
+    const b=container.getBoundingClientRect();
+    container.style.setProperty('--drop-x',(e.clientX-b.left)+'px');
+    container.style.setProperty('--drop-y',(e.clientY-b.top)+'px');
+  });
+  container.addEventListener('pointerleave',()=>{
+    container.style.removeProperty('--drop-x');container.style.removeProperty('--drop-y');
+  });
   input.addEventListener('change',()=>{
     const file=input.files?.[0];if(!file)return;
     if(!['image/jpeg','image/png','image/webp'].includes(file.type)||!file.size||file.size>20*1024*1024){

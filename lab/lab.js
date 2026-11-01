@@ -1103,7 +1103,7 @@ async function openFashionStudio({preview=false}={}){
   try{
     if(!fashionMount){
       host.setAttribute('aria-busy','true');
-      fashionMount=import('./fashion-studio.js?v=20261023-fashion-approved1&publicPreview=20261023-1&firstReady=20261015-1&singleFooter=20261015-1&creditCurrency=20261024v1&publicLabels=20261026&fashionPrice=20261026-inline1&fashionDeck=20261028-runway1&fashionArt=20261031-approved1&hoverLooks=20261031-1&looksFluid=20261031-2&singleLookTitle=20261031-3&fashionFocus=20261031-4')
+      fashionMount=import('./fashion-studio.js?v=20261101-dropglow1&publicPreview=20261023-1&firstReady=20261015-1&singleFooter=20261015-1&creditCurrency=20261024v1&publicLabels=20261026&fashionPrice=20261026-inline1&fashionDeck=20261028-runway1&fashionArt=20261031-approved1&hoverLooks=20261031-1&looksFluid=20261031-2&singleLookTitle=20261031-3&fashionFocus=20261031-4')
         .then(({mountFashionStudio})=>mountFashionStudio(host,{sessionClient,onNavigate:navigateStudioTool,publicPreview:()=>!owner&&$('app').hasAttribute('data-guest-preview')}))
         .then(controller=>{fashionController=controller;return controller;})
         .catch(error=>{fashionMount=null;throw error;});

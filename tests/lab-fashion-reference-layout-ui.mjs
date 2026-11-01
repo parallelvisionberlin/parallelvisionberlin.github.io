@@ -65,11 +65,13 @@ try{
     const root=host.shadowRoot,rect=s=>{const r=root.querySelector(s).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height};};
     return {overflow:document.documentElement.scrollWidth>innerWidth,title:rect('#fashion-title'),person:rect('#person-slot'),garment:rect('#garment-slot'),controls:rect('.engine-section'),
      fields:['#model-select',...(root.querySelector('#fashnmax-options').hidden?[]:['#max-resolution','#max-mode']),'#direction','#quote'].map(rect),
-     photos:[...root.querySelectorAll('.slot-example,.fashion-backdrop img')].map(img=>({loaded:img.complete&&img.naturalWidth>0,src:img.getAttribute('src')})),
+     photos:[...root.querySelectorAll('.fashion-backdrop img')].map(img=>({loaded:img.complete&&img.naturalWidth>0,src:img.getAttribute('src')})),
+     glyphs:root.querySelectorAll('.slot-glyph').length,
      resultVisible:root.querySelector('#result-stage').getBoundingClientRect().width>0};
    });
    assert.equal(layout.overflow,false,role+' no overflow at '+width);
-   assert.equal(layout.photos.length,3);
+   assert.equal(layout.photos.length,1,'The original backdrop is the only decorative photo');
+   assert.equal(layout.glyphs,2,'Both upload boxes have outline symbols');
    assert.ok(layout.photos.every(x=>x.loaded&&!x.src.includes('reference.svg')),role+' clean photographs load');
    assert.ok(Math.abs(layout.person.top-layout.garment.top)<1,'Paired uploads at '+width);
    assert.equal(layout.resultVisible,false,'No decorative photo is presented as a generated result');
@@ -101,7 +103,7 @@ try{
       looksHidden:looks.hidden&&getComputedStyle(looks).display==='none',
       descriptionBeside:copy.left>heading.right-8,
       plus:getComputedStyle(root.querySelector('#person-hint .slot-plus'),':after').content,
-      photoOpacity:getComputedStyle(root.querySelector('.person-example')).opacity,
+      glyphOpacity:getComputedStyle(root.querySelector('#person-hint .slot-glyph')).opacity,
       heroFilter:getComputedStyle(hero).filter,
       actualUpload:src?.type,
       realResult:root.querySelector('#result-image').hidden

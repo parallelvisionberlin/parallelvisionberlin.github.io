@@ -3,8 +3,8 @@ import {createFashionStudio} from './fashion.js?v=20261031-single-label3&prior=2
 // Shadow DOM preserves the Fashion layout without leaking its styles or field IDs into the studio.
 export async function mountFashionStudio(host,options){
   const [htmlResponse,cssResponse]=await Promise.all([
-    fetch('./fashion.html?v=20261031-focus4'),
-    fetch('./fashion.css?v=20261031-focus4')
+    fetch('./fashion.html?v=20261101-dropglow1'),
+    fetch('./fashion.css?v=20261101-dropglow1')
   ]);
   if(!htmlResponse.ok||!cssResponse.ok)throw new Error('Fashion could not load. Try again.');
   const [html,css]=await Promise.all([htmlResponse.text(),cssResponse.text()]);
