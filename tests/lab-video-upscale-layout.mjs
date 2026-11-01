@@ -146,6 +146,13 @@ try{
   assert.ok(Math.abs(original.picker.left-video.picker.left)<=2,label+': model cards stay in place');
   assert.match(video.photo,/upscaler-chrome-wool-option-1\.jpg/,label+': exact Image photograph remains');
   if(width>780)assert.ok(video.canvas.bottom<=height+2,label+': desktop stays within viewport');
+  // A rejected source must report a visible error rather than looking inert.
+  const rejectedChooser=page.waitForEvent('filechooser');
+  await page.locator('#pv-upscale-hero-upload').click();
+  await (await rejectedChooser).setFiles({name:'unsupported.mov',mimeType:'video/quicktime',buffer:Buffer.alloc(256,1)});
+  assert.equal(await page.locator('#pv-video-upscale-message').isVisible(),true,label+': rejected upload has a visible message');
+  assert.match(await page.locator('#pv-video-upscale-message').innerText(),/MP4/,label+': rejected upload explains accepted format');
+  assert.equal(await page.locator('#pv-video-upscale-source').isVisible(),false,label+': invalid input did not load');
   // Real native MP4 picker must open from the SAME image upload button.
   const chooser=page.waitForEvent('filechooser');
   await page.locator('#pv-upscale-hero-upload').click();
