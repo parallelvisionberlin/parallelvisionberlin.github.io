@@ -41,7 +41,7 @@ try{
    document.getElementById('upscale-model-menu').hidden=false;
    const {createVideoUpscaler}=await import('/lab/video-upscale.js');
    window.__videoLayoutTest=createVideoUpscaler({
-    api:async()=>{throw Error('Unexpected provider request during layout test');},
+    api:async(...args)=>{if(window.__upscaleApiMock)return window.__upscaleApiMock(...args);throw Error('Unexpected provider request during layout test');},
     access:()=>({signedIn:true,falEnabled:true,generationReady:true}),
     onJob:()=>{throw Error('Unexpected paid job');},
     onModeChange:()=>{}
@@ -217,6 +217,30 @@ try{
   await selectVideo('tests/fixtures/video-upscale/valid-1s.mp4');
   await page.waitForFunction(()=>document.getElementById('pv-video-upscale-source').duration===1&&!document.getElementById('generate').disabled);
   assert.equal(await page.locator('#pv-video-upscale-message').textContent(),'',label+': same file can be selected again');
+  // Isolated API stubs verify the existing two-click price review and the
+  // uncertain-response lock. No network/provider generation can occur here.
+  await page.evaluate(()=>{
+    window.__upscaleApiCalls=[];
+    window.__upscaleApiMock=async(path)=>{
+      window.__upscaleApiCalls.push(path);
+      if(path==='/api/reference-uploads')return {id:'mock-source'};
+      if(path==='/api/quotes')return {id:'mock-quote',provider:'fal.ai',creditCost:10,
+        settings:{engine:'video-upscale',videoUpscaleEngine:'bytedance',resolution:'1080p',duration:1},
+        expiresAt:Date.now()+60000,priceIsEstimate:true,requiresPriceReview:true};
+      throw Error('Simulated missing submission acknowledgement');
+    };
+  });
+  await page.locator('#generate').click();
+  await page.waitForFunction(()=>document.getElementById('generate').textContent.includes('Confirm & upscale'));
+  assert.deepEqual(await page.evaluate(()=>window.__upscaleApiCalls),['/api/reference-uploads','/api/quotes'],label+': first click only uploads and quotes');
+  await page.locator('#generate').click();
+  await page.waitForFunction(()=>document.getElementById('pv-video-upscale-message').textContent.includes('unconfirmed'));
+  const submittedSource=await page.locator('#pv-video-upscale-source').getAttribute('src');
+  await page.evaluate(()=>document.getElementById('pv-video-upscale-source').dispatchEvent(new Event('error')));
+  assert.equal(await page.locator('#pv-video-upscale-source').getAttribute('src'),submittedSource,label+': later playback error preserves submitted source');
+  assert.equal(await page.locator('#generate').isEnabled(),false,label+': later playback error preserves uncertain submission lock');
+  assert.match(await page.locator('#pv-video-upscale-message').innerText(),/History/);
+  assert.deepEqual(await page.evaluate(()=>window.__upscaleApiCalls),['/api/reference-uploads','/api/quotes','/api/jobs'],label+': no paid retry after a playback error');
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
   assert.equal(overflow,false,label+': no horizontal overflow');
   assert.deepEqual(errors,[],label+': no page errors');

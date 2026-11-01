@@ -195,6 +195,11 @@ export function createVideoUpscaler({api,access,onJob,onModeChange}){
    resetSource();notice('Checking video…');file=candidate;assetId=id;media='video';
    const rejectSource=text=>{
      if(file!==candidate)return;
+     // A later playback error must not clear a submitted job or its
+     // uncertain-response lock. Only unsubmitted source validation resets.
+     if(loading||submissionUncertain||currentJob){
+       notice(text+' Check History for any submitted request.',true,true);return;
+     }
      resetSource();notice(text,true,true);sync();
    };
    src.onloadedmetadata=()=>{
