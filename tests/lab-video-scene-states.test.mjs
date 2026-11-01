@@ -40,21 +40,35 @@ test('Start and End frame controls use identical accessible upload affordances',
     'End frame uses the same replace behavior');
 });
 
-test('History loads records without automatically selecting or replacing the create stage',()=>{
+test('History opens the newest completed video and respects Clear and manual selections',()=>{
   const first=app.indexOf('function restoreLatestVideoSelection(){');
   const last=app.indexOf('\nfunction syncVideoStudioMode()',first);
   assert.ok(first>0&&last>first);
   const restore=app.slice(first,last);
-  assert.doesNotMatch(restore,/showVideoHistoryRecord\(available\[0\]/,
-    'history loading must never auto-select the first saved video');
   assert.match(restore,/if\(selectedVideoJob&&videoJobCache\.has\(selectedVideoJob\.id\)\)/,
-    'explicit selections survive ordinary History refresh');
-  assert.match(restore,/updateVideoInspector\(null\)/,'without selection show real current scene');
-  assert.match(app,/pv-video-history-back'\)\.onclick/,'explicit History selection has a return action');
-  assert.match(app,/function clearVideoHistorySelection/);
-  assert.match(app,/function showVideoHistoryRecord\(job/,'manual History viewing is still supported');
+    'a selected History video is retained when saved records refresh');
+  assert.match(restore,/if\(historyLoading\)return/,
+    'wait until the complete saved History page is available');
+  assert.match(restore,/if\(!videoHistoryAutoSuppressed\)/,
+    'explicit Clear and return must not instantly auto-restore the result');
+  assert.match(restore,/job\.status==='completed'&&hasResult\(job\)/,
+    'only a genuinely completed video with a stored output can open by default');
+  assert.match(restore,/\.sort\(\(a,b\)=>/,
+    'the newest video is chosen by creation date rather than gallery insertion');
+  assert.match(restore,/showVideoHistoryRecord\(latest,\{play:true,reveal:false\}\)/,
+    'latest saved result loads into the existing central player without page scroll');
+  assert.match(restore,/assetLibrary\?\.active\(\)/,
+    'Assets does not auto-open a video behind its own gallery');
+  assert.match(app,/clearVideoHistorySelection\(\{reset:false,suppressAuto:true\}\)/,
+    'Clear or mode change explicitly restores the editorial landing surface');
+  assert.match(app,/clearVideoHistorySelection\(\{suppressAuto:true\}\)/,
+    'Back to create explicitly suppresses automatic restoration');
+  assert.match(app,/if\(loadId===historyLoadId\)\{historyLoading=false;updateHistoryPagination\(\);if\(owner&&tool==='video'/,
+    'the final restored result is chosen once loading has finished');
   assert.match(app,/showVideoHistoryRecord\(j,\{play:true,reveal:true\}\)/,
-    'click on a real History video still loads the existing player');
+    'clicking another real History result still replaces the main player');
+  assert.doesNotMatch(restore,/\/api\/jobs|submitQuotedGeneration|confirm:true/,
+    'restoring a saved video must not create a paid request');
 });
 
 test('live Scene details and empty-state illustration are not fake generated results',()=>{
