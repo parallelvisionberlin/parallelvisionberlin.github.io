@@ -263,7 +263,7 @@ async function toggleSample(button){
   }else{
    files[kind]=files[kind].filter(f=>f!==existing);pruneFile(existing);invalidateQuote();renderFiles();
   }
-  status('Reference removed.');return;
+  status(kind==='model'?'':'Reference removed.');return;
  }
  const limit={model:4,outfit:3}[kind],num=files[kind].length+savedRefs[kind].length;
  if(num>=limit){status('You can select up to '+limit+' '+(kind==='model'?'model photos':'wardrobe references')+'.',true);return}
@@ -275,7 +275,7 @@ async function toggleSample(button){
   const type=['image/jpeg','image/png','image/webp'].includes(blob.type)?blob.type:(button.dataset.sampleSrc.endsWith('.jpg')?'image/jpeg':'image/webp');
   const file=new File([blob],kind+'-reference-'+Date.now()+'.'+(type==='image/jpeg'?'jpg':type==='image/png'?'png':'webp'),{type});
   const before=files[kind].length;addFiles(kind,[file],null,kind==='model'?button.dataset.sampleLabel.replace(/ portrait$/i,''):null);
-  if(files[kind].includes(file)&&files[kind].length>before){sampleFiles.set(button,file);renderFiles();status('Added to '+(kind==='model'?'your cast':'your styling')+'.')}
+  if(files[kind].includes(file)&&files[kind].length>before){sampleFiles.set(button,file);renderFiles();status(kind==='model'?'':'Added to your styling.')}
  }catch(error){status(error.message,true)}
  finally{button.disabled=false;refreshSampleStates()}
 }
@@ -464,7 +464,7 @@ function addSavedCharacter(pack,refs){
    record.url=URL.createObjectURL(blob);renderFiles();
   }).catch(()=>{});
  }
- invalidateQuote();renderFiles();status('Added '+name+' to your cast.');
+ invalidateQuote();renderFiles();status('');
 }
 
 const elementTypes={model:'characters',outfit:'outfits',location:'locations'};
