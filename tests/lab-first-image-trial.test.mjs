@@ -24,6 +24,9 @@ function fixture(t){
     LAB_WELCOME_CREDITS_ENABLED:'false',
     LAB_IMAGE_TRIAL_ENABLED:'true',
     LAB_FREE_TRIAL_PAUSED:'true',LAB_PROMO_HOLDS_ENABLED:'true',
+    LAB_PUBLIC_GENERATION_ENABLED:'true',LAB_CHECKOUT_ENABLED:'true',
+    LAB_STRIPE_SECRET_KEY:'sk_test_synthetic',LAB_STRIPE_WEBHOOK_SECRET:'whsec_synthetic',
+    LAB_CUSTOMER_SPICY_API_KEY:'synthetic-test-api-key',
     LAB_SECRET:'synthetic-image-trial-key-1234567890123456789012345',
     LAB_DB:{prepare(sql){return {bind(...args){const stmt=db.prepare(sql);return {
       first:async()=>stmt.get(...args)||null,
