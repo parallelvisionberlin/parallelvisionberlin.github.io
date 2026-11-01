@@ -57,8 +57,8 @@ WHEN EXISTS(SELECT 1 FROM lab_trial_program_controls WHERE id=1 AND free_generat
    AND CASE WHEN json_valid(NEW.params) THEN
      json_extract(NEW.params,'$.type')='image' AND json_extract(NEW.params,'$.mode')='image'
      ELSE 0 END
-   AND NOT EXISTS(SELECT 1 FROM jobs j WHERE j.owner_id=NEW.owner_id
-      AND j.state<>'failed')
+   AND NOT EXISTS(SELECT 1 FROM lab_generation_finance j WHERE j.customer_id=NEW.owner_id
+      AND j.last_state<>'failed')
  )
 BEGIN SELECT RAISE(ABORT,'PV LAB complimentary generation is paused'); END;
 
@@ -77,8 +77,8 @@ WHEN OLD.state='draft' AND NEW.state NOT IN ('draft','failed','resolved')
    AND CASE WHEN json_valid(NEW.params) THEN
      json_extract(NEW.params,'$.type')='image' AND json_extract(NEW.params,'$.mode')='image'
      ELSE 0 END
-   AND NOT EXISTS(SELECT 1 FROM jobs j WHERE j.owner_id=NEW.owner_id
-     AND j.id<>NEW.id AND j.state<>'failed')
+   AND NOT EXISTS(SELECT 1 FROM lab_generation_finance j WHERE j.customer_id=NEW.owner_id
+     AND j.job_id<>NEW.id AND j.last_state<>'failed')
  )
 BEGIN SELECT RAISE(ABORT,'PV LAB complimentary generation is paused'); END;
 
