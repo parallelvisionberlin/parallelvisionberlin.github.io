@@ -72,7 +72,7 @@ async function stripe(env,path,params,method='POST',idempotencyKey){
   if(!env.LAB_STRIPE_SECRET_KEY)fail(503,'Stripe billing is not configured.');
   const res=await fetch('https://api.stripe.com/v1/'+path,{
     method,redirect:'manual',
-    headers:{Authorization:'Bearer '+env.LAB_STRIPE_SECRET_KEY,...(idempotencyKey?{'Idempotency-Key':idempotencyKey}:{}),...(method==='POST'?{'Content-Type':'application/x-www-form-urlencoded'}:{})},
+    headers:{Authorization:'Bearer '+env.LAB_STRIPE_SECRET_KEY,...(path==='checkout/sessions'&&method==='POST'?{'Stripe-Version':'2026-09-30.endive'}:{}),...(idempotencyKey?{'Idempotency-Key':idempotencyKey}:{}),...(method==='POST'?{'Content-Type':'application/x-www-form-urlencoded'}:{})},
     body:method==='POST'?new URLSearchParams(params).toString():undefined,
     signal:AbortSignal.timeout(20000)
   });
@@ -149,6 +149,8 @@ export async function customerRoute(request,env,subject){
       'metadata[lab_meta_consent]':metaConsent?'1':'0',
       ...(metaFbp?{'metadata[lab_meta_fbp]':metaFbp}:{}),
       ...(metaFbc?{'metadata[lab_meta_fbc]':metaFbc}:{}),
+      'adaptive_pricing[enabled]':'true',
+      'integration_identifier':'pv_lab_hosted_'+Array.from(crypto.getRandomValues(new Uint8Array(8)),n=>String.fromCharCode(97+n%26)).join(''),
       'line_items[0][price_data][currency]':'eur',
       'line_items[0][price_data][unit_amount]':String(item.cents),
       'line_items[0][price_data][product_data][name]':item.title,

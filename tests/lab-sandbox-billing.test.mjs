@@ -172,6 +172,7 @@ test('€3 pack uses one-time Checkout with server-controlled 300 cents and no e
   const forms=[];
   globalThis.fetch=async(url,init)=>{
     assert.equal(url,'https://api.stripe.com/v1/checkout/sessions');
+    assert.equal(init.headers['Stripe-Version'],'2026-09-30.endive');
     forms.push(new URLSearchParams(init.body));
     return Response.json({id:'cs_test_Topup300',url:'https://checkout.stripe.com/c/pay/cs_test_Topup300'});
   };
@@ -184,6 +185,8 @@ test('€3 pack uses one-time Checkout with server-controlled 300 cents and no e
   assert.equal(form.get('mode'),'payment');
   assert.equal(form.get('line_items[0][price_data][unit_amount]'),'300');
   assert.equal(form.get('line_items[0][price_data][currency]'),'eur');
+  assert.equal(form.get('adaptive_pricing[enabled]'),'true');
+  assert.match(form.get('integration_identifier'),/^pv_lab_hosted_[a-z]{8}$/);
   assert.equal(form.get('metadata[lab_sku]'),'topup3');
   assert.equal(form.get('line_items[0][price_data][recurring][interval]'),null);
   assert.equal(form.get('subscription_data[metadata][lab_sku]'),null);
@@ -200,7 +203,7 @@ test('€3 payment delivers 300 credits once, rejects invalid payment facts and 
     assert.equal((await worker.fetch(sign(env,event('evt_Topup3Bad'+name,overrides)),env)).status,200);
     assert.equal(balance(db),0,name+' must not credit the wallet');
   }
-  const paid=event('evt_Topup3Paid');
+  const paid=event('evt_Topup3Paid',{presentment_details:{presentment_currency:'brl',presentment_amount:1860}});
   assert.equal((await worker.fetch(sign(env,paid),env)).status,200);assert.equal(balance(db),300);
   assert.equal((await worker.fetch(sign(env,paid),env)).status,200);assert.equal(balance(db),300);
   const asyncPaid=event('evt_Topup3Async');asyncPaid.type='checkout.session.async_payment_succeeded';

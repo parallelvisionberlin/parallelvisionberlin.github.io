@@ -32,6 +32,7 @@ async function setup(width,customer=true,overrides={}){
     if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
     if(request.method()!=='GET')writes.push({path:url.pathname,body:request.postData()});
     const send=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
+    if(url.pathname==='/api/public/local-currency')return send(overrides.localCurrency||{currency:'EUR',rate:1,approximate:false});
     if(url.pathname==='/api/session')return initialized?send(session):route.fulfill({status:409,headers:{'X-PV-Lab-Onboarding':'required','Access-Control-Expose-Headers':'X-PV-Lab-Onboarding'},contentType:'application/json',body:JSON.stringify({error:'Setup required.'})});
     if(url.pathname==='/api/migration/new'&&request.method()==='POST'){
       initialized=true;return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({linked:true,kind:'customer'})});
@@ -504,6 +505,28 @@ try{
       await fits(page,'signed out header '+width);
       assert.deepEqual(errors,[]);
     }finally{await rig.context.close();}
+  }
+  for(const [currency,locale,rate] of [['BRL','pt-BR',6.2],['MXN','es-MX',21.1]]){
+    for(const width of [320,1440]){
+      const rig=await setup(width,true,{localCurrency:{currency,locale,rate,approximate:true}});
+      try{
+        await rig.page.goto(origin+'/lab/account.html');
+        const price=rig.page.locator('#account-products [data-price-eur="3"]');
+        await price.locator('.lab-price-base').waitFor();
+        assert.match(await price.textContent(),currency==='BRL'?/R\$/ : /\$/);
+        assert.match(await price.locator('.lab-price-base').textContent(),/3[.,]00/);
+        assert.match(await rig.page.locator('.lab-local-currency-note').textContent(),/confirmed at checkout/);
+        assert.equal(rig.writes.length,0,'Showing local prices cannot start a checkout');
+        await fits(rig.page,'local currency '+currency+' '+width);assert.deepEqual(rig.errors,[]);
+        await rig.page.screenshot({path:artifacts+'/account-local-'+currency+'-'+width+'.png',fullPage:true});
+        await rig.page.goto(origin+'/lab/index.html#pricing');
+        await rig.page.locator('#pricing [data-price-eur="3"] .lab-price-base').waitFor({state:'attached'});
+        await rig.page.locator('#lab-tab-onetime').click();
+        assert.equal(await rig.page.locator('#pricing [data-price-eur="3"] .lab-price-base').textContent(),'€3');
+        await fits(rig.page,'homepage local currency '+currency+' '+width);
+        await rig.page.screenshot({path:artifacts+'/home-local-'+currency+'-'+width+'.png',fullPage:true});
+      }finally{await rig.context.close();}
+    }
   }
   for(const width of [1920,1440,768,390,320]){
     const rig=await setup(width,false);

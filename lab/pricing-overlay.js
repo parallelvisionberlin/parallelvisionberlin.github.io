@@ -1,3 +1,4 @@
+import {localizePrices} from './local-currency.js?v=20261102-1';
 // Studio reuses homepage SKUs and checkout, with its own approved compact visual treatment.
 // No hard-coded SKU amounts or prices: markup comes from the live PV LAB
 // homepage and Stripe purchases use the existing authenticated wallet.
@@ -64,6 +65,7 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
     // come directly from the homepage. Never rewrite the public pricing page.
     section.classList.add('lab-studio-pricing');
     surface.replaceChildren(section);
+    void localizePrices(section);
     // The existing homepage pricing tabs implement the same monthly / one-time
     // switch, estimate popovers and keyboard navigation inside this modal.
     await import('./pricing-tabs.js?v=20261022-hint-toggle1');
