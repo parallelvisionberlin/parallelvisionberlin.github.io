@@ -5,7 +5,6 @@ import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finan
 import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261025-settlement1';
 import {renderOwnerPagination} from './owner-pagination.js?v=20261025-paged1';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
-import {createOwnerCustomerInspectionUI} from './owner-customer-inspection-ui.js?v=20261102-v1';
 import {createOwnerAuthGuard} from './owner-auth-guard.js?v=20261017-stability1';
 const $=id=>document.getElementById(id);
 const apiBase='https://parallel-vision-lab.parallelvision.workers.dev';
@@ -130,14 +129,6 @@ function paintCustomerActivity(data){
           sub:refunded?'+'+formatNumber(refunded)+' refunded':''}:'No charge'];
     }),emptyMessage:'No generations recorded for this account.'
   });
-  if(customer.reviewEnabled===1||customer.reviewEnabled===true){
-    const shared=activityElement('div','owner-customer-shared-review');
-    root.append(shared);
-    customerInspectUI.show(customer,shared);
-  }else{
-    root.append(activityElement('p','owner-customer-activity-caption',
-      'Creative image previews and prompts are private by default. Customers can enable optional quality review in Account settings. Model, Mood, feature and credit metadata remain visible above.'));
-  }
   const archived=Array.isArray(data.archivedFinance)?data.archivedFinance:[];
   if(archived.length){
     activityTable(root,{
@@ -172,7 +163,6 @@ function paintCustomerActivity(data){
 }
 async function openCustomerActivity(customer){
   if(!profile?.owner||!customer?.id)return;
-  customerInspectUI.clear();
   const serial=++customerActivitySerial,current=revision;
   $('owner-customer-dialog-identity').textContent=customer.email||customer.id;
   $('owner-customer-dialog-body').replaceChildren(activityElement('p','owner-customer-empty','Loading customer activity…'));
@@ -199,7 +189,7 @@ function customerActivityButtons(customers){
   });
 }
 $('owner-customer-dialog-close').addEventListener('click',()=>customerDialog.close());
-customerDialog.addEventListener('close',()=>{customerActivitySerial++;customerInspectUI.clear();});
+customerDialog.addEventListener('close',()=>{customerActivitySerial++;});
 
 // Mobile layout reads the real column headings instead of duplicating them in CSS.
 function labelTableCellsForMobile(){
@@ -313,10 +303,6 @@ for(const button of document.querySelectorAll('[data-traffic-days]'))button.addE
 $('owner-traffic-refresh').addEventListener('click',()=>void refreshTraffic());
 
 const generationReviewUI=createOwnerGenerationReviewUI({
-  call:path=>call(path),request,ownerReady:()=>!!profile?.owner,
-  revision:()=>revision,formatDate:activityDate
-});
-const customerInspectUI=createOwnerCustomerInspectionUI({
   call:path=>call(path),request,ownerReady:()=>!!profile?.owner,
   revision:()=>revision,formatDate:activityDate
 });
