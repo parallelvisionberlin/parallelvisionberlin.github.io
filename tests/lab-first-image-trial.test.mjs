@@ -22,6 +22,7 @@ function fixture(t){
   db.exec(read('migrations/0051-first-image-40-credit-trial.sql'));
   db.exec(read('migrations/0052-spend-all-image-trial-credits.sql'));
   db.exec(read('migrations/0053-single-image-trial.sql'));
+  db.exec(read('migrations/0056-use-image-credit-balance.sql'));
   const env={
     LAB_WELCOME_CREDITS_ENABLED:'false',
     LAB_IMAGE_TRIAL_ENABLED:'true',
@@ -48,7 +49,7 @@ function fixture(t){
   return {db,env,run,one,verify,addJob};
 }
 
-test('40-credit trial grants once, permits one image and preserves the residual balance',async t=>{
+test('40-credit trial grants once, keeps the residual balance usable and rejects overspending',async t=>{
   const f=fixture(t),id='user_ImageTrial';
   await ensureCustomer(f.env,id);
   f.verify(id,'image.trial+main@gmail.com');
@@ -59,28 +60,27 @@ test('40-credit trial grants once, permits one image and preserves the residual 
   assert.equal((await customerSession(f.env,id)).generationReady,true);
   f.addJob(id,'image_first');
   assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,5);
-  assert.equal((await customerSession(f.env,id)).generationReady,false);
-  assert.throws(()=>f.addJob(id,'image_second'),/complimentary generation is paused/i);
+  assert.equal((await customerSession(f.env,id)).generationReady,true);
+  assert.throws(()=>f.addJob(id,'image_second'),/Insufficient PV Lab credits/i);
   assert.throws(()=>f.addJob(id,'video_after',{type:'video',mode:'image-to-video'},36000),
     /complimentary generation is paused/i);
 });
 
-test('a cheap 1K image cannot reopen the trial or reset it by deleting history',async t=>{
-  const f=fixture(t),id='user_OneImage';
-  await ensureCustomer(f.env,id);f.verify(id,'oneimage@example.com');await ensureCustomer(f.env,id);
+test('all 40 credits can fund queued images; history deletion cannot grant or restore credits',async t=>{
+  const f=fixture(t),id='user_AllImageCredits';
+  await ensureCustomer(f.env,id);f.verify(id,'allimages@example.com');await ensureCustomer(f.env,id);
   const image={type:'image',mode:'image',provider:'spicy',engine:'seedream',
     model:'bytedance/seedream-5.0-pro/edit',resolution:'1k'};
   f.addJob(id,'first_1k',image,36000);
   assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,20);
-  assert.equal((await customerSession(f.env,id)).generationReady,false);
-  for(const state of ['queued','running','completed']){
-    f.run('UPDATE jobs SET state=? WHERE id=?',state,'first_1k');
-    assert.throws(()=>f.addJob(id,'second_1k',image,36000),/complimentary generation is paused/i);
-  }
-  f.run('DELETE FROM jobs WHERE id=?','first_1k');
+  assert.equal((await customerSession(f.env,id)).generationReady,true);
+  f.addJob(id,'second_1k',image,36000);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,0);
+  assert.throws(()=>f.addJob(id,'third_1k',image,36000),/Insufficient PV Lab credits/i);
+  f.run('DELETE FROM jobs WHERE owner_id=?',id);
   await ensureCustomer(f.env,id);
-  assert.throws(()=>f.addJob(id,'history_reset',image,36000),/complimentary generation is paused/i);
-  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,20);
+  assert.throws(()=>f.addJob(id,'history_reset',image,36000),/Insufficient PV Lab credits/i);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,0);
   assert.equal(f.one('SELECT COUNT(*) AS n FROM lab_welcome_claims WHERE customer_id=?',id).n,1);
 });
 
@@ -92,6 +92,7 @@ test('The paid wallet remains additive and other free generation modes never con
   f.addJob(id,'topup_first',image,36000);
   const balance=f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits;
   assert.equal(balance,20);
+  assert.throws(()=>f.addJob(id,'invalid_image',{type:'image'},10000),/complimentary generation is paused/i);
   assert.throws(()=>f.addJob(id,'trial_upscale',{type:'image',mode:'upscale',provider:'fal'},10000),
     /complimentary generation is paused/i);
   f.run('INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES(?,?,?,?,?,?)',
@@ -184,23 +185,25 @@ test('unverified and disposable identities cannot claim; concurrent verified cla
   assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',other).balance_credits,0);
 });
 
-test('a draft can activate once, blocked attempts do not debit, and another account stays isolated',async t=>{
+test('unfunded drafts cannot bypass image debits and another account stays isolated',async t=>{
   const f=fixture(t),a='user_DraftA',b='user_DraftB';
   for(const [id,email] of [[a,'a@example.com'],[b,'b@example.com']]){
     await ensureCustomer(f.env,id);f.verify(id,email);await ensureCustomer(f.env,id);
   }
   const params=JSON.stringify({type:'image',mode:'image',provider:'spicy',engine:'seedream',resolution:'1k'});
   f.run("INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,'draft',36000,1001,1001)",'draft_a',a,params);
-  f.run("UPDATE jobs SET state='queued' WHERE id='draft_a'");
+  assert.throws(()=>f.run("UPDATE jobs SET state='queued' WHERE id='draft_a'"),/complimentary generation is paused/i);
+  assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',a).balance_credits,40);
+  f.addJob(a,'funded_a');
   const balance=f.one('SELECT balance_credits FROM lab_customers WHERE id=?',a).balance_credits;
-  assert.throws(()=>f.addJob(a,'concurrent_a'),/complimentary generation is paused/i);
+  assert.throws(()=>f.addJob(a,'concurrent_a'),/Insufficient PV Lab credits/i);
   assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',a).balance_credits,balance);
   assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',b).balance_credits,40);
   assert.equal((await customerSession(f.env,b)).generationReady,true);
   f.addJob(b,'first_b');
-  f.run("UPDATE jobs SET state='failed' WHERE id='draft_a'");
-  f.run("UPDATE jobs SET state='failed' WHERE id='draft_a'");
+  f.run("UPDATE jobs SET state='failed' WHERE id='funded_a'");
+  f.run("UPDATE jobs SET state='failed' WHERE id='funded_a'");
   assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',a).balance_credits,40);
   assert.equal((await customerSession(f.env,a)).generationReady,true);
-  assert.equal((await customerSession(f.env,b)).generationReady,false);
+  assert.equal((await customerSession(f.env,b)).generationReady,true);
 });

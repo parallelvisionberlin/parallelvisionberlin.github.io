@@ -12,6 +12,8 @@ const $=id=>document.getElementById(id);
 const menu=createAccountMenu($('account-menu'));
 const request=createSessionRequest({baseUrl:'https://parallel-vision-lab.parallelvision.workers.dev',getSession:()=>clerk?.session});
 let clerk=null,profile=null,revision=0,referralRevision=0,paymentPending=false,referralLoaded=false,voucherBusy=false,closingAccount=false;
+const focusedPack=new URLSearchParams(location.search).get('pack')==='topup3'?'topup3':null;
+let packFocusDone=false;
 const voucherFromLink=(new URLSearchParams(location.search).get('voucher')||'').trim().toUpperCase();
 if(/^[A-Z0-9][A-Z0-9-]{5,23}$/.test(voucherFromLink)){document.getElementById('account-voucher-code').value=voucherFromLink;if(!location.hash)location.hash='voucher';}
 const money=value=>new Intl.NumberFormat('en',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(value);
@@ -65,11 +67,14 @@ function drawProducts(products){
   for(const item of products){
     if(!Number.isSafeInteger(item.credits)||!Number.isFinite(item.priceEur))continue;
     const monthly=item.type==='subscription',button=document.createElement('button');button.type='button';button.className='account-product';
+    button.dataset.pack=item.id;
+    if(focusedPack===item.id)button.classList.add('is-pack-selected');
     const credits=document.createElement('strong'),unit=document.createElement('small'),price=document.createElement('span'),action=document.createElement('em');
     credits.textContent=item.credits.toLocaleString();unit.textContent=monthly?'credits / month':'credits';price.textContent=money(item.priceEur)+(monthly?' / mo':'');
     price.dataset.priceEur=String(item.priceEur);
     price.dataset.priceSuffix=monthly?' / mo':'';
-    action.textContent=monthly?(activePlan?'Manage in billing':'Choose plan'):'Add credits';
+    action.textContent=monthly?(activePlan?'Manage in billing':'Choose plan'):item.id==='topup3'?'Buy 300 credits':'Add credits';
+    if(item.id==='topup3')unit.textContent='credits · one-time purchase';
     const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','pv-arrow-svg');icon.setAttribute('aria-hidden','true');icon.innerHTML='<path d="M7 17 17 7M8 7h9v9"/>';action.append(' ',icon);
     button.append(credits,unit,price,action);button.disabled=!profile.billingReady||!!(monthly&&activePlan);
     button.addEventListener('click',()=>void openPayment('/api/billing/checkout',{sku:item.id}));
@@ -169,6 +174,13 @@ async function refresh(){
       $('account-storage-meter').value=s.limitBytes?Math.min(1,s.bytes/s.limitBytes):0;
     }else $('account-storage-label').textContent=storage.reason.message;
     paintRoute();
+    if(focusedPack&&!packFocusDone&&route()==='balance'){
+      const card=$('account-products').querySelector('[data-pack="topup3"]');
+      if(card&&!card.disabled){
+        packFocusDone=true;
+        requestAnimationFrame(()=>{if(current===revision&&card.isConnected&&route()==='balance'){card.focus({preventScroll:true});card.scrollIntoView({block:'center'});}});
+      }
+    }
   }catch(error){
     if(current!==revision)return;
     status(error.message);menu.update({signed:true,user:clerk.user});

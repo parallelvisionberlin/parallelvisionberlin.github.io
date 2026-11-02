@@ -207,7 +207,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    assert.equal(await action.isVisible(),true,'Blocked users see a next step');
    assert.equal(await action.getAttribute('target'),'_blank','Credits open separately, preserving the original uploaded photo');
    assert.match(await action.textContent(),scenario==='paused'?/Add credits/:/Contact support/);
-   assert.match(await page.locator('#mc-look-status').textContent(),scenario==='paused'?/Complimentary generations/:/account review/);
+   assert.match(await page.locator('#mc-look-status').textContent(),scenario==='paused'?/Choose a credit pack/:/account review/);
    assert.equal(await page.locator('#mc-look-result').isVisible(),false);
    assert.equal(quotes,0,'Blocked customer is rejected before quoting');
    assert.equal(uploads,0,'Blocked customer is rejected before original or style upload');

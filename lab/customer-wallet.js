@@ -28,7 +28,7 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     onBalance(balance);
     toggle.textContent=balance.toLocaleString()+' credits';
     amount.textContent=balance.toLocaleString()+' credits';
-    state.textContent=accountClosed?'Your PV Lab account is closed. Visit Plans & billing for account support.':billingReview?'A refund or dispute is under review. Contact support; billing management remains available.':purchasing?'Opening secure checkout…':trialGenerationPaused?'Free generations are paused. Your existing credits are saved. Choose a credit pack to start generating.':billingReady?'':'Checkout setup is being finalized. Payments are not being accepted yet.';
+    state.textContent=accountClosed?'Your PV Lab account is closed. Visit Plans & billing for account support.':billingReview?'A refund or dispute is under review. Contact support; billing management remains available.':purchasing?'Opening secure checkout…':trialGenerationPaused?'Choose a credit pack to keep creating. Your existing balance and saved work are kept.':billingReady?'':'Checkout setup is being finalized. Payments are not being accepted yet.';
     list.replaceChildren();
     for(const p of products.filter(p=>p.type==='payment')){
       const button=document.createElement('button');button.type='button';

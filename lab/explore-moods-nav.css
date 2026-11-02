@@ -361,3 +361,9 @@
  display:block;position:absolute;left:0;top:50%;transform:translateY(-50%);
  width:3.375em;height:auto;max-width:100%;pointer-events:none;
 }
+
+.mc-explore-page .mc-look-result-balance{margin:12px 0 0;color:#c1ccc1;font-size:12px;text-align:center}
+.mc-explore-page .mc-look-result-pack{display:block;margin:8px auto 0;color:#c1ccc1;font-size:12px;text-align:center;text-underline-offset:4px}
+.mc-explore-page .mc-look-result-pack[hidden]{display:none}
+.mc-explore-page #mc-look-result-again{text-align:center}
+.mc-explore-page .mc-look-result-pack a{color:inherit}

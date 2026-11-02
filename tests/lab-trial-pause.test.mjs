@@ -74,7 +74,7 @@ test('previously granted promotional balance remains intact and cannot fund a ne
   assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,200);
   assert.equal((await customerSession(f.env,id)).generationReady,false);
   assert.equal((await customerPromotionalReview(f.env,id)).reason,'trial-paused');
-  await assert.rejects(()=>assertCustomerOpen(f.env,id,{promotion:true}),/Complimentary generation is paused/);
+  await assert.rejects(()=>assertCustomerOpen(f.env,id,{promotion:true}),/Choose a credit pack/);
   await assertCustomerOpen(f.env,id,{spending:true}); // Purchased checkout remains possible.
   assert.throws(()=>f.submit(id),/complimentary generation is paused/i);
   assert.equal(f.one('SELECT balance_credits FROM lab_customers WHERE id=?',id).balance_credits,200);
@@ -88,7 +88,7 @@ test('redeemed owner-issued voucher can be spent while automatic welcome credits
     'PVFRIEND200',200,1,'Friend invitation',950,'owner_live');
   // An unredeemed code cannot bypass the free-credit pause.
   assert.equal((await customerSession(f.env,id)).generationReady,false);
-  await assert.rejects(()=>assertCustomerOpen(f.env,id,{promotion:true}),/Complimentary generation is paused/);
+  await assert.rejects(()=>assertCustomerOpen(f.env,id,{promotion:true}),/Choose a credit pack/);
   assert.throws(()=>f.submit(id,'job_before_voucher'),/complimentary generation is paused/i);
   // Redemption is single-use, atomic, and automatically credits the ordinary wallet.
   f.run('INSERT INTO lab_voucher_redemptions(voucher_code,customer_id,redeemed_at) VALUES(?,?,?)',
