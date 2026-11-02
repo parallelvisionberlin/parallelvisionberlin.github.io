@@ -130,14 +130,9 @@ function paintCustomerActivity(data){
           sub:refunded?'+'+formatNumber(refunded)+' refunded':''}:'No charge'];
     }),emptyMessage:'No generations recorded for this account.'
   });
-  if(customer.reviewEnabled===1||customer.reviewEnabled===true){
-    const shared=activityElement('div','owner-customer-shared-review');
-    root.append(shared);
-    customerInspectUI.show(customer,shared);
-  }else{
-    root.append(activityElement('p','owner-customer-activity-caption',
-      'Creative image previews and prompts are private by default. Customers can enable optional quality review in Account settings. Model, Mood, feature and credit metadata remain visible above.'));
-  }
+  const results=activityElement('div','owner-customer-shared-review');
+  root.append(results);
+  customerInspectUI.show(customer,results);
   const archived=Array.isArray(data.archivedFinance)?data.archivedFinance:[];
   if(archived.length){
     activityTable(root,{
