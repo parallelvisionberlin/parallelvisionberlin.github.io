@@ -1776,13 +1776,10 @@
   }
 }
 
-/* Keep secondary paid-status and Save Draft surfaces compact whenever they
-   become available. Retain their native visibility and click handlers. */
+/* Hide the redundant optional price-check row in Image Upscaler.
+   The main Upscale action retains the existing quote and billing flow. */
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #upscale-price{
-  flex:0 0 auto!important;
-  min-height:0!important;
-  height:auto!important;
-  max-height:none!important;
+  display:none!important;
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #save{
   flex:0 0 auto!important;
