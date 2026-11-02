@@ -71,6 +71,12 @@ export function isMoodStyleReference(label){
   return label?.role==='style'&&(DREAM_BLUR_REFERENCES.some(ref=>ref.label.name===label.name)||FISHEYE_2000_REFERENCES.some(ref=>ref.label.name===label.name)||EIGHTIES_FILM_REFERENCES.some(ref=>ref.label.name===label.name)||HYPER_POP_REFERENCES.some(ref=>ref.label.name===label.name)||HONG_KONG_REFERENCE_LABELS.has(label.name));
 }
 
+// Inspiration previews normally omit invisible Style photographs. Dream Blur is
+// the exception: its four curated optical references are essential to the look.
+export function shouldOmitAutomaticMoodReferencesForInspiration(inspirationMoodId, selectedMoodId){
+  return inspirationMoodId!==null&&selectedMoodId===inspirationMoodId&&selectedMoodId!=='dream-blur';
+}
+
 export function moodReferencePlan(settings){
   if(settings?.type!=='image'||settings.mode!=='image'||!['hong-kong-nights','dream-blur','fisheye-2000','hyper-pop','80s-film'].includes(settings.moodId)||!['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine))
     return {settings,references:[]};
