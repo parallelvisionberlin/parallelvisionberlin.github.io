@@ -7,9 +7,12 @@
 - New Stripe-hosted Checkout sessions enable Adaptive Pricing explicitly. The Checkout creation request pins Stripe API 2026-09-30.endive and includes its required integration identifier; existing subscriptions and all other Stripe operations are untouched.
 - Original EUR price_data, credit quantities, signed webhook validation, duplicate-event guards and immutable ledger remain authoritative. Stripe reports localized presentment separately, so BRL display does not bypass amount/currency checks.
 - Tests: 28 focused billing/pricing/approved Image/locale tests passed locally. Extended sandbox assertions cover Adaptive Pricing request fields and a BRL presentment event delivering exactly 300 credits once.
-- Browser checks added for BRL/MXN homepage, account and Studio modal at 320/390/1440px, original SKU routing and no automatic checkout. Browser executable unavailable locally; CI validation pending.
-- Publication status: implemented locally, not published. No real payment or production wallet mutation used for testing.
-- Next: open scoped PR, inspect affected browser/billing checks, then verify actual Cloudflare Pages and Worker publication and production bytes.
+- CI passed: account/browser jobs 125235643774 and 125235668214; Studio overlay 125235665203 (BRL/MXN 320/390/1440px), billing/partner unit 125235668378, trial 125235668001, promotions 125235667020 and approved Image 125235663390. Downloaded actual account/home screenshots from artifact 13135416160 and visually reviewed phone/desktop pricing. No horizontal overflow; original EUR amount and purchase SKU preserved.
+- Broad suite: 948/951 pass; the same three pre-existing readFileSync/Moods/ZenCreator failures remain. Pricing browser still stops at the pre-existing Moods vs Explore Moods header expectation. No gates were disabled or unrelated application code changed.
+- Published: PR #790, reviewed head 47024ed9f94aaddafd7a37c39ebb7713e7189a80, merged 80aeac5587bb4c0583b9b8117f0fb6b720064e03. Exact-merge Cloudflare Pages check 125237593914 and Worker deployment job 125237224836/run 41433386464 succeeded.
+- Production: Worker /health reports pv-lab-2026-11-02-local-currency. Local-currency endpoint returns HTTP 200. Release verifier returned LIVE_VERIFIED for lab/lab.js at the merge SHA, SHA-256 572fa9de848d4cef6faa6652e6df69c703d974e407f54b42a6555e2b366dce96. Public local-currency.js and CSS returned HTTP 200 and exact reviewed bytes (JS c869afdf141ae5920fd67d89e7c1f8c0a839761b14cb86278e64ca4f4b22b5d4; CSS f62ca02fc55926b88c20345ac0a102cdfa744b8739ac5176cd3afa44b17ccf59).
+- No real payment, production wallet mutation or new subscription was used for testing. Real customer local-currency payment completion remains separately unperformed.
+- Next: observe real customer checkout conversion. Unsupported countries/rates retain EUR; local display is indicative and Stripe confirms the final amount/currency.
 
 ## One-time €3 / 300-credit pack, 2026-11-02
 - Alejandro approved adding a €3 pack with 300 credits and clarified that it is a one-time payment, not a subscription. Existing packs and monthly plans remain available at their previous values.
