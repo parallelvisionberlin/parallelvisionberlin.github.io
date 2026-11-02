@@ -12,7 +12,9 @@
 - Account focuses the existing €3 pack; only explicit purchase invokes existing Checkout.
 - Minimal UI changes preserve approved Mood images, photobooth, Studio deck and Clerk.
 - Candidate based on main e24644a3ed2317e39c9b9ac25a55370758d29fe7.
-- Local 37 trial/protection/approved Image/campaign checks pass. Browser and deployment evidence pending.
+- Local trial/protection/campaign checks passed; 107 backend tests pass with the approved purchase-guidance copy.
+- CI account 41463551800 and Mood generation 41463551720 passed, including focused packs and all mobile/desktop flows.
+- Screenshots reviewed at 390px/1440px. Dedicated trial browser and deployment evidence pending.
 - All browser transactions are synthetic. No real payment or provider generation is authorized for QA.
 - Eva's historical €10 test remains excluded from independent customer sales claims.
 

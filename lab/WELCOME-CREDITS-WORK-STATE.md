@@ -27,4 +27,6 @@ Updated 2026-11-02. Current approved implementation replaces the previous single
 - Browser suite extended to spend both 20-credit images, open the focused pack tab, retain photo/result,
   refresh after a synthetic purchase, and require Generate again at 390px/1440px for new/returning users.
 - Account browser checks focus the €3 pack at 320px/390px/1440px with no automatic checkout.
-- CI, merge and production verification pending. No paid generation or real Stripe payment used for QA.
+- Account CI 41463551800 and Mood CI 41463551720 passed; focused-pack screenshots reviewed at 390px/1440px.
+- 107 Worker tests passed locally after updating the expected purchase-guidance copy.
+- Dedicated trial CI, merge and production verification pending. No paid generation or real Stripe payment used for QA.

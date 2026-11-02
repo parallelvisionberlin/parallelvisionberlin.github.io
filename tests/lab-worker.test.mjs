@@ -562,7 +562,7 @@ test('paused customer can discover draft video models without receiving spending
   const count=createCount;
   const quote=await req(env,'/api/quotes',{method:'POST',authToken,data:{settings:{type:'video',engine:'seedance',mode:'text',prompt:'A slow camera move.'}}});
   assert.equal(quote.status,403);
-  assert.match((await quote.json()).error,/Complimentary generation is paused/);
+  assert.match((await quote.json()).error,/Choose a credit pack/);
   assert.equal(createCount,count);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,0);
 });
