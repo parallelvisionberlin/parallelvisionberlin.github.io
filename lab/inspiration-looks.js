@@ -47,13 +47,13 @@ export const INSPIRATION_VARIATIONS=Object.freeze({
   ],
   "dream-blur": [
     "A documentary 35mm photograph of a middle-aged woman seen through a moving tram window at blue hour, city lights streaking beyond her reflection, restrained cobalt shadows, real motion blur, imperfect film exposure.",
-    "A young Black man crosses a Berlin intersection after rain, photographed handheld at 1/15 second with a brief flash catching his face; passing headlights smear blue across the street, grain visible.",
-    "Two friends in oversized coats walk past a night bus, one sharply caught by flash and the other dissolving into a long-exposure trail; spontaneous framing and deep blue night atmosphere.",
-    "An older man leans at a late-night diner window as cyclists pass outside, shot through imperfect glass with slow-shutter streaks, cobalt reflections and warm practical lights.",
-    "Close framing of a hand holding a small silver camera through an open taxi window, blue traffic lights dragged across the background by motion, tactile analog grain, unposed detail.",
+    "A young Black man crosses a Berlin intersection after rain, photographed handheld at 1/15 second with a brief flash catching his face; passing headlights smear warm-white and amber across the street, grain visible.",
+    "Two friends in oversized coats walk past a night bus, one sharply caught by flash and the other dissolving into a long-exposure trail; spontaneous framing, dark natural shadows and warm storefront light.",
+    "An older man leans at a late-night diner window as cyclists pass outside, shot through imperfect glass with slow-shutter streaks, dirty green reflections, amber practical lights and deep shadows.",
+    "Close framing of a hand holding a small silver camera through an open taxi window, ruby-red taillights dragged across the background by motion, tactile analog grain, unposed detail.",
     "A woman with closely cropped hair moves down an underground staircase, fluorescent lights trailing around her while her face remains briefly visible; candid 35mm photograph, unpolished shadows.",
-    "Empty rain-soaked bus shelter at 2 a.m., a single abandoned scarf fluttering as a vehicle passes in blue motion blur, long exposure with physically believable light trails.",
-    "Two people dance in a cramped kitchen at night, the handheld camera blurring their movements while blue light from the window and amber lamp light register on imperfect film."
+    "Empty rain-soaked bus shelter at 2 a.m., a single abandoned scarf fluttering as a vehicle passes in warm-headlight motion blur, long exposure with physically believable light trails.",
+    "Two people dance in a cramped kitchen at night, the handheld camera blurring their movements while cool window light and deep amber lamp light register together on imperfect film."
   ],
   "90s-cinema": [
     "Two friends browse vinyl records in a small independent record shop on an overcast afternoon, warm window light, lived-in wooden shelves, unposed gestures and grainy 1990s color-negative photography.",
