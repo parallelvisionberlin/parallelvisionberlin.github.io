@@ -33,10 +33,10 @@ const HONG_KONG_REFERENCE_LABELS=new Set([
 ]);
 
 const DREAM_BLUR_REFERENCES=Object.freeze([
-  {file:'01-blue-eye-light-memory.jpg',type:'image/jpeg',note:'OPTICS ONLY: broad cyan handheld streaks near eye highlights, thin warm line, uneven analog grain. Never copy face, hair or eyes.'},
+  {file:'01-blue-eye-light-memory.jpg',type:'image/jpeg',note:'OPTICS ONLY: imperfect handheld highlight streaks, uneven analog grain, selective warm/cool contrast. Never copy face, hair or eyes.'},
   {file:'02-silhouette-blue-room.jpg',type:'image/jpeg',note:'OPTICS ONLY: moving highlights, dark silhouette and cool room exposure. Keep Base people, framing and place; never copy silhouette.'},
   {file:'03-city-light-trails.jpg',type:'image/jpeg',note:'OPTICS ONLY: imperfect handheld light trails, scattered hot cores and dark negative space. Never import city, cars or people.'},
-  {file:'04-abstract-cyan-exposure.jpg',type:'image/jpeg',note:'OPTICS ONLY: cobalt/cyan exposure sweep, halation, red-orange flecks, pushed grain. Adapt to the Base, never apply a blue filter.'}
+  {file:'04-abstract-cyan-exposure.jpg',type:'image/jpeg',note:'OPTICS ONLY: irregular exposure sweeps, halation, scattered warm/cool flecks, pushed grain. Match Base colors; never apply a blue filter.'}
 ].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/dream-blur/'+ref.file,
   label:Object.freeze({name:'Dream Blur style - '+ref.file,role:'style',note:ref.note})})));
 
