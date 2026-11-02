@@ -243,7 +243,7 @@ try{
     // Customer pricing now shares the approved full editorial overlay;
     // generation and viewer state must survive opening and closing it.
     await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
-    assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6,
+    assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),7,
       'The unified customer pricing overlay contains every actual plan');
     assert.equal(await page.locator('#lab-credits-dialog').isVisible(),false,
       'The superseded small credit pack panel cannot obscure the viewer');
