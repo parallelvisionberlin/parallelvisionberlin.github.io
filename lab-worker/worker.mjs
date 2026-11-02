@@ -62,7 +62,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-11-02-owner-generation-insights';
+export const VERSION = 'pv-lab-2026-11-02-no-consent-control';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1411,27 +1411,6 @@ async function route(request,env,ctx) {
   if(customer&&!['/api/session','/api/customer/wallet','/api/customer/account','/api/billing/portal'].includes(path)){
     const creativePost=method==='POST'&&!path.startsWith('/api/customer/')&&!path.startsWith('/api/billing/');
     await assertCustomerOpen(env,owner,{spending:method==='POST'&&!path.startsWith('/api/customer/'),promotion:creativePost});
-  }
-  // Explicit customer-controlled, revocable creative quality-review permission.
-  // No retrospective opt-in, no implicit consent from sign-in or a purchase.
-  if(path==='/api/customer/generation-review-consent'){
-    const preferenceJson=data=>new Response(JSON.stringify(data),{
-      headers:{'Content-Type':'application/json','Cache-Control':'private, no-store'}
-    });
-    if(!customer)fail(403,'Only PV LAB customers can set creative review permissions.');
-    if(method==='GET'){
-      const row=await first(env,'SELECT enabled,updated_at FROM lab_customer_generation_review_consent WHERE customer_id=?',owner);
-      return preferenceJson({enabled:row?.enabled===1,updatedAt:row?.updated_at||null});
-    }
-    if(method==='POST'){
-      const data=await body(request);
-      if(typeof data?.enabled!=='boolean')fail(400,'Choose whether to share your saved generations.');
-      const time=Date.now();
-      await env.LAB_DB.prepare('INSERT INTO lab_customer_generation_review_consent(customer_id,enabled,updated_at) VALUES(?,?,?) ON CONFLICT(customer_id) DO UPDATE SET enabled=excluded.enabled,updated_at=excluded.updated_at')
-        .bind(owner,data.enabled?1:0,time).run();
-      return preferenceJson({enabled:data.enabled,updatedAt:time});
-    }
-    fail(405,'Unsupported review preference method.');
   }
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
     if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');
