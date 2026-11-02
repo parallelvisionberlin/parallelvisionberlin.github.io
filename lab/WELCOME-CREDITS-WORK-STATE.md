@@ -1,6 +1,7 @@
 # PV LAB introductory image trial
 
-Updated 2026-11-02. Review base: `9c13c5efed6b3bd97513825a2eb9278a349aee19`.
+Updated 2026-11-02. Deployed correction: `b2e1f0aad3523271d2bda192f16b157308e59f5d` (PR #788).
+Review base: `9c13c5efed6b3bd97513825a2eb9278a349aee19`.
 
 ## Current owner request
 - Verified accounts created from 2026-11-01 00:00 Europe/Berlin receive exactly 40 credits once.
@@ -28,10 +29,16 @@ Updated 2026-11-02. Review base: `9c13c5efed6b3bd97513825a2eb9278a349aee19`.
 - 54 focused trial, welcome, pause, hold, signup and auth tests passed locally.
 - 122 Worker, customer lifecycle, customer billing and sandbox billing integration tests passed locally.
 - Approved Image contract and campaign tests passed; an unrelated existing Moods header wording assertion fails in `lab-moods-inline-return.test.mjs`.
-- Browser checks and final production policy verification pending CI/deployment.
-- No real provider generation, Stripe payment or production test-account creation is authorized by these checks.
-- Real Clerk/OAuth completion and an actual live 40-credit award remain distinct from mocked browser verification.
+- Nine approved Image/campaign contracts passed locally. General CI has three failures in unchanged checkout-tracking, Moods-header and ZenCreator-copy assertions.
+- Dedicated trial CI [41373460852](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/41373460852) passed, including new/returning users at 390px with mobile/touch emulation and 1440px.
+- Browser checks assert original uploaded bytes and preview, selected Berlin Rave Mood, exact campaign URL, one wallet creation and one explicit mocked job.
+- Production Worker [41373651233](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/41373651233) succeeded for the deployed correction.
+- Worker version: `a749e553-779c-4123-bc58-74244ac7960e`. Remote migration 0053 executed successfully.
+- Live read-only audit passed all three flags, migrations 0051/0052/0053, Berlin cutoff, legacy pause, both single-image triggers, wallet reconciliation, exact 40-credit receipts, receipt uniqueness and failed-job refunds.
+- Live `https://pvlab.studio/session-request.js` exactly matches reviewed source, SHA-256 `0ee185a33004cffc3359b7ab45fd280d4a3ebf6aeccc7e81e49ae7f344c91d49`.
+- Verification incident: one unintended production image was generated from a synthetic geometric test file through an already signed-in session. No further live generation checks were performed. Automated CI uses mocks only.
+- No production test account or Stripe payment was created. Real fresh Clerk/OAuth completion remains untested; mocked registration is separate evidence.
 
 ## Next action
-- Run dedicated CI, merge the reviewed correction, verify Worker deployment and the read-only live policy results.
-- Record final commit/run IDs and browser results here before closing the task.
+- No correction rollout remains pending. Preserve these restrictions and the approved interface.
+- A future real signup check should use a dedicated test account and must not submit provider generation.
