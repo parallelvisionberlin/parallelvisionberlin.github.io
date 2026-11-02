@@ -119,24 +119,6 @@ CREATE INDEX IF NOT EXISTS lab_mood_performance_job
   ON lab_mood_performance(job_id);
 
 CREATE TABLE IF NOT EXISTS lab_migrations(id TEXT PRIMARY KEY,applied_at INTEGER NOT NULL);
--- Base schema for local test fixtures; migration 0054 creates the same
--- revocable permission table in existing production databases.
-CREATE TABLE IF NOT EXISTS lab_customer_generation_review_consent (
-  customer_id TEXT PRIMARY KEY REFERENCES lab_customers(id) ON DELETE CASCADE,
-  enabled INTEGER NOT NULL DEFAULT 0 CHECK(enabled IN (0,1)),
-  updated_at INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS lab_customer_generation_review_consent_updated
-  ON lab_customer_generation_review_consent(updated_at);
-
-CREATE TABLE IF NOT EXISTS lab_clerk_sync_diagnostics (
-  id INTEGER PRIMARY KEY CHECK(id=1),
-  checked_at INTEGER NOT NULL,
-  source TEXT NOT NULL CHECK(source IN ('owner','scheduled')),
-  result_json TEXT NOT NULL CHECK(length(result_json)<=2048)
-);
-
-
 CREATE TABLE IF NOT EXISTS soul_datasets (
   id TEXT PRIMARY KEY,
   owner_id TEXT NOT NULL,
