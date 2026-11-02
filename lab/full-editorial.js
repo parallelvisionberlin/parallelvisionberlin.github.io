@@ -54,7 +54,7 @@ function renderCastingControls(){
  }
  $('editorial-cast-summary').textContent=!ready
   ? modelGroups.length===1?'Add one more model to choose how they appear together.':'Select two or more models to choose how they appear together.'
-  : modelGroups.length+' models selected · '+({mixed:'Solo + together',alternating:'Individual portraits',together:'Together in every photograph'}[castComposition]);
+  : modelGroups.length+' models selected · '+({mixed:'Solo + group',alternating:'Solo only',together:'Group only'}[castComposition]);
  if(step===1)$('step-next').disabled=modelGroups.length===0;
 }
 function renderIdentityFooter(){
@@ -240,7 +240,7 @@ function updateSeriesSummary(){
  }
  const count=kind=>files[kind].length+savedRefs[kind].length;
  showImage('review-model-thumb',source('model'));
- model.textContent=modelGroups.length?(modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' / '+count('model')+' reference photo'+(count('model')===1?'':'s')+(modelGroups.length>1?' / '+({mixed:'Mixed editorial',alternating:'Individual portraits',together:'Together'}[castComposition]):'')):'No model selected';
+ model.textContent=modelGroups.length?(modelGroups.length+' model'+(modelGroups.length===1?'':'s')+' / '+count('model')+' reference photo'+(count('model')===1?'':'s')+(modelGroups.length>1?' / '+({mixed:'Solo + group',alternating:'Solo only',together:'Group only'}[castComposition]):'')):'No model selected';
  showImage('review-outfit-thumb',source('outfit'));
  $('review-outfit-text').textContent=count('outfit')?count('outfit')+' wardrobe reference'+(count('outfit')===1?'':'s'):$('styling-direction').value.trim()?'Described wardrobe':'No wardrobe selected';
  const picks=Object.entries(selectedDirections).map(([k,id])=>directionSets[k].find(d=>d.id===id)).filter(Boolean);
