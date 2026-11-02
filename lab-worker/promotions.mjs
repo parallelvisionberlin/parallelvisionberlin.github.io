@@ -1,7 +1,7 @@
 import {ownerProviderBalances} from './owner-providers.mjs';
 import {labTrafficReport} from './traffic.mjs';
 import {grantVerifiedWelcome,welcomeReviewFlag} from './welcome-guard.mjs';
-import {ownerGenerationReviewRoute} from './generation-review.mjs';
+import {ownerGenerationReviewRoute,ownerConsentedGenerationReviewRoute} from './generation-review.mjs';
 // PV LAB promotional credits and private customer administration.
 // All money and wallet records belong to LAB_DB. OWNER_DB is read for owner authorization only.
 const CODE=/^[A-Z0-9][A-Z0-9-]{5,23}$/;
@@ -282,6 +282,8 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
   // This handler remains behind requireOwner above. No customer token can read media.
   if(path==='/api/admin/customers/review'||path==='/api/admin/customers/review-thumbnail')
     return ownerGenerationReviewRoute(request,env,owner);
+  if(path==='/api/admin/customers/inspect'||path==='/api/admin/customers/inspect-thumbnail')
+    return ownerConsentedGenerationReviewRoute(request,env,owner);
   if(path==='/api/admin/traffic'&&method==='GET'){
     const days=Number(url.searchParams.get('days')||'7');
     return json(await labTrafficReport(env,{days}));
@@ -409,8 +411,10 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
     // Private, read-only activity. Owner access was verified before entering this route.
     const customerId=(url.searchParams.get('customerId')||'').trim();
     if(!/^[A-Za-z0-9_-]{4,160}$/.test(customerId))fail(400,'Invalid customer account ID.');
-    const customer=await one(env,`SELECT c.id,c.balance_credits AS balanceCredits,c.created_at AS joinedAt,p.email
+    const customer=await one(env,`SELECT c.id,c.balance_credits AS balanceCredits,c.created_at AS joinedAt,p.email,
+        COALESCE(privacy.enabled,0) AS reviewEnabled
       FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
+      LEFT JOIN lab_customer_generation_review_consent privacy ON privacy.customer_id=c.id
       WHERE c.id=?`,customerId);
     if(!customer)fail(404,'Customer not found.');
     const [jobCounts,creditTotals,jobs,entries,archivedFinance]=await Promise.all([
@@ -447,8 +451,17 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
     const history=jobs.map(({params,...job})=>{
       let p={};try{p=JSON.parse(params||'{}');}catch{/* Legacy malformed settings */ }
       if(!p||typeof p!=='object'||Array.isArray(p))p={};
+      const metadata={};
+      for(const key of ['mode','moodId','moodIntensity','resolution','aspectRatio','duration',
+        'referenceMode','outputFormat','processing','audio','upscaleEngine','videoUpscaleEngine',
+        'soulProModel','strength','identityStrength','preset','count']){
+        const value=p[key];
+        if(typeof value==='string')metadata[key]=safe(value);
+        else if(typeof value==='boolean'||(typeof value==='number'&&Number.isFinite(value)))metadata[key]=value;
+      }
       return {...job,type:p.mode==='upscale'?'upscale':safe(p.type),model:safe(p.model),
-        engine:safe(p.engine),provider:safe(p.provider)};
+        engine:safe(p.engine),provider:safe(p.provider),feature:safe(p.mode),
+        mood:safe(p.moodId),settings:metadata};
     });
     const descriptions={purchase:'Credit purchase',subscription:'Subscription credits',
       generation:'Generation charge',refund:'Generation refund',adjustment:'Credit adjustment'};
