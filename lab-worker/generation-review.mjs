@@ -88,18 +88,16 @@ export async function pruneGenerationReviewAudit(env,{clock=()=>Date.now()}={}){
 }
 
 
-// Separate consent-based review endpoint. Normal customers are never eligible
-// through the promotional-abuse pathway, and this gate is checked on EVERY read.
+// Owner-only operational quality review of retained outputs, prompts and model settings.
+// Separate from the narrowly scoped promotional-abuse review.
 const INSPECT_PAGE=30;
 const INSPECT_FIELDS=['mode','type','model','engine','provider','moodId','moodIntensity',
   'resolution','aspectRatio','duration','referenceMode','outputFormat','processing',
   'audio','seed','upscaleEngine','videoUpscaleEngine','soulProModel','soulProQuality','fashionModel','fashionCategory','generationMode','quality',
   'strength','identityStrength','characterName','preset','count'];
-async function consentedCustomer(env,id){
+async function inspectableCustomer(env,id){
   return one(env,`SELECT c.id,p.email
     FROM lab_customers c
-    JOIN lab_customer_generation_review_consent permission ON permission.customer_id=c.id
-      AND permission.enabled=1
     LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
     WHERE c.id=? AND NOT EXISTS(
       SELECT 1 FROM lab_account_closures closure WHERE closure.customer_id=c.id
@@ -123,13 +121,13 @@ function inspectDetails(raw){
     originalDirection:typeof p.moodOriginalPrompt==='string'
       ?p.moodOriginalPrompt.slice(0,5000):''};
 }
-export async function ownerConsentedGenerationReviewRoute(request,env,ownerId){
+export async function ownerQualityReviewRoute(request,env,ownerId){
   const url=new URL(request.url),path=url.pathname;
   if(request.method!=='GET')fail(405,'Generation inspection is read-only.');
   const customerId=url.searchParams.get('customerId')||'';
   if(!CUSTOMER.test(customerId))fail(400,'Invalid account ID.');
-  const customer=await consentedCustomer(env,customerId);
-  if(!customer)fail(403,'This customer has not enabled creative quality review.');
+  const customer=await inspectableCustomer(env,customerId);
+  if(!customer)fail(404,'Customer not found or creative data has been deleted.');
   if(path==='/api/admin/customers/inspect'){
     const rawOffset=url.searchParams.get('offset')||'0';
     if(!/^(0|[1-9][0-9]{0,5})$/.test(rawOffset)||Number(rawOffset)>100000)
@@ -150,7 +148,7 @@ export async function ownerConsentedGenerationReviewRoute(request,env,ownerId){
     }));
     return json({customer,items,offset,hasMore:jobs.length>INSPECT_PAGE,
       nextOffset:offset+items.length,limit:INSPECT_PAGE,
-      note:'Customer-enabled quality review. Stored prompts and saved output thumbnails only. Deleted content and uploaded sources are not accessible.'});
+      note:'Owner quality review of retained work. Stored prompts, model settings and generated image previews only. Deleted content and source uploads are inaccessible.'});
   }
   if(path==='/api/admin/customers/inspect-thumbnail'){
     const jobId=url.searchParams.get('jobId')||'';
