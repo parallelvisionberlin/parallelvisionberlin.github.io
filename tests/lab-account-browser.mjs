@@ -12,7 +12,7 @@ const server=createServer(async(req,res)=>{
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
-const products=[{id:'topup10',type:'payment',credits:1000,priceEur:10},{id:'topup29',type:'payment',credits:3000,priceEur:29},{id:'topup75',type:'payment',credits:8000,priceEur:75},{id:'starter',type:'subscription',credits:1600,priceEur:15}];
+const products=[{id:'topup3',type:'payment',credits:300,priceEur:3},{id:'topup10',type:'payment',credits:1000,priceEur:10},{id:'topup29',type:'payment',credits:3000,priceEur:29},{id:'topup75',type:'payment',credits:8000,priceEur:75},{id:'starter',type:'subscription',credits:1600,priceEur:15}];
 for(const product of products)product.title='PV Lab '+product.id;
 const clerkMock=`export class Clerk {
   constructor(){window.mockClerk=this;this.listeners=[];this.isSignedIn=sessionStorage.getItem('mock-auth')!=='out';this.user={id:'user_Test',fullName:'Alex Test',hasImage:false,primaryEmailAddress:{emailAddress:'alex@example.test'}};this.session=this.isSignedIn?{id:'sess_Test',getToken:async()=> 'synthetic-token'}:null;}
@@ -145,7 +145,7 @@ try{
       await page.waitForFunction(()=>document.querySelector('[data-lab-buy="creator"]').getAttribute('aria-busy')==='true');
       await checkoutRequest;
       assert.equal(checkoutWrites().length,1,'A double click creates only one checkout');
-      assert.equal(await page.locator('#pricing [data-lab-buy]:disabled').count(),6);
+      assert.equal(await page.locator('#pricing [data-lab-buy]:disabled').count(),7);
       assert.deepEqual(JSON.parse(checkoutWrites()[0].body),{sku:'creator'});
       rig.releaseCheckout();await page.getByText('Unverified checkout link. Please try again.',{exact:true}).waitFor();
       assert.equal(await page.locator('#pricing [data-lab-buy]:disabled').count(),0,'Failure makes all products usable again');
@@ -210,7 +210,7 @@ try{
       await page.waitForFunction(()=>!document.getElementById('image-composer-generate').disabled);
       await page.locator('#image-composer-generate').click();
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
-      assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6);
+      assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),7);
       assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-monthly').getAttribute('aria-selected'),'true','Generate starts with the compact monthly comparison');
       assert.equal(await page.locator('#image-composer-prompt').inputValue(),direction,
         "Pricing must preserve the customer's drafted creative direction");
@@ -254,8 +254,8 @@ try{
       await page.fill('#image-composer-prompt','Keep this exact draft.');
       await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
-      assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6,
-        'All six original homepage plans appear in Studio without navigation');
+      assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),7,
+        'All seven homepage products appear in Studio without navigation');
       assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-onetime').getAttribute('aria-selected'),'true',
         'Empty wallet starts on one-time credits');
       assert.equal(page.url(),studioUrl,'Opening credits does not navigate through the homepage');
@@ -267,7 +267,7 @@ try{
       await page.waitForFunction(()=>document.getElementById('lab-wallet-toggle').textContent.includes('1,000'));
       await page.evaluate(()=>document.getElementById('lab-wallet-toggle').click());
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
-      assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),6,
+      assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),7,
         'Funded customers see exactly the same editorial plans as zero-credit customers');
       assert.equal(await page.locator('#lab-credits-dialog').isVisible(),false,
         'The superseded compact credit-pack dialog must not replace editorial pricing');
@@ -373,7 +373,7 @@ try{
     const rig=await setup(width),{page,errors,writes}=rig;
     try{
       await page.goto(origin+'/lab/account.html');await page.waitForFunction(()=>document.querySelector('#account-balance').textContent==='1,234');
-      await fits(page,'account '+width);await page.locator('.account-cover img').evaluate(img=>img.decode());assert.equal(await page.locator('#account-products button').count(),3);
+      await fits(page,'account '+width);await page.locator('.account-cover img').evaluate(img=>img.decode());assert.equal(await page.locator('#account-products button').count(),4);
       await page.screenshot({path:artifacts+'/account-balance-'+width+'.png',fullPage:true});
       await page.click('[data-tab="usage"]');await page.locator('#account-activity').getByText('Generation',{exact:true}).waitFor();
       assert.match(await page.locator('#account-activity').textContent(),/-42 credits/);
@@ -381,7 +381,7 @@ try{
       await page.click('#account-portal');await page.waitForFunction(()=>document.querySelector('#account-status').textContent.includes('verified billing link'));
       assert.ok(page.url().startsWith(origin));assert.equal(writes.at(-1).path,'/api/billing/portal');
       await page.click('[data-tab="balance"]');await page.locator('#account-products button').first().click();await page.waitForFunction(()=>document.querySelector('#account-status').textContent.includes('verified billing link'));
-      assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'topup10'});
+      assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'topup3'});
       await page.evaluate(()=>location.hash='settings');await page.locator('#account-edit-profile').click();assert.equal(await page.evaluate(()=>window.profileOpened),true);
       assert.match(await page.locator('#account-storage-label').textContent(),/1.00 GiB/);await fits(page,'settings '+width);
       await page.screenshot({path:artifacts+'/account-settings-'+width+'.png',fullPage:true});

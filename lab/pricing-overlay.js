@@ -28,7 +28,7 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
   if(!dialog||!surface||!closeButton)throw new Error('PV LAB pricing overlay is unavailable.');
   let loaded=null,previousFocus=null,submitting=false;
   const pendingKey='pv-lab-studio-plan-intent';
-  const availablePlans=['starter','creator','studio','topup10','topup29','topup75'];
+  const availablePlans=['starter','creator','studio','topup3','topup10','topup29','topup75'];
   let pendingPlan=null;
   function rememberPlan(sku){
     pendingPlan={sku,at:Date.now(),path:location.pathname};
@@ -50,7 +50,7 @@ export function createPricingOverlay({buy,getAccount,onSignIn}){
     if(event.target===dialog)close();
   });
   async function install(){
-    // The original homepage owns the six plan cards, display figures and imagery.
+    // The original homepage owns the plan and credit-pack cards, display figures and imagery.
     // One request, only on demand. Nothing is inserted into the Studio's prompt.
     await Promise.all(cssFiles.map(addStyle));
     const response=await fetch(home,{credentials:'same-origin',cache:'no-store'});

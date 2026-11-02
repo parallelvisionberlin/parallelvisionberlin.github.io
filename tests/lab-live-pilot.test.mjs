@@ -63,7 +63,7 @@ test('production stays entirely closed until a real exact customer ID is deliber
 test('pilot offers the €10 top-up or Starter subscription, no higher packs',()=>{
   assert.equal(isPermittedPilotPurchase(pilotEnv,PILOT,'topup10'),true);
   assert.equal(isPermittedPilotPurchase(pilotEnv,PILOT,'starter'),true);
-  for(const sku of ['topup29','topup75','creator','studio'])
+  for(const sku of ['topup3','topup29','topup75','creator','studio'])
     assert.equal(isPermittedPilotPurchase(pilotEnv,PILOT,sku),false);
   assert.equal(isPermittedPilotPurchase(pilotEnv,OTHER,'starter'),true);
 });

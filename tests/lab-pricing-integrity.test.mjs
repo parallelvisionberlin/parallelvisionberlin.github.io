@@ -30,10 +30,10 @@ function fixture(t){
   return {db,insert,charge,balance};
 }
 
-test('all published packs retain their exact euro/credit value; no SKU or markup change',()=>{
+test('published packs retain their values alongside the one-time 300-credit pack',()=>{
   assert.equal(CREDIT_MULTIPLIER,460);
   assert.deepEqual(Object.fromEntries(Object.entries(PACKS).map(([id,p])=>[id,[p.cents,p.credits]])),{
-    topup10:[1000,1000],topup29:[2900,3000],topup75:[7500,8000],
+    topup3:[300,300],topup10:[1000,1000],topup29:[2900,3000],topup75:[7500,8000],
     starter:[1500,1600],creator:[3900,4500],studio:[9900,12000]
   });
   assert.equal(Math.min(...Object.values(PACKS).map(p=>p.cents/100/p.credits)),.00825);

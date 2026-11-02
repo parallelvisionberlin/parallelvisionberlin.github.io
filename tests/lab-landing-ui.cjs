@@ -106,11 +106,11 @@ const server=http.createServer((req,res)=>{
   await page.locator('#pricing').scrollIntoViewIfNeeded();
   await page.locator('.lab-pricing-mood img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
   assert.equal(await page.locator('.lab-pricing-mood').count(),3,'Three approved mood cards');
-  assert.equal(await page.locator('#pricing [data-lab-buy]').count(),6,'All pricing actions remain available');
+  assert.equal(await page.locator('#pricing [data-lab-buy]').count(),7,'All pricing actions remain available');
   assert.equal(await page.locator('#pricing [data-lab-buy] svg.pv-arrow-svg').count(),0,'Approved pricing actions remain text-only');
   assert.equal(await page.locator('#pricing [data-lab-buy]').evaluateAll(buttons=>buttons.every(b=>!b.textContent.includes('↗'))),true,'No emoji arrows inside pricing actions');
   if(width<=560)assert.equal(await page.locator('#lab-home-upgrade').isVisible(),false,'Mobile header keeps Upgrade out of the crowded top row');
-  assert.deepEqual(await page.locator('#pricing [data-lab-buy]').evaluateAll(els=>els.map(el=>el.dataset.labBuy)),['starter','creator','studio','topup10','topup29','topup75'],'All existing checkout products remain connected');
+  assert.deepEqual(await page.locator('#pricing [data-lab-buy]').evaluateAll(els=>els.map(el=>el.dataset.labBuy)),['starter','creator','studio','topup3','topup10','topup29','topup75'],'All existing checkout products remain connected');
   assert.equal(await page.locator('#pricing .lab-credits-guide').count(),0,'Removed the disconnected credit explanation below the price rows');
   assert.equal(await page.locator('#pricing .lab-pricing-footnote').count(),1,'Billing clarification lives directly below the selected prices');
   assert.equal(await page.locator('#lab-pricing-billing-copy').innerText(),'Renews monthly until cancelled.');
@@ -227,17 +227,17 @@ const server=http.createServer((req,res)=>{
   }
   assert.equal(await page.locator('#pricing .lab-pricing-welcome').count(),0,'Paid pricing has no free-credit banner');
   assert.equal(await page.locator('#lab-monthly-plans .lab-plan-usage').count(),3,'Monthly pricing shows example model usage');
-  assert.equal(await page.locator('#lab-one-time-credits .lab-plan-usage').count(),3,'One-time pricing shows example model usage');
+  assert.equal(await page.locator('#lab-one-time-credits .lab-plan-usage').count(),4,'One-time pricing shows example model usage');
   assert.equal(await page.locator('#pricing .lab-pricing-usage-note').count(),0,'No small model-rate paragraph under plans');
-  assert.equal(await page.locator('#pricing .lab-estimate-details').count(),6,'All purchase rows explain estimate rates on demand');
+  assert.equal(await page.locator('#pricing .lab-estimate-details').count(),7,'All purchase rows explain estimate rates on demand');
 
   assert.equal(await page.locator('#lab-monthly-plans .lab-plan-tag').count(),1,'One editorial recommendation distinguishes the Creator plan');
   assert.equal(await page.locator('#lab-one-time-credits .lab-plan-tag').count(),0,'One-time packs are neutrally presented');
-  assert.equal(await page.locator('#pricing .lab-buy-label').count(),6,'Every plan offers a visible purchase action');
+  assert.equal(await page.locator('#pricing .lab-buy-label').count(),7,'Every plan offers a visible purchase action');
   assert.equal(await page.locator('#pricing .lab-pricing-benefits').count(),1,'Common capabilities are shown once below the plans');
   assert.equal(await page.locator('#pricing .lab-plan-usage-stats').first().getByText('Upscaling available').count(),0,'Upscaling is not repeated inside each plan');
   const infoAtEnd=await page.locator('#pricing .lab-plan-usage-stats').evaluateAll(rows=>rows.every(row=>row.lastElementChild?.classList.contains('lab-estimate-details')));
-  assert.equal(infoAtEnd,true,'Estimate info icon follows images, videos and upscaling on all six options');
+  assert.equal(infoAtEnd,true,'Estimate info icon follows images, videos and upscaling on all seven options');
   const statsStyle=await page.locator('#lab-monthly-plans .lab-plan-usage-stats').first().evaluate(el=>({
     size:parseFloat(getComputedStyle(el).fontSize),
     weight:parseFloat(getComputedStyle(el).fontWeight),
