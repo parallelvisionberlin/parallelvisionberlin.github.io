@@ -1201,7 +1201,8 @@ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-add-saved-to
   display:block;margin-top:10px;color:#8d969d;font-size:10px;
 }
 @media(max-width:700px){
-  #scene-library-dialog.scene-item-open #scene-feature{grid-template-columns:1fr}
+  /* Saved-photo strip scrolls inside the phone panel instead of widening its track. */
+  #scene-library-dialog.scene-item-open #scene-feature{grid-template-columns:minmax(0,1fr)}
   #scene-library-dialog.scene-item-open #scene-feature .scene-feature-cover{
     height:clamp(185px,34vh,250px);min-height:0;
   }

@@ -1,5 +1,21 @@
 # PV LAB Saved References / compact F
 
+## Active mobile detail repair, 2026-11-02
+- Request: repair overflowing saved Character details on phones; preserve other category overviews.
+- Inspected main `7839aa341caec03b384bf39800133f14e9f1a893`; no open overlapping Elements PR found.
+- Source: `lab/scene-library.css`, `lab/studio.html`.
+- Reproduced the screenshot geometry with an eight-photo detail fixture and the real library styles.
+- Root cause: mobile `1fr` track retains the thumbnail strip's intrinsic minimum width (546px inside a 334px feature panel).
+- Mobile detail track now uses `minmax(0,1fr)`; preview, text and action stay within the panel while thumbnails retain horizontal scrolling.
+- Desktop two-column detail remains unchanged. Category overviews, photos, profile analysis and scene attachment behavior are unchanged.
+- Stylesheet cache key: `20261102-character-mobile-track1`.
+- Verification: approved Image UI contract and scene-library cover tests passed (9 total).
+- Browser QA: 390px panel inner track/cover/content 332px; 320px track/cover 262px. Photo strip remains independently scrollable.
+- Desktop QA: unchanged 352.875px / 449.125px tracks in an 804px detail panel.
+- QA uses synthetic local markup/media, not a real signed-in production account or paid generation.
+- Source commit, CI and Cloudflare production publication: pending.
+- Next: publish reviewed fix, inspect exact Cloudflare Pages check and production stylesheet version/bytes.
+
 ## Active release, 2026-10-27
 - Owner approved F / Compact box and requested implementation and publication.
 - Approved mock: `3352c270-443a-4584-afe0-68701d02ce7d.png`, Library `libfile_4abcb7ed43688191b33c0eba1284d0e6`.
