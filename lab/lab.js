@@ -5,7 +5,7 @@ import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=202610
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&eightiesFinish=20261024v1&hkCinema=20261025v1';
 import {preparePhotoInput,prepareUpscaleInput,prepareElementPhoto} from './photo-input.js?v=20261027-character-working1';
-import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?hkPhotoOriginals=20261018v2&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1&eightiesStyle=20261024v1';
+import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference,shouldOmitAutomaticMoodReferencesForInspiration} from './mood-references.js?hkPhotoOriginals=20261018v2&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1&eightiesStyle=20261024v1&dreamBlurInspirationRefs=20261102v1';
 import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-hidden-preset1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
@@ -422,7 +422,7 @@ function preferredImageReferenceMode(){return 'base';}
 let imageReferenceMode=preferredImageReferenceMode();
 let referenceIntentOpen=false;
 let myMoods=null;
-// Only the explicit six-card Inspiration flow is text-only; manual Mood selection retains its own references.
+// Inspiration presets are text-only except Dream Blur, which needs four optical Style photographs.
 let inspirationMoodId=null;
 // Inspiration keeps other presets at 60% while Dream Blur uses its canonical Mood default.
 function inspirationMoodDefaultIntensity(id){return id==='dream-blur'?moodById(id).defaultIntensity:id==='fisheye-2000'?75:60;}
@@ -682,8 +682,8 @@ function imageGuidance(){
   const labels=referenceRoles(),mood=moodUI.enrich(effectiveImagePrompt(),{engine:imageEngine,referenceCount:references.length,referenceMode:imageReferenceMode});
   const current={type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,exactPrompt:$('composer-exact-prompt').checked,...mood.metadata};
   try{
-    // Inspiration examples use only the explicit prompt and the user's visible attachments.
-    const planned=inspirationMoodId===current.moodId
+    // Dream Blur Inspiration also uses its four curated optical Style photographs.
+    const planned=shouldOmitAutomaticMoodReferencesForInspiration(inspirationMoodId,current.moodId)
       ?{settings:{...current,prompt:mood.prompt,referenceRoles:labels},references:[]}
       :moodReferencePlan({...current,prompt:mood.prompt,referenceRoles:labels});
     const prompt=compileImagePrompt(planned.settings.prompt,planned.settings.referenceRoles,current);
@@ -861,7 +861,7 @@ function imageCreditQuoteSnapshot(){
     source:sourceMode&&file?{file,url:sourceUrl,width:sourceWidth,height:sourceHeight}:null
   });
   return {key,settings:selected,count,chosen,sourceMode,provider:currentProvider(),
-    disableAutoMoodReferences:inspirationMoodId!==null&&selected.moodId===inspirationMoodId};
+    disableAutoMoodReferences:shouldOmitAutomaticMoodReferencesForInspiration(inspirationMoodId,selected.moodId)};
 }
 function customerImageProviderReady(){
   const provider=currentProvider();
@@ -5318,7 +5318,7 @@ async function submitImageSnapshot(){
   }
   const sessionEpoch=epoch,provider=currentProvider();
   let selected=structuredClone(settings());
-  const disableAutoMoodReferences=inspirationMoodId!==null&&selected.moodId===inspirationMoodId;
+  const disableAutoMoodReferences=shouldOmitAutomaticMoodReferencesForInspiration(inspirationMoodId,selected.moodId);
   const requested=Math.max(1,Math.min(imageProcessing==='batch'?20:4,Number($('image-count').value)||1));
   const selectedPose=poseMapSourceId,selectedBase=file,selectedSourceId=sourceId;
   const sourceMode=imageEngine==='soulpro'||isReinterpret();
