@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {createHmac} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
 import worker,{VERSION} from '../sandbox/stripe-billing/worker.mjs';
-import {ensureCustomer} from '../lab-worker/customer-billing.mjs';
+import {ensureCustomer,customerRoute} from '../lab-worker/customer-billing.mjs';
 
 function setup(t){
   const db=new DatabaseSync(':memory:');
@@ -160,4 +160,54 @@ test('billing endpoints require real Clerk identity; false sandbox flags prevent
   assert.equal(unsafe.status,403);
   const noEnv=await worker.fetch(new Request('https://test/api/session',{headers:{Authorization:'Bearer foo'}}),{...env,LAB_SANDBOX_MODE:'false'});
   assert.equal(noEnv.status,503);
+});
+
+
+test('€3 pack uses one-time Checkout with server-controlled 300 cents and no early credit',async t=>{
+  const {db,env}=setup(t);
+  Object.assign(env,{LAB_CHECKOUT_ENABLED:'true',LAB_PUBLIC_GENERATION_ENABLED:'true',LAB_CUSTOMER_SPICY_API_KEY:'mock_not_used'});
+  await ensureCustomer(env,'user_SandboxABC1');
+  db.prepare('UPDATE lab_customers SET stripe_customer_id=? WHERE id=?').run('cus_sandbox001','user_SandboxABC1');
+  const previous=globalThis.fetch;t.after(()=>{globalThis.fetch=previous;});
+  const forms=[];
+  globalThis.fetch=async(url,init)=>{
+    assert.equal(url,'https://api.stripe.com/v1/checkout/sessions');
+    forms.push(new URLSearchParams(init.body));
+    return Response.json({id:'cs_test_Topup300',url:'https://checkout.stripe.com/c/pay/cs_test_Topup300'});
+  };
+  const catalog=await (await customerRoute(new Request('https://lab.test/api/customer/catalog'),env,'user_SandboxABC1')).json();
+  assert.deepEqual(catalog.products.find(p=>p.id==='topup3'),{id:'topup3',type:'payment',priceEur:3,credits:300,title:'PV Lab · 300 credits'});
+  const request=new Request('https://lab.test/api/billing/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sku:'topup3',cents:1,credits:999999,mode:'subscription'})});
+  const result=await customerRoute(request,env,'user_SandboxABC1');
+  assert.equal(result.status,200);assert.equal(forms.length,1);
+  const form=forms[0];
+  assert.equal(form.get('mode'),'payment');
+  assert.equal(form.get('line_items[0][price_data][unit_amount]'),'300');
+  assert.equal(form.get('line_items[0][price_data][currency]'),'eur');
+  assert.equal(form.get('metadata[lab_sku]'),'topup3');
+  assert.equal(form.get('line_items[0][price_data][recurring][interval]'),null);
+  assert.equal(form.get('subscription_data[metadata][lab_sku]'),null);
+  assert.equal(balance(db),0,'Opening Checkout never awards credits');
+});
+
+test('€3 payment delivers 300 credits once, rejects invalid payment facts and remains nonrecurring',async t=>{
+  const {db,env}=setup(t);await ensureCustomer(env,'user_SandboxABC1');
+  const event=(id,overrides={})=>{
+    const e=checkoutEvent({id,amount:300});e.data.object.metadata.lab_sku='topup3';
+    Object.assign(e.data.object,overrides);return e;
+  };
+  for(const [name,overrides] of Object.entries({underpaid:{amount_total:299},overpaid:{amount_total:301},currency:{currency:'usd'},unpaid:{payment_status:'unpaid'},mode:{mode:'subscription'},identity:{client_reference_id:'user_Other'}})){
+    assert.equal((await worker.fetch(sign(env,event('evt_Topup3Bad'+name,overrides)),env)).status,200);
+    assert.equal(balance(db),0,name+' must not credit the wallet');
+  }
+  const paid=event('evt_Topup3Paid');
+  assert.equal((await worker.fetch(sign(env,paid),env)).status,200);assert.equal(balance(db),300);
+  assert.equal((await worker.fetch(sign(env,paid),env)).status,200);assert.equal(balance(db),300);
+  const asyncPaid=event('evt_Topup3Async');asyncPaid.type='checkout.session.async_payment_succeeded';
+  assert.equal((await worker.fetch(sign(env,asyncPaid),env)).status,200);assert.equal(balance(db),300);
+  const invoice={id:'evt_Topup3Invoice',type:'invoice.paid',livemode:false,data:{object:{id:'in_Topup3',status:'paid',currency:'eur',amount_paid:300,billing_reason:'manual',customer:'cus_sandbox001',metadata:{lab_customer_id:'user_SandboxABC1',lab_sku:'topup3'}}}};
+  assert.equal((await worker.fetch(sign(env,invoice),env)).status,200);assert.equal(balance(db),300);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_subscriptions').get().n,0);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE kind='purchase'").get().n,1);
+  assert.equal(db.prepare('SELECT SUM(amount_cents) AS amount FROM lab_revenue_events').get().amount,300);
 });

@@ -1,3 +1,13 @@
+## One-time €3 / 300-credit pack, 2026-11-02
+- Alejandro approved adding a €3 pack with 300 credits and clarified that it is a one-time payment, not a subscription. Existing packs and monthly plans remain available at their previous values.
+- Baseline main: 4b51a7341d3621cfe195d72929bf7c2d24a1b4c0. Isolated branch: feature/pvlab-eur3-300-credits-20261102. Open PRs inspected; no overlapping active billing/pricing task found.
+- Added server SKU topup3: payment mode, EUR 300 cents, 300 credits. Existing signed webhook validates payment status, mode, currency, amount and customer identity before the immutable credit grant; duplicate events and invoice copies cannot double-credit.
+- Homepage One-time credits lists the new pack first. Studio uses that same markup and accepts/restores topup3 through sign-in; Account and wallet menus read the server catalog. No subscription, automatic renewal, provider price or free-image rule change.
+- Reuses the existing inline Stripe price_data integration. No separate Stripe Product, Price, secret or migration is required.
+- Added checkout/fulfillment tests for server-controlled amount, no prepayment credit, invalid payment facts, duplicate/async events, invoice copies and no subscription creation. Updated existing catalog and UI counts from six to seven products; new pack is exercised in Studio purchase and sign-in recovery tests.
+- Local focused verification: 31 billing, sandbox, pilot, price-integrity and approved Image contract checks passed. Full required CI/browser and publication evidence pending.
+- Next: commit and open PR, review relevant checks, merge the reviewed commit, verify exact Cloudflare Pages and Worker release, then inspect the live pricing option. No real charge or production wallet mutation used for validation.
+
 ## Estimate hint toggle, 2026-10-22 (Europe/Berlin)
 - User requested the circled `!` to close its estimate explanation on the second tap on iPhone. Existing outside-tap, Escape, hover, keyboard focus and credit purchases must remain intact.
 - Cause: `pricing-tabs.js` already flips `aria-expanded`, but `pricing.css` kept the tooltip visible through persistent `:hover` / `:focus-within` on touch.

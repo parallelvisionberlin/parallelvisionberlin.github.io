@@ -51,7 +51,7 @@ try{
     const url=page.url();
     await page.click('#upgrade');
     await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
-    assert.equal(await page.locator('#lab-pricing-overlay #pricing button[data-lab-buy]').count(),6,'Live homepage SKUs are shown without duplicate markup');
+    assert.equal(await page.locator('#lab-pricing-overlay #pricing button[data-lab-buy]').count(),7,'Live homepage SKUs are shown without duplicate markup');
     assert.equal((await page.locator('#lab-pricing-overlay #lab-plans-title').innerText()).trim(),'Create without interruption.','Studio uses the approved homepage headline');
     assert.equal(await page.locator('#lab-pricing-overlay .lab-pricing-deck').isVisible(),false,'Homepage image fan is not duplicated into the Studio modal');
     assert.equal(await page.locator('#lab-pricing-overlay .lab-overlay-plan-note').count(),0,'No repeated capability sections inside each plan');
@@ -86,8 +86,8 @@ try{
     await page.click('#lab-pricing-overlay #lab-tab-onetime');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-onetime').getAttribute('aria-selected'),'true','One-time tab uses original homepage presentation handler');
     assert.equal(await page.locator('#lab-pricing-overlay #lab-one-time-credits').isVisible(),true);
-    await page.locator('#lab-pricing-overlay button[data-lab-buy="topup10"]').click();
-    assert.deepEqual(await page.evaluate(()=>window.__purchases),['topup10'],'Same credit SKU passes to authenticated wallet');
+    await page.locator('#lab-pricing-overlay button[data-lab-buy="topup3"]').click();
+    assert.deepEqual(await page.evaluate(()=>window.__purchases),['topup3'],'Same credit SKU passes to authenticated wallet');
     assert.match(await page.locator('#lab-pricing-overlay-status').innerText(),/Checkout authorized/);
     assert.equal(page.url(),url,'A purchase quote does not navigate to the homepage');
     const close=await page.locator('#lab-pricing-overlay-close').boundingBox();
@@ -161,14 +161,14 @@ try{
   await page.click('#lab-pricing-overlay-close');
   await page.evaluate(()=>{window.__signed=false;});
   await page.click('#open-onetime');
-  await page.locator('#lab-pricing-overlay button[data-lab-buy="topup29"]').click();
+  await page.locator('#lab-pricing-overlay button[data-lab-buy="topup3"]').click();
   await page.reload();await page.waitForFunction(()=>window.__ready===true);
   assert.equal(await page.evaluate(()=>window.__modal.resumeAfterSignIn()),true,'Selection survives the sign-in page reload');
   assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-onetime').getAttribute('aria-selected'),'true');
-  assert.equal(await page.evaluate(()=>document.activeElement.dataset.labBuy),'topup29');
+  assert.equal(await page.evaluate(()=>document.activeElement.dataset.labBuy),'topup3');
   assert.deepEqual(await page.evaluate(()=>window.__purchases),[]);
-  await page.locator('#lab-pricing-overlay button[data-lab-buy="topup29"]').click();
-  assert.deepEqual(await page.evaluate(()=>window.__purchases),['topup29'],'Explicit customer confirmation purchases the original pack once');
+  await page.locator('#lab-pricing-overlay button[data-lab-buy="topup3"]').click();
+  assert.deepEqual(await page.evaluate(()=>window.__purchases),['topup3'],'Explicit customer confirmation purchases the original pack once');
   await page.click('#lab-pricing-overlay-close');
   assert.equal(await page.evaluate(async()=>{
     sessionStorage.setItem('pv-lab-studio-plan-intent',JSON.stringify({sku:'starter',path:location.pathname,at:Date.now()-16*60*1000}));
