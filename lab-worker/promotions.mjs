@@ -454,7 +454,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       const metadata={};
       for(const key of ['mode','moodId','moodIntensity','resolution','aspectRatio','duration',
         'referenceMode','outputFormat','processing','audio','upscaleEngine','videoUpscaleEngine',
-        'soulProModel','strength','identityStrength','preset','count']){
+        'soulProModel','fashionModel','fashionCategory','generationMode','quality','strength','identityStrength','preset','count']){
         const value=p[key];
         if(typeof value==='string')metadata[key]=safe(value);
         else if(typeof value==='boolean'||(typeof value==='number'&&Number.isFinite(value)))metadata[key]=value;
