@@ -1,4 +1,4 @@
-import {takeModelPhoto} from './editorial-model-handoff.js?v=20261031-model-upload1';
+import {takeModelPhotos} from './editorial-model-handoff.js?v=20261102-eight-photos1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
 
@@ -71,7 +71,7 @@ function renderIdentityFooter(){
  }
  const add=document.createElement('button');add.type='button';add.className='editorial-footer-add';
  add.textContent='+';add.setAttribute('aria-label','Add another model');
- add.disabled=submitting||files.model.length+savedRefs.model.length>=4;
+ add.disabled=submitting||files.model.length+savedRefs.model.length>=8;
  add.addEventListener('click',()=>openModelPicker());
  footer.append(thumbs,add);
 }
@@ -181,7 +181,7 @@ function renderModelGroups(){
    rm.addEventListener('click',()=>removeModelReference(group.id,ref.value));tile.append(rm);refs.append(tile);
   }
   const add=document.createElement('button');add.type='button';add.className='editorial-add-view';
-  add.textContent='+';add.title='Add reference photograph of '+group.name;add.disabled=submitting||files.model.length+savedRefs.model.length>=4;
+  add.textContent='+';add.title='Add reference photograph of '+group.name;add.disabled=submitting||files.model.length+savedRefs.model.length>=8;
   add.setAttribute('aria-label','Add another photograph of '+group.name);
   add.addEventListener('click',()=>openModelPicker(group.id));
   card.append(hero,copy,refs,add);box.append(card);
@@ -214,7 +214,7 @@ function openModelPicker(target=null){
 }
 function addFiles(kind,list,groupId=null,label=null){
  if(submitting)return;
- const incoming=Array.from(list||[]),limit={model:4,outfit:3,location:2}[kind];
+ const incoming=Array.from(list||[]),limit={model:8,outfit:3,location:2}[kind];
  const accept=incoming.filter(file=>['image/jpeg','image/png','image/webp'].includes(file.type)&&file.size<=20*1024*1024&&file.size>0);
  if(accept.length!==incoming.length)status('Use JPG, PNG or WebP photographs under 20 MB each.',true);
  const used=Object.values(files).reduce((n,part)=>n+part.length,0)+Object.values(savedRefs).reduce((n,part)=>n+part.length,0);
@@ -226,7 +226,7 @@ function addFiles(kind,list,groupId=null,label=null){
   group.files.push(...accepted);
  }
  files[kind].push(...accepted);
- if(accept.length>allowed)status('Reference limit reached: four model photos total, three garments and two locations.',true);
+ if(accept.length>allowed)status('Reference limit reached: eight model photos, three garments and two locations, with ten references maximum.',true);
  invalidateQuote();renderFiles();
 }
 
@@ -265,7 +265,7 @@ async function toggleSample(button){
   }
   status(kind==='model'?'':'Reference removed.');return;
  }
- const limit={model:4,outfit:3}[kind],num=files[kind].length+savedRefs[kind].length;
+ const limit={model:8,outfit:3}[kind],num=files[kind].length+savedRefs[kind].length;
  if(num>=limit){status('You can select up to '+limit+' '+(kind==='model'?'model photos':'wardrobe references')+'.',true);return}
  button.disabled=true;
  try{
@@ -481,7 +481,7 @@ async function openSaved(kind){
    const detail=document.createElement('small');detail.textContent=pack.refs.length+' saved view'+(pack.refs.length===1?'':'s');
    row.append(name,detail);container.append(row);
    row.addEventListener('click',async()=>{
-    const max={model:4,outfit:3,location:2}[kind];
+    const max={model:8,outfit:3,location:2}[kind];
     const existing=files[kind].length+savedRefs[kind].length;
     const used=Object.values(files).reduce((n,part)=>n+part.length,0)+Object.values(savedRefs).reduce((n,part)=>n+part.length,0);
     const allowed=Math.min(max-existing,10-used,2);
@@ -713,9 +713,9 @@ renderDirections();renderFiles();updateOptions();refreshSliderLabels();updateSer
 if(modelPhoto){
  entryUrl.searchParams.delete('modelPhoto');history.replaceState(history.state,'',entryUrl.href);
  try{
-  const file=await takeModelPhoto(modelPhoto);addFiles('model',[file]);
+  const photos=await takeModelPhotos(modelPhoto);addFiles('model',photos,null,'Your character');
   setIdentitySource('casting');
-  go(1);status('Model photograph loaded.');
+  go(1);status(photos.length+' character reference photo'+(photos.length===1?'':'s')+' loaded.');
  }catch(error){go(1);status(error.message,true)}
 }
 try{clerk=await loadLabAccount();await sync();clerk.addListener(()=>void sync())}catch(error){status('The account service is temporarily unavailable. You can still build your concept. '+error.message,true)}
