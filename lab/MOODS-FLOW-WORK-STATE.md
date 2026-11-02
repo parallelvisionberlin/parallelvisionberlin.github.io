@@ -12,9 +12,24 @@
 - Account focuses the existing €3 pack; only explicit purchase invokes existing Checkout.
 - Minimal UI changes preserve approved Mood images, photobooth, Studio deck and Clerk.
 - Candidate based on main e24644a3ed2317e39c9b9ac25a55370758d29fe7.
-- Local trial/protection/campaign checks passed; 107 backend tests pass with the approved purchase-guidance copy.
-- CI account 41463551800 and Mood generation 41463551720 passed, including focused packs and all mobile/desktop flows.
-- Screenshots reviewed at 390px/1440px. Dedicated trial browser and deployment evidence pending.
+- Release complete: PR #795, reviewed head 553ab8475d5c8a4465412844ce0cb7c118894eac,
+  merged source 09c5fa07f3e5f2c5987f0bb865e855555c091d04.
+- Exact-head CI PASS: trial 41464305081, account 41464305407, Mood generation 41464304793,
+  approved Image contract 41464305140 and Worker integration/video-upscale 41464305105.
+- Reviewed result and focused-pack screenshots at 390px/1440px; 320px account assertions pass.
+- Existing unrelated broad-suite failures remain, including stale Moods/ZenCreator assertions and media/UI fixtures.
+- Cloudflare Pages app check 125343696721 succeeded for the merged source, project pvlab-studio.
+- Release verifier LIVE_VERIFIED for lab.js v20261101-wardrobe1;
+  SHA-256 19308b2eadf108da8b915025fe9d13de87e54892e315b2c21aa99daf8e5dabd7.
+- Direct production JS/CSS bytes match reviewed explore-moods, app-mood-generation, account and wallet sources.
+- Live public Berlin Rave modal displays the approved first-image-free copy and retains its original layout.
+- Worker deployment 41464815159 PASS; version pv-lab-2026-11-02-image-credit-balance,
+  deployment e787b63c-b73e-466b-add7-fe3480f95176, migration 0056 applied remotely.
+- Read-only production audit PASS: flags, cohort cutoff, legacy pause, image-balance guards,
+  nonnegative/reconciled balances, exact/unique welcome grants and failed-job refunds.
+- No real Stripe purchase or provider generation performed. Fresh real OAuth/payment completion remains untested;
+  synthetic new/returning signup, repeated generation, pack-tab and purchase-return checks are separate evidence.
+- No implementation or release task remains pending. Keep this approved policy unless Alejandro changes it.
 - All browser transactions are synthetic. No real payment or provider generation is authorized for QA.
 - Eva's historical €10 test remains excluded from independent customer sales claims.
 
