@@ -43,6 +43,10 @@ function clearPrivateView(){$('settings-legacy-transfer').hidden=true;
   $('referrals-description').textContent='Invite a friend into your creative space.';
   $('account-voucher-status').textContent='';$('account-voucher-code').value='';$('account-voucher-submit').disabled=false;voucherBusy=false;
   $('account-close-confirm').value='';$('account-close-submit').disabled=true;
+  $('settings-generation-review-row').hidden=true;
+  $('settings-generation-review-toggle').checked=false;
+  $('settings-generation-review-toggle').disabled=true;
+  $('settings-generation-review-status').textContent='';
   $('settings-delete-row').hidden=true;$('settings-deletion-state').hidden=true;$('settings-deletion-state').textContent='';
   if($('account-close-dialog').open)$('account-close-dialog').close();
 }
@@ -106,6 +110,7 @@ function drawProfile(){
   $('settings-policy-status').textContent='';
   $('account-edit-profile').hidden=typeof clerk.openUserProfile!=='function';$('settings-native').hidden=typeof clerk.openUserProfile==='function';
   $('settings-connection').hidden=!!profile.customer;
+  $('settings-generation-review-row').hidden=!profile.customer||!!profile.accountClosed;
   $('account-voucher-link').hidden=!profile.customer||!!profile.accountClosed;
   $('account-voucher-option').hidden=!profile.customer||!!profile.accountClosed;
   $('account-admin-link').hidden=profile.owner!==true;
@@ -144,6 +149,17 @@ async function refresh(){
     }
     profile=data;if(profile.customer)trackLabRegistration(profile.ownerId,profile.createdAt);drawProfile();$('account-workspace').hidden=false;status('');paintRoute();
     if(!profile.customer)return;
+    // Never assume consent from an account or past saved work.
+    void api('/api/customer/generation-review-consent').then(permission=>{
+      if(current!==revision||!profile?.customer)return;
+      $('settings-generation-review-toggle').checked=permission.enabled===true;
+      $('settings-generation-review-toggle').disabled=false;
+      $('settings-generation-review-status').textContent=permission.enabled
+        ?'Quality review is enabled. You can switch it off at any time.'
+        :'Off. Your saved outputs and prompts are not shared for owner quality review.';
+    }).catch(()=>{
+      if(current===revision)$('settings-generation-review-status').textContent='Could not load review preferences. No change was made.';
+    });
     // Credit invitation links preserve the existing new-account referral rules.
     void claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}})).then(claimed=>{
       if(claimed&&current===revision){const url=new URL(location.href);url.searchParams.delete('ref');history.replaceState(null,'',url);}
@@ -227,6 +243,23 @@ $('settings-model-policy-details').onchange=event=>{
   } else {
     $('settings-policy-status').textContent='Preference saved for this browser.';
   }
+};
+$('settings-generation-review-toggle').onchange=async event=>{
+  const checkbox=event.target,current=revision,enabled=checkbox.checked;
+  if(!profile?.customer||profile.accountClosed)return;
+  checkbox.disabled=true;
+  $('settings-generation-review-status').textContent='Saving review preference…';
+  try{
+    const result=await api('/api/customer/generation-review-consent',{method:'POST',body:{enabled}});
+    if(current!==revision)return;
+    checkbox.checked=result.enabled===true;
+    $('settings-generation-review-status').textContent=result.enabled
+      ?'Enabled. Saved generation previews, stored prompts and settings may be reviewed privately by the PV LAB owner.'
+      :'Off. The owner no longer has permission to inspect your private creative results.';
+  }catch(error){
+    if(current===revision){checkbox.checked=!enabled;
+      $('settings-generation-review-status').textContent=error.message||'Review permission could not be saved.';}
+  }finally{if(current===revision)checkbox.disabled=false;}
 };
 $('account-edit-profile').onclick=()=>clerk?.openUserProfile?.({appearance:{variables:{colorBackground:'#1a1b19',colorText:'#eeeae2',colorTextSecondary:'#aaa9a1',colorPrimary:'#eeeae2',colorInputBackground:'#252622',colorInputText:'#eeeae2',borderRadius:'8px'}}});
 $('account-voucher-form').addEventListener('submit',async event=>{
