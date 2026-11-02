@@ -1,0 +1,6 @@
+.lab-price-base{display:block;font-size:12px!important;line-height:1.4;font-weight:400;opacity:.65;white-space:nowrap}
+.lab-local-currency-note{margin:8px 0 0;font-size:12px;line-height:1.5;font-weight:400;color:inherit;opacity:.7;max-width:100%}
+[data-local-currency]{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#pricing .lab-plan-price[data-local-currency]{display:flex!important;flex-direction:column;gap:3px;white-space:normal}
+#pricing .lab-plan-price[data-local-currency] .lab-price-base{margin:0;text-align:right}
+#pricing .lab-pricing-footnote .lab-local-currency-note{flex-basis:100%;width:100%}

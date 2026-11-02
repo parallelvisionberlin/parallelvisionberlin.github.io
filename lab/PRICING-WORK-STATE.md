@@ -1,3 +1,16 @@
+# Local currency by visitor country, 2026-11-02
+
+- Objective: show a familiar local price to incoming ads traffic, starting with Brazil and Mexico, on the homepage, Studio pricing overlay and account credit catalog.
+- Source base: `8eee23f8fd92d95ad8a0a6f59aa9b8c16b380023`; isolated branch `feature/pvlab-local-currency-20261102`.
+- Edge country comes from Cloudflare request.cf.country, never browser query/header overrides. ECB reference rates are checked for freshness, cached for one hour and used only for clearly approximate display. Missing/unsupported country or unavailable/stale rates retains EUR.
+- Shared local-currency module keeps the original EUR amount visible, preserves monthly/one-time disclosures and all seven purchase SKUs, and adds a brief final-checkout confirmation note. Supports 27 non-EUR markets available in the ECB feed, including BRL/MXN/USD/GBP/PLN/RON.
+- New Stripe-hosted Checkout sessions enable Adaptive Pricing explicitly. The Checkout creation request pins Stripe API 2026-09-30.endive and includes its required integration identifier; existing subscriptions and all other Stripe operations are untouched.
+- Original EUR price_data, credit quantities, signed webhook validation, duplicate-event guards and immutable ledger remain authoritative. Stripe reports localized presentment separately, so BRL display does not bypass amount/currency checks.
+- Tests: 28 focused billing/pricing/approved Image/locale tests passed locally. Extended sandbox assertions cover Adaptive Pricing request fields and a BRL presentment event delivering exactly 300 credits once.
+- Browser checks added for BRL/MXN homepage, account and Studio modal at 320/390/1440px, original SKU routing and no automatic checkout. Browser executable unavailable locally; CI validation pending.
+- Publication status: implemented locally, not published. No real payment or production wallet mutation used for testing.
+- Next: open scoped PR, inspect affected browser/billing checks, then verify actual Cloudflare Pages and Worker publication and production bytes.
+
 ## One-time €3 / 300-credit pack, 2026-11-02
 - Alejandro approved adding a €3 pack with 300 credits and clarified that it is a one-time payment, not a subscription. Existing packs and monthly plans remain available at their previous values.
 - Baseline main: 4b51a7341d3621cfe195d72929bf7c2d24a1b4c0. Isolated branch: feature/pvlab-eur3-300-credits-20261102. Open PRs inspected; no overlapping active billing/pricing task found.

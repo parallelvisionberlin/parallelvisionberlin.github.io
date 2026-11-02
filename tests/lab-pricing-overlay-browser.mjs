@@ -42,9 +42,14 @@ const server=createServer((req,res)=>{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const address=server.address();
 const browser=await chromium.launch({headless:true});
+async function newPage(options){
+  const page=await browser.newPage(options);
+  await page.route('**/api/public/local-currency',route=>route.fulfill({json:{currency:'EUR',rate:1,approximate:false}}));
+  return page;
+}
 try{
   for(const width of [320,390,1440,1648]){
-    const page=await browser.newPage({viewport:{width,height:width>600?900:844},reducedMotion:'reduce'});
+    const page=await newPage({viewport:{width,height:width>600?900:844},reducedMotion:'reduce'});
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto('http://127.0.0.1:'+address.port+'/test-overlay.html',{waitUntil:'load'});
     await page.waitForFunction(()=>window.__ready===true);
@@ -145,7 +150,26 @@ try{
     assert.equal(await packHint.locator('.lab-estimate-popover').isVisible(),false,'Mobile one-time pack closes on second tap');
     assert.deepEqual(await phone.evaluate(()=>window.__purchases),[],'Hint taps cannot trigger checkout');
   }finally{await touch.close();}
-  const page=await browser.newPage();
+  for(const [currency,locale,rate] of [['BRL','pt-BR',6.2],['MXN','es-MX',21.1]]){
+    for(const width of [320,390,1440]){
+      const localPage=await newPage({viewport:{width,height:900}});
+      await localPage.route('**/api/public/local-currency',route=>route.fulfill({json:{currency,locale,rate,approximate:true}}));
+      await localPage.goto('http://127.0.0.1:'+address.port+'/test-overlay.html');
+      await localPage.click('#open-onetime');
+      const pack=localPage.locator('#lab-pricing-overlay [data-price-eur="3"]');
+      await pack.locator('.lab-price-base').waitFor();
+      assert.match(await pack.textContent(),currency==='BRL'?/R\$/ : /\$/);
+      assert.equal(await pack.locator('.lab-price-base').textContent(),'€3');
+      assert.equal(await localPage.locator('#lab-pricing-overlay .lab-local-currency-note').count(),1);
+      assert.equal(await localPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+      await localPage.locator('#lab-pricing-overlay button[data-lab-buy="topup3"]').click();
+      assert.deepEqual(await localPage.evaluate(()=>window.__purchases),['topup3']);
+      await localPage.screenshot({path:'/tmp/pv-local-overlay-'+currency+'-'+width+'.png',fullPage:true});
+      console.log('PASS localized overlay '+currency+' '+width+'px, original SKU and EUR price preserved');
+      await localPage.close();
+    }
+  }
+  const page=await newPage();
   await page.goto('http://127.0.0.1:'+address.port+'/test-overlay.html');
   await page.waitForFunction(()=>window.__ready===true);
   await page.evaluate(()=>{window.__signed=false;});

@@ -1,3 +1,4 @@
+import {localizePrices} from './local-currency.js?v=20261102-1';
 import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261101-cookies1';
 import {readProviderPolicyDetails,setProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
@@ -66,6 +67,8 @@ function drawProducts(products){
     const monthly=item.type==='subscription',button=document.createElement('button');button.type='button';button.className='account-product';
     const credits=document.createElement('strong'),unit=document.createElement('small'),price=document.createElement('span'),action=document.createElement('em');
     credits.textContent=item.credits.toLocaleString();unit.textContent=monthly?'credits / month':'credits';price.textContent=money(item.priceEur)+(monthly?' / mo':'');
+    price.dataset.priceEur=String(item.priceEur);
+    price.dataset.priceSuffix=monthly?' / mo':'';
     action.textContent=monthly?(activePlan?'Manage in billing':'Choose plan'):'Add credits';
     const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','pv-arrow-svg');icon.setAttribute('aria-hidden','true');icon.innerHTML='<path d="M7 17 17 7M8 7h9v9"/>';action.append(' ',icon);
     button.append(credits,unit,price,action);button.disabled=!profile.billingReady||!!(monthly&&activePlan);
@@ -73,6 +76,7 @@ function drawProducts(products){
     $(monthly?'account-plans':'account-products').append(button);
   }
   $('account-plans-section').hidden=!$('account-plans').children.length;
+  void localizePrices($('account-workspace'));
 }
 function activityLabel(entry){
   if(String(entry.reference).startsWith('welcome:'))return 'Welcome credits';
