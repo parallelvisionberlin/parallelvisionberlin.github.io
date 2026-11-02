@@ -77,11 +77,12 @@ const ALL_MOODS=Object.freeze([
     "category": "Fashion",
     "preview": "/lab/mood-previews/hd/night-flash-20261011.jpg",
     "previewFull": "/lab/mood-bank/2026-10-11/night-flash/originals/night-flash.png",
-    "description": "Raw after-dark photography",
-    "direction": "Direct on-camera flash night fashion photography, crisp cast shadows, textured natural skin, convincing specular reflections, dark ambient falloff, candid imperfect framing, early-2000s party photography and tactile clothes.",
-    "subtle": "Slight credible direct flash and dark ambient falloff with scene unchanged.",
-    "intense": "Punchy flash lighting with deep surrounding darkness and raw nightlife energy.",
-    "avoid": "smoothing filters, paparazzi text, hard fake glow"
+    "description": "Raw after-dark paparazzi fashion photography",
+    "direction": "NIGHT FLASH / AUTHENTIC PAPARAZZI-EDITORIAL PHOTOGRAPHY. Make one physically credible after-dark fashion photograph with bold, bare frontal on-camera flash: the flash sharply freezes the real subject, creates crisp directional cast shadows and brilliant but controlled specular highlights on actual skin, hair, leather, metal and glass, then falls off quickly into deep underexposed ambient darkness. Real night photography, not a pasted lighting filter. Let existing practical lights and naturally reflective surfaces retain selective detail in the black background. Give the image spontaneous early-2000s fashion-party / street-arrival energy, sophisticated styling, a slightly imperfect documentary 35mm framing, fine integrated color-negative film grain, restrained source-bound halation, organic shadow texture, natural pores and tactile fabrics. KEEP THE CUSTOMER BASE PHOTOGRAPH AUTHORITATIVE: identical recognizable face, age, facial structure, expression, hair, natural skin tone, body proportions, person count, exact outfit and skin coverage, primary pose, viewing direction, camera distance, lens perspective, framing, crop and defining scene geometry. Relight the existing subject and environment coherently, including daylight-to-night where requested, without replacing the person, costume, location or composition. Explicit user-authored changes take priority; do not infer a new outfit, pose, vehicle, street, rain or extra person.",
+    "subtle": "1–34%: a restrained but recognizable direct-flash exposure, crisp believable shadows, slightly darker ambient falloff, subtle integrated 35mm grain and richer natural blacks. Keep the source face, outfit, body, pose, original location and framing unchanged.",
+    "intense": "76–100%: dramatic physically believable hard frontal flash, luminous sharp subject detail, fast falloff into deep near-black night, punchy real reflective highlights, rich textured shadow pockets and clearly photographic analog 35mm grain. Intensify the light and camera response, not the person. Preserve the exact Base identity, expression, hairstyle, outfit, proportions, pose, subject count, crop and scene structure.",
+    "avoid": "changed identity, facial features, expression, outfit, body, pose, crop, location or extra people; plastic or airbrushed skin, smoothing filters, fake gloss, fake paparazzi text, watermarks, tabloid graphics, cyberpunk neon, artificial street replacement, invented rain or cars, hard fake glow, excessive bloom, gritty grunge styling, smeared makeup, CGI or HDR finish, fake film borders, coarse pasted noise, flat grey blacks, crushed face detail, anatomy distortions",
+    "defaultIntensity": 82
   },
   {
     "id": "fisheye-2000",
