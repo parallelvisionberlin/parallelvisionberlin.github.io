@@ -10,6 +10,11 @@
 - Changed source: `lab/index.html`, `lab/character-home.css`, `lab/character-home-upload.js`, `lab/character-home-carousel.js`, `lab/editorial-model-handoff.js`, `lab/full-editorial.js`, `lab/full-editorial.html`.
 - Regression tests updated for homepage upload, eight-file handoff, invalid files and downstream Identity cap.
 - Cloudflare production and real browser verification pending; no claim of deployment until exact merged SHA is checked.
+- Verification update: Full Editorial desktop/mobile mocked eight-photo browser test passed on PR head `805bb676542b548bb63ebcbfc8c96fc0df9dfe4a`, including picker batches, card drop, 8/8 limit, click-to-primary, explicit continuation and seven extra Identity views. Focused handoff and character tests pass.
+- Static build, approved Image UI contract, landing stability, image references and motion browser checks passed. Broad lab suite recorded 940 passes and 3 unrelated failures (Meta CAPI test missing readFileSync, Explore Moods stale label, ZenCreator copy expectation). Other pre-existing unrelated browser/CI failures remain.
+- PR #786 merged with squash SHA `f622468117e2a4a4b4762b69822ac38c22675d54`.
+- Cloudflare Pages exact merged commit check was in progress on last inspection; custom-domain asset verification pending. Do not claim live yet.
+
 - Next: verify CI, review/merge PR, confirm exact Cloudflare deployment and upload interaction on mobile/desktop.
 
 ## 2026-11-01 / mobile carousel native momentum
