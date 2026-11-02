@@ -46,6 +46,16 @@ test('Dream Blur stays physically photographic and retains identity across inten
   assert.notEqual(prepareMoodPrompt('Portrait','dream-blur',25,{referenceCount:1}).prompt,
     prepareMoodPrompt('Portrait','dream-blur',90,{referenceCount:1}).prompt);
 });
+test('Dream Blur at 80% re-exposes the entire scene with source-responsive colors',()=>{
+ const mood=moodById('dream-blur');
+ assert.match(mood.direction,/At 70–89%, including the default 80%/);
+ for(const engine of ['seedream','seedreamlite']){
+  const recipe=prepareMoodPrompt('Keep this person and setting.','dream-blur',80,{engine,referenceCount:1});
+  assert.equal(recipe.error,'');
+  for(const pattern of [/subject AND setting|people AND surroundings|people AND background/,/shutter/,/amber/,/red/,/green/,/blue|cyan/,/grain/,/face|identity/])assert.match(recipe.prompt,pattern);
+ }
+});
+
 test('the four supplied images attach as Style, without copying people or changing the Base',()=>{
   const original=prepareMoodPrompt('Same original woman indoors.','dream-blur',78,{referenceCount:1});
   const settings={type:'image',mode:'image',engine:'seedream',aspectRatio:'auto',prompt:original.prompt,...original.metadata,
