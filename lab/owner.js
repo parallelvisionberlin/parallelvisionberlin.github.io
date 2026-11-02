@@ -193,7 +193,8 @@ function customerActivityButtons(customers){
     cell.append(button);
   });
 }
-$('owner-customer-dialog-close').addEventListener('click',()=>customerDialog.close());
+$('owner-customer-dialog-close').addEventListener('click',()=>{customerInspectUI.clear();customerDialog.close();});
+customerDialog.addEventListener('cancel',()=>customerInspectUI.clear());
 customerDialog.addEventListener('close',()=>{customerActivitySerial++;customerInspectUI.clear();});
 
 // Mobile layout reads the real column headings instead of duplicating them in CSS.
