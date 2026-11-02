@@ -26,7 +26,7 @@ for(const width of [390,1440])for(const returning of [false,true]){
       if(url.pathname==='/api/session')return initialized?json({customer:true,owner:false,ownerId:'user_Campaign',balanceCredits:40,generationReady:true,billingReady:true,config:{enabled:true}}):json({error:'Setup required'},409,{'X-PV-Lab-Onboarding':'required'});
       if(url.pathname==='/api/migration/new'){assert.equal(req.method(),'POST');assert.equal(initialized,false);initialized=true;grants++;return json({linked:true},201);}
       if(url.pathname==='/api/uploads'){assert.ok(initialized);uploads++;return json({id:'20000000-0000-4000-8000-'+String(uploads).padStart(12,'0')});}
-      if(url.pathname==='/api/quotes'){quotes++;const body=req.postDataJSON();assert.equal(body.settings.moodId,'berlin-rave');assert.equal(body.settings.resolution,'1k');assert.equal(body.settings.referenceRoles[0].role,'base');return json({id:'quote-rave',settings:body.settings,maxUsd:.036,creditCost:20,expiresAt:Date.now()+180000});}
+      if(url.pathname==='/api/quotes'){quotes++;const body=req.postDataJSON();assert.equal(body.settings.moodId,'berlin-rave');assert.equal(body.settings.resolution,'1k');assert.equal(body.settings.referenceRoles[0].role,'base');return json({id:'quote-rave',provider:'SpicyAPI',settings:body.settings,maxUsd:.036,creditCost:20,expiresAt:Date.now()+180000});}
       if(url.pathname==='/api/jobs'&&req.method()==='POST'){jobs++;assert.deepEqual(req.postDataJSON(),{quoteId:'quote-rave',confirm:true});return json({job:{id:'job-rave',status:'queued'}},202);}
       if(url.pathname==='/api/jobs/job-rave/performance')return json({ok:true});
       if(url.pathname==='/api/jobs/job-rave')return json({job:{id:'job-rave',status:'completed',outputId:'output-rave'}});
