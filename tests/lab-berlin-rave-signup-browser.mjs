@@ -15,7 +15,8 @@ for(const width of [390,1440])for(const returning of [false,true]){
   const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
   let initialized=returning,grants=0,jobs=0,uploads=0,quotes=0;const errors=[];
   await page.addInitScript(returning=>{window.__returning=returning;localStorage.setItem('pv-lab-meta-consent','denied');},returning);
-  page.on('pageerror',e=>errors.push(e.message));
+  page.on('pageerror',e=>{errors.push(e.message);console.log('BROWSER ERROR:',e.message);});
+  page.on('console',m=>{if(m.type()==='error')console.log('BROWSER CONSOLE:',m.text());});
   let photo;
   await context.route('**/*',async route=>{
     const req=route.request(),url=new URL(req.url());
@@ -46,7 +47,7 @@ for(const width of [390,1440])for(const returning of [false,true]){
   photo=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;return c.toDataURL().split(',')[1];}),'base64');
   await page.locator('#mc-look-file').setInputFiles({name:'campaign-source.png',mimeType:'image/png',buffer:photo});
   if(!returning){
-    await page.waitForFunction(()=>document.querySelector('#mc-look-status').textContent.includes('Sign in'));
+    await page.waitForFunction(()=>document.querySelector('#mc-look-status').textContent.includes('Sign in')).catch(async error=>{console.log('Signup test state:',await page.locator('#mc-look-status').textContent());console.log('File:',await page.locator('#mc-look-file').evaluate(e=>e.files[0]?.name));throw error;});
     assert.equal(uploads,0);assert.equal(jobs,0);
     await page.locator('#mc-look-continue').click();
   }
