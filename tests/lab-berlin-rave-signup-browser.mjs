@@ -20,7 +20,7 @@ for(const width of [390,1440])for(const returning of [false,true]){
   let photo;
   await context.route('**/*',async route=>{
     const req=route.request(),url=new URL(req.url());
-    const json=(data,status=200,headers={})=>route.fulfill({status,headers,contentType:'application/json',body:JSON.stringify(data)});
+    const json=(data,status=200,headers={})=>route.fulfill({status,headers:{'Access-Control-Allow-Origin':'https://pvlab.studio','Access-Control-Expose-Headers':'X-PV-Lab-Onboarding',...headers},contentType:'application/json',body:JSON.stringify(data)});
     if(url.hostname===api){
       if(url.pathname==='/api/public/traffic')return json({ok:true});
       if(url.pathname==='/api/session')return initialized?json({customer:true,owner:false,ownerId:'user_Campaign',balanceCredits:40,generationReady:true,billingReady:true,config:{enabled:true}}):json({error:'Setup required'},409,{'X-PV-Lab-Onboarding':'required'});
@@ -51,7 +51,7 @@ for(const width of [390,1440])for(const returning of [false,true]){
     assert.equal(uploads,0);assert.equal(jobs,0);
     await page.locator('#mc-look-continue').click();
   }
-  await page.waitForFunction(()=>document.querySelector('#mc-look-credit-note').textContent.includes('20 credits'));
+  await page.waitForFunction(()=>document.querySelector('#mc-look-credit-note').textContent.includes('20 credits')).catch(async error=>{console.log('Prepared quote state:',await page.locator('#mc-look-status').textContent(),{grants,uploads,quotes,jobs});throw error;});
   assert.equal(page.url(),url);assert.equal(grants,returning?0:1);
   assert.equal(await page.locator('#mc-look-file').evaluate(el=>el.files[0].name),'campaign-source.png');
   assert.match(await page.locator('#mc-look-title').textContent(),/Berlin Rave/);
