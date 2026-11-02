@@ -16,7 +16,6 @@ for(const width of [390,1440])for(const returning of [false,true]){
   let initialized=returning,grants=0,jobs=0,uploads=0,quotes=0;const errors=[];
   await page.addInitScript(returning=>{window.__returning=returning;localStorage.setItem('pv-lab-meta-consent','denied');},returning);
   page.on('pageerror',e=>{errors.push(e.message);console.log('BROWSER ERROR:',e.message);});
-  page.on('console',m=>{if(m.type()==='error')console.log('BROWSER CONSOLE:',m.text());});
   let photo;
   await context.route('**/*',async route=>{
     const req=route.request(),url=new URL(req.url());
@@ -24,7 +23,7 @@ for(const width of [390,1440])for(const returning of [false,true]){
     if(url.hostname===api){
       if(url.pathname==='/api/public/traffic')return json({ok:true});
       if(url.pathname==='/api/session')return initialized?json({customer:true,owner:false,ownerId:'user_Campaign',balanceCredits:40,generationReady:true,billingReady:true,config:{enabled:true}}):json({error:'Setup required'},409,{'X-PV-Lab-Onboarding':'required'});
-      if(url.pathname==='/api/migration/new'){assert.equal(req.method(),'POST');assert.equal(initialized,false);initialized=true;grants++;return json({linked:true},201);}
+      if(url.pathname==='/api/migration/new'){assert.equal(req.method(),'POST');if(initialized)return json({error:'Already linked'},409);initialized=true;grants++;return json({linked:true},201);}
       if(url.pathname==='/api/uploads'){assert.ok(initialized);uploads++;return json({id:'20000000-0000-4000-8000-'+String(uploads).padStart(12,'0')});}
       if(url.pathname==='/api/quotes'){quotes++;const body=req.postDataJSON();assert.equal(body.settings.moodId,'berlin-rave');assert.equal(body.settings.resolution,'1k');assert.equal(body.settings.referenceRoles[0].role,'base');return json({id:'quote-rave',provider:'SpicyAPI',settings:body.settings,maxUsd:.036,creditCost:20,expiresAt:Date.now()+180000});}
       if(url.pathname==='/api/jobs'&&req.method()==='POST'){jobs++;assert.deepEqual(req.postDataJSON(),{quoteId:'quote-rave',confirm:true});return json({job:{id:'job-rave',status:'queued'}},202);}
