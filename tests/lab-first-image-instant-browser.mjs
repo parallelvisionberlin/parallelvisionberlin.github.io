@@ -656,10 +656,11 @@ try{
     'The preflight must not put Confirming credits inside Generate');
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Switching selected Moods must not collapse the Image deck');
-  // The 4 automatic Dream Blur Style images add reference instructions to the
-  // bound provider prompt. Keep the long-text layout checks above, then submit
-  // a realistic brief that fits the exact 5,000-character reference budget.
-  await field.fill('Preserve the same person and location. Add analog slow-shutter light trails and film grain.');
+  // Four Dream Blur Style photographs add reference instructions to the
+  // provider prompt. Keep this deck expanded with a valid-length direction,
+  // rather than submitting the intentionally overlong layout stress input.
+  await field.fill(('Realistic editorial atmosphere and tactile photographic details. ').repeat(8));
+  await page.waitForFunction(()=>document.getElementById('image-composer')?.classList.contains('pv-deck-expanded'));
   // The previous Mood's asynchronous bound price may still be settling.
   // Wait for the new Mood's preflight before submitting the single paid job.
   await page.waitForFunction(()=>!document.querySelector('#image-composer-generate')?.disabled,null,{timeout:9000});
