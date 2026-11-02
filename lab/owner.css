@@ -782,24 +782,3 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   .owner-pagination-pages{justify-content:flex-start;max-width:100%;gap:4px}
   .owner-pagination-button{min-width:30px;padding:7px}
 }
-
-/* Inline customer-shared generation review. Keeps existing activity dialog. */
-.owner-inspect-section{margin-top:26px}
-.owner-inspect-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0}
-.owner-inspect-filter{background:#1a1c1b;border:1px solid #414440;border-radius:6px;color:#f2f0ec;font:inherit;font-size:12px;padding:9px 12px;max-width:100%}
-.owner-inspect-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:13px;margin:14px 0}
-.owner-inspect-card{min-width:0;overflow:hidden;background:#191b1a;border:1px solid #353935;border-radius:7px}
-.owner-inspect-card[hidden]{display:none}
-.owner-inspect-media{height:190px;background:#252725;display:flex;align-items:center;justify-content:center;text-align:center;color:#979a95;font-size:12px;padding:12px;overflow:hidden}
-.owner-inspect-image{display:block;width:100%;height:100%;object-fit:contain}
-.owner-inspect-info{padding:12px;min-width:0}
-.owner-inspect-info strong{display:block;font-size:13px;line-height:1.35;color:#eee}
-.owner-inspect-info small{display:block;font-size:11px;line-height:1.6;color:#aaa;margin-top:5px;word-break:break-word}
-.owner-inspect-details{border-top:1px solid #3a3c39;margin-top:10px;padding-top:10px}
-.owner-inspect-details summary{cursor:pointer;color:#e9e7df;font-size:12px}
-.owner-inspect-details-body{padding-top:10px}
-.owner-inspect-key{display:block;color:#a6ada5;font-size:10px;text-transform:uppercase;letter-spacing:.09em;margin-bottom:3px}
-.owner-inspect-prompt,.owner-inspect-settings{margin:0 0 12px;font-size:12px;color:#e2e1dd;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
-.owner-inspect-load{padding:10px 18px;background:#262826;color:#e9e7df;border:1px solid #494c48;border-radius:6px;cursor:pointer}
-.owner-inspect-load:disabled{opacity:.5;cursor:default}
-@media(max-width:540px){.owner-inspect-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.owner-inspect-media{height:150px}.owner-inspect-info{padding:10px}.owner-inspect-toolbar{flex-wrap:wrap}}
