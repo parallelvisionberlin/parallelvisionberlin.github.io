@@ -93,7 +93,7 @@ export async function pruneGenerationReviewAudit(env,{clock=()=>Date.now()}={}){
 const INSPECT_PAGE=30;
 const INSPECT_FIELDS=['mode','type','model','engine','provider','moodId','moodIntensity',
   'resolution','aspectRatio','duration','referenceMode','outputFormat','processing',
-  'audio','seed','upscaleEngine','videoUpscaleEngine','soulProModel','soulProQuality',
+  'audio','seed','upscaleEngine','videoUpscaleEngine','soulProModel','soulProQuality','fashionModel','fashionCategory','generationMode','quality',
   'strength','identityStrength','characterName','preset','count'];
 async function consentedCustomer(env,id){
   return one(env,`SELECT c.id,p.email
