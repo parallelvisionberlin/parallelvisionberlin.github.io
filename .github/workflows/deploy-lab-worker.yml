@@ -141,6 +141,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0049-robin-partner-workspace.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0051-first-image-40-credit-trial.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0052-spend-all-image-trial-credits.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0053-single-image-trial.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health
@@ -174,3 +175,8 @@ jobs:
           done
           echo "Release-link service did not report music-links-20261030-v7"
           exit 1
+
+      - name: Verify deployed trial policy and wallet invariants (read-only)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+        run: node .github/scripts/verify-lab-image-trial-live.mjs

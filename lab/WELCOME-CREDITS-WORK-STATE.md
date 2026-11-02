@@ -1,26 +1,37 @@
-# PV LAB welcome credits: 2026-10-14
+# PV LAB introductory image trial
 
-Scope: automatic one-time 200-credit gift for verified non-owner Lab accounts.
+Updated 2026-11-02. Review base: `9c13c5efed6b3bd97513825a2eb9278a349aee19`.
 
-## Approved behavior
-- Give each newly signed-in customer 200 PV Lab credits; previously created external test customers also receive them at their next authenticated request if not already granted.
-- These are ordinary credits, available for customer-enabled image or video routes and other existing billable tools. A single quoted video may use all 200 credits.
-- No double grants on repeat sign-in or concurrent requests. Existing closed accounts are excluded.
-- Generation estimates and debit triggers still reject jobs that exceed the actual available balance; failed jobs retain normal refund mechanics.
-- Referral rewards and credit packs remain independent. This welcome grant does not require a purchase.
+## Current owner request
+- Verified accounts created from 2026-11-01 00:00 Europe/Berlin receive exactly 40 credits once.
+- Permit one regular image, with failed/refunded attempts retryable. No unpaid videos or image tools.
+- Preserve existing wallets, purchases, voucher access, identity deduplication and approved interfaces.
+- Berlin Rave signup must keep the local photo, selected Mood and campaign URL.
 
-## Implementation
-- `lab-worker/customer-billing.mjs`: idempotent `welcome:<Clerk subject>` ledger entry of kind `adjustment`; 200-credit amount is a server constant.
-- `lab-worker/wrangler.toml`: `LAB_WELCOME_CREDITS_ENABLED=true` for production; omitted in test/sandbox bindings.
-- `lab/account.js`: label the entry `Welcome credits` in activity.
-- `tests/lab-welcome-credits.test.mjs`: returning user, simultaneous calls, one-video 200-credit debit, insufficient balance, refund, opt-out and closed account tests.
-- `.github/workflows/deploy-lab-worker.yml`: add welcome test to predeployment gate.
-- No migrations, subscriptions, catalog prices, provider credentials or custom job restrictions changed.
+## Verified baseline
+- PR #780 added the cohort, verified-email claim and database restrictions; #782 keeps `/moods` onboarding in place.
+- Later migration 0052 removed the one-job limit and permitted spending the balance across multiple images.
+- Production Worker run 41361037052 succeeded on 2026-11-01 at source `38321ac6e3f3959d05772649ff16e203b6bcb6d7`.
+- Its logs confirm remote migrations 0051/0052, image trial true, old welcome false, free trial paused true.
+- Public campaign page currently opens Berlin Rave and advertises 40 credits.
 
-## Verification and rollout
-- PR [#191](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/191) was merged to main on 2026-10-14, squash commit `a83591837ec80331902be4d405dbbac574a2b0d7`.
-- PR test suite (Lab tests, video integration, image references and static validation): all succeeded.
-- Production Cloudflare Worker deployment [run 38499814726](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/38499814726): succeeded, including remote migrations, deploy and production health verification.
-- Frontend GitHub Pages cache/deployment was not independently verified and other commits are publishing concurrently.
-- Verify with a new external Clerk account and the earlier non-owner test account. Each should show 200 credits once in the account wallet. A priced video over 200 must refuse without charging.
-- Do not initiate any paid vendor generation automatically.
+## Correction in this work unit
+- `lab-worker/migrations/0053-single-image-trial.sql` restores atomic insert/activation guards using durable generation finance.
+- `lab-worker/customer-lifecycle.mjs` reports the trial unavailable after a non-failed job even when residual credits remain.
+- No balances are reset, consumed retroactively or backfilled. A purchase enables the ordinary retained wallet.
+- Deployment workflow applies 0053 after 0052 and runs a read-only production verification script.
+- `.github/scripts/verify-lab-image-trial-live.mjs` verifies deployed flags, migration markers, trigger guards and wallet/refund invariants, printing booleans only.
+- `tests/lab-first-image-trial.test.mjs` covers repeated/parallel claims, job retries, refunds, repeat images, deleted history, drafts, videos, old accounts, paid wallets and isolation.
+- `tests/lab-berlin-rave-signup-browser.mjs` exercises the actual editor/service/session handshake with synthetic identity and API responses at 390px and 1440px.
+
+## Checks and remaining evidence
+- 54 focused trial, welcome, pause, hold, signup and auth tests passed locally.
+- 122 Worker, customer lifecycle, customer billing and sandbox billing integration tests passed locally.
+- Approved Image contract and campaign tests passed; an unrelated existing Moods header wording assertion fails in `lab-moods-inline-return.test.mjs`.
+- Browser checks and final production policy verification pending CI/deployment.
+- No real provider generation, Stripe payment or production test-account creation is authorized by these checks.
+- Real Clerk/OAuth completion and an actual live 40-credit award remain distinct from mocked browser verification.
+
+## Next action
+- Run dedicated CI, merge the reviewed correction, verify Worker deployment and the read-only live policy results.
+- Record final commit/run IDs and browser results here before closing the task.

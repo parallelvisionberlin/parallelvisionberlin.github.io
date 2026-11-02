@@ -5,6 +5,10 @@ on:
       - 'lab-worker/**'
       - 'tests/lab-first-image-trial.test.mjs'
       - '.github/workflows/lab-first-image-trial.yml'
+      - 'lab/session-request.js'
+      - 'lab/explore-moods.js'
+      - 'lab/app-mood-generation.js'
+      - 'tests/lab-berlin-rave-signup-browser.mjs'
 jobs:
   verify-trial:
     runs-on: ubuntu-latest
@@ -17,3 +21,11 @@ jobs:
         run: node --test tests/lab-welcome-credits.test.mjs tests/lab-trial-pause.test.mjs tests/lab-promo-generation-holds.test.mjs
       - name: 40-credit single-image tests
         run: node --test tests/lab-first-image-trial.test.mjs
+      - name: Browser test dependencies
+        run: |
+          npm install --prefix /tmp/pv-rave-browser --no-audit --no-fund @playwright/test@1.55.1
+          /tmp/pv-rave-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Desktop and mobile signup with mocked transactions
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-rave-browser/node_modules/@playwright/test/index.mjs
+        run: node tests/lab-berlin-rave-signup-browser.mjs
