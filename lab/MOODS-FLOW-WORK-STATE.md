@@ -1,3 +1,15 @@
+## Berlin Rave conversion audit, 2026-11-02
+
+- Read-only product audit requested by Alejandro. Reviewed main `0e0935fac406e04d064c837c8bccf82e3d94c196`; no product or campaign settings changed.
+- Commercial reporting correction: Eva, Alejandro's girlfriend, made the sole historical €10 purchase as a test. Exclude that transaction from independent customer sales and conversion claims. Do not repeat the dashboard's one-paying-customer headline as commercial traction.
+- Live campaign URL opens the intended Berlin Rave modal directly. A public existing preview file was selected successfully; selected photo and a verified 25-credit quote appeared. The browser had an existing authenticated session, so no Generate action, new account or payment was submitted.
+- Current source's new/returning customer signup flow passes CI at 390px and 1440px (job 125235668001): original photo, selected Mood and campaign URL retained; one explicit mocked generation. This is synthetic signup/provider evidence, not a fresh live OAuth completion or image-quality review.
+- Confirmed conversion friction in source: landing advertises 40 credits rather than clearly describing one complimentary image; after a used trial, the generic TRIAL_PAUSED copy says complimentary generations are temporarily paused. That can suggest service unavailability instead of a completed trial.
+- Completed result exposes Download, Open in Studio and Make another. A repeat attempt reaches Add credits in a new account/balance tab; the existing €3 one-time pack is not offered directly beside the first result.
+- Recommendation for owner review: preserve the first result/photo; explain that the free image is used; offer the existing €3/300-credit pack in context, with the final local amount confirmed in Checkout. Preserve single-image trial, residual balances and existing payment safeguards.
+- Berlin Rave has demonstrated acquisition/use, but no independent customer purchase has established it as the best paid-conversion route. Compare first purchases/activated users against a practical Fashion/Editorial flow before choosing a winner.
+- Audit complete. Product copy, purchase presentation, event tracking changes and ad budgets remain separate implementation decisions.
+
 ## Moods CI closeout, 2026-10-24
 
 - Objective: close the two inherited Mood-related failures left after published Video #506.
