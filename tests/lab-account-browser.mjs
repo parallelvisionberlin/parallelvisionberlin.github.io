@@ -373,7 +373,7 @@ try{
     const rig=await setup(width),{page,errors,writes}=rig;
     try{
       await page.goto(origin+'/lab/account.html');await page.waitForFunction(()=>document.querySelector('#account-balance').textContent==='1,234');
-      await fits(page,'account '+width);await page.locator('.account-cover img').evaluate(img=>img.decode());assert.equal(await page.locator('#account-products button').count(),3);
+      await fits(page,'account '+width);await page.locator('.account-cover img').evaluate(img=>img.decode());assert.equal(await page.locator('#account-products button').count(),4);
       await page.screenshot({path:artifacts+'/account-balance-'+width+'.png',fullPage:true});
       await page.click('[data-tab="usage"]');await page.locator('#account-activity').getByText('Generation',{exact:true}).waitFor();
       assert.match(await page.locator('#account-activity').textContent(),/-42 credits/);
@@ -381,7 +381,7 @@ try{
       await page.click('#account-portal');await page.waitForFunction(()=>document.querySelector('#account-status').textContent.includes('verified billing link'));
       assert.ok(page.url().startsWith(origin));assert.equal(writes.at(-1).path,'/api/billing/portal');
       await page.click('[data-tab="balance"]');await page.locator('#account-products button').first().click();await page.waitForFunction(()=>document.querySelector('#account-status').textContent.includes('verified billing link'));
-      assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'topup10'});
+      assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'topup3'});
       await page.evaluate(()=>location.hash='settings');await page.locator('#account-edit-profile').click();assert.equal(await page.evaluate(()=>window.profileOpened),true);
       assert.match(await page.locator('#account-storage-label').textContent(),/1.00 GiB/);await fits(page,'settings '+width);
       await page.screenshot({path:artifacts+'/account-settings-'+width+'.png',fullPage:true});
