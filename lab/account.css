@@ -645,3 +645,5 @@ body.pv-account-page{margin:0;background:#101010;color:#f1efea;font:400 14px/1.6
 .pv-account-page #section-settings .account-policy-switch input{width:18px;height:18px;accent-color:#eae7e0;cursor:pointer}
 .pv-account-page #section-settings #settings-policy-status:empty{display:none}
 @media(max-width:600px){.pv-account-page #section-settings .account-policy-row{align-items:flex-start;flex-direction:column;gap:12px}}
+
+.account-product.is-pack-selected{border-color:#e2dfd5;background:#222}

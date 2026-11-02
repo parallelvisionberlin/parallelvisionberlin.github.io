@@ -40,6 +40,14 @@ export function createAppMoodGeneration(){
   return {
     // Read-only status and result routes. The quote's submit() remains the sole
     // paid action; polling and fetching assets never create another job.
+    async accountState(){
+      const user=await identity();
+      if(!user.isSignedIn)return null;
+      const sessionId=user.session.id;
+      const state=await api('/api/session');
+      if(!account?.isSignedIn||account.session?.id!==sessionId)return null;
+      return state;
+    },
     jobStatus(id){return api('/api/jobs/'+encodeURIComponent(id));},
     outputBlob(id){return api('/api/assets/'+encodeURIComponent(id),{blob:true});},
     previewBlob(id){return api('/api/jobs/'+encodeURIComponent(id)+'/preview',{blob:true});},
@@ -64,7 +72,7 @@ export function createAppMoodGeneration(){
         }else if(session.billingReview){
           code='BILLING_REVIEW';message='Generation is paused while billing is under review. Contact support for help.';
         }else if(session.trialGenerationPaused&&session.billingReady){
-          code='TRIAL_PAUSED';message='Complimentary generations are temporarily paused. Purchased credits can still be used. Your existing credits and saved work remain intact.';
+          code='TRIAL_PAUSED';message='Choose a credit pack to continue creating. Your existing balance and saved work are kept.';
         }else if(session.promotionReview){
           code='ACCOUNT_REVIEW';message='Free generation is unavailable for this account. Contact PV LAB support for an account review.';
         }
@@ -106,7 +114,7 @@ export function createAppMoodGeneration(){
       const label=imageCredits+' credits';
       let submitted=false;
       const preparationMs=Math.round(performance.now()-preparationStarted);
-      return {label,expiresAt:quote.expiresAt,handoff(){check();if(submitted)throw Error('This request was already sent. Check Image.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');return {userId:user.user.id,quote,sourceId:original?.id||null};},async submit(){
+      return {label,creditCost:imageCredits,expiresAt:quote.expiresAt,handoff(){check();if(submitted)throw Error('This request was already sent. Check Image.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');return {userId:user.user.id,quote,sourceId:original?.id||null};},async submit(){
         check();if(submitted)throw Error('This request was already sent. Check Gallery.');
         if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');
         submitted=true;

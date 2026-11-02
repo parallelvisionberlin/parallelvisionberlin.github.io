@@ -64,6 +64,22 @@ async function fits(page,label){
     label+' must not scroll horizontally: '+JSON.stringify(metrics));
 }
 try{
+  for(const width of [320,390,1440]){
+    const rig=await setup(width),{page,writes,errors}=rig;
+    try{
+      await page.goto(origin+'/lab/account.html?pack=topup3#balance');
+      await page.waitForFunction(()=>document.activeElement?.dataset.pack==='topup3');
+      const card=page.locator('[data-pack="topup3"]');
+      assert.match(await card.textContent(),/300.*one-time purchase.*€3.00.*Buy 300 credits/s);
+      const box=await card.boundingBox();assert.ok(box.y>=0&&box.y+box.height<=950);
+      assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,0,'Pack link never charges automatically');
+      await fits(page,'Focused pack '+width);await page.screenshot({path:artifacts+'/focused-pack-'+width+'.png'});
+      await card.click();await page.getByText('A verified billing link was not returned. Please try again.',{exact:true}).waitFor();
+      assert.deepEqual(writes.filter(x=>x.path==='/api/billing/checkout').map(x=>JSON.parse(x.body)),[{sku:'topup3'}]);
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
+  }
+  console.log('PASS focused €3 pack, no automatic checkout, explicit one-time purchase');
   // Combined Vitolas credit/referral links use the real account controller.
   // Joining is attributed under existing rules; a gift still requires a click.
   for(const width of [1440,390]){

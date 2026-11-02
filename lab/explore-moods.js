@@ -1,3 +1,4 @@
+import {localizePrices} from './local-currency.js?v=20261102-1';
 import {moodById} from './moods.js?v=20261018-girard-originals2&old=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&hongKongStreet=1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1&berlinCard=20261015&dreamBlur=20261015v1&filmCapture=20261016v2&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&dreamBlurCover=20261024v1&hkCinema=20261025v1';
 import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261012-generate1';
 import {hongKongVariant} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2&hkCinema=20261025v1';
@@ -39,14 +40,16 @@ function initialize(){
   let price=null,priceTask=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
   const creditNote=$('mc-look-credit-note'),accessAction=$('mc-look-access-action');
   const generate=$('mc-look-continue'),result=$('mc-look-result');
-  let blockedCode=null;
+  let blockedCode=null,resultNeedsCredits=false,resultCreditCost=null,balanceRevision=0;
+  const resultBalance=$('mc-look-result-balance'),resultPack=$('mc-look-result-pack');
   const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
   const resultActions=$('mc-look-result-actions');
   let runSerial=0,activeJobId=null,resultURL=null,resultBlob=null,resultOutputId=null,waitNoteTimer=null;
   function clearResult(){
     clearTimeout(waitNoteTimer);waitNoteTimer=null;
     $('mc-look-result-wait-note').hidden=true;
-    runSerial++;activeJobId=null;
+    runSerial++;activeJobId=null;balanceRevision++;
+    resultNeedsCredits=false;resultCreditCost=null;resultBalance.hidden=true;resultPack.hidden=true;
     if(resultURL)URL.revokeObjectURL(resultURL);
     resultURL=null;resultBlob=null;resultOutputId=null;
     result.hidden=true;result.classList.remove('is-visible');
@@ -99,6 +102,7 @@ function initialize(){
         // A finished image does not automatically request another quote.
         // The next paid attempt requires Make another -> Generate.
         generate.disabled=true;
+        void refreshResultBalance();
         return;
       }
       if(['failed','uncertain','resolved','cancelled'].includes(job.status))
@@ -132,16 +136,32 @@ function initialize(){
     }
     throw Error('This image is taking longer than expected. Check Image History for its result.');
   }
+  async function refreshResultBalance(){
+    const stamp=++balanceRevision,serial=runSerial;
+    resultNeedsCredits=false;
+    try{
+      const client=await generationService();
+      const state=await client.accountState?.();
+      if(stamp!==balanceRevision||serial!==runSerial||!dialog.open||!resultOutputId)return;
+      const valid=state?.customer&&Number.isSafeInteger(state.balanceCredits);
+      resultBalance.hidden=!valid;
+      if(valid)resultBalance.textContent=state.balanceCredits+' credits left';
+      resultNeedsCredits=!!(valid&&state.billingReady&&!state.billingReview&&!state.accountClosed&&!state.promotionReview&&
+        (state.trialGenerationPaused||(Number.isSafeInteger(resultCreditCost)&&state.balanceCredits<resultCreditCost)));
+      resultPack.hidden=!resultNeedsCredits;
+      if(resultNeedsCredits)void localizePrices(resultPack);
+    }catch{ /* A fresh bound quote still enforces access and balance on Generate. */ }
+  }
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?hkRealPhotos=20261018v2&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&trialBalance=20261102').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?hkRealPhotos=20261018v2&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&trialBalance=20261102&conversionFlow=20261102-1').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{
         const next=account.user?.id||'';
         if(accountId!==undefined&&next!==accountId&&dialog.open&&!busy){
           if(next&&!dialog.matches(':modal')){dialog.close();dialog.showModal();}
-          schedulePrice(0);
+          if(resultOutputId)void refreshResultBalance();else schedulePrice(0);
         }
         accountId=next;
       }).catch(()=>{});
@@ -168,7 +188,7 @@ function initialize(){
     const support=error.code==='ACCOUNT_REVIEW'||error.code==='BILLING_REVIEW';
     accessAction.hidden=!(payment||support);
     if(payment){
-      accessAction.href='./account.html#balance';
+      accessAction.href='./account.html?pack=topup3#balance';
       accessAction.textContent='Add credits ↗';
     }else if(support){
       accessAction.href='mailto:contact@parallelvisionlabel.com?subject=PV%20LAB%20account%20review';
@@ -412,7 +432,8 @@ function initialize(){
   window.addEventListener('focus',()=>{
     // Billing opens in another tab so the selected local photograph stays here.
     // Recheck readiness upon return without creating a second paid request.
-    if(dialog.open&&blockedCode&&!busy&&hasGenerationInput())schedulePrice(0);
+    if(dialog.open&&!busy&&resultOutputId)void refreshResultBalance();
+    else if(dialog.open&&blockedCode&&!busy&&hasGenerationInput())schedulePrice(0);
   });
   generate.onclick=()=>void (async()=>{
     if(!hasGenerationInput()||busy||blockedCode)return;
@@ -436,6 +457,7 @@ function initialize(){
       $('mc-look-result-progress').textContent='Sending your image…';
       generate.textContent='Generating…';
       attemptedSubmission=true;
+      resultCreditCost=currentPrice.creditCost;
       const response=await currentPrice.submit();
       const job=response?.job;
       if(!job?.id)throw Error('Submission could not be confirmed. Check Image History before trying again.');
@@ -489,8 +511,11 @@ function initialize(){
       }
     }
   })();
-  $('mc-look-result-again').onclick=()=>{
-    if(busy)return;
+  $('mc-look-result-again').onclick=event=>{
+    if(busy){event.preventDefault();return;}
+    // A real anchor opens the focused pack without losing this result or photo.
+    if(resultNeedsCredits)return;
+    event.preventDefault();
     clearResult();
     status.textContent='';
     schedulePrice(0);
@@ -533,7 +558,7 @@ function initialize(){
     header.querySelectorAll('.mc-navigation a').forEach(link=>link.addEventListener('click',closeMenu));
   }
 
-  window.addEventListener('pageshow',event=>{if(event.persisted){setBusy(false);if(dialog.open)schedulePrice();}});
+  window.addEventListener('pageshow',event=>{if(event.persisted){setBusy(false);if(dialog.open){if(resultOutputId)void refreshResultBalance();else schedulePrice();}}});
   const requested=new URLSearchParams(location.search).get('mood');
   if(requested&&moodById(requested))showMood(moodById(requested));
 }

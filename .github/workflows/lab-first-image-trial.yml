@@ -19,7 +19,7 @@ jobs:
           node-version: '22'
       - name: Existing welcome and protection tests
         run: node --test tests/lab-welcome-credits.test.mjs tests/lab-trial-pause.test.mjs tests/lab-promo-generation-holds.test.mjs
-      - name: 40-credit single-image tests
+      - name: 40-credit image balance tests
         run: node --test tests/lab-first-image-trial.test.mjs
       - name: Browser test dependencies
         run: |
@@ -29,3 +29,9 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-rave-browser/node_modules/@playwright/test/index.mjs
         run: node tests/lab-berlin-rave-signup-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rave-conversion-screenshots
+          path: /tmp/pv-rave-conversion
+          if-no-files-found: ignore

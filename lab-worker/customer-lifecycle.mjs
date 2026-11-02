@@ -38,17 +38,14 @@ export async function customerPromotionalReview(env,id){
   // Keep the temporary welcome/free-trial pause for unpaid accounts without a
   // voucher. An explicit abuse hold or flagged email still blocks free spending.
   const hasOwnerVoucher=!!account.hasOwnerVoucher;
-  // One non-failed image may use the 40-credit grant. Keep residual credits
-  // intact, but do not let them reopen the trial after a queued/completed job.
-  // The database enforces this atomically, including after history deletion.
+  // The existing 40-credit image grant remains spendable until exhausted.
+  // Job ledger triggers atomically enforce the balance, including queued jobs.
   const trial=await one(env,`SELECT
     c.balance_credits AS balance,
     EXISTS(SELECT 1 FROM lab_credit_entries e WHERE e.customer_id=c.id
-      AND e.reference='welcome:'||c.id AND e.delta_credits=40) AS granted,
-    EXISTS(SELECT 1 FROM lab_generation_finance j WHERE j.customer_id=c.id
-      AND j.last_state<>'failed') AS used
+      AND e.reference='welcome:'||c.id AND e.delta_credits=40) AS granted
     FROM lab_customers c WHERE c.id=?`,id);
-  const imageTrialBalance=!!trial?.granted&&!trial.used&&trial.balance>0;
+  const imageTrialBalance=!!trial?.granted&&trial.balance>0;
   const held=!hasPaid&&(explicitHold||flaggedEmail||(trialPaused&&!hasOwnerVoucher&&!imageTrialBalance));
   return {
     held,hasPaid,
@@ -62,7 +59,7 @@ export async function assertCustomerOpen(env,id,{spending=false,promotion=false}
   if(promotion){
     const review=await customerPromotionalReview(env,id);
     if(review.held)fail(403,review.reason==='trial-paused'
-      ?'Complimentary generation is paused. Your credits and saved work remain intact. Purchase credits to continue creating.'
+      ?'Choose a credit pack to continue creating. Your existing balance and saved work are kept.'
       :'Free trial generation is unavailable for this account. Your saved work and billing remain accessible. Contact PV LAB support for a review.');
   }
   return state;

@@ -1,3 +1,21 @@
+## Approved payment flow implementation, 2026-11-02
+
+- Alejandro approved the visual flow and explicitly requested implementation.
+- This supersedes the earlier audit recommendation to preserve a single-image limit.
+- Keep the existing 40-credit grant once, permit all remaining credits on regular images.
+- Preserve anti-abuse holds, legacy pause, paid balances, vouchers, atomic debits and refunds.
+- Campaign copy: Your first image is free. No misleading temporarily paused message.
+- Completed result shows verified remaining credits. Make another reopens the editor when funded.
+- If insufficient, Make another opens account?pack=topup3#balance in another tab.
+- Offer the existing 300-credit one-time pack beside the result, using existing local-currency estimates.
+- Original photo/result remain in the Mood tab; returning refreshes balance without generating.
+- Account focuses the existing €3 pack; only explicit purchase invokes existing Checkout.
+- Minimal UI changes preserve approved Mood images, photobooth, Studio deck and Clerk.
+- Candidate based on main e24644a3ed2317e39c9b9ac25a55370758d29fe7.
+- Local 37 trial/protection/approved Image/campaign checks pass. Browser and deployment evidence pending.
+- All browser transactions are synthetic. No real payment or provider generation is authorized for QA.
+- Eva's historical €10 test remains excluded from independent customer sales claims.
+
 ## Berlin Rave conversion audit, 2026-11-02
 
 - Read-only product audit requested by Alejandro. Reviewed main `0e0935fac406e04d064c837c8bccf82e3d94c196`; no product or campaign settings changed.
