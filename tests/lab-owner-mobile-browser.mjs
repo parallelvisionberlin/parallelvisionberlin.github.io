@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFile, mkdir} from 'node:fs/promises';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
 const root=new URL('../lab/',import.meta.url);
-const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi,rawReviewUi,rawPaginationUi,rawPayoutUi]=await Promise.all([
+const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi,rawReviewUi,rawPaginationUi,rawPayoutUi,rawInspectUi]=await Promise.all([
   readFile(new URL('owner.html',root),'utf8'),
   readFile(new URL('owner.css',root),'utf8'),
   readFile(new URL('owner.js',root),'utf8'),
@@ -12,7 +12,8 @@ const [rawHtml,css,rawJs,rawProviderUi,rawAcquisitionUi,rawReviewUi,rawPaginatio
   readFile(new URL('owner-acquisition-ui.js',root),'utf8'),
   readFile(new URL('owner-generation-review-ui.js',root),'utf8'),
   readFile(new URL('owner-pagination.js',root),'utf8'),
-  readFile(new URL('partner-payouts.js',root),'utf8')
+  readFile(new URL('partner-payouts.js',root),'utf8'),
+  readFile(new URL('owner-customer-inspection-ui.js',root),'utf8')
 ]);
 // Run the real dashboard renderer with synthetic owner data, without authentication/network requests.
 const providerJs="const {createOwnerProviderUI,renderOwnerProviderFinances}=(()=>{"+
@@ -21,8 +22,9 @@ const providerJs="const {createOwnerProviderUI,renderOwnerProviderFinances}=(()=
 const acquisitionJs=rawAcquisitionUi.replace(/^import .*\n/gm,'').replace(/^export /gm,'')+'\n';
 const paginationJs=rawPaginationUi.replace(/^export /gm,'')+'\n';
 const reviewJs=rawReviewUi.replace(/^export /gm,'')+'\n';
+const inspectJs=rawInspectUi.replace(/^export /gm,'')+'\n';
 const payoutJs="const {createOwnerPayoutNotice}=(()=>{"+rawPayoutUi.replace(/^export /gm,'')+";return {createOwnerPayoutNotice};})();\n";
-const runtimeJs=payoutJs+providerJs+paginationJs+acquisitionJs+reviewJs+"const createSessionRequest=()=>async()=>({ok:false,json:async()=>({})});\n"+
+const runtimeJs=payoutJs+providerJs+paginationJs+acquisitionJs+reviewJs+inspectJs+"const createSessionRequest=()=>async(...args)=>window.__ownerQaMedia?window.__ownerQaMedia(...args):({ok:false,json:async()=>({})});\n"+
   rawJs.replace(/^import .*\n/gm,'').replace(/\ntry\{clerk=await loadLabAccount\(\);[\s\S]*$/,'');
 const html=rawHtml
   .replace(/<link\b[^>]*>/g,'')
@@ -157,8 +159,35 @@ try{
 
       assert.equal(await page.locator('.owner-customer-open').count(),3,'Each customer has a private activity action');
       if(width===390||width===1792){
-        await page.evaluate(()=>{
+        await page.evaluate(async()=>{
+          const canvas=document.createElement('canvas');canvas.width=480;canvas.height=640;
+          const ctx=canvas.getContext('2d');ctx.fillStyle='#334239';ctx.fillRect(0,0,480,640);
+          const webp=Uint8Array.from(atob(canvas.toDataURL('image/webp').split(',')[1]),c=>c.charCodeAt(0));
+          window.__qaReads=[];window.__qaUrls=new Set();window.__qaRevoked=[];
+          const createUrl=URL.createObjectURL.bind(URL),revokeUrl=URL.revokeObjectURL.bind(URL);
+          URL.createObjectURL=blob=>{const url=createUrl(blob);window.__qaUrls.add(url);return url;};
+          URL.revokeObjectURL=url=>{window.__qaUrls.delete(url);window.__qaRevoked.push(url);revokeUrl(url);};
+          window.__ownerQaMedia=async(path,init)=>{
+            window.__qaReads.push({path,cache:init.cache,signal:!!init.signal});
+            if(path.includes('inspect-media')&&path.includes('job_qa_deleted'))return new Response('{}',{status:404});
+            if(path.includes('inspect-media')&&path.includes('job_qa_video'))return new Response(new Uint8Array([1,2,3,4]),{headers:{'content-type':'video/webm'}});
+            return new Response(webp,{headers:{'content-type':'image/webp'}});
+          };
           call=async path=>{
+            if(path.startsWith('/api/admin/customers/inspect?')){
+              const q=new URL(path,'https://lab.test').searchParams;
+              const item={jobId:'job_qa_image',feature:'Moods',mood:'berlin-rave',model:'exact/seedream-v5',provider:'spicy',
+                state:'completed',prompt:'Precise stored provider prompt <img src=x onerror=alert(1)>',promptSource:'saved-provider-request',
+                originalDirection:'Original customer direction',settings:{moodIntensity:80,resolution:'2k',aspectRatio:'3:4',referencesCount:2},
+                chargedCredits:40,refundedCredits:0,providerCostUsd:.036,estimatedCostUsd:.04,costKind:'settled',
+                createdAt:Date.UTC(2026,10,2),updatedAt:Date.UTC(2026,10,2),hasPreview:true,mediaKind:'image'};
+              return {page:Number(q.get('page')||1),pageSize:24,total:q.get('status')==='failed'?1:25,
+                hasMore:!q.get('status')&&q.get('page')==='1',
+                items:q.get('feature')==='Video Studio'?[{...item,jobId:'job_qa_video',feature:'Video Studio',mediaKind:'video',mood:'',settings:{duration:5,seed:123}}]:
+                  q.get('status')==='failed'?[{...item,jobId:'job_qa_failed',state:'failed',hasPreview:false,refundedCredits:40,availability:'no-completed-result'}]:
+                  q.get('page')==='2'?[{...item,jobId:'job_qa_deleted',hasPreview:false,availability:'deleted-or-unavailable'}]:[item],
+                filters:{mood:['berlin-rave','night-flash'],feature:['Moods','Image Studio','Video Studio'],model:['exact/seedream-v5'],status:['completed','failed']}};
+            }
             if(!path.startsWith('/api/admin/customers/activity?'))throw Error('Unexpected activity test endpoint.');
             return {
               customer:{id:'user_active_creator',email:'editorial@example.com',balanceCredits:176},
@@ -177,15 +206,45 @@ try{
         });
         await page.locator('.owner-customer-open').nth(1).click();
         await page.locator('#owner-customer-dialog[open]').waitFor();
-        await page.locator('#owner-customer-dialog-body').getByText('seedream-v5').waitFor();
+        await page.locator('#owner-customer-dialog-body').getByText('seedream-v5',{exact:true}).waitFor();
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Welcome credits/);
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Archived financial activity/);
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Completed \(reconstructed\)/);
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/24/);
         const dialogWidth=await page.locator('#owner-customer-dialog').evaluate(el=>el.getBoundingClientRect().width);
         assert.ok(dialogWidth<=width,'Private history dialog must fit viewport');
+        await page.locator('.owner-inspect-image').waitFor();
+        assert.match(await page.locator('.owner-inspect-card').innerText(),/Original customer direction/);
+        assert.match(await page.locator('.owner-inspect-card').innerText(),/referencesCount: 2/);
+        assert.match(await page.locator('.owner-inspect-card').innerText(),/Provider cost \(settled\): \$0.0360/);
+        assert.equal(await page.locator('.owner-inspect-info img').count(),0,'Prompt text is never interpreted as HTML');
+        await page.locator('.owner-inspect-media').click();
+        await page.locator('.owner-inspect-full').waitFor();
+        assert.match(await page.locator('.owner-inspect-full').getAttribute('src'),/^blob:/,'Larger media uses an authenticated blob');
+        await page.screenshot({path:artifactDir+'/quality-review-'+width+'.png',fullPage:false});
+        await page.getByRole('button',{name:'Close preview',exact:true}).click();
+        assert.equal(await page.locator('.owner-inspect-viewer').isVisible(),false);
+        assert.ok(await page.evaluate(()=>window.__qaRevoked.length>=1),'Closing preview revokes its bytes');
+        await page.getByRole('button',{name:'Next',exact:true}).click();
+        await page.locator('[data-job-id="job_qa_deleted"]').waitFor();
+        assert.match(await page.locator('.owner-inspect-grid').innerText(),/Result deleted or unavailable/);
+        await page.getByRole('combobox',{name:'Filter generations by status'}).selectOption('failed');
+        await page.locator('[data-job-id="job_qa_failed"]').waitFor();
+        assert.match(await page.locator('.owner-inspect-pagination').innerText(),/Page 1 of 1/,'Filter resets page');
+        assert.match(await page.locator('.owner-inspect-card').innerText(),/40 refunded/);
+        const fit=await page.locator('#owner-customer-dialog').evaluate(el=>({client:el.clientWidth,scroll:el.scrollWidth}));
+        assert.ok(fit.scroll<=fit.client+1,'Review filters, prompts and cards must fit activity dialog');
+        await page.getByRole('combobox',{name:'Filter generations by status'}).selectOption('');
+        await page.getByRole('combobox',{name:'Filter generations by feature'}).selectOption('Video Studio');
+        await page.locator('[data-job-id="job_qa_video"]').waitFor();
+        await page.locator('.owner-inspect-media').click();
+        await page.locator('video.owner-inspect-full').waitFor();
+        assert.equal(await page.locator('video.owner-inspect-full').evaluate(el=>el.controls),true);
+        assert.match(await page.locator('video.owner-inspect-full').getAttribute('src'),/^blob:/);
         await page.locator('#owner-customer-dialog-close').click();
         assert.equal(await page.locator('#owner-customer-dialog').evaluate(el=>el.open),false);
+        assert.equal(await page.evaluate(()=>window.__qaUrls.size),0,'Closing activity releases all preview blobs');
+        assert.ok(await page.evaluate(()=>window.__qaReads.every(r=>r.cache==='no-store'&&r.signal)),'Every preview uses the session helper without caching');
         await page.evaluate(()=>window.scrollTo(0,0));
       }
       await page.locator('[data-recent-filter="subscribed"]').click();

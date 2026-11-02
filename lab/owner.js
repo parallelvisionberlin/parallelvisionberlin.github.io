@@ -5,6 +5,7 @@ import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finan
 import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261025-settlement1';
 import {renderOwnerPagination} from './owner-pagination.js?v=20261025-paged1';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
+import {createOwnerCustomerInspectionUI} from './owner-customer-inspection-ui.js?v=20261102-quality1';
 import {createOwnerAuthGuard} from './owner-auth-guard.js?v=20261017-stability1';
 const $=id=>document.getElementById(id);
 const apiBase='https://parallel-vision-lab.parallelvision.workers.dev';
@@ -101,6 +102,9 @@ function paintCustomerActivity(data){
     stats.append(stat);
   }
   root.append(stats);
+  const inspection=activityElement('div','owner-customer-inspection');
+  root.append(inspection);
+  customerInspectUI.show(customer,inspection);
   const dollar=String.fromCharCode(36);
   root.append(activityElement('p','owner-customer-activity-caption',
     formatNumber(summary.failedJobs)+' failed jobs · '+
@@ -163,6 +167,7 @@ function paintCustomerActivity(data){
 }
 async function openCustomerActivity(customer){
   if(!profile?.owner||!customer?.id)return;
+  customerInspectUI.clear();
   const serial=++customerActivitySerial,current=revision;
   $('owner-customer-dialog-identity').textContent=customer.email||customer.id;
   $('owner-customer-dialog-body').replaceChildren(activityElement('p','owner-customer-empty','Loading customer activity…'));
@@ -188,8 +193,9 @@ function customerActivityButtons(customers){
     cell.append(button);
   });
 }
-$('owner-customer-dialog-close').addEventListener('click',()=>customerDialog.close());
-customerDialog.addEventListener('close',()=>{customerActivitySerial++;});
+$('owner-customer-dialog-close').addEventListener('click',()=>{customerInspectUI.clear();customerDialog.close();});
+customerDialog.addEventListener('cancel',()=>customerInspectUI.clear());
+customerDialog.addEventListener('close',()=>{customerActivitySerial++;customerInspectUI.clear();});
 
 // Mobile layout reads the real column headings instead of duplicating them in CSS.
 function labelTableCellsForMobile(){
@@ -303,6 +309,10 @@ for(const button of document.querySelectorAll('[data-traffic-days]'))button.addE
 $('owner-traffic-refresh').addEventListener('click',()=>void refreshTraffic());
 
 const generationReviewUI=createOwnerGenerationReviewUI({
+  call:path=>call(path),request,ownerReady:()=>!!profile?.owner,
+  revision:()=>revision,formatDate:activityDate
+});
+const customerInspectUI=createOwnerCustomerInspectionUI({
   call:path=>call(path),request,ownerReady:()=>!!profile?.owner,
   revision:()=>revision,formatDate:activityDate
 });
@@ -513,6 +523,7 @@ async function refreshDashboard({scrollCustomers=false}={}){
   finally{if(current===revision&&requestId===fetchSerial){$('owner-refresh').disabled=false;$('owner-refresh').textContent='Refresh data ↻';}}
 }
 async function refreshSession(){
+  customerInspectUI.clear();
   payoutNotice.clear();
   for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin]'))link.hidden=true;
   const current=++revision;fetchSerial++;generationReviewUI.close();profile=null;

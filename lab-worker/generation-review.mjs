@@ -2,6 +2,7 @@
 // This handler MUST be reached only after labAdminRoute's requireOwner check.
 // No original media, uploaded references, prompts, or public R2 URLs leave this route.
 import {serveGalleryThumbnail} from './gallery-thumbnails.mjs';
+import {pruneQualityReviewAudit} from './quality-review.mjs';
 
 const CUSTOMER=/^user_[A-Za-z0-9]+$/;
 const JOB=/^[A-Za-z0-9_-]{8,120}$/;
@@ -85,4 +86,5 @@ export async function pruneGenerationReviewAudit(env,{clock=()=>Date.now()}={}){
   const cutoff=Number(clock())-AUDIT_RETENTION_MS;
   if(!Number.isSafeInteger(cutoff)||cutoff<0)return;
   await env.LAB_DB.prepare('DELETE FROM lab_owner_generation_review_audit WHERE created_at<?').bind(cutoff).run();
+  await pruneQualityReviewAudit(env,{clock});
 }

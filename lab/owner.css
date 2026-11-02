@@ -139,6 +139,36 @@ td strong{font-weight:450;color:#fff}
 
 /* Owner mobile overflow fix: the document stays viewport-wide, data reflows into lists. */
 html,body{width:100%;max-width:100%;overflow-x:clip}
+
+/* Internal QA stays within the existing customer activity dialog. */
+.owner-inspect-section{margin:24px 0;min-width:0}
+.owner-inspect-section h3{font-size:17px;font-weight:500}
+.owner-inspect-toolbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+.owner-inspect-filter-label{font-size:11px;color:#aaa;min-width:0}
+.owner-inspect-filter{display:block;width:100%;max-width:100%;margin-top:6px;padding:10px 7px;min-height:44px;background:#1b1d1b;border:1px solid #424540;color:#eee;font:inherit;border-radius:3px}
+.owner-inspect-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.owner-inspect-card{min-width:0;border:1px solid #3b3e38;background:#191b19;border-radius:3px;overflow:hidden}
+.owner-inspect-media{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:230px;padding:12px;border:0;background:#232623;color:#babdb5;font:inherit;font-size:12px;text-align:center}
+button.owner-inspect-media{cursor:pointer}
+.owner-inspect-image{display:block;min-height:0;width:100%;height:100%;object-fit:contain}
+.owner-inspect-expand{font-size:11px;flex:none}
+.owner-inspect-info{padding:15px;overflow-wrap:anywhere;min-width:0}
+.owner-inspect-info strong{display:block;font-size:14px;font-weight:500}
+.owner-inspect-info small{display:block;color:#aaa;font-size:11px;line-height:1.6;margin-top:6px}
+.owner-inspect-key{display:block;margin-top:14px;color:#a5aca1;font-size:10px;text-transform:uppercase;letter-spacing:.07em}
+.owner-inspect-prompt,.owner-inspect-settings{margin:5px 0 12px;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.owner-inspect-prompt{max-height:180px;overflow:auto}
+.owner-inspect-model,.owner-inspect-finance{font-size:11px;line-height:1.6;margin:8px 0;color:#ccc}
+.owner-inspect-status{font-size:12px;color:#b3b8ae}
+.owner-inspect-pagination{display:flex;gap:14px;align-items:center;justify-content:center;margin-top:18px;font-size:12px;flex-wrap:wrap}
+.owner-inspect-action{min-height:44px;padding:9px 14px;border:1px solid #484e43;background:#252a23;color:#eee;font:inherit;font-size:12px;border-radius:3px;cursor:pointer}
+.owner-inspect-action:disabled{opacity:.45;cursor:default}
+.owner-inspect-action:focus-visible,.owner-inspect-media:focus-visible,.owner-inspect-filter:focus-visible{outline:2px solid #e3e7dc;outline-offset:-3px}
+.owner-inspect-viewer{border:1px solid #545d4c;padding:12px;margin:16px 0;background:#111410}
+.owner-inspect-viewer[hidden]{display:none}
+.owner-inspect-large{display:flex;justify-content:center;align-items:center;min-height:150px;margin-top:12px;font-size:12px}
+.owner-inspect-full{display:block;max-width:100%;max-height:62dvh;object-fit:contain}
+@media(max-width:600px){.owner-inspect-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-inspect-grid{grid-template-columns:minmax(0,1fr)}.owner-inspect-media{height:240px}.owner-inspect-info{padding:12px}}
 .owner-shell,#owner-dashboard,.owner-section,.owner-section-head,.owner-toolbar,
 .owner-jumpbar,.owner-jumpbar nav,.owner-voucher-layout,.owner-voucher-form,
 .owner-voucher-preview,.owner-voucher-result,.owner-table-wrap{min-width:0}
