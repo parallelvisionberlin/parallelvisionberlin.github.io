@@ -193,17 +193,21 @@ test('€3 pack uses one-time Checkout with server-controlled 300 cents and no e
   assert.equal(balance(db),0,'Opening Checkout never awards credits');
 });
 
-test('€3 payment delivers 300 credits once, rejects invalid payment facts and remains nonrecurring',async t=>{
+// Presentation amounts are deliberately different from the EUR base. Neither
+// FX rounding nor the customer's selected currency can change the entitlement.
+for(const [currency,amount] of [['eur',300],['brl',1860],['mxn',6330]]){
+test(`€3 payment presented in ${currency.toUpperCase()} delivers 300 credits once, rejects invalid payment facts and remains nonrecurring`,async t=>{
   const {db,env}=setup(t);await ensureCustomer(env,'user_SandboxABC1');
   const event=(id,overrides={})=>{
     const e=checkoutEvent({id,amount:300});e.data.object.metadata.lab_sku='topup3';
+    if(currency!=='eur')e.data.object.presentment_details={presentment_currency:currency,presentment_amount:amount};
     Object.assign(e.data.object,overrides);return e;
   };
   for(const [name,overrides] of Object.entries({underpaid:{amount_total:299},overpaid:{amount_total:301},currency:{currency:'usd'},unpaid:{payment_status:'unpaid'},mode:{mode:'subscription'},identity:{client_reference_id:'user_Other'}})){
     assert.equal((await worker.fetch(sign(env,event('evt_Topup3Bad'+name,overrides)),env)).status,200);
     assert.equal(balance(db),0,name+' must not credit the wallet');
   }
-  const paid=event('evt_Topup3Paid',{presentment_details:{presentment_currency:'brl',presentment_amount:1860}});
+  const paid=event('evt_Topup3Paid');
   assert.equal((await worker.fetch(sign(env,paid),env)).status,200);assert.equal(balance(db),300);
   assert.equal((await worker.fetch(sign(env,paid),env)).status,200);assert.equal(balance(db),300);
   const asyncPaid=event('evt_Topup3Async');asyncPaid.type='checkout.session.async_payment_succeeded';
@@ -214,3 +218,4 @@ test('€3 payment delivers 300 credits once, rejects invalid payment facts and 
   assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE kind='purchase'").get().n,1);
   assert.equal(db.prepare('SELECT SUM(amount_cents) AS amount FROM lab_revenue_events').get().amount,300);
 });
+}
