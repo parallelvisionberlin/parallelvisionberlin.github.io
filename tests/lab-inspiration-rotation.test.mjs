@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {shouldOmitAutomaticMoodReferencesForInspiration,moodReferencePlan} from '../lab/mood-references.js';
+import {prepareMoodPrompt} from '../lab/moods.js';
 import {
   INSPIRATION_VARIATIONS,LEGACY_INSPIRATION_PROMPTS,CHROME_COUTURE_DEFAULTS,
   createInspirationRotation,isInspirationExample
@@ -92,14 +94,18 @@ test('session storage failures never prevent choosing an Inspiration card',()=>{
   assert.equal(rotation.select('fashion-editorial','').index,1);
 });
 
-test('authenticated requests skip invisible Mood photos but retain explicit user references',()=>{
+test('authenticated Inspiration skips other invisible Mood photos but includes Dream Blur optics',()=>{
   const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const guest=readFileSync(new URL('../lab/studio-guest-image.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.match(lab,/const choice=inspirationRotation\.select\(id,\$\('prompt'\)\.value\)/);
   assert.match(lab,/const preserveWorkspace=choice\.preserved\|\|references\.length>0\|\|!!file/);
   assert.match(lab,/inspirationMoodId=underlyingMood/);
-  assert.match(lab,/disableAutoMoodReferences:inspirationMoodId!==null&&selected\.moodId===inspirationMoodId/);
+  assert.match(lab,/disableAutoMoodReferences:shouldOmitAutomaticMoodReferencesForInspiration\(inspirationMoodId,selected\.moodId\)/);
+  assert.match(lab,/const disableAutoMoodReferences=shouldOmitAutomaticMoodReferencesForInspiration\(inspirationMoodId,selected\.moodId\)/);
+  assert.match(lab,/shouldOmitAutomaticMoodReferencesForInspiration\(inspirationMoodId,current\.moodId\)/);
+  assert.equal((lab.match(/shouldOmitAutomaticMoodReferencesForInspiration\(/g)||[]).length,3,
+    'Price preview, on-click submission, and prompt guidance must agree');
   assert.match(lab,/const curated=s\.disableAutoMoodReferences[\s\S]*?\?\{settings:selected,references:\[\]\}/);
   assert.match(lab,/const curated=disableAutoMoodReferences[\s\S]*?\?\{settings:selected,references:\[\]\}/);
   assert.match(lab,/imageInputReferences\(\)\.map\(ref=>\(\{file:ref\.file/);
@@ -109,6 +115,31 @@ test('authenticated requests skip invisible Mood photos but retain explicit user
   assert.equal([...html.matchAll(/data-guest-mood=/g)].length,8,'Keep the six original public photographs and include Chrome Couture and Fisheye');
 });
 
+test('Dream Blur Inspiration injects the exact four optical references with or without a Base',()=>{
+  assert.equal(shouldOmitAutomaticMoodReferencesForInspiration('dream-blur','dream-blur'),false);
+  for(const moodId of ['fashion-editorial','dreamcore','hong-kong-nights','90s-cinema','80s-film'])
+    assert.equal(shouldOmitAutomaticMoodReferencesForInspiration(moodId,moodId),true,moodId+' remains text-only');
+  assert.equal(shouldOmitAutomaticMoodReferencesForInspiration(null,'dream-blur'),false,'Manual Mood retains references');
+  assert.equal(shouldOmitAutomaticMoodReferencesForInspiration('dream-blur','fashion-editorial'),false,'Other Mood selection is independent');
+  for(const base of [false,true]){
+    const recipe=prepareMoodPrompt('Tactile analog memory with natural slow shutter.','dream-blur',80,{
+      engine:'seedream',referenceCount:base?1:0,referenceMode:'base'
+    });
+    const settings={type:'image',mode:'image',engine:'seedream',resolution:'2k',referenceMode:'base',
+      aspectRatio:base?'3:4':'16:9',referenceRoles:base?[{name:'portrait.jpg',role:'base',note:''}]:[],
+      prompt:recipe.prompt,...recipe.metadata};
+    const plan=moodReferencePlan(settings);
+    assert.equal(plan.references.length,4);
+    assert.deepEqual(plan.settings.referenceRoles.map(r=>r.role),
+      base?['base','style','style','style','style']:['style','style','style','style']);
+    assert.deepEqual(plan.references.map(r=>r.file),[
+      '01-blue-eye-light-memory.jpg','02-silhouette-blue-room.jpg',
+      '03-city-light-trails.jpg','04-abstract-cyan-exposure.jpg'
+    ]);
+    assert.equal(plan.settings.aspectRatio,settings.aspectRatio);
+    assert.equal(plan.settings.prompt,settings.prompt,'The entire Mood recipe stays untouched');
+  }
+});
 
 test('Flash Leather treatment is about flash, material and lighting, not a default model',()=>{
   const moods=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
