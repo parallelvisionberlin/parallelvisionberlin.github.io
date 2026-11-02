@@ -45,5 +45,6 @@ export async function takeModelPhotos(id){
    throw Error('Your temporary photographs expired. Please upload them again.');
   return validateModelPhotos(record.files||[record.file]);
  }finally{db.close()}
+}
 export async function saveModelPhoto(file){return saveModelPhotos([file])}
 export async function takeModelPhoto(id){return (await takeModelPhotos(id))[0]}
