@@ -119,7 +119,7 @@ function paintCustomerActivity(data){
       const type=job.type==='video'?'Video':job.type==='upscale'?'Upscale':job.type==='image'?'Image':job.type||'Job';
       const settings=job.settings||{};
       const attributes=['resolution','aspectRatio','duration','referenceMode','processing',
-        'audio','upscaleEngine','videoUpscaleEngine','soulProModel','strength','moodIntensity']
+        'audio','upscaleEngine','videoUpscaleEngine','soulProModel','fashionModel','fashionCategory','generationMode','quality','strength','moodIntensity']
         .filter(k=>settings[k]!==undefined&&settings[k]!==null&&settings[k]!=='')
         .map(k=>k+': '+settings[k]);
       return [activityDate(job.createdAt),
