@@ -7,8 +7,12 @@
 - Preserved two-model gate, default mixed mode, selected states, reference selection, shot planning, imagery and layout.
 - Files: full-editorial.html, full-editorial.js, existing test cache-version assertion and this checkpoint.
 - Verification: JS syntax, diff whitespace and all 23 approved Image / Full Editorial / model-handoff source checks pass.
-- Publication: prepared as an isolated PR; not merged or confirmed live. Existing PR CI provides browser flow verification.
-- Next: review and merge the copy change, then follow RELEASE-PROTOCOL.md for Cloudflare and production verification.
+- Published PR #800, reviewed source `48eea53a299388b58475a665eaca006748005e6d`, merge `930eba2697f5752931ee8783f29a0aaa990ee3e3` after explicit owner publish instruction.
+- PR editorial desktop/phone browser flow, approved Image contract, validation, core and motion checks passed. Inspected unrelated failures: ZenCreator comparison assertion, Image viewer browser and original Video Start canvas dimensions; corresponding suites also fail on baseline main. No gate weakened.
+- Exact merged-source Cloudflare pvlab-studio deployment `d3f7cf3b-5350-4f32-9c67-cbf3f87a4727` succeeded, check `125579839660`.
+- Actual public production browser at `https://pvlab.studio/full-editorial`: selected Silver and Bronze through the UI; new heading, helper and all three photo-choice labels/descriptions render correctly. Default mixed choice remains selected; correct script version `20261102-clear-cast-copy1` observed in production DOM. Screenshot visually inspected.
+- Direct exact-byte verification was unavailable (HTTP 403 from container request). Used the release protocol's Cloudflare plus production browser DOM/version fallback. No paid generation or account action performed.
+- Next: complete and verified live for the requested wording.
 
 ## 2026-11-01 / homepage CTA opens Identity directly
 - Owner requested homepage Create your editorial open the creation flow immediately, skipping the second arrival hero.
