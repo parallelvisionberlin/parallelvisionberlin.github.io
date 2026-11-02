@@ -31,6 +31,14 @@ test('maximum Base exposure changes atmosphere while retaining identity, anatomy
   }
 });
 
+test('100% Base exposure adapts the palette without forcing cyan',()=>{
+ for(const engine of engines){
+  const recipe=prepareMoodPrompt('Keep same person and room.','dream-blur',100,{engine,referenceCount:1});
+  assert.equal(recipe.error,'');
+  for(const pattern of [/amber/,/red/,/green/,/blue/,/never force cyan|not compulsory blue color/])assert.match(recipe.prompt,pattern);
+ }
+});
+
 test('text-only, References Only, lower strengths and all other Moods do not enter the new route',()=>{
   for(const engine of engines){
     for(const amount of [1,25,34,35,60,69,70,78,80,89,90,99]){
