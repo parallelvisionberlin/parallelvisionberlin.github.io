@@ -132,3 +132,53 @@ test('review audit expires after 180 days, never stores images or prompts',async
   await pruneGenerationReviewAudit(f.env);
   assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_owner_generation_review_audit').n,0);
 });
+
+
+test('ordinary customer review stays forbidden until explicitly enabled, then shows only stored creative fields',async t=>{
+  const f=fixture(t),path='/api/admin/customers/inspect?customerId=user_REGULAR';
+  await assert.rejects(()=>f.admin(path),/has not enabled creative quality review/);
+  await assert.rejects(()=>f.admin(path,'user_REGULAR'),/owner access required/);
+  f.query("UPDATE jobs SET params=? WHERE id='job_other_customer'",JSON.stringify({
+    type:'image',mode:'image',engine:'seedream',moodId:'berlin-rave',
+    resolution:'1k',prompt:'My own editorial direction',
+    referenceSourceIds:['private-asset'],sourceUrl:'https://example.test/private-photo'
+  }));
+  f.query('INSERT INTO lab_customer_generation_review_consent(customer_id,enabled,updated_at) VALUES(?,?,?)',
+    'user_REGULAR',1,Date.now());
+  const response=await f.admin(path),data=await response.json();
+  assert.equal(response.status,200);
+  assert.equal(response.headers.get('cache-control'),'private, no-store');
+  assert.equal(data.items.length,1);
+  assert.equal(data.items[0].prompt,'My own editorial direction');
+  assert.equal(data.items[0].settings.moodId,'berlin-rave');
+  assert.equal(data.items[0].settings.engine,'seedream');
+  assert.equal(data.items[0].hasPreview,true);
+  assert.equal(JSON.stringify(data).includes('private-asset'),false);
+  assert.equal(JSON.stringify(data).includes('private-photo'),false);
+  assert.equal(f.get("SELECT COUNT(*) AS n FROM lab_owner_generation_review_audit WHERE action='gallery_opened'").n,1);
+  f.query('UPDATE lab_customer_generation_review_consent SET enabled=0 WHERE customer_id=?','user_REGULAR');
+  await assert.rejects(()=>f.admin(path),/has not enabled creative quality review/);
+  await assert.rejects(()=>f.admin('/api/admin/customers/inspect-thumbnail?customerId=user_REGULAR&jobId=job_other_customer'),/has not enabled creative quality review/);
+  assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_owner_generation_review_audit').n,1);
+});
+
+test('customer review excludes closed accounts, pages retained jobs and never resurrects a missing output',async t=>{
+  const f=fixture(t);
+  f.query('INSERT INTO lab_customer_generation_review_consent(customer_id,enabled,updated_at) VALUES(?,?,?)',
+    'user_REGULAR',1,Date.now());
+  for(let i=0;i<32;i++)f.query(
+    "INSERT INTO jobs(id,owner_id,params,state,created_at,updated_at) VALUES(?,?,'{}','completed',?,?)",
+    'job_page_'+String(i).padStart(3,'0'),'user_REGULAR',100+i,200+i);
+  const path='/api/admin/customers/inspect?customerId=user_REGULAR';
+  const first=await (await f.admin(path)).json();
+  assert.equal(first.items.length,30);
+  assert.equal(first.hasMore,true);
+  const second=await (await f.admin(path+'&offset=30')).json();
+  assert.equal(second.items.length,3);
+  assert.equal(second.hasMore,false);
+  assert.equal(second.items.some(item=>item.jobId==='job_page_000'),true);
+  assert.equal(second.items.find(item=>item.jobId==='job_page_000').hasPreview,false);
+  f.query('INSERT INTO lab_account_closures(customer_id,requested_at) VALUES(?,?)',
+    'user_REGULAR',Date.now());
+  await assert.rejects(()=>f.admin(path),/has not enabled creative quality review/);
+});
