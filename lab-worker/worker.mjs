@@ -1415,10 +1415,13 @@ async function route(request,env,ctx) {
   // Explicit customer-controlled, revocable creative quality-review permission.
   // No retrospective opt-in, no implicit consent from sign-in or a purchase.
   if(path==='/api/customer/generation-review-consent'){
+    const preferenceJson=data=>new Response(JSON.stringify(data),{
+      headers:{'Content-Type':'application/json','Cache-Control':'private, no-store'}
+    });
     if(!customer)fail(403,'Only PV LAB customers can set creative review permissions.');
     if(method==='GET'){
       const row=await first(env,'SELECT enabled,updated_at FROM lab_customer_generation_review_consent WHERE customer_id=?',owner);
-      return json({enabled:row?.enabled===1,updatedAt:row?.updated_at||null});
+      return preferenceJson({enabled:row?.enabled===1,updatedAt:row?.updated_at||null});
     }
     if(method==='POST'){
       const data=await body(request);
@@ -1426,7 +1429,7 @@ async function route(request,env,ctx) {
       const time=Date.now();
       await env.LAB_DB.prepare('INSERT INTO lab_customer_generation_review_consent(customer_id,enabled,updated_at) VALUES(?,?,?) ON CONFLICT(customer_id) DO UPDATE SET enabled=excluded.enabled,updated_at=excluded.updated_at')
         .bind(owner,data.enabled?1:0,time).run();
-      return json({enabled:data.enabled,updatedAt:time});
+      return preferenceJson({enabled:data.enabled,updatedAt:time});
     }
     fail(405,'Unsupported review preference method.');
   }
