@@ -1,3 +1,15 @@
+## 2026-11-02 / clear multi-model composition copy
+- Owner screenshot: composition choices are confusing after selecting more than one model.
+- Baseline main `ded46245261171a44ac7ccb022d1db58ee335bab`.
+- Heading: How should the models appear? Helper: Choose who appears in each photo.
+- Choices: Solo + group (a mix), Solo only (one model per photo), Group only (all selected models in every photo).
+- Matching labels in the cast status and Generate summary; script version `20261102-clear-cast-copy1`.
+- Preserved two-model gate, default mixed mode, selected states, reference selection, shot planning, imagery and layout.
+- Files: full-editorial.html, full-editorial.js, existing test cache-version assertion and this checkpoint.
+- Verification: JS syntax, diff whitespace and all 23 approved Image / Full Editorial / model-handoff source checks pass.
+- Publication: prepared as an isolated PR; not merged or confirmed live. Existing PR CI provides browser flow verification.
+- Next: review and merge the copy change, then follow RELEASE-PROTOCOL.md for Cloudflare and production verification.
+
 ## 2026-11-01 / homepage CTA opens Identity directly
 - Owner requested homepage Create your editorial open the creation flow immediately, skipping the second arrival hero.
 - Baseline `029992b82610252887b7fe0988229f95f7bd0f77`; branch `fix/home-editorial-direct-entry-20261101`. No overlapping open Full Editorial PR observed. Preserved current cinematic-progress work.
