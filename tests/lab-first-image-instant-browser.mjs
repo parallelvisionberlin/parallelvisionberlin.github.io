@@ -656,6 +656,10 @@ try{
     'The preflight must not put Confirming credits inside Generate');
   assert.equal(await deck.evaluate(el=>el.classList.contains('pv-deck-expanded')),true,
     'Switching selected Moods must not collapse the Image deck');
+  // The 4 automatic Dream Blur Style images add reference instructions to the
+  // bound provider prompt. Keep the long-text layout checks above, then submit
+  // a realistic brief that fits the exact 5,000-character reference budget.
+  await field.fill('Preserve the same person and location. Add analog slow-shutter light trails and film grain.');
   // The previous Mood's asynchronous bound price may still be settling.
   // Wait for the new Mood's preflight before submitting the single paid job.
   await page.waitForFunction(()=>!document.querySelector('#image-composer-generate')?.disabled,null,{timeout:9000});
@@ -674,6 +678,12 @@ try{
   const submission=requests.find(x=>x.path==='/api/jobs'&&x.method==='POST');
   assert.equal(quotes.get(submission.data.quoteId)?.settings.resolution,'1k',
     'Paid submission must reuse the exact customer resolution from its bound quote');
+  const dreamQuote=requests.find(r=>r.path==='/api/quotes'&&r.data.settings?.moodId==='dream-blur');
+  assert.ok(dreamQuote,'Dream Blur Inspiration reaches the bound quote');
+  assert.equal(dreamQuote.data.referenceSourceIds.length,4,
+    'Dream Blur Inspiration uploads exactly four optical Style photos, not just a text recipe');
+  assert.deepEqual(dreamQuote.data.settings.referenceRoles.map(r=>r.role),
+    ['style','style','style','style'],'Built-in Style photos are not Base or identity');
   assert.equal(quotes.get(submission.data.quoteId)?.creditCost,20,
     'Mock credit cost must come from the 1K bound quote without repricing');
   assert.equal(requests.filter(x=>x.path==='/api/quotes').length>=1,true);
