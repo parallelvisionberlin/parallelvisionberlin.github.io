@@ -23,7 +23,7 @@ export function createOwnerCustomerInspectionUI({call,request,ownerReady,revisio
     for(const [key,label] of [['mood','Mood'],['feature','Feature'],['model','Model'],['status','Status']]){
       const wrap=el('label','owner-inspect-filter-label',label),select=el('select','owner-inspect-filter');
       select.setAttribute('aria-label','Filter generations by '+label.toLowerCase());
-      select.append(new Option('All '+label.toLowerCase()+'s',''));
+      select.append(new Option('All '+(key==='status'?'statuses':label.toLowerCase()+'s'),''));
       select.addEventListener('change',()=>{page=1;void load();});
       filters[key]=select;wrap.append(select);toolbar.append(wrap);
     }
@@ -115,7 +115,7 @@ export function createOwnerCustomerInspectionUI({call,request,ownerReady,revisio
         if(!valid()||currentPage!==pageSerial)return;
         for(const [key,select] of Object.entries(filters)){
           const selected=select.value;
-          select.replaceChildren(new Option('All '+key+'s',''));
+          select.replaceChildren(new Option('All '+(key==='status'?'statuses':key+'s'),''));
           for(const value of data.filters?.[key]||[])select.append(new Option(value,value));
           select.value=selected;
         }
