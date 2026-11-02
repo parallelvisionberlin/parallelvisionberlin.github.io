@@ -13,8 +13,12 @@
 - Browser QA: 390px panel inner track/cover/content 332px; 320px track/cover 262px. Photo strip remains independently scrollable.
 - Desktop QA: unchanged 352.875px / 449.125px tracks in an 804px detail panel.
 - QA uses synthetic local markup/media, not a real signed-in production account or paid generation.
-- Source commit, CI and Cloudflare production publication: pending.
-- Next: publish reviewed fix, inspect exact Cloudflare Pages check and production stylesheet version/bytes.
+- PR #787 merged as `a67a4cd963032206f9f6bc68afc47041fd16a9f2` (candidate `bdee6cbb5fe0662b174d04a3c888688c9c4bd16a`).
+- Candidate CI: unit and approved-image-ui passed. Broader checks remain red, including unrelated Image 14px versus 15.5px expectations and Video preload behavior; no gates were altered.
+- Exact merge Cloudflare Pages check succeeded for `pvlab-studio`, deployment `809e0c2b-75f4-428f-8844-524830637126`.
+- Production browser verified the new stylesheet URL and loaded CSSOM mobile rule `grid-template-columns:minmax(0px,1fr)` at `https://pvlab.studio/studio?tool=image`.
+- Direct stylesheet-document navigation was blocked by the browser client; raw-byte equality was not verified. Loaded production rule and version were verified.
+- Complete for source/publication and synthetic responsive QA. Real signed-in iPhone observation remains unverified; no account access was requested.
 
 ## Active release, 2026-10-27
 - Owner approved F / Compact box and requested implementation and publication.
