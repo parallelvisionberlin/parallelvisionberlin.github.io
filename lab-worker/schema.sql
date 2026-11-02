@@ -119,6 +119,14 @@ CREATE INDEX IF NOT EXISTS lab_mood_performance_job
   ON lab_mood_performance(job_id);
 
 CREATE TABLE IF NOT EXISTS lab_migrations(id TEXT PRIMARY KEY,applied_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS lab_clerk_sync_diagnostics (
+  id INTEGER PRIMARY KEY CHECK(id=1),
+  checked_at INTEGER NOT NULL,
+  source TEXT NOT NULL CHECK(source IN ('owner','scheduled')),
+  result_json TEXT NOT NULL CHECK(length(result_json)<=2048)
+);
+
+
 CREATE TABLE IF NOT EXISTS soul_datasets (
   id TEXT PRIMARY KEY,
   owner_id TEXT NOT NULL,
