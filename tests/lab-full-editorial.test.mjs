@@ -52,6 +52,8 @@ test('Generation is server quoted, confirmed once, and attached to real jobs',()
 test('Upload inputs, confirmed pricing and private exports remain bounded',()=>{
  assert.match(js,/20\*1024\*1024/);
  assert.match(js,/10-used/,'No more than ten photo references');
+ assert.match(js,/model:8/,'Identity accepts 8 character reference photos');
+ assert.match(js,/takeModelPhotos\(modelPhoto\)/,'All homepage photos are restored in Identity');
  assert.match(js,/count:1/,'Every art-directed image is quoted individually');
  assert.match(js,/editorialShotPlan/,'Distinct shot prompts and cast references are built for each image');
  assert.match(js,/function crc32/,'ZIP download is made from actual generated assets');
@@ -109,7 +111,7 @@ test('Identity casting uses the approved photographic layout rather than standal
 });
 
 test('Identity starts empty and casting is always a deliberate selection',()=>{
- assert.match(html,/full-editorial\.js\?v=20261101-cast-feedback3/);
+ assert.match(html,/full-editorial\.js\?v=20261102-eight-photos1/);
  assert.doesNotMatch(js,/seedApprovedExampleCast|initialExampleSeeded|initialExampleVersion/);
  assert.match(js,/renderDirections\(\);renderFiles\(\);updateOptions\(\);refreshSliderLabels\(\);updateSeriesSummary\(\);go\(directStart\?1:0\)/);
  assert.match(js,/region\.hidden=!ready/,'Composition only appears with two selected models');

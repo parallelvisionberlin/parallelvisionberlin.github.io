@@ -53,7 +53,7 @@
       // Let touch/pen scrolling and release momentum run natively, including
       // swipes starting on the creation buttons. Only mouse needs custom drag.
       if (event.pointerType !== 'mouse') return;
-      if (!event.isPrimary || event.button !== 0 || event.target.closest('a,button')) return;
+      if (!event.isPrimary || event.button !== 0 || event.target.closest('a,button,.lab-character-home__thumb')) return;
       gesture = {id: event.pointerId, x: event.clientX, y: event.clientY, lastX: event.clientX, time: performance.now(), velocity: 0, axis: null};
     });
     track.addEventListener('pointermove', event => {
@@ -94,7 +94,7 @@
     track.addEventListener('click', event => {
       if (suppressClick) { event.preventDefault(); event.stopPropagation(); suppressClick = false; }
     }, true);
-    track.addEventListener('dragstart', event => event.preventDefault());
+    track.addEventListener('dragstart', event => { if (!event.target.closest('.lab-character-home__thumb')) event.preventDefault(); });
     track.addEventListener('wheel', stop, {passive: true});
     track.addEventListener('scroll', update, {passive: true});
     reducedMotion.addEventListener('change', stop);

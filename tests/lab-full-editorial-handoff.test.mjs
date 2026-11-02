@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {saveModelPhoto,takeModelPhoto,validateModelPhoto} from '../lab/editorial-model-handoff.js';
+import {saveModelPhoto,takeModelPhoto,validateModelPhoto,saveModelPhotos,takeModelPhotos} from '../lab/editorial-model-handoff.js';
 function storage(){
  const rows=new Map(),tokens=new Map();let active;
  const store={clear(){rows.clear()},put(record){rows.set(record.id,record);queueMicrotask(()=>active.oncomplete())},get(id){const req={};queueMicrotask(()=>{req.result=rows.get(id);req.onsuccess();queueMicrotask(()=>active.oncomplete())});return req},delete(id){rows.delete(id)}};
@@ -29,4 +29,29 @@ test('model photo rejects empty, oversized and unsupported files before storage'
   assert.throws(()=>validateModelPhoto(file),/JPG, PNG or WebP/);
   await assert.rejects(saveModelPhoto(file),/JPG, PNG or WebP/);
  }
+});
+
+test('up to eight original files transfer together, in order, and are consumed once',async()=>{
+ const oldDB=globalThis.indexedDB,oldSession=globalThis.sessionStorage;
+ const fixture=storage();globalThis.indexedDB=fixture.indexedDB;globalThis.sessionStorage=fixture.sessionStorage;
+ try{
+  const photos=Array.from({length:8},(_,i)=>new File(['original-'+i],i+'.webp',{type:'image/webp'}));
+  const id=await saveModelPhotos(photos);
+  const restored=await takeModelPhotos(id);
+  assert.equal(restored.length,8);
+  assert.deepEqual(await Promise.all(restored.map(f=>f.text())),photos.map((_,i)=>'original-'+i));
+  assert.equal(fixture.rows.size,0);assert.equal(fixture.tokens.size,0);
+  await assert.rejects(takeModelPhotos(id),/Select your model/);
+  await assert.rejects(saveModelPhotos([...photos,photos[0]]),/1 and 8/);
+ }finally{globalThis.indexedDB=oldDB;globalThis.sessionStorage=oldSession}
+});
+test('multiple file validation rejects any invalid file before storing the set',async()=>{
+ const oldDB=globalThis.indexedDB,oldSession=globalThis.sessionStorage;
+ const fixture=storage();globalThis.indexedDB=fixture.indexedDB;globalThis.sessionStorage=fixture.sessionStorage;
+ try{
+  const good=new File(['good'],'good.jpg',{type:'image/jpeg'});
+  const bad=new File(['bad'],'bad.svg',{type:'image/svg+xml'});
+  await assert.rejects(saveModelPhotos([good,bad]),/JPG, PNG or WebP/);
+  assert.equal(fixture.rows.size,0);
+ }finally{globalThis.indexedDB=oldDB;globalThis.sessionStorage=oldSession}
 });

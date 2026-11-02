@@ -1,3 +1,17 @@
+## 2026-11-02 / homepage drag-and-drop 1–8 identity photographs
+- Owner requested the whole ivory + card accept dropped images, individually or in batches, up to eight.
+- Isolated branch: `feat/character-drop-eight-photos-20261102`, baseline main at branch creation. Initial implementation commit `f422b5c9d8bf6618fb6f6ef8576580d00939f543`.
+- Card retains original size, typography and carousel. Click or keyboard opens multi-file picker; dropping images anywhere in the card adds them.
+- After adding: first image fills card, 1/8–8/8 counter, thumbnail gallery. Click thumbnail to move it to primary; drag thumbnails to reorder on desktop; × removes a file. On mobile tap thumbnail to set primary.
+- Explicit Create your character continues with 1–8 selected originals, not automatically after first photo. Empty CTA opens picker.
+- JPG/PNG/WebP, max 20 MiB each. Invalid images and excess selection show inline errors. No storage, credits or network uploads before the CTA.
+- One-use same-tab IndexedDB handoff now transfers an ordered array of 1–8 File originals with existing ten-minute expiry. Existing single-file helpers retained for compatibility.
+- Full Editorial raises Identity cap from 4 to 8 but preserves the existing 10-reference combined ceiling and per-image model quoting, uploads and paid generation gates.
+- Changed source: `lab/index.html`, `lab/character-home.css`, `lab/character-home-upload.js`, `lab/character-home-carousel.js`, `lab/editorial-model-handoff.js`, `lab/full-editorial.js`, `lab/full-editorial.html`.
+- Regression tests updated for homepage upload, eight-file handoff, invalid files and downstream Identity cap.
+- Cloudflare production and real browser verification pending; no claim of deployment until exact merged SHA is checked.
+- Next: verify CI, review/merge PR, confirm exact Cloudflare deployment and upload interaction on mobile/desktop.
+
 ## 2026-11-01 / mobile carousel native momentum
 - Owner reports sticky/slow character browsing on iPhone; restore fast inertial swiping.
 - Baseline main: `bba094e`. Branch: `fix/characters-mobile-momentum`.

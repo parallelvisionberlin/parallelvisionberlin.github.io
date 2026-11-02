@@ -17,10 +17,15 @@ test('character invitation follows Studio cards and precedes pricing',()=>{
 });
 test('character invitation opens a model photo picker for Full Editorial',()=>{
   assert.match(home,/<button class="lab-character-home__plus"[^>]*data-model-upload/);
-  assert.match(home,/<input id="home-model-photo" type="file" accept="image\/jpeg,image\/png,image\/webp" hidden>/);
+  assert.match(home,/<input id="home-model-photo" type="file" accept="image\/jpeg,image\/png,image\/webp" multiple hidden>/);
   const upload=readFileSync(path.join(root,'lab/character-home-upload.js'),'utf8');
   assert.match(upload,/input\.click\(\)/);
-  assert.match(upload,/saveModelPhoto\(file\)/);
+  assert.match(upload,/saveModelPhotos\(photos\)/);
+  assert.match(upload,/addPhotos\(event\.dataTransfer\?\.files\)/);
+  assert.match(upload,/const MAX=8/);
+  assert.match(home,/id="home-model-dropzone"/);
+  assert.match(home,/id="home-model-thumbs"/);
+  assert.match(upload,/lab-character-home__thumb-remove/);
   assert.match(upload,/full-editorial\.html/);
 });
 test('casting invitation uses separate local portraits, loaded fonts and a contained phone rail',()=>{
@@ -28,7 +33,7 @@ test('casting invitation uses separate local portraits, loaded fonts and a conta
     assert.match(home,new RegExp(img.replace('.','\\.')));
     assert.ok(existsSync(path.join(root,'lab/visuals/character-casting',img)));
   }
-  assert.match(home,/character-home\.css\?v=20261101-native-momentum1/);
+  assert.match(home,/character-home\.css\?v=20261102-eight-photos1/);
   assert.match(css,/@media\(max-width:700px\)/);
   assert.match(css,/font-family:PV Casting Display/);
   assert.ok(css.includes('border-radius:999px'), 'character CTA should be rounded');
