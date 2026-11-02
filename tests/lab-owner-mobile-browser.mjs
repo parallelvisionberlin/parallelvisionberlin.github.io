@@ -159,7 +159,7 @@ try{
 
       assert.equal(await page.locator('.owner-customer-open').count(),3,'Each customer has a private activity action');
       if(width===390||width===1792){
-        await page.evaluate(()=>{
+        await page.evaluate(async()=>{
           const canvas=document.createElement('canvas');canvas.width=480;canvas.height=640;
           const ctx=canvas.getContext('2d');ctx.fillStyle='#334239';ctx.fillRect(0,0,480,640);
           const webp=Uint8Array.from(atob(canvas.toDataURL('image/webp').split(',')[1]),c=>c.charCodeAt(0));
@@ -170,6 +170,7 @@ try{
           window.__ownerQaMedia=async(path,init)=>{
             window.__qaReads.push({path,cache:init.cache,signal:!!init.signal});
             if(path.includes('inspect-media')&&path.includes('job_qa_deleted'))return new Response('{}',{status:404});
+            if(path.includes('inspect-media')&&path.includes('job_qa_video'))return new Response(new Uint8Array([1,2,3,4]),{headers:{'content-type':'video/webm'}});
             return new Response(webp,{headers:{'content-type':'image/webp'}});
           };
           call=async path=>{
@@ -182,9 +183,10 @@ try{
                 createdAt:Date.UTC(2026,10,2),updatedAt:Date.UTC(2026,10,2),hasPreview:true,mediaKind:'image'};
               return {page:Number(q.get('page')||1),pageSize:24,total:q.get('status')==='failed'?1:25,
                 hasMore:!q.get('status')&&q.get('page')==='1',
-                items:q.get('status')==='failed'?[{...item,jobId:'job_qa_failed',state:'failed',hasPreview:false,refundedCredits:40,availability:'no-completed-result'}]:
+                items:q.get('feature')==='Video Studio'?[{...item,jobId:'job_qa_video',feature:'Video Studio',mediaKind:'video',mood:'',settings:{duration:5,seed:123}}]:
+                  q.get('status')==='failed'?[{...item,jobId:'job_qa_failed',state:'failed',hasPreview:false,refundedCredits:40,availability:'no-completed-result'}]:
                   q.get('page')==='2'?[{...item,jobId:'job_qa_deleted',hasPreview:false,availability:'deleted-or-unavailable'}]:[item],
-                filters:{mood:['berlin-rave','night-flash'],feature:['Moods','Image Studio'],model:['exact/seedream-v5'],status:['completed','failed']}};
+                filters:{mood:['berlin-rave','night-flash'],feature:['Moods','Image Studio','Video Studio'],model:['exact/seedream-v5'],status:['completed','failed']}};
             }
             if(!path.startsWith('/api/admin/customers/activity?'))throw Error('Unexpected activity test endpoint.');
             return {
@@ -204,7 +206,7 @@ try{
         });
         await page.locator('.owner-customer-open').nth(1).click();
         await page.locator('#owner-customer-dialog[open]').waitFor();
-        await page.locator('#owner-customer-dialog-body').getByText('seedream-v5').waitFor();
+        await page.locator('#owner-customer-dialog-body').getByText('seedream-v5',{exact:true}).waitFor();
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Welcome credits/);
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Archived financial activity/);
         assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Completed \(reconstructed\)/);
@@ -232,6 +234,13 @@ try{
         assert.match(await page.locator('.owner-inspect-card').innerText(),/40 refunded/);
         const fit=await page.locator('#owner-customer-dialog').evaluate(el=>({client:el.clientWidth,scroll:el.scrollWidth}));
         assert.ok(fit.scroll<=fit.client+1,'Review filters, prompts and cards must fit activity dialog');
+        await page.getByRole('combobox',{name:'Filter generations by status'}).selectOption('');
+        await page.getByRole('combobox',{name:'Filter generations by feature'}).selectOption('Video Studio');
+        await page.locator('[data-job-id="job_qa_video"]').waitFor();
+        await page.locator('.owner-inspect-media').click();
+        await page.locator('video.owner-inspect-full').waitFor();
+        assert.equal(await page.locator('video.owner-inspect-full').evaluate(el=>el.controls),true);
+        assert.match(await page.locator('video.owner-inspect-full').getAttribute('src'),/^blob:/);
         await page.locator('#owner-customer-dialog-close').click();
         assert.equal(await page.locator('#owner-customer-dialog').evaluate(el=>el.open),false);
         assert.equal(await page.evaluate(()=>window.__qaUrls.size),0,'Closing activity releases all preview blobs');
