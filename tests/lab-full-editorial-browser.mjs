@@ -306,8 +306,9 @@ try{
   });
   assert.ok(generateDesign.height>=69,'Generate has a substantial touch target');
   assert.equal(generateDesign.radius,'3px','Generate is a sharp editorial rectangle, not a pill');
-  assert.equal(generateDesign.display,'flex','Generate splits the title from its arrow');
-  assert.ok(generateDesign.arrowWidth>=42,'Generate arrow has its own action block');
+  assert.equal(generateDesign.display,'flex','Generate retains its accessible action layout');
+  if(width>600)assert.ok(generateDesign.arrowWidth>=42,'Desktop action layout is unchanged');
+  else assert.equal(generateDesign.arrowWidth,0,'Phone Generate is text-only without a decorative arrow');
   assert.equal(generateDesign.label,'Generate editorial');
   assert.equal(await page.locator('#editorial-generation-film').getAttribute('src'),null,'Film is not loaded during setup');
   // A delayed response for old settings must never re-enable a stale purchase.
