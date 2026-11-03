@@ -124,9 +124,26 @@ try{
    await fashion.locator('#fashion-wardrobe-open').click();
    await fashion.locator('#fashion-wardrobe').waitFor({state:'visible'});
    await fashion.locator('.wardrobe-item').first().waitFor({state:'visible'});
-   assert.equal(await fashion.locator('.wardrobe-item').count(),1,'One saved Elements outfit is available');
+   assert.equal(await fashion.locator('#fashion-wardrobe-title').textContent(),'The Wardrobe.','Editorial archive identity');
+   assert.equal(await fashion.locator('#fashion-wardrobe-tab-collections').getAttribute('aria-selected'),'true');
+   assert.equal(await fashion.locator('.wardrobe-item').count(),1,'One saved Elements outfit is a collection');
+   assert.equal(await fashion.locator('.wardrobe-add-card').count(),1,'Archive links to the real Elements creation flow');
+   assert.match(await fashion.locator('.wardrobe-add-card').getAttribute('href'),/studio.html\?tool=image/);
+   await fashion.locator('#fashion-wardrobe-tab-photos').click();
+   assert.equal(await fashion.locator('.wardrobe-item').count(),2,'All photographs shows private outfit views');
+   await fashion.locator('#fashion-wardrobe-tab-collections').click();
+   assert.equal(await fashion.locator('.wardrobe-item').count(),1,'Collections view restores original saved outfits');
+   if(role==='owner')await page.screenshot({path:'test-results/fashion-wardrobe-archive-desktop.png'});
+   await page.setViewportSize({width:390,height:844});
+   const mobileWardrobe=await fashion.locator('#fashion-wardrobe').evaluate(el=>{
+     const r=el.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,viewport:innerWidth,scroll:el.scrollWidth};
+   });
+   assert.ok(mobileWardrobe.left>=0&&mobileWardrobe.right<=mobileWardrobe.viewport,'Wardrobe fits phone viewport');
+   assert.ok(mobileWardrobe.scroll<=mobileWardrobe.width+1,'No horizontal Wardrobe scroll on phones');
+   if(role==='owner')await page.screenshot({path:'test-results/fashion-wardrobe-archive-mobile.png'});
+   await page.setViewportSize({width:1440,height:900});
    await fashion.locator('.wardrobe-item').click();
-   assert.equal(await fashion.locator('.wardrobe-item').count(),2,'Multiple saved views are available');
+   assert.equal(await fashion.locator('.wardrobe-item').count(),2,'Saved collection opens its original photographs');
    await fashion.locator('.wardrobe-item').first().click();
    await fashion.locator('#fashion-wardrobe').waitFor({state:'hidden'});
    assert.equal(await fashion.locator('#garment-preview').isVisible(),true,'Outfit populates original garment field');
