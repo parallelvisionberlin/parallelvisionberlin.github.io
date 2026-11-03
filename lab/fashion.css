@@ -1277,3 +1277,68 @@ textarea::placeholder{white-space:nowrap}
 @media(prefers-reduced-motion:reduce){
  .wardrobe-launch,.wardrobe-item,.wardrobe-add-card,.wardrobe-create,.wardrobe-empty-action{transition:none}
 }
+
+/* In-archive creation: uses the existing private Elements upload/pack APIs. */
+.wardrobe-items.is-create{display:block;padding-top:27px;padding-bottom:32px}
+.wardrobe-create-form{
+ display:grid;grid-template-columns:minmax(0,.87fr) minmax(0,1fr);gap:clamp(24px,4vw,57px);
+ width:min(100%,1040px);margin:0 auto;align-items:start;
+}
+.wardrobe-upload-zone{
+ position:relative;box-sizing:border-box;display:flex;align-items:center;justify-content:center;
+ width:100%;min-height:410px;overflow:hidden;cursor:pointer;
+ border:1px solid rgba(235,226,210,.25);border-radius:5px;
+ background:linear-gradient(145deg,#272624,#171716);
+}
+.wardrobe-upload-zone:hover{border-color:#e8dece}
+.wardrobe-upload-zone:focus-within{outline:2px solid #e8dece;outline-offset:2px}
+.wardrobe-upload-zone input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.wardrobe-upload-zone img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#1c1b19}
+.wardrobe-upload-zone img[hidden]{display:none!important}
+.wardrobe-upload-invite{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:22px}
+.wardrobe-upload-plus{
+ display:grid;place-items:center;width:57px;height:57px;border:1px solid #8e8578;border-radius:50%;
+ color:#eee5da;font:300 32px/1 var(--font);
+}
+.wardrobe-upload-invite strong{font:italic 400 25px/1.2 var(--display);color:#f3ede5}
+.wardrobe-upload-invite small{font:400 11px/1.4 var(--font);color:#aaa194}
+.wardrobe-create-fields{min-width:0;display:flex;flex-direction:column;align-items:stretch;padding:4px 0}
+.wardrobe-form-eyebrow{color:#ada396;font:500 10px/1.35 var(--font);letter-spacing:.18em}
+.wardrobe-create-fields h3{margin:13px 0 9px;font:italic 400 clamp(37px,3.8vw,56px)/1.05 var(--display);color:#f4eee4}
+.wardrobe-create-fields > p:not(.wardrobe-new-status){margin:0 0 19px;color:#b6ada0;font:400 12px/1.6 var(--font);max-width:430px}
+.wardrobe-field-label{margin:0 0 7px;color:#d5ccbf;font:500 11px/1.3 var(--font)}
+.wardrobe-field-label span{font-weight:400;color:#9e968b}
+.wardrobe-create-fields input,.wardrobe-create-fields textarea{
+ box-sizing:border-box;width:100%;margin:0 0 17px;max-width:none;padding:11px 12px;min-height:43px;
+ border:1px solid rgba(235,227,214,.28);border-radius:4px;color:#f2ede5;
+ background:#1b1b1a;font:400 12px/1.5 var(--font);
+}
+.wardrobe-create-fields textarea{resize:vertical;min-height:84px}
+.wardrobe-create-fields input:focus,.wardrobe-create-fields textarea:focus{outline:1px solid #ddd0bd;border-color:#ddd0bd}
+.wardrobe-create-fields input::placeholder,.wardrobe-create-fields textarea::placeholder{color:#817c75}
+.wardrobe-new-status{min-height:18px;margin:0 0 11px;color:#d6b7a6;font:400 11px/1.45 var(--font)}
+.wardrobe-form-actions{display:flex;justify-content:flex-end;gap:10px}
+.wardrobe-form-actions button{
+ display:inline-flex;align-items:center;justify-content:center;min-height:43px;padding:0 20px;
+ border:1px solid rgba(237,227,212,.28);border-radius:4px;
+ background:#1a1a19;color:#eee8de;font:500 12px/1.3 var(--font);
+}
+.wardrobe-form-actions button:hover{border-color:#f1e8dc}
+.wardrobe-form-actions button[type=submit]{border-color:#e9e0d3;background:#e9e0d3;color:#181715}
+.wardrobe-form-actions button[type=submit]:hover{background:#fff6e7}
+.wardrobe-form-actions button:disabled{opacity:.55;cursor:progress}
+.wardrobe-current-file{
+ align-self:flex-start;margin:0 0 16px;padding:0;border:0;border-bottom:1px solid #8f887c;
+ background:none;color:#d9d0c2;font:500 11px/1.5 var(--font);
+}
+.wardrobe-current-file:hover{color:#fff;border-color:#fff}
+@media(max-width:700px){
+ .wardrobe-items.is-create{padding:14px 17px 26px}
+ .wardrobe-create-form{display:flex;flex-direction:column;gap:20px}
+ .wardrobe-upload-zone{min-height:230px}
+ .wardrobe-create-fields{width:100%}
+ .wardrobe-create-fields h3{font-size:40px}
+ .wardrobe-upload-invite strong{font-size:22px}
+ .wardrobe-form-actions{gap:8px}
+ .wardrobe-form-actions button{flex:1;padding:0 10px}
+}
