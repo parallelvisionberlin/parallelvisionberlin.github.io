@@ -310,7 +310,11 @@
    are open, while staying in the main row when closed so it is always reachable. */
 @media(max-width:680px){
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
-  #image-composer.mobile-polish-ready:not(.is-pv-soul) #image-composer-edit-area{
+  #image-composer.mobile-polish-ready:not(.is-pv-soul) #image-composer-edit-area,
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul) #image-composer-edit-area:not([hidden]){
+    /* Match the expanded-state :is(#image-composer-edit-area,...) rule above
+       in specificity; otherwise it brings Retouch back with !important. */
     display:none!important;
   }
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
