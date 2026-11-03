@@ -1,3 +1,11 @@
+## 2026-11-03 | Mobile Image Inspiration / expanded prompt clearance
+
+- Approved user direction: preserve original Dream Blur/Vinyl Heat imagery, card height and width, Image deck and Generate controls. Recover the blank space between the title and cards. Expanded prompt must not resize the cards; move them further upward on taller phones so the editor has room.
+- Scoped `lab/mobile-image-compact-welcome.css`: mobile web only, >=690px viewport height. Signed-in and guest first-image carousels use negative top margins at rest and a further -35px in `.pv-deck-expanded`; card sizing, background, and other tools unchanged. Transition respects reduced motion.
+- `lab/studio.html`: version the single edited stylesheet. `tests/lab-mobile-mood-entry.mjs` asserts negative initial margin, additional rise on long prompt and identical photo height; existing mobile scroll and Generate checks remain.
+- Short phones under 690px retain their established compact/safe behavior. The fixed prompt still bounds its own scrolling, so no text can keep increasing its height indefinitely.
+- Working branch: `fix/pvlab-mobile-inspiration-clearance-20261103`. Source edits and test assertions are committed; browser CI, Cloudflare deployment and actual iPhone result require independent confirmation. No provider requests or paid jobs made.
+
 # Image composer prompt: current state
 
 ## PV Soul deck alignment, 2026-10-31
