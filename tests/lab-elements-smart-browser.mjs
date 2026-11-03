@@ -41,7 +41,7 @@ const nina={id:id(2),name:'PVSCENE1|characters|Nina FOK',created_at:Date.now(),
     signature:'Preserve the facial geometry, hairline, eye spacing and distinctive facial structure.',
     landmarks:['dark hair'],shots:[0,1,2,3,4,5,6,7].map(i=>({index:i,description:'portrait angle',keywords:['portrait']}))}
 };
-const media=readFileSync('lab/scene-hero-art/locations.webp');
+let media=readFileSync('lab/scene-hero-art/locations.webp');
 const savedPacks=[room,nina];
 let nextUpload=20000,saveCount=0;
 const browser=await chromium.launch({headless:true});
@@ -335,6 +335,13 @@ try{
 
   // Configure the existing Video handlers directly in this mock-only fixture.
   // Model-menu presentation is covered by the independent Video browser suite.
+  // The existing location banner is 6:1, outside Seedance's real input limits.
+  // Use a deterministic 512x640 WebP fixture for Video; keep validation enabled.
+  media=Buffer.from(await page.evaluate(()=>{
+    const canvas=document.createElement('canvas');canvas.width=512;canvas.height=640;
+    const context=canvas.getContext('2d');context.fillStyle='#777';context.fillRect(0,0,512,640);
+    return canvas.toDataURL('image/webp').split(',')[1];
+  }),'base64');
   await page.evaluate(()=>window.__elementVideo());
   await page.locator('#scene-grid [aria-label="Preview Nina FOK"]').click();
   await page.locator('#scene-feature [data-scene-use]').click();

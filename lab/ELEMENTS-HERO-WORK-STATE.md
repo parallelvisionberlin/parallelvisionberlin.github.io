@@ -23,7 +23,8 @@
 - New tests cover Base deletion/replacement, legacy incorrect Character Base roles, full role/note preservation, batch insertion order and explicit Base selection. Approved Image contract and focused order/Element/preview/prewarm checks passed (28 local tests).
 - Browser CI at `110384a` completed all Image/Qwen/notes assertions, then stopped at a collapsed Video output panel. The fixture now explicitly opens that existing panel before choosing its model; all assertions remain.
 - Owner explicitly requested finishing all pending changes and production publication. At `35c2b03`, browser CI passed the complete Image/Base replacement scenarios before encountering unrelated Video output-control visibility in the fixture. The Video fixture now configures the existing handlers directly to verify the shared eight-photo handoff; separate Video UI suites retain presentation coverage.
-- Latest local focused run: 51 tests passed. Next: verify the completed eight-photo/Base browser check, review baseline CI failures, publish and verify exact Cloudflare and Worker evidence.
+- At `d0b0182`, Image/Base assertions passed again. Video exposed the fixture location banner being 6:1, correctly rejected by Seedance. The fixture now supplies a deterministic 512x640 WebP for Video, retaining all provider input validation.
+- Latest local focused run: 51 tests passed. Main branch is unprotected, with no required status checks; its broad CI already records the unrelated failures listed above. Next: verify the completed eight-photo/Base browser check, publish and verify exact Cloudflare and Worker evidence.
 
 ## Active mobile detail repair, 2026-11-02
 - Request: repair overflowing saved Character details on phones; preserve other category overviews.
