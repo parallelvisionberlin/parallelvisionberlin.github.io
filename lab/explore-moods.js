@@ -53,7 +53,8 @@ function initialize(){
     if(resultURL)URL.revokeObjectURL(resultURL);
     resultURL=null;resultBlob=null;resultOutputId=null;
     result.hidden=true;result.classList.remove('is-visible');
-    dialog.classList.remove('is-result-view');
+    dialog.classList.remove('is-result-view','is-credit-offer');
+    dialog.querySelector('.mc-photobooth-section').textContent='MOOD ATLAS';
     resultImg.hidden=true;resultImg.removeAttribute('src');resultActions.hidden=true;
     $('mc-look-result-again').hidden=true;
     $('mc-look-result-history').hidden=true;
@@ -139,6 +140,7 @@ function initialize(){
   async function refreshResultBalance(){
     const stamp=++balanceRevision,serial=runSerial;
     resultNeedsCredits=false;
+    resultPack.hidden=true;dialog.classList.remove('is-credit-offer');
     try{
       const client=await generationService();
       const state=await client.accountState?.();
@@ -149,7 +151,19 @@ function initialize(){
       resultNeedsCredits=!!(valid&&state.billingReady&&!state.billingReview&&!state.accountClosed&&!state.promotionReview&&
         (state.trialGenerationPaused||(Number.isSafeInteger(resultCreditCost)&&state.balanceCredits<resultCreditCost)));
       resultPack.hidden=!resultNeedsCredits;
-      if(resultNeedsCredits)void localizePrices(resultPack);
+      dialog.classList.toggle('is-credit-offer',resultNeedsCredits);
+      $('mc-look-result-again').hidden=resultNeedsCredits;
+      if(resultNeedsCredits){
+        // Use the completed job's bound 1K price, never a generic image estimate.
+        const cost=resultCreditCost,count=Number.isSafeInteger(cost)&&cost>0?Math.floor(300/cost):0;
+        $('mc-look-pack-count').textContent=count>0?count+' more '+(count===1?'image.':'images.'):'Keep creating.';
+        $('mc-look-pack-context').textContent=mood.name+' · 1K resolution';
+        $('mc-look-pack-estimate').textContent=count>0
+          ?count+' '+(count===1?'image':'images')+' at '+cost+' credits each. Other settings may use more credits.'
+          :'Image count depends on your settings.';
+        dialog.querySelector('.mc-photobooth-section').textContent=mood.name;
+        void localizePrices(resultPack);
+      }
     }catch{ /* A fresh bound quote still enforces access and balance on Generate. */ }
   }
   function generationService(){
