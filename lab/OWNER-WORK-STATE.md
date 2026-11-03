@@ -8,7 +8,10 @@
 - Coverage copy explicitly separates the newly measured audience sample from older traffic totals, handles singular units and explains public-page versus owner-page collection. Added a local Refresh control for the audience section using the existing authenticated report request.
 - Changed: `lab/owner.js`, `lab/owner.css`, `lab/owner.html`, `tests/lab-owner-mobile-browser.mjs`, this checkpoint. Cache marker `20261103-audience3`. No backend/data/privacy/account/billing change.
 - Checks: 23 focused traffic/auth/privacy/Image-contract tests pass; syntax/diff whitespace pass. Existing seven-width Owner browser suite also verifies bar proportions after metric changes and the coverage explanation.
-- Publication pending. Next: publish through scoped PR, review relevant CI, verify exact Cloudflare Pages JS/CSS bytes and signed-in real audience rendering.
+- Published PR #809, source `ad9ae80d4755e6db997d3debe903fdb5f0906911`, merge `4de383d3b7c9e91c295f202393a3dc3e119deebf`; exact tested/uploaded tree `d4c1087e2a03b5d967b312581dba17d46f5bedad`.
+- Owner CI jobs 125953889665 (PR) and 125954508264 (merge) passed at seven widths, including bar proportions. Promotions/security, Image contract, motion and validation passed. Broad sweep remains 971/974 with the same three previously verified unrelated failures; no gate disabled or test weakened.
+- Exact-merge Cloudflare Pages check 125955234828 succeeded; scoped release verifier returned LIVE_VERIFIED for owner.js and owner.css at `20261103-audience3`. SHA256: JS `6af876e13404975280199d5d07b907c7781fcfb2d188b56be3f49beb43490180`; CSS `e772bc29de8dc56043fe7a6576707e168913306e6980752af8ef410669e7c8fd`.
+- Actual signed-in production verified count 1291, one audience QA entry, new bar rows, clear sample/older-total copy, adjacent Refresh and metric switching with correct singular page-view text. No backend redeploy required. Complete.
 
 ## Audience report hierarchy and full-width rows, 2026-11-03
 - User approved refining the audience hierarchy, then explicitly requested full-width rows instead of side-by-side column boxes.
