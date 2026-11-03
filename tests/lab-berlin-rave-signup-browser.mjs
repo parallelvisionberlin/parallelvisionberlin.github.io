@@ -12,7 +12,7 @@ const listeners=new Set();function session(){return{id:'sess_Campaign',getToken:
 window.__raveAccount ||= account;export const isNativeLab=()=>false;export const loadLabAccount=async()=>window.__raveAccount;`;
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined});
 try{
-for(const width of [390,1440])for(const returning of [false,true]){
+for(const width of [320,390,1440])for(const returning of [false,true]){
   const context=await browser.newContext({viewport:{width,height:900},isMobile:width===390,hasTouch:width===390}),page=await context.newPage();
   let initialized=returning,grants=0,jobs=0,uploads=0,quotes=0,balance=40;const errors=[];
   await page.addInitScript(returning=>{window.__returning=returning;localStorage.setItem('pv-lab-meta-consent','denied');},returning);
@@ -40,7 +40,7 @@ for(const width of [390,1440])for(const returning of [false,true]){
     const pathname=url.pathname==='/moods'?'/moods.html':url.pathname.replace(/^\/lab\//,'/');
     const path=resolve(root,'.'+pathname);
     if(!path.startsWith(root+'/')||!existsSync(path))return route.fulfill({status:404,body:''});
-    const type=({'.html':'text/html','.js':'text/javascript','.css':'text/css','.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp'})[extname(path)]||'application/octet-stream';
+    const type=({'.html':'text/html','.js':'text/javascript','.css':'text/css','.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml'})[extname(path)]||'application/octet-stream';
     return route.fulfill({contentType:type,body:readFileSync(path)});
   });
   const url='https://pvlab.studio/moods?mood=berlin-rave&campaign=berlin-rave';
@@ -71,14 +71,31 @@ for(const width of [390,1440])for(const returning of [false,true]){
   await page.locator('#mc-look-continue').click();
   await page.locator('#mc-look-result-pack').waitFor({state:'visible'});
   assert.equal(jobs,2);assert.equal(balance,0);assert.equal(uploads,1,'Original photo is retained');
+  assert.equal(await page.locator('#mc-look-pack-count').textContent(),'15 more images.','300 / actual 20-credit quote, not a hardcoded 12');
+  assert.equal(await page.locator('#mc-look-pack-context').textContent(),'Berlin Rave · 1K resolution');
+  assert.match(await page.locator('.mc-credit-terms').textContent(),/One-time payment.*No subscription/s);
+  assert.equal(await page.locator('#mc-look-result-again').isVisible(),false,'One primary pack action after exhaustion');
+  assert.equal(await page.locator('.mc-look-dialog-media').isVisible(),false,'Do not repeat the Mood poster above the finished photo');
+  assert.equal(await page.locator('.mc-credit-plans').getAttribute('href'),'./#pricing');
+  await page.locator('.mc-photobooth-header img').waitFor({state:'visible'});
+  assert.ok(await page.locator('.mc-photobooth-header img').evaluate(el=>el.complete&&el.naturalWidth>0),'Canonical logo loads in exhausted-credit view');
+  const layout=await page.locator('#mc-look-dialog').evaluate(d=>{
+    const box=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom};};
+    return {dialog:box(d),art:box(d.querySelector('.mc-look-result-artwork')),offer:box(d.querySelector('#mc-look-result-pack')),overflow:d.scrollWidth>d.clientWidth+1};
+  });
+  assert.equal(layout.overflow,false,'No horizontal offer overflow');
+  assert.ok(layout.dialog.x>=0&&layout.dialog.right<=width,'Dialog stays in viewport');
+  assert.ok(width>700?layout.offer.x>=layout.art.right:layout.offer.y>=layout.art.bottom,'Desktop side by side, phone stacked');
   const resultBefore=await page.locator('#mc-look-result-image').getAttribute('src');
   const popupPromise=page.waitForEvent('popup');
-  await page.locator('#mc-look-result-again').click();
+  await page.locator('.mc-credit-buy').click();
   const popup=await popupPromise;await popup.waitForLoadState();
   assert.equal(popup.url(),'https://pvlab.studio/account.html?pack=topup3#balance');
   assert.equal(page.url(),url);assert.equal(jobs,2,'No automatic checkout or generation');
   assert.equal(await page.locator('#mc-look-result-image').getAttribute('src'),resultBefore);
   assert.equal(await page.locator('#mc-look-file-label-text').textContent(),'campaign-source.png');
+  const reject=page.getByRole('button',{name:'Reject',exact:true});
+  if(await reject.isVisible())await reject.click();
   await page.screenshot({path:'/tmp/pv-rave-conversion/result-'+width+'-'+returning+'.png'});
   // Simulate a completed external purchase in the wallet, not a payment request.
   balance=300;await popup.close();await page.bringToFront();

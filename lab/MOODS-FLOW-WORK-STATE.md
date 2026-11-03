@@ -1,3 +1,19 @@
+## Approved exhausted-credit offer / 2026-11-03
+
+- Alejandro approved the desktop/mobile mockup and requested canonical logo + implementation after credits run out.
+- Reference: PV LAB Berlin Rave Credit Offer.png, Library libfile_908ab5734d3c81919339ec564dc41983.
+- Baseline: main d979a24dd06bf8b0c14ecff27267bbca4669c589; isolated branch feat/mood-credit-offer-20261103.
+- Offer appears only for a completed Mood result with fresh verified insufficient balance and existing billing/review guards.
+- Canonical branding/pvlab-wordmark-bold.svg, retained generated photo, desktop side-by-side offer, stacked phone view.
+- Headline uses floor(300 / completed quote creditCost), with explicit Mood and 1K resolution. At 25 credits this means 12 images; the 20-credit browser fixture must say 15.
+- One-time EUR3/300-credit pack, no subscription, one primary Get 300 credits action and View all plans.
+- Existing account pack focus in a separate tab preserves the local original/result; return refreshes balance without generating.
+- No provider, generation, free-credit policy, billing, wallet, pricing or other Studio changes.
+- Files: moods.html, explore-moods.js, new mood-credit-offer.css, existing Berlin Rave signup browser test, this checkpoint.
+- Local: JavaScript syntax, whitespace and approved Image UI contract 5/5 passed.
+- Extended existing synthetic signup/purchase-return test to 320/390/1440px, canonical logo, dynamic count, no horizontal overflow and responsive layout.
+- CI, screenshot review and production release pending. No real payment or paid generation used.
+
 ## Approved payment flow implementation, 2026-11-02
 
 - Alejandro approved the visual flow and explicitly requested implementation.
