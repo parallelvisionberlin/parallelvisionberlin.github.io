@@ -7,7 +7,7 @@
 - `lab/native-account.js` keeps the 12-second SDK/UI and session bounds, explicit UI load validation, and non-sensitive `AUTH-SDK`, `AUTH-UI`, `AUTH-SESSION`, `AUTH-LOAD` recovery messages. Native bridge path unchanged.
 - `lab/lab.js` and `lab/studio-guest-image.js` display the safe error text in the existing recovery UI; no layout, user history, credit, prices, generation or Stripe behavior changes.
 - Scoped version references updated in `lab/studio.html`, `lab/index.html`, `lab/customer-entry.js`, `lab/account.html` and `lab/account.js` to avoid serving cached bootstrap.
-- `tests/pvlab-clerk-bootstrap.test.mjs` tests primary success, fallback success, both sources blocked, privacy-safe messaging and Studio/guest wiring.
+- `tests/lab-clerk-bootstrap.test.mjs` tests primary success, fallback success, both sources blocked, privacy-safe messaging and Studio/guest wiring.
 - Actual source function was exercised with injected fake browser: primary succeeded without fallback; blocked primary used fallback; failed scripts were removed; both blocked returned `AUTH_SDK`. This is mocked evidence, not real iOS/Safari or production DNS/Clerk evidence.
 - Branch: `fix/pvlab-clerk-browser-bootstrap-20261103` from current main. Merge, exact Cloudflare Pages result, production bytes and actual iOS sign-in require separate verification.
 - Commercial: continue paused Meta spend until real sign-in works; registered-user count alone cannot establish sales lost to this issue.
