@@ -170,7 +170,7 @@ async function wThumb(ref,frame,version){
   }catch{/* Missing preview does not block using an Outfit. */}
 }
 function wStartCreate(){
-  if(wChoosing||wSaving)return;
+  if(wChoosing||wSaving||wCreating)return;
   wPack=null;wCreating=true;wClearDraft();wRender();
 }
 function wRenderCreate(){
@@ -221,14 +221,14 @@ function wRenderCreate(){
       const transfer=new DataTransfer();transfer.items.add(currentGarment);input.files=transfer.files;
       input.dispatchEvent(new Event('change',{bubbles:true}));
     });
-    $('wardrobe-upload-invite').append(prompt);
+    $('wardrobe-create-form').querySelector('.wardrobe-create-fields > p')?.after(prompt);
   }
   $('wardrobe-new-name').focus();
 }
 async function wSaveOutfit(){
   if(wSaving||!authenticated||!wCreating)return;
   const input=$('wardrobe-new-file'),file=input.files?.[0];
-  const title=$('wardrobe-new-name').value.replace(/[<>|\\u0000-\\u001f]/g,' ').replace(/\\s+/g,' ').trim().slice(0,76);
+  const title=$('wardrobe-new-name').value.replace(/[<>|\u0000-\u001f]/g,' ').replace(/\s+/g,' ').trim().slice(0,76);
   const note=$('wardrobe-new-note').value.trim().slice(0,120),feedback=$('wardrobe-new-status');
   if(!title){feedback.textContent='Name your outfit before saving.';return}
   if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||!file.size||file.size>20*1024*1024){
