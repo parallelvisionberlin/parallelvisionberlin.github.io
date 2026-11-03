@@ -91,6 +91,12 @@ try{
       assert.equal(resting.bodyOverflow,'hidden','Body must not rubber-band: '+JSON.stringify(resting));
       assert.ok(resting.scrollHeight<=height+4,'Resting guest Image fits the phone viewport: '+JSON.stringify(resting));
       assert.ok(resting.cardBottom<resting.deckTop-3,'Mood photographs clear the fixed deck: '+JSON.stringify(resting));
+      const idleCards=await page.evaluate(()=>{
+        const card=document.querySelector('#pv-guest-cards .pv-guest-card');
+        const shelf=document.querySelector('#gate .pv-guest-carousel');
+        return {height:card.getBoundingClientRect().height,margin:parseFloat(getComputedStyle(shelf).marginTop)};
+      });
+      if(height>=690)assert.ok(idleCards.margin<0,'Tall phone reclaims unused hidden-copy space without shrinking cards');
       assert.ok(resting.headerHeight>=76&&resting.headerHeight<=80,'Guest masthead stays stable: '+JSON.stringify(resting));
       await page.mouse.wheel(0,950);
       assert.equal(await page.evaluate(()=>window.scrollY),0,'A swipe cannot reveal blank space');
@@ -112,6 +118,15 @@ try{
       assert.notEqual(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
         'Text focus must allow keyboard-safe scrolling');
       let long=await metrics();
+      if(height>=690){
+        const expandedCards=await page.evaluate(()=>{
+          const card=document.querySelector('#pv-guest-cards .pv-guest-card');
+          const shelf=document.querySelector('#gate .pv-guest-carousel');
+          return {height:card.getBoundingClientRect().height,margin:parseFloat(getComputedStyle(shelf).marginTop)};
+        });
+        assert.ok(Math.abs(expandedCards.height-idleCards.height)<1,'Expanding prompt never resizes inspiration photography');
+        assert.ok(expandedCards.margin<idleCards.margin-20,'Long prompt moves inspiration higher, not smaller');
+      }
       assert.ok(long.prompt.height>=100&&long.prompt.height<=133,'Long public prompt stays bounded');
       assert.ok(long.generate.bottom<=height&&long.doc<=width+1,'Long prompt does not clip Generate or widen the page');
       await field.press('Tab');
