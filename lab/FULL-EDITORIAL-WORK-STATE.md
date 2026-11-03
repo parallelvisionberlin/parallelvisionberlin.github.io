@@ -1,21 +1,25 @@
 ## 2026-11-03 / mobile web casting editorial (concept 01)
-- Owner approved concept 01 from three mockups, scoped to phone browser. No decorative arrows.
-- Baseline main `8460965ee49492e4aae3058e13f7c9ace05b76bc`; isolated branch `feat/editorial-mobile-casting`.
-- Phone web up to 600 px: compact four-step rail replaces duplicate Identity hero; two-column real portrait grid, compact Upload yours, Casting/My characters tabs and expandable search.
-- Original five casting photographs retained. Generated proposal portraits are not shipped as casting assets.
-- Empty selected-cast box and oversized upload tile hidden only on phone web. Selected group detail/removal and multi-model composition remain available below grid.
-- Fixed safe-area footer retains Back, selected thumbnail/count and existing Continue action. All phone workflow decorative arrows hidden; no new arrow icons.
-- Desktop/tablet above 600 px and native bridge layout retain their existing presentation. Entry hero, provider prompts, quotes, pricing and generation logic unchanged.
+- Owner approved concept 01, scoped to phone browser. Reference mockup: `libfile_724db2d1c10881918eb7de774e9c07df`. No decorative arrows.
+- Baseline main `8460965ee49492e4aae3058e13f7c9ace05b76bc`; published PR #816.
+- Reviewed source `a652d67931eb2f5c70a3ccfd675b6d4593383774`; production merge `c0f2d9b786ce2bb7dcbb4b113c8be84ec987b3fe`.
+- Phone web up to 600 px: compact Identity/Styling/Scene/Series rail replaces the duplicate hero; two-column real casting grid, Upload yours, Casting/My characters tabs and expandable search.
+- Original five casting photographs retained. Generated mockup portraits are not selectable production assets.
+- Empty cast box and oversized upload tile hidden on phone web. Selected group detail/removal, saved characters and multi-model composition remain available.
+- Safe-area footer keeps Back, selected thumbnail/count and text-only Continue. Phone workflow decorative arrows hidden. Narrow footer guidance wraps without overlap.
+- Desktop/tablet above 600 px, native bridge layout, arrival hero, model settings, pricing and provider generation behavior preserved.
 - Sources: `full-editorial-mobile-casting.css`, `full-editorial.html`, presentation helpers in `full-editorial.js`, existing `tests/lab-full-editorial-browser.mjs`.
-- Browser suite now checks grid/overflow/footer/arrow geometry at 320/390/600, search, file chooser and normal selection, plus retained desktop flow and mocked generation safeguards.
-- First remote run exposed legacy `display:flex!important` forcing the new toolbar controls into separate rows on phone. The scoped grid now overrides that legacy rule, without relaxing the geometry assertion; per-width screenshots and geometry are captured before assertions.
-- Remote phone grid, footer, search and file-picker checks passed at 320/390/600; desktop complete generation flow passed. Reviewed actual screenshots; shortened only phone rail labels to Scene/Series and allowed footer guidance to wrap to prevent 320 px overlap. Updated the existing footer-plus assertion to cover its approved phone replacement, Upload yours.
-- Verification so far: 23/23 existing approved Image, Full Editorial and handoff source tests; JS syntax and diff whitespace passed.
-- Local browser execution unavailable: Playwright Chromium download was blocked/truncated in this environment. Remote browser CI and screenshots remain required before visual verification.
-- Remote initial Full Editorial run stalled more than six minutes in a full-repository checkout. Workflow now checks out only the source, tests, fonts and original photographs used by this suite; all test commands remain unchanged, and both casting CSS paths trigger it.
-- Preview `https://f33b9b31.pvlab-studio.pages.dev/full-editorial` loaded; public desktop selection of Silver works without generating. Preview authentication cannot be verified because Clerk production keys restrict the preview domain.
-- No paid generation, customer data change, main merge or production deployment performed.
-- Next: run remote desktop/phone browser suite, inspect screenshots, then review release through existing Cloudflare protocol.
+- Workflow checkout limited to the actual source, tests, fonts and original photo fixtures after the full-repository checkout stalled. No test command removed; both casting CSS files trigger the workflow.
+- Verification: 23/23 source/approved Image/handoff tests, JS syntax and diff whitespace passed.
+- Final remote Full Editorial workflow `41716655419` passed: complete desktop/phone mocked flow, saved characters, add/remove views, composition, quote expiry/staleness, double-click and uncertain-submission safeguards.
+- Phone geometry at 320/390/600 px passed: two columns, no horizontal overflow, fixed 48 px Continue and no arrow; search/upload picker passed.
+- Actual 320 px and selected 390 px screenshots inspected. Local Chromium installation was unavailable; remote browser CI supplied the visual evidence.
+- Cloudflare Pages app `cloudflare-workers-and-pages` confirmed SUCCESS for the exact merge SHA; check `126207006397`, pvlab-studio deployment `b5f682f0-ec3b-4371-86f8-b70838094fd1`.
+- Production `https://pvlab.studio/full-editorial` returned 200 with `20261103-casting1` CSS and `mobileCasting=20261103-1` script markers.
+- Live CSS and JS returned 200 and exactly matched the merged source bytes. CSS SHA-256 `913b748dfed0f65afd761562fb3635dcb19eace04ba01614819c89bd317da69f`; JS `e128d45483bac7e65820f1b5381f81cc17b65b5b5ada17dfb98415bcb0ed2977`.
+- Public production browser confirmed the new stylesheet, loaded CSS rules, web-layout class and versioned script.
+- No paid generation or customer data changes. Real signed-in generation and native Safari behavior were not independently tested.
+- Broader CI has unrelated checkout-consent, Mood Atlas, ZenCreator and Video Start assertions; no unrelated source or gate changed.
+- Next: requested implementation is published and verified. Further phone styling changes require a new scoped request.
 
 ## 2026-11-02 / clear multi-model composition copy
 - Owner screenshot: composition choices are confusing after selecting more than one model.
