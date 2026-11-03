@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261103-audience2">
+<link rel="stylesheet" href="./owner.css?v=20261103-audience3">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -144,10 +144,10 @@
         <div class="owner-audience" aria-labelledby="owner-audience-title">
           <div class="owner-audience-heading">
             <div><span class="owner-index">LOCATION / TECHNOLOGY</span><h3 id="owner-audience-title">Your audience<span>.</span></h3></div>
-            <label class="owner-audience-metric" for="owner-audience-metric">Show<select id="owner-audience-metric"><option value="entrances">Estimated entries</option><option value="views">Page views</option></select></label>
+            <div class="owner-traffic-actions owner-audience-controls"><label class="owner-audience-metric" for="owner-audience-metric">Show<select id="owner-audience-metric"><option value="entrances">Estimated entries</option><option value="views">Page views</option></select></label><button type="button" id="owner-audience-refresh" aria-label="Refresh audience data">Refresh</button></div>
           </div>
           <p id="owner-audience-coverage" class="owner-audience-coverage" aria-live="polite" hidden></p>
-          <p id="owner-audience-empty" class="owner-audience-empty" role="status">Audience data will appear as new visits arrive.</p>
+          <p id="owner-audience-empty" class="owner-audience-empty" role="status">No audience visits recorded yet. New public-page visits populate this report.</p>
           <div id="owner-audience-content" hidden>
             <div class="owner-audience-grid owner-audience-locations">
               <section aria-labelledby="owner-audience-country-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-country-title">Countries</h4><span>Approximate</span></div><div id="owner-audience-country"></div></section>
@@ -290,6 +290,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261103-audience2"></script>
+<script type="module" src="./owner.js?v=20261103-audience3"></script>
 </body>
 </html>
