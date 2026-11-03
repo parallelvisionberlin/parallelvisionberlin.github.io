@@ -1,16 +1,21 @@
 ## 2026-11-03 / mobile spacing, quieter navigation and clean portraits
-- Owner approved the three follow-up tweaks after reviewing phone screenshot `libfile_cfe8757ad5108191805ace504b67e776`.
-- Baseline main `4329685683f4f1b32406926f95fbc8ec1acd0767`; branch `fix/editorial-mobile-breathing`.
-- Scope: phone browser up to 600 px only, preserving the approved two-column casting and all original photographs.
-- Header reduces to 60 px; Sign in remains available for guests, while Credits and My account remain accessible inside the existing mobile menu.
-- Back reuses the existing top navigation action as a discreet text link. Identity footer now holds only selection/count and Continue.
-- Tighter progress/title/tab spacing makes room for photographs. Continue remains fixed above the safe area.
-- Inspected original plum-cast03.webp: no internal rectangle. The prior inset caption gradient (12 px from left/bottom) created the unwanted box; gradient now reaches all bottom edges and no inner image border/outline is added.
-- Product files: `full-editorial-mobile-casting.css`, `full-editorial.html`; CSS cache version `20261103-casting2`. No generation JS, pricing, provider or account logic changes.
-- Updated existing browser tests for top Back, caption edge geometry, border-free photo, compact header, guest Sign in, and accessible Credits/account menu. Existing complete generation/credit tests retained.
-- Local verification: 23 source/approved Image/handoff tests passed; browser test syntax and diff whitespace passed.
-- Remote browser verification, publication and live bytes pending. No paid generation performed.
-- Next: inspect actual phone screenshots and relevant CI, then publish and verify Cloudflare/custom-domain source.
+- Owner approved follow-up tweaks after phone screenshot `libfile_cfe8757ad5108191805ace504b67e776`; published source is PR #818.
+- Baseline `4329685683f4f1b32406926f95fbc8ec1acd0767`; reviewed head `e184c7ac8c5504ccb41fdcc3f7dc1987e5fe467c`; merge `fa5d0c49a82acbfdd1364fee3ff789456a4a0c43`.
+- Phone browser <=600 px: compact 60 px header, tighter title/tab/progress spacing, discreet top Back and a footer with selection plus Continue.
+- Guests retain Sign in. Credits and My account remain accessible in the existing mobile menu; menu aligns with the shorter header.
+- Original `plum-cast03.webp` inspected: no interior rectangle. The unwanted box came from the inset name gradient; it now reaches both card edges/bottom and the image has no secondary border/outline.
+- Approved two-column portraits and all original source photographs retained. Desktop/native presentation, generation JavaScript, provider/pricing and billing routes preserved.
+- Product files: `full-editorial-mobile-casting.css`, `full-editorial.html`; CSS version `20261103-casting2`.
+- Existing browser suite updated for top Back, caption edge geometry, image border, header/menu and guest Sign in; no business safeguard removed.
+- Verification: Full Editorial workflow `41723431419` passed all 23 source/approved Image/handoff tests and complete desktop/phone mocked flow.
+- 320/390/600 px checks passed, including no overflow, fixed Continue, search, upload picker, saved characters, composition, stale/expired quotes, duplicate and uncertain-submission safeguards.
+- Actual 390 px guest and 320 px screenshots inspected: compact controls and clean portraits. No real paid generation or customer-data change.
+- Production `https://pvlab.studio/full-editorial` returned 200 with the new stylesheet marker and both account-menu links.
+- Live version-2 CSS returned 200 and exactly matched merge-source bytes; SHA-256 `13fbf292fa535186f20967e3ecf84b3218fc9f7a76f059d2a5a98ed7fbbd853f`.
+- Actual public browser confirmed the version-2 stylesheet loads, its CSS rules are available, the web-layout class is active and both menu destinations are correct.
+- Cloudflare Pages check `126223657480` still reported `in_progress` at final verification, despite the custom domain serving the exact updated HTML/CSS. Do not describe that app check as successful.
+- Cloudflare project `pvlab-studio`, deployment `f0891377-3c13-4d8f-b86d-f92592c2d01a`. No manual/duplicate deployment was requested.
+- Requested UI is available on the custom domain; deployment-app completion metadata remains unconfirmed. Native Safari and real signed-in generation were not independently tested.
 
 ## 2026-11-03 / mobile web casting editorial (concept 01)
 - Owner approved concept 01, scoped to phone browser. Reference mockup: `libfile_724db2d1c10881918eb7de774e9c07df`. No decorative arrows.
