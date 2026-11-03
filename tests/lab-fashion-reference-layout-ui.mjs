@@ -38,18 +38,26 @@ try{
   await context.route('**/native-account.js*',route=>route.fulfill({contentType:'text/javascript',body:account}));
   const page=await context.newPage(),errors=[],calls=[];
   let uploads=0,submits=0;
+  const mockPacks=[{name:'PVSCENE1|outfits|Atelier Coat',refs:[{id:sourceIds[1],name:'Front'},{id:'44444444-4444-4444-8444-444444444444',name:'Detail'}]}];
   page.on('pageerror',e=>errors.push(e.message));
   await context.route('https://**/*',async route=>{
    const req=route.request(),url=new URL(req.url()),path=url.pathname;
    if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
    calls.push({path,method:req.method(),body:req.postData()});
    if(path.startsWith('/api/assets/'))return route.fulfill({contentType:'image/webp',body:image});
+   if(path==='/api/packs'&&req.method()==='POST'){
+    const payload=req.postDataJSON();
+    const pack={id:'66666666-6666-4666-8666-666666666666',name:payload.name,
+      refs:payload.referenceSourceIds.map((id,i)=>({id,name:payload.referenceRoles[i]?.name||'Photograph'}))};
+    mockPacks.push(pack);
+    return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify(pack)});
+   }
    const data=path==='/api/session'?{owner:role==='owner',customer:role==='customer',generationReady:true,billingReady:true,balanceCredits:500,
      config:{enabled:true,customer:role==='customer',falEnabled:true,videoEngines:['seedance','wan'],upscaleEnabled:true}}:
     path==='/api/fashion/models'?{models:['fashnmax','fashn16','fluxvto'].map(id=>({id,available:true}))}:
     path==='/api/fashion/balance'?{connected:true,credits:{total:100,onDemand:100,subscription:0}}:
     path==='/api/jobs'?{jobs:[job],next:null}:
-    path==='/api/packs'?{packs:[{name:'PVSCENE1|outfits|Atelier Coat',refs:[{id:sourceIds[1],name:'Front'},{id:'44444444-4444-4444-8444-444444444444',name:'Detail'}]}]}:
+    path==='/api/packs'?{packs:mockPacks}:
     path==='/api/uploads'?{id:sourceIds[uploads++]}:
     path==='/api/fashion/quote'?{id:quoteId,estimatedUsd:.15,creditCost:20,expiresAt:Date.now()+600000,notice:'Confirm one generation.'}:
     path==='/api/fashion/submit'?(submits++,{job}):{items:[],jobs:[],packs:[],boards:[],models:[]};
@@ -245,6 +253,25 @@ try{
   assert.deepEqual(JSON.parse(calls.find(x=>x.path==='/api/fashion/submit').body),{quoteId,confirm:true});
   assert.equal(await fashion.locator('#download').isVisible(),true);
   assert.ok(await fashion.locator('#fashion-history .history-item').count()>0);
+  // Saving a garment is private storage, not a new provider generation.
+  if(role==='owner'){
+   const uploadedBeforeSave=uploads,submitsBeforeSave=submits;
+   await fashion.locator('#fashion-wardrobe-open').click();
+   await fashion.locator('#fashion-wardrobe-new').click();
+   await fashion.locator('#wardrobe-new-name').fill('Test editorial jacket');
+   await fashion.locator('.wardrobe-current-file').click();
+   await fashion.locator('#wardrobe-new-submit').click();
+   await fashion.locator('.wardrobe-detail-intro').waitFor({state:'visible'});
+   assert.match(await fashion.locator('.wardrobe-detail-intro h3').textContent(),/Test editorial jacket/);
+   assert.equal(uploads,uploadedBeforeSave,'Existing garment asset reused for saved Outfit');
+   assert.equal(submits,submitsBeforeSave,'Saving a reference never starts priced generation');
+   const saves=calls.filter(x=>x.path==='/api/packs'&&x.method==='POST');
+   assert.equal(saves.length,1,'One explicit Outfit save');
+   const payload=JSON.parse(saves[0].body);
+   assert.equal(payload.name,'PVSCENE1|outfits|Test editorial jacket');
+   assert.equal(payload.referenceRoles[0].role,'outfit');
+   await fashion.locator('#fashion-wardrobe-close').click();
+  }
   await fashion.locator('#fashion-history .history-item').first().click();
   assert.equal(submits,1,'History opens an existing result without generation');
   await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
