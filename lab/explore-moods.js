@@ -45,6 +45,10 @@ function initialize(){
   const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
   const resultActions=$('mc-look-result-actions');
   // Record an explicit offer click without changing the separate-tab checkout flow.
+  $('mc-look-result-again')?.addEventListener('click',()=>{
+    if(result.hidden||resultNeedsCredits)return;
+    void generationService().then(client=>client.trackMoodOffer?.('repeat_clicked')).catch(()=>{});
+  });
   resultPack.querySelector('.mc-credit-buy')?.addEventListener('click',()=>{
     if(!resultNeedsCredits)return;
     void generationService().then(client=>client.trackMoodOffer?.('offer_clicked')).catch(()=>{});
