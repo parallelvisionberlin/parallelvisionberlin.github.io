@@ -1,7 +1,7 @@
 import {videoInputAction} from './video-input-action.js?v=20261030-1';
 import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1&upscaleModelCards=pr486final1';
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
-import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261027-compact-f1&extendCharacter=20261031-1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1';
+import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261027-compact-f1&characterAllViews=20261103v1&extendCharacter=20261031-1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&eightiesFinish=20261024v1&hkCinema=20261025v1';
 import {preparePhotoInput,prepareUpscaleInput,prepareElementPhoto} from './photo-input.js?v=20261027-character-working1';
@@ -24,7 +24,7 @@ import {createVideoModelPicker} from './video-model-picker.js?v=20261028-soft-ed
 import {readProviderPolicyDetails} from './model-policy-preferences.js?v=20261028-1';
 import {videoCustomerQuoteLabels,videoCreditPreview} from './video-euro-pricing.js?creditPreview=20261029-1&v=20261024-credits1';
 import {imageModelLabel} from './model-labels.js?v=20261016-krea3-fashion1&nano21=1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3&hkCinema=20261025v1';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,AUTO_IMAGE_REINTERPRET_PROMPT,referenceGuidanceError,referenceRoleAdvisories,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?characterAllViews=20261103v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1&quality=20261016-fashion2&refOnlyDreamBlurFix=20261018v1&elements=20261018-visual-profile1&fisheye=20261020v1&hkRefs=20261023two1&photoOnlyAuto=20261022v3&hkCinema=20261025v1';
 import {createInspirationRotation,INSPIRATION_VARIATIONS,CHROME_COUTURE_DEFAULTS} from './inspiration-looks.js?v=20261019-chrome1&fisheyeCover=20261021v1&fisheyeY2K=20261024v1&chromeQwen20=20261031v1&dreamBlurExposure=20261102v2';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261018-girard-originals2&20261011-midnight-reverie1&flashStyle=20261018-inspiration1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261024default80&filmCapture=20261016-preserve1&moodDefault2k=20261017v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&kreaMoods=20261020v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&fisheyeCover=20261021v1&hkRefs=20261023two1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&dreamBlurCover=20261024v1&hkCinema=20261025v1&dreamBlurExposure=20261102v2';
 import {HONG_KONG_VARIANTS} from './hong-kong-variants.js?v=20261018-user-originals2&hkRestore=20261018v1&hkFidelity=20261018v2&hkRefs=20261023two1&hkCinema=20261025v1';
@@ -3230,8 +3230,8 @@ function renderReferences(){
       item.dataset.elementName=r.elementName||'';
       const count=references.filter(x=>x.elementId===r.elementId).length;
       const hint=document.createElement('small');
-      hint.textContent=type+' · '+(r.elementCount||count)+' saved photos';
-      hint.title=count+' reference photo'+(count===1?'':'s')+' chosen from '+(r.elementCount||count)+' saved for this scene. This is a visual reference, not a trained model.';
+      hint.textContent=type+' · '+count+' attached / '+(r.elementCount||count)+' saved photos';
+      hint.title=count+' reference photo'+(count===1?'':'s')+' will be sent with their saved notes. This is a visual reference, not a trained model.';
       fields.append(name,hint);
       const controls=document.createElement('div');controls.className='reference-actions';
       const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.setAttribute('aria-label','Remove '+type+' '+r.elementName);remove.disabled=busy;

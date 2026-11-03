@@ -1,5 +1,22 @@
 # PV LAB Saved References / compact F
 
+## Complete Character references, 2026-11-03
+- Owner request: send all eight saved Character photos and their saved notes instead of silently selecting two.
+- Inspected main `f3c344d01acc16415cdda4053ada90263f77fbcd`; no overlapping open Character-loader PR found.
+- `lab/scene-library.js`: Characters attach every saved photo in its original order for Image and Video. Other Element categories retain existing relevant-view selection.
+- A Character that exceeds available model slots is rejected before attachment; the message reports saved-photo count and available slots. No truncation or hidden contact sheet.
+- Qwen remains limited to three total photos. Eight-view Characters need a model with sufficient capacity; a Base and Mood references consume their existing slots.
+- Each photo retains its full saved note (up to the existing 300-character storage limit), role and Element metadata. Analysis hints use only remaining note space.
+- `lab/reference-guidance.js`: three or more Character references use the concise role map to preserve all notes within the existing prompt budget. Over-budget requests still stop before submission.
+- `lab/lab.js`: grouped references report attached and saved counts. Studio and module cache keys updated to `characterAllViews=20261103v1`.
+- Regression: eight original views, saved order, all 300-character notes, Base plus eight-view prompt budget, missing-photo rejection, Qwen/capacity rejection and unchanged other-Element selection.
+- Focused local checks: 35 tests passed, including approved Image UI, Element analysis/recovery, notes/covers, reference modes and Video grouping/removal. Syntax and diff checks passed.
+- Existing mock-only Elements browser suite now checks Qwen rejection, all eight Image input IDs/roles/notes and all eight Video input IDs/roles/notes.
+- Local Chromium unavailable: Playwright browser download returned an invalid archive. Browser execution and CI remain pending; no signed-in or paid provider generation performed.
+- Implementation commit: `df1c04f02bf113797338dbfe8a3c684ae340cccc` on local branch `fix/character-all-saved-photos-20261103`. Merge, Worker deployment and custom-domain publication have not occurred.
+- Owner explicitly approved pushing the completed change on 2026-11-03. The earlier upload-approval blocker is resolved; GitHub public visibility and connected admin/push access were verified.
+- Next: push the approved branch, open the PR and inspect CI/browser checks, then handle publication and exact Cloudflare/live verification separately.
+
 ## Active mobile detail repair, 2026-11-02
 - Request: repair overflowing saved Character details on phones; preserve other category overviews.
 - Inspected main `7839aa341caec03b384bf39800133f14e9f1a893`; no open overlapping Elements PR found.
