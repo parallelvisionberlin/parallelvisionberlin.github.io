@@ -11,7 +11,7 @@ async function api(path,sql){
 let failed=false;
 function check(name,ok){console.log((ok?'PASS: ':'FAIL: ')+name);if(!ok)failed=true;}
 const settings=await api('/workers/scripts/parallel-vision-lab/settings');
-for(const [name,value] of Object.entries({LAB_IMAGE_TRIAL_ENABLED:'true',LAB_WELCOME_CREDITS_ENABLED:'false',LAB_FREE_TRIAL_PAUSED:'true'})){
+for(const [name,value] of Object.entries({LAB_IMAGE_TRIAL_ENABLED:'false',LAB_WELCOME_CREDITS_ENABLED:'false',LAB_FREE_TRIAL_PAUSED:'false'})){
   check(name,settings.bindings.some(b=>b.name===name&&b.type==='plain_text'&&b.text===value));
 }
 const results=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',`SELECT
@@ -19,8 +19,10 @@ const results=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query
   EXISTS(SELECT 1 FROM lab_migrations WHERE id='0052-spend-all-image-trial-credits') AS migration_0052,
   EXISTS(SELECT 1 FROM lab_migrations WHERE id='0053-single-image-trial') AS migration_0053,
   EXISTS(SELECT 1 FROM lab_migrations WHERE id='0056-use-image-credit-balance') AS migration_0056,
+  EXISTS(SELECT 1 FROM lab_migrations WHERE id='0060-paid-signup-existing-wallets') AS migration_0060,
   EXISTS(SELECT 1 FROM lab_image_trial_controls WHERE id=1 AND started_at=1793487600000) AS berlin_cutoff,
-  EXISTS(SELECT 1 FROM lab_trial_program_controls WHERE id=1 AND welcome_enabled=0 AND free_generation_enabled=0) AS legacy_pause,
+  EXISTS(SELECT 1 FROM lab_trial_program_controls WHERE id=1 AND welcome_enabled=0 AND free_generation_enabled=1) AS signup_closed_existing_wallets_usable,
+  EXISTS(SELECT 1 FROM sqlite_master WHERE type='trigger' AND name='lab_trial_pause_new_welcome_claims' AND sql NOT LIKE '%lab_image_trial_controls%') AS no_welcome_exceptions,
   (SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' AND name IN ('lab_trial_pause_unpaid_job_inserts','lab_trial_pause_unpaid_job_activation') AND sql LIKE '%delta_credits=40%' AND sql LIKE '%$.type%' AND sql LIKE '%$.mode%' AND sql NOT LIKE '%lab_generation_finance%')=2 AS image_balance_database_guards,
   NOT EXISTS(SELECT 1 FROM lab_customers WHERE balance_credits<0) AS no_negative_balances,
   NOT EXISTS(SELECT 1 FROM lab_customers c WHERE c.balance_credits != COALESCE((SELECT SUM(e.delta_credits) FROM lab_credit_entries e WHERE e.customer_id=c.id),0)) AS wallet_ledger_reconciles,

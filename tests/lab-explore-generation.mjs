@@ -201,24 +201,38 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
  assert.equal(await button.isDisabled(),false,'Generate is available as soon as photo or direction is present');
  assert.equal(paid,0);
  if(scenario==='paused'||scenario==='review'){
-   await page.waitForFunction(()=>document.querySelector('#mc-look-dialog').classList.contains('is-generation-blocked'));
-   const action=page.locator('#mc-look-access-action');
-   assert.equal(await button.isDisabled(),true,'Blocked accounts cannot trigger an unusable Generate action');
-   assert.equal(await action.isVisible(),true,'Blocked users see a next step');
-   assert.equal(await action.getAttribute('target'),'_blank','Credits open separately, preserving the original uploaded photo');
-   assert.match(await action.textContent(),scenario==='paused'?/Add credits/:/Contact support/);
-   assert.match(await page.locator('#mc-look-status').textContent(),scenario==='paused'?/Choose a credit pack/:/account review/);
+   if(scenario==='paused'){
+     await page.waitForFunction(()=>document.querySelector('#mc-look-status').classList.contains('is-access-notice'));
+     assert.equal(await button.isDisabled(),false,'Unfunded users may deliberately open the €3 offer');
+     await button.click();
+     await page.locator('#mc-look-prepay').waitFor({state:'visible'});
+     assert.equal(await page.locator('.mc-prepay-buy').getAttribute('href'),'./account.html?pack=topup3#balance');
+     assert.match(await page.locator('.mc-prepay-lede').textContent(),/€3.*300 credits/);
+     assert.equal(await page.locator('#mc-look-file-label-text').textContent(),'source.png');
+   }else{
+     await page.waitForFunction(()=>document.querySelector('#mc-look-dialog').classList.contains('is-generation-blocked'));
+     const action=page.locator('#mc-look-access-action');
+     assert.equal(await button.isDisabled(),true,'Review holds prevent generation');
+     assert.equal(await action.isVisible(),true,'Review holds provide a next step');
+     assert.match(await action.textContent(),/Contact support/);
+     assert.match(await page.locator('#mc-look-status').textContent(),/account review/);
+   }
    assert.equal(await page.locator('#mc-look-result').isVisible(),false);
-   assert.equal(quotes,0,'Blocked customer is rejected before quoting');
-   assert.equal(uploads,0,'Blocked customer is rejected before original or style upload');
-   assert.equal(paid,0,'Blocked account never submits a paid job');
+   assert.equal(quotes,0,'Unfunded or reviewed accounts cannot quote');
+   assert.equal(uploads,0,'No source upload happens before payment');
+   assert.equal(paid,0,'No provider job is submitted');
    await page.screenshot({path:out+'/blocked-'+scenario+'.png'});
    assert.deepEqual(errors,[]);await page.close();console.log('PASS',scenario);
    continue;
  }
  if(scenario==='guest'){
    await page.waitForFunction(()=>document.querySelector('#mc-look-status').textContent.includes('Sign in'));
-   assert.equal(quotes,0);await button.click();await page.locator('#mock-signin').click();
+   assert.equal(quotes,0);await button.click();
+   await page.locator('#mc-look-prepay').waitFor({state:'visible'});
+   assert.equal(await page.locator('#mc-look-file-label-text').textContent(),'source.png');
+   assert.equal(uploads,0);assert.equal(quotes,0);assert.equal(paid,0);
+   assert.deepEqual(errors,[]);await page.close();console.log('PASS',scenario);
+   continue;
  }
  if(scenario!=='slowquote'){
    await page.waitForFunction(()=>document.querySelector('#mc-look-credit-note').hidden===false);

@@ -165,12 +165,13 @@ test('Gmail aliases cannot claim another image; paid customers retain generation
   f.addJob(b,'paid_image');
 });
 
-test('Berlin Rave quote shows exact balance and Add credits instead of unusable credits',()=>{
+test('Berlin Rave quote respects budgets and opens the prepaid Mood offer',()=>{
   const quote=read('..'+'/lab/app-mood-generation.js');
   const moods=read('..'+'/lab/explore-moods.js');
   assert.match(quote,/imageCredits>session\.balanceCredits/);
   assert.match(quote,/error\.code='INSUFFICIENT_CREDITS'/);
-  assert.match(moods,/error\.code==='INSUFFICIENT_CREDITS'/);
+  assert.match(moods,/paymentCodes\.has\(error\.code\)/);
+  assert.match(moods,/showPrepayOffer\(\)/);
 });
 
 test('unverified and disposable identities cannot claim; concurrent verified claims grant exactly 40',async t=>{
