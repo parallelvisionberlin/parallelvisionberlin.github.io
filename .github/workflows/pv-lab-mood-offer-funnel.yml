@@ -1,0 +1,38 @@
+name: PV LAB Mood offer funnel diagnostics
+on:
+  pull_request:
+    paths:
+      - 'lab-worker/mood-offer-funnel.mjs'
+      - 'lab-worker/migrations/0059-mood-offer-funnel.sql'
+      - 'lab-worker/worker.mjs'
+      - 'lab/app-mood-generation.js'
+      - 'lab/explore-moods.js'
+      - 'tests/lab-mood-offer-funnel.test.mjs'
+      - '.github/workflows/pv-lab-mood-offer-funnel.yml'
+  push:
+    paths:
+      - 'lab-worker/mood-offer-funnel.mjs'
+      - 'lab-worker/migrations/0059-mood-offer-funnel.sql'
+      - 'lab-worker/worker.mjs'
+      - 'lab/app-mood-generation.js'
+      - 'lab/explore-moods.js'
+      - 'tests/lab-mood-offer-funnel.test.mjs'
+      - '.github/workflows/pv-lab-mood-offer-funnel.yml'
+permissions:
+  contents: read
+jobs:
+  funnel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax and authenticated event/retention contract
+        run: |
+          node --check lab-worker/mood-offer-funnel.mjs
+          node --check lab-worker/worker.mjs
+          node --check lab/app-mood-generation.js
+          node --check lab/explore-moods.js
+          node --test tests/lab-mood-offer-funnel.test.mjs
