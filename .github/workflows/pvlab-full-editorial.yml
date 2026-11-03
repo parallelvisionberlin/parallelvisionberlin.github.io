@@ -7,6 +7,8 @@ on:
       - 'lab/editorial-model-handoff.js'
       - 'lab/character-home-upload.js'
       - 'lab/full-editorial.css'
+      - 'lab/full-editorial-atelier.css'
+      - 'lab/full-editorial-mobile-casting.css'
       - 'lab/studios-menu.js'
       - 'lab/studio.html'
       - 'tests/lab-full-editorial*'
@@ -20,6 +22,21 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/*/
+            /lab/*.html
+            /lab/*.css
+            /lab/*.js
+            /lab/branding/
+            /lab/fonts/
+            /lab/visuals/character-casting/
+            /lab/visuals/hero/pvlab-industrial-fashion-20261027.jpg
+            /tests/lab-full-editorial*
+            /tests/lab-approved-image-ui-contract.test.mjs
+            /tests/lab-landing-ui.cjs
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

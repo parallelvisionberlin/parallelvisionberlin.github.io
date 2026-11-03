@@ -10,6 +10,8 @@
 - Browser suite now checks grid/overflow/footer/arrow geometry at 320/390/600, search, file chooser and normal selection, plus retained desktop flow and mocked generation safeguards.
 - Verification so far: 23/23 existing approved Image, Full Editorial and handoff source tests; JS syntax and diff whitespace passed.
 - Local browser execution unavailable: Playwright Chromium download was blocked/truncated in this environment. Remote browser CI and screenshots remain required before visual verification.
+- Remote initial Full Editorial run stalled more than six minutes in a full-repository checkout. Workflow now checks out only the source, tests, fonts and original photographs used by this suite; all test commands remain unchanged, and both casting CSS paths trigger it.
+- Preview `https://f33b9b31.pvlab-studio.pages.dev/full-editorial` loaded; public desktop selection of Silver works without generating. Preview authentication cannot be verified because Clerk production keys restrict the preview domain.
 - No paid generation, customer data change, main merge or production deployment performed.
 - Next: run remote desktop/phone browser suite, inspect screenshots, then review release through existing Cloudflare protocol.
 
