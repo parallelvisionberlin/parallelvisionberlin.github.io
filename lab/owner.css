@@ -744,6 +744,11 @@ button.owner-inspect-media{cursor:pointer}
 .owner-audience-technical>summary:focus-visible{outline:2px solid #deded8;outline-offset:3px}
 .owner-audience-technical-grid{padding-top:4px}
 .owner-audience-technical-grid>section{padding-top:0;border-top:0}
+.owner-audience-sample-toggle{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:17px 0;border-top:1px solid #363834;border-bottom:1px solid #363834;color:#b8bbb4;font-size:12px;line-height:1.6;cursor:pointer;list-style:none}
+.owner-audience-sample-toggle::-webkit-details-marker{display:none}
+.owner-audience-sample-toggle>span:last-child{flex-shrink:0;color:#eeeae4;font-size:11px}
+.owner-audience-sample-toggle:focus-visible{outline:2px solid #deded8;outline-offset:3px}
+#owner-audience-content[data-compact=true] .owner-audience-detail-body{padding-top:18px}
 .owner-audience-empty{margin:22px 0;padding:24px 0;border-top:1px solid #363834;border-bottom:1px solid #363834;color:#a4a59d;font-size:12px;line-height:1.65}
 @media(max-width:1230px){
  .owner-traffic-breakdown{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:30px}

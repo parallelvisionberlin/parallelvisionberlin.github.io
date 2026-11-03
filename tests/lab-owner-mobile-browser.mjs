@@ -119,6 +119,19 @@ try{
       assert.match(await page.locator('#owner-audience-empty').innerText(),/Earlier traffic totals have no location or device data/);
       assert.equal(await page.locator('#owner-audience-content').isVisible(),false,'One shared empty state replaces all empty panels');
       assert.equal(await page.locator('#owner-audience-metric').isEnabled(),false,'Empty audience has no active metric selector');
+      await page.evaluate(()=>paintTrafficAudience({firstTrackedDay:'2026-11-03',dimensions:{
+        country:{totalEntrances:3,totalViews:3,items:[{value:'US',entrances:3,views:3}]}
+      }}));
+      assert.equal(await page.locator('#owner-audience-content').isVisible(),true,'Small sample has one compact disclosure');
+      assert.equal(await page.locator('#owner-audience-content').getAttribute('open'),null,'Small sample starts collapsed');
+      assert.equal(await page.locator('#owner-audience-country').isVisible(),false,'Small sample hides the tall report');
+      assert.match(await page.locator('#owner-audience-coverage').innerText(),/3 estimated entries/,'The real sample count remains visible');
+      await page.locator('#owner-audience-sample-toggle').click();
+      assert.equal(await page.locator('#owner-audience-country').isVisible(),true,'All details remain accessible');
+      await page.locator('#owner-audience-metric').selectOption('views');
+      assert.equal(await page.locator('#owner-audience-country').isVisible(),true,'Changing metric preserves an expanded small sample');
+      await page.locator('#owner-audience-sample-toggle').click();
+      await page.locator('#owner-audience-metric').selectOption('entrances');
       await page.evaluate(()=>paintTrafficAudience({
         firstTrackedDay:'2026-11-03',dimensions:{
           country:{totalEntrances:100,totalViews:250,items:[
@@ -142,6 +155,8 @@ try{
       assert.equal(await page.locator('#owner-audience-country .owner-traffic-source-fill').first().evaluate(el=>el.style.width),'100%','The leading audience bar fills its row');
       assert.match(await page.locator('#owner-audience-coverage').innerText(),/Earlier traffic totals have no audience breakdown/);
       assert.equal(await page.locator('#owner-audience-content').isVisible(),true);
+      assert.equal(await page.locator('#owner-audience-content').getAttribute('open'),'','Larger sample displays its report automatically');
+      assert.equal(await page.locator('#owner-audience-sample-toggle').isVisible(),false,'Larger sample has no collecting-state disclosure');
       assert.equal(await page.locator('#owner-audience-empty').isVisible(),false);
       assert.equal(await page.locator('#owner-audience-technical').getAttribute('open'),null,'Technical details starts collapsed');
       assert.equal(await page.locator('#owner-audience-browser').isVisible(),false);

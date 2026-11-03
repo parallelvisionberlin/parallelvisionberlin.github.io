@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261103-audience3">
+<link rel="stylesheet" href="./owner.css?v=20261103-audience4">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -148,7 +148,9 @@
           </div>
           <p id="owner-audience-coverage" class="owner-audience-coverage" aria-live="polite" hidden></p>
           <p id="owner-audience-empty" class="owner-audience-empty" role="status">No audience visits recorded yet. New public-page visits populate this report.</p>
-          <div id="owner-audience-content" hidden>
+          <details id="owner-audience-content" hidden>
+            <summary id="owner-audience-sample-toggle" class="owner-audience-sample-toggle" hidden><span>Collecting audience data</span><span id="owner-audience-sample-action">View details</span></summary>
+            <div class="owner-audience-detail-body">
             <div class="owner-audience-grid owner-audience-locations">
               <section aria-labelledby="owner-audience-country-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-country-title">Countries</h4><span>Approximate</span></div><div id="owner-audience-country"></div></section>
               <section aria-labelledby="owner-audience-city-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-city-title">Cities</h4><span>Approximate</span></div><div id="owner-audience-city"></div></section>
@@ -166,7 +168,8 @@
                 <section aria-labelledby="owner-audience-os-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-os-title">Operating systems</h4></div><div id="owner-audience-os"></div></section>
               </div>
             </details>
-          </div>
+            </div>
+          </details>
           <p class="owner-traffic-disclaimer">Locations are approximate; VPNs and mobile networks can affect accuracy. Counts describe traffic, not individual people or purchase attribution. Age and gender are not collected.</p>
         </div>
         <p class="owner-traffic-disclaimer" id="owner-traffic-disclaimer">Traffic statistics are approximate and start only after deployment.</p>
@@ -290,6 +293,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261103-audience3"></script>
+<script type="module" src="./owner.js?v=20261103-audience4"></script>
 </body>
 </html>

@@ -1,3 +1,13 @@
+## Compact initial audience sample, 2026-11-03
+- User approved a single small adjustment: compact collecting state with expandable existing details; preserve measurement and bar rows.
+- Baseline main `7f4492b967ab81fae0ee37e16e88ce09ffbda2ed`; branch `fix/audience-mini-state-20261103`. Concurrent ALTER Studio publication preserved. Open PRs checked before publication.
+- Read-only live D1 check now records 3 page views / 3 entries in the audience counters, rather than only the earlier QA visit. No claim made about whether those additional anonymous page loads represent customers or tests.
+- A native details disclosure keeps the real sample count visible and starts collapsed while the selected period has fewer than 10 recorded page loads. All existing bars remain accessible via View details. Ten is only a layout rule, never a statistical-confidence threshold.
+- Expanded choice survives metric changes/refresh while in the small-sample state. At 10+ page loads the full report displays automatically. Zero-data state and owner authorization remain unchanged.
+- Changed: `lab/owner.html`, `lab/owner.css`, `lab/owner.js`, `tests/lab-owner-mobile-browser.mjs`, this checkpoint. Cache marker `20261103-audience4`. No collector, billing, account, data or privacy changes.
+- Local validation: 23 focused traffic/auth/privacy/Image-contract tests, syntax and whitespace pass. Existing seven-width browser suite adds collapsed/expanded small-sample and automatic full-report transition coverage.
+- Publication pending. Next: publish scoped source, review relevant CI, verify exact Cloudflare Pages assets and actual signed-in three-record compact state.
+
 ## Audience tracker investigation and bar-row format, 2026-11-03
 - User reported no audience data/confusing coverage and supplied the existing Traffic source bars as the required visual reference.
 - Baseline main `6f1bec6b726795520c6795bcda26cdff1d30497f`; branch `fix/audience-bar-rows-clarity-20261103`. Prior scratch checkout was pruned; restored a sparse checkout from GitHub and read the scoped handoff.
