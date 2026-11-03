@@ -1,3 +1,14 @@
+## Commercial funnel instrumenting / 2026-11-03 (draft PR)
+
+- Objective: after 65 new accounts and 59 image-generating accounts but only 1 checkout in the 1–3 Nov cohort, measure the missing offer impression-to-click step. Meta attributed 26 registrations but has no per-customer join, so historical ad attribution cannot be reconstructed.
+- Do not alter prices, 40-credit grant, paid generation, Meta campaign status, approved Mood design, Stripe fulfillment, or customer balances. Do not run a real payment.
+- Isolated branch: `audit/pvlab-mood-offer-funnel-20261103` based on main. Changes are not production evidence.
+- Add authentication-bound, first-party `offer_viewed`, `offer_clicked` and `repeat_clicked` events for completed Mood image results, distinguishing a visible 3-euro offer from a funded user choosing Make another. Deduplicate per customer/event. No prompts, photos, emails, ad identifiers or card details are saved.
+- Existing `lab_generation_finance` remains authoritative for completed images and `lab_checkout_attempts` / Stripe for checkout and payment.
+- New migration `0059-mood-offer-funnel.sql`; daily cleanup of events older than 90 days. Privacy policy updated for this limited account-level diagnostic.
+- Paths: `lab-worker/mood-offer-funnel.mjs`, `worker.mjs`, migration, `schema.sql`, `lab/app-mood-generation.js`, `lab/explore-moods.js`, `lab/moods.html`, deployment workflow, privacy notice, scoped Node test and GitHub test workflow.
+- Next: verify dedicated CI and regression suites, inspect release evidence, then publish only after checks. No real 3-euro payment is authorized; a customer-controlled checkout remains separately untested.
+
 ## Approved exhausted-credit offer / 2026-11-03
 
 - Alejandro approved the desktop/mobile mockup and requested canonical logo + implementation after credits run out.

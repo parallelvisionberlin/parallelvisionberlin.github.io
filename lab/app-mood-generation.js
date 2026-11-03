@@ -48,6 +48,11 @@ export function createAppMoodGeneration(){
       if(!account?.isSignedIn||account.session?.id!==sessionId)return null;
       return state;
     },
+    async trackMoodOffer(event){
+      const user=await identity();
+      if(!user.isSignedIn)return null;
+      return api('/api/customer/mood-offer-event',{method:'POST',body:{event}});
+    },
     jobStatus(id){return api('/api/jobs/'+encodeURIComponent(id));},
     outputBlob(id){return api('/api/assets/'+encodeURIComponent(id),{blob:true});},
     previewBlob(id){return api('/api/jobs/'+encodeURIComponent(id)+'/preview',{blob:true});},

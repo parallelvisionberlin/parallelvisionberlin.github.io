@@ -44,6 +44,15 @@ function initialize(){
   const resultBalance=$('mc-look-result-balance'),resultPack=$('mc-look-result-pack');
   const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
   const resultActions=$('mc-look-result-actions');
+  // Record an explicit offer click without changing the separate-tab checkout flow.
+  $('mc-look-result-again')?.addEventListener('click',()=>{
+    if(result.hidden||resultNeedsCredits)return;
+    void generationService().then(client=>client.trackMoodOffer?.('repeat_clicked')).catch(()=>{});
+  });
+  resultPack.querySelector('.mc-credit-buy')?.addEventListener('click',()=>{
+    if(!resultNeedsCredits)return;
+    void generationService().then(client=>client.trackMoodOffer?.('offer_clicked')).catch(()=>{});
+  });
   let runSerial=0,activeJobId=null,resultURL=null,resultBlob=null,resultOutputId=null,waitNoteTimer=null;
   function clearResult(){
     clearTimeout(waitNoteTimer);waitNoteTimer=null;
@@ -155,6 +164,8 @@ function initialize(){
       dialog.classList.toggle('is-credit-offer',resultNeedsCredits);
       $('mc-look-result-again').hidden=resultNeedsCredits;
       if(resultNeedsCredits){
+        // Best-effort authenticated measurement; never block or alter the photo.
+        void client.trackMoodOffer?.('offer_viewed')?.catch(()=>{});
         // Use the completed job's bound 1K price, never a generic image estimate.
         const cost=resultCreditCost,count=Number.isSafeInteger(cost)&&cost>0?Math.floor(300/cost):0;
         $('mc-look-pack-count').textContent=count>0?count+' more '+(count===1?'image.':'images.'):'Keep creating.';
@@ -169,7 +180,7 @@ function initialize(){
   }
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?hkRealPhotos=20261018v2&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&trialBalance=20261102&conversionFlow=20261102-1&dreamBlurExposure=20261102v2').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?hkRealPhotos=20261018v2&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&trialBalance=20261102&conversionFlow=20261102-1&offerFunnel=20261103-1&dreamBlurExposure=20261102v2').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{
