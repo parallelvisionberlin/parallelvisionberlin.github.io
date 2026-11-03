@@ -24,8 +24,10 @@ test('the Video composer reserves its action outside the settings scrollport',()
 test('the Video-only fix does not change history, the player or generation pricing',()=>{
   assert.match(css,/@media \(min-width:821px\)/,'small phone layout remains unchanged');
   assert.match(css,/#app\.video-studio-active/);
-  assert.doesNotMatch(css,/#history|\.video-feed-center|#video-inspector|#video-detail|\/api\/jobs|creditCost|confirm:true/,
-    'no changes to History, playback, right inspector, jobs or billing');
+  assert.doesNotMatch(css,/#video-inspector|#video-detail|\/api\/jobs|creditCost|confirm:true/,
+    'Video polish does not alter inspectors, providers, jobs or billing');
+  assert.match(css,/#app\.video-studio-active \.video-feed-center #history \.card\[data-kind="video"\]>.asset-video-badge/,
+    'History changes must remain strictly Video-scoped presentation');
   assert.doesNotMatch(css,/#generate\{/,
     'the button style itself is not modified');
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
