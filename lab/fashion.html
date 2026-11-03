@@ -17,8 +17,8 @@ location.replace(fashionStudioUrl.href);
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./fashion.css?v=20261101-wardrobe1">
-<script type="module" src="./fashion.js?v=20261101-wardrobe1&prior=20261011-no-emoji1&studioAuth=20261015-1&optionalFastReady=20261015-1&creditCurrency=20261024v1&publicLabels=20261026&fashionPrice=20261026-inline1"></script>
+<link rel="stylesheet" href="./fashion.css?v=20261103-wardrobe-archive1">
+<script type="module" src="./fashion.js?v=20261103-wardrobe-archive1&prior=20261011-no-emoji1&studioAuth=20261015-1&optionalFastReady=20261015-1&creditCurrency=20261024v1&publicLabels=20261026&fashionPrice=20261026-inline1"></script>
 <link rel="stylesheet" href="/lab/site-footer.css?v=20261023-focused-tools1">
 </head>
 <body>
@@ -150,19 +150,28 @@ location.replace(fashionStudioUrl.href);
     <p id="status" class="status" role="status" aria-live="polite"></p>
    </section>
   </form>
-  <dialog id="fashion-wardrobe" class="fashion-wardrobe" aria-labelledby="fashion-wardrobe-title">
+  <dialog id="fashion-wardrobe" class="fashion-wardrobe" aria-labelledby="fashion-wardrobe-title" aria-describedby="fashion-wardrobe-subtitle">
    <div class="wardrobe-dialog-head">
-    <div><p class="wardrobe-eyebrow">PV LAB / ELEMENTS</p><h2 id="fashion-wardrobe-title">Wardrobe</h2>
-     <p class="wardrobe-subtitle">Saved Outfits. Select a garment reference to use here.</p>
+    <div class="wardrobe-heading">
+     <p class="wardrobe-eyebrow">PV LAB <span aria-hidden="true">/</span> PERSONAL ARCHIVE</p>
+     <h2 id="fashion-wardrobe-title">The Wardrobe.</h2>
+     <p class="wardrobe-subtitle" id="fashion-wardrobe-subtitle">Your private fashion archive. Saved looks, ready to wear again.</p>
     </div>
-    <button type="button" id="fashion-wardrobe-close" class="wardrobe-close" aria-label="Close Wardrobe">×</button>
+    <div class="wardrobe-header-actions">
+     <a class="wardrobe-create" href="./studio.html?tool=image" id="fashion-wardrobe-new">Add an outfit</a>
+     <button type="button" id="fashion-wardrobe-close" class="wardrobe-close" aria-label="Close Wardrobe">×</button>
+    </div>
    </div>
    <div class="wardrobe-dialog-tools">
-    <button id="fashion-wardrobe-back" type="button" class="wardrobe-back" hidden>‹ All outfits</button>
-    <input id="fashion-wardrobe-search" type="search" placeholder="Search outfits" aria-label="Search saved outfits" maxlength="80">
+    <button id="fashion-wardrobe-back" type="button" class="wardrobe-back" hidden>← The Wardrobe</button>
+    <div id="fashion-wardrobe-tabs" class="wardrobe-tabs" role="tablist" aria-label="Wardrobe view">
+     <button type="button" class="wardrobe-tab is-active" role="tab" id="fashion-wardrobe-tab-collections" aria-selected="true" aria-controls="fashion-wardrobe-items" data-wardrobe-tab="collections">Collections</button>
+     <button type="button" class="wardrobe-tab" role="tab" id="fashion-wardrobe-tab-photos" aria-selected="false" aria-controls="fashion-wardrobe-items" data-wardrobe-tab="photos">All photographs</button>
+    </div>
+    <label class="wardrobe-search-wrap"><span class="sr-only">Search saved outfits</span><input id="fashion-wardrobe-search" type="search" placeholder="Search your archive" aria-label="Search saved outfits" maxlength="80"></label>
    </div>
    <div id="fashion-wardrobe-items" class="wardrobe-items" role="region" aria-label="Saved outfits" aria-live="polite"></div>
-   <p class="wardrobe-footer">Synced with Elements / Outfits. Browsing uses no credits.</p>
+   <p class="wardrobe-footer">PRIVATE ARCHIVE <span aria-hidden="true">/</span> Synced with Elements · Browsing uses no credits</p>
   </dialog>
   <aside class="result-panel" aria-label="Generation result">
    <div class="section-header result-header"><h2>02 <span>/</span> Result</h2><span>OUTPUT PHOTOGRAPH</span></div>
