@@ -106,7 +106,8 @@ try{
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
    await page.locator('#editorial-start').click();
   }else{
-   assert.equal(await page.locator('.progress-top').isVisible(),false,'Mobile removes duplicate top controls');
+   assert.equal(await page.locator('#editorial-top-back').isVisible(),true,'Phone has one discreet Back above the compact progress');
+   assert.equal(await page.locator('#step-back').isVisible(),false,'Phone Identity footer contains only selection and Continue');
    assert.equal(await page.locator('.editorial-flow-rail').isVisible(),true,'Compact phone progress remains visible');
    assert.equal(await page.locator('#panel-model .stage-copy').isVisible(),false,'No duplicate portrait hero on phone');
    assert.equal(await page.locator('#model-drop').isVisible(),false,'Upload does not occupy a portrait slot');
@@ -116,12 +117,16 @@ try{
      const r=s=>document.querySelector(s).getBoundingClientRect();
      const cards=[...document.querySelectorAll('#casting-reference-gallery .atelier-reference')].map(e=>e.getBoundingClientRect());
      return {columns:getComputedStyle(document.querySelector('#casting-reference-gallery')).gridTemplateColumns.split(' ').length,
+      headerHeight:r('.editorial-header').height,captionLeft:r('#casting-reference-gallery .atelier-reference>span').left-cards[0].left,captionRight:cards[0].right-r('#casting-reference-gallery .atelier-reference>span').right,imageBorder:getComputedStyle(document.querySelector('#casting-reference-gallery .atelier-reference img')).borderTopWidth,
       top:cards[0].top,firstLeft:cards[0].left,secondLeft:cards[1].left,thirdTop:cards[2].top,firstBottom:cards[0].bottom,
       footerBottom:r('#step-footer').bottom,footerTop:r('#step-footer').top,continue:r('#step-next').height,
       arrow:getComputedStyle(document.querySelector('#step-next'),'::after').content,overflow:document.documentElement.scrollWidth>innerWidth};
     });
     await page.screenshot({path:'test-results/editorial/'+phoneWidth+'-casting-layout.png'});
     console.log('PHONE_CASTING',phoneWidth,JSON.stringify(geometry));
+    assert.ok(geometry.headerHeight<=61,'Phone header is compact');
+    assert.ok(Math.abs(geometry.captionLeft)<=2&&Math.abs(geometry.captionRight)<=2,'Caption shading reaches both card edges without an inset rectangle');
+    assert.equal(geometry.imageBorder,'0px','No second border inside the portrait');
     assert.equal(geometry.columns,2);assert.ok(geometry.secondLeft>geometry.firstLeft);
     assert.ok(geometry.thirdTop>=geometry.firstBottom,'Portraits wrap into rows');
     assert.ok(geometry.top<320,'Real casting appears near the top: '+JSON.stringify(geometry));
@@ -129,6 +134,13 @@ try{
     assert.ok(geometry.continue>=44);assert.equal(geometry.arrow,'none');assert.equal(geometry.overflow,false);
    }
    await page.setViewportSize({width:390,height:900});
+   assert.equal(await page.locator('.editorial-account .credits-link').isVisible(),false);
+   assert.equal(await page.locator('.editorial-account .editorial-avatar').isVisible(),false);
+   await page.locator('#editorial-mobile-menu').click();
+   assert.equal(await page.locator('#editorial-menu-credits').isVisible(),true);
+   assert.equal(await page.locator('#editorial-menu-account').isVisible(),true);
+   assert.match(await page.locator('#editorial-menu-credits').getAttribute('href'),/account\.html#balance$/);
+   await page.locator('#editorial-mobile-menu').click();
    await page.locator('#editorial-mobile-search').click();
    await page.locator('#editorial-cast-search').fill('Silver');
    assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),1);
@@ -138,7 +150,7 @@ try{
    assert.equal(uploadCount,uploadsBeforePicker,'Opening the file chooser sends no upload or paid request');
    await page.screenshot({path:'test-results/editorial/390-mobile-casting.png'});
   }
-  await page.locator(width>800?'#editorial-top-back':'#step-back').click();
+  await page.locator('#editorial-top-back').click();
   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Back returns from Identity to hero');
   assert.equal(await page.locator('#editorial-flow').isVisible(),false);
   await page.locator('#editorial-start').click();
@@ -368,6 +380,26 @@ try{
   assert.deepEqual(errors,[],'No browser errors at '+width);
   await page.close();
  }
+ // Guest mobile header keeps Sign in visible and billing/account reachable in the menu.
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844}});
+  const beforeGuest={uploads:uploadCount,jobs:jobCount,quotes:quoteCount};
+  await page.route('**/native-account.js*',route=>route.fulfill({contentType:'text/javascript',body:"export async function loadLabAccount(){return {isSignedIn:false,session:null,addListener(){},openSignIn(){}}}"}));
+  await page.goto('http://127.0.0.1:4179/lab/full-editorial.html?start=1',{waitUntil:'domcontentloaded'});
+  await page.locator('#editorial-signin').waitFor({state:'visible'});
+  assert.equal(await page.locator('.editorial-account .credits-link').isVisible(),false);
+  assert.equal(await page.locator('.editorial-account .editorial-avatar').isVisible(),false);
+  await page.locator('#editorial-mobile-menu').click();
+  assert.equal(await page.locator('#editorial-menu-credits').isVisible(),true);
+  assert.equal(await page.locator('#editorial-menu-account').isVisible(),true);
+  const menuGap=await page.evaluate(()=>document.querySelector('#editorial-primary-nav').getBoundingClientRect().top-document.querySelector('.editorial-header').getBoundingClientRect().bottom);
+  assert.ok(Math.abs(menuGap)<=1,'Mobile menu meets the compact header without a gap');
+  await page.locator('#editorial-mobile-menu').click();
+  await page.locator('#casting-reference-gallery img').first().evaluate(img=>img.decode());
+  await page.screenshot({path:'test-results/editorial/390-guest-casting.png'});
+  assert.deepEqual({uploads:uploadCount,jobs:jobCount,quotes:quoteCount},beforeGuest);
+  await page.close();
+ }
  for(const width of [1440,390]){
   const page=await browser.newPage({viewport:{width,height:900}});
   const beforeEntry={uploads:uploadCount,jobs:jobCount,quotes:quoteCount};
@@ -382,7 +414,7 @@ try{
   assert.equal(new URL(page.url()).searchParams.has('start'),false,'Entry flag is consumed');
   assert.equal(await page.locator('[data-source-view="casting"]').getAttribute('aria-pressed'),'true','Casting remains the initial source');
   assert.deepEqual({uploads:uploadCount,jobs:jobCount,quotes:quoteCount},beforeEntry,'Opening Identity performs no paid preparation or generation');
-  await page.locator(width>800?'#editorial-top-back':'#step-back').click();
+  await page.locator('#editorial-top-back').click();
   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Direct entry retains Back to the arrival hero');
   await page.close();
  }
