@@ -11,7 +11,10 @@
 - Pre-save options, public listening pages, destinations, MusicLinkClick, backend and data are untouched.
 - Files: links/index.html, dashboard.css, dashboard.mjs, workspace-tools.mjs.
 - 46 music/auth/transport tests and syntax/whitespace checks passed. Desktop fixture verified original list structure and notes toggle.
-- Publication: pending correction deployment; track the layout-correction PR.
+- Published PR #807, merge f6135fb7edf84c764f2e0864fcbb78fca3c49f59. Pages run 41631070581 succeeded at b003620d50dfefc4ead02bbc04da39bceab0fa9a; the later commit changes only the unrelated owner handoff.
+- All four changed runtime assets match source exactly on parallelvisionlabel.com. Live signed-out browser shows the original four-item navigation.
+- Phone fixture: body width/scrollWidth 375px; desktop restored list and optional notes verified. Old #experiments redirect verified.
+- No backend, saved notes, pre-save settings or tracking changes. Owner should reload /links/#smart-links.
 
 ---
 
