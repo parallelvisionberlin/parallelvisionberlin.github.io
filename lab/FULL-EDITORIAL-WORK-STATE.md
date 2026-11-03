@@ -1,3 +1,22 @@
+## 2026-11-03 / mobile web casting editorial (concept 01)
+- Owner approved concept 01 from three mockups, scoped to phone browser. No decorative arrows.
+- Baseline main `8460965ee49492e4aae3058e13f7c9ace05b76bc`; isolated branch `feat/editorial-mobile-casting`.
+- Phone web up to 600 px: compact four-step rail replaces duplicate Identity hero; two-column real portrait grid, compact Upload yours, Casting/My characters tabs and expandable search.
+- Original five casting photographs retained. Generated proposal portraits are not shipped as casting assets.
+- Empty selected-cast box and oversized upload tile hidden only on phone web. Selected group detail/removal and multi-model composition remain available below grid.
+- Fixed safe-area footer retains Back, selected thumbnail/count and existing Continue action. All phone workflow decorative arrows hidden; no new arrow icons.
+- Desktop/tablet above 600 px and native bridge layout retain their existing presentation. Entry hero, provider prompts, quotes, pricing and generation logic unchanged.
+- Sources: `full-editorial-mobile-casting.css`, `full-editorial.html`, presentation helpers in `full-editorial.js`, existing `tests/lab-full-editorial-browser.mjs`.
+- Browser suite now checks grid/overflow/footer/arrow geometry at 320/390/600, search, file chooser and normal selection, plus retained desktop flow and mocked generation safeguards.
+- First remote run exposed legacy `display:flex!important` forcing the new toolbar controls into separate rows on phone. The scoped grid now overrides that legacy rule, without relaxing the geometry assertion; per-width screenshots and geometry are captured before assertions.
+- Remote phone grid, footer, search and file-picker checks passed at 320/390/600; desktop complete generation flow passed. Reviewed actual screenshots; shortened only phone rail labels to Scene/Series and allowed footer guidance to wrap to prevent 320 px overlap. Updated the existing footer-plus assertion to cover its approved phone replacement, Upload yours.
+- Verification so far: 23/23 existing approved Image, Full Editorial and handoff source tests; JS syntax and diff whitespace passed.
+- Local browser execution unavailable: Playwright Chromium download was blocked/truncated in this environment. Remote browser CI and screenshots remain required before visual verification.
+- Remote initial Full Editorial run stalled more than six minutes in a full-repository checkout. Workflow now checks out only the source, tests, fonts and original photographs used by this suite; all test commands remain unchanged, and both casting CSS paths trigger it.
+- Preview `https://f33b9b31.pvlab-studio.pages.dev/full-editorial` loaded; public desktop selection of Silver works without generating. Preview authentication cannot be verified because Clerk production keys restrict the preview domain.
+- No paid generation, customer data change, main merge or production deployment performed.
+- Next: run remote desktop/phone browser suite, inspect screenshots, then review release through existing Cloudflare protocol.
+
 ## 2026-11-02 / clear multi-model composition copy
 - Owner screenshot: composition choices are confusing after selecting more than one model.
 - Baseline main `ded46245261171a44ac7ccb022d1db58ee335bab`.

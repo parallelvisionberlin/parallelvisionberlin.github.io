@@ -1,3 +1,5 @@
+// Browser-only casting presentation; native app keeps its existing layout.
+if(!window.__PV_LAB_NATIVE__)document.body.classList.add('editorial-web');
 import {takeModelPhotos} from './editorial-model-handoff.js?v=20261102-eight-photos1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1';
 import {createSessionRequest} from './session-request.js?v=20261015-canonical-studio1';
@@ -143,6 +145,11 @@ function go(next){step=next;const panels=['model','style','mood','generate','pro
  }
  $('step-next').hidden=next===4;
  $('step-next').textContent=({1:'Continue to styling',2:'Continue to location',3:'Continue to review'}[next]||'Next');
+ if(next===1){
+  const label=document.createElement('span');label.className='editorial-next-label';label.textContent='Continue to styling';
+  const compact=document.createElement('span');compact.className='editorial-next-mobile';compact.textContent='Continue';compact.setAttribute('aria-hidden','true');
+  $('step-next').replaceChildren(label,compact);
+ }
  $('step-next').disabled=next===1&&modelGroups.length===0;
  renderIdentityFooter();invalidateQuote();updateGenerationMotion();
  if(next===4)updateSeriesSummary();
@@ -685,6 +692,15 @@ $('model-drop').addEventListener('drop',event=>{event.preventDefault();addFiles(
 
 $('add-outfits').addEventListener('click',()=>$('outfit-files').click());
 for(const button of document.querySelectorAll('[data-cast-composition]'))button.addEventListener('click',()=>{if(submitting)return;castComposition=button.dataset.castComposition;invalidateQuote();renderCastingControls();updateSeriesSummary()});
+$('editorial-mobile-upload').addEventListener('click',()=>openModelPicker());
+$('editorial-mobile-search').addEventListener('click',()=>{
+ const toggle=$('editorial-mobile-search'),panel=$('panel-model');
+ const open=toggle.getAttribute('aria-expanded')!=='true';
+ toggle.setAttribute('aria-expanded',String(open));
+ panel.classList.toggle('is-search-open',open);
+ if(open)$('editorial-cast-search').focus();
+ else{$('editorial-cast-search').value='';filterCastingGallery();}
+});
 $('editorial-cast-search').addEventListener('input',filterCastingGallery);
 $('editorial-clear-cast').addEventListener('click',()=>{if(submitting)return;for(const group of [...modelGroups])removeModelGroup(group.id);status('')});
 $('saved-outfit').addEventListener('click',()=>void openSaved('outfit'));
