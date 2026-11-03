@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261103-audience1">
+<link rel="stylesheet" href="./owner.css?v=20261103-audience2">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -146,18 +146,28 @@
             <div><span class="owner-index">LOCATION / TECHNOLOGY</span><h3 id="owner-audience-title">Your audience<span>.</span></h3></div>
             <label class="owner-audience-metric" for="owner-audience-metric">Show<select id="owner-audience-metric"><option value="entrances">Estimated entries</option><option value="views">Page views</option></select></label>
           </div>
-          <p id="owner-audience-coverage" class="owner-audience-coverage" aria-live="polite">Waiting for audience measurements.</p>
-          <div class="owner-audience-grid">
-            <section aria-labelledby="owner-audience-country-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-country-title">Countries</h4><span>Approximate</span></div><div id="owner-audience-country"></div></section>
-            <section aria-labelledby="owner-audience-city-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-city-title">Cities</h4><span>Approximate</span></div><div id="owner-audience-city"></div></section>
-            <section aria-labelledby="owner-audience-region-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-region-title">Regions</h4><span>Approximate</span></div><div id="owner-audience-region"></div></section>
-            <section aria-labelledby="owner-audience-device-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-device-title">Devices</h4><span>Type</span></div><div id="owner-audience-device"></div></section>
-            <section aria-labelledby="owner-audience-browser-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-browser-title">Browsers</h4><span>Family</span></div><div id="owner-audience-browser"></div></section>
-            <section aria-labelledby="owner-audience-os-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-os-title">Operating systems</h4><span>Family</span></div><div id="owner-audience-os"></div></section>
-            <section aria-labelledby="owner-audience-language-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-language-title">Languages</h4><span>Browser preference</span></div><div id="owner-audience-language"></div></section>
+          <p id="owner-audience-coverage" class="owner-audience-coverage" aria-live="polite" hidden></p>
+          <p id="owner-audience-empty" class="owner-audience-empty" role="status">Audience data will appear as new visits arrive.</p>
+          <div id="owner-audience-content" hidden>
+            <div class="owner-audience-grid owner-audience-locations">
+              <section aria-labelledby="owner-audience-country-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-country-title">Countries</h4><span>Approximate</span></div><div id="owner-audience-country"></div></section>
+              <section aria-labelledby="owner-audience-city-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-city-title">Cities</h4><span>Approximate</span></div><div id="owner-audience-city"></div></section>
+            </div>
+            <div class="owner-audience-grid owner-audience-secondary">
+              <section aria-labelledby="owner-audience-device-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-device-title">Devices</h4></div><div id="owner-audience-device"></div></section>
+              <section aria-labelledby="owner-audience-language-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-language-title">Languages</h4><span>Browser preference</span></div><div id="owner-audience-language"></div></section>
+            </div>
             <section class="owner-audience-hours" aria-labelledby="owner-audience-hour-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-hour-title">Time of day</h4><span>UTC · 24 hours</span></div><div id="owner-audience-hour" class="owner-traffic-chart" role="img" aria-label="Hourly traffic in UTC"></div></section>
+            <details id="owner-audience-technical" class="owner-audience-technical">
+              <summary>Technical details<span>Regions, browsers and operating systems</span></summary>
+              <div class="owner-audience-grid owner-audience-technical-grid">
+                <section aria-labelledby="owner-audience-region-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-region-title">Regions</h4><span>Approximate</span></div><div id="owner-audience-region"></div></section>
+                <section aria-labelledby="owner-audience-browser-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-browser-title">Browsers</h4></div><div id="owner-audience-browser"></div></section>
+                <section aria-labelledby="owner-audience-os-title"><div class="owner-traffic-card-heading"><h4 id="owner-audience-os-title">Operating systems</h4></div><div id="owner-audience-os"></div></section>
+              </div>
+            </details>
           </div>
-          <p class="owner-traffic-disclaimer">Location is estimated from the network and can differ with VPNs or mobile connections. Unknown means the information was unavailable. These are separate traffic totals, not individual profiles or country-level purchase attribution. Age and gender are not collected.</p>
+          <p class="owner-traffic-disclaimer">Locations are approximate; VPNs and mobile networks can affect accuracy. Counts describe traffic, not individual people or purchase attribution. Age and gender are not collected.</p>
         </div>
         <p class="owner-traffic-disclaimer" id="owner-traffic-disclaimer">Traffic statistics are approximate and start only after deployment.</p>
       </div>
@@ -280,6 +290,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261103-audience1"></script>
+<script type="module" src="./owner.js?v=20261103-audience2"></script>
 </body>
 </html>

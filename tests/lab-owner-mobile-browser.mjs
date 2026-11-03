@@ -116,7 +116,9 @@ try{
       assert.equal(await page.locator('#owner-traffic-chart .owner-traffic-chart-column').count(),7);
       assert.ok((await page.locator('#owner-traffic-sources').innerText()).includes('Reddit'));
       assert.equal(await page.locator('a[data-owner-nav][href="#owner-traffic-section"]').count(),1,'Traffic has a dedicated sidebar link');
-      assert.match(await page.locator('#owner-audience-coverage').innerText(),/Historical locations and devices are unavailable/);
+      assert.match(await page.locator('#owner-audience-empty').innerText(),/Audience data will appear as new visits arrive/);
+      assert.equal(await page.locator('#owner-audience-content').isVisible(),false,'One shared empty state replaces all empty panels');
+      assert.equal(await page.locator('#owner-audience-metric').isEnabled(),false,'Empty audience has no active metric selector');
       await page.evaluate(()=>paintTrafficAudience({
         firstTrackedDay:'2026-11-03',dimensions:{
           country:{totalEntrances:100,totalViews:250,items:[
@@ -137,7 +139,19 @@ try{
       }));
       assert.match(await page.locator('#owner-audience-country').innerText(),/Brazil\s+60\s+60%/);
       assert.match(await page.locator('#owner-audience-city').innerText(),/São Paulo/);
+      assert.equal(await page.locator('#owner-audience-content').isVisible(),true);
+      assert.equal(await page.locator('#owner-audience-empty').isVisible(),false);
+      assert.equal(await page.locator('#owner-audience-technical').getAttribute('open'),null,'Technical details starts collapsed');
+      assert.equal(await page.locator('#owner-audience-browser').isVisible(),false);
+      await page.locator('#owner-audience-technical > summary').click();
       assert.match(await page.locator('#owner-audience-browser').innerText(),/Instagram browser/);
+      await page.locator('#owner-audience-technical > summary').click();
+      const groups=await page.locator('.owner-audience-locations > section,.owner-audience-secondary > section').evaluateAll(nodes=>nodes.map(n=>({top:n.getBoundingClientRect().top,left:n.getBoundingClientRect().left,width:n.getBoundingClientRect().width})));
+      for(let index=1;index<groups.length;index++){
+        assert.ok(groups[index].top>groups[index-1].top,'Audience sections form full-width rows');
+        assert.ok(Math.abs(groups[index].left-groups[0].left)<1,'Audience rows share a left edge');
+        assert.ok(Math.abs(groups[index].width-groups[0].width)<1,'Audience rows share their full width');
+      }
       assert.match(await page.locator('#owner-audience-language').innerText(),/Portuguese/);
       assert.equal(await page.locator('#owner-audience-hour .owner-traffic-chart-column').count(),24);
       await page.locator('#owner-audience-country summary').click();
