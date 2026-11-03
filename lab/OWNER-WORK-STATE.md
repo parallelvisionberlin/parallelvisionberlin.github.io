@@ -1,3 +1,14 @@
+## Audience report hierarchy and full-width rows, 2026-11-03
+- User approved refining the audience hierarchy, then explicitly requested full-width rows instead of side-by-side column boxes.
+- Baseline main 361f735; isolated branch `refine/owner-audience-hierarchy-20261103`. Preserve concurrent Smart Links changes.
+- Countries and cities lead as full-width tables with readable names, aligned count/share columns and expandable longer lists. Devices/languages follow with three rows initially; hourly chart is shorter and full width.
+- Regions, browsers and operating systems remain available in a collapsed Technical details section. No chart boxes or decorative arrows added.
+- Before any measured traffic, show one shared empty state and hide the empty report/chart. Existing tracking/date/metric data remains unchanged; no backend, pricing, customer data or account authorization changes.
+- Changed files: `lab/owner.html`, `lab/owner.css`, `lab/owner.js`, `tests/lab-owner-mobile-browser.mjs`, this checkpoint. Owner JS/CSS cache marker `20261103-audience2`.
+- Local checks: 23 traffic/privacy/auth/Image-contract tests, syntax and diff whitespace pass. Synthetic actual-renderer phone/desktop preview inspected; long labels wrap and phone document width equals viewport (375px excluding scrollbar).
+- Existing seven-width Owner browser suite now checks shared empty state, collapsed technical disclosure and full-width section alignment alongside sorting and report behavior.
+- Publication pending. Next: push the exact tested source, review relevant CI, merge and verify Cloudflare Pages/live owner rendering. No Worker deployment required.
+
 ## Owner audience geography and technology, 2026-11-03
 - Status: implemented, merged and verified live in the actual signed-in Owner dashboard. PR #806, reviewed source `054c29a70c9caf03cf3a24dcd7c3adb0eb99d430`, merge `fc03b64a686afa0a4073efbe461a5e69521976fd`.
 - User explicitly approved pushing and publication after the initial automatic upload rejection. Shell Git push lacked credentials; the connected GitHub API uploaded the exact tested tree `3a0028dd8147eb0c97987011ad7c44f2dbbd4c8d`. No force push or rewritten remote history.

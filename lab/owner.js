@@ -245,35 +245,47 @@ function paintTrafficAudience(audience){
   const unit=metric==='views'?'page views':'estimated entries';
   const dimensions=audience?.dimensions||{};
   const measured=Number(dimensions.country?.[metric==='views'?'totalViews':'totalEntrances'])||0;
-  $('owner-audience-coverage').textContent=first
-    ?'Measured since '+first+' · '+formatNumber(measured)+' '+unit+' in this period. Earlier traffic has no audience breakdown.'
-    :'Audience measurement begins after the tracking update is deployed. Historical locations and devices are unavailable.';
+  const coverage=$('owner-audience-coverage');coverage.hidden=!first;
+  coverage.textContent=first?'Measured since '+first+' · '+formatNumber(measured)+' '+unit+' in this period.':'';
+  const hasTraffic=measured>0;
+  $('owner-audience-content').hidden=!hasTraffic;
+  $('owner-audience-empty').hidden=hasTraffic;
+  $('owner-audience-empty').textContent=first
+    ?'No audience '+unit+' recorded in this period.'
+    :'Audience data will appear as new visits arrive.';
+  $('owner-audience-metric').disabled=!(Number(dimensions.country?.totalViews)>0);
+  if(!hasTraffic)$('owner-audience-technical').open=false;
   for(const dimension of ['country','region','city','device','browser','os','language']){
     const root=$('owner-audience-'+dimension);root.replaceChildren();
     const group=dimensions[dimension]||{},total=Number(group[metric==='views'?'totalViews':'totalEntrances'])||0;
     const items=(Array.isArray(group.items)?group.items:[]).filter(item=>Number(item[metric])>0)
       .sort((a,b)=>Number(b[metric])-Number(a[metric])||String(a.value).localeCompare(String(b.value))).slice(0,50);
-    if(!items.length){root.append(createTrafficNode('p','owner-traffic-no-data',first?'Nothing recorded for this period.':'Waiting for new traffic.'));continue;}
-    const maximum=Math.max(1,...items.map(item=>Number(item[metric])||0));
+    if(!items.length){root.append(createTrafficNode('p','owner-traffic-no-data','Nothing recorded for this period.'));continue;}
     const draw=(list,container)=>{
+      const table=createTrafficNode('table','owner-audience-table');
+      const head=document.createElement('thead'),heading=document.createElement('tr');
+      const nameLabels={country:'Country',city:'City',region:'Region',device:'Device',browser:'Browser',os:'System',language:'Language'};
+      for(const label of [nameLabels[dimension],metric==='views'?'Page views':'Entries','Share']){
+        const cell=createTrafficNode('th','',label);cell.scope='col';heading.append(cell);
+      }
+      head.append(heading);table.append(head);
+      const body=document.createElement('tbody');
       for(const item of list){
         const count=Number(item[metric])||0,label=audienceLabel(dimension,String(item.value));
-        const row=createTrafficNode('div','owner-traffic-source-row');
-        const top=createTrafficNode('div','owner-traffic-source-top');
-        const name=createTrafficNode('span','owner-audience-label',label);name.title=label;
-        const numbers=createTrafficNode('span','owner-audience-numbers');
-        numbers.append(createTrafficNode('strong','',formatNumber(count)),
-          createTrafficNode('small','',total?Math.round(count/total*100)+'%':'0%'));
-        top.append(name,numbers);
-        const track=createTrafficNode('div','owner-traffic-source-track'),bar=createTrafficNode('span','owner-traffic-source-fill');
-        bar.style.width=(count/maximum*100)+'%';track.append(bar);row.append(top,track);container.append(row);
+        const row=createTrafficNode('tr','owner-traffic-source-row');
+        const name=createTrafficNode('td','owner-audience-label',label);
+        const amount=createTrafficNode('td','owner-audience-count',formatNumber(count));
+        const share=createTrafficNode('td','owner-audience-share',total?Math.round(count/total*100)+'%':'0%');
+        row.append(name,amount,share);body.append(row);
       }
+      table.append(body);container.append(table);
     };
-    draw(items.slice(0,6),root);
-    if(items.length>6){
+    const visibleCount=['device','language'].includes(dimension)?3:6;
+    draw(items.slice(0,visibleCount),root);
+    if(items.length>visibleCount){
       const details=createTrafficNode('details','owner-audience-more');
-      details.append(createTrafficNode('summary','', 'Show '+(items.length-6)+' more'));
-      const rest=createTrafficNode('div','owner-audience-extra');draw(items.slice(6),rest);details.append(rest);root.append(details);
+      details.append(createTrafficNode('summary','', 'Show '+(items.length-visibleCount)+' more'));
+      const rest=createTrafficNode('div','owner-audience-extra');draw(items.slice(visibleCount),rest);details.append(rest);root.append(details);
     }
     const remainder=total-items.reduce((sum,item)=>sum+(Number(item[metric])||0),0);
     if(remainder>0)root.append(createTrafficNode('p','owner-traffic-no-data',formatNumber(remainder)+' more '+unit+' outside the top 50.'));
