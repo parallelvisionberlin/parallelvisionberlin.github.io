@@ -126,10 +126,10 @@
    display both the cards and compact Generate. Keyboard, options and History
    automatically restore scrolling through the :has exclusions. */
 @media(max-width:680px) and (min-height:690px){
-  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])):not(:has(#image-composer:focus-within)):not(:has(#image-composer[data-mobile-settings="open"])){
+  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])):not(:has(#image-composer:focus-within)):not(:has(#image-composer[data-mobile-settings="open"])):not(:has(#image-composer.pv-deck-expanded)){
     height:100dvh!important;overflow-y:hidden!important;overscroll-behavior-y:none!important;
   }
-  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])):not(:has(#image-composer:focus-within)):not(:has(#image-composer[data-mobile-settings="open"])) body{
+  html:not(.pv-native-lab):has(#app.image-studio-active:not([hidden]) #image-gallery-empty:not([hidden]) #lab-welcome-start:not([hidden])):not(:has(#image-composer:focus-within)):not(:has(#image-composer[data-mobile-settings="open"])):not(:has(#image-composer.pv-deck-expanded)) body{
     max-height:100dvh!important;overflow-y:hidden!important;overscroll-behavior-y:none!important;
   }
 }
@@ -283,7 +283,8 @@
   }
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#image-composer.pv-deck-expanded)
     #lab-welcome-start:not([hidden]) .lab-welcome-carousel{
-    margin-top:-65px!important;
+    /* Do not pull the cards over "Start with a feeling" when a Mood fills the prompt. */
+    margin-top:-30px!important;
   }
   html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:not([hidden])
     .pv-guest-carousel{
@@ -292,12 +293,69 @@
   }
   html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:not([hidden]):has(#pv-guest-composer.pv-deck-expanded)
     .pv-guest-carousel{
-    margin-top:-57px!important;
+    margin-top:-22px!important;
   }
 }
 @media (max-width:680px) and (min-height:690px) and (prefers-reduced-motion:reduce){
   html:not(.pv-native-lab) #app.image-studio-active #lab-welcome-start .lab-welcome-carousel,
   html:not(.pv-native-lab) #gate.pv-guest-image .pv-guest-carousel{
     transition:none!important;
+  }
+}
+
+
+/* iPhone Image | Secondary options retain their existing disclosure behavior.
+   Retouch has its own Studio route; it does not need a duplicate button here.
+   The More control moves into Retouch's vacant first slot once the options
+   are open, while staying in the main row when closed so it is always reachable. */
+@media(max-width:680px){
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready:not(.is-pv-soul) #image-composer-edit-area{
+    display:none!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul) .composer-controls::before{
+    display:block!important;order:5!important;flex:0 0 100%!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+  .composer-controls>.composer-mobile-more{
+    order:6!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+  .composer-select-pill:has(#image-composer-ratio){order:7!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+  #composer-reference-intent-toggle{order:8!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+  #image-reference-mode-wrap{order:8!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+  #image-composer-resolution-wrap{order:9!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+  #image-composer-count-wrap{order:10!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+  #composer-exact-prompt-option{order:11!important}
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
+  #composer-more-anchor{order:12!important}
+
+  /* Only an expanded working prompt may unlock the welcome scroll. The
+     fixed composer remains visible, while the full original photographs and
+     headline can scroll above it without overlap or being permanently cut off.
+     The reserve follows the actual dock height via ResizeObserver. */
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
+  .image-gallery-empty:has(#lab-welcome-start:not([hidden])):has(~ #image-composer.pv-deck-expanded){
+    padding-bottom:max(182px,var(--pv-mobile-image-dock-reserve,320px))!important;
+  }
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#image-composer.pv-deck-expanded)
+  .image-gallery-empty:has(#lab-welcome-start:not([hidden])),
+  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#image-composer[data-mobile-settings="open"])
+  .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
+    padding-bottom:max(182px,var(--pv-mobile-image-dock-reserve,320px))!important;
   }
 }
