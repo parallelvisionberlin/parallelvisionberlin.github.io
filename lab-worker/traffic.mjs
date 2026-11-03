@@ -1,6 +1,7 @@
 // Cookie-free, aggregate-only visitor measurement for PV LAB public pages.
 // No IP, device fingerprint, full URL/referrer, session token or identity is recorded.
 import {BROWSER_ORIGINS} from './clerk-issuer-policy.mjs';
+import {audienceStatements,trafficAudienceReport} from './traffic-audience.mjs';
 
 export const TRAFFIC_PAGES=Object.freeze([
   'home','studio','moods','mood-creator','fashion','account','other'
@@ -37,6 +38,7 @@ export async function recordLabTraffic(request,env,{clock=()=>Date.now()}={}){
     reject(400,'Invalid traffic event.');
   if((data.entry&&data.source==='internal')||(!data.entry&&data.source!=='internal'))
     reject(400,'Invalid traffic source for this navigation.');
+  if(request.headers.get('sec-gpc')==='1'||request.headers.get('dnt')==='1')return response();
   // Ignore common crawlers and platform link previews. This is not bot-proof.
   const ua=(request.headers.get('user-agent')||'').slice(0,200);
   if(/(?:bot\b|crawler|spider|slurp|preview|facebookexternalhit|headless|curl|wget)/i.test(ua) ||
@@ -44,19 +46,23 @@ export async function recordLabTraffic(request,env,{clock=()=>Date.now()}={}){
   const time=Number(clock());
   if(!Number.isSafeInteger(time)||time<0)reject(500,'Traffic clock unavailable.');
   const day=utcDay(time);
-  await env.LAB_DB.prepare('INSERT INTO lab_traffic_daily(day_utc,page,source,page_views,entrances) VALUES(?,?,?,1,?) ON CONFLICT(day_utc,page,source) DO UPDATE SET page_views=page_views+1,entrances=entrances+excluded.entrances')
-    .bind(day,data.page,data.source,data.entry?1:0).run();
+  await env.LAB_DB.batch([
+    env.LAB_DB.prepare('INSERT INTO lab_traffic_daily(day_utc,page,source,page_views,entrances) VALUES(?,?,?,1,?) ON CONFLICT(day_utc,page,source) DO UPDATE SET page_views=page_views+1,entrances=entrances+excluded.entrances')
+      .bind(day,data.page,data.source,data.entry?1:0),
+    ...audienceStatements(env,request,time,day,data.entry)
+  ]);
   return response();
 }
 export async function labTrafficReport(env,{days=7,clock=()=>Date.now()}={}){
   if(days!==7&&days!==30)reject(400,'Choose 7 or 30 days.');
   const current=Number(clock()),today=utcDay(current);
   const beginning=utcDay(Date.parse(today+'T00:00:00Z')-(days-1)*DAY_MS);
-  const [records,first,accounts]=await Promise.all([
+  const [records,first,accounts,audience]=await Promise.all([
     readRows(env,'SELECT day_utc AS day,page,source,page_views AS views,entrances FROM lab_traffic_daily WHERE day_utc BETWEEN ? AND ? ORDER BY day_utc ASC,page ASC,source ASC',beginning,today),
     readOne(env,'SELECT MIN(day_utc) AS firstDay FROM lab_traffic_daily'),
     readOne(env,'SELECT COUNT(*) AS n FROM lab_customers WHERE created_at>=? AND created_at<?',
-      Date.parse(beginning+'T00:00:00Z'),Date.parse(today+'T00:00:00Z')+DAY_MS)
+      Date.parse(beginning+'T00:00:00Z'),Date.parse(today+'T00:00:00Z')+DAY_MS),
+    trafficAudienceReport(env,beginning,today)
   ]);
   const trends=[],byDate=new Map(),bySource=new Map(),byPage=new Map();
   const start=Date.parse(beginning+'T00:00:00Z');
@@ -78,7 +84,7 @@ export async function labTrafficReport(env,{days=7,clock=()=>Date.now()}={}){
   }
   return {
     days,from:beginning,to:today,firstTrackedDay:first?.firstDay||null,
-    measured:!!first?.firstDay,
+    measured:!!first?.firstDay,audience,
     summary:{entrances,views,redditEntrances:reddit,newAccounts:Number(accounts?.n)||0},
     trend:trends,
     sources:[...bySource].map(([source,count])=>({source,count}))
@@ -91,4 +97,5 @@ export async function labTrafficReport(env,{days=7,clock=()=>Date.now()}={}){
 export async function pruneLabTraffic(env,{clock=()=>Date.now()}={}){
   const cutoff=utcDay(Number(clock())-90*DAY_MS);
   await env.LAB_DB.prepare('DELETE FROM lab_traffic_daily WHERE day_utc<?').bind(cutoff).run();
+  await env.LAB_DB.prepare('DELETE FROM lab_traffic_audience_daily WHERE day_utc<?').bind(cutoff).run();
 }

@@ -27,6 +27,9 @@ PV LAB's owner Control Room includes a read-only Traffic panel with 7/30-day est
 
 Cloudflare Worker migration: `lab-worker/migrations/0018-anonymous-traffic.sql`; owner endpoint: `GET /api/admin/traffic?days=7|30`. Statistics only start when instrumentation is deployed; older campaign page loads cannot be backfilled. The existing Meta Pixel remains optional and unchanged.
 
+Audience extension (3 November 2026): `traffic-audience.mjs` and migration `0058-traffic-audience.sql` add separate daily country, region, city, device, browser, OS, language and UTC-hour counters from trusted Cloudflare geography and coarse request-header categories. No client payload change, identifiers, raw IP/UA, precise coordinates, account linkage or cross-dimension profiles. Both tables expire after 90 days; each event is one atomic D1 batch. Owner displays entries/page views, shares, top 50 per metric, explicit unknowns and the audience start date. Historical geography, age/gender and country-level purchase attribution are unavailable. Existing owner auth and browser GPC/DNT remain enforced.
+
+
 ## 200 welcome credits (2026-10-14)
 
 Each verified non-owner Clerk customer receives 200 one-time PV Lab credits through the existing wallet. They can be used for any customer-enabled image or video job, including one video that consumes the entire balance. The backend alone prices and debits jobs and refuses prices above available credits. Previous unfunded customer signups get the bonus on their next authenticated request; a unique ledger receipt prevents repeat grants. Closed customer accounts cannot receive it. The production-only switch is `LAB_WELCOME_CREDITS_ENABLED=true`, absent from the billing sandbox. No new database migration or provider API call is required. See [the welcome credit work state](WELCOME-CREDITS-WORK-STATE.md).

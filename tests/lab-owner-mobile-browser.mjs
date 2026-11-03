@@ -116,6 +116,38 @@ try{
       assert.equal(await page.locator('#owner-traffic-chart .owner-traffic-chart-column').count(),7);
       assert.ok((await page.locator('#owner-traffic-sources').innerText()).includes('Reddit'));
       assert.equal(await page.locator('a[data-owner-nav][href="#owner-traffic-section"]').count(),1,'Traffic has a dedicated sidebar link');
+      assert.match(await page.locator('#owner-audience-coverage').innerText(),/Historical locations and devices are unavailable/);
+      await page.evaluate(()=>paintTrafficAudience({
+        firstTrackedDay:'2026-11-03',dimensions:{
+          country:{totalEntrances:100,totalViews:250,items:[
+            {value:'BR',entrances:60,views:90},{value:'DE',entrances:20,views:120},
+            {value:'MX',entrances:5,views:10},{value:'US',entrances:4,views:8},
+            {value:'GB',entrances:4,views:7},{value:'IT',entrances:3,views:6},
+            {value:'FR',entrances:2,views:5},{value:'unknown',entrances:2,views:4}]},
+          city:{totalEntrances:100,totalViews:250,items:[
+            {value:'São Paulo, São Paulo, BR',entrances:60,views:90},
+            {value:'A very long city and region name that must wrap safely on narrow phones, DE',entrances:40,views:160}]},
+          region:{totalEntrances:100,totalViews:250,items:[{value:'São Paulo, BR',entrances:60,views:90}]},
+          device:{totalEntrances:100,totalViews:250,items:[{value:'mobile',entrances:80,views:160},{value:'desktop',entrances:20,views:90}]},
+          browser:{totalEntrances:100,totalViews:250,items:[{value:'instagram',entrances:60,views:120}]},
+          os:{totalEntrances:100,totalViews:250,items:[{value:'android',entrances:60,views:120}]},
+          language:{totalEntrances:100,totalViews:250,items:[{value:'pt',entrances:60,views:120}]},
+          hour:{totalEntrances:100,totalViews:250,items:[{value:'12',entrances:100,views:250}]}
+        }
+      }));
+      assert.match(await page.locator('#owner-audience-country').innerText(),/Brazil\s+60\s+60%/);
+      assert.match(await page.locator('#owner-audience-city').innerText(),/São Paulo/);
+      assert.match(await page.locator('#owner-audience-browser').innerText(),/Instagram browser/);
+      assert.match(await page.locator('#owner-audience-language').innerText(),/Portuguese/);
+      assert.equal(await page.locator('#owner-audience-hour .owner-traffic-chart-column').count(),24);
+      await page.locator('#owner-audience-country summary').click();
+      assert.match(await page.locator('#owner-audience-country').innerText(),/Unknown/);
+      await page.locator('#owner-audience-metric').selectOption('views');
+      assert.match(await page.locator('#owner-audience-coverage').innerText(),/250 page views/);
+      assert.match(await page.locator('#owner-audience-country .owner-traffic-source-row').first().innerText(),/Germany\s+120\s+48%/);
+      await page.locator('#owner-audience-metric').selectOption('entrances');
+      await page.locator('#owner-audience-title').scrollIntoViewIfNeeded();
+      await page.screenshot({path:artifactDir+'/audience-'+width+'.png',fullPage:false});
 
       await page.evaluate(async()=>{
         call=async path=>{

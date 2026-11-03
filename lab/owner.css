@@ -710,9 +710,30 @@ button.owner-inspect-media{cursor:pointer}
 .owner-traffic-source-fill{display:block;height:100%;background:#c7c7c1}
 .owner-traffic-no-data{margin:0;color:#8a8d86;font-size:12px;line-height:1.65}
 .owner-traffic-disclaimer{margin:16px 0 0;color:#83857e;font-size:11px;line-height:1.65}
+.owner-audience{margin-top:30px;padding-top:28px;border-top:1px solid #363834}
+.owner-audience-heading{display:flex;align-items:end;justify-content:space-between;gap:20px}
+.owner-audience-heading h3{margin:10px 0 0;color:#eeeae4;font-size:clamp(25px,3vw,36px);font-weight:450;letter-spacing:-.045em}
+.owner-audience-heading h3 span{color:#777}
+.owner-audience-metric{display:flex;align-items:center;gap:10px;color:#a4a59d;font-size:11px}
+.owner-audience-metric select{max-width:100%;padding:9px 12px;border:1px solid #4c4d49;border-radius:3px;background:#1a1b1a;color:#deded8;font:inherit;color-scheme:dark}
+.owner-audience-metric select:focus-visible,.owner-audience-more summary:focus-visible{outline:2px solid #deded8;outline-offset:3px}
+.owner-audience-coverage{margin:12px 0 26px;color:#9b9d97;font-size:11px;line-height:1.65}
+.owner-audience-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.owner-audience-grid>section{min-width:0;padding-top:18px;border-top:1px solid #363834}
+.owner-audience-grid h4{margin:0;color:#eeeae4;font-size:14px;font-weight:450;letter-spacing:-.015em}
+.owner-audience-label{min-width:0;overflow-wrap:anywhere}
+.owner-audience-numbers{display:flex;align-items:baseline;gap:10px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.owner-audience-numbers small{min-width:28px;text-align:right;color:#858781;font-size:10px}
+.owner-audience-more summary{width:fit-content;color:#b8bbb4;cursor:pointer;list-style:none;font-size:11px;padding:4px 0 8px}
+.owner-audience-more summary::-webkit-details-marker{display:none}
+.owner-audience-extra{max-height:300px;overflow-y:auto;padding:8px 10px 0 0;scrollbar-width:thin;scrollbar-color:#555 #1a1b1a}
+.owner-audience-hours{grid-column:span 2}
+.owner-audience-hours .owner-traffic-chart{height:147px}
 @media(max-width:1230px){
  .owner-traffic-breakdown{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:30px}
  .owner-traffic-chart-card{grid-column:1/-1}
+ .owner-audience-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .owner-audience-hours{grid-column:auto}
 }
 @media(max-width:720px){
  .owner-traffic-heading{align-items:flex-start;flex-direction:column}
@@ -727,6 +748,9 @@ button.owner-inspect-media{cursor:pointer}
  .owner-traffic-chart{gap:3px;height:146px}
  .owner-traffic-card-heading{gap:7px}
  .owner-traffic-card-heading h3{font-size:13px}
+ .owner-audience-heading{align-items:flex-start;flex-direction:column;gap:16px}
+ .owner-audience-grid{grid-template-columns:minmax(0,1fr);gap:24px}
+ .owner-audience-grid h4{font-size:13px}
 }
 @media(prefers-reduced-motion:reduce){.owner-traffic-chart-bar{transition:none}}
 

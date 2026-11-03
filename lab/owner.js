@@ -227,6 +227,72 @@ function createTrafficNode(tag,className,text){
   if(text!==undefined)node.textContent=String(text);
   return node;
 }
+let trafficAudienceData=null;
+const audienceLabels={mobile:'Mobile',tablet:'Tablet',desktop:'Desktop',unknown:'Unknown',
+  chrome:'Chrome',safari:'Safari',firefox:'Firefox',edge:'Edge',opera:'Opera',samsung:'Samsung Internet',
+  instagram:'Instagram browser',facebook:'Facebook browser',android:'Android',ios:'iOS / iPadOS',
+  windows:'Windows',macos:'macOS',linux:'Linux',chromeos:'ChromeOS'};
+function audienceLabel(dimension,value){
+  if(value==='unknown')return 'Unknown';
+  if(dimension==='country'||dimension==='language'){
+    try{return new Intl.DisplayNames(['en'],{type:dimension==='country'?'region':'language'}).of(value)||value;}catch{return value;}
+  }
+  return ['device','browser','os'].includes(dimension)?audienceLabels[value]||value:value;
+}
+function paintTrafficAudience(audience){
+  trafficAudienceData=audience||null;
+  const first=audience?.firstTrackedDay,metric=$('owner-audience-metric').value==='views'?'views':'entrances';
+  const unit=metric==='views'?'page views':'estimated entries';
+  const dimensions=audience?.dimensions||{};
+  const measured=Number(dimensions.country?.[metric==='views'?'totalViews':'totalEntrances'])||0;
+  $('owner-audience-coverage').textContent=first
+    ?'Measured since '+first+' · '+formatNumber(measured)+' '+unit+' in this period. Earlier traffic has no audience breakdown.'
+    :'Audience measurement begins after the tracking update is deployed. Historical locations and devices are unavailable.';
+  for(const dimension of ['country','region','city','device','browser','os','language']){
+    const root=$('owner-audience-'+dimension);root.replaceChildren();
+    const group=dimensions[dimension]||{},total=Number(group[metric==='views'?'totalViews':'totalEntrances'])||0;
+    const items=(Array.isArray(group.items)?group.items:[]).filter(item=>Number(item[metric])>0)
+      .sort((a,b)=>Number(b[metric])-Number(a[metric])||String(a.value).localeCompare(String(b.value))).slice(0,50);
+    if(!items.length){root.append(createTrafficNode('p','owner-traffic-no-data',first?'Nothing recorded for this period.':'Waiting for new traffic.'));continue;}
+    const maximum=Math.max(1,...items.map(item=>Number(item[metric])||0));
+    const draw=(list,container)=>{
+      for(const item of list){
+        const count=Number(item[metric])||0,label=audienceLabel(dimension,String(item.value));
+        const row=createTrafficNode('div','owner-traffic-source-row');
+        const top=createTrafficNode('div','owner-traffic-source-top');
+        const name=createTrafficNode('span','owner-audience-label',label);name.title=label;
+        const numbers=createTrafficNode('span','owner-audience-numbers');
+        numbers.append(createTrafficNode('strong','',formatNumber(count)),
+          createTrafficNode('small','',total?Math.round(count/total*100)+'%':'0%'));
+        top.append(name,numbers);
+        const track=createTrafficNode('div','owner-traffic-source-track'),bar=createTrafficNode('span','owner-traffic-source-fill');
+        bar.style.width=(count/maximum*100)+'%';track.append(bar);row.append(top,track);container.append(row);
+      }
+    };
+    draw(items.slice(0,6),root);
+    if(items.length>6){
+      const details=createTrafficNode('details','owner-audience-more');
+      details.append(createTrafficNode('summary','', 'Show '+(items.length-6)+' more'));
+      const rest=createTrafficNode('div','owner-audience-extra');draw(items.slice(6),rest);details.append(rest);root.append(details);
+    }
+    const remainder=total-items.reduce((sum,item)=>sum+(Number(item[metric])||0),0);
+    if(remainder>0)root.append(createTrafficNode('p','owner-traffic-no-data',formatNumber(remainder)+' more '+unit+' outside the top 50.'));
+  }
+  const hourly=$('owner-audience-hour');hourly.replaceChildren();
+  const values=new Map((dimensions.hour?.items||[]).map(item=>[item.value,Number(item[metric])||0]));
+  const maximum=Math.max(1,...values.values());
+  for(let hour=0;hour<24;hour++){
+    const key=String(hour).padStart(2,'0'),count=values.get(key)||0;
+    const column=createTrafficNode('div','owner-traffic-chart-column');
+    const well=createTrafficNode('div','owner-traffic-chart-well'),bar=createTrafficNode('div','owner-traffic-chart-bar');
+    bar.style.height=(count?Math.max(4,count/maximum*100):0)+'%';
+    bar.title=key+':00–'+key+':59 UTC: '+formatNumber(count)+' '+unit;
+    well.append(bar);column.append(well,createTrafficNode('span','owner-traffic-chart-day',hour%6===0?key+':00':''));hourly.append(column);
+  }
+  hourly.setAttribute('aria-label','Time of day in UTC. '+Array.from({length:24},(_,hour)=>
+    String(hour).padStart(2,'0')+':00: '+(values.get(String(hour).padStart(2,'0'))||0)).join(', ')+'. '+unit+'.');
+}
+$('owner-audience-metric').addEventListener('change',()=>paintTrafficAudience(trafficAudienceData));
 function trafficComparison(containerId,items,labelMap){
   const container=$(containerId);container.replaceChildren();
   if(!items.length){
@@ -280,6 +346,7 @@ function paintTraffic(data){
     ' days. Total: '+formatNumber(summary.entrances)+'.');
   trafficComparison('owner-traffic-sources',Array.isArray(data.sources)?data.sources:[],trafficLabels);
   trafficComparison('owner-traffic-pages',Array.isArray(data.pages)?data.pages:[],trafficPageLabels);
+  paintTrafficAudience(data.audience);
   $('owner-traffic-disclaimer').textContent='Counting since '+data.firstTrackedDay+
     '. Estimated entrances and page views, not unique people. Referral sources can be hidden by browser privacy settings. '+
     'New accounts are period totals, not proof that a source caused a signup. '+
@@ -528,7 +595,7 @@ async function refreshSession(){
   for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin]'))link.hidden=true;
   const current=++revision;fetchSerial++;generationReviewUI.close();profile=null;
   voucherRecipientsObserver?.disconnect();voucherRecipientsObserver=null;voucherRecipientsGeneration++;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;$('owner-agency-link').hidden=true;
-  trafficSerial++;$('owner-traffic-content').hidden=true;
+  trafficSerial++;trafficAudienceData=null;$('owner-traffic-content').hidden=true;
   $('owner-traffic-status').textContent='Traffic statistics will load after owner verification.';
   if(customerDialog.open)customerDialog.close();customerActivitySerial++;
   recentCustomers=[];recentPayments=[];recentFilter='all';customerPage=1;syncNotice='';$('owner-search').value='';
