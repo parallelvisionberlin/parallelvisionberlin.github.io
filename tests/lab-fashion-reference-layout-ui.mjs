@@ -128,7 +128,13 @@ try{
    assert.equal(await fashion.locator('#fashion-wardrobe-tab-collections').getAttribute('aria-selected'),'true');
    assert.equal(await fashion.locator('.wardrobe-item').count(),1,'One saved Elements outfit is a collection');
    assert.equal(await fashion.locator('.wardrobe-add-card').count(),1,'Archive links to the real Elements creation flow');
-   assert.match(await fashion.locator('.wardrobe-add-card').getAttribute('href'),/studio.html\?tool=image/);
+   assert.equal(await fashion.locator('.wardrobe-add-card').getAttribute('type'),'button');
+   await fashion.locator('#fashion-wardrobe-new').click();
+   assert.equal(await fashion.locator('#wardrobe-create-form').isVisible(),true,'Create stays within the Wardrobe');
+   assert.equal(await fashion.locator('#wardrobe-new-file').getAttribute('type'),'file','Creation uses a real local photograph');
+   assert.equal(calls.some(x=>x.path==='/api/uploads'),false,'Opening creation cannot upload or spend credits');
+   await fashion.locator('#wardrobe-new-cancel').click();
+   assert.equal(await fashion.locator('.wardrobe-item').count(),1,'Cancel returns to saved collections');
    await fashion.locator('#fashion-wardrobe-tab-photos').click();
    assert.equal(await fashion.locator('.wardrobe-item').count(),2,'All photographs shows private outfit views');
    await fashion.locator('#fashion-wardrobe-tab-collections').click();
