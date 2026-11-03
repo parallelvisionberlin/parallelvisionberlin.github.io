@@ -36,7 +36,7 @@ const room={id:id(1),name:'PVSCENE1|locations|MyRoom',created_at:Date.now(),
            {index:3,description:'wide view',keywords:['wide']}]}
 };
 const nina={id:id(2),name:'PVSCENE1|characters|Nina FOK',created_at:Date.now(),
-  refs:Array.from({length:8},(_,i)=>({id:id(201+i),name:'nina-view-'+i+'.webp',role:'identity',note:'Nina saved note '+i+'; preserve this detail.'})),
+  refs:Array.from({length:8},(_,i)=>({id:id(201+i),name:'nina-view-'+i+'.webp',role:'identity',note:('Nina saved note '+i+'; preserve this detail. ').padEnd(300,String(i))})),
   profile:{version:1,category:'characters',summary:'One consistent female editorial portrait subject with dark hair.',
     signature:'Preserve the facial geometry, hairline, eye spacing and distinctive facial structure.',
     landmarks:['dark hair'],shots:[0,1,2,3,4,5,6,7].map(i=>({index:i,description:'portrait angle',keywords:['portrait']}))}
@@ -160,39 +160,50 @@ try{
   await page.locator('.composer-element-tile').first().locator('.composer-reference-remove').click();
   await page.waitForFunction(()=>document.querySelectorAll('.composer-element-tile').length===1);
   assert.match(await page.locator('.composer-element-tile').first().innerText(),/@Nina FOK/);
-  // Delete Base, retain Character identity, then explicitly choose a new Base.
-  await page.locator('#reference-images').setInputFiles({name:'first-base.webp',mimeType:'image/webp',buffer:media});
-  await page.waitForFunction(()=>document.querySelector('#image-composer-references .composer-reference-tile')?.textContent.includes('BASE'));
-  const firstBase=await page.evaluate(()=>window.__elementInputs());
-  assert.equal(firstBase.roles[0].role,'base');
-  assert.ok(firstBase.roles.slice(1).every(ref=>ref.role==='identity'));
-  await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
-  const withoutBase=await page.evaluate(()=>window.__elementInputs());
-  assert.equal(withoutBase.roles.length,8);
-  assert.ok(withoutBase.roles.every(ref=>ref.role==='identity'),'Removing Base must never turn a Character photo into Base');
-  assert.match(await page.locator('#composer-reference-intent-toggle').innerText(),/References only/i);
-  await page.locator('#reference-images').setInputFiles([
-    {name:'new-scene-a.webp',mimeType:'image/webp',buffer:media},
-    {name:'new-scene-b.webp',mimeType:'image/webp',buffer:media}
-  ]);
-  await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===3);
-  const addedPhotos=await page.evaluate(()=>window.__elementInputs());
-  assert.equal(addedPhotos.roles[0].name,'new-scene-a.webp','The first dropped photo automatically becomes Base');
-  assert.equal(addedPhotos.roles[0].role,'base');
-  assert.deepEqual(addedPhotos.roles.slice(0,2).map(ref=>ref.name),['new-scene-a.webp','new-scene-b.webp']);
-  assert.ok(addedPhotos.roles.slice(2).every(ref=>ref.elementId===nina.id&&ref.role==='identity'),
-    'Additional photographs stay left of the unchanged Character group');
-  assert.equal(await page.locator('#image-composer-references .composer-reference-tile').last().getAttribute('class'),'composer-reference-tile composer-element-tile');
-  await page.locator('#image-composer-references .composer-reference-role').last().selectOption('base');
-  const replacedBase=await page.evaluate(()=>window.__elementInputs());
-  assert.equal(replacedBase.roles[0].role,'base');
-  assert.equal(replacedBase.roles[0].name,'new-scene-b.webp');
-  assert.equal(replacedBase.roles.filter(ref=>ref.role==='base').length,1);
-  assert.equal(replacedBase.roles.filter(ref=>ref.elementId===nina.id&&ref.role==='identity').length,8);
-  assert.deepEqual(replacedBase.roles.filter(ref=>ref.elementId===nina.id).map(ref=>ref.elementView),[0,1,2,3,4,5,6,7]);
-  await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
-  await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
-  console.log('PASS Base replacement keeps all eight Character identities and exposes explicit Base selection');
+  // Exercise the real empty-direction assembly and Base controls at both widths.
+  for(const width of [1440,390]){
+    await page.setViewportSize({width,height:900});
+    await page.locator('#reference-images').setInputFiles({name:'first-base.webp',mimeType:'image/webp',buffer:media});
+    await page.waitForFunction(()=>document.querySelector('#image-composer-references .composer-reference-tile')?.textContent.includes('BASE'));
+    await text.fill('');
+    const noDirection=await page.locator('#reference-guidance-text').textContent();
+    assert.ok(noDirection.length<=5000,'Empty direction with eight full notes fits on '+width+'px: '+noDirection.length);
+    assert.equal(await page.locator('#image-composer-generate').isEnabled(),true);
+    const firstBase=await page.evaluate(()=>window.__elementInputs());
+    assert.equal(firstBase.roles[0].role,'base');
+    assert.ok(firstBase.roles.slice(1).every(ref=>ref.role==='identity'));
+    await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+    const withoutBase=await page.evaluate(()=>window.__elementInputs());
+    assert.equal(withoutBase.roles.length,8);
+    assert.ok(withoutBase.roles.every(ref=>ref.role==='identity'),'Removing Base must never turn a Character photo into Base');
+    assert.match(await page.locator('#composer-reference-intent-toggle').innerText(),/References only/i);
+    await page.locator('#reference-images').setInputFiles([
+      {name:'new-scene-a.webp',mimeType:'image/webp',buffer:media},
+      {name:'new-scene-b.webp',mimeType:'image/webp',buffer:media}
+    ]);
+    await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===3);
+    const addedPhotos=await page.evaluate(()=>window.__elementInputs());
+    assert.equal(addedPhotos.roles[0].name,'new-scene-a.webp','The first dropped photo automatically becomes Base');
+    assert.equal(addedPhotos.roles[0].role,'base');
+    assert.deepEqual(addedPhotos.roles.slice(0,2).map(ref=>ref.name),['new-scene-a.webp','new-scene-b.webp']);
+    assert.ok(addedPhotos.roles.slice(2).every(ref=>ref.elementId===nina.id&&ref.role==='identity'),
+      'Additional photographs stay left of the unchanged Character group');
+    assert.equal(await page.locator('#image-composer-references .composer-reference-tile').last().getAttribute('class'),'composer-reference-tile composer-element-tile');
+    await page.locator('#image-composer-references .composer-reference-role').last().selectOption('base');
+    const replacedBase=await page.evaluate(()=>window.__elementInputs());
+    assert.equal(replacedBase.roles[0].role,'base');
+    assert.equal(replacedBase.roles[0].name,'new-scene-b.webp');
+    assert.equal(replacedBase.roles.filter(ref=>ref.role==='base').length,1);
+    assert.equal(replacedBase.roles.filter(ref=>ref.elementId===nina.id&&ref.role==='identity').length,8);
+    assert.deepEqual(replacedBase.roles.filter(ref=>ref.elementId===nina.id).map(ref=>ref.elementView),[0,1,2,3,4,5,6,7]);
+    nina.refs.forEach((ref,i)=>assert.equal(replacedBase.roles.filter(ref=>ref.elementId===nina.id)[i].note,ref.note));
+    assert.ok((await page.locator('#reference-guidance-text').textContent()).length<=5000);
+    assert.equal(await page.locator('#image-composer-generate').isEnabled(),true);
+    await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+    await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+    console.log('PASS '+width+'px Base replacement and empty direction preserve all eight full Character notes');
+  }
+  await page.setViewportSize({width:1440,height:900});
   // A Scene Library card must close the modal only after the Element is fully
   // attached, leaving the original Image prompt and history/deck flow intact.
   const preservedDirection='A photographic portrait inside the same room';
