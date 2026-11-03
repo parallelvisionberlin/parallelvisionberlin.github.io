@@ -1,15 +1,28 @@
 ## Reserved Generate footer during Video scrolling, 2026-11-03
 - Objective: keep the complete Generate action visible when scrolling upward over Output settings.
-- Verified base: main d979a24dd06bf8b0c14ecff27267bbca4669c589. No overlapping Video work appeared among the recent open PRs inspected.
-- Live reproduction: the whole controls panel scrolls; at 1366px-class desktop size its bottom is 774px while Generate extends to 813px.
-- Cause: video-composer-single-scroll.css made controls-body content-sized and the outer controls panel the scrollport, including Generate.
-- Fix: one shrinkable, native controls-body scrollport above a separate content-sized flex footer. No absolute or sticky overlay; final settings remain reachable.
-- Preserve prompt dimensions and resizing, output controls, button design, scene details, History wheel isolation and mobile natural page flow.
-- Files: video-composer-single-scroll.css, studio.html cache marker, existing layout contract and focused Video browser regression/workflow.
-- New real-wheel regression uses the actual Studio modules with synthetic media and intercepted APIs; checks Output settings up/down, expanded/collapsed controls, resized prompt, fixed complete Generate, keyboard focus, last-setting reachability and phone overflow.
-- Local approved Image and Video layout contracts: 8/8 pass; module syntax and diff whitespace checks pass.
-- Local Chromium installation unavailable because browser downloads returned empty archives. Use the existing GitHub browser environment; no provider generation requested.
-- Implementation prepared. CI, preview visual inspection and production publication pending.
+- Base: main d979a24dd06bf8b0c14ecff27267bbca4669c589. Reviewed head: 5243aa9d4f885d1349f273ecf258469db628dd23.
+- Cause reproduced live: the whole left panel scrolled, moving Generate below its visible edge (button bottom 813px; panel bottom 774px).
+- Fix: a zero-minimum, shrinkable controls-body scrollport above a separate content-sized footer. Neither absolute positioning nor a sticky overlay is used.
+- Generate and available Save draft reserve their actual height; the last output row remains reachable above them.
+- Preserve prompt sizing/resizing, output controls, button appearance, History/Scene-details wheel isolation and phone page flow.
+- Application files: video-composer-single-scroll.css and its version in studio.html.
+- Validation files: existing lab-video-single-scroll.test.mjs, new lab-video-generate-scroll-ui.mjs and the existing Video credit-preview workflow.
+- Workflow checkout is bounded to lab, lab-worker, tests and js to avoid unrelated repository downloads.
+- Local focused Image/Video/pricing tests passed 28/28; syntax and diff checks passed.
+- GitHub actual-module browser regression passed at 1920×830, 1440×900, 1366×768, 1440×600, 821×700 and 390×844.
+- It covers real upward/downward wheel input over Output settings, attached synthetic start media, a long resized prompt, expanded/collapsed output, keyboard access, last-setting reachability, stable Generate, no horizontal overflow and zero generation submissions.
+- Short-desktop and phone screenshots visually inspected from artifact 13194797460 / run 41556716232.
+- Approved Image UI CI passed. Existing credit-preview typography assertion fails at :70 (12px vs 16px); Image paste fails at :122 (14px vs 15.5px). Neither font source changed.
+- First-image browser passes its phone/role/bar checks, then fails the existing Inspiration background assertion at :732. Broad Lab tests retain checkout-consent, Moods header and ZenCreator failures. No tests or gates weakened.
+- Local Chromium archives were unavailable; GitHub supplied the real browser environment.
+- PR #801 merged as 4234522047916fe237cb1586bb694d0c02fb4ebe.
+- Cloudflare Pages pvlab-studio check 125659258650 succeeded for that exact production commit.
+- Read-only verifier returned LIVE_VERIFIED for video-composer-single-scroll.css?v=20261103-reserved-action1.
+- Production SHA-256: c5a415cb298f2c5c0ed094a51560424baf2fc50414d75f5852e86ecb682faf54.
+- Signed-in production reload confirmed the new version, original restored source/prompt and a fully visible action/footer.
+- Loaded source: panel bottom 774px, settings bottom/footer top 689px, Generate 689–734px and Save draft bottom 765px. Final output row bottom 679px when scrolled down.
+- History Reuse restored existing media only; no new quote confirmation, paid generation, account or billing change performed.
+- Complete and live. Existing open tabs need one refresh. No further action for this repair.
 
 ## Extend with character identity references, 2026-10-31
 - User requested saved Alma character in Extend, real image delivery with the source clip, and retention through History/Reuse.
