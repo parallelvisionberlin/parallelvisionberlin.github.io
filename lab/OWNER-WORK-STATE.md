@@ -1,3 +1,15 @@
+## Audience tracker investigation and bar-row format, 2026-11-03
+- User reported no audience data/confusing coverage and supplied the existing Traffic source bars as the required visual reference.
+- Baseline main `6f1bec6b726795520c6795bcda26cdff1d30497f`; branch `fix/audience-bar-rows-clarity-20261103`. Prior scratch checkout was pruned; restored a sparse checkout from GitHub and read the scoped handoff.
+- Read-only live D1 confirmed migration 0058 applied at 1793706659000, no traffic-table triggers, and the first audience record in all eight dimension groups. No schema or collector defect found.
+- One normal public homepage visit in the cloud browser verified the complete live pipeline: period page views 1290→1291; live owner refresh showed 1 entry, United States / Chicago, Desktop / English. This record is our QA visit, not an organic customer or a representative audience sample. No synthetic telemetry payload was inserted.
+- Earlier 1290 page views predate audience collection; they contain no geographic/device attribution. Owner dashboard views intentionally do not track. The generic empty message concealed these distinctions.
+- Frontend now matches the requested reference: full-width labelled rows, count/share at right and thin proportional bars beneath. Ranking, metric switching and collapsed technical details are preserved.
+- Coverage copy explicitly separates the newly measured audience sample from older traffic totals, handles singular units and explains public-page versus owner-page collection. Added a local Refresh control for the audience section using the existing authenticated report request.
+- Changed: `lab/owner.js`, `lab/owner.css`, `lab/owner.html`, `tests/lab-owner-mobile-browser.mjs`, this checkpoint. Cache marker `20261103-audience3`. No backend/data/privacy/account/billing change.
+- Checks: 23 focused traffic/auth/privacy/Image-contract tests pass; syntax/diff whitespace pass. Existing seven-width Owner browser suite also verifies bar proportions after metric changes and the coverage explanation.
+- Publication pending. Next: publish through scoped PR, review relevant CI, verify exact Cloudflare Pages JS/CSS bytes and signed-in real audience rendering.
+
 ## Audience report hierarchy and full-width rows, 2026-11-03
 - User approved refining the audience hierarchy, then explicitly requested full-width rows instead of side-by-side column boxes.
 - Baseline main 361f735; isolated branch `refine/owner-audience-hierarchy-20261103`. Preserve concurrent Smart Links changes.

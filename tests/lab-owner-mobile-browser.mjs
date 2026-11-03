@@ -116,7 +116,7 @@ try{
       assert.equal(await page.locator('#owner-traffic-chart .owner-traffic-chart-column').count(),7);
       assert.ok((await page.locator('#owner-traffic-sources').innerText()).includes('Reddit'));
       assert.equal(await page.locator('a[data-owner-nav][href="#owner-traffic-section"]').count(),1,'Traffic has a dedicated sidebar link');
-      assert.match(await page.locator('#owner-audience-empty').innerText(),/Audience data will appear as new visits arrive/);
+      assert.match(await page.locator('#owner-audience-empty').innerText(),/Earlier traffic totals have no location or device data/);
       assert.equal(await page.locator('#owner-audience-content').isVisible(),false,'One shared empty state replaces all empty panels');
       assert.equal(await page.locator('#owner-audience-metric').isEnabled(),false,'Empty audience has no active metric selector');
       await page.evaluate(()=>paintTrafficAudience({
@@ -139,6 +139,8 @@ try{
       }));
       assert.match(await page.locator('#owner-audience-country').innerText(),/Brazil\s+60\s+60%/);
       assert.match(await page.locator('#owner-audience-city').innerText(),/São Paulo/);
+      assert.equal(await page.locator('#owner-audience-country .owner-traffic-source-fill').first().evaluate(el=>el.style.width),'100%','The leading audience bar fills its row');
+      assert.match(await page.locator('#owner-audience-coverage').innerText(),/Earlier traffic totals have no audience breakdown/);
       assert.equal(await page.locator('#owner-audience-content').isVisible(),true);
       assert.equal(await page.locator('#owner-audience-empty').isVisible(),false);
       assert.equal(await page.locator('#owner-audience-technical').getAttribute('open'),null,'Technical details starts collapsed');
@@ -159,6 +161,7 @@ try{
       await page.locator('#owner-audience-metric').selectOption('views');
       assert.match(await page.locator('#owner-audience-coverage').innerText(),/250 page views/);
       assert.match(await page.locator('#owner-audience-country .owner-traffic-source-row').first().innerText(),/Germany\s+120\s+48%/);
+      assert.equal(await page.locator('#owner-audience-country .owner-traffic-source-fill').nth(1).evaluate(el=>el.style.width),'75%','Bars follow the selected metric');
       await page.locator('#owner-audience-metric').selectOption('entrances');
       await page.locator('#owner-audience-title').scrollIntoViewIfNeeded();
       await page.screenshot({path:artifactDir+'/audience-'+width+'.png',fullPage:false});

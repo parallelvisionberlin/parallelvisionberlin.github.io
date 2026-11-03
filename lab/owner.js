@@ -246,13 +246,13 @@ function paintTrafficAudience(audience){
   const dimensions=audience?.dimensions||{};
   const measured=Number(dimensions.country?.[metric==='views'?'totalViews':'totalEntrances'])||0;
   const coverage=$('owner-audience-coverage');coverage.hidden=!first;
-  coverage.textContent=first?'Measured since '+first+' · '+formatNumber(measured)+' '+unit+' in this period.':'';
+  coverage.textContent=first?'Audience sample: '+formatNumber(measured)+' '+(measured===1?(metric==='views'?'page view':'estimated entry'):unit)+' collected since '+first+'. Earlier traffic totals have no audience breakdown.':'';
   const hasTraffic=measured>0;
   $('owner-audience-content').hidden=!hasTraffic;
   $('owner-audience-empty').hidden=hasTraffic;
   $('owner-audience-empty').textContent=first
     ?'No audience '+unit+' recorded in this period.'
-    :'Audience data will appear as new visits arrive.';
+    :'No audience visits recorded yet. Earlier traffic totals have no location or device data. New public-page visits populate this report; owner dashboard views are excluded.';
   $('owner-audience-metric').disabled=!(Number(dimensions.country?.totalViews)>0);
   if(!hasTraffic)$('owner-audience-technical').open=false;
   for(const dimension of ['country','region','city','device','browser','os','language']){
@@ -261,24 +261,21 @@ function paintTrafficAudience(audience){
     const items=(Array.isArray(group.items)?group.items:[]).filter(item=>Number(item[metric])>0)
       .sort((a,b)=>Number(b[metric])-Number(a[metric])||String(a.value).localeCompare(String(b.value))).slice(0,50);
     if(!items.length){root.append(createTrafficNode('p','owner-traffic-no-data','Nothing recorded for this period.'));continue;}
+    const maximum=Math.max(1,...items.map(item=>Number(item[metric])||0));
     const draw=(list,container)=>{
-      const table=createTrafficNode('table','owner-audience-table');
-      const head=document.createElement('thead'),heading=document.createElement('tr');
-      const nameLabels={country:'Country',city:'City',region:'Region',device:'Device',browser:'Browser',os:'System',language:'Language'};
-      for(const label of [nameLabels[dimension],metric==='views'?'Page views':'Entries','Share']){
-        const cell=createTrafficNode('th','',label);cell.scope='col';heading.append(cell);
-      }
-      head.append(heading);table.append(head);
-      const body=document.createElement('tbody');
       for(const item of list){
         const count=Number(item[metric])||0,label=audienceLabel(dimension,String(item.value));
-        const row=createTrafficNode('tr','owner-traffic-source-row');
-        const name=createTrafficNode('td','owner-audience-label',label);
-        const amount=createTrafficNode('td','owner-audience-count',formatNumber(count));
-        const share=createTrafficNode('td','owner-audience-share',total?Math.round(count/total*100)+'%':'0%');
-        row.append(name,amount,share);body.append(row);
+        const row=createTrafficNode('div','owner-traffic-source-row owner-audience-row');
+        const top=createTrafficNode('div','owner-traffic-source-top');
+        const name=createTrafficNode('span','owner-audience-label',label);
+        const numbers=createTrafficNode('span','owner-audience-numbers');
+        numbers.append(createTrafficNode('strong','',formatNumber(count)),
+          createTrafficNode('small','',total?Math.round(count/total*100)+'%':'0%'));
+        top.append(name,numbers);
+        const track=createTrafficNode('div','owner-traffic-source-track'),bar=createTrafficNode('span','owner-traffic-source-fill');
+        bar.style.width=(count/maximum*100)+'%';track.setAttribute('aria-hidden','true');track.append(bar);
+        row.append(top,track);container.append(row);
       }
-      table.append(body);container.append(table);
     };
     const visibleCount=['device','language'].includes(dimension)?3:6;
     draw(items.slice(0,visibleCount),root);
@@ -367,7 +364,7 @@ function paintTraffic(data){
 async function refreshTraffic(){
   if(!profile?.owner)return;
   const current=revision,id=++trafficSerial,button=$('owner-traffic-refresh');
-  button.disabled=true;
+  button.disabled=true;$('owner-audience-refresh').disabled=true;
   $('owner-traffic-status').textContent='Refreshing anonymous traffic totals…';
   try{
     const data=await call('/api/admin/traffic?days='+trafficDays);
@@ -377,7 +374,7 @@ async function refreshTraffic(){
     if(current!==revision||id!==trafficSerial)return;
     $('owner-traffic-content').hidden=true;
     $('owner-traffic-status').textContent='Traffic data unavailable: '+(error.message||'Try again later.');
-  }finally{if(current===revision&&id===trafficSerial)button.disabled=false;}
+  }finally{if(current===revision&&id===trafficSerial){button.disabled=false;$('owner-audience-refresh').disabled=false;}}
 }
 for(const button of document.querySelectorAll('[data-traffic-days]'))button.addEventListener('click',()=>{
   if(!profile?.owner)return;
@@ -386,6 +383,7 @@ for(const button of document.querySelectorAll('[data-traffic-days]'))button.addE
   void acquisitionUI.refresh();
 });
 $('owner-traffic-refresh').addEventListener('click',()=>void refreshTraffic());
+$('owner-audience-refresh').addEventListener('click',()=>void refreshTraffic());
 
 const generationReviewUI=createOwnerGenerationReviewUI({
   call:path=>call(path),request,ownerReady:()=>!!profile?.owner,
