@@ -344,14 +344,10 @@
   #image-composer.mobile-polish-ready[data-mobile-settings="open"]:not(.is-pv-soul)
   #composer-more-anchor{order:12!important}
 
-  /* Only an expanded working prompt may unlock the welcome scroll. The
+  /* Expanded prompt or open settings may unlock the welcome scroll. The
      fixed composer remains visible, while the full original photographs and
      headline can scroll above it without overlap or being permanently cut off.
      The reserve follows the actual dock height via ResizeObserver. */
-  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
-  .image-gallery-empty:has(#lab-welcome-start:not([hidden])):has(~ #image-composer.pv-deck-expanded){
-    padding-bottom:max(182px,var(--pv-mobile-image-dock-reserve,320px))!important;
-  }
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#image-composer.pv-deck-expanded)
   .image-gallery-empty:has(#lab-welcome-start:not([hidden])),
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#image-composer[data-mobile-settings="open"])
