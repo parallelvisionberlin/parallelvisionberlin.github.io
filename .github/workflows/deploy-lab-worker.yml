@@ -148,6 +148,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0057-owner-quality-review.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0058-traffic-audience.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0059-mood-offer-funnel.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0060-paid-signup-existing-wallets.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health

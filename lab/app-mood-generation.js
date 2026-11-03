@@ -83,6 +83,11 @@ export function createAppMoodGeneration(){
         }
         const error=new Error(message);error.code=code;throw error;
       }
+      // Avoid photo uploads or quote/provider work for zero-credit accounts.
+      if(session.customer&&session.balanceCredits===0){
+        const error=Error('Start with 300 credits for €3. Your photo and Mood stay here.');
+        error.code='INSUFFICIENT_CREDITS';throw error;
+      }
       if(!session.config?.enabled)throw Error('Image generation is currently unavailable.');
       if(!file&&!direction.trim())throw Error('Add a photograph or describe what you want to create.');
       check();

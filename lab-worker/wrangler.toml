@@ -12,13 +12,13 @@ LAB_STUDIO_AUTH_ENABLED = "true"
 LAB_WELCOME_CREDITS_ENABLED = "false"
 # Separate, narrow 40-credit / first-image trial. Off until reviewed and launched.
 # Migration 0051 establishes the no-backfill signup cutoff.
-LAB_IMAGE_TRIAL_ENABLED = "true"
+LAB_IMAGE_TRIAL_ENABLED = "false"
 # First-account onboarding email only. Enable AFTER verifying pvlab.studio in
 # Resend and configuring LAB_RESEND_API_KEY as a Cloudflare Worker secret.
 # Default off: existing users and sign-ins are never backfilled or emailed.
 LAB_WELCOME_EMAIL_ENABLED = "true"
 # Temporarily pause generation funded solely by free/promotional credits.
-LAB_FREE_TRIAL_PAUSED = "true"
+LAB_FREE_TRIAL_PAUSED = "false"
 # Hold unpaid generation for existing disposable-email free-trial accounts; checkout stays open.
 LAB_PROMO_HOLDS_ENABLED = "true"
 LAB_PUBLIC_GENERATION_ENABLED = "true"
