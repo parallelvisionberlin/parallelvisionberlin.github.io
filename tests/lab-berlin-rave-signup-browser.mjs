@@ -75,6 +75,7 @@ for(const width of [320,390,1440])for(const returning of [false,true]){
   assert.equal(await page.locator('#mc-look-pack-context').textContent(),'Berlin Rave · 1K resolution');
   assert.match(await page.locator('.mc-credit-terms').textContent(),/One-time payment.*No subscription/s);
   assert.equal(await page.locator('#mc-look-result-again').isVisible(),false,'One primary pack action after exhaustion');
+  assert.equal(await page.locator('.mc-look-dialog-media').isVisible(),false,'Do not repeat the Mood poster above the finished photo');
   assert.equal(await page.locator('.mc-credit-plans').getAttribute('href'),'./#pricing');
   await page.locator('.mc-photobooth-header img').waitFor({state:'visible'});
   assert.ok(await page.locator('.mc-photobooth-header img').evaluate(el=>el.complete&&el.naturalWidth>0),'Canonical logo loads in exhausted-credit view');
@@ -93,6 +94,8 @@ for(const width of [320,390,1440])for(const returning of [false,true]){
   assert.equal(page.url(),url);assert.equal(jobs,2,'No automatic checkout or generation');
   assert.equal(await page.locator('#mc-look-result-image').getAttribute('src'),resultBefore);
   assert.equal(await page.locator('#mc-look-file-label-text').textContent(),'campaign-source.png');
+  const reject=page.getByRole('button',{name:'Reject',exact:true});
+  if(await reject.isVisible())await reject.click();
   await page.screenshot({path:'/tmp/pv-rave-conversion/result-'+width+'-'+returning+'.png'});
   // Simulate a completed external purchase in the wallet, not a payment request.
   balance=300;await popup.close();await page.bringToFront();

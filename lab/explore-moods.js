@@ -53,7 +53,8 @@ function initialize(){
     if(resultURL)URL.revokeObjectURL(resultURL);
     resultURL=null;resultBlob=null;resultOutputId=null;
     result.hidden=true;result.classList.remove('is-visible');
-    dialog.classList.remove('is-result-view','is-credit-offer');
+    dialog.classList.remove('is-result-view');
+    dialog.classList.remove('is-credit-offer');
     dialog.querySelector('.mc-photobooth-section').textContent='MOOD ATLAS';
     resultImg.hidden=true;resultImg.removeAttribute('src');resultActions.hidden=true;
     $('mc-look-result-again').hidden=true;
