@@ -145,8 +145,10 @@ async function requestSignIn(){
   // The public page can paint before Clerk finishes loading. A direct
   // user click may finish that same shared Clerk bootstrap, never guessing
   // that an already signed-in closed identity is a new customer.
+  let bootMessage=null;
   try{
     const {loadLabAccount,accountBootstrapMessage}=await import('./native-account.js?v=20261103-browser-bootstrap1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1');
+    bootMessage=accountBootstrapMessage;
     const account=await loadLabAccount();
     if(account.isSignedIn){
       notice.textContent='Your account is signed in but Studio setup has not completed. Reload to check its status.';
@@ -155,7 +157,7 @@ async function requestSignIn(){
     }
     await account.openSignIn({forceRedirectUrl:location.href,signUpForceRedirectUrl:location.href});
   }catch(error){
-    notice.textContent=typeof accountBootstrapMessage==='function'?accountBootstrapMessage(error):'Sign-in did not finish. Retry or open PV LAB in Safari.';
+    notice.textContent=bootMessage?bootMessage(error):'Sign-in did not finish. Retry or open PV LAB in Safari.';
     document.getElementById('auth-retry').hidden=false;
   }
 }
