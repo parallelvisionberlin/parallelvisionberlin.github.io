@@ -44,6 +44,11 @@ function initialize(){
   const resultBalance=$('mc-look-result-balance'),resultPack=$('mc-look-result-pack');
   const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
   const resultActions=$('mc-look-result-actions');
+  // Record an explicit offer click without changing the separate-tab checkout flow.
+  resultPack.querySelector('.mc-credit-buy')?.addEventListener('click',()=>{
+    if(!resultNeedsCredits)return;
+    void generationService().then(client=>client.trackMoodOffer?.('offer_clicked')).catch(()=>{});
+  });
   let runSerial=0,activeJobId=null,resultURL=null,resultBlob=null,resultOutputId=null,waitNoteTimer=null;
   function clearResult(){
     clearTimeout(waitNoteTimer);waitNoteTimer=null;
@@ -155,6 +160,8 @@ function initialize(){
       dialog.classList.toggle('is-credit-offer',resultNeedsCredits);
       $('mc-look-result-again').hidden=resultNeedsCredits;
       if(resultNeedsCredits){
+        // Best-effort authenticated measurement; never block or alter the photo.
+        void client.trackMoodOffer?.('offer_viewed')?.catch(()=>{});
         // Use the completed job's bound 1K price, never a generic image estimate.
         const cost=resultCreditCost,count=Number.isSafeInteger(cost)&&cost>0?Math.floor(300/cost):0;
         $('mc-look-pack-count').textContent=count>0?count+' more '+(count===1?'image.':'images.'):'Keep creating.';
