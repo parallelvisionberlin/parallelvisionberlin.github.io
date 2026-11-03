@@ -1,5 +1,27 @@
 # PV LAB Saved References / compact F
 
+## Production Character validation, 2026-11-03
+- Request: validate PR #803 on production without paid generations; correct verified Character regressions only.
+- Verified production source: `797f8cb2a42d2f8d624a4d470935310ff46c986d`, direct child of merge `f533afafd8e4ca0c2e95de4155d45a33f711fb4c`.
+- Cloudflare Pages check `125688742435` succeeded for `pvlab-studio`; release verifier returned `LIVE_VERIFIED` for `lab.js`, SHA-256 `134a925ba9e630929fd14a9ab1aaea3c91bf3cd7abc28f3a25b7ec974201ef4a`.
+- Live deployed-import bytes exactly match that source for `scene-library.js`, `reference-order.js` and `reference-guidance.js`.
+- Real signed-in desktop: Alma Rosati attaches 8/8 photographs; the generated instruction preview contains eight Identity references and notes.
+- Actual QA JPG uploads: automatic Base, deletion back to Character-only, batch replacement, photo placement before Character, explicit Base selection and keyboard reordering all verified.
+- A disposable photo note stayed with its photograph through Base selection/reordering; saved Characters were not edited or deleted.
+- Qwen rejects an already-attached eight-photo Character and also rejects before attachment with the clear 8-saved/3-slots/Nothing-attached feedback.
+- Real Video Reference set: Seedance 2.5 and Wan retain the complete 8/8 Character group. Provider receipt/output remains unverified because no generation was submitted.
+- Verified regression: blank direction plus Base and eight 300-character notes assembles 5,595 characters, disabling Generate without any authored prompt.
+- Root cause: `effectiveImagePrompt()` inserts the long photo-only fallback before the compact Character map; previous tests supplied a short authored direction.
+- Scoped correction: only blank, non-Mood Base workflows with at least three Character photographs use the existing concise assigned-reference instruction. Full notes, roles, ordering, typed directions, ordinary photo fidelity and budget limits remain.
+- Application files: `lab/lab.js`, versioned entrypoint `lab/studio.html` (`characterEmptyDirection=20261103v1`). No visual, identity-storage, provider, billing or Worker changes.
+- New regression test exercises the actual frontend fallback plus shared compiler at 9/10 inputs, all full notes, authored/Mood/photo-only/reference-only behavior and genuine over-budget rejection.
+- Local verification: 29 focused tests passed; new regression first reproduced the exact live 5,595-character failure, then passed with the fix. JS syntax and diff checks passed.
+- Browser regression extended to full 300-character notes, empty direction and Base replacement at desktop 1440px and phone 390px. CI verification pending.
+- This browser interface has no viewport-emulation control; real signed-in mobile interaction remains unverified. Do not label fixture mobile checks as production mobile observation.
+- Correction branch: `fix/character-base-empty-direction-20261103`. Not yet merged or confirmed live.
+- No paid generation, training, quote confirmation, account/credit change or saved Character modification performed.
+- Next: run the relevant browser CI, review the correction, then publish and recheck the empty-direction production case; actual provider receipt requires separately authorized generation.
+
 ## Complete Character references and Base replacement, 2026-11-03
 - Owner requested complete eight-photo Character references with saved notes for Image and Video, plus automatic Base replacement and photos to the left of Characters.
 - Published through PR #803: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/803
