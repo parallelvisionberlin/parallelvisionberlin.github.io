@@ -1,4 +1,5 @@
 import {clerkInstanceForHostname} from './clerk-instance.js?v=20261014-custom-domain1';
+import {loadClerkBrowserSdk} from './clerk-browser-sdk.js?v=20261103-first-party1';
 // Native tokens remain in memory. The Worker still verifies every signed claim.
 export const isNativeLab=()=>typeof window!=='undefined'&&window.__PV_LAB_NATIVE__===1&&typeof window.ReactNativeWebView?.postMessage==='function';
 const pending=new Map();
@@ -22,10 +23,22 @@ function requestIdentity(force=false){
   });
 }
 // Keep third-party SDK imports and Clerk session hydration from blocking Studio forever.
-function boundedSetup(task,timeoutMs,message){
+function boundedSetup(task,timeoutMs,message,code='AUTH_TIMEOUT'){
   let timer;
-  const expired=new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(message)),timeoutMs);});
+  const expired=new Promise((_,reject)=>{
+    timer=setTimeout(()=>{
+      const error=new Error(message);error.code=code;reject(error);
+    },timeoutMs);
+  });
   return Promise.race([task,expired]).finally(()=>clearTimeout(timer));
+}
+export function accountBootstrapMessage(error){
+  switch(error?.code){
+    case 'AUTH_SDK':return 'Sign-in service could not load (AUTH-SDK). Retry or open PV LAB in Safari.';
+    case 'AUTH_UI':return 'Sign-in window could not load (AUTH-UI). Retry or open PV LAB in Safari.';
+    case 'AUTH_SESSION':return 'Your account session did not respond (AUTH-SESSION). Retry or open PV LAB in Safari.';
+    default:return 'Sign-in did not finish (AUTH-LOAD). Retry or open PV LAB in Safari.';
+  }
 }
 let accountLoading=null;
 export function loadLabAccount(){
@@ -35,7 +48,7 @@ export function loadLabAccount(){
 async function createLabAccount(){
   if(!isNativeLab()){
     const {frontendApi,publishableKey}=clerkInstanceForHostname(location.hostname);
-    const sdk=import('https://esm.sh/@clerk/clerk-js@6?bundle');
+    const sdk=loadClerkBrowserSdk({frontendApi,publishableKey});
     // Presentation policy for the independent PV LAB domain only.
     // Clerk's production SSO settings still control whether GitHub is enabled.
     const studioClerk=frontendApi==='https://clerk.pvlab.studio';
@@ -45,9 +58,22 @@ async function createLabAccount(){
       style.textContent='.cl-socialButtonsBlockButton__github,.cl-socialButtonsIconButton__github{display:none!important}.cl-socialButtons{grid-template-columns:minmax(0,1fr)!important}';
       document.head.append(style);
     }
-    const ui=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=frontendApi+'/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=()=>reject(Error('Clerk UI could not load.'));document.head.append(s);});
-    const [{Clerk}]=await boundedSetup(Promise.all([sdk,ui]),12000,'Account sign-in resources timed out.');
-    const clerk=new Clerk(publishableKey);
+    const ui=new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src=frontendApi+'/npm/@clerk/ui@1/dist/ui.browser.js';
+      s.async=true;s.crossOrigin='anonymous';
+      s.onload=()=>{
+        if(typeof window.__internal_ClerkUICtor==='function')resolve();
+        else{
+          const error=new Error('Clerk UI bundle did not initialize.');error.code='AUTH_UI';reject(error);
+        }
+      };
+      s.onerror=()=>{
+        const error=new Error('Clerk UI could not load.');error.code='AUTH_UI';reject(error);
+      };
+      document.head.append(s);
+    });
+    const [clerk]=await boundedSetup(Promise.all([sdk,ui]),12000,'Account sign-in resources timed out.');
     await boundedSetup(clerk.load({
       ui:{ClerkUI:window.__internal_ClerkUICtor},
       signInFallbackRedirectUrl:location.href,
@@ -57,7 +83,7 @@ async function createLabAccount(){
         socialButtonsIconButton__github:{display:'none'},
         socialButtons:{gridTemplateColumns:'minmax(0,1fr)'}
       }}}:{})
-    }),12000,'Your account session did not respond. Please reload.');
+    }),12000,'Your account session did not respond. Please reload.','AUTH_SESSION');
     return clerk;
   }
   const {initLabMobileUI}=await import('./mobile-ui.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1');
