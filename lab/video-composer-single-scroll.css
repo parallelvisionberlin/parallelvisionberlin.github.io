@@ -1,8 +1,7 @@
-/* Video Studio desktop | One continuous, accessible composer scroll.
-   The left panel used to scroll controls-body independently while Generate
-   remained pinned underneath it. With images and a long prompt, Output
-   settings disappeared behind the fixed footer. Scroll the whole composer
-   instead; Generate follows the final setting in normal document flow.
+/* Video Studio desktop | Scroll settings above a reserved action footer.
+   The whole-composer scroll let Generate leave the visible panel. Keep one
+   settings scrollport with a shrinkable flex track, and reserve the footer's
+   actual content height so neither the final settings nor action is clipped.
    Video only. Player, gallery, pricing, handlers and button design untouched. */
 @media (min-width:821px){
   html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
@@ -12,9 +11,8 @@
     height:var(--pv-video-stage-height)!important;
     min-height:0!important;
     overflow-x:hidden!important;
-    overflow-y:auto!important;
+    overflow-y:hidden!important;
     overscroll-behavior-y:contain!important;
-    scroll-padding-bottom:16px!important;
     scrollbar-width:none!important;
     -ms-overflow-style:none!important;
   }
@@ -24,10 +22,13 @@
   }
   html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
   .workspace.video-layout>.controls>.controls-body{
-    flex:0 0 auto!important;
+    flex:1 1 0!important;
     height:auto!important;
-    min-height:max-content!important;
-    overflow:visible!important;
+    min-height:0!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior-y:contain!important;
+    scroll-padding-block:12px!important;
     scrollbar-width:none!important;
     padding-bottom:10px!important;
   }
@@ -55,16 +56,15 @@
     position:relative!important;
     top:auto!important;
     bottom:auto!important;
-    z-index:auto!important;
-    flex:0 0 54px!important;
-    height:54px!important;
+    z-index:1!important;
+    flex:0 0 auto!important;
+    height:auto!important;
     min-height:54px!important;
     margin:0!important;
     transform:none!important;
     box-shadow:none!important;
   }
-  /* After all settings, the footer is a normal last item. The parent scrolls
-     past it, so nothing is hidden beneath the Generate action. */
+  /* The footer remains a separate flex item, never an overlay on settings. */
   html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact
   .workspace.video-layout>.controls>.generate-zone::after{
     content:none!important;

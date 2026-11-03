@@ -1,3 +1,16 @@
+## Reserved Generate footer during Video scrolling, 2026-11-03
+- Objective: keep the complete Generate action visible when scrolling upward over Output settings.
+- Verified base: main d979a24dd06bf8b0c14ecff27267bbca4669c589. No overlapping Video work appeared among the recent open PRs inspected.
+- Live reproduction: the whole controls panel scrolls; at 1366px-class desktop size its bottom is 774px while Generate extends to 813px.
+- Cause: video-composer-single-scroll.css made controls-body content-sized and the outer controls panel the scrollport, including Generate.
+- Fix: one shrinkable, native controls-body scrollport above a separate content-sized flex footer. No absolute or sticky overlay; final settings remain reachable.
+- Preserve prompt dimensions and resizing, output controls, button design, scene details, History wheel isolation and mobile natural page flow.
+- Files: video-composer-single-scroll.css, studio.html cache marker, existing layout contract and focused Video browser regression/workflow.
+- New real-wheel regression uses the actual Studio modules with synthetic media and intercepted APIs; checks Output settings up/down, expanded/collapsed controls, resized prompt, fixed complete Generate, keyboard focus, last-setting reachability and phone overflow.
+- Local approved Image and Video layout contracts: 8/8 pass; module syntax and diff whitespace checks pass.
+- Local Chromium installation unavailable because browser downloads returned empty archives. Use the existing GitHub browser environment; no provider generation requested.
+- Implementation prepared. CI, preview visual inspection and production publication pending.
+
 ## Extend with character identity references, 2026-10-31
 - User requested saved Alma character in Extend, real image delivery with the source clip, and retention through History/Reuse.
 - Base inspected: 64ed58529ad849cb692d9a8650aa1aa355e2601d. Publication status below must be verified independently.
