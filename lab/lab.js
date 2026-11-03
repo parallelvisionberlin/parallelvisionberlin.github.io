@@ -2,6 +2,7 @@ import {videoInputAction} from './video-input-action.js?v=20261030-1';
 import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1&upscaleModelCards=pr486final1';
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
 import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261027-compact-f1&characterAllViews=20261103v1&extendCharacter=20261031-1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1';
+import {normalizeImageReferenceOrder,assignImageBase} from './reference-order.js?v=20261103-base-replacement1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF,EIGHTIES_100_FILM_FINISH,eightiesBaseFinish,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3&hkPhoto=20261018v1&hkRestore=20261018v1&hkFilmV8=20261019&hkLight=20261021v10&eightiesFinish=20261024v1&hkCinema=20261025v1';
 import {preparePhotoInput,prepareUpscaleInput,prepareElementPhoto} from './photo-input.js?v=20261027-character-working1';
@@ -485,6 +486,12 @@ function setImageReferenceMode(value){
   imageReferenceMode=value;
   autoPreview=null;
   closeReferenceIntent();renderReferences();syncDefaultRatio(!imageRatioExplicit);update();
+}
+function setBaseReference(ref){
+  if(busy||!usesReferenceGuidance()||!assignImageBase(references,ref))return;
+  imageReferenceMode='base';autoPreview=null;
+  closeReferenceIntent();closeInputPreview();
+  renderReferences();refreshInputPreview();syncDefaultRatio(!imageRatioExplicit);update();
 }
 function applySamePerson(){
   if(busy||!usesReferenceGuidance()||!references.length)return;
@@ -1770,7 +1777,11 @@ let composerReferenceRenderKey=null;
 function moveComposerReference(ref,target,after=false){
   if(busy||ref===target)return;
   const from=references.indexOf(ref);if(from<0||!references.includes(target))return;
-  references.splice(from,1);references.splice(references.indexOf(target)+(after?1:0),0,ref);
+  references.splice(from,1);
+  const group=target.elementId?references.filter(item=>item.elementId===target.elementId):[target];
+  const boundary=after?group.at(-1):group[0];
+  references.splice(references.indexOf(boundary)+(after?1:0),0,ref);
+  if(usesReferenceGuidance()&&!referencesOnly()&&references[0]===ref&&!ref.elementId)assignImageBase(references,ref);
   autoPreview=null;if(imageEngine==='fal')poseMapSourceId=null;
   closeInputPreview();renderReferences();refreshInputPreview();update();
 }
@@ -1841,15 +1852,20 @@ function syncImageReferences(){
       tile.addEventListener('dragend',()=>{draggedComposerReference=null;tray.querySelectorAll('.composer-reference-tile').forEach(t=>t.classList.remove('is-reordering','drop-before','drop-after'));});
       tile.addEventListener('keydown',e=>{if(e.target!==tile||!e.altKey||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const next=references.indexOf(ref)+(e.key==='ArrowLeft'?-1:1);if(references[next]){moveComposerReference(ref,references[next],e.key==='ArrowRight');tray.querySelectorAll('.composer-reference-tile')[next]?.focus();}});
     }
+    if(ref.elementId){
+      // The grouped Character can receive a drop without becoming the Base itself.
+      tile.addEventListener('dragover',e=>{if(!draggedComposerReference)return;e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect='move';});
+      tile.addEventListener('drop',e=>{if(!draggedComposerReference)return;e.preventDefault();e.stopPropagation();const moving=draggedComposerReference;draggedComposerReference=null;const after=e.clientX>tile.getBoundingClientRect().left+tile.offsetWidth/2;moveComposerReference(moving,ref,after);});
+    }
     const marker=document.createElement('span');marker.className='composer-reference-index';
     marker.textContent=ref.elementId?'@'+ref.elementName:ref.isBase||ref.role==='base'?'BASE':ref.role&&ref.role!=='none'?ref.role.toUpperCase():String(i+1);
     marker.setAttribute('aria-hidden','true');if(isSoul2())marker.hidden=true;tile.append(marker);
     if(usesReferenceGuidance()&&(i>0||referencesOnly())&&!ref.elementId){
       marker.hidden=true;
       const role=document.createElement('select');role.className='composer-reference-role';role.setAttribute('aria-label','Role for image '+(i+1));role.disabled=busy;
-      for(const [value,label] of REFERENCE_ROLES.filter(([value])=>value!=='base'))role.add(new Option(value==='none'?'General':label,value));
+      for(const [value,label] of REFERENCE_ROLES)role.add(new Option(value==='none'?'General':label,value));
       role.value=ref.role||'none';role.title=role.value==='none'?'General reference. Choose a role for more precise guidance.':'Reference role: '+role.value;
-      role.onchange=()=>{ref.role=role.value;ref.target=role.value==='outfit'?'full':'';if(referencesOnly())ref.nonBaseRole=ref.role;autoPreview=null;renderReferences();update();};tile.append(role);
+      role.onchange=()=>{if(role.value==='base'){setBaseReference(ref);return;}ref.role=role.value;ref.target=role.value==='outfit'?'full':'';if(referencesOnly())ref.nonBaseRole=ref.role;autoPreview=null;renderReferences();update();};tile.append(role);
     }
 
     if(ref.isBase){
@@ -3213,8 +3229,7 @@ function syncReferenceRemovalState(){
 }
 function renderReferences(){
   if(usesReferenceGuidance()&&references.length){
-    if(referencesOnly()){for(const r of references)if(r.role==='base')r.role=r.nonBaseRole||'none';}
-    else{if(references[0].role!=='base')references[0].nonBaseRole=references[0].role;references[0].role='base';for(const r of references.slice(1))if(r.role==='base')r.role=r.nonBaseRole||'none';}
+    imageReferenceMode=normalizeImageReferenceOrder(references,imageReferenceMode);
   }
   const box=$('reference-list'),scroll=box.scrollTop,fragment=document.createDocumentFragment();
   references.forEach((r,i)=>{
@@ -3247,16 +3262,13 @@ function renderReferences(){
     const fields=document.createElement('div');fields.className='reference-fields';
     const title=document.createElement('strong');title.textContent='Reference '+(i+1)+' / '+r.file.name;title.title=title.textContent;
     const role=document.createElement('select');role.setAttribute('aria-label','Role for reference '+(i+1));
-    const available=usesReferenceGuidance()?REFERENCE_ROLES.filter(([id])=>!referencesOnly()||id!=='base'):REFERENCE_ROLES.filter(([id])=>!['base','composition','detail'].includes(id));
+    const available=usesReferenceGuidance()?REFERENCE_ROLES:REFERENCE_ROLES.filter(([id])=>!['base','composition','detail'].includes(id));
     for(const [value,label] of available)role.add(new Option(label,value));
     if(r.role&&!available.some(([id])=>id===r.role))role.add(new Option(r.role+' (image role)',r.role));
     if(imageEngine==='soulpro')r.role='identity';role.value=r.role||'none';role.disabled=busy||imageEngine==='soulpro';if(imageEngine==='soulpro')role.hidden=true;
     role.onchange=()=>{
+      if(role.value==='base'&&usesReferenceGuidance()){setBaseReference(r);return;}
       r.role=role.value;r.target=r.role==='outfit'?'full':'';autoPreview=null;
-      if(r.role==='base'&&usesReferenceGuidance()){
-        for(const ref of references)if(ref!==r&&ref.role==='base')ref.role='none';
-        if(i>0){references.splice(i,1);references.unshift(r);notify('Base moved to Reference 1. Reference numbers updated; check any numbered notes.');}
-      }
       if(imageEngine==='fal'){poseMapSourceId=null;$('pose-preview-status').textContent='Pose changed. Preview again if you want to inspect it.';}
       renderReferences();update();
     };
@@ -3282,8 +3294,9 @@ function renderReferences(){
 async function addReferences(list,ids=[],labels=[]){
   clearImageComposerNotice();
   const e=epoch,selectedTool=tool,selectedReferences=references,incoming=[...list];if(imageEngine==='fal')poseMapSourceId=null;if(references.length+incoming.length>referenceLimit())throw new Error('This mode supports up to '+referenceLimit()+' image references.');
-  const explicitBaseAfterElement=tool==='image'&&usesReferenceGuidance()&&referencesOnly()&&incoming.length===1&&
-    references.some(ref=>ref.elementId)&&!labels[0]?.elementId&&!references.some(ref=>ref.role==='base');
+  const explicitBaseAfterElement=tool==='image'&&usesReferenceGuidance()&&references.length>0&&
+    references.every(ref=>ref.elementCategory==='characters')&&incoming.length>0&&
+    incoming.every((_,i)=>!labels[i]?.elementId)&&!references.some(ref=>ref.role==='base');
   autoPreview=null;$('reference-list').setAttribute('aria-busy','true');let added=0;const toWarm=[];
   try{
     for(let i=0;i<incoming.length;i++){
@@ -3295,10 +3308,11 @@ async function addReferences(list,ids=[],labels=[]){
       if(e!==epoch||!owner||tool!==selectedTool||references!==selectedReferences){releaseReference(item);return;}
       item.id=item.file===incoming[i]?(ids[i]||null):null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';
        item.elementId=labels[i]?.elementId||null;item.elementName=labels[i]?.elementName||'';item.elementCategory=labels[i]?.elementCategory||'';
-       item.elementView=labels[i]?.elementView;item.elementCount=labels[i]?.elementCount;if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;toWarm.push(item);
-       if(explicitBaseAfterElement&&!item.elementId){
-         imageReferenceMode='base';references.splice(references.indexOf(item),1);references.unshift(item);
-         item.role='base';closeReferenceIntent();
+       item.elementView=labels[i]?.elementView;item.elementCount=labels[i]?.elementCount;if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}
+       const characterIndex=tool==='image'&&usesReferenceGuidance()&&!item.elementId?references.findIndex(ref=>ref.elementCategory==='characters'):-1;
+       if(characterIndex>=0)references.splice(characterIndex,0,item);else references.push(item);added++;toWarm.push(item);
+       if(explicitBaseAfterElement&&i===0&&!item.elementId){
+         imageReferenceMode='base';assignImageBase(references,item);closeReferenceIntent();
        }
       renderReferences();refreshInputPreview();update();
       await new Promise(resolve=>setTimeout(resolve,0));

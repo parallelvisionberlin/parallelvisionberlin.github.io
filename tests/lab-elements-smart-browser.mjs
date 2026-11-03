@@ -160,6 +160,39 @@ try{
   await page.locator('.composer-element-tile').first().locator('.composer-reference-remove').click();
   await page.waitForFunction(()=>document.querySelectorAll('.composer-element-tile').length===1);
   assert.match(await page.locator('.composer-element-tile').first().innerText(),/@Nina FOK/);
+  // Delete Base, retain Character identity, then explicitly choose a new Base.
+  await page.locator('#reference-images').setInputFiles({name:'first-base.webp',mimeType:'image/webp',buffer:media});
+  await page.waitForFunction(()=>document.querySelector('#image-composer-references .composer-reference-tile')?.textContent.includes('BASE'));
+  const firstBase=await page.evaluate(()=>window.__elementInputs());
+  assert.equal(firstBase.roles[0].role,'base');
+  assert.ok(firstBase.roles.slice(1).every(ref=>ref.role==='identity'));
+  await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+  const withoutBase=await page.evaluate(()=>window.__elementInputs());
+  assert.equal(withoutBase.roles.length,8);
+  assert.ok(withoutBase.roles.every(ref=>ref.role==='identity'),'Removing Base must never turn a Character photo into Base');
+  assert.match(await page.locator('#composer-reference-intent-toggle').innerText(),/References only/i);
+  await page.locator('#reference-images').setInputFiles([
+    {name:'new-scene-a.webp',mimeType:'image/webp',buffer:media},
+    {name:'new-scene-b.webp',mimeType:'image/webp',buffer:media}
+  ]);
+  await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===3);
+  const addedPhotos=await page.evaluate(()=>window.__elementInputs());
+  assert.equal(addedPhotos.roles[0].name,'new-scene-a.webp','The first dropped photo automatically becomes Base');
+  assert.equal(addedPhotos.roles[0].role,'base');
+  assert.deepEqual(addedPhotos.roles.slice(0,2).map(ref=>ref.name),['new-scene-a.webp','new-scene-b.webp']);
+  assert.ok(addedPhotos.roles.slice(2).every(ref=>ref.elementId===nina.id&&ref.role==='identity'),
+    'Additional photographs stay left of the unchanged Character group');
+  assert.equal(await page.locator('#image-composer-references .composer-reference-tile').last().getAttribute('class'),'composer-reference-tile composer-element-tile');
+  await page.locator('#image-composer-references .composer-reference-role').last().selectOption('base');
+  const replacedBase=await page.evaluate(()=>window.__elementInputs());
+  assert.equal(replacedBase.roles[0].role,'base');
+  assert.equal(replacedBase.roles[0].name,'new-scene-b.webp');
+  assert.equal(replacedBase.roles.filter(ref=>ref.role==='base').length,1);
+  assert.equal(replacedBase.roles.filter(ref=>ref.elementId===nina.id&&ref.role==='identity').length,8);
+  assert.deepEqual(replacedBase.roles.filter(ref=>ref.elementId===nina.id).map(ref=>ref.elementView),[0,1,2,3,4,5,6,7]);
+  await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+  await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+  console.log('PASS Base replacement keeps all eight Character identities and exposes explicit Base selection');
   // A Scene Library card must close the modal only after the Element is fully
   // attached, leaving the original Image prompt and history/deck flow intact.
   const preservedDirection='A photographic portrait inside the same room';
@@ -302,6 +335,7 @@ try{
 
   // The shared loader must pass all eight photos to video inputs too.
   await page.locator('#tool-video').click();
+  if(await page.locator('#pv-video-output-toggle').getAttribute('aria-expanded')==='false')await page.locator('#pv-video-output-toggle').click();
   await page.locator('#pv-video-model-pill').click();
   await page.locator('.pv-video-model-item[data-model="seedance"]').click();
   await page.evaluate(()=>document.getElementById('mode-reference').click());

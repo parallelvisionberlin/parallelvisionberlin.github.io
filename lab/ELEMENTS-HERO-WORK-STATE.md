@@ -18,7 +18,11 @@
 - Uploaded exact tested file tree as `7bcd9779896b56dbead6f1ed4108ec8a5b364ee2`; PR #803 is open. No merge or production release.
 - First browser CI exposed a new fixture using hidden native model selects. The fixture now uses visible Image and Video model menus; every eight-photo/note and capacity assertion is retained.
 - Broad unit CI reports three unrelated failures: lab-meta-capi missing readFileSync, Explore Moods label expectation and ZenCreator pricing copy expectation. No unrelated test or application files were changed.
-- Next: verify the corrected Character browser CI and approved Image contract, then handle publication and exact Cloudflare/live verification separately.
+- Owner follow-up: deleting Base must never turn the Character into Base. With only Character references attached, the first newly dropped photo becomes Base automatically, including batches; later photos appear before the Character group, which moves right.
+- Added pure `lab/reference-order.js` for explicit Base assignment and legacy-role recovery, used by both compact and advanced role menus. Base image is now available in the visible photo dropdown; group drag targets preserve all Character views together.
+- New tests cover Base deletion/replacement, legacy incorrect Character Base roles, full role/note preservation, batch insertion order and explicit Base selection. Approved Image contract and focused order/Element/preview/prewarm checks passed (28 local tests).
+- Browser CI at `110384a` completed all Image/Qwen/notes assertions, then stopped at a collapsed Video output panel. The fixture now explicitly opens that existing panel before choosing its model; all assertions remain.
+- Next: verify the updated Base-replacement and eight-photo browser CI, then handle publication and exact Cloudflare/live verification separately.
 
 ## Active mobile detail repair, 2026-11-02
 - Request: repair overflowing saved Character details on phones; preserve other category overviews.
