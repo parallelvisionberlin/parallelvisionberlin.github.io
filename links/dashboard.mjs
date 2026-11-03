@@ -1,5 +1,6 @@
-import {API,SERVICES,slugify,releaseUrl,validateLinks,newId} from './shared.mjs';
-import {renderRelease} from './release-view.mjs?v=20261030-listen2';
+import {initWorkspaceTools,reportQuery,renderWorkspaceReports,resetWorkspaceTools} from './workspace-tools.mjs?v=20261103-workspace1';
+import {API,SERVICES,slugify,releaseUrl,validateLinks,newId,validatePresave} from './shared.mjs?v=20261103-workspace1';
+import {renderRelease} from './release-view.mjs?v=20261103-workspace1';
 import {loadLabAccount} from '../lab/native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from '../lab/session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 const $=id=>document.getElementById(id),form=$('release-form'),editor=$('editor');
@@ -17,12 +18,13 @@ async function call(path,{method='GET',data,headers,body}={}){
 function notice(message){$('status').textContent=message;}
 function field(name){return form.elements.namedItem(name);}
 for(const service of SERVICES){const label=el('label','',service.name),input=el('input');input.name='service-'+service.id;input.type='url';input.maxLength=2048;input.placeholder='https://…';label.append(input);$('platform-fields').append(label);}
-function draft(){return {id:editing?.id||createId,background:field('background').value,title:field('title').value.trim(),artist:field('artist').value.trim(),slug:field('slug').value.trim(),catalogue:field('catalogue').value.trim(),description:field('description').value.trim(),artworkUrl:field('artworkUrl').value.trim(),audioUrl:field('audioUrl').value.trim(),releaseDate:field('releaseDate').value,pixelId:field('pixelId').value.trim(),status:field('status').value,revision:editing?.revision,links:SERVICES.map(s=>({service:s.id,url:field('service-'+s.id).value.trim()})).filter(l=>l.url)};}
+function draft(){return {presave:{mode:field('presaveMode').value,url:field('presaveUrl').value.trim()},id:editing?.id||createId,background:field('background').value,title:field('title').value.trim(),artist:field('artist').value.trim(),slug:field('slug').value.trim(),catalogue:field('catalogue').value.trim(),description:field('description').value.trim(),artworkUrl:field('artworkUrl').value.trim(),audioUrl:field('audioUrl').value.trim(),releaseDate:field('releaseDate').value,pixelId:field('pixelId').value.trim(),status:field('status').value,revision:editing?.revision,links:SERVICES.map(s=>({service:s.id,url:field('service-'+s.id).value.trim()})).filter(l=>l.url)};}
 function preview(){const data=draft();for(const key of ['artworkUrl','audioUrl'])if(data[key]&&!/^https:\/\//i.test(data[key]))data[key]='';renderRelease($('release-preview'),data,{preview:true});}
 function controls(){const busy=saving||uploading;$('save-release').disabled=busy;$('save-draft').disabled=busy;$('close-editor').disabled=busy;$('artwork-file').disabled=busy;$('audio-file').disabled=busy;}
 function openEditor(record=null){
   if(saving||uploading)return;editing=record;createId=newId();slugEdited=!!record;form.reset();
   for(const name of ['title','artist','slug','catalogue','description','artworkUrl','audioUrl','releaseDate','pixelId','status','background'])field(name).value=record?.[name]||(name==='status'?'draft':name==='background'?'blur':'');
+  field('presaveMode').value=record?.presave?.mode||'off';field('presaveUrl').value=record?.presave?.url||'';
   for(const link of record?.links||[])field('service-'+link.service).value=link.url;
   field('slug').readOnly=!!record;$('editor-title').textContent=record?'Edit smart link.':'New smart link.';
   $('slug-note').textContent=record?'This address is fixed so your existing links keep working.':'Choose a short name. Saved links stay fixed for your adverts.';
@@ -63,11 +65,13 @@ function renderRecords(){
     if(release.catalogue)names.append(el('p','release-catalogue',release.catalogue));
     const platforms=el('div','release-services');
     for(const link of release.links||[]){const service=SERVICES.find(s=>s.id===link.service);if(service){const item=el('span','service '+service.id,service.name);platforms.append(item);}}
+    if(release.presave?.mode!=='off'&&release.presave?.url)platforms.append(el('span','service presave','Pre-save'));
     if(!platforms.children.length)platforms.append(el('span','no-platforms','No platform links yet'));names.append(platforms);
     const metrics=el('dl','row-metrics');
     for(const [label,value] of [['Page visits',format(release.views)],['Platform clicks',format(release.clicks)],['Clicks / visits',(release.views?100*release.clicks/release.views:0).toLocaleString('en-GB',{maximumFractionDigits:1})+'%']]){const item=el('div');item.append(el('dt','',label),el('dd','',value));metrics.append(item);}
     const group=el('div','row-actions'),edit=el('button','primary','Edit');edit.type='button';edit.setAttribute('aria-label','Edit '+release.title);edit.addEventListener('click',()=>openEditor(release));group.append(edit);
     if(release.status==='published'){const button=el('button','secondary','Copy link');button.type='button';button.setAttribute('aria-label','Copy link for '+release.title);button.addEventListener('click',()=>void copy(release.url,button));const link=el('a','secondary','Open');link.href=release.url;link.target='_blank';link.rel='noopener noreferrer';link.setAttribute('aria-label','Open '+release.title);group.append(button,link);}
+    const performance=el('button','subtle','Performance');performance.type='button';performance.setAttribute('aria-label','View performance for '+release.title);performance.addEventListener('click',()=>{$('report-release').value=release.id;location.hash='performance';void refresh();});group.append(performance);
     row.append(art,names,metrics,group);rows.append(row);
   }
   if(!filtered.length)rows.append(el('p','empty-row',records.length?'No smart links match this view.':'Create your first smart link to start.'));
@@ -76,6 +80,7 @@ function renderRecords(){
 function updatePixelState(){const configured=!!settings?.pixelId;$('pixel-state').textContent=configured?'Configured':'Not configured';$('pixel-state').classList.toggle('configured',configured);}
 const views={
   'smart-links':['Smart Links.','Your music. One destination.'],
+  experiments:['Experiments.','Keep a record of what you change and learn.'],
   performance:['Performance.','See where your listeners go.'],
   tracking:['Tracking.','Your music. Your audience.'],
   settings:['Settings.','Your Parallel Vision workspace.']
@@ -95,7 +100,7 @@ function analyticsTable(root,labels,rows){
 function renderAnalytics(data){
  const a=data.analytics||{},metrics=r=>[format(r.views),format(r.clicks),(r.views?100*r.clicks/r.views:0).toFixed(1)+'%'];
  const keys={countries:r=>r.country,regions:r=>r.region+' / '+r.country,cities:r=>r.city+' / '+r.region+' / '+r.country,devices:r=>r.device,browsers:r=>r.browser,systems:r=>r.os,ads:r=>[r.source,r.medium,r.campaign,r.content,r.term].map(x=>x||'Not tagged').join(' / '),delays:r=>r.delay_bucket};
- for(const [key,label] of Object.entries(keys))analyticsTable($('analytics-'+key),[key==='ads'?'Source / Medium / Campaign / Ad / Ad set':key==='delays'?'Time':'Breakdown','Visits','Clicks','Click rate'],(a[key]||[]).map(r=>[label(r),...metrics(r)]));
+ for(const [key,label] of Object.entries(keys))if(key==='delays')analyticsTable($('analytics-'+key),['Time before click','Clicks'],(a[key]||[]).map(r=>[label(r),format(r.clicks)]));else analyticsTable($('analytics-'+key),[key==='ads'?'Source / Medium / Campaign / Ad / Ad set':'Breakdown','Visits','Clicks','Clicks / visits'],(a[key]||[]).map(r=>[label(r),...metrics(r)]));
  $('audio-previews').textContent=format(a.coverage?.previews)+' preview plays';
  $('analytics-coverage').textContent='Detailed analytics: '+format(a.coverage?.views)+' visits and '+format(a.coverage?.clicks)+' clicks'+(a.coverage?.since?' since '+a.coverage.since.replace('T',' ')+':00 UTC':' from new activity')+'. Location is approximate. Earlier visits have no location or device data.';
  const hourly=$('timeline-mode').value==='hourly';let rows;
@@ -108,21 +113,22 @@ function renderAnalytics(data){
 }
 $('report-release').addEventListener('change',()=>void refresh());$('timeline-mode').addEventListener('change',()=>{if(analyticsData)renderAnalytics(analyticsData);});
 async function refresh(){
+  let query;try{query=reportQuery();}catch(error){notice(error.message);return;}
   const serial=++fetchSerial;notice('Refreshing smart link performance…');$('refresh').disabled=true;
-  try{const data=await call('/dashboard?days='+$('days').value+'&releaseId='+encodeURIComponent($('report-release').value));if(serial!==fetchSerial)return;records=data.releases;settings=data.settings;analyticsData=data;
-    const selection=$('report-release').value;$('report-release').replaceChildren();const all=el('option','','All smart links');all.value='';$('report-release').append(all);for(const r of data.availableReleases||data.releases){const option=el('option','',r.title+' / '+r.artist);option.value=r.id;$('report-release').append(option);}$('report-release').value=selection;renderAnalytics(data);updatePixelState();
+  try{const data=await call('/dashboard?'+query);if(serial!==fetchSerial)return;records=data.releases;settings=data.settings;analyticsData=data;
+    const selection=$('report-release').value;$('report-release').replaceChildren();const all=el('option','','All smart links');all.value='';$('report-release').append(all);for(const r of data.availableReleases||data.releases){const option=el('option','',r.title+' / '+r.artist);option.value=r.id;$('report-release').append(option);}$('report-release').value=selection;renderAnalytics(data);renderWorkspaceReports(data);updatePixelState();
     $('visits').textContent=format(data.summary.views);$('clicks').textContent=format(data.summary.clicks);$('published').textContent=format(data.summary.published);
     $('rate').textContent=(data.summary.views?100*data.summary.clicks/data.summary.views:0).toLocaleString('en-GB',{maximumFractionDigits:1})+'%';
     $('pixel-id').value=settings.pixelId;$('click-event').value=settings.clickEvent;renderRecords();
     report($('platforms'),data.platforms,item=>SERVICES.find(s=>s.id===item.service)?.name||item.service,item=>format(item.count)+' clicks','Platform clicks will appear when someone uses your smart links.');
     report($('sources'),data.sources,item=>item.source==='meta'?'Meta Ads':item.source[0].toUpperCase()+item.source.slice(1),item=>format(item.views)+' visits / '+format(item.clicks)+' clicks','Visitor sources will appear here.');
-    report($('campaigns'),data.campaigns,item=>item.campaign,item=>format(item.views)+' visits / '+format(item.clicks)+' clicks','No tagged campaign activity yet.');
+
     $('gate').hidden=true;$('dashboard').hidden=false;$('new-release').disabled=false;notice('Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'.');
   }catch(error){if(serial===fetchSerial){notice(error.message);$('gate').hidden=false;$('gate').querySelector('h2').textContent='Your workspace could not load.';$('gate').querySelector('p:not(.eyebrow)').textContent='You are signed in. Retry loading your smart links.';$('signin').textContent='Retry';}}finally{if(serial===fetchSerial)$('refresh').disabled=false;}
 }
 form.addEventListener('submit',async event=>{
   event.preventDefault();if(saving||uploading)return;const data=draft();if(event.submitter?.value==='draft')data.status='draft';
-  try{data.links=validateLinks(data.links);}catch(error){$('save-status').textContent=error.message;return;}
+  try{data.links=validateLinks(data.links);data.presave=validatePresave(data.presave);}catch(error){$('save-status').textContent=error.message;return;}
   saving=true;controls();$('save-status').textContent='Saving your smart link…';const revision=generation;
   try{const result=await call(editing?'/releases/'+editing.id:'/releases',{method:'POST',data});if(revision!==generation)return;
     editing=result.release;field('status').value=editing.status;field('slug').readOnly=true;slugEdited=true;$('editor-title').textContent='Edit smart link.';
@@ -137,10 +143,11 @@ $('tracking-form').addEventListener('submit',async event=>{
   try{const result=await call('/settings',{method:'POST',data:{pixelId:$('pixel-id').value.trim(),clickEvent:$('click-event').value,revision:settings.revision}});settings=result.settings;updatePixelState();$('tracking-status').textContent='Tracking settings saved.';}
   catch(error){$('tracking-status').textContent=error.message;}finally{button.disabled=false;}
 });
-$('refresh').addEventListener('click',()=>void refresh());$('days').addEventListener('change',()=>void refresh());$('search').addEventListener('input',renderRecords);$('filter').addEventListener('change',renderRecords);
+initWorkspaceTools({call,getData:()=>analyticsData,refresh});
+$('refresh').addEventListener('click',()=>void refresh());$('days').addEventListener('change',()=>{if($('days').value!=='custom')void refresh();});$('search').addEventListener('input',renderRecords);$('filter').addEventListener('change',renderRecords);
 $('signin').addEventListener('click',()=>{if(clerk?.session){void refresh();}else clerk?.openSignIn();});$('signout').addEventListener('click',()=>void clerk?.signOut());
 function authChanged(){
-  const next=clerk?.session?.id||'';if(next===sessionId)return;sessionId=next;generation++;fetchSerial++;analyticsData=null;$('report-release').value='';records=[];settings=null;editing=null;
+  const next=clerk?.session?.id||'';if(next===sessionId)return;sessionId=next;generation++;fetchSerial++;analyticsData=null;resetWorkspaceTools();$('report-source').value='';$('report-release').value='';records=[];settings=null;editing=null;
   $('dashboard').hidden=true;$('gate').hidden=!!next;$('signin').textContent='Sign in';$('new-release').disabled=true;$('release-rows').replaceChildren();$('signout').hidden=!next;editor.close();
   if(!next){$('gate').querySelector('h2').textContent='Your smart links live here.';$('gate').querySelector('p:not(.eyebrow)').textContent='Sign in with your Parallel Vision account to create pages and see their performance.';notice('Sign in to manage your smart links.');return;}void refresh();
 }

@@ -39,3 +39,19 @@ export function metaDetails(release,service='') {
   return {content_name:release.title,content_ids:[release.id],content_type:'music',artist:release.artist,track:release.title,
     ...(service?{music_service:service}:{})};
 }
+
+export const PRESAVE_MODES=['off','before-release','always'];
+export function validatePresave(value){
+  if(value===undefined)return undefined;
+  if(!value||typeof value!=='object'||!PRESAVE_MODES.includes(value.mode))throw Error('Choose a pre-save display option.');
+  const url=safeUrl(value.url||'');
+  if(value.mode!=='off'&&!url)throw Error('Add your pre-save provider URL.');
+  if(url){const host=new URL(url).hostname.toLowerCase();if(!host.includes('.')||host==='localhost'||/^[\d.]+$/.test(host)||host.startsWith('[')||/\.(?:local|internal|localhost)$/.test(host))throw Error('Use a public HTTPS pre-save provider URL.');}
+  return {mode:value.mode,url};
+}
+export function activePresave(release,now=Date.now()){
+  const p=release.presave;
+  if(!p||!p.url||p.mode==='off')return false;
+  try{validatePresave(p);}catch{return false;}
+  return p.mode==='always'||p.mode==='before-release'&&/^\d{4}-\d{2}-\d{2}$/.test(release.releaseDate||'')&&Date.parse(release.releaseDate+'T00:00:00Z')>now;
+}

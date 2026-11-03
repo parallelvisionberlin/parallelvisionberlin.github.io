@@ -12,6 +12,7 @@ function fixture(t){
   const migration=readFileSync(new URL('../lab-worker/migrations/0045-music-links.sql',import.meta.url),'utf8');db.exec('PRAGMA foreign_keys=ON');db.exec(migration);db.exec(readFileSync(new URL('../lab-worker/migrations/0046-music-link-designs.sql',import.meta.url),'utf8'));db.exec(readFileSync(new URL('../lab-worker/migrations/0047-music-link-click-event.sql',import.meta.url),'utf8'));
   db.exec(readFileSync(new URL('../lab-worker/migrations/0048-music-user-workspaces.sql',import.meta.url),'utf8'));
   db.exec(readFileSync(new URL('../lab-worker/migrations/0050-music-analytics.sql',import.meta.url),'utf8'));
+  db.exec(readFileSync(new URL('../lab-worker/migrations/0058-music-workspace.sql',import.meta.url),'utf8'));
   const binding={prepare(sql){return {bind(...values){const query=()=>db.prepare(sql);return {
     async first(){return query().get(...values)||null;},async all(){return {results:query().all(...values)};},async run(){return {meta:{changes:query().run(...values).changes}};}
   };}};},async batch(items){db.exec('BEGIN');try{const results=[];for(const item of items)results.push(await item.run());db.exec('COMMIT');return results;}catch(error){db.exec('ROLLBACK');throw error;}}};
@@ -133,18 +134,18 @@ test('Meta compatibility parameters retain artist, track and the Spotify service
   const details=metaDetails({id:'release',title:'Stay Low',artist:'Alejandro Molinari'},'spotify');
   assert.equal(details.artist,'Alejandro Molinari');assert.equal(details.track,'Stay Low');assert.equal(details.music_service,'spotify');
 });
-async function publicBrowser({consent=null}={}){
-  const elements=new Map(),scripts=[],sent=[],stored=new Map(consent?[['pv-music-meta-consent-v1',consent]]:[]),calls=[];let click;
+async function publicBrowser({consent=null,releaseOverrides={}}={}){
+  const elements=new Map(),scripts=[],sent=[],stored=new Map(consent?[['pv-music-meta-consent-v1',consent]]:[]),calls=[];let click,presave;
   function element(){return {hidden:true,content:'',href:'',className:'',dataset:{},listeners:{},children:[],append(...items){this.children.push(...items);},replaceChildren(){this.children=[];},addEventListener(name,fn){this.listeners[name]=fn;}};}
   const get=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);};
   const buttons=['denied','granted'].map(choice=>{const e=element();e.dataset.consent=choice;return e;});
   const doc={getElementById:get,querySelector:s=>get(s),querySelectorAll:()=>buttons,createElement:()=>element(),head:{append(script){scripts.push(script);}},referrer:''};
-  const release={id:crypto.randomUUID(),slug:'test',title:'Single',artist:'Artist',links:[{service:'spotify',url:'https://open.spotify.com/track/x'}],url:'https://parallelvisionlabel.com/listen/?release=test'};
+  const release={id:crypto.randomUUID(),slug:'test',title:'Single',artist:'Artist',links:[{service:'spotify',url:'https://open.spotify.com/track/x'}],url:'https://parallelvisionlabel.com/listen/?release=test',...releaseOverrides};
   const win={};
-  const context={createMeasurementTransport:()=>({send(url,data){sent.push({url,data});},flush(){}}),API:'https://api.example',SLUG:/^[a-z]+$/,metaDetails,newId,renderRelease(root,r,{onClick}){click=onClick;},document:doc,window:win,location:{search:'?release=test&utm_source=meta&utm_campaign=test',hostname:'parallelvisionlabel.com'},localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},navigator:{sendBeacon(url,data){sent.push({url,data});return true;}},crypto,URL,URLSearchParams,AbortSignal,Blob,Date,fetch:async()=>new Response(JSON.stringify({release,tracking:{pixelId:MUSIC_PIXEL,clickEvent:'MusicLinkClick'}})),Response,Error};
+  const context={createMeasurementTransport:()=>({send(url,data){sent.push({url,data});},flush(){}}),API:'https://api.example',SLUG:/^[a-z]+$/,metaDetails,newId,renderRelease(root,r,{onClick,onPresave}){click=onClick;presave=onPresave;},document:doc,window:win,location:{search:'?release=test&utm_source=meta&utm_campaign=test',hostname:'parallelvisionlabel.com'},localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},navigator:{sendBeacon(url,data){sent.push({url,data});return true;}},crypto,URL,URLSearchParams,AbortSignal,Blob,Date,fetch:async()=>new Response(JSON.stringify({release,tracking:{pixelId:MUSIC_PIXEL,clickEvent:'MusicLinkClick'}})),Response,Error};
   let source=readFileSync(new URL('../listen/listen.mjs',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
   await vm.runInNewContext('(async()=>{'+source+'})()',context);
-  return {elements,scripts,sent,stored,buttons,click,get,win,calls};
+  return {elements,scripts,sent,stored,buttons,click,presave,get,win,calls};
 }
 test('public listener starts Pixel without a prompt and does not invent a saved consent choice',async()=>{
   const browser=await publicBrowser();assert.equal(browser.scripts.length,1);assert.equal(browser.sent.length,1);
@@ -233,4 +234,75 @@ test('enriched analytics deduplicate retries, use server geography, filter by re
  assert.equal(JSON.stringify(f.db.prepare('SELECT * FROM music_analytics_receipts').all()).includes('SECRET'),false);
  await pruneMusicEvents(f.env,{clock:()=>NOW+4*86400000});assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM music_analytics_receipts').get().n,0);assert.equal((await read(owner)).analytics.countries[0].views,1);
  f.db.exec("UPDATE music_analytics_hourly SET hour_utc='2026-07-01T12'");const historic=await read(owner,'/dashboard?days=0');assert.equal(historic.analytics.countries[0].views,1);assert.equal(historic.analytics.hours.length,0);
+});
+
+test('pre-save settings preserve legacy links, revisions, isolation and separate redirect counts',async t=>{
+ const f=fixture(t),owner='user_presaveA',other='user_presaveB',input=fixtureRelease({slug:'presave-test',releaseDate:'2099-11-06',status:'published',links:[],presave:{mode:'before-release',url:'https://hypeddit.com/test-release'}});
+ let saved=(await(await f.admin('/releases',{method:'POST',owner,data:input})).json()).release;
+ assert.equal(saved.presave.mode,'before-release');assert.equal(saved.links.length,0);
+ const event={id:crypto.randomUUID(),releaseId:saved.id,event:'presave',service:'',source:'instagram',campaign:'launch'};
+ await f.pub('/events',{method:'POST',data:event});await f.pub('/events',{method:'POST',data:event});
+ const report=(await(await f.admin('/dashboard',{owner})).json());assert.equal(report.analytics.coverage.presaves,1);assert.equal(report.summary.clicks,0);assert.equal(report.platforms.length,0);assert.equal(report.journey.converted,0);
+ assert.equal((await(await f.admin('/dashboard',{owner:other})).json()).analytics.coverage.presaves,null);
+ await assert.rejects(()=>f.admin('/releases/'+saved.id,{method:'POST',owner:other,data:saved}),e=>e.status===404);
+ const stale=saved;saved=(await(await f.admin('/releases/'+saved.id,{method:'POST',owner,data:{...saved,presave:{mode:'always',url:'https://hypeddit.com/updated'}}})).json()).release;
+ await assert.rejects(()=>f.admin('/releases/'+saved.id,{method:'POST',owner,data:{...stale,links:[{service:'spotify',url:'https://open.spotify.com/track/test'}],presave:{mode:'off',url:''}}}),e=>e.status===409);
+ assert.equal((await(await f.pub('/releases/presave-test')).json()).release.presave.mode,'always');
+ // A legacy client with platform URLs omits the new field without deleting it.
+ const legacy={...saved,links:[{service:'spotify',url:'https://open.spotify.com/track/test'}]};delete legacy.presave;
+ saved=(await(await f.admin('/releases/'+saved.id,{method:'POST',owner,data:legacy})).json()).release;assert.equal(saved.presave.mode,'always');
+ f.db.exec("CREATE TRIGGER reject_presave_update BEFORE UPDATE ON music_releases BEGIN SELECT RAISE(ABORT,'failure'); END;");
+ await assert.rejects(()=>f.admin('/releases/'+saved.id,{method:'POST',owner,data:{...saved,presave:{mode:'off',url:''}}}));assert.equal((await(await f.pub('/releases/presave-test')).json()).release.presave.mode,'always');
+});
+test('custom date and traffic-source filters apply consistently to every report and reject invalid input',async t=>{
+ const f=fixture(t),r=(await(await f.pub('/releases/stay-low')).json()).release;
+ for(const [source,day] of [['meta',0],['instagram',0],['meta',1]]){const id=crypto.randomUUID();await f.pub('/events',{method:'POST',data:{id,viewId:id,releaseId:r.id,event:'view',service:'',source,campaign:'launch'},clock:()=>NOW-day*86400000});}
+ const report=(await(await f.admin('/dashboard?start=2026-10-30&end=2026-10-30&source=meta')).json());assert.equal(report.summary.views,1);assert.equal(report.releases.find(x=>x.id===r.id).views,1);assert.equal(report.sources.length,1);assert.equal(report.sources[0].source,'meta');assert.equal(report.campaigns[0].views,1);assert.equal(report.analytics.coverage.views,1);assert.equal(report.analytics.hours.length,1);assert.equal(report.journey.views,1);assert.equal(report.trend.length,1);
+ for(const q of ['start=2026-02-30&end=2026-11-01','start=2026-11-03&end=2026-10-01','start=2026-11-03','source=personal@example.com'])await assert.rejects(()=>f.admin('/dashboard?'+q),e=>e.status===400);
+});
+test('matched visit outcomes count only the first click per page load, persist aggregates and never backfill legacy visits',async t=>{
+ const f=fixture(t),r=(await(await f.pub('/releases/stay-low')).json()).release;
+ const payload={releaseId:r.id,source:'meta',campaign:'launch'},id=crypto.randomUUID(),view={...payload,id,viewId:id,event:'view',service:''};
+ await f.pub('/events',{method:'POST',data:view});await f.pub('/events',{method:'POST',data:view});
+ for(let i=0;i<2;i++)await f.pub('/events',{method:'POST',data:{...payload,id:crypto.randomUUID(),viewId:id,event:'click',service:'soundcloud'}});
+ const second=crypto.randomUUID();await f.pub('/events',{method:'POST',data:{...view,id:second,viewId:second}});
+ await f.pub('/events',{method:'POST',data:{...view,id:crypto.randomUUID(),viewId:undefined}});
+ const d=(await(await f.admin('/dashboard')).json());assert.equal(d.summary.views,3);assert.equal(d.summary.clicks,2);assert.equal(d.journey.views,2);assert.equal(d.journey.converted,1);
+ await assert.rejects(()=>f.pub('/events',{method:'POST',data:{...view,viewId:crypto.randomUUID()}}),e=>e.status===400);
+ await pruneMusicEvents(f.env,{clock:()=>NOW+4*86400000});assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM music_visit_receipts').get().n,0);const after=(await(await f.admin('/dashboard')).json()).journey;assert.equal(after.views,2);assert.equal(after.converted,1);
+});
+test('experiments persist per account, preserve snapshots, reject stale edits and validate linked release ownership',async t=>{
+ const f=fixture(t),a='user_journalA',b='user_journalB',r=(await(await f.admin('/releases',{method:'POST',owner:a,data:fixtureRelease()})).json()).release;
+ let entry={id:crypto.randomUUID(),releaseId:r.id,hypothesis:'Clearer button improves listening intent',change:'Changed button copy.',result:'',status:'testing',context:{start:'2026-10-30',end:'2026-10-30',source:'meta',views:10,clicks:2}};
+ entry=(await(await f.admin('/experiments',{method:'POST',owner:a,data:entry})).json()).experiment;assert.equal(entry.revision,1);assert.equal(entry.context.views,10);
+ assert.equal((await(await f.admin('/experiments',{owner:a})).json()).experiments.length,1);assert.equal((await(await f.admin('/experiments',{owner:b})).json()).experiments.length,0);assert.equal((await(await f.admin('/experiments')).json()).experiments.length,0);
+ await assert.rejects(()=>f.admin('/experiments/'+entry.id,{method:'POST',owner:b,data:entry}),e=>[404,409].includes(e.status));
+ await assert.rejects(()=>f.admin('/experiments',{method:'POST',owner:b,data:{...entry,id:crypto.randomUUID()}}),e=>e.status===404);
+ const updated=(await(await f.admin('/experiments/'+entry.id,{method:'POST',owner:a,data:{...entry,status:'concluded',result:'Observation recorded.'}})).json()).experiment;assert.equal(updated.revision,2);assert.equal(updated.context.views,10);
+ await assert.rejects(()=>f.admin('/experiments/'+entry.id,{method:'POST',owner:a,data:{...entry,result:'stale overwrite'}}),e=>e.status===409);
+ for(const change of [{hypothesis:''},{status:'invalid'},{context:{views:-1}},{hypothesis:'x'.repeat(201)}])await assert.rejects(()=>f.admin('/experiments',{method:'POST',owner:a,data:{...entry,id:crypto.randomUUID(),...change}}),e=>e.status===400);
+});
+test('pre-save activation uses the release date in UTC and validates safe provider links',async()=>{
+ const {activePresave,validatePresave}=await import('../links/shared.mjs');
+ const release={releaseDate:'2026-11-06',presave:{mode:'before-release',url:'https://hypeddit.com/example'}};
+ assert.equal(activePresave(release,Date.parse('2026-11-05T23:59:59Z')),true);assert.equal(activePresave(release,Date.parse('2026-11-06T00:00:00Z')),false);
+ assert.equal(activePresave({...release,presave:{...release.presave,mode:'always'}},Date.parse('2026-12-01')),true);assert.equal(activePresave({...release,presave:{...release.presave,mode:'off'}}),false);
+ for(const url of ['javascript:alert(1)','http://provider.example/x','https://user:password@provider.example/x','https://localhost/x','https://127.0.0.1/x','https://[::1]/x'])assert.throws(()=>validatePresave({mode:'always',url}));
+ assert.throws(()=>validateRelease(fixtureRelease({presave:{mode:'before-release',url:'https://provider.example/x'},releaseDate:''})));
+});
+
+test('out-of-order click delivery matches the later view once without delaying click transport',async t=>{
+ const f=fixture(t),r=(await(await f.pub('/releases/stay-low')).json()).release,viewId=crypto.randomUUID(),data={releaseId:r.id,viewId,source:'meta',campaign:'test'};
+ const click={...data,id:crypto.randomUUID(),event:'click',service:'soundcloud'};await f.pub('/events',{method:'POST',data:click});await f.pub('/events',{method:'POST',data:click});
+ assert.equal((await(await f.admin('/dashboard')).json()).journey.views,0);
+ const arrival={...data,id:viewId,event:'view',service:''};await f.pub('/events',{method:'POST',data:arrival});await f.pub('/events',{method:'POST',data:arrival});await f.pub('/events',{method:'POST',data:{...click,id:crypto.randomUUID()}});
+ const d=(await(await f.admin('/dashboard')).json());assert.equal(d.journey.views,1);assert.equal(d.journey.converted,1);assert.equal(d.summary.clicks,2);
+ await pruneMusicEvents(f.env,{clock:()=>NOW+4*86400000});assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM music_visit_clicks').get().n,0);
+});
+
+test('pre-save handoffs never emit MusicLinkClick and each page uses only an in-memory view receipt',async()=>{
+ const b=await publicBrowser({releaseOverrides:{releaseDate:'2099-11-06',presave:{mode:'before-release',url:'https://hypeddit.com/test'}}});
+ b.presave();assert.equal(b.sent.at(-1).data.event,'presave');assert.equal(b.sent.at(-1).data.service,'');assert.equal(b.win.fbq.queue.filter(a=>a[0]==='trackSingleCustom').length,0);assert.equal(b.stored.size,0);
+ const arrival=b.sent[0].data;assert.equal(arrival.id,arrival.viewId);assert.equal(b.sent.at(-1).data.viewId,arrival.id);
+ const other=await publicBrowser();assert.notEqual(other.sent[0].data.viewId,arrival.id);
 });

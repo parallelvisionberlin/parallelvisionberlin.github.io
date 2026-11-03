@@ -1,6 +1,6 @@
 import {createMeasurementTransport} from './measurement-transport.mjs?v=20261030-reliable1';
-import {API,SLUG,metaDetails,newId} from '../links/shared.mjs';
-import {renderRelease} from '../links/release-view.mjs?v=20261030-listen2';
+import {API,SLUG,metaDetails,newId} from '../links/shared.mjs?v=20261103-workspace1';
+import {renderRelease} from '../links/release-view.mjs?v=20261103-workspace1';
 const root=document.getElementById('release'),params=new URLSearchParams(location.search);
 const slug=params.get('release')||'',consentKey='pv-music-meta-consent-v1';
 let release=null,tracking=null,initialized=false,choice='default';
@@ -32,12 +32,13 @@ function source(){
   for(const name of ['instagram','facebook','google','youtube','soundcloud'])if(host===name+'.com'||host.endsWith('.'+name+'.com'))return name;
   return host===location.hostname?'direct':'other';
 }
+const viewId=newId();
 const openedAt=Date.now(),measurement=createMeasurementTransport({onFailure:reason=>console.warn('Music measurement delivery failed:',reason)});
 window.addEventListener?.('pagehide',()=>measurement.flush());
 function measure(event,service=''){
   const campaign=(params.get('utm_campaign')||'').replace(/[^\p{L}\p{N} _.()\-]/gu,'').slice(0,64);
   const tag=name=>(params.get(name)||'').replace(/[^\p{L}\p{N} _.()\-]/gu,'').slice(0,64);
-  const data={id:newId(),releaseId:release.id,event,service,source:source(),campaign,medium:tag('utm_medium'),content:tag('utm_content'),term:tag('utm_term'),seconds:Math.min(86400,Math.floor((Date.now()-openedAt)/1000))};
+  const data={id:event==='view'?viewId:newId(),viewId,releaseId:release.id,event,service,source:source(),campaign,medium:tag('utm_medium'),content:tag('utm_content'),term:tag('utm_term'),seconds:Math.min(86400,Math.floor((Date.now()-openedAt)/1000))};
   void measurement.send(API+'/api/music/public/events',data);
 }
 function clicked(service){
@@ -52,8 +53,9 @@ try{
   document.title=release.artist+' / '+release.title+' / Parallel Vision';
   document.querySelector('meta[name="description"]').content='Listen to '+release.title+' by '+release.artist+'. Parallel Vision.';
   document.querySelector('link[rel="canonical"]').href=release.url;
-  renderRelease(root,release,{onClick:clicked});measure('view');
-  root.querySelector?.('audio')?.addEventListener('play',()=>measure('preview'),{once:true});
+  let previewPlayed=false;const render=()=>{renderRelease(root,release,{onClick:clicked,onPresave:()=>measure('presave')});root.querySelector?.('audio')?.addEventListener('play',()=>{if(!previewPlayed){previewPlayed=true;measure('preview');}},{once:true});};render();measure('view');
+  const switchIn=Date.parse((release.releaseDate||'')+'T00:00:00Z')-Date.now();
+  if(release.presave?.mode==='before-release'&&switchIn>0&&switchIn<2147483000)setTimeout(render,switchIn+500);
   bootMeta();
 }catch(error){
   root.className='release-error';root.replaceChildren();const title=document.createElement('h1');title.textContent='Release unavailable.';
