@@ -27,8 +27,13 @@
 - Browser fixture QA: phone 390px (375px usable with scrollbar), desktop 1348px, no horizontal body overflow.
 - Fixture exercised release filtering, custom dates/source, experiment creation and pre-save creator preview.
 - Fixture uses simulated account/API and does not ship. It is not production authenticated verification.
-- Publication for this implementation is not yet verified; inspect the feature PR and deployment workflows.
-- Next: publish via the repository workflow, verify v8 readiness and exact deployed static assets.
+- Published PR #805: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/805 ; merge `f235b84c11cc7e15b3782901d1e2a80b5a23fb00`.
+- Pages run 41627938011 and Worker run 41627938120 succeeded; strict v8 readiness/seed check passed.
+- All 11 changed public runtime files matched source bytes exactly on parallelvisionlabel.com.
+- Actual signed-out browser shows the new Experiments navigation at /links/#performance. No production authenticated records were changed in QA.
+- Smart Links CI, static validation, Image UI contract, image references and first-image trial checks passed.
+- Broad Lab/video checks retain the same three failing assertions verified on the unchanged base: checkout Meta IDs, Moods return links and ZenCreator prepaid copy. No unrelated fixes were included.
+- Next: refresh the existing owner workspace; configure a real pre-save provider URL per upcoming release. Native Spotify OAuth remains a separate integration.
 
 ---
 
