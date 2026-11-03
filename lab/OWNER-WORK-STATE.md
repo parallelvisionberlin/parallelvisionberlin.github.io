@@ -6,7 +6,11 @@
 - Expanded choice survives metric changes/refresh while in the small-sample state. At 10+ page loads the full report displays automatically. Zero-data state and owner authorization remain unchanged.
 - Changed: `lab/owner.html`, `lab/owner.css`, `lab/owner.js`, `tests/lab-owner-mobile-browser.mjs`, this checkpoint. Cache marker `20261103-audience4`. No collector, billing, account, data or privacy changes.
 - Local validation: 23 focused traffic/auth/privacy/Image-contract tests, syntax and whitespace pass. Existing seven-width browser suite adds collapsed/expanded small-sample and automatic full-report transition coverage.
-- Publication pending. Next: publish scoped source, review relevant CI, verify exact Cloudflare Pages assets and actual signed-in three-record compact state.
+- Published PR #812, source `548a1b269836c1a0d1f01e382929831d819c9c9d`, merge `c89efbe6b61e86b5c57b94721ab3e10d6e236fad`. Exact tested/uploaded source tree `371fbaf245e5a952210db7115f9a2cf18fc8288e`; merge preserved concurrent Mood funnel changes from main `dc744a865d3b4ee0d88eb8285c5758f61c1e56eb`. All four scoped UI/test files match the reviewed local bytes.
+- Source Owner CI job 126132101804 passed at 320/375/390/430/768/1280/1792px, including compact disclosure and automatic full-report transition; validation job 126132100901 passed. Account job 126132100863 has the previously verified unchanged timeout at lab-account-browser.mjs:249. Remaining source PR jobs were still queued at completion; no checks disabled or rerun.
+- Exact-merge Cloudflare Pages check 126139381119 succeeded. Read-only /owner release verifier returned LIVE_VERIFIED for JS and CSS at `20261103-audience4`. SHA256: JS `d0020c012730e3c37b0dce130366c6b5259bb1dd30ae2913662c03222b737571`; CSS `8492a3e20ea939693cc8771aa65063f5cd1f31b96d8eea15752934765a082c22`.
+- Actual signed-in production verified sample 3, compact disclosure closed on load, View details reveals existing Germany 2 / 67% and United States 1 / 33% bars, and closing hides the report again. No public visits or synthetic production telemetry added. Synthetic phone preview had document/viewport width 375px with no sideways scroll; desktop presentation inspected.
+- Complete. No Worker deployment required; normal audience collection continues.
 
 ## Audience tracker investigation and bar-row format, 2026-11-03
 - User reported no audience data/confusing coverage and supplied the existing Traffic source bars as the required visual reference.
