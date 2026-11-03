@@ -20,10 +20,12 @@ test('tracks authenticated offer view/click once, without charging or saving bro
   assert.equal((await post('offer_viewed')).status,200);
   assert.equal((await post('offer_viewed')).status,200);
   assert.equal((await post('offer_clicked')).status,200);
+  assert.equal((await post('repeat_clicked')).status,200);
   const rows=db.prepare('SELECT customer_id,event,source FROM lab_mood_offer_funnel ORDER BY event').all();
   assert.deepEqual(rows,[
     {customer_id:'user_test',event:'offer_clicked',source:'moods_result'},
-    {customer_id:'user_test',event:'offer_viewed',source:'moods_result'}
+    {customer_id:'user_test',event:'offer_viewed',source:'moods_result'},
+    {customer_id:'user_test',event:'repeat_clicked',source:'moods_result'}
   ]);
 });
 
