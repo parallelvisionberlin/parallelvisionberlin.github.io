@@ -16,9 +16,15 @@
 - Application files: `lab/lab.js`, versioned entrypoint `lab/studio.html` (`characterEmptyDirection=20261103v1`). No visual, identity-storage, provider, billing or Worker changes.
 - New regression test exercises the actual frontend fallback plus shared compiler at 9/10 inputs, all full notes, authored/Mood/photo-only/reference-only behavior and genuine over-budget rejection.
 - Local verification: 29 focused tests passed; new regression first reproduced the exact live 5,595-character failure, then passed with the fix. JS syntax and diff checks passed.
-- Browser regression extended to full 300-character notes, empty direction and Base replacement at desktop 1440px and phone 390px. CI verification pending.
+- Reviewed correction source: `9f22e6f262dfb25975c7f8677a16ff07c8d6f615`, PR #804: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/804
+- CI job `125877270316` explicitly passed both 1440px and 390px Base replacement/empty-direction checks with full 300-character notes, plus eight-photo Image/Video inputs, notes and Qwen rejection.
+- Browser evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/41624193689/job/125877270316
+- Additional local Worker reference/routing tests passed (12); 41 focused local tests total. All provider requests in tests are mocked.
+- Approved Image contract and static validation passed in CI. The larger workflow fails later in the unchanged image-viewer saved-Video `width` exception; other suites retain documented font/background and Meta/Moods/ZenCreator failures. No gates were weakened.
+- Cloudflare preview check `125877580504` succeeded for the exact correction source: https://e80387cb.pvlab-studio.pages.dev. Preview sign-in did not load; no extra login attempted.
 - This browser interface has no viewport-emulation control; real signed-in mobile interaction remains unverified. Do not label fixture mobile checks as production mobile observation.
-- Correction branch: `fix/character-base-empty-direction-20261103`. Not yet merged or confirmed live.
+- Correction branch: `fix/character-base-empty-direction-20261103`. Tested source is reviewable in PR #804; not merged or confirmed live. Production remains the verified original #803 release.
+- Removed disposable in-editor QA photographs/Character attachment and restored the original Seedream Image model/resolution. Saved Characters, their photographs and saved notes remain unchanged.
 - No paid generation, training, quote confirmation, account/credit change or saved Character modification performed.
 - Next: run the relevant browser CI, review the correction, then publish and recheck the empty-direction production case; actual provider receipt requires separately authorized generation.
 
