@@ -1,30 +1,32 @@
 # PV LAB Saved References / compact F
 
-## Complete Character references, 2026-11-03
-- Owner request: send all eight saved Character photos and their saved notes instead of silently selecting two.
-- Inspected main `f3c344d01acc16415cdda4053ada90263f77fbcd`; no overlapping open Character-loader PR found.
-- `lab/scene-library.js`: Characters attach every saved photo in its original order for Image and Video. Other Element categories retain existing relevant-view selection.
-- A Character that exceeds available model slots is rejected before attachment; the message reports saved-photo count and available slots. No truncation or hidden contact sheet.
-- Qwen remains limited to three total photos. Eight-view Characters need a model with sufficient capacity; a Base and Mood references consume their existing slots.
-- Each photo retains its full saved note (up to the existing 300-character storage limit), role and Element metadata. Analysis hints use only remaining note space.
-- `lab/reference-guidance.js`: three or more Character references use the concise role map to preserve all notes within the existing prompt budget. Over-budget requests still stop before submission.
-- `lab/lab.js`: grouped references report attached and saved counts. Studio and module cache keys updated to `characterAllViews=20261103v1`.
-- Regression: eight original views, saved order, all 300-character notes, Base plus eight-view prompt budget, missing-photo rejection, Qwen/capacity rejection and unchanged other-Element selection.
-- Focused local checks: 35 tests passed, including approved Image UI, Element analysis/recovery, notes/covers, reference modes and Video grouping/removal. Syntax and diff checks passed.
-- Existing mock-only Elements browser suite now checks Qwen rejection, all eight Image input IDs/roles/notes and all eight Video input IDs/roles/notes.
-- Local Chromium unavailable: Playwright browser download returned an invalid archive. Browser execution and CI remain pending; no signed-in or paid provider generation performed.
-- Implementation commit: `df1c04f02bf113797338dbfe8a3c684ae340cccc` on local branch `fix/character-all-saved-photos-20261103`. Merge, Worker deployment and custom-domain publication have not occurred.
-- Owner explicitly approved pushing the completed change on 2026-11-03. The earlier upload-approval blocker is resolved; GitHub public visibility and connected admin/push access were verified.
-- Uploaded exact tested file tree as `7bcd9779896b56dbead6f1ed4108ec8a5b364ee2`; PR #803 is open. No merge or production release.
-- First browser CI exposed a new fixture using hidden native model selects. The fixture now uses visible Image and Video model menus; every eight-photo/note and capacity assertion is retained.
-- Broad unit CI reports three unrelated failures: lab-meta-capi missing readFileSync, Explore Moods label expectation and ZenCreator pricing copy expectation. No unrelated test or application files were changed.
-- Owner follow-up: deleting Base must never turn the Character into Base. With only Character references attached, the first newly dropped photo becomes Base automatically, including batches; later photos appear before the Character group, which moves right.
-- Added pure `lab/reference-order.js` for explicit Base assignment and legacy-role recovery, used by both compact and advanced role menus. Base image is now available in the visible photo dropdown; group drag targets preserve all Character views together.
-- New tests cover Base deletion/replacement, legacy incorrect Character Base roles, full role/note preservation, batch insertion order and explicit Base selection. Approved Image contract and focused order/Element/preview/prewarm checks passed (28 local tests).
-- Browser CI at `110384a` completed all Image/Qwen/notes assertions, then stopped at a collapsed Video output panel. The fixture now explicitly opens that existing panel before choosing its model; all assertions remain.
-- Owner explicitly requested finishing all pending changes and production publication. At `35c2b03`, browser CI passed the complete Image/Base replacement scenarios before encountering unrelated Video output-control visibility in the fixture. The Video fixture now configures the existing handlers directly to verify the shared eight-photo handoff; separate Video UI suites retain presentation coverage.
-- At `d0b0182`, Image/Base assertions passed again. Video exposed the fixture location banner being 6:1, correctly rejected by Seedance. The fixture now supplies a deterministic 512x640 WebP for Video, retaining all provider input validation.
-- Latest local focused run: 51 tests passed. Main branch is unprotected, with no required status checks; its broad CI already records the unrelated failures listed above. Next: verify the completed eight-photo/Base browser check, publish and verify exact Cloudflare and Worker evidence.
+## Complete Character references and Base replacement, 2026-11-03
+- Owner requested complete eight-photo Character references with saved notes for Image and Video, plus automatic Base replacement and photos to the left of Characters.
+- Published through PR #803: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/803
+- Reviewed source: `c85179453589ef88b575fd39c5f50b4047944ab6`; production merge: `f533afafd8e4ca0c2e95de4155d45a33f711fb4c`.
+- Characters now attach every saved original photo in saved order with its full note (existing maximum 300 characters), role and grouped metadata.
+- A Character exceeding available model capacity is rejected before attachment; no silent photo selection, contact sheets or extra paid generations.
+- Qwen still accepts at most three total images. Base/Mood photos consume their existing slots. Other Element categories retain existing relevant-view selection.
+- With only Characters attached, the first dropped photo becomes Base automatically, including a batch.
+- Deleting Base preserves Character identity roles; dropping a replacement makes the new photo Base again.
+- Additional photos are inserted before the Character group. Explicit Base selection is available in both photo role menus.
+- Group drag targets preserve all Character views together. Legacy drafts with a Character incorrectly marked Base recover their saved supporting role.
+- Grouped reference details report attached/saved counts. Three or more Character references use concise role guidance to fit notes within the provider budget; oversized prompts still stop.
+- Application source: `lab/scene-library.js`, `lab/reference-order.js`, `lab/reference-guidance.js`, `lab/lab.js`, `lab/studio.html`.
+- Cache markers: `characterAllViews=20261103v1`, `baseReplacement=20261103v1`.
+- Verification: 51 focused local tests passed, plus syntax and diff checks.
+- Exact reviewed-commit browser step PASS: eight Image and Video reference inputs/notes, Qwen capacity rejection, Base deletion/replacement, explicit Base selection and batch ordering.
+- Browser evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/41565523431/job/125685993770.
+- Approved Image UI contract and static validation passed.
+- Broader CI retains existing failures: Meta CAPI missing import; Moods/ZenCreator stale assertions; unrelated font/background assertions; saved Video ratio undefined-width error. The latter was also confirmed on unchanged main `f3c344d`. No unrelated source, test gate or required check was changed.
+- Main branch was verified unprotected with no required status checks or active rulesets before the owner-authorized publication.
+- Cloudflare Pages check `125687385200` succeeded for exact production merge `f533afafd`.
+- Read-only release verifier returned `LIVE_VERIFIED` for `lab/lab.js`: SHA-256 `134a925ba9e630929fd14a9ab1aaea3c91bf3cd7abc28f3a25b7ec974201ef4a`.
+- Exact live-byte equality also confirmed for `scene-library.js`, `reference-order.js` and `reference-guidance.js`, fetched using the deployed import URLs.
+- Worker deployment job `125687003337` succeeded: tests, deploy, production health, release-link and read-only trial/wallet invariants.
+- Worker run: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/41565829545
+- No paid image/video generation or real signed-in owner interaction was performed. Browser handoff tests use intercepted APIs and deterministic fixture images.
+- This scoped implementation and production publication are complete. Existing open Studio tabs need a reload to load the new module URLs.
 
 ## Active mobile detail repair, 2026-11-02
 - Request: repair overflowing saved Character details on phones; preserve other category overviews.
