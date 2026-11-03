@@ -63,6 +63,41 @@ try{
   const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=300;c.height=400;c.getContext('2d').fillRect(0,0,300,400);return c.toDataURL().split(',')[1];}),'base64');
   await page.locator('#image').setInputFiles({name:'synthetic-start.png',mimeType:'image/png',buffer:png});
   await page.locator('#prompt').fill('A static cinematic shot. '.repeat(45));
+
+  // Video save is intentionally absent visually, but the shared handler stays.
+  assert.equal(await page.locator('#save').evaluate(el=>getComputedStyle(el).display),
+    'none','Video no longer exposes the redundant Save draft action');
+  // The audio glyph must track the real checkbox, including reverse toggles.
+  const audioPill=page.locator('#pv-video-audio-pill');
+  assert.ok(await audioPill.isVisible(),'Seedance audio toggle stays accessible');
+  for(let pass=0;pass<2;pass++){
+    await audioPill.click();
+    await page.waitForFunction(()=>document.getElementById('pv-video-audio-pill').getAttribute('aria-pressed')===
+      String(document.getElementById('audio').checked));
+    const icons=await audioPill.evaluate(pill=>({
+      on:getComputedStyle(pill.querySelector('.pv-audio-on')).display,
+      off:getComputedStyle(pill.querySelector('.pv-audio-muted')).display,
+      enabled:document.getElementById('audio').checked
+    }));
+    assert.equal(icons.on==='none',!icons.enabled,'Speaker wave glyph follows audio state');
+    assert.equal(icons.off==='none',icons.enabled,'Crossed speaker glyph follows audio state');
+  }
+  // Use a DOM-only History fixture to verify styling without touching accounts.
+  const marker=await page.evaluate(()=>{
+    const history=document.getElementById('history'),card=document.createElement('article');
+    card.className='card';card.dataset.kind='video';
+    card.style.cssText='position:relative;width:240px;height:140px';
+    card.innerHTML='<span class="asset-video-badge">Video</span><span class="history-video-play"><svg viewBox="0 0 24 24"><path d="M5 3 19 12 5 21z"/></svg></span>';
+    history.append(card);
+    const play=card.querySelector('.history-video-play'),badge=card.querySelector('.asset-video-badge');
+    const result={badge:getComputedStyle(badge).display,radius:getComputedStyle(play).borderRadius,
+      placement:getComputedStyle(play).transform};
+    card.remove();return result;
+  });
+  assert.equal(marker.badge,'none','Duplicate Video badge is hidden in Video History');
+  assert.ok(marker.radius.startsWith('50%')||marker.radius==='50%',
+    'Play marker is a restrained circular control: '+JSON.stringify(marker));
+
   if(width>820){
    let initial=await geometry(page);checkDock(initial,width+' initial');
    // Exaggerated textarea resize exercises real overflow without fake spacer elements.
