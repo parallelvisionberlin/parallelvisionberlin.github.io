@@ -1,3 +1,17 @@
+## 2026-11-03 / mobile spacing, quieter navigation and clean portraits
+- Owner approved the three follow-up tweaks after reviewing phone screenshot `libfile_cfe8757ad5108191805ace504b67e776`.
+- Baseline main `4329685683f4f1b32406926f95fbc8ec1acd0767`; branch `fix/editorial-mobile-breathing`.
+- Scope: phone browser up to 600 px only, preserving the approved two-column casting and all original photographs.
+- Header reduces to 60 px; Sign in remains available for guests, while Credits and My account remain accessible inside the existing mobile menu.
+- Back reuses the existing top navigation action as a discreet text link. Identity footer now holds only selection/count and Continue.
+- Tighter progress/title/tab spacing makes room for photographs. Continue remains fixed above the safe area.
+- Inspected original plum-cast03.webp: no internal rectangle. The prior inset caption gradient (12 px from left/bottom) created the unwanted box; gradient now reaches all bottom edges and no inner image border/outline is added.
+- Product files: `full-editorial-mobile-casting.css`, `full-editorial.html`; CSS cache version `20261103-casting2`. No generation JS, pricing, provider or account logic changes.
+- Updated existing browser tests for top Back, caption edge geometry, border-free photo, compact header, guest Sign in, and accessible Credits/account menu. Existing complete generation/credit tests retained.
+- Local verification: 23 source/approved Image/handoff tests passed; browser test syntax and diff whitespace passed.
+- Remote browser verification, publication and live bytes pending. No paid generation performed.
+- Next: inspect actual phone screenshots and relevant CI, then publish and verify Cloudflare/custom-domain source.
+
 ## 2026-11-03 / mobile web casting editorial (concept 01)
 - Owner approved concept 01, scoped to phone browser. Reference mockup: `libfile_724db2d1c10881918eb7de774e9c07df`. No decorative arrows.
 - Baseline main `8460965ee49492e4aae3058e13f7c9ace05b76bc`; published PR #816.
