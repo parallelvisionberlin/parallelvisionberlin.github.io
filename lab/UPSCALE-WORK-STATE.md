@@ -1,5 +1,19 @@
 # PV LAB Premium Upscale work state
 
+## Sidebar screenshot investigation / 2026-11-03
+- User screenshot showed a large action-footer gap with the optional price row and Save upscale draft.
+- Diagnosis: legacy assets.css applies flex:1 1 260px to #upscale-price and flex:1 0 100% to #save; these row-layout values consume vertical space in the column footer.
+- Existing PR #794 / e24644a3ed2317e39c9b9ac25a55370758d29fe7 already hides the optional row and constrains Save to 40px with flex:0 0 auto.
+- Cloudflare Pages pvlab-studio check succeeded for that exact merge.
+- Fresh production /studio?tool=upscale loads upscale-studio-v5.css?v=20261102-hide-optional-price.
+- Production stylesheet bytes match current main fceccfa334a3819c83cefc86864da25456d5a8eb exactly.
+- Signed-in browser restored the same 1086×1448 rooftop source through History Reuse, without a quote or generation.
+- Loaded source: action footer measured 78px, Upscale 47px; optional price row hidden; Save uses flex:0 0 auto and was hidden in this restored state.
+- Loaded screenshot inspected: source, model cards, enlargement and format remain available above a compact footer.
+- No new application change needed. The supplied screenshot reflects older styling; an already-open document/cache is the likely cause, not independently proven for the user's browser.
+- Next action: let the active job finish and hard-refresh the existing tab. Recheck only if it recurs after loading the current stylesheet.
+- This check did not exercise a new paid-processing state.
+
 ## Video upload repair / 2026-11-02
 - Objective: diagnose inactive-looking Video Upscaler uploads and preserve the shared editor/billing flow.
 - Verified base: main `8c149f2fcb2a33b7705dca1e0cc56e666cf1080a`.
