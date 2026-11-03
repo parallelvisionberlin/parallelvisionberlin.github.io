@@ -23,10 +23,14 @@
 - Approved Image contract and static validation passed in CI. The larger workflow fails later in the unchanged image-viewer saved-Video `width` exception; other suites retain documented font/background and Meta/Moods/ZenCreator failures. No gates were weakened.
 - Cloudflare preview check `125877580504` succeeded for the exact correction source: https://e80387cb.pvlab-studio.pages.dev. Preview sign-in did not load; no extra login attempted.
 - This browser interface has no viewport-emulation control; real signed-in mobile interaction remains unverified. Do not label fixture mobile checks as production mobile observation.
-- Correction branch: `fix/character-base-empty-direction-20261103`. Tested source is reviewable in PR #804; not merged or confirmed live. Production remains the verified original #803 release.
+- Correction merged through PR #804 as `91326f1129e154307d1d7417ef3d4426c600399a`; application/test bytes exactly match reviewed source `9f22e6f`.
+- Exact-merge Cloudflare Pages check `125880111113` succeeded; read-only verifier returned `LIVE_VERIFIED` for `lab/lab.js`, SHA-256 `9f77de525f23bf99a77c20ff4dc435a08f1120091787cd6921b9896666c771a7`.
+- Production HTML contains `characterEmptyDirection=20261103v1`; whole HTML is transformed by Cloudflare email obfuscation, so only the JS asset is claimed byte-identical.
+- Post-release real signed-in desktop: blank prompt plus Base and Alma's eight photos now compiles to 4,607 characters with Generate enabled. No Generate click was made.
+- Post-release Base deletion, two-photo batch replacement and explicit Base reassignment passed. The ten-photo prompt is 4,747 characters; all eight Character note strings remain identical and ordered, and Generate remains enabled.
 - Removed disposable in-editor QA photographs/Character attachment and restored the original Seedream Image model/resolution. Saved Characters, their photographs and saved notes remain unchanged.
 - No paid generation, training, quote confirmation, account/credit change or saved Character modification performed.
-- Next: run the relevant browser CI, review the correction, then publish and recheck the empty-direction production case; actual provider receipt requires separately authorized generation.
+- Complete: original Character release and the verified regression correction are confirmed live. Real signed-in phone interaction remains unverified; mobile fixture checks passed. Actual provider receipt/output was not tested because the owner prohibited paid generations.
 
 ## Complete Character references and Base replacement, 2026-11-03
 - Owner requested complete eight-photo Character references with saved notes for Image and Video, plus automatic Base replacement and photos to the left of Characters.
