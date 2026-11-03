@@ -2,7 +2,7 @@
 -- One first occurrence per customer/event, retained for at most 90 days.
 CREATE TABLE IF NOT EXISTS lab_mood_offer_funnel (
   customer_id TEXT NOT NULL REFERENCES lab_customers(id) ON DELETE CASCADE,
-  event TEXT NOT NULL CHECK(event IN ('offer_viewed','offer_clicked')),
+  event TEXT NOT NULL CHECK(event IN ('offer_viewed','offer_clicked','repeat_clicked')),
   source TEXT NOT NULL CHECK(source='moods_result'),
   created_at INTEGER NOT NULL,
   PRIMARY KEY(customer_id,event)
