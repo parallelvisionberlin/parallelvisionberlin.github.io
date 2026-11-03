@@ -10,7 +10,7 @@ function fixture(){
   db.exec(readFileSync(new URL('../lab-worker/migrations/0059-mood-offer-funnel.sql',import.meta.url),'utf8'));
   db.prepare('INSERT INTO lab_customers(id) VALUES(?)').run('user_test');
   db.prepare("INSERT INTO lab_generation_finance(customer_id,tool_kind,last_state) VALUES(?,'image','completed')").run('user_test');
-  const env={LAB_DB:{prepare(sql){return {bind(...args){return {first:async()=>db.prepare(sql).get(...args)||null,run:async()=>db.prepare(sql).run(...args)};}}}};
+  const env={LAB_DB:{prepare(sql){return {bind(...args){return {first:async()=>db.prepare(sql).get(...args)||null,run:async()=>db.prepare(sql).run(...args)};}}}}};
   const post=(event,extras={},subject='user_test')=>recordMoodOfferEvent(new Request('https://example.test/api/customer/mood-offer-event',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({event,...extras})}),env,subject);
   return {db,post};
 }
@@ -21,7 +21,7 @@ test('tracks authenticated offer view/click once, without charging or saving bro
   assert.equal((await post('offer_viewed')).status,200);
   assert.equal((await post('offer_clicked')).status,200);
   assert.equal((await post('repeat_clicked')).status,200);
-  const rows=db.prepare('SELECT customer_id,event,source FROM lab_mood_offer_funnel ORDER BY event').all();
+  const rows=db.prepare('SELECT customer_id,event,source FROM lab_mood_offer_funnel ORDER BY event').all().map(row=>({...row}));
   assert.deepEqual(rows,[
     {customer_id:'user_test',event:'offer_clicked',source:'moods_result'},
     {customer_id:'user_test',event:'offer_viewed',source:'moods_result'},
