@@ -7,7 +7,11 @@
 - Changed files: `lab/owner.html`, `lab/owner.css`, `lab/owner.js`, `tests/lab-owner-mobile-browser.mjs`, this checkpoint. Owner JS/CSS cache marker `20261103-audience2`.
 - Local checks: 23 traffic/privacy/auth/Image-contract tests, syntax and diff whitespace pass. Synthetic actual-renderer phone/desktop preview inspected; long labels wrap and phone document width equals viewport (375px excluding scrollbar).
 - Existing seven-width Owner browser suite now checks shared empty state, collapsed technical disclosure and full-width section alignment alongside sorting and report behavior.
-- Publication pending. Next: push the exact tested source, review relevant CI, merge and verify Cloudflare Pages/live owner rendering. No Worker deployment required.
+- Published PR #808: reviewed source `bb6b83ebb0198724b974094bf4329ee9d13bb4ec`, merge `640cbd26aa496e1f9d6b9ee6f93f744f0b368cca`; tested local and uploaded source trees both `8e0f362b94b9707e225ed95db74f7be056383131`.
+- PR Owner job 125904859930 and merge Owner job 125905541670 passed at all seven widths (320–1792px), including empty/data transitions, table alignment, metric switching and technical disclosure. Promotions, Image contract, motion and static checks passed. Broad Node sweep remains 971/974 with the same three previously verified baseline failures; no tests bypassed or weakened.
+- Exact-merge Cloudflare Pages check 125905956992 succeeded. Scoped read-only release verifier returned LIVE_VERIFIED for JS and CSS at `20261103-audience2`; hashes `3f4333f69d0b64e0cf2599fbe2ac69915dc1a5bf080c5c44d761f3d2ec27f3bd` and `5ded7b32b79befa1e3660349f85ed270a426c017f1c47d00f2fe2f3772824068` respectively.
+- Actual signed-in production owner page displays the compact shared empty state with no repeated panels or empty chart. Populated full-width rows were verified with synthetic data in browser preview and CI; no fake production traffic added. No Worker deployment required.
+- Complete. Audience rows populate from normal incoming visits.
 
 ## Owner audience geography and technology, 2026-11-03
 - Status: implemented, merged and verified live in the actual signed-in Owner dashboard. PR #806, reviewed source `054c29a70c9caf03cf3a24dcd7c3adb0eb99d430`, merge `fc03b64a686afa0a4073efbe461a5e69521976fd`.
