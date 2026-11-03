@@ -1,12 +1,13 @@
-import {initWorkspaceTools,reportQuery,renderWorkspaceReports,resetWorkspaceTools} from './workspace-tools.mjs?v=20261103-workspace1';
-import {API,SERVICES,slugify,releaseUrl,validateLinks,newId,validatePresave} from './shared.mjs?v=20261103-workspace1';
-import {renderRelease} from './release-view.mjs?v=20261103-workspace1';
+import {initWorkspaceTools,reportQuery,renderWorkspaceReports,resetWorkspaceTools} from './workspace-tools.mjs?v=20261103-clean2';
+import {API,SERVICES,slugify,releaseUrl,validateLinks,newId,validatePresave} from './shared.mjs?v=20261103-clean2';
+import {renderRelease} from './release-view.mjs?v=20261103-clean2';
 import {loadLabAccount} from '../lab/native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from '../lab/session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 const $=id=>document.getElementById(id),form=$('release-form'),editor=$('editor');
 const el=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined)n.textContent=value;return n;};
 const format=n=>Number(n||0).toLocaleString('en-GB');
 let clerk=null,sessionId=null,generation=0,records=[],settings=null,editing=null,createId='',slugEdited=false,saving=false,uploading=false,fetchSerial=0;
+let analyticsData=null;
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 async function call(path,{method='GET',data,headers,body}={}){
   const revision=generation;
@@ -71,7 +72,7 @@ function renderRecords(){
     for(const [label,value] of [['Page visits',format(release.views)],['Platform clicks',format(release.clicks)],['Clicks / visits',(release.views?100*release.clicks/release.views:0).toLocaleString('en-GB',{maximumFractionDigits:1})+'%']]){const item=el('div');item.append(el('dt','',label),el('dd','',value));metrics.append(item);}
     const group=el('div','row-actions'),edit=el('button','primary','Edit');edit.type='button';edit.setAttribute('aria-label','Edit '+release.title);edit.addEventListener('click',()=>openEditor(release));group.append(edit);
     if(release.status==='published'){const button=el('button','secondary','Copy link');button.type='button';button.setAttribute('aria-label','Copy link for '+release.title);button.addEventListener('click',()=>void copy(release.url,button));const link=el('a','secondary','Open');link.href=release.url;link.target='_blank';link.rel='noopener noreferrer';link.setAttribute('aria-label','Open '+release.title);group.append(button,link);}
-    const performance=el('button','subtle','Performance');performance.type='button';performance.setAttribute('aria-label','View performance for '+release.title);performance.addEventListener('click',()=>{$('report-release').value=release.id;location.hash='performance';void refresh();});group.append(performance);
+
     row.append(art,names,metrics,group);rows.append(row);
   }
   if(!filtered.length)rows.append(el('p','empty-row',records.length?'No smart links match this view.':'Create your first smart link to start.'));
@@ -80,18 +81,27 @@ function renderRecords(){
 function updatePixelState(){const configured=!!settings?.pixelId;$('pixel-state').textContent=configured?'Configured':'Not configured';$('pixel-state').classList.toggle('configured',configured);}
 const views={
   'smart-links':['Smart Links.','Your music. One destination.'],
-  experiments:['Experiments.','Keep a record of what you change and learn.'],
   performance:['Performance.','See where your listeners go.'],
   tracking:['Tracking.','Your music. Your audience.'],
   settings:['Settings.','Your Parallel Vision workspace.']
 };
-function navigate(){const key=Object.hasOwn(views,location.hash.slice(1))?location.hash.slice(1):'smart-links';document.querySelectorAll('[data-view]').forEach(section=>section.hidden=section.dataset.view!==key);document.querySelectorAll('[data-nav]').forEach(link=>{if(link.dataset.nav===key)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});$('view-title').textContent=views[key][0];$('view-intro').textContent=views[key][1];$('new-release').hidden=key!=='smart-links';}
+function navigate(){
+ const legacy=location.hash==='#experiments';if(legacy){history.replaceState(null,'','#performance');$('notes-panel').open=true;}
+ const key=Object.hasOwn(views,location.hash.slice(1))?location.hash.slice(1):'smart-links';
+ document.querySelectorAll('[data-view]').forEach(section=>section.hidden=section.dataset.view!==key);
+ document.querySelectorAll('[data-nav]').forEach(link=>{if(link.dataset.nav===key)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
+ $('view-title').textContent=views[key][0];$('view-intro').textContent=views[key][1];$('new-release').hidden=key!=='smart-links';
+ $('days').querySelector('option[value="custom"]').hidden=key!=='performance';
+ $('custom-range').hidden=key!=='performance'||$('days').value!=='custom';
+ if(key==='smart-links'&&analyticsData&&($('report-release').value||$('report-source').value||$('days').value==='custom')){
+  $('report-release').value='';$('report-source').value='';if($('days').value==='custom')$('days').value='30';void refresh();
+ }
+}
 window.addEventListener('hashchange',navigate);navigate();
 document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{$('filter').value=button.dataset.filter;renderRecords();}));
 
 function report(root,items,label,value,empty){root.replaceChildren();if(!items.length){root.append(el('p','empty',empty));return;}
   for(const item of items){const row=el('div','report-row');row.append(el('span','',label(item)),el('small','',value(item)));root.append(row);}}
-let analyticsData=null;
 function analyticsTable(root,labels,rows){
  root.replaceChildren();if(!rows.length){root.append(el('p','empty','No data yet for this selection.'));return;}
  const table=el('table','analytics-table'),head=el('tr');for(const label of labels)head.append(el('th','',label));table.append(head);

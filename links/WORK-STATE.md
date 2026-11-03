@@ -1,3 +1,20 @@
+# Layout correction: 3 November 2026
+
+- Owner reference: third screenshot image(20261103-114516).png, libfile_7f4d6eae273081918950757d00494e24.
+- Baseline: 2196460e1ee47bc857b62488097a1d2d5104c290.
+- Restore original Smart Links list: remove filter-summary text/reset row, explanatory Performance banner and fourth row button.
+- Sidebar restored to Smart Links, Performance, Tracking, Settings.
+- Keep detailed analytics under Performance. Custom dates and Reset are scoped there.
+- Notes & changes is a collapsed section inside Performance, with plain form labels and no instructional side panel.
+- Old #experiments addresses resolve to Performance and open Notes & changes. Existing notes remain available.
+- Returning to Smart Links clears Performance-only release/source/custom-date filters so list counts are not silently scoped.
+- Pre-save options, public listening pages, destinations, MusicLinkClick, backend and data are untouched.
+- Files: links/index.html, dashboard.css, dashboard.mjs, workspace-tools.mjs.
+- 46 music/auth/transport tests and syntax/whitespace checks passed. Desktop fixture verified original list structure and notes toggle.
+- Publication: pending correction deployment; track the layout-correction PR.
+
+---
+
 # Current Smart Links work: 3 November 2026
 
 - User requested integration into the existing `/links/` workspace, retaining its current white design.
