@@ -237,6 +237,7 @@ async function wSaveOutfit(){
   if(wTotalPacks>=40){feedback.textContent='Your Elements library has reached its 40-item limit.';return}
   if(wPacks.some(p=>wName(p).toLowerCase()===title.toLowerCase())){feedback.textContent='An Outfit with that name already exists. Choose another name.';return}
   const version=wSequence,auth=authVersion,submit=$('wardrobe-new-submit');
+  let packSaved=false;
   wSaving=true;submit.disabled=true;feedback.textContent='Saving your outfit privately…';
   try{
     const old=$('garment-file').files?.[0],cached=old===file?fileKeys.get('garment-file'):null;
@@ -252,6 +253,7 @@ async function wSaveOutfit(){
       referenceRoles:[{name:file.name.slice(0,80),role:'outfit',target:'full',
         note:('Outfit @'+title+': transfer this clothing, not the model or setting.'+(note?' '+note:'')).slice(0,300)}]
     }});
+    packSaved=true;
     if(version!==wSequence||auth!==authVersion||!wDialog.open)return;
     const refreshed=await api('/api/packs');
     if(version!==wSequence||auth!==authVersion||!wDialog.open)return;
@@ -263,7 +265,13 @@ async function wSaveOutfit(){
     wCreating=false;wClearDraft();wRender();
     wFooter.textContent=title+' saved privately. Choose a photograph to use it in Replace Outfit.';
   }catch(e){
-    if(version===wSequence&&auth===authVersion&&wDialog.open&&wCreating)feedback.textContent=e.message||'Could not save this Outfit.';
+    if(version===wSequence&&auth===authVersion&&wDialog.open&&wCreating){
+      if(packSaved){
+        wCreating=false;wClearDraft();wRender();
+        wMessage('Outfit saved','The archive did not refresh. Close and reopen the Wardrobe to load your saved piece. Do not save it again.');
+        wFooter.textContent=title+' was saved privately. Refresh the archive before using it.';
+      }else feedback.textContent=(e.message||'The save could not be confirmed.')+' Check saved Outfits before trying again.';
+    }
   }finally{
     wSaving=false;
     if(submit.isConnected)submit.disabled=false;
