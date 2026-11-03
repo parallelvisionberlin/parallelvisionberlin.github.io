@@ -24,7 +24,10 @@
      '<section class="pv-studios-tile pv-studios-editorial"><div class="pv-studios-photo"><img class="pv-studios-editorial-artwork" alt="" loading="eager" decoding="async" src="'+editorialHero+'"></div><div class="pv-studios-editorial-copy"><strong><span>Full</span><span>Editorial</span></strong>'+foot('Complete Fashion Story')+'</div><a aria-label="Full Editorial" href="'+url('full-editorial.html')+'"></a></section>'+
      '<section class="pv-studios-tile pv-studios-retouch"><div class="pv-studios-photo"><img class="pv-studios-retouch-artwork" alt="" loading="eager" decoding="async" src="'+retouchHero+'"></div><div class="pv-studios-meta"><strong><span>Retouch</span><span>Studio</span></strong>'+foot('Precision Edits')+'</div><a class="pv-studios-retouch-link" aria-label="Retouch Studio" href="'+url('studio.html?tool=retouch')+'"></a></section>'+
    '</div>';
-  original.before(shell);shell.append(trigger,panel);panel.querySelector('.pv-studios-fashion').append(original);
+  // Keep the trigger in the header, but portal the floating gallery to body.
+  // Mobile Safari clips fixed descendants inside horizontal scrolling nav bars.
+  original.before(shell);shell.append(trigger);document.body.append(panel);
+  panel.querySelector('.pv-studios-fashion').append(original);
   // Keep the original live Fashion element so its ID, handlers and return-to-draft behavior survive.
   original.classList.add('pv-studios-fashion-link');original.textContent='';original.setAttribute('aria-label','Fashion Studio');
   const existingRetouch=header.querySelector('#tool-retouch')||[...header.querySelectorAll('nav a')].find(a=>a.getAttribute('href')?.includes('tool=retouch'));
@@ -66,7 +69,7 @@
    hoverCloseTimer=setTimeout(()=>{
     hoverCloseTimer=0;
     // A short grace interval lets the cursor cross the gap to the floating card panel.
-    if(!shell.matches(':hover')&&!panel.contains(document.activeElement))close();
+    if(!shell.matches(':hover')&&!panel.matches(':hover')&&!panel.contains(document.activeElement))close();
    },220);
   }
   trigger.addEventListener('pointerenter',event=>{if(hoverPointer(event))open(false,true);});
@@ -82,8 +85,9 @@
   });
   trigger.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();open(true);}});
   document.addEventListener('keydown',event=>{if(!panel.hidden&&event.key==='Escape'){event.preventDefault();close(true);}});
-  document.addEventListener('pointerdown',event=>{if(!shell.contains(event.target))close();});
-  document.addEventListener('focusin',event=>{if(!panel.hidden&&!shell.contains(event.target))close();});
+  const insideMenu=target=>shell.contains(target)||panel.contains(target);
+  document.addEventListener('pointerdown',event=>{if(!insideMenu(event.target))close();});
+  document.addEventListener('focusin',event=>{if(!panel.hidden&&!insideMenu(event.target))close();});
   panel.addEventListener('click',event=>{if(event.target.closest('a,button'))close();});
   window.addEventListener('resize',()=>{if(!panel.hidden)position();},{passive:true});
   document.addEventListener('scroll',()=>{if(!panel.hidden)position();},{capture:true,passive:true});
