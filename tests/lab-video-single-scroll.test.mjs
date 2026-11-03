@@ -6,17 +6,19 @@ const file=name=>readFileSync(new URL('../lab/'+name,import.meta.url),'utf8');
 const html=file('studio.html');
 const css=file('video-composer-single-scroll.css');
 
-test('the Video composer uses a single scrolling surface, including Generate',()=>{
-  assert.match(html,/video-inspector-editorial\.css\?v=[^"\n]+">\n<link rel="stylesheet" href="\.\/video-composer-single-scroll\.css\?v=20261101-single-scroll1"/,
-    'the fix must load last and override the old sticky Generate layout');
-  assert.match(css,/\.workspace\.video-layout>\.controls\{[\s\S]*?overflow-y:auto!important/,
-    'the full Video composer, not only controls-body, is the scrollport');
-  assert.match(css,/\.workspace\.video-layout>\.controls>\.controls-body\{[\s\S]*?flex:0 0 auto!important[\s\S]*?overflow:visible!important/,
-    'settings do not disappear inside a second nested scroll pane');
+test('the Video composer reserves its action outside the settings scrollport',()=>{
+  assert.match(html,/video-inspector-editorial\.css\?v=[^"\n]+">\n<link rel="stylesheet" href="\.\/video-composer-single-scroll\.css\?v=20261103-reserved-action1"/,
+    'the reviewed fix must load after the older composer styles');
+  assert.match(css,/\.workspace\.video-layout>\.controls\{[\s\S]*?overflow-y:hidden!important/,
+    'scrolling settings cannot move the whole panel and its action');
+  assert.match(css,/\.workspace\.video-layout>\.controls>\.controls-body\{[\s\S]*?flex:1 1 0!important[\s\S]*?min-height:0!important[\s\S]*?overflow-y:auto!important/,
+    'settings shrink into the available track and remain natively scrollable');
   assert.match(css,/\.workspace\.video-layout>\.controls>\.generate-zone\{[\s\S]*?position:relative!important[\s\S]*?bottom:auto!important/,
-    'Generate moves with the other controls instead of being locked');
-  assert.match(css,/scroll-padding-bottom:16px!important/,
-    'the last action has comfortable scroll clearance');
+    'Generate reserves normal-flow space instead of overlaying settings');
+  assert.match(css,/\.generate-zone\{[\s\S]*?flex:0 0 auto!important[\s\S]*?height:auto!important/,
+    'the action track fits Generate and an available Save draft action');
+  assert.match(css,/scroll-padding-block:12px!important/,
+    'focused settings retain scroll clearance');
 });
 
 test('the Video-only fix does not change history, the player or generation pricing',()=>{
