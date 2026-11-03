@@ -1,4 +1,17 @@
 # PV LAB Studio boot active state
+## 2026-11-03 / iPhone embedded browser sign-in bootstrap
+
+- Owner screenshot at 20:35 Berlin: public Image Studio painted, but account panel showed "Sign-in could not load. Check your connection and reload the page." This is the generic `lab/lab.js` catch after `loadLabAccount()/sync()`, not proof that every customer or every payment encountered the same failure.
+- Hypothesis: failure loading one of two separate Clerk resources (esm.sh SDK or `clerk.pvlab.studio` UI), or loading session. No client console/network trace, user session or auth-failure volume was provided; the relationship to 26 registrations and missing purchases is unverified.
+- Official Clerk JavaScript quickstart documents first-party `https://<frontend-api>/npm/@clerk/clerk-js@6/dist/clerk.browser.js` and `/npm/@clerk/ui@1/dist/ui.browser.js`. New `lab/clerk-browser-sdk.js` uses the first-party SDK as primary, a bounded `esm.sh` constructor import as secondary, no credential change or private token persistence.
+- `lab/native-account.js` keeps the 12-second SDK/UI and session bounds, explicit UI load validation, and non-sensitive `AUTH-SDK`, `AUTH-UI`, `AUTH-SESSION`, `AUTH-LOAD` recovery messages. Native bridge path unchanged.
+- `lab/lab.js` and `lab/studio-guest-image.js` display the safe error text in the existing recovery UI; no layout, user history, credit, prices, generation or Stripe behavior changes.
+- Scoped version references updated in `lab/studio.html`, `lab/index.html`, `lab/customer-entry.js`, `lab/account.html` and `lab/account.js` to avoid serving cached bootstrap.
+- `tests/pvlab-clerk-bootstrap.test.mjs` tests primary success, fallback success, both sources blocked, privacy-safe messaging and Studio/guest wiring.
+- Actual source function was exercised with injected fake browser: primary succeeded without fallback; blocked primary used fallback; failed scripts were removed; both blocked returned `AUTH_SDK`. This is mocked evidence, not real iOS/Safari or production DNS/Clerk evidence.
+- Branch: `fix/pvlab-clerk-browser-bootstrap-20261103` from current main. Merge, exact Cloudflare Pages result, production bytes and actual iOS sign-in require separate verification.
+- Commercial: continue paused Meta spend until real sign-in works; registered-user count alone cannot establish sales lost to this issue.
+
 ## Domain readiness audit / 2026-10-23
 - Verified source: main `14d3eafcab25bc3cbbaccae02d384676d3b1a470`.
 - Original runs `39863051784` and `39863051721` remain failed, with no successful latest retry.
