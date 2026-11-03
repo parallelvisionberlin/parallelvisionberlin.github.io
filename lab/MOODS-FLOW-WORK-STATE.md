@@ -12,7 +12,16 @@
 - Files: moods.html, explore-moods.js, new mood-credit-offer.css, existing Berlin Rave signup browser test, this checkpoint.
 - Local: JavaScript syntax, whitespace and approved Image UI contract 5/5 passed.
 - Extended existing synthetic signup/purchase-return test to 320/390/1440px, canonical logo, dynamic count, no horizontal overflow and responsive layout.
-- CI, screenshot review and production release pending. No real payment or paid generation used.
+- Reviewed head: 1aa2226842c2b9951f377ec4a63e116eb08c6dc6. PR #802 merged as 8cfc749fea2c517cde66fea0aa5e540c34911e3d.
+- Exact-head PASS: signup/purchase-return workflow 41557239296 (320/390/1440px), Explore Generate 41557239895, approved Image 41557239344, image references 41557239812, static and Motion Effects.
+- Downloaded exact-head artifact 13194254064 and reviewed actual phone/desktop captures. Blank canvas is the transparent synthetic output fixture, not a failed real image. Removed shared mobile poster duplication; offer fits phone and retains scroll on short screens.
+- Broader CI remains red in unchanged tests: missing readFileSync, old Moods/ZenCreator copy, Image Studio account funding-preview timeout :249, gallery video dimensions fixture, and public Video canvas expectations. No test gate weakened.
+- Production Cloudflare Pages exact-merge success check 125660391120; deployment 1023499f-5b77-4604-8e43-8c1d0bfcb696 for 8cfc749 confirmed Deployed successfully in GitHub's Cloudflare app check.
+- Public pvlab.studio/moods DOM includes new pack markup, canonical logo source, mood-credit-offer.css?v=20261103-1 and explore-moods.js creditOffer=20261103-1.
+- Direct production CSS SHA-256 exactly matches reviewed file: 2903df3fbe201d2bc109f706362682ecb5744c31902d4defd4258a338a570683.
+- Normal public Mood editor still opens correctly; conditional exhausted state visually verified in synthetic browser captures. Fresh real exhausted-customer/Stripe flow not performed. Raw production JS navigation blocked by browser client; do not claim a separate raw JS byte comparison.
+- Release complete. Next: observe actual pack clicks/checkouts and independent customer purchases through Ads PV Lab; no further release task pending.
+- No real payment, paid generation or production credit mutation used. Synthetic test success is separate from real OAuth/Stripe completion.
 
 ## Approved payment flow implementation, 2026-11-02
 
