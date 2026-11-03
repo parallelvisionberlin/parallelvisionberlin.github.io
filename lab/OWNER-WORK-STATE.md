@@ -1,3 +1,19 @@
+## Owner audience geography and technology, 2026-11-03
+- Objective: extend existing Traffic dashboard with all supportable audience breakdowns, retaining its dark editorial layout.
+- Baseline: main `91326f1129e154307d1d7417ef3d4426c600399a`; branch `feat/owner-audience-geography-20261103`. Open PRs inspected before editing; no overlapping owner/traffic task found.
+- Backend: new `lab-worker/traffic-audience.mjs` and migration `0058-traffic-audience.sql`; base schema and production migration workflow updated. Existing public payload remains unchanged.
+- Geography uses only trusted request.cf country/region/city; request headers are reduced to device/browser/OS/language categories. UTC-hour totals included. No IP/UA/coordinates/account identity, cross-dimension profiles or inferred demographic attributes stored.
+- Each traffic event updates original and eight independent dimension counters in one atomic D1 batch. Existing 90-day pruning extends to audience counters. Server additionally honors DNT/Sec-GPC; existing client privacy signals, bot filtering, origin validation and owner authorization retained.
+- Owner UI: countries/cities/regions, devices/browsers/OS, language and 24-hour chart; 7/30-day report, entries/page-views selector, per-dimension shares, top six with expandable top 50, unknown/empty states and explicit measurement start date. Separate ranking keeps both entry and page-view leaders.
+- Historical locations cannot be backfilled. Age/gender and country-level signup/payment attribution remain unavailable rather than fabricated. Existing acquisition/finance accounting unchanged.
+- Files: owner HTML/JS/CSS, traffic backend/module/migration/schema, deployment migration list, privacy traffic paragraph, README, focused traffic and existing owner browser tests, this checkpoint. Asset marker `20261103-audience1`.
+- Local: 55 focused traffic/privacy/owner/promotions/Image-contract tests and 107 Worker integration tests passed; syntax and diff whitespace clean.
+- Cloud browser synthetic preview: actual renderer/CSS inspected at desktop and 390px phone frame; no phone horizontal overflow (document=viewport=375px excluding scrollbar). Page-view sorting, country expansion and unknown rows verified. Synthetic data only.
+- Local seven-width Playwright suite could not start because its Chromium executable is absent; updated suite will run in existing Owner CI. No download or weaker test substituted.
+- Publication: local source commit `97a5e36` created. Automatic approval review rejected `git push -u origin feat/owner-audience-geography-20261103` because explicit authorization to upload modified source to GitHub is required. No confirmed remote branch, PR, CI or deployment. Do not route around this rejection through another tool.
+- Next: obtain explicit approval to push this feature to `parallelvisionberlin/parallelvisionberlin.github.io`, then run/review relevant CI including seven-width Owner suite, merge reviewed SHA and verify exact Pages/Worker release.
+- Exact changed paths: `.github/workflows/deploy-lab-worker.yml`; `lab-worker/{schema.sql,traffic.mjs,traffic-audience.mjs,migrations/0058-traffic-audience.sql}`; `lab/{OWNER-WORK-STATE.md,README.md,owner.css,owner.html,owner.js,privacy/index.html}`; `tests/{lab-owner-mobile-browser.mjs,lab-traffic.test.mjs}`.
+
 ## Owner generation quality review, 2026-11-02
 - Status: implemented, merged and verified live. PR #798, source `0de6190735ec4b81b0d8af5068472aed45dce50f`, merge `7654c18aa38b4347209184b8a7f0f6bc384a374d`.
 - Production: https://pvlab.studio/owner → Customers → View activity. Existing activity dialog/layout retained; no separate dashboard or customer consent workflow.
