@@ -77,6 +77,21 @@ try{
      assert.equal(state.route,route);
      assert.equal(state.tool,route);
      assert.equal(state[active],true);
+     // Mobile Studio navigation is horizontally scrollable. The expanded four-card
+     // menu must escape that scroller and actually receive taps on every tool.
+     await page.locator('.pv-studios-trigger').click();
+     const overlay=page.locator('.pv-studios-panel');
+     assert.equal(await overlay.isVisible(),true,route+' Studios gallery opens');
+     assert.equal(await overlay.locator('.pv-studios-tile').count(),4);
+     const interactive=await overlay.evaluate(panel=>{
+       const tile=panel.querySelector('.pv-studios-beauty');
+       const r=tile.getBoundingClientRect();
+       const hit=document.elementFromPoint(r.left+r.width/2,r.top+Math.min(r.height/2,36));
+       return panel.parentElement===document.body&&panel.contains(hit);
+     });
+     assert.equal(interactive,true,route+' Studios panel is outside nav overflow and tappable');
+     await page.keyboard.press('Escape');
+     assert.equal(await overlay.isVisible(),false);
    }
    // Retouch Studio in the shared menu uses the existing in-page tool handler.
     await page.locator('.pv-studios-trigger').click();
