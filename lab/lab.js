@@ -9,7 +9,7 @@ import {preparePhotoInput,prepareUpscaleInput,prepareElementPhoto} from './photo
 import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference,shouldOmitAutomaticMoodReferencesForInspiration} from './mood-references.js?hkPhotoOriginals=20261018v2&dreamBlurBudget=20261016v1&v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&internalReference=20261016v2&refOnlyDreamBlurFix=20261018v1&hkPhoto=20261018v1&hkVariants=20261018-real1&hkRestore=20261018v1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1&eightiesStyle=20261024v1&dreamBlurInspirationRefs=20261102v1&dreamBlurExposure=20261102v2';
 import {visibleImageReferenceIds} from './image-detail-references.js?v=20261016-hidden-preset1&fisheye=20261020v1&hkRefs=20261023two1&fisheyeY2K=20261024v1&hyperPopMaterial=20261024v1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
-import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
+import {loadLabAccount,accountBootstrapMessage} from './native-account.js?v=20261103-browser-bootstrap1&createGallery=20261014-1&generateStable=20261014-1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261028-customer-magic-quota1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261102-local-currency';
@@ -5266,7 +5266,7 @@ if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
 }
 
 window.__pvLabBootStage?.('Connecting your account');
-try{clerk=await loadLabAccount();clerk.addListener(()=>void sync());await sync();}catch{window.__pvLabBootStage?.('Account connection failed');document.documentElement.classList.remove('pv-native-route-pending');$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
+try{clerk=await loadLabAccount();clerk.addListener(()=>void sync());await sync();}catch(error){window.__pvLabBootStage?.('Account connection failed');document.documentElement.classList.remove('pv-native-route-pending');$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent=accountBootstrapMessage(error);finishLabBoot();}
 
 
 
