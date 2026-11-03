@@ -12,7 +12,7 @@ const start=source.indexOf("try{clerk=await loadLabAccount();");
 const end=source.indexOf("\n// Soul composer:",start);
 assert.ok(start>0&&end>start,'Expected tested account bootstrap');
 const testSource=source.slice(0,start)+source.slice(end)+
-  "clerk={isSignedIn:true,user:{id:'elements-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='elements-test';config={enabled:true,geminiEnabled:true,falEnabled:true,videoEngines:['wan','seedance'],dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__pvLabFinishBoot?.();window.__elementInputs=async()=>({inputs:await ensureInputs(),roles:referenceRoles()});window.__elementsBrowserReady=true;";
+  "clerk={isSignedIn:true,user:{id:'elements-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='elements-test';config={enabled:true,geminiEnabled:true,falEnabled:true,videoEngines:['wan','seedance'],dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__pvLabFinishBoot?.();window.__elementInputs=async()=>({inputs:await ensureInputs(),roles:referenceRoles()});window.__elementVideo=()=>{setTool('video');$('video-engine').value='seedance';$('video-engine').dispatchEvent(new Event('change',{bubbles:true}));setMode('reference');sceneLibrary.open('characters');};window.__elementsBrowserReady=true;";
 const server=http.createServer((req,res)=>{
   const u=new URL(req.url,'http://localhost');
   const file=resolve(root,'.'+u.pathname+(u.pathname.endsWith('/')?'index.html':''));
@@ -333,13 +333,9 @@ try{
   assert.equal(await page.locator('#scene-library-dialog').isVisible(),false);
   assert.equal(savedPacks.length,3,'Dismissed drafts must not be saved');
 
-  // The shared loader must pass all eight photos to video inputs too.
-  await page.locator('#tool-video').click();
-  if(await page.locator('#pv-video-output-toggle').getAttribute('aria-expanded')==='false')await page.locator('#pv-video-output-toggle').click();
-  await page.locator('#pv-video-model-pill').click();
-  await page.locator('.pv-video-model-item[data-model="seedance"]').click();
-  await page.evaluate(()=>document.getElementById('mode-reference').click());
-  await page.locator('#pv-video-characters').click();
+  // Configure the existing Video handlers directly in this mock-only fixture.
+  // Model-menu presentation is covered by the independent Video browser suite.
+  await page.evaluate(()=>window.__elementVideo());
   await page.locator('#scene-grid [aria-label="Preview Nina FOK"]').click();
   await page.locator('#scene-feature [data-scene-use]').click();
   await page.waitForFunction(()=>!document.getElementById('scene-library-dialog').open);
