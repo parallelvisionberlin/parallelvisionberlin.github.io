@@ -248,7 +248,14 @@ function paintTrafficAudience(audience){
   const coverage=$('owner-audience-coverage');coverage.hidden=!first;
   coverage.textContent=first?'Audience sample: '+formatNumber(measured)+' '+(measured===1?(metric==='views'?'page view':'estimated entry'):unit)+' collected since '+first+'. Earlier traffic totals have no audience breakdown.':'';
   const hasTraffic=measured>0;
-  $('owner-audience-content').hidden=!hasTraffic;
+  const panel=$('owner-audience-content');
+  // Layout threshold only; a sample of ten page loads is not a confidence claim.
+  const compact=hasTraffic&&(Number(dimensions.country?.totalViews)||0)<10;
+  const wasCompact=panel.dataset.compact==='true';
+  panel.hidden=!hasTraffic;panel.dataset.compact=String(compact);
+  $('owner-audience-sample-toggle').hidden=!compact;
+  if(!compact)panel.open=hasTraffic;
+  else if(!wasCompact)panel.open=false;
   $('owner-audience-empty').hidden=hasTraffic;
   $('owner-audience-empty').textContent=first
     ?'No audience '+unit+' recorded in this period.'
@@ -302,6 +309,9 @@ function paintTrafficAudience(audience){
     String(hour).padStart(2,'0')+':00: '+(values.get(String(hour).padStart(2,'0'))||0)).join(', ')+'. '+unit+'.');
 }
 $('owner-audience-metric').addEventListener('change',()=>paintTrafficAudience(trafficAudienceData));
+$('owner-audience-content').addEventListener('toggle',()=>{
+  $('owner-audience-sample-action').textContent=$('owner-audience-content').open?'Hide details':'View details';
+});
 function trafficComparison(containerId,items,labelMap){
   const container=$(containerId);container.replaceChildren();
   if(!items.length){
