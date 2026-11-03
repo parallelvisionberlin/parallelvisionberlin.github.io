@@ -56,3 +56,29 @@
  #mc-look-dialog.is-credit-offer .mc-look-dialog-body{padding:18px!important;gap:0!important}
  #mc-look-dialog.is-credit-offer .mc-look-result-frame{height:clamp(145px,25dvh,225px)!important;border:0!important;border-radius:3px!important}
 }
+
+/* Paid onboarding after an explicit Generate click. A local photo is never charged. */
+#mc-look-prepay[hidden]{display:none!important}
+#mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) .mc-photobooth-heading,
+#mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) .mc-look-dialog-actions,
+#mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) .mc-look-footer,
+#mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) #mc-look-description,
+#mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) #mc-look-campaign-offer{display:none!important}
+#mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) .mc-look-dialog-body{overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:thin;overscroll-behavior:contain}
+#mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) #mc-look-dropzone{flex:0 0 auto!important;height:clamp(95px,16dvh,150px)!important;min-height:95px!important}
+#mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) .mc-look-prepay{display:block;flex:0 0 auto;margin:12px 0 0;padding:19px 20px;background:#191c1f;border:1px solid #545c61;border-radius:5px;color:#f2eee6;text-align:left}
+#mc-look-dialog .mc-prepay-eyebrow{margin:0 0 9px;font:500 10px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.16em;color:#b9c0c5}
+#mc-look-dialog #mc-look-prepay-title{margin:0 0 13px;font:600 clamp(27px,3.8vw,39px)/1.1 'DM Sans',Arial,sans-serif;letter-spacing:-.05em}
+#mc-look-dialog .mc-prepay-lede{margin:0 0 12px;font:400 18px/1.4 'DM Sans',Arial,sans-serif}
+#mc-look-dialog .mc-prepay-example,#mc-look-dialog .mc-prepay-terms{margin:0 0 10px;font:400 12px/1.5 'DM Sans',Arial,sans-serif;color:#c9cdd0}
+#mc-look-dialog .mc-prepay-buy{display:block;box-sizing:border-box;margin:15px 0 0;min-height:48px;padding:14px 9px;background:#f2f1ec;border:1px solid #f2f1ec;border-radius:3px;color:#101215;text-align:center;text-decoration:none;font:600 14px/1.4 'DM Sans',Arial,sans-serif}
+#mc-look-dialog .mc-prepay-buy:hover{background:white}
+#mc-look-dialog #mc-look-prepay-back{display:block;margin:8px auto 0;padding:9px 5px;border:0;background:transparent;color:#d1d6d8;text-decoration:underline;text-underline-offset:4px;font:400 12px/1.4 'DM Sans',Arial,sans-serif;cursor:pointer}
+#mc-look-dialog :is(.mc-prepay-buy,#mc-look-prepay-back):focus-visible{outline:2px solid #f2f1ec;outline-offset:3px}
+@media(max-width:600px){
+ #mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) .mc-look-dialog-media{height:90px!important}
+ #mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) #mc-look-dropzone{height:95px!important;min-height:95px!important}
+ #mc-look-dialog.mc-photobooth.is-prepay-offer:not(.is-result-view) .mc-look-prepay{padding:15px 14px;margin:10px 0 0}
+ #mc-look-dialog #mc-look-prepay-title{font-size:27px}
+ #mc-look-dialog .mc-prepay-lede{font-size:16px}
+}
