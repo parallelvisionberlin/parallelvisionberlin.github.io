@@ -15,7 +15,10 @@
 - Local Chromium unavailable: Playwright browser download returned an invalid archive. Browser execution and CI remain pending; no signed-in or paid provider generation performed.
 - Implementation commit: `df1c04f02bf113797338dbfe8a3c684ae340cccc` on local branch `fix/character-all-saved-photos-20261103`. Merge, Worker deployment and custom-domain publication have not occurred.
 - Owner explicitly approved pushing the completed change on 2026-11-03. The earlier upload-approval blocker is resolved; GitHub public visibility and connected admin/push access were verified.
-- Next: push the approved branch, open the PR and inspect CI/browser checks, then handle publication and exact Cloudflare/live verification separately.
+- Uploaded exact tested file tree as `7bcd9779896b56dbead6f1ed4108ec8a5b364ee2`; PR #803 is open. No merge or production release.
+- First browser CI exposed a new fixture using hidden native model selects. The fixture now uses visible Image and Video model menus; every eight-photo/note and capacity assertion is retained.
+- Broad unit CI reports three unrelated failures: lab-meta-capi missing readFileSync, Explore Moods label expectation and ZenCreator pricing copy expectation. No unrelated test or application files were changed.
+- Next: verify the corrected Character browser CI and approved Image contract, then handle publication and exact Cloudflare/live verification separately.
 
 ## Active mobile detail repair, 2026-11-02
 - Request: repair overflowing saved Character details on phones; preserve other category overviews.

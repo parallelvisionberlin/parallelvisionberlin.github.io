@@ -101,14 +101,16 @@ try{
   await page.locator('#scene-close').click();
 
   // An eight-photo Character must never be silently reduced for Qwen.
-  await page.locator('#image-engine').selectOption('qwen3');
+  await page.locator('#image-composer-model').click();
+  await page.locator('#image-composer-model-items [data-value="qwen3"]').click();
   await page.locator('#scene-characters-open').click();
   await page.locator('#scene-grid [aria-label="Preview Nina FOK"]').click();
   await page.locator('#scene-feature [data-scene-use]').click();
   assert.match(await page.locator('#scene-library-status').innerText(),/8 saved photos.*3 reference slots.*Nothing was attached/);
   assert.equal(await page.locator('#image-composer-references .composer-element-tile').count(),0);
   await page.locator('#scene-close').click();
-  await page.locator('#image-engine').selectOption('seedream');
+  await page.locator('#image-composer-model').click();
+  await page.locator('#image-composer-model-items [data-value="seedream"]').click();
 
   const text=page.locator('#image-composer-prompt');
   await text.fill('Nina posing by the window in @My');
@@ -300,7 +302,8 @@ try{
 
   // The shared loader must pass all eight photos to video inputs too.
   await page.locator('#tool-video').click();
-  await page.locator('#video-engine').selectOption('seedance');
+  await page.locator('#pv-video-model-pill').click();
+  await page.locator('.pv-video-model-item[data-model="seedance"]').click();
   await page.evaluate(()=>document.getElementById('mode-reference').click());
   await page.locator('#pv-video-characters').click();
   await page.locator('#scene-grid [aria-label="Preview Nina FOK"]').click();
