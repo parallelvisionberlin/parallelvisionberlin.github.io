@@ -46,16 +46,16 @@ test('the composer leaves expanded settings and the prompt in normal order',()=>
 });
 
 test('Video UI hides redundant actions without affecting shared functionality',()=>{
-  assert.match(css,/#app\\.video-studio-active \\.workspace\\.video-layout>\\.controls>\\.generate-zone>#save\\{[\\s\\S]*?display:none!important/);
-  assert.match(css,/#app\\.video-studio-active \\.video-feed-center #history \\.card\\[data-kind="video"\\]>.asset-video-badge\\{[\\s\\S]*?display:none!important/);
-  assert.match(css,/history-video-play\\{[\\s\\S]*?border-radius:50%!important/);
+  assert.match(css,/#app\.video-studio-active \.workspace\.video-layout>\.controls>\.generate-zone>#save\{[\s\S]*?display:none!important/);
+  assert.match(css,/#app\.video-studio-active \.video-feed-center #history \.card\[data-kind="video"\]>.asset-video-badge\{[\s\S]*?display:none!important/);
+  assert.match(css,/history-video-play\{[\s\S]*?border-radius:50%!important/);
   assert.match(html,/class="pv-audio-on"/);
   assert.match(html,/class="pv-audio-muted"/);
-  assert.match(css,/\\[aria-pressed="false"\\] \\.pv-audio-on\\{display:none\\}/);
-  assert.match(css,/\\[aria-pressed="false"\\] \\.pv-audio-muted\\{display:block\\}/);
-  assert.match(css,/\\.controls-body>#video-modes/);
-  assert.match(css,/\\.controls-body>#pv-video-prompt-box/);
+  assert.match(css,/\[aria-pressed="false"\] \.pv-audio-on\{display:none\}/);
+  assert.match(css,/\[aria-pressed="false"\] \.pv-audio-muted\{display:block\}/);
+  assert.match(css,/\.controls-body>#video-modes/);
+  assert.match(css,/\.controls-body>#pv-video-prompt-box/);
   assert.match(css,/scroll-behavior:auto!important/);
-  assert.match(css,/textarea#prompt\\{[\\s\\S]*?overscroll-behavior-y:contain!important/);
-  assert.doesNotMatch(css,/#[a-z]+\\s*\\{[^}]*?\\/api\\/jobs/);
+  assert.match(css,/textarea#prompt\{[\s\S]*?overscroll-behavior-y:contain!important/);
+  assert.doesNotMatch(css,/#[a-z]+\s*\{[^}]*?\/api\/jobs/);
 });
