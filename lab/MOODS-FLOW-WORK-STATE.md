@@ -402,3 +402,20 @@ Updated: 2026-10-23
 - `lab/moods.html` busts the modal stylesheet URL. `tests/lab-explore-generation.mjs` asserts the phone/small dimensions, hint size, entered text size and existing fit/no-overlap requirements. No desktop, artwork, copy, Mood logic, prices, authentication, payments, models or Worker changes.
 - Verify the Explore Generation browser check, PR checks and Cloudflare Pages commit/check + actual `pvlab.studio/moods` stylesheet before calling the result live.
 
+
+## 2026-11-03 Phone-photo dimension validation
+- Objective: fix Explore Moods rejecting normal full-resolution phone sources with the generic 240–8,000 px error.
+- Verified baseline: main `8460965`; no unrelated local edits.
+- Source evidence: `app-mood-generation.js` retained an 8,000 px ceiling while Image Studio already accepts up to 12,000 px and preserves original uploads.
+- Shared web/native Mood preparation now uses the same 12,000 px ceiling; retains the 240 px minimum, 8:1 ratio ceiling, browser 72 MP decode cap and 20 MiB upload validation.
+- Existing >36 MP Seedream working copy remains bounded to 34 MP and 10 MiB; original and transfer asset IDs stay separate.
+- Dimension failures now identify actual width/height and the specific reason, before upload, quote or job.
+- Updated cached service imports and web/native entrypoints with `phonePhoto=20261103-1`.
+- Source files: `app-mood-generation.js`, `explore-moods.js`, `app-moods.js`, `moods.html`, `app-moods.html`.
+- Regression: `tests/lab-photobooth-phone-photo.test.mjs` executes actual service with mock decoding/auth/API for 6048×8064, ordinary 12 MP, rejection cases and explicit single submission.
+- Verification: 16 focused tests passed across new regression, high-resolution Image upload, Seedream input pixels and approved Image UI contract; changed JS syntax and diff whitespace passed.
+- Additional all-Moods checks: 18 passed; one asset-existence check cannot pass in this sparse checkout because preview media are intentionally absent. No media were changed.
+- Original IMG_7722.jpeg was not attached, only screenshots. This fixes a confirmed code defect; it does not prove that photo exceeded 8,000 px.
+- No paid generation or customer-account operation performed. Device-specific Safari behavior remains unverified.
+- Publication: branch prepared for review; no main merge or production deployment authorized/performed in this task.
+- Next: review/merge through existing workflow, verify exact Cloudflare commit and live service bytes; retry original phone photograph.

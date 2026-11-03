@@ -86,7 +86,14 @@ export function createAppMoodGeneration(){
       if(!session.config?.enabled)throw Error('Image generation is currently unavailable.');
       if(!file&&!direction.trim())throw Error('Add a photograph or describe what you want to create.');
       check();
-      if(dimensions&&(Math.min(dimensions.width,dimensions.height)<240||Math.max(dimensions.width,dimensions.height)>8000||Math.max(dimensions.width/dimensions.height,dimensions.height/dimensions.width)>8))throw Error('Choose a photograph between 240 and 8,000 pixels per side.');
+      if(dimensions){
+        const {width,height}=dimensions,label=width+' × '+height+' px';
+        // Match Image Studio's source limits. Full-resolution phone photos
+        // keep their original upload and use the bounded Seedream copy below.
+        if(Math.min(width,height)<240)throw Error('This photo is too small ('+label+'). Choose the original photo, with at least 240 pixels on each side. No generation was submitted.');
+        if(Math.max(width,height)>12000)throw Error('This photo is too large in dimensions ('+label+'). Maximum 12,000 pixels per side. No generation was submitted.');
+        if(Math.max(width/height,height/width)>8)throw Error('This photo has unsupported proportions ('+label+'). Choose a photo with a less extreme aspect ratio. No generation was submitted.');
+      }
       const recipe=prepareMoodPrompt(direction,mood.id,mood.defaultIntensity||70,{engine:'seedream',referenceCount:file?1:0,referenceMode:'base',moodVariant});
       if(recipe.error)throw Error(recipe.error);
       // Photobooth favors faster first results at 1K. Studio keeps its independent HD selector.
