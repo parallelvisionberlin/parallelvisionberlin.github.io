@@ -2,6 +2,10 @@
 // finance and Stripe checkout ledgers remain authoritative for jobs and money.
 const allowed=new Set(['offer_viewed','offer_clicked']);
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
+export async function pruneMoodOfferEvents(env,{clock=()=>Date.now()}={}){
+  return env.LAB_DB.prepare('DELETE FROM lab_mood_offer_funnel WHERE created_at<?')
+    .bind(clock()-90*86400000).run();
+}
 export async function recordMoodOfferEvent(request,env,customerId){
   if(request.method!=='POST')return json({error:'Method not allowed'},405);
   if(!request.headers.get('content-type')?.toLowerCase().startsWith('application/json'))return json({error:'JSON required'},415);
@@ -18,7 +22,6 @@ export async function recordMoodOfferEvent(request,env,customerId){
   ).bind(customerId).first();
   if(!completed)return json({error:'No completed image'},409);
   const now=Date.now();
-  await env.LAB_DB.prepare('DELETE FROM lab_mood_offer_funnel WHERE created_at<?').bind(now-90*86400000).run();
   await env.LAB_DB.prepare('INSERT OR IGNORE INTO lab_mood_offer_funnel(customer_id,event,source,created_at) VALUES(?,?,?,?)')
     .bind(customerId,data.event,'moods_result',now).run();
   return json({ok:true});
