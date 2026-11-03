@@ -55,10 +55,19 @@ export function selectElementViews(item,prompt='',limit=2){
   const chosen=ranked.slice(0,max).map(x=>x.index);
   return chosen;
 }
-function elementReferenceNote(item,selectedIndex){
+export function elementAttachmentIndices(item,prompt,capacity){
+  if(item.category==='characters'){
+    const refs=Array.isArray(item.refs)?item.refs:[];
+    if(!refs.length||refs.some(ref=>!ref?.id))throw Error('This Character has missing photographs. Open it and check its saved photos.');
+    if(refs.length>capacity)throw Error('@'+item.title+' has '+refs.length+' saved photos, but the selected model has '+Math.max(0,capacity)+' reference slots available. Choose a model with room for all '+refs.length+' photos or save a smaller Character. Nothing was attached.');
+    return refs.map((_,index)=>index);
+  }
+  return selectElementViews(item,prompt,Math.min(capacity,item.category==='props'?1:2));
+}
+export function elementReferenceNote(item,selectedIndex){
   // Preserve the user's authored saved note (including full appearance/props)
   // before adding only the visual facts that fit the provider's note budget.
-  const authored=String(item.refs?.[selectedIndex]?.note||'').slice(0,230);
+  const authored=String(item.refs?.[selectedIndex]?.note||'').slice(0,300);
   const identity=String(item.profile?.signature||item.profile?.summary||'').slice(0,145);
   const shot=item.profile?.shots?.find(s=>s.index===selectedIndex);
   const view=String(shot?.description||'').slice(0,65);
@@ -604,14 +613,15 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
     }
     const capacity=getReferenceLimit()-currentRefs.length;
     if(capacity<1){setStatus('This model has no free reference slots. Remove an image or choose a model with more references.',true);return;}
+    let indices;
+    try{indices=elementAttachmentIndices(item,context.prompt||'',capacity);}
+    catch(error){setStatus(error.message,true);return;}
     let attached=false;
     setWorking(true);setStatus('Preparing @'+item.title+' as one Element…');
     try{
       await runTask(async()=>{
-        // The saved visual profile was checked before attachment.
-        // Two relevant views at most: one Element, not an uncontrolled stack.
-        const count=Math.min(capacity,item.category==='props'?1:2);
-        const indices=selectElementViews(item,context.prompt||'',count);
+        // Characters send every saved photo, in saved order, with its own note.
+        // Other Element categories retain their existing relevant-view selection.
         const chosen=indices.map(i=>({ref:item.refs[i],i})).filter(x=>x.ref?.id);
         if(!chosen.length)throw Error('This Element has no usable photographs.');
         const files=await Promise.all(chosen.map(({ref,i})=>assetFile(ref.id,safeName(item.title)+'-'+(i+1))));
@@ -626,7 +636,7 @@ export function createSceneLibrary({api,uploadAsset,assetFile,prepareElementPhot
         if(!chosen.every(({ref})=>getReferences().some(active=>active.elementId===item.id&&active.id===ref.id)))
           throw Error('Not all selected views were attached. Please try again.');
         attached=true;
-        setStatus('@'+item.title+' added as one Element · '+chosen.length+' selected view'+(chosen.length===1?'':'s')+'.');
+        setStatus('@'+item.title+' added as one Element · '+chosen.length+' photo'+(chosen.length===1?'':'s')+' attached.');
       });
     }finally{
       setWorking(false);

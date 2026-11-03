@@ -12,7 +12,7 @@ const start=source.indexOf("try{clerk=await loadLabAccount();");
 const end=source.indexOf("\n// Soul composer:",start);
 assert.ok(start>0&&end>start,'Expected tested account bootstrap');
 const testSource=source.slice(0,start)+source.slice(end)+
-  "clerk={isSignedIn:true,user:{id:'elements-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='elements-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__pvLabFinishBoot?.();window.__elementsBrowserReady=true;";
+  "clerk={isSignedIn:true,user:{id:'elements-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='elements-test';config={enabled:true,geminiEnabled:true,falEnabled:true,videoEngines:['wan','seedance'],dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__pvLabFinishBoot?.();window.__elementInputs=async()=>({inputs:await ensureInputs(),roles:referenceRoles()});window.__elementVideo=()=>{setTool('video');$('video-engine').value='seedance';$('video-engine').dispatchEvent(new Event('change',{bubbles:true}));setMode('reference');sceneLibrary.open('characters');};window.__elementsBrowserReady=true;";
 const server=http.createServer((req,res)=>{
   const u=new URL(req.url,'http://localhost');
   const file=resolve(root,'.'+u.pathname+(u.pathname.endsWith('/')?'index.html':''));
@@ -36,15 +36,12 @@ const room={id:id(1),name:'PVSCENE1|locations|MyRoom',created_at:Date.now(),
            {index:3,description:'wide view',keywords:['wide']}]}
 };
 const nina={id:id(2),name:'PVSCENE1|characters|Nina FOK',created_at:Date.now(),
-  refs:[{id:id(201),name:'nina-front.webp',role:'identity',note:'Nina face'},
-        {id:id(202),name:'nina-side.webp',role:'identity',note:'Nina face'},
-        {id:id(203),name:'nina-back.webp',role:'identity',note:'Nina face'},
-        {id:id(204),name:'nina-three-quarter.webp',role:'identity',note:'Nina face'}],
+  refs:Array.from({length:8},(_,i)=>({id:id(201+i),name:'nina-view-'+i+'.webp',role:'identity',note:'Nina saved note '+i+'; preserve this detail.'})),
   profile:{version:1,category:'characters',summary:'One consistent female editorial portrait subject with dark hair.',
     signature:'Preserve the facial geometry, hairline, eye spacing and distinctive facial structure.',
-    landmarks:['dark hair'],shots:[0,1,2,3].map(i=>({index:i,description:'portrait angle',keywords:['portrait']}))}
+    landmarks:['dark hair'],shots:[0,1,2,3,4,5,6,7].map(i=>({index:i,description:'portrait angle',keywords:['portrait']}))}
 };
-const media=readFileSync('lab/scene-hero-art/locations.webp');
+let media=readFileSync('lab/scene-hero-art/locations.webp');
 const savedPacks=[room,nina];
 let nextUpload=20000,saveCount=0;
 const browser=await chromium.launch({headless:true});
@@ -103,6 +100,18 @@ try{
   assert.equal(await page.locator('#scene-library-title').textContent(),'Characters','Person shortcut always returns directly to Characters');
   await page.locator('#scene-close').click();
 
+  // An eight-photo Character must never be silently reduced for Qwen.
+  await page.locator('#image-composer-model').click();
+  await page.locator('#image-composer-model-items [data-value="qwen3"]').click();
+  await page.locator('#scene-characters-open').click();
+  await page.locator('#scene-grid [aria-label="Preview Nina FOK"]').click();
+  await page.locator('#scene-feature [data-scene-use]').click();
+  assert.match(await page.locator('#scene-library-status').innerText(),/8 saved photos.*3 reference slots.*Nothing was attached/);
+  assert.equal(await page.locator('#image-composer-references .composer-element-tile').count(),0);
+  await page.locator('#scene-close').click();
+  await page.locator('#image-composer-model').click();
+  await page.locator('#image-composer-model-items [data-value="seedream"]').click();
+
   const text=page.locator('#image-composer-prompt');
   await text.fill('Nina posing by the window in @My');
   await page.locator('#scene-element-suggestions .scene-element-choice').filter({hasText:'@MyRoom'}).click();
@@ -138,9 +147,52 @@ try{
   assert.match(compiled,/ELEMENT CONTINUITY/);
   assert.match(compiled,/@MyRoom/);
   assert.match(compiled,/@Nina FOK/);
+  const request=await page.evaluate(()=>window.__elementInputs());
+  assert.equal(request.inputs.referenceSourceIds.length,10,'Two room views plus all eight Character photos reach generation inputs');
+  const characterRoles=request.roles.filter(ref=>ref.elementId===nina.id);
+  assert.equal(characterRoles.length,8);
+  assert.deepEqual(characterRoles.map(ref=>ref.elementView),[0,1,2,3,4,5,6,7]);
+  nina.refs.forEach((ref,i)=>{
+    assert.ok(characterRoles[i].note.startsWith(ref.note),'Saved note is preserved for photo '+i);
+    assert.ok(compiled.includes(ref.note),'Compiled provider prompt includes note '+i);
+  });
+  assert.match(await page.locator('#reference-list .reference-element-item').last().innerText(),/8 attached \/ 8 saved photos/);
   await page.locator('.composer-element-tile').first().locator('.composer-reference-remove').click();
   await page.waitForFunction(()=>document.querySelectorAll('.composer-element-tile').length===1);
   assert.match(await page.locator('.composer-element-tile').first().innerText(),/@Nina FOK/);
+  // Delete Base, retain Character identity, then explicitly choose a new Base.
+  await page.locator('#reference-images').setInputFiles({name:'first-base.webp',mimeType:'image/webp',buffer:media});
+  await page.waitForFunction(()=>document.querySelector('#image-composer-references .composer-reference-tile')?.textContent.includes('BASE'));
+  const firstBase=await page.evaluate(()=>window.__elementInputs());
+  assert.equal(firstBase.roles[0].role,'base');
+  assert.ok(firstBase.roles.slice(1).every(ref=>ref.role==='identity'));
+  await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+  const withoutBase=await page.evaluate(()=>window.__elementInputs());
+  assert.equal(withoutBase.roles.length,8);
+  assert.ok(withoutBase.roles.every(ref=>ref.role==='identity'),'Removing Base must never turn a Character photo into Base');
+  assert.match(await page.locator('#composer-reference-intent-toggle').innerText(),/References only/i);
+  await page.locator('#reference-images').setInputFiles([
+    {name:'new-scene-a.webp',mimeType:'image/webp',buffer:media},
+    {name:'new-scene-b.webp',mimeType:'image/webp',buffer:media}
+  ]);
+  await page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===3);
+  const addedPhotos=await page.evaluate(()=>window.__elementInputs());
+  assert.equal(addedPhotos.roles[0].name,'new-scene-a.webp','The first dropped photo automatically becomes Base');
+  assert.equal(addedPhotos.roles[0].role,'base');
+  assert.deepEqual(addedPhotos.roles.slice(0,2).map(ref=>ref.name),['new-scene-a.webp','new-scene-b.webp']);
+  assert.ok(addedPhotos.roles.slice(2).every(ref=>ref.elementId===nina.id&&ref.role==='identity'),
+    'Additional photographs stay left of the unchanged Character group');
+  assert.equal(await page.locator('#image-composer-references .composer-reference-tile').last().getAttribute('class'),'composer-reference-tile composer-element-tile');
+  await page.locator('#image-composer-references .composer-reference-role').last().selectOption('base');
+  const replacedBase=await page.evaluate(()=>window.__elementInputs());
+  assert.equal(replacedBase.roles[0].role,'base');
+  assert.equal(replacedBase.roles[0].name,'new-scene-b.webp');
+  assert.equal(replacedBase.roles.filter(ref=>ref.role==='base').length,1);
+  assert.equal(replacedBase.roles.filter(ref=>ref.elementId===nina.id&&ref.role==='identity').length,8);
+  assert.deepEqual(replacedBase.roles.filter(ref=>ref.elementId===nina.id).map(ref=>ref.elementView),[0,1,2,3,4,5,6,7]);
+  await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+  await page.locator('#image-composer-references .composer-reference-tile:not(.composer-element-tile) .composer-reference-remove').first().click();
+  console.log('PASS Base replacement keeps all eight Character identities and exposes explicit Base selection');
   // A Scene Library card must close the modal only after the Element is fully
   // attached, leaving the original Image prompt and history/deck flow intact.
   const preservedDirection='A photographic portrait inside the same room';
@@ -280,6 +332,25 @@ try{
   await page.locator('#scene-leave-discard').click();
   assert.equal(await page.locator('#scene-library-dialog').isVisible(),false);
   assert.equal(savedPacks.length,3,'Dismissed drafts must not be saved');
+
+  // Configure the existing Video handlers directly in this mock-only fixture.
+  // Model-menu presentation is covered by the independent Video browser suite.
+  // The existing location banner is 6:1, outside Seedance's real input limits.
+  // Use a deterministic 512x640 WebP fixture for Video; keep validation enabled.
+  media=Buffer.from(await page.evaluate(()=>{
+    const canvas=document.createElement('canvas');canvas.width=512;canvas.height=640;
+    const context=canvas.getContext('2d');context.fillStyle='#777';context.fillRect(0,0,512,640);
+    return canvas.toDataURL('image/webp').split(',')[1];
+  }),'base64');
+  await page.evaluate(()=>window.__elementVideo());
+  await page.locator('#scene-grid [aria-label="Preview Nina FOK"]').click();
+  await page.locator('#scene-feature [data-scene-use]').click();
+  await page.waitForFunction(()=>!document.getElementById('scene-library-dialog').open);
+  const videoRequest=await page.evaluate(()=>window.__elementInputs());
+  assert.equal(videoRequest.inputs.referenceSourceIds.length,8,'Video receives every saved Character photo');
+  assert.deepEqual(videoRequest.roles.map(ref=>ref.elementView),[0,1,2,3,4,5,6,7]);
+  nina.refs.forEach((ref,i)=>assert.ok(videoRequest.roles[i].note.startsWith(ref.note)));
+  console.log('PASS eight-photo Character inputs and saved notes for Image and Video; Qwen blocks without truncation');
 
   assert.deepEqual(errors,[]);
   console.log('PASS Elements unsaved draft navigation, save/discard/keep and visible eight-image toast');

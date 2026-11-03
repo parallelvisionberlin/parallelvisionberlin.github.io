@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {elementCategoryFromName,normalizeElementProfile,analyzeElementProfile,
   elementAnalysisInstruction} from '../lab-worker/element-profiles.mjs';
-import {selectElementViews} from '../lab/scene-library.js';
+import {selectElementViews,elementAttachmentIndices,elementReferenceNote} from '../lab/scene-library.js';
 import {compileImagePrompt,normalizeReferenceLabel} from '../lab/reference-guidance.js';
 import {referenceRoleAdvisories} from '../lab/prompt-quality.js';
 
@@ -41,6 +41,33 @@ test('Elements choose prompt-relevant photographs without changing stored refere
  assert.deepEqual(selectElementViews({...item,profile:null},'',2),[0,1]);
  assert.deepEqual(selectElementViews(item,'',0),[]);
  assert.equal(JSON.stringify(item.refs),original);
+});
+
+test('Characters attach all eight original views and notes, with no silent model-limit truncation',()=>{
+ const refs=Array.from({length:8},(_,index)=>({id:'photo-'+index,name:'view-'+index+'.webp',
+   role:'identity',note:('Saved character note '+index+' ').padEnd(300,String(index))}));
+ const item={title:'Nina FOK',category:'characters',profile,refs};
+ const original=JSON.stringify(item);
+ const indices=elementAttachmentIndices(item,'window',9);
+ assert.deepEqual(indices,[0,1,2,3,4,5,6,7]);
+ assert.deepEqual(elementAttachmentIndices(item,'door',30),indices,'Video uses the complete saved order too');
+ assert.throws(()=>elementAttachmentIndices(item,'',3),/8 saved photos.*3 reference slots.*Nothing was attached/);
+ assert.throws(()=>elementAttachmentIndices(item,'',7),/8 saved photos.*7 reference slots/);
+ assert.throws(()=>elementAttachmentIndices({...item,refs:[{}]},'',10),/missing photographs/);
+ const labels=indices.map(index=>({...refs[index],note:elementReferenceNote(item,index),
+   elementId:ID,elementName:item.title,elementCategory:'characters',elementView:index,elementCount:8}));
+ labels.forEach((label,index)=>assert.equal(label.note,refs[index].note,'Full 300-character saved note survives'));
+ const base={role:'base',name:'scene.webp',note:'Keep the camera, pose, wardrobe and room.'};
+ const compiled=compileImagePrompt('Replace the person with Nina.',[base,...labels],
+   {type:'image',mode:'image',engine:'seedream',referenceMode:'base'});
+ assert.ok(compiled.length<=5000,'All eight full notes plus the Base fit the provider budget');
+ labels.forEach((label,index)=>{
+   assert.ok(compiled.includes('Reference '+(index+2)+' [Identity]'));
+   assert.ok(compiled.includes(label.note));
+ });
+ assert.equal(JSON.stringify(item),original,'The saved Character is unchanged');
+ assert.deepEqual(elementAttachmentIndices({...item,category:'locations'},'window',9),[1,0],
+   'Other Element categories retain their prompt-relevant selection');
 });
 
 test('one Element passes through both compact and full prompt maps with consistent identity metadata',()=>{
@@ -125,7 +152,7 @@ test('UI keeps Elements grouped and offers @ mentions without changing Photo Pac
  const script=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
  const library=readFileSync(new URL('../lab/scene-library.js',import.meta.url),'utf8');
  const markup=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
- assert.match(library,/selectElementViews\(item,context.prompt\|\|'',count\)/);
+ assert.match(library,/elementAttachmentIndices\(item,context.prompt\|\|'',capacity\)/);
  assert.match(library,/elementId:item.id/);
  assert.match(script,/composer-element-tile/);
  assert.match(script,/scene-element-suggestions/);

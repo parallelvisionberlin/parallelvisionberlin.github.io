@@ -141,7 +141,8 @@ export function compileImagePrompt(direction,labels=[],settings={}){
     roles.some(ref=>ref.role==='style'&&ref.name.startsWith('Dream Blur style - '));
   const curatedFisheyeStyles=settings?.moodId==='fisheye-2000'&&
     roles.some(ref=>ref.role==='style'&&ref.name.startsWith('Fisheye 2000 style - '));
-  const compact=Boolean(settings?.moodId&&
+  // Multi-photo Characters retain every saved note within the provider budget.
+  const compact=roles.filter(ref=>ref.elementCategory==='characters').length>=3||Boolean(settings?.moodId&&
     (hongKongReferenceCount(settings)||(settings.referenceMode!=='references'&&roles.some(ref=>ref.role==='base'))||curatedDreamBlurStyles||curatedFisheyeStyles));
   const original=compact?compileCompactUserImagePrompt(direction,labels):compileUserImagePrompt(direction,labels);
   let hkGuidance=hongKongReferenceCount(settings)?hongKongReferenceGuidance(labels.length,settings.engine==='seedreamlite'):'';
