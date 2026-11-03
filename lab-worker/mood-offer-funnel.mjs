@@ -1,6 +1,6 @@
 // Authenticated, minimal first-party funnel facts. The existing generation
 // finance and Stripe checkout ledgers remain authoritative for jobs and money.
-const allowed=new Set(['offer_viewed','offer_clicked']);
+const allowed=new Set(['offer_viewed','offer_clicked','repeat_clicked']);
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 export async function pruneMoodOfferEvents(env,{clock=()=>Date.now()}={}){
   return env.LAB_DB.prepare('DELETE FROM lab_mood_offer_funnel WHERE created_at<?')
