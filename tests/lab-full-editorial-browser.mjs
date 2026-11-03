@@ -120,9 +120,11 @@ try{
       footerBottom:r('#step-footer').bottom,footerTop:r('#step-footer').top,continue:r('#step-next').height,
       arrow:getComputedStyle(document.querySelector('#step-next'),'::after').content,overflow:document.documentElement.scrollWidth>innerWidth};
     });
+    await page.screenshot({path:'test-results/editorial/'+phoneWidth+'-casting-layout.png'});
+    console.log('PHONE_CASTING',phoneWidth,JSON.stringify(geometry));
     assert.equal(geometry.columns,2);assert.ok(geometry.secondLeft>geometry.firstLeft);
     assert.ok(geometry.thirdTop>=geometry.firstBottom,'Portraits wrap into rows');
-    assert.ok(geometry.top<320,'Real casting appears near the top');
+    assert.ok(geometry.top<320,'Real casting appears near the top: '+JSON.stringify(geometry));
     assert.ok(Math.abs(geometry.footerBottom-844)<2,'Continue stays at viewport bottom');
     assert.ok(geometry.continue>=44);assert.equal(geometry.arrow,'none');assert.equal(geometry.overflow,false);
    }
