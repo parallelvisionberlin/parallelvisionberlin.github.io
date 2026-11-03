@@ -1,4 +1,4 @@
-import {SERVICES,safeUrl} from './shared.mjs';
+import {SERVICES,safeUrl,activePresave} from './shared.mjs?v=20261103-workspace1';
 const node=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e;};
 function artwork(value){try{return safeUrl(value||'');}catch{return '';}}
 function serviceIcon(service){
@@ -15,7 +15,7 @@ function serviceIcon(service){
   }
   return svg;
 }
-export function renderRelease(root,release,{onClick=()=>{},preview=false}={}) {
+export function renderRelease(root,release,{onClick=()=>{},onPresave=()=>{},preview=false}={}) {
   root.replaceChildren();
   const mode=['artwork','blur','black'].includes(release.background)?release.background:'blur';
   const frame=node('article','release-frame background-'+mode),url=artwork(release.artworkUrl);
@@ -36,15 +36,18 @@ export function renderRelease(root,release,{onClick=()=>{},preview=false}={}) {
   if(release.audioUrl){const audio=node('audio','release-audio');audio.controls=true;audio.preload='none';audio.src=release.audioUrl;audio.setAttribute('aria-label','Preview '+(release.title||'this release'));copy.append(audio);}
   details.append(copy);
   const dock=node('section','listening-dock');dock.setAttribute('aria-label','Listen to '+(release.title||'this release'));dock.append(node('p','dock-label','Listen to the release.'));
+  const presave=activePresave(release);
+  if(presave)dock.querySelector('p').textContent='Save it for release day.';
   const list=node('div','platform-list');list.setAttribute('aria-label','Music platforms');
-  for(const link of release.links||[]){const service=SERVICES.find(s=>s.id===link.service);if(!service)continue;
+  if(presave){const button=node(preview?'button':'a','platform-button platform-presave');if(preview)button.type='button';else{button.href=release.presave.url;button.target='_blank';button.rel='noopener noreferrer';button.addEventListener('click',onPresave);}button.setAttribute('aria-label','Pre-save '+(release.title||'this release')+' with the campaign provider');button.append(node('span','platform-name','Save it for release day.'),node('span','platform-action','Pre-save'));list.append(button);}
+  for(const link of presave&&release.presave.mode==='before-release'?[]:release.links||[]){const service=SERVICES.find(s=>s.id===link.service);if(!service)continue;
     const button=node(preview?'button':'a','platform-button platform-'+service.id);
     if(preview){button.type='button';button.setAttribute('aria-label','Preview button for '+service.name);}
     else{button.href=link.url;button.rel='noopener noreferrer';button.target='_blank';button.setAttribute('aria-label',service.action+' on '+service.name);button.addEventListener('click',()=>onClick(link.service));}
     const name=node('span','platform-identity');name.append(serviceIcon(service.id),node('span','platform-name',service.name));
     button.append(name,node('span','platform-action',service.action));list.append(button);
   }
-  if(!list.children.length)list.append(node('p','release-description','Add your music platform links.'));
+  if(!list.children.length)list.append(node('p','release-description',preview?'Add your music platform links.':'Listening links coming soon.'));
   dock.append(list);
   const socials=node('nav','release-socials');socials.setAttribute('aria-label','Follow Parallel Vision');
   const instagram=node(preview?'button':'a','instagram-link');instagram.setAttribute('aria-label','Parallel Vision on Instagram');

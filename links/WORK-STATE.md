@@ -1,3 +1,37 @@
+# Current Smart Links work: 3 November 2026
+
+- User requested integration into the existing `/links/` workspace, retaining its current white design.
+- Baseline: `1d1cf59f8fd289642a95dedcb714971173d7547f`; changes on `codex/smart-links-presave-workspace`.
+- Standalone Sites prototype is separate and is not the production tracker or data source.
+- Existing geography/device/browser/OS/ad-tag/preview/click-delay reports were already present in Performance.
+- Added direct Performance shortcut and per-release report actions, without changing public destinations.
+- Added UTC custom dates and traffic-source filter across totals, timelines and all detailed reports.
+- Added release/campaign comparison tables and report JSON export.
+- Added private, account-scoped experiment log with update revisions, frozen report snapshots and export.
+- Added pre-save provider URL/display controls and matching shared public/creator renderer.
+- Modes: Off, Before release (switch at 00:00 UTC), Always alongside listening links.
+- Existing Spotify, SoundCloud and YouTube URLs, label Pixel and MusicLinkClick are preserved.
+- Pre-save clicks are separate provider redirects; they do not count as confirmed saves or MusicLinkClick.
+- No native Spotify OAuth, email subscriber capture or save scheduler is implemented. A working provider URL is required.
+- Listening links must be added before release day. Without them the post-release page says links are coming soon.
+- New matched visit/first-listening-click aggregates provide forward-only no-click measurement.
+- In-memory page UUIDs are not persistent visitor IDs. Both network arrival orders deduplicate correctly.
+- Raw aggregate visits/clicks retain their original meaning. They are not unique people or confirmed streams.
+- Existing historical location and outcome gaps are not backfilled. Age is explicitly unavailable.
+- Additive migration: `lab-worker/migrations/0058-music-workspace.sql`; included before Worker deploy.
+- New modules: `lab-worker/music-experiments.mjs`, `links/workspace-tools.mjs`.
+- Core files: `lab-worker/music-links.mjs`, `music-links-shared.mjs`, `music-analytics.mjs`; `links/` dashboard/renderer; `listen/`.
+- Privacy and README describe provider handoff, page-load matching and private notes.
+- Worker readiness marker: `music-links-20261103-v8`.
+- Validation: 153 music/session/transport/Worker tests passed; syntax and whitespace checks passed.
+- Browser fixture QA: phone 390px (375px usable with scrollbar), desktop 1348px, no horizontal body overflow.
+- Fixture exercised release filtering, custom dates/source, experiment creation and pre-save creator preview.
+- Fixture uses simulated account/API and does not ship. It is not production authenticated verification.
+- Publication for this implementation is not yet verified; inspect the feature PR and deployment workflows.
+- Next: publish via the repository workflow, verify v8 readiness and exact deployed static assets.
+
+---
+
 # Parallel Vision Smart Links: current state
 Updated: 2026-10-30
 Repository: parallelvisionberlin/parallelvisionberlin.github.io
