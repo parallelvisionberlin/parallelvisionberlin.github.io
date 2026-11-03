@@ -58,8 +58,8 @@ try{
   await page.locator('#editorial-start').click();
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Fresh casting opens without a selected model');
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'No inactive composition cards for an empty cast');
-   assert.equal(await page.locator('#editorial-cast-selection').isVisible(),true,'Selected cast strip remains in the layout');
-   assert.equal(await page.locator('#editorial-cast-empty').isVisible(),true,'Empty cast has guidance');
+   assert.equal(await page.locator('#editorial-cast-selection').isVisible(),width>600,'Only desktop reserves an empty selected-cast strip');
+   assert.equal(await page.locator('#editorial-cast-empty').isVisible(),width>600,'Phone avoids the oversized empty-state box');
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true);
    assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true);
    assert.equal(await page.locator('#step-next').isDisabled(),true);
@@ -107,8 +107,34 @@ try{
    await page.locator('#editorial-start').click();
   }else{
    assert.equal(await page.locator('.progress-top').isVisible(),false,'Mobile removes duplicate top controls');
-   assert.equal(await page.locator('.editorial-flow-rail').isVisible(),false,'Mobile removes duplicate step rail');
-   assert.equal(await page.locator('#panel-model .stage-index').isVisible(),true,'Step label remains inside the photograph');
+   assert.equal(await page.locator('.editorial-flow-rail').isVisible(),true,'Compact phone progress remains visible');
+   assert.equal(await page.locator('#panel-model .stage-copy').isVisible(),false,'No duplicate portrait hero on phone');
+   assert.equal(await page.locator('#model-drop').isVisible(),false,'Upload does not occupy a portrait slot');
+   for(const phoneWidth of [320,390,600]){
+    await page.setViewportSize({width:phoneWidth,height:844});
+    const geometry=await page.evaluate(()=>{
+     const r=s=>document.querySelector(s).getBoundingClientRect();
+     const cards=[...document.querySelectorAll('#casting-reference-gallery .atelier-reference')].map(e=>e.getBoundingClientRect());
+     return {columns:getComputedStyle(document.querySelector('#casting-reference-gallery')).gridTemplateColumns.split(' ').length,
+      top:cards[0].top,firstLeft:cards[0].left,secondLeft:cards[1].left,thirdTop:cards[2].top,firstBottom:cards[0].bottom,
+      footerBottom:r('#step-footer').bottom,footerTop:r('#step-footer').top,continue:r('#step-next').height,
+      arrow:getComputedStyle(document.querySelector('#step-next'),'::after').content,overflow:document.documentElement.scrollWidth>innerWidth};
+    });
+    assert.equal(geometry.columns,2);assert.ok(geometry.secondLeft>geometry.firstLeft);
+    assert.ok(geometry.thirdTop>=geometry.firstBottom,'Portraits wrap into rows');
+    assert.ok(geometry.top<320,'Real casting appears near the top');
+    assert.ok(Math.abs(geometry.footerBottom-844)<2,'Continue stays at viewport bottom');
+    assert.ok(geometry.continue>=44);assert.equal(geometry.arrow,'none');assert.equal(geometry.overflow,false);
+   }
+   await page.setViewportSize({width:390,height:900});
+   await page.locator('#editorial-mobile-search').click();
+   await page.locator('#editorial-cast-search').fill('Silver');
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),1);
+   await page.locator('#editorial-mobile-search').click();
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),5);
+   const uploadsBeforePicker=uploadCount;const picker=page.waitForEvent('filechooser');await page.locator('#editorial-mobile-upload').click();await picker;
+   assert.equal(uploadCount,uploadsBeforePicker,'Opening the file chooser sends no upload or paid request');
+   await page.screenshot({path:'test-results/editorial/390-mobile-casting.png'});
   }
   await page.locator(width>800?'#editorial-top-back':'#step-back').click();
   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Back returns from Identity to hero');
@@ -357,7 +383,7 @@ try{
   await page.goto('http://127.0.0.1:4179/lab/index.html',{waitUntil:'domcontentloaded'});
   const startUploads=uploadCount,startJobs=jobCount,startQuotes=quoteCount;
   const mockPhotos=Array.from({length:7},(_,i)=>({name:'character-'+i+'.jpg',mimeType:'image/jpeg',buffer:image}));
-  const picker=page.waitForEvent('filechooser');
+  const uploadsBeforePicker=uploadCount;const picker=page.waitForEvent('filechooser');
   await page.locator('.lab-character-home__prompt').click();
   await (await picker).setFiles(mockPhotos.slice(0,3));
   assert.equal(await page.locator('#home-model-count').textContent(),'3/8','Clicking the card selects multiple photos without redirect');
