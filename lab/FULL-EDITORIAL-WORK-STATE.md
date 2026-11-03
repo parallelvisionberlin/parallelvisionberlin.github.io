@@ -8,6 +8,7 @@
 - Desktop/tablet above 600 px and native bridge layout retain their existing presentation. Entry hero, provider prompts, quotes, pricing and generation logic unchanged.
 - Sources: `full-editorial-mobile-casting.css`, `full-editorial.html`, presentation helpers in `full-editorial.js`, existing `tests/lab-full-editorial-browser.mjs`.
 - Browser suite now checks grid/overflow/footer/arrow geometry at 320/390/600, search, file chooser and normal selection, plus retained desktop flow and mocked generation safeguards.
+- First remote run exposed legacy `display:flex!important` forcing the new toolbar controls into separate rows on phone. The scoped grid now overrides that legacy rule, without relaxing the geometry assertion; per-width screenshots and geometry are captured before assertions.
 - Verification so far: 23/23 existing approved Image, Full Editorial and handoff source tests; JS syntax and diff whitespace passed.
 - Local browser execution unavailable: Playwright Chromium download was blocked/truncated in this environment. Remote browser CI and screenshots remain required before visual verification.
 - Remote initial Full Editorial run stalled more than six minutes in a full-repository checkout. Workflow now checks out only the source, tests, fonts and original photographs used by this suite; all test commands remain unchanged, and both casting CSS paths trigger it.
