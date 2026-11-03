@@ -16,6 +16,7 @@ import {linkedStudioIdentity,migrationRoute} from './clerk-migration.mjs';
 import {prepareVideoExtension,quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
 import {klingHfParameters,quoteKlingHf,submitKlingHf} from './kling-hf.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
+import {recordMoodOfferEvent,pruneMoodOfferEvents} from './mood-offer-funnel.mjs';
 import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
@@ -1414,6 +1415,7 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
     if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');
+    if(path==='/api/customer/mood-offer-event')return recordMoodOfferEvent(request,env,owner);
     if(path==='/api/customer/image-price'&&method==='POST'){
       // A read-only, server-calculated quote. The client cannot supply a price.
       // Live provider quotes for Seedream and Higgsfield use their existing,
@@ -2244,6 +2246,7 @@ export default {
       ctx.waitUntil(Promise.all([
         pruneMusicEvents(env,{clock:()=>clock}),
         pruneLabTraffic(env,{clock:()=>clock}),
+        pruneMoodOfferEvents(env,{clock:()=>clock}),
         pruneAgencyData(env,{clock:()=>clock}),
         pruneGenerationReviewAudit(env,{clock:()=>clock})
       ]));
