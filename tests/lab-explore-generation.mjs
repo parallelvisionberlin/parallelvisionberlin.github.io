@@ -95,7 +95,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    assert.ok(layout.generate.bottom<=layout.dialog.bottom,id+': Generate remains visible');
    if(scenario==='catalogue-phone'){
     const artwork=await page.locator('#mc-look-preview').evaluate(el=>{const image=el.getBoundingClientRect(),media=el.parentElement.getBoundingClientRect();return {gap:image.top-media.top,missingHeight:media.height-image.height};});
-    assert.ok(Math.abs(artwork.gap)<1&&Math.abs(artwork.missingHeight)<1,id+': photo fills behind logo with no reserved black header');
+    assert.ok(Math.abs(artwork.gap)<1&&artwork.missingHeight<1,id+': photo fills behind logo with no reserved black header');
    }
    assert.ok(layout.drop.height>=150,id+': large separate upload box');
    assert.ok(Math.abs((layout.plus.left+layout.plus.width/2)-(layout.drop.left+layout.drop.width/2))<2,id+': centered plus');
