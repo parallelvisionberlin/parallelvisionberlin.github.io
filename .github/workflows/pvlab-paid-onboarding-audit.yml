@@ -1,0 +1,23 @@
+name: PV LAB paid onboarding read-only audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, codex/paid-onboarding-audit-20261104]
+    paths:
+      - '.github/scripts/verify-lab-image-trial-live.mjs'
+      - '.github/workflows/pvlab-paid-onboarding-audit.yml'
+permissions:
+  contents: read
+jobs:
+  policy-and-wallets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Read deployed policy and database invariants without mutations
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node .github/scripts/verify-lab-image-trial-live.mjs

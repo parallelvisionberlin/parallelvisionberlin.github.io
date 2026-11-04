@@ -1,9 +1,40 @@
-## Paid onboarding candidate / 2026-11-03
-- Owner decision: no more automatically granted signup credits. Existing customer balances are retained and spendable, including 40/200-credit legacy grants, until exhausted. Paid credits, vouchers and refunds remain intact.
-- Worker flags disable the 40-credit trial and 200-credit welcome gift, while the database welcome-claim trigger denies stale free grants; migration 0060 sets the policy and preserves existing ledgers.
-- Existing EUR3 one-time purchase grants exactly 300 credits. Mood Atlas example is 12 1K images at 25 credits each; NEVER promise 40 photos.
-- Mood Atlas permits local photo selection before paywall; after explicit Generate with no credits or guest, shows inline paid onboarding without a provider job and retains the chosen local photo. Original post-result paywall and Stripe checkout continue unchanged.
-- Source changes need tests, reviewed PR, relevant checks, merge and Cloudflare Pages/Worker publication before production claims. No real payment, provider job or wallet mutation used for QA.
+## Paid onboarding verification / 2026-11-04
+
+- Owner policy: no automatic signup credits. Existing 40/200-credit grants, purchases,
+  vouchers and refunds remain spendable. €3 buys exactly 300 credits, one time.
+- Production source inspected: main `08be9b878547b3a034a012207c4e0416a013e1af`.
+- Pages: Cloudflare app check `126529624456` succeeded, deployment
+  `f8f55e08-dce1-4e41-ac71-1c1dd9d968c2`, project `pvlab-studio`.
+- Official release verifier returned LIVE_VERIFIED for lab.js v20261101-wardrobe1,
+  SHA-256 `a94902fb40ecbf9b8de2784514a6bdcf86332057e9c0860d63fe67779ee3871e`.
+- Live explore-moods.js/.css, app-mood-generation.js and account.js exactly match main.
+- Worker: health currently reports `pv-lab-2026-11-03-paid-onboarding`.
+  Latest Worker release run `41731872740`, source PR #822 merge `3fdf286d`, succeeded.
+  Version ID `0cc4f22b-0968-4b24-8525-ebdf2e7bf0b7` deployed 2026-11-03 22:47 UTC.
+- That release applied migration 0060 remotely and passed all read-only policy,
+  no-negative-balance, wallet/ledger reconciliation, grant uniqueness and refund checks.
+- Fresh read-only audit now also checks no welcome claims/credits after migration 0060,
+  checkout/public-generation switches and unique payment/job receipts. Run pending.
+- Local photo selection does not require an upload: zero-balance preparation stops
+  before /api/uploads, /api/quotes or /api/jobs. Generate alone opens the inline offer.
+  The selected file stays local. The focused pack opens separately at
+  account.html?pack=topup3#balance. Twelve 1K images is explicitly a 25-credit example.
+- 50 focused backend/billing tests pass locally, including legacy wallet spending,
+  unpaid job rejection, signed webhook replay, malformed amount/currency/identity,
+  exact €3/300 fulfillment and one-time purchase behavior.
+- Existing Chromium + WebKit account checks passed at current main in run
+  `41816723595`; Mood generation checks passed in run `41816723639`.
+- Added explicit Mood Atlas desktop/phone zero-balance and synthetic purchase-return
+  regression coverage. CI pending. Local browser binary download is unavailable.
+- Stripe PV Lab read-only account query succeeded. No topup3 Checkout session exists
+  in the returned history (20 sessions total); latest session is 2026-11-01.
+  This is not proof that a new live €3 customer Checkout works.
+- Live browser session is the owner, whose account correctly hides customer packs.
+  No customer login was invented, impersonated or changed.
+- No application defect confirmed; no production app code, payment, provider job,
+  customer balance or existing account changed during this audit.
+- Remaining: fresh audit and added CI; actual hosted €3 Checkout needs an authenticated
+  customer session. Stop before payment. Keep this distinct from synthetic coverage.
 
 # PV LAB introductory image balance
 
