@@ -23,7 +23,7 @@ const clerkMock=`export class Clerk {
 }`;
 async function setup(width,customer=true,overrides={}){
   const context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage();
-  const errors=[],writes=[];let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',initialized=!overrides.newCustomer;
+  const errors=[],writes=[];let fundingErrors=0;let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',initialized=!overrides.newCustomer;
   page.on('pageerror',e=>errors.push(e.message));
   const session={customer,ownerId:'user_Test',balanceCredits:1234,billingReady:true,generationReady:true,products,subscription:{plan_id:null,status:'none'},config:{enabled:true,configured:true,concurrency:{image:4,video:1},videoEngines:['wan']},...overrides};
   await page.route('https://**/*',async route=>{
@@ -44,7 +44,7 @@ async function setup(width,customer=true,overrides={}){
     if(url.pathname==='/api/migration/new'&&request.method()==='POST'){
       initialized=true;return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({linked:true,kind:'customer'})});
     }
-    if(['/api/quotes','/api/customer/image-price'].includes(url.pathname)&&overrides.previewFundingError)return route.fulfill({status:402,contentType:'application/json',body:JSON.stringify({error:'Insufficient credits.'})});
+    if(['/api/quotes','/api/customer/image-price'].includes(url.pathname)&&overrides.previewFundingError){fundingErrors++;return route.fulfill({status:402,contentType:'application/json',body:JSON.stringify({error:'Insufficient credits.'})});}
     if(url.pathname==='/api/customer/wallet'){
       if(heldWallet)await heldWallet;
       return send({...session,activity:[{delta_credits:-42,kind:'generation',created_at:1720000000000},{delta_credits:1000,kind:'purchase',created_at:1719000000000}]});
@@ -59,7 +59,7 @@ async function setup(width,customer=true,overrides={}){
     if(url.pathname==='/api/customer/referrals')return send({rewardsAvailable:false});
     return send({jobs:[],activeJobs:[],next:null,packs:[],characters:[],moods:[],boards:[],folders:[],models:[],configured:false});
   });
-  return {context,page,errors,writes,session,setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
+  return {context,page,errors,writes,session,get fundingErrors(){return fundingErrors;},setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
 }
 async function fits(page,label){
   const metrics=await page.evaluate(()=>({
@@ -254,7 +254,7 @@ try{
       await page.locator('#app').waitFor({state:'visible'});
       await page.locator('[data-welcome-mood="dream-blur"]').click();
       await page.waitForFunction(()=>document.getElementById('image-composer-generate').dataset.credits==='Retry credit check',{},{timeout:15000});
-      assert.ok(writes.some(x=>['/api/quotes','/api/customer/image-price'].includes(x.path)),'A background quote received the simulated funding error');
+      assert.ok(rig.fundingErrors>0,'A background quote received the simulated funding error');
       assert.equal(await page.locator('#lab-pricing-overlay').evaluate(el=>el.open),false,'A failed background quote never interrupts Mood exploration');
       const draft=await page.locator('#image-composer-prompt').inputValue();
       await page.locator('#image-composer-generate').click();
