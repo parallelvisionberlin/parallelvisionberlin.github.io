@@ -4,7 +4,11 @@
 - Explicitly supersedes the earlier solid-header/54px image inset: artwork begins at the card's top edge and fills the whole media area behind the logo/X.
 - Top fade only 20% black at the edge to transparent at 50px. No opaque top band, no reserved image gap.
 - Preserve card dimensions, original images, overlay title, upload target and Generate. Mobile editor only.
-- Approved Image contract passed 5/5 before editing. Publication pending.
+- Approved Image contract passed 5/5; PR #829 head 7678b487ef58b348b4205da25b1cb9b11bd86fda passed Explore Generate (job 126515770505), catalogue coverage of all 17 Moods with no header gap, unit and static checks.
+- Merged 4ac9c5ec6eb882c7c07dfcd02ae62315d78b1489. Cloudflare Pages deployment 1b0a5a06-5ced-439b-a6e4-1ddec9af33ca succeeded.
+- Actual pvlab.studio/moods rendered in a 390x844 browser iframe: Dreamcore photo top gap 0px; image/media heights both 273.4375px; computed top gradient rgba(0,0,0,.2) to transparent at 50px. Screenshot inspected: photo behind logo, no solid header bar.
+- Production CSS URL version 20261104-overlay-a3 verified in DOM. Direct byte verification remains unavailable in executor; this is hosting and rendered production evidence.
+- No real generation, payment, account mutation or tracking event submitted. Physical iPhone Safari is not independently verified. Release complete.
 
 ## Mobile Mood fade and framing follow-up / 2026-11-04
 
