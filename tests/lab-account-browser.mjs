@@ -281,6 +281,7 @@ try{
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
       assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),7,
         'All seven homepage products appear in Studio without navigation');
+      await page.locator('#lab-pricing-overlay #lab-tab-onetime[aria-selected="true"]').waitFor();
       assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-onetime').getAttribute('aria-selected'),'true',
         'Empty wallet starts on one-time credits');
       assert.equal(page.url(),studioUrl,'Opening credits does not navigate through the homepage');
