@@ -131,14 +131,32 @@ try{
           return {height:card.height,top:card.top,titleGap:card.top-title.bottom,
             margin:parseFloat(getComputedStyle(shelf).marginTop)};
         });
-        assert.ok(Math.abs(expandedCards.height-idleCards.height)<1,'Expanding prompt never resizes inspiration photography');
-        assert.ok(Math.abs(expandedCards.margin-idleCards.margin)<1,
-          'Expanded prompt must keep the same card spacing as the idle reference');
-        assert.ok(Math.abs(expandedCards.titleGap-idleCards.titleGap)<2,
-          'Expanded prompt must not move photographs toward the title: '+JSON.stringify({idleCards,expandedCards}));
+        const targetHeight=Math.min(282,Math.max(214,width*.56+30));
+        assert.ok(Math.abs(expandedCards.height-targetHeight)<2,
+          'Public expanded Mood cards match the signed-in portrait-height reference: '+JSON.stringify(expandedCards));
+        assert.ok(expandedCards.height>=idleCards.height,
+          'Selecting a Mood must not shrink the original photograph');
+        assert.ok(expandedCards.titleGap>=18,
+          'The full-size image must never touch the heading: '+JSON.stringify({idleCards,expandedCards}));
+        assert.ok(expandedCards.margin>=7&&expandedCards.margin<=10,
+          'Expanded guest cards have the deliberate 8px clearance above the carousel');
       }
       assert.ok(long.prompt.height>=100&&long.prompt.height<=133,'Long public prompt stays bounded');
-      assert.ok(long.generate.bottom<=height&&long.doc<=width+1,'Long prompt does not clip Generate or widen the page');
+      assert.ok(long.doc<=width+1,'Long prompt must not widen the page');
+      const flow=await page.evaluate(()=>{
+        const deck=document.getElementById('pv-guest-composer');
+        const card=document.querySelector('#pv-guest-cards .pv-guest-card');
+        return {position:getComputedStyle(deck).position,cardBottom:card.getBoundingClientRect().bottom,
+          composerTop:deck.getBoundingClientRect().top,overflow:getComputedStyle(document.documentElement).overflowY};
+      });
+      assert.equal(flow.position,'relative','Expanded public prompt follows the cards rather than covering them');
+      assert.ok(flow.composerTop>=flow.cardBottom+3,
+        'Image and composer are separate in normal flow: '+JSON.stringify(flow));
+      assert.notEqual(flow.overflow,'hidden','Long Mood editor permits page scrolling');
+      await page.locator('#pv-guest-generate').scrollIntoViewIfNeeded();
+      const reached=await metrics();
+      assert.ok(reached.generate.bottom<=height+2&&reached.generate.y>=0,
+        'Generate must be reachable by natural scroll, without reducing the photographs');
       await field.press('Tab');
       assert.equal((await metrics()).prompt.font,16,'Blur preserves safe text size');
       await field.fill('');await field.press('Tab');
@@ -244,27 +262,26 @@ try{
       'On phones the selected Mood displays its multi-line prompt without keyboard focus');
     assert.ok(await page.locator('#pv-guest-prompt').evaluate(el=>el.getBoundingClientRect().height)>=99,
       'The loaded prompt should be readable on mobile');
-    // The current shorter entrance can already fit the expanded composer.
-    // Require the actual outcome, whether scrollIntoView needs to scroll or not.
-    await page.waitForFunction(()=>{
-      const composer=document.getElementById('pv-guest-composer').getBoundingClientRect();
-      const header=document.getElementById('studio-header').getBoundingClientRect();
-      return composer.top>=header.bottom-2&&composer.bottom<=innerHeight+2;
-    },null,{timeout:4000});
+    // A selected long Mood now keeps both full-height photographs visible.
+    // Users scroll to finish reading the editor; no auto-jump or keyboard.
+    await page.waitForFunction(()=>getComputedStyle(document.getElementById('pv-guest-composer')).position==='relative');
     await page.waitForFunction(()=>document.getElementById('studio-header').classList.contains('pv-mobile-entry-condensed'),null,{timeout:3000});
     const state=await page.evaluate(()=>{
       const composer=document.getElementById('pv-guest-composer').getBoundingClientRect();
+      const card=document.querySelector('#pv-guest-cards .pv-guest-card').getBoundingClientRect();
       const header=document.getElementById('studio-header').getBoundingClientRect();
       const generate=document.getElementById('pv-guest-generate').getBoundingClientRect();
-      return {scrollY,composerTop:composer.top,generateBottom:generate.bottom,headerHeight:header.height,
-        viewportHeight:innerHeight,documentWidth:document.documentElement.scrollWidth,
+      return {scrollY,composerTop:composer.top,cardBottom:card.bottom,generateBottom:generate.bottom,
+        headerHeight:header.height,viewportHeight:innerHeight,documentWidth:document.documentElement.scrollWidth,
         focusedId:document.activeElement?.id};
     });
-    assert.equal(state.scrollY,0,'Selecting an Inspiration card must not move the document behind the fixed dock');
-    assert.ok(state.composerTop>=state.headerHeight-2&&state.generateBottom<=state.viewportHeight+2,
-      'Selection brings the prompt into view below the compact header: '+JSON.stringify(state));
-    assert.ok(state.generateBottom<=state.viewportHeight+2,
-      'Generate must also be visible after selecting a Mood: '+JSON.stringify(state));
+    assert.equal(state.scrollY,0,'Selecting a Mood must not auto-scroll away from the original cards');
+    assert.ok(state.composerTop>=state.cardBottom+3,
+      'Expanded editor follows the photograph rather than overlaying it: '+JSON.stringify(state));
+    await page.locator('#pv-guest-generate').scrollIntoViewIfNeeded();
+    const generateAfterScroll=await page.locator('#pv-guest-generate').boundingBox();
+    assert.ok(generateAfterScroll.y>=state.headerHeight-2&&generateAfterScroll.y+generateAfterScroll.height<=state.viewportHeight+2,
+      'Generate is reachable by scrolling after a long Mood prompt');
     assert.ok(state.headerHeight<=80&&state.headerHeight>=76,
       'The compact mobile header retains its existing tool navigation: '+JSON.stringify(state));
     assert.ok(state.documentWidth<=390+1,'Mobile Image entry must not overflow horizontally');
