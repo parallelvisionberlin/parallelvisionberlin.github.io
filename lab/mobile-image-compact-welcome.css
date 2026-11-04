@@ -271,38 +271,12 @@
   }
 }
 
-/* 2026-11-03 | Image welcome: reclaim space reserved by visually hidden copy.
-   Photographs retain their approved width, height, crop and scroll behavior.
-   Only the carousel's vertical position changes, not the composer itself.
-   A long prompt reveals more room above the existing fixed composer. */
-@media (max-width:680px) and (min-height:690px){
-  html:not(.pv-native-lab) #app.image-studio-active:not([hidden])
-    #lab-welcome-start:not([hidden]) .lab-welcome-carousel{
-    margin-top:-30px!important;
-    transition:margin-top .18s ease-out;
-  }
-  html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#image-composer.pv-deck-expanded)
-    #lab-welcome-start:not([hidden]) .lab-welcome-carousel{
-    /* Do not pull the cards over "Start with a feeling" when a Mood fills the prompt. */
-    margin-top:-30px!important;
-  }
-  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:not([hidden])
-    .pv-guest-carousel{
-    margin-top:-22px!important;
-    transition:margin-top .18s ease-out;
-  }
-  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:not([hidden]):has(#pv-guest-composer.pv-deck-expanded)
-    .pv-guest-carousel{
-    margin-top:-22px!important;
-  }
-}
-@media (max-width:680px) and (min-height:690px) and (prefers-reduced-motion:reduce){
-  html:not(.pv-native-lab) #app.image-studio-active #lab-welcome-start .lab-welcome-carousel,
-  html:not(.pv-native-lab) #gate.pv-guest-image .pv-guest-carousel{
-    transition:none!important;
-  }
-}
-
+/* 2026-11-04 | Restore approved Image 2 spacing.
+   Revert only the 3 November negative carousel offsets. The original phone
+   rules above remain: 13px signed-in and the Inspiration stylesheet's 23px
+   signed-out margin. Neither state changes position when a Mood expands the
+   prompt. Keep original card dimensions, real prompt expansion, scroll access
+   and the later mobile settings/Retouch improvements unchanged. */
 
 /* iPhone Image | Secondary options retain their existing disclosure behavior.
    Retouch has its own Studio route; it does not need a duplicate button here.
