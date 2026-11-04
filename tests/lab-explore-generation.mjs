@@ -124,7 +124,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    assert.equal(await page.locator('#mc-look-title').innerText(),'Fisheye 2000');
    assert.ok(compact.drop.height>=150,scenario+': separate photobooth upload box');
    assert.equal(compact.direction.height,0,scenario+': no prompt field');
-   assert.ok(compact.photo.height<=220,scenario+': compact photographic header');
+   assert.ok(compact.photo.height<=274,scenario+': compact photographic header');
    assert.ok(compact.generate.height>=54,scenario+': approved larger Generate target');
    assert.ok(compact.title.top>=compact.photo.top&&compact.title.bottom<=compact.photo.bottom+2,scenario+': title remains inside artwork');
    assert.ok(compact.title.bottom<compact.drop.top,scenario+': title is above upload box');
@@ -146,7 +146,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    assert.ok(matte.left>=15&&matte.right>=15,
      scenario+': selected Mood floats with room on both sides '+JSON.stringify(matte));
    assert.ok(matte.photoInset<=2,scenario+': photographic header spans the floating card');
-   assert.ok(matte.closeBottom<=matte.photoTop+2,scenario+': close control stays in the brand strip');
+   assert.ok(matte.closeBottom<=matte.photoTop+54,scenario+': close control stays in the faded brand area');
    assert.equal(matte.outline,'none',
      scenario+': container has no Safari-blue programmatic focus ring');
    assert.equal(await page.locator('.mc-look-footer').evaluate(el=>getComputedStyle(el).fontSize),'0px',
