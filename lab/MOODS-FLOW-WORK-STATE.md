@@ -7,8 +7,14 @@
 - Comfortable upload target retained (150–180px); Generate 60px / 16px type, 54px on shorter screens.
 - Decorative mobile Browse/Generate arrows removed to match approved mockup.
 - No generation, billing, account, desktop, or result-state behavior changed.
-- Approved Image contract passed 5/5 before edits. Explore regression updated for approved dimensions.
-- Publication and browser checks pending; no live behavior claimed yet.
+- Approved Image contract passed 5/5; Mood handoff/reference tests 11/11. Exact-head Explore Generate job 126468328639 passed (all scenarios, 17-Mood catalogue, 320/390px and desktop).
+- Existing Explore test fixtures now stub the already-shipped offer diagnostic and public currency endpoints; no live requests or billing changes.
+- PR #826 merged as 260438d06c6b134e3831dc6ad032df67bf932eb7; Cloudflare Pages success, deployment 9b84a90b-c095-4bbe-83d2-dddd780797d0.
+- Production pvlab.studio/moods loads explore-moods-photobooth.css?v=20261104-mobile-framing1; browser CSSOM confirms new mobile banner, button and crop rules. Live Fisheye editor opens.
+- Mobile 390x844 local browser screenshots inspected for Fisheye, Berlin Rave and Polaroid: visible faces, overlay titles, large upload area and Generate. CI also verifies 320px fits without overflow/scroll.
+- Direct HTTP byte comparison unavailable (HTTP 403 in executor); production browser stylesheet evidence is separate from exact-byte verification.
+- Existing unrelated broad CI failures include Video canvas dimensions, gallery fixture width access, missing readFileSync and stale UI assertions. No gates weakened.
+- No real payment, provider generation, customer mutation, or new tracking event submitted. Release complete; no further implementation action pending.
 
 ## Commercial funnel instrumenting / 2026-11-03 (draft PR)
 
