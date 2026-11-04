@@ -140,13 +140,40 @@ function wClose(){
 }
 function wMessage(title,copy,kind='notice'){
   const box=document.createElement('div');box.className=kind==='empty'?'wardrobe-empty wardrobe-empty-hero':'wardrobe-empty';
+  wItems.classList.toggle('is-empty',kind==='empty');
   if(kind==='empty'){
-    const eyebrow=document.createElement('span');eyebrow.className='wardrobe-empty-eyebrow';eyebrow.textContent='YOUR PRIVATE ARCHIVE / 000 OUTFITS';
+    // Real archive is empty. Show editorial reference photography, never fake saved outfits.
+    const story=document.createElement('div');story.className='wardrobe-empty-story';
+    const eyebrow=document.createElement('span');eyebrow.className='wardrobe-empty-eyebrow';eyebrow.textContent='YOUR WARDROBE / 000 SAVED PIECES';
     const heading=document.createElement('h3');heading.textContent='Every collection begins with one piece.';
-    const paragraph=document.createElement('p');paragraph.textContent='Save the looks that define your visual world. Return to them in any new editorial.';
-    const link=document.createElement('button');link.type='button';link.className='wardrobe-empty-action';link.textContent='Add your first outfit';link.addEventListener('click',wStartCreate);
-    const note=document.createElement('small');note.textContent='Already have a garment photo? You can drop it directly into Replace Outfit.';
-    box.append(eyebrow,heading,paragraph,link,note);
+    const paragraph=document.createElement('p');paragraph.textContent='Save the garments that define your visual world. Reuse them across models, scenes and editorials.';
+    const actions=document.createElement('div');actions.className='wardrobe-empty-actions';
+    const add=document.createElement('button');add.type='button';add.className='wardrobe-empty-action';
+    add.textContent='+  Add your first piece';add.addEventListener('click',wStartCreate);
+    const explore=document.createElement('button');explore.type='button';explore.className='wardrobe-empty-explore';
+    explore.textContent='Explore inspiration';
+    const referenceStrip=document.createElement('div');referenceStrip.className='wardrobe-empty-examples';
+    referenceStrip.id='wardrobe-inspiration-strip';
+    referenceStrip.setAttribute('aria-label','Editorial example photographs, not saved outfits');
+    const sources=[
+      './visuals/leather-editorial/hero-mobile.webp',
+      './mood-previews/chrome-couture-metal-editorial-20261031.jpg',
+      './mood-previews/berlin-rave-20261011.webp',
+      './mood-previews/dream-blur-cover-20261024.webp'
+    ];
+    for(const source of sources){
+      const frame=document.createElement('span');frame.className='wardrobe-empty-example';
+      const img=document.createElement('img');img.src=source;img.alt='';img.loading='lazy';
+      frame.append(img);referenceStrip.append(frame);
+    }
+    explore.addEventListener('click',()=>referenceStrip.scrollIntoView({
+      behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+      block:'nearest'
+    }));
+    const disclosure=document.createElement('small');disclosure.className='wardrobe-empty-disclosure';
+    disclosure.textContent='EDITORIAL REFERENCES / PREVIEW ONLY · NO SAVED OUTFITS';
+    actions.append(add,explore);story.append(eyebrow,heading,paragraph,actions);
+    box.append(story,referenceStrip,disclosure);
   }else{
     const strong=document.createElement('strong');strong.textContent=title;box.append(strong);
     if(copy){const p=document.createElement('p');p.textContent=copy;box.append(p)}
@@ -177,7 +204,7 @@ function wRenderCreate(){
   wBack.hidden=false;
   $('fashion-wardrobe-tabs').hidden=true;
   wSearch.parentElement.hidden=true;
-  wItems.classList.remove('is-detail','is-photographs');
+  wItems.classList.remove('is-detail','is-photographs','is-empty');
   wItems.classList.add('is-create');
   wItems.setAttribute('aria-label','Save a new outfit');
   wFooter.classList.remove('is-error');wFooter.textContent='PRIVATE ARCHIVE / Saved with Elements · No generation or credit charge';
@@ -282,7 +309,7 @@ async function wSaveOutfit(){
 }
 function wRender(){
   if(wCreating){wRenderCreate();return}
-  wItems.classList.remove('is-create');
+  wItems.classList.remove('is-create','is-empty');
   const version=wSequence,detail=!!wPack;
   wBack.hidden=!detail;
   $('fashion-wardrobe-tabs').hidden=detail;
