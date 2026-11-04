@@ -39,6 +39,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
   if(url.pathname==='/lab/native-account.js')return route.fulfill({contentType:'text/javascript',body:accountSource(scenario==='guest')});
   if(url.hostname==='parallel-vision-lab.parallelvision.workers.dev'){
    const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
+   // Existing diagnostic endpoint must stay synthetic during editor/submission QA.
+   if(url.pathname==='/api/customer/mood-offer-event'&&req.method()==='POST')return send({ok:true});
    if(url.pathname==='/api/session')return send(scenario==='paused'
      ?{customer:true,generationReady:false,trialGenerationPaused:true,billingReady:true,config:{enabled:false}}
      :scenario==='review'
