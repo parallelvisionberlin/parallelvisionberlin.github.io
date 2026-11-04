@@ -65,7 +65,17 @@ try{
   });
   await page.goto(base+'/lab/studio.html?tool=fashion');
   const fashion=page.locator('#fashion-studio');
-  await fashion.locator('#fashion-form').waitFor({state:'visible'});
+  try{await fashion.locator('#fashion-form').waitFor({state:'visible',timeout:15000});}
+  catch(error){
+   const diagnostic=await page.evaluate(()=>{
+    const host=document.getElementById('fashion-studio');
+    return {hostText:host?.textContent?.slice(0,900),hostBusy:host?.getAttribute('aria-busy'),
+      shadow:!!host?.shadowRoot,inner:host?.shadowRoot?.textContent?.slice(0,700),
+      route:new URL(location.href).searchParams.get('tool')};
+   });
+   console.error('Fashion startup diagnostic',JSON.stringify({role,errors,diagnostic}));
+   throw error;
+  }
   await page.evaluate(()=>document.fonts.ready);
   const headerBefore=await page.locator('#studio-header').evaluate(el=>({html:el.innerHTML,height:el.getBoundingClientRect().height}));
   for(const [width,height] of [[1672,900],[1672,941],[1440,900],[1024,768],[800,900],[390,844],[320,740]]){
