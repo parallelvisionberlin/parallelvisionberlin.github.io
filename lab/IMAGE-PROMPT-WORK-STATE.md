@@ -1,3 +1,11 @@
+## 2026-11-04 | Restore iPhone Inspiration layout (owner's image 2)
+
+- User's two 09:35 iPhone screenshots show approximately identical card dimensions but markedly different title-to-card spacing. The signed-out screenshot is the relevant public Image guest view.
+- Root cause confirmed in CSS: the 2026-11-03 clearance block overrode the original 23px guest carousel margin with -22px, and the original 13px signed-in margin with -30px, pulling photos 43-45 CSS pixels toward the heading. This visual movement was mistaken for smaller cards.
+- Remove only the negative offsets and their margin transitions in `mobile-image-compact-welcome.css`. The original guest/signed-in margins, card dimensions and images resume. The actual fixed composer, prompt expansion, existing scroll unlock and responsive reserve, More toggle and hidden Retouch remain unchanged.
+- Regression: mobile Mood test checks positive original margin, heading-to-card clearance, same dimensions and identical spacing with a long expanded prompt. Versions refreshed in `studio.html`. Tests use synthetic accounts and incur no generation charges.
+- Merge, Cloudflare Pages result, custom-domain bytes and real iPhone behavior must be verified independently; do not infer a successful publication from a PR alone.
+
 ## 2026-11-03 | Mobile Image Inspiration / expanded prompt clearance
 
 - Approved user direction: preserve original Dream Blur/Vinyl Heat imagery, card height and width, Image deck and Generate controls. Recover the blank space between the title and cards. Expanded prompt must not resize the cards; move them further upward on taller phones so the editor has room.
