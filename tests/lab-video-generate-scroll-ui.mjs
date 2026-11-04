@@ -62,10 +62,14 @@ try{
   await page.waitForFunction(()=>window.__videoScrollReady&&document.querySelector('#app').classList.contains('pv-video-state-ready'));
   await page.locator('#lab-boot').waitFor({state:'hidden'});
   if(width>820){
+   // Seedance 2.5 supports all three creation modes; 1.5 supports Text/Start only.
+   await page.locator('#video-engine').selectOption('seedance');
    for(const mode of ['text','reference','start']){
     await page.locator('#mode-'+mode).click();
     checkDock(await geometry(page),width+' '+mode+' full-height composer');
    }
+   await page.locator('#video-engine').selectOption('seedance15');
+   await page.locator('#mode-start').click();
   }
   // Real selected image plus long editable prompt, matching the reported case.
   const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=300;c.height=400;c.getContext('2d').fillRect(0,0,300,400);return c.toDataURL().split(',')[1];}),'base64');
