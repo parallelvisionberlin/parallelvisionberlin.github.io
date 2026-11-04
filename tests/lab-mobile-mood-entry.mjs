@@ -92,11 +92,16 @@ try{
       assert.ok(resting.scrollHeight<=height+4,'Resting guest Image fits the phone viewport: '+JSON.stringify(resting));
       assert.ok(resting.cardBottom<resting.deckTop-3,'Mood photographs clear the fixed deck: '+JSON.stringify(resting));
       const idleCards=await page.evaluate(()=>{
-        const card=document.querySelector('#pv-guest-cards .pv-guest-card');
+        const card=document.querySelector('#pv-guest-cards .pv-guest-card').getBoundingClientRect();
+        const title=document.querySelector('#gate h1').getBoundingClientRect();
         const shelf=document.querySelector('#gate .pv-guest-carousel');
-        return {height:card.getBoundingClientRect().height,margin:parseFloat(getComputedStyle(shelf).marginTop)};
+        return {height:card.height,top:card.top,titleGap:card.top-title.bottom,
+          margin:parseFloat(getComputedStyle(shelf).marginTop)};
       });
-      if(height>=690)assert.ok(idleCards.margin<0,'Tall phone reclaims unused hidden-copy space without shrinking cards');
+      if(height>=690){
+        assert.ok(idleCards.margin>=20,'Restore the original positive mobile Inspiration margin from Image 2');
+        assert.ok(idleCards.titleGap>=34,'Original title-to-photo breathing room is preserved: '+JSON.stringify(idleCards));
+      }
       assert.ok(resting.headerHeight>=76&&resting.headerHeight<=80,'Guest masthead stays stable: '+JSON.stringify(resting));
       await page.mouse.wheel(0,950);
       assert.equal(await page.evaluate(()=>window.scrollY),0,'A swipe cannot reveal blank space');
@@ -120,13 +125,17 @@ try{
       let long=await metrics();
       if(height>=690){
         const expandedCards=await page.evaluate(()=>{
-          const card=document.querySelector('#pv-guest-cards .pv-guest-card');
+          const card=document.querySelector('#pv-guest-cards .pv-guest-card').getBoundingClientRect();
+          const title=document.querySelector('#gate h1').getBoundingClientRect();
           const shelf=document.querySelector('#gate .pv-guest-carousel');
-          return {height:card.getBoundingClientRect().height,margin:parseFloat(getComputedStyle(shelf).marginTop)};
+          return {height:card.height,top:card.top,titleGap:card.top-title.bottom,
+            margin:parseFloat(getComputedStyle(shelf).marginTop)};
         });
         assert.ok(Math.abs(expandedCards.height-idleCards.height)<1,'Expanding prompt never resizes inspiration photography');
         assert.ok(Math.abs(expandedCards.margin-idleCards.margin)<1,
-          'Opening a longer prompt must not pull Inspiration cards over the heading');
+          'Expanded prompt must keep the same card spacing as the idle reference');
+        assert.ok(Math.abs(expandedCards.titleGap-idleCards.titleGap)<2,
+          'Expanded prompt must not move photographs toward the title: '+JSON.stringify({idleCards,expandedCards}));
       }
       assert.ok(long.prompt.height>=100&&long.prompt.height<=133,'Long public prompt stays bounded');
       assert.ok(long.generate.bottom<=height&&long.doc<=width+1,'Long prompt does not clip Generate or widen the page');
