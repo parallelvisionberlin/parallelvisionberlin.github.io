@@ -22,7 +22,9 @@ try{
     await page.waitForFunction(()=>[...document.images].every(x=>x.complete&&x.naturalWidth>0));
     const measure=()=>page.evaluate(()=>{
       const rect=selector=>{
-        const {x,y,width,height,right,bottom}=document.querySelector(selector).getBoundingClientRect();
+        const element=document.querySelector(selector);
+        if(!element)throw Error("Missing email element "+selector);
+        const {x,y,width,height,right,bottom}=element.getBoundingClientRect();
         return {x,y,width,height,right,bottom};
       };
       return {card:rect('.pv-card'),hero:rect('.pv-hero'),logo:rect('.pv-wordmark'),title:rect('.pv-title'),button:rect('.pv-button'),tiles:rect('.pv-tiles'),copy:rect('.pv-character-copy'),portraits:rect('.pv-character-images'),scrollWidth:document.documentElement.scrollWidth,
