@@ -7,7 +7,9 @@
   `f8f55e08-dce1-4e41-ac71-1c1dd9d968c2`, project `pvlab-studio`.
 - Official release verifier returned LIVE_VERIFIED for lab.js v20261101-wardrobe1,
   SHA-256 `a94902fb40ecbf9b8de2784514a6bdcf86332057e9c0860d63fe67779ee3871e`.
-- Live explore-moods.js/.css, app-mood-generation.js and account.js exactly match main.
+- Live explore-moods.js/.css, mood-credit-offer.css, app-mood-generation.js,
+  customer-wallet.js and account.js exactly match main. Mood Atlas HTML references
+  the paid-onboarding versions; only Cloudflare email protection rewrites its bytes.
 - Worker: health currently reports `pv-lab-2026-11-03-paid-onboarding`.
   Latest Worker release run `41731872740`, source PR #822 merge `3fdf286d`, succeeded.
   Version ID `0cc4f22b-0968-4b24-8525-ebdf2e7bf0b7` deployed 2026-11-03 22:47 UTC.
@@ -26,7 +28,11 @@
 - Existing Chromium + WebKit account checks passed at current main in run
   `41816723595`; Mood generation checks passed in run `41816723639`.
 - Added explicit Mood Atlas desktop/phone zero-balance and synthetic purchase-return
-  regression coverage. CI pending. Local browser binary download is unavailable.
+  regression coverage. Both new scenarios passed in CI run `41828108211`.
+  Local browser binary download is unavailable; hosted CI supplies browser evidence.
+- Three targeted Worker auth, duplicate-submission and funded/unfunded-upload tests
+  also pass locally. The audit test demonstrates that ledger reconciliation alone
+  cannot detect an erroneous new gift. CI sparse checkouts now include that script.
 - Stripe PV Lab read-only account query succeeded. No topup3 Checkout session exists
   in the returned history (20 sessions total); latest session is 2026-11-01.
   This is not proof that a new live €3 customer Checkout works.
@@ -34,7 +40,10 @@
   No customer login was invented, impersonated or changed.
 - No application defect confirmed; no production app code, payment, provider job,
   customer balance or existing account changed during this audit.
-- Verification changes are tracked in PR #832. Added browser scenarios await CI.
+- Verification changes are tracked in PR #832. Focused browser suite completed; final CI validation pending.
+- Existing main has five unrelated broad unit failures (checkout Meta consent copy,
+  Mood navigation, oversized upload UI, Soft Pastel focal point, photobooth semantics).
+  Compare current failures with run `41816723341`; do not weaken these tests.
 - Remaining: actual hosted €3 Checkout needs an authenticated customer session. Stop
   before payment. Keep this distinct from synthetic coverage.
 
