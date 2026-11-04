@@ -40,7 +40,10 @@
   No customer login was invented, impersonated or changed.
 - No application defect confirmed; no production app code, payment, provider job,
   customer balance or existing account changed during this audit.
-- Verification changes are tracked in PR #832. Focused browser suite completed; final CI validation pending.
+- Verification changes are tracked in PR #832. Source `e4fbd861` passed the complete
+  Explore Generate browser suite (`41828502911`), approved Image contract and
+  image-reference tests. Added desktop/phone zero-balance scenarios passed.
+  Fresh audit `41828100348` passed, including the isolated invalid-gift regression.
 - Existing main has five unrelated broad unit failures (checkout Meta consent copy,
   Mood navigation, oversized upload UI, Soft Pastel focal point, photobooth semantics).
   Compare current failures with run `41816723341`; do not weaken these tests.
@@ -49,7 +52,7 @@
 
 # PV LAB introductory image balance
 
-Updated 2026-11-02. Current approved implementation replaces the previous single-image limit.
+Updated 2026-11-02. Historical policy record. Superseded by paid onboarding above.
 
 ## Owner approval
 - Alejandro approved the payment-flow visual and requested implementation.
