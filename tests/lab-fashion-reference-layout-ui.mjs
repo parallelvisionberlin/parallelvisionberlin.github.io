@@ -26,6 +26,7 @@ const account={isSignedIn:signed,user:signed?{id:'user_FashionTest',firstName:'S
  addListener:fn=>listeners.push(fn),openSignIn:()=>{window.__fashionSignins=(window.__fashionSignins||0)+1;},
  signOut:async()=>{account.isSignedIn=false;account.user=null;account.session=null;for(const fn of listeners)fn();}};
 export const isNativeLab=()=>false;
+export const accountBootstrapMessage=()=> 'Mock sign-in unavailable.';
 export const loadLabAccount=async()=>account;
 `;
 const sourceIds=['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222'];
