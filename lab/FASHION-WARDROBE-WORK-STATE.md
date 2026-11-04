@@ -1,3 +1,13 @@
+## 2026-11-05 | Restore original approved empty-Wardrobe presentation
+
+- Owner shared production screenshots: the oversized repeated Bodoni headers and enlarged, indistinct beige fabric hero are not the approved design.
+- Recovered the original six-scene *dark* Wardrobe mockup and the second detailed archive concept. The earlier white, Zara-like proposal remains rejected.
+- This patch changes only Wardrobe presentation when the private archive has zero stored Outfits. The masthead is more compact everywhere in Wardrobe, but the original Replace Outfit landing page, model controls, credit quote, saved outfit rendering, storage, and upload contract stay unchanged.
+- Actual empty state: no meaningless tabs/search, no duplicate upper Add button; a restrained first-piece invitation in front of the existing PV LAB leather editorial portrait, plus four real self-hosted editorial reference images. These are explicitly labelled preview references, not generated outfits or seeded customer collections.
+- The working Add your first piece form remains real, and the reference strip's Explore inspiration scroll action makes no API call.
+- Added role-browser checks for an actual empty private /api/packs response, 4 loading reference photos, bounded masthead, mobile fit, no fake saved cards and no charge/upload from browsing. CSS, JS and their cache markers updated only in Fashion source files and the necessary module import chain.
+- Branch: `fix/pvlab-wardrobe-approved-empty-editorial-20261105`. PR, approved Image contract, Fashion browser, Cloudflare exact deployment and custom-domain visual checks remain separate before any live claim.
+
 # Fashion Wardrobe editorial archive work state
 
 Updated: 2026-11-04
