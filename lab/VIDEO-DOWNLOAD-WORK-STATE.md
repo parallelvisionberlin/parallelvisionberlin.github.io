@@ -1,5 +1,30 @@
 # Video History card downloads: work state
 
+## Current: approved History typography and failure cards (2026-11-04)
+- Objective: apply the owner-approved refined card preview, without changing other studios or the composer.
+- Source baseline: main `85649445eb8f244a6217bda3ce98452908dd75c7`.
+- Approved preview: Library `libfile_d5f860de7e848191a6e90c96408f600d` (Refined dark video history gallery.png).
+- Preserve existing column rules, thumbnail aspect ratio/contain, playback, selection, favorite and download handlers.
+- New `video-history-cards.css`: Video-only card class; 13px two-line captions, 11px short metadata, 16px footer side padding and about 90px compact footers.
+- Thumbnail/status minimum height is 200px; phone failed state is 220px to protect the 44px details touch target.
+- New `video-history-cards.js`: presentation helper called only for Video Studio, excluding Assets and Upscaler.
+- Failure summary replaces the raw error wall in the card. View details uses the existing inspector with play:false, preserving the exact saved error.
+- Refund notice uses the existing account-aware `jobCreditNotice`; no new refund inference or billing change.
+- Pending states keep their exact phase and a reduced-motion-aware progress indicator.
+- `lab.js` changes only the helper import and one guarded render call. `studio.html` adds the stylesheet and JS cache marker.
+- No backend, job settings, prompts, model, credit ledger, upload, deck, sidebar or generation change.
+- Local tests: approved Image contract 5 passed; History pagination 7 passed; new card behavior/inspector guard 5 passed (17 total).
+- JavaScript syntax and diff whitespace checks pass.
+- Browser QA: synthetic cards with the production stylesheet cascade, desktop four-column and 390px iframe phone viewport.
+- Observed desktop captions 13px, matching 90px footers; failed content stays inset from borders. Phone details target 44px.
+- Synthetic View details click invokes the read-only callback without card click propagation or job mutation.
+- Private signed-in history was not accessed and no paid generation was submitted.
+- PR #835, initial reviewed source d73d151409fdec602673d8fbc146aaffb3673232. Approved Image UI check passed.
+- Broad unit failures match main: missing readFileSync in Meta CAPI test and four stale Mood/photobooth assertions. Image browser assertions expect old 15.5px typography while approved source is 14px. No unrelated tests were weakened.
+- CI also exposed a pre-existing displaySavedVideoRatio crash when both outputId and galleryDimensions are absent. Added an explicit geometry presence guard so failed/pending View details works; new regression test preserves known completed-video ratios.
+- Release status: revised implementation locally verified; awaiting affected CI, merge, Cloudflare and custom-domain verification.
+- Next action: publish the reviewed commit through the existing PR workflow and verify the exact new asset on pvlab.studio.
+
 ## Current: Assets video downloads and compact phone controls (2026-10-22)
 - User reference: image(20261021-230818).png, Library libfile_950076d97c788191be4bd834b88f5751.
 - Published PR #428: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/428
@@ -107,3 +132,4 @@ User requested a smaller control after seeing the initial full-width button.
 - Completed and live. User can refresh Video Studio to receive the compact control.
 - Suggested future improvement only: use finished-video frames as card thumbnails;
   current source-frame thumbnails and playback behavior remain unchanged.
+

@@ -1,0 +1,61 @@
+/* Approved History detail treatment, isolated from Image, Assets and the deck. */
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.history-media,
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.history-no-result{
+  min-height:200px;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history .cardbody{
+  box-sizing:border-box;flex:0 0 auto;min-height:0;padding:14px 16px 16px;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history .cardmeta{
+  font-size:11px;line-height:1.4;letter-spacing:0;text-transform:none;color:#a4a7af;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history .cardbody>p:not(.fine){
+  margin:6px 0 0;font-size:13px;line-height:1.45;min-height:2.9em;max-height:2.9em;
+  overflow:hidden;white-space:normal;color:#ececee;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history .cardbody>.fine,
+#app.video-studio-active .video-feed-center #history .card.pv-video-history .cardbody>.history-source,
+#app.video-studio-active .video-feed-center #history .card.pv-video-history:not([data-state="completed"]) .cardactions{
+  display:none!important;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state{
+  box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px 24px;gap:10px;background:#17191d;text-align:center;
+}
+#app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state.is-failed{
+  align-items:flex-start;text-align:left;gap:8px;
+}
+#app.video-studio-active .video-feed-center #history .pv-video-history-state .pv-video-history-title{
+  margin:0;font-size:17px;line-height:1.25;font-weight:500;letter-spacing:-.02em;color:#f0f0f1;
+}
+#app.video-studio-active .video-feed-center #history .pv-video-history-state .pv-video-history-copy{
+  max-width:30ch;margin:0;font-size:13px;line-height:1.45;letter-spacing:0;color:#aeb1b9;
+}
+#app.video-studio-active .video-feed-center #history .pv-video-history-state .pv-video-history-credit{
+  margin:0;font-size:12px;line-height:1.4;color:#aeb1b9;
+}
+#app.video-studio-active .video-feed-center #history .pv-video-history-state .pv-video-history-indicator{
+  box-sizing:border-box;display:grid;place-items:center;flex:none;width:24px;height:24px;
+  border:2px solid #565b64;border-top-color:#e2e3e7;border-radius:50%;
+  animation:pv-video-history-spin 1.2s linear infinite;
+}
+#app.video-studio-active .video-feed-center #history .pv-video-history-state.is-failed .pv-video-history-indicator{
+  width:22px;height:22px;border:1.5px solid #aaa59d;color:#c8c3bb;font-size:15px;line-height:1;
+  animation:none;
+}
+#app.video-studio-active .video-feed-center #history .pv-video-history-state .pv-video-history-details{
+  align-self:flex-start;width:auto;min-height:28px;margin:0;padding:2px 0;border:0;border-radius:0;
+  background:transparent;color:#d1d3d9;font:inherit;font-size:12px;line-height:1.5;
+  text-decoration:underline;text-underline-offset:3px;letter-spacing:0;text-transform:none;cursor:pointer;
+}
+#app.video-studio-active .video-feed-center #history .pv-video-history-details:focus-visible{
+  outline:1px solid #e2e3e7;outline-offset:4px;
+}
+@keyframes pv-video-history-spin{to{transform:rotate(360deg)}}
+@media(max-width:640px){
+  #app.video-studio-active .video-feed-center #history .card.pv-video-history .pv-video-history-details{min-height:44px}
+  #app.video-studio-active .video-feed-center #history .card.pv-video-history>.pv-video-history-state.is-failed{min-height:220px}
+}
+@media(prefers-reduced-motion:reduce){
+  #app.video-studio-active .video-feed-center #history .pv-video-history-state .pv-video-history-indicator{animation:none}
+}
