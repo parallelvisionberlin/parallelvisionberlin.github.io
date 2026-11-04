@@ -6,7 +6,12 @@
 - Preserve icon size/stroke style, On icon, native audio checkbox, aria-pressed state, label and click handlers.
 - Local mandatory Image and Video scope checks: 10 passed. No new test for this reversible icon geometry change.
 - No layout, prompt, model, audio default, quote, generation or billing behavior changes.
-- Publication status: awaiting PR checks and Cloudflare; live On/Off icon verification remains.
+- PR #838 reviewed head a3e9ab5d23a40ccf8adf8dea684ef8b5004af7ce merged as ff3a41721db8b3c755efc88a2716bd722a4afe32. Required approved Image UI CI passed.
+- Cloudflare Pages pvlab-studio check 126679158696 succeeded for that exact merge; deployment 05c08a8e-98dd-4d06-b925-013964b74007.
+- Live /studio?tool=video DOM contains the crossed muted-speaker geometry; screenshot visually inspected after moving the pointer away.
+- Actual public control verified: native checkbox false, aria-pressed false, label Off, muted SVG visible and On SVG hidden. Reverse toggle restores checked/pressed true, label On and the original On glyph.
+- Restored the original On setting after verification. No generation, upload, quote confirmation or paid operation performed.
+- Publication status: published and live On/Off control verified; no further action.
 
 ## Full-height Video composer and anchored Generate, 2026-11-04
 - Objective: follow the owner-provided Higgsfield panel flow while preserving PV LAB styling and generation behavior.
