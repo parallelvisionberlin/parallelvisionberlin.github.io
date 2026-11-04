@@ -14,8 +14,16 @@
 - Local mandatory Image contract and Video scope tests: 10 passed; browser runner syntax and diff whitespace checks passed.
 - Actual-module browser matrix additionally checks Text, Reference and Start frame modes, 12px desktop bottom inset, wheel/keyboard, long prompt, Output settings, phone overflow and zero generation submissions.
 - No provider, model, prompt content, quote, credit, upload, account or billing changes.
-- Release status: implementation locally checked; actual-module browser CI and production publication pending.
-- Next action: publish the reviewed change through the existing PR workflow, inspect the real browser results and verify Cloudflare plus live desktop geometry.
+- Reviewed source ab97c5ad2a86d8d80018374f2fbcf2497d12838b; PR #836 merged as 47c22262f54411cae3e1b84ae49208321cb5066f.
+- CI job 126651194845 passed all 30 scoped contract checks and the actual-module scrolling browser step at all six viewport sizes. The subsequent separate credit-preview typography assertion retains its pre-existing 12px vs 16px failure at :70; no font source or gate changed.
+- Initial browser setup requested unsupported Reference mode on Seedance 1.5. Corrected the fixture to use Seedance 2.5 for all three modes, then restored the original 1.5 Start-frame scrolling case. Product CSS remained fixed during that correction.
+- Cloudflare Pages pvlab-studio check 126653386870 succeeded for the exact merge SHA, deployment fe268c4a-79b9-4c5c-85c7-0ecb3e3dcf2f.
+- Live https://pvlab.studio/studio?tool=video loads video-composer-single-scroll.css?v=20261104-full-height1. CSSOM confirms the full-workspace rule.
+- Production browser at 1363x936: composer y82–924; settings y83–869; reserved footer y869–923; Generate y870–915; prompt height 278.8px; initial settings overflow 0; outer page scroll 0.
+- Live and preview screenshots visually inspected. Production observation was signed out; CI used synthetic owner/media and intercepted APIs. No real quote confirmation, paid generation or account mutation occurred.
+- Exact raw production byte equality was not verified in this environment; Cloudflare commit/project evidence, live cache marker, CSSOM and rendered geometry are verified separately.
+- Release status: published and live geometry verified. Existing tabs require a refresh.
+- Next action: none for the approved full-height composer flow.
 
 ## Reserved Generate footer during Video scrolling, 2026-11-03
 - Objective: keep the complete Generate action visible when scrolling upward over Output settings.
