@@ -105,7 +105,8 @@ export const INSPIRATION_VARIATIONS=Object.freeze({
     "Two young adults ride an old scooter slowly along a winding coastal road after swimming, photographed from behind with wind moving their hair and a small bouquet held low. The ocean glows beyond rough stone walls; soft golden light, muted blue-green sea, subtle lens halation and an unposed grainy 35mm summer atmosphere.",
     "A young adult woman in a loose pale cotton shirt sits beside an open bedroom window above the sea, half hidden by sunlit curtains moving in a gentle breeze. Quiet documentary composition, light falling across worn walls, warm faded peach whites, cool blue-green shadows, soft optical definition and fine irregular film grain.",
     "A close analog photograph of sunlight scattering across rippling sea water near late afternoon, with out-of-focus dry grasses drifting through one edge of the frame. Tiny real optical glints, muted turquoise midtones, warm amber reflections, uneven color-negative grain and a quiet tactile memory; no artificial overlays or graphic effects."
-  ]});
+  ]
+});
 const SUN_FADE_LEGACY_VARIATIONS=Object.freeze([
   "An older woman on a sun-warmed seaside balcony at the end of a long summer afternoon, faded curtains moving in a breeze, amber film highlights and bold photochemical color.",
   "A young adult man in a worn white shirt walks alone across an almost empty beach at sunset, lens flare through sea spray, saturated 1980s motion-picture color and quiet drama.",
