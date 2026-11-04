@@ -305,7 +305,7 @@ try{
     assert.ok(lockedMood.cardBottom<=lockedMood.deckTop+2,
       'Full photos must not be covered by the fixed prompt deck: '+JSON.stringify(lockedMood));
     assert.equal(lockedMood.rootOverflow,'hidden','Image canvas is viewport locked after Mood selection');
-    assert.ok(lockedMood.generateBottom<=height+2,'Generate remains visible, not beneath Safari chrome');
+    assert.ok(lockedMood.generateBottom<=height+2,'Generate remains visible, not beneath Safari chrome: '+JSON.stringify(lockedMood));
     await page.mouse.wheel(0,700);
     assert.equal(await page.evaluate(()=>window.scrollY),0,'Page cannot scroll into an empty lower area');
     assert.ok(state.headerHeight<=80&&state.headerHeight>=76,
