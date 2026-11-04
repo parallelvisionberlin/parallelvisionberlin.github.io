@@ -1,5 +1,23 @@
 # PV LAB | One-time welcome email activation
 
+## Active handoff | 2026-11-04 approved original editorial
+
+- Source base: `9d40ad3670536df0e6470ceefbfb061508007584` on main. Assets from merged PR #837, not the older PR #825 composition.
+- Locked reference: `download(20261104-141848).png` (approved green hero, three editorial tiles, Character Studio, Motion). Motion uses the approved industrial room replacement rather than the earlier dune image.
+- Template: `lab-worker/signup-welcome-email.mjs`, `signupWelcomeMessage()` only. All queue, verification, Resend, deduplication, cron and retry code below it is unchanged.
+- Design: official PNG wordmark; desktop and mobile green hero crops; live headline/copy and primary CTA over the image; Full Editorial, Image and Mood Atlas tiles; two original character portraits; industrial Motion panel. White exterior, black editorial body, compact phone spacing, Outlook VML fallback.
+- Preserve homepage Enter the studio and `/moods` Explore Moods. Additional feature cards link to existing Full Editorial, Image, homepage Character and Video destinations. No new price, free-credit or image promises, tracking pixels or generated replacements.
+- Nine assets: `lab/email/pvlab-wordmark-bold.png` and `welcome-20261104-{hero-desktop,hero-mobile,full-editorial,image,mood-atlas,character-green,character-ivory,motion}.jpg`.
+- Production asset prerequisite VERIFIED: Cloudflare Pages app check on source base completed successfully, project pvlab-studio deployment `45fb390e-54be-4624-93f2-750cf83f93f6`. All nine custom-domain asset SHA-256 hashes equal checked-out main; all six link destinations return HTML/200.
+- `scripts/verify-welcome-email-media.mjs --links` is read-only. Both existing public-media and Worker predeploy gates now verify the current template's exact asset bytes and destination availability rather than checking the obsolete four images.
+- Local checks: nine targeted transactional tests passed, including actual signup enqueue, verified recipient, no backfill, one-time/idempotent send, closed accounts and uncertain-provider retry protection. Worker syntax passed.
+- Browser matrix: actual template at 320, 390, 430, 600, 768, 1100 and 1440px; checks real image decode, original resolution, overflow, mobile stack, live CTA, image blocking and stylesheet-stripped fallback. Local browser binary download unavailable; CI rendering and screenshot inspection pending.
+- Publication: not deployed yet. Existing Worker deployment workflow remains the delivery path; no permissions, credit, Stripe, registration or sender changes.
+- Real-inbox test: pending one newly verified test account. Do not backfill or resend old customer welcome messages. Mock-provider acceptance and browser rendering alone are not inbox verification.
+- Next: inspect CI render artifacts, merge only passing reviewed template, verify exact Worker deploy SHA, then inspect a fresh transactional test email.
+
+Historical release records below describe older compositions and do not override this approved direction.
+
 ## Gmail desktop and phone redesign (2026-10-23)
 
 - User screenshot of the first October 23 email showed an excessive full-width beige backdrop surrounding a narrow black single-column card, even though that card was responsive. This was a composition problem, not a flattened image or missing CSS.
