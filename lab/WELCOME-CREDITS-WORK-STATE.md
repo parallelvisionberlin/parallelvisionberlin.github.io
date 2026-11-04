@@ -40,15 +40,22 @@
   No customer login was invented, impersonated or changed.
 - No application defect confirmed; no production app code, payment, provider job,
   customer balance or existing account changed during this audit.
-- Verification changes are tracked in PR #832. Source `e4fbd861` passed the complete
+- PR #832 merged as `af8b72473111d3a484ce50aaf9ea191918801cf1`.
+  Cloudflare Pages succeeded; official lab.js verifier returned LIVE_VERIFIED.
+  The main-branch audit `41828872076` passed all 22 checks and all four policy tests.
+- Source `e4fbd861` passed the complete
   Explore Generate browser suite (`41828502911`), approved Image contract and
   image-reference tests. Added desktop/phone zero-balance scenarios passed.
   Fresh audit `41828100348` passed, including the isolated invalid-gift regression.
 - Existing main has five unrelated broad unit failures (checkout Meta consent copy,
   Mood navigation, oversized upload UI, Soft Pastel focal point, photobooth semantics).
   Compare current failures with run `41816723341`; do not weaken these tests.
-- Remaining: actual hosted €3 Checkout needs an authenticated customer session. Stop
-  before payment. Keep this distinct from synthetic coverage.
+- Live guest UI also verified: selected the synthetic 480x640 audit image and Berlin
+  Rave, then Generate displayed €3 / 300 credits and retained the selected file.
+  Owner session was signed out for that test; no account was deleted or changed.
+- Remaining: actual hosted €3 Checkout needs a customer session. Secure browser auth
+  rejected the visible password-field locator; manual authentication is required.
+  Stop before payment. Keep this distinct from synthetic coverage.
 
 # PV LAB introductory image balance
 
