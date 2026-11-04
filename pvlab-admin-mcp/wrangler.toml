@@ -1,0 +1,19 @@
+name = "pvlab-admin-mcp"
+main = "worker.mjs"
+compatibility_date = "2026-11-04"
+workers_dev = false
+
+[vars]
+# Fail closed until OAuth and owner identity have been verified.
+MCP_ENABLED = "false"
+# Configure on deployment: MCP_RESOURCE_URL, OAUTH_ISSUER, OAUTH_JWKS_URL,
+# OWNER_SUBJECTS (JSON array containing only the authorized owner's OAuth sub).
+
+[[d1_databases]]
+binding = "LAB_DB"
+database_name = "parallel-vision-lab"
+database_id = "36e13edc-1557-48a3-a49c-08bbc0f9618f"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
