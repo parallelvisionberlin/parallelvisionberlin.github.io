@@ -1,3 +1,11 @@
+## Approved option A: no header bar / 2026-11-04
+
+- Owner approved option A from Dreamcore modal: two clean header options.png (libfile_b7ed24d4a4548191aa6cd5363831c600).
+- Explicitly supersedes the earlier solid-header/54px image inset: artwork begins at the card's top edge and fills the whole media area behind the logo/X.
+- Top fade only 20% black at the edge to transparent at 50px. No opaque top band, no reserved image gap.
+- Preserve card dimensions, original images, overlay title, upload target and Generate. Mobile editor only.
+- Approved Image contract passed 5/5 before editing. Publication pending.
+
 ## Mobile Mood fade and framing follow-up / 2026-11-04
 
 - Owner's iPhone screenshots show remaining Fashion Editorial and Midnight Reverie crops and excess footer space.
