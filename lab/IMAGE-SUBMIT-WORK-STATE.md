@@ -17,8 +17,16 @@
 - New intercepted actual-module browser runner covers low balance, server rejection, quote rejection, unknown transport and checkout return at 390/1440px.
 - Dedicated workflow retains the approved Image contract and customer image-pricing, billing and generation-finance tests.
 - Local focused tests: 15 passed; JS syntax and diff whitespace checks passed.
-- Publication status: awaiting PR CI, merge and Cloudflare/live verification. No real paid generation or purchase used.
-- Next: inspect scoped browser/finance results, publish the tested commit and record release evidence here.
+- Released in PR #844: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/844.
+- Reviewed candidate: fa617123c95e4b39d6687ed38059adea459ba972. Concurrent Wardrobe main eccfd8e069b25edc705c36cffffd8a0e192fa632 was integrated; its source and cache references are preserved.
+- Candidate CI: 31 scoped unit/contract/pricing/billing/finance tests passed; 10 actual-module intercepted browser scenarios passed at 390/1440px (job 126925064411). The approved Image UI contract passed separately.
+- Chromium and WebKit account jobs passed. The existing double-click checkout assertion still requires exactly one POST; its harness now waits for the intercepted POST after asynchronous draft persistence rather than assuming that the busy label means the request has already reached the server.
+- Other repository CI remains partly red on unrelated existing typography, mobile Video badge/radius, Mood source/navigation assertions and a Meta test missing readFileSync. Those product styles and tests were not changed.
+- Squash merge: fe0c47f44ca7cbe994543719d60d679bae8cb077.
+- Exact merge check: Cloudflare Pages / cloudflare-workers-and-pages / pvlab-studio succeeded, deployment 44c0e996-64f6-4dcd-a693-8ea27534dd7f, preview https://44c0e996.pvlab-studio.pages.dev.
+- Production browser verification: https://pvlab.studio/studio?tool=image rendered the Image entrance after boot, with the live lab.js script containing v=20261104-wardrobe-archive2 and creditPurchaseFlow=20261104v1. This confirms the deployed cache marker and visible boot, not downloaded byte equality.
+- Customer behavior was verified with synthetic accounts, photographs, intercepted wallet/provider APIs and mock Checkout. No real purchase or paid generation was performed. Signed-in production purchase/generation remains untested.
+- No further release action is needed for this scoped change.
 
 ## Objective and approved behavior
 - Date: 2026-10-31.
