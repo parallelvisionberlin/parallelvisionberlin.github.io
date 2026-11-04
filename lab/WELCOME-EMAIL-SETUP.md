@@ -2,7 +2,7 @@
 
 ## Active handoff | 2026-11-04 approved original editorial
 
-- Source base: `9d40ad3670536df0e6470ceefbfb061508007584` on main. Assets from merged PR #837, not the older PR #825 composition.
+- Release source: PR #842 merged as `08a3a7a9066c2342d38dfbebb2e4068444866163`. Reviewed template SHA-256 `cf1cc32ae6bf1ecedff028456095e6b4d9af8d6603a21daecb93ee397ff9e761` equals merged main. Assets from PR #837, not the older PR #825 composition.
 - Locked reference: `download(20261104-141848).png` (approved green hero, three editorial tiles, Character Studio, Motion). Motion uses the approved industrial room replacement rather than the earlier dune image.
 - Template: `lab-worker/signup-welcome-email.mjs`, `signupWelcomeMessage()` only. All queue, verification, Resend, deduplication, cron and retry code below it is unchanged.
 - Design: official PNG wordmark; desktop and mobile green hero crops; live headline/copy and primary CTA over the image; Full Editorial, Image and Mood Atlas tiles; two original character portraits; industrial Motion panel. White exterior, black editorial body, compact phone spacing, Outlook VML fallback.
@@ -11,10 +11,13 @@
 - Production asset prerequisite VERIFIED: Cloudflare Pages app check on source base completed successfully, project pvlab-studio deployment `45fb390e-54be-4624-93f2-750cf83f93f6`. All nine custom-domain asset SHA-256 hashes equal checked-out main; all six link destinations return HTML/200.
 - `scripts/verify-welcome-email-media.mjs --links` is read-only. Both existing public-media and Worker predeploy gates now verify the current template's exact asset bytes and destination availability rather than checking the obsolete four images.
 - Local checks: nine targeted transactional tests passed, including actual signup enqueue, verified recipient, no backfill, one-time/idempotent send, closed accounts and uncertain-provider retry protection. Worker syntax passed.
-- Browser matrix: actual template at 320, 390, 430, 600, 768, 1100 and 1440px; checks real image decode, original resolution, overflow, mobile stack, live CTA, image blocking and stylesheet-stripped fallback. Local browser binary download unavailable; CI rendering and screenshot inspection pending.
-- Publication: not deployed yet. Existing Worker deployment workflow remains the delivery path; no permissions, credit, Stripe, registration or sender changes.
+- Browser matrix: actual template at 320, 390, 430, 600, 768, 1100 and 1440px; checks real image decode, original resolution, overflow, mobile stack, live CTA, image blocking and stylesheet-stripped fallback. PASS in CI run `41927662958`; mobile and desktop artifacts visually inspected. Merged-source rerun `41928115016` also passed. Local browser binary download was unavailable, so rendering used CI.
+- Publication VERIFIED: Worker deploy run `41928114918` for exact merge SHA completed successfully at 22:49 UTC. Deployed version `3fc3229b-15f3-4b66-84d6-b84e7428b4a8`; public image/link preflight, production health, release-link service and read-only trial/wallet invariants all passed. Welcome email enabled; welcome credits and image trial remain disabled.
+- Exact merge Cloudflare Pages app check also completed successfully: production deployment `699f7613-f39f-49d4-99b0-c23785092465`.
+- Broad CI has failures in untouched Meta-cookie, Moods navigation/upload, Photobooth/Soft Pastel and Video-badge tests, plus an unmocked mood-offer browser event. Approved Image, validation, Motion and search checks passed. No gates were disabled. Existing protected Worker predeployment test suite passed.
+- No permissions, credit, Stripe, registration or sender code changed. Delivery logic below signupWelcomeMessage() verified byte-identical to the source base.
 - Real-inbox test: pending one newly verified test account. Do not backfill or resend old customer welcome messages. Mock-provider acceptance and browser rendering alone are not inbox verification.
-- Next: inspect CI render artifacts, merge only passing reviewed template, verify exact Worker deploy SHA, then inspect a fresh transactional test email.
+- Next: user completes a fresh test signup and email verification through the prepared PV LAB Create your account form. Browser authentication guidance requires manual account creation. Then inspect the new message in an actual inbox; confirm image loading/actions and no repeat welcome on sign-in. No test account has been created and no test email has yet been sent by this task.
 
 Historical release records below describe older compositions and do not override this approved direction.
 
