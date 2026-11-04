@@ -11,7 +11,7 @@ async function api(path,sql){
 let failed=false;
 function check(name,ok){console.log((ok?'PASS: ':'FAIL: ')+name);if(!ok)failed=true;}
 const settings=await api('/workers/scripts/parallel-vision-lab/settings');
-for(const [name,value] of Object.entries({LAB_IMAGE_TRIAL_ENABLED:'false',LAB_WELCOME_CREDITS_ENABLED:'false',LAB_FREE_TRIAL_PAUSED:'false'})){
+for(const [name,value] of Object.entries({LAB_IMAGE_TRIAL_ENABLED:'false',LAB_WELCOME_CREDITS_ENABLED:'false',LAB_FREE_TRIAL_PAUSED:'false',LAB_CHECKOUT_ENABLED:'true',LAB_PUBLIC_GENERATION_ENABLED:'true'})){
   check(name,settings.bindings.some(b=>b.name===name&&b.type==='plain_text'&&b.text===value));
 }
 const results=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query',`SELECT
@@ -20,6 +20,8 @@ const results=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query
   EXISTS(SELECT 1 FROM lab_migrations WHERE id='0053-single-image-trial') AS migration_0053,
   EXISTS(SELECT 1 FROM lab_migrations WHERE id='0056-use-image-credit-balance') AS migration_0056,
   EXISTS(SELECT 1 FROM lab_migrations WHERE id='0060-paid-signup-existing-wallets') AS migration_0060,
+  NOT EXISTS(SELECT 1 FROM lab_credit_entries e JOIN lab_migrations m ON m.id='0060-paid-signup-existing-wallets' WHERE e.reference='welcome:'||e.customer_id AND e.created_at>=m.applied_at) AS no_welcome_credits_after_closure,
+  NOT EXISTS(SELECT 1 FROM lab_welcome_claims c JOIN lab_migrations m ON m.id='0060-paid-signup-existing-wallets' WHERE c.claimed_at>=m.applied_at) AS no_welcome_claims_after_closure,
   EXISTS(SELECT 1 FROM lab_image_trial_controls WHERE id=1 AND started_at=1793487600000) AS berlin_cutoff,
   EXISTS(SELECT 1 FROM lab_trial_program_controls WHERE id=1 AND welcome_enabled=0 AND free_generation_enabled=1) AS signup_closed_existing_wallets_usable,
   EXISTS(SELECT 1 FROM sqlite_master WHERE type='trigger' AND name='lab_trial_pause_new_welcome_claims' AND sql NOT LIKE '%lab_image_trial_controls%') AS no_welcome_exceptions,
@@ -28,6 +30,7 @@ const results=await api('/d1/database/36e13edc-1557-48a3-a49c-08bbc0f9618f/query
   NOT EXISTS(SELECT 1 FROM lab_customers c WHERE c.balance_credits != COALESCE((SELECT SUM(e.delta_credits) FROM lab_credit_entries e WHERE e.customer_id=c.id),0)) AS wallet_ledger_reconciles,
   NOT EXISTS(SELECT 1 FROM lab_credit_entries e JOIN lab_customers c ON c.id=e.customer_id WHERE e.reference='welcome:'||c.id AND c.created_at>=1793487600000 AND e.delta_credits<>40) AS new_welcome_amount_exactly_40,
   NOT EXISTS(SELECT customer_id FROM lab_credit_entries WHERE reference='welcome:'||customer_id GROUP BY customer_id HAVING COUNT(*)>1) AS no_duplicate_welcome_receipts,
+  NOT EXISTS(SELECT reference FROM lab_credit_entries WHERE kind IN ('purchase','subscription','generation') GROUP BY reference HAVING COUNT(*)>1) AS no_duplicate_payment_or_job_receipts,
   NOT EXISTS(SELECT 1 FROM jobs j JOIN lab_credit_entries d ON d.reference='job:'||j.id AND d.kind='generation' WHERE j.state='failed' AND NOT EXISTS(SELECT 1 FROM lab_credit_entries r WHERE r.reference='refund:job:'||j.id AND r.kind='refund' AND r.customer_id=d.customer_id AND r.delta_credits=-d.delta_credits)) AS failed_jobs_refunded;`);
 const row=results[0]?.results?.[0];
 if(!row)throw Error('Production trial verification returned no result.');

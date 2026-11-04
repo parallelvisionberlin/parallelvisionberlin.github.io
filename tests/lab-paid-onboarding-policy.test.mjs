@@ -77,3 +77,18 @@ test('migration is repeatable and keeps welcome claims closed',async t=>{
   f.env.LAB_IMAGE_TRIAL_ENABLED='true';await ensureCustomer(f.env,id);
   assert.equal(f.one('SELECT COUNT(*) AS n FROM lab_welcome_claims WHERE customer_id=?',id).n,0);
 });
+test('read-only production audit detects a welcome credit inserted after closure',async t=>{
+  const f=fixture(t);
+  const source=readFileSync(new URL('../.github/scripts/verify-lab-image-trial-live.mjs',import.meta.url),'utf8');
+  const sql=source.match(/const results=await api\([^,]+,`([\s\S]*?)`\);/)[1];
+  assert.match(sql.trim(),/^SELECT\b/);
+  assert.ok(Object.values(f.one(sql)).every(value=>value===1));
+  const id='user_UnexpectedGift';await ensureCustomer(f.env,id);
+  const closed=f.one("SELECT applied_at FROM lab_migrations WHERE id='0060-paid-signup-existing-wallets'").applied_at;
+  // Simulate an erroneous writer without ever changing a production wallet.
+  f.run('INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES(?,?,?,?,?,?)',
+    'welcome:'+id,id,40,'adjustment','welcome:'+id,closed+1);
+  const audit=f.one(sql);
+  assert.equal(audit.no_welcome_credits_after_closure,0);
+  assert.equal(audit.wallet_ledger_reconciles,1,'Reconciliation alone does not detect a wrongly granted gift');
+});
