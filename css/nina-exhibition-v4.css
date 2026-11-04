@@ -195,7 +195,7 @@ body.pv-nina-project .nx-world h2 {max-width:810px;color:#f0eee9;font:400 clamp(
 body.pv-nina-project .nx-world-intro {max-width:615px;padding-bottom:12px;}
 body.pv-nina-project .nx-world-intro p {color:#e0ddd7;font:400 clamp(19px,1.6vw,25px)/1.53 "Inter Tight",sans-serif;letter-spacing:-.018em;}
 body.pv-nina-project .nx-world-image {position:relative;width:100%;height:clamp(470px,55vw,760px);margin:0;overflow:hidden;background:#15191a;}
-body.pv-nina-project .nx-world-image img {display:block;width:100%;height:100%;object-fit:cover;object-position:center 52%;filter:brightness(.83) saturate(.77) contrast(1.04);}
+body.pv-nina-project .nx-world-image img {display:block;width:100%;height:100%;object-fit:cover;object-position:center bottom;filter:brightness(.83) saturate(.77) contrast(1.04);}
 body.pv-nina-project .nx-world-image::after {content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 68%,rgba(4,5,6,.5));}
 body.pv-nina-project .nx-world-image figcaption {position:absolute;z-index:2;bottom:21px;left:clamp(21px,5vw,90px);right:clamp(21px,5vw,90px);display:flex;justify-content:space-between;gap:18px;color:#f5f3ee;text-shadow:0 1px 8px #000b;}
 body.pv-nina-project .nx-world-caption {display:grid;grid-template-columns:minmax(180px,.3fr) minmax(0,1fr) auto;gap:clamp(34px,5.5vw,95px);align-items:start;padding:30px 0 clamp(87px,8vw,135px);}
@@ -322,7 +322,7 @@ body.pv-nina-project .nx-footer-mark {display:block;width:35px;height:35px;objec
  body.pv-nina-project .nx-world-intro {padding:0;}
  body.pv-nina-project .nx-world-intro p {font-size:18px;}
  body.pv-nina-project .nx-world-image {height:clamp(365px,71svh,590px);}
- body.pv-nina-project .nx-world-image img {object-position:51% center;}
+ body.pv-nina-project .nx-world-image img {object-position:51% bottom;}
  body.pv-nina-project .nx-world-image figcaption {bottom:12px;left:16px;right:16px;}
  body.pv-nina-project .nx-world-caption {grid-template-columns:1fr;gap:19px;padding:28px 0 88px;}
  body.pv-nina-project .nx-world-caption .nx-link {grid-column:1;}
