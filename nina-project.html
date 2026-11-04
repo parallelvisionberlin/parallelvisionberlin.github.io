@@ -174,7 +174,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/nina-exhibition-v4.css?v=20261104-street-crop-01">
+  <link rel="stylesheet" href="./css/nina-exhibition-v4.css?v=20261104-interview-01">
   <script>
     (() => {
       const root = document.documentElement;
@@ -300,22 +300,27 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 
     <section class="nx-presence" aria-labelledby="meet-nina-title">
       <div class="nx-container nx-presence-layout">
-        <figure class="nx-presence-film">
-          <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="none" poster="./assets/optimized/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
-            <source data-src="./nina-fok/NINATALKNEW.mp4" type="video/mp4">
-          </video>
-          <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
-          <figcaption class="nx-film-caption nx-mono"><span>Portrait / Nina FOK</span><span>Voice / Live presence</span></figcaption>
-        </figure>
         <div class="nx-presence-copy">
-          <p class="nx-mono">02 / The subject</p>
-          <h2 id="meet-nina-title">She already<br>has a life.</h2>
-          <p class="nx-presence-lede">Nina is a DJ, producer and visual artist living in Berlin 2063. Her music, friendships, relationships and everyday life give her a perspective on the world. She can talk about hers, and listen to yours.</p>
-          <div class="nx-presence-detail">
-            <p>There is no predetermined dialogue. Her replies unfold during the conversation.</p>
-            <button class="nx-cta nx-cta--line" type="button" data-nina-open><span>Meet Nina</span><svg class="nx-cta-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5 15 15 5M7 5h8v8"/></svg></button>
+          <div class="nx-presence-heading">
+            <p class="nx-mono">02 / The subject</p>
+            <h2 id="meet-nina-title">She already<br>has a life.</h2>
+          </div>
+          <div class="nx-presence-description">
+            <p class="nx-presence-lede">Nina is a DJ, producer and visual artist living in Berlin 2063. Her music, friendships, relationships and everyday life give her a perspective on the world. She can talk about hers, and listen to yours.</p>
+            <div class="nx-presence-detail">
+              <p>There is no predetermined dialogue. Her replies unfold during the conversation.</p>
+              <button class="nx-cta nx-cta--line" type="button" data-nina-open><span>Meet Nina</span></button>
+            </div>
           </div>
         </div>
+        <figure class="nx-presence-film">
+          <video id="ninaPersonalityVideo" controls playsinline preload="none" width="1280" height="720" poster="./nina-fok/nina-short-confession-poster.jpg" aria-label="Play a recorded conversation with Nina FOK, 44 seconds">
+            <source src="./nina-fok/nina-short-confession.mp4" type="video/mp4">
+            <a href="./nina-fok/nina-short-confession.mp4">Watch the conversation with Nina</a>
+          </video>
+          <figcaption class="nx-film-caption nx-mono"><span>A conversation with Nina</span><span>00:44 / Play with sound</span></figcaption>
+          <p class="nx-interview-error" id="ninaInterviewError" role="status" hidden>The interview couldn’t load. <a href="./nina-fok/nina-short-confession.mp4">Open the video</a>.</p>
+        </figure>
       </div>
     </section>
 
@@ -784,7 +789,6 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
       const video = document.getElementById("ninaPersonalityVideo");
       const heroVideo = document.getElementById("ninaHeroVideo");
       const connectVideo = document.getElementById("ninaConnectVideo");
-      const soundButton = document.getElementById("ninaVideoSound");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       const saveData = Boolean(navigator.connection?.saveData);
 
@@ -804,40 +808,22 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
         else window.setTimeout(() => loadVideo(heroVideo), 350);
       };
 
-      const setSoundState = soundOn => {
-        video.muted = !soundOn;
-        soundButton.textContent = soundOn ? "Sound Off" : "Sound On";
-        soundButton.setAttribute("aria-pressed", String(soundOn));
-        soundButton.setAttribute("aria-label", soundOn ? "Turn Nina video sound off" : "Turn Nina video sound on");
-      };
-
       const syncMotion = () => {
         if (reducedMotion.matches) {
           heroVideo.pause();
           heroVideo.removeAttribute("autoplay");
-          video.pause();
-          video.removeAttribute("autoplay");
           connectVideo.pause();
           connectVideo.removeAttribute("autoplay");
           return;
         }
         heroVideo.autoplay = true;
         if (heroVideo.dataset.loaded === "true") heroVideo.play().catch(() => {});
-        video.autoplay = true;
-        if (video.dataset.loaded === "true") video.play().catch(() => {});
         connectVideo.autoplay = true;
         if (connectVideo.dataset.loaded === "true") connectVideo.play().catch(() => {});
       };
 
-      soundButton.addEventListener("click", async () => {
-        loadVideo(video);
-        const soundOn = video.muted;
-        setSoundState(soundOn);
-        if (soundOn && video.paused) await video.play().catch(() => setSoundState(false));
-      });
       video.addEventListener("error", () => {
-        video.hidden = true;
-        soundButton.hidden = true;
+        document.getElementById("ninaInterviewError").hidden = false;
       });
       reducedMotion.addEventListener?.("change", syncMotion);
       document.addEventListener("visibilitychange", () => {
@@ -845,7 +831,6 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
           video.pause();
           connectVideo.pause();
         } else if (!reducedMotion.matches) {
-          if (video.dataset.loaded === "true") video.play().catch(() => {});
           if (connectVideo.dataset.loaded === "true") connectVideo.play().catch(() => {});
         }
       });
@@ -864,7 +849,6 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
           if (entry.isIntersecting) loadVideo(entry.target);
           else if (entry.target.dataset.loaded === "true") entry.target.pause();
         }), { rootMargin: "300px 0px", threshold: .01 });
-        observer.observe(video);
         observer.observe(connectVideo);
       }
       syncMotion();
