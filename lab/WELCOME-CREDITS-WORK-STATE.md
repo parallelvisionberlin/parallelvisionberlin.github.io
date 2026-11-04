@@ -14,12 +14,13 @@
 - That release applied migration 0060 remotely and passed all read-only policy,
   no-negative-balance, wallet/ledger reconciliation, grant uniqueness and refund checks.
 - Fresh read-only audit now also checks no welcome claims/credits after migration 0060,
-  checkout/public-generation switches and unique payment/job receipts. Run pending.
+  checkout/public-generation switches and unique payment/job receipts. All 22 checks
+  passed on 2026-11-04 12:17 UTC in run `41827836627` (SELECT/settings GET only).
 - Local photo selection does not require an upload: zero-balance preparation stops
   before /api/uploads, /api/quotes or /api/jobs. Generate alone opens the inline offer.
   The selected file stays local. The focused pack opens separately at
   account.html?pack=topup3#balance. Twelve 1K images is explicitly a 25-credit example.
-- 50 focused backend/billing tests pass locally, including legacy wallet spending,
+- 51 focused backend/billing tests pass locally, including legacy wallet spending,
   unpaid job rejection, signed webhook replay, malformed amount/currency/identity,
   exact €3/300 fulfillment and one-time purchase behavior.
 - Existing Chromium + WebKit account checks passed at current main in run
@@ -33,8 +34,9 @@
   No customer login was invented, impersonated or changed.
 - No application defect confirmed; no production app code, payment, provider job,
   customer balance or existing account changed during this audit.
-- Remaining: fresh audit and added CI; actual hosted €3 Checkout needs an authenticated
-  customer session. Stop before payment. Keep this distinct from synthetic coverage.
+- Verification changes are tracked in PR #832. Added browser scenarios await CI.
+- Remaining: actual hosted €3 Checkout needs an authenticated customer session. Stop
+  before payment. Keep this distinct from synthetic coverage.
 
 # PV LAB introductory image balance
 

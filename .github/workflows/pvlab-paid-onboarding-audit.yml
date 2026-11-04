@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/scripts/verify-lab-image-trial-live.mjs'
       - '.github/workflows/pvlab-paid-onboarding-audit.yml'
+      - 'tests/lab-paid-onboarding-policy.test.mjs'
 permissions:
   contents: read
 jobs:
@@ -17,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Verify the audit detects a forbidden gift in an isolated database
+        run: node --test tests/lab-paid-onboarding-policy.test.mjs
       - name: Read deployed policy and database invariants without mutations
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

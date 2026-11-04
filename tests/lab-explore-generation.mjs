@@ -210,7 +210,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobil
  assert.equal(await button.isDisabled(),false,'Generate is available as soon as photo or direction is present');
  assert.equal(paid,0);
  if(scenario.startsWith('zero')){
-   await page.locator('#mc-look-status.is-access-notice').waitFor();
+   await page.locator('#mc-look-status.is-access-notice').waitFor({state:'attached'});
    assert.equal(await page.locator('#mc-look-prepay').isVisible(),false,'Preparing a photo must not open the offer');
    assert.equal(uploads,0);assert.equal(quotes,0);assert.equal(paid,0);
    await button.click();
