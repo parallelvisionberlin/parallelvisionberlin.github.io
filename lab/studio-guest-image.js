@@ -41,10 +41,15 @@ cards.forEach(button=>button.addEventListener('click',()=>{
   // On phones bring the full editor and Generate button into view instead.
   if(window.matchMedia('(max-width:680px)').matches){
     if(document.activeElement===prompt)prompt.blur();
-    // Preserve the visible Inspiration photographs on selection. With the
-    // expanded mobile composer now after the cards in normal document flow,
-    // users scroll down when they want the complete prompt and Generate.
-    // Do not auto-jump past the selected Mood or open the keyboard.
+    // The phone editor is viewport-fixed. Calling scrollIntoView() on it
+    // scrolls the document behind the dock and reveals an empty lower page.
+    // Nonfixed fallback layouts retain the original reveal behavior.
+    if(composer&&getComputedStyle(composer).position!=='fixed'){
+      window.requestAnimationFrame(()=>composer.scrollIntoView({
+        behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+        block:'start'
+      }));
+    }
   }
   // Desktop also keeps focus on the chosen card. Editing starts only after
   // the user intentionally clicks the prompt deck.
