@@ -19,6 +19,7 @@ jobs:
             lab-worker
             sandbox
             tests
+            .github/scripts
             js
       - uses: actions/setup-node@v4
         with:

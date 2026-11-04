@@ -1,4 +1,5 @@
 import {videoInputAction} from './video-input-action.js?v=20261030-1';
+import {styleVideoHistoryCard} from './video-history-cards.js?v=20261104-refined1';
 import {createStudioPublicPreview} from './studio-public-preview.js?v=20261023-1&upscaleModelCards=pr486final1';
 import {createAccountMenu} from './account-menu.js?v=20261027-partners1';
 import {createSceneLibrary,isSceneLibraryPack} from './scene-library.js?v=20261027-compact-f1&characterAllViews=20261103v1&extendCharacter=20261031-1&deckReturn=20261018v1&aboutElements=20261018v1&draftNavigation=20261018v1&geminiRepair=20261020v1';
@@ -2684,7 +2685,7 @@ function displaySavedVideoRatio(job){
     width=video.videoWidth;height=video.videoHeight;
   }else{
     const geometry=job?.settings?.galleryDimensions;
-    if(geometry?.assetId===job?.outputId&&geometry.width>0&&geometry.height>0){
+    if(geometry?.assetId===job?.outputId&&geometry?.width>0&&geometry?.height>0){
       width=geometry.width;height=geometry.height;
     }
   }
@@ -4998,6 +4999,7 @@ function renderCards(jobs,{upsert=false}={}){
     }
     if(j.providerTaskId){const task=document.createElement('div');task.className='fine history-task';task.textContent='Provider task: '+j.providerTaskId;body.append(task);}
     card.append(body);assetLibrary?.decorate(card,j);
+    if(tool==='video'&&!assetLibrary?.active()&&j.settings.type==='video')styleVideoHistoryCard(card,j,{modelLabel:videoLabel(j.settings),creditNotice:jobCreditNotice(j),openDetails:()=>showVideoHistoryRecord(j,{play:false,reveal:true})});
     if(existing){cleanupHistoryCard(existing);existing.replaceWith(card);}else if(upsert)$('history').prepend(card);else $('history').append(card);
     for(const img of previews)observer.observe(img);
   }
@@ -5508,6 +5510,7 @@ async function submitImageSnapshot(){
     }
   }
 }
+
 
 
 

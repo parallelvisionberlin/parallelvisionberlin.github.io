@@ -7,8 +7,8 @@
 - That optional row retains flex:1 1 260px, turning its horizontal basis into a large vertical footer gap.
 - Quote validation can open the hidden disclosure; clearMedia resets quote data but does not close the disclosure.
 - Fix: match the open-disclosure selector when hiding the redundant optional row and reset its flex basis.
-- Preserve the source, model cards, approved initial deck, Save draft, quote status and paid submission logic.
-- Files: upscale-studio-v5.css, studio.html (20261104-stable-action-footer1), tests/lab-upscale-ui.mjs.
+- Preserve the source, model cards, approved initial deck, quote status and paid submission logic; owner now explicitly requests hiding Save upscale draft.
+- Files: upscale-studio-v5.css, studio.html (20261104-single-action-footer2), tests/lab-upscale-ui.mjs.
 - Added browser coverage: initial/open-disclosure upload, mocked processing/submission and Clear at 1920/1440/390px; no real paid jobs.
 - Local checks: approved Image contract 5/5, JavaScript syntax, diff whitespace pass.
 - Local browser suite unavailable: bundled Playwright has no Chromium executable; GitHub browser CI completed instead.
@@ -23,6 +23,13 @@
 - Global CI is not green. Video integration reports five unit failures in unchanged Meta/Moods/photobooth tests; queue viewer fails reading undefined width. Other broader browser failures remain outside this bounded repair and are not waived.
 - Cloudflare check success for the PR branch does not verify a production release. PR remains open and unmerged; pvlab.studio still uses the old stylesheet.
 - Next action: resolve/review remaining CI gates before any merge/release; production bytes and rendered behavior must be verified after publication. No paid production generation initiated.
+
+### Single-action release follow-up
+- Owner supplied a fresh processing screenshot and explicitly rejected both optional price-check copy and Save upscale draft.
+- Hide Save with the same open-disclosure specificity; keep only Upscale plus necessary progress/error feedback.
+- Integrate main d18277e once with a normal merge, preserving the concurrent Video history and onboarding changes.
+- Extend the existing 1920/1440/390px transition regression to require Save hidden; retain submitted/Clear screenshots.
+- Final relevant CI and production verification pending. No paid production job authorized or initiated.
 
 ## Sidebar screenshot investigation / 2026-11-03
 - User screenshot showed a large action-footer gap with the optional price row and Save upscale draft.

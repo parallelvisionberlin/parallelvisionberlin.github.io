@@ -28,13 +28,13 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
 const scenarioFailures=[];
-try{for(const scenario of ['desktop','mobile','small','guest','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize','variant-swap','paused','review','catalogue-phone','catalogue-desktop']){
+try{for(const scenario of ['desktop','mobile','small','guest','zero','zero-mobile','text','changed','failure','draft','studio','slowquote','saving','compact','phone','card-oversize','variant-swap','paused','review','catalogue-phone','catalogue-desktop']){
  const page=await browser.newPage({viewport:{
-  width:scenario==='small'?320:['mobile','phone','catalogue-phone'].includes(scenario)?390:scenario==='compact'?1280:1440,
+  width:scenario==='small'?320:['mobile','phone','catalogue-phone','zero-mobile'].includes(scenario)?390:scenario==='compact'?1280:1440,
   height:scenario==='small'?640:scenario==='compact'?720:scenario==='phone'?700:900
  }});
  try{
- let paid=0,quotes=0,uploads=0,jobStatusChecks=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ let paid=0,quotes=0,uploads=0,jobStatusChecks=0,funded=false;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{const req=route.request(),url=new URL(req.url());
   if(url.pathname==='/lab/native-account.js')return route.fulfill({contentType:'text/javascript',body:accountSource(scenario==='guest')});
   if(url.hostname==='parallel-vision-lab.parallelvision.workers.dev'){
@@ -46,7 +46,7 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
      ?{customer:true,generationReady:false,trialGenerationPaused:true,billingReady:true,config:{enabled:false}}
      :scenario==='review'
        ?{customer:true,generationReady:false,promotionReview:true,billingReady:true,config:{enabled:false}}
-       :{customer:scenario!=='desktop',generationReady:true,config:{enabled:true}});
+       :{customer:scenario!=='desktop',generationReady:true,...(scenario.startsWith('zero')?{balanceCredits:funded?300:0,billingReady:true}:{}),config:{enabled:true}});
    if(url.pathname==='/api/uploads')return send({id:'20000000-0000-4000-8000-'+String(++uploads).padStart(12,'0')});
    if(url.pathname==='/api/quotes'){quotes++;if(scenario==='slowquote')await new Promise(resolve=>setTimeout(resolve,1100));const data=req.postDataJSON();assert.doesNotMatch(JSON.stringify(data),/Stale direction must not reach generation/);assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'1k','Photobooth quotes the fast 1K resolution for web and mobile');assert.equal(data.settings.aspectRatio,'3:4','The first customer photo, not four internal mood photos, determines the output ratio');assert.equal(data.referenceSourceIds.length,1);assert.equal(new Set(data.referenceSourceIds).size,data.referenceSourceIds.length);assert.deepEqual(data.transferSourceIds,data.referenceSourceIds);assert.deepEqual(data.settings.referenceRoles.map(r=>r.role),['base']);return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
    if(url.pathname==='/api/jobs'&&req.method()==='POST'){
@@ -209,6 +209,28 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
  assert.equal(await button.textContent(),'Generate');
  assert.equal(await button.isDisabled(),false,'Generate is available as soon as photo or direction is present');
  assert.equal(paid,0);
+ if(scenario.startsWith('zero')){
+   await page.locator('#mc-look-status.is-access-notice').waitFor({state:'attached'});
+   assert.equal(await page.locator('#mc-look-prepay').isVisible(),false,'Preparing a photo must not open the offer');
+   assert.equal(uploads,0);assert.equal(quotes,0);assert.equal(paid,0);
+   await button.click();
+   await page.locator('#mc-look-prepay').waitFor({state:'visible'});
+   assert.match(await page.locator('.mc-prepay-lede').textContent(),/€3.*300 credits/);
+   assert.match(await page.locator('.mc-prepay-terms').textContent(),/One-time purchase.*No subscription/);
+   assert.equal(await page.locator('.mc-prepay-buy').getAttribute('href'),'./account.html?pack=topup3#balance');
+   assert.equal(await page.locator('#mc-look-file-label-text').textContent(),'source.png');
+   assert.equal(uploads,0);assert.equal(quotes,0);assert.equal(paid,0);
+   // A synthetic payment return changes only this intercepted session response.
+   // No real Stripe request, wallet change or provider request is possible here.
+   funded=true;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+   await page.waitForFunction(()=>!document.querySelector('#mc-look-credit-note').hidden);
+   assert.equal(await page.locator('#mc-look-prepay').isVisible(),false);
+   assert.equal(await page.locator('#mc-look-file-label-text').textContent(),'source.png');
+   assert.equal(paid,0,'Returning with credits never automatically submits a job');
+   await button.click();await page.locator('#mc-look-result-actions').waitFor({state:'visible'});
+   assert.equal(paid,1,'A funded explicit Generate submits exactly one synthetic job');
+   assert.deepEqual(errors,[]);await page.close();console.log('PASS',scenario);continue;
+ }
  if(scenario==='paused'||scenario==='review'){
    if(scenario==='paused'){
      await page.waitForFunction(()=>document.querySelector('#mc-look-status').classList.contains('is-access-notice'));

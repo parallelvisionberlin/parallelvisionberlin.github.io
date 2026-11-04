@@ -143,6 +143,7 @@ try{
    const footer=await workspace([],width);await footer.page.click('#tool-upscale');
    const assertFooter=async state=>{
      assert.equal(await footer.page.locator('#upscale-price').isVisible(),false,state+': optional price row stays hidden even with technical disclosure open');
+     assert.equal(await footer.page.locator('#save').isVisible(),false,state+': legacy Save upscale draft stays hidden');
      const geometry=await footer.page.locator('#app>.workspace>.controls').evaluate(el=>{
        const zone=el.querySelector(':scope>.generate-zone').getBoundingClientRect();
        const button=el.querySelector('#generate').getBoundingClientRect();
@@ -157,9 +158,11 @@ try{
    await uploadSmall(footer.page);await assertFooter('Uploaded '+width);
    const paid=upscale(footer);await assertFooter('Processing '+width);await paid;
    await assertFooter('Submitted '+width);
+   await footer.page.screenshot({path:'test-results/upscaler-footer-submitted-'+width+'.png',fullPage:true});
    await footer.page.getByRole('button',{name:'Clear',exact:true}).click();
    await footer.page.waitForFunction(()=>!document.getElementById('app').classList.contains('pv-upscale-source-ready'));
    await assertFooter('Cleared '+width);
+   await footer.page.screenshot({path:'test-results/upscaler-footer-cleared-'+width+'.png',fullPage:true});
    assert.equal(await footer.page.locator('.pv-upscale-empty-drop').isVisible(),true,'Clear restores the approved upload stage');
    assert.equal(countPaid(footer),1,'Clear never starts another generation');
    await footer.context.close();ok('Compact footer through upload, processing and Clear at '+width+'px');

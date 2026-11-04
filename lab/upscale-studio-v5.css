@@ -1785,7 +1785,10 @@
   display:none!important;
   flex:0 0 auto!important;
 }
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #save{
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #save,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls:has(#upscale-info[open]) #save:not(:disabled){
+  /* Image Upscaler has one primary action; do not revive the legacy draft action. */
+  display:none!important;
   flex:0 0 auto!important;
   min-height:40px!important;
   height:40px!important;
