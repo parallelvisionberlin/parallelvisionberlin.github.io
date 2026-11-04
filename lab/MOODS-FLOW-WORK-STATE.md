@@ -1,3 +1,10 @@
+## Mobile Mood fade and framing follow-up / 2026-11-04
+
+- Owner's iPhone screenshots show remaining Fashion Editorial and Midnight Reverie crops and excess footer space.
+- Preserve approved modal/button/upload sizing and title overlay. Extend photo behind the existing logo area with a top black fade, replacing its hard edge without growing the card.
+- Midnight framing corrected and Fashion Editorial receives its own top crop. Remove the unused 14px footer reservation; live credit notes remain visible.
+- Review both card preview and decoded original, phone/short phone and desktop. Publication pending.
+
 ## Mobile Mood framing / 2026-11-04
 
 - Approved reference: Taller Generate button in PV LAB.png, libfile_fadd78993d808191934f69622a576840.
