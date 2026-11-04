@@ -1,3 +1,13 @@
+## Muted speaker icon, 2026-11-04
+- Owner requested a standard muted speaker with the slash crossing the speaker.
+- Baseline: main 19e1995719ce155209fbe57a6767e134a3a4b4a7. Reference: image(20261104-153356).png, Library libfile_617866c568a48191b1a7cb5005d27c78.
+- Cause: the old slash stayed at x13–21 while the speaker ended at x11, so the marks were detached.
+- Change only the muted SVG paths in lab/studio.html: center the speaker beneath a diagonal stroke that crosses it.
+- Preserve icon size/stroke style, On icon, native audio checkbox, aria-pressed state, label and click handlers.
+- Local mandatory Image and Video scope checks: 10 passed. No new test for this reversible icon geometry change.
+- No layout, prompt, model, audio default, quote, generation or billing behavior changes.
+- Publication status: awaiting PR checks and Cloudflare; live On/Off icon verification remains.
+
 ## Full-height Video composer and anchored Generate, 2026-11-04
 - Objective: follow the owner-provided Higgsfield panel flow while preserving PV LAB styling and generation behavior.
 - Owner explicitly chose a full-window left panel with Generate fixed to its bottom and the prompt using spare space.
