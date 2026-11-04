@@ -1,0 +1,19 @@
+{
+  "name": "pvlab-admin-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check worker.mjs && node --check data.mjs && node --check deploy.mjs",
+    "build": "wrangler deploy --dry-run --outdir dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "jose": "6.1.3",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "wrangler": "4.157.0"
+  }
+}
