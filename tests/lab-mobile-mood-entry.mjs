@@ -197,6 +197,28 @@ try{
       assert.ok(expandedOptions.viewport<=width+1,'Expanded Image settings do not overflow the phone');
       await signedMore.click();
       assert.equal(await signedMore.getAttribute('aria-expanded'),'false','More can still close');
+      // Real signed-in welcome layout uses the same original photograph spacing.
+      // Expand the genuine textarea through input, without a generated job.
+      await page.evaluate(()=>{
+        document.getElementById('image-gallery-empty').hidden=false;
+        document.getElementById('lab-welcome-start').hidden=false;
+      });
+      const signedCards=()=>page.evaluate(()=>{
+        const card=document.querySelector('#lab-welcome-presets .lab-welcome-preset').getBoundingClientRect();
+        const title=document.getElementById('lab-welcome-title').getBoundingClientRect();
+        const shelf=document.querySelector('#lab-welcome-start .lab-welcome-carousel');
+        return {height:card.height,titleGap:card.top-title.bottom,
+          margin:parseFloat(getComputedStyle(shelf).marginTop)};
+      });
+      const signedRest=await signedCards();
+      assert.ok(signedRest.margin>=12,'Signed-in iPhone Inspiration keeps the original positive card spacing');
+      await page.locator('#image-composer-prompt').fill('Analog atmosphere. '.repeat(60));
+      await page.waitForFunction(()=>document.getElementById('image-composer').classList.contains('pv-deck-expanded'));
+      const signedExpanded=await signedCards();
+      assert.ok(Math.abs(signedExpanded.height-signedRest.height)<1,
+        'Signed-in Image photos remain full size when the prompt expands');
+      assert.ok(Math.abs(signedExpanded.titleGap-signedRest.titleGap)<2,
+        'Signed-in Image photos retain their title clearance when the prompt expands: '+JSON.stringify({signedRest,signedExpanded}));
       await page.screenshot({path:`test-results/mobile-image-signed-${width}-${height}.png`});
       assert.deepEqual(errors,[]);
       console.log('PASS compact guest Image, disclosure, bounded text, blur/clear and signed font at '+width+'x'+height);
