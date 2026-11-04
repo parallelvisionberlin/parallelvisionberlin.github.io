@@ -3,7 +3,11 @@
 - Owner's iPhone screenshots show remaining Fashion Editorial and Midnight Reverie crops and excess footer space.
 - Preserve approved modal/button/upload sizing and title overlay. Extend photo behind the existing logo area with a top black fade, replacing its hard edge without growing the card.
 - Midnight framing corrected and Fashion Editorial receives its own top crop. Remove the unused 14px footer reservation; live credit notes remain visible.
-- Review both card preview and decoded original, phone/short phone and desktop. Publication pending.
+- Reviewed 390x844 editor with decoded Fashion Editorial and Midnight originals; face framing clear and top boundary softened. Previous 17-Mood and 320/390px fit, title-overlay and submission tests retained.
+- PR #827 head 91884394994807a2b722e17981066cca00a51b34 passed Explore Generate (job 126475020727), approved Image, static validation, units and Motion Effects.
+- Merged dff7a9b2883caa264808ccaf2dcdd8fe394dafce. Production Cloudflare Pages deployment 0b26ac49-ad66-4284-b963-44451edf19aa succeeded.
+- pvlab.studio/moods serves photobooth CSS version 20261104-mobile-fade2; browser CSSOM confirms the 54px-to-82px top fade, Fashion Editorial crop and removed footer reservation.
+- No real payment, provider generation or customer mutation performed. Physical iPhone Safari appearance is not independently verified. Release complete.
 
 ## Mobile Mood framing / 2026-11-04
 
