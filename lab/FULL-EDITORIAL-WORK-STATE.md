@@ -1,3 +1,45 @@
+## 2026-11-03 / mobile spacing, quieter navigation and clean portraits
+- Owner approved follow-up tweaks after phone screenshot `libfile_cfe8757ad5108191805ace504b67e776`; published source is PR #818.
+- Baseline `4329685683f4f1b32406926f95fbc8ec1acd0767`; reviewed head `e184c7ac8c5504ccb41fdcc3f7dc1987e5fe467c`; merge `fa5d0c49a82acbfdd1364fee3ff789456a4a0c43`.
+- Phone browser <=600 px: compact 60 px header, tighter title/tab/progress spacing, discreet top Back and a footer with selection plus Continue.
+- Guests retain Sign in. Credits and My account remain accessible in the existing mobile menu; menu aligns with the shorter header.
+- Original `plum-cast03.webp` inspected: no interior rectangle. The unwanted box came from the inset name gradient; it now reaches both card edges/bottom and the image has no secondary border/outline.
+- Approved two-column portraits and all original source photographs retained. Desktop/native presentation, generation JavaScript, provider/pricing and billing routes preserved.
+- Product files: `full-editorial-mobile-casting.css`, `full-editorial.html`; CSS version `20261103-casting2`.
+- Existing browser suite updated for top Back, caption edge geometry, image border, header/menu and guest Sign in; no business safeguard removed.
+- Verification: Full Editorial workflow `41723431419` passed all 23 source/approved Image/handoff tests and complete desktop/phone mocked flow.
+- 320/390/600 px checks passed, including no overflow, fixed Continue, search, upload picker, saved characters, composition, stale/expired quotes, duplicate and uncertain-submission safeguards.
+- Actual 390 px guest and 320 px screenshots inspected: compact controls and clean portraits. No real paid generation or customer-data change.
+- Production `https://pvlab.studio/full-editorial` returned 200 with the new stylesheet marker and both account-menu links.
+- Live version-2 CSS returned 200 and exactly matched merge-source bytes; SHA-256 `13fbf292fa535186f20967e3ecf84b3218fc9f7a76f059d2a5a98ed7fbbd853f`.
+- Actual public browser confirmed the version-2 stylesheet loads, its CSS rules are available, the web-layout class is active and both menu destinations are correct.
+- Cloudflare Pages check `126223657480` still reported `in_progress` at final verification, despite the custom domain serving the exact updated HTML/CSS. Do not describe that app check as successful.
+- Cloudflare project `pvlab-studio`, deployment `f0891377-3c13-4d8f-b86d-f92592c2d01a`. No manual/duplicate deployment was requested.
+- Requested UI is available on the custom domain; deployment-app completion metadata remains unconfirmed. Native Safari and real signed-in generation were not independently tested.
+
+## 2026-11-03 / mobile web casting editorial (concept 01)
+- Owner approved concept 01, scoped to phone browser. Reference mockup: `libfile_724db2d1c10881918eb7de774e9c07df`. No decorative arrows.
+- Baseline main `8460965ee49492e4aae3058e13f7c9ace05b76bc`; published PR #816.
+- Reviewed source `a652d67931eb2f5c70a3ccfd675b6d4593383774`; production merge `c0f2d9b786ce2bb7dcbb4b113c8be84ec987b3fe`.
+- Phone web up to 600 px: compact Identity/Styling/Scene/Series rail replaces the duplicate hero; two-column real casting grid, Upload yours, Casting/My characters tabs and expandable search.
+- Original five casting photographs retained. Generated mockup portraits are not selectable production assets.
+- Empty cast box and oversized upload tile hidden on phone web. Selected group detail/removal, saved characters and multi-model composition remain available.
+- Safe-area footer keeps Back, selected thumbnail/count and text-only Continue. Phone workflow decorative arrows hidden. Narrow footer guidance wraps without overlap.
+- Desktop/tablet above 600 px, native bridge layout, arrival hero, model settings, pricing and provider generation behavior preserved.
+- Sources: `full-editorial-mobile-casting.css`, `full-editorial.html`, presentation helpers in `full-editorial.js`, existing `tests/lab-full-editorial-browser.mjs`.
+- Workflow checkout limited to the actual source, tests, fonts and original photo fixtures after the full-repository checkout stalled. No test command removed; both casting CSS files trigger the workflow.
+- Verification: 23/23 source/approved Image/handoff tests, JS syntax and diff whitespace passed.
+- Final remote Full Editorial workflow `41716655419` passed: complete desktop/phone mocked flow, saved characters, add/remove views, composition, quote expiry/staleness, double-click and uncertain-submission safeguards.
+- Phone geometry at 320/390/600 px passed: two columns, no horizontal overflow, fixed 48 px Continue and no arrow; search/upload picker passed.
+- Actual 320 px and selected 390 px screenshots inspected. Local Chromium installation was unavailable; remote browser CI supplied the visual evidence.
+- Cloudflare Pages app `cloudflare-workers-and-pages` confirmed SUCCESS for the exact merge SHA; check `126207006397`, pvlab-studio deployment `b5f682f0-ec3b-4371-86f8-b70838094fd1`.
+- Production `https://pvlab.studio/full-editorial` returned 200 with `20261103-casting1` CSS and `mobileCasting=20261103-1` script markers.
+- Live CSS and JS returned 200 and exactly matched the merged source bytes. CSS SHA-256 `913b748dfed0f65afd761562fb3635dcb19eace04ba01614819c89bd317da69f`; JS `e128d45483bac7e65820f1b5381f81cc17b65b5b5ada17dfb98415bcb0ed2977`.
+- Public production browser confirmed the new stylesheet, loaded CSS rules, web-layout class and versioned script.
+- No paid generation or customer data changes. Real signed-in generation and native Safari behavior were not independently tested.
+- Broader CI has unrelated checkout-consent, Mood Atlas, ZenCreator and Video Start assertions; no unrelated source or gate changed.
+- Next: requested implementation is published and verified. Further phone styling changes require a new scoped request.
+
 ## 2026-11-02 / clear multi-model composition copy
 - Owner screenshot: composition choices are confusing after selecting more than one model.
 - Baseline main `ded46245261171a44ac7ccb022d1db58ee335bab`.

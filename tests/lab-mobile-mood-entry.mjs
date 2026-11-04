@@ -91,6 +91,12 @@ try{
       assert.equal(resting.bodyOverflow,'hidden','Body must not rubber-band: '+JSON.stringify(resting));
       assert.ok(resting.scrollHeight<=height+4,'Resting guest Image fits the phone viewport: '+JSON.stringify(resting));
       assert.ok(resting.cardBottom<resting.deckTop-3,'Mood photographs clear the fixed deck: '+JSON.stringify(resting));
+      const idleCards=await page.evaluate(()=>{
+        const card=document.querySelector('#pv-guest-cards .pv-guest-card');
+        const shelf=document.querySelector('#gate .pv-guest-carousel');
+        return {height:card.getBoundingClientRect().height,margin:parseFloat(getComputedStyle(shelf).marginTop)};
+      });
+      if(height>=690)assert.ok(idleCards.margin<0,'Tall phone reclaims unused hidden-copy space without shrinking cards');
       assert.ok(resting.headerHeight>=76&&resting.headerHeight<=80,'Guest masthead stays stable: '+JSON.stringify(resting));
       await page.mouse.wheel(0,950);
       assert.equal(await page.evaluate(()=>window.scrollY),0,'A swipe cannot reveal blank space');
@@ -112,6 +118,16 @@ try{
       assert.notEqual(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden',
         'Text focus must allow keyboard-safe scrolling');
       let long=await metrics();
+      if(height>=690){
+        const expandedCards=await page.evaluate(()=>{
+          const card=document.querySelector('#pv-guest-cards .pv-guest-card');
+          const shelf=document.querySelector('#gate .pv-guest-carousel');
+          return {height:card.getBoundingClientRect().height,margin:parseFloat(getComputedStyle(shelf).marginTop)};
+        });
+        assert.ok(Math.abs(expandedCards.height-idleCards.height)<1,'Expanding prompt never resizes inspiration photography');
+        assert.ok(Math.abs(expandedCards.margin-idleCards.margin)<1,
+          'Opening a longer prompt must not pull Inspiration cards over the heading');
+      }
       assert.ok(long.prompt.height>=100&&long.prompt.height<=133,'Long public prompt stays bounded');
       assert.ok(long.generate.bottom<=height&&long.doc<=width+1,'Long prompt does not clip Generate or widen the page');
       await field.press('Tab');
@@ -155,6 +171,23 @@ try{
         assert.ok(Math.abs(signed.tools[i].y-signed.tools[0].y)<2,'Signed primary controls also stay on one row');
         assert.ok(Math.abs(signed.tools[i].width-before.tools[i].width)<=2,'Public and signed primary tool widths match: '+JSON.stringify({width,i,signed:signed.tools,guest:before.tools}));
       }
+      const signedMore=page.locator('#image-composer-mobile-more');
+      await signedMore.click();
+      assert.equal(await signedMore.getAttribute('aria-expanded'),'true','Extra options still open');
+      assert.equal(await page.locator('#image-composer-edit-area').isVisible(),false,
+        'The duplicate Retouch action is hidden only in the phone Image deck');
+      const expandedOptions=await page.evaluate(()=>{
+        const box=id=>document.getElementById(id).getBoundingClientRect();
+        return {model:box('image-composer-model'),more:box('image-composer-mobile-more'),
+          ratio:box('image-composer-ratio'),viewport:document.documentElement.scrollWidth};
+      });
+      assert.ok(expandedOptions.more.top>=expandedOptions.model.bottom-2,
+        'More moves into the second options row after opening: '+JSON.stringify(expandedOptions));
+      assert.ok(Math.abs(expandedOptions.more.top-expandedOptions.ratio.top)<7,
+        'More occupies the space vacated by Retouch beside the ratio: '+JSON.stringify(expandedOptions));
+      assert.ok(expandedOptions.viewport<=width+1,'Expanded Image settings do not overflow the phone');
+      await signedMore.click();
+      assert.equal(await signedMore.getAttribute('aria-expanded'),'false','More can still close');
       await page.screenshot({path:`test-results/mobile-image-signed-${width}-${height}.png`});
       assert.deepEqual(errors,[]);
       console.log('PASS compact guest Image, disclosure, bounded text, blur/clear and signed font at '+width+'x'+height);

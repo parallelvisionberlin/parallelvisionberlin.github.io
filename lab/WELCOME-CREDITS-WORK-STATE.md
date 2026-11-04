@@ -1,3 +1,10 @@
+## Paid onboarding candidate / 2026-11-03
+- Owner decision: no more automatically granted signup credits. Existing customer balances are retained and spendable, including 40/200-credit legacy grants, until exhausted. Paid credits, vouchers and refunds remain intact.
+- Worker flags disable the 40-credit trial and 200-credit welcome gift, while the database welcome-claim trigger denies stale free grants; migration 0060 sets the policy and preserves existing ledgers.
+- Existing EUR3 one-time purchase grants exactly 300 credits. Mood Atlas example is 12 1K images at 25 credits each; NEVER promise 40 photos.
+- Mood Atlas permits local photo selection before paywall; after explicit Generate with no credits or guest, shows inline paid onboarding without a provider job and retains the chosen local photo. Original post-result paywall and Stripe checkout continue unchanged.
+- Source changes need tests, reviewed PR, relevant checks, merge and Cloudflare Pages/Worker publication before production claims. No real payment, provider job or wallet mutation used for QA.
+
 # PV LAB introductory image balance
 
 Updated 2026-11-02. Current approved implementation replaces the previous single-image limit.

@@ -12,6 +12,7 @@
 <link rel="icon" type="image/png" href="./branding/pv-mark.png">
 <link rel="stylesheet" href="./full-editorial.css?v=20261030-editorial-workspace2">
 <link rel="stylesheet" href="./full-editorial-atelier.css?v=20261101-tall-cast6">
+<link rel="stylesheet" href="./full-editorial-mobile-casting.css?v=20261103-casting2">
 <link rel="stylesheet" href="./studios-menu.css?v=20261101-unified-reveal1">
 </head>
 <body>
@@ -22,6 +23,7 @@
    <a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=video">Video</a>
    <a href="./studio.html?tool=upscale">Upscaler</a><a id="tool-fashion" href="./studio.html?tool=fashion">Fashion</a>
    <a href="./moods">Moods</a><a href="./studio.html?tool=image">Effects</a>
+   <a class="editorial-mobile-menu-link" id="editorial-menu-credits" href="./account.html#balance">Credits</a><a class="editorial-mobile-menu-link" id="editorial-menu-account" href="./account.html">My account</a>
   </nav>
   <button id="editorial-mobile-menu" type="button" aria-controls="editorial-primary-nav" aria-expanded="false" aria-label="Open site navigation"><span aria-hidden="true">☰</span></button>
   <div class="editorial-account"><button id="editorial-signin" type="button" hidden>Sign in</button><span id="editorial-balance" aria-live="polite"></span><a href="./account.html#balance" aria-label="Credits and billing" class="credits-link">Credits <span>+</span></a><a class="editorial-avatar" href="./account.html" aria-label="My account">○</a></div>
@@ -55,7 +57,7 @@
   <div class="flow-main">
    <div class="stage-navigation" id="stage-navigation">
    <div class="progress-top"><button id="editorial-top-back" class="editorial-top-back" type="button" aria-label="Go back one editorial stage"><span aria-hidden="true">←</span> Back</button><span class="eyebrow" id="progress-title">STEP 1 / 4</span><div class="step-track" aria-label="Progress"><i id="step-indicator"></i></div><button id="editorial-reset" type="button" class="text-action">Start over</button></div>
-   <div class="editorial-flow-rail" aria-label="Your editorial progress"><span data-flow-step="1"><small>01</small> Identity</span><span data-flow-step="2"><small>02</small> Styling</span><span data-flow-step="3"><small>03</small> Location &amp; mood</span><span data-flow-step="4"><small>04</small> Generate</span></div>
+   <div class="editorial-flow-rail" aria-label="Your editorial progress"><span data-flow-step="1"><small>01</small> Identity</span><span data-flow-step="2"><small>02</small> Styling</span><span data-flow-step="3"><small>03</small> <span class="editorial-step-long">Location &amp; mood</span><span class="editorial-step-short">Scene</span></span><span data-flow-step="4"><small>04</small> <span class="editorial-step-long">Generate</span><span class="editorial-step-short">Series</span></span></div>
    </div>
    <section class="step-panel" id="panel-model" aria-labelledby="model-heading">
      <div class="stage-visual stage-visual--identity">
@@ -65,9 +67,11 @@
      <div class="atelier-workspace">
        <div class="atelier-section-top editorial-casting-top">
          <h3>Choose your cast</h3>
+         <button type="button" id="editorial-mobile-upload" class="editorial-mobile-control">+ Upload yours</button>
+         <button type="button" id="editorial-mobile-search" class="editorial-mobile-control" aria-label="Search casting" aria-expanded="false" aria-controls="editorial-cast-search"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="7"></circle><path d="m16 16 5 5"></path></svg></button>
          <label class="editorial-cast-search"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 5 5"></path></svg><input type="search" id="editorial-cast-search" placeholder="Search models or characters..." autocomplete="off" aria-label="Search models or saved characters"></label>
        </div>
-       <div class="atelier-source-tabs editorial-casting-tabs" aria-label="Model source"><button type="button" class="atelier-tab is-selected" data-source-view="casting" aria-pressed="true">Casting references</button><button type="button" class="atelier-tab" id="saved-character" data-source-view="saved" aria-pressed="false">My characters</button><a class="atelier-tab" href="./studio.html?tool=image&amp;createCharacter=1">Create new <span aria-hidden="true">↗</span></a></div>
+       <div class="atelier-source-tabs editorial-casting-tabs" aria-label="Model source"><button type="button" class="atelier-tab is-selected" data-source-view="casting" aria-pressed="true"><span class="editorial-casting-desktop-label">Casting references</span><span class="editorial-casting-mobile-label">Casting</span></button><button type="button" class="atelier-tab" id="saved-character" data-source-view="saved" aria-pressed="false">My characters</button><a class="atelier-tab" href="./studio.html?tool=image&amp;createCharacter=1">Create new <span aria-hidden="true">↗</span></a></div>
        <div id="casting-reference-gallery" class="atelier-cast-gallery" aria-label="PV LAB example character references">
          <button type="button" id="model-drop" class="editorial-own-cast" aria-label="Add your own model photographs. Click or drop images."><span class="editorial-own-plus" aria-hidden="true">+</span><strong>Add yours</strong><small>Upload or drop photos</small></button>
          <button type="button" class="atelier-reference" data-sample-kind="model" data-sample-src="./visuals/character-casting/plum-cast03.webp" data-sample-label="Silver portrait"><img src="./visuals/character-casting/plum-cast03.webp" alt="Silver-haired model in burgundy couture" loading="lazy"><span>01 / SILVER</span></button>
@@ -129,7 +133,7 @@
          <label>Atmosphere <select id="editorial-atmosphere"><option value="cinematic">Cinematic</option><option value="analogue">Analogue &amp; raw</option><option value="soft">Soft and diffused</option><option value="contrast">Hard contrast</option></select></label>
          <label>Color palette <select id="editorial-palette"><option value="natural">Natural / desaturated</option><option value="mono">Monochrome</option><option value="warm">Warm / earthy</option><option value="cool">Cool / mineral</option></select></label>
        </div>
-       <div class="atelier-inline-actions"><button type="button" class="upload-compact" id="add-location"><span>+</span> Add a location photograph</button><button class="upload-compact" type="button" id="saved-location">Saved locations</button><a class="atelier-moods-link" href="./moods" target="_blank" rel="noopener">Explore all Moods ↗</a></div>
+       <div class="atelier-inline-actions"><button type="button" class="upload-compact" id="add-location"><span>+</span> Add a location photograph</button><button class="upload-compact" type="button" id="saved-location">Saved locations</button><a class="atelier-moods-link" href="./moods" target="_blank" rel="noopener">Explore all Moods <span class="editorial-mood-decoration" aria-hidden="true">↗</span></a></div>
        <input type="file" id="location-files" accept="image/jpeg,image/png,image/webp" multiple hidden>
        <div class="thumb-row" id="location-thumbs" aria-label="Your location references"></div>
        <label class="field-name" for="location-direction">Other directions <small>(optional)</small></label><textarea id="location-direction" rows="2" maxlength="500" placeholder="Monumental concrete hall, hazy window light, subtle film grain..."></textarea>
@@ -183,6 +187,6 @@
 </main>
 <dialog id="saved-elements-dialog" aria-labelledby="saved-elements-heading"><div class="confirm-inner"><span class="eyebrow">PV LAB / ELEMENTS</span><h2 id="saved-elements-heading">Saved Elements</h2><p>Use existing private reference images from your Elements library.</p><div id="saved-elements-list" class="saved-elements-list"></div><button type="button" class="secondary" id="saved-elements-close">Close</button></div></dialog>
 <script src="./studios-menu.js?v=20261101-unified-reveal1" defer></script>
-<script type="module" src="./full-editorial.js?v=20261102-clear-cast-copy1"></script>
+<script type="module" src="./full-editorial.js?v=20261102-clear-cast-copy1&mobileCasting=20261103-1"></script>
 </body>
 </html>

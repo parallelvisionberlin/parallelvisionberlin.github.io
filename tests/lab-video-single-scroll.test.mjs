@@ -7,7 +7,7 @@ const html=file('studio.html');
 const css=file('video-composer-single-scroll.css');
 
 test('the Video composer reserves its action outside the settings scrollport',()=>{
-  assert.match(html,/video-inspector-editorial\.css\?v=[^"\n]+">\n<link rel="stylesheet" href="\.\/video-composer-single-scroll\.css\?v=20261103-reserved-action1"/,
+  assert.match(html,/video-inspector-editorial\.css\?v=[^"\n]+">\n<link rel="stylesheet" href="\.\/video-composer-single-scroll\.css\?v=20261103-video-polish2"/,
     'the reviewed fix must load after the older composer styles');
   assert.match(css,/\.workspace\.video-layout>\.controls\{[\s\S]*?overflow-y:hidden!important/,
     'scrolling settings cannot move the whole panel and its action');
@@ -24,8 +24,10 @@ test('the Video composer reserves its action outside the settings scrollport',()
 test('the Video-only fix does not change history, the player or generation pricing',()=>{
   assert.match(css,/@media \(min-width:821px\)/,'small phone layout remains unchanged');
   assert.match(css,/#app\.video-studio-active/);
-  assert.doesNotMatch(css,/#history|\.video-feed-center|#video-inspector|#video-detail|\/api\/jobs|creditCost|confirm:true/,
-    'no changes to History, playback, right inspector, jobs or billing');
+  assert.doesNotMatch(css,/#video-inspector|#video-detail|\/api\/jobs|creditCost|confirm:true/,
+    'Video polish does not alter inspectors, providers, jobs or billing');
+  assert.match(css,/#app\.video-studio-active \.video-feed-center #history \.card\[data-kind="video"\]>.asset-video-badge/,
+    'History changes must remain strictly Video-scoped presentation');
   assert.doesNotMatch(css,/#generate\{/,
     'the button style itself is not modified');
   assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
@@ -43,4 +45,19 @@ test('the composer leaves expanded settings and the prompt in normal order',()=>
     'long prompt remains an accessible normal-height editor');
   assert.match(css,/textarea#prompt\{[\s\S]*?resize:vertical!important/,
     'the text area keeps its native resize behavior');
+});
+
+test('Video UI hides redundant actions without affecting shared functionality',()=>{
+  assert.match(css,/#app\.video-studio-active \.workspace\.video-layout>\.controls>\.generate-zone>#save\{[\s\S]*?display:none!important/);
+  assert.match(css,/#app\.video-studio-active \.video-feed-center #history \.card\[data-kind="video"\]>.asset-video-badge\{[\s\S]*?display:none!important/);
+  assert.match(css,/history-video-play\{[\s\S]*?border-radius:50%!important/);
+  assert.match(html,/class="pv-audio-on"/);
+  assert.match(html,/class="pv-audio-muted"/);
+  assert.match(css,/\[aria-pressed="false"\] \.pv-audio-on\{display:none\}/);
+  assert.match(css,/\[aria-pressed="false"\] \.pv-audio-muted\{display:block\}/);
+  assert.match(css,/\.controls-body>#video-modes/);
+  assert.match(css,/\.controls-body>#pv-video-prompt-box/);
+  assert.match(css,/scroll-behavior:auto!important/);
+  assert.match(css,/textarea#prompt\{[\s\S]*?overscroll-behavior-y:contain!important/);
+  assert.doesNotMatch(css,/#[a-z]+\s*\{[^}]*?\/api\/jobs/);
 });

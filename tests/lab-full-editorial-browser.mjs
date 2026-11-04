@@ -58,8 +58,8 @@ try{
   await page.locator('#editorial-start').click();
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Fresh casting opens without a selected model');
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'No inactive composition cards for an empty cast');
-   assert.equal(await page.locator('#editorial-cast-selection').isVisible(),true,'Selected cast strip remains in the layout');
-   assert.equal(await page.locator('#editorial-cast-empty').isVisible(),true,'Empty cast has guidance');
+   assert.equal(await page.locator('#editorial-cast-selection').isVisible(),width>600,'Only desktop reserves an empty selected-cast strip');
+   assert.equal(await page.locator('#editorial-cast-empty').isVisible(),width>600,'Phone avoids the oversized empty-state box');
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true);
    assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true);
    assert.equal(await page.locator('#step-next').isDisabled(),true);
@@ -106,11 +106,51 @@ try{
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
    await page.locator('#editorial-start').click();
   }else{
-   assert.equal(await page.locator('.progress-top').isVisible(),false,'Mobile removes duplicate top controls');
-   assert.equal(await page.locator('.editorial-flow-rail').isVisible(),false,'Mobile removes duplicate step rail');
-   assert.equal(await page.locator('#panel-model .stage-index').isVisible(),true,'Step label remains inside the photograph');
+   assert.equal(await page.locator('#editorial-top-back').isVisible(),true,'Phone has one discreet Back above the compact progress');
+   assert.equal(await page.locator('#step-back').isVisible(),false,'Phone Identity footer contains only selection and Continue');
+   assert.equal(await page.locator('.editorial-flow-rail').isVisible(),true,'Compact phone progress remains visible');
+   assert.equal(await page.locator('#panel-model .stage-copy').isVisible(),false,'No duplicate portrait hero on phone');
+   assert.equal(await page.locator('#model-drop').isVisible(),false,'Upload does not occupy a portrait slot');
+   for(const phoneWidth of [320,390,600]){
+    await page.setViewportSize({width:phoneWidth,height:844});
+    const geometry=await page.evaluate(()=>{
+     const r=s=>document.querySelector(s).getBoundingClientRect();
+     const cards=[...document.querySelectorAll('#casting-reference-gallery .atelier-reference')].map(e=>e.getBoundingClientRect());
+     return {columns:getComputedStyle(document.querySelector('#casting-reference-gallery')).gridTemplateColumns.split(' ').length,
+      headerHeight:r('.editorial-header').height,captionLeft:r('#casting-reference-gallery .atelier-reference>span').left-cards[0].left,captionRight:cards[0].right-r('#casting-reference-gallery .atelier-reference>span').right,imageBorder:getComputedStyle(document.querySelector('#casting-reference-gallery .atelier-reference img')).borderTopWidth,
+      top:cards[0].top,firstLeft:cards[0].left,secondLeft:cards[1].left,thirdTop:cards[2].top,firstBottom:cards[0].bottom,
+      footerBottom:r('#step-footer').bottom,footerTop:r('#step-footer').top,continue:r('#step-next').height,
+      arrow:getComputedStyle(document.querySelector('#step-next'),'::after').content,overflow:document.documentElement.scrollWidth>innerWidth};
+    });
+    await page.screenshot({path:'test-results/editorial/'+phoneWidth+'-casting-layout.png'});
+    console.log('PHONE_CASTING',phoneWidth,JSON.stringify(geometry));
+    assert.ok(geometry.headerHeight<=61,'Phone header is compact');
+    assert.ok(Math.abs(geometry.captionLeft)<=2&&Math.abs(geometry.captionRight)<=2,'Caption shading reaches both card edges without an inset rectangle');
+    assert.equal(geometry.imageBorder,'0px','No second border inside the portrait');
+    assert.equal(geometry.columns,2);assert.ok(geometry.secondLeft>geometry.firstLeft);
+    assert.ok(geometry.thirdTop>=geometry.firstBottom,'Portraits wrap into rows');
+    assert.ok(geometry.top<320,'Real casting appears near the top: '+JSON.stringify(geometry));
+    assert.ok(Math.abs(geometry.footerBottom-844)<2,'Continue stays at viewport bottom');
+    assert.ok(geometry.continue>=44);assert.equal(geometry.arrow,'none');assert.equal(geometry.overflow,false);
+   }
+   await page.setViewportSize({width:390,height:900});
+   assert.equal(await page.locator('.editorial-account .credits-link').isVisible(),false);
+   assert.equal(await page.locator('.editorial-account .editorial-avatar').isVisible(),false);
+   await page.locator('#editorial-mobile-menu').click();
+   assert.equal(await page.locator('#editorial-menu-credits').isVisible(),true);
+   assert.equal(await page.locator('#editorial-menu-account').isVisible(),true);
+   assert.match(await page.locator('#editorial-menu-credits').getAttribute('href'),/account\.html#balance$/);
+   await page.locator('#editorial-mobile-menu').click();
+   await page.locator('#editorial-mobile-search').click();
+   await page.locator('#editorial-cast-search').fill('Silver');
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),1);
+   await page.locator('#editorial-mobile-search').click();
+   assert.equal(await page.locator('#casting-reference-gallery .atelier-reference:visible').count(),5);
+   const uploadsBeforePicker=uploadCount;const picker=page.waitForEvent('filechooser');await page.locator('#editorial-mobile-upload').click();await picker;
+   assert.equal(uploadCount,uploadsBeforePicker,'Opening the file chooser sends no upload or paid request');
+   await page.screenshot({path:'test-results/editorial/390-mobile-casting.png'});
   }
-  await page.locator(width>800?'#editorial-top-back':'#step-back').click();
+  await page.locator('#editorial-top-back').click();
   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Back returns from Identity to hero');
   assert.equal(await page.locator('#editorial-flow').isVisible(),false);
   await page.locator('#editorial-start').click();
@@ -178,7 +218,12 @@ try{
   assert.equal(await page.locator('[data-cast-composition="mixed"]').isEnabled(),true,'Second model enables composition');
   assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected');
   assert.equal(await page.locator('#editorial-footer-cast img').count(),2,'Footer shows the selected models');
-  assert.equal(await page.locator('.editorial-footer-add').isVisible(),true,'Footer plus can add another model');
+  assert.equal(await page.locator('.editorial-footer-add').isVisible(),width>600,'Phone keeps the footer compact and uses Upload yours above');
+  if(width<=600){
+   const selectedPicker=page.waitForEvent('filechooser');
+   await page.locator('#editorial-mobile-upload').click();await selectedPicker;
+   assert.equal(await page.locator('#model-selection-count').textContent(),'2 models selected','Opening another upload retains the cast');
+  }
   assert.equal(await page.locator('[data-cast-composition="mixed"]').getAttribute('aria-pressed'),'true','Mixed editorial is the default');
   await page.locator('[data-cast-composition="alternating"]').click();
   assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true');
@@ -273,8 +318,9 @@ try{
   });
   assert.ok(generateDesign.height>=69,'Generate has a substantial touch target');
   assert.equal(generateDesign.radius,'3px','Generate is a sharp editorial rectangle, not a pill');
-  assert.equal(generateDesign.display,'flex','Generate splits the title from its arrow');
-  assert.ok(generateDesign.arrowWidth>=42,'Generate arrow has its own action block');
+  assert.equal(generateDesign.display,'flex','Generate retains its accessible action layout');
+  if(width>600)assert.ok(generateDesign.arrowWidth>=42,'Desktop action layout is unchanged');
+  else assert.equal(generateDesign.arrowWidth,0,'Phone Generate is text-only without a decorative arrow');
   assert.equal(generateDesign.label,'Generate editorial');
   assert.equal(await page.locator('#editorial-generation-film').getAttribute('src'),null,'Film is not loaded during setup');
   // A delayed response for old settings must never re-enable a stale purchase.
@@ -334,6 +380,26 @@ try{
   assert.deepEqual(errors,[],'No browser errors at '+width);
   await page.close();
  }
+ // Guest mobile header keeps Sign in visible and billing/account reachable in the menu.
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844}});
+  const beforeGuest={uploads:uploadCount,jobs:jobCount,quotes:quoteCount};
+  await page.route('**/native-account.js*',route=>route.fulfill({contentType:'text/javascript',body:"export async function loadLabAccount(){return {isSignedIn:false,session:null,addListener(){},openSignIn(){}}}"}));
+  await page.goto('http://127.0.0.1:4179/lab/full-editorial.html?start=1',{waitUntil:'domcontentloaded'});
+  await page.locator('#editorial-signin').waitFor({state:'visible'});
+  assert.equal(await page.locator('.editorial-account .credits-link').isVisible(),false);
+  assert.equal(await page.locator('.editorial-account .editorial-avatar').isVisible(),false);
+  await page.locator('#editorial-mobile-menu').click();
+  assert.equal(await page.locator('#editorial-menu-credits').isVisible(),true);
+  assert.equal(await page.locator('#editorial-menu-account').isVisible(),true);
+  const menuGap=await page.evaluate(()=>document.querySelector('#editorial-primary-nav').getBoundingClientRect().top-document.querySelector('.editorial-header').getBoundingClientRect().bottom);
+  assert.ok(Math.abs(menuGap)<=1,'Mobile menu meets the compact header without a gap');
+  await page.locator('#editorial-mobile-menu').click();
+  await page.locator('#casting-reference-gallery img').first().evaluate(img=>img.decode());
+  await page.screenshot({path:'test-results/editorial/390-guest-casting.png'});
+  assert.deepEqual({uploads:uploadCount,jobs:jobCount,quotes:quoteCount},beforeGuest);
+  await page.close();
+ }
  for(const width of [1440,390]){
   const page=await browser.newPage({viewport:{width,height:900}});
   const beforeEntry={uploads:uploadCount,jobs:jobCount,quotes:quoteCount};
@@ -348,7 +414,7 @@ try{
   assert.equal(new URL(page.url()).searchParams.has('start'),false,'Entry flag is consumed');
   assert.equal(await page.locator('[data-source-view="casting"]').getAttribute('aria-pressed'),'true','Casting remains the initial source');
   assert.deepEqual({uploads:uploadCount,jobs:jobCount,quotes:quoteCount},beforeEntry,'Opening Identity performs no paid preparation or generation');
-  await page.locator(width>800?'#editorial-top-back':'#step-back').click();
+  await page.locator('#editorial-top-back').click();
   assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Direct entry retains Back to the arrival hero');
   await page.close();
  }
@@ -357,7 +423,7 @@ try{
   await page.goto('http://127.0.0.1:4179/lab/index.html',{waitUntil:'domcontentloaded'});
   const startUploads=uploadCount,startJobs=jobCount,startQuotes=quoteCount;
   const mockPhotos=Array.from({length:7},(_,i)=>({name:'character-'+i+'.jpg',mimeType:'image/jpeg',buffer:image}));
-  const picker=page.waitForEvent('filechooser');
+  const uploadsBeforePicker=uploadCount;const picker=page.waitForEvent('filechooser');
   await page.locator('.lab-character-home__prompt').click();
   await (await picker).setFiles(mockPhotos.slice(0,3));
   assert.equal(await page.locator('#home-model-count').textContent(),'3/8','Clicking the card selects multiple photos without redirect');

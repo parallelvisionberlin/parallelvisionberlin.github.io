@@ -5,6 +5,20 @@
     const button=document.getElementById('image-composer-mobile-more');
     if(!composer||!button||document.documentElement.classList.contains('pv-native-lab'))return;
     composer.classList.add('mobile-polish-ready');
+    // Reserve the real dock height under Inspiration as the prompt grows.
+    // The Image gallery can scroll above a fixed expanded composer rather
+    // than leaving the last portion of its cards inaccessible.
+    const welcomeSurface=document.getElementById('image-gallery-empty');
+    if(welcomeSurface&&typeof ResizeObserver!=='undefined'){
+      const reserve=()=>{
+        if(!window.matchMedia('(max-width:680px)').matches)return;
+        const height=Math.ceil(composer.getBoundingClientRect().height);
+        if(height>0)welcomeSurface.style.setProperty('--pv-mobile-image-dock-reserve',(height+24)+'px');
+      };
+      new ResizeObserver(reserve).observe(composer);
+      window.addEventListener('resize',reserve,{passive:true});
+      reserve();
+    }
     const label=button.querySelector('span');
     button.addEventListener('click',()=>{
       const expanded=button.getAttribute('aria-expanded')!=='true';

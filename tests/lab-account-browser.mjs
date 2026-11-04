@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
 import {resolve,extname} from 'node:path';
-const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
+const engines=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
+const engine=process.env.PV_BROWSER_ENGINE||'chromium';
+if(!['chromium','webkit'].includes(engine))throw Error('Unsupported account test engine.');
 const root=resolve('.'),artifacts='/tmp/pv-lab-account-review';await mkdir(artifacts,{recursive:true});
 const server=createServer(async(req,res)=>{
   let pathname=new URL(req.url,'http://localhost').pathname;if(pathname.endsWith('/'))pathname+='index.html';if(pathname==='/lab/moods')pathname+='.html';
@@ -11,7 +13,7 @@ const server=createServer(async(req,res)=>{
   try{res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(await readFile(file));}catch{res.writeHead(404).end();}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true});
+const browser=await engines[engine].launch({headless:true});
 const products=[{id:'topup3',type:'payment',credits:300,priceEur:3},{id:'topup10',type:'payment',credits:1000,priceEur:10},{id:'topup29',type:'payment',credits:3000,priceEur:29},{id:'topup75',type:'payment',credits:8000,priceEur:75},{id:'starter',type:'subscription',credits:1600,priceEur:15}];
 for(const product of products)product.title='PV Lab '+product.id;
 const clerkMock=`export class Clerk {
@@ -27,7 +29,12 @@ async function setup(width,customer=true,overrides={}){
   await page.route('https://**/*',async route=>{
     const request=route.request(),url=new URL(request.url());
     if(url.hostname==='esm.sh'&&url.pathname.includes('clerk-js'))return route.fulfill({contentType:'text/javascript',body:clerkMock});
-    if(url.hostname==='clerk.parallelvisionlabel.com'||url.hostname==='clerk.pvlab.studio')return route.fulfill({contentType:'text/javascript',body:''});
+    if(url.hostname==='clerk.parallelvisionlabel.com'||url.hostname==='clerk.pvlab.studio'){
+      const body=url.pathname.includes('/@clerk/clerk-js@')
+        ?clerkMock.replace('export class Clerk','class Clerk')+';window.Clerk=new Clerk();'
+        :'window.__internal_ClerkUICtor=class{};';
+      return route.fulfill({contentType:'text/javascript',body});
+    }
     if(url.hostname==='checkout.stripe.com')return route.fulfill({contentType:'text/html',body:'<h1>Intercepted checkout test</h1>'});
     if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
     if(request.method()!=='GET')writes.push({path:url.pathname,body:request.postData()});

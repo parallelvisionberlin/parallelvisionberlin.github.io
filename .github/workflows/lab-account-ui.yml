@@ -1,9 +1,9 @@
 name: PV Lab account interface
 on:
   pull_request:
-    paths: ['lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
+    paths: ['lab/native-account.js', 'lab/clerk-browser-sdk.js', 'tests/lab-clerk-bootstrap.test.mjs', 'lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
   push:
-    paths: ['lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
+    paths: ['lab/native-account.js', 'lab/clerk-browser-sdk.js', 'tests/lab-clerk-bootstrap.test.mjs', 'lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', 'tests/lab-owner-auth-guard.test.mjs', '.github/workflows/lab-account-ui.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,11 +16,12 @@ jobs:
         with:
           sparse-checkout: |
             lab
+            lab-worker
             tests
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs tests/lab-owner-auth-guard.test.mjs
+      - run: node --test tests/lab-clerk-bootstrap.test.mjs tests/lab-auth.test.mjs tests/lab-clerk-domains.test.mjs tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs tests/lab-owner-auth-guard.test.mjs
       - run: node --check lab/account.js && node --check lab/owner.js
       - run: npm install --prefix /tmp/pv-account-browser --no-audit --no-fund playwright@1.62.1
       - run: /tmp/pv-account-browser/node_modules/.bin/playwright install --with-deps chromium
@@ -44,3 +45,23 @@ jobs:
             /tmp/pv-lab-account-review
             /tmp/pv-lab-owner-mobile
           retention-days: 3
+
+  account-webkit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --prefix /tmp/pv-account-webkit --no-audit --no-fund playwright@1.62.1
+      - run: /tmp/pv-account-webkit/node_modules/.bin/playwright install --with-deps webkit
+      - name: Verify customer session isolation and purchase options in WebKit with synthetic accounts
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-account-webkit/node_modules/playwright/index.mjs
+          PV_BROWSER_ENGINE: webkit
+        run: node tests/lab-account-browser.mjs

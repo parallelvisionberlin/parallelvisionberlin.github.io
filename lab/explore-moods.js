@@ -44,6 +44,18 @@ function initialize(){
   const resultBalance=$('mc-look-result-balance'),resultPack=$('mc-look-result-pack');
   const resultImg=$('mc-look-result-image'),resultLoading=$('mc-look-result-loading');
   const resultActions=$('mc-look-result-actions');
+  const prepay=$('mc-look-prepay'),paymentCodes=new Set(['TRIAL_PAUSED','INSUFFICIENT_CREDITS']);
+  $('mc-look-prepay-back').onclick=()=>close();
+  function showPrepayOffer(){
+    prepay.hidden=false;
+    dialog.classList.add('is-prepay-offer');
+    dialog.classList.remove('is-generation-blocked');
+    status.textContent='';
+    accessAction.hidden=true;
+    generate.disabled=true;
+    void localizePrices(prepay);
+    prepay.querySelector('.mc-prepay-buy')?.focus({preventScroll:true});
+  }
   // Record an explicit offer click without changing the separate-tab checkout flow.
   $('mc-look-result-again')?.addEventListener('click',()=>{
     if(result.hidden||resultNeedsCredits)return;
@@ -180,7 +192,7 @@ function initialize(){
   }
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?hkRealPhotos=20261018v2&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&trialBalance=20261102&conversionFlow=20261102-1&offerFunnel=20261103-1&dreamBlurExposure=20261102v2').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?hkRealPhotos=20261018v2&accessNotice=20261018v1&dreamBlurBudget=20261016v1&v=20261013-compact-map2&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1&quoteUX=20261016v1&firstRatio=20261016v2&modalInline=20261016v1&photobooth1k=20261018v1&dreamBlurNotes=20261018v1&refOnlyDreamBlurFix=20261018v1&hkRestore=20261018v1&hkFidelity=20261018v2&hkAtmosphere=20261019v1&hkCanon=20261020v1&hkImage3=20261020v1&hkLight=20261021v10&fisheye=20261020v1&dreamBlurBase=20261024v1&fisheyeY2K=20261024v1&eightiesTape=20261024v3&hyperPopMaterial=20261024v1&hkCinema=20261025v1&trialBalance=20261102&conversionFlow=20261102-1&offerFunnel=20261103-1&paidOnboarding=20261103-1&dreamBlurExposure=20261102v2').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{
@@ -198,6 +210,7 @@ function initialize(){
   const accessCodes=new Set(['TRIAL_PAUSED','INSUFFICIENT_CREDITS','ACCOUNT_REVIEW','BILLING_REVIEW','ACCOUNT_CLOSED','GENERATION_UNAVAILABLE']);
   function clearAccessNotice(){
     blockedCode=null;
+    prepay.hidden=true;dialog.classList.remove('is-prepay-offer');
     dialog.classList.remove('is-generation-blocked');
     status.classList.remove('is-access-notice');
     accessAction.hidden=true;
@@ -207,15 +220,14 @@ function initialize(){
   function showAccessNotice(error){
     if(!accessCodes.has(error?.code))return false;
     blockedCode=error.code;
-    dialog.classList.add('is-generation-blocked');
+    const payment=paymentCodes.has(error.code);
+    dialog.classList.toggle('is-generation-blocked',!payment);
     status.classList.add('is-access-notice');
-    status.textContent=error.message;
-    const payment=error.code==='TRIAL_PAUSED'||error.code==='INSUFFICIENT_CREDITS';
+    status.textContent=payment?'':error.message;
     const support=error.code==='ACCOUNT_REVIEW'||error.code==='BILLING_REVIEW';
-    accessAction.hidden=!(payment||support);
+    accessAction.hidden=!support;
     if(payment){
-      accessAction.href='./account.html?pack=topup3#balance';
-      accessAction.textContent='Add credits ↗';
+      accessAction.removeAttribute('href');accessAction.textContent='';
     }else if(support){
       accessAction.href='mailto:contact@parallelvisionlabel.com?subject=PV%20LAB%20account%20review';
       accessAction.textContent='Contact support ↗';
@@ -224,7 +236,7 @@ function initialize(){
       accessAction.textContent='';
     }
     generate.textContent='Generate';
-    generate.disabled=true;
+    generate.disabled=payment?!hasGenerationInput():true;
     return true;
   }
   function resetPrice(){
@@ -459,15 +471,12 @@ function initialize(){
     // Billing opens in another tab so the selected local photograph stays here.
     // Recheck readiness upon return without creating a second paid request.
     if(dialog.open&&!busy&&resultOutputId)void refreshResultBalance();
-    else if(dialog.open&&blockedCode&&!busy&&hasGenerationInput())schedulePrice(0);
+    else if(dialog.open&&!busy&&hasGenerationInput()&&(blockedCode||needsSignIn||!prepay.hidden))schedulePrice(0);
   });
   generate.onclick=()=>void (async()=>{
-    if(!hasGenerationInput()||busy||blockedCode)return;
-    if(needsSignIn){
-      try{await openGenerationSignIn();}
-      catch(error){status.textContent=error.message;}
-      return;
-    }
+    if(!hasGenerationInput()||busy)return;
+    if(needsSignIn||paymentCodes.has(blockedCode)){showPrepayOffer();return;}
+    if(blockedCode)return;
     const stamp=priceRevision,serial=++runSerial;
     let attemptedSubmission=false;
     // An immediate, honest visual response. Upload and pricing finish inside
@@ -508,10 +517,7 @@ function initialize(){
       setBusy(false);
       $('mc-look-close').disabled=false;
       if(error.code==='SIGN_IN'&&!attemptedSubmission){
-        clearResult();
-        try{await openGenerationSignIn();}
-        catch(signInError){status.textContent=signInError.message;}
-        return;
+        clearResult();showPrepayOffer();return;
       }
       if(attemptedSubmission){
         resultLoading.hidden=false;resultImg.hidden=true;
@@ -534,6 +540,7 @@ function initialize(){
         status.textContent=error.message;
         generate.textContent='Generate';
         if(!showAccessNotice(error))generate.disabled=!hasGenerationInput();
+        if(paymentCodes.has(error.code))showPrepayOffer();
       }
     }
   })();

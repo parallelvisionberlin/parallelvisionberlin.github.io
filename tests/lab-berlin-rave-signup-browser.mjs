@@ -49,9 +49,26 @@ for(const width of [320,390,1440])for(const returning of [false,true]){
   photo=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;return c.toDataURL().split(',')[1];}),'base64');
   await page.locator('#mc-look-file').setInputFiles({name:'campaign-source.png',mimeType:'image/png',buffer:photo});
   if(!returning){
-    await page.waitForFunction(()=>document.querySelector('#mc-look-status').textContent.includes('Sign in')).catch(async error=>{console.log('Signup test state:',await page.locator('#mc-look-status').textContent());console.log('File:',await page.locator('#mc-look-file').evaluate(e=>e.files[0]?.name));throw error;});
-    assert.equal(uploads,0);assert.equal(jobs,0);
+    // A new visitor can upload locally, but never receives a free generation.
+    await page.waitForFunction(()=>document.querySelector('#mc-look-status').textContent.includes('Sign in'));
+    assert.equal(uploads,0);assert.equal(quotes,0);assert.equal(jobs,0);
     await page.locator('#mc-look-continue').click();
+    await page.locator('#mc-look-prepay').waitFor({state:'visible'});
+    assert.match(await page.locator('.mc-prepay-lede').textContent(),/€3.*300 credits/);
+    assert.match(await page.locator('.mc-prepay-terms').textContent(),/One-time purchase/);
+    assert.equal(await page.locator('#mc-look-file-label-text').textContent(),'campaign-source.png');
+    assert.equal(page.url(),url);assert.equal(grants,0);
+    const popPromise=page.waitForEvent('popup');
+    await page.locator('.mc-prepay-buy').click();
+    const popup=await popPromise;await popup.waitForLoadState();
+    assert.equal(popup.url(),'https://pvlab.studio/account.html?pack=topup3#balance');
+    await popup.close();
+    assert.equal(await page.locator('#mc-look-file-label-text').textContent(),'campaign-source.png');
+    assert.equal(uploads,0);assert.equal(quotes,0);assert.equal(jobs,0);
+    assert.deepEqual(errors,[]);
+    console.log('PASS '+width+'px new signup: photo retained and €3 offer before generation');
+    await context.close();
+    continue;
   }
   await page.waitForFunction(()=>document.querySelector('#mc-look-credit-note').textContent.includes('20 credits')).catch(async error=>{console.log('Prepared quote state:',await page.locator('#mc-look-status').textContent(),{grants,uploads,quotes,jobs});throw error;});
   assert.equal(page.url(),url);assert.equal(grants,returning?0:1);

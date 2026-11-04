@@ -48,7 +48,7 @@ export function loadLabAccount(){
 async function createLabAccount(){
   if(!isNativeLab()){
     const {frontendApi,publishableKey}=clerkInstanceForHostname(location.hostname);
-    const sdk=loadClerkBrowserSdk({frontendApi,publishableKey});
+    const sdk=boundedSetup(loadClerkBrowserSdk({frontendApi,publishableKey}),12000,'Clerk SDK timed out.','AUTH_SDK');
     // Presentation policy for the independent PV LAB domain only.
     // Clerk's production SSO settings still control whether GitHub is enabled.
     const studioClerk=frontendApi==='https://clerk.pvlab.studio';
@@ -58,7 +58,7 @@ async function createLabAccount(){
       style.textContent='.cl-socialButtonsBlockButton__github,.cl-socialButtonsIconButton__github{display:none!important}.cl-socialButtons{grid-template-columns:minmax(0,1fr)!important}';
       document.head.append(style);
     }
-    const ui=new Promise((resolve,reject)=>{
+    const ui=boundedSetup(new Promise((resolve,reject)=>{
       const s=document.createElement('script');
       s.src=frontendApi+'/npm/@clerk/ui@1/dist/ui.browser.js';
       s.async=true;s.crossOrigin='anonymous';
@@ -72,8 +72,8 @@ async function createLabAccount(){
         const error=new Error('Clerk UI could not load.');error.code='AUTH_UI';reject(error);
       };
       document.head.append(s);
-    });
-    const [clerk]=await boundedSetup(Promise.all([sdk,ui]),12000,'Account sign-in resources timed out.');
+    }),12000,'Clerk UI timed out.','AUTH_UI');
+    const [clerk]=await Promise.all([sdk,ui]);
     await boundedSetup(clerk.load({
       ui:{ClerkUI:window.__internal_ClerkUICtor},
       signInFallbackRedirectUrl:location.href,
@@ -83,7 +83,9 @@ async function createLabAccount(){
         socialButtonsIconButton__github:{display:'none'},
         socialButtons:{gridTemplateColumns:'minmax(0,1fr)'}
       }}}:{})
-    }),12000,'Your account session did not respond. Please reload.','AUTH_SESSION');
+    }),12000,'Your account session did not respond. Please reload.','AUTH_SESSION').catch(()=>{
+      const error=new Error('Clerk session initialization failed.');error.code='AUTH_SESSION';throw error;
+    });
     return clerk;
   }
   const {initLabMobileUI}=await import('./mobile-ui.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1');
