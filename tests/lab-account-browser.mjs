@@ -252,7 +252,8 @@ try{
     try{
       await page.goto(origin+'/lab/studio.html?tool=image');
       await page.locator('#app').waitFor({state:'visible'});
-      await page.locator('[data-welcome-mood="dream-blur"]').click();
+      // Isolate funding recovery from downloading curated Mood reference media.
+      await page.locator('#image-composer-prompt').fill('An editorial portrait with quiet natural light.');
       await page.waitForFunction(()=>document.getElementById('image-composer-generate').dataset.credits==='Retry credit check',{},{timeout:15000});
       assert.ok(rig.fundingErrors>0,'A background quote received the simulated funding error');
       assert.equal(await page.locator('#lab-pricing-overlay').evaluate(el=>el.open),false,'A failed background quote never interrupts Mood exploration');
