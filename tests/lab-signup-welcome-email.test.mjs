@@ -54,7 +54,7 @@ test('selected welcome email is an accessible HTML message with first-party edit
   const m=signupWelcomeMessage();
   assert.equal(m.from,'PV LAB <hello@pvlab.studio>');
   assert.equal(m.reply_to,'contact@parallelvisionlabel.com');
-  assert.equal(m.subject,'Welcome to PV LAB. Your creative space is ready.');
+  assert.equal(m.subject,'Welcome to PV LAB. Begin with a feeling.');
   for(const url of ['https://pvlab.studio/','https://pvlab.studio/moods']){
     assert.ok(m.html.includes(url));assert.ok(m.text.includes(url));
   }
@@ -63,7 +63,7 @@ test('selected welcome email is an accessible HTML message with first-party edit
   assert.match(m.html,/<a href="https:\/\/pvlab\.studio\/"[^>]*>Enter the studio<\/a>/);
   assert.match(m.html,/<a href="https:\/\/pvlab\.studio\/"[^>]*><img/);
   assert.doesNotMatch(m.html+m.text,/https:\/\/pvlab\.studio\/studio\.html/);
-  assert.match(m.html,/Your creative<br>space is ready\./);
+  assert.match(m.html,/Begin with<br>a feeling\./);
   assert.match(m.html,/Begin with a feeling/);
   assert.match(m.html,/background:#ffffff/,'The email background must blend with white Gmail instead of a giant beige panel');
   assert.doesNotMatch(m.html,/background:#eeedea|bgcolor="#eeedea"/);
@@ -83,8 +83,10 @@ test('selected welcome email is an accessible HTML message with first-party edit
   assert.doesNotMatch(m.html,/max-width:818px/,'Do not show a full-width poster above the welcome copy');
   assert.doesNotMatch(m.html,/max-width:680px|width="678"/,'Do not regress to the older narrow email');
   assert.match(m.html,/@media only screen and \(max-width:600px\)/,'Mobile design stays responsive');
-  assert.match(m.html,/<span class="pv-wordmark"[^>]*>PV LAB<\/span>/,
-    'PV LAB wordmark stays real selectable text, not a pasted graphic');
+  assert.match(m.html,/<img class="pv-wordmark"[^>]*alt="PV LAB"/,
+    'Email displays the canonical PV LAB logo as an accessible Gmail-compatible image');
+  assert.match(m.html,/src="https:\/\/pvlab\.studio\/email\/pvlab-wordmark-bold\.png"/);
+  assert.doesNotMatch(m.html,/font-weight:300;font-size:35px/,'Legacy thin text logo must not return');
   assert.match(m.html,/welcome-hero-horizontal\.jpg/);
   assert.doesNotMatch(m.html,/max-width:560px|width="558"/,
     'The old narrow phone poster proportions must never return');
@@ -93,8 +95,11 @@ test('selected welcome email is an accessible HTML message with first-party edit
   assert.match(m.text,/because you created a PV LAB account/);
   assert.doesNotMatch(m.html+m.text,/200 free credits|200 credits|free trial|sale|discount/i);
   assert.doesNotMatch(m.html,/tracking-pixel|utm_source|&#8599;|↗|<script/i);
-  assert.equal((m.html.match(/<img\b/g)||[]).length,4,
-    'One horizontal hero photograph and three editorial thumbnails, not a flat screenshot');
+  assert.equal((m.html.match(/<img\b/g)||[]).length,5,
+    'Real PV LAB wordmark, one hero photograph and three editorial details');
+  assert.ok(m.html.indexOf('class="pv-action"')<m.html.indexOf('class="pv-thumbs"'),
+    'The primary CTA must appear before the decorative thumbnails on mobile');
+  assert.match(m.html,/class="pv-card"/,'The email has a stable browser regression target');
   const assets=[
     'welcome-hero-horizontal.jpg','welcome-detail-1.jpg',
     'welcome-detail-2.jpg','welcome-detail-3.jpg'
@@ -127,6 +132,9 @@ test('selected welcome email is an accessible HTML message with first-party edit
   assert.ok(size.width/size.height>=1.55,
     'Welcome hero must be editorial landscape rather than a phone poster: '+JSON.stringify(size));
   assert.match(m.text,/ENTER THE STUDIO\nhttps:\/\/pvlab\.studio\//);
+  const logo=readFileSync(new URL('../lab/email/pvlab-wordmark-bold.png',import.meta.url));
+  assert.ok(logo.length>1000&&logo.length<30000,'The canonical raster wordmark is lightweight');
+  assert.equal(logo.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Gmail image must be an actual PNG');
 });
 
 test('registration queue is one-time, new studio customer only; never on sign-in or backfill',async t=>{
