@@ -1,34 +1,42 @@
 # PV LAB Admin MCP, 2026-11-04
 
-- Objective: reliable read-only backend queries from ChatGPT, reusing Stripe's
-  existing connector and avoiding repeated Owner-browser authentication.
-- Baseline main: `19e1995719ce155209fbe57a6767e134a3a4b4a7`.
-- Scoped source: `pvlab-admin-mcp/`; workflow `.github/workflows/pvlab-admin-mcp.yml`.
-- Separate Worker and manual deployment; existing Lab/Stripe/Studio flows unchanged.
-- Three tools: exact customer lookup, retained customer activity and bounded business
-  activity. Uploads, generated results, working copies, references and quoted/submitted
-  provider-input snapshots are separate evidence. Prompt text is not upload evidence.
-- Default disabled. OAuth JWT signature, exact issuer, exact /mcp audience, expiry,
-  explicit owner subject and `pvlab:read` scope enforced. `offline_access` requested
-  to support provider-managed refresh. No arbitrary SQL or write tools.
-- Original upload rows use exact `/sources/{asset-id}`. Generated output and derived
-  source paths are classified separately; deleted/unmatched records stay unknown.
-- Counts cover retained records, not all-time uploads. Closed accounts excluded.
-- No customer source media, storage keys, raw provider errors, keys or URLs exposed.
-- Prompts opt-in; audit logs contain tool/time/random request ID only.
-- D1 binding can technically write; the application implements fixed SELECTs only.
-- Deployment form reuses the existing GitHub Cloudflare secret, with no secret reads.
-- Local validation: 12 tests passed (including actual repository schema), syntax
-  checks passed and Wrangler 4.157.0 dry-run bundle succeeded. npm audit reported
-  zero known vulnerabilities across production and development dependencies.
-- SDK 1.32.2, jose 6.1.3 and Zod 4.6.7 pinned with package lock. No live credentials
-  used by tests and no production payment, generation, write or deployment performed.
-- Current publication status: NOT deployed, NOT connected to ChatGPT; local fixtures
-  do not establish any fact about Gonzalo or live payment/post-purchase behavior.
-- Remaining external requirements: production Clerk OAuth client/custom scope, exact
-  callback and resource-audience support, verified owner sub, and deployment rights
-  for a separate Worker/custom domain. These have not been provisioned or verified.
-- Next: review draft PR, configure existing production Clerk, run manual disabled
-  deployment after merge, verify access restrictions, connect/consent in ChatGPT,
-  then compare a real customer query with original live records.
-- Detailed operator steps and references: `README.md` in this directory.
+- Objective: private owner-only, read-only PV LAB queries from ChatGPT.
+- PR #839 merged by squash as `23cf6f313082b8267b830510085bea98c2a03784`.
+- Reviewed source head: `c2b3bec9992358c53fd04e4c0fe51fc2ae255cf2`.
+- Scope: `pvlab-admin-mcp/` and `.github/workflows/pvlab-admin-mcp.yml`.
+- Three fixed SELECT-only tools: find_customer, customer_activity, business_activity.
+- Separate Worker; disabled by default; manual publication only, not on merge.
+- Existing Lab, Stripe, generation, balances, accounts and databases were not modified.
+- Exact issuer/audience, signature, expiry, explicit owner sub and pvlab:read enforced.
+- D1 binding technically permits writes; application exposes fixed SELECTs only.
+- No R2, OWNER_DB, Stripe keys or provider credentials in the new service.
+- Retained uploads, generated outputs and derived/reference files remain distinct.
+- Historical missing/deleted provenance stays unknown; prompts are opt-in/untrusted.
+- Revalidation: 12/12 local tests passed against reviewed source and repository schema.
+- Syntax, Wrangler 4.157.0 dry-run and production dependency audit passed (0 findings).
+- Existing PR Actions: MCP, static site and approved Image UI checks all succeeded.
+- Local tests cover owner acceptance and anonymous/non-owner/invalid-token rejection.
+- These are fixture tests, NOT production OAuth authorization evidence.
+- Cloudflare connector read access verified for Workers/settings/zones/custom domains.
+- Production Lab LAB_DB binding matches database 36e13edc-1557-48a3-a49c-08bbc0f9618f.
+- pvlab.studio zone active; no account Worker custom domains returned.
+- No pvlab-admin-mcp Worker existed at inspection; no service deployed this session.
+- GitHub deployment credential write/custom-domain permissions remain unverified.
+- Connector read success does not establish GitHub secret deployment permissions.
+- Live public Clerk discovery inspected at:
+  https://clerk.pvlab.studio/.well-known/oauth-authorization-server
+- Issuer: https://clerk.pvlab.studio; JWKS: same origin /.well-known/jwks.json.
+- Discovery advertises S256 and offline_access, but NOT pvlab:read.
+- No CIMD or dynamic registration endpoint advertised at inspection.
+- Dedicated client/custom scope, exact ChatGPT callback and owner OAuth sub pending.
+- Exact resource audience issuance remains unverified; do not weaken audience checks.
+- Clerk documentation confirms custom scopes, PKCE and JWT access-token capability.
+- Clerk admin browser currently requires sign-in; no installable Clerk plugin found.
+- No secrets requested in chat, extracted, added to source or placed in workflow inputs.
+- Current status: merged, NOT deployed, NOT connected; no real MCP customer query.
+- Next: secure Clerk admin login; inspect production OAuth client/settings and owner.
+- Configure narrowly scoped client with consent/PKCE and secure credential management.
+- Verify access-token audience before activation; do not infer it from ID-token claims.
+- Then run manual disabled publication, verify deployment/bindings, and access denial.
+- Finally connect privately in ChatGPT, verify owner-only access and compare live records.
+- Detailed operator instructions and rollback: README.md in this directory.
