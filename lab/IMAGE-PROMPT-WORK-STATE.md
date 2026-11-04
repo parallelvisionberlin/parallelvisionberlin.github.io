@@ -1,3 +1,11 @@
+## 2026-11-04 | Public iPhone Inspiration portrait-height parity (09:37 approved reference)
+
+- Owner compares `IMG_8629.jpeg` (11:11 signed-out public Image, visibly shorter guest cards) against `IMG_8630.jpeg` (09:37 signed-in Image, the preferred reference). Both show a selected long Mood; the screenshot-specific issue is not merely heading spacing.
+- Verified source cause: resting signed-out preview enforces `height:clamp(134px,calc(100dvh - 455px),195px)!important` on guest cards even while the prompt is expanded. The signed-in cards use `height:clamp(214px,calc(56vw + 30px),282px)!important`. Earlier margin-only correction addressed spacing but preserved this size mismatch.
+- Scope: during an **expanded public Image prompt only**, match signed-in portrait card heights, use a restrained 8px carousel margin, release viewport scroll lock, and place the public composer after the cards in normal flow with a 6px gap. The editor remains fully editable and can be reached with a normal downward scroll. Do not force focus or scroll on Mood selection. The resting compact guest deck, signed-in layout, desktop, native, models and prices are unchanged.
+- Files: `mobile-image-compact-welcome.css`, `studio-guest-image.js`, version markers in `studio.html`, and strict phone browser geometry/scroll assertions in `lab-mobile-mood-entry.mjs`.
+- No paid requests. CI, merge, Cloudflare deploy and live iPhone observation require separate verification. Replaces the erroneous assumption in the prior 2026-11-04 note that public and signed-in card dimensions were already identical.
+
 ## 2026-11-04 | Restore iPhone Inspiration layout (owner's image 2)
 
 - User's two 09:35 iPhone screenshots show approximately identical card dimensions but markedly different title-to-card spacing. The signed-out screenshot is the relevant public Image guest view.
