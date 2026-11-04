@@ -44,7 +44,7 @@ async function setup(width,customer=true,overrides={}){
     if(url.pathname==='/api/migration/new'&&request.method()==='POST'){
       initialized=true;return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({linked:true,kind:'customer'})});
     }
-    if(url.pathname==='/api/quotes'&&overrides.previewFundingError)return route.fulfill({status:402,contentType:'application/json',body:JSON.stringify({error:'Insufficient credits.'})});
+    if(['/api/quotes','/api/customer/image-price'].includes(url.pathname)&&overrides.previewFundingError)return route.fulfill({status:402,contentType:'application/json',body:JSON.stringify({error:'Insufficient credits.'})});
     if(url.pathname==='/api/customer/wallet'){
       if(heldWallet)await heldWallet;
       return send({...session,activity:[{delta_credits:-42,kind:'generation',created_at:1720000000000},{delta_credits:1000,kind:'purchase',created_at:1719000000000}]});
@@ -253,8 +253,8 @@ try{
       await page.goto(origin+'/lab/studio.html?tool=image');
       await page.locator('#app').waitFor({state:'visible'});
       await page.locator('[data-welcome-mood="dream-blur"]').click();
-      await page.waitForFunction(()=>document.getElementById('generate').title.includes('Choose credits'),{},{timeout:15000});
-      assert.ok(writes.some(x=>x.path==='/api/quotes'),'A background quote received the simulated funding error');
+      await page.waitForFunction(()=>document.getElementById('image-composer-generate').dataset.credits==='Retry credit check',{},{timeout:15000});
+      assert.ok(writes.some(x=>['/api/quotes','/api/customer/image-price'].includes(x.path)),'A background quote received the simulated funding error');
       assert.equal(await page.locator('#lab-pricing-overlay').evaluate(el=>el.open),false,'A failed background quote never interrupts Mood exploration');
       const draft=await page.locator('#image-composer-prompt').inputValue();
       await page.locator('#image-composer-generate').click();
