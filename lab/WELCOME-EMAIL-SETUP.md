@@ -1,5 +1,14 @@
 # PV LAB | One-time welcome email activation
 
+## 2026-11-04 | Editorial welcome email refresh (PR in review)
+
+- Replace the obsolete thin, live-text PV LAB logo with a small, email-client-compatible PNG raster generated **directly from the canonical** `lab/branding/pvlab-wordmark-bold.svg`. New first-party asset: `lab/email/pvlab-wordmark-bold.png`. Preserve image-alt fallback.
+- Preserve the owner-approved fashion portrait, three visual detail images, black card and wider desktop two-column arrangement. On mobile, tighten whitespace, shorten copy, and place the main action **before** the optional three-image strip.
+- New subject: “Welcome to PV LAB. Begin with a feeling.” Headline: “Begin with a feeling.” Use concise, production-oriented language instead of long abstract copy.
+- Keep the existing homepage target `https://pvlab.studio/` on the photo and the primary Enter the studio CTA, and `https://pvlab.studio/moods` on the secondary action. No unapproved new credit promises or new promotional offers.
+- No changes to Clerk, Resend, D1, account eligibility, signup events, retries, idempotency, campaign tracking or balances.
+- Publish the new first-party PNG on Pages **before** deploying the revised Worker template, so new welcome emails never refer to a missing image. Only then verify a fresh verified-account email in a real Gmail mobile inbox. A PR/CI run is not proof of a production deploy.
+
 ## Gmail desktop and phone redesign (2026-10-23)
 
 - User screenshot of the first October 23 email showed an excessive full-width beige backdrop surrounding a narrow black single-column card, even though that card was responsive. This was a composition problem, not a flattened image or missing CSS.

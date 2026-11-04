@@ -12,7 +12,8 @@ const assets={
   'welcome-hero-horizontal.jpg':'lab/email/welcome-hero-horizontal.jpg',
   'welcome-detail-1.jpg':'lab/email/welcome-detail-1.jpg',
   'welcome-detail-2.jpg':'lab/email/welcome-detail-2.jpg',
-  'welcome-detail-3.jpg':'lab/email/welcome-detail-3.jpg'
+  'welcome-detail-3.jpg':'lab/email/welcome-detail-3.jpg',
+  'pvlab-wordmark-bold.png':'lab/email/pvlab-wordmark-bold.png'
 };
 try{
   for(const [width,height] of [[1440,900],[1100,850],[768,900],[430,900],[390,844],[320,740]]){
@@ -22,7 +23,7 @@ try{
     await page.route('https://pvlab.studio/email/**',async route=>{
       const name=route.request().url().split('/').at(-1);
       if(!Object.hasOwn(assets,name))return route.abort();
-      await route.fulfill({status:200,contentType:'image/jpeg',body:await readFile(resolve(assets[name]))});
+      await route.fulfill({status:200,contentType:name.endsWith('.png')?'image/png':'image/jpeg',body:await readFile(resolve(assets[name]))});
     });
     await page.setContent(html,{waitUntil:'load'});
     // Simulate Gmail's centered message reading pane on wide screens,
@@ -34,7 +35,7 @@ try{
       while(document.body.firstChild)wrapper.append(document.body.firstChild);
       document.body.append(wrapper);
     });
-    await page.waitForFunction(()=>[...document.images].length===4&&[...document.images].every(x=>x.complete&&x.naturalWidth>0));
+    await page.waitForFunction(()=>[...document.images].length===5&&[...document.images].every(x=>x.complete&&x.naturalWidth>0));
     const boxes=await page.evaluate(()=>{
       const rect=selector=>{
         const e=document.querySelector(selector);
@@ -51,15 +52,16 @@ try{
         return {x:xx,y,width,height,right,bottom};
       });
       return {body:rect('body'),card:rect('.pv-card'),hero:rect('img[src*="welcome-hero-horizontal"]'),
-        title:rect('.pv-title'),text:rect('.pv-description'),columns:cols,
+        title:rect('.pv-title'),text:rect('.pv-description'),logo:rect('.pv-wordmark'),columns:cols,
         actionColumns:actions,button:rect('.pv-action-col a[href="https://pvlab.studio/"]'),
         viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,
         imageCount:document.images.length};
     });
-    assert.equal(boxes.imageCount,4);
+    assert.equal(boxes.imageCount,5);
     assert.ok(boxes.card.width<=Math.min(width,822)+1,'Message overflow '+width+': '+JSON.stringify(boxes));
     assert.ok(boxes.scrollWidth<=width+1,'Horizontal scrolling on '+width+': '+JSON.stringify(boxes));
     assert.ok(boxes.hero.width<=boxes.card.width+1,'Hero overflows '+width);
+    assert.ok(boxes.logo.width>90&&boxes.logo.width<180,'Logo must stay legible and compact '+width);
     assert.ok(boxes.columns.length===2&&boxes.actionColumns.length===2);
     if(width>=1100){
       assert.ok(boxes.columns[1].x>boxes.columns[0].x+200,
@@ -79,6 +81,8 @@ try{
       assert.ok(boxes.actionColumns[1].y>=boxes.actionColumns[0].bottom-1,
         'Mobile CTA and secondary link must stack');
     }
+    assert.ok(boxes.button.y<await page.locator('.pv-thumbs').evaluate(x=>x.getBoundingClientRect().y),
+      'The primary action should precede decorative thumbnails on '+width);
     assert.deepEqual(errors,[]);
     const file=artifacts+'/welcome-'+width+'.png';
     await page.screenshot({path:file,fullPage:true});
