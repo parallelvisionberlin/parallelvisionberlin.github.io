@@ -158,14 +158,14 @@ try{
    assert.equal(await fashion.locator('.wardrobe-item').count(),2,'All photographs shows private outfit views');
    await fashion.locator('#fashion-wardrobe-tab-collections').click();
    assert.equal(await fashion.locator('.wardrobe-item').count(),1,'Collections view restores original saved outfits');
-   if(role==='owner')await page.screenshot({path:'test-results/fashion-wardrobe-archive-desktop.png'});
+   if(role==='owner')await page.screenshot({path:'test-results/fashion-reference-wardrobe-archive-desktop.png'});
    await page.setViewportSize({width:390,height:844});
    const mobileWardrobe=await fashion.locator('#fashion-wardrobe').evaluate(el=>{
      const r=el.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,viewport:innerWidth,scroll:el.scrollWidth};
    });
    assert.ok(mobileWardrobe.left>=0&&mobileWardrobe.right<=mobileWardrobe.viewport,'Wardrobe fits phone viewport');
    assert.ok(mobileWardrobe.scroll<=mobileWardrobe.width+1,'No horizontal Wardrobe scroll on phones');
-   if(role==='owner')await page.screenshot({path:'test-results/fashion-wardrobe-archive-mobile.png'});
+   if(role==='owner')await page.screenshot({path:'test-results/fashion-reference-wardrobe-archive-mobile.png'});
    await page.setViewportSize({width:1440,height:900});
    await fashion.locator('.wardrobe-item').click();
    assert.equal(await fashion.locator('.wardrobe-item').count(),2,'Saved collection opens its original photographs');
@@ -284,6 +284,56 @@ try{
    assert.equal(payload.name,'PVSCENE1|outfits|Test editorial jacket');
    assert.equal(payload.referenceRoles[0].role,'outfit');
    await fashion.locator('#fashion-wardrobe-close').click();
+   // Brand imagery must never be misrepresented as a customer's stored library.
+   // Exercise the genuine zero-Outfit response on desktop and mobile.
+   const realPacks=mockPacks.splice(0);
+   await page.setViewportSize({width:1440,height:900});
+   await fashion.locator('#fashion-wardrobe-open').click();
+   await fashion.locator('.wardrobe-empty-hero').waitFor({state:'visible'});
+   assert.equal(await fashion.locator('.wardrobe-item').count(),0,'Zero saved Outfits never becomes fake collections');
+   assert.equal(await fashion.locator('.wardrobe-empty-example img').count(),4,'Approved empty composition shows four reference photos');
+   const emptyDesktop=await fashion.locator('#fashion-wardrobe').evaluate(dialog=>{
+     const shadow=dialog.getRootNode();
+     const header=shadow.querySelector('.wardrobe-dialog-head');
+     const title=shadow.querySelector('#fashion-wardrobe-title');
+     const story=shadow.querySelector('.wardrobe-empty-story');
+     const images=[...shadow.querySelectorAll('.wardrobe-empty-example img')];
+     const disclos=shadow.querySelector('.wardrobe-empty-disclosure');
+     return {headerHeight:header.getBoundingClientRect().height,
+       titleSize:parseFloat(getComputedStyle(title).fontSize),
+       tabsHidden:getComputedStyle(shadow.querySelector('.wardrobe-dialog-tools')).display==='none',
+       addHeaderHidden:getComputedStyle(shadow.querySelector('#fashion-wardrobe-new')).display==='none',
+       storyWidth:story.getBoundingClientRect().width,
+       imagesLoaded:images.every(img=>img.complete&&img.naturalWidth>0),
+       clearlyExamples:/PREVIEW ONLY.*NO SAVED OUTFITS/.test(disclos.textContent)};
+   });
+   assert.ok(emptyDesktop.headerHeight<195,'Wardrobe masthead remains restrained: '+JSON.stringify(emptyDesktop));
+   assert.ok(emptyDesktop.titleSize<=59,'No giant duplicate heading');
+   assert.ok(emptyDesktop.tabsHidden&&emptyDesktop.addHeaderHidden,'No redundant empty archive controls');
+   assert.ok(emptyDesktop.storyWidth>350,'Editorial empty story has room to breathe');
+   assert.equal(emptyDesktop.imagesLoaded,true,'Actual PV LAB photographic references load');
+   assert.equal(emptyDesktop.clearlyExamples,true,'References are labelled as unsaved examples');
+   await page.screenshot({path:'test-results/fashion-reference-wardrobe-approved-empty-desktop.png'});
+   await page.setViewportSize({width:390,height:844});
+   const emptyMobile=await fashion.locator('#fashion-wardrobe').evaluate(el=>{
+     const shadow=el.getRootNode(),cards=shadow.querySelector('.wardrobe-empty-examples');
+     return {right:el.getBoundingClientRect().right,viewport:innerWidth,
+       cardWidth:cards.getBoundingClientRect().width,
+       count:cards.querySelectorAll('img').length,
+       overflow:document.documentElement.scrollWidth>innerWidth};
+   });
+   assert.ok(emptyMobile.right<=emptyMobile.viewport+1&&!emptyMobile.overflow,'Mobile empty archive does not overflow');
+   assert.equal(emptyMobile.count,4,'Mobile preserves editorial reference photographs');
+   await page.screenshot({path:'test-results/fashion-reference-wardrobe-approved-empty-mobile.png'});
+   const beforeEmpty=uploads;
+   await fashion.locator('.wardrobe-empty-explore').click();
+   assert.equal(uploads,beforeEmpty,'Explore inspiration never uploads or bills');
+   await fashion.locator('.wardrobe-empty-action').click();
+   assert.equal(await fashion.locator('#wardrobe-create-form').isVisible(),true,'First-piece action opens the actual save form');
+   await fashion.locator('#wardrobe-new-cancel').click();
+   await fashion.locator('.wardrobe-empty-hero').waitFor({state:'visible'});
+   await fashion.locator('#fashion-wardrobe-close').click();
+   mockPacks.push(...realPacks);
   }
   await fashion.locator('#fashion-history .history-item').first().click();
   assert.equal(submits,1,'History opens an existing result without generation');
