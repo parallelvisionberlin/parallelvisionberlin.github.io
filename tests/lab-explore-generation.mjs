@@ -39,6 +39,9 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
   if(url.pathname==='/lab/native-account.js')return route.fulfill({contentType:'text/javascript',body:accountSource(scenario==='guest')});
   if(url.hostname==='parallel-vision-lab.parallelvision.workers.dev'){
    const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
+   // Keep existing measurement and currency requests synthetic during UI QA.
+   if(url.pathname==='/api/customer/mood-offer-event'&&req.method()==='POST')return send({ok:true});
+   if(url.pathname==='/api/public/local-currency')return send({currency:'EUR',locale:'en-IE',rate:1,approximate:false});
    if(url.pathname==='/api/session')return send(scenario==='paused'
      ?{customer:true,generationReady:false,trialGenerationPaused:true,billingReady:true,config:{enabled:false}}
      :scenario==='review'
@@ -121,7 +124,9 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
    assert.equal(await page.locator('#mc-look-title').innerText(),'Fisheye 2000');
    assert.ok(compact.drop.height>=150,scenario+': separate photobooth upload box');
    assert.equal(compact.direction.height,0,scenario+': no prompt field');
-   assert.ok(compact.photo.height<=185,scenario+': compact photographic header');
+   assert.ok(compact.photo.height<=220,scenario+': compact photographic header');
+   assert.ok(compact.generate.height>=54,scenario+': approved larger Generate target');
+   assert.ok(compact.title.top>=compact.photo.top&&compact.title.bottom<=compact.photo.bottom+2,scenario+': title remains inside artwork');
    assert.ok(compact.title.bottom<compact.drop.top,scenario+': title is above upload box');
    assert.ok(compact.generate.bottom<=compact.make.top+1,scenario+': secondary action sits below Generate');
    assert.ok(compact.generate.bottom<=compact.dialog.bottom+2,scenario+': Generate appears without scrolling the Mood dialog');

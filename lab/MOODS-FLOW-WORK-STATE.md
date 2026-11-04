@@ -1,3 +1,15 @@
+## Mobile Mood framing / 2026-11-04
+
+- Approved reference: Taller Generate button in PV LAB.png, libfile_fadd78993d808191934f69622a576840.
+- Baseline main b06571f3f3238aaa510f12a949997380ecf20a63.
+- Mobile only: photographic banner about 20% taller; title remains over the image; original Mood assets retained.
+- Individual face-safe framing for Polaroid 600, Berlin Rave, Fisheye 2000, Synthetic Romance and Midnight Reverie.
+- Comfortable upload target retained (150–180px); Generate 60px / 16px type, 54px on shorter screens.
+- Decorative mobile Browse/Generate arrows removed to match approved mockup.
+- No generation, billing, account, desktop, or result-state behavior changed.
+- Approved Image contract passed 5/5 before edits. Explore regression updated for approved dimensions.
+- Publication and browser checks pending; no live behavior claimed yet.
+
 ## Commercial funnel instrumenting / 2026-11-03 (draft PR)
 
 - Objective: after 65 new accounts and 59 image-generating accounts but only 1 checkout in the 1–3 Nov cohort, measure the missing offer impression-to-click step. Meta attributed 26 registrations but has no per-customer join, so historical ad attribution cannot be reconstructed.
