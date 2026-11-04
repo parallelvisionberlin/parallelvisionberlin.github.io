@@ -21,7 +21,7 @@ class DB {
 }
 function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
-let uploadedReference=null;
+let uploadedReference=null,providerFailureDetails={};
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if(u.pathname.endsWith('.png'))return new Response(new Uint8Array([137,80,78,71,13,10,26,10,0]),{headers:{'content-type':'image/png'}});return new Response(new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]),{headers:{'content-type':'video/mp4'}});}
  if(u.hostname==='test.r2.cloudflarestorage.com'){assert.equal(options.method,'PUT');assert.equal(new Headers(options.headers).get('authorization'),null);uploadedReference=new Uint8Array(options.body);return new Response(null,{status:200});}
  assert.equal(u.hostname,'api.spicyapi.ai');assert.equal(options.headers.Authorization,'Bearer '+KEY);
@@ -30,7 +30,7 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
  if(u.pathname.endsWith('/files/fil_synthetic_reference/commit')){assert.equal(options.method,'POST');return Response.json({code:200,data:{fileId:'fil_synthetic_reference',status:'ready',bytes:uploadedReference.length,contentType:'image/png',sha256:Buffer.from(await crypto.subtle.digest('SHA-256',uploadedReference)).toString('hex'),uri:'spicy://f/fil_synthetic_reference',expiresAt:new Date(Date.now()+86400000).toISOString()}});}
  if(u.pathname.endsWith('/jobs/quote')){quotedRequest=JSON.parse(options.body);return Response.json({code:200,data:{quoteId:'synthetic-quote',estimatedCost:maxPrice,maxCharge:maxPrice,currency:'USD',expiresAt:new Date(Date.now()+300000).toISOString()}});}
  if(u.pathname.endsWith('/jobs/createTask')){createCount++;const payload=JSON.parse(options.body);assert.deepEqual({model:payload.model,input:payload.input},quotedRequest);assert.equal(payload.quoteId,'synthetic-quote');assert.equal(payload.expectedCost,maxPrice);assert.match(options.headers['Idempotency-Key'],/^[a-f0-9-]{36}$/);if(createMode==='timeout')throw new Error('simulated interrupted network');if(createMode==='pricechange')return Response.json({code:40901,msg:'quote changed',data:null},{status:409});return Response.json({code:200,data:{taskId:'job_synthetic',state:'queued'}},{status:202});}
- if(u.pathname.endsWith('/jobs/recordInfo'))return Response.json({code:200,data:{taskId:'job_synthetic',state:providerState,settled:providerState==='succeeded',cost:'2.7',output:{assets:[(quotedRequest?.model?.includes('seedream')||quotedRequest?.model?.includes('image-upscaler'))?{mime:'image/png',url:'https://cdn.spicyapi.ai/test.png'}:{mime:'video/mp4',url:'https://cdn.spicyapi.ai/test.mp4'}]}}});
+ if(u.pathname.endsWith('/jobs/recordInfo'))return Response.json({code:200,data:{taskId:'job_synthetic',state:providerState,settled:providerState==='succeeded',cost:'2.7',output:{assets:[(quotedRequest?.model?.includes('seedream')||quotedRequest?.model?.includes('image-upscaler'))?{mime:'image/png',url:'https://cdn.spicyapi.ai/test.png'}:{mime:'video/mp4',url:'https://cdn.spicyapi.ai/test.mp4'}]},...providerFailureDetails}});
  throw new Error('Unmocked network request: '+url);
 };
 const auth=await token(),guest=await token('user_Guest');
@@ -61,6 +61,30 @@ test('Start and end frames remain signed private URLs and exact quotes submit on
  for(const key of ['image_url','last_image_url']){const u=new URL(quotedRequest.input[key]);assert.equal((await req(env,u.pathname+u.search,{authToken:null,headers:{Origin:''}})).status,200);}
  const results=await Promise.all([req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}}),req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})]);
  assert.equal(createCount,1);assert.equal((await results[0].json()).job.settings.engine,'seedance');
+});
+test('Seedance audio rejection preserves the requested soundtrack, reports the submitted failure and never retries',async()=>{
+ const previousState=providerState,previousDetails=providerFailureDetails;
+ try{
+  for(const audio of [true,false]){
+   const{env}=fixture(),id=await setup(env);createCount=0;createMode='ok';providerState='queued';providerFailureDetails={};
+   const settings={...sd(),audio,prompt:'A chrome couture model in the desert. Natural wind and garment movement.'};
+   const response=await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,settings}}),q=await response.json();
+   assert.equal(response.status,200);assert.equal(quotedRequest.input.generate_audio,audio);
+   assert.equal(quotedRequest.input.prompt,settings.prompt);assert.equal(quotedRequest.input.reference_audio_urls,undefined);
+   const created=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}}),job=(await created.json()).job;
+   assert.equal(createCount,1);
+   providerState='failed';providerFailureDetails={errorCode:'content_rejected',errorMessage:'The model blocked the result because the audio may match copyrighted music.',request_id:'request_audio_rejected',settled:true,cost:'0',output:{assets:[]}};
+   const failed=(await(await req(env,'/api/jobs/'+job.id)).json()).job;
+   assert.equal(failed.status,'failed');assert.equal(failed.settings.audio,audio);assert.equal(failed.settings.prompt,settings.prompt);
+   assert.match(failed.error,/\[content_rejected\].*audio may match copyrighted music/);
+   assert.match(failed.error,/Request: request_audio_rejected/);
+   assert.match(failed.error,/The submitted task ended without a result\. No automatic retry was submitted\./);
+   assert.doesNotMatch(failed.error,/No new generation was submitted/);
+   assert.equal(env.LAB_DB.db.prepare('SELECT settled_cost FROM jobs WHERE id=?').get(job.id).settled_cost,0);
+   await req(env,'/api/jobs/'+job.id);await req(env,'/api/jobs');
+   assert.equal(createCount,1,'Reading a rejected job must not create another paid task or silently disable audio');
+  }
+ }finally{providerState=previousState;providerFailureDetails=previousDetails;}
 });
 test('Thirty image references supported without widening Wan or Image limits',async()=>{
  const{env}=fixture(),first=await setup(env),ids=[first];

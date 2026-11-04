@@ -838,7 +838,7 @@ function providerFailure(result) {
   const requestId=cleanProviderDetail(result?.request_id??result?.requestId);
   return 'SpicyAPI reported '+cleanProviderDetail(result?.state||'failed')+(code?' ['+code+']':'')+': '+
     (message||'No specific failure reason was supplied by the provider.')+(requestId?' Request: '+requestId:'')+
-    ' | No new generation was submitted.';
+    ' | The submitted task ended without a result. No automatic retry was submitted.';
 }
 async function backfillFailureDetails(env) {
   const jobs=await rows(env,"SELECT * FROM jobs WHERE state='failed' AND provider_id IS NOT NULL AND error=? AND created_at>? ORDER BY created_at DESC LIMIT 3",'The provider ended this job without a downloadable result. Check its dashboard for billing details.',now()-86400000);

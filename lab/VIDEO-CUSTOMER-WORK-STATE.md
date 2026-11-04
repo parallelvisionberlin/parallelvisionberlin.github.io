@@ -1,3 +1,17 @@
+## Seedance audio rejection investigation, 2026-11-04
+- Objective: diagnose the chrome-couture start-frame failure while retaining native audio.
+- Source baseline: `8564944` on main. Screenshot: image(20261104-122756).png, Library libfile_eb066422f77c8191ba96096dea2871d4.
+- Verified routing: standard Seedance 2.5 image-to-video; `generate_audio` follows the saved audio choice in the bound quote and paid submission. No reference audio is injected for start-frame mode.
+- The screenshot contains provider `content_rejected` and its generated-soundtrack copyright explanation. Official SpicyAPI changelog documents this exact reason. https://spicyapi.ai/changelog and https://docs.spicyapi.ai/docs/errors
+- Actual PV LAB defect: providerFailure appended “No new generation was submitted” to terminal outcomes of accepted tasks. It now states that the submitted task ended without a result and no automatic retry was submitted, retaining the original provider reason and request ID.
+- Files: lab-worker/worker.mjs; tests/lab-seedance.test.mjs; this checkpoint.
+- Regression exercises quote, submission and terminal read with audio on/off, unchanged prompt, no injected audio reference, zero provider settlement, preserved settings and exactly one paid task across repeated reads.
+- Local focused Worker, Seedance and signed-callback tests: 122/122 passed. No real generation or payment performed.
+- Scope limitation: this corrects failure reporting only. It does not fix the provider copyright refusal or establish that this specific request will succeed with audio. No silent soundtrack removal, provider switch or retry was added.
+- Production record/refund unavailable: the diagnostic browser is signed out. No actual job ID, raw provider record or live refund was verified.
+- Publication: pending PR; no merge, Worker deployment or production verification claimed.
+- Next: review the correction; obtain the affected provider task record for upstream investigation. Any changed audio direction needs to preserve the requested sound and be explicitly visible; successful generation with audio remains unverified.
+
 ## Reserved Generate footer during Video scrolling, 2026-11-03
 - Objective: keep the complete Generate action visible when scrolling upward over Output settings.
 - Base: main d979a24dd06bf8b0c14ecff27267bbca4669c589. Reviewed head: 5243aa9d4f885d1349f273ecf258469db628dd23.
