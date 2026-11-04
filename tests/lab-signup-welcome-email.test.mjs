@@ -50,83 +50,43 @@ function fixture(t,{enabled='true',key='re_fake_private_unit_test_key'}={}){
 }
 const sendResponse=()=>Response.json({id:'49a3999c-0ce1-4ea6-ab68-afcd6dc2e794'});
 
-test('selected welcome email is an accessible HTML message with first-party editorial images and a working homepage CTA',()=>{
+test('approved editorial keeps original imagery, accessible actions and truthful transactional copy',()=>{
   const m=signupWelcomeMessage();
   assert.equal(m.from,'PV LAB <hello@pvlab.studio>');
   assert.equal(m.reply_to,'contact@parallelvisionlabel.com');
-  assert.equal(m.subject,'Welcome to PV LAB. Your creative space is ready.');
-  for(const url of ['https://pvlab.studio/','https://pvlab.studio/moods']){
-    assert.ok(m.html.includes(url));assert.ok(m.text.includes(url));
+  assert.equal(m.subject,'Welcome to PV LAB. Create beyond one image.');
+  const routes=['','moods','full-editorial.html','studio.html?tool=image','studio.html?tool=video','#create-your-character'];
+  for(const route of routes){
+    const url='https://pvlab.studio/'+route;
+    assert.ok(m.html.includes('href="'+url+'"'),url);
+    assert.ok(m.text.includes(url),url+' plain-text fallback');
   }
-  // User-approved action opens the homepage hero, not a direct route to the
-  // editor or its paywall. Entire hero photo has the same click destination.
-  assert.match(m.html,/<a href="https:\/\/pvlab\.studio\/"[^>]*>Enter the studio<\/a>/);
-  assert.match(m.html,/<a href="https:\/\/pvlab\.studio\/"[^>]*><img/);
-  assert.doesNotMatch(m.html+m.text,/https:\/\/pvlab\.studio\/studio\.html/);
-  assert.match(m.html,/Your creative<br>space is ready\./);
-  assert.match(m.html,/Begin with a feeling/);
-  assert.match(m.html,/background:#ffffff/,'The email background must blend with white Gmail instead of a giant beige panel');
-  assert.doesNotMatch(m.html,/background:#eeedea|bgcolor="#eeedea"/);
-  assert.match(m.html,/max-width:820px/,'Desktop Gmail must use the approved wider editorial layout');
-  assert.match(m.html,/font-size:0;text-align:left/,'Hybrid sections must not get Gmail whitespace gaps');
-  assert.equal((m.html.match(/class="pv-col"/g)||[]).length,2,
-    'Portrait and welcome text form real desktop editorial columns');
-  assert.equal((m.html.match(/class="pv-action-col"/g)||[]).length,2,
-    'Button and secondary link are balanced on desktop');
-  assert.match(m.html,/\.pv-col\{display:block!important;width:100%!important;max-width:100%!important\}/,
-    'Mobile stacks the editorial text columns');
-  assert.match(m.html,/\.pv-action-col\{display:block!important;width:100%!important;max-width:100%!important\}/,
-    'Mobile stacks the action/link columns');
-  assert.match(m.html,/max-width:355px/);
-  assert.match(m.html,/max-width:341px/,'The portrait is compact within its editorial column');
-  assert.match(m.html,/max-width:375px/);
-  assert.doesNotMatch(m.html,/max-width:818px/,'Do not show a full-width poster above the welcome copy');
-  assert.doesNotMatch(m.html,/max-width:680px|width="678"/,'Do not regress to the older narrow email');
-  assert.match(m.html,/@media only screen and \(max-width:600px\)/,'Mobile design stays responsive');
-  assert.match(m.html,/<span class="pv-wordmark"[^>]*>PV LAB<\/span>/,
-    'PV LAB wordmark stays real selectable text, not a pasted graphic');
-  assert.match(m.html,/welcome-hero-horizontal\.jpg/);
-  assert.doesNotMatch(m.html,/max-width:560px|width="558"/,
-    'The old narrow phone poster proportions must never return');
-  assert.doesNotMatch(m.html,/\.pv-thumbs td\{display:block/,
-    'Mobile thumbnails should stay one editorial row, not stack vertically');
+  assert.match(m.html,/<h1[^>]*>Create beyond<br>one image\.<\/h1>/);
+  assert.match(m.html,/<a class="pv-button"[^>]*>Enter the studio<\/a>/);
+  assert.match(m.html,/>Explore Moods<\/a>/);
+  assert.match(m.html,/alt="PV LAB"/);
+  assert.match(m.html,/@media only screen and \(max-width:600px\)/);
+  assert.match(m.html,/bgcolor="#171b18"/,'Hero copy has a solid fallback when backgrounds are blocked');
+  assert.match(m.html,/v:fill type="frame"/,'Outlook gets a background-image fallback');
+  assert.match(m.html,/welcome-20261104-hero-mobile\.jpg/);
+  assert.match(m.html,/welcome-20261104-hero-desktop\.jpg/);
   assert.match(m.text,/because you created a PV LAB account/);
-  assert.doesNotMatch(m.html+m.text,/200 free credits|200 credits|free trial|sale|discount/i);
-  assert.doesNotMatch(m.html,/tracking-pixel|utm_source|&#8599;|↗|<script/i);
-  assert.equal((m.html.match(/<img\b/g)||[]).length,4,
-    'One horizontal hero photograph and three editorial thumbnails, not a flat screenshot');
-  const assets=[
-    'welcome-hero-horizontal.jpg','welcome-detail-1.jpg',
-    'welcome-detail-2.jpg','welcome-detail-3.jpg'
-  ];
-  for(const filename of assets){
-    const url='https://pvlab.studio/email/'+filename;
-    assert.ok(m.html.includes('src="'+url+'"'),filename+' must load from PV LAB');
-    const data=readFileSync(new URL('../lab/email/'+filename,import.meta.url));
-    assert.ok(data.length>2000&&data.length<200000,'Email images stay lightweight');
-    assert.equal(data[0],0xff);assert.equal(data[1],0xd8);
-    assert.equal(data[2],0xff,'Hosted asset must be an actual JPEG');
+  assert.doesNotMatch(m.html+m.text,/free (?:credits|image|trial)|welcome credits|200 credits|discount|one world/i);
+  assert.doesNotMatch(m.html,/tracking-pixel|utm_source|&#8599;|↗|<script|welcome-hero-horizontal|welcome-detail-/i);
+  const images=[...m.html.matchAll(/<img\b[^>]*>/g)].map(m=>m[0]);
+  assert.equal(images.length,7);
+  for(const image of images){
+    assert.match(image,/alt="[^" ]+[^" ]*[^"]*"/,'Every image has meaningful alternative text');
+    assert.match(image,/src="https:\/\/pvlab\.studio\/email\//,'Only first-party imagery');
+    assert.doesNotMatch(image,/width="1"|height="1"/);
   }
-  assert.match(m.html,/<img[^>]+alt=/);
-  const hero=readFileSync(new URL('../lab/email/welcome-hero-horizontal.jpg',import.meta.url));
-  // JPEG SOF height/width: ensure this is a LANDSCAPE header, not another
-  // tall poster asset embedded in a centered desktop email.
-  const size=(()=>{
-    for(let i=2;i<hero.length-10;){
-      if(hero[i]!==0xff){i++;continue;}
-      const marker=hero[i+1];
-      if([0xc0,0xc1,0xc2,0xc3,0xc5,0xc6,0xc7,0xc9,0xca,0xcb].includes(marker))
-        return {height:hero.readUInt16BE(i+5),width:hero.readUInt16BE(i+7)};
-      if(marker===0xd8||marker===0xd9||marker===0x01){i+=2;continue;}
-      const length=hero.readUInt16BE(i+2);
-      if(length<2)break;
-      i+=2+length;
-    }
-    throw Error('No JPEG dimensions found for email hero');
-  })();
-  assert.ok(size.width/size.height>=1.55,
-    'Welcome hero must be editorial landscape rather than a phone poster: '+JSON.stringify(size));
-  assert.match(m.text,/ENTER THE STUDIO\nhttps:\/\/pvlab\.studio\//);
+  const urls=[...new Set(m.html.match(/https:\/\/pvlab\.studio\/email\/[a-zA-Z0-9.-]+/g))];
+  assert.equal(urls.length,9,'All nine approved assets are referenced');
+  for(const url of urls){
+    const bytes=readFileSync(new URL('../lab/email/'+url.split('/').at(-1),import.meta.url));
+    assert.ok(bytes.length>1000&&bytes.length<200000,'Compact high-quality original: '+url);
+    assert.equal(bytes.subarray(0,url.endsWith('.png')?8:3).toString('hex'),url.endsWith('.png')?'89504e470d0a1a0a':'ffd8ff');
+  }
 });
 
 test('registration queue is one-time, new studio customer only; never on sign-in or backfill',async t=>{
