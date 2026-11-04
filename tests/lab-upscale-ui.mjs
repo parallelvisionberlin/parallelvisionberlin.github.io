@@ -137,6 +137,36 @@ const precisionModel={engine:'topaz-precision',model:'topaz/upscale/image/precis
 const wonderModel={engine:'topaz-wonder',model:'topaz/upscale/image/generative',quality:'Wonder 3.5',credits:37};
 
 try{
+ // A quote review can leave the hidden technical disclosure open. Exercise
+ // that retained state through real upload, mocked processing and Clear.
+ for(const width of [1920,1440,390]){
+   const footer=await workspace([],width);await footer.page.click('#tool-upscale');
+   const assertFooter=async state=>{
+     assert.equal(await footer.page.locator('#upscale-price').isVisible(),false,state+': optional price row stays hidden even with technical disclosure open');
+     assert.equal(await footer.page.locator('#save').isVisible(),false,state+': legacy Save upscale draft stays hidden');
+     const geometry=await footer.page.locator('#app>.workspace>.controls').evaluate(el=>{
+       const zone=el.querySelector(':scope>.generate-zone').getBoundingClientRect();
+       const button=el.querySelector('#generate').getBoundingClientRect();
+       return {footerHeight:zone.height,buttonHeight:button.height,buttonBottom:button.bottom,footerBottom:zone.bottom};
+     });
+     assert.ok(geometry.footerHeight<160,state+': footer never consumes the settings deck: '+JSON.stringify(geometry));
+     assert.ok(geometry.buttonHeight>=44&&geometry.buttonHeight<=51,state+': Upscale retains its approved size');
+     assert.ok(geometry.buttonBottom<=geometry.footerBottom+1,state+': action remains inside its footer');
+   };
+   await assertFooter('Initial '+width);
+   await footer.page.locator('#upscale-info').evaluate(el=>{el.open=true;});
+   await uploadSmall(footer.page);await assertFooter('Uploaded '+width);
+   const paid=upscale(footer);await assertFooter('Processing '+width);await paid;
+   await assertFooter('Submitted '+width);
+   await footer.page.screenshot({path:'test-results/upscaler-footer-submitted-'+width+'.png',fullPage:true});
+   await footer.page.getByRole('button',{name:'Clear',exact:true}).click();
+   await footer.page.waitForFunction(()=>!document.getElementById('app').classList.contains('pv-upscale-source-ready'));
+   await assertFooter('Cleared '+width);
+   await footer.page.screenshot({path:'test-results/upscaler-footer-cleared-'+width+'.png',fullPage:true});
+   assert.equal(await footer.page.locator('.pv-upscale-empty-drop').isVisible(),true,'Clear restores the approved upload stage');
+   assert.equal(countPaid(footer),1,'Clear never starts another generation');
+   await footer.context.close();ok('Compact footer through upload, processing and Clear at '+width+'px');
+ }
  // Regression for the previous shared-reference leak. Image, Video and
  // Upscaler use separate reference collections, including across Reset.
  for(const width of [1440,390]){

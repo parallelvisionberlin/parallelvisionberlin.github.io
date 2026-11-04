@@ -1778,10 +1778,17 @@
 
 /* Hide the redundant optional price-check row in Image Upscaler.
    The main Upscale action retains the existing quote and billing flow. */
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #upscale-price{
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #upscale-price,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls:has(#upscale-info[open]) #upscale-price:not([hidden]){
+  /* Quote validation can open the hidden technical disclosure. Its legacy
+     selector must not restore this optional row and its 260px flex basis. */
   display:none!important;
+  flex:0 0 auto!important;
 }
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #save{
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls #save,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls:has(#upscale-info[open]) #save:not(:disabled){
+  /* Image Upscaler has one primary action; do not revive the legacy draft action. */
+  display:none!important;
   flex:0 0 auto!important;
   min-height:40px!important;
   height:40px!important;
