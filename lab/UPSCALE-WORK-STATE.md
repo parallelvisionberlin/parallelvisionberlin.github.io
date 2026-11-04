@@ -1,5 +1,22 @@
 # PV LAB Premium Upscale work state
 
+## Footer state repair / 2026-11-04
+- Objective: preserve the approved initial Upscaler deck after upload, processing and Clear.
+- Base: main `08be9b8`; isolated branch `fix/upscaler-footer-state-20261104`.
+- Verified cascade conflict: assets.css restores #upscale-price under .controls:has(#upscale-info[open]); its selector beats the November 2 hide rule.
+- That optional row retains flex:1 1 260px, turning its horizontal basis into a large vertical footer gap.
+- Quote validation can open the hidden disclosure; clearMedia resets quote data but does not close the disclosure.
+- Fix: match the open-disclosure selector when hiding the redundant optional row and reset its flex basis.
+- Preserve the source, model cards, approved initial deck, Save draft, quote status and paid submission logic.
+- Files: upscale-studio-v5.css, studio.html (20261104-stable-action-footer1), tests/lab-upscale-ui.mjs.
+- Added browser coverage: initial/open-disclosure upload, mocked processing/submission and Clear at 1920/1440/390px; no real paid jobs.
+- Local checks: approved Image contract 5/5, JavaScript syntax, diff whitespace pass.
+- Local browser suite unavailable: bundled Playwright has no Chromium executable. Use existing GitHub browser CI.
+- Production read-only inspection confirms the old CSS version and the shared signed-in Upscaler; no paid action clicked.
+- Implementation committed locally as `28f568b` (application/test bytes); final documentation records the push block.
+- Automatic approval review rejected the GitHub push: remote/export authorization not explicit enough. No PR, CI run, merge or deployment created.
+- Next action: obtain explicit permission to push this repair branch to parallelvisionberlin/parallelvisionberlin.github.io and open a PR; then run existing CI and verify production separately.
+
 ## Sidebar screenshot investigation / 2026-11-03
 - User screenshot showed a large action-footer gap with the optional price row and Save upscale draft.
 - Diagnosis: legacy assets.css applies flex:1 1 260px to #upscale-price and flex:1 0 100% to #save; these row-layout values consume vertical space in the column footer.
