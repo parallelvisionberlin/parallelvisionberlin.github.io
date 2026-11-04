@@ -8,8 +8,8 @@
 - Regression exercises quote, submission and terminal read with audio on/off, unchanged prompt, no injected audio reference, zero provider settlement, preserved settings and exactly one paid task across repeated reads.
 - Local focused Worker, Seedance and signed-callback tests: 122/122 passed. No real generation or payment performed.
 - Scope limitation: this corrects failure reporting only. It does not fix the provider copyright refusal or establish that this specific request will succeed with audio. No silent soundtrack removal, provider switch or retry was added.
-- Production record/refund unavailable: the diagnostic browser is signed out. No actual job ID, raw provider record or live refund was verified.
-- Publication: pending PR; no merge, Worker deployment or production verification claimed.
+- Production record/refund unavailable: diagnostic browser signed out. User selected secure Google sign-in; Google rejected the submitted identifier with “Couldn’t find this account.” No actual job ID, raw provider record or live refund was verified; authentication handoff is required.
+- Publication: draft PR #834, source commit `06776472ec46cfd79433713c407fd3574668608a`. Local approved Image contract also passed 5/5. No merge, Worker deployment or production verification claimed. https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/834
 - Next: review the correction; obtain the affected provider task record for upstream investigation. Any changed audio direction needs to preserve the requested sound and be explicitly visible; successful generation with audio remains unverified.
 
 ## Reserved Generate footer during Video scrolling, 2026-11-03
