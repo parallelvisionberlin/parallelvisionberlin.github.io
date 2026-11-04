@@ -16,6 +16,7 @@ export function createCustomerImagePricing({snapshot,quote,changed,clock=Date.no
     timer=setTimeout(()=>{timer=null;inflight=run(s,token);},immediate?0:delay);
   }
   async function run(s,token){
+    let failure=null;
     const check=()=>{
       if(token!==sequence||!valid(s)||snapshot()?.key!==s.key)
         throw new Error('The image settings changed before this quote completed.');
@@ -35,10 +36,12 @@ export function createCustomerImagePricing({snapshot,quote,changed,clock=Date.no
         }
       },Math.max(1000,priced.expiresAt-clock()-19000));
     }catch(error){
-      if(token!==sequence||!valid(s))return;
-      state={status:'error',key:s.key,message:error?.message||'Price lookup failed. Nothing was charged.'};
+      failure=error;
+      if(token!==sequence||!valid(s))return failure;
+      state={status:'error',key:s.key,message:error?.message||'Price lookup failed. Nothing was charged.',error};
     }
     if(token===sequence){inflight=null;changed();}
+    return failure;
   }
   // User-initiated Generate must never wait for the preview debounce. Reuse
   // its in-flight quote, or start it immediately, without a second vendor call.
@@ -51,11 +54,15 @@ export function createCustomerImagePricing({snapshot,quote,changed,clock=Date.no
     if(state.status==='error')start(selected,true);
     if(timer){clearTimeout(timer);timer=null;inflight=run(selected,sequence);}
     if(!inflight)throw new Error('Could not start the image price check. Nothing was charged.');
-    await inflight;
+    const failure=await inflight;
+    // A wallet refresh can invalidate the price snapshot while this explicit
+    // click waits. Keep the definitive credit outcome instead of inventing a
+    // generic price/settings error. Background previews never reject unhandled.
+    if(failure?.code==='PV_LAB_CREDITS_REQUIRED')throw failure;
     const current=snapshot();
     if(current?.key!==key||state.key!==key)
       throw new Error('The image settings changed during price checking. Nothing was charged.');
-    if(state.status!=='ready')throw new Error(state.message||'The live price could not be confirmed. Nothing was charged.');
+    if(state.status!=='ready')throw state.error||new Error(state.message||'The live price could not be confirmed. Nothing was charged.');
     return state;
   }
   function prime(){
@@ -86,3 +93,4 @@ export function createCustomerImagePricing({snapshot,quote,changed,clock=Date.no
   }
   return {sync,prime,readyForClick,retry,consume,reset,current:()=>state};
 }
+
