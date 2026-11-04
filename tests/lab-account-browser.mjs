@@ -23,7 +23,7 @@ const clerkMock=`export class Clerk {
 }`;
 async function setup(width,customer=true,overrides={}){
   const context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage();
-  const errors=[],writes=[];let fundingErrors=0;let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',initialized=!overrides.newCustomer;
+  const errors=[],writes=[];let fundingErrors=0;let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',checkoutObserved=null,observeCheckout=null,initialized=!overrides.newCustomer;
   let deferredResizeNotices=0;
   page.on('pageerror',e=>{
     // WebKit may defer one observer delivery while these tests resize the UI.
@@ -64,11 +64,11 @@ async function setup(width,customer=true,overrides={}){
     }
     if(url.pathname==='/api/customer/account')return send({storage:{bytes:1024**3,limitBytes:20*1024**3,files:15}});
     if(url.pathname==='/api/billing/portal')return send({url:'https://evil.example/stripe.com'});
-    if(url.pathname==='/api/billing/checkout'){if(heldCheckout)await heldCheckout;return send({url:checkoutUrl});}
+    if(url.pathname==='/api/billing/checkout'){observeCheckout?.();if(heldCheckout)await heldCheckout;return send({url:checkoutUrl});}
     if(url.pathname==='/api/customer/referrals')return send({rewardsAvailable:false});
     return send({jobs:[],activeJobs:[],next:null,packs:[],characters:[],moods:[],boards:[],folders:[],models:[],configured:false});
   });
-  return {context,page,errors,writes,session,get fundingErrors(){return fundingErrors;},setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
+  return {context,page,errors,writes,session,get fundingErrors(){return fundingErrors;},setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);checkoutObserved=new Promise(r=>observeCheckout=r);},waitForCheckout(){return checkoutObserved;},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
 }
 async function fits(page,label){
   const metrics=await page.evaluate(()=>({
@@ -351,9 +351,8 @@ try{
       rig.holdCheckout();
       // Saving the private draft precedes checkout creation. Wait for the
       // actual POST before counting it; the busy label appears while saving.
-      const checkoutStarted=page.waitForRequest(request=>new URL(request.url()).pathname==='/api/billing/checkout'&&request.method()==='POST');
       await page.locator('#lab-pricing-overlay [data-lab-buy="topup10"]').evaluate(button=>{button.click();button.click();});
-      await checkoutStarted;
+      await rig.waitForCheckout();
       assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'Shared checkout prevents duplicate clicks');
       assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'topup10'});
       rig.releaseCheckout();

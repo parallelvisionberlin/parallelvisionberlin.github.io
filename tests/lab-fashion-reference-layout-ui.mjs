@@ -26,6 +26,7 @@ const account={isSignedIn:signed,user:signed?{id:'user_FashionTest',firstName:'S
  addListener:fn=>listeners.push(fn),openSignIn:()=>{window.__fashionSignins=(window.__fashionSignins||0)+1;},
  signOut:async()=>{account.isSignedIn=false;account.user=null;account.session=null;for(const fn of listeners)fn();}};
 export const isNativeLab=()=>false;
+export const accountBootstrapMessage=()=> 'Mock sign-in unavailable.';
 export const loadLabAccount=async()=>account;
 `;
 const sourceIds=['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222'];
@@ -38,18 +39,26 @@ try{
   await context.route('**/native-account.js*',route=>route.fulfill({contentType:'text/javascript',body:account}));
   const page=await context.newPage(),errors=[],calls=[];
   let uploads=0,submits=0;
+  const mockPacks=[{name:'PVSCENE1|outfits|Atelier Coat',refs:[{id:sourceIds[1],name:'Front'},{id:'44444444-4444-4444-8444-444444444444',name:'Detail'}]}];
   page.on('pageerror',e=>errors.push(e.message));
   await context.route('https://**/*',async route=>{
    const req=route.request(),url=new URL(req.url()),path=url.pathname;
    if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
    calls.push({path,method:req.method(),body:req.postData()});
    if(path.startsWith('/api/assets/'))return route.fulfill({contentType:'image/webp',body:image});
+   if(path==='/api/packs'&&req.method()==='POST'){
+    const payload=req.postDataJSON();
+    const pack={id:'66666666-6666-4666-8666-666666666666',name:payload.name,
+      refs:payload.referenceSourceIds.map((id,i)=>({id,name:payload.referenceRoles[i]?.name||'Photograph'}))};
+    mockPacks.push(pack);
+    return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify(pack)});
+   }
    const data=path==='/api/session'?{owner:role==='owner',customer:role==='customer',generationReady:true,billingReady:true,balanceCredits:500,
      config:{enabled:true,customer:role==='customer',falEnabled:true,videoEngines:['seedance','wan'],upscaleEnabled:true}}:
     path==='/api/fashion/models'?{models:['fashnmax','fashn16','fluxvto'].map(id=>({id,available:true}))}:
     path==='/api/fashion/balance'?{connected:true,credits:{total:100,onDemand:100,subscription:0}}:
     path==='/api/jobs'?{jobs:[job],next:null}:
-    path==='/api/packs'?{packs:[{name:'PVSCENE1|outfits|Atelier Coat',refs:[{id:sourceIds[1],name:'Front'},{id:'44444444-4444-4444-8444-444444444444',name:'Detail'}]}]}:
+    path==='/api/packs'?{packs:mockPacks}:
     path==='/api/uploads'?{id:sourceIds[uploads++]}:
     path==='/api/fashion/quote'?{id:quoteId,estimatedUsd:.15,creditCost:20,expiresAt:Date.now()+600000,notice:'Confirm one generation.'}:
     path==='/api/fashion/submit'?(submits++,{job}):{items:[],jobs:[],packs:[],boards:[],models:[]};
@@ -57,7 +66,17 @@ try{
   });
   await page.goto(base+'/lab/studio.html?tool=fashion');
   const fashion=page.locator('#fashion-studio');
-  await fashion.locator('#fashion-form').waitFor({state:'visible'});
+  try{await fashion.locator('#fashion-form').waitFor({state:'visible',timeout:15000});}
+  catch(error){
+   const diagnostic=await page.evaluate(()=>{
+    const host=document.getElementById('fashion-studio');
+    return {hostText:host?.textContent?.slice(0,900),hostBusy:host?.getAttribute('aria-busy'),
+      shadow:!!host?.shadowRoot,inner:host?.shadowRoot?.textContent?.slice(0,700),
+      route:new URL(location.href).searchParams.get('tool')};
+   });
+   console.error('Fashion startup diagnostic',JSON.stringify({role,errors,diagnostic}));
+   throw error;
+  }
   await page.evaluate(()=>document.fonts.ready);
   const headerBefore=await page.locator('#studio-header').evaluate(el=>({html:el.innerHTML,height:el.getBoundingClientRect().height}));
   for(const [width,height] of [[1672,900],[1672,941],[1440,900],[1024,768],[800,900],[390,844],[320,740]]){
@@ -124,9 +143,32 @@ try{
    await fashion.locator('#fashion-wardrobe-open').click();
    await fashion.locator('#fashion-wardrobe').waitFor({state:'visible'});
    await fashion.locator('.wardrobe-item').first().waitFor({state:'visible'});
-   assert.equal(await fashion.locator('.wardrobe-item').count(),1,'One saved Elements outfit is available');
+   assert.equal(await fashion.locator('#fashion-wardrobe-title').textContent(),'The Wardrobe.','Editorial archive identity');
+   assert.equal(await fashion.locator('#fashion-wardrobe-tab-collections').getAttribute('aria-selected'),'true');
+   assert.equal(await fashion.locator('.wardrobe-item').count(),1,'One saved Elements outfit is a collection');
+   assert.equal(await fashion.locator('.wardrobe-add-card').count(),1,'Archive links to the real Elements creation flow');
+   assert.equal(await fashion.locator('.wardrobe-add-card').getAttribute('type'),'button');
+   await fashion.locator('#fashion-wardrobe-new').click();
+   assert.equal(await fashion.locator('#wardrobe-create-form').isVisible(),true,'Create stays within the Wardrobe');
+   assert.equal(await fashion.locator('#wardrobe-new-file').getAttribute('type'),'file','Creation uses a real local photograph');
+   assert.equal(calls.some(x=>x.path==='/api/uploads'),false,'Opening creation cannot upload or spend credits');
+   await fashion.locator('#wardrobe-new-cancel').click();
+   assert.equal(await fashion.locator('.wardrobe-item').count(),1,'Cancel returns to saved collections');
+   await fashion.locator('#fashion-wardrobe-tab-photos').click();
+   assert.equal(await fashion.locator('.wardrobe-item').count(),2,'All photographs shows private outfit views');
+   await fashion.locator('#fashion-wardrobe-tab-collections').click();
+   assert.equal(await fashion.locator('.wardrobe-item').count(),1,'Collections view restores original saved outfits');
+   if(role==='owner')await page.screenshot({path:'test-results/fashion-wardrobe-archive-desktop.png'});
+   await page.setViewportSize({width:390,height:844});
+   const mobileWardrobe=await fashion.locator('#fashion-wardrobe').evaluate(el=>{
+     const r=el.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,viewport:innerWidth,scroll:el.scrollWidth};
+   });
+   assert.ok(mobileWardrobe.left>=0&&mobileWardrobe.right<=mobileWardrobe.viewport,'Wardrobe fits phone viewport');
+   assert.ok(mobileWardrobe.scroll<=mobileWardrobe.width+1,'No horizontal Wardrobe scroll on phones');
+   if(role==='owner')await page.screenshot({path:'test-results/fashion-wardrobe-archive-mobile.png'});
+   await page.setViewportSize({width:1440,height:900});
    await fashion.locator('.wardrobe-item').click();
-   assert.equal(await fashion.locator('.wardrobe-item').count(),2,'Multiple saved views are available');
+   assert.equal(await fashion.locator('.wardrobe-item').count(),2,'Saved collection opens its original photographs');
    await fashion.locator('.wardrobe-item').first().click();
    await fashion.locator('#fashion-wardrobe').waitFor({state:'hidden'});
    assert.equal(await fashion.locator('#garment-preview').isVisible(),true,'Outfit populates original garment field');
@@ -222,6 +264,27 @@ try{
   assert.deepEqual(JSON.parse(calls.find(x=>x.path==='/api/fashion/submit').body),{quoteId,confirm:true});
   assert.equal(await fashion.locator('#download').isVisible(),true);
   assert.ok(await fashion.locator('#fashion-history .history-item').count()>0);
+  // Saving a garment is private storage, not a new provider generation.
+  if(role==='owner'){
+   const uploadedBeforeSave=uploads,submitsBeforeSave=submits;
+   await fashion.locator('#fashion-wardrobe-open').click();
+   // The mobile archive intentionally hides the header CTA. The accessible
+   // collection tile provides the same creation path at phone widths.
+   await fashion.locator('.wardrobe-add-card').click();
+   await fashion.locator('#wardrobe-new-name').fill('Test editorial jacket');
+   await fashion.locator('.wardrobe-current-file').click();
+   await fashion.locator('#wardrobe-new-submit').click();
+   await fashion.locator('.wardrobe-detail-intro').waitFor({state:'visible'});
+   assert.match(await fashion.locator('.wardrobe-detail-intro h3').textContent(),/Test editorial jacket/);
+   assert.equal(uploads,uploadedBeforeSave,'Existing garment asset reused for saved Outfit');
+   assert.equal(submits,submitsBeforeSave,'Saving a reference never starts priced generation');
+   const saves=calls.filter(x=>x.path==='/api/packs'&&x.method==='POST');
+   assert.equal(saves.length,1,'One explicit Outfit save');
+   const payload=JSON.parse(saves[0].body);
+   assert.equal(payload.name,'PVSCENE1|outfits|Test editorial jacket');
+   assert.equal(payload.referenceRoles[0].role,'outfit');
+   await fashion.locator('#fashion-wardrobe-close').click();
+  }
   await fashion.locator('#fashion-history .history-item').first().click();
   assert.equal(submits,1,'History opens an existing result without generation');
   await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
