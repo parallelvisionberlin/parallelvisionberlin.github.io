@@ -2685,7 +2685,7 @@ function displaySavedVideoRatio(job){
     width=video.videoWidth;height=video.videoHeight;
   }else{
     const geometry=job?.settings?.galleryDimensions;
-    if(geometry&&geometry.assetId===job?.outputId&&geometry.width>0&&geometry.height>0){
+    if(geometry?.assetId===job?.outputId&&geometry?.width>0&&geometry?.height>0){
       width=geometry.width;height=geometry.height;
     }
   }
