@@ -13,13 +13,16 @@
 - Pending states keep their exact phase and a reduced-motion-aware progress indicator.
 - `lab.js` changes only the helper import and one guarded render call. `studio.html` adds the stylesheet and JS cache marker.
 - No backend, job settings, prompts, model, credit ledger, upload, deck, sidebar or generation change.
-- Local tests: approved Image contract 5 passed; History pagination 7 passed; new card behavior 4 passed (16 total).
+- Local tests: approved Image contract 5 passed; History pagination 7 passed; new card behavior/inspector guard 5 passed (17 total).
 - JavaScript syntax and diff whitespace checks pass.
 - Browser QA: synthetic cards with the production stylesheet cascade, desktop four-column and 390px iframe phone viewport.
 - Observed desktop captions 13px, matching 90px footers; failed content stays inset from borders. Phone details target 44px.
 - Synthetic View details click invokes the read-only callback without card click propagation or job mutation.
 - Private signed-in history was not accessed and no paid generation was submitted.
-- Release status: implementation locally verified; awaiting PR CI, merge, Cloudflare and custom-domain verification.
+- PR #835, initial reviewed source d73d151409fdec602673d8fbc146aaffb3673232. Approved Image UI check passed.
+- Broad unit failures match main: missing readFileSync in Meta CAPI test and four stale Mood/photobooth assertions. Image browser assertions expect old 15.5px typography while approved source is 14px. No unrelated tests were weakened.
+- CI also exposed a pre-existing displaySavedVideoRatio crash when both outputId and galleryDimensions are absent. Added an explicit geometry presence guard so failed/pending View details works; new regression test preserves known completed-video ratios.
+- Release status: revised implementation locally verified; awaiting affected CI, merge, Cloudflare and custom-domain verification.
 - Next action: publish the reviewed commit through the existing PR workflow and verify the exact new asset on pvlab.studio.
 
 ## Current: Assets video downloads and compact phone controls (2026-10-22)

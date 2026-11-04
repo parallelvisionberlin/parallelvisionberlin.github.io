@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {Script} from 'node:vm';
 import {styleVideoHistoryCard} from '../lab/video-history-cards.js';
 
 function fixture(status){
@@ -41,4 +42,12 @@ test('Video-only integration leaves shared Image and Assets render paths alone',
   const lab=readFileSync('lab/lab.js','utf8');
   assert.match(lab,/if\(tool==='video'&&!assetLibrary\?\.active\(\)&&j\.settings\.type==='video'\)styleVideoHistoryCard/);
   assert.match(lab,/openDetails:\(\)=>showVideoHistoryRecord\(j,\{play:false,reveal:true\}\)/);
+});
+test('existing inspector can open failed and pending jobs without saved dimensions',()=>{
+  const lab=readFileSync('lab/lab.js','utf8');
+  const start=lab.indexOf('function displaySavedVideoRatio(job){');
+  const end=lab.indexOf('\nfunction ',start+1);
+  const ratio=new Script('('+lab.slice(start,end)+')').runInNewContext({$:()=>({}),resultId:null});
+  for(const status of ['failed','queued','running','uncertain'])assert.equal(ratio({status,settings:{aspectRatio:'16:9'}}),'16:9');
+  assert.equal(ratio({outputId:'v',settings:{aspectRatio:'auto',galleryDimensions:{assetId:'v',width:1080,height:1920}}}),'9:16');
 });
