@@ -130,10 +130,10 @@ const wDialog=$('fashion-wardrobe'),wOpen=$('fashion-wardrobe-open'),wItems=$('f
   wSearch=$('fashion-wardrobe-search'),wBack=$('fashion-wardrobe-back'),
   wSelected=$('fashion-wardrobe-selected'),wFooter=wDialog.querySelector('.wardrobe-footer');
 const wFooterDefault=wFooter.textContent,wThumbs=new Map();
-let wPacks=[],wPack=null,wTab='collections',wCreating=false,wSaving=false,wTotalPacks=0,wDraftUrl='',wSequence=0,wChoosing=false;
+let wPacks=[],wPack=null,wTab='collections',wCreating=false,wSaving=false,wTotalPacks=0,wDraftUrl='',wDraftAssetId=null,wSequence=0,wChoosing=false;
 const wName=p=>String(p.name||'').split('|').slice(2).join('|')||'Untitled outfit';
 function wClearThumbs(){for(const url of wThumbs.values())URL.revokeObjectURL(url);wThumbs.clear();}
-function wClearDraft(){if(wDraftUrl)URL.revokeObjectURL(wDraftUrl);wDraftUrl='';}
+function wClearDraft(){if(wDraftUrl)URL.revokeObjectURL(wDraftUrl);wDraftUrl='';wDraftAssetId=null;}
 function wClose(){
   wSequence++;wPacks=[];wPack=null;wCreating=false;wChoosing=false;wClearDraft();wClearThumbs();
   if(wDialog.open)wDialog.close();
@@ -220,6 +220,10 @@ function wRenderCreate(){
     prompt.addEventListener('click',()=>{
       const transfer=new DataTransfer();transfer.items.add(currentGarment);input.files=transfer.files;
       input.dispatchEvent(new Event('change',{bubbles:true}));
+      // This exact choice reuses an already archived garment, even if DataTransfer
+      // returns a different File wrapper for the same selected photograph.
+      wDraftAssetId=fileKeys.get('garment-file')?.file===currentGarment
+        ?fileKeys.get('garment-file').assetId:null;
     });
     $('wardrobe-create-form').querySelector('.wardrobe-create-fields > p')?.after(prompt);
   }
@@ -240,8 +244,7 @@ async function wSaveOutfit(){
   let packSaved=false;
   wSaving=true;submit.disabled=true;feedback.textContent='Saving your outfit privately…';
   try{
-    const old=$('garment-file').files?.[0],cached=old===file?fileKeys.get('garment-file'):null;
-    let assetId=cached?.file===file?cached.assetId:null;
+    let assetId=wDraftAssetId;
     if(!assetId){
       const result=await api('/api/uploads',{method:'POST',body:file,headers:{'Content-Type':file.type,'X-Filename':encodeURIComponent(file.name)}});
       assetId=result.id;
