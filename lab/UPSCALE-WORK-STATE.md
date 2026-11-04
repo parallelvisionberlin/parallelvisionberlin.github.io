@@ -11,11 +11,18 @@
 - Files: upscale-studio-v5.css, studio.html (20261104-stable-action-footer1), tests/lab-upscale-ui.mjs.
 - Added browser coverage: initial/open-disclosure upload, mocked processing/submission and Clear at 1920/1440/390px; no real paid jobs.
 - Local checks: approved Image contract 5/5, JavaScript syntax, diff whitespace pass.
-- Local browser suite unavailable: bundled Playwright has no Chromium executable. Use existing GitHub browser CI.
+- Local browser suite unavailable: bundled Playwright has no Chromium executable; GitHub browser CI completed instead.
 - Production read-only inspection confirms the old CSS version and the shared signed-in Upscaler; no paid action clicked.
-- Implementation committed locally as `28f568b` (application/test bytes); final documentation records the push block.
-- Automatic approval review rejected the GitHub push: remote/export authorization not explicit enough. No PR, CI run, merge or deployment created.
-- Next action: obtain explicit permission to push this repair branch to parallelvisionberlin/parallelvisionberlin.github.io and open a PR; then run existing CI and verify production separately.
+- Owner explicitly authorized pushing the repair and opening a PR after the initial automatic approval rejection.
+- PR #833: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/833; application/test commit `95b92665c73f89d36d67a7ab482eb67f17dec0ee`.
+- Uploaded application/test Git blob SHAs exactly match local committed bytes. Shell push lacked credentials; connected GitHub integration succeeded.
+- Relevant CI: Upscaler/Assets run 41829871151 PASS, including Image/Video parity, visibility, mocked submission smoke (10 groups), full model/quote/history suite (46 groups).
+- New footer regression PASS at 1920/1440/390px through initial state, open technical disclosure, upload, mocked processing/submission and Clear.
+- Approved Image contract and Video Upscaler validation PASS. Loaded-source desktop/phone CI screenshots inspected; compact action and selectors preserved.
+- Screenshot artifact: 13323076584 / upscaler-assets-visibility-previews.
+- Global CI is not green. Video integration reports five unit failures in unchanged Meta/Moods/photobooth tests; queue viewer fails reading undefined width. Other broader browser failures remain outside this bounded repair and are not waived.
+- Cloudflare check success for the PR branch does not verify a production release. PR remains open and unmerged; pvlab.studio still uses the old stylesheet.
+- Next action: resolve/review remaining CI gates before any merge/release; production bytes and rendered behavior must be verified after publication. No paid production generation initiated.
 
 ## Sidebar screenshot investigation / 2026-11-03
 - User screenshot showed a large action-footer gap with the optional price row and Save upscale draft.
