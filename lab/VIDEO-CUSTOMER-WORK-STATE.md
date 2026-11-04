@@ -1,3 +1,22 @@
+## Full-height Video composer and anchored Generate, 2026-11-04
+- Objective: follow the owner-provided Higgsfield panel flow while preserving PV LAB styling and generation behavior.
+- Owner explicitly chose a full-window left panel with Generate fixed to its bottom and the prompt using spare space.
+- Reference: image(20261104-143625).png, Library libfile_6e4da57cd81c81918c99a550e18e4960.
+- Source baseline: main 7686796a84060fea559986af52cdada035ae9ba7.
+- Production observation at 1363x936: workspace 854px tall, but composer only 692px, ending at y774 and leaving 162px below it.
+- Existing reserved-footer fix was still loaded; scrolling settings to their end did not move Generate or the outer page.
+- Root cause for the remaining flow mismatch: composer height used the shorter preview-stage height instead of the full workspace track.
+- Desktop-only CSS now uses the workspace height with a 12px bottom inset; the prompt box and textarea grow into spare height.
+- The existing separate, normal-flow Generate footer and independent settings scrollport remain intact.
+- Original prompt minimums, native resize, narrow-screen page flow, button design, player, History and Scene details are preserved.
+- Application files: lab/video-composer-single-scroll.css and its cache marker in lab/studio.html.
+- Validation: existing tests/lab-video-single-scroll.test.mjs and tests/lab-video-generate-scroll-ui.mjs.
+- Local mandatory Image contract and Video scope tests: 10 passed; browser runner syntax and diff whitespace checks passed.
+- Actual-module browser matrix additionally checks Text, Reference and Start frame modes, 12px desktop bottom inset, wheel/keyboard, long prompt, Output settings, phone overflow and zero generation submissions.
+- No provider, model, prompt content, quote, credit, upload, account or billing changes.
+- Release status: implementation locally checked; actual-module browser CI and production publication pending.
+- Next action: publish the reviewed change through the existing PR workflow, inspect the real browser results and verify Cloudflare plus live desktop geometry.
+
 ## Reserved Generate footer during Video scrolling, 2026-11-03
 - Objective: keep the complete Generate action visible when scrolling upward over Output settings.
 - Base: main d979a24dd06bf8b0c14ecff27267bbca4669c589. Reviewed head: 5243aa9d4f885d1349f273ecf258469db628dd23.
@@ -320,3 +339,4 @@ Scope: customer models disabled and Generate incorrectly saying Connect generati
 - Existing `lab/lab.js` initializes `mode='start'`; no mode or provider logic needs changing.
 - CSS at 440px or below: model card 125 to 119px; two upload blocks 156 to 148px; frame wells 104 to 98px; prompt 132 to 124px. Desktop/tablet unchanged.
 - CSS cache key: `20261022-mobile-slim1`. Verify mobile layout, role flows and Cloudflare Pages deployment separately.
+

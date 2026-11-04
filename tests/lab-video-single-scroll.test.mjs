@@ -7,7 +7,7 @@ const html=file('studio.html');
 const css=file('video-composer-single-scroll.css');
 
 test('the Video composer reserves its action outside the settings scrollport',()=>{
-  assert.match(html,/video-inspector-editorial\.css\?v=[^"\n]+">\n<link rel="stylesheet" href="\.\/video-composer-single-scroll\.css\?v=20261103-video-polish2"/,
+  assert.match(html,/video-inspector-editorial\.css\?v=[^"\n]+">\n<link rel="stylesheet" href="\.\/video-composer-single-scroll\.css\?v=20261104-full-height1"/,
     'the reviewed fix must load after the older composer styles');
   assert.match(css,/\.workspace\.video-layout>\.controls\{[\s\S]*?overflow-y:hidden!important/,
     'scrolling settings cannot move the whole panel and its action');
@@ -41,10 +41,19 @@ test('the composer leaves expanded settings and the prompt in normal order',()=>
   const footer=html.indexOf('<div class="generate-zone">',grid);
   assert.ok(controls>=0&&prompt>controls&&output>prompt&&grid>output&&footer>grid,
     'Output settings must come before the normal-flow Generate footer');
-  assert.match(css,/#pv-video-prompt-box\{[\s\S]*?flex:0 0 auto!important/,
-    'long prompt remains an accessible normal-height editor');
+  assert.match(css,/#pv-video-prompt-box\{[\s\S]*?flex:1 0 auto!important/,
+    'prompt uses spare height without shrinking below its accessible baseline');
   assert.match(css,/textarea#prompt\{[\s\S]*?resize:vertical!important/,
     'the text area keeps its native resize behavior');
+});
+
+test('desktop composer fills the workspace while retaining the reserved footer',()=>{
+  assert.match(css,/\.workspace\.video-layout>\.controls\{[\s\S]*?height:calc\(100% - 12px\)!important/,
+    'the composer uses its full workspace track with a small bottom inset');
+  assert.match(css,/textarea#prompt\{[\s\S]*?flex:1 0 auto!important/,
+    'writing area receives the extra space rather than leaving a blank gap above Generate');
+  assert.match(css,/min-height:118px!important/);
+  assert.match(css,/min-height:194px!important/);
 });
 
 test('Video UI hides redundant actions without affecting shared functionality',()=>{
@@ -61,3 +70,4 @@ test('Video UI hides redundant actions without affecting shared functionality',(
   assert.match(css,/textarea#prompt\{[\s\S]*?overscroll-behavior-y:contain!important/);
   assert.doesNotMatch(css,/#[a-z]+\s*\{[^}]*?\/api\/jobs/);
 });
+

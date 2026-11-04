@@ -35,7 +35,7 @@ const geometry=page=>page.evaluate(()=>{
  return {panel:rect('.workspace.video-layout>.controls'),body:rect('.controls-body'),button:rect('#generate'),
   footer:rect('.controls>.generate-zone'),output:rect('#pv-video-output-toggle'),format:rect('#resolution-control'),
   scroll:body.scrollTop,max:body.scrollHeight-body.clientHeight,panelScroll:panel.scrollTop,
-  feedScroll:document.getElementById('video-feed-center').scrollTop,pageScroll:scrollY,width:document.documentElement.scrollWidth,viewport:innerWidth};
+  feedScroll:document.getElementById('video-feed-center').scrollTop,pageScroll:scrollY,width:document.documentElement.scrollWidth,viewport:innerWidth,viewportHeight:innerHeight};
 });
 const checkDock=(m,label)=>{
  assert.ok(m.button.top>=m.panel.top&&m.button.bottom<=m.panel.bottom+1,label+': Generate remains wholly inside the panel '+JSON.stringify(m));
@@ -44,6 +44,8 @@ const checkDock=(m,label)=>{
  assert.equal(m.feedScroll,0,label+': wheel over settings never scrolls History');
  assert.equal(m.pageScroll,0,label+': outer page stays still');
  assert.ok(m.width<=m.viewport,label+': no horizontal overflow');
+ assert.ok(m.viewportHeight-m.panel.bottom>=10&&m.viewportHeight-m.panel.bottom<=14,
+   label+': composer fills the window with the reserved bottom inset '+JSON.stringify(m));
 };
 try{
  for(const [width,height] of [[1920,830],[1440,900],[1366,768],[1440,600],[821,700],[390,844]]){
@@ -59,6 +61,16 @@ try{
   await page.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=video');
   await page.waitForFunction(()=>window.__videoScrollReady&&document.querySelector('#app').classList.contains('pv-video-state-ready'));
   await page.locator('#lab-boot').waitFor({state:'hidden'});
+  if(width>820){
+   // Seedance 2.5 supports all three creation modes; 1.5 supports Text/Start only.
+   await page.locator('#video-engine').selectOption('seedance');
+   for(const mode of ['text','reference','start']){
+    await page.locator('#mode-'+mode).click();
+    checkDock(await geometry(page),width+' '+mode+' full-height composer');
+   }
+   await page.locator('#video-engine').selectOption('seedance15');
+   await page.locator('#mode-start').click();
+  }
   // Real selected image plus long editable prompt, matching the reported case.
   const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=300;c.height=400;c.getContext('2d').fillRect(0,0,300,400);return c.toDataURL().split(',')[1];}),'base64');
   await page.locator('#image').setInputFiles({name:'synthetic-start.png',mimeType:'image/png',buffer:png});
@@ -130,3 +142,4 @@ try{
   console.log('PASS Video scroll dock '+width+'x'+height);
  }
 }finally{await browser.close();server.close();}
+
