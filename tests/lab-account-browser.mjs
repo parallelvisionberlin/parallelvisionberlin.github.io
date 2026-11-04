@@ -349,8 +349,11 @@ try{
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
       await page.waitForFunction(()=>document.querySelector('#lab-pricing-overlay [data-lab-buy="topup10"]')?.disabled===false);
       rig.holdCheckout();
+      // Saving the private draft precedes checkout creation. Wait for the
+      // actual POST before counting it; the busy label appears while saving.
+      const checkoutStarted=page.waitForRequest(request=>new URL(request.url()).pathname==='/api/billing/checkout'&&request.method()==='POST');
       await page.locator('#lab-pricing-overlay [data-lab-buy="topup10"]').evaluate(button=>{button.click();button.click();});
-      await page.waitForFunction(()=>document.querySelector('#lab-pricing-overlay-status').textContent.includes('Opening secure checkout'));
+      await checkoutStarted;
       assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'Shared checkout prevents duplicate clicks');
       assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'topup10'});
       rig.releaseCheckout();
