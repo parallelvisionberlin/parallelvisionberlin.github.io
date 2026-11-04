@@ -7,9 +7,13 @@ the existing Stripe connector; the customer lookup returns the Stripe customer I
 
 ## Current state
 
-Implemented and locally tested; not deployed or connected to ChatGPT. Default
-configuration is disabled. No live customer investigation has been performed using
-this service, and no claim about Gonzalo's actual uploads follows from its tests.
+Published at https://admin-mcp.pvlab.studio/mcp with configuration disabled;
+not connected to ChatGPT. The public health endpoint reports enabled=false and
+the MCP endpoint returns 503. Real owner OAuth claims and the exact ChatGPT callback
+remain pending. Existing Cloudflare connector access has separately been verified
+for live, read-only LAB_DB queries; current-chat customer investigations can use
+that connection without completing this separate MCP setup. No live customer
+investigation has been performed through this disabled MCP service.
 Operational checkpoint: [WORK-STATE.md](WORK-STATE.md).
 
 ## Tools
