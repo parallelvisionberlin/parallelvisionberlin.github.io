@@ -343,7 +343,7 @@
     margin-top:8px!important;
   }
   html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:has(#pv-guest-composer.pv-deck-expanded) .pv-guest-card{
-    height:clamp(185px,calc(100dvh - 540px),225px)!important;
+    height:max(clamp(185px,calc(100dvh - 540px),225px),clamp(178px,53.5vw,264px))!important;
   }
   html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] #pv-guest-composer.pv-deck-expanded{
     position:fixed!important;
