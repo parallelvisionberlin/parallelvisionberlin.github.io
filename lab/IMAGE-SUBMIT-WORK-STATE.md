@@ -1,5 +1,25 @@
 # Image submission flow
 
+## Insufficient-credit purchase flow, 2026-11-04
+- Owner approved removal of the failure toast and empty/unconfirmed card when insufficient credits opens pricing.
+- Source baseline: main ba038d5dcbe11b32f38e29909b68f6edaba23071. Later main d2f8932b changed only unrelated welcome-email files.
+- Reference: image(20261104-222706).png, Library libfile_cc1bf03f4db481918ba7227e17b09af7; visible balance 19 versus quoted charge 35.
+- Root cause: api() opened pricing on HTTP 402, then threw a generic Error. Image submission treated the rejected POST as an unconfirmed provider request and retained a local error card plus toast.
+- Compare the verified total image price with current balance before local preparation or paid submission.
+- Retain a typed credit-required outcome for definitive wallet rejections, including through asynchronous pricing and wallet-refresh invalidation.
+- Credit gating leaves the purchase window only; remove this attempt's temporary preparation and keep the editor intact. Closing pricing has no generation side effect.
+- Provider HTTP 402 stays distinct from PV LAB wallet insufficiency. Real transport/unknown submission failures retain their review card and safeguards.
+- Reuse private same-tab, account-bound Image draft storage before creating Checkout; a failed save prevents checkout creation/navigation.
+- Billing success or cancellation restores only a checkout-tagged draft: photos, IDs/roles, prompt, Mood and settings. Never auto-generate.
+- Preserve existing pricing, Stripe/webhook/ledger authority, backend gates, idempotency and request limits. No backend changes.
+- Product files: lab.js, customer-image-pricing.js, customer-wallet.js and studio.html cache references.
+- New unit coverage exercises actual API/submission code, typed price outcomes, unknown transport, provider errors, checkout-save order and account switches.
+- New intercepted actual-module browser runner covers low balance, server rejection, quote rejection, unknown transport and checkout return at 390/1440px.
+- Dedicated workflow retains the approved Image contract and customer image-pricing, billing and generation-finance tests.
+- Local focused tests: 15 passed; JS syntax and diff whitespace checks passed.
+- Publication status: awaiting PR CI, merge and Cloudflare/live verification. No real paid generation or purchase used.
+- Next: inspect scoped browser/finance results, publish the tested commit and record release evidence here.
+
 ## Objective and approved behavior
 - Date: 2026-10-31.
 - Verified starting main: `e4c375df3b75cebf222f561a3dd42ebe6fc3020b`.
@@ -41,3 +61,4 @@
 - Real signed-in paid generation: not performed.
 - Next action: owner can reload Studio and use deliberate repeated Generate clicks.
 - Queue capacity and uncertain-job review may still disable Generate for their existing reasons.
+

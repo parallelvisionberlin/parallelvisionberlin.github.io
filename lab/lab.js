@@ -14,8 +14,8 @@ import {loadLabAccount,accountBootstrapMessage} from './native-account.js?v=2026
 import {createAssetLibrary} from './assets.js?v=20261021-svg-play1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261028-customer-magic-quota1';
 import {createPricingOverlay} from './pricing-overlay.js?signupResume=20261021-1&v=20261102-local-currency';
-import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&partnerMenu=20261027-bellini1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1&cookies=20261101-v1&conversionFlow=20261102-1';
-import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1';
+import {createCustomerWallet} from './customer-wallet.js?v=20261017-pricing-overlay1&creditPurchaseFlow=20261104v1&partnerMenu=20261027-bellini1&model-rates=1&metaCheckout=20261015-1&freeTrialPause=20261017-1&creditNotice=20261021-owner1&cookies=20261101-v1&conversionFlow=20261102-1';
+import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261016-instant-price1&credits=1&creditPurchaseFlow=20261104v1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1&imageRatio=20261016-inherit1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
@@ -63,11 +63,11 @@ function studioReturnPhoto(item){
     elementId:item.elementId||null,elementName:item.elementName||'',elementCategory:item.elementCategory||'',
     elementView:item.elementView,elementCount:item.elementCount};
 }
-async function saveImageForMoods(){
+async function saveImageForMoods({returnReason='moods'}={}){
   if(!owner||tool!=='image'||fashionActive)return false;
   if(busy||imageSubmissionPending)throw Error('Wait until the current Image action finishes before opening Moods.');
   const state={
-    settings:settings(),prompt:$('prompt').value,model:imageEngine,processing:imageProcessing,
+    returnReason,settings:settings(),prompt:$('prompt').value,model:imageEngine,processing:imageProcessing,
     referenceMode:imageReferenceMode,imageRatioExplicit,soulRatioExplicit,
     ratio:$('ratio').value,resolution:$('resolution').value,
     count:$('image-count').value,outputFormat:$('output-format').value,
@@ -81,9 +81,10 @@ async function saveImageForMoods(){
   await saveStudioReturnDraft(userId,state);
   return true;
 }
-async function restoreStudioFromMoods(){
+async function restoreStudioFromMoods({checkoutOnly=false}={}){
   const state=await readStudioReturnDraft(userId);
   if(!state)return false;
+  if(checkoutOnly&&state.returnReason!=='checkout')return false;
   const p=state.settings||{};
   if(p.type!=='image'||!state.model||typeof state.prompt!=='string')
     throw Error('The temporary Image workspace could not be validated.');
@@ -133,7 +134,7 @@ async function restoreStudioFromMoods(){
   $('prompt').value=state.prompt;
   update();
   await clearStudioReturnDraft();
-  notify('Your Image workspace is restored. No generation was started.');
+  if(!checkoutOnly)notify('Your Image workspace is restored. No generation was started.');
   return true;
 }
 function bindExploreMoodsReturn(){
@@ -233,6 +234,8 @@ function syncStudioRoute(value,{push=false,retouchFrom=null}={}){
 }
 async function restoreStudioEntry(requestedRoute=studioRoute()){
   const route=requestedRoute,query=new URLSearchParams(location.search);
+  if(customerMode&&['success','cancel'].includes(query.get('billing')))
+    await restoreStudioFromMoods({checkoutOnly:true});
   if(query.get('returnToDraft')==='1'){
     // This is navigation only; never auto-generate or submit a quote.
     await restoreStudioFromMoods();
@@ -3129,18 +3132,23 @@ async function api(path,options={}) {
     assertCurrent();
     if(!r.ok){
       const d=await r.json().catch(()=>({}));
-      const fundingError=customerMode&&(r.status===402||
+      const fundingError=customerMode&&((r.status===402&&/^(?:Insufficient (?:PV Lab )?credits\b|Add PV Lab credits before (?:uploading files|using Magic Select)\b)/i.test(String(d.error||'')))||
         (r.status===403&&/complimentary generation is paused/i.test(String(d.error||''))));
+      let creditPurchaseOpened=false;
       if(fundingError){
         void wallet.refresh();
         // A background preview quote is preparation, not a request to buy.
         // Open plans only inside an explicit Generate action, preserving drafts.
         const generating=imageSubmissionPending||customerPriceIntentPending||
           busy&&(tool==='video'||tool==='upscale');
-        if(generating&&options.method==='POST'&&!path.startsWith('/api/billing/')&&!path.startsWith('/api/customer/'))
+        if(generating&&options.method==='POST'&&!path.startsWith('/api/billing/')&&!path.startsWith('/api/customer/')){
           void pricingOverlay.open();
+          creditPurchaseOpened=true;
+        }
       }
-      throw new Error(fundingError?'Choose credits when you are ready to generate. Your prompt and photographs stay in place.':d.error||`Request failed (${r.status}).`);
+      const error=new Error(fundingError?'Choose credits when you are ready to generate. Your prompt and photographs stay in place.':d.error||`Request failed (${r.status}).`);
+      if(fundingError){error.code='PV_LAB_CREDITS_REQUIRED';error.creditPurchaseOpened=creditPurchaseOpened;}
+      throw error;
     }
     const value=options.blob?await r.blob():await r.json();assertCurrent();
     // Refresh the real wallet after a reserved job or a confirmed failed job. Never infer a debit locally.
@@ -5112,6 +5120,7 @@ const pricingOverlay=createPricingOverlay({
 });
 const wallet=createCustomerWallet({
   api,notify,onBalance:value=>{customerCreditBalance=Number(value)||0;studioAccount.updateBalance(value);},
+  beforeCheckout:async()=>{if(customerMode&&tool==='image'&&!fashionActive)await saveImageForMoods({returnReason:'checkout'});},
   onClosed:async()=>{lock();await clerk.signOut();},
   openPricing:options=>pricingOverlay.open(options)
 });
@@ -5194,7 +5203,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
       if(createCharacterButton&&!createCharacterButton.disabled)createCharacterButton.click();
     }
     void pricingOverlay.resumeAfterSignIn().catch(()=>{});
-    if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){
+    if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){void wallet.refresh();}}catch(e){
   const stillSignedIn=!!clerk?.isSignedIn;
   // A new V2 Clerk identity is not yet a funded PV LAB wallet. Only redirect
   // after the authenticated migration endpoint confirms the identity is unlinked.
@@ -5315,6 +5324,7 @@ async function submitImageSnapshot(){
   // The preview quote remains authoritative. If it is still being prepared,
   // one explicit Generate click immediately waits for/reuses that exact quote
   // and submits once. No additional click or speculative customer price.
+  const priceEpoch=epoch;
   const snapshot=customerMode?imageCreditQuoteSnapshot():null;
   let customerPriced=customerMode?customerImagePricing?.consume(snapshot?.key):null;
   if(customerMode&&!customerPriced){
@@ -5322,15 +5332,24 @@ async function submitImageSnapshot(){
     customerPriceIntentPending=true;update();
     try{
       await customerImagePricing.readyForClick(snapshot.key);
+      if(!owner||epoch!==priceEpoch)return;
       customerPriced=customerImagePricing.consume(snapshot.key);
       if(!customerPriced)throw new Error('The live image price expired. Nothing was charged.');
       $('generate').dataset.credits=(customerPriced.kind==='server-estimate'?'~':'')+
         customerPriced.credits.toLocaleString()+' credits';
     }catch(error){
+      if(!owner||epoch!==priceEpoch)return;
       customerPriceIntentPending=false;
-      if(owner)notify('Image price could not be confirmed. '+error.message,true);
+      if(owner&&error.code==='PV_LAB_CREDITS_REQUIRED'&&!error.creditPurchaseOpened)void pricingOverlay.open({oneTime:true});
+      if(owner&&error.code!=='PV_LAB_CREDITS_REQUIRED')notify('Image price could not be confirmed. '+error.message,true);
       update();return;
     }
+  }
+  if(customerMode&&Number.isSafeInteger(customerPriced?.credits)&&customerPriced.credits>customerCreditBalance){
+    customerPriceIntentPending=false;
+    clearImageComposerNotice();
+    void pricingOverlay.open({oneTime:true});
+    update();return;
   }
   const sessionEpoch=epoch,provider=currentProvider();
   let selected=structuredClone(settings());
@@ -5498,7 +5517,18 @@ async function submitImageSnapshot(){
       }
     }
     check();notify(submitted+' image request'+(submitted===1?'':'s')+' recorded. Results appear in History.');
-  }catch(e){if(owner&&epoch===sessionEpoch){feedback?.fail(e,dispatched);notify((submitted?submitted+' request(s) recorded. ':'')+(e.name==='AbortError'?'Request interrupted. Check History before retrying.':e.message),true);if(dispatched)refreshHistorySoon();}}
+  }catch(e){if(owner&&epoch===sessionEpoch){
+    if(e.code==='PV_LAB_CREDITS_REQUIRED'){
+      // A definitive wallet rejection did not submit this image. Leave only
+      // the purchase window, without inventing a failed/uncertain History job.
+      feedback?.finish();clearImageComposerNotice();
+      if(!e.creditPurchaseOpened)void pricingOverlay.open({oneTime:true});
+    }else{
+      feedback?.fail(e,dispatched);
+      notify((submitted?submitted+' request(s) recorded. ':'')+(e.name==='AbortError'?'Request interrupted. Check History before retrying.':e.message),true);
+      if(dispatched)refreshHistorySoon();
+    }
+  }}
   finally{
     feedback?.finish();
     if(fastTicket)fastImageHandoff.release(fastTicket);
@@ -5510,6 +5540,7 @@ async function submitImageSnapshot(){
     }
   }
 }
+
 
 
 

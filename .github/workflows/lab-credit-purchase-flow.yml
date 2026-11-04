@@ -1,0 +1,34 @@
+name: PV LAB credit purchase flow
+on:
+  pull_request:
+    paths: ['lab/lab.js', 'lab/customer-wallet.js', 'lab/customer-image-pricing.js', 'lab/studio-return-draft.js', 'tests/lab-credit-purchase*', '.github/workflows/lab-credit-purchase-flow.yml']
+  push:
+    branches: [main]
+    paths: ['lab/lab.js', 'lab/customer-wallet.js', 'lab/customer-image-pricing.js', 'lab/studio-return-draft.js', 'tests/lab-credit-purchase*', '.github/workflows/lab-credit-purchase-flow.yml']
+jobs:
+  credit-purchase:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+            js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/lab-approved-image-ui-contract.test.mjs tests/lab-credit-purchase-flow.test.mjs tests/lab-customer-image-quotes.test.mjs tests/lab-generation-finance.test.mjs tests/lab-customer-billing.test.mjs
+      - run: npm install --prefix /tmp/pv-credit-purchase playwright
+      - run: /tmp/pv-credit-purchase/node_modules/.bin/playwright install --with-deps chromium
+      - run: node tests/lab-credit-purchase-ui.mjs
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-credit-purchase/node_modules/playwright/index.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: credit-purchase-previews
+          path: test-results/credit-purchase-*.png
+          if-no-files-found: ignore

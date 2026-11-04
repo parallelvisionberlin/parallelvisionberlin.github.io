@@ -1,7 +1,7 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
 import {referralsAvailable} from './account-menu.js?v=20261030-robin-partner1';
 import {metaConsentGranted,metaPixelIdentifiers,trackLabEvent} from './meta-pixel.js?v=20261101-cookies1';
-export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{},openPricing=()=>{window.location.assign('./#pricing');}}){
+export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{},beforeCheckout=async()=>{},openPricing=()=>{window.location.assign('./#pricing');}}){
   const $=id=>document.getElementById(id);
   let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0,trialGenerationPaused=false;
   let dismissed=false,purchasing=false,refreshing=null,refreshAgain=false;
@@ -52,6 +52,8 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     }
     const current=accountEpoch;purchasing=true;update();
     try{
+      await beforeCheckout();
+      if(!account||current!==accountEpoch)return false;
       // Only forward voluntary analytics consent; Stripe remains the payment authority.
       const consent=metaConsentGranted();
       const data=await api('/api/billing/checkout',{method:'POST',body:consent?{sku,metaConsent:true,...metaPixelIdentifiers()}:{sku}});
@@ -177,3 +179,4 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
   window.addEventListener('focus',()=>{if(account&&document.visibilityState==='visible')void refresh();});
   return {connect,refresh,open,openReferrals,cost,describe,jobCharge,buyPlan:purchase,isCustomer:()=>account};
 }
+
