@@ -1,3 +1,10 @@
+## 2026-11-04 | Urgent correction: preserve locked iPhone Image viewport
+
+- Owner clarified the approved signed-in iPhone composition has a locked page, fixed editor/Generate, full portrait cards and no downward page reflow. Embedded-browser screenshots prove PR #830 wrongly made the composer position:relative; browser chrome covered Generate as it moved with scroll.
+- Revert runtime composer positioning and guest selection handler to prior commit 0e4ec2a7; keep fixed dock. For selected guest Moods on taller phones only, allow larger portrait cards with responsive cap clamp(185px, calc(100dvh - 540px), 225px). Idle entry retains compact cards.
+- Mobile browser regression requires Generate and composer anchored after scroll gesture, scrollY=0, photo/desk clearance and controls in viewport for 320/390/430px. Do not confuse scroll reachability with fixed behavior.
+- Embedded browser chrome is external; synthetic Chromium pass is not physical iPhone verification. Verify merge, Cloudflare and live surface separately.
+
 ## 2026-11-04 | Public iPhone Inspiration portrait-height parity (09:37 approved reference)
 
 - Owner compares `IMG_8629.jpeg` (11:11 signed-out public Image, visibly shorter guest cards) against `IMG_8630.jpeg` (09:37 signed-in Image, the preferred reference). Both show a selected long Mood; the screenshot-specific issue is not merely heading spacing.
