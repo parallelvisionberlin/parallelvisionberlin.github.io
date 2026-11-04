@@ -97,16 +97,26 @@ export const INSPIRATION_VARIATIONS=Object.freeze({
     "A tiny corner restaurant after midnight, chairs stacked under a red sign, green street light bleeding through the door and a lone worker cleaning the floor; atmospheric photographed city detail."
   ],
   "80s-film": [
-    "An older woman on a sun-warmed seaside balcony at the end of a long summer afternoon, faded curtains moving in a breeze, amber film highlights and bold photochemical color.",
-    "A young adult man in a worn white shirt walks alone across an almost empty beach at sunset, lens flare through sea spray, saturated 1980s motion-picture color and quiet drama.",
-    "Two female friends in their forties talk beside a laundromat window in late summer, honey-colored sunlight and cool shadows, candid theatrical 35mm framing.",
-    "Extreme close photograph of a hand gripping a faded red bicycle handlebar on a coastal road, low sun, tactile color-negative grain and warm halation around distant reflections.",
-    "A mixed-age family sits at a long outdoor table after dinner, wind catching a tablecloth, deep blue dusk entering the background, rich amber practical lights and believable human gestures.",
-    "A woman with short dark hair stands at an open kitchen window in a small Mediterranean apartment, late-afternoon orange light, dark cyan interior shadows and real motion-picture grain.",
-    "Wide photograph of an old outdoor swimming pool at the last hour of daylight, one adult swimmer at the far end, peach sky and saturated but imperfect 35mm chemistry.",
-    "Two adult strangers cross paths on a quiet boulevard at golden hour, slight camera movement, dramatic warm backlight and natural 1980s film color without retro costumes or fake overlays."
+    "A young adult woman in a pale swimsuit stands in candid side profile at the shoreline, holding a weathered long surfboard as the low sun reflects across the sea. Her silhouette is softly out of focus while the warm horizon glows behind her; faded peach-and-amber highlights, muted blue-green water, natural lens bloom and tactile 35mm color-negative grain. Quiet end-of-summer nostalgia, like an imperfect memory, never glossy tourism advertising.",
+    "A candid view through the back seat of a small old car winding along the coast, two young adult friends in front softly out of focus, sunset slipping through the side window and touching their hair. Faded coral light, blue-grey shadows, imperfect camera focus, restrained halation and grainy 35mm memory of a summer drive.",
+    "A young adult woman with windblown hair walks past an old seaside kiosk in the last light, an open doorway framing the darkening ocean behind her. Seen from a slight distance, not posing for the camera; soft lens flare, luminous faded whites, warm amber highlights, cool sea-green shadows and 35mm photochemical grain.",
+    "Three young adult friends wade into a luminous shorebreak at the end of the afternoon, small figures against the glittering ocean and gentle waves. A loose handheld frame with imperfect focus, subdued peach sunlight, muted teal water, natural highlight bloom and tactile film grain; an intimate unscripted summer moment.",
+    "A close handheld photograph from inside a moving car: a young adult's hand rests near the open window as the coastal road, dry hills and glimpses of the sea drift past. Slight shutter softness, warm afternoon glare entering the lens, faded ochre and cool cyan-grey tones, organic grain and believable old-film imperfections.",
+    "Two young adults ride an old scooter slowly along a winding coastal road after swimming, photographed from behind with wind moving their hair and a small bouquet held low. The ocean glows beyond rough stone walls; soft golden light, muted blue-green sea, subtle lens halation and an unposed grainy 35mm summer atmosphere.",
+    "A young adult woman in a loose pale cotton shirt sits beside an open bedroom window above the sea, half hidden by sunlit curtains moving in a gentle breeze. Quiet documentary composition, light falling across worn walls, warm faded peach whites, cool blue-green shadows, soft optical definition and fine irregular film grain.",
+    "A close analog photograph of sunlight scattering across rippling sea water near late afternoon, with out-of-focus dry grasses drifting through one edge of the frame. Tiny real optical glints, muted turquoise midtones, warm amber reflections, uneven color-negative grain and a quiet tactile memory; no artificial overlays or graphic effects."
   ]
 });
+const SUN_FADE_LEGACY_VARIATIONS=Object.freeze([
+  "An older woman on a sun-warmed seaside balcony at the end of a long summer afternoon, faded curtains moving in a breeze, amber film highlights and bold photochemical color.",
+  "A young adult man in a worn white shirt walks alone across an almost empty beach at sunset, lens flare through sea spray, saturated 1980s motion-picture color and quiet drama.",
+  "Two female friends in their forties talk beside a laundromat window in late summer, honey-colored sunlight and cool shadows, candid theatrical 35mm framing.",
+  "Extreme close photograph of a hand gripping a faded red bicycle handlebar on a coastal road, low sun, tactile color-negative grain and warm halation around distant reflections.",
+  "A mixed-age family sits at a long outdoor table after dinner, wind catching a tablecloth, deep blue dusk entering the background, rich amber practical lights and believable human gestures.",
+  "A woman with short dark hair stands at an open kitchen window in a small Mediterranean apartment, late-afternoon orange light, dark cyan interior shadows and real motion-picture grain.",
+  "Wide photograph of an old outdoor swimming pool at the last hour of daylight, one adult swimmer at the far end, peach sky and saturated but imperfect 35mm chemistry.",
+  "Two adult strangers cross paths on a quiet boulevard at golden hour, slight camera movement, dramatic warm backlight and natural 1980s film color without retro costumes or fake overlays."
+]);
 export const LEGACY_INSPIRATION_PROMPTS=Object.freeze({
   "dream-blur": "A photographic blue motion blur, passing headlights and rain-streaked reflections, intimate fragmented detail, realistic long exposure, deep cobalt shadows and light trails, natural film grain and beautiful imperfection.",
   "90s-cinema": "An atmospheric 1990s film still of two friends browsing vinyl records in a dim independent record shop, warm window light, relaxed gestures, layered clothing, believable interior, realistic photography.",
@@ -115,7 +125,7 @@ export const LEGACY_INSPIRATION_PROMPTS=Object.freeze({
   "hong-kong-nights": "Rainy East Asian street at night. A jade-green-lit corner shop with a red sign, one distant pedestrian and an older dark sedan; wet asphalt, deep shadows, humid emerald haze and realistic 35mm film grain.",
   "80s-film": "A quiet golden sunset over a wide ocean beach, ripples breaking on wet sand, a distant dark rocky island, deep orange dusk, tactile analog color, soft warm film grain, peaceful natural landscape photography."
 });
-const examples=new Set([...Object.values(INSPIRATION_VARIATIONS).flat(),...Object.values(LEGACY_INSPIRATION_PROMPTS),...CHROME_COUTURE_OLD_EXAMPLES].map(text=>text.trim()));
+const examples=new Set([...Object.values(INSPIRATION_VARIATIONS).flat(),...Object.values(LEGACY_INSPIRATION_PROMPTS),...CHROME_COUTURE_OLD_EXAMPLES,...SUN_FADE_LEGACY_VARIATIONS].map(text=>text.trim()));
 export function isInspirationExample(text){return examples.has(String(text||'').trim());}
 export function createInspirationRotation(storage=null){
   const positions=Object.create(null);
@@ -123,7 +133,7 @@ export function createInspirationRotation(storage=null){
     const stored=JSON.parse(storage?.getItem(ROTATION_KEY)||'{}');
     if(stored&&typeof stored==='object'&&!Array.isArray(stored))
       for(const [id,variants] of Object.entries(INSPIRATION_VARIATIONS))
-        if(Number.isSafeInteger(stored[id])&&stored[id]>=0&&(id!=='chrome-couture'||stored.chromeCoutureRecipeVersion===2))positions[id]=stored[id]%variants.length;
+        if(Number.isSafeInteger(stored[id])&&stored[id]>=0&&(id!=='chrome-couture'||stored.chromeCoutureRecipeVersion===2)&&(id!=='80s-film'||stored.sunFadeRecipeVersion===2))positions[id]=stored[id]%variants.length;
   }catch{/* Private browsing or disabled session storage must never block Inspiration. */}
   return Object.freeze({
     select(id,currentPrompt=''){
@@ -135,7 +145,7 @@ export function createInspirationRotation(storage=null){
         return {prompt:existing,preserved:true};
       const index=positions[id]||0;
       positions[id]=(index+1)%variants.length;
-      try{storage?.setItem(ROTATION_KEY,JSON.stringify({...positions,chromeCoutureRecipeVersion:2}));}catch{/* Selection works without storage. */}
+      try{storage?.setItem(ROTATION_KEY,JSON.stringify({...positions,chromeCoutureRecipeVersion:2,sunFadeRecipeVersion:2}));}catch{/* Selection works without storage. */}
       return {prompt:variants[index],preserved:false,index};
     }
   });

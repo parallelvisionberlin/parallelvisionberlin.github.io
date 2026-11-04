@@ -37,6 +37,29 @@ test('existing looks keep eight examples; Chrome Couture has twenty and Fisheye 
   assert.ok(INSPIRATION_VARIATIONS['fashion-editorial'].some(scene=>/hands fastening/i.test(scene)));
 });
 
+test('Sun Fade uses the approved surfer scene first and cycles to distinct coast memories',()=>{
+  const scenes=INSPIRATION_VARIATIONS['80s-film'];
+  assert.equal(scenes.length,8);
+  assert.match(scenes[0],/young adult woman.*surfboard/);
+  assert.match(scenes[0],/muted blue-green water/);
+  assert.doesNotMatch(scenes[0],/older woman/i);
+  assert.ok(scenes.every(prompt=>/grain|35mm|film/i.test(prompt)));
+  const storage=memoryStorage();
+  storage.setItem('pv-lab-inspiration-rotation-v1',JSON.stringify({'80s-film':5,chromeCoutureRecipeVersion:2}));
+  const rotation=createInspirationRotation(storage);
+  assert.equal(rotation.select('80s-film','').prompt,scenes[0],'Stale rotation restarts with the new approved image');
+  assert.equal(rotation.select('80s-film',scenes[0]).prompt,scenes[1],'Reselect advances to the next variation');
+  const older='An older woman on a sun-warmed seaside balcony at the end of a long summer afternoon, faded curtains moving in a breeze, amber film highlights and bold photochemical color.';
+  const legacyRotation=createInspirationRotation(memoryStorage());
+  assert.equal(legacyRotation.select('80s-film',older).prompt,scenes[0],'Old canned prompt is replaced by the approved first image');
+  assert.deepEqual(legacyRotation.select('80s-film','Custom personal beach photo, keep my friend in place.'),{
+    prompt:'Custom personal beach photo, keep my friend in place.',preserved:true
+  },'Never replace a user-authored prompt');
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  assert.equal((html.match(/welcome-cards\/sun-fade-inspiration-20261104\.webp/g)||[]).length,2,'Guest and signed-in cards share the same approved image');
+  assert.doesNotMatch(html,/welcome-cards\/sun-fade\.webp/,'Previous preview is not shown');
+});
+
 test('reselecting one card cycles through eight visible prompts and wraps cleanly',()=>{
   const storage=memoryStorage(),rotation=createInspirationRotation(storage);
   let current='';
