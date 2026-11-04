@@ -110,9 +110,13 @@ if (!ninaProject.includes('./js/nina-access.js') || !ninaProject.includes('id="n
 if (!index.includes('./css/nina-access.css') || !ninaProject.includes('./css/nina-access.css')) fail('Nina access styles must be shared by the homepage and project page');
 const ninaProjectOrder = ['class="n-hero"','id="question-title"','id="study-title"','id="condition-title"','id="berlin-title"','id="transmit"'];
 if (!ninaProjectOrder.every((marker, index) => ninaProject.includes(marker) && (index === 0 || ninaProject.indexOf(marker) > ninaProject.indexOf(ninaProjectOrder[index - 1])))) fail('Nina project section order changed');
-if (!/<source\b[^>]*data-src="\.\/nina-fok\/NINATALKNEW\.mp4"[^>]*type="video\/mp4"/.test(ninaProject)) fail('Nina personality video is not wired to the hero');
-if (/<video\b[^>]*\scontrols(?:\s|=|>)/i.test(ninaProject)) fail('Nina project must not expose native video controls');
-for (const marker of ['id="ninaVideoSound"','Sound On','prefers-reduced-motion: reduce','video.pause()','./assets/optimized/2063/organic-futures/shared-street.webp','./lab/branding/pv-wordmark.png','./lab/branding/pv-mark.png','./css/nina-exhibition-v4.css','./assets/optimized/2063/lived-city/nina-bedroom-afternoon.webp']) if (!ninaProject.includes(marker)) fail(`Nina project visual marker missing: ${marker}`);
+const interviewVideo = ninaProject.match(/<video\b[^>]*id="ninaPersonalityVideo"[^>]*>/)?.[0] || '';
+if (!/<source\b[^>]*src="\.\/nina-fok\/nina-short-confession\.mp4"[^>]*type="video\/mp4"/.test(ninaProject)) fail('Nina recorded conversation source is missing');
+if (!/\bcontrols(?:\s|=|>)/.test(interviewVideo) || !/\bplaysinline(?:\s|=|>)/.test(interviewVideo) || !interviewVideo.includes('preload="none"')) fail('Nina interview must offer intentional inline playback with native controls');
+if (/\s(?:autoplay|muted|loop)(?:\s|=|>)/i.test(interviewVideo)) fail('Nina interview must start from a user action with sound, without looping');
+if (/<video\b[^>]*\scontrols(?:\s|=|>)/i.test(ninaProject.replace(interviewVideo, ''))) fail('Decorative Nina videos must not expose native video controls');
+if (/observer\.observe\(video\)|video\.autoplay|loadVideo\(video\)/.test(ninaProject)) fail('Nina interview must stay outside decorative autoplay logic');
+for (const marker of ['nina-short-confession-poster.jpg','A conversation with Nina','prefers-reduced-motion: reduce','video.pause()','./assets/optimized/2063/organic-futures/shared-street.webp','./lab/branding/pv-wordmark.png','./lab/branding/pv-mark.png','./css/nina-exhibition-v4.css','./assets/optimized/2063/lived-city/nina-bedroom-afternoon.webp']) if (!ninaProject.includes(marker)) fail(`Nina project visual marker missing: ${marker}`);
 const connectNinaSource = nina.match(/async function connectNina\(\) \{[\s\S]*?\n\}/)?.[0] || '';
 if (!connectNinaSource.includes('requestSessionToken(ninaTokenAbortController.signal, restoredHistory)')) fail('Anam token must only be requested from the CONNECT flow');
 if ((nina.match(/requestSessionToken\(ninaTokenAbortController\.signal, restoredHistory\)/g) || []).length !== 1) fail('Anam token request must have exactly one CONNECT call site');
