@@ -222,42 +222,42 @@
   }
 }
 @media(max-width:680px) and (min-height:550px){
-  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))){
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))):not(:has(#pv-guest-composer.pv-deck-expanded)){
     height:100dvh!important;overflow-y:hidden!important;
     overscroll-behavior-y:none!important;scroll-behavior:auto!important;
   }
-  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) body{
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))):not(:has(#pv-guest-composer.pv-deck-expanded)) body{
     height:100dvh!important;max-height:100dvh!important;
     overflow-x:hidden!important;overflow-y:hidden!important;
     overscroll-behavior-y:none!important;
   }
-  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) body>main#main{
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))):not(:has(#pv-guest-composer.pv-deck-expanded)) body>main#main{
     box-sizing:border-box;height:calc(100dvh - 78px)!important;
     min-height:0!important;max-height:none!important;overflow:hidden!important;
   }
-  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image[data-guest-tool="image"]{
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))):not(:has(#pv-guest-composer.pv-deck-expanded)) #gate.pv-guest-image[data-guest-tool="image"]{
     box-sizing:border-box;height:100%!important;min-height:0!important;
     max-height:100%!important;overflow:hidden!important;
   }
-  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image .pv-guest-content{
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))):not(:has(#pv-guest-composer.pv-deck-expanded)) #gate.pv-guest-image .pv-guest-content{
     box-sizing:border-box;height:100%;min-height:0;overflow:visible;
     padding-bottom:0!important;
   }
-  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) body>footer.pv-lab-footer{display:none!important}
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))):not(:has(#pv-guest-composer.pv-deck-expanded)) body>footer.pv-lab-footer{display:none!important}
 }
 /* Keep both original photographs above the fixed editor when mobile browser
    chrome reduces the usable height. Unaltered on normal/tall phones. */
 @media(max-width:680px) and (min-height:550px) and (max-height:689px){
-  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image .pv-guest-content{
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))):not(:has(#pv-guest-composer.pv-deck-expanded)) #gate.pv-guest-image .pv-guest-content{
     padding-top:clamp(15px,3dvh,26px)!important;
   }
-  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image h1{
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))):not(:has(#pv-guest-composer.pv-deck-expanded)) #gate.pv-guest-image h1{
     margin-top:6px!important;
   }
-  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image .pv-guest-cards{
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))):not(:has(#pv-guest-composer.pv-deck-expanded)) #gate.pv-guest-image .pv-guest-cards{
     margin-top:12px!important;
   }
-  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))) #gate.pv-guest-image .pv-guest-card{
+  html:not(.pv-native-lab):has(#gate.pv-guest-image[data-guest-tool="image"]:not([hidden])):not(:has(#pv-guest-closed-state:not([hidden]))):not(:has(#pv-guest-composer:focus-within)):not(:has(#pv-guest-composer[data-mobile-settings="open"])):not(:has(#pv-guest-attachments:not([hidden]))):not(:has(#pv-guest-composer.pv-deck-expanded)) #gate.pv-guest-image .pv-guest-card{
     height:clamp(134px,calc(100dvh - 455px),195px)!important;
   }
 }
@@ -331,5 +331,33 @@
   html:not(.pv-native-lab) #app.image-studio-active:not([hidden]):has(#image-composer[data-mobile-settings="open"])
   .image-gallery-empty:has(#lab-welcome-start:not([hidden])){
     padding-bottom:max(182px,var(--pv-mobile-image-dock-reserve,320px))!important;
+  }
+}
+
+
+/* 2026-11-04 | Reference: the user's 09:37 signed-in iPhone Inspiration.
+   Public preview previously capped its cards at 195px even after a Mood
+   populated a long prompt. Signed-in cards use roughly 225px at this width.
+   Match that expanded state and let the composer follow the photographs
+   in document flow, rather than overlaying/cropping them with a fixed dock.
+   Idle/empty guest entry remains compact and all non-Image tools unchanged. */
+@media(max-width:680px){
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:has(#pv-guest-composer.pv-deck-expanded) .pv-guest-carousel{
+    margin-top:8px!important;
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:has(#pv-guest-composer.pv-deck-expanded) .pv-guest-card{
+    height:clamp(214px,calc(56vw + 30px),282px)!important;
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"] #pv-guest-composer.pv-deck-expanded{
+    position:relative!important;
+    top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+    transform:none!important;
+    margin:6px auto 0!important;
+    width:calc(100vw - 18px)!important;
+    max-width:none!important;
+  }
+  html:not(.pv-native-lab) #gate.pv-guest-image[data-guest-tool="image"]:has(#pv-guest-composer.pv-deck-expanded) .pv-guest-content{
+    height:auto!important;max-height:none!important;
+    padding-bottom:28px!important;
   }
 }
