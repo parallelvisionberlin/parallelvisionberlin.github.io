@@ -1,4 +1,24 @@
 # PV LAB Studio boot active state
+## 2026-11-04 / PR #814 mobile authentication completion
+
+- Goal: resilient SDK/UI/session initialization, safe recovery, existing identity/balance/Stripe preservation.
+- Candidate incorporates main `b06571f3f3238aaa510f12a949997380ecf20a63` and PR head `f1a08f4ee5d6f671ce6469ea699c2deffb1c6d79`; no force push or history rewrite.
+- Original iPhone screenshot's generic catch cannot establish which resource failed, failure frequency or lost purchases. No historical network trace exists in this record.
+- Live read-only checks November 4: Clerk first-party SDK and UI endpoints each returned HTTP 200; cloud Chrome restored the existing owner session and History. Neither proves iPhone sign-in.
+- SDK primary is documented first-party browser script; esm.sh remains fallback. SDK and UI now have independent 12-second diagnostic bounds, avoiding generic or competing outer timeout classification. Session load rejection and timeout both produce safe AUTH-SESSION.
+- Tests now exercise actual account bootstrap for shared initialized session, UI failure/invalid bundle/timeout and session rejection, alongside primary/fallback SDK tests. Existing browser account fixture now serves the real UI constructor contract and first-party SDK shape.
+- Account CI explicitly selects bootstrap/auth/domain safeguards, includes required Worker test dependencies, and adds a separate WebKit account regression using synthetic accounts/API only. WebKit is not a physical iPhone or real Clerk login.
+- Local focused tests: 58 passed (bootstrap, approved Image UI, auth token refresh/session isolation, Clerk domains, menus/referrals/owner guard, first-image and paid-onboarding policy). JS syntax, YAML parse and diff whitespace checks passed.
+- Local browser install unavailable: runtime download returned an invalid archive. Browser matrix must run in CI; do not report it as locally passed.
+- Preserve latest main paid-signup policy: new accounts receive no complimentary credits; existing 40/200-credit balances remain usable. Do not re-enable free signup to satisfy an obsolete acceptance assumption.
+- No changes to Clerk keys/settings, tokens/storage, Worker policy, balances, migrations, Stripe, prices or generation. No payments or generations performed.
+- Verified candidate: `359850c914568ac3b5cf41448a30ad5c65e6f3e4`. Full Chromium account + owner-mobile checks and full WebKit customer account suite PASS in run `41799305198` (jobs `126470863615`, `126470863967`). Approved Image contract PASS. Browser fixtures exercise official SDK shape and synthetic sessions/API, not production Clerk cookies.
+- Browser fixture repairs preserve all business assertions: correct UI constructor, current GET price endpoint fault, text-only fault input without curated-media downloads, eventual tab initialization. WebKit logs one deferred ResizeObserver notice per page; repeated notices and all application exceptions still fail. Geometry checks remain enabled.
+- Existing unrelated main failures remain: public Studio Video visual baseline dimensions (main job `126254797437`), Fashion dock 54 vs expected 64px (`126254796418`), Beauty Moods label, Video credit font, and private suite missing readFileSync import / outdated Moods nav assertion. No product styling, privacy policy or unrelated gates changed to hide them.
+- Cloudflare branch preview succeeded; it is not production evidence. Ready for safe merge; production commit/bytes must be checked separately after deployment.
+- Remaining acceptance limit: actual iPhone Safari sign-in/reload/session persistence and real-customer purchase/free-balance access are not physically verified; available interactive browser is Chrome. Local policy tests and synthetic mobile/WebKit flows preserve existing balances and paid-signup rules.
+
+
 ## Domain readiness audit / 2026-10-23
 - Verified source: main `14d3eafcab25bc3cbbaccae02d384676d3b1a470`.
 - Original runs `39863051784` and `39863051721` remain failed, with no successful latest retry.

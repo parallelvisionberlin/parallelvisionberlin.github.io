@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
 import {resolve,extname} from 'node:path';
-const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
+const engines=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
+const engine=process.env.PV_BROWSER_ENGINE||'chromium';
+if(!['chromium','webkit'].includes(engine))throw Error('Unsupported account test engine.');
 const root=resolve('.'),artifacts='/tmp/pv-lab-account-review';await mkdir(artifacts,{recursive:true});
 const server=createServer(async(req,res)=>{
   let pathname=new URL(req.url,'http://localhost').pathname;if(pathname.endsWith('/'))pathname+='index.html';if(pathname==='/lab/moods')pathname+='.html';
@@ -11,7 +13,7 @@ const server=createServer(async(req,res)=>{
   try{res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(await readFile(file));}catch{res.writeHead(404).end();}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true});
+const browser=await engines[engine].launch({headless:true});
 const products=[{id:'topup3',type:'payment',credits:300,priceEur:3},{id:'topup10',type:'payment',credits:1000,priceEur:10},{id:'topup29',type:'payment',credits:3000,priceEur:29},{id:'topup75',type:'payment',credits:8000,priceEur:75},{id:'starter',type:'subscription',credits:1600,priceEur:15}];
 for(const product of products)product.title='PV Lab '+product.id;
 const clerkMock=`export class Clerk {
@@ -21,13 +23,27 @@ const clerkMock=`export class Clerk {
 }`;
 async function setup(width,customer=true,overrides={}){
   const context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage();
-  const errors=[],writes=[];let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',initialized=!overrides.newCustomer;
-  page.on('pageerror',e=>errors.push(e.message));
+  const errors=[],writes=[];let fundingErrors=0;let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)',initialized=!overrides.newCustomer;
+  let deferredResizeNotices=0;
+  page.on('pageerror',e=>{
+    // WebKit may defer one observer delivery while these tests resize the UI.
+    // Keep it visible in logs; repeated notices and every application exception fail.
+    if(engine==='webkit'&&e.message==='ResizeObserver loop completed with undelivered notifications.'&&++deferredResizeNotices===1){
+      console.log('WebKit: one ResizeObserver delivery deferred; geometry assertions remain enabled');
+      return;
+    }
+    errors.push(e.message);
+  });
   const session={customer,ownerId:'user_Test',balanceCredits:1234,billingReady:true,generationReady:true,products,subscription:{plan_id:null,status:'none'},config:{enabled:true,configured:true,concurrency:{image:4,video:1},videoEngines:['wan']},...overrides};
   await page.route('https://**/*',async route=>{
     const request=route.request(),url=new URL(request.url());
     if(url.hostname==='esm.sh'&&url.pathname.includes('clerk-js'))return route.fulfill({contentType:'text/javascript',body:clerkMock});
-    if(url.hostname==='clerk.parallelvisionlabel.com'||url.hostname==='clerk.pvlab.studio')return route.fulfill({contentType:'text/javascript',body:''});
+    if(url.hostname==='clerk.parallelvisionlabel.com'||url.hostname==='clerk.pvlab.studio'){
+      const body=url.pathname.includes('/@clerk/clerk-js@')
+        ?clerkMock.replace('export class Clerk','class Clerk')+';window.Clerk=new Clerk();'
+        :'window.__internal_ClerkUICtor=class{};';
+      return route.fulfill({contentType:'text/javascript',body});
+    }
     if(url.hostname==='checkout.stripe.com')return route.fulfill({contentType:'text/html',body:'<h1>Intercepted checkout test</h1>'});
     if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
     if(request.method()!=='GET')writes.push({path:url.pathname,body:request.postData()});
@@ -37,7 +53,7 @@ async function setup(width,customer=true,overrides={}){
     if(url.pathname==='/api/migration/new'&&request.method()==='POST'){
       initialized=true;return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({linked:true,kind:'customer'})});
     }
-    if(url.pathname==='/api/quotes'&&overrides.previewFundingError)return route.fulfill({status:402,contentType:'application/json',body:JSON.stringify({error:'Insufficient credits.'})});
+    if(['/api/quotes','/api/customer/image-price'].includes(url.pathname)&&overrides.previewFundingError){fundingErrors++;return route.fulfill({status:402,contentType:'application/json',body:JSON.stringify({error:'Insufficient credits.'})});}
     if(url.pathname==='/api/customer/wallet'){
       if(heldWallet)await heldWallet;
       return send({...session,activity:[{delta_credits:-42,kind:'generation',created_at:1720000000000},{delta_credits:1000,kind:'purchase',created_at:1719000000000}]});
@@ -52,7 +68,7 @@ async function setup(width,customer=true,overrides={}){
     if(url.pathname==='/api/customer/referrals')return send({rewardsAvailable:false});
     return send({jobs:[],activeJobs:[],next:null,packs:[],characters:[],moods:[],boards:[],folders:[],models:[],configured:false});
   });
-  return {context,page,errors,writes,session,setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
+  return {context,page,errors,writes,session,get fundingErrors(){return fundingErrors;},setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
 }
 async function fits(page,label){
   const metrics=await page.evaluate(()=>({
@@ -245,9 +261,10 @@ try{
     try{
       await page.goto(origin+'/lab/studio.html?tool=image');
       await page.locator('#app').waitFor({state:'visible'});
-      await page.locator('[data-welcome-mood="dream-blur"]').click();
-      await page.waitForFunction(()=>document.getElementById('generate').title.includes('Choose credits'),{},{timeout:15000});
-      assert.ok(writes.some(x=>x.path==='/api/quotes'),'A background quote received the simulated funding error');
+      // Isolate funding recovery from downloading curated Mood reference media.
+      await page.locator('#image-composer-prompt').fill('An editorial portrait with quiet natural light.');
+      await page.waitForFunction(()=>document.getElementById('image-composer-generate').dataset.credits==='Retry credit check',{},{timeout:15000});
+      assert.ok(rig.fundingErrors>0,'A background quote received the simulated funding error');
       assert.equal(await page.locator('#lab-pricing-overlay').evaluate(el=>el.open),false,'A failed background quote never interrupts Mood exploration');
       const draft=await page.locator('#image-composer-prompt').inputValue();
       await page.locator('#image-composer-generate').click();
@@ -273,6 +290,7 @@ try{
       await page.locator('#lab-pricing-overlay[open] #lab-plans-title').waitFor();
       assert.equal(await page.locator('#lab-pricing-overlay #pricing [data-lab-buy]').count(),7,
         'All seven homepage products appear in Studio without navigation');
+      await page.locator('#lab-pricing-overlay #lab-tab-onetime[aria-selected="true"]').waitFor();
       assert.equal(await page.locator('#lab-pricing-overlay #lab-tab-onetime').getAttribute('aria-selected'),'true',
         'Empty wallet starts on one-time credits');
       assert.equal(page.url(),studioUrl,'Opening credits does not navigate through the homepage');
