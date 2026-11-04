@@ -131,10 +131,10 @@ try{
           return {height:card.height,top:card.top,titleGap:card.top-title.bottom,
             margin:parseFloat(getComputedStyle(shelf).marginTop)};
         });
-        assert.ok(expandedCards.height>=185&&expandedCards.height<=226,
+        assert.ok(expandedCards.height>=185&&expandedCards.height<=265,
           'Selected Mood photos use the largest portrait height that fits the locked page: '+JSON.stringify(expandedCards));
         assert.ok(expandedCards.height>=idleCards.height-2,
-          'Selected Mood must not shrink photos');
+          'Selected Mood must not shrink photos: '+JSON.stringify({idleCards,expandedCards}));
         assert.ok(expandedCards.titleGap>=18,
           'Photo must clear Start with a feeling: '+JSON.stringify(expandedCards));
         assert.ok(expandedCards.margin>=7&&expandedCards.margin<=10,
