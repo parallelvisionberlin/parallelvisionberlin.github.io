@@ -1,35 +1,29 @@
 # PV LAB Premium Upscale work state
 
 ## Footer state repair / 2026-11-04
-- Objective: preserve the approved initial Upscaler deck after upload, processing and Clear.
-- Base: main `08be9b8`; isolated branch `fix/upscaler-footer-state-20261104`.
-- Verified cascade conflict: assets.css restores #upscale-price under .controls:has(#upscale-info[open]); its selector beats the November 2 hide rule.
-- That optional row retains flex:1 1 260px, turning its horizontal basis into a large vertical footer gap.
-- Quote validation can open the hidden disclosure; clearMedia resets quote data but does not close the disclosure.
-- Fix: match the open-disclosure selector when hiding the redundant optional row and reset its flex basis.
-- Preserve the source, model cards, approved initial deck, quote status and paid submission logic; owner now explicitly requests hiding Save upscale draft.
-- Files: upscale-studio-v5.css, studio.html (20261104-single-action-footer2), tests/lab-upscale-ui.mjs.
-- Added browser coverage: initial/open-disclosure upload, mocked processing/submission and Clear at 1920/1440/390px; no real paid jobs.
-- Local checks: approved Image contract 5/5, JavaScript syntax, diff whitespace pass.
-- Local browser suite unavailable: bundled Playwright has no Chromium executable; GitHub browser CI completed instead.
-- Production read-only inspection confirms the old CSS version and the shared signed-in Upscaler; no paid action clicked.
-- Owner explicitly authorized pushing the repair and opening a PR after the initial automatic approval rejection.
-- PR #833: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/833; application/test commit `95b92665c73f89d36d67a7ab482eb67f17dec0ee`.
-- Uploaded application/test Git blob SHAs exactly match local committed bytes. Shell push lacked credentials; connected GitHub integration succeeded.
-- Relevant CI: Upscaler/Assets run 41829871151 PASS, including Image/Video parity, visibility, mocked submission smoke (10 groups), full model/quote/history suite (46 groups).
-- New footer regression PASS at 1920/1440/390px through initial state, open technical disclosure, upload, mocked processing/submission and Clear.
-- Approved Image contract and Video Upscaler validation PASS. Loaded-source desktop/phone CI screenshots inspected; compact action and selectors preserved.
-- Screenshot artifact: 13323076584 / upscaler-assets-visibility-previews.
-- Global CI is not green. Video integration reports five unit failures in unchanged Meta/Moods/photobooth tests; queue viewer fails reading undefined width. Other broader browser failures remain outside this bounded repair and are not waived.
-- Cloudflare check success for the PR branch does not verify a production release. PR remains open and unmerged; pvlab.studio still uses the old stylesheet.
-- Next action: resolve/review remaining CI gates before any merge/release; production bytes and rendered behavior must be verified after publication. No paid production generation initiated.
-
-### Single-action release follow-up
-- Owner supplied a fresh processing screenshot and explicitly rejected both optional price-check copy and Save upscale draft.
-- Hide Save with the same open-disclosure specificity; keep only Upscale plus necessary progress/error feedback.
-- Integrate main d18277e once with a normal merge, preserving the concurrent Video history and onboarding changes.
-- Extend the existing 1920/1440/390px transition regression to require Save hidden; retain submitted/Clear screenshots.
-- Final relevant CI and production verification pending. No paid production job authorized or initiated.
+- Objective: preserve the approved Upscaler layout across upload, processing and Clear; show only the Upscale action.
+- PR #833 merged as `068ebbf4b8f80d2292e8d7d90d0e2886b8edd792`.
+- Tested candidate: `9182c92159db1a4293797b4892b7c6efb86ffd2d`; normal main integration `d18277e` preserves concurrent Video history and onboarding changes.
+- Root cause: assets.css reopens the optional price row under .controls:has(#upscale-info[open]), overriding the old hide rule; flex:1 1 260px becomes a large vertical gap.
+- Clear resets quote data but leaves that disclosure open; source state alone cannot prevent the regression.
+- Fix: selectors matching the open disclosure keep #upscale-price and #save hidden, with a neutral flex basis.
+- Owner explicitly rejected Check price & size, Optional · no generation charge and Save upscale draft. Only Upscale plus required progress/error feedback remains.
+- Preserve original source, model cards, quote validation, credits, provider dispatch, history, downloads and the approved initial workspace.
+- Files: lab/upscale-studio-v5.css; lab/studio.html cache key 20261104-single-action-footer2; tests/lab-upscale-ui.mjs; this checkpoint.
+- Local approved Image contract 5/5, JavaScript syntax and whitespace checks pass.
+- Final Upscaler/Assets CI run 41837796008 PASS: Image/Video parity, Assets visibility, 10 smoke groups, 46 full browser groups.
+- New regression explicitly keeps both extra rows hidden through initial/open disclosure, upload, mocked processing/submission and Clear at 1920/1440/390px.
+- Submitted and cleared screenshots retained in artifact 13327277759 / upscaler-assets-visibility-previews.
+- Final approved Image contract and Video Upscaler validation PASS.
+- Broader pre-existing unit/browser failures remain outside this bounded repair; no test, gate or security control was disabled.
+- Cloudflare Pages production app check 126603006876 SUCCESS for the exact merge.
+- Scoped release verifier returned LIVE_VERIFIED for the production version and exact reviewed CSS bytes.
+- Live CSS SHA-256: fbd6a439ea1629200da3c49f8cdbc755148172cc790496a09e7210f2e996e39b.
+- Production browser confirms the new CSS version, #upscale-price display:none, #save display:none, and compact 78px action footer.
+- The browser was signed out: live loaded/processing/Clear behavior was not repeated in a real account; those transitions passed mocked browser tests.
+- No real paid generation, quote, purchase or account change was initiated.
+- Status: published and verified for this footer repair. Existing tabs need one reload after an active job finishes.
+- Next action: none for this repair; broader test failures are separate work.
 
 ## Sidebar screenshot investigation / 2026-11-03
 - User screenshot showed a large action-footer gap with the optional price row and Save upscale draft.
