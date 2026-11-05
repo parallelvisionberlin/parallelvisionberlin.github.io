@@ -80,8 +80,9 @@ try{
   await page.locator('.scene-feature-attach').click();
   await page.waitForFunction(()=>document.querySelector('#reference-list .reference-element-item')?.textContent.includes('Alma'));
   assert.equal(await page.locator('#mode-transform').getAttribute('aria-selected'),'true');
+  await page.fill('#prompt','');
   await ready(page);
-  assert.equal(await page.locator('#generate').isEnabled(),true);
+  assert.equal(await page.locator('#generate').isEnabled(),true,'character replacement does not require a typed direction');
   await page.click('#generate');await page.locator('#quote-dialog').waitFor({state:'visible'});
   const request=x.requests.filter(r=>r.path==='/api/quotes').at(-1).data;
   assert.equal(request.settings.mode,'transform');
