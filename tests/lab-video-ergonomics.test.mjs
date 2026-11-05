@@ -34,8 +34,8 @@ test('the model capability matrix and credit/generation controls are unchanged',
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,
       'real production model input remains: '+id);
   }
-  assert.match(models,/modes: \['start', 'reference', 'text', 'extend'\]/,
-    'Seedance retains all independent native Start, Reference, Text, Extend routes');
+  assert.match(models,/modes: \['start', 'reference', 'text', 'extend', 'transform'\]/,
+    'Seedance retains Start, Reference, Text and Extend while adding the independent Transform edit route');
   assert.match(models,/wan: Object\.freeze\(\{[\s\S]*?modes: \['start', 'reference'\]/);
   assert.match(html,/id="video-create-task"[\s\S]*?<\/svg>Create<\/button>/);
   assert.match(html,/id="mode-extend"[\s\S]*?<\/svg>Extend<\/button>/);
