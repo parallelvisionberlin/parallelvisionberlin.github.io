@@ -159,7 +159,7 @@ function wMessage(title,copy,kind='notice'){
       './visuals/leather-editorial/hero-mobile.webp',
       './mood-previews/chrome-couture-metal-editorial-20261031.jpg',
       './mood-previews/berlin-rave-20261011.webp',
-      './mood-previews/dream-blur-cover-20261024.webp'
+      './visuals/fashion-replace/garment.webp'
     ];
     for(const source of sources){
       const frame=document.createElement('span');frame.className='wardrobe-empty-example';
