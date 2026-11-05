@@ -369,3 +369,21 @@
   height:52px;
  }
 }
+
+/* Final 1440px type scale: keep 70px+ editorial display text while
+   compensating within the left settings column; narrow desktops retain fit. */
+@media(min-width:1301px){
+ .beauty-editorial-heading h1{
+  font-size:clamp(63px,4.9vw,78px);
+ }
+}
+@media(min-width:1301px) and (max-width:1600px){
+ .beauty-editorial-heading .beauty-intro{margin-bottom:11px;}
+ .beauty-editorial-heading .beauty-description{margin-bottom:12px;}
+ .beauty-left-settings{gap:9px;}
+}
+@media(min-width:1001px) and (max-width:1300px){
+ .beauty-editorial-heading h1{
+  font-size:clamp(49px,4.55vw,63px);
+ }
+}
