@@ -43,14 +43,21 @@
   if(event.key==='-'){event.preventDefault();setLevel(level-1);}
   if(event.key==='0'){event.preventDefault();setLevel(0);}
  });
- dialog.addEventListener('close',()=>{
+ const clearPreview=()=>{
   image.removeAttribute('src');image.style.removeProperty('width');
   modalDownload.removeAttribute('href');modalDownload.removeAttribute('download');
+ };
+ dialog.addEventListener('close',()=>{
+  clearPreview();
   if(open.isConnected&&!result.hidden)open.focus({preventScroll:true});
  });
- // Account sign-out or result replacement immediately closes the private viewer.
+ // Account sign-out or result replacement clears the private image synchronously
+ // before closing the modal, rather than leaving a reference until the close event.
  const keepCurrent=()=>{
-  if(dialog.open&&(result.hidden||!resultImage.getAttribute('src')||resultImage.src!==image.src))dialog.close();
+  if(dialog.open&&(result.hidden||!resultImage.getAttribute('src')||resultImage.src!==image.src)){
+   clearPreview();
+   dialog.close();
+  }
  };
  new MutationObserver(keepCurrent).observe(result,{attributes:true,attributeFilter:['hidden']});
  new MutationObserver(keepCurrent).observe(resultImage,{attributes:true,attributeFilter:['src']});
