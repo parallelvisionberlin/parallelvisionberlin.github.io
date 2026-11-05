@@ -90,10 +90,12 @@ try{
   assert.equal(await page.locator('.beauty-looks-next').isVisible(),true,'Right carousel arrow is visible');
   await page.locator('.beauty-looks-next').click();
   await page.waitForFunction(()=>document.querySelector('#beauty-looks-list').scrollLeft>8);
+  await page.waitForFunction(()=>!document.querySelector('.beauty-looks-prev').disabled); // smooth scroll updates arrow state asynchronously
   assert.equal(await page.locator('.beauty-looks-prev').isEnabled(),true,'Carousel can move backward');
   await page.locator('#beauty-looks-list').focus();
   await page.keyboard.press('ArrowLeft');
   await page.waitForFunction(()=>document.querySelector('#beauty-looks-list').scrollLeft<8);
+  await page.waitForFunction(()=>document.querySelector('.beauty-looks-prev').disabled);
   assert.equal(await page.locator('.beauty-looks-prev').isDisabled(),true,'Keyboard arrows navigate to the beginning');
   await page.locator('[data-beauty-choice="beauty-makeup"][data-value="bold"]').click();
   assert.equal(await page.locator('#beauty-makeup').inputValue(),'bold','Makeup card changes the generation setting');
