@@ -81,7 +81,8 @@
 #app.video-studio-active.video-transform-active #reference-mode #video-reference-list .reference-media-item{
   border:1px solid #3c4247;border-radius:8px;background:#171a1d;padding:6px;
 }
-#app.video-studio-active .video-transform-compare:not([hidden]){
+#app.video-studio-active .canvas>.video-transform-compare:not([hidden]){
+  position:absolute;left:16px;top:16px;z-index:12;
   display:inline-flex;align-items:center;gap:3px;
   padding:3px;border-radius:8px;border:1px solid #454a50;
   background:#151719;z-index:8;
