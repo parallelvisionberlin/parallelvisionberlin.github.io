@@ -3545,7 +3545,7 @@ bindDrop('reference-drop','reference-images',async files=>{if(files.length)await
 attachVideoReferenceTileDrop({
   target:$('reference-drop'),
   enabled:()=>owner&&!busy&&!selectedVideoJob&&!$('start-frame-dialog').open&&
-    tool==='video'&&['reference','extend'].includes(mode)&&!$('reference-mode').hidden&&
+    tool==='video'&&['reference','extend','transform'].includes(mode)&&!$('reference-mode').hidden&&
     VIDEO_MODELS[engine].maxImages>0,
   onFiles:files=>{void action(async()=>{await addReferences(files);});},
   onInvalid:message=>notify(message,true)
@@ -3578,7 +3578,7 @@ videoCanvas.addEventListener('drop',event=>{
 
 attachVideoReferenceBrowserDrop({
   doc:document,target:$('reference-drop'),input:$('reference-images'),
-  enabled:()=>owner&&!busy&&!$('start-frame-dialog').open&&tool==='video'&&mode==='reference'&&VIDEO_MODELS[engine].maxImages>0,
+  enabled:()=>owner&&!busy&&!$('start-frame-dialog').open&&tool==='video'&&['reference','transform'].includes(mode)&&VIDEO_MODELS[engine].maxImages>0,
   onFiles:files=>{void action(async()=>{await addReferences(files);});}
 });
 frameMaker=createVideoStartFrameMaker({
@@ -3916,7 +3916,7 @@ async function restore(job){
         .filter(ref=>!isMoodStyleReference(ref.label));
       if(saved.length){const files=await Promise.all(saved.map(ref=>assetFile(ref.id,(ref.label.name||'reference').replace(/\.[^.]+$/,''))));await addReferences(files,saved.map(ref=>ref.id),saved.map(ref=>ref.label));}
     }
-    else if(job.sourceId&&p.mode!=='extend'){await setImage(await assetFile(job.sourceId,'start-frame'),job.sourceId);if(p.lastSourceId)await setLastImage(await assetFile(p.lastSourceId,'last-frame'),p.lastSourceId);}
+    else if(job.sourceId&&!['extend','transform'].includes(p.mode)){await setImage(await assetFile(job.sourceId,'start-frame'),job.sourceId);if(p.lastSourceId)await setLastImage(await assetFile(p.lastSourceId,'last-frame'),p.lastSourceId);}
   }
   if(controlledPose)poseMapSourceId=p.poseMapSourceId||null;moodUI.restore(p,true);$('prompt').value=p.moodOriginalPrompt??p.prompt??'';
   if(soulPro){$('soul-pro-model').value=soulProModel;$('soul-pro-seed').value=p.seed??'';}
