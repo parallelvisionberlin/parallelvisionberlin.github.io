@@ -1,5 +1,5 @@
 // Local reference-media preparation. No generation calls and no public media uploads.
-export function createMediaReferences({element,owner,busy,epoch,action,changed,upload,assetFile}) {
+export function createMediaReferences({element,owner,busy,epoch,action,changed,upload,assetFile,videoMax=()=>10}) {
   const groups={video:[],audio:[]};
   const limits={video:20*1048576,audio:15*1048576};
   const types={video:['video/mp4','video/quicktime'],audio:['audio/mpeg','audio/wav','audio/x-wav']};
@@ -17,7 +17,7 @@ export function createMediaReferences({element,owner,busy,epoch,action,changed,u
       }
       row.append(label,media,note,controls);box.append(row);
     });
-    element(kind+'-ref-count').textContent=groups[kind].length+' / 10 · '+groups[kind].reduce((n,r)=>n+r.seconds,0).toFixed(1)+' / 30s';
+    element(kind+'-ref-count').textContent=groups[kind].length+' / '+(kind==='video'?videoMax():10)+' · '+groups[kind].reduce((n,r)=>n+r.seconds,0).toFixed(1)+' / 30s';
   }
   async function inspect(file,kind){
     if(!types[kind].includes(file.type)||!file.size||file.size>limits[kind])throw new Error(kind==='video'?'Use MP4 or MOV references up to 20 MiB each.':'Use MP3 or WAV references up to 15 MiB each.');
@@ -32,7 +32,8 @@ export function createMediaReferences({element,owner,busy,epoch,action,changed,u
   }
   async function add(files,kind,ids=[],labels=[]){
     const start=epoch(),list=[...files];
-    if(groups[kind].length+list.length>10)throw new Error('Use at most ten '+kind+' references.');
+    const maximum=kind==='video'?videoMax():10;
+    if(groups[kind].length+list.length>maximum)throw new Error(kind==='video'&&maximum===1?'This task accepts one source video. Remove the existing video first.':'Use at most '+maximum+' '+kind+' references.');
     for(let i=0;i<list.length;i++){
       const item=await inspect(list[i],kind);
       if(!owner()||start!==epoch()){release(item);throw new Error('Session changed.');}
