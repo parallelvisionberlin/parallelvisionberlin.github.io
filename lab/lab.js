@@ -3442,7 +3442,7 @@ function configureVideoControls(){
     $('resolution').replaceChildren(...model.resolutions.map(r=>new Option(r.toUpperCase(),r)));
     $('resolution').value=model.resolutions.includes(currentResolution)?currentResolution:(model.resolutions.includes('768p')?'768p':model.resolutions[0]);
     $('engine-name').textContent=model.label.toUpperCase();
-    $('mode-heading').textContent='Create video';
+    $('mode-heading').textContent=mode==='transform'?'Transform video':'Create video';
     $('prompt').maxLength=h3maxfal||omni?6000:minimax?7000:sd||sd15||sd4k||klingHf?5000:6000;
     $('prompt-label').textContent='Prompt';
     $('prompt').placeholder=mode==='transform'?'Optional: refine the character replacement…':mode==='extend'?'Describe what happens next…':'Describe the movement, scene and sound…';

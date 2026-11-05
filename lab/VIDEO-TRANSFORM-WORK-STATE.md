@@ -43,6 +43,8 @@ Status: implementation committed to **draft PR only**, not merged or deployed.
 - No real paid generation, authenticated owner checkout, vendor acceptance or provider output has been verified.
 - No `main` merge, Cloudflare Pages deployment or production `pvlab.studio` verification.
 - PR remains draft until scoped browser, quote, source preservation and provider behavior are reviewed.
+- GitHub Actions dedicated browser verification and exact-branch Lab checks were queued in the latest observed run; do not claim passed until their logs confirm it.
+- After code review, race-safe duplicate confirmation now resolves to the same stored quote job instead of attempting a second paid provider request.
 
 ## Exact next action
 1. Read relevant GitHub Actions results for PR #853, fix Transform-only regressions.

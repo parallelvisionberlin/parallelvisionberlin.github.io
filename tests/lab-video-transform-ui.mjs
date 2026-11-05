@@ -115,7 +115,7 @@ try{
     referenceVideoIds:[originalId],referenceAudioIds:[]}};
  const y=await workspace({initial:[completed]});
  await y.page.click('#tool-video');
- await y.page.locator('#history .card[data-kind="video"]').first().click();
+ await y.page.locator('#history .card').first().click();
  await y.page.waitForFunction(()=>!document.querySelector('#video-transform-compare').hidden);
  await y.page.click('#video-transform-original');
  await y.page.waitForFunction(()=>document.querySelector('#video-transform-original').getAttribute('aria-pressed')==='true');

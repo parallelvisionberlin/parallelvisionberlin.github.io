@@ -103,8 +103,17 @@ export async function submitCharacterTransform(env,owner,q,p,payload,d){
   const previous=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',q.id,owner);
   if(previous)return previous;
   const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),id=crypto.randomUUID();
-  const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?, 'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND json_extract(params,'$.provider')='higgsfield') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND json_extract(params,'$.provider')='higgsfield')<2 AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
-    id,owner,video.id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,owner,Math.floor(t/86400000)*86400000,q.estimate_microusd,limit);
+  let inserted;
+  try{
+    inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?, 'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND json_extract(params,'$.provider')='higgsfield') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND json_extract(params,'$.provider')='higgsfield')<2 AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
+      id,owner,video.id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,owner,Math.floor(t/86400000)*86400000,q.estimate_microusd,limit);
+  }catch(error){
+    // A concurrent confirmation may have won the unique quote_id reservation.
+    // Return that one job, never submit a second provider request.
+    const existing=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',q.id,owner);
+    if(existing)return existing;
+    throw error;
+  }
   if(!inserted.meta.changes){
     const existing=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',q.id,owner);
     if(existing)return existing;
