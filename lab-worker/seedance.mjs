@@ -3,7 +3,8 @@ export const SEEDANCE = Object.freeze({
   start:'bytedance/seedance-2.5/image-to-video',
   text:'bytedance/seedance-2.5/text-to-video',
   reference:'bytedance/seedance-2.5/reference-to-video',
-  extend:'bytedance/seedance-2.5/video-extend'
+  extend:'bytedance/seedance-2.5/video-extend',
+  transform:'bytedance/seedance-2.5/video-edit'
 });
 export const REFERENCE_MIME = new Set(['video/mp4','video/quicktime','audio/mpeg','audio/wav','audio/x-wav']);
 const IMAGE_MIME = new Set(['image/png','image/jpeg','image/webp']);
@@ -31,7 +32,7 @@ export function seedanceParameters(value,{fail,referenceLabels}) {
   const seed=value.seed==null||value.seed===''?null:Number(value.seed);
   if(seed!==null&&(!Number.isInteger(seed)||seed<0||seed>2147483647))fail(400,'Invalid Seedance seed.');
   if(value.model&&value.model!==SEEDANCE[mode])fail(400,'Seedance model and mode do not match.');
-  return {type:'video',...(mode==='extend'?{provider:'higgsfield'}:{}),engine:'seedance',model:SEEDANCE[mode],mode,prompt,duration,resolution,aspectRatio,seed,audio:value.audio!==false,
+  return {type:'video',...(['extend','transform'].includes(mode)?{provider:'higgsfield'}:{}),engine:'seedance',model:SEEDANCE[mode],mode,...(mode==='transform'?{transformType:'replace-character'}:{}),prompt,duration,resolution,aspectRatio,seed,audio:value.audio!==false,
     referenceRoles:referenceLabels(value.referenceRoles,30),referenceVideos:mediaLabels(value.referenceVideos,fail),referenceAudio:mediaLabels(value.referenceAudio,fail)};
 }
 export async function prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput}) {
