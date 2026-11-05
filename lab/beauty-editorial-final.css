@@ -348,3 +348,24 @@
   height:52px;
  }
 }
+
+/* Final 1920px Generate spacing correction:
+   CI measured notes.bottom=603.45 and button.top=601.63.
+   Reduce vertical whitespace only. The preset photographs and panel width stay large. */
+@media(min-width:1001px){
+ .beauty-edit-panel{
+  gap:8px;
+  padding-top:15px;
+  padding-bottom:15px;
+ }
+ .beauty-preset-group legend{
+  margin-bottom:5px;
+ }
+ .beauty-strength{
+  margin-top:5px;
+ }
+ .beauty-direction textarea{
+  min-height:52px;
+  height:52px;
+ }
+}
