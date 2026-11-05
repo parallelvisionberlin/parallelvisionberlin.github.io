@@ -1150,6 +1150,7 @@ document.addEventListener('click',event=>{
   <p class="pv-upscale-example-note">Illustrative PV LAB photograph. No upscale has been generated.</p>
   <span class="empty-footnote" id="empty-footnote" hidden></span>
 </div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video>
+<div id="video-transform-compare" class="video-transform-compare" role="group" aria-label="Compare original and transformed video" hidden><button type="button" id="video-transform-original" aria-pressed="false">Original</button><button type="button" id="video-transform-result" aria-pressed="true">Result</button></div>
 <div id="video-job-stage" class="video-job-stage" hidden role="status" aria-live="polite" aria-atomic="true">
   <div class="video-job-stage-status"><span class="video-job-stage-indicator" aria-hidden="true"></span><span id="video-job-stage-state">Processing</span></div>
   <div class="video-job-stage-main">
@@ -1173,7 +1174,7 @@ document.addEventListener('click',event=>{
     <p id="video-job-stage-message">Your video is being created.</p>
   </div>
   <p id="video-job-stage-meta" class="video-job-stage-meta"></p>
-</div></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><div id="video-transform-compare" class="video-transform-compare" role="group" aria-label="Compare original and transformed video" hidden><button type="button" id="video-transform-original" aria-pressed="false">Original</button><button type="button" id="video-transform-result" aria-pressed="true">Result</button></div><button id="download" class="quiet" hidden>Download result</button></div></section>
+</div></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
 <div id="video-feed-center" class="video-feed-center" hidden>
 </div>
 <aside id="video-inspector" class="video-inspector" hidden aria-label="Selected video information">
