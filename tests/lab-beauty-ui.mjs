@@ -68,9 +68,44 @@ try{
   assert.ok(layout.button.bottom<=height-12,'Generate fits the first viewport at '+width+'x'+height+': '+JSON.stringify(layout));
   assert.ok(layout.button.top>=layout.panel.top+8&&layout.button.bottom<=layout.panel.bottom-5,'Generate remains inside the visible Edit Look panel at '+width+'x'+height+': '+JSON.stringify(layout));
   assert.ok(layout.ratio.bottom<=layout.photo.bottom-8,'Aspect ratio stays visible above the bottom of the hero at '+width+'x'+height+': '+JSON.stringify(layout));
-  assert.ok(layout.notes.bottom+8<=layout.button.top,'Creative direction and Generate never overlap');
+  assert.ok(layout.notes.bottom+8<=layout.button.top,'Creative direction and Generate never overlap at '+width+'x'+height+': '+JSON.stringify(layout));
   assert.ok(layout.title.right+8<=layout.photo.left&&layout.photo.right+8<=layout.panel.left,'Approved layout keeps settings left, image centered and tools right');
   assert.ok(layout.panel.left>=0&&layout.panel.right<=width&&layout.scrollWidth<=width,'Workspace fits horizontally');
+
+  // The finished composition must be visibly different from the old boxed layout
+  // while keeping the exact approved image and full-size editing controls.
+  const editorial=await page.evaluate(()=>{
+   const grid=document.querySelector('.beauty-editor-grid');
+   const pseudo=getComputedStyle(grid,'::before');
+   const panel=document.querySelector('.beauty-edit-panel').getBoundingClientRect();
+   const cards=[...document.querySelectorAll('.beauty-looks-list [data-look]')];
+   const track=document.querySelector('.beauty-looks-list').getBoundingClientRect();
+   const previews=[...document.querySelectorAll('.beauty-choice-photo')];
+   return {
+    hero:pseudo.backgroundImage,
+    mask:pseudo.maskImage||pseudo.webkitMaskImage,
+    background:getComputedStyle(grid).backgroundColor,
+    overflow:getComputedStyle(grid).overflowX,
+    panelWidth:panel.width,
+    thumbnails:previews.length,
+    minThumbHeight:Math.min(...previews.map(el=>el.getBoundingClientRect().height)),
+    titleSize:parseFloat(getComputedStyle(document.querySelector('.beauty-editorial-heading h1')).fontSize),
+    lookCount:cards.length,
+    fullDeck:cards.every(el=>{const r=el.getBoundingClientRect();return r.left>=track.left-2&&r.right<=track.right+2;})
+   };
+  });
+  assert.match(editorial.hero,/beauty-hero-refined-20261031\.jpg/,'Original hero JPEG remains the exact background asset');
+  assert.equal(editorial.lookCount,6,'All six original editorial photographs remain');
+  if(width>1000){
+   assert.match(editorial.mask,/gradient/,'Hero has a real photographic fade into the archive');
+   assert.equal(editorial.background,'rgba(0, 0, 0, 0)','Hero no longer has the hard gray rectangle');
+   assert.equal(editorial.overflow,'visible','Hero is not clipped at its former hard bottom');
+   assert.ok(editorial.panelWidth>=(width>=1366?365:330),'Edit Look panel remains full-size: '+width+'px '+editorial.panelWidth);
+   assert.equal(editorial.thumbnails,12,'Makeup, hair and skin controls remain visible');
+   assert.ok(editorial.minThumbHeight>=39,'Right-hand visual presets are readable, not tiny');
+   assert.equal(editorial.fullDeck,true,'No editorial photo is cut off');
+   if(width>=1440)assert.ok(editorial.titleSize>=70,'Desktop ALTER title has the approved editorial scale');
+  }
   await page.locator('#beauty-generate').click({trial:true});
   await page.screenshot({path:'test-results/beauty-fit-'+width+'x'+height+'.png',fullPage:true});
   await s.context.close();

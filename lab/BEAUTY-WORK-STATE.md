@@ -1,5 +1,19 @@
 # Beauty Studio and Studios navigation
 
+## 2026-11-05 | ALTER editorial composition, original photographs locked
+
+- Owner rejected the hard-edged, near-unchanged production layout and requested the previously approved cinematic editorial composition implemented and published, but with the ORIGINAL central hero photograph and a large, fully usable Edit Look deck.
+- Implementation PR #851 from main `fceefe0694346856146136064712e9188fc0b36f`: new scoped `lab/beauty-editorial-final.css`, a single style link in `lab/beauty.html`, and desktop/responsive visual assertions in `tests/lab-beauty-ui.mjs`.
+- Approved hero file remains `lab/visuals/beauty/beauty-hero-refined-20261031.jpg`, preloaded as before. All six approved look photos and all 12 Makeup/Hair/Skin preset thumbnails remain unchanged.
+- Change is presentation only: dark background continuity, photographic hero fade, stronger type, a readable source photo control, prominent 370–430px desktop Edit Look panel, larger preset photos, and a complete six-card desktop look archive with existing browse navigation.
+- User photo upload, compare slider, result zoom, History, generated file download, model/resolution/ratio, quote/submit/credit and auth code remain byte-identical to main.
+- Responsive rules preserve the existing <=1000px stacked editor and <=640px horizontally scrollable looks; no shared header or other studio changes.
+- Current branch CSS version: `beauty-editorial-final.css?v=20261105-finish3`. Full Beauty browser checks compare original hero source, computed photographic fade, non-boxed grid, panel/thumb sizes, absence of horizontal overflow, and all six cards.
+- Branch preview successfully built by Cloudflare Pages for implementation SHA `f51ffa0346a55ac62dfbb55dae1f68f095fb403d`; approved Image UI contract and static validation passed. Final Beauty browser evidence, merge, exact-main Cloudflare deployment and custom-domain observation must be recorded separately.
+- CI visual review of the first candidate caught a cramped right deck: Creative Direction could overlap Generate. Corrective CSS reduces vertical gaps only, keeps full preset photograph sizes and the wide panel; the browser regression keeps its strict overlap assertion. Desktop screenshot review also found a rectangular photo vignette, now removed. The latest browser run must verify the correction before merge.
+- The older broad suites retain known unrelated failures; do not alter generation/account or unrelated workflows just to silence them.
+
+
 ## Phone Studios menu fit, 2026-11-01
 
 - Owner supplied current/desired phone screenshots `IMG_8313.jpeg` / `IMG_8314.jpeg` (`libfile_6f680364225481918e2bb6512df08db2`, `libfile_906df4efaa208191843d12a0f04d30b8`). Remove the extra mobile Studios/Character Studio header and show all four cards including bottom labels.

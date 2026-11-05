@@ -1,0 +1,371 @@
+/* ALTER Studio | final owner-approved editorial composition | 2026-11-05
+   Presentation only. The hero and six existing photographs are intentionally unchanged.
+   Existing upload, generated result, compare, history, presets and zoom own their behavior. */
+
+/* One dark photographic composition instead of a hard-edged hero card. */
+#beauty-workspace{
+  background:#080909;
+}
+#beauty-workspace .beauty-content{
+  max-width:1900px;
+}
+.beauty-breadcrumb{
+  margin-bottom:17px;
+}
+.beauty-looks{
+  position:relative;
+  z-index:2;
+  margin:0 0 22px;
+  padding:21px 2px 0;
+  border-top:0;
+}
+.beauty-looks-heading{
+  align-items:center;
+  margin-bottom:15px;
+  gap:16px;
+}
+.beauty-looks-heading strong{
+  font-size:clamp(18px,1.28vw,22px);
+  font-weight:500;
+  letter-spacing:-.037em;
+}
+.beauty-looks-heading-meta{
+  display:flex;
+  align-items:center;
+  gap:17px;
+}
+.beauty-looks-heading-meta>span{
+  font-size:11px;
+  color:#a8a7a3;
+  white-space:normal;
+}
+.beauty-looks-controls{
+  gap:7px;
+}
+.beauty-looks-controls>.beauty-looks-arrow{
+  width:33px;
+  height:33px;
+  flex-basis:33px;
+  border-color:#ffffff52;
+  background:#0c0d0ee8;
+}
+.beauty-looks-controls>.beauty-looks-arrow svg{
+  width:15px;
+  height:15px;
+}
+.beauty-looks-list{
+  gap:clamp(9px,.7vw,13px);
+}
+.beauty-looks-list>button{
+  height:clamp(155px,18.5vh,189px);
+  border-radius:7px;
+  border-color:#ffffff35;
+  box-shadow:0 8px 24px #00000020;
+}
+.beauty-look-photo{
+  filter:saturate(.71) brightness(.89) contrast(1.01);
+  transition:transform .28s ease,filter .28s ease;
+}
+.beauty-looks-list>button:hover .beauty-look-photo{
+  filter:saturate(.77) brightness(.97) contrast(1.02);
+}
+.beauty-look-copy{
+  bottom:13px;
+  left:13px;
+}
+.beauty-look-copy strong{
+  font-size:14px;
+  letter-spacing:-.015em;
+}
+
+/* Desktop: the original image fades into the look archive rather than stopping
+   at a hard horizontal rectangle. Right editing deck remains comfortably wide. */
+@media(min-width:1001px){
+  .beauty-editor-grid{
+    grid-template-columns:minmax(210px,18.5%) minmax(0,1fr) clamp(370px,25vw,430px);
+    gap:clamp(14px,1.35vw,23px);
+    height:clamp(526px,61vh,650px);
+    background:transparent;
+    border-radius:0;
+    overflow:visible;
+  }
+  .beauty-editor-grid::before{
+    inset:-8px -5px -103px;
+    background-image:
+      linear-gradient(90deg,rgba(8,9,9,.97) 0%,rgba(8,9,9,.81) 17%,rgba(8,9,9,.23) 42%,rgba(8,9,9,.055) 65%,rgba(8,9,9,.68) 100%),
+      linear-gradient(0deg,rgba(8,9,9,.56) 0%,transparent 28%,rgba(8,9,9,.04) 100%),
+      url('./visuals/beauty/beauty-hero-refined-20261031.jpg');
+    background-repeat:no-repeat;
+    background-size:cover;
+    background-position:center,center,clamp(-200px,-11.5vw,-125px) 5%;
+    filter:saturate(.91) contrast(1.025);
+    -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 74%,rgba(0,0,0,.84) 84%,transparent 100%);
+    mask-image:linear-gradient(to bottom,#000 0%,#000 74%,rgba(0,0,0,.84) 84%,transparent 100%);
+  }
+  .beauty-editorial-heading{
+    padding:18px 0 10px clamp(3px,.45vw,9px);
+  }
+  .beauty-editorial-heading h1{
+    font-size:clamp(62px,4.95vw,83px);
+    font-weight:500;
+    line-height:.93;
+    letter-spacing:-.065em;
+    margin-bottom:18px;
+  }
+  .beauty-editorial-heading .beauty-intro{
+    font-size:clamp(19px,1.52vw,24px);
+    line-height:1.22;
+    margin-bottom:18px;
+    letter-spacing:-.03em;
+  }
+  .beauty-editorial-heading .beauty-description{
+    margin-bottom:20px;
+    font-size:clamp(12px,.86vw,14px);
+    line-height:1.56;
+    color:#c8c6c2;
+  }
+  .beauty-left-settings{
+    max-width:290px;
+    padding-top:15px;
+    gap:13px;
+    border-top-color:#ffffff32;
+  }
+  .beauty-left-settings label{
+    font-size:12.5px;
+  }
+  .beauty-model-control{
+    min-height:52px;
+    border-color:#ffffff56;
+    background:#121415d9;
+  }
+  .beauty-photo{
+    overflow:hidden;
+  }
+  .beauty-photo::before{
+    background:radial-gradient(ellipse at 50% 50%,#090a0a13,#090a0a22 62%,#090a0a54 100%);
+  }
+  .beauty-photo .beauty-photo-tile{
+    top:50%;
+    width:min(79%,670px);
+    height:56%;
+    background:rgba(10,11,12,.22);
+    border:1px dashed rgba(241,238,229,.59);
+    border-radius:5px;
+    -webkit-backdrop-filter:blur(2px);
+    backdrop-filter:blur(2px);
+  }
+  .beauty-photo #beauty-photo-empty{
+    background:#0c0d0dc9;
+    border-color:#ffffff9e;
+    width:66px;
+    height:66px;
+  }
+  .beauty-photo .beauty-photo-caption{
+    top:50%;
+  }
+  .beauty-photo-caption strong{
+    font-size:clamp(23px,1.8vw,29px);
+    letter-spacing:-.04em;
+  }
+  .beauty-photo-caption p{
+    font-size:12.5px;
+    color:#e7e5e1;
+  }
+  .beauty-photo-caption #beauty-change-photo{
+    min-height:44px;
+    padding:12px 25px;
+    font-size:13px;
+  }
+  .beauty-edit-panel{
+    min-width:0;
+    height:calc(100% - 16px);
+    margin-right:2px;
+    padding:18px 17px;
+    gap:11px;
+    background:rgba(11,12,13,.965);
+    border:1px solid rgba(232,226,214,.21);
+    border-radius:9px;
+    -webkit-backdrop-filter:blur(12px);
+    backdrop-filter:blur(12px);
+    box-shadow:0 18px 48px rgba(0,0,0,.38);
+  }
+  .beauty-edit-heading{
+    margin-bottom:3px;
+  }
+  .beauty-edit-heading strong{
+    font-size:17px;
+    letter-spacing:-.023em;
+  }
+  .beauty-preset-group legend{
+    font-size:12.5px;
+    margin-bottom:7px;
+  }
+  .beauty-choice-list{
+    gap:8px;
+  }
+  .beauty-choice-photo{
+    height:clamp(43px,5.1vh,57px);
+    border-color:#ffffff36;
+    border-radius:5px;
+    filter:saturate(.75) brightness(.88);
+  }
+  .beauty-choice-list button[aria-pressed="true"] .beauty-choice-photo{
+    border-color:#f5f0e7;
+    box-shadow:0 0 0 1px #ffffff20;
+  }
+  .beauty-choice-name{
+    font-size:10.5px;
+    color:#e8e7e4;
+  }
+  .beauty-strength{
+    margin-top:8px;
+    min-height:32px;
+  }
+  .beauty-direction textarea{
+    min-height:56px;
+    height:56px;
+    font-size:12.5px;
+    background:#171818;
+    border-color:#ffffff43;
+  }
+  .beauty-edit-panel #beauty-generate{
+    min-height:48px;
+    left:16px;
+    right:16px;
+    bottom:15px;
+    width:calc(100% - 32px);
+    font-size:14px;
+    border-radius:7px;
+  }
+}
+@media(min-width:1001px) and (max-width:1300px){
+  .beauty-editor-grid{
+    grid-template-columns:minmax(190px,19%) minmax(0,1fr) minmax(334px,27%);
+    gap:12px;
+  }
+  .beauty-editorial-heading h1{
+    font-size:clamp(49px,4.55vw,63px);
+  }
+  .beauty-edit-panel{
+    padding:14px 12px;
+    gap:8px;
+  }
+  .beauty-choice-list{
+    gap:5px;
+  }
+  .beauty-choice-name{
+    font-size:9.5px;
+  }
+  .beauty-choice-photo{
+    height:clamp(39px,4.5vh,49px);
+  }
+  .beauty-edit-panel #beauty-generate{
+    left:12px;
+    right:12px;
+    bottom:12px;
+    width:calc(100% - 24px);
+  }
+}
+/* Preserve the original responsive stacking and scrollable look strip on phones. */
+@media(max-width:1000px){
+  .beauty-editor-grid::before{
+    filter:saturate(.93) contrast(1.01);
+  }
+  .beauty-edit-panel{
+    border:1px solid #ffffff2e;
+    background:#0c0d0df0;
+  }
+  .beauty-looks{
+    margin-top:15px;
+    padding-top:11px;
+  }
+  .beauty-looks-heading strong{
+    font-size:18px;
+  }
+}
+@media(max-width:640px){
+  .beauty-looks-heading{
+    gap:6px;
+  }
+  .beauty-looks-heading-meta{
+    gap:5px;
+  }
+  .beauty-looks-heading-meta>span{
+    font-size:10px;
+  }
+  .beauty-looks-list>button{
+    height:168px;
+  }
+  .beauty-photo .beauty-photo-tile{
+    border-color:#ffffff7a;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .beauty-look-photo{
+    transition:none;
+  }
+}
+
+/* Fit corrections from the 1920px browser screenshot and 1440px regression:
+   keep the editorial hierarchy but leave space for every active form control. */
+@media(min-width:1001px){
+ .beauty-editorial-heading h1{
+  font-size:clamp(59px,4.6vw,77px);
+  margin-bottom:13px;
+ }
+ .beauty-editorial-heading .beauty-intro{
+  font-size:clamp(19px,1.43vw,23px);
+  margin-bottom:14px;
+ }
+ .beauty-editorial-heading .beauty-description{
+  margin-bottom:15px;
+ }
+ .beauty-left-settings{
+  padding-top:12px;
+  gap:10px;
+ }
+ .beauty-photo::before{
+  background:none; /* remove the visible rectangular vignette boundary */
+ }
+ .beauty-photo .beauty-photo-tile,
+ .beauty-photo .beauty-photo-caption{
+  left:45%;
+ }
+}
+@media(min-width:1301px) and (max-width:1600px){
+ .beauty-edit-panel{
+  padding:15px 15px;
+  gap:8px;
+ }
+ .beauty-preset-group legend{
+  margin-bottom:5px;
+ }
+ .beauty-choice-photo{
+  height:clamp(42px,4.9vh,52px);
+ }
+ .beauty-direction textarea{
+  min-height:52px;
+  height:52px;
+ }
+}
+
+/* Final 1920px Generate spacing correction:
+   CI measured notes.bottom=603.45 and button.top=601.63.
+   Reduce vertical whitespace only. The preset photographs and panel width stay large. */
+@media(min-width:1001px){
+ .beauty-edit-panel{
+  gap:8px;
+  padding-top:15px;
+  padding-bottom:15px;
+ }
+ .beauty-preset-group legend{
+  margin-bottom:5px;
+ }
+ .beauty-strength{
+  margin-top:5px;
+ }
+ .beauty-direction textarea{
+  min-height:52px;
+  height:52px;
+ }
+}
