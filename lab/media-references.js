@@ -1,5 +1,5 @@
 // Local reference-media preparation. No generation calls and no public media uploads.
-export function createMediaReferences({element,owner,busy,epoch,action,changed,upload,assetFile,videoMax=()=>10}) {
+export function createMediaReferences({element,owner,busy,epoch,action,changed,upload,assetFile,videoMax=()=>10,videoMin=()=>2}) {
   const groups={video:[],audio:[]};
   const limits={video:20*1048576,audio:15*1048576};
   const types={video:['video/mp4','video/quicktime'],audio:['audio/mpeg','audio/wav','audio/x-wav']};
@@ -25,7 +25,8 @@ export function createMediaReferences({element,owner,busy,epoch,action,changed,u
     try{
       await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{cleanup();reject(new Error('Reference metadata could not load. Use a browser-compatible file.'));},15000);const cleanup=()=>{clearTimeout(timer);media.onloadedmetadata=null;media.onerror=null;};media.onloadedmetadata=()=>{cleanup();resolve();};media.onerror=()=>{cleanup();reject(new Error('Cannot read this reference. For video, use MP4 with H.264 encoding.'));};media.src=url;});
       const seconds=media.duration;
-      if(!Number.isFinite(seconds)||seconds<2||seconds>30)throw new Error('Each reference must be between 2 and 30 seconds.');
+      const minimum=kind==='video'?videoMin():2;
+      if(!Number.isFinite(seconds)||seconds<minimum||seconds>30)throw new Error('Each '+kind+' reference must be between '+minimum+' and 30 seconds.');
       if(kind==='video'&&(Math.min(media.videoWidth,media.videoHeight)<300||Math.max(media.videoWidth,media.videoHeight)>6000))throw new Error('Video references must be between 300 and 6,000 pixels per side.');
       return {file,id:null,url,seconds,note:''};
     }catch(e){URL.revokeObjectURL(url);throw e;}finally{media.removeAttribute('src');media.load();}
