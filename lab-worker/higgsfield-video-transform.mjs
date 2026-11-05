@@ -17,7 +17,7 @@ export function characterTransformPrompt(p){
     'Preserve the original video timeline, gestures, body movement, posing, camera movement, framing, lens perspective, location, background, props, wardrobe, scene lighting and editing rhythm. Keep the motion continuous and physically plausible.',
     'Use the identity references for recognizable face structure, hairstyle, skin texture and stable visible traits only. Do not import their clothing, setting, poses or lighting into the video.',
     'Do not add or remove other people, change the environment, invent a new shot, or turn the clip into a slideshow.',
-    ...roles.slice(0,images.length).map((r,i)=>'Identity reference '+(i+1)+(r.name?' ('+String(r.name).slice(0,80)+')':'')+': '+[r.note||''].filter(Boolean).join(' ')).filter(Boolean),
+    ...roles.slice(0,images.length).map((r,i)=>'Identity reference '+(i+1)+((r.elementName||r.name)?' ('+String(r.elementName||r.name).slice(0,80)+')':'')+': '+[r.note||r.elementNote||''].filter(Boolean).join(' ')).filter(Boolean),
     p.prompt?'Additional direction: '+p.prompt:''
   ];
   const result=lines.join('\n');
