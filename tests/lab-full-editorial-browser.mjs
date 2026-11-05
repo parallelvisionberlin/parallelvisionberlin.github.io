@@ -271,7 +271,7 @@ try{
   assert.equal(new Set(sceneCards.map(card=>card.position)).size,6,'No reused environment frame');
   const atlasResponse=await page.evaluate(async()=>{const r=await fetch('./visuals/editorial-directions/environment-material-atlas-20261105.jpg');return {ok:r.ok,type:r.headers.get('content-type')};});
   assert.equal(atlasResponse.ok,true,'Atlas asset loads locally');
-  assert.match(atlasResponse.type,/image\\/jpeg/);
+  assert.equal(atlasResponse.type,'image/jpeg');
   await page.locator('[data-direction-tab="material"]').click();
   const materials=await page.locator('#direction-cards .direction-card').evaluateAll(cards=>cards.map(card=>({name:card.querySelector('span')?.textContent,atlas:card.classList.contains('direction-card-atlas'),position:getComputedStyle(card).backgroundPosition,img:card.querySelector('img')?.getAttribute('src')})));
   assert.deepEqual(materials.map(x=>x.name),['Black leather','Chrome & glass','Tailoring']);
