@@ -82,6 +82,19 @@ try{
   const src=await page.locator('.beauty-looks-list .beauty-look-photo').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')));
   assert.equal(src.length,6,'Six editorial cards are visible');
   assert.equal(new Set(src).size,6,'Editorial cards use six distinct photographic assets');
+
+  // Design-only change: original hero and six asset paths are preserved.
+  const hero=await page.locator('.beauty-editor-grid').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
+  assert.match(hero,/beauty-hero-refined-20261031\.jpg/,'The original ALTER photograph remains the background');
+  assert.equal(await page.locator('.beauty-looks-prev').isVisible(),true,'Left carousel arrow is visible');
+  assert.equal(await page.locator('.beauty-looks-next').isVisible(),true,'Right carousel arrow is visible');
+  await page.locator('.beauty-looks-next').click();
+  await page.waitForFunction(()=>document.querySelector('#beauty-looks-list').scrollLeft>8);
+  assert.equal(await page.locator('.beauty-looks-prev').isEnabled(),true,'Carousel can move backward');
+  await page.locator('#beauty-looks-list').focus();
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForFunction(()=>document.querySelector('#beauty-looks-list').scrollLeft<8);
+  assert.equal(await page.locator('.beauty-looks-prev').isDisabled(),true,'Keyboard arrows navigate to the beginning');
   await page.locator('[data-beauty-choice="beauty-makeup"][data-value="bold"]').click();
   assert.equal(await page.locator('#beauty-makeup').inputValue(),'bold','Makeup card changes the generation setting');
   await page.locator('#beauty-reset-look').click();
