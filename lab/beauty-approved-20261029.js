@@ -113,6 +113,40 @@
  new MutationObserver(showComparison).observe(result,observed);
  new MutationObserver(showComparison).observe(source,observed);
  new MutationObserver(showComparison).observe(resultImage,observed);
+
+ // Scope the carousel behavior to the look-picker; leave all other controls untouched.
+ const looksTrack=$('beauty-looks-list');
+ const looksSection=document.querySelector('.beauty-looks');
+ const looksPrev=document.querySelector('.beauty-looks-prev');
+ const looksNext=document.querySelector('.beauty-looks-next');
+ if(looksTrack&&looksSection&&looksPrev&&looksNext){
+  const itemStep=()=>cards.length>1?Math.max(1,cards[1].offsetLeft-cards[0].offsetLeft):Math.max(1,looksTrack.clientWidth*.75);
+  const syncArrows=()=>{
+   const max=Math.max(0,looksTrack.scrollWidth-looksTrack.clientWidth),left=Math.max(0,looksTrack.scrollLeft);
+   looksPrev.disabled=max<2||left<2;
+   looksNext.disabled=max<2||left>=max-2;
+  };
+  const moveLooks=direction=>{
+   const amount=direction*itemStep();
+   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+   if(typeof looksTrack.scrollBy==='function')looksTrack.scrollBy({left:amount,behavior:reduced?'auto':'smooth'});
+   else looksTrack.scrollLeft+=amount;
+  };
+  looksPrev.addEventListener('click',()=>moveLooks(-1));
+  looksNext.addEventListener('click',()=>moveLooks(1));
+  looksTrack.addEventListener('scroll',syncArrows,{passive:true});
+  window.addEventListener('resize',syncArrows);
+  // Arrows work with the look picker focused, or hovered while the document body
+  // is focused. Editing inputs, selects, and the comparison slider retain their keys.
+  document.addEventListener('keydown',event=>{
+   if(!['ArrowLeft','ArrowRight'].includes(event.key)||event.altKey||event.ctrlKey||event.metaKey)return;
+   const active=document.activeElement,inLooks=looksSection.contains(active),hovered=active===document.body&&looksSection.matches(':hover');
+   if(!inLooks&&!hovered||event.target?.closest?.('input,textarea,select,[role="slider"],[contenteditable="true"]'))return;
+   event.preventDefault();
+   moveLooks(event.key==='ArrowRight'?1:-1);
+  });
+  requestAnimationFrame(syncArrows);
+ }
  syncChoices();
  showComparison();
 })();

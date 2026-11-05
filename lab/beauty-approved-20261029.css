@@ -206,3 +206,62 @@
 @media(max-width:1000px){
  .beauty-edit-panel #beauty-generate{position:static!important;display:block!important;width:100%;margin:5px 0 0!important;}
 }
+
+/* ALTER cinematic polish: original hero photograph and all approved look images retained. */
+.beauty-editor-grid::before{
+ background-image:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' seed='8' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='.28'/%3E%3C/svg%3E"),
+  radial-gradient(ellipse 42% 64% at 64% 38%,rgba(215,166,120,.09),transparent 73%),
+  linear-gradient(90deg,#090a0af0 0%,#090a0ad3 18%,#12121155 40%,#08090912 65%,#080909aa 98%),
+  linear-gradient(0deg,#090a0a71 0%,transparent 26%,#090a0a16 88%),
+  url('./visuals/beauty/beauty-hero-refined-20261031.jpg');
+ background-position:0 0,center,center,center,45% 39%;
+ background-size:180px 180px,cover,cover,cover,cover;
+ background-repeat:repeat,no-repeat,no-repeat,no-repeat,no-repeat;
+ background-blend-mode:soft-light,normal,normal,normal,normal;
+ filter:saturate(.85) contrast(1.045) blur(.35px);
+}
+.beauty-editor-grid{box-shadow:0 20px 66px #00000029;}
+.beauty-edit-panel{box-shadow:0 16px 46px #00000035;}
+.beauty-looks-heading{align-items:center;}
+.beauty-looks-heading-meta{display:flex;align-items:center;gap:20px;}
+.beauty-looks-heading .beauty-carousel-hint{color:#c0bcb6;white-space:nowrap;}
+.beauty-looks-carousel{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;align-items:center;gap:10px;min-width:0;}
+.beauty-looks-carousel>.beauty-looks-arrow{
+ display:grid;place-items:center;align-self:center;width:34px;height:34px;
+ padding:0;border:1px solid #e4e0d45c;border-radius:50%;background:#0b0c0dcc;
+ color:#f5f2ec;cursor:pointer;transition:background-color .2s,border-color .2s,opacity .2s;
+}
+.beauty-looks-carousel>.beauty-looks-arrow svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+.beauty-looks-carousel>.beauty-looks-arrow:hover:not(:disabled){background:#272623;border-color:#f4f0e0b3;}
+.beauty-looks-carousel>.beauty-looks-arrow:disabled{opacity:.32;cursor:default;}
+.beauty-looks-list{
+ display:grid;grid-template-columns:none;grid-auto-flow:column;
+ grid-auto-columns:calc(19.0476% - 9.715px);gap:12px;
+ min-width:0;overflow-x:auto;overscroll-behavior-x:contain;
+ scroll-snap-type:x mandatory;scroll-padding-inline:3px;scroll-behavior:smooth;
+ scrollbar-width:none;padding:3px 3px 7px;
+}
+.beauty-looks-list::-webkit-scrollbar{display:none;}
+.beauty-looks-list>button{scroll-snap-align:start;scroll-snap-stop:normal;}
+.beauty-looks-list:focus-visible{outline:1px solid #ffffff9e;outline-offset:3px;border-radius:7px;}
+.beauty-look-photo{filter:saturate(.62) brightness(.84) contrast(1.04);}
+.beauty-looks-list>button:hover .beauty-look-photo{filter:saturate(.72) brightness(.94) contrast(1.04);}
+@media(min-width:1001px){
+ .beauty-editor-grid::before{background-position:0 0,center,center,center,clamp(-180px,-11vw,-110px) 5%;}
+}
+@media(max-width:1000px){
+ .beauty-editor-grid::before{background-position:0 0,center,center,center,center 43%;}
+ .beauty-looks-list{grid-auto-columns:calc(30.303% - 6.97px);gap:10px;}
+}
+@media(max-width:640px){
+ .beauty-editor-grid::before{background-position:0 0,center,center,center,55% 30%;}
+ .beauty-looks-heading-meta{align-items:flex-start;flex-direction:column;gap:3px;}
+ .beauty-looks-carousel{grid-template-columns:28px minmax(0,1fr) 28px;gap:5px;}
+ .beauty-looks-carousel>.beauty-looks-arrow{width:28px;height:28px;}
+ .beauty-looks-list{grid-auto-columns:minmax(165px,48vw);gap:8px;}
+}
+@media(prefers-reduced-motion:reduce){
+ .beauty-looks-list{scroll-behavior:auto;}
+ .beauty-looks-carousel>.beauty-looks-arrow{transition:none;}
+}
