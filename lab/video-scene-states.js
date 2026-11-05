@@ -16,6 +16,7 @@ function mountVideoSceneStates(){
     return el?.selectedOptions?.[0]?.textContent?.trim()||el?.value||'';
   };
   const currentMode=()=>{
+    if(app.classList.contains('video-transform-active'))return 'transform';
     if(app.classList.contains('video-extend-active'))return 'extend';
     const tab=modes.querySelector('[role="tab"][aria-selected="true"]');
     return tab?.id==='mode-reference'?'reference':tab?.id==='mode-start'?'start':'text';
@@ -38,15 +39,15 @@ function mountVideoSceneStates(){
         items.push({src:thumbnail.currentSrc||thumbnail.src,title});
     };
     if(mode==='start'){frame('video-start-thumb','Start');frame('video-end-thumb','End');}
-    if(['reference','extend'].includes(mode))for(const row of referenceList.querySelectorAll('.reference-item')){
+    if(['reference','extend','transform'].includes(mode))for(const row of referenceList.querySelectorAll('.reference-item')){
       const img=row.querySelector('img');
       if(!img?.src)continue;
       const role=row.querySelector('.reference-fields select')?.selectedOptions?.[0]?.textContent?.trim()||'Reference';
       items.push({src:img.currentSrc||img.src,title:role});
     }
-    if(mode==='extend'){
+    if(['extend','transform'].includes(mode)){
       const count=byId('video-reference-list')?.children.length||0;
-      note(count+' video reference'+(count===1?'':'s')+' selected.'+(items.length?' '+items.length+' image reference'+(items.length===1?'':'s')+' attached.':''));
+      note(mode==='transform'?(count?'Original video ready.':'Choose one original video.')+(items.length?' '+items.length+' character reference'+(items.length===1?'':'s')+' attached.':' Add character photographs.') : count+' video reference'+(count===1?'':'s')+' selected.'+(items.length?' '+items.length+' image reference'+(items.length===1?'':'s')+' attached.':''));
     }else if(mode==='start'&&items.some(item=>item.title==='Start')){
       note('Start frame ready. Describe the motion; the ending frame is optional.');
     }else note(items.length?items.length+' reference'+(items.length===1?'':'s')+' attached.':'Nothing attached yet.');
@@ -93,7 +94,7 @@ function mountVideoSceneStates(){
     setModeClass('pv-video-has-input',hasInput);
     startArt.hidden=!(visible&&mode!=='text'&&!hasInput);
     const add=startArt.querySelector('.pv-video-add-frame');
-    if(add)add.setAttribute('aria-label',mode==='extend'?'Choose a video':mode==='reference'?'Upload reference images':'Choose start frame');
+    if(add)add.setAttribute('aria-label',mode==='transform'?'Choose source video to transform':mode==='extend'?'Choose a video':mode==='reference'?'Upload reference images':'Choose start frame');
     textArt.hidden=!(visible&&mode==='text');
     if(!visible)return;
     const title=byId('empty-title'),subtitle=byId('empty-description');
@@ -102,7 +103,8 @@ function mountVideoSceneStates(){
       text:['Describe the scene','Write the movement, setting and sound for your video.'],
       start:['Your next scene starts here','Choose an opening image to animate. Add an end frame only if you need a specific finish.'],
       reference:['Animate your references',''],
-      extend:['Continue the scene','Upload a clip and describe what happens next.']
+      extend:['Continue the scene','Upload a clip and describe what happens next.'],
+      transform:['Replace the character','Upload the original clip and replacement identity photographs.']
     };
     const [heading,description]=values[mode]||values.start;
     if(title.textContent!==heading)title.textContent=heading;
@@ -114,7 +116,7 @@ function mountVideoSceneStates(){
     const video=app.classList.contains('video-studio-active');
     if(!video){startArt.hidden=true;textArt.hidden=true;byId('pv-video-browse-library').hidden=true;return;}
     const mode=currentMode();
-    for(const m of ['text','start','reference','extend'])setModeClass('pv-video-mode-'+m,mode===m);
+    for(const m of ['text','start','reference','extend','transform'])setModeClass('pv-video-mode-'+m,mode===m);
     const label=byId('prompt-label');
     const desired=mode==='text'?'Direction':'Prompt';
     if(label&&label.textContent!==desired)label.textContent=desired;
