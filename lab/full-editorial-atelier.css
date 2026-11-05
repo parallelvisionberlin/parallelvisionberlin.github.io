@@ -1209,3 +1209,9 @@ body.editorial-is-generating .editorial-flow{padding-top:clamp(12px,1.5vw,24px)}
 @media(prefers-reduced-motion:reduce){
  .flow-main:has(#panel-model:not([hidden])) #step-next{transition:none}
 }
+
+/* Shared location/material atlas: unique photographic frames, no model cutouts. */
+.direction-card.direction-card-atlas{
+ background-size:auto 200%;
+ background-repeat:no-repeat;
+}

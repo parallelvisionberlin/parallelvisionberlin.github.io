@@ -9,6 +9,7 @@ const $=id=>document.getElementById(id);
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 const activeStates=new Set(['submitting','queued','running','saving']);
 const mockupUrl='https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/d6c51742-8079-4412-a063-25ed134cec95.png';
+const sceneAtlas='./visuals/editorial-directions/environment-material-atlas-20261105.jpg';
 const directionSets={
  moods:[
  {id:'studio',name:'Studio Fashion',image:'./mood-previews/hd/fashion-editorial-20261011.jpg',prompt:'A restrained studio fashion editorial, sculptural tailoring, believable materials, precise photographic lighting.'},
@@ -24,18 +25,18 @@ const directionSets={
  {id:'studio-wall',name:'Studio set',image:'./visuals/studio-tools/image-ivory-suit.webp',prompt:'Neutral fashion studio, architectural shadows, purposeful controlled lighting.'}
  ],
  material:[
- {id:'leather',name:'Black leather',image:'./visuals/fashion-replace/hero-model-oct24.jpg',prompt:'Tactile genuine leather, hand-stitched details, naturally creasing fabric.'},
+ {id:'leather',name:'Black leather',image:sceneAtlas,atlasFrame:6,prompt:'Tactile genuine leather, hand-stitched details, naturally creasing fabric.'},
  {id:'chrome',name:'Chrome & glass',image:'./visuals/studio-tools/video-liquid-dress.webp',prompt:'Physically plausible sculptural chrome and translucent glass integrated into real fashion.'},
- {id:'tailoring',name:'Tailoring',image:'./visuals/studio-tools/image-ivory-suit.webp',prompt:'Architectural tailoring, precise seams, weighty fabric draping.'}
+ {id:'tailoring',name:'Tailoring',image:sceneAtlas,atlasFrame:7,prompt:'Architectural tailoring, precise seams, weighty fabric draping.'}
  ]
 };
 directionSets.location=[
- {id:'studio-set',name:'Studio',image:'./visuals/studio-tools/image-ivory-suit.webp',prompt:'Fashion studio, controlled natural-light set, neutral architecture and believable shadows.'},
- {id:'brutalist',name:'Brutalist',image:'./visuals/fashion-replace/hero-model-oct24.jpg',prompt:'Monumental concrete architecture, real spatial depth, weathered surfaces and directional light.'},
- {id:'desert',name:'Desert',image:'https://d2ol7oe51mr4n9.cloudfront.net/user_36QWljeNVgnwNMkZtgtVQjVUBoW/6b5a3dd5-7d0e-46df-bd99-a1dbeb9c010a.png',prompt:'Natural desert terrain, sculptural architectural intervention, warm dust and photographic sunlight.'},
- {id:'industrial-interior',name:'Interior',image:'./visuals/character-casting/ivory-cast03.webp',prompt:'Industrial interior with plausible structural concrete, quiet shadows and real atmospheric scale.'},
- {id:'abstract-space',name:'Abstract',image:'./visuals/studio-tools/video-liquid-dress.webp',prompt:'Minimal abstract installation of tangible sculptural materials in a grounded photographic environment.'},
- {id:'urban',name:'Urban',image:'./mood-previews/hd/90s-cinema-clean-final-20261011.jpg',prompt:'Contemporary urban environment with natural perspective, lived-in details and credible architectural light.'}
+ {id:'studio-set',name:'Studio',image:sceneAtlas,atlasFrame:0,prompt:'Fashion studio, controlled natural-light set, neutral architecture and believable shadows.'},
+ {id:'brutalist',name:'Brutalist',image:sceneAtlas,atlasFrame:1,prompt:'Monumental concrete architecture, real spatial depth, weathered surfaces and directional light.'},
+ {id:'desert',name:'Desert',image:sceneAtlas,atlasFrame:2,prompt:'Natural desert terrain, sculptural architectural intervention, warm dust and photographic sunlight.'},
+ {id:'industrial-interior',name:'Interior',image:sceneAtlas,atlasFrame:3,prompt:'Industrial interior with plausible structural concrete, quiet shadows and real atmospheric scale.'},
+ {id:'abstract-space',name:'Abstract',image:sceneAtlas,atlasFrame:4,prompt:'Minimal abstract installation of tangible sculptural materials in a grounded photographic environment.'},
+ {id:'urban',name:'Urban',image:sceneAtlas,atlasFrame:5,prompt:'Contemporary urban environment with natural perspective, lived-in details and credible architectural light.'}
 ];
 let clerk=null,profile=null,sessionKey='',epoch=0,step=0,directionTab='location',selectedDirections={location:null,moods:null,material:null};
 let chosenCount=4,chosenRatio='3:4',castComposition='mixed',quote=null,quoteBusy=false,quoteError=false,quoteTimer=null,quoteExpiryTimer=null,submitting=false,uncertain=false,pollTimeout=null;
@@ -293,9 +294,19 @@ function renderDirections(){
   const selected=dir.id===active,card=document.createElement('button');
   card.type='button';card.className='direction-card'+(selected?' is-selected':'');
   card.setAttribute('aria-pressed',String(selected));
-  const img=document.createElement('img');img.src=dir.image;img.alt='';img.loading='lazy';
+  if(Number.isInteger(dir.atlasFrame)){
+   // Each four-column atlas frame fills the tall card without stretching.
+   const positionX=[3.27,34.42,65.58,96.73][dir.atlasFrame%4];
+   const positionY=dir.atlasFrame<4?0:100;
+   card.classList.add('direction-card-atlas');
+   card.style.backgroundImage=`url("${dir.image}")`;
+   card.style.backgroundPosition=`${positionX}% ${positionY}%`;
+  }else{
+   const img=document.createElement('img');img.src=dir.image;img.alt='';img.loading='lazy';
+   card.append(img);
+  }
   const name=document.createElement('span');name.textContent=dir.name;
-  card.append(img,name);
+  card.append(name);
   card.addEventListener('click',()=>{selectedDirections[directionTab]=selected&&directionTab!=='location'?null:dir.id;invalidateQuote();renderDirections()});
   container.append(card);
  }
