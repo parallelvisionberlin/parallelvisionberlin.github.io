@@ -207,61 +207,83 @@
  .beauty-edit-panel #beauty-generate{position:static!important;display:block!important;width:100%;margin:5px 0 0!important;}
 }
 
-/* ALTER cinematic polish: original hero photograph and all approved look images retained. */
-.beauty-editor-grid::before{
- background-image:
-  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' seed='8' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='.28'/%3E%3C/svg%3E"),
-  radial-gradient(ellipse 42% 64% at 64% 38%,rgba(215,166,120,.09),transparent 73%),
-  linear-gradient(90deg,#090a0af0 0%,#090a0ad3 18%,#12121155 40%,#08090912 65%,#080909aa 98%),
-  linear-gradient(0deg,#090a0a71 0%,transparent 26%,#090a0a16 88%),
-  url('./visuals/beauty/beauty-hero-refined-20261031.jpg');
- background-position:0 0,center,center,center,45% 39%;
- background-size:180px 180px,cover,cover,cover,cover;
- background-repeat:repeat,no-repeat,no-repeat,no-repeat,no-repeat;
- background-blend-mode:soft-light,normal,normal,normal,normal;
- filter:saturate(.85) contrast(1.045) blur(.35px);
+
+/* ALTER look strip: show all six approved photographs on desktop.
+   Arrows are compact heading controls, not extra columns cutting off images. */
+.beauty-editor-grid::before{filter:saturate(.94) contrast(.99);}
+.beauty-looks-heading{align-items:center;gap:12px;}
+.beauty-looks-heading-meta{display:flex;align-items:center;gap:16px;}
+.beauty-looks-controls{display:inline-flex;gap:6px;align-items:center;}
+.beauty-looks-controls>.beauty-looks-arrow{
+ display:grid;place-items:center;width:28px;height:28px;padding:0;flex:0 0 28px;
+ color:#edece8;background:#101111;border:1px solid #ffffff47;border-radius:50%;
+ cursor:pointer;transition:border-color .16s,background-color .16s,opacity .16s;
 }
-.beauty-editor-grid{box-shadow:0 20px 66px #00000029;}
-.beauty-edit-panel{box-shadow:0 16px 46px #00000035;}
-.beauty-looks-heading{align-items:center;}
-.beauty-looks-heading-meta{display:flex;align-items:center;gap:20px;}
-.beauty-looks-heading .beauty-carousel-hint{color:#c0bcb6;white-space:nowrap;}
-.beauty-looks-carousel{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;align-items:center;gap:10px;min-width:0;}
-.beauty-looks-carousel>.beauty-looks-arrow{
- display:grid;place-items:center;align-self:center;width:34px;height:34px;
- padding:0;border:1px solid #e4e0d45c;border-radius:50%;background:#0b0c0dcc;
- color:#f5f2ec;cursor:pointer;transition:background-color .2s,border-color .2s,opacity .2s;
-}
-.beauty-looks-carousel>.beauty-looks-arrow svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
-.beauty-looks-carousel>.beauty-looks-arrow:hover:not(:disabled){background:#272623;border-color:#f4f0e0b3;}
-.beauty-looks-carousel>.beauty-looks-arrow:disabled{opacity:.32;cursor:default;}
+.beauty-looks-controls>.beauty-looks-arrow svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+.beauty-looks-controls>.beauty-looks-arrow:hover:not(:disabled){border-color:#dcdad5;background:#242422;}
+.beauty-looks-controls>.beauty-looks-arrow:disabled{opacity:.3;cursor:default;}
+.beauty-looks-carousel{display:block;min-width:0;}
 .beauty-looks-list{
- display:grid;grid-template-columns:none;grid-auto-flow:column;
- grid-auto-columns:calc(19.0476% - 9.715px);gap:12px;
- min-width:0;overflow-x:auto;overscroll-behavior-x:contain;
- scroll-snap-type:x mandatory;scroll-padding-inline:3px;scroll-behavior:smooth;
- scrollbar-width:none;padding:3px 3px 7px;
+ display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-flow:row;
+ gap:clamp(7px,.75vw,12px);min-width:0;overflow:visible;padding:0;
+ scroll-behavior:smooth;
 }
-.beauty-looks-list::-webkit-scrollbar{display:none;}
-.beauty-looks-list>button{scroll-snap-align:start;scroll-snap-stop:normal;}
-.beauty-looks-list:focus-visible{outline:1px solid #ffffff9e;outline-offset:3px;border-radius:7px;}
-.beauty-look-photo{filter:saturate(.62) brightness(.84) contrast(1.04);}
-.beauty-looks-list>button:hover .beauty-look-photo{filter:saturate(.72) brightness(.94) contrast(1.04);}
-@media(min-width:1001px){
- .beauty-editor-grid::before{background-position:0 0,center,center,center,clamp(-180px,-11vw,-110px) 5%;}
-}
+.beauty-looks-list>button{min-width:0;}
+.beauty-looks-list>button:focus{outline:1px solid #f3f0e9;outline-offset:2px;}
 @media(max-width:1000px){
- .beauty-editor-grid::before{background-position:0 0,center,center,center,center 43%;}
- .beauty-looks-list{grid-auto-columns:calc(30.303% - 6.97px);gap:10px;}
+ .beauty-looks-list{
+  grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:calc((100% - 20px)/3);
+  gap:10px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;
+  scrollbar-width:none;padding:2px 2px 7px;
+ }
+ .beauty-looks-list::-webkit-scrollbar{display:none;}
+ .beauty-looks-list>button{scroll-snap-align:start;}
 }
 @media(max-width:640px){
- .beauty-editor-grid::before{background-position:0 0,center,center,center,55% 30%;}
- .beauty-looks-heading-meta{align-items:flex-start;flex-direction:column;gap:3px;}
- .beauty-looks-carousel{grid-template-columns:28px minmax(0,1fr) 28px;gap:5px;}
- .beauty-looks-carousel>.beauty-looks-arrow{width:28px;height:28px;}
- .beauty-looks-list{grid-auto-columns:minmax(165px,48vw);gap:8px;}
+ .beauty-looks-heading{align-items:flex-start;}
+ .beauty-looks-heading-meta{flex-direction:column;align-items:flex-end;gap:5px;text-align:right;}
+ .beauty-looks-list{grid-auto-columns:minmax(165px,65vw);gap:8px;}
 }
 @media(prefers-reduced-motion:reduce){
  .beauty-looks-list{scroll-behavior:auto;}
- .beauty-looks-carousel>.beauty-looks-arrow{transition:none;}
+ .beauty-looks-arrow{transition:none!important;}
+}
+/* Full-size viewer is only for completed results; source and comparison stay intact. */
+.beauty-result .beauty-zoom-open{
+ position:absolute;right:14px;top:14px;z-index:9;display:inline-flex;align-items:center;gap:8px;
+ padding:9px 12px;color:#f7f5f2;background:#0d0e0edd;border:1px solid #ffffff66;
+ border-radius:5px;cursor:pointer;font-size:12px;box-shadow:0 2px 12px #0007;
+}
+.beauty-zoom-open svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;}
+.beauty-zoom-open:hover{background:#222;}
+.beauty-zoom-dialog{
+ position:fixed;inset:0;width:min(96vw,1550px);max-width:min(96vw,1550px);max-height:94dvh;
+ margin:auto;padding:0;color:#f5f3f0;background:#0c0d0e;border:1px solid #ffffff38;
+ border-radius:8px;box-shadow:0 30px 100px #000d;overflow:hidden;
+}
+.beauty-zoom-dialog::backdrop{background:rgba(0,0,0,.88);backdrop-filter:blur(7px);}
+.beauty-zoom-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid #ffffff26;}
+.beauty-zoom-toolbar strong{font-size:13px;font-weight:500;}
+.beauty-zoom-tools{display:flex;align-items:center;gap:6px;}
+.beauty-zoom-tools button,.beauty-zoom-tools a{
+ display:grid;place-items:center;min-width:33px;height:33px;padding:0 10px;
+ background:#171819;border:1px solid #ffffff36;border-radius:5px;color:#ececea;
+ font-size:13px;text-decoration:none;cursor:pointer;
+}
+.beauty-zoom-tools button:hover:not(:disabled),.beauty-zoom-tools a:hover{background:#292a29;}
+.beauty-zoom-tools button:disabled{opacity:.28;cursor:default;}
+.beauty-zoom-tools output{min-width:46px;text-align:center;color:#cececb;font-size:12px;}
+.beauty-zoom-tools #beauty-zoom-close{margin-left:8px;font-size:23px;line-height:1;}
+.beauty-zoom-stage{width:100%;height:min(80dvh,calc(100dvh - 122px));overflow:auto;overscroll-behavior:contain;background:#080909;}
+.beauty-zoom-canvas{display:flex;align-items:center;justify-content:center;min-width:100%;min-height:100%;width:max-content;height:max-content;}
+.beauty-zoom-canvas>img{display:block;max-width:none;max-height:none;width:auto;height:auto;object-fit:contain;}
+@media(max-width:640px){
+ .beauty-result .beauty-zoom-open{right:10px;top:10px;padding:9px;}
+ .beauty-result .beauty-zoom-open span{display:none;}
+ .beauty-zoom-dialog{width:100vw;max-width:100vw;max-height:100dvh;border-radius:0;}
+ .beauty-zoom-toolbar{padding:9px 10px;}
+ .beauty-zoom-toolbar strong{font-size:11px;}
+ .beauty-zoom-tools{gap:4px;}
+ .beauty-zoom-tools button,.beauty-zoom-tools a{min-width:28px;height:32px;padding:0 7px;font-size:12px;}
+ .beauty-zoom-stage{height:calc(100dvh - 58px);}
 }

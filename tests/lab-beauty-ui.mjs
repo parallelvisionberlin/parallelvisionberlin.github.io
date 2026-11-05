@@ -88,15 +88,25 @@ try{
   assert.match(hero,/beauty-hero-refined-20261031\.jpg/,'The original ALTER photograph remains the background');
   assert.equal(await page.locator('.beauty-looks-prev').isVisible(),true,'Left carousel arrow is visible');
   assert.equal(await page.locator('.beauty-looks-next').isVisible(),true,'Right carousel arrow is visible');
+  // All six images must be fully visible at desktop widths; no clipped sixth card.
+  const fit=await page.locator('.beauty-looks-list').evaluate(track=>{
+   const rect=track.getBoundingClientRect();
+   return [...track.querySelectorAll('[data-look]')].every(card=>{
+    const r=card.getBoundingClientRect();
+    return r.left>=rect.left-1&&r.right<=rect.right+1;
+   });
+  });
+  assert.equal(fit,true,'Six editorial cards fit inside the desktop track');
+  assert.equal(await page.locator('.beauty-looks-prev').isDisabled(),true);
+  const originalDirection=await page.locator('#beauty-direction').inputValue();
   await page.locator('.beauty-looks-next').click();
-  await page.waitForFunction(()=>document.querySelector('#beauty-looks-list').scrollLeft>8);
-  await page.waitForFunction(()=>!document.querySelector('.beauty-looks-prev').disabled); // smooth scroll updates arrow state asynchronously
-  assert.equal(await page.locator('.beauty-looks-prev').isEnabled(),true,'Carousel can move backward');
-  await page.locator('#beauty-looks-list').focus();
+  assert.equal(await page.locator('[data-look="natural"]').evaluate(el=>document.activeElement===el),true,'Next browses to Natural');
+  assert.equal(await page.locator('#beauty-direction').inputValue(),originalDirection,'Browsing does not apply a look');
   await page.keyboard.press('ArrowLeft');
-  await page.waitForFunction(()=>document.querySelector('#beauty-looks-list').scrollLeft<8);
-  await page.waitForFunction(()=>document.querySelector('.beauty-looks-prev').disabled);
-  assert.equal(await page.locator('.beauty-looks-prev').isDisabled(),true,'Keyboard arrows navigate to the beginning');
+  assert.equal(await page.locator('[data-look="editorial"]').evaluate(el=>document.activeElement===el),true,'Left key moves focus back');
+  await page.locator('.beauty-looks-next').click();
+  await page.keyboard.press('Enter');
+  assert.match(await page.locator('#beauty-direction').inputValue(),/natural light/i,'Enter applies the focused look');
   await page.locator('[data-beauty-choice="beauty-makeup"][data-value="bold"]').click();
   assert.equal(await page.locator('#beauty-makeup').inputValue(),'bold','Makeup card changes the generation setting');
   await page.locator('#beauty-reset-look').click();
@@ -110,7 +120,7 @@ try{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Beauty has no horizontal overflow at '+width);
   const header=page.locator('.beauty-header'),nav=header.locator('nav[aria-label="Creative tools"]');
   const navLabels=await nav.locator(':scope > a:not([hidden]), :scope > .pv-studios-menu > .pv-studios-trigger').allTextContents();
-  assert.deepEqual(navLabels,['Image','Video','Upscaler','Studios','Explore Moods'],'Beauty uses the standard Studio menu, not its old standalone links');
+  assert.deepEqual(navLabels,['Image','Video','Upscaler','Studios','Moods'],'Beauty uses the standard Studio menu, not its old standalone links');
   const headerBounds=await header.boundingBox();
   assert.equal(Math.round(headerBounds.y),0,'Global header aligns to the top edge');
   assert.equal(Math.round(headerBounds.height),width<=900?104:70,'Beauty retains Studio header proportions');
@@ -152,8 +162,29 @@ try{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Completed result does not widen the page');
   await page.screenshot({path:'test-results/beauty-result-'+options.role+'-'+options.width+'.png',fullPage:true});
   assert.equal(await page.locator('#beauty-download').getAttribute('href').then(v=>v.startsWith('blob:')),true);
+
+  const resultSrc=await page.locator('#beauty-result-image').getAttribute('src');
+  await page.locator('#beauty-zoom-open').click();
+  const viewer=page.locator('#beauty-zoom-dialog');
+  assert.equal(await viewer.evaluate(el=>el.open),true,'Completed result opens the full-size viewer');
+  assert.equal(await page.locator('#beauty-zoom-image').getAttribute('src'),resultSrc,'Zoom uses the exact private generated result');
+  await page.locator('#beauty-zoom-image').evaluate(image=>image.decode());
+  await page.waitForFunction(()=>document.querySelector('#beauty-zoom-image').style.width!=='');
+  await page.locator('#beauty-zoom-in').click();
+  await page.locator('#beauty-zoom-in').click();
+  assert.equal(await page.locator('#beauty-zoom-level').textContent(),'150%','Zoom increases above native size');
+  await page.locator('#beauty-zoom-fit').click();
+  assert.equal(await page.locator('#beauty-zoom-level').textContent(),'Fit','Fit restores full composition');
+  assert.equal(await page.locator('#beauty-zoom-download').getAttribute('href'),await page.locator('#beauty-download').getAttribute('href'),'Full-size viewer downloads the original output');
+  await page.keyboard.press('Escape');
+  assert.equal(await viewer.evaluate(el=>el.open),false,'Escape closes the viewer');
+  assert.equal(s.submits,1,'Zoom and close do not request another generation');
    assert.equal(await page.locator('#beauty-result').getAttribute('data-before-source-id'),'photo-1','Before image belongs to the actual generated job source');
+  await page.locator('#beauty-zoom-open').click();
+  assert.equal(await page.locator('#beauty-zoom-dialog').evaluate(el=>el.open),true,'Zoom can be opened from a saved result');
   await page.evaluate(()=>window.__beautyAccount.signOut());
+  await page.waitForFunction(()=>!document.querySelector('#beauty-zoom-dialog').open);
+  assert.equal(await page.locator('#beauty-zoom-image').getAttribute('src'),null,'Sign-out removes private zoom image');
   await page.waitForFunction(()=>document.querySelector('#beauty-result').hidden&&document.querySelector('#beauty-photo-preview').hidden);
   assert.equal(await page.locator('#beauty-history').textContent(),'');assert.equal(await page.locator('#beauty-direction').inputValue(),'');assert.equal(await page.locator('#beauty-photo-preview').getAttribute('src'),null);
   assert.deepEqual(s.errors,[]);await s.context.close();
@@ -256,7 +287,7 @@ try{
   await s.page.locator('.pv-studios-trigger').click();
   await s.page.getByRole('link',{name:'Alter',exact:true}).click();
   await s.page.waitForURL('**/lab/beauty.html');
-  assert.equal(await s.page.locator('h1').textContent(),'Beauty Studio.');await s.context.close();
+  assert.equal(await s.page.locator('h1').textContent(),'ALTER Studio.');await s.context.close();
  }
  console.log('PASS Beauty: desktop/mobile, menu, guest isolation, owner/customer, exact credits, one submit, stale quotes, ambiguity and logout privacy');
 }finally{await browser.close();server.close();}

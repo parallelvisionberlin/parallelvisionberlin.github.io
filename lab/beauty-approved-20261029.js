@@ -114,38 +114,38 @@
  new MutationObserver(showComparison).observe(source,observed);
  new MutationObserver(showComparison).observe(resultImage,observed);
 
- // Scope the carousel behavior to the look-picker; leave all other controls untouched.
+ // Editorial browse controls: arrows move focus, not preset values or generation settings.
  const looksTrack=$('beauty-looks-list');
  const looksSection=document.querySelector('.beauty-looks');
  const looksPrev=document.querySelector('.beauty-looks-prev');
  const looksNext=document.querySelector('.beauty-looks-next');
- if(looksTrack&&looksSection&&looksPrev&&looksNext){
-  const itemStep=()=>cards.length>1?Math.max(1,cards[1].offsetLeft-cards[0].offsetLeft):Math.max(1,looksTrack.clientWidth*.75);
+ if(looksTrack&&looksSection&&looksPrev&&looksNext&&cards.length){
+  let browseIndex=0;
   const syncArrows=()=>{
-   const max=Math.max(0,looksTrack.scrollWidth-looksTrack.clientWidth),left=Math.max(0,looksTrack.scrollLeft);
-   looksPrev.disabled=max<2||left<2;
-   looksNext.disabled=max<2||left>=max-2;
+   looksPrev.disabled=browseIndex===0;
+   looksNext.disabled=browseIndex===cards.length-1;
   };
-  const moveLooks=direction=>{
-   const amount=direction*itemStep();
-   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-   if(typeof looksTrack.scrollBy==='function')looksTrack.scrollBy({left:amount,behavior:reduced?'auto':'smooth'});
-   else looksTrack.scrollLeft+=amount;
+  const browse=(index)=>{
+   browseIndex=Math.max(0,Math.min(cards.length-1,index));
+   const card=cards[browseIndex];
+   card.focus({preventScroll:true});
+   card.scrollIntoView({block:'nearest',inline:'nearest',behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+   syncArrows();
   };
-  looksPrev.addEventListener('click',()=>moveLooks(-1));
-  looksNext.addEventListener('click',()=>moveLooks(1));
-  looksTrack.addEventListener('scroll',syncArrows,{passive:true});
-  window.addEventListener('resize',syncArrows);
-  // Arrows work with the look picker focused, or hovered while the document body
-  // is focused. Editing inputs, selects, and the comparison slider retain their keys.
+  looksPrev.addEventListener('click',()=>browse(browseIndex-1));
+  looksNext.addEventListener('click',()=>browse(browseIndex+1));
+  cards.forEach((card,index)=>{
+   card.addEventListener('focus',()=>{browseIndex=index;syncArrows();});
+  });
   document.addEventListener('keydown',event=>{
    if(!['ArrowLeft','ArrowRight'].includes(event.key)||event.altKey||event.ctrlKey||event.metaKey)return;
-   const active=document.activeElement,inLooks=looksSection.contains(active),hovered=active===document.body&&looksSection.matches(':hover');
-   if(!inLooks&&!hovered||event.target?.closest?.('input,textarea,select,[role="slider"],[contenteditable="true"]'))return;
+   const focused=document.activeElement;
+   if(!looksSection.contains(focused)&&!(focused===document.body&&looksSection.matches(':hover')))return;
+   if(event.target?.closest?.('input,textarea,select,[role="slider"],[contenteditable="true"]'))return;
    event.preventDefault();
-   moveLooks(event.key==='ArrowRight'?1:-1);
+   browse(browseIndex+(event.key==='ArrowRight'?1:-1));
   });
-  requestAnimationFrame(syncArrows);
+  syncArrows();
  }
  syncChoices();
  showComparison();
