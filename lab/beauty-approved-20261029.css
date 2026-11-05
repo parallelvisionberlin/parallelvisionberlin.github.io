@@ -237,7 +237,7 @@
 .beauty-looks-carousel>.beauty-looks-arrow:disabled{opacity:.32;cursor:default;}
 .beauty-looks-list{
  display:grid;grid-template-columns:none;grid-auto-flow:column;
- grid-auto-columns:calc((100% - 4.25 * 12px)/5.25);gap:12px;
+ grid-auto-columns:calc(19.0476% - 9.715px);gap:12px;
  min-width:0;overflow-x:auto;overscroll-behavior-x:contain;
  scroll-snap-type:x mandatory;scroll-padding-inline:3px;scroll-behavior:smooth;
  scrollbar-width:none;padding:3px 3px 7px;
@@ -252,7 +252,7 @@
 }
 @media(max-width:1000px){
  .beauty-editor-grid::before{background-position:0 0,center,center,center,center 43%;}
- .beauty-looks-list{grid-auto-columns:calc((100% - 2.3 * 10px)/3.3);gap:10px;}
+ .beauty-looks-list{grid-auto-columns:calc(30.303% - 6.97px);gap:10px;}
 }
 @media(max-width:640px){
  .beauty-editor-grid::before{background-position:0 0,center,center,center,55% 30%;}
