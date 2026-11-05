@@ -35,7 +35,9 @@ test('drop targets forward original files to the same validated media reference 
   assert.match(media,/drop\.addEventListener\('drop'/);
   assert.match(media,/e\.preventDefault\(\);e\.stopPropagation\(\)/);
   assert.match(media,/await add\(files,kind\)/);
-  assert.match(media,/if\(groups\[kind\]\.length\+list\.length>10\)/);
+  assert.match(media,/const maximum=kind==='video'\?videoMax\(\):10/);
+  assert.match(media,/if\(groups\[kind\]\.length\+list\.length>maximum\)/);
+  assert.match(media,/const minimum=kind==='video'\?videoMin\(\):2/);
   assert.match(media,/Combined '\+kind\+' references must not exceed 30 seconds/);
   assert.doesNotMatch(media,/api\/jobs|generate\(|quote\(/);
 });
