@@ -154,7 +154,7 @@
   const stop=()=>{cancelAnimationFrame(wheelFrame);cancelAnimationFrame(inertiaFrame);wheelFrame=inertiaFrame=0;target=track.scrollLeft;};
   const animateWheel=()=>{
    const distance=target-track.scrollLeft;
-   if(Math.abs(distance)<.8){track.scrollLeft=target;wheelFrame=0;return;}
+   if(Math.abs(distance)<1.5){track.scrollLeft=target;wheelFrame=0;return;}
    track.scrollLeft=clamp(track.scrollLeft+distance*.34);
    wheelFrame=requestAnimationFrame(animateWheel);
   };

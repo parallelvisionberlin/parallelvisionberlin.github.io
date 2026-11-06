@@ -1,5 +1,11 @@
 # Beauty Studio and Studios navigation
 
+## Scroll-settling follow-up
+
+- Final normal-motion QA found a 1px rounding tail could keep requestAnimationFrame running after the archive stopped moving. The only interaction change is a 1.5px settle tolerance instead of 0.8px. No layout, imagery, defaults, backend or generation behavior changed.
+- New regression executes the actual animation function against integer and fractional scroll positions in both directions and requires an empty frame queue. All 14 focused contracts pass. Actual isolated Chromium observation changed from 42 idle callbacks over 700ms to zero.
+- Presentation JS cache key is 20261106-flow2; other refinement assets retain flow1. Production verification follows merge.
+
 ## 2026-11-06T23:20:47.783Z | Three-row refinement LIVE verified
 
 - PR #887, reviewed 1b361a956f4cb04fe4dca376b223ca47bc3a6ce2, merged as 46054b88b991656eeb19affd7ed7e2bd6c6f8acf.
