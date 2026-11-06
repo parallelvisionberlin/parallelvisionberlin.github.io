@@ -2112,9 +2112,10 @@ function syncImageComposer(){
     else if(queueBlocked)message=activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider())?'A previous request has an unknown status. Review it before generating again.':'The active generation limit has been reached. Wait for a job to finish.';
     else if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))message='Request started. You can generate another variation in a moment.';
     else if(soulNightFlashUnavailable())message='Night Flash with PV Soul is awaiting provider validation.';
-    else if(imageEngine==='soulpro'&&!file)message=isSoul2()?'':'Add a base image.';
     else if(isSoul2()&&!config.higgsfieldEnabled)message='Connect your Higgsfield API credential in Cloudflare. Open Identity strength for setup details.';
     else if(isSoul2()&&!hf.ready())message='Choose or create a completed Soul ID using the identity photo tile.';
+    else if(isSoul2()&&!file&&!$('prompt').value.trim())message='Add a Base image or describe what you want to create.';
+    else if(imageEngine==='soulpro'&&!isSoul2()&&!file)message='Add a base image.';
     else if(imageEngine==='soulpro'&&!isSoul2()&&!soulProIdentity.configured)message='Choose and save the identity reference photos.';
     else if(imageEngine==='soul'&&!soul.ready())message='Choose a trained LoRA.';
     else if(imageEngine==='soul'&&isReinterpret()&&!soul.reinterpretReady())message='This character needs a trained Reinterpret identity.';
@@ -2133,7 +2134,8 @@ function syncImageComposer(){
   const idleMoodNeedsInput=moodUI.active()&&!imageInputReferences().length&&!$('prompt').value.trim();
   // Controlled Pose instructions belong to accessible hover guidance, not a
   // third row that changes the approved Image deck geometry.
-  const inlineMessage=imageEngine==='fal'||queueBlocked||exactPreparing||idleMoodNeedsInput?'':message;
+  const idleSoulNeedsInput=isSoul2()&&!file&&!$('prompt').value.trim();
+  const inlineMessage=imageEngine==='fal'||queueBlocked||exactPreparing||idleMoodNeedsInput||idleSoulNeedsInput?'':message;
   block.hidden=!inlineMessage;reason.textContent=inlineMessage;review.hidden=true;
   const poseHint='Controlled Pose: add one Pose photo, 1–4 Identity photos, and a prompt.';
   const modelButton=$('image-composer-model');
