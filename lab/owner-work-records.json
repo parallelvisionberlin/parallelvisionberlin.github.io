@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T21:39:00Z",
+  "updatedAt": "2026-11-06T21:45:21Z",
   "handoffs": [
     {
       "id": "owner",
@@ -724,6 +724,67 @@
       "updatedAt": "2026-11-06T20:55:35.186Z"
     },
     {
+      "id": "video-loading-minimal",
+      "title": "Minimal Video loading screen",
+      "component": "Video waiting stage",
+      "status": "needs_verification",
+      "summary": "Replaced the rejected floating-card, scanning and glow animation with one indeterminate 1px loading line, 18px real status heading and muted helper text on a flat dark stage. Removed decorative Motion Studio branding and duplicate spinner.",
+      "nextAction": "Publish the reviewed source and verify the Cloudflare Pages check plus exact production asset bytes.",
+      "baselineSha": "9919574d5d40044c04c739b7e7ed206245e5e68f",
+      "reviewedSha": "b0ddcf3abcabf1383d54a5f3995d83c6587ba35c",
+      "branch": "fix/video-loading-minimal-20261106",
+      "files": [
+        "lab/studio.html",
+        "lab/video-generation-cinema.css",
+        "tests/lab-video-generation-cinema.test.mjs"
+      ],
+      "links": [
+        {
+          "label": "PR #884",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/884"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Focused waiting screen, video state and approved Image contracts",
+          "result": "passed",
+          "scope": "14 Node tests. Genuine phases and accessible status IDs preserved; active-only line, errors, reduced motion, scope and version checked."
+        },
+        {
+          "label": "Browser preview",
+          "result": "not_run",
+          "scope": "Managed preview is occupied by another task; left it untouched. Inspect live published styles after deployment."
+        },
+        {
+          "label": "Relevant CI contracts",
+          "result": "passed",
+          "scope": "All four waiting-screen tests and all five approved Image contracts pass inside private-lab CI job 128165147722. Five unrelated broader-suite failures also occur on the baseline; gallery badge and Beauty auth failures match the baseline too."
+        }
+      ],
+      "deployment": {
+        "state": "pending",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Real signed-in job generation was not performed."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "summary": "Presentation-only change. Job submission, paid generation, media, controls and History logic unchanged.",
+          "scope": "Three-file application/test diff.",
+          "limitations": []
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Do not restore floating cards, scan effects, glow, decorative labels or equalizer bars.",
+        "Do not spend credits to test this presentation change."
+      ],
+      "updatedAt": "2026-11-06T21:39:00Z"
+    },
+    {
       "id": "mood-atlas-stable-flow",
       "title": "Stable Mood Atlas window",
       "component": "Mood Atlas photobooth",
@@ -731,7 +792,7 @@
       "summary": "One photographic frame across source upload, generation, result, Make another and Remove photo. Delayed wait guidance reserves its space. Browser/release checks pending.",
       "nextAction": "Complete required Image check, merge and verify Cloudflare/custom-domain publication. Main integration preserves its independent Soul changes.",
       "baselineSha": "519d9fad57af01fcf836203d24f54e150a3d9455",
-      "reviewedSha": null,
+      "reviewedSha": "6e6d4061ccfeb8c02a9ae750cf29e9744e9e1a70",
       "branch": "fix/mood-atlas-stable-flow-20261106",
       "files": [
         "lab/explore-moods-photobooth.css",
@@ -756,8 +817,8 @@
         {
           "label": "Stable frame, native mobile and discovery browser CI",
           "result": "passed",
-          "scope": "22 Explore scenarios, 17-Mood catalogue at desktop/phone, 45-second no-shift feedback, repeat/removal and native/discovery at 320/390/768px. Exact Mood application assets are unchanged by current main integration.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296204973"
+          "scope": "22 Explore scenarios plus native/discovery at 320/390/768px PASS on 6e6d406. All Mood application/test files remain byte-identical after preserving the separate Video release; no repeated provider call.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42298450805"
         }
       ],
       "deployment": {
@@ -792,7 +853,7 @@
         "No paid generation is required for this layout fix.",
         "Preserve existing pricing, providers, photo assets, quote/submit and approved credit offers."
       ],
-      "updatedAt": "2026-11-06T21:39:00Z"
+      "updatedAt": "2026-11-06T21:45:21Z"
     }
   ]
 }
