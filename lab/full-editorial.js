@@ -46,35 +46,45 @@ let modelGroups=[],modelGroupSerial=0,modelUploadTarget=null,charactersLoadSeque
 const nameFor = (file)=>file?.name?.slice(0,120)||'Reference';
 function effectiveCastMode(){return modelGroups.length>1?'cast':'one';}
 function renderCastingControls(){
- const ready=modelGroups.length>=2;
+ const count=modelGroups.length,ready=count>=2;
  const region=$('editorial-casting-controls');
- region.hidden=!ready;region.classList.remove('is-awaiting-cast');
- // Appearance options illustrate the actual chosen people, not unrelated models.
- if(ready){
-  const covers=modelGroups.map(groupCover).filter(Boolean);
-  for(const button of document.querySelectorAll('[data-cast-composition]')){
-   const images=button.querySelectorAll('.editorial-composition-art img');
-   const photos=button.dataset.castComposition==='alternating'?covers.slice(0,1):covers.slice(0,2);
-   images.forEach((img,i)=>{if(photos[i])img.src=photos[i]});
-  }
- }
+ // The Composition shelf occupies the same place for zero, one, or multiple models.
+ // It only disappears when the user leaves Identity.
+ region.hidden=step!==1;
+ region.dataset.castState=count===0?'empty':count===1?'solo':'group';
+ region.classList.toggle('is-awaiting-cast',!ready);
+ const covers=modelGroups.map(groupCover).filter(Boolean);
  for(const button of document.querySelectorAll('[data-cast-composition]')){
-  const active=ready&&button.dataset.castComposition===castComposition;
+  const kind=button.dataset.castComposition;
+  const active=count===1?kind==='alternating':ready&&kind===castComposition;
   button.disabled=!ready;
   button.classList.toggle('is-selected',active);
   button.setAttribute('aria-pressed',String(active));
+  button.setAttribute('aria-disabled',String(!ready));
+  // Photos describe the chosen identities, not invented combined outputs.
+  if(covers.length){
+   const images=button.querySelectorAll('.editorial-composition-art img');
+   const photos=kind==='alternating'?covers.slice(0,1):covers.slice(0,2);
+   images.forEach((img,i)=>{if(photos[i])img.src=photos[i]});
+  }
  }
- $('editorial-cast-summary').textContent=!ready
-  ? modelGroups.length===1?'Add one more model to choose how they appear together.':'Select two or more models to choose how they appear together.'
-  : modelGroups.length+' models selected · '+({mixed:'Solo + group',alternating:'Solo only',together:'Group only'}[castComposition]);
- if(step===1)$('step-next').disabled=modelGroups.length===0;
+ $('editorial-cast-summary').textContent=count===0?'Select a model to begin. Composition options become available when you select two or more.':
+  count===1?'One model selected. Solo only is automatic. Add another model to choose group compositions.':
+  count+' models selected · '+({mixed:'Solo + group',alternating:'Solo only',together:'Group only'}[castComposition]);
+ if(step===1)$('step-next').disabled=count===0;
 }
 function renderIdentityFooter(){
- const footer=$('editorial-footer-cast');
+ const footer=$('editorial-footer-cast'),selection=$('editorial-cast-selection');
+ const actionDock=$('step-footer'),composition=$('editorial-casting-controls');
+ const workspace=$('panel-model').querySelector('.atelier-workspace');
  footer.hidden=step!==1;
+ // Composition follows the selection dock, matching the approved editorial reference.
+ // Move back to its original panel when leaving Identity so other steps never expose it.
+ if(step===1){
+  if(composition.previousElementSibling!==actionDock)actionDock.after(composition);
+ }else if(composition.parentElement!==workspace){workspace.append(composition)}
+ renderCastingControls();
  if(footer.hidden)return;
- // One selected-cast dock. Move the existing editor rather than duplicating its photos.
- const selection=$('editorial-cast-selection');
  if(selection.parentElement!==footer)footer.prepend(selection);
  let add=footer.querySelector('.editorial-footer-add');
  if(!add){
@@ -417,7 +427,9 @@ function setIdentitySource(source){
  const saved=source==='saved';
  $('casting-reference-gallery').hidden=saved;
  $('saved-character-gallery').hidden=!saved;
+ $('editorial-saved-rail').hidden=!saved;
  $('panel-model').dataset.modelMode=saved?'saved':'casting';
+ requestAnimationFrame(updateCastCarouselControls);
  // Search only private saved characters; five public examples are a browsable gallery.
  document.querySelector('#panel-model .editorial-cast-search').hidden=!saved;
  $('editorial-mobile-search').hidden=!saved;
@@ -718,41 +730,61 @@ for(const b of document.querySelectorAll('[data-style-view]'))b.addEventListener
 for(const b of document.querySelectorAll('[data-edit-step]'))b.addEventListener('click',()=>{if(!submitting)go(Number(b.dataset.editStep))});
 
 function updateCastCarouselControls(){
- const track=$('editorial-cast-track');if(!track)return;
- const max=Math.max(0,track.scrollWidth-track.clientWidth);
- $('editorial-cast-prev').disabled=max<4||track.scrollLeft<=3;
- $('editorial-cast-next').disabled=max<4||track.scrollLeft>=max-3;
+ for(const [trackId,prevId,nextId] of [
+  ['editorial-cast-track','editorial-cast-prev','editorial-cast-next'],
+  ['saved-character-gallery','editorial-saved-prev','editorial-saved-next']
+ ]){
+  const track=$(trackId);if(!track)continue;
+  const max=Math.max(0,track.scrollWidth-track.clientWidth);
+  $(prevId).disabled=max<4||track.scrollLeft<=3;
+  $(nextId).disabled=max<4||track.scrollLeft>=max-3;
+ }
 }
-function moveCastCarousel(direction){
- const track=$('editorial-cast-track');if(!track)return;
+function moveCastCarousel(direction,source){
+ const track=$(source==='saved'?'saved-character-gallery':'editorial-cast-track');if(!track)return;
  const first=track.querySelector('.atelier-reference:not([hidden])');
  const gap=parseFloat(getComputedStyle(track).columnGap)||12;
  const distance=(first?.getBoundingClientRect().width||220)+gap;
  track.scrollBy({left:direction*distance,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
 }
 function setupCastCarousel(){
- const track=$('editorial-cast-track');if(!track)return;
- $('editorial-cast-prev').addEventListener('click',()=>moveCastCarousel(-1));
- $('editorial-cast-next').addEventListener('click',()=>moveCastCarousel(1));
- track.addEventListener('scroll',updateCastCarouselControls,{passive:true});
+ for(const [source,trackId,prevId,nextId] of [
+  ['casting','editorial-cast-track','editorial-cast-prev','editorial-cast-next'],
+  ['saved','saved-character-gallery','editorial-saved-prev','editorial-saved-next']
+ ]){
+  const track=$(trackId);
+  $(prevId).addEventListener('click',()=>moveCastCarousel(-1,source));
+  $(nextId).addEventListener('click',()=>moveCastCarousel(1,source));
+  track.addEventListener('scroll',updateCastCarouselControls,{passive:true});
+  if('ResizeObserver' in window)new ResizeObserver(updateCastCarouselControls).observe(track);
+ }
+ if('MutationObserver' in window)new MutationObserver(updateCastCarouselControls)
+  .observe($('saved-character-gallery'),{childList:true});
  window.addEventListener('resize',updateCastCarouselControls);
- if('ResizeObserver' in window)new ResizeObserver(updateCastCarouselControls).observe(track);
  document.addEventListener('keydown',event=>{
-  if(step!==1||$('casting-reference-gallery').hidden||!['ArrowLeft','ArrowRight'].includes(event.key))return;
+  if(step!==1||!['ArrowLeft','ArrowRight'].includes(event.key))return;
   if(event.ctrlKey||event.altKey||event.metaKey)return;
   const focused=document.activeElement;
   if(focused?.closest('input,textarea,select,[contenteditable="true"]'))return;
-  const gallery=$('casting-reference-gallery');
+  const source=$('panel-model').dataset.modelMode==='saved'?'saved':'casting';
+  const gallery=source==='saved'?$('editorial-saved-rail'):$('casting-reference-gallery');
+  if(gallery.hidden)return;
   const inside=gallery.contains(focused);
   const hovered=gallery.matches(':hover')&&(focused===document.body||focused===document.documentElement);
   if(!inside&&!hovered)return;
   event.preventDefault();
-  moveCastCarousel(event.key==='ArrowRight'?1:-1);
+  moveCastCarousel(event.key==='ArrowRight'?1:-1,source);
  });
  requestAnimationFrame(updateCastCarouselControls);
 }
 setupCastCarousel();
 
+$('editorial-composition-toggle').addEventListener('click',()=>{
+ const shelf=$('editorial-casting-controls'),folded=shelf.classList.toggle('is-collapsed');
+ const toggle=$('editorial-composition-toggle');
+ toggle.setAttribute('aria-expanded',String(!folded));
+ toggle.setAttribute('aria-label',folded?'Expand composition options':'Collapse composition options');
+});
 $('model-drop').addEventListener('click',()=>openModelPicker());
 $('model-drop').addEventListener('dragover',event=>event.preventDefault());
 $('model-drop').addEventListener('drop',event=>{event.preventDefault();addFiles('model',event.dataTransfer.files)});

@@ -57,7 +57,11 @@ try{
   await page.screenshot({path:'test-results/editorial/'+width+'-hero.png',fullPage:width===390});
   await page.locator('#editorial-start').click();
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Fresh casting opens without a selected model');
-  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'No inactive composition cards for an empty cast');
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Composition is visible before picking a model');
+  assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'empty');
+  assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'false');
+  assert.equal(await page.locator('[data-cast-composition="alternating"]').isDisabled(),true);
+  assert.equal(await page.evaluate(()=>document.getElementById('step-footer').nextElementSibling?.id),'editorial-casting-controls');
    assert.equal(await page.locator('#editorial-cast-selection').isVisible(),true,'The one selected-cast dock is available at every width');
    assert.equal(await page.locator('#editorial-cast-empty').isVisible(),true,'The footer explains empty selection once');
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true);
@@ -89,12 +93,12 @@ try{
    const layout=await page.evaluate(()=>{
     const rect=selector=>document.querySelector(selector).getBoundingClientRect();
     const hero=rect('#panel-model .stage-visual'),header=rect('.editorial-header'),rail=rect('.editorial-flow-rail'),back=rect('.progress-top'),cards=rect('#casting-reference-gallery');
-    return {heroBelowHeader:hero.top>=header.bottom,topGap:hero.top-header.bottom,heroHeight:hero.height,railInside:rail.top>=hero.top&&rail.bottom<=hero.bottom+1,backInside:back.top>=hero.top&&back.bottom<=hero.bottom,cardsVisible:cards.bottom<=innerHeight-12};
+    return {heroBelowHeader:hero.top>=header.bottom,topGap:hero.top-header.bottom,heroHeight:hero.height,railHidden:getComputedStyle(document.querySelector('.editorial-flow-rail')).display==='none',backInside:back.top>=hero.top&&back.bottom<=hero.bottom,cardsVisible:cards.bottom<=innerHeight-12};
    });
    assert.equal(layout.heroBelowHeader,true,'Sticky header does not cover hero controls');
    assert.ok(layout.topGap<=13,'Hero begins immediately below the header');
-   assert.ok(layout.heroHeight>=209&&layout.heroHeight<=211,'Hero has enough vertical space for readable copy and navigation');
-   for(const key of ['railInside','backInside','cardsVisible'])assert.equal(layout[key],true,key);
+   assert.ok(layout.heroHeight>=249&&layout.heroHeight<=295,'Hero is the approved large portrait');
+   for(const key of ['railHidden','backInside','cardsVisible'])assert.equal(layout[key],true,key);
    const emptyBounds=await page.evaluate(()=>{
     const r=selector=>document.querySelector(selector).getBoundingClientRect();
     return {footerBottom:r('#step-footer').bottom,viewportHeight:innerHeight,
@@ -107,14 +111,14 @@ try{
     const box=selector=>document.querySelector(selector).getBoundingClientRect();
     const button=document.getElementById('step-next');
     return {backBottom:box('#editorial-top-back').bottom,kickerTop:box('#panel-model .stage-index').top,
-     subtitleBottom:box('#panel-model .stage-copy p').bottom,railTop:box('.editorial-flow-rail').top,
+     subtitleBottom:box('#panel-model .stage-copy p').bottom,heroBottom:box('#panel-model .stage-visual').bottom,
      buttonRadius:getComputedStyle(button).borderRadius,
      disabledBackground:getComputedStyle(button).backgroundColor};
    });
    assert.ok(textClearance.kickerTop>=textClearance.backBottom+4,'Stage kicker must clear Back: '+JSON.stringify(textClearance));
-   assert.ok(textClearance.subtitleBottom<=textClearance.railTop-8,'Subtitle must clear the progress rail: '+JSON.stringify(textClearance));
-   assert.equal(textClearance.buttonRadius,'3px','Continue has minimal editorial corners');
-   assert.equal(textClearance.disabledBackground,'rgb(20, 21, 21)','Disabled Continue uses dark surface');
+   assert.ok(textClearance.subtitleBottom<=textClearance.heroBottom-15,'Subtitle clears the hero edge: '+JSON.stringify(textClearance));
+   assert.equal(textClearance.buttonRadius,'0px','Continue has square corners');
+   assert.notEqual(textClearance.disabledBackground,'rgb(244, 241, 234)','Disabled Continue is dark');
    assert.match(emptyBounds.buttonBackground,/rgba?\(\s*(?:0|1\d|2\d|3\d)/,'Disabled Continue uses dark editorial styling');
    await page.locator('#editorial-top-back').click();
    assert.equal(await page.locator('#editorial-hero').isVisible(),true,'Top Back returns to hero');
@@ -160,6 +164,10 @@ try{
    await page.locator('#editorial-mobile-search').click();
    await page.locator('#editorial-cast-search').fill('Test Actor');
    await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
+  assert.equal(await page.locator('#editorial-saved-rail').isVisible(),true);
+  assert.equal(await page.locator('#editorial-saved-prev').isDisabled(),true);
+  assert.equal(await page.locator('#editorial-saved-next').isDisabled(),true);
+
    assert.equal(await page.locator('#saved-character-gallery .editorial-saved-cast:visible').count(),1,'Private saved characters still support search');
    await page.locator('#editorial-mobile-search').click();
    await page.locator('[data-source-view="casting"]').click();
@@ -184,7 +192,9 @@ try{
   }
   assert.equal(await page.locator('#editorial-status').textContent(),'','Model click does not add redundant below-footer copy');
    assert.equal(await page.locator('#editorial-cast-empty').isVisible(),false);
-   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'No inactive group-composition buttons with one model');
+   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Composition stays visible with one model');
+   assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'solo');
+   assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true','Solo only is automatic');
    assert.equal(await page.locator('[data-cast-composition="mixed"]').isDisabled(),true,'One model is not multi-cast');
    assert.equal(await page.locator('#step-next').isDisabled(),false,'One model can continue');
    if(width>800){
@@ -224,14 +234,34 @@ try{
    const cards=Array.from(root.querySelectorAll('[data-cast-composition]'));
    const rects=cards.map(card=>card.getBoundingClientRect());
    const firstImg=cards[0].querySelector('.editorial-composition-art img');
-   return {heights:rects.map(r=>r.height),tops:rects.map(r=>r.top),
+   return {heights:rects.map(r=>r.height),widths:rects.map(r=>r.width),tops:rects.map(r=>r.top),
+    shelfWidth:root.getBoundingClientRect().width,
+    photosPosition:getComputedStyle(firstImg.parentElement).position,
+    copyPosition:getComputedStyle(cards[0].querySelector('.editorial-composition-copy')).position,
     columns:getComputedStyle(root.querySelector('.editorial-composition-grid')).gridTemplateColumns,
     filter:getComputedStyle(firstImg).filter};
   });
-  assert.ok(compositionLayout.heights.every(h=>Math.abs(h-(width>800?185:172))<2),'Three composition cards have the approved taller dimensions');
+  assert.ok(compositionLayout.heights.every(h=>Math.abs(h-(width>800?132:146))<2),'Three compact photographic Composition cards');
+  assert.equal(compositionLayout.photosPosition,'absolute','Composition images fill their cards instead of flowing into columns');
+  assert.equal(compositionLayout.copyPosition,'absolute','Composition labels overlay photographs');
+  if(width>800){
+   assert.ok(compositionLayout.shelfWidth>1100,'Composition uses full editorial width, not obsolete 650px form: '+JSON.stringify(compositionLayout));
+   assert.ok(compositionLayout.widths.every(w=>w>185),'Three balanced Composition options, no narrow image strips: '+JSON.stringify(compositionLayout));
+  }
   if(width>800)assert.ok(compositionLayout.tops.every(t=>Math.abs(t-compositionLayout.tops[0])<1),'Desktop choices share one row');
   assert.match(compositionLayout.filter,/brightness\(0\.83\)/,'Composition photos are brighter');
   assert.equal(await page.locator('[data-cast-composition="mixed"]').isEnabled(),true,'Second model enables composition');
+  assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'group');
+  const compositionPreview=await page.locator('[data-cast-composition="mixed"] .editorial-composition-art img').evaluateAll(images=>images.map(img=>img.currentSrc||img.src));
+  const selectedCovers=await page.locator('#model-thumbs .editorial-model-cover img').evaluateAll(images=>images.map(img=>img.currentSrc||img.src));
+  assert.deepEqual(compositionPreview,selectedCovers.slice(0,2),'Composition uses selected identities');
+  await page.locator('#editorial-composition-toggle').click();
+  assert.equal(await page.locator('#editorial-composition-toggle').getAttribute('aria-expanded'),'false');
+  assert.equal(await page.locator('#editorial-composition-choices').isVisible(),false,'Composition folds');
+  await page.locator('#editorial-composition-toggle').click();
+  assert.equal(await page.locator('#editorial-composition-toggle').getAttribute('aria-expanded'),'true');
+  assert.equal(await page.locator('#editorial-composition-choices').isVisible(),true);
+
   if(width>800){
    const addSize=await page.locator('#editorial-footer-cast .editorial-footer-add').evaluate(el=>el.getBoundingClientRect().width);
    assert.ok(addSize>=42&&addSize<=46,'Footer add control stays compact, never inherits the full CTA width: '+addSize);
@@ -253,11 +283,17 @@ try{
   await page.locator('[data-cast-composition="alternating"]').click();
   await page.locator('#casting-reference-gallery .atelier-reference').nth(1).click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===1);
-  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'Composition hides when second model removed');
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Composition stays when removing the second model');
+   assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'solo');
+   assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true');
    assert.equal(await page.locator('[data-cast-composition="alternating"]').isDisabled(),true);
    // Saved Characters is a real source tab; one saved pack produces one person.
   await page.locator('#saved-character').click();
   await page.locator('#saved-character-gallery .editorial-saved-cast').first().waitFor();
+  assert.equal(await page.locator('#editorial-saved-rail').isVisible(),true);
+  assert.equal(await page.locator('#editorial-saved-prev').isDisabled(),true);
+  assert.equal(await page.locator('#editorial-saved-next').isDisabled(),true);
+
   await page.locator('#saved-character-gallery .editorial-saved-cast').first().click();
   await page.waitForFunction(()=>document.querySelectorAll('#model-thumbs .editorial-model-card').length===2);
   assert.equal(await page.locator('[data-cast-composition="alternating"]').getAttribute('aria-pressed'),'true','Composition choice survives changes to the cast');
@@ -444,7 +480,8 @@ try{
   await page.locator('#editorial-flow').waitFor({state:'visible'});
   assert.equal(await page.locator('#panel-model').isVisible(),true,'Homepage CTA opens Identity directly');
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Homepage also opens with an empty cast');
-  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),false,'Homepage has no inactive group composition');
+  assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Homepage Identity exposes Composition with disabled choices');
+  assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'empty');
   assert.equal(await page.locator('[data-cast-composition="together"]').isDisabled(),true,'Not selectable until two models');
   assert.equal(await page.locator('#editorial-hero').isVisible(),false,'No second arrival hero');
   assert.equal(new URL(page.url()).searchParams.has('start'),false,'Entry flag is consumed');
