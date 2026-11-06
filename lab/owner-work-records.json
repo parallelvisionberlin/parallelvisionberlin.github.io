@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T21:22:10Z",
+  "updatedAt": "2026-11-06T21:39:00Z",
   "handoffs": [
     {
       "id": "owner",
@@ -417,11 +417,11 @@
       "title": "Night Flash with Higgsfield Soul",
       "component": "Image Moods / Soul 2",
       "status": "needs_verification",
-      "summary": "Night Flash / Soul 2 and owner-only Won Kar Night integrated. Soul Mood palette and missing-input tooltip are now deployed and verified; an empty form needs a Base or prompt, with Soul ID optional. Any separate provider error after input is unverified.",
-      "nextAction": "Owner: add a Base photo or an authored prompt; a Soul ID is optional. Any separate error after input requires its exact error response before changing provider behavior. Retain customer Night Flash gating and obtain explicit authorization before paid generation.",
-      "baselineSha": "5bd91d73a1af1e9c3eae40ed82b5efcad3680589",
-      "reviewedSha": "86a00a39806dc1aac172a1229ba9d1b4d782b8a3",
-      "branch": "fix/soul-mood-feedback-20261106",
+      "summary": "Owner Soul one-click generation and compact Won Kar Night/model popup are merged in #883. Focused CI, phone/desktop fixtures, prompt sizing and replacement compatibility pass. Production deployment is queued; customer activation and paid quality validation remain pending.",
+      "nextAction": "Recheck Cloudflare production deployment131dec02-1ad0-4e3b-a214-84b691c104e3, then verify merged9919574d JS/CSS bytes and actual popup HTML. Source,115focused tests and mocked phone/desktop/replacement flows are complete. Do not repeat them unchanged or start a second deployment. Keep customer gate closed and do not run paid generation.",
+      "baselineSha": "519d9fad57af01fcf836203d24f54e150a3d9455",
+      "reviewedSha": "04413ed5aa58f6db557bb6a5c21e4b4a7fabe0d0",
+      "branch": "fix/soul-owner-flow-20261106",
       "files": [
         "lab/night-flash-soul.js",
         "lab/moods.js",
@@ -456,20 +456,24 @@
         {
           "label": "Soul Mood contrast/input guidance PR #879",
           "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/879"
+        },
+        {
+          "label": "Owner Soul generation and compatibility PR #883",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/883"
         }
       ],
       "tests": [
         {
           "label": "Focused CI contracts and replacement compatibility",
           "result": "passed",
-          "scope": "115 focused Node 22.16.0 tests pass for the current merged UI candidate, including approved Image copy, Moods and quote/billing/replacement safeguards.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42293137011"
+          "scope": "115 focused Node cases pass on the final owner-flow candidate, including approved Image contract and unchanged billing, quote, Mood and replacement safeguards.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296435939"
         },
         {
           "label": "Owner/customer browser integration and #870",
           "result": "passed",
-          "scope": "Owner/customer 390x844 and 1440x900 fixtures verify empty Soul disabled with tooltip, text-only Soul without an ID, no extra deck row, equal readable Soul/standard Mood computed colors, plus Night Flash, Won Kar Night, quote/confirm, Reuse and replacement flows.",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42293137011"
+          "scope": "Mocked owner/customer 390x844 and1440x900: one-click owner submit, rapid clicks, failed estimates with no submit, customer cancel/confirm, Base/identity/Mood binding, Reuse, compatibility popup choices/Escape, no status row, plus replacement flows.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296435939"
         },
         {
           "label": "Worker, customer lifecycle, pricing, prompt safety and submission",
@@ -482,18 +486,25 @@
           "result": "failed",
           "scope": "Prior Night Flash release broad baseline: 1096/1102 passed; same six failures reproduced on main 24d2b96. No broad rerun claimed for Won Kar Night; its focused CI passes.",
           "source": "lab/NIGHT-FLASH-SOUL-WORK-STATE.md"
+        },
+        {
+          "label": "Legacy first-image and Studio layout comparison",
+          "result": "failed",
+          "scope": "First-image Base width assertion120px/96px (line258) and Studio Clerk source assertion (line28) fail identically on candidate and unchanged main519d9fad. Prompt-paste passes. Original tests and CI gates unchanged; no claim that these suites pass.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296062207"
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "a8b44c3f52b382e6032a2f8bd8de16d6036d5054",
-        "environment": "Soul Mood palette and missing-input frontend help verified on pvlab.studio; Worker unchanged",
+        "state": "pending",
+        "sourceSha": "9919574d5d40044c04c739b7e7ed206245e5e68f",
+        "environment": "Owner Soul/frontend only, Cloudflare Pages normal production deployment queued; Worker unchanged",
         "limitations": [
-          "Customer Night Flash flag is absent and therefore false by default.",
-          "No real signed-in production journey, live provider estimate or generated image was verified."
+          "Production deployment131dec02-1ad0-4e3b-a214-84b691c104e3 remains queued; no live-asset claim for #883 yet.",
+          "Older preview91b206df-d8c5-46de-b7f2-1f79614d72f2 remained cloning since21:21:33Z; unrelated builds were not cancelled.",
+          "Customer activation conditions and independent signed-in/paid photographic quality validation remain pending."
         ],
         "evidenceUrl": "https://pvlab.studio/studio",
-        "observedAt": "2026-11-06T21:08:44Z"
+        "observedAt": "2026-11-06T21:32:29Z"
       },
       "evidence": [
         {
@@ -576,6 +587,26 @@
           "limitations": [
             "No new real provider generation, account transaction or paid quality test."
           ]
+        },
+        {
+          "kind": "fixture",
+          "summary": "Owner one-click Soul, rapid clicks, failed quote without submit, customer confirmation and private Mood/model popup pass at390/1440px. Both popup actions and Escape preserve Base/direction and never generate. Screenshots inspected. Replacement and115Node cases pass.",
+          "scope": "Final reviewed controller; synthetic accounts and mocked provider boundaries.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296435939",
+          "limitations": [
+            "No real paid image or independently verified signed-in production journey."
+          ]
+        },
+        {
+          "kind": "deployment",
+          "summary": "#883 merged9919574d; normal Cloudflare production deployment131dec02-1ad0-4e3b-a214-84b691c104e3 remains queued. An earlier unrelated preview remains cloning. Source publication is complete; live asset verification is pending.",
+          "scope": "Read-only Cloudflare API and scoped release verifier; no infrastructure changes or cancellation.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/883",
+          "observedAt": "2026-11-06T21:32:29Z",
+          "limitations": [
+            "Not verified live.",
+            "No real paid provider generation or signed-in journey."
+          ]
         }
       ],
       "blockers": [
@@ -586,9 +617,10 @@
         "Do not run paid generation or training without explicit authorization.",
         "Do not equate fixture screenshots with real generated results or signed-in production.",
         "Do not fabricate a native style UUID or convert Qwen LoRAs/Character photos to Soul IDs.",
-        "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards."
+        "Preserve the merged #870 replacement flow and existing quote, credit, idempotency and budget safeguards.",
+        "The first-image width and Studio Clerk assertions reproduce on519d9fad in run42296062207. Do not rerun the same baseline investigation without a relevant source change; keep those failures distinct from the passing focused Soul flow."
       ],
-      "updatedAt": "2026-11-06T21:08:44Z"
+      "updatedAt": "2026-11-06T21:32:29Z"
     },
     {
       "id": "image-prompt-deck-clearance",
@@ -697,7 +729,7 @@
       "component": "Mood Atlas photobooth",
       "status": "needs_verification",
       "summary": "One photographic frame across source upload, generation, result, Make another and Remove photo. Delayed wait guidance reserves its space. Browser/release checks pending.",
-      "nextAction": "Run focused browser CI and inspect desktop/phone captures; publish reviewed source and verify custom-domain assets.",
+      "nextAction": "Complete required Image check, merge and verify Cloudflare/custom-domain publication. Main integration preserves its independent Soul changes.",
       "baselineSha": "519d9fad57af01fcf836203d24f54e150a3d9455",
       "reviewedSha": null,
       "branch": "fix/mood-atlas-stable-flow-20261106",
@@ -722,9 +754,10 @@
           "scope": "16 approved Image, Mood handoff and Mood reference tests pass; syntax, whitespace and work-record checks pass."
         },
         {
-          "label": "Stable frame browser",
-          "result": "not_run",
-          "scope": "New desktop/phone/small and 45-second virtual wait regression in the existing Explore suite."
+          "label": "Stable frame, native mobile and discovery browser CI",
+          "result": "passed",
+          "scope": "22 Explore scenarios, 17-Mood catalogue at desktop/phone, 45-second no-shift feedback, repeat/removal and native/discovery at 320/390/768px. Exact Mood application assets are unchanged by current main integration.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42296204973"
         }
       ],
       "deployment": {
@@ -759,7 +792,7 @@
         "No paid generation is required for this layout fix.",
         "Preserve existing pricing, providers, photo assets, quote/submit and approved credit offers."
       ],
-      "updatedAt": "2026-11-06T21:22:10Z"
+      "updatedAt": "2026-11-06T21:39:00Z"
     }
   ]
 }
