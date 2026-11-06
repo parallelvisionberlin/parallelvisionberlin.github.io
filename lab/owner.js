@@ -1,10 +1,11 @@
-import {createOwnerWorkspace} from './owner-workspace-ui.js?v=20261106-operations1';
-import {createOwnerOperationsUI} from './owner-operations-ui.js?v=20261106-operations1';
+import {createOwnerCustomersUI} from './owner-customers-ui.js?v=20261106-clear2';
+import {createOwnerWorkspace} from './owner-workspace-ui.js?v=20261106-clear2';
+import {createOwnerOperationsUI} from './owner-operations-ui.js?v=20261106-clear2';
 import {createOwnerPayoutNotice} from './partner-payouts.js?v=20261028-cost1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
-import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261106-operations1';
+import {createOwnerAcquisitionUI} from './owner-acquisition-ui.js?v=20261106-clear2';
 import {renderOwnerPagination} from './owner-pagination.js?v=20261025-paged1';
 import {createOwnerGenerationReviewUI} from './owner-generation-review-ui.js?v=20261017-v1';
 import {createOwnerCustomerInspectionUI} from './owner-customer-inspection-ui.js?v=20261102-quality1';
@@ -183,17 +184,6 @@ async function openCustomerActivity(customer){
     $('owner-customer-dialog-body').replaceChildren(activityElement('p','owner-customer-empty',
       error.message||'Customer history is unavailable. Please retry.'));
   }
-}
-function customerActivityButtons(customers){
-  const rows=$('owner-customers').rows;
-  customers.forEach((customer,index)=>{
-    const cell=rows[index]?.cells[0];if(!cell)return;
-    const button=activityElement('button','owner-customer-open','View activity ↗');
-    button.type='button';
-    button.setAttribute('aria-label','View generation and credit activity for '+(customer.email||customer.id));
-    button.addEventListener('click',()=>void openCustomerActivity(customer));
-    cell.append(button);
-  });
 }
 $('owner-customer-dialog-close').addEventListener('click',()=>{customerInspectUI.clear();customerDialog.close();});
 customerDialog.addEventListener('cancel',()=>customerInspectUI.clear());
@@ -404,10 +394,11 @@ const customerInspectUI=createOwnerCustomerInspectionUI({
   call:path=>call(path),request,ownerReady:()=>!!profile?.owner,
   revision:()=>revision,formatDate:activityDate
 });
+const customerUI=createOwnerCustomersUI({call,ownerReady:()=>!!profile?.owner,revision:()=>revision,openActivity:openCustomerActivity,openReview:customer=>generationReviewUI.open(customer),formatDate,formatNumber,mobileLabels:labelTableCellsForMobile});
 const acquisitionUI=createOwnerAcquisitionUI({
   request:path=>call(path),ownerReady:()=>!!profile?.owner,revision:()=>revision,days:()=>acquisitionDays,
   formatDate,formatNumber,openActivity:openCustomerActivity,
-  openReview:customer=>generationReviewUI.open(customer),mobileLabels:labelTableCellsForMobile
+  openReview:customer=>generationReviewUI.open(customer),mobileLabels:labelTableCellsForMobile,onReport:data=>customerUI.seed(data)
 });
 const operationsUI=createOwnerOperationsUI({call,ownerReady:()=>!!profile?.owner,revision:()=>revision,openActivity:openCustomerActivity});
 const reportLoads=new Map();
@@ -420,10 +411,12 @@ function loadViewReport(key,load){
 function loadCurrentView(view){
   if(!profile?.owner)return;
   if(view.view==='home'){void operationsUI.refresh();loadViewReport('payout',()=>payoutNotice.load(revision));}
-  if(view.view==='system'){if(view.tab==='attention')void operationsUI.refresh();else void operationsUI.loadRecords();}
-  if(view.tab==='traffic')loadViewReport('traffic',refreshTraffic);
-  if(view.tab==='conversion'||view.tab==='usage')loadViewReport('acquisition',()=>acquisitionUI.refresh());
-  if(view.tab==='costs')loadViewReport('providers',()=>providerUI.refresh());
+  if(view.view==='work')void operationsUI.loadRecords();
+  if(view.tab==='attention'||view.utility==='owner-notifications-dialog'||view.utility==='owner-system-dialog')void operationsUI.refresh();
+  if(view.view==='traffic')loadViewReport('traffic',refreshTraffic);
+  if(view.view==='sales')loadViewReport('acquisition',()=>acquisitionUI.refresh());
+  if(view.view==='customers')void customerUI.show();
+  if(view.view==='costs')loadViewReport('providers',()=>providerUI.refresh());
 }
 const workspace=createOwnerWorkspace({ownerReady:()=>!!profile?.owner,onNavigate:loadCurrentView});
 for(const button of document.querySelectorAll('[data-acquisition-days]'))button.addEventListener('click',()=>{
@@ -432,7 +425,6 @@ for(const button of document.querySelectorAll('[data-acquisition-days]'))button.
   for(const b of document.querySelectorAll('[data-acquisition-days]'))b.setAttribute('aria-pressed',String(b===button));
   void acquisitionUI.refresh();
 });
-$('owner-customer-usage-refresh').addEventListener('click',()=>void acquisitionUI.refresh());
 let recentFilter='all',recentCustomers=[],recentPayments=[],customerPage=1;
 function recentRow(list,index,{primary,secondary,emphasis,at}){
   const li=document.createElement('li');li.className='owner-recent-item';
@@ -509,15 +501,7 @@ function render(data){
     ?formatNumber(customerCount)+' matching accounts. Search applies to customers only.'
     :formatNumber(customerCount)+' customer accounts. Verified emails come directly from Clerk.';
   $('owner-search-clear').hidden=!query;
-  rowInto($('owner-customers'),data.customers||[],[
-    c=>({primary:c.accountClosed?'Closed account':c.email||'Email not synced',secondary:c.id}),
-    c=>formatDate(c.joinedAt),
-    c=>formatNumber(c.balanceCredits),
-    c=>formatNumber(c.verifiedPayments),
-    c=>c.accountClosed?'Closed':c.subscription&&c.subscription!=='none'?({primary:c.subscription,secondary:c.plan||''}):'—',
-    c=>formatDate(c.lastPaidAt)
-  ],query?'No matching accounts. Try a different email or account ID.':'No customer accounts have joined yet.');
-  customerActivityButtons(data.customers||[]);
+  customerUI.setDirectory({customers:data.customers||[],pagination:{...data.pagination,page:customerPage},search:query});
   renderOwnerPagination($('owner-customers-pagination'),{
     ...data.pagination,
     onPage:next=>{customerPage=next;void refreshDashboard({scrollCustomers:true});}
@@ -637,7 +621,8 @@ async function refreshDashboard({scrollCustomers=false}={}){
 async function refreshSession(){
   customerInspectUI.clear();
   payoutNotice.clear();
-  operationsUI.clear();acquisitionUI.clear();reportLoads.clear();
+  for(const id of ['owner-notifications-dialog','owner-system-dialog','owner-reference-dialog'])if($(id)?.open)$(id).close();
+  operationsUI.clear();acquisitionUI.clear();customerUI.clear();reportLoads.clear();
   for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin],[data-owner-agency]'))link.hidden=true;
   const current=++revision;fetchSerial++;generationReviewUI.close();profile=null;
   voucherRecipientsObserver?.disconnect();voucherRecipientsObserver=null;voucherRecipientsGeneration++;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;$('owner-agency-link').hidden=true;
@@ -652,7 +637,7 @@ async function refreshSession(){
   try{
     const result=await call('/api/session');if(current!==revision)return;
     if(result.owner!==true)throw Error('This page is reserved for the PV LAB owner account.');
-    profile=result;$('owner-agency-link').hidden=false;for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin],[data-owner-agency]'))link.hidden=false;await refreshDashboard();
+    profile=result;$('owner-agency-link').hidden=false;for(const link of document.querySelectorAll('[data-owner-vitolas],[data-owner-bellini],[data-owner-robin],[data-owner-agency]'))link.hidden=false;await refreshDashboard();workspace.reset();
   }catch(error){if(current===revision){$('owner-dashboard').hidden=true;status(error.message);}}
 }
 async function copyLink(url,button){

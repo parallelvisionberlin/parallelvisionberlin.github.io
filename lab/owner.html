@@ -9,17 +9,20 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261106-operations1">
+<link rel="stylesheet" href="./owner.css?v=20261106-clear2">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
 <aside class="owner-sidebar" aria-label="Owner workspace">
   <div class="owner-sidebar-brand"><a class="owner-side-wordmark" href="./">PV LAB</a><span>PRIVATE / OWNER</span></div>
   <nav class="owner-side-nav" aria-label="Owner sections">
-    <a href="#owner-overview" data-owner-nav aria-current="page"><span>Home</span></a>
-    <a href="#owner-business" data-owner-nav><span>Business</span></a>
+    <a href="#owner-overview" data-owner-nav aria-current="page"><span>Overview</span></a>
     <a href="#owner-customers-section" data-owner-nav><span>Customers</span></a>
-    <a href="#owner-system" data-owner-nav><span>System</span></a>
+    <a href="#owner-acquisition-section" data-owner-nav><span>Sales</span></a>
+    <a href="#owner-traffic-section" data-owner-nav><span>Traffic</span></a>
+    <a href="#owner-providers-section" data-owner-nav><span>Costs</span></a>
+    <a href="#owner-vouchers-section" data-owner-nav><span>Promotions</span></a>
+    <a href="#owner-work-section" data-owner-nav><span>Work log</span></a>
   </nav>
   <nav class="owner-side-bottom" aria-label="Workspace links">
     <details class="owner-partners">
@@ -38,6 +41,7 @@
 <header class="owner-header">
   <div class="owner-header-brand"><a class="owner-wordmark" href="./">PV LAB</a><span class="owner-header-label">PRIVATE / OWNER</span></div>
   <nav aria-label="Owner navigation">
+    <button type="button" id="owner-notifications-toggle" class="owner-notifications-toggle" data-owner-open-dialog="owner-notifications-dialog" aria-label="Notifications" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="owner-notifications-label">Notifications</span><span id="owner-notifications-count" hidden></span></button>
     <button type="button" id="owner-quick-search" class="owner-quick-search" aria-label="Find a customer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></button>
     <span class="owner-header-separator" aria-hidden="true"></span>
     <a href="./account.html">My account</a>
@@ -46,7 +50,7 @@
 </header>
 <main id="owner-main" class="owner-shell">
   <header id="owner-overview" class="owner-hero">
-    <div><p class="owner-eyebrow" id="owner-view-eyebrow">PV LAB / OVERVIEW</p><h1 id="owner-view-title">Home</h1><p class="owner-intro" id="owner-view-intro">Your business and the work that needs attention.</p></div>
+    <div><p class="owner-eyebrow" id="owner-view-eyebrow">PV LAB / OVERVIEW</p><h1 id="owner-view-title">Overview</h1><p class="owner-intro" id="owner-view-intro">Your business and the work that needs attention.</p></div>
   </header>
   <p id="owner-status" class="owner-status" role="status" aria-live="polite">Checking owner access…</p>
   <div id="owner-gate" class="owner-gate" hidden><p>Sign in with the PV LAB owner account to open this workspace.</p><button type="button" id="owner-signin">Sign in</button></div>
@@ -54,29 +58,11 @@
     <p id="owner-partner-payout-notice" class="owner-status" hidden></p>
     <details class="owner-mobile-access" id="owner-mobile-access">
       <summary>Go to a section<span>Business, customers &amp; operations</span></summary>
-    <nav class="owner-jumpbar" aria-label="Mobile dashboard navigation">
-      <a href="#owner-overview">Home</a><a href="#owner-business">Business</a><a href="#owner-customers-section">Customers</a><a href="#owner-system">System</a>
-    </nav>
+    <nav class="owner-jumpbar" aria-label="Mobile dashboard navigation"><a href="#owner-overview">Overview</a><a href="#owner-customers-section">Customers</a><a href="#owner-acquisition-section">Sales</a><a href="#owner-traffic-section">Traffic</a><a href="#owner-providers-section">Costs</a><a href="#owner-vouchers-section">Promotions</a><a href="#owner-work-section">Work log</a></nav>
     <details class="owner-mobile-partners"><summary>Partners</summary><div class="owner-partners-links"><a href="./robin-studio.html" data-owner-robin hidden>Robin / König Media</a><a href="./vitolas-studio.html" data-owner-vitolas hidden>Vitolas Studio</a><a href="./bellini-studio.html" data-owner-bellini hidden>Bellini Studios</a></div></details>
     <a href="https://parallelvisionlabel.com/agency/inbox.html" data-owner-agency hidden>Agency enquiries</a>
     <a class="owner-mobile-settings" href="./account.html#settings">Settings</a>
     </details>
-    <nav class="owner-local-nav owner-view-hidden" id="owner-business-nav" aria-label="Business reports">
-      <a href="#owner-traffic-section" data-owner-tab>Traffic</a><a href="#owner-acquisition-section" data-owner-tab>Conversion</a><a href="#owner-payments-section" data-owner-tab>Payments</a><a href="#owner-providers-section" data-owner-tab>Costs &amp; providers</a><a href="#owner-vouchers-section" data-owner-tab="promotions">Promotions</a>
-    </nav>
-    <nav class="owner-local-nav owner-local-subnav owner-view-hidden" id="owner-promotions-nav" aria-label="Promotions">
-      <a href="#owner-referrals-section" data-owner-tab>Referrals</a><a href="#owner-vouchers-section" data-owner-tab>Vouchers</a>
-    </nav>
-    <nav class="owner-local-nav owner-view-hidden" id="owner-customer-nav" aria-label="Customer views">
-      <a href="#owner-customers-section" data-owner-tab>Directory</a><a href="#owner-customer-usage" data-owner-tab>Lifetime usage</a>
-    </nav>
-    <nav class="owner-local-nav owner-view-hidden" id="owner-system-nav" aria-label="System views">
-      <a href="#owner-system" data-owner-tab>Needs attention</a><a href="#owner-work-section" data-owner-tab>Changes &amp; work</a><a href="#owner-release-section" data-owner-tab>Documentation</a>
-    </nav>
-    <section class="owner-home-attention" id="owner-home-attention" aria-labelledby="owner-home-attention-title">
-      <div><span class="owner-index">NEEDS ATTENTION</span><h2 id="owner-home-attention-title">System and ongoing work</h2></div>
-      <div id="owner-home-attention-items" aria-live="polite"><p class="owner-small">Available after owner verification.</p></div>
-    </section>
     <section class="owner-metrics" aria-label="Account summary">
       <div class="owner-metric"><span class="owner-metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 5v1"/></svg></span><div class="owner-metric-copy"><span>Open accounts</span><strong id="owner-total-accounts">0</strong><small>Excludes closed accounts</small></div></div>
       <div class="owner-metric"><span class="owner-metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 10.5h18"/></svg></span><div class="owner-metric-copy"><span>Customers who paid</span><strong id="owner-paying">0</strong><small>Verified paying users</small></div></div>
@@ -132,7 +118,7 @@
     </section>
     <section class="owner-section owner-traffic" id="owner-traffic-section" aria-labelledby="owner-traffic-title">
       <div class="owner-section-head owner-traffic-heading">
-        <div><span class="owner-index">AUDIENCE / ACQUISITION</span><h2 id="owner-traffic-title">Traffic<span>.</span></h2><p class="owner-traffic-lead">Real visits to your creative studio, measured from the day tracking starts.</p></div>
+        <div><span class="owner-index">AUDIENCE / ACQUISITION</span><h2 class="owner-visually-hidden" id="owner-traffic-title">Traffic</h2><p class="owner-traffic-lead">Real visits to your creative studio, measured from the day tracking starts.</p></div>
         <div class="owner-traffic-actions" role="group" aria-label="Traffic date range">
           <button type="button" data-traffic-days="7" aria-pressed="true">7 days</button>
           <button type="button" data-traffic-days="30" aria-pressed="false">30 days</button>
@@ -198,7 +184,7 @@
 
     <section class="owner-section owner-acquisition" id="owner-acquisition-section" aria-labelledby="owner-acquisition-title">
       <div class="owner-section-head owner-traffic-heading">
-        <div><span class="owner-index">BUSINESS / CONVERSION</span><h2 id="owner-acquisition-title">Conversion<span>.</span></h2>
+        <div><span class="owner-index">CHECKOUT ACTIVITY</span><h2 id="owner-acquisition-title">Conversion<span>.</span></h2>
         <p class="owner-traffic-lead">Customer activity, verified receipts and provider exposure.</p></div>
         <div class="owner-traffic-actions" role="group" aria-label="Conversion date range"><button type="button" data-acquisition-days="7" aria-pressed="true">7 days</button><button type="button" data-acquisition-days="30" aria-pressed="false">30 days</button><button type="button" id="owner-acquisition-refresh" class="owner-provider-detail-refresh">Refresh</button></div>
       </div>
@@ -206,31 +192,22 @@
       <div id="owner-acquisition-content" hidden>
         <div class="owner-acquisition-metrics">
           <div><span>New users</span><strong id="owner-acquisition-new">—</strong><small>Registered in period</small></div>
-          <div><span>Activated users</span><strong id="owner-acquisition-active">—</strong><small>New users with completed jobs</small></div>
-          <div><span>Provider exposure</span><strong id="owner-acquisition-cost">—</strong><small>USD, includes deleted jobs</small></div>
+          <div><span>Started creating</span><strong id="owner-acquisition-active">—</strong><small>New users with completed jobs</small></div>
+          <div><span>Generation costs</span><strong id="owner-acquisition-cost">—</strong><small>USD · settled and estimated</small></div>
           <div><span>Checkout conversion</span><strong id="owner-acquisition-checkout">—</strong><small id="owner-acquisition-checkout-note">Tracked sessions only</small></div>
-          <div><span>Verified receipts</span><strong id="owner-acquisition-revenue">—</strong><small>EUR gross, since tracking</small></div>
+          <div><span>Verified payments</span><strong id="owner-acquisition-revenue">—</strong><small>EUR gross, since tracking</small></div>
         </div>
         <p id="owner-acquisition-summary" class="owner-acquisition-explain"></p>
-        <p class="owner-small"><a class="owner-text-link" href="#owner-customer-usage">Open lifetime customer usage</a></p>
-        <p class="owner-traffic-disclaimer" id="owner-acquisition-notes">Historical checkouts cannot be backfilled. Provider exposure is not a vendor invoice.</p>
+        <p class="owner-small"><a class="owner-text-link" href="#owner-customers-section">View customers</a></p>
+        <details class="owner-check-detail owner-metric-notes"><summary>How these figures are counted</summary><p id="owner-acquisition-archive-note" class="owner-small"></p><p class="owner-traffic-disclaimer" id="owner-acquisition-notes">Historical checkouts cannot be backfilled. Provider exposure is not a vendor invoice.</p></details>
       </div>
     </section>
-    <section class="owner-section owner-view-hidden" id="owner-customer-usage" aria-labelledby="owner-customer-usage-title">
-      <div class="owner-section-head"><div><span class="owner-index">CUSTOMERS / HISTORY</span><h2 id="owner-customer-usage-title">Lifetime usage</h2><p class="owner-section-description">All-time activity and receipts for each account. Open the same customer profile from either view.</p></div><button type="button" id="owner-customer-usage-refresh" class="owner-provider-detail-refresh">Refresh</button></div>
-      <p id="owner-customer-usage-status" class="owner-small" role="status"></p>
-        <div class="owner-acquisition-table-head"><h3>Customer activity</h3><span>Lifetime usage, newest first</span></div>
-        <div class="owner-table-wrap owner-acquisition-table">
-          <table><thead><tr><th>Account</th><th>Joined</th><th>Completed</th><th>Last completed</th><th>Credits spent</th><th>Provider USD</th><th>Checkouts</th><th>Gross EUR</th><th>Review</th></tr></thead>
-          <tbody id="owner-acquisition-customers"><tr><td colspan="9" class="owner-table-empty">Loading activity…</td></tr></tbody></table>
-        </div>
-        <div id="owner-acquisition-pagination" class="owner-pagination" aria-label="Acquisition account pages"></div>
-    </section>
     <section class="owner-section" id="owner-customers-section" aria-labelledby="owner-customers-title">
-      <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Directory</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
+      <div class="owner-section-head"><div><h2 class="owner-visually-hidden" id="owner-customers-title">Customers</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
       <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p></div>
-      <div class="owner-table-wrap"><table><thead><tr><th>Email / account</th><th>Joined</th><th>Balance</th><th>Paid events</th><th>Subscription</th><th>Last payment</th></tr></thead><tbody id="owner-customers"></tbody></table></div>
+      <div class="owner-table-wrap"><table><thead><tr><th>Account</th><th>Joined</th><th>Balance</th><th>Payments</th><th>Completed</th><th>Last completed</th><th>Details</th></tr></thead><tbody id="owner-customers"></tbody></table></div>
       <div id="owner-customers-pagination" class="owner-pagination" aria-label="Customer directory pages"></div>
+      <details id="owner-customer-tools" class="owner-check-detail"><summary>Email connection</summary></details>
       <dialog class="owner-customer-dialog" id="owner-customer-dialog" aria-labelledby="owner-customer-dialog-title">
         <div class="owner-customer-dialog-head">
           <div><span class="owner-index">AUDIENCE / PRIVATE ACTIVITY</span><h2 id="owner-customer-dialog-title">Customer activity<span>.</span></h2><p id="owner-customer-dialog-identity">Select a customer to review their activity.</p></div>
@@ -309,26 +286,28 @@
       <div class="owner-table-wrap owner-vouchers-table"><table><thead><tr><th>Voucher</th><th>Credits</th><th>Redemptions / recipients</th><th>Expires</th><th>Status</th><th>Action</th></tr></thead><tbody id="owner-vouchers"></tbody></table></div>
     </section>
     <section id="owner-providers-section" class="owner-section owner-providers-section" aria-labelledby="owner-providers-title">
-      <div class="owner-section-head"><div><span class="owner-index">05 / API FINANCE</span><h2 id="owner-providers-title">Costs &amp; providers</h2><p class="owner-section-description">Authenticated read-only account data. No generation or billable requests.</p></div><button type="button" class="owner-provider-detail-refresh" data-owner-balance-refresh>Refresh balances ↻</button></div>
+      <div class="owner-section-head"><div><span class="owner-index">05 / API FINANCE</span><h2 class="owner-visually-hidden" id="owner-providers-title">Costs</h2><p class="owner-section-description">Authenticated read-only account data. No generation or billable requests.</p></div><button type="button" class="owner-provider-detail-refresh" data-owner-balance-refresh>Refresh balances ↻</button></div>
       <div class="owner-finance-note">USD prepaid balances are not postpaid expenses. FASHN credits and customer wallet credits are independent units. Unavailable data is never estimated or counted as zero.</div>
       <div id="owner-provider-details" class="owner-provider-details" aria-live="polite"><p class="owner-providers-loading">Waiting for the provider report…</p></div>
       <div class="owner-finance-separate"><div><span class="owner-index">CUSTOMER WALLETS / SEPARATE LIABILITY</span><strong id="owner-customer-liability">Unavailable</strong><small id="owner-customer-liability-note">Customer credit units are never added to provider cash balances.</small></div><div><span class="owner-index">OTHER CONNECTIONS</span><p id="owner-provider-legacy">Only providers with active generation routes are shown above.</p></div></div>
     </section>
 
-    <section class="owner-section owner-view-hidden" id="owner-system-attention" aria-labelledby="owner-system-attention-title">
+    <section class="owner-section owner-view-hidden" id="owner-work-section" aria-labelledby="owner-work-title">
+      <div class="owner-work-tools"><button type="button" data-owner-open-dialog="owner-reference-dialog">Release checklists</button><button type="button" data-owner-open-dialog="owner-system-dialog">Job status</button></div><div class="owner-section-head"><div><span class="owner-index">SHARED WORK MEMORY</span><h2 class="owner-visually-hidden" id="owner-work-title">Work log</h2><p class="owner-section-description">Saved changes, verification and the next step.</p></div><a class="owner-check-source" href="https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/owner-work-records.json" target="_blank" rel="noopener noreferrer">Source record</a></div>
+      <p id="owner-work-status" class="owner-small" role="status">Loading work memory…</p>
+      <div class="owner-work-filters" role="group" aria-label="Work state"><button type="button" data-owner-work-state="all" aria-pressed="true">All</button><button type="button" data-owner-work-state="planned" aria-pressed="false">Planned</button><button type="button" data-owner-work-state="in_progress" aria-pressed="false">In progress</button><button type="button" data-owner-work-state="needs_verification" aria-pressed="false">Needs verification</button><button type="button" data-owner-work-state="deployed" aria-pressed="false">Deployed</button></div>
+      <div id="owner-work-records"></div>
+      <details class="owner-check-detail owner-work-handoff"><summary>Component records and previous evidence</summary><p class="owner-small">The shared work record keeps documented tests, publication and production observations separate.</p><div id="owner-work-handoffs"></div></details>
+    </section>
+    <dialog id="owner-notifications-dialog" class="owner-utility-dialog" aria-labelledby="owner-notifications-dialog-title"><div class="owner-utility-dialog-head"><h2 id="owner-notifications-dialog-title">Notifications</h2><button type="button" class="owner-utility-dialog-close" data-owner-close-dialog="owner-notifications-dialog">Close</button></div><div id="owner-home-attention-items" aria-live="polite"><p>Available after owner verification.</p></div><div class="owner-notification-actions"><button type="button" data-owner-open-dialog="owner-system-dialog">View job details</button><button type="button" id="owner-notifications-refresh">Refresh notifications</button></div></dialog>
+    <dialog id="owner-system-dialog" class="owner-utility-dialog" aria-labelledby="owner-system-dialog-title"><div class="owner-utility-dialog-head"><h2 id="owner-system-dialog-title">Job status</h2><button type="button" class="owner-utility-dialog-close" data-owner-close-dialog="owner-system-dialog">Close</button></div>    <section class="owner-section " id="owner-system-attention" aria-labelledby="owner-system-attention-title">
       <div class="owner-section-head"><div><span class="owner-index">LIVE / READ ONLY</span><h2 id="owner-system-attention-title">Needs attention</h2><p class="owner-section-description">Retained job states and billing confirmations. Reading this view never retries a job.</p></div><button type="button" id="owner-operations-refresh" class="owner-provider-detail-refresh">Refresh system</button></div>
       <p id="owner-operations-status" class="owner-small" role="status">Available after owner verification.</p>
       <div id="owner-operations-content" aria-live="polite"></div>
     </section>
-    <section class="owner-section owner-view-hidden" id="owner-work-section" aria-labelledby="owner-work-title">
-      <div class="owner-section-head"><div><span class="owner-index">SHARED WORK MEMORY</span><h2 id="owner-work-title">Changes &amp; work</h2><p class="owner-section-description">The saved state used to continue each task, with evidence and the next action.</p></div><a class="owner-check-source" href="https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/owner-work-records.json" target="_blank" rel="noopener noreferrer">Source record</a></div>
-      <p id="owner-work-status" class="owner-small" role="status">Loading work memory…</p>
-      <div class="owner-work-filters" role="group" aria-label="Work state"><button type="button" data-owner-work-state="all" aria-pressed="true">All</button><button type="button" data-owner-work-state="planned" aria-pressed="false">Planned</button><button type="button" data-owner-work-state="in_progress" aria-pressed="false">In progress</button><button type="button" data-owner-work-state="needs_verification" aria-pressed="false">Needs verification</button><button type="button" data-owner-work-state="deployed" aria-pressed="false">Deployed</button></div>
-      <div id="owner-work-records"></div>
-      <details class="owner-check-detail owner-work-handoff"><summary>Component records and previous evidence</summary><div id="owner-work-handoffs"></div></details>
-    </section>
-    <section class="owner-section owner-release-checks" id="owner-release-section" aria-labelledby="owner-release-title">
-      <div class="owner-section-head"><div><span class="owner-index">OPERATIONS / TECHNICAL VERIFICATION</span><h2 id="owner-release-title">Documentation<span>.</span></h2><p class="owner-section-description">Checklists and source evidence. These do not run purchases, generations or deployments.</p></div><a class="owner-check-source" href="https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pulls" target="_blank" rel="noopener noreferrer">Repository reviews</a></div>
+</dialog>
+    <dialog id="owner-reference-dialog" class="owner-utility-dialog" aria-labelledby="owner-reference-dialog-title"><div class="owner-utility-dialog-head"><h2 id="owner-reference-dialog-title">Release checklists</h2><button type="button" class="owner-utility-dialog-close" data-owner-close-dialog="owner-reference-dialog">Close</button></div>    <section class="owner-section owner-release-checks" id="owner-release-section" aria-labelledby="owner-release-title">
+      <div class="owner-section-head"><div><span class="owner-index">OPERATIONS / TECHNICAL VERIFICATION</span><h2 id="owner-release-title">Release checklists<span>.</span></h2><p class="owner-section-description">Checklists and source evidence. These do not run purchases, generations or deployments.</p></div><a class="owner-check-source" href="https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pulls" target="_blank" rel="noopener noreferrer">Repository reviews</a></div>
       <p class="owner-small owner-check-note">Reference checklists stay here. The current state and evidence belong to the corresponding change in Changes &amp; work.</p>
       <details class="owner-check-detail">
         <summary><span>Purchase flow</span><small>Documented tests / production journey needs verification</small></summary>
@@ -345,9 +324,10 @@
       </details>
     </section>
 
+</dialog>
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261106-operations1"></script>
+<script type="module" src="./owner.js?v=20261106-clear2"></script>
 </body>
 </html>
