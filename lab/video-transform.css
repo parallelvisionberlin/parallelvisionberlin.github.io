@@ -330,3 +330,37 @@ html body #app.video-studio-active.video-transform-active #duration-control #pv-
   overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
   color:#f1f1f2!important;font:650 12px/1.25 'DM Sans',Arial,sans-serif!important;
 }
+
+
+/* Transform's larger video/photo drop targets must not push native Output
+   settings underneath the separate Generate footer in the empty editor.
+   Reuse the existing desktop scrollport only when source/identity references
+   or intentionally expanded prompt content actually need it. */
+@media(min-width:821px){
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.video-transform-active
+  .workspace.video-layout>.controls #pv-video-prompt-box{
+    flex:0 0 auto!important;
+    min-height:0!important;
+    height:auto!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.video-transform-active
+  .workspace.video-layout>.controls #pv-video-prompt-box textarea#prompt{
+    flex:0 0 auto!important;
+    height:clamp(78px,10dvh,98px)!important;
+    min-height:78px!important;
+    max-height:45dvh!important;
+    overflow-y:auto!important;
+    resize:vertical!important;
+  }
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.video-transform-active
+  .workspace.video-layout>.controls>.controls-body{
+    gap:7px!important;
+    padding-bottom:10px!important;
+  }
+}
+@media(min-width:821px) and (max-height:820px){
+  html body #app.video-studio-active.pv-video-approved-ready.pv-video-state-ready.pv-video-compact.video-transform-active
+  .workspace.video-layout>.controls #pv-video-prompt-box textarea#prompt{
+    height:78px!important;
+  }
+}
