@@ -1,3 +1,11 @@
+## Collapsed Partners navigation, 2026-11-06
+- User approved one Partners disclosure for Robin / König Media, Vitolas Studio and Bellini Studios, closed by default. Agency remains separate; Settings and Back to site stay at the foot.
+- Baseline main e400ff36ca7e6d541dfeb8d8748fc0357a0b6730. This change is limited to desktop sidebar grouping and scoped styles; existing mobile section links stay available.
+- Native details/summary supplies pointer and keyboard expansion without new JavaScript or dependencies. Original hrefs and data-owner-* markers preserved; existing authorization still reveals/hides each link. Empty group hidden automatically.
+- Changes: owner.html, owner.css, existing seven-width Owner browser test and this checkpoint. Only CSS cache marker changes to 20261106-owner-partners1; Owner JS unchanged.
+- Agency, business sections, metrics, customer review, providers, billing, credits, account data, models and generation functions unchanged.
+- Validation/publication pending. Run approved Image contract and scoped Owner CI, inspect collapsed/expanded fixture, verify Cloudflare Pages and exact custom-domain CSS before reporting live.
+
 ## One Owner workspace / consolidation, 2026-11-06
 - Status: published and production asset bytes verified. Canonical operational entry: https://pvlab.studio/owner.
 - User requested one intuitive access flow and preservation of every existing function. Reviewed PR #859 head 13304a12b8611138632bfa74a06520914211270a; merge e61076abe921e0d4890c6f3c998c9f3b596391a8. Source tree d0f6b6cc6af968633233bd1dfcc06aa36ab196d6 exactly matched the local candidate.

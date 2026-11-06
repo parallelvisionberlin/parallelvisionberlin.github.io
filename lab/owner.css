@@ -891,3 +891,15 @@ button.owner-inspect-media{cursor:pointer}
  .owner-hero-access{display:none}
 }
 @media(max-width:430px){.owner-mobile-access>summary>span{display:none}.owner-check-source{display:inline-block;margin-top:20px}.owner-check-body{padding-left:10px}.owner-check-links{flex-direction:column;align-items:flex-start}}
+
+/* Partner workspaces are secondary: one native, initially closed disclosure. */
+.owner-partners:not(:has(a:not([hidden]))){display:none}
+.owner-partners>summary{display:flex;align-items:center;gap:15px;min-height:46px;padding:0 15px;border-radius:3px;list-style:none;cursor:pointer;font-size:12px;color:#b3b3b3}
+.owner-partners>summary::-webkit-details-marker{display:none}
+.owner-partners>summary:hover{background:#1c1c1c;color:#f6f6f6}
+.owner-partners>summary:focus-visible{outline:2px solid #e6e4db;outline-offset:3px}
+.owner-partners>summary>svg{width:18px;height:18px;flex:none;color:#b5b5b5}
+.owner-partners>summary::after{content:'';width:6px;height:6px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg);margin-left:auto;margin-top:-4px}
+.owner-partners[open]>summary::after{transform:rotate(225deg);margin-top:3px}
+.owner-partners-links{display:grid;gap:3px;padding:5px 0 7px 18px;border-left:1px solid #343434;margin-left:24px}
+.owner-side-bottom .owner-partners-links a{min-height:38px;padding:8px 9px;font-size:11px;line-height:1.4}

@@ -88,12 +88,25 @@ try{
       assert.match(await page.locator('#owner-provider-details').innerText(),/Balance unavailable/,'Unknown balances are not zeros');
       assert.match(await page.locator('#owner-customer-liability').innerText(),/250 PV LAB credits/,'Customer units are separate');
       assert.equal(await page.locator('a[data-owner-nav][href="#owner-providers-section"]').count(),1,'Dedicated Providers sidebar destination');
-      assert.equal(await page.locator('.owner-side-nav > a[data-owner-robin][href="./robin-studio.html"]').count(),1,'Robin has a dedicated Owner left-sidebar link');
-      assert.equal(await page.locator('.owner-side-bottom > a[data-owner-robin]').count(),0,'Robin is not buried in the utility footer');
+      const partnerGroup=page.locator('.owner-side-bottom > details.owner-partners');
+      assert.equal(await partnerGroup.count(),1,'One expandable Partners group replaces all three flat sidebar links');
+      assert.equal(await page.locator('.owner-side-nav > a[data-owner-robin],.owner-side-bottom > a[data-owner-robin],.owner-side-bottom > a[data-owner-vitolas],.owner-side-bottom > a[data-owner-bellini]').count(),0,'Partner studios are not separate primary or utility navigation items');
+      for(const [name,path] of [['robin','robin-studio.html'],['vitolas','vitolas-studio.html'],['bellini','bellini-studio.html']])
+        assert.equal(await partnerGroup.locator('a[data-owner-'+name+'][href="./'+path+'"]').count(),1,'Original partner destination and owner marker retained');
+      assert.equal(await partnerGroup.getAttribute('open'),null,'Partners starts closed');
       if(width>920){
-        await page.locator('.owner-side-nav > a[data-owner-robin]').evaluate(el=>{el.hidden=false;});
-        assert.equal(await page.locator('.owner-side-nav > a[data-owner-robin]').isVisible(),true,'Owner can see Robin workspace in sidebar');
+        assert.equal(await partnerGroup.isVisible(),false,'No empty partner group before owner-only links are revealed');
+        await partnerGroup.locator('a').evaluateAll(links=>links.forEach(link=>{link.hidden=false;}));
+        assert.equal(await partnerGroup.isVisible(),true,'Owner can see the Partners group');
+        assert.equal(await partnerGroup.locator('a[data-owner-robin]').isVisible(),false,'Closed group keeps secondary destinations out of the sidebar');
+        await partnerGroup.locator('summary').press('Enter');
+        for(const link of await partnerGroup.locator('a').all())assert.equal(await link.isVisible(),true,'Keyboard expansion reveals all original partner links');
+        await partnerGroup.locator('summary').press('Enter');
+        assert.equal(await partnerGroup.getAttribute('open'),null,'Keyboard closes the group');
         assert.equal(await page.locator('.owner-sidebar').evaluate(el=>getComputedStyle(el).overflowY),'auto','Short laptop sidebars remain scrollable');
+        await partnerGroup.locator('a').evaluateAll(links=>links.forEach(link=>{link.hidden=true;}));
+        assert.equal(await partnerGroup.isVisible(),false,'Existing owner-link hiding also hides the group');
+        await partnerGroup.locator('a').evaluateAll(links=>links.forEach(link=>{link.hidden=false;}));
       }
 
       await page.evaluate(()=>paintTraffic({
