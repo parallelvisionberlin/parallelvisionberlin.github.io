@@ -19,6 +19,7 @@ $('app').hidden=false;$('gate').hidden=true;setTool('image');await loadHistory()
 window.__nightFlashRead=()=>({settings:settings(),source:!!file,mood:moodUI.selected(),pending:imageSubmissionPending});
 window.__nightFlashGate=value=>applyConfig({soulNightFlashEnabled:value});
 window.__nightFlashReuse=job=>restore(job);
+window.__nightFlashChoosePro=model=>{soulProModel=model;$('soul-pro-model').value=model;$('image-engine').value='soulpro';$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));updateSoulProModelUi();update();};
 window.__nightFlashReady=true;
 `;
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.woff2':'font/woff2','.svg':'image/svg+xml'};
@@ -68,6 +69,19 @@ try{
     try{
       await page.goto('http://127.0.0.1:'+server.address().port+'/lab/studio.html?tool=image&mockRole='+role);
       await page.waitForFunction(()=>window.__nightFlashReady===true);
+      const shell=()=>page.locator('#image-composer').evaluate(el=>{
+        const b=el.querySelector('#image-composer-generate').getBoundingClientRect(),d=el.getBoundingClientRect();
+        return {width:d.width,height:d.height,buttonWidth:b.width,buttonHeight:b.height,buttonBottom:b.bottom,radius:getComputedStyle(el).borderRadius};
+      });
+      const normal=await shell();
+      if(role==='owner'){
+        await page.evaluate(()=>window.__nightFlashChoosePro('kontextmax'));
+        const pro=await shell();
+        for(const key of ['width','buttonWidth','buttonHeight','buttonBottom','radius'])assert.equal(pro[key],normal[key],'Soul Pro keeps normal '+key);
+        assert.equal(await page.locator('#composer-generation-block').isVisible(),false,'Missing Pro setup stays in accessible help, not a new deck row');
+        assert.equal(await page.locator('.composer-controls > #composer-character').count(),1,'Pro identity uses the shared toolbar');
+        await page.evaluate(()=>window.__nightFlashChoosePro('soul2'));
+      }
       await page.locator('#image-composer-model').click();
       await page.locator('.composer-model-option[data-value="soulpro"]').click();
       assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Empty Soul needs a prompt or Base, not a mandatory Soul ID');
@@ -86,10 +100,11 @@ try{
       assert.equal(generated,0,'Selecting a Mood never generates');
       const palettes=await page.evaluate(()=>{
         const deck=document.getElementById('image-composer'),mood=document.getElementById('image-composer-moods'),clear=document.getElementById('image-composer-moods-clear');
-        const read=()=>{const s=getComputedStyle(mood);return {color:s.color,background:s.backgroundColor,border:s.borderColor,clear:getComputedStyle(clear).color};};
-        const soul=read();deck.classList.remove('is-pv-soul');const standard=read();deck.classList.add('is-pv-soul');return {soul,standard};
+        const s=getComputedStyle(mood);
+        return {soul:{color:s.color,clear:getComputedStyle(clear).color},legacyLayout:deck.classList.contains('is-pv-soul'),identityInToolbar:deck.querySelector('.composer-controls').contains(document.getElementById('composer-character'))};
       });
-      assert.deepEqual(palettes.soul,palettes.standard,'Soul and standard Image share the same Mood palette');
+      assert.equal(palettes.legacyLayout,false,'Soul uses the normal web deck');
+      assert.equal(palettes.identityInToolbar,true,'Identity stays in the normal toolbar');
       assert.equal(palettes.soul.color,'rgb(220, 255, 0)','Mood text remains legible on the dark control');
       assert.equal(palettes.soul.clear,palettes.soul.color,'Clear action remains legible too');
 
@@ -103,7 +118,9 @@ try{
       assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Unsupported Soul Mood blocks generation');
       await page.getByRole('button',{name:'Select Night Flash',exact:true}).click();
       await page.locator('#composer-moods-done').click();
-      await page.locator('#soul-base-image').setInputFiles(resolve('lab/mood-previews/hd/night-flash-20261011.jpg'));
+      const sourceChooser=page.waitForEvent('filechooser');
+      await page.locator('#image-composer-add').click();
+      await (await sourceChooser).setFiles(resolve('lab/mood-previews/hd/night-flash-20261011.jpg'));
       await page.waitForFunction(()=>window.__nightFlashRead().source===true);
       await page.locator('#image-composer-prompt').fill('Keep the expression.');
       state=await page.evaluate(()=>window.__nightFlashRead());

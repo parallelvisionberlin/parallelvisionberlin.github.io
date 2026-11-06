@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T22:05:18.886Z",
+  "updatedAt": "2026-11-06T22:29:30Z",
   "handoffs": [
     {
       "id": "owner",
@@ -1022,6 +1022,70 @@
         "Do not substitute the previous stacked tiny-choice layout."
       ],
       "updatedAt": "2026-11-06T22:05:18.886Z"
+    },
+    {
+      "id": "shared-image-soul-deck",
+      "title": "One Image deck for standard, Soul Pro and Higgsfield Soul",
+      "component": "Image composer",
+      "status": "needs_verification",
+      "summary": "Locked the normal web Image deck as the shared design. Soul identity uses the normal toolbar and source photos use the existing +/reference strip. Legacy Soul and character grids are native-only. Missing Pro setup uses existing accessible button help rather than a third row.",
+      "nextAction": "Run the existing CI Image paste, first-image, studio-layout, Soul parity and Soul integration checks. Publish the reviewed commit, then verify actual production asset bytes.",
+      "baselineSha": "429ea39bc6d4884cb09407d8765043b0b6f04758",
+      "reviewedSha": null,
+      "branch": "fix/soul-deck-unification-20261106",
+      "files": [
+        "lab/AGENTS.md",
+        "lab/lab.js",
+        "lab/studio.html",
+        "lab/image-editorial-deck.js",
+        "lab/image-deck-surface.css",
+        "tests/lab-soul-deck-parity-ui.mjs",
+        "tests/lab-night-flash-soul-ui.mjs"
+      ],
+      "links": [],
+      "tests": [
+        {
+          "label": "Approved Image, Soul integration, Higgsfield and private portraits",
+          "result": "passed",
+          "scope": "22 local Node tests; JS syntax and whitespace checks pass."
+        },
+        {
+          "label": "Managed Chrome rendering",
+          "result": "passed",
+          "scope": "Actual Studio/controller with synthetic session and read-only API fixtures at 1440x900 and 390x844. Standard, Soul and Pro share the 1120x142 desktop shell, 144x84 Generate, 54px prompt and 19px corners. Phone keeps common width/Generate baseline and wraps its optional identity control. Source photo + long prompt stay bounded without horizontal overflow; HF phone ratio, 720p selection and identity picker operate."
+        },
+        {
+          "label": "Existing standalone Playwright suites",
+          "result": "not_run",
+          "scope": "Local Chromium could not create its process socket in this runtime. Existing CI suites remain required; no test gate was removed."
+        }
+      ],
+      "deployment": {
+        "state": "not_started",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "Local fixture evidence is separate from production and real signed-in actions.",
+          "No paid generation or training was run."
+        ]
+      },
+      "evidence": [
+        {
+          "kind": "fixture",
+          "summary": "1440 desktop geometry measured identically across normal, HF Soul and Soul Pro. Identity picker remains inside composer-controls; duplicate source card is hidden. 390px output changes synchronize the existing HF resolution field.",
+          "scope": "Managed browser rendering, original controller and styles, synthetic account/local media.",
+          "limitations": [
+            "No actual provider request or identity quality validation."
+          ]
+        }
+      ],
+      "blockers": [],
+      "doNotRepeat": [
+        "Normal web Image geometry is locked; model selection changes available controls only.",
+        "Never reintroduce separate web is-pv-soul/has-character-picker grids or right-side IMAGE/Soul ID tiles.",
+        "Keep native layout and existing identity, pricing, model restrictions and provider handlers."
+      ],
+      "updatedAt": "2026-11-06T22:29:30Z"
     }
   ]
 }

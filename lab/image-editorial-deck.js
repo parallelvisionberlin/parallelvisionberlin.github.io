@@ -133,6 +133,15 @@
   function sync(){
     if(window.__PV_LAB_NATIVE__===1)return;
     real.classList.add('pv-editorial-deck');
+    // Keep the original identity picker and its handlers inside the shared
+    // toolbar. Soul changes available controls, never the deck geometry.
+    const identity=document.getElementById('composer-character');
+    const controls=real.querySelector('.composer-controls');
+    if(identity&&controls&&identity.parentElement!==controls){
+      identity.dataset.deckControl='identity';
+      identity.classList.add('composer-settings-pill');
+      controls.insertBefore(identity,document.getElementById('image-composer-edit-area'));
+    }
     fitWelcomeDeck();
     update(guest,guestField,'guest');
     fitGuestPrompt();
