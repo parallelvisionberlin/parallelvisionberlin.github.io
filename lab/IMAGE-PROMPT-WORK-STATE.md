@@ -388,3 +388,11 @@
 - New CSS version query `20261016-font-size17` ensures the change loads on pvlab.studio. JS cache token restored to the original `20261016-scroll-paste1` because that code is unchanged.
 - Tests restore the old geometry assertions and add a Chromium computed-font-size check for desktop, preserving mobile baseline.
 - Branch: `fix/image-prompt-font-only-20261016`. Do not claim published until Cloudflare production deployment succeeds.
+## 2026-11-07 | Smaller reference removal controls on hover
+
+- Owner reference: image(20261106-221642).png. Baseline main `429ea39bc6d4884cb09407d8765043b0b6f04758`; branch `fix/image-thumbnail-remove-hover-20261106`.
+- Scope is only the Image deck thumbnail × controls. Mouse/fine-pointer web controls are 16px with 13px glyphs, previously 21px / 17px. They appear on their thumbnail's hover or keyboard focus and otherwise ignore pointer input. Touch and native controls retain their existing usable sizing and visibility.
+- `lab/editorial-polish.css` owns the scoped media rule. `lab/studio.html` refreshes that asset's version to `20261106-reference-remove-hover1`. No JavaScript, thumbnail dimensions, deck geometry, prompts or generation behavior changed.
+- Approved Image UI contract passed 5/5 before editing. Required local prompt-paste and first-image browser attempts cannot launch Chromium because the execution environment rejects socket creation (EPERM). Studio-layout stops at its unchanged Clerk preflight assertion, also documented in the earlier checkpoint.
+- Keyboard visibility uses :focus-visible so mouse clicks do not leave × controls stuck on. Approved Image checks passed 5/5 after editing; diff whitespace passes. Local browser launch is blocked; cloud-browser fixture navigation is also unavailable.
+- The owner explicitly authorized push and publication on 2026-11-07, resolving the previous approval block. Current main `c714d7ec533da9807bb3f0f03e5c571463d2a4e4` is integrated to retain the published shared Soul deck. Next action: run browser CI, merge and verify Cloudflare plus live bytes. No paid generation or account mutation used.

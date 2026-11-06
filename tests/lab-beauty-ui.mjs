@@ -17,8 +17,8 @@ const server=http.createServer((req,res)=>{
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const base='http://127.0.0.1:'+server.address().port,browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox']});
 mkdirSync('test-results',{recursive:true});
-async function scenario({role='customer',width=1448,height=1086,malformed=false,delayed=false,submitFailure=false}={}){
- const context=await browser.newContext({viewport:{width,height},hasTouch:width<=390,reducedMotion:'reduce'}),page=await context.newPage();
+async function scenario({role='customer',width=1448,height=1086,malformed=false,delayed=false,submitFailure=false,motion='reduce'}={}){
+ const context=await browser.newContext({viewport:{width,height},hasTouch:width<=390,reducedMotion:motion}),page=await context.newPage();
  page.setDefaultTimeout(10000);
  await context.addInitScript(value=>{window.__beautyRole=value},role);
  const calls=[],quotes=[],jobs=[],errors=[],sources=new Map(),missingSources=new Set();let submits=0,uploads=0,delayOldResult=false;
@@ -112,7 +112,7 @@ try{
    assert.equal(editorial.background,'rgba(0, 0, 0, 0)','Hero no longer has the hard gray rectangle');
    assert.equal(editorial.overflow,'visible','Hero is not clipped at its former hard bottom');
    assert.ok(editorial.panelWidth>=(width>=1366?365:330),'Edit Look panel remains full-size: '+width+'px '+editorial.panelWidth);
-   assert.equal(editorial.thumbnails,6,'Active tab shows six large photographic controls');
+   assert.equal(editorial.thumbnails,9,'Active tab shows nine large photographic controls');
    assert.ok(editorial.minThumbHeight>=80,'Right-hand visual presets are readable, not tiny');
    assert.equal(editorial.fullDeck,false,'Archive has true horizontal overflow instead of squeezing six cards');
    if(width>=1440)assert.ok(editorial.titleSize>=70,'Desktop ALTER title has the approved editorial scale');
@@ -126,7 +126,7 @@ try{
  // Visual shortcuts must control the native fields used by credit quotes and generation.
  {
   const s=await scenario({role:'guest',width:1448}),{page}=s;
-  assert.equal(await page.locator('[data-beauty-choice]').count(),30,'Five independent categories each have six working options');
+  assert.equal(await page.locator('[data-beauty-choice]').count(),45,'Five independent categories each have nine working options');
   const src=await page.locator('.beauty-looks-list .beauty-look-photo').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')));
   assert.equal(src.length,6,'Six editorial cards are visible');
   assert.equal(new Set(src).size,6,'Editorial cards use six distinct photographic assets');
@@ -134,8 +134,7 @@ try{
   // Explicitly approved redesign: new photo assets, five tabs, continuous archive.
   const hero=await page.locator('.beauty-editor-grid').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
   assert.match(hero,/atelier\/hero\.webp/,'The approved mock photograph is the background');
-  assert.equal(await page.locator('.beauty-looks-prev').isVisible(),true,'Left carousel arrow is visible');
-  assert.equal(await page.locator('.beauty-looks-next').isVisible(),true,'Right carousel arrow is visible');
+  assert.equal(await page.locator('.beauty-looks-arrow').count(),0,'Removed arrow controls are absent, including from keyboard focus');
   // Larger cards intentionally overflow; keyboard/arrows must reach every card.
   const fit=await page.locator('.beauty-looks-list').evaluate(track=>{
    const rect=track.getBoundingClientRect();
@@ -145,11 +144,11 @@ try{
    });
   });
   assert.equal(fit,false,'The archive is a continuous scrollable track, not a forced six-column grid');
-  assert.equal(await page.locator('.beauty-looks-prev').isDisabled(),true);
   const originalDirection=await page.locator('#beauty-direction').inputValue();
-  await page.locator('.beauty-looks-next').click();
+  await page.locator('.beauty-looks-heading strong').hover();
+  await page.mouse.wheel(0,160);
   await page.waitForFunction(()=>document.querySelector('#beauty-looks-list').scrollLeft>0);
-  assert.equal(await page.locator('#beauty-direction').inputValue(),originalDirection,'Arrow scrolling does not select a look');
+  assert.equal(await page.locator('#beauty-direction').inputValue(),originalDirection,'Wheel scrolling over the heading does not select a look');
   await page.locator('[data-look="natural"]').focus();
   assert.equal(await page.locator('#beauty-direction').inputValue(),originalDirection,'Browsing does not apply a look');
   await page.keyboard.press('ArrowLeft');
@@ -165,6 +164,55 @@ try{
   assert.match(await page.locator('#beauty-direction').inputValue(),/low-key evening/i,'Editorial mood cards produce real creative directions');
   await s.context.close();
  }
+
+ // Approved three-row editor, real bidirectional wheel/trackpad/drag/touch navigation.
+ for(const width of [1440,390]){
+  const s=await scenario({role:'guest',width,height:900}),{page}=s;
+  const unchanged=()=>page.evaluate(()=>({values:['makeup','hair','skin','light','color','strength','direction'].map(k=>document.getElementById('beauty-'+k).value),selected:[...document.querySelectorAll('[data-look]')].map(n=>n.getAttribute('aria-pressed'))}));
+  const initial=await unchanged();
+  for(const tab of ['makeup','hair','skin','light','color']){
+   await page.locator('#beauty-tab-'+tab).click();
+   const geometry=await page.locator('#beauty-panel-'+tab+' .beauty-choice-list').evaluate(el=>{
+    const buttons=[...el.children];const rects=buttons.map(n=>n.getBoundingClientRect());
+    return {count:buttons.length,rows:new Set(rects.map(r=>Math.round(r.top))).size,cols:new Set(rects.map(r=>Math.round(r.left))).size,clipped:rects.some(r=>r.bottom>el.getBoundingClientRect().bottom+1)};
+   });
+   assert.deepEqual(geometry,{count:9,rows:3,cols:3,clipped:false});
+  }
+  await page.locator('#beauty-tab-makeup').click();
+  const track=page.locator('#beauty-looks-list');await track.scrollIntoViewIfNeeded();
+  const offset=()=>track.evaluate(el=>el.scrollLeft);
+  await page.locator('.beauty-looks-heading strong').hover();await page.mouse.wheel(0,140);
+  await page.waitForFunction(()=>document.getElementById('beauty-looks-list').scrollLeft>20);
+  const forward=await offset();await page.mouse.wheel(0,-90);
+  await page.waitForFunction(x=>document.getElementById('beauty-looks-list').scrollLeft<x,forward);
+  await track.hover();const beforeHorizontal=await offset();await page.mouse.wheel(90,0);
+  await page.waitForFunction(x=>document.getElementById('beauty-looks-list').scrollLeft>x,beforeHorizontal);
+  // Ctrl-wheel is browser zoom, never captured by the archive.
+  assert.equal(await track.evaluate(el=>{const e=new WheelEvent('wheel',{deltaY:90,ctrlKey:true,bubbles:true,cancelable:true});el.dispatchEvent(e);return e.defaultPrevented;}),false);
+  await track.evaluate(el=>el.scrollLeft=0);
+  const box=await track.boundingBox();await page.mouse.move(box.x+box.width*.8,box.y+box.height*.5);await page.mouse.down();
+  await page.mouse.move(box.x+box.width*.25,box.y+box.height*.5,{steps:8});await page.mouse.up();
+  assert.ok(await offset()>30,'Mouse dragging scrolls the archive');
+  assert.deepEqual(await unchanged(),initial,'Browsing does not apply presets or change generation fields');
+  assert.equal(s.submits,0);assert.equal(s.quotes.length,0);
+  await track.focus();await page.keyboard.press('End');
+  assert.equal(await page.locator('[data-look="film"]').evaluate(el=>el===document.activeElement),true);
+  const visible=await page.locator('[data-look="film"]').evaluate(el=>{const a=el.getBoundingClientRect(),b=el.parentElement.getBoundingClientRect();return a.right<=b.right+2&&a.left>=b.left-2;});assert.equal(visible,true);
+  if(width===390){
+   await track.evaluate(el=>el.scrollLeft=0);const r=await track.boundingBox();
+   const client=await page.context().newCDPSession(page),x=r.x+r.width*.85,y=r.y+r.height*.5;
+   await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+   for(let step=1;step<=6;step++){await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x-step*30,y}]});await page.waitForTimeout(16);}
+   await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+   await page.waitForFunction(()=>document.getElementById('beauty-looks-list').scrollLeft>50);
+   assert.deepEqual(await unchanged(),initial,'A native touch swipe does not select a card');await client.detach();
+  }
+  await page.locator('#beauty-tab-makeup').scrollIntoViewIfNeeded();
+  await page.screenshot({path:'test-results/beauty-flow-'+width+'.png',fullPage:true});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await s.context.close();
+ }
+
  // Tab state, native generation settings, reset and busy controls remain connected.
  for(const width of [1440,390]){
   const s=await scenario({role:'customer',width,height:900}),{page}=s;

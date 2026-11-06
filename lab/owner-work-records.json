@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T22:54:49Z",
+  "updatedAt": "2026-11-06T23:10:56.004Z",
   "handoffs": [
     {
       "id": "owner",
@@ -69,7 +69,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -216,7 +216,7 @@
       "component": "Owner workspace",
       "status": "deployed",
       "summary": "Published: clear View activity access to existing generated-content review, restored manual Customers Refresh and improved Recent purchases spacing. Approved simplified navigation and existing functions retained.",
-      "nextAction": "Use Customers \u2192 View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
+      "nextAction": "Use Customers → View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
       "baselineSha": "e2cd02bce742b157d12308b76908cbacea34b604",
       "reviewedSha": "01362b3073f7d997d98d7ebd2830ad586d244d77",
       "branch": "fix/owner-activity-access-20261106",
@@ -716,7 +716,7 @@
         },
         {
           "kind": "production_asset",
-          "summary": "Actual public Chrome Couture selection at 1363\u00d7936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
+          "summary": "Actual public Chrome Couture selection at 1363×936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
           "scope": "Rendered public production layout after reload; no Generate click.",
           "source": "https://pvlab.studio/studio?tool=image",
           "observedAt": "2026-11-06T20:55:35.186Z",
@@ -943,21 +943,22 @@
       "id": "alter-tabbed-editor",
       "title": "ALTER Studio tabbed editor",
       "component": "ALTER Studio",
-      "status": "deployed",
-      "summary": "Approved ALTER tabbed editor, horizontal photographic archive and original PV LAB favicon published. Exact production assets and real guest desktop/mobile controls verified.",
-      "nextAction": "No frontend publication work remains. Real signed-in generation and quality of provider outputs are not part of this no-spend verification.",
-      "baselineSha": "674b340bcb7217ed4b4ca42344a8fde8c55c0be8",
-      "reviewedSha": "70b58d7c621c6976b4929aba73bb4f76e157f172",
-      "branch": "implement/alter-approved-20261106",
+      "status": "needs_verification",
+      "summary": "Latest approved ALTER refinement: three rows per tab, taller editor, arrow-free wheel/swipe archive. Published background composition and left title locked unchanged.",
+      "nextAction": "Complete full browser regression, merge reviewed source and verify exact Cloudflare/custom-domain publication. No paid generation.",
+      "baselineSha": "c714d7ec533da9807bb3f0f03e5c571463d2a4e4",
+      "reviewedSha": null,
+      "branch": "fix/alter-three-row-scroll-20261106",
       "files": [
-        "lab/beauty.html",
-        "lab/beauty-editorial-final.css",
         "lab/beauty-approved-20261029.js",
+        "lab/beauty-editorial-final.css",
+        "lab/beauty-flow-refinement.css",
         "lab/beauty-settings.js",
+        "lab/beauty.html",
         "lab/beauty.js",
         "lab/visuals/beauty/atelier",
-        "tests/lab-beauty-ui.mjs",
-        "tests/lab-beauty-atelier.test.mjs"
+        "tests/lab-beauty-atelier.test.mjs",
+        "tests/lab-beauty-ui.mjs"
       ],
       "links": [
         {
@@ -971,57 +972,44 @@
       ],
       "tests": [
         {
-          "label": "ALTER and original Beauty/Studios regression",
+          "label": "Focused local contracts",
           "result": "passed",
-          "scope": "12 unit contracts, Worker quote/idempotency integration and full original intercepted browser scenarios including public navigation, roles, guest isolation, comparisons, zoom, history races and favicon.",
-          "observedAt": "2026-11-06T21:57:43Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42299866022"
+          "scope": "13 Image/Beauty/ALTER checks and Worker quote/idempotency integration. Original hero/composition hashes, defaults and quote binding preserved.",
+          "observedAt": "2026-11-06T23:06:10Z"
         },
         {
-          "label": "Actual public production controls",
+          "label": "Isolated rendered interaction",
           "result": "passed",
-          "scope": "Real public production page; default values, original favicon, independent tabs, reset, keyboard archive and no page overflow. No login, upload, quote or generation.",
-          "observedAt": "2026-11-06T22:05:18.886Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42301817916"
+          "scope": "320/390/768/1024/1280/1366/1440/1920 px; no overflow/overlap; nine choices per tab, wheel directions. Not signed-in or HTTP navigation.",
+          "observedAt": "2026-11-06T23:06:10Z"
+        },
+        {
+          "label": "Full intercepted browser regression",
+          "result": "passed",
+          "scope": "Complete Beauty/Studios suite including native wheel in both directions, mouse drag and touch swipe, all 45 choices, no control overlap, quote safeguards, private History, comparison and zoom. All API calls intercepted; no paid generation.",
+          "observedAt": "2026-11-06T23:10:56.004Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42309882483"
         }
       ],
       "deployment": {
-        "state": "verified",
-        "sourceSha": "ed1752ce3c8f06691fcb711d279fafec75a7fee4",
+        "state": "not_started",
+        "sourceSha": null,
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-06T22:05:18.886Z",
-        "evidenceUrl": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42301817916",
         "limitations": [
-          "Public production interaction and exact asset publication verified. No real signed-in account or paid provider generation was exercised."
+          "Previous #880 publication is verified historically; this refinement is not yet deployed.",
+          "No real signed-in generation or paid output quality test."
         ]
       },
-      "evidence": [
-        {
-          "kind": "deployment",
-          "summary": "PR #880 merged; exact merge Cloudflare app check 128181428708 succeeded.",
-          "scope": "Production frontend publication, not GitHub Pages.",
-          "observedAt": "2026-11-06T22:05:18.886Z",
-          "source": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/2b44ca55-9203-494c-a796-304ae2d96d97",
-          "limitations": []
-        },
-        {
-          "kind": "production_asset",
-          "summary": "HTML references atelier2; 20 production asset SHA-256 hashes match reviewed source, including PV LAB favicon. Desktop 1440px and mobile 390px controls verified.",
-          "scope": "Real public production page; defaults, tabs, reset, keyboard carousel and page overflow. Screenshots and hashes retained in run artifacts.",
-          "observedAt": "2026-11-06T22:05:18.886Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42301817916",
-          "limitations": [
-            "Public production interaction and exact asset publication verified. No real signed-in account or paid provider generation was exercised."
-          ]
-        }
-      ],
+      "evidence": [],
       "blockers": [],
       "doNotRepeat": [
+        "Do not substitute the previous stacked tiny-choice layout.",
+        "Do not modify hero.webp, its crop/fade rules or the mixed-case title.",
         "Do not regenerate approved photos.",
-        "Do not add providers or change billing.",
-        "Do not substitute the previous stacked tiny-choice layout."
+        "Do not restore archive navigation arrows or let browsing change selections.",
+        "Do not add providers or change billing."
       ],
-      "updatedAt": "2026-11-06T22:05:18.886Z"
+      "updatedAt": "2026-11-06T23:10:56.004Z"
     },
     {
       "id": "shared-image-soul-deck",
@@ -1133,6 +1121,55 @@
         "Keep native layout and existing identity, pricing, model restrictions and provider handlers."
       ],
       "updatedAt": "2026-11-06T22:54:49Z"
+    },
+    {
+      "id": "image-reference-remove-hover",
+      "title": "Smaller Image reference removal controls",
+      "component": "Image prompt deck",
+      "status": "needs_verification",
+      "summary": "Mouse-equipped Image decks reveal a smaller 16px thumbnail × on hover or keyboard focus-visible. Touch/native access is preserved. Publication explicitly authorized on 2026-11-07.",
+      "nextAction": "Complete browser CI, merge and verify Cloudflare plus live CSS bytes.",
+      "baselineSha": "c714d7ec533da9807bb3f0f03e5c571463d2a4e4",
+      "reviewedSha": null,
+      "branch": "fix/image-thumbnail-remove-hover-20261106",
+      "files": [
+        "lab/editorial-polish.css",
+        "lab/studio.html",
+        "lab/IMAGE-PROMPT-WORK-STATE.md"
+      ],
+      "links": [
+        {
+          "label": "Scoped checkpoint",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/IMAGE-PROMPT-WORK-STATE.md"
+        }
+      ],
+      "tests": [
+        {
+          "label": "Approved Image UI contract",
+          "result": "passed",
+          "scope": "All five checks passed before editing."
+        },
+        {
+          "label": "Required local browser attempts",
+          "result": "not_run",
+          "scope": "Prompt-paste and first-image Chromium launch blocked by socket EPERM. Studio-layout fails unchanged Clerk preflight assertion."
+        }
+      ],
+      "deployment": {
+        "state": "pending",
+        "sourceSha": null,
+        "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "limitations": [
+          "No real signed-in production behavior observed."
+        ]
+      },
+      "evidence": [],
+      "blockers": [],
+      "doNotRepeat": [
+        "No paid generation needed.",
+        "Keep thumbnail and deck dimensions unchanged."
+      ],
+      "updatedAt": "2026-11-06T23:03:33.893Z"
     }
   ]
 }
