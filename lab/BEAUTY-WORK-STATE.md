@@ -7,7 +7,11 @@
 - Mood recipes set the actual category fields. Manual choices clear only unchanged automatically inserted mood text, never the user's written direction.
 - Light/Color intensity follows the same strength control; strength zero excludes optional edits; monochrome uses relative skin luminance rather than a contradictory chromatic lock.
 - Default prompt remains byte-identical. Source upload, model/resolution/ratio, price/quote validation, explicit generation, backend, private history, comparison and zoom remain untouched.
-- Publication and current-main regression results must be recorded after verification. No paid generation or real payment performed.
+- LIVE: PR #888 merged to 865708443a88fcdc7e0555426e8df817e9765f83; reviewed head f474eab432537393c768befd257ffb6ccbadf1e5. Exact Cloudflare project check 128220509080 succeeded.
+- The complete scoped review passed: All category unit tests, one Worker quote/idempotency integration, Studios menu and full Beauty browser suite. Evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42312800540.
+- Independent custom-domain check verified nine exact application/favicon asset hashes and actual guest interactions at 1440/390 including touch swipe. Production evidence: https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42313460601.
+- Screenshots for all five tabs were inspected in the scoped review. Live guest screenshots are separate from mocked accounts. No real signed-in provider output or payment was tested.
+- Shared work record alter-tabbed-editor updated; no publication action remains pending. Provider-output fidelity remains unverified without an explicitly authorized paid test.
 
 
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T23:28:36.397Z",
+  "updatedAt": "2026-11-06T23:41:57.239Z",
   "handoffs": [
     {
       "id": "owner",
@@ -941,130 +941,113 @@
     },
     {
       "id": "alter-tabbed-editor",
-      "title": "ALTER Studio tabbed editor",
+      "title": "ALTER Studio: three-row visual editor",
       "component": "ALTER Studio",
       "status": "deployed",
-      "summary": "Published and verified: 3-by-3 Edit Look choices, taller editor and photographs, arrow-free bidirectional wheel/trackpad/drag/swipe archive. Original background composition, mixed-case heading, favicon, defaults and backend retained.",
-      "nextAction": "No frontend publication remains pending. Pixel-quantized scroll settling also verified with zero idle animation callbacks. Provider output fidelity and actual signed-in paid generation remain untested; no paid request was performed.",
-      "baselineSha": "c714d7ec533da9807bb3f0f03e5c571463d2a4e4",
-      "reviewedSha": "7f7e5e6bfbd0dcedfc23fc524619463c9d0e0ff9",
-      "branch": "fix/alter-scroll-settle-20261106",
+      "summary": "Published follow-up preserves PR #887 three-row layout and native scrolling. 45 labelled controls match canonical instructions; Original uses the local source. Larger arrow-free photographic archive; original typography and favicon preserved.",
+      "nextAction": "No publication work pending. New provider output fidelity remains untested because no paid generation was authorized. Use current source and receipts; preserve backend, quotes, history and original imagery.",
+      "baselineSha": "c697605c2866abfaef3c19e2db3ee56611e7f13f",
+      "reviewedSha": "f474eab432537393c768befd257ffb6ccbadf1e5",
+      "branch": "fix/alter-three-row-controls-20261107",
       "files": [
-        "lab/beauty-approved-20261029.js",
-        "lab/beauty-editorial-final.css",
-        "lab/beauty-flow-refinement.css",
-        "lab/beauty-settings.js",
         "lab/beauty.html",
         "lab/beauty.js",
-        "lab/visuals/beauty/atelier",
+        "lab/beauty-settings.js",
+        "lab/beauty-approved-20261029.js",
+        "lab/beauty-look-catalog.js",
+        "lab/beauty-category-labels.css",
+        "lab/BEAUTY-WORK-STATE.md",
+        "tests/lab-beauty-ui.mjs",
         "tests/lab-beauty-atelier.test.mjs",
-        "tests/lab-beauty-ui.mjs"
+        "tests/lab-beauty-category-contract.test.mjs",
+        ".github/workflows/pv-lab-beauty.yml"
       ],
       "links": [
         {
-          "label": "Scoped handoff",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/blob/main/lab/BEAUTY-WORK-STATE.md"
+          "label": "PR #888",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/888"
         },
         {
-          "label": "Implementation PR #880",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/880"
+          "label": "Full isolated regression",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42312800540"
         },
         {
-          "label": "Current production evidence",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42310995580"
-        },
-        {
-          "label": "Refinement PR",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/889"
-        },
-        {
-          "label": "Current production evidence",
-          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311975833"
+          "label": "Production evidence",
+          "url": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42313460601"
         }
       ],
       "tests": [
         {
-          "label": "Focused local contracts",
+          "label": "Image / Beauty / category contracts",
           "result": "passed",
-          "scope": "13 Image/Beauty/ALTER checks and Worker quote/idempotency integration. Original hero/composition hashes, defaults and quote binding preserved.",
-          "observedAt": "2026-11-06T23:06:10Z"
+          "scope": "Scoped unit tests cover all 45 canonical labels/instructions, valid quotes, defaults, zero intensity and monochrome. Existing Worker portrait quote/idempotency integration also passed.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42312800540"
         },
         {
-          "label": "Isolated rendered interaction",
+          "label": "Full Beauty browser regression",
           "result": "passed",
-          "scope": "320/390/768/1024/1280/1366/1440/1920 px; no overflow/overlap; nine choices per tab, wheel directions. Not signed-in or HTTP navigation.",
-          "observedAt": "2026-11-06T23:06:10Z"
+          "scope": "Desktop 1920/1440/1366/1280/1024; mobile 390/320; all 45 options exercised independently at 1440/390. Guest isolation, exact credit quotes, one submit, stale/ambiguous jobs, historical source races, comparison, zoom and sign-out privacy preserved. Synthetic accounts and APIs only.",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42312800540"
         },
         {
-          "label": "Full intercepted browser regression",
+          "label": "Actual production guest UI",
           "result": "passed",
-          "scope": "Complete Beauty/Studios suite including native wheel in both directions, mouse drag and touch swipe, all 45 choices, no control overlap, quote safeguards, private History, comparison and zoom. All API calls intercepted; no paid generation.",
-          "observedAt": "2026-11-06T23:10:56.004Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42309882483"
-        },
-        {
-          "label": "Public production guest verification",
-          "result": "passed",
-          "scope": "1440px and 390px: all five tabs have nine choices in three rows, defaults/reset, stable Generate geometry, bidirectional wheel, keyboard reachability, original favicon, no horizontal overflow or Worker mutations. Source and all production asset hashes match.",
-          "observedAt": "2026-11-06T23:20:47.783Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42310995580"
-        },
-        {
-          "label": "Scroll-settling regression",
-          "result": "passed",
-          "scope": "14 focused Image/Beauty/ALTER contracts, including execution of the actual wheel function against integer and fractional scroll positions in both directions. Complete existing Beauty browser suite also passed.",
-          "observedAt": "2026-11-06T23:28:36.397Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311672012"
-        },
-        {
-          "label": "Public production guest verification",
-          "result": "passed",
-          "scope": "1440px and 390px: all five tabs have nine choices in three rows, defaults/reset, stable Generate geometry, bidirectional wheel, zero idle wheel-animation callbacks, keyboard reachability, original favicon, no horizontal overflow or Worker mutations. Source and all production asset hashes match.",
-          "observedAt": "2026-11-06T23:28:36.397Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311975833"
+          "scope": "1440 and 390: original defaults, five tabs/nine labelled choices, no arrows or page overflow, desktop wheel and actual mobile touch swipe, keyboard access to final card, private local-source Original thumbnails. Generation and signed-in actions not exercised.",
+          "observedAt": "2026-11-06T23:41:28.484Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42313460601"
         }
       ],
       "deployment": {
         "state": "verified",
-        "sourceSha": "a2d45d0793343a9575f4d83cbae0f912e37d2387",
+        "sourceSha": "865708443a88fcdc7e0555426e8df817e9765f83",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
-        "observedAt": "2026-11-06T23:28:36.397Z",
-        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/9c9130b3-bfe1-48db-9540-bd7f9a312460",
+        "observedAt": "2026-11-06T23:41:28.484Z",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/73d0e9da-f86a-4123-9ea5-56e40b752599",
         "limitations": [
-          "Public guest production behavior only. No real signed-in generation, provider fidelity or payment test.",
-          "Mobile viewport checked in Chromium, not physical iPhone Safari."
+          "Guest production behavior verified; real signed-in production generation not exercised.",
+          "Mocked role/billing/history tests are recorded separately.",
+          "No paid provider output generated; thumbnails are illustrative, not guaranteed output previews."
         ]
       },
       "evidence": [
         {
           "kind": "deployment",
-          "summary": "Exact merge Cloudflare Pages check 128215858001 passed.",
-          "scope": "Frontend publication, not signed-in provider testing.",
-          "observedAt": "2026-11-06T23:28:36.397Z",
-          "source": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/9c9130b3-bfe1-48db-9540-bd7f9a312460",
-          "limitations": [
-            "Public guest production behavior only. No real signed-in generation, provider fidelity or payment test.",
-            "Mobile viewport checked in Chromium, not physical iPhone Safari."
-          ]
+          "summary": "Exact-source Cloudflare Pages check 128220509080 succeeded.",
+          "scope": "Cloudflare application identity, project and reviewed merge SHA.",
+          "observedAt": "2026-11-06T23:41:28.484Z",
+          "source": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/73d0e9da-f86a-4123-9ea5-56e40b752599",
+          "limitations": []
         },
         {
           "kind": "production_asset",
-          "summary": "24 live assets match reviewed source. Original hero SHA256 ecaa0cb86a6af9cf1cf1975a2d3fe59a265ffe66085a1e1e0e6e52b2ecd38bb1; original composition CSS SHA256 8fb8d32b81006996a9667f5449d55f069b605eaaecfbd482c35a8508c83ef665.",
-          "scope": "Background unchanged and exact custom-domain publication.",
-          "observedAt": "2026-11-06T23:28:36.397Z",
-          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42311975833",
-          "limitations": []
+          "summary": "lab/beauty.html SHA256 75669121c744e8f59b0df2e8d52e4d8567e3127c7fb599e8615a6600d18ca3c9; lab/beauty.js SHA256 d07e1fc102ef2b459339ba8e2f210ecfe0934ce7b48583effa2a27312d0febeb; lab/beauty-settings.js SHA256 5d00a5ea064c6722acd1ec5b2c31e17d16951f5e27008309187511f5046f9775; lab/beauty-approved-20261029.js SHA256 51950bfef09eaad759acfe56df7dc2577ed8535e1f0c50ebe139e45ec6e6fbf6; lab/beauty-look-catalog.js SHA256 d2ed48a108dd5a3c6ba1d20a3a6adfe063ece85a925ba4ec53ee965df710089c; lab/beauty-category-labels.css SHA256 f6dc5b89c6782d4bc8807e140c885bef85b9e87dc4694508f439a0811b274f66; lab/beauty-editorial-final.css SHA256 8fb8d32b81006996a9667f5449d55f069b605eaaecfbd482c35a8508c83ef665; lab/beauty-flow-refinement.css SHA256 53015c526d1830e402342698dba85420774e0b9066e7708b92b18c5b785327cb; lab/branding/pv-mark.png SHA256 7ee2b3e84fee2e05ce3467b6492e5fe95226cf345064d2aba6a7e078751ae5e4",
+          "scope": "All nine live HTML/CSS/JS/favicon assets exactly match reviewed source bytes.",
+          "observedAt": "2026-11-06T23:41:28.484Z",
+          "source": "https://pvlab.studio/beauty",
+          "limitations": [
+            "Photographic examples are illustrative, not guaranteed generated output."
+          ]
+        },
+        {
+          "kind": "production_health",
+          "summary": "Independent guest browser verification at desktop and phone widths passed. Screenshot and JSON evidence saved in the linked run.",
+          "scope": "Public UI and local source interaction only; no live account generation or payments.",
+          "observedAt": "2026-11-06T23:41:28.484Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/42313460601",
+          "limitations": [
+            "Guest production behavior verified; real signed-in production generation not exercised.",
+            "Mocked role/billing/history tests are recorded separately.",
+            "No paid provider output generated; thumbnails are illustrative, not guaranteed output previews."
+          ]
         }
       ],
       "blockers": [],
       "doNotRepeat": [
-        "Do not substitute the previous stacked tiny-choice layout.",
-        "Do not modify hero.webp, its crop/fade rules or the mixed-case title.",
-        "Do not regenerate approved photos.",
-        "Do not restore archive navigation arrows or let browsing change selections.",
-        "Do not add providers or change billing."
+        "Do not rebuild the initial tabbed editor or change the mixed-case title, approved hero or PV LAB favicon.",
+        "No paid generations, automatic submissions or provider/pricing changes were made.",
+        "Do not represent illustrative thumbnails or mocked tests as verified provider result quality."
       ],
-      "updatedAt": "2026-11-06T23:28:36.397Z"
+      "updatedAt": "2026-11-06T23:41:57.239Z"
     },
     {
       "id": "shared-image-soul-deck",
