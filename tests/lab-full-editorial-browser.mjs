@@ -56,6 +56,27 @@ try{
   await page.locator('.editorial-hero-art img').evaluate(img=>img.decode().catch(()=>{}));
   await page.screenshot({path:'test-results/editorial/'+width+'-hero.png',fullPage:width===390});
   await page.locator('#editorial-start').click();
+  // A condensed display face is already heavy; do not artificially bold it
+  // while applying negative letter spacing that causes overlapping glyphs.
+  if(width>800){
+   const typography=await page.evaluate(()=>{
+    const info=selector=>{
+     const el=document.querySelector(selector),s=getComputedStyle(el);
+     const range=document.createRange();range.selectNodeContents(el);
+     return {weight:s.fontWeight,spacing:parseFloat(s.letterSpacing),
+      transform:s.transform,textWidth:range.getBoundingClientRect().width,
+      available:el.parentElement.getBoundingClientRect().width};
+    };
+    return {hero:info('#panel-model .stage-copy h2'),
+      composition:info('#editorial-composition-title')};
+   });
+   for(const [name,heading] of Object.entries(typography)){
+    assert.equal(heading.weight,'400',name+' uses natural display weight without fake 900');
+    assert.ok(heading.spacing>0,name+' keeps letters separated: '+JSON.stringify(heading));
+    assert.ok(heading.textWidth<=heading.available+2,name+' stays within its heading area: '+JSON.stringify(heading));
+   }
+   assert.match(typography.hero.transform,/matrix\(0\.9[, ]/,'Identity is not crushed to 84% width');
+  }
   assert.equal(await page.locator('#model-thumbs .editorial-model-card').count(),0,'Fresh casting opens without a selected model');
   assert.equal(await page.locator('#editorial-casting-controls').isVisible(),true,'Composition is visible before picking a model');
   assert.equal(await page.locator('#editorial-casting-controls').getAttribute('data-cast-state'),'empty');
@@ -489,6 +510,13 @@ try{
   });
   assert.ok(geometry.mainWidth>1500,'Desktop casting frame extends to reference margins: '+JSON.stringify(geometry));
   assert.equal(geometry.width,1680);
+  const titleFit=await page.evaluate(()=>{
+   const el=document.querySelector('#editorial-composition-title');
+   const r=document.createRange();r.selectNodeContents(el);
+   return {text:r.getBoundingClientRect().width,available:el.parentElement.getBoundingClientRect().width};
+  });
+  assert.ok(titleFit.text<=titleFit.available+2,
+   'COMPOSITION title stays legible at 1680px: '+JSON.stringify(titleFit));
   assert.ok(geometry.heroHeight>=248,'Wide desktop keeps portrait film hero');
   const heroCopy=await page.evaluate(()=>{
    const hero=document.querySelector('#panel-model .stage-visual').getBoundingClientRect();
