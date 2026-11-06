@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T21:45:21Z",
+  "updatedAt": "2026-11-06T21:49:45Z",
   "handoffs": [
     {
       "id": "owner",
@@ -69,7 +69,7 @@
       "title": "Group partner dashboards",
       "component": "Owner navigation",
       "status": "deployed",
-      "summary": "Robin / König Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
+      "summary": "Robin / K\u00f6nig Media, Vitolas Studio and Bellini Studios are inside the existing Partners disclosure, closed by default. Routes and authorization markers are preserved.",
       "nextAction": "No additional menu work is pending. Recheck only if navigation code, routes or role behavior change.",
       "baselineSha": "e400ff36ca7e6d541dfeb8d8748fc0357a0b6730",
       "reviewedSha": "9fc17771dd75bd3eeb4cd5bbdc77812945f98e1c",
@@ -216,7 +216,7 @@
       "component": "Owner workspace",
       "status": "deployed",
       "summary": "Published: clear View activity access to existing generated-content review, restored manual Customers Refresh and improved Recent purchases spacing. Approved simplified navigation and existing functions retained.",
-      "nextAction": "Use Customers → View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
+      "nextAction": "Use Customers \u2192 View activity for images/videos, prompts and costs. Continue from this verified source; compare relevant main changes before investigating again.",
       "baselineSha": "e2cd02bce742b157d12308b76908cbacea34b604",
       "reviewedSha": "01362b3073f7d997d98d7ebd2830ad586d244d77",
       "branch": "fix/owner-activity-access-20261106",
@@ -707,7 +707,7 @@
         },
         {
           "kind": "production_asset",
-          "summary": "Actual public Chrome Couture selection at 1363×936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
+          "summary": "Actual public Chrome Couture selection at 1363\u00d7936: prompt 13px / 133px high, deck 211px high, full-card gap 16.296875px, Generate bottom 891px. Sign in and original controls visible.",
           "scope": "Rendered public production layout after reload; no Generate click.",
           "source": "https://pvlab.studio/studio?tool=image",
           "observedAt": "2026-11-06T20:55:35.186Z",
@@ -728,10 +728,10 @@
       "title": "Minimal Video loading screen",
       "component": "Video waiting stage",
       "status": "needs_verification",
-      "summary": "Replaced the rejected floating-card, scanning and glow animation with one indeterminate 1px loading line, 18px real status heading and muted helper text on a flat dark stage. Removed decorative Motion Studio branding and duplicate spinner.",
-      "nextAction": "Publish the reviewed source and verify the Cloudflare Pages check plus exact production asset bytes.",
+      "summary": "PR #884 merged. Rejected floating cards, scans, glow, Motion Studio branding and equalizer replaced by one 1px indeterminate line with smaller real status text on flat dark. Production publication remains pending.",
+      "nextAction": "Continue the existing Cloudflare deployment, then run the read-only release verifier for 672e76dfb65b9d29dd1450bd51614285f66cbe52 and video-generation-cinema.css version 20261106-minimal-loading1. If superseded, confirm ancestry and identical assets; do not start a second deployment.",
       "baselineSha": "9919574d5d40044c04c739b7e7ed206245e5e68f",
-      "reviewedSha": "b0ddcf3abcabf1383d54a5f3995d83c6587ba35c",
+      "reviewedSha": "eed1d885468386ad20e1fa838f1608d4b35e1486",
       "branch": "fix/video-loading-minimal-20261106",
       "files": [
         "lab/studio.html",
@@ -759,14 +759,23 @@
           "label": "Relevant CI contracts",
           "result": "passed",
           "scope": "All four waiting-screen tests and all five approved Image contracts pass inside private-lab CI job 128165147722. Five unrelated broader-suite failures also occur on the baseline; gallery badge and Beauty auth failures match the baseline too."
+        },
+        {
+          "label": "Integration check",
+          "result": "passed",
+          "scope": "14 focused tests rerun after resolving only the shared work-record conflict with ac18e10. Application changes unchanged; GitHub tree matched the tested local merge exactly."
         }
       ],
       "deployment": {
         "state": "pending",
-        "sourceSha": null,
+        "sourceSha": "672e76dfb65b9d29dd1450bd51614285f66cbe52",
         "environment": "Cloudflare Pages pvlab-studio / pvlab.studio",
+        "observedAt": "2026-11-06T21:49:45Z",
+        "evidenceUrl": "https://dash.cloudflare.com/?to=/a40ce1725295563a7b7db9fc3160480a/pages/view/pvlab-studio/f4eaee96-ac94-4492-8475-40948b6b1e0e",
         "limitations": [
-          "Real signed-in job generation was not performed."
+          "Cloudflare app check 128170539921 remains in_progress; not confirmed live.",
+          "Later main 9401a465 contains the merge with identical studio.html and loading CSS; its Cloudflare build is also pending.",
+          "Phone/desktop rendering and real signed-in generation have not been verified. No paid generation was run."
         ]
       },
       "evidence": [
@@ -775,14 +784,35 @@
           "summary": "Presentation-only change. Job submission, paid generation, media, controls and History logic unchanged.",
           "scope": "Three-file application/test diff.",
           "limitations": []
+        },
+        {
+          "kind": "deployment",
+          "summary": "PR #884 merged to 672e76dfb65b9d29dd1450bd51614285f66cbe52. Exact-source Cloudflare check remains in_progress.",
+          "scope": "Source merge confirmed; publication pending.",
+          "observedAt": "2026-11-06T21:49:45Z",
+          "source": "https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/884",
+          "limitations": [
+            "A merge is not deployment evidence."
+          ]
+        },
+        {
+          "kind": "production_asset",
+          "summary": "Browser reload still linked video-generation-cinema.css?v=20261101-motion-film2 and contained three old pv-motion-frame elements.",
+          "scope": "Guest production DOM on /studio?tool=video.",
+          "observedAt": "2026-11-06T21:49:45Z",
+          "limitations": [
+            "This confirms the old markup was still served at the check; it does not verify the replacement."
+          ]
         }
       ],
-      "blockers": [],
+      "blockers": [
+        "Normal Cloudflare publication is still pending."
+      ],
       "doNotRepeat": [
         "Do not restore floating cards, scan effects, glow, decorative labels or equalizer bars.",
         "Do not spend credits to test this presentation change."
       ],
-      "updatedAt": "2026-11-06T21:39:00Z"
+      "updatedAt": "2026-11-06T21:49:45Z"
     },
     {
       "id": "mood-atlas-stable-flow",
